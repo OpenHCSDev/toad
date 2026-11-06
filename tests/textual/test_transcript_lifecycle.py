@@ -40,7 +40,7 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert coverage and coverage[-1].events == page.events
         assert isinstance(history.state, LiveTranscript)
         assert history.state.can_draw
-        assert history.state.reports_coverage
+        assert history.state.coverage.retained_through(history)
 
         entered, release = asyncio.Event(), asyncio.Event()
 
@@ -53,7 +53,7 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         operation.schedule(history, pending_source_read)
         await entered.wait()
         assert history.state.can_draw
-        assert history.state.reports_coverage
+        assert history.state.coverage.retained_through(history)
         assert not history.state.accepts_source_work
         history.window.action_scroll_end()
         # A parked tab cancels its running operation and the pending End.
@@ -86,7 +86,7 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         await history.retire_source()
         await ui.until(lambda: not history.state.accepts_source_work, why="source work refused after retirement")
         assert not history.state.can_draw
-        assert not history.state.reports_coverage
+        assert not history.state.coverage.retained_through(history)
         # remove() marks the node before its Prune message is processed; publication is refused in between.
         removal = history.remove()
         assert not history.state.can_draw

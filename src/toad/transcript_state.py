@@ -11,6 +11,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
 
+from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
 
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     can_draw: ClassVar[bool] = False
-    reports_coverage: ClassVar[bool] = False
+    coverage: ClassVar[HistoryCoverage] = NO_COVERAGE
     accepts_source_work: ClassVar[bool] = False
 
     def source_ready(self, owner: TranscriptSourcePreparation) -> bool:
@@ -128,7 +129,7 @@ class ProvisionalTranscript(TranscriptState):
 
 class LiveTranscript(TranscriptState):
     can_draw = True
-    reports_coverage = True
+    coverage: ClassVar[HistoryCoverage] = PAGE_COVERAGE
     accepts_source_work = True
 
     def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
@@ -165,7 +166,7 @@ class UnboundTranscript(ProvisionalTranscript):
 class UnreadTranscript(ProvisionalTranscript, LiveTranscript):
     """Accept first-page work without claiming saved coverage before publication."""
 
-    reports_coverage = False
+    coverage = NO_COVERAGE
 
     def mounted(self, owner: LineHistory) -> None:
         owner.call_after_refresh(owner.load_initial_page)
@@ -185,8 +186,8 @@ class SuspendedTranscript(TranscriptState):
         return False
 
     @property
-    def reports_coverage(self) -> bool:
-        return self.source.reports_coverage
+    def coverage(self) -> HistoryCoverage:
+        return self.source.coverage
 
     def publish(self) -> TranscriptState:
         return self.source.publish()
@@ -473,7 +474,7 @@ class RetiredProjectionTranscript(SuspendedTranscript):
 class RetiredSourceTranscript(SuspendedTranscript):
     """A departing pager no longer publishes or owns source coverage."""
 
-    reports_coverage = False
+    coverage = NO_COVERAGE
 
     @classmethod
     def successors(cls):
@@ -486,7 +487,7 @@ class RetiredSourceTranscript(SuspendedTranscript):
 class ParkedSourceTranscript(SuspendedTranscript):
     """A mounted warm pager remains inert until its native source is checked."""
 
-    reports_coverage = False
+    coverage = NO_COVERAGE
 
     @classmethod
     def successors(cls):

@@ -22,7 +22,7 @@ async def test_equal_answers_are_each_drawn_once_before_and_after_reconnect(work
             page = await view.transcript.get_transcript_page()
             await ui.until(lambda: not view.window.history_lock.locked() and any(
                 history.page_source.through == page.after for history in view.window.histories
-                if history.is_attached and history.state.reports_coverage), seconds=20,
+                if history.is_attached and history.state.coverage.retained_through(history)), seconds=20,
                 why="saved history up to the end of the session file")
             await ui.until(lambda: ui.painted(view.window).count(BODY) == expected, seconds=10,
                            why=f"{expected} drawn answer(s)")

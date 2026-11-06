@@ -51,7 +51,6 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         assert not old.accepts_commit(page.after)
         view.window.anchor()
         view.prompt.focus()
-        view.transcript.dirty = view.transcript.commit_required = True
         publication = view.transcript.binding.capture(view.transcript, CommitPublication)
         assert publication.current()
         task = asyncio.create_task(publication.publish())

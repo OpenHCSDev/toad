@@ -125,7 +125,7 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         page = await view.transcript.get_transcript_page()
         await ui.until(lambda: not view.window.history_lock.locked() and any(
             history.page_source.through == page.after for history in view.window.histories
-            if history.is_attached and history.state.reports_coverage), seconds=20,
+            if history.is_attached and history.state.coverage.retained_through(history)), seconds=20,
             why="saved history through the original completed queue turn")
         await ui.until(lambda: answered(native, "NATIVE_RESPONSE_2"), seconds=20, why="the answer from saved history")
         assert view.contents.query(TranscriptHistory)

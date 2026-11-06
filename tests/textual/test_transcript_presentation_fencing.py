@@ -2,13 +2,16 @@
 
 from agent_comms.repo import Checkout
 import asyncio
+import os
 from contextlib import asynccontextmanager
 import pytest
 
 from support.journals import assistant_entry, write_journal
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.threads import NativeThread
-from toad.transcript_publication import CommitPublication, TranscriptPublication
+from toad.transcript_publication import (
+    CLEAN_PUBLICATION, COMMIT_DEMAND, CommitPublication, TranscriptPublication,
+)
 from toad.widgets.agent_response import AgentResponse
 
 
@@ -140,7 +143,6 @@ async def test_a_certified_read_that_expired_acquires_no_application(workspace):
         view = ui.conversation
         await ui.until_shows("Certified source")
         await view.transcript.suspend()
-        view.transcript.dirty = view.transcript.commit_required = True
         original = view.transcript.binding.history
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(HeldSourceCase, entered, release))
@@ -211,7 +213,6 @@ async def test_known_source_gap_blocks_read_acknowledgement_until_painted(worksp
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry(
                 "AFTER_SOURCE_GAP", id="after", parent="before")) + "\n")
-        view.transcript.dirty = view.transcript.commit_required = True
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(HeldSourceCase, entered, release))
         try:
@@ -261,7 +262,6 @@ async def test_closed_same_source_commit_acquires_complete_coverage(workspace, f
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry(
                 "CLOSED_PREFIX_SUCCESSOR", id="after", parent="before")) + "\n")
-        view.transcript.dirty = view.transcript.commit_required = True
         await view.transcript.publish(CommitPublication)
         if following:
             await ui.until_shows("CLOSED_PREFIX_SUCCESSOR")
@@ -296,10 +296,12 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
         original_snapshot = history.pages[0].prepared.page.snapshot
         if not following:
             view.window.release_anchor()
-        # Reuse the path, but replace its native bytes with a longer record.
-        # Filename/offset containment alone cannot witness this old prefix.
-        write_journal(journal, assistant_entry(
+        # Reuse the path with a longer record. Producers only append, so a
+        # replacement arrives as a new file renamed over the old one; the
+        # cursor's path/offset still "contains" the old one, the file does not.
+        write_journal(replacement_file := journal.with_suffix(".new"), assistant_entry(
             "REPLACEMENT_SOURCE_ROW " * 80, id="new"))
+        os.replace(replacement_file, journal)
 
         replacement = await asyncio.to_thread(
             lambda: workspace.comms.transcripts.capture_page_read("rewritten-source").read())
@@ -307,7 +309,6 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
         # snapshot owns prefix certification; stale offsets can land inside JSON.
         assert not original_snapshot.contains_records_cut(replacement.snapshot)
         assert replacement.after.contains(original)
-        view.transcript.dirty = view.transcript.commit_required = True
         await view.transcript.publish(CommitPublication)
         await ui.until_shows("REPLACEMENT_SOURCE_ROW")
         assert "SUPERSEDED_SOURCE_ROW" not in ui.painted(view.window)
@@ -342,10 +343,10 @@ async def test_prune_pressure_counts_live_blocks_not_saved_history(workspace, pr
         assert view.contents.virtual_size.height > threshold
         ui.app.saved_settings.set(SETTINGS.ui.prune_low_mark, threshold)
         ui.app.saved_settings.set(SETTINGS.ui.prune_excess, 0)
-        view.transcript.dirty = view.transcript.commit_required = False
+        view.transcript.demand = CLEAN_PUBLICATION
         view._require_check_prune = True
         await view.check_prune()
-        assert view.transcript.commit_required is pressure
+        assert (view.transcript.demand is COMMIT_DEMAND) is pressure
         assert ui.failure() is None
 
 
