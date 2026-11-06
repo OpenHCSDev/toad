@@ -72,7 +72,7 @@ class KeymapRow:
 
     @property
     def binding_id(self) -> str:
-        return KeyInvocation.in_mode(self.declaration, self.mode().binding_mode)
+        return KeyInvocation.in_mode(self.declaration, self.mode.binding_mode())
 
 
 @dataclass(frozen=True)
@@ -124,7 +124,7 @@ class KeymapCatalog:
         scopes: dict[type[KeyMode], tuple[tuple[KeymapClaim, ...], ...]] = {}
         keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
         for mode in modes:
-            native_mode = mode().binding_mode
+            native_mode = mode.binding_mode()
             application = tuple(KeymapClaim.from_bindings(
                 binding for declaration in actions
                 for binding in declaration.exclusive_bindings(native_mode)

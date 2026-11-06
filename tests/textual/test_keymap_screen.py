@@ -22,8 +22,8 @@ class CallCounter(ProfileKeys, Static, can_focus=True):
         self.update(str(self.count))
 
     MODE_BINDINGS = (
-        ModeBinding("f8", increment, "Increment", mode=Standard().binding_mode),
-        ModeBinding("f9", increment, "Increment", mode=Standard().binding_mode),
+        ModeBinding("f8", increment, "Increment", mode=Standard.binding_mode()),
+        ModeBinding("f9", increment, "Increment", mode=Standard.binding_mode()),
     )
 
 
@@ -53,7 +53,7 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         await choose(ui, KeymapAction(), mode)
         app.screen.query_one(KeymapKeys).value = "f18"
         await ui.pilot.click(KeymapApply)
-        await ui.until(lambda: KeymapAction.binding_id(mode().binding_mode) in app._keymap,
+        await ui.until(lambda: KeymapAction.binding_id(mode.binding_mode()) in app._keymap,
                        why="the saved menu remap")
         document = app.saved_settings.document()
         assert SavedSettings(document).current.ui.keymap == app.settings.ui.keymap

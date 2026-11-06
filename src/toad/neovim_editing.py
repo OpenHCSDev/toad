@@ -1184,9 +1184,11 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     def cursor_shape(self) -> CursorShape:
         return self.snapshot.state.cursor_shape
 
-    @property
-    def binding_mode(self) -> type[EditingMode]:
-        return type(self)
+    @classmethod
+    def binding_mode(cls) -> type[EditingMode]:
+        """Neovim's bindings are declared under its own class (EditingMode's classmethod
+        contract: DOMNode asks the mode class, never an instance)."""
+        return cls
 
     @cached_property
     def _started(self) -> asyncio.Task[None]:
