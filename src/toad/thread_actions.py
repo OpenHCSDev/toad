@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.cli_command import TargetAction, TargetEdit
-from agent_comms.tools import CommsPrepareTargetActionTool, CommsTargetEditTool
+from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool, CommsTargetEditTool
 from agent_comms.cli_failures import CLI_FAILURES
 from agent_comms.cli_result import CliResult
 from agent_comms.errors import RouteChangedError

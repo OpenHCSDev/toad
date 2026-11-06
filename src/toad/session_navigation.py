@@ -7,7 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from agent_comms.tools import CommsRetiredViewsTool
+from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, cast
 
@@ -38,7 +38,7 @@ from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
 from toad.db import SessionMeta
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
-from agent_comms.cli_verbs.new import NewThreadCliCommand
+from agent_comms.cli_command import CreatesThread
 from agent_comms.channel_targets import ProjectTarget
 from toad.screens.main import MainScreen
 
@@ -387,7 +387,7 @@ class SessionNavigation(StartsSessions):
             ctx = TargetContext(app, app.coordination_access.observation.observed(),
                                 ProjectTarget(project), "", project, mode)
             definition = next(action for action in ctx.available_actions()
-                              if action.declaration is NewThreadCliCommand)
+                              if issubclass(action.declaration, CreatesThread))
             return partial(ThreadAction.collect, ctx, definition)
 
         open_form = await app.preparation.run_thread(prepare)

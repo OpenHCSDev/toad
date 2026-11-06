@@ -23,7 +23,7 @@ from agent_comms.ui_model.sidebar import ChannelRowModel
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
 from agent_comms.display_order import ThreadSort
-from agent_comms.tools import CommsSortChannelTool
+from agent_comms.transport.tools.sidebar import CommsSortChannelTool
 from textual.geometry import Offset, Region
 from textual.widget import Widget
 from textual.reactive import reactive
