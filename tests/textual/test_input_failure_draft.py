@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from acp.exceptions import RequestError
 
-from agent_comms.acp_extension import InputFailedUpdate, QueuePromptRequest, RequestFailedUpdate, encode_updates
+from agent_comms.acp_extension import InputFailedUpdate, RequestFailedUpdate, encode_updates
 from agent_comms.acp_failure import BackendDeliveryFailure
 
 from support.agents import deliver
@@ -36,8 +36,7 @@ async def test_a_prompt_whose_request_fails_is_restored_to_the_composer(workspac
             ui.attach_agent(receiver)
             await ui.write_draft("")
             with patch.object(receiver.process, "prompt", side_effect=error):
-                await receiver.controller.submit_blocks(
-                    [{"type": "text", "text": "rpc prompt"}], QueuePromptRequest("rpc prompt"))
+                await receiver.controller.submit("rpc prompt")
             await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
             if isinstance(error, ConnectionError):
                 failure = receiver.session.disposition.failure
@@ -66,8 +65,7 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
         await ui.write_draft("")
         with patch.object(receiver.process, "prompt",
                           side_effect=RequestError.internal_error({"details": "WebSocket error"})):
-            await receiver.controller.submit_blocks(
-                [{"type": "text", "text": "rpc prompt"}], QueuePromptRequest("rpc prompt"))
+            await receiver.controller.submit("rpc prompt")
         await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
         await deliver(receiver, {
             "sessionUpdate": "session_info_update",

@@ -39,5 +39,5 @@ if __name__ == "__main__":
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()
-    run_terminal(ObservedApp(project_dir=Checkout(sys.argv[1]), connection=LocalCoreConnection.from_launch(launch_root),
+    run_terminal(ObservedApp(project_dir=Checkout(Path(sys.argv[1])), connection=LocalCoreConnection.from_launch(launch_root),
                              agent_binding=AgentAttached(peer("echo"))))
