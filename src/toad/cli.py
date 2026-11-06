@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import click
 
+from agent_comms import launch_root
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached, AgentBinding, NoAgent
@@ -108,6 +109,7 @@ class AcpCommand(click.Command):
 @click.pass_context
 def main(ctx, version):
     """🐸 Toad — AI for your terminal."""
+    launch_root.started()
     if version:
         from toad import get_version
 

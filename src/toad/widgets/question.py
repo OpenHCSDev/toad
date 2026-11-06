@@ -10,7 +10,6 @@ from textual.content import Content
 from textual.css.native import DeclaresTheme, Keyword, NativeDeclaration, NativeStyleResolver, Percent, TextVariable, Variable
 from textual.css.styles import Styles
 from textual.message import Message
-from textual.navigation import MovesCursor
 from textual.reactive import reactive, var
 from textual.widget import Widget
 from textual.screen import Screen
@@ -32,7 +31,7 @@ from toad.native_style import (
 from toad.tone_paint import UntintedTonePaint
 from toad.question_actions import QuestionAction, QuestionContext, SelectKindAction
 from toad.question_presentation import QuestionPresentation
-from toad.widget_actions import VisibleActions
+from toad.widget_actions import StepsVerticalCursor, VisibleActions
 
 type Options = list[Answer]
 
@@ -215,7 +214,7 @@ class QuestionOptions(containers.VerticalGroup):
     """The question's answers, in order."""
 
 
-class Question(VisibleActions, MovesCursor, QuestionContext, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
+class Question(VisibleActions, StepsVerticalCursor, QuestionContext, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
     """A text question with a menu of responses."""
 
     BINDING_GROUP_TITLE = "Question"
@@ -327,13 +326,9 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
     def accepts_navigation(self) -> bool:
         return self.accepts_selection
 
-    def action_cursor_up(self) -> None:
+    def step_vertical(self, direction: int) -> None:
         self._reset_blink()
-        self.selection = max(0, self.selection - 1)
-
-    def action_cursor_down(self) -> None:
-        self._reset_blink()
-        self.selection = min(len(self.options) - 1, self.selection + 1)
+        self.selection = max(0, min(len(self.options) - 1, self.selection + direction))
 
     def watch_selection(self) -> None:
         self.presentation.mount.restyle()

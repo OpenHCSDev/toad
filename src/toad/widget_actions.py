@@ -17,7 +17,7 @@ from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.keys import DeclaredKey, KeyDeclaration, KeyDeclarationType, UndecodedKey
-from textual.navigation import SelectCursor
+from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
 from textual.widgets.text_area import EditingMode
 from textual.dom import DOMNode
 from toad.app_node import ToadNode
@@ -355,43 +355,6 @@ class DismissAction(ReplacesFrameworkAction, VisibleAction):
         context.dismiss_control()
 
 
-class CursorAction(VisibleAction, declared_name=None):
-    """Select along the widget's cursor axis."""
-
-    group = Binding.Group("Select")
-    direction: ClassVar[Literal[-1, 1]]
-
-
-class HorizontalCursorAction(CursorAction, declared_name=None):
-    async def apply(self, context: MovesHorizontalCursor) -> None:
-        context.cursor_horizontal(self.direction)
-
-
-class CursorLeftAction(HorizontalCursorAction):
-    keys = {EditingMode: ("left",)}
-    direction = -1
-
-
-class CursorRightAction(HorizontalCursorAction):
-    keys = {EditingMode: ("right",)}
-    direction = +1
-
-
-class VerticalCursorAction(CursorAction, declared_name=None):
-    async def apply(self, context: MovesVerticalCursor) -> None:
-        context.cursor_vertical(self.direction)
-
-
-class CursorUpAction(VerticalCursorAction):
-    keys = {EditingMode: ("up",)}
-    direction = -1
-
-
-class CursorDownAction(VerticalCursorAction):
-    keys = {EditingMode: ("down",)}
-    direction = +1
-
-
 class SubmitAction(VisibleAction):
     keys = {EditingMode: ("enter",)}
 
@@ -490,14 +453,30 @@ class DismissibleControl(Dismisses):
         """Close this control without imposing a native screen result contract."""
 
 
-class MovesHorizontalCursor(DeclaredWidgetActions, actions=(HorizontalCursorAction,)):
+class StepsHorizontalCursor(MovesHorizontalCursor):
+    """Left and Right step the horizontal cursor by -1 and +1; the widget says what a step is."""
+
     @abstractmethod
-    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None: ...
+    def step_horizontal(self, direction: Literal[-1, 1]) -> None: ...
+
+    def action_cursor_left(self) -> None:
+        self.step_horizontal(-1)
+
+    def action_cursor_right(self) -> None:
+        self.step_horizontal(+1)
 
 
-class MovesVerticalCursor(DeclaredWidgetActions, actions=(VerticalCursorAction,)):
+class StepsVerticalCursor(MovesCursor):
+    """Up and Down step the vertical cursor by -1 and +1; the widget says what a step is."""
+
     @abstractmethod
-    def cursor_vertical(self, direction: Literal[-1, 1]) -> None: ...
+    def step_vertical(self, direction: Literal[-1, 1]) -> None: ...
+
+    def action_cursor_up(self) -> None:
+        self.step_vertical(-1)
+
+    def action_cursor_down(self) -> None:
+        self.step_vertical(+1)
 
 
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):

@@ -9,7 +9,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.worker_group import WorkerGroup
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, MovesHorizontalCursor, MovesVerticalCursor
+from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, StepsHorizontalCursor, StepsVerticalCursor, VisibleActions
 from textual.document._editing import EditingMode
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
@@ -535,7 +535,8 @@ class SidebarSlider(
     OneRow,
     FillWidth,
     PointerCursor,
-    MovesHorizontalCursor,
+    VisibleActions,
+    StepsHorizontalCursor,
     CapturedDrag,
     ColourSelection,
     widgets.Static,
@@ -591,7 +592,7 @@ class SidebarSlider(
             self.refresh()
             self.post_message(self.Changed(self, value))
 
-    def cursor_horizontal(self, direction: int) -> None:
+    def step_horizontal(self, direction: int) -> None:
         if self.reversed:
             direction = -direction
         value = max(self.minimum, min(self.maximum, self.value + direction))
@@ -654,8 +655,9 @@ class SidebarAction(
 
 class SidebarResizeHandle(
     NoPadding,
-    MovesHorizontalCursor,
-    MovesVerticalCursor,
+    VisibleActions,
+    StepsHorizontalCursor,
+    StepsVerticalCursor,
     CapturedDrag,
     ColourSelection,
     widgets.Static,
@@ -695,10 +697,10 @@ class SidebarResizeHandle(
         placement = bar.placement
         bar.resize_to(placement.extent_percent + placement.side.sign * placement.side.coordinate(direction))
 
-    def cursor_horizontal(self, direction: int) -> None:
+    def step_horizontal(self, direction: int) -> None:
         self.resize_by(Offset(direction, 0))
 
-    def cursor_vertical(self, direction: int) -> None:
+    def step_vertical(self, direction: int) -> None:
         self.resize_by(Offset(0, direction))
 
     def drag_start(self, event: events.MouseDown) -> None:
@@ -711,7 +713,8 @@ class SidebarResizeHandle(
 
 class BandSplitHandle(
     NoPadding,
-    MovesHorizontalCursor,
+    VisibleActions,
+    StepsHorizontalCursor,
     CapturedDrag,
     ColourSelection,
     widgets.Static,
@@ -758,7 +761,7 @@ class BandSplitHandle(
         delta = position.x - self._start_point.x
         self.split_to(self._start_percent + round(100 * delta / max(1, self._drag_width)))
 
-    def cursor_horizontal(self, direction: int) -> None:
+    def step_horizontal(self, direction: int) -> None:
         self.split_to(self.drawn_percent + direction)
 
 

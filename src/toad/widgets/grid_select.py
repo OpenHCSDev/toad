@@ -13,7 +13,7 @@ from textual.widget import Widget
 from textual.navigation import MovesCursor
 from ui_theme.scheme import PanelColour, PrimaryColour
 
-from toad.widget_actions import MovesHorizontalCursor, Selects, VisibleActions
+from toad.widget_actions import Selects, StepsHorizontalCursor, VisibleActions
 
 
 class GridCellLook(DeclaresTheme):
@@ -40,7 +40,7 @@ class GridCell(Widget):
 class GridSelect(
     VisibleActions,
     MovesCursor,
-    MovesHorizontalCursor,
+    StepsHorizontalCursor,
     Selects,
     containers.ItemGrid,
     can_focus=True,
@@ -169,7 +169,7 @@ class GridSelect(
             case _:
                 self.post_message(leave(self))
 
-    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None:
+    def step_horizontal(self, direction: Literal[-1, 1]) -> None:
         match self.highlighted:
             case None:
                 self.highlighted = 0

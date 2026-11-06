@@ -32,8 +32,8 @@ from agent_comms.ui_model.unread import UnobservedUnread
 from toad.widget_actions import Activates
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
-from textual.navigation import CursorCommand, MovesCursor, MovesHorizontalCursor
-from toad.widget_actions import HiddenActions, VisibleActions
+from textual.navigation import CursorCommand, MovesHorizontalCursor
+from toad.widget_actions import HiddenActions, StepsVerticalCursor, VisibleActions
 from textual.containers import Vertical, VerticalGroup
 from textual import events
 from textual._activation import CallbackTarget
@@ -846,7 +846,7 @@ class SearchFollower:
                 group.sync_members(frozenset(group.member_keys))
 
 
-class TargetTree(HiddenActions, VisibleActions, MovesCursor, MovesHorizontalCursor, Vertical,
+class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizontalCursor, Vertical,
                  scopes={HiddenActions: (CursorCommand,)}):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
@@ -1021,12 +1021,6 @@ class TargetTree(HiddenActions, VisibleActions, MovesCursor, MovesHorizontalCurs
             row for group in self.navigation_groups for row in group.navigation_rows
         ]
 
-    def action_cursor_up(self) -> None:
-        self.move_cursor(-1)
-
-    def action_cursor_down(self) -> None:
-        self.move_cursor(1)
-
     def action_cursor_right(self) -> None:
         """Right expands the focused header's members, as in any tree."""
         if (row := self.app.focused) in self.rows:
@@ -1037,7 +1031,7 @@ class TargetTree(HiddenActions, VisibleActions, MovesCursor, MovesHorizontalCurs
         if (row := self.app.focused) in self.rows:
             row.expand_members(False)
 
-    def move_cursor(self, direction: int) -> None:
+    def step_vertical(self, direction: int) -> None:
         rows = self.rows
         if rows:
             focused = self.app.focused

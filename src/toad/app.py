@@ -93,7 +93,8 @@ def get_store_screen() -> StoreScreen:
 class HeapBeforeFreeze:
     """The heap is not frozen yet; the first painted history freezes it.
 
-    The one freeze point: by then the modules, classes, type caches, the
+    launch_root.started() froze the import graph at entry and freezes again at
+    exit; this is the freeze in between: by then the modules, classes, type caches, the
     workspace and the first tab's history exist and mostly live as long as the
     process, so the cyclic collector stops scanning them (Python 3.14 scans the
     whole live heap periodically: ~70,000 objects took 12-18 ms, inside
