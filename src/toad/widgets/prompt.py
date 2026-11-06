@@ -22,6 +22,7 @@ from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
+from textual.widget import Widget
 from textual.widgets.text_area import EditingMode, VimMode
 from toad.neovim_editing import NeovimUpdated
 from textual.document._editing import EditingFailure
@@ -987,11 +988,13 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.prompt_text_area.editing_mode.enter_text(self.prompt_text_area)
         self.query_ancestor(Conversation).focus_prompt()
 
+    @property
+    def typing_target(self) -> Widget:
+        """The control typed text belongs to: an open question, else the editor."""
+        return self.question if self._ask is not None else self.prompt_text_area
+
     def focus(self, scroll_visible: bool = True) -> Self:
-        if self._ask is not None:
-            self.question.focus(scroll_visible=scroll_visible)
-        else:
-            self.prompt_text_area.focus(scroll_visible=scroll_visible)
+        self.typing_target.focus(scroll_visible=scroll_visible)
         return self
 
     def append(self, text: str) -> None:

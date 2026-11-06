@@ -464,6 +464,22 @@ This is a view of your conversation with the agent.
         if self.is_attached:
             self.query_ancestor(Conversation).refresh_bindings()
 
+    @on(events.Key)
+    def hand_typing_to_the_prompt(self, event: events.Key) -> None:
+        """Typing in the window is typing in the prompt. A key the window received after
+        focus left it belongs where focus went, so a burst arrives whole and in order."""
+        conversation = self.query_ancestor(Conversation)
+        if self.has_focus:
+            if not conversation.starts_typing(event):
+                return
+            conversation.start_typing()
+        focused = self.screen.focused
+        if focused is None or self in focused.ancestors_with_self:
+            return
+        event.stop()
+        event.prevent_default()
+        focused.post_message(events.Key(event.key, event.character))
+
     @on(JumpToLatest.Requested)
     def on_back_to_bottom(self, event: JumpToLatest.Requested) -> None:
         event.stop()
@@ -1033,18 +1049,18 @@ class Conversation(
         for prompt in self.query(Prompt):
             prompt.sync_session()
 
-    @on(events.Key)
-    async def on_key(self, event: events.Key) -> None:
-        if self.prompt.prompt_text_area.editing_mode.modal:
-            return
-        if (
-            event.character is not None
+    def starts_typing(self, event: events.Key) -> bool:
+        """A key typed in the window that starts a prompt."""
+        return (
+            not self.prompt.prompt_text_area.editing_mode.modal
+            and event.character is not None
             and event.is_printable
             and (event.character.isalnum() or event.character in "$/!")
-            and self.window.has_focus
-        ):
-            self.prompt.focus()
-            self.prompt.prompt_text_area.post_message(event)
+        )
+
+    def start_typing(self) -> None:
+        """Focus moves now, not after the queued keys: the rest of a burst follows it."""
+        self.screen.set_focus(self.prompt.typing_target, scroll_visible=False)
 
     def retire_loading_splash(self) -> None:
         """The composed splash is consumed once when saved history paints or fails."""

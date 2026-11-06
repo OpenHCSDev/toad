@@ -42,8 +42,6 @@ if TYPE_CHECKING:
     from toad.widgets.side_bar import SideBar
 
     from toad.agent_schema import AgentDefinition
-    from toad.app import ToadApp
-    from toad.application_actions import NewThreadAction
     from toad.comms_root import CoordinationAccess
     from toad.conversation_kind import DmConversation
     from toad.core.input_events import UserInputSubmitted
@@ -430,6 +428,18 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
         return default
 
 
+class StartsSessions(metaclass=AbstractHooksMeta):
+    """What a launch's New Session needs from the application it starts in."""
+
+    @abstractmethod
+    def open_thread_form(self, project: Checkout) -> None:
+        """The native thread form, for a launch with no attached agent."""
+
+    @abstractmethod
+    async def start_agent_session(self, binding: AgentAttached, project: Checkout) -> None:
+        """A new session of the agent this launch attached: saved, then opened."""
+
+
 class AgentBinding(ABC):
     """Known native launch state carries construction and attachment behavior."""
 
@@ -460,9 +470,7 @@ class AgentBinding(ABC):
         return empty
 
     @abstractmethod
-    async def start_session(
-        self, app: ToadApp, project: Checkout, new_thread: NewThreadAction
-    ) -> None:
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
         """New Session in this launch: a native thread form, or the attached agent's session."""
 
 
@@ -489,10 +497,8 @@ class NoAgent(AgentBinding):
     ) -> bool:
         return False
 
-    async def start_session(
-        self, app: ToadApp, project: Checkout, new_thread: NewThreadAction
-    ) -> None:
-        new_thread.open_form(app, project)
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
+        app.open_thread_form(project)
 
 
 @dataclass(frozen=True)
@@ -523,10 +529,8 @@ class AgentAttached(AgentBinding):
             origin, session_id
         )
 
-    async def start_session(
-        self, app: ToadApp, project: Checkout, new_thread: NewThreadAction
-    ) -> None:
-        await app.session_navigation.start_attached(AgentAttached(self.agent), project)
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
+        await app.start_agent_session(self, project)
 
     def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
         return origin.presentation.operational_binding.matches_session(
@@ -543,6 +547,10 @@ class AgentSession(AgentAttached):
     def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
         conversation._agent_session_id = self.session_id
         super().attach_to(origin, conversation)
+
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
+        """A new session, not this one again."""
+        await AgentAttached(self.agent).start_session(app, project)
 
     def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
         return super().make_conversation(

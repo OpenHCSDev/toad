@@ -24,7 +24,6 @@ from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from toad.core.session_requests import SessionNavigate
 from toad.sidebar_placement import LeftSidebarEdge, RightSidebarEdge, SidebarEdge
-from agent_comms.errors import RelationViolationError
 from agent_comms.cli_verbs.new import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
 from agent_comms.repo import Checkout
@@ -38,19 +37,8 @@ class NewThreadAction(ApplicationAction):
     """Start a thread in the selected project."""
 
     async def apply(self, app: ToadApp) -> None:
-        try:
-            project = app.workspace_sessions.origin(app.selected_mode).require().project_path
-        except RelationViolationError:
-            project = app.project_dir
-        await app.agent_binding.start_session(app, project, self)
-
-    def open_form(self, app: ToadApp, project: Checkout) -> None:
-        """The native thread form, for a launch with no attached agent."""
-        app.run_worker(
-            partial(self.collect, app, app.selected_mode, project),
-            group="new-session",
-            exclusive=True,
-        )
+        navigation = app.session_navigation
+        navigation.open_thread_form(navigation.selected_project())
 
     async def collect(self, app: ToadApp, mode: str, project: Checkout):
         def prepare():

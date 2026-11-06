@@ -31,11 +31,12 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.session_scope import AgentAttached, AgentBinding, AgentSession, ProjectSessionOrigin, SessionScope
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession, ProjectSessionOrigin, SessionScope, StartsSessions
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
 from toad.db import SessionMeta
+from toad.application_actions import NewThreadAction
 from toad.screens.main import MainScreen
 
 if TYPE_CHECKING:
@@ -54,7 +55,7 @@ class Detached:
     returning_view: SessionScope | None
 
 
-class SessionNavigation:
+class SessionNavigation(StartsSessions):
     def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.events = CoreEventStream(self)
@@ -359,8 +360,23 @@ class SessionNavigation:
             title=title or "New Session",
         )
 
-    async def start_attached(self, binding: AgentAttached, project: Checkout) -> None:
-        """A new session of the agent this launch attached: saved, then opened."""
+    def selected_project(self) -> Checkout:
+        """The selected tab's project, or the launch's when no tab holds one."""
+        app = self.app
+        try:
+            return app.workspace_sessions.origin(app.selected_mode).require().project_path
+        except RelationViolationError:
+            return app.project_dir
+
+    def open_thread_form(self, project: Checkout) -> None:
+        app = self.app
+        app.run_worker(
+            partial(NewThreadAction().collect, app, app.selected_mode, project),
+            group="new-session",
+            exclusive=True,
+        )
+
+    async def start_agent_session(self, binding: AgentAttached, project: Checkout) -> None:
         tab = await self.saved(binding.agent, project)
         await self.new(tab, lambda: MainScreen(project, binding, session_pk=tab.key))
 

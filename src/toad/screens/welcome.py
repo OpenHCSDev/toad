@@ -32,7 +32,6 @@ from toad.session_scope import ProjectSessionOrigin
 from toad.tab_identity.history_origin import WelcomeHistoryOrigin
 from toad.thread_identity import ThreadIdentity
 from toad.widgets.comms_sidebar import ChannelRow, CommsRow, ListedRow, NewSessionButton, ThreadStatusRow
-from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import (
     RowReconciliation,
     SidebarChange,
@@ -174,7 +173,7 @@ class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, Targe
         self.navigation_groups = (WelcomeChannels(), WelcomeThreads())
 
     def compose(self) -> ComposeResult:
-        yield NewSessionButton()
+        yield StartSessionButton()
         yield from self.navigation_groups
 
     def accepts_observation(self) -> bool:
@@ -210,14 +209,24 @@ class WelcomeAction(WidgetAction, affix="Action"):
 
 
 class NewSessionAction(WelcomeAction):
-    """Start a thread in the selected project, as the app's NewThreadAction does."""
+    """Start this launch's session: its attached agent's, or a native thread."""
 
     title = "New session"
     keys = {EditingMode: ("n",)}
     show = True
 
     async def apply(self, context: WelcomeScreen) -> None:
-        await NewThreadAction().apply(context.app)
+        app = context.app
+        navigation = app.session_navigation
+        await app.agent_binding.start_session(navigation, navigation.selected_project())
+
+
+class StartSessionButton(NewSessionButton):
+    """The welcome view's New Session is this launch's, as its n key is; the sidebar's
+    makes another native thread."""
+
+    async def create(self) -> None:
+        await NewSessionAction().apply(self.query_ancestor(WelcomeScreen))
 
 
 class WelcomeScreen(
@@ -231,7 +240,7 @@ class WelcomeScreen(
     actions=(WelcomeAction,),
     can_focus=False,
 ):
-    AUTO_FOCUS = "WelcomeEntries NewSessionButton"
+    AUTO_FOCUS = "WelcomeEntries StartSessionButton"
 
 
     HINTS = (
