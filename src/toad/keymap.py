@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
-from functools import cache
+from functools import cache, cached_property
 from importlib import import_module
 from pkgutil import walk_packages
 from types import MappingProxyType
@@ -70,9 +70,17 @@ class KeymapRow:
     def of(cls, invocation: KeyInvocation, mode: type[KeyMode]) -> KeymapRow:
         return cls(KeyInvocationId(invocation.key_identity()), mode)
 
-    @property
+    @cached_property
     def binding_id(self) -> str:
         return KeyInvocation.in_mode(self.declaration, self.mode.binding_mode())
+
+
+@dataclass(frozen=True)
+class ScopedClaim:
+    """One default claim in a dispatch scope: the row the keymap edits and its declared keys."""
+
+    row: KeymapRow
+    keys: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -98,8 +106,9 @@ class KeymapCatalog:
     """A detached view of the same concrete bindings the native scopes dispatch."""
 
     invocations: Mapping[KeyInvocationId, KeyInvocation]
-    scopes: Mapping[type[KeyMode], tuple[tuple[KeymapClaim, ...], ...]]
+    scopes: Mapping[type[KeyMode], tuple[tuple[ScopedClaim, ...], ...]]
     default_keys: Mapping[tuple[KeyInvocationId, type[KeyMode]], tuple[str, ...]]
+    rows: Mapping[type[KeyMode], Mapping[str, KeymapRow]]
 
     @classmethod
     def capture(cls, modes: tuple[type[KeyMode], ...]) -> KeymapCatalog:
@@ -121,7 +130,7 @@ class KeymapCatalog:
         for itself (Menu reads MenuCommand's members) are settled by discover(), which capture
         runs first and which imports every toad module."""
         invocations: dict[KeyInvocationId, KeyInvocation] = {}
-        scopes: dict[type[KeyMode], tuple[tuple[KeymapClaim, ...], ...]] = {}
+        scopes: dict[type[KeyMode], tuple[tuple[ScopedClaim, ...], ...]] = {}
         keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
         for mode in modes:
             native_mode = mode.binding_mode()
@@ -135,17 +144,24 @@ class KeymapCatalog:
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
                 owned.append(defaults)
-            scopes[mode] = tuple(owned)
+            scoped: list[tuple[ScopedClaim, ...]] = []
             for defaults in owned:
+                claims: list[ScopedClaim] = []
                 for claim in defaults:
                     reference = KeyInvocationId(claim.invocation.key_identity())
                     invocations.setdefault(reference, claim.invocation)
+                    claims.append(ScopedClaim(KeymapRow(reference, mode), claim.keys))
                     for key in claim.keys:
                         keys.setdefault((reference, mode), {})[key] = None
+                scoped.append(tuple(claims))
+            scopes[mode] = tuple(scoped)
+        rows = {mode: MappingProxyType({row.binding_id: row for reference in invocations
+                                         for row in (KeymapRow(reference, mode),)})
+                for mode in modes}
         return cls(MappingProxyType(invocations), MappingProxyType(scopes), MappingProxyType({
             (reference, mode): tuple(keys.get((reference, mode), ()))
             for reference in invocations for mode in modes
-        }))
+        }), MappingProxyType(rows))
 
     @staticmethod
     def menu_keys(command: MenuCommand, mode: type[KeyMode], keymap: Keymap) -> tuple[str, ...]:
@@ -176,16 +192,20 @@ class Keymap:
     bindings: Annotated[tuple[KeyRemap, ...], apply_keymap] = ()
 
     def __post_init__(self) -> None:
-        identities = tuple(remap.binding_id for remap in self.bindings)
-        if len(set(identities)) != len(identities):
+        if len(self.overrides) != len(self.bindings):
             raise KeymapRefused("A keyboard declaration may have only one override per mode.")
 
+    @cached_property
+    def overrides(self) -> Mapping[str, tuple[str, ...]]:
+        """Each remap's keys by its binding id: every lookup reads this one map."""
+        return MappingProxyType({remap.binding_id: remap.keys for remap in self.bindings})
+
     def native(self) -> dict[str, str]:
-        return {remap.binding_id: ",".join(remap.keys) for remap in self.bindings}
+        return {binding_id: ",".join(keys) for binding_id, keys in self.overrides.items()}
 
     def keys_for(self, row: KeymapRow, defaults: tuple[str, ...]) -> tuple[str, ...]:
         """The preference alone selects an override; its caller owns the default scope."""
-        return next((remap.keys for remap in self.bindings if remap.binding_id == row.binding_id), defaults)
+        return self.overrides.get(row.binding_id, defaults)
 
     def changed(self, row: KeymapRow, keys: tuple[str, ...]) -> Keymap:
         """No keys is an explicit unbinding, kept as its own override; Reset restores the defaults."""
@@ -208,8 +228,7 @@ class Keymap:
     def conflicts(self, mode: type[KeyMode]) -> tuple[KeyConflict, ...]:
         """Collisions derive from concrete invocations in the native dispatch scopes."""
         catalog = KeymapCatalog.capture((mode,))
-        rows = {row.binding_id: row for invocation in catalog.invocations.values()
-                for row in (KeymapRow.of(invocation, mode),)}
+        rows = catalog.rows[mode]
         conflicts: set[KeyConflict] = set()
         for defaults in catalog.scopes[mode]:
             # A scope is ordered: the declared defaults set precedence, and dispatch runs the
@@ -219,7 +238,7 @@ class Keymap:
             # remap moved onto a row that another claim in the scope also holds.
             claims: dict[str, dict[str, bool]] = {}
             for claim in defaults:
-                row = KeymapRow.of(claim.invocation, mode)
+                row = claim.row
                 for key in self.keys_for(row, claim.keys):
                     held = claims.setdefault(key, {})
                     held[row.binding_id] = held.get(row.binding_id, False) or key not in claim.keys
