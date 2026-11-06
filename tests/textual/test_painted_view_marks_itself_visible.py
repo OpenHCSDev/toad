@@ -20,10 +20,12 @@ def test_a_paint_after_the_last_tab_closed_marks_only_its_own_session(on_screen,
         app=app,
         query_ancestor=lambda kind: session if kind is SessionView else None,
         submissions=SimpleNamespace(settle=lambda: None),
+        retire_loading_splash=lambda: None,
     )
-    owner = SimpleNamespace(displayed_cursor=None)
+    binding = SimpleNamespace(view=view, current=lambda: True)
+    owner = SimpleNamespace(displayed_cursor=None, binding=binding, generation=0)
 
-    BoundFrame(SimpleNamespace(view=view), owner, 0).record("cursor")
+    BoundFrame(binding, owner, 0).painted("cursor")
 
     assert seen == marked
     assert owner.displayed_cursor == "cursor"
