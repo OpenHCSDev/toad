@@ -35,7 +35,7 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
         not even layout. A link resolved later, or a theme's new colours, keeps the text but draws
         differently."""
         markup = self._render_markup
-        if visualize(self, self.content, markup).draws_like(visualize(self, content, markup)):
+        if self.visual.draws_like(visualize(self, content, markup)):
             return
         super().update(content, layout=layout)
         if self.is_mounted:
