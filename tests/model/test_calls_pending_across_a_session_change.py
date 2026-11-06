@@ -1,4 +1,5 @@
 """A handshake, authentication, mode, new or load call that returns after the session binding changed is rejected."""
+from agent_comms.nominal.field_codec import AcpSessionId
 import asyncio
 from collections.abc import Callable, Coroutine
 
@@ -35,8 +36,8 @@ async def test_pending_session_calls_reject_a_binding_that_was_replaced(app_agen
         binding = agent.controller.session
         task = asyncio.create_task(call(agent))
         await entered.wait()
-        agent.session_id = 'replacement'
-        agent.session_id = 'first'
+        agent.session_id = AcpSessionId('replacement')
+        agent.session_id = AcpSessionId('first')
         assert agent.controller.session is not binding
         release.set()
         try:

@@ -1,4 +1,5 @@
 """Rebinding or reopening never revives a captured prompt or queue authority."""
+from agent_comms.nominal.field_codec import AcpSessionId
 import pytest
 from acp.exceptions import RequestError
 
@@ -14,8 +15,8 @@ async def test_rebinding_back_to_the_same_name_refuses_captured_requests(app_age
     disposition = agent.session.disposition
     try:
         assert prompt.current and queue.current
-        agent.session_id = "B"
-        agent.session_id = "A"
+        agent.session_id = AcpSessionId("B")
+        agent.session_id = AcpSessionId("A")
         assert agent.session.disposition is disposition
         assert agent.session.accepts_session("A")
         for request in (prompt, queue):

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from agent_comms.repo import Checkout
 from agent_comms.launch_root import LaunchRoot
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 import shlex
 import sys
 from typing import TYPE_CHECKING
@@ -73,7 +74,8 @@ class AppAgents:
         from toad.acp.agent import Agent
         from toad.agent_schema import AgentDefinition
 
-        return self.agent(Agent, AgentDefinition(identity, identity, {"*": "true"}), session_id)
+        return self.agent(Agent, AgentDefinition(identity, identity, {"*": "true"}),
+                          FieldCodec.decode(AcpSessionId | NoAcpSessionId, session_id))
 
 
 async def deliver(agent, update: dict, *, session_id: str | None = None):
