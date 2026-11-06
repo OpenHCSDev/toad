@@ -10,7 +10,7 @@ from typing import ClassVar, Never
 from agent_comms.errors import RelationViolationError
 
 from toad.app_node import ToadNode
-from toad.navigation_context import NavigationScope
+from toad.navigation_context import NavigationOwner, NavigationScope, NoNavigationOwner
 from toad.transcript_scope import NoTranscript, TranscriptScope
 from textual.abstract_hooks import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
@@ -56,6 +56,11 @@ class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):
     COMMANDS: ClassVar[set[type[Provider]]] = set()
     AUTO_FOCUS = ""
     footer_compact = False
+
+    @property
+    def navigation_owner(self) -> NavigationOwner:
+        """A session that does not navigate answers the owner that refuses."""
+        return NoNavigationOwner(self.app)
 
     async def _pre_process(self) -> bool:
         """Textual tears a failed start down; the workspace must not keep the dead tree."""

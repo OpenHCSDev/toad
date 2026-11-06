@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from contextlib import suppress
 from functools import cached_property
 from itertools import filterfalse
@@ -544,10 +544,8 @@ class ConversationSessionBinding(
         """The native session identity whose canonical transcript this view shows."""
         return self.query_ancestor(SessionScope).origin.transcript_scope()
 
-    def status_thread(self) -> StatusThread:
-        return self.thread_scope.status_thread(
-            self.app.coordination_access
-        )
+    @abstractmethod
+    def status_thread(self) -> StatusThread: ...
 
     def arm_thread_read(self) -> None:
         """Capture turn token and client authority for the next observed presentation."""
@@ -565,12 +563,8 @@ class ConversationSessionBinding(
         self.arm_thread_read()
         read.settle(presentation).present(self.thread_presented)
 
-    def thread_presented(self, presentation: ThreadPresentation) -> None:
-        """A settled member owns whether this view has source work to publish."""
-        self.thread_presentation = presentation
-        self._update_model_info()
-        self.operational_sources.thread_presented(self)
-        self.dispatch_sync(presentation)
+    @abstractmethod
+    def thread_presented(self, presentation: ThreadPresentation) -> None: ...
 
     @handles(NoThreadPresentation)
     def _no_thread_source(self, presentation: NoThreadPresentation) -> object:
@@ -831,15 +825,11 @@ class ConversationSessionBinding(
     def start_native_session(self) -> None:
         self.agent_binding.start_session(self)
 
-    def start_unbound_session(self) -> None:
-        if self._agent_data is not None:
-            self.screen.frame_presentation.defer(self, self._start_agent)
-        else:
-            self.agent_info = Content(self.operational_sources.agent_info(self))
-            self.session_ready()
+    @abstractmethod
+    def start_unbound_session(self) -> None: ...
 
-    def _start_agent(self) -> None:
-        self.operational_sources.start_agent(self)
+    @abstractmethod
+    def _start_agent(self) -> None: ...
 
     @work
     async def session_ready(self) -> None:
@@ -929,7 +919,7 @@ class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
 
 
 
-class ConversationSources(ABC):
+class ConversationSources(QueueSource):
     """What a conversation asks of the sources its session presents: its status row, agent
     label, prompt, input decision and submissions, and the hooks for a presented thread and a
     started agent."""
@@ -955,13 +945,21 @@ class ConversationSources(ABC):
     @abstractmethod
     def start_agent(self, conversation: Conversation) -> None: ...
 
+    @abstractmethod
+    def external_transcript_changed(self, conversation: Conversation) -> None: ...
+
 
 class SourcesScope(DOMNode):
-    """The ancestor that presents a conversation's sources."""
+    """The ancestor that presents a conversation: its sources, and the editing mode its prompt
+    starts in."""
 
     @property
     @abstractmethod
     def operational_sources(self) -> ConversationSources: ...
+
+    @property
+    @abstractmethod
+    def initial_editing_mode(self) -> EditingMode: ...
 
 
 class Conversation(
@@ -980,6 +978,34 @@ class Conversation(
     @property
     def thread_scope(self) -> TranscriptScope:
         return self.transcript.binding.thread_scope
+
+    def follow_latest(self) -> None:
+        self.window.jump_to_latest()
+
+    def status_thread(self) -> StatusThread:
+        return self.thread_scope.status_thread(
+            self.app.coordination_access
+        )
+
+    def thread_presented(self, presentation: ThreadPresentation) -> None:
+        """A settled member owns whether this view has source work to publish."""
+        self.thread_presentation = presentation
+        self._update_model_info()
+        self.operational_sources.thread_presented(self)
+        self.dispatch_sync(presentation)
+
+    def start_unbound_session(self) -> None:
+        if self._agent_data is not None:
+            self.screen.frame_presentation.defer(self, self._start_agent)
+        else:
+            self.agent_info = Content(self.operational_sources.agent_info(self))
+            self.session_ready()
+
+    def _start_agent(self) -> None:
+        self.operational_sources.start_agent(self)
+
+    def transcript_changed(self) -> None:
+        self.operational_sources.external_transcript_changed(self)
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""
@@ -1151,9 +1177,7 @@ class Conversation(
             )
             # A retained editor is installed before Prompt.on_mount can apply a
             # profile. Returning to a tab must not spawn a throwaway Neovim.
-            prompt.initial_editing_mode = self.query_ancestor(
-                SessionScope
-            ).presentation.initial_editing_mode
+            prompt.initial_editing_mode = self.query_ancestor(SourcesScope).initial_editing_mode
             self.goal_bar: GoalBar = GoalBar(self, prompt=prompt)
             yield self.goal_bar
             yield prompt

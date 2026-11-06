@@ -41,6 +41,14 @@ class TranscriptView(CoreEventReceiver, DeliveryFailureView):
     def thread_scope(self) -> TranscriptScope:
         """The transcript scope this view is bound to now."""
 
+    @abstractmethod
+    def follow_latest(self) -> None:
+        """Show the transcript's end."""
+
+    @abstractmethod
+    def transcript_changed(self) -> None:
+        """The transcript's source changed outside this view: read it again."""
+
 
 class MailboxSent(ABC):
     """What a CLI thread's sources do once its inbox message is delivered."""

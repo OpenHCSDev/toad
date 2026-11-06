@@ -316,6 +316,10 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def operational_binding(self) -> AgentConnection:
         return self.presentation.operational_binding
 
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return self.presentation.initial_editing_mode
+
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
     COMMANDS = {ModeProvider, MCPInventoryProvider}

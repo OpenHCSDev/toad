@@ -21,14 +21,11 @@ class NavigationContext:
 
 
 class NavigationScope:
-    """An ancestor its descendants open targets through: one that does not navigate answers
-    the owner that refuses."""
-
-    app: ToadApp
+    """An ancestor its descendants open targets through."""
 
     @property
-    def navigation_owner(self) -> NavigationOwner:
-        return NoNavigationOwner(self.app)
+    @abstractmethod
+    def navigation_owner(self) -> NavigationOwner: ...
 
 
 class NavigationOwner:

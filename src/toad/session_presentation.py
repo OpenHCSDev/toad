@@ -21,7 +21,7 @@ from agent_comms.message_reference import MessageReference
 
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
-from toad.transcript_scope import MailboxSent
+from toad.transcript_scope import MailboxSent, TranscriptView
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
 from toad.native_style import StartsHidden
@@ -293,10 +293,10 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
         view = owner.view
         return view.thread_scope.begin_mailbox(owner, submission, view, self)
 
-    async def mailbox_sent(self, view: Conversation, sent: MessageReference) -> None:
+    async def mailbox_sent(self, view: TranscriptView, sent: MessageReference) -> None:
         """Follow the transcript's end; the inbox message shows once the thread records it."""
-        view.window.jump_to_latest()
-        self.external_transcript_changed(view)
+        view.follow_latest()
+        view.transcript_changed()
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresentation):

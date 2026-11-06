@@ -76,7 +76,7 @@ class AgentBinding(ABC):
     def for_session(self, session_id: str) -> AgentBinding: ...
 
     @abstractmethod
-    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation: ...
+    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C: ...
 
     @abstractmethod
     def attach_to(
@@ -108,7 +108,7 @@ class NoAgent(AgentBinding):
     def for_session(self, session_id: str) -> AgentBinding:
         return self
 
-    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation:
+    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
         return constructor()
 
     def attach_to(self, origin: AgentOrigin, conversation: AgentConversation) -> None:
@@ -136,7 +136,7 @@ class AgentAttached(AgentBinding):
     def for_session(self, session_id: str) -> AgentBinding:
         return AgentSession(self.agent, session_id)
 
-    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation:
+    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
         return constructor(agent=self.agent)
 
     def attach_to(self, origin: AgentOrigin, conversation: AgentConversation) -> None:
@@ -174,7 +174,7 @@ class AgentSession(AgentAttached):
         """A new session, not this one again."""
         await AgentAttached(self.agent).start_session(app, project)
 
-    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation:
+    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
         return super().make_conversation(
             partial(constructor, agent_session_id=self.session_id)
         )
