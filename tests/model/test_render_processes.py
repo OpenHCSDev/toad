@@ -14,11 +14,12 @@ import pytest
 from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.repo import Checkout
 
+from toad.comms_root import CoreConnection
 from toad.render_processes import RenderProcessPool
 
 
 # Construction at import time is intentional: spawn reimports this file.
-IMPORT_POOL = RenderProcessPool()
+IMPORT_POOL = RenderProcessPool(CoreConnection.helper_start)
 
 
 def worker_info():
@@ -61,7 +62,7 @@ async def pools():
     made = []
 
     def make(**kwargs):
-        pool = RenderProcessPool(**kwargs)
+        pool = RenderProcessPool(CoreConnection.helper_start, **kwargs)
         made.append(pool)
         return pool
 
@@ -179,9 +180,9 @@ async def test_parallel_workers_and_total_submission_bound(tmp_path):
 async def test_unused_pool_closes_and_rejects_bad_limits():
     for value in (0, -1, True, 1.5):
         with pytest.raises(ValueError):
-            RenderProcessPool(max_pending=value)
+            RenderProcessPool(CoreConnection.helper_start, max_pending=value)
         with pytest.raises(ValueError):
-            RenderProcessPool(max_workers=value)
+            RenderProcessPool(CoreConnection.helper_start, max_workers=value)
     async with pools() as make:
         pool = make()
         await pool.aclose()

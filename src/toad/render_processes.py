@@ -13,7 +13,7 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import TYPE_CHECKING, TypeVar
 
 from agent_comms import launch_root
-from agent_comms.child_process import HelperStart, SpawnedHelper
+from agent_comms.child_process import HelperStart
 from agent_comms.launch_runtime import ThreadLaunch
 
 from toad.render_backend import Renderer
@@ -57,7 +57,7 @@ class RenderProcessPool(Renderer):
     aclose call can await the same teardown.
     """
 
-    def __init__(self, start: HelperStart = SpawnedHelper(), max_workers: int = 2,
+    def __init__(self, start: HelperStart, max_workers: int = 2,
                  max_pending: int = 4) -> None:
         super().__init__()
         self._start = start

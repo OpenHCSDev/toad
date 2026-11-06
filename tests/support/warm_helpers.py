@@ -8,6 +8,11 @@ forks a HelperSpawner that has become that test's process. A helper keeps multip
 spawn protocol whole (the same preparation data and pickled process object on the same
 pipe, its descriptors at the same numbers); only the new interpreter is replaced by a fork
 of the warm one.
+
+This rides CPython's private multiprocessing internals: WarmPopen overrides
+``popen_spawn_posix.Popen._launch`` and fills its ``_fds``, and each helper runs
+``multiprocessing.spawn._main``. When a Python upgrade makes every app test fail at once
+in a helper's start, look here first.
 """
 from __future__ import annotations
 
