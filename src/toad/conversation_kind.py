@@ -29,6 +29,7 @@ from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 
+from toad.bus_submission import MessageDestination
 from toad.conversation_submission import ConversationSubmissions
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
@@ -51,7 +52,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class ConversationKind(DeclaredFamily, affix="Conversation"):
+class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation"):
     @property
     @abstractmethod
     def initial_label(self) -> str: ...

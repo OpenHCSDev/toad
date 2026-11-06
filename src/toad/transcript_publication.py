@@ -119,7 +119,7 @@ class BoundFrame:
             self.owner.displayed_cursor = cursor
             view.app.history_displayed()
             view.query_ancestor(SessionView).history_painted()
-            view.settle_user_message()
+            view.submissions.settle()
 
 
 class DraftPresentation(MroProjection[None]):

@@ -19,7 +19,7 @@ def test_a_paint_after_the_last_tab_closed_marks_only_its_own_session(on_screen,
     view = SimpleNamespace(
         app=app,
         query_ancestor=lambda kind: session if kind is SessionView else None,
-        settle_user_message=lambda: None,
+        submissions=SimpleNamespace(settle=lambda: None),
     )
     owner = SimpleNamespace(displayed_cursor=None)
 

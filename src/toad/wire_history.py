@@ -53,6 +53,12 @@ from toad.transcript_state import (
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.submission_queue import BusQueueSource
+from toad.bus_submission import (
+    BusDestination,
+    SubmissionOwner,
+    SubmissionStart,
+    SubmittedText,
+)
 from toad.widgets.transcript_fragments import (
     BusMessageFragment,
     MessageShown,
@@ -61,7 +67,6 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.comms_root import Observation
-    from toad.core.input_events import UserInputSubmitted
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.transcript_lines import Lines
     from toad.widgets.wire_history import WireHistory
@@ -470,14 +475,15 @@ class WirePageBuffer(SavedHistory):
             view.query_ancestor(SessionScope).id,
         )
 
-    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
+    def begin_submission(
+        self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
+    ) -> SubmissionStart:
+        """A channel or inbox message queues behind the view's earlier ones; compose stays open."""
         conversation = self.loader.conversation
         current = lambda: (
             view.is_attached and self is view.message_history.page_source and conversation == view.conversation
         )
-        await view.submit_comms_message(
-            self.loader.root, conversation, event.body, current, partial(view._show_sent, body=event.body)
-        )
+        return owner.start_bus(submission, BusDestination(self.loader.root, conversation, current, view.show_sent))
 
     def schedule_refresh(self, view: CommsChatView):
         history = view.message_history

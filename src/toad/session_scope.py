@@ -25,7 +25,7 @@ from agent_comms.ui_model.observation import (
 from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
-from toad.input_decision import InputAccepted, InputDecision
+from toad.input_decision import InputAccepted, InputDecision, InputRefused
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
 from toad.owner_preparation import ExistingOwnerPlan
 from textual.abstract_hooks import AbstractHooksMeta
@@ -34,6 +34,13 @@ from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 from agent_comms.message_reference import MessageReference
 from toad.comms_root import Observing
+
+from toad.bus_submission import (
+    BusDestination,
+    SubmissionOwner,
+    SubmissionStart,
+    SubmittedText,
+)
 
 if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
@@ -44,7 +51,6 @@ if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
     from toad.comms_root import CoordinationAccess
     from toad.conversation_kind import DmConversation
-    from toad.core.input_events import UserInputSubmitted
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
@@ -104,13 +110,14 @@ class TranscriptScope(ABC):
     def mailbox_target(self) -> ThreadTarget: ...
 
     @abstractmethod
-    async def submit_mailbox(
+    def begin_mailbox(
         self,
+        owner: SubmissionOwner,
+        submission: SubmittedText,
         view: Conversation,
-        event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference | None], Awaitable[None]],
-    ) -> None: ...
+        presented: Callable[[MessageReference], Awaitable[None]],
+    ) -> SubmissionStart: ...
 
     @abstractmethod
     async def show_mailbox_status(
@@ -192,20 +199,18 @@ class KnownTranscript(TranscriptScope):
     def mailbox_target(self) -> ThreadTarget:
         return ThreadTarget(self.name)
 
-    async def submit_mailbox(
+    def begin_mailbox(
         self,
+        owner: SubmissionOwner,
+        submission: SubmittedText,
         view: Conversation,
-        event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference | None], Awaitable[None]],
-    ) -> None:
-        await view.submit_comms_message(
-            self.root,
-            self.mailbox_conversation(view, conversation_type),
-            event.body,
-            lambda: self.shown_by(view),
-            presented,
-        )
+        presented: Callable[[MessageReference], Awaitable[None]],
+    ) -> SubmissionStart:
+        return owner.start_bus(submission, BusDestination(
+            self.root, self.mailbox_conversation(view, conversation_type),
+            lambda: self.shown_by(view), presented,
+        ))
 
     async def show_mailbox_status(
         self, view: Conversation, conversation_type: type[DmConversation]
@@ -284,14 +289,15 @@ class NoTranscript(TranscriptScope):
     def mailbox_target(self) -> Never:
         self.unavailable()
 
-    async def submit_mailbox(
+    def begin_mailbox(
         self,
+        owner: SubmissionOwner,
+        submission: SubmittedText,
         view: Conversation,
-        event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference | None], Awaitable[None]],
-    ) -> None:
-        view.delivery_refused("CLI transcript is not ready", event.body)
+        presented: Callable[[MessageReference], Awaitable[None]],
+    ) -> SubmissionStart:
+        return owner.unbound(submission, InputRefused("CLI transcript is not ready"))
 
     async def show_mailbox_status(
         self, view: Conversation, conversation_type: type[DmConversation]

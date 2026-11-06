@@ -30,7 +30,6 @@ from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
-from toad.worker_group import InputHistoryRecord
 from toad.comms_root import Observing
 
 if TYPE_CHECKING:
@@ -185,10 +184,9 @@ class OperationalSessionSources(NativeQueueSource):
 
         return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation.submissions)
 
-    async def submit(self, owner, event):
-        from toad.conversation_submission import InputSubmission
-
-        return await InputSubmission.from_event(event, owner).execute(owner)
+    def begin_submission(self, owner, submission):
+        """An operational view's input is a prompt for its agent."""
+        return owner.view.agent_binding.begin_submission(owner, submission)
 
     def input_decision(self, conversation: Conversation) -> InputDecision:
         agent = conversation.agent_binding
@@ -291,20 +289,15 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
         self.external_transcript_changed(conversation)
         self.thread_presented(conversation)
 
-    async def submit(self, owner, event):
+    def begin_submission(self, owner, submission):
+        """A CLI thread's input is a message to its inbox, queued like a prompt."""
         view = owner.view
 
         async def presented(sent):
-            InputHistoryRecord.run_on(view, view.input_histories.prompt.record(event.body))
             view.window.jump_to_latest()
             self.external_transcript_changed(view)
 
-        await view.transcript.binding.thread_scope.submit_mailbox(
-            view,
-            event,
-            DmConversation,
-            presented,
-        )
+        return view.transcript.binding.thread_scope.begin_mailbox(owner, submission, view, DmConversation, presented)
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresentation):

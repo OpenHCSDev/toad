@@ -92,7 +92,6 @@ async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_compo
 async def test_a_successful_wire_send_keeps_a_different_unsent_draft(workspace):
     from toad.widgets.comms_chat import CommsChatView
 
-    comms = workspace.comms
     workspace.thread("peer")
     async with workspace.app(size=(110, 32)) as ui:
         await ui.open_direct("peer", actor=workspace.viewer)
@@ -100,43 +99,81 @@ async def test_a_successful_wire_send_keeps_a_different_unsent_draft(workspace):
         await ui.write_draft("A different unsent draft")
         editor = chat.prompt.prompt_text_area
         document, history = editor.document, editor.history
-        await chat.submit_input(UserInputSubmitted("The submitted message"))
-        await ui.until(lambda: ui.shows("The submitted message") and not chat.send_block_reason,
-                       why="the committed message drawn and composing released")
+        worker = await chat.submissions.submit(UserInputSubmitted("The submitted message"))
+        await worker.wait()
+        await ui.until(lambda: ui.shows("The submitted message") and not chat.submissions.delivering,
+                       why="the committed message drawn and its queue entry retired")
         assert chat.prompt.text == "A different unsent draft"
         assert editor.document is document and editor.history is history
 
 
-async def test_a_sent_message_scrolled_past_by_a_long_reply_still_releases_composing(workspace):
+async def test_wire_sends_queue_in_order_while_compose_stays_open(workspace):
+    """A channel, inbox or CLI message waits in the view's queue like a DM prompt: the owner
+    keeps typing and sending while Core is slow, and the messages land in the order typed."""
+    import threading
+
+    from toad.comms_root import Observing
+    from toad.widgets.comms_chat import CommsChatView
+
+    workspace.thread("peer")
+    gate = threading.Event()
+    send = Observing.send_user_message
+
+    def held(observed, target, body):
+        gate.wait(10)
+        return send(observed, target, body)
+
+    async with workspace.app(size=(110, 32)) as ui:
+        await ui.open_direct("peer", actor=workspace.viewer)
+        chat = ui.app.selected_session.query_one(CommsChatView)
+        with patch.object(Observing, "send_user_message", held):
+            first = await chat.submissions.submit(UserInputSubmitted("QUEUED_FIRST"))
+            second = await chat.submissions.submit(UserInputSubmitted("QUEUED_SECOND"))
+            assert not chat.prompt.prompt_text_area.disabled
+            assert chat.submissions.delivering == ("QUEUED_FIRST", "QUEUED_SECOND")
+            assert "Submitting (2)" in chat.submissions.queue_summary
+            gate.set()
+            await first.wait()
+            await second.wait()
+        await ui.until(lambda: ui.shows("QUEUED_SECOND") and not chat.submissions.delivering,
+                       why="both messages drawn and retired from the queue")
+        bodies = [message.body for message in workspace.comms.bus.inbox("peer").page.messages
+                  if message.body.startswith("QUEUED_")]
+        assert bodies == ["QUEUED_FIRST", "QUEUED_SECOND"]
+
+
+async def test_a_sent_message_scrolled_past_by_a_long_reply_still_retires_from_the_queue(workspace):
     """Drawn means in the history's drawn rows, not inside the viewport: a long reply
-    landing in the same read pushes the sent message off screen, and composing must open."""
-    from toad.delivery_failure_view import DeliveryFailureView
+    landing in the same read pushes the sent message off screen, and its queue entry retires."""
+    from toad.conversation_submission import BusSubmissionExecution
     from toad.widgets.comms_chat import CommsChatView
 
     comms = workspace.comms
     workspace.thread("peer")
-    commit = DeliveryFailureView.commit_user_message
+    commit = BusSubmissionExecution.commit
 
-    async def commit_then_reply(view, *args, **kwargs):
-        sent = await commit(view, *args, **kwargs)
+    async def commit_then_reply(execution, *args, **kwargs):
+        sent = await commit(execution, *args, **kwargs)
         comms.messaging.send("peer", workspace.viewer, "\n\n".join(f"reply line {n}" for n in range(80)))
         return sent
 
     async with workspace.app(size=(110, 24)) as ui:
         await ui.open_direct("peer", actor=workspace.viewer)
         chat = ui.app.selected_session.query_one(CommsChatView)
-        with patch.object(DeliveryFailureView, "commit_user_message", commit_then_reply):
-            await chat.submit_input(UserInputSubmitted("SCROLLED_PAST_SEND"))
-            await ui.until(lambda: ui.shows("reply line 79") and not chat.send_block_reason,
-                           why="the long reply drawn and composing released")
+        with patch.object(BusSubmissionExecution, "commit", commit_then_reply):
+            worker = await chat.submissions.submit(UserInputSubmitted("SCROLLED_PAST_SEND"))
+            await worker.wait()
+            await ui.until(lambda: ui.shows("reply line 79") and not chat.submissions.delivering,
+                           why="the long reply drawn and the sent message retired")
         assert not ui.shows("SCROLLED_PAST_SEND")
 
 
-async def test_a_send_whose_reply_cannot_be_read_reopens_composing_with_the_draft(workspace):
+async def test_a_send_whose_reply_cannot_be_read_returns_the_draft(workspace):
     """The request may have reached Core, so the outcome is unknown: the error still fails
-    loudly, and compose reopens with the draft instead of holding on a send nothing is running.
+    loudly, and the draft comes back instead of a queue entry nothing is running.
     A remote Toad once decoded a published send's reply as abstract ToolResult and stayed held."""
     import pytest
+    from textual.worker import WorkerFailed
 
     from agent_comms.nominal.field_codec import UnsupportedFieldType
     from toad.comms_root import Observing
@@ -147,8 +184,9 @@ async def test_a_send_whose_reply_cannot_be_read_reopens_composing_with_the_draf
         await ui.open_direct("peer", actor=workspace.viewer)
         chat = ui.app.selected_session.query_one(CommsChatView)
         unreadable = UnsupportedFieldType("Unsupported JSON type: ToolResult")
-        with patch.object(Observing, "send_user_message", side_effect=unreadable):
-            with pytest.raises(UnsupportedFieldType):
-                await chat.submit_input(UserInputSubmitted("UNREADABLE_REPLY_SEND"))
-        assert not chat.send_block_reason
+        with patch.object(Observing, "send_user_message", side_effect=unreadable), ui.reporting_error():
+            worker = await chat.submissions.submit(UserInputSubmitted("UNREADABLE_REPLY_SEND"))
+            with pytest.raises(WorkerFailed):
+                await worker.wait()
+        assert not chat.submissions.delivering
         assert chat.prompt.text == "UNREADABLE_REPLY_SEND"

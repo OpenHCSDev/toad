@@ -1117,9 +1117,6 @@ class MessagePrompt(Prompt):
         # Message composers have no delivery controls or operational turn.
         pass
 
-    def sync_queue(self) -> None:
-        """A message composer draws no queue summary or delivery controls."""
-
     def sync_configuration(self) -> None:
         pass
 

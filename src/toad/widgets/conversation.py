@@ -81,7 +81,8 @@ from toad.block_navigation import (
 from toad.command_catalog import CommandCatalog
 from toad.target_commands import CommandContextChanged, TargetContext
 from toad.conversation_comms_handlers import ConversationCommsHandlers
-from toad.conversation_submission import ConversationSubmissions
+from toad.bus_submission import SubmissionStart
+from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
 from toad.core import input_events
@@ -1398,11 +1399,11 @@ class Conversation(
     @handles(input_events.UserInputSubmitted)
     async def on_user_input_submitted(self, event: input_events.UserInputSubmitted, message: CoreEventMessage) -> None:
         message.stop()
-        await self.submit_input(event)
-
-    async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
-        """Wire views override the same submission boundary."""
         await self.submissions.submit(event)
+
+    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart:
+        """Where this view's input goes: its operational sources answer for agent and CLI views."""
+        return self.operational_sources.begin_submission(owner, submission)
 
     async def agent_turn_over(self, stop_reason: type[StopReason] | None) -> None:
         """Called when the agent's turn is over.

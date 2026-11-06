@@ -29,7 +29,6 @@ class QueueEvidence:
 
     presentation: AgentPresentation
     delivering: tuple[str, ...]
-    transport: str
     read_targets: Callable[[], tuple[ConversationEntry, ...]]
     observing: Callable[[], Observing]
 
@@ -82,6 +81,14 @@ class QueueSource(ABC):
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         return ((Span("No queue observation is available for this source.", MutedRole),),)
 
+    def submitting_summary(self, evidence: QueueEvidence) -> tuple[str, ...]:
+        """This view's own requests not yet taken by their destination; every source shows them."""
+        texts = tuple(QueueItem.summarize(text) for text in evidence.delivering)
+        return (f"Submitting ({len(texts)}): " + " · ".join(texts[:self.preview_limit]),) if texts else ()
+
+    def submitting_details(self, evidence: QueueEvidence) -> DetailLines:
+        return tuple((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),) for text in evidence.delivering)
+
 
 class NoQueueSource(QueueSource):
     """A view whose message source has not arrived yet holds no queue."""
@@ -105,8 +112,8 @@ class NativeQueueSource(QueueSource):
         projection = presentation.queue
         feedback = projection.feedback(presentation.queue_supported)
         parts = [feedback] if feedback else []
+        parts.extend(self.submitting_summary(evidence))
         for label, texts, detail in (
-            ("Submitting", tuple(QueueItem.summarize(text) for text in evidence.delivering), ""),
             ("Queued", tuple(row.preview for row in projection.items), ""),
             ("Restored", tuple(row.preview for row in projection.restored), ", read-only"),
         ):
@@ -117,7 +124,7 @@ class NativeQueueSource(QueueSource):
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         projection = evidence.presentation.queue
         lines = [(Span("Submitting is local intent; Queued is producer acceptance, not consumption.", MutedRole),)]
-        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),) for text in evidence.delivering)
+        lines.extend(self.submitting_details(evidence))
         lines.extend((Span(f"Queued {row.input_id}: {row.preview}", MutedRole),) for row in projection.items)
         lines.extend((Span(f"Restored {row.input_id} (read-only): {row.preview}", MutedRole),)
                      for row in projection.restored)
@@ -167,14 +174,14 @@ class BusQueueSource(QueueSource):
         entries = evidence.entries
         previews = " · ".join(entry.summary for entry in entries[:self.preview_limit])
         coverage = f"Delivery ({len(entries)} visible messages)"
-        return " | ".join(part for part in (
-            evidence.transport, coverage + (f": {previews}" if previews else ": unobserved")) if part)
+        return " | ".join((
+            *self.submitting_summary(evidence), coverage + (f": {previews}" if previews else ": unobserved")))
 
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         recipients = evidence.queued_recipients
         return (
             (Span("Visible original message references; actions reach each recipient that has not taken them yet.", MutedRole),),
-            (Span(evidence.transport, MutedRole),),
+            *self.submitting_details(evidence),
             (Span(f"Showing up to {self.preview_limit} visible messages and their leading observed recipient.", MutedRole),),
             *(line for entry in evidence.entries[:self.preview_limit] for line in entry.details),
             (Span("Queued at: " + (", ".join(recipient.canonical_thread for recipient in recipients)
