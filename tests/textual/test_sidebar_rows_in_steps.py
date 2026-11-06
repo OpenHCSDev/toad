@@ -50,6 +50,7 @@ class Tree(TargetTree):
     def show_row_menu(self, row, offset) -> None:
         """This fixture never opens a row menu."""
 
+    @property
     def navigation_root(self) -> Path:
         return Path(".")
 
