@@ -15,4 +15,4 @@ def test_unopened_screen_invocations_are_discovered_in_a_fresh_process(workspace
 
     row = KeymapRow.of(NewSessionAction(), Standard)
     assert catalog.require(row.declaration).key_title() == NewSessionAction().key_title()
-    assert catalog.defaults(row) == NewSessionAction.keys[Standard().binding_mode]
+    assert catalog.defaults(row) == NewSessionAction.keys[Standard.binding_mode()]
