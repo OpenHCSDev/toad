@@ -4,7 +4,7 @@ from toad.widgets.side_bar import ThreadSidebar
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.workspace_chrome import WorkspaceHeader
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, TabHistoryButton, TabHistoryControls
+from toad.widgets.side_bar import BackTabButton, ForwardTabButton, TabHistoryControls
 
 
 def arrow_style(screen, button):
@@ -12,7 +12,7 @@ def arrow_style(screen, button):
     return next(iter(row.crop(button.region.x + 2, button.region.x + 3))).style
 
 
-async def test_unavailable_buttons_sit_in_the_header_and_still_show_hover(workspace):
+async def test_unavailable_buttons_sit_in_the_header_and_ignore_hover(workspace):
     async with workspace.app(size=(100, 36)) as ui:
         app, pilot = ui.textual
         screen = app.screen
@@ -23,17 +23,16 @@ async def test_unavailable_buttons_sit_in_the_header_and_still_show_hover(worksp
         assert controls.parent is header
         assert screen.query_one(SessionsTabs).parent is header
         assert controls.region.y == screen.query_one(SessionsTabs).region.y == 0
-        back = controls.query_one("#tab-back", TabHistoryButton)
+        back = controls.query_one(BackTabButton)
         assert back.region.width == 7 and back.region.height == 3
         assert controls.region.height == 3
-        assert back.has_class("-unavailable")
-        assert controls.query_one("#tab-forward", TabHistoryButton).has_class("-unavailable")
+        assert back.disabled
+        assert controls.query_one(ForwardTabButton).disabled
         assert back.tooltip == "No earlier visited tab"
         unavailable_style = arrow_style(screen, back)
         await pilot.hover(back)
         await ui.step()
-        assert arrow_style(screen, back).bgcolor != unavailable_style.bgcolor, (
-            unavailable_style, arrow_style(screen, back), back.styles.background, back.pseudo_classes)
+        assert arrow_style(screen, back) == unavailable_style
         assert await pilot.click(back)
         assert ui.selected_tab == first
         assert not screen.query_one(ThreadSidebar).query(TabHistoryControls)
@@ -56,19 +55,17 @@ async def test_available_back_button_paints_its_arrow_and_hover_style(workspace)
         screen = app.screen
         assert screen.query_one(SessionsTabs).display
         assert screen.query_one(SessionsTabs).region.y == 0
-        assert not screen.query_one("#tab-back", TabHistoryButton).has_class("-unavailable")
-        assert screen.query_one("#tab-forward", TabHistoryButton).has_class("-unavailable")
-        back = screen.query_one("#tab-back", TabHistoryButton)
+        assert not screen.query_one(BackTabButton).disabled
+        assert screen.query_one(ForwardTabButton).disabled
+        back = screen.query_one(BackTabButton)
         painted = [strip.text for strip in screen._compositor.render_strips()]
         assert "<──" in painted[back.region.y + 1]
         assert "<──" not in painted[back.region.y]
         await pilot.hover(screen.query_one("CollapsibleTitle"))
         await ui.step()
-        before_hover = back.styles.color
         painted_before = arrow_style(screen, back)
         await pilot.hover(back)
         await ui.step()
-        assert back.styles.color != before_hover
         painted_after = arrow_style(screen, back)
         assert painted_after != painted_before
         assert painted_after.bgcolor != painted_before.bgcolor
@@ -86,6 +83,6 @@ async def test_preview_tab_keeps_the_controls_in_the_header_and_clickable(worksp
         await ui.open_preview(path)
         screen = app.screen
         assert screen.query_one(TabHistoryControls).region.y == screen.query_one(SessionsTabs).region.y == 0
-        back = screen.query_one("#tab-back", TabHistoryButton)
-        assert await pilot.click("#tab-back"), (
-            back.region, back.display, back in screen._compositor.visible_widgets, back.has_class("-unavailable"))
+        back = screen.query_one(BackTabButton)
+        assert await pilot.click(BackTabButton), (
+            back.region, back.display, back in screen._compositor.visible_widgets, back.disabled)

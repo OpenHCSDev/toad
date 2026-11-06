@@ -1,9 +1,7 @@
 """Queue details keep their original project while mounted as a separate screen."""
 
-from textual.widgets import Button
-
 from toad.project_path_owner import ProjectPathOwner
-from toad.screens.queue import QueueInspection
+from toad.screens.queue import QueueInspection, QueueSendNow
 from toad.widgets.tool_content import ToolContent
 
 
@@ -22,7 +20,7 @@ async def test_queue_details_mount_with_the_original_project_and_keep_the_draft(
         assert screen.project_root == owner.project_root
         assert screen.coordination_root == owner.coordination_root
         assert screen.link_context_events is owner.link_context_events
-        assert screen.query_one("#queue-send-now", Button).disabled
+        assert screen.query_one(QueueSendNow).disabled
         await ui.press("escape")
         await ui.until(lambda: ui.app.screen is not screen, why="the dismissed queue inspection")
         assert view.prompt.text == "Keep this unsent queue draft"
