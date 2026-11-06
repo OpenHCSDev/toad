@@ -2,6 +2,7 @@
 
 from agent_comms.repo import Checkout
 import asyncio
+import os
 from contextlib import asynccontextmanager
 import pytest
 
@@ -295,10 +296,12 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
         original_snapshot = history.pages[0].prepared.page.snapshot
         if not following:
             view.window.release_anchor()
-        # Reuse the path, but replace its native bytes with a longer record.
-        # Filename/offset containment alone cannot witness this old prefix.
-        write_journal(journal, assistant_entry(
+        # Reuse the path with a longer record. Producers only append, so a
+        # replacement arrives as a new file renamed over the old one; the
+        # cursor's path/offset still "contains" the old one, the file does not.
+        write_journal(replacement_file := journal.with_suffix(".new"), assistant_entry(
             "REPLACEMENT_SOURCE_ROW " * 80, id="new"))
+        os.replace(replacement_file, journal)
 
         replacement = await asyncio.to_thread(
             lambda: workspace.comms.transcripts.capture_page_read("rewritten-source").read())
