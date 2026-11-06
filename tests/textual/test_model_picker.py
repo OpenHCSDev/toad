@@ -114,15 +114,20 @@ async def open_by_clicking_the_model(picker):
     return before
 
 
+def row_style(options, y: int):
+    """The first cell's style on row y, as the option list paints it."""
+    return list(options.render_line(y, options._paint_state))[0].style
+
+
 async def test_opening_the_picker_focuses_search_and_lists_recent_models_first(workspace):
     async with picker_session(workspace) as picker:
         widget = picker.widget
         await open_by_clicking_the_model(picker)
         assert widget.search_input.has_focus
         assert picker.ids()[:3] == [SONNET, GPT, GLM]
-        highlighted_style = list(widget.option_list.render_line(0))[0].style
+        highlighted_style = row_style(widget.option_list, 0)
         assert highlighted_style.color != highlighted_style.bgcolor
-        assert highlighted_style.bgcolor != list(widget.option_list.render_line(1))[0].style.bgcolor
+        assert highlighted_style.bgcolor != row_style(widget.option_list, 1).bgcolor
         assert "retired/model" not in picker.ids()
 
 
@@ -137,8 +142,7 @@ async def test_hover_and_arrow_keys_move_the_highlight_without_taking_focus_from
         await ui.press("down")
         assert widget.option_list.highlighted == 2
         assert widget.option_list._mouse_hovering_over is None
-        assert (list(widget.option_list.render_line(1))[0].style.bgcolor
-                != list(widget.option_list.render_line(2))[0].style.bgcolor)
+        assert row_style(widget.option_list, 1).bgcolor != row_style(widget.option_list, 2).bgcolor
 
 
 async def test_typing_filters_models_fuzzily_and_escape_closes_without_a_change(workspace):
