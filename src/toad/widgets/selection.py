@@ -12,7 +12,7 @@ from textual import events, on
 from textual._paint_state import PaintState
 from textual.content import Content
 from textual.strip import Strip
-from textual.visual import VisualType
+from textual.visual import VisualType, visualize
 from textual.widgets import ListItem, ListView, OptionList, Static
 from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
 from ui_theme.scheme import (
@@ -31,8 +31,11 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
     text_fades = (NEW_TEXT,)
 
     def update(self, content: VisualType = "", *, layout: bool | None = None) -> None:
-        """New content redraws and fades in; the content already shown changes nothing, not even layout."""
-        if self.content == content:
+        """New content redraws and fades in; content that draws like what is shown changes nothing,
+        not even layout. A link resolved later, or a theme's new colours, keeps the text but draws
+        differently."""
+        markup = self._render_markup
+        if self.visual.draws_like(visualize(self, content, markup)):
             return
         super().update(content, layout=layout)
         if self.is_mounted:
