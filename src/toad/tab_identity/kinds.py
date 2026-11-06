@@ -47,12 +47,6 @@ class MailboxTab(SessionTabIdentity):
     async def entry(self, navigation):
         return await navigation.mailbox_entry(self)
 
-    async def history_source(self, navigation):
-        # Mailbox metadata already carries the original thread identity. Its
-        # history needs the owner shell, not an ACP connection or painted body.
-        entry = await self.restore(navigation)
-        return (await navigation.app.prepare_session(entry.mode)).origin.require()
-
 
 @dataclass(frozen=True)
 class HistoryTab(TabIdentity):
