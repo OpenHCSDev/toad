@@ -1113,11 +1113,22 @@ class HostsNeovim(App[object]):
         """A failed engine is never reused; the next editor that starts gets a new one."""
         self.__dict__.pop("neovim")
 
-    @classmethod
-    def serving(cls, editor: TextArea) -> NeovimHost:
+
+class ServesNeovim(MroDispatch):
+    """Textual's editing-mode contract hands an editor over with its application typed as
+    Textual's own App, so the application hosting the engine is decoded here, once, by class."""
+
+    @boundary_decoder
+    def host(self, editor: TextArea) -> NeovimHost:
         application = editor.app
-        if not isinstance(application, HostsNeovim):
-            raise NeovimWireFailure(f"{type(application).__name__} hosts no Neovim engine")
+        try:
+            engine: Callable[[ServesNeovim, object], NeovimHost] = self.handler_for(type(application))
+        except StopIteration as error:
+            raise NeovimWireFailure(f"{type(application).__name__} hosts no Neovim engine") from error
+        return engine(self, application)
+
+    @handles(HostsNeovim)
+    def _engine(self, application: HostsNeovim) -> NeovimHost:
         return application.neovim
 
 
@@ -1180,7 +1191,7 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     @cached_property
     def _started(self) -> asyncio.Task[None]:
         editor = self._receiver.require()
-        self._host = HostsNeovim.serving(editor)
+        self._host = ServesNeovim().host(editor)
         self._initial_lines = tuple(editor.document.lines)
         self._initial_selection = editor.selection
         self._lifetime = asyncio.create_task(self._write_queued(), name="Neovim session")
