@@ -128,6 +128,10 @@ async def search_button(workspace, ui, prompt):
     button = sidebar.query_one(ProjectSearchButton)
     button.scroll_visible(animate=False, immediate=True)
     await ui.until(lambda: painted_text(button, "Search files"), why="the search button drawn")
+    # Expanding the panel scrolls the sidebar with an animation; a click aimed while it
+    # runs can press one row and release on the next.
+    _app, pilot = ui.textual
+    await pilot.wait_for_animation()
     return button
 
 

@@ -57,6 +57,10 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         await ui.until(lambda: ui.selected_tab == third, why='palette history-forward action')
         assert ui.conversation.prompt.prompt_text_area.editing_mode.accepts_text
         await ui.press('escape')
+        await ui.until(
+            lambda: ui.conversation.prompt.prompt_text_area.editing_mode.allows_application_commands,
+            why='Neovim reports normal mode',
+        )
 
         async def navigate(key, expected):
             editor = ui.conversation.prompt.prompt_text_area
