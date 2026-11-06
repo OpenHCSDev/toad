@@ -274,9 +274,9 @@ class WelcomeScreen(
         with self.changing_identity():
             self._identity = await app.preparation.run_thread(self.read_history_identity, project)
 
-    async def open_sidebar_target(self, target: NavigationTarget) -> str:
+    async def open_sidebar_target(self, target: NavigationTarget) -> None:
         await self.prepare_history_origin()
-        return await super().open_sidebar_target(target)
+        await super().open_sidebar_target(target)
 
     async def prepare_presentation(self) -> None:
         await super().prepare_presentation()

@@ -48,7 +48,6 @@ if TYPE_CHECKING:
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
-    from toad.workspace_chrome import WorkspaceChrome
     from toad.widgets.conversation import Conversation
 
 
@@ -341,10 +340,6 @@ class SessionScope(ProjectPathOwner, ToadNode):
         if not started:
             self.app.workspace_sessions.detach(self.id)
         return started
-
-    def present_channels(self, chrome: WorkspaceChrome) -> None:
-        """A view that does not navigate leaves the shared channels sidebar hidden."""
-        chrome.hide_channels()
 
     @property
     def navigation_owner(self) -> NavigationOwner:

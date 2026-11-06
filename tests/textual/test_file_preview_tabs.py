@@ -175,5 +175,10 @@ async def test_a_selected_preview_navigates_nowhere_and_direct_messages_say_so(w
         assert owner is not app.selected_session
         with pytest.raises(NavigationUnavailable):
             owner.navigation_context
-        await app.session_navigation.direct_messages().wait()
-        assert [note.message for note in app._notifications][-1] == "Direct messages are unavailable from this view"
+        def latest_notice():
+            return [note.message for note in app._notifications][-1:]
+
+        for target, notice in ((None, "Direct messages are unavailable from this view"),
+                               ("peer", "Nothing opens from this view")):
+            await app.session_navigation.direct_messages(target).wait()
+            await ui.until(lambda: latest_notice() == [notice], why=notice)

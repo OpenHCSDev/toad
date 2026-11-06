@@ -25,7 +25,6 @@ from toad.sidebar_placement import SidebarEdge
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.session_scope import SessionScope
 
 
 class WorkspaceHeader(FollowsLayoutPreferences, TonePaint, WidgetView, Horizontal):
@@ -57,14 +56,6 @@ class WorkspaceChrome(VerticalLayout):
         self.footer = ToadFooter()
         self.switch_toast = SwitchToast()
         self.native = NativeSessionSurface(app)
-
-    def show_channels(self) -> None:
-        self.channels.roster.set_enabled(True)
-        self.channels.display = True
-
-    def hide_channels(self) -> None:
-        self.channels.roster.set_enabled(False)
-        self.channels.display = False
 
     def presented_sidebars(self) -> tuple[SideBar, ...]:
         source = self.app.workspace_sessions.source
@@ -140,8 +131,11 @@ class WorkspaceChrome(VerticalLayout):
         return placements
 
     async def select(self, view: "SessionScope") -> None:
-        self.channels.roster.navigation.capture()
-        view.present_channels(self)
+        roster = self.channels.roster
+        roster.navigation.capture()
+        shown = view.navigation_owner.shows_channels
+        roster.set_enabled(shown)
+        self.channels.display = shown
         self.footer.compact = view.footer_compact
         self.footer.call_later(self.footer.bindings_changed, view.screen)
         self.refresh_layout()

@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.navigation_target import NavigationTarget
-    from toad.workspace_chrome import WorkspaceChrome
 
 
 @dataclass(frozen=True)
@@ -28,10 +27,7 @@ class NavigationOwner:
     that sidebar's rows through it.
     """
 
-    app: ToadApp
-
-    def present_channels(self, chrome: WorkspaceChrome) -> None:
-        chrome.show_channels()
+    shows_channels = True
 
     @property
     def navigation_owner(self) -> NavigationOwner:
@@ -44,13 +40,18 @@ class NavigationOwner:
     def remember_direct_target(self, target: str) -> None:
         """Optional view-local return-to-DM intent."""
 
-    async def open_sidebar_target(self, target: NavigationTarget) -> str:
+    async def open_sidebar_target(self, target: NavigationTarget) -> None:
         target.selected(self)
-        return await target.open(self.navigation_context)
+        await target.open(self.navigation_context)
+
+    @property
+    def navigation_app(self) -> ToadApp:
+        """The app this owner's notices go to."""
+        return self.navigation_context.app
 
     async def open_direct_messages(self) -> None:
         """Open this view's direct-message destination when it has one."""
-        self.app.notify(
+        self.navigation_app.notify(
             "Direct messages are unavailable from this view", title="Direct messages"
         )
 
@@ -63,9 +64,19 @@ class NoNavigationOwner(NavigationOwner):
     """The chrome's owner while no navigating view is selected: before the first, and while one
     that does not navigate (a file preview) is shown. It refuses instead of reaching a closed view."""
 
+    shows_channels = False
+
     def __init__(self, app: ToadApp) -> None:
         self.app = app
 
     @property
+    def navigation_app(self) -> ToadApp:
+        return self.app
+
+    @property
     def navigation_context(self) -> NavigationContext:
         raise NavigationUnavailable("No navigating view is selected")
+
+    async def open_sidebar_target(self, target: NavigationTarget) -> None:
+        """A target asked of no navigating view is refused with a notice, not a traceback."""
+        self.app.notify("Nothing opens from this view", title="Navigation")
