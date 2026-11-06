@@ -132,3 +132,25 @@ async def test_a_sent_message_scrolled_past_by_a_long_reply_still_releases_compo
             await ui.until(lambda: ui.shows("reply line 79") and not chat.send_block_reason,
                            why="the long reply drawn and composing released")
         assert not ui.shows("SCROLLED_PAST_SEND")
+
+
+async def test_a_send_whose_reply_cannot_be_read_reopens_composing_with_the_draft(workspace):
+    """The request may have reached Core, so the outcome is unknown: the error still fails
+    loudly, and compose reopens with the draft instead of holding on a send nothing is running.
+    A remote Toad once decoded a published send's reply as abstract ToolResult and stayed held."""
+    import pytest
+
+    from agent_comms.nominal.field_codec import UnsupportedFieldType
+    from toad.comms_root import Observing
+    from toad.widgets.comms_chat import CommsChatView
+
+    workspace.thread("peer")
+    async with workspace.app(size=(110, 32)) as ui:
+        await ui.open_direct("peer", actor=workspace.viewer)
+        chat = ui.app.selected_session.query_one(CommsChatView)
+        unreadable = UnsupportedFieldType("Unsupported JSON type: ToolResult")
+        with patch.object(Observing, "send_user_message", side_effect=unreadable):
+            with pytest.raises(UnsupportedFieldType):
+                await chat.submit_input(UserInputSubmitted("UNREADABLE_REPLY_SEND"))
+        assert not chat.send_block_reason
+        assert chat.prompt.text == "UNREADABLE_REPLY_SEND"

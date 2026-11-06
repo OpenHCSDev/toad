@@ -23,7 +23,6 @@ from agent_comms.ui_model.observation import (
 )
 
 from toad.app_node import ToadNode
-from toad.constants import WELCOME
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.input_decision import InputAccepted, InputDecision
@@ -429,8 +428,6 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
 class AgentBinding(ABC):
     """Known native launch state carries construction and attachment behavior."""
 
-    startup_mode: ClassVar[str]
-
     @property
     @abstractmethod
     def welcome_prefix(self) -> str: ...
@@ -460,8 +457,6 @@ class AgentBinding(ABC):
 
 @dataclass(frozen=True)
 class NoAgent(AgentBinding):
-    startup_mode = "store"
-
     @property
     def welcome_prefix(self) -> str:
         return ""
@@ -487,8 +482,6 @@ class NoAgent(AgentBinding):
 @dataclass(frozen=True)
 class AgentAttached(AgentBinding):
     agent: AgentDefinition
-    startup_mode = WELCOME
-
     @property
     def welcome_prefix(self) -> str:
         return f"{self.agent.name} · "

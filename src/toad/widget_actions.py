@@ -382,13 +382,6 @@ class OpenSelectedAction(VisibleAction):
         context.open_selected()
 
 
-class LaunchAction(VisibleAction):
-    keys = {EditingMode: ("space",)}
-
-    async def apply(self, context: Launches) -> None:
-        await context.launch()
-
-
 class ActivateAction(WidgetAction):
     keys = {EditingMode: ("enter", "space")}
 
@@ -509,12 +502,6 @@ class OpensSelected(DeclaredWidgetActions, actions=(OpenSelectedAction,)):
 
     @abstractmethod
     def open_selected(self) -> None: ...
-
-
-class Launches(DeclaredWidgetActions, actions=(LaunchAction,)):
-
-    @abstractmethod
-    async def launch(self) -> None: ...
 
 
 class ActivationKeys(PrimaryActivation, DeclaredWidgetActions, actions=(ActivateAction,)):
