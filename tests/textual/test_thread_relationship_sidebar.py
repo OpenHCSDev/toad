@@ -121,7 +121,9 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         channel_session = app.selected_session
         assert not channel_session.query_one("#thread-comms-panel", SideBarCollapsible).collapsed
         channel_tree = await reveal(ui, channel_session)
-        assert channel_tree._snapshot.owner == "owner", "Channel became the relationship owner"
+        # A channel tab belongs to no session: its panel reads the user's relationships, never
+        # the channel's own as if the channel were a thread.
+        assert channel_tree._snapshot.owner == workspace.viewer, "Channel became the relationship owner"
         await ui.select_tab(owner_tab)
         assert ui.draft() == draft
         tree.groups[OutboundRelationshipGroup].rows["#team"].open_selected()
@@ -168,7 +170,8 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         await ui.until(lambda: tree._snapshot is not None and tree._snapshot.owner == "renamed-owner",
                        why="the panel to follow the rename")
         await ui.select_tab(channel_tab)
-        await ui.until(lambda: channel_tree._snapshot is not None and channel_tree._snapshot.owner == "renamed-owner",
-                       why="the channel tab's panel to follow the rename")
+        # The channel tab is the user's, not the owner session's: renaming that thread leaves it.
+        await ui.step()
+        assert channel_tree._snapshot is not None and channel_tree._snapshot.owner == workspace.viewer
         await ui.select_tab(owner_tab)
         assert ui.draft() == draft
