@@ -14,7 +14,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
 from textual.navigation import MovesCursor
-from toad.widget_actions import WidgetAction, PriorityActions, HiddenActions, Submits, DismissAction, SubmitAction, VisibleActions
+from toad.widget_actions import ForwardsCursor, WidgetAction, PriorityActions, HiddenActions, Submits, DismissAction, SubmitAction, VisibleActions
 from textual import work
 from textual import getters
 from textual import containers
@@ -173,7 +173,7 @@ class SwitchPathPickerAction(WidgetAction):
 
 
 class PathSearch(
-    CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, MovesCursor, Submits, CompletionPopup,
+    CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, ForwardsCursor, Submits, CompletionPopup,
     scopes={HiddenActions: (DismissAction, SubmitAction)},
     actions=(SwitchPathPickerAction,),
 ):
@@ -297,19 +297,12 @@ class PathSearch(
             self.option_list.highlighted = 0
         self.post_message(PromptSuggestion(""))
 
-    def action_cursor_down(self) -> None:
+    @property
+    def cursor_owner(self) -> MovesCursor | None:
+        """The tree while it is picked (once mounted), else the fuzzy list."""
         if self.show_tree_picker:
-            if tree := self.query_one_optional(ProjectDirectoryTree):
-                tree.action_cursor_down()
-        else:
-            self.option_list.action_cursor_down()
-
-    def action_cursor_up(self) -> None:
-        if self.show_tree_picker:
-            if tree := self.query_one_optional(ProjectDirectoryTree):
-                tree.action_cursor_up()
-        else:
-            self.option_list.action_cursor_up()
+            return self.query_one_optional(ProjectDirectoryTree)
+        return self.option_list
 
     def invalidate_paths(self) -> None:
         self._paths_dirty = True
