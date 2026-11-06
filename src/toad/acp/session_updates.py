@@ -21,7 +21,7 @@ from acp.schema import (
     UsageUpdate,
     UserMessageChunk,
 )
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.acp_extension import AgentCommsUpdate
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
@@ -138,15 +138,16 @@ class SessionNotificationOwner(ClientRequestOwner):
 
     async def receive(self, notification, raw_update):
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        session_id = FieldCodec.decode(AcpSessionId, notification.session_id)
         async with self.lock:
-            if authority.retired or not authority.binding.accepts_notification(notification.session_id):
+            if authority.retired or not authority.binding.accepts_notification(session_id):
                 return
             validation = await self.agent.controller.task_runner.run(
                 ValidateSessionUpdateTask(notification, raw_update)
             )
             if authority.retired:
                 return
-            validation.publish(self, notification.session_id, raw_update, notification.field_meta)
+            validation.publish(self, session_id, raw_update, notification.field_meta)
 
     def reject(self, session_id: AcpSessionId, update, metadata, error: str):
         self.agent.log(

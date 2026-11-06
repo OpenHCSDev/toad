@@ -21,6 +21,7 @@ from textual.geometry import Offset
 
 from toad.db import DB
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_history(workspace, tmp_path, monkeypatch):
@@ -60,7 +61,7 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
         await app.selected_session.on_coordination_update(comms.configuration.answer("owner"))
         db = DB()
         await db.create()
-        saved = await db.session_new("peer", "Comms", "agent-comms.openhcs.dev", "peer")
+        saved = await db.session_new("peer", "Comms", "agent-comms.openhcs.dev", AcpSessionId("peer"))
         assert saved is not None
         sidebar = app.screen.query_one(CommsSidebar)
 
