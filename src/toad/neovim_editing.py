@@ -873,6 +873,9 @@ class NeovimHost(NeovimRequester, MroDispatch):
     process count no longer grows with the tabs; registers and the search pattern are shared
     across those buffers on purpose, as in any one Neovim."""
 
+    # The one UI's size until a prompt measures its own viewport.
+    initial_viewport: ClassVar[tuple[int, int]] = (80, 24)
+
     def __init__(self, application: HostsNeovim) -> None:
         self._application = application
         self._routes: dict[int, NeovimRoute] = {}
@@ -1033,7 +1036,7 @@ class NeovimHost(NeovimRequester, MroDispatch):
     async def _start(self) -> None:
         await self._child_ready
         api = self.accept_api_info(await self.bootstrap(self, NeovimCall("nvim_get_api_info", [])))
-        await self.bootstrap(self, NeovimCall("nvim_ui_attach", [80, 24,
+        await self.bootstrap(self, NeovimCall("nvim_ui_attach", [*self.initial_viewport,
             {"ext_linegrid": True, "ext_cmdline": True, "ext_messages": True}]))
         script = files(toad).joinpath("neovim_editing.lua").read_text()
         await self.bootstrap(self, NeovimCall("nvim_exec_lua", [script, [api.channel]]))
@@ -1135,7 +1138,7 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         self._update_queued = False
         self._boundaries: list[Binding] = []
         self._lease: BufferLease = NO_BUFFER
-        self._viewport = [80, 24]
+        self._viewport = list(NeovimHost.initial_viewport)
 
     @property
     def label(self) -> str:
