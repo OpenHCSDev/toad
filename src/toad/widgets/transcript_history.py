@@ -526,11 +526,16 @@ class TranscriptPageView(
             strip = history.effect_phase(ARRIVAL).paint_row(history, ARRIVAL, strip, self.arrival_position(y))
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
+    @property
+    def arrival_rows(self) -> range:
+        """The rows this page draws for its arriving fragments, first to last."""
+        rows = [(first, lines.height) for fragment, first, lines in self._layout if fragment.key in self.arrivals]
+        return range(rows[0][0], rows[-1][0] + rows[-1][1]) if rows else range(0)
+
     def arrival_position(self, y: int) -> float:
         """How far row `y` is through this page's arriving rows: 0 the first, 1 the last."""
-        rows = [(first, lines.height) for fragment, first, lines in self._layout if fragment.key in self.arrivals]
-        top, bottom = rows[0][0], rows[-1][0] + rows[-1][1] - 1
-        return (y - top) / (bottom - top) if bottom > top else 0.0
+        rows = self.arrival_rows
+        return (y - rows.start) / (len(rows) - 1) if len(rows) > 1 else 0.0
 
     def hold_fragment_top(self, window: HistoryWindow, key: FragmentKey) -> None:
         """Keep this page's activated source occurrence at the top while its details change."""
@@ -1105,6 +1110,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         # The burst is decided by the cascade's phase.
         self.run_effect(ARRIVAL)
 
+    def unrevealed_rows(self) -> int:
+        phase = self.effect_phase(ARRIVAL)
+        return sum(phase.unrevealed(ARRIVAL, len(page.arrival_rows)) for page in self.pages)
+
     def hold_arrival(self, arrivals: tuple[TranscriptFragment, ...]) -> None:
         """The first shown arriving message places a following reader: from its head when it is taller than the window."""
         window = self.window
@@ -1118,6 +1127,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
         phase = self.effect_phase(ARRIVAL)
+        if not fragments and self.is_attached:
+            # A clock tick: a following reader goes down with the rows as they rise.
+            window = self.window
+            window.reader_position.revealed(window)
         if fragments:
             phase.on_new_arrival(self, ARRIVAL, self.pages)
         positions = {fragment.arrival_position for fragment in (*fragments, *phase.keeps_arrivals(continuing))}

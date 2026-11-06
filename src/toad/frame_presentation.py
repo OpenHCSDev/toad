@@ -227,6 +227,12 @@ class Cascade(Effect[Mix]):
         """The frame of a row `position` (0 first, 1 last) of the way through the cascade."""
         return self.fade.frame(elapsed - position * self.span)
 
+    def unstarted(self, elapsed: float, rows: int) -> int:
+        """How many of `rows` have not started rising yet: they are still below what the reader sees."""
+        if rows < 2:
+            return 0
+        return max(0, rows - 1 - int(elapsed / self.span * (rows - 1)))
+
     @property
     def final(self) -> Mix:
         return self.fade.final
@@ -258,6 +264,10 @@ class EffectPhase:
         """One row of a cascade; only a running one has rows at different frames."""
         return self.paint(owner, effect, strip)
 
+    def unrevealed(self, effect: Cascade, rows: int) -> int:
+        """Rows of a cascade still waiting to rise; only a running one holds any back."""
+        return 0
+
     def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return arrivals
 
@@ -284,6 +294,10 @@ class EffectRunning(EffectPhase):
         shown = (effect.final if animation.finished or not owner.animation_visible
                  else effect.at(animation.elapsed, position))
         return owner.paint_effects(strip, shown)
+
+    def unrevealed(self, effect: Cascade, rows: int) -> int:
+        animation = self.animation
+        return 0 if animation.finished else effect.unstarted(animation.elapsed, rows)
 
     def stop(self) -> None:
         self.animation.stop()

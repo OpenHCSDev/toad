@@ -109,3 +109,9 @@ def test_a_burst_comes_in_row_after_row_and_ends_whole():
     # The first row is already rising while the last has not started: it is still the background.
     assert first.amount > 0 and last.amount == 0
     assert ARRIVAL.at(ARRIVAL.duration, 1.0) == ARRIVAL.final
+
+
+def test_a_following_reader_stops_above_the_rows_still_to_rise():
+    # Five rows: at the start four wait below the window, half way two, at the end none.
+    assert [ARRIVAL.unstarted(elapsed, 5) for elapsed in (0.0, ARRIVAL.span / 2, ARRIVAL.span)] == [4, 2, 0]
+    assert ARRIVAL.unstarted(0.0, 1) == 0
