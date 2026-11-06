@@ -1024,10 +1024,9 @@ class SelectsTargets(TargetTree):
         try:
             yield
         finally:
-            for identity in previous.symmetric_difference(
-                self.selection_state.selected_targets
-            ):
-                if (row := self.row_for(identity)) is not None:
+            changed = previous.symmetric_difference(self.selection_state.selected_targets)
+            for row in self.rows:
+                if self.selection_for(row) in changed:
                     row.refresh_paint()
 
     def remember_row(self, row: CommsRow) -> None:
@@ -1074,8 +1073,7 @@ class SelectsTargets(TargetTree):
     def apply_selection(self) -> None:
         with self.selection_change():
             state = self.selection_state
+            shown = {self.selection_for(row) for row in self.rows}
             state.selected_targets = tuple(
-                identity
-                for identity in state.selected_targets
-                if self.row_for(identity) is not None
+                identity for identity in state.selected_targets if identity in shown
             )

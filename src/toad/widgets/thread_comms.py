@@ -46,7 +46,6 @@ from toad.widgets.sidebar_tree import (
     SidebarModelView,
     SearchFollower,
     SelectsTargets,
-    TargetTree,
 )
 from agent_comms.relationships import (
     RelationshipEntry,
