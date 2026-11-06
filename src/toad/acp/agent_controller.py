@@ -63,10 +63,10 @@ class SessionBinding:
 
     @property
     def bound(self) -> bool:
-        return bool(self.session_id.present())
+        return self.session_id.bound
 
     def accepts_notification(self, session_id: AcpSessionId):
-        return self.bound and self.session_id == session_id
+        return self.session_id == session_id
 
     def accepts_snapshot(
         self, identity: TranscriptReadIdentity, owner: SourceIdentity

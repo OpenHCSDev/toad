@@ -12,8 +12,9 @@ from support.coordination import coordination_fact
 from toad.acp.agent import Agent
 from toad.core.events import CoreEvent, SessionInfoUpdate
 from toad.db import DB
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
-THREAD = "existing-worker"
+THREAD = AcpSessionId("existing-worker")
 
 
 class Recorder:
@@ -44,7 +45,7 @@ class StubConnection:
         pass
 
 
-def resumable_agent(ui, workspace, session_id=None, session_pk=None):
+def resumable_agent(ui, workspace, session_id=NoAcpSessionId(), session_pk=None):
     """An agent object with no process whose handshake advertises session loading."""
     access = ui.textual[0].coordination_access
     agent = Agent(workspace.project, command("false", name="fixture", identity="agent-comms.openhcs.dev"),

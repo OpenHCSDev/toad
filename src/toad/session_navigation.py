@@ -322,19 +322,19 @@ class SessionNavigation(StartsSessions):
 
         app = self.app
         database = await app.get_db()
-        make_binding: Callable[[AgentDefinition], AgentBinding] = AgentAttached
-        for resumed in agent_session_id.present():
-            make_binding = partial(AgentSession, session_id=resumed)
-            existing = next(
-                (
-                    identity
-                    for identity, origin in app.workspace_sessions.views.items()
-                    if origin.matches_launch(agent_identity, resumed)
-                ),
-                None,
-            )
-            if existing is not None:
-                return self.entries[existing][existing]
+        make_binding: Callable[[AgentDefinition], AgentBinding] = agent_session_id.selected(
+            AgentAttached, lambda resumed: partial(AgentSession, session_id=resumed)
+        )
+        existing = next(
+            (
+                identity
+                for identity, origin in app.workspace_sessions.views.items()
+                if agent_session_id.selected(False, partial(origin.matches_launch, agent_identity))
+            ),
+            None,
+        )
+        if existing is not None:
+            return self.entries[existing][existing]
         agent, title = None, None
         if session_pk is not None:
             saved = await database.session_get(session_pk)

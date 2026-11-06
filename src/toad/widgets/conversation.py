@@ -715,7 +715,7 @@ class ConversationSessionBinding(
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
         self._auto_title_eligible = (
-            not agent_session_id.present() and session_title is None
+            not agent_session_id.bound and session_title is None
         )
         self._agent_fail = False
         self._mouse_down_offset: Offset | None = None
@@ -725,8 +725,9 @@ class ConversationSessionBinding(
         self.project_data_path = paths.get_project_data(project_path)
         self.input_histories = InputHistories(
             self.project_data_path,
-            agent_session_id
-            or (f"session-{session_pk}" if session_pk is not None else ""),
+            agent_session_id.selected(
+                f"session-{session_pk}" if session_pk is not None else "", str
+            ),
         )
 
         self.session_start_time: float | None = None

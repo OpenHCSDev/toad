@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
     CompactionCommittedUpdate,
@@ -62,7 +62,7 @@ class CommsUpdateConsumer(MroDispatch):
     def __init__(
         self,
         agent,
-        session_id: AcpSessionId,
+        session_id: AcpSessionId | NoAcpSessionId,
         *,
         cursor_token: int | None = None,
         queue_token: int | None = None,

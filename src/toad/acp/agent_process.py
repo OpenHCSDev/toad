@@ -60,7 +60,7 @@ class AgentProcess(Client):
                 and lifecycle is not None and lifecycle.close is not None
                 and self.command == agent.command and self.env == env
                 and self.cwd == cwd and self.route_selection == selection
-                and agent.session_id.present()
+                and agent.session_id.bound
                 and all(member.agent.session_id != agent.session_id for member in self.sessions))
 
     async def start(self, agent, processes: tuple[AgentProcess, ...]=()):

@@ -390,8 +390,8 @@ class AgentSession:
         """Create a new session."""
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        cursor_token = self.agent._private_cursor.begin(None)
-        queue_token = self.agent.queue_attachment.begin(None)
+        cursor_token = self.agent._private_cursor.begin(NoAcpSessionId())
+        queue_token = self.agent.queue_attachment.begin(NoAcpSessionId())
         self.agent._post_private_cursor()
         self.agent._post_queue_view()
         response = await self.agent.process.rpc.new_session(
