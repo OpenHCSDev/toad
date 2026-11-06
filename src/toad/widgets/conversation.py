@@ -1409,16 +1409,16 @@ class Conversation(
         """Where this view's input goes: its operational sources answer for agent and CLI views."""
         return self.operational_sources.begin_submission(owner, submission)
 
-    async def agent_turn_over(self, stop_reason: type[StopReason] | None) -> None:
+    async def agent_turn_over(self, stop_reason: type[StopReason]) -> None:
         """Called when the agent's turn is over.
 
         Args:
-            stop_reason: The stop reason returned from the Agent, or `None`.
+            stop_reason: The stop reason returned from the Agent; UnreportedStopReason when it gave none.
         """
         self.turns.finish_client()
         self._agent_activity_boundary.reset()
         model = self.agent_binding.configuration.model.selected
-        if stop_reason is not None and stop_reason.completed and model is not None:
+        if stop_reason.completed and model is not None:
             from toad.db import DB
 
             # Complete visible turn settlement independently of recent-model
@@ -1438,7 +1438,7 @@ class Conversation(
 
         self._turn_count += 1
 
-        if stop_reason is not None and stop_reason.note:
+        if stop_reason.note:
 
             await self.post(
                 StopReasonNote(

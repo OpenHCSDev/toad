@@ -38,7 +38,7 @@ from toad.bus_submission import (
 from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.acp.agent import Agent
-from toad.acp.status import StopReason
+from toad.acp.status import StopReason, UnreportedStopReason
 from toad.comms_root import Observing
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.submission_queue import QueueEvidence, QueueSource
@@ -285,7 +285,7 @@ class AgentSubmissionExecution(SubmissionExecution):
         view = self.owner.view
         managed = self.agent.presentation.uses_managed_turns
         local = not managed
-        reason = None
+        reason: type[StopReason] = UnreportedStopReason
         if local:
             view.turns.start_client()
         try:
@@ -301,7 +301,7 @@ class AgentSubmissionExecution(SubmissionExecution):
         if self.current and local:
             view.call_later(self.complete, reason)
 
-    async def complete(self, reason: type[StopReason] | None) -> None:
+    async def complete(self, reason: type[StopReason]) -> None:
         if self.current:
             await self.owner.view.agent_turn_over(reason)
 
