@@ -25,7 +25,7 @@ from toad.bus_submission import (
     SubmissionStart,
     SubmittedText,
 )
-from toad.input_decision import InputRefused
+from toad.input_decision import TranscriptNotReady
 from toad.render_backend import ContentAddressedRenderTask
 from toad.transcript_state import DEFERRED_WORK, LatestViewportRequest, SourceWork
 from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
@@ -611,7 +611,7 @@ class ClosedHistory(ReplaceablePageSource):
     def begin_submission(
         self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
     ) -> SubmissionStart:
-        return owner.unbound(submission, InputRefused("Conversation source is not ready"))
+        return owner.unbound(submission, TranscriptNotReady())
 
     def schedule_refresh(self, view: CommsChatView) -> SourceWork:
         return DEFERRED_WORK

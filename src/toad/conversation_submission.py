@@ -38,6 +38,8 @@ from toad.bus_submission import (
 from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.acp.agent import Agent
+from toad.acp.status import StopReason
+from toad.comms_root import Observing
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.submission_queue import QueueEvidence, QueueSource
 from toad.core.input_events import UserInputSubmitted
@@ -99,7 +101,7 @@ class ShellInputSubmission(InputSubmission):
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         return event.shell and bool(event.body.strip())
 
-    async def execute(self, owner):
+    async def execute(self, owner: ConversationSubmissions):
         view = owner.view
         shell = view.shell
         if await shell.is_busy():
@@ -198,7 +200,7 @@ class SubmissionExecution(SubmissionStart):
     """One outstanding local request: shown above the composer until its destination has it,
     while the composer stays open. Members differ only in where the text goes."""
 
-    def __init__(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
+    def __init__(self, owner: ConversationSubmissions, submission: SubmittedText):
         self.owner, self.submission = owner, submission
 
     async def prepare(self):
@@ -297,7 +299,7 @@ class AgentSubmissionExecution(SubmissionExecution):
         if self.current and local:
             view.call_later(self.complete, reason)
 
-    async def complete(self, reason):
+    async def complete(self, reason: type[StopReason] | None) -> None:
         if self.current:
             await self.owner.view.agent_turn_over(reason)
 
@@ -411,7 +413,7 @@ class BusSubmissionExecution(SubmissionExecution):
             delivery_failure(error).present(view, body)
             return RefusedMessage()
 
-    async def commit(self, observed, body) -> DeliveryOutcome:
+    async def commit(self, observed: Observing, body: str) -> DeliveryOutcome:
         view = self.owner.view
         task = asyncio.create_task(asyncio.to_thread(
             observed.send_user_message, self.destination.conversation.send_target(), body))

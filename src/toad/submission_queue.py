@@ -131,7 +131,7 @@ class NativeQueueSource(QueueSource):
 
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         projection = evidence.presentation.queue
-        lines = [(Span("Submitting is local intent; Queued is producer acceptance, not consumption.", MutedRole),)]
+        lines: list[tuple[Span, ...]] = [(Span("Submitting is local intent; Queued is producer acceptance, not consumption.", MutedRole),)]
         lines.extend(self.submitting_details(evidence))
         lines.extend((Span(f"Queued {row.input_id}: {row.preview}", MutedRole),) for row in projection.items)
         lines.extend((Span(f"Restored {row.input_id} (read-only): {row.preview}", MutedRole),)

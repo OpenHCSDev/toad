@@ -60,7 +60,11 @@ class SubmissionOwner(ABC):
     """A view's pending submissions: a source starts its input here or refuses it here."""
 
     @abstractmethod
-    def start_bus(self, submission: SubmittedText, destination: BusDestination) -> SubmissionStart: ...
+    def start_bus(
+        self, submission: SubmittedText, destination: BusDestination
+    ) -> SubmissionStart: ...
 
     @abstractmethod
-    def unbound(self, submission: SubmittedText, refusal: InputRefused) -> SubmissionStart: ...
+    def unbound(
+        self, submission: SubmittedText, refusal: InputRefused
+    ) -> SubmissionStart: ...

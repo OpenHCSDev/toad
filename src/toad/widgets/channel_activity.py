@@ -3,15 +3,18 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from agent_comms.display_references import (
+    RetiredThreadReference,
+    ThreadDisplayReference,
+    ThreadReferenceReader,
+)
 from agent_comms.thread_identity import ThreadIncarnation
 from textual import widgets
 from textual.containers import VerticalGroup
 from textual.content import Content
 
-from toad.session_scope import SessionScope
-from agent_comms.display_references import RetiredThreadReference, ThreadDisplayReference, ThreadReferenceReader
-
 from toad.comms_root import CoordinationAccess
+from toad.session_scope import SessionScope
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView

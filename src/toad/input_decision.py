@@ -68,6 +68,10 @@ class NoLiveAgent(InputRefused):
         return self.disposition.refusal_notice
 
 
+class TranscriptNotReady(InputRefused):
+    message = "This conversation's transcript is not ready yet. Your draft is kept."
+
+
 class ModelSelectionRequired(InputRefused):
     message = "Choose a model or connect a provider (click here). Your draft is kept."
 

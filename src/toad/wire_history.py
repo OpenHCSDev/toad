@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
-from functools import partial, singledispatch
+from functools import singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -455,6 +455,8 @@ class ChannelDestination(BusDestination):
 
 class WirePageBuffer(SavedHistory):
     """The line history's page reader over a wire source."""
+
+    loader: WireSource
 
     work = WirePageWork
 

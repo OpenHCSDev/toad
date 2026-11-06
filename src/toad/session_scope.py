@@ -25,7 +25,7 @@ from agent_comms.ui_model.observation import (
 from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
-from toad.input_decision import InputAccepted, InputDecision, InputRefused
+from toad.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
 from toad.owner_preparation import ExistingOwnerPlan
 from textual.abstract_hooks import AbstractHooksMeta
@@ -317,7 +317,7 @@ class NoTranscript(TranscriptScope):
         conversation_type: type[DmConversation],
         sources: MailboxSent,
     ) -> SubmissionStart:
-        return owner.unbound(submission, InputRefused("CLI transcript is not ready"))
+        return owner.unbound(submission, TranscriptNotReady())
 
     async def show_mailbox_status(
         self, view: Conversation, conversation_type: type[DmConversation]
