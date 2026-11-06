@@ -1,11 +1,15 @@
 """Completing a thread mention in a channel keeps the draft and delivers to the channel."""
 
 
+from agent_comms.channel_targets import ChannelTarget
+from agent_comms.display_references import ThreadDisplayReference
+from agent_comms.repo import Checkout
+
 from toad.link_click import OpenLineLink
-from toad.line_blocks import OpenTarget
+from toad.line_blocks import OpenReference
 
 async def test_mention_completion_delivery_and_link(workspace):
-    workspace.thread("alpha", "team")
+    alpha = workspace.thread("alpha", "team")
     workspace.thread("beta", "team")
     comms = workspace.comms
     async with workspace.app(size=(100, 35)) as ui:
@@ -16,14 +20,22 @@ async def test_mention_completion_delivery_and_link(workspace):
         assert ui.draft() == "Can @alpha "
         await ui.type("review this?")
         await ui.press("enter")
-        await ui.until(lambda: len(comms.views.channel_history("#team")) == 1, why="the message on the wire")
-        sent = comms.views.channel_history("#team")[0]
+        team = ChannelTarget("#team").display_history(comms.views, Checkout(workspace.project))
+
+        def on_the_wire():
+            return team.page(comms.views.presentation).messages
+
+        await ui.until(lambda: len(on_the_wire()) == 1, why="the message on the wire")
+        sent = on_the_wire()[0]
         assert sent.target == "#team" and sent.body == "Can @alpha review this?"
         assert sent.mentions[0].thread == "alpha"
-        assert len(comms.bus.inbox("alpha")) == len(comms.bus.inbox("beta")) == 1
+        assert len(comms.bus.inbox("alpha").page.messages) == len(comms.bus.inbox("beta").page.messages) == 1
         await ui.until_shows("Can @alpha review this?")
         # The name becomes a link when the message's styled lines replace its plain ones.
-        await ui.until(lambda: ui.link_at("@alpha review") == OpenLineLink(OpenTarget("alpha")),
+        # A mention names alpha's exact birth on this wire, not whichever thread holds the name later.
+        mention = OpenLineLink(OpenReference(ThreadDisplayReference(
+            root=str(workspace.roots.wire), incarnation=alpha.incarnation)))
+        await ui.until(lambda: ui.link_at("@alpha review") == mention,
                        why="the mention drawn as a link")
 
         await ui.write_draft("@")
