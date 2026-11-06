@@ -249,7 +249,7 @@ class QueueSummary(
     def activate(self) -> None:
         from toad.widgets.conversation import Conversation
 
-        self.query_ancestor(Conversation).open_queue_menu()
+        self.query_ancestor(Prompt).conversation.open_queue_menu()
 
 
 class DeliveryControls(ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
@@ -527,7 +527,7 @@ See on-screen instructions for details.
     def leave_modal_editor(self) -> None:
         from toad.widgets.conversation import Conversation
 
-        self.query_ancestor(Conversation).window.focus(scroll_visible=False)
+        self.prompt.conversation.window.focus(scroll_visible=False)
 
     def clear_suggestions(self) -> None:
         self.suggestions = None
@@ -671,7 +671,7 @@ See on-screen instructions for details.
             # scroll the conversation to the end
             from toad.widgets.conversation import Conversation
 
-            self.query_ancestor(Conversation).jump_to_latest()
+            self.prompt.conversation.jump_to_latest()
         else:
             self.move_cursor(location, select=select)
 
@@ -756,6 +756,12 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         if self.submissions is None:
             raise RuntimeError("Operational prompt requires its submission owner")
         return self.submissions
+
+    @property
+    def conversation(self) -> Conversation:
+        """The view this prompt submits to; its submission owner holds it, so the prompt
+        answers the same whether it is mounted inside that view or beside it."""
+        return self.operational_submissions.view
 
     @property
     def input_decision(self) -> InputDecision:
@@ -885,7 +891,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         editor.refresh_bindings()
         from toad.widgets.conversation import Conversation
 
-        self.query_ancestor(Conversation).queue_controls_changed()
+        self.conversation.queue_controls_changed()
 
     def sync_queue(self) -> None:
         """A queue change moves the turn's controls and the summary; the agent it talks to is unchanged."""
@@ -984,7 +990,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         from toad.widgets.conversation import Conversation
 
         self.prompt_text_area.editing_mode.enter_text(self.prompt_text_area)
-        self.query_ancestor(Conversation).focus_prompt()
+        self.conversation.focus_prompt()
 
     @property
     def typing_target(self) -> Widget:

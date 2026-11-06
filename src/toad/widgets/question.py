@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections.abc import Iterator
 from typing import Callable, ClassVar
 
 from textual import containers, events, on, widgets
@@ -298,17 +299,16 @@ class Question(VisibleActions, StepsVerticalCursor, QuestionContext, containers.
             for index, (answer, keys) in enumerate(zip(self.options, self.option_keys())):
                 yield Option(index, Content(answer.text), keys)
 
-    def option_keys(self) -> tuple[tuple[str, ...], ...]:
+    def option_keys(self) -> Iterator[tuple[str, ...]]:
+        """Each answer's keys, in answer order. Lazy: zipped against no options, the binding maps
+        are never built, so a question with nothing to answer pays nothing on a binding change."""
         candidates = tuple((declaration.kind, binding.key)
                            for declaration in SelectKindAction.members_with(SelectKindAction)
                            for binding in declaration.configured_bindings(self))
         seen: set[str] = set()
-        result = []
         for answer in self.options:
-            result.append(tuple(key for kind, key in candidates
-                                if kind == answer.kind and kind not in seen))
+            yield tuple(key for kind, key in candidates if kind == answer.kind and kind not in seen)
             seen.update(kind for kind, _key in candidates if kind == answer.kind)
-        return tuple(result)
 
     def refresh_option_keys(self, _screen: Screen) -> None:
         for option, keys in zip(self.query(Option), self.option_keys()):
