@@ -71,7 +71,7 @@ class ActualS2Ingress:
         agent = view.agent_binding
         inputs = InputDispositions(self.comms.root / InputDispositions.filename)
         before = inputs.read()
-        wire_sequence = self.comms.bus.log.latest_sequence()
+        wire_sequence = self.comms.views.latest_sequence()
         prompt = text
         if image is not None:
             attachment = Path(self.subject.worktree) / 's2-original-image.png'
