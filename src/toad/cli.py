@@ -23,6 +23,7 @@ from toad.application_lifetime import ApplicationLifetime
 from toad.comms_root import CoreConnection
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -176,7 +177,7 @@ def acp(
     command: str,
     title: str | None,
     project_dir: str | None,
-    session_id: str | None = None,
+    session_id: AcpSessionId | None = None,
 ) -> None:
     """Run an ACP agent from a command."""
 

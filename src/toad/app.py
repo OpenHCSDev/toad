@@ -70,6 +70,7 @@ from agent_comms.nominal.field_codec import boundary_decoder
 from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
 from toad.resource_release import AsyncResourceRelease
 from toad.native_style import TransparentBackground
+from agent_comms.nominal.field_codec import AcpSessionId
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -157,7 +158,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         agent_binding: AgentBinding,
         project_dir: Checkout,
         connection: CoreConnection,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | None = None,
     ) -> None:
         """Toad app.
 

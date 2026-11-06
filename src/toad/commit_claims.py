@@ -18,7 +18,6 @@ from textual.widget import Widget
 class CommitEvidence:
     captured: frozenset[Widget]
     sequences: frozenset[int] = frozenset()
-    retained_history: Widget | None = None
     native_inputs: frozenset[str] = frozenset()
     outgoing: frozenset[OutgoingMessageReference] = frozenset()
 
@@ -114,8 +113,7 @@ class CapturedClaim(CommitClaim):
         return widget in captured and self.source.accepts(identity)
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return (widget in evidence.captured and widget is not evidence.retained_history
-                and self.source.covered(evidence))
+        return widget in evidence.captured and self.source.covered(evidence)
 
     def repeats_native(self, events: tuple[TranscriptEvent, ...]) -> bool:
         # The snapshot captured the native output its saved records hold.
@@ -144,23 +142,7 @@ class RetainedSourceClaim(CapturedClaim):
         return True
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return widget is not evidence.retained_history
-
-@dataclass(frozen=True)
-class SequenceClaim(CommitClaim):
-    """A wire notice needs its exact persisted counterpart, not a save signal."""
-
-    sequence: int | None
-
-    @property
-    def required_sequences(self) -> frozenset[int]:
-        return frozenset((self.sequence,)) if self.sequence is not None and self.sequence > 0 else frozenset()
-
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return self.sequence is not None and self.sequence in evidence.sequences
-
-    def repeats_received(self, events: tuple[TranscriptEvent, ...]) -> bool:
-        return self.sequence in TranscriptCoverage(events).sequences
+        return True
 
 @dataclass(frozen=True)
 class OutgoingMessageClaim(CommitClaim):

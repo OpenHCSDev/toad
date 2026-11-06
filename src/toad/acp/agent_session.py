@@ -37,6 +37,7 @@ from toad.core.events import (
     UnsupportedResumeAgentFail,
 )
 from toad.db import DB, SessionMeta
+from agent_comms.nominal.field_codec import AcpSessionId
 
 PROTOCOL_VERSION = 1
 
@@ -170,7 +171,7 @@ class AgentSession:
     def accepts_updates(self):
         return self.disposition.accepts_updates
 
-    def accepts_session(self, session_id: str | None) -> bool:
+    def accepts_session(self, session_id: AcpSessionId | None) -> bool:
         """Only this active session may consume work for its current binding."""
         return self.accepts_updates and self.agent.session_id == session_id
 

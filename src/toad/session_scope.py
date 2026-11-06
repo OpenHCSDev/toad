@@ -7,6 +7,7 @@ from collections.abc import Awaitable
 from pathlib import Path
 from typing import ClassVar, Never
 
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.errors import RelationViolationError
 
 from toad.app_node import ToadNode
@@ -69,7 +70,7 @@ class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):
             self.app.workspace_sessions.detach(self.id)
         return started
 
-    def matches_launch(self, agent_identity: str, session_id: str) -> bool:
+    def matches_launch(self, agent_identity: str, session_id: AcpSessionId) -> bool:
         return False
 
     @property
@@ -157,11 +158,11 @@ class ViewSessionOrigin(ProjectSessionOrigin, AgentOrigin):
     def attach_agent_definition(self) -> AgentBinding:
         self._agent_binding = self._agent_binding.attached(
             self.app.agent_binding
-        ).for_session(self.thread_identity.thread_name())
+        ).for_session(FieldCodec.decode(AcpSessionId, self.thread_identity.thread_name()))
         return self._agent_binding
 
     def use_mailbox(self) -> None:
         self._agent_binding = NoAgent()
 
-    def matches_launch(self, agent_identity: str, session_id: str) -> bool:
+    def matches_launch(self, agent_identity: str, session_id: AcpSessionId) -> bool:
         return self._agent_binding.matches_launch(self, agent_identity, session_id)

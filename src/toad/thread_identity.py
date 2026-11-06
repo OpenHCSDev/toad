@@ -16,6 +16,7 @@ from toad.transcript_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
 from toad.comms_root import Observing
 from toad.session_tracker import SessionDetails
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 
@@ -38,7 +39,7 @@ class SessionIdentity(ABC):
     def with_root(self, root: str | None):
         return self.for_thread(self.thread_name(), root)
 
-    def with_session(self, session_id: str):
+    def with_session(self, session_id: AcpSessionId):
         """A newly attached ACP session supplies an unbound view's name."""
         return LocalThreadIdentity(session_id)
 
@@ -147,7 +148,7 @@ class ThreadIdentity(NamedThreadIdentity):
     def with_root(self, root: str | None):
         return self if root == self.root else super().with_root(root)
 
-    def with_session(self, session_id: str):
+    def with_session(self, session_id: AcpSessionId):
         """A managed thread keeps its declared name and incarnation."""
         return self
 

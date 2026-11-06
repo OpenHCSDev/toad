@@ -20,6 +20,7 @@ from toad.commit_claims import CommitSource
 from toad.conversation_turn import TurnOwner
 from toad.core_event_carrier import CoreEventMessage
 from toad.acp.comms_updates import NoPendingThreadRead
+from agent_comms.nominal.field_codec import AcpSessionId
 
 if TYPE_CHECKING:
     from agent_comms.goal_actions import GoalAction
@@ -61,7 +62,7 @@ class AgentConnection(ABC):
     async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None: ...
 
     @abstractmethod
-    def matches_session(self, session_id: str) -> bool: ...
+    def matches_session(self, session_id: AcpSessionId) -> bool: ...
 
     @abstractmethod
     def borrowed_processes(self): ...
@@ -207,7 +208,7 @@ class NoAgentConnection(AgentConnection):
     async def cancel(self) -> bool:
         return False
 
-    def matches_session(self, session_id: str) -> bool:
+    def matches_session(self, session_id: AcpSessionId) -> bool:
         return False
 
     def borrowed_processes(self):

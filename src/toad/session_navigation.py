@@ -48,6 +48,7 @@ from toad.navigation_target import DirectTarget
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.agents import read_agents
+from agent_comms.nominal.field_codec import AcpSessionId
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
@@ -281,7 +282,7 @@ class SessionNavigation(StartsSessions):
 
     async def saved(
         self, agent: AgentDefinition, project: Checkout, *,
-        title: str = "New Session", agent_session_id: str | None = None,
+        title: str = "New Session", agent_session_id: AcpSessionId | None = None,
     ) -> AcpTab:
         """A native session is saved before it opens; its row is the tab's identity."""
         database = await self.app.get_db()
@@ -294,7 +295,7 @@ class SessionNavigation(StartsSessions):
         self,
         agent_identity: str,
         *,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | None = None,
         session_pk: int | None = None,
         project: Checkout,
         initial_prompt: str | None = None,
@@ -313,7 +314,7 @@ class SessionNavigation(StartsSessions):
         self,
         agent_identity: str,
         *,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | None = None,
         session_pk: int | None = None,
         project: Checkout,
         initial_prompt: str | None = None,

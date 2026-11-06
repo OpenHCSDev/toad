@@ -164,6 +164,7 @@ def make_session_title(prompt: str) -> str:
 
 from toad.widgets.question import Ask
 from toad.widgets.transcript_history import LineHistory
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
@@ -661,7 +662,7 @@ class ConversationSessionBinding(
         self,
         project_path: Checkout,
         agent: AgentDefinition | None = None,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | None = None,
         session_pk: int | None = None,
         session_title: str | None = None,
         initial_prompt: str | None = None,
@@ -686,7 +687,7 @@ class ConversationSessionBinding(
         self,
         project_path: Checkout,
         agent: AgentDefinition | None = None,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | None = None,
         session_pk: int | None = None,
         session_title: str | None = None,
         initial_prompt: str | None = None,
@@ -815,7 +816,7 @@ class ConversationSessionBinding(
     def clear_agent_definition(self) -> None:
         self._agent_data = None
 
-    def resume_agent_session(self, session_id: str) -> None:
+    def resume_agent_session(self, session_id: AcpSessionId) -> None:
         self._agent_session_id = session_id
 
     def start_native_session(self) -> None:

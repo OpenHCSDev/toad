@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.nominal.declared_family import DeclaredFamily
 from acp import schema as protocol
 from .client_session import ClientRequestOwner, ClientSessionRequest
@@ -142,7 +143,7 @@ class PermissionController(ClientRequestOwner):
                                  toolCall: protocol.ToolCallUpdate,
                                  _meta: dict | None = None) -> protocol.RequestPermissionResponse:
         cancelled = protocol.RequestPermissionResponse(outcome=protocol.DeniedOutcome(outcome="cancelled"))
-        authority = ClientSessionRequest(self.agent, sessionId)
+        authority = ClientSessionRequest(self.agent, FieldCodec.decode(AcpSessionId, sessionId))
         if authority.retired:
             return cancelled
         visible = self.agent.tools.permission(toolCall)

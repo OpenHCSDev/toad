@@ -15,6 +15,7 @@ from toad.agent_schema import AgentDefinition
 from toad.app_node import ToadNode
 from toad.thread_identity import SessionIdentity
 from toad.transcript_scope import TranscriptScope
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 class AgentConversation(ToadNode):
@@ -28,7 +29,7 @@ class AgentConversation(ToadNode):
     def clear_agent_definition(self) -> None: ...
 
     @abstractmethod
-    def resume_agent_session(self, session_id: str) -> None: ...
+    def resume_agent_session(self, session_id: AcpSessionId) -> None: ...
 
     @abstractmethod
     def start_native_session(self) -> None: ...
@@ -73,7 +74,7 @@ class AgentBinding(ABC):
     def attached(self, app_binding: AgentBinding) -> AgentBinding: ...
 
     @abstractmethod
-    def for_session(self, session_id: str) -> AgentBinding: ...
+    def for_session(self, session_id: AcpSessionId) -> AgentBinding: ...
 
     @abstractmethod
     def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C: ...
@@ -85,7 +86,7 @@ class AgentBinding(ABC):
 
     @abstractmethod
     def matches_launch(
-        self, origin: AgentOrigin, agent_identity: str, session_id: str
+        self, origin: AgentOrigin, agent_identity: str, session_id: AcpSessionId
     ) -> bool: ...
 
     def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
@@ -105,7 +106,7 @@ class NoAgent(AgentBinding):
     def attached(self, app_binding: AgentBinding) -> AgentBinding:
         return app_binding
 
-    def for_session(self, session_id: str) -> AgentBinding:
+    def for_session(self, session_id: AcpSessionId) -> AgentBinding:
         return self
 
     def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
@@ -115,7 +116,7 @@ class NoAgent(AgentBinding):
         conversation.clear_agent_definition()
 
     def matches_launch(
-        self, origin: AgentOrigin, agent_identity: str, session_id: str
+        self, origin: AgentOrigin, agent_identity: str, session_id: AcpSessionId
     ) -> bool:
         return False
 
@@ -133,7 +134,7 @@ class AgentAttached(AgentBinding):
     def attached(self, app_binding: AgentBinding) -> AgentBinding:
         return self
 
-    def for_session(self, session_id: str) -> AgentBinding:
+    def for_session(self, session_id: AcpSessionId) -> AgentBinding:
         return AgentSession(self.agent, session_id)
 
     def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
@@ -145,7 +146,7 @@ class AgentAttached(AgentBinding):
             conversation.start_native_session()
 
     def matches_launch(
-        self, origin: AgentOrigin, agent_identity: str, session_id: str
+        self, origin: AgentOrigin, agent_identity: str, session_id: AcpSessionId
     ) -> bool:
         return self.agent.identity == agent_identity and self.matches_session(
             origin, session_id
@@ -154,7 +155,7 @@ class AgentAttached(AgentBinding):
     async def start_session(self, app: StartsSessions, project: Checkout) -> None:
         await app.start_agent_session(self, project)
 
-    def matches_session(self, origin: AgentOrigin, session_id: str) -> bool:
+    def matches_session(self, origin: AgentOrigin, session_id: AcpSessionId) -> bool:
         return origin.operational_binding.matches_session(
             session_id
         ) or origin.transcript_scope().matches_session(
@@ -164,7 +165,7 @@ class AgentAttached(AgentBinding):
 
 @dataclass(frozen=True)
 class AgentSession(AgentAttached):
-    session_id: str
+    session_id: AcpSessionId
 
     def attach_to(self, origin: AgentOrigin, conversation: AgentConversation) -> None:
         conversation.resume_agent_session(self.session_id)
@@ -182,7 +183,7 @@ class AgentSession(AgentAttached):
     def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
         return empty.with_session(self.session_id)
 
-    def matches_session(self, origin: AgentOrigin, session_id: str) -> bool:
+    def matches_session(self, origin: AgentOrigin, session_id: AcpSessionId) -> bool:
         return self.session_id == session_id or super().matches_session(
             origin, session_id
         )

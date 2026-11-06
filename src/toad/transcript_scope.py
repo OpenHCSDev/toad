@@ -33,6 +33,7 @@ from toad.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 class TranscriptView(CoreEventReceiver, ToadNode):
@@ -91,7 +92,7 @@ class TranscriptScope(ABC):
     def original_threads(self) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
 
     @abstractmethod
-    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool: ...
+    def matches_session(self, access: CoordinationAccess, session_id: AcpSessionId) -> bool: ...
 
     @abstractmethod
     def status_thread(self, access: CoordinationAccess) -> StatusThread: ...
@@ -101,7 +102,7 @@ class TranscriptScope(ABC):
         self,
         view: TranscriptView,
         access: CoordinationAccess,
-        resume: Callable[[ThreadRowsChanged], bool | None],
+        resume: Callable[[ThreadRowsChanged], object],
     ) -> ResourceRelease: ...
 
     @abstractmethod
@@ -166,7 +167,7 @@ class KnownTranscript(TranscriptScope):
     def original_threads(self) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ((self.root, self.incarnation),)
 
-    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
+    def matches_session(self, access: CoordinationAccess, session_id: AcpSessionId) -> bool:
         registry = access.observing(self.root).registry_for(session_id, self.name)
         return registry.canonical_name(session_id) == registry.require(self.name).name
 
@@ -177,7 +178,7 @@ class KnownTranscript(TranscriptScope):
         self,
         view: TranscriptView,
         access: CoordinationAccess,
-        resume: Callable[[ThreadRowsChanged], bool | None],
+        resume: Callable[[ThreadRowsChanged], object],
     ) -> ResourceRelease:
         release = ResourceRelease()
         release.callback(
@@ -263,7 +264,7 @@ class NoTranscript(TranscriptScope):
     def original_threads(self) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
-    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
+    def matches_session(self, access: CoordinationAccess, session_id: AcpSessionId) -> bool:
         return False
 
     def status_thread(self, access: CoordinationAccess) -> StatusThread:
@@ -273,7 +274,7 @@ class NoTranscript(TranscriptScope):
         self,
         view: TranscriptView,
         access: CoordinationAccess,
-        resume: Callable[[ThreadRowsChanged], bool | None],
+        resume: Callable[[ThreadRowsChanged], object],
     ) -> ResourceRelease:
         return ResourceRelease()
 
