@@ -9,6 +9,7 @@ from agent_comms.display_references import ProjectReferences
 from agent_comms.messages import InfoKind, Message
 from textual.app import App
 
+from toad.link_click import OpenLineLink
 from toad.line_blocks import Divider, OpenTarget, Span, UserRole
 from toad.markdown_links import LinkContext
 from toad.notification_status import CheckedNotifications
@@ -60,8 +61,8 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_drawn_names_clickable_at_ever
             drawn = "\n".join(text)
             if width >= 80:
                 assert all(name in drawn for name in names), (width, text)
-            expected = {OpenTarget(name).click for name in names if name in drawn}
-            actual = clicks(rows) - {shown.details_link.click}
+            expected = {OpenLineLink(OpenTarget(name)) for name in names if name in drawn}
+            actual = clicks(rows) - {OpenLineLink(shown.details_link)}
             assert actual == expected, (width, text, actual, expected)
 
 
@@ -72,7 +73,7 @@ def test_divider_acquisition_reuses_equal_fades_rewraps_and_repaints_changed_sty
     acquired = NoRows().plain(36, RichLineRenderer(current_theme, 36), (block,))
     first = acquired.lines
     assert tuple(first) == RichLineRenderer(current_theme, 36).rows((block,))
-    assert link.click in clicks(first)
+    assert OpenLineLink(link) in clicks(first)
 
     equal_fade = replace(current_theme, styles=dict(current_theme.styles))
     assert acquired.plain(36, RichLineRenderer(equal_fade, 36), (block,)) is acquired
@@ -86,7 +87,7 @@ def test_divider_acquisition_reuses_equal_fades_rewraps_and_repaints_changed_sty
     assert changed is not acquired
     assert tuple(changed.lines) == RichLineRenderer(changed_fade, 80).rows((block,))
     assert tuple(changed.lines) != tuple(acquired.lines)
-    assert link.click in clicks(changed.lines)
+    assert OpenLineLink(link) in clicks(changed.lines)
 
 
 def test_opening_notification_details_draws_more_rows_than_the_collapsed_message():

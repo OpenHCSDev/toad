@@ -10,7 +10,10 @@ from agent_comms.channel_targets import ChannelSelection, CommandTarget
 from agent_comms.channel_targets import ChannelTarget as CoreChannelTarget
 from agent_comms.channel_targets import ThreadTarget as CoreThreadTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.thread_identity import ThreadIncarnation
 
+from toad.comms_root import Observing
+from toad.work_preparation import PreparationRuntime
 from toad.core.events import CoreEvent
 from toad.constants import ALL_COMMS_TARGET
 from toad.navigation_context import NavigationContext, NavigationOwner
@@ -98,8 +101,25 @@ class SessionTarget(NavigationTarget):
 class ThreadTarget(NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
-            owner_mode=context.owner_mode, project_path=context.project_path, target=self.name,
+            owner_mode=context.owner_mode, project_path=context.project_path, target=self,
         )
+
+    async def incarnation_in(self, preparation: PreparationRuntime, observed: Observing) -> ThreadIncarnation:
+        """A name names a thread by its current birth, which Core answers off the loop."""
+        name = self.name
+        return await preparation.run_thread(
+            lambda: observed.registry_for(name).require(name).incarnation)
+
+
+@dataclass(frozen=True)
+class KnownThreadTarget(ThreadTarget):
+    """A thread already drawn: its row holds the birth, so opening it asks Core nothing before
+    its tab shows; the tab's own read confirms the birth behind the loading view."""
+
+    incarnation: ThreadIncarnation
+
+    async def incarnation_in(self, preparation: PreparationRuntime, observed: Observing) -> ThreadIncarnation:
+        return self.incarnation
 
 
 class HistoryRoute:
