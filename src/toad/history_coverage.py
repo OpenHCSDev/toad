@@ -2,21 +2,51 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from abc import abstractmethod
+from collections.abc import Iterator
+from typing import ClassVar
 
+from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.sent_message import OutgoingMessageReference
+from agent_comms.transcript_events import TranscriptCoverage, TranscriptEvent
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from textual.abstract_hooks import AbstractHooksMeta
 
-if TYPE_CHECKING:
-    from collections.abc import Iterator
 
-    from agent_comms.acp_extension import InputStartedUpdate
-    from agent_comms.sent_message import OutgoingMessageReference
-    from agent_comms.transcript_events import TranscriptEvent
-    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+class CoveredHistory[Document](metaclass=AbstractHooksMeta):
+    """What coverage reads from a saved history and asks it to do."""
 
-    from toad.core.source_events import TranscriptCoverage
-    from toad.transcript_preparation import PreparedPageSource
-    from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
+    @property
+    @abstractmethod
+    def coverage_events(self) -> Iterator[TranscriptEvent]: ...
+
+    @property
+    @abstractmethod
+    def source_through(self) -> TranscriptCursor: ...
+
+    @abstractmethod
+    def covered_outgoing(self) -> frozenset[OutgoingMessageReference]: ...
+
+    @abstractmethod
+    def overlay_covers_incoming(self, sequence: int) -> bool: ...
+
+    @abstractmethod
+    def publish_covered(self) -> None:
+        """Announce the loaded pages' coverage to Core."""
+
+    @abstractmethod
+    async def park_document(self) -> Document: ...
+
+    @abstractmethod
+    def close(self) -> None: ...
+
+
+class ReportsCoveredPages(metaclass=AbstractHooksMeta):
+    """A history whose own page reads reach the presentation's coverage evidence."""
+
+    @abstractmethod
+    def page_covered(self, page: TranscriptPage) -> None: ...
 
 
 class HistoryCoverage(DeclaredFamily, affix="Coverage"):
@@ -24,28 +54,25 @@ class HistoryCoverage(DeclaredFamily, affix="Coverage"):
 
     summary: ClassVar[str] = "Saved history not loaded"
 
-    def events(self, history: CommittedHistory) -> Iterator[TranscriptEvent]:
-        return iter(())
-
-    def outgoing(self, history: CommittedHistory) -> frozenset[OutgoingMessageReference]:
+    def outgoing(self, history: CoveredHistory) -> frozenset[OutgoingMessageReference]:
         return frozenset()
 
-    def covers_incoming(self, history: CommittedHistory, sequence: int) -> bool:
+    def covers_incoming(self, history: CoveredHistory, sequence: int) -> bool:
         return False
 
-    def covers_input(self, history: CommittedHistory, started: InputStartedUpdate) -> bool:
+    def covers_input(self, history: CoveredHistory, started: InputStartedUpdate) -> bool:
         return False
 
-    def retained_through(self, history: CommittedHistory) -> tuple[TranscriptCursor, ...]:
+    def retained_through(self, history: CoveredHistory) -> tuple[TranscriptCursor, ...]:
         return ()
 
-    def publish(self, history: CommittedHistory) -> None:
+    def publish(self, history: CoveredHistory) -> None:
         """Nothing covered, nothing to announce."""
 
-    def page_added(self, history: TranscriptHistory, page: TranscriptPage) -> None:
+    def page_added(self, history: ReportsCoveredPages, page: TranscriptPage) -> None:
         """An uncovered source does not report the page it read."""
 
-    async def retire(self, history: CommittedHistory) -> tuple[PreparedPageSource, ...]:
+    async def retire[Document](self, history: CoveredHistory[Document]) -> tuple[Document, ...]:
         """Nothing parks an uncovered source, so nothing outlives the view to close it."""
         history.close()
         return ()
@@ -55,46 +82,32 @@ class NoCoverage(HistoryCoverage):
     """A source whose pages are not yet, or no longer, published as coverage."""
 
 
-def _coverage(events) -> TranscriptCoverage:
-    # Core's event module imports the transcript states that hold these members.
-    from toad.core.source_events import TranscriptCoverage
-
-    return TranscriptCoverage(tuple(events))
-
-
 class PageCoverage(HistoryCoverage):
     """A published source covers its loaded pages and the filter's overlay."""
 
     summary = "Saved history available"
 
-    def events(self, history: CommittedHistory) -> Iterator[TranscriptEvent]:
-        return history.coverage_events
+    def outgoing(self, history: CoveredHistory) -> frozenset[OutgoingMessageReference]:
+        return history.covered_outgoing()
 
-    def outgoing(self, history: CommittedHistory) -> frozenset[OutgoingMessageReference]:
-        references = frozenset(reference for page in history.pages
-                               for reference in page.prepared.outgoing_coverage)
-        return references | history.filter.overlay.outgoing_coverage
+    def covers_incoming(self, history: CoveredHistory, sequence: int) -> bool:
+        return (history.source_through.covers_incoming(sequence)
+                or sequence in TranscriptCoverage(tuple(history.coverage_events)).sequences
+                or history.overlay_covers_incoming(sequence))
 
-    def covers_incoming(self, history: CommittedHistory, sequence: int) -> bool:
-        return (history.page_source.through.covers_incoming(sequence)
-                or sequence in _coverage(self.events(history)).sequences
-                or history.filter.overlay.covers_incoming(sequence))
+    def covers_input(self, history: CoveredHistory, started: InputStartedUpdate) -> bool:
+        return started.native_id in TranscriptCoverage(tuple(history.coverage_events)).native_inputs
 
-    def covers_input(self, history: CommittedHistory, started: InputStartedUpdate) -> bool:
-        return started.native_id in _coverage(self.events(history)).native_inputs
+    def retained_through(self, history: CoveredHistory) -> tuple[TranscriptCursor, ...]:
+        return (history.source_through,)
 
-    def retained_through(self, history: CommittedHistory) -> tuple[TranscriptCursor, ...]:
-        return (history.page_source.through,)
+    def publish(self, history: CoveredHistory) -> None:
+        history.publish_covered()
 
-    def publish(self, history: CommittedHistory) -> None:
-        history.publish_core(_coverage(self.events(history)))
+    def page_added(self, history: ReportsCoveredPages, page: TranscriptPage) -> None:
+        history.page_covered(page)
 
-    def page_added(self, history: TranscriptHistory, page: TranscriptPage) -> None:
-        view = history.view
-        view.transcript.binding.covered(
-            view.transcript, _coverage(page.events), history).call_when_ready(view)
-
-    async def retire(self, history: CommittedHistory) -> tuple[PreparedPageSource, ...]:
+    async def retire[Document](self, history: CoveredHistory[Document]) -> tuple[Document, ...]:
         """The parked pages go to the presentation, which closes them when the tab closes."""
         return (await history.park_document(),)
 

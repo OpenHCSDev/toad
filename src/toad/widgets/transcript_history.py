@@ -15,7 +15,7 @@ from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.ui_model.message_category import (
@@ -38,7 +38,8 @@ from textual.worker import Worker
 from ui_theme.effects import NEW_TEXT
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
-from toad.history_coverage import HistoryCoverage
+from toad.core.source_events import TranscriptCoverage
+from toad.history_coverage import CoveredHistory, HistoryCoverage, ReportsCoveredPages
 from toad.message_rows import RecordedMessageClock
 from toad.native_style import (
     AutoHeight,
@@ -1276,7 +1277,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
 
-class CommittedHistory(LineHistory, SnapshotPresentation):
+class CommittedHistory(LineHistory, SnapshotPresentation, CoveredHistory[PreparedPageSource]):
     """A saved source block that precedes the conversation's live tail."""
 
     conversation_order = 0
@@ -1313,6 +1314,21 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
         return (event for page in self.pages for event in page.prepared.page.events)
+
+    @property
+    def source_through(self) -> TranscriptCursor:
+        return self.page_source.through
+
+    def covered_outgoing(self) -> frozenset[OutgoingMessageReference]:
+        return frozenset(reference for page in self.pages
+                         for reference in page.prepared.outgoing_coverage
+                         ) | self.filter.overlay.outgoing_coverage
+
+    def overlay_covers_incoming(self, sequence: int) -> bool:
+        return self.filter.overlay.covers_incoming(sequence)
+
+    def publish_covered(self) -> None:
+        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
 
     @property
     def outgoing_coverage(self):
@@ -1368,7 +1384,7 @@ class ConversationHistory[ViewT: "Conversation"](LineHistory):
                    view=view, notification_view=notification_view, source_state=cls.initial_state(view))
 
 
-class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHistory[ViewT]):
+class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHistory[ViewT], ReportsCoveredPages):
     """The line history of a saved transcript.
 
     Its pages stand in for the conversation's live blocks: it reports which
@@ -1390,6 +1406,11 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         self.coverage.page_added(self, page)
+
+    def page_covered(self, page: TranscriptPage) -> None:
+        view = self.view
+        view.transcript.binding.covered(
+            view.transcript, TranscriptCoverage(page.events), self).call_when_ready(view)
 
     async def restore_source(self, source: PreparedPageSource, current) -> None:
         """Put the parked pages back into the same mounted reader."""
