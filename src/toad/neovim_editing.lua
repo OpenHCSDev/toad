@@ -120,7 +120,10 @@ end
 -- engine, so leaving a buffer cancels any pending operator or command line,
 -- and entering it again restores that buffer's own Insert or Replace.
 local resumed = {}
-local resume = {i = 'startinsert', R = 'startreplace'}
+-- Normal mode cannot hold a cursor past the line's last character, so an Insert
+-- cursor parked at the end of its line resumes with Vim's own append there.
+local resume = {i = {inside = 'startinsert', at_end = 'startinsert!'},
+                R = {inside = 'startreplace', at_end = 'startinsert!'}}
 
 ToadEditor = {}
 function ToadEditor.open(lines, cursor, tabstop, mappings)
@@ -157,7 +160,11 @@ function ToadEditor.enter(buf)
   api.nvim_win_set_buf(0, buf)
   local saved = resumed[buf]
   api.nvim_win_set_cursor(0, saved.cursor)
-  if resume[saved.mode] then vim.cmd(resume[saved.mode]) end
+  local command = resume[saved.mode]
+  if command then
+    local line = api.nvim_buf_get_lines(buf, saved.cursor[1] - 1, saved.cursor[1], true)[1]
+    vim.cmd(saved.cursor[2] >= #line and command.at_end or command.inside)
+  end
 end
 function ToadEditor.close(buf)
   resumed[buf], generation[buf], completed[buf] = nil, nil, nil
