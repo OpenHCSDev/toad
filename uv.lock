@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.14.*"
 
 [[package]]
@@ -1339,7 +1339,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?branch=main#c74df55d2becc82d2f37f369d955941d9ccce803" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?branch=main#a3770510303874ac8e284aebecb55bcfc4668744" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
