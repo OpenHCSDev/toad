@@ -55,8 +55,8 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
         await self._cancel_panel_workers()
         self.navigation.panel_scroll_y = self.panels_viewport.scroll_y
         self.capture_panels(screen)
-        await self.panels_viewport.remove_children()
-        await self.layout_controls.remove_children()
+        await self.content_stack.remove_children()
+        self.new_shell()
         self.panels.clear()
         self.panel_state = AbsentPanels()
         self.invalidate_controls()

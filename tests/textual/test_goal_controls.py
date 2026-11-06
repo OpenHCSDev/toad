@@ -23,8 +23,9 @@ async def show_goal(ui):
     goal = published_goal("Visible goal for control discovery", "new-control")
     view.goal_display = goal
     view.goal_execution = RunnableExecution(goal.id)
-    await ui.until(lambda: view.query(GoalBar), why="the goal bar")
-    return view, view.query_one(GoalBar)
+    bar = view.query_one(GoalBar)
+    await ui.until(lambda: bar.controls.is_mounted, why="the shown goal bar's controls")
+    return view, bar
 
 
 async def test_every_declared_interaction_has_a_control_and_a_new_one_works(workspace):

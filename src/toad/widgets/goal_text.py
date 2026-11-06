@@ -24,5 +24,8 @@ class GoalText(ReferenceRendering, OpensLinks, ChangingText):
         self.update_goal_text(self.goal_text)
 
     def update_goal_text(self, text: str) -> None:
+        """Its text now; one not yet mounted keeps it, and renders it from its links' context
+        when it mounts."""
         self.goal_text = text
-        self.update(inline_message(text, self.app.colours, LinkContext.containing(self)))
+        if self.is_attached:
+            self.update(inline_message(text, self.app.colours, LinkContext.containing(self)))

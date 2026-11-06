@@ -70,7 +70,7 @@ async def shown_goal(workspace, ui):
     view.prompt.text = "Composer draft stays"
     bar = view.query_one(GoalBar)
     status = bar.execution_text
-    await ui.until(lambda: status.display, why="the standby row")
+    await ui.until(lambda: status.is_mounted and status.display, why="the standby row")
     return owner, view, bar, status
 
 

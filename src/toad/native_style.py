@@ -5,6 +5,9 @@ Each recurring style fact is one mixin. Layout mixins extend Textual's cooperati
 collects along the MRO with the most derived class last.
 """
 
+from abc import abstractmethod
+from collections.abc import Iterable
+
 from textual.css.native import DeclaresTheme, Keyword, NativeDeclaration, TextVariable, Variable
 from textual.css.styles import Styles
 from textual.view import AUTO, FILL
@@ -114,6 +117,25 @@ class StartsHidden(Widget):
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.display = "none"
+
+
+class ComposedWhenShown(Widget):
+    """Builds its children the first time it is shown. Most tabs never show it, and a hidden
+    widget's children cost their mount, styling and messages in every tab all the same."""
+
+    children_built: bool = False
+
+    @abstractmethod
+    def shown_children(self) -> Iterable[Widget]:
+        """The children it shows, mounted on its first showing."""
+
+    def show(self, shown: bool) -> None:
+        """Display it or not; its children are mounted, synchronously into the tree, before
+        it first displays."""
+        if shown and not self.children_built:
+            self.children_built = True
+            self.mount_all(self.shown_children())
+        self.display = shown
 
 
 class ScreenOverlay(Widget):
