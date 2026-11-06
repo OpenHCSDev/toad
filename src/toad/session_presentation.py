@@ -182,7 +182,7 @@ class OperationalSessionSources(NativeQueueSource):
     def prompt(self, conversation: Conversation):
         from toad.widgets.prompt import Prompt
 
-        return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation.submissions)
+        return Prompt(project=conversation.project_path, submissions=conversation.submissions)
 
     def begin_submission(self, owner, submission):
         """An operational view's input is a prompt for its agent."""

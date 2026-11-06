@@ -1401,6 +1401,10 @@ class Conversation(
         message.stop()
         await self.submissions.submit(event)
 
+    def queue_controls_changed(self) -> None:
+        """The composer's delivery controls moved; the goal bar redraws its separators."""
+        self.goal_bar._queue_separator_update()
+
     def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart:
         """Where this view's input goes: its operational sources answer for agent and CLI views."""
         return self.operational_sources.begin_submission(owner, submission)

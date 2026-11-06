@@ -306,6 +306,9 @@ class CommsChatView(Conversation):
     async def command_target_context(self):
         return self.message_history.page_source.command_context(self)
 
+    def queue_controls_changed(self) -> None:
+        """A message view has no goal bar to redraw."""
+
     def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart:
         """A channel or inbox message goes where this view's message source says."""
         return self.message_history.page_source.begin_submission(self, owner, submission)

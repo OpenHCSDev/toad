@@ -85,12 +85,10 @@ class QueueNowInputSubmission(InputSubmission):
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         if event.shell or event.body.strip():
             return False
-        return event.immediate and owner.view.agent_binding.presentation.queue_supported
+        return event.immediate and owner.holds_input
 
     async def execute(self, owner: ConversationSubmissions):
-        projection = owner.queue_projection
-        if projection.status == "available" and projection.items:
-            owner.send_now()
+        owner.send_now()
 
 
 class ShellInputSubmission(InputSubmission):
@@ -439,11 +437,15 @@ class ConversationSubmissions(SubmissionOwner):
     @property
     def queue_evidence(self) -> QueueEvidence:
         return QueueEvidence(
-            self.view.agent_binding.presentation, self.delivering,
+            self.view.agent_binding.presentation, self.delivering, self.view.turns.owner.busy,
             self.view.contents.notification_targets,
             self.view.queue_source.capture_queue_observing(
                 self.view.transcript.binding.thread_scope.queue_observing,
                 self.view.app.coordination_access.observation.queue_observing))
+
+    @property
+    def holds_input(self) -> bool:
+        return self.view.queue_source.holds_input(self.queue_evidence)
 
     @property
     def queue_summary(self) -> str:

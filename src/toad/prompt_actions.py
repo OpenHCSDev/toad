@@ -83,8 +83,7 @@ class SubmitNowAction(SubmitInputAction):
     title = "Send now"
 
     def available(self, editor):
-        return (super().available(editor) and editor.prompt.agent_ready and editor.agent_busy
-                and editor.prompt.agent_binding.presentation.queue_supported)
+        return super().available(editor) and editor.prompt.agent_ready and editor.prompt.holds_input
 
     def coalesce(self, following: SubmitInputAction) -> SubmitInputAction:
         return self

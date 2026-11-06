@@ -114,6 +114,7 @@ async def test_wire_sends_queue_in_order_while_compose_stays_open(workspace):
 
     from toad.comms_root import Observing
     from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.prompt import DeliveryControls
 
     workspace.thread("peer")
     gate = threading.Event()
@@ -132,11 +133,15 @@ async def test_wire_sends_queue_in_order_while_compose_stays_open(workspace):
             assert not chat.prompt.prompt_text_area.disabled
             assert chat.submissions.delivering == ("QUEUED_FIRST", "QUEUED_SECOND")
             assert "Submitting (2)" in chat.submissions.queue_summary
+            await ui.until(lambda: chat.prompt.query_one(DeliveryControls).display,
+                           why="Send now offered while the channel queue holds input, as in a DM")
             gate.set()
             await first.wait()
             await second.wait()
         await ui.until(lambda: ui.shows("QUEUED_SECOND") and not chat.submissions.delivering,
                        why="both messages drawn and retired from the queue")
+        await ui.until(lambda: not chat.prompt.query_one(DeliveryControls).display,
+                       why="Send now gone once nothing is held")
         bodies = [message.body for message in workspace.comms.bus.inbox("peer").page.messages
                   if message.body.startswith("QUEUED_")]
         assert bodies == ["QUEUED_FIRST", "QUEUED_SECOND"]

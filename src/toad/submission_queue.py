@@ -29,6 +29,7 @@ class QueueEvidence:
 
     presentation: AgentPresentation
     delivering: tuple[str, ...]
+    busy: bool
     read_targets: Callable[[], tuple[ConversationEntry, ...]]
     observing: Callable[[], Observing]
 
@@ -70,6 +71,10 @@ class QueueSource(ABC):
     def queue_actions_available(self, evidence: QueueEvidence) -> bool: ...
 
     @abstractmethod
+    def holds_input(self, evidence: QueueEvidence) -> bool:
+        """Whether Enter queues now or a queue waits to be sent: the composer shows Send now."""
+
+    @abstractmethod
     async def queue_send_now(self, evidence: QueueEvidence, scope: QueueScope) -> None: ...
 
     @abstractmethod
@@ -97,6 +102,9 @@ class NoQueueSource(QueueSource):
         return NoQueueScope()
 
     def queue_actions_available(self, evidence: QueueEvidence) -> bool:
+        return False
+
+    def holds_input(self, evidence: QueueEvidence) -> bool:
         return False
 
     async def queue_send_now(self, evidence: QueueEvidence, scope: QueueScope) -> None:
@@ -137,7 +145,14 @@ class NativeQueueSource(QueueSource):
     def queue_actions_available(self, evidence: QueueEvidence) -> bool:
         return evidence.presentation.queue_actions_available
 
+    def holds_input(self, evidence: QueueEvidence) -> bool:
+        """A running turn takes Enter into the agent's queue."""
+        return evidence.busy and evidence.presentation.queue_supported
+
     async def queue_send_now(self, evidence: QueueEvidence, scope: QueueScope) -> None:
+        """Send the agent's queued prompts now; with nothing queued there is nothing to send."""
+        if not evidence.presentation.queue.items:
+            return
         evidence.presentation.require_queue_action(scope)
         await evidence.presentation.agent.controller.send_now()
 
@@ -155,6 +170,10 @@ class BusQueueSource(QueueSource):
 
     def queue_actions_available(self, evidence: QueueEvidence) -> bool:
         return bool(evidence.queued_recipients)
+
+    def holds_input(self, evidence: QueueEvidence) -> bool:
+        """A message still submitting, or still held at a recipient, can be sent now."""
+        return bool(evidence.delivering) or self.queue_actions_available(evidence)
 
     async def queue_send_now(self, evidence: QueueEvidence, scope: QueueScope) -> None:
         await self.at_owners(evidence, SendNowRuntimeRequest)
