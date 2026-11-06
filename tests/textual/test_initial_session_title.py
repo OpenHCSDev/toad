@@ -103,7 +103,7 @@ async def test_new_session_metadata_names_the_tab_and_the_saved_session(workspac
         await ui.until(lambda: expected in tab_title(ui, mode), why="the tab to carry the thread's title")
         assert created_titles == [expected], ("saved title at creation", created_titles, expected)
         assert ui.selected_tab == mode, "No tab switch should be needed"
-        assert displayed_name(ui, mode) == expected
+        await ui.until(lambda: displayed_name(ui, mode) == expected, why="the saved session to carry the thread's title")
         assert agent.session.pk is not None
         assert (await DB().session_get(agent.session.pk)).title == expected
         recorded = workspace.comms.registry.require(THREAD).title
