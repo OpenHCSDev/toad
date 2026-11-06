@@ -33,7 +33,7 @@ from toad.widgets.comms_menu import ContextMenu
 from formbridge.forms.declared_fields import FieldPath, Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
-from agent_comms.tool_request import ToolRequest
+from agent_comms.transport.request import ToolRequest
 from toad.comms_root import CoordinationAccess, Observing
 
 

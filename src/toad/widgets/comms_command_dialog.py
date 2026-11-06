@@ -6,7 +6,7 @@ from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated
 
 from agent_comms.cli_command import PreparedTargetAction
-from agent_comms.core_access import CoreAccess
+from agent_comms.transport.request import CoreAccess
 from agent_comms.tools import CommsPrepareTargetActionTool
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption

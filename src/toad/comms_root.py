@@ -26,7 +26,8 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import HelperStart, SpawnedHelper, join_retirement
 from agent_comms.comms import Comms
 from agent_comms.active_route import CommsRoute
-from agent_comms.core_access import CoreAccess, LocalCoreAccess
+from agent_comms.core_access import LocalCoreAccess
+from agent_comms.transport.request import CoreAccess
 from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
 from toad.db import UNSCOPED_TABS, TabScope
 from toad.referenced_core import ReferencedCore
@@ -99,7 +100,7 @@ from toad.core.events import (
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
 from toad.notification_status import CheckedNotifications, NotificationStatus, UncheckedNotifications
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from agent_comms.tool_request import ToolRequest
+from agent_comms.transport.request import ToolRequest
 
 if TYPE_CHECKING:
     from agent_comms.display_references import ReferenceContext

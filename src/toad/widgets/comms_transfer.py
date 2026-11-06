@@ -20,23 +20,8 @@ from agent_comms.cli_result import CliResult
 from agent_comms.importing import ThreadImported
 from agent_comms.tools import CommsExportWireTool, CommsImportThreadTool
 
-from agent_comms.exporting import (
-    CancellableWireExport,
-    WireExportCancelled,
-    WireExportObserver,
-    WireExportProgress,
-    WireExportProvenance,
-    JsonlFormat,
-    TextFormat,
-    ChannelScope,
-    DmScope,
-    EverythingScope,
-    FullLimit,
-    MaxBytesLimit,
-    WireExportFormat,
-    WireExportLimit,
-    WireExportScope,
-)
+from agent_comms.exporting import WireExportProvenance, JsonlFormat, TextFormat, ChannelScope, DmScope, EverythingScope, FullLimit, MaxBytesLimit, WireExportFormat, WireExportLimit, WireExportScope
+from agent_comms.transport.progress import CancellableWireExport, WireExportCancelled, WireExportObserver, WireExportProgress
 from agent_comms.cli_bridges.history import ExpectedSession
 from agent_comms.harness_install import Harness
 from agent_comms.thread_management import ImportDirectory
