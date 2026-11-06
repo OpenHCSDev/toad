@@ -90,17 +90,19 @@ class Observer:
             if self.disconnected_seen or task.done():
                 return await task
             assert ask is not None and self.view.prompt.is_mounted
-            frame="\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
-            assert any(option.text in frame for option in ask.options), "Native permission options must actually paint"
             from toad.widgets.acp_content import ACPToolCallContent
             from toad.widgets.tool_content import ToolContent
             preview = self.view.prompt.query_one(ACPToolCallContent)
             markdown = preview.query_one(ToolContent)
             assert markdown.get_clipboard_text() == asked["toolCall"]["content"][0]["content"]["text"]
+            # Mounting is not painting: the options and the call's own text must reach the
+            # screen, which takes refreshes after the Ask mounts.
             async with asyncio.timeout(10):
-                while "ACCEPTANCE_ECHO" not in frame:
-                    await self.pilot.pause(.05)
+                while True:
                     frame = "\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
+                    if "ACCEPTANCE_ECHO" in frame and any(option.text in frame for option in ask.options):
+                        break
+                    await self.pilot.pause(.05)
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
             self.permission_presented.set()
             if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
