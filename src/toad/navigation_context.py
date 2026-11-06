@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.navigation_target import NavigationTarget
+    from toad.workspace_chrome import WorkspaceChrome
 
 
 @dataclass(frozen=True)
@@ -23,11 +24,12 @@ class NavigationContext:
 class NavigationOwner:
     """A view that navigates: it supplies context, targets supply behavior, App owns execution.
 
-    Only a navigating view shows the channels sidebar, whose rows open their
-    targets through the selected view.
+    Only a navigating view shows the shared channels sidebar, and the chrome opens
+    that sidebar's rows through it.
     """
 
-    shows_channels = True
+    def present_channels(self, chrome: WorkspaceChrome) -> None:
+        chrome.show_channels(self)
 
     @property
     @abstractmethod

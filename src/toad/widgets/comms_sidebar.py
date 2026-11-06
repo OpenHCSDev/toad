@@ -242,7 +242,7 @@ class CommsRow(
     def open_selected(self) -> None:
         self.navigation_tree.remember_row(self)
         self.app.run_worker(
-            partial(self.app.selected_session.open_sidebar_target, self.target),
+            partial(self.app.workspace_chrome.navigation_owner.open_sidebar_target, self.target),
             group="sidebar-open",
         )
 

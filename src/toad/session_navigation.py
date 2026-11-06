@@ -75,7 +75,7 @@ class SessionNavigation:
         operation = (
             source.open_direct_messages()
             if target is None
-            else source.open_sidebar_target(DirectTarget(target))
+            else self.app.workspace_chrome.navigation_owner.open_sidebar_target(DirectTarget(target))
         )
         return self.app.run_worker(operation, group="direct-messages")
 

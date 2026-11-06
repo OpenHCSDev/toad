@@ -1620,7 +1620,9 @@ class Conversation(
         """
         if not self.is_attached:
             return
-        source = self.query_ancestor(SessionScope)
+        from toad.screens.session_view import SidebarSessionView
+
+        source = self.query_ancestor(SidebarSessionView)
         if not source.is_current:
             return
         catalog = await self.read_command_catalog()
@@ -1628,7 +1630,9 @@ class Conversation(
             self.prompt.slash_commands = catalog.commands
 
     async def read_command_catalog(self) -> CommandCatalog:
-        source = self.query_ancestor(SessionScope)
+        from toad.screens.session_view import SidebarSessionView
+
+        source = self.query_ancestor(SidebarSessionView)
         navigation = source.navigation_context
         agent = self.agent_binding
         context = self.command_target_context()

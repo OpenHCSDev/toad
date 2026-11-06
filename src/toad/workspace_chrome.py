@@ -25,6 +25,8 @@ from toad.sidebar_placement import SidebarEdge
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
+    from toad.navigation_context import NavigationOwner
+    from toad.session_scope import SessionScope
 
 
 class WorkspaceHeader(FollowsLayoutPreferences, TonePaint, WidgetView, Horizontal):
@@ -56,6 +58,18 @@ class WorkspaceChrome(VerticalLayout):
         self.footer = ToadFooter()
         self.switch_toast = SwitchToast()
         self.native = NativeSessionSurface(app)
+
+    navigation_owner: "NavigationOwner"
+    """The selected view the shared Channels surface opens rows through; set when one shows it."""
+
+    def show_channels(self, owner: "NavigationOwner") -> None:
+        self.navigation_owner = owner
+        self.channels.roster.set_enabled(True)
+        self.channels.display = True
+
+    def hide_channels(self) -> None:
+        self.channels.roster.set_enabled(False)
+        self.channels.display = False
 
     def presented_sidebars(self) -> tuple[SideBar, ...]:
         source = self.app.workspace_sessions.source
@@ -131,10 +145,8 @@ class WorkspaceChrome(VerticalLayout):
         return placements
 
     async def select(self, view: "SessionScope") -> None:
-        roster = self.channels.roster
-        roster.navigation.capture()
-        roster.set_enabled(view.shows_channels)
-        self.channels.display = view.shows_channels
+        self.channels.roster.navigation.capture()
+        view.present_channels(self)
         self.footer.compact = view.footer_compact
         self.footer.call_later(self.footer.bindings_changed, view.screen)
         self.refresh_layout()
