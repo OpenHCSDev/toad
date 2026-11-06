@@ -1,5 +1,6 @@
 """Keyboard preferences retain declaration identity and independent modes."""
 import pytest
+from textual.widget import Widget
 
 from toad.application_actions import TeamAction, HelpQuitAction, KeymapAction
 from toad.key_modes import KeyMode, Standard, VimNormal
@@ -49,6 +50,20 @@ def test_reset_cannot_reintroduce_a_collision_and_duplicate_rows_are_refused():
         keymap.reset(menu)
     with pytest.raises(ValueError, match="only one override"):
         Keymap(bindings=(keymap.bindings[0], keymap.bindings[0]))
+
+
+def test_the_catalog_is_built_once_per_declarations_and_sees_a_class_declared_later():
+    modes = tuple(KeyMode.members_with(KeyMode))
+    first = KeymapCatalog.capture(modes)
+    # Every saved keymap row validates against the catalog; twelve rows build it once.
+    assert all(KeymapCatalog.capture(modes) is first for _ in range(12))
+
+    class DeclaredAfterTheFirstCapture(Widget):
+        """A context the first catalog could not have seen."""
+
+    later = KeymapCatalog.capture(modes)
+    assert later is not first
+    assert all(len(later.scopes[mode]) == len(first.scopes[mode]) + 1 for mode in modes)
 
 
 def test_hidden_system_bindings_keep_their_valid_saved_references():
