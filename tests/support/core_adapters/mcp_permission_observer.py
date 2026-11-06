@@ -25,7 +25,9 @@ from acp.schema import PermissionOption, ToolCallUpdate
 from agent_comms.acp_extension import McpClientAcknowledgementUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
 from toad.widgets.conversation import Conversation
+from toad.widgets.acp_content import ACPToolCallContent
 from toad.widgets.question import Question
+from toad.widgets.tool_content import ToolContent
 
 
 class Observer:
@@ -133,9 +135,6 @@ class Observer:
         """The pending Ask's preview text, once it is on screen. Mounting is not composing or
         painting: the preview's content, the options and the call's own text arrive over the
         refreshes after the Ask mounts."""
-        from toad.widgets.acp_content import ACPToolCallContent
-        from toad.widgets.tool_content import ToolContent
-
         async with asyncio.timeout(10):
             while True:
                 ask = view.prompt._ask
