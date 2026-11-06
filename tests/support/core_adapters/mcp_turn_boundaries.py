@@ -19,7 +19,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.comms import wire
 from agent_comms.coordination.coordinator import Coordination
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, TurnId
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, InputId, TurnId
 from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.pi_payloads import ReadyMcpServerState, ConfirmMcpCallPolicy
@@ -99,7 +99,7 @@ async def request_permission(agent: Agent, session_id: str, tool_call: dict[str,
 
 
 async def exercise_boundaries(agent: Agent, view: Conversation, pilot: Pilot) -> None:
-    receipt = McpLiveAcknowledgement(1, "pi-mcp-client", "a" * 32, "running", "turn", (
+    receipt = McpLiveAcknowledgement(1, "pi-mcp-client", InputId("a" * 32), "running", "turn", (
         McpServerReceipt("fixture", "project", ReadyMcpServerState,
                          ConfirmMcpCallPolicy, 1, 0, 0),
     ))
