@@ -36,6 +36,7 @@ from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
 from toad.db import SessionMeta
+from toad.screens.main import MainScreen
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
@@ -43,7 +44,6 @@ if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
     from toad.navigation_target import HistoryRouted
-    from toad.screens.main import MainScreen
 
 
 @dataclass(frozen=True)
@@ -316,7 +316,6 @@ class SessionNavigation:
         initial_prompt: str | None = None,
     ) -> SessionEntry:
         from toad.agents import read_agents
-        from toad.screens.main import MainScreen
 
         app = self.app
         database = await app.get_db()
@@ -359,6 +358,11 @@ class SessionNavigation:
             ),
             title=title or "New Session",
         )
+
+    async def start_attached(self, binding: AgentAttached, project: Checkout) -> None:
+        """A new session of the agent this launch attached: saved, then opened."""
+        tab = await self.saved(binding.agent, project)
+        await self.new(tab, lambda: MainScreen(project, binding, session_pk=tab.key))
 
     async def history(
         self,

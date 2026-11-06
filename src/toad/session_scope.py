@@ -42,6 +42,8 @@ if TYPE_CHECKING:
     from toad.widgets.side_bar import SideBar
 
     from toad.agent_schema import AgentDefinition
+    from toad.app import ToadApp
+    from toad.application_actions import NewThreadAction
     from toad.comms_root import CoordinationAccess
     from toad.conversation_kind import DmConversation
     from toad.core.input_events import UserInputSubmitted
@@ -457,6 +459,12 @@ class AgentBinding(ABC):
     def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
         return empty
 
+    @abstractmethod
+    async def start_session(
+        self, app: ToadApp, project: Checkout, new_thread: NewThreadAction
+    ) -> None:
+        """New Session in this launch: a native thread form, or the attached agent's session."""
+
 
 @dataclass(frozen=True)
 class NoAgent(AgentBinding):
@@ -480,6 +488,11 @@ class NoAgent(AgentBinding):
         self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
     ) -> bool:
         return False
+
+    async def start_session(
+        self, app: ToadApp, project: Checkout, new_thread: NewThreadAction
+    ) -> None:
+        new_thread.open_form(app, project)
 
 
 @dataclass(frozen=True)
@@ -509,6 +522,11 @@ class AgentAttached(AgentBinding):
         return self.agent.identity == agent_identity and self.matches_session(
             origin, session_id
         )
+
+    async def start_session(
+        self, app: ToadApp, project: Checkout, new_thread: NewThreadAction
+    ) -> None:
+        await app.session_navigation.start_attached(AgentAttached(self.agent), project)
 
     def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
         return origin.presentation.operational_binding.matches_session(

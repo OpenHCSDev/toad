@@ -38,13 +38,16 @@ class NewThreadAction(ApplicationAction):
     """Start a thread in the selected project."""
 
     async def apply(self, app: ToadApp) -> None:
-        mode = app.selected_mode
         try:
-            project = app.workspace_sessions.origin(mode).require().project_path
+            project = app.workspace_sessions.origin(app.selected_mode).require().project_path
         except RelationViolationError:
             project = app.project_dir
+        await app.agent_binding.start_session(app, project, self)
+
+    def open_form(self, app: ToadApp, project: Checkout) -> None:
+        """The native thread form, for a launch with no attached agent."""
         app.run_worker(
-            partial(self.collect, app, mode, project),
+            partial(self.collect, app, app.selected_mode, project),
             group="new-session",
             exclusive=True,
         )
