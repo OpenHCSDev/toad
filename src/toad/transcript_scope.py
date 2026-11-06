@@ -18,6 +18,9 @@ from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transport.tools.reads import TranscriptPageRead
 from agent_comms.ui_model.observation import ReadTranscript, ReadTranscriptUpdate, TranscriptPublicationState
+from rich.text import Text as RichText
+from textual.content import Content
+
 from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
 
 from toad.bus_submission import BusDestination, SubmissionOwner, SubmissionStart, SubmittedText
@@ -25,16 +28,17 @@ from toad.comms_root import CoordinationAccess, Observing
 from toad.conversation_kind import DmConversation
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
-from toad.delivery_failure_view import DeliveryFailureView
 from toad.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
 
-class TranscriptView(CoreEventReceiver, DeliveryFailureView):
+class TranscriptView(CoreEventReceiver):
     """A view that shows one transcript scope: its scope observes core events through it and
     gives its thread status to it."""
+
+    thread_status: str | Content | RichText
 
     @property
     @abstractmethod
