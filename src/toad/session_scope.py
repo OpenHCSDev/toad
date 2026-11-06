@@ -428,6 +428,18 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
         return default
 
 
+class StartsSessions(metaclass=AbstractHooksMeta):
+    """What a launch's New Session needs from the application it starts in."""
+
+    @abstractmethod
+    def open_thread_form(self, project: Checkout) -> None:
+        """The native thread form, for a launch with no attached agent."""
+
+    @abstractmethod
+    async def start_agent_session(self, binding: AgentAttached, project: Checkout) -> None:
+        """A new session of the agent this launch attached: saved, then opened."""
+
+
 class AgentBinding(ABC):
     """Known native launch state carries construction and attachment behavior."""
 
@@ -457,6 +469,10 @@ class AgentBinding(ABC):
     def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
         return empty
 
+    @abstractmethod
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
+        """New Session in this launch: a native thread form, or the attached agent's session."""
+
 
 @dataclass(frozen=True)
 class NoAgent(AgentBinding):
@@ -480,6 +496,9 @@ class NoAgent(AgentBinding):
         self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
     ) -> bool:
         return False
+
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
+        app.open_thread_form(project)
 
 
 @dataclass(frozen=True)
@@ -510,6 +529,9 @@ class AgentAttached(AgentBinding):
             origin, session_id
         )
 
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
+        await app.start_agent_session(self, project)
+
     def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
         return origin.presentation.operational_binding.matches_session(
             session_id
@@ -525,6 +547,10 @@ class AgentSession(AgentAttached):
     def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
         conversation._agent_session_id = self.session_id
         super().attach_to(origin, conversation)
+
+    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
+        """A new session, not this one again."""
+        await AgentAttached(self.agent).start_session(app, project)
 
     def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
         return super().make_conversation(

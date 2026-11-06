@@ -20,14 +20,8 @@ from toad.widget_actions import (
     YieldingKey,
 )
 from toad.widgets.comms_transfer import Transfer, Transfers
-from toad.target_commands import TargetContext
-from toad.thread_actions import ThreadAction
 from toad.core.session_requests import SessionNavigate
 from toad.sidebar_placement import LeftSidebarEdge, RightSidebarEdge, SidebarEdge
-from agent_comms.errors import RelationViolationError
-from agent_comms.cli_verbs.new import NewThreadCliCommand
-from agent_comms.channel_targets import ProjectTarget
-from agent_comms.repo import Checkout
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -38,37 +32,8 @@ class NewThreadAction(ApplicationAction):
     """Start a thread in the selected project."""
 
     async def apply(self, app: ToadApp) -> None:
-        mode = app.selected_mode
-        try:
-            project = app.workspace_sessions.origin(mode).require().project_path
-        except RelationViolationError:
-            project = app.project_dir
-        app.run_worker(
-            partial(self.collect, app, mode, project),
-            group="new-session",
-            exclusive=True,
-        )
-
-    async def collect(self, app: ToadApp, mode: str, project: Checkout):
-        def prepare():
-            ctx = TargetContext(
-                app,
-                app.coordination_access.observation.observed(),
-                ProjectTarget(project),
-                "",
-                project,
-                mode,
-            )
-            definition = next(
-                action
-                for action in ctx.available_actions()
-                if action.declaration is NewThreadCliCommand
-            )
-            return partial(ThreadAction.collect, ctx, definition)
-
-        open_form = await app.preparation.run_thread(prepare)
-        if app.selected_mode == mode:
-            open_form()
+        navigation = app.session_navigation
+        navigation.open_thread_form(navigation.selected_project())
 
 
 class SettingsAction(ApplicationAction):

@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()
-    app = FrameApp(project_dir=Checkout(sys.argv[1]), connection=LocalCoreConnection.from_launch(launch_root), agent_binding=AgentAttached(AgentDefinition.decode({
+    app = FrameApp(project_dir=Checkout(Path(sys.argv[1])), connection=LocalCoreConnection.from_launch(launch_root), agent_binding=AgentAttached(AgentDefinition.decode({
         "name": "Physical frame peer", "identity": "frame-acceptance",
         "short_name": "Frame", "protocol": "acp",
         "run_command": {"*": shlex.join([sys.executable, str(peer)])},

@@ -8,6 +8,7 @@ from agent_comms.notification_progress import (
 )
 from agent_comms.message_notification import MessageNotification
 
+from toad.line_blocks import MutedRole, NoticeRole, WorkingRole
 from toad.notification_status import CheckedNotifications, UnavailableNotifications
 from toad.widgets.message_notifications import MessageNotifications
 
@@ -38,13 +39,13 @@ async def test_changed_details_and_errors_keep_the_title_layout_but_changed_summ
         await ui.until(lambda: "waiting-peer: Queued" in " ".join(ui.painted(feedback).split()), why="the changed detail")
         assert str(feedback.title) == MessageNotification.summary((responding, queued))
         assert str(feedback.title) == MessageNotification.summary((responding, waiting))
-        assert feedback.has_class("-working")
+        assert feedback.status.role is WorkingRole
         completed = replace(responding, state=CompletedProgress(ShownToModelProgress(1)))
         feedback.show(CheckedNotifications((completed, queued)))
         await ui.step()
         assert str(feedback.title) == MessageNotification.summary((completed, queued))
         assert str(feedback.title) != MessageNotification.summary((responding, queued))
-        assert not feedback.has_class("-working")
+        assert feedback.status.role is MutedRole
         feedback.show(UnavailableNotifications("First read error"))
         await ui.step()
         before = title._layout_updates
@@ -52,4 +53,4 @@ async def test_changed_details_and_errors_keep_the_title_layout_but_changed_summ
         await ui.step()
         assert title._layout_updates == before
         await ui.until(lambda: "Changed read error" in " ".join(ui.painted(feedback).split()), why="the changed error")
-        assert feedback.has_class("-unavailable")
+        assert feedback.status.role is NoticeRole

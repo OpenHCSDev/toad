@@ -31,7 +31,7 @@ from textual.message import Message
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from toad.screens.modal import DismissibleScreen
 from toad.comms_root import CapturedSource, CoordinationAccess
-from toad.application_lifetime import TerminalOutcome
+from toad.application_outcome import ApplicationOutcome
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime
 
@@ -101,10 +101,10 @@ class TransferRequest[Result: CliResult](Transfer):
         self.completed(app, result)
 
     @asynccontextmanager
-    async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[TransferProgress]:
+    async def progress(self, app: App[ApplicationOutcome]) -> AsyncIterator[TransferProgress]:
         yield TransferProgress()
 
-    def cancelled(self, app: App[TerminalOutcome]) -> None:
+    def cancelled(self, app: App[ApplicationOutcome]) -> None:
         pass
 
     @abstractmethod
@@ -134,7 +134,7 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
         ).observed_by(observer))
 
     @asynccontextmanager
-    async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[TransferProgress]:
+    async def progress(self, app: App[ApplicationOutcome]) -> AsyncIterator[TransferProgress]:
         progress = WireExportProgressView()
         try:
             await app.mount(progress)
@@ -143,7 +143,7 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
             progress.cancel()
             await progress.remove()
 
-    def cancelled(self, app: App[TerminalOutcome]) -> None:
+    def cancelled(self, app: App[ApplicationOutcome]) -> None:
         app.notify("Wire export cancelled", title="Wire export")
 
     def completed(self, app: Transfers, result: WireExportProvenance) -> None:
@@ -177,7 +177,7 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
                    title="Thread Import")
 
 
-class Transfers(ThemedApp[TerminalOutcome]):
+class Transfers(ThemedApp[ApplicationOutcome]):
     """The application supplies transfers through its existing native lifetime."""
 
     coordination_access: CoordinationAccess

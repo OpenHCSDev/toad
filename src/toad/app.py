@@ -64,7 +64,9 @@ from toad.session_navigation import SessionNavigation
 from toad.terminal_attention import TerminalAttention
 from toad.application_actions import ApplicationCommands
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
-from toad.application_lifetime import ApplicationLifetime, Ended, Succeeded, TerminalOutcome
+from toad.application_lifetime import ApplicationLifetime
+from agent_comms.nominal.field_codec import boundary_decoder
+from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
 from toad.resource_release import AsyncResourceRelease
 from toad.native_style import TransparentBackground
 
@@ -198,7 +200,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         super().__init__()
         # The themed app opened the settings that own this terminal's sidebar arrangement.
         self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of())
-        self._return_value: TerminalOutcome = Ended(self.application.version)
+        self._return_value: ApplicationOutcome = Ended(self.application.version)
         self.session_navigation.bind_events()
         self.set_reactive(ToadApp.project_dir, project_dir)
 
@@ -212,11 +214,12 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.project_dir = project
 
     @property
-    def return_value(self) -> TerminalOutcome:
+    def return_value(self) -> ApplicationOutcome:
         return self._return_value
 
+    @boundary_decoder
     def exit(
-        self, result: TerminalOutcome | None = None, return_code: int = 0,
+        self, result: ApplicationOutcome | None = None, return_code: int = 0,
         message: RenderableType | None = None,
     ) -> None:
         """Textual's omitted result is a normal terminal ending."""

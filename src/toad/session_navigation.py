@@ -31,11 +31,16 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.session_scope import AgentAttached, AgentBinding, AgentSession, ProjectSessionOrigin, SessionScope
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession, ProjectSessionOrigin, SessionScope, StartsSessions
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
 from toad.db import SessionMeta
+from toad.target_commands import TargetContext
+from toad.thread_actions import ThreadAction
+from agent_comms.cli_verbs.new import NewThreadCliCommand
+from agent_comms.channel_targets import ProjectTarget
+from toad.screens.main import MainScreen
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
@@ -43,7 +48,6 @@ if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
     from toad.navigation_target import HistoryRouted
-    from toad.screens.main import MainScreen
 
 
 @dataclass(frozen=True)
@@ -54,7 +58,7 @@ class Detached:
     returning_view: SessionScope | None
 
 
-class SessionNavigation:
+class SessionNavigation(StartsSessions):
     def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.events = CoreEventStream(self)
@@ -316,7 +320,6 @@ class SessionNavigation:
         initial_prompt: str | None = None,
     ) -> SessionEntry:
         from toad.agents import read_agents
-        from toad.screens.main import MainScreen
 
         app = self.app
         database = await app.get_db()
@@ -359,6 +362,41 @@ class SessionNavigation:
             ),
             title=title or "New Session",
         )
+
+    def selected_project(self) -> Checkout:
+        """The selected tab's project, or the launch's when no tab holds one."""
+        app = self.app
+        try:
+            return app.workspace_sessions.origin(app.selected_mode).require().project_path
+        except RelationViolationError:
+            return app.project_dir
+
+    def open_thread_form(self, project: Checkout) -> None:
+        app = self.app
+        app.run_worker(
+            self.collect_thread_form(app.selected_mode, project),
+            group="new-session",
+            exclusive=True,
+        )
+
+    async def collect_thread_form(self, mode: str, project: Checkout) -> None:
+        """Prepare the new-thread form off the UI thread; open it if its tab is still selected."""
+        app = self.app
+
+        def prepare():
+            ctx = TargetContext(app, app.coordination_access.observation.observed(),
+                                ProjectTarget(project), "", project, mode)
+            definition = next(action for action in ctx.available_actions()
+                              if action.declaration is NewThreadCliCommand)
+            return partial(ThreadAction.collect, ctx, definition)
+
+        open_form = await app.preparation.run_thread(prepare)
+        if app.selected_mode == mode:
+            open_form()
+
+    async def start_agent_session(self, binding: AgentAttached, project: Checkout) -> None:
+        tab = await self.saved(binding.agent, project)
+        await self.new(tab, lambda: MainScreen(project, binding, session_pk=tab.key))
 
     async def history(
         self,

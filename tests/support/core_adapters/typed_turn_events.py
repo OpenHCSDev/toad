@@ -17,7 +17,7 @@ from agent_comms.agent_event_updates import AcpEventConsumer
 from agent_comms.controller import SessionUpdateSink
 from agent_comms.coordination.coordinator import Coordination
 from agent_comms.nominal.field_codec import AcpSessionId, TurnId
-from turn_source import turn_source
+from mcp_turn_boundaries import turn_source
 
 SESSION = AcpSessionId("pilot")
 
