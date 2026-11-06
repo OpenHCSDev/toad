@@ -29,6 +29,7 @@ from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.input_decision import InputAccepted, InputDecision
 from toad.navigation_context import NavigationOwner
 from toad.owner_preparation import ExistingOwnerPlan
+from textual.abstract_hooks import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
@@ -299,7 +300,7 @@ class NoTranscript(TranscriptScope):
         """No bound thread has no configuration to show."""
 
 
-class SessionOrigin:
+class SessionOrigin(metaclass=AbstractHooksMeta):
     """An origin answers for itself, including when its view is unavailable."""
 
     @abstractmethod
