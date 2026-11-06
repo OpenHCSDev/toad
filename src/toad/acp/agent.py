@@ -33,7 +33,7 @@ from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
 from toad.core import events as core_events
 from toad.platform import host
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 def generate_datetime_filename(
@@ -75,7 +75,7 @@ class Agent(SessionAgent):
         self,
         project_root: Path,
         agent: AgentDefinition,
-        session_id: AcpSessionId | None,
+        session_id: AcpSessionId | NoAcpSessionId,
         session_pk: int | None = None,
         *,
         app_events: core_events.CoreEventStream,

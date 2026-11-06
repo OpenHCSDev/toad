@@ -48,7 +48,7 @@ from toad.navigation_target import DirectTarget
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.agents import read_agents
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
@@ -282,7 +282,7 @@ class SessionNavigation(StartsSessions):
 
     async def saved(
         self, agent: AgentDefinition, project: Checkout, *,
-        title: str = "New Session", agent_session_id: AcpSessionId | None = None,
+        title: str = "New Session", agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
     ) -> AcpTab:
         """A native session is saved before it opens; its row is the tab's identity."""
         database = await self.app.get_db()
@@ -295,7 +295,7 @@ class SessionNavigation(StartsSessions):
         self,
         agent_identity: str,
         *,
-        agent_session_id: AcpSessionId | None = None,
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         project: Checkout,
         initial_prompt: str | None = None,
@@ -314,7 +314,7 @@ class SessionNavigation(StartsSessions):
         self,
         agent_identity: str,
         *,
-        agent_session_id: AcpSessionId | None = None,
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         project: Checkout,
         initial_prompt: str | None = None,
@@ -323,13 +323,13 @@ class SessionNavigation(StartsSessions):
         app = self.app
         database = await app.get_db()
         make_binding: Callable[[AgentDefinition], AgentBinding] = AgentAttached
-        if agent_session_id is not None:
-            make_binding = partial(AgentSession, session_id=agent_session_id)
+        for resumed in agent_session_id.present():
+            make_binding = partial(AgentSession, session_id=resumed)
             existing = next(
                 (
                     identity
                     for identity, origin in app.workspace_sessions.views.items()
-                    if origin.matches_launch(agent_identity, agent_session_id)
+                    if origin.matches_launch(agent_identity, resumed)
                 ),
                 None,
             )

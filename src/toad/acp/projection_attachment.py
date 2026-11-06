@@ -12,7 +12,7 @@ from toad.private_native_cursor import (
     UnavailableCursorStatus,
 )
 
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.acp_extension import (
     CursorEnvelope,
     CursorScope,
@@ -82,7 +82,7 @@ class ProjectionAttachment:
         self._evidence_lost = False
         self._pending = True
         self._token = 0
-        self._session_id: AcpSessionId | None = None
+        self._session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId()
 
     @property
     def state(self) -> type[AttachmentState]:
@@ -92,7 +92,7 @@ class ProjectionAttachment:
             return UnavailableAttachment
         return AvailableAttachment
 
-    def begin(self, session_id: AcpSessionId | None) -> int:
+    def begin(self, session_id: AcpSessionId | NoAcpSessionId) -> int:
         self._token += 1
         self._session_id = session_id
         self._pending = True
@@ -196,7 +196,7 @@ class ProjectionAttachment:
     def callback(
         self, value: CursorEnvelope | QueueChangedUpdate | None, session_id: AcpSessionId
     ) -> str:
-        if self._session_id is not None and session_id != self._session_id:
+        if self._session_id.present() not in ((), (session_id,)):
             return "reject_foreign_session"
         if self._evidence_lost:
             return "reject_evidence_lost"

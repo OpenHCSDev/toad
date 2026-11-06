@@ -23,7 +23,7 @@ from toad.application_lifetime import ApplicationLifetime
 from toad.comms_root import CoreConnection
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -161,6 +161,9 @@ def run(connection: CoreConnection, project_dir: str, agent: str = "1"):
     "--session",
     "session_id",
     default=None,
+    callback=lambda _context, _option, value: FieldCodec.decode(
+        AcpSessionId | NoAcpSessionId, value
+    ),
     help="Resume an existing ACP session instead of creating a new one.",
 )
 @click.option(
@@ -177,7 +180,7 @@ def acp(
     command: str,
     title: str | None,
     project_dir: str | None,
-    session_id: AcpSessionId | None = None,
+    session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
 ) -> None:
     """Run an ACP agent from a command."""
 

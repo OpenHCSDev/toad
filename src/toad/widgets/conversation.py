@@ -164,7 +164,7 @@ def make_session_title(prompt: str) -> str:
 
 from toad.widgets.question import Ask
 from toad.widgets.transcript_history import LineHistory
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
@@ -662,7 +662,7 @@ class ConversationSessionBinding(
         self,
         project_path: Checkout,
         agent: AgentDefinition | None = None,
-        agent_session_id: AcpSessionId | None = None,
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         session_title: str | None = None,
         initial_prompt: str | None = None,
@@ -687,7 +687,7 @@ class ConversationSessionBinding(
         self,
         project_path: Checkout,
         agent: AgentDefinition | None = None,
-        agent_session_id: AcpSessionId | None = None,
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         session_title: str | None = None,
         initial_prompt: str | None = None,
@@ -715,7 +715,7 @@ class ConversationSessionBinding(
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
         self._auto_title_eligible = (
-            agent_session_id is None and session_title is None
+            not agent_session_id.present() and session_title is None
         )
         self._agent_fail = False
         self._mouse_down_offset: Offset | None = None

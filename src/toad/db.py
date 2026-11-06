@@ -23,7 +23,7 @@ from agent_comms.storage.typed_table import (
 from toad import paths
 from toad.agent_schema import AgentDefinition
 from toad.tab_identity import TabIdentity
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 SessionTimestamp = Annotated[RecordedTimestamp, TimestampText, Column(storage=TextStorage)]
 
@@ -66,7 +66,7 @@ class Session(ToadTables, TypedTable, declared_name="sessions"):
     id: Annotated[int | None, Column(primary_key=True, auto_increment=True)] = None
     agent: str
     agent_identity: str
-    agent_session_id: AcpSessionId | None
+    agent_session_id: AcpSessionId | NoAcpSessionId
     title: str
     protocol: str = "acp"
     prompt_count: int = 0
@@ -180,7 +180,7 @@ class DB:
         title: str,
         agent: str,
         agent_identity: str,
-        agent_session_id: AcpSessionId | None,
+        agent_session_id: AcpSessionId | NoAcpSessionId,
         protocol: str = "acp",
         meta: SessionMeta | None = None,
     ) -> int:
