@@ -41,12 +41,10 @@ if TYPE_CHECKING:
 
 
 class InspectSession(DetailAction):
-    """Opens the session's delivery details."""
+    """Opens the delivery details of the session its row names."""
 
     async def act(self) -> None:
-        from toad.widgets.conversation import Conversation
-
-        await self.query_ancestor(Conversation).inspect_session()
+        await self.query_ancestor(SessionDetails).inspect()
 
 
 class SessionDetailsContents(
@@ -114,6 +112,18 @@ class SessionDetails(
 
     def status_source(self) -> ThreadStatusModel:
         return self.row
+
+    async def inspect(self) -> None:
+        """Which session this row's details belong to.
+
+        A row inside the view it describes answers with that view. A row listing somebody
+        else, as the channel sidebar's peer rows do (channel_activity.py:80), reaches the
+        enclosing view instead of its own peer, which is the answer this walk has always
+        given and is why the question belongs to the member rather than to the tree.
+        """
+        from toad.widgets.conversation import Conversation
+
+        await self.query_ancestor(Conversation).inspect_session()
 
     @handles(ThreadPresentationStatus)
     def idle_role(self, status) -> type[LineRole]:
@@ -191,6 +201,10 @@ class OperationalSessionDetails(SessionDetails):
     def __init__(self, conversation: Conversation, **kwargs) -> None:
         self.conversation = conversation
         super().__init__(**kwargs)
+
+    async def inspect(self) -> None:
+        """This member holds its conversation, so it never asks the tree which one it is."""
+        await self.conversation.inspect_session()
 
     def status_source(self) -> ThreadStatusModel:
         return self.conversation.operational_sources.status_row(self.conversation)
