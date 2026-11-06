@@ -49,12 +49,8 @@ def test_catalog_action_consumers_do_not_classify_configured_names():
     root = Path(__file__).resolve().parents[2] / "src/toad"
     retired = {"__launch__", "install", "install-acp", "install_acp",
                "install_adapter", "login", "launch"}
-    for relative in ("screens/agent_modal.py", "screens/action_modal.py", "screens/store.py"):
+    for relative in ("screens/action_modal.py",):
         for node in ast.walk(ast.parse((root / relative).read_text())):
             if isinstance(node, (ast.Compare, ast.Match)):
                 assert not any(isinstance(part, ast.Constant) and part.value in retired
                                for part in ast.walk(node)), (relative, node.lineno)
-            if relative == "screens/agent_modal.py":
-                assert not (isinstance(node, ast.Attribute) and node.attr == "action"), node.lineno
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    assert node.name not in {"watch_action", "on_button_pressed"}, node.lineno

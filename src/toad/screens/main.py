@@ -292,13 +292,13 @@ class MainAction(WidgetAction, affix="Action"):
 
 
 class GoHomeAction(MainAction):
-    """Open the store, Toad's home view."""
+    """Open the Comms home: the workspace's welcome view."""
 
     title = "Home"
     keys = {EditingMode: ("ctrl+h",)}
 
     async def apply(self, context: MainScreen) -> None:
-        await context.app.select_session("store")
+        await context.app.select_session(context.app.tab_order.home)
 
 
 class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SidebarSessionView[SessionThreadSidebar], ToadNode,

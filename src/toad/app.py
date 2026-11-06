@@ -71,7 +71,6 @@ if TYPE_CHECKING:
     from toad.db import DB
     from toad.render_backend import RenderTask
     from toad.screens.main import MainScreen
-    from toad.screens.store import StoreScreen
 
 RenderResultT = TypeVar("RenderResultT")
 
@@ -81,13 +80,6 @@ RenderResultT = TypeVar("RenderResultT")
 def get_workspace_screen():
     from toad.screens.workspace import WorkspaceScreen
     return WorkspaceScreen()
-
-
-def get_store_screen() -> StoreScreen:
-    """Get the store screen (lazily loaded)."""
-    from toad.screens.store import StoreScreen
-
-    return StoreScreen()
 
 
 class HeapBeforeFreeze:
@@ -143,7 +135,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     """The top level app."""
 
     COMMANDS = {ApplicationCommands}
-    MODES = {"store": get_store_screen, "workspace": get_workspace_screen}
+    MODES = {"workspace": get_workspace_screen}
     BINDING_GROUP_TITLE = "System"
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
@@ -161,7 +153,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         agent_binding: AgentBinding,
         project_dir: Checkout,
         connection: CoreConnection,
-        mode: str | None = None,
         agent_session_id: str | None = None,
     ) -> None:
         """Toad app.
@@ -170,7 +161,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             agent_binding: The agent selected at startup.
             project_dir: Project directory.
             connection: Core transport selected by the launch owner.
-            mode: Initial mode.
         """
         from toad.render_processes import RenderProcessPool
         from toad.render_backend import PreparedRenderer
@@ -195,7 +185,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self._mode_switch_lock = asyncio.Lock()
         self.tab_order = TabOrder(
             lambda identity, index: self.select_session(identity.mode_name, history_index=index),
-            home=mode or WELCOME,
+            home=WELCOME,
             db=DB(),
         )
         self._session_tracker = SessionTracker(self.tab_order)
@@ -403,22 +393,18 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
                 # child pumps or compensated layout. Their original owners
                 # fence those mutations; holding a global paint batch here
                 # also withholds the frames those operations may need.
-                if mode == "store":
-                    await self.workspace_sessions.retire()
-                    await super().switch_mode("store")
-                else:
-                    if self.current_mode != "workspace":
-                        await super().switch_mode("workspace")
-                    # A switch is several frames of work: hold the workspace's
-                    # frames and let the loop run due input and timers between steps, so input is
-                    # never held behind the whole switch and no half-switched
-                    # scene is written. Layout still runs for steps that measure.
-                    with self.workspace_screen.hold_frames():
-                        await self.workspace_sessions.select(mode)
-                        await after_input()
-                        await self.workspace_screen.prepare_navigation()
-                        await after_input()
-                        await self.workspace_screen.layout_navigation()
+                if self.current_mode != "workspace":
+                    await super().switch_mode("workspace")
+                # A switch is several frames of work: hold the workspace's
+                # frames and let the loop run due input and timers between steps, so input is
+                # never held behind the whole switch and no half-switched
+                # scene is written. Layout still runs for steps that measure.
+                with self.workspace_screen.hold_frames():
+                    await self.workspace_sessions.select(mode)
+                    await after_input()
+                    await self.workspace_screen.prepare_navigation()
+                    await after_input()
+                    await self.workspace_screen.layout_navigation()
                 if mode != previous:
                     if entry := self.session_navigation.get(mode):
                         self.tab_order.record_visit(entry.identity, history_index)

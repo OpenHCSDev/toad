@@ -72,16 +72,3 @@ class SessionClose(WorkspaceSessionRequest):
 
     async def apply(self, navigation: SessionNavigation) -> None:
         await navigation.close(self.mode_name)
-
-
-
-@dataclass(frozen=True)
-class LaunchAgent(WorkspaceSessionRequest):
-    identity: str
-    session_id: str | None = None
-    pk: int | None = None
-    prompt: str | None = None
-
-    async def apply(self, navigation: SessionNavigation) -> None:
-        navigation.app.run_worker(partial(navigation.launch, self.identity,
-            project=navigation.app.project_dir, agent_session_id=self.session_id, session_pk=self.pk, initial_prompt=self.prompt))
