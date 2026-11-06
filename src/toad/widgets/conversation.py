@@ -466,8 +466,9 @@ This is a view of your conversation with the agent.
 
     @on(events.Key)
     def hand_typing_to_the_prompt(self, event: events.Key) -> None:
-        """Typing in the window is typing in the prompt. A key the window received after
-        focus left it belongs where focus went, so a burst arrives whole and in order."""
+        """Typing in the window is typing in the prompt. A key the window received after the
+        burst moved focus belongs to the prompt's typing target, so a burst arrives whole and
+        in order."""
         conversation = self.query_ancestor(Conversation)
         if self.has_focus:
             if not conversation.starts_typing(event):
