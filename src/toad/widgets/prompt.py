@@ -50,6 +50,7 @@ from toad.native_style import (
     AutoHeight,
     AutoWidth,
     Borderless,
+    ComposedWhenShown,
     EllipsisOverflow,
     FillWidth,
     HiddenOverflow,
@@ -251,8 +252,11 @@ class QueueSummary(
         self.query_ancestor(Conversation).open_queue_menu()
 
 
-class DeliveryControls(StartsHidden, OneRow, containers.HorizontalGroup):
+class DeliveryControls(ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
     """Shown while Enter queues behind a running turn."""
+
+    def shown_children(self) -> tuple[Widget, ...]:
+        return Label("Enter queues · "), SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -877,7 +881,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         if not self.is_mounted:
             return
         editor = self.prompt_text_area
-        self.query_one(DeliveryControls).display = SubmitNowAction().available(editor)
+        self.query_one(DeliveryControls).show(SubmitNowAction().available(editor))
         editor.refresh_bindings()
         from toad.widgets.conversation import Conversation
 
@@ -1037,10 +1041,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     def compose_delivery_controls(self) -> ComposeResult:
         yield QueueSummary("", markup=False)
-        # goal_bar still finds these controls by this class name.
-        with DeliveryControls():
-            yield Label("Enter queues · ")
-            yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
+        yield DeliveryControls()
 
     def compose_info_popups(self) -> ComposeResult:
         for kind in InfoPopup.members():
