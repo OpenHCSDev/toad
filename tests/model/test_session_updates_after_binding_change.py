@@ -1,8 +1,16 @@
 """A session update that was being validated when its session or process was replaced publishes nothing."""
 from acp import schema
+from agent_comms.acp_extension import TextRouteUpdate, encode_updates
+from agent_comms.routing import MessageRoute
 from support.agents import RecordedEvents, deliver
-from toad.acp.sdk_boundary import ValidateSessionUpdateTask
-from toad.core.events import CoreEvent
+from toad.acp.agent_controller import ProcessTaskRunner, ThreadTaskRunner
+from toad.acp.sdk_boundary import (
+    AcceptedSessionUpdateValidation, DecodeCommsMetadataTask, RejectedSessionUpdateValidation,
+    ValidateSessionUpdateTask,
+)
+from toad.comms_root import CoreConnection
+from toad.core.events import CoreEvent, Update
+from toad.render_processes import RenderProcessPool
 
 
 
@@ -10,20 +18,11 @@ from toad.core.events import CoreEvent
 
 
 async def test_comms_facts_survive_validation_workers_and_reach_the_message_route(app_agents, tmp_path):
-    from agent_comms.acp_extension import TextRouteUpdate, encode_updates
-    from agent_comms.routing import MessageRoute
-    from toad.acp.agent_controller import ProcessTaskRunner, ThreadTaskRunner
-    from toad.acp.sdk_boundary import (
-        AcceptedSessionUpdateValidation, DecodeCommsMetadataTask, RejectedSessionUpdateValidation,
-    )
-    from toad.render_processes import RenderProcessPool
-    from toad.core.events import Update
-
     route = MessageRoute('first', ('#team',))
     metadata = encode_updates(TextRouteUpdate(route))
     raw = {'sessionUpdate': 'agent_message_chunk',
            'content': {'type': 'text', 'text': 'routed content'}, '_meta': metadata}
-    pool = RenderProcessPool(max_workers=1, max_pending=2)
+    pool = RenderProcessPool(CoreConnection.helper_start, max_workers=1, max_pending=2)
     agent = app_agents.detached_agent('A')
     emitted = RecordedEvents()
     subscription = agent.events.subscribe(CoreEvent, emitted.receive)

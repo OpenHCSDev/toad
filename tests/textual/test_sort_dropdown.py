@@ -69,7 +69,7 @@ async def test_sort_dropdown_is_anchored_persists_and_dismisses(workspace):
         await pilot.press('enter')
         await ui.until(lambda: app.settings.sidebar.show_stopped is not previous,
                        why='the visibility setting to change')
-        path = workspace.roots.attempt / 'config' / 'toad' / 'toad.json'
+        path = workspace.roots.settings
         await ui.until(lambda: path.exists() and json.loads(path.read_text()).get('sidebar', {}).get('show_stopped') is not None,
                        why='the visibility preference to be saved')
         assert json.loads(path.read_text())['sidebar']['show_stopped'] is not previous

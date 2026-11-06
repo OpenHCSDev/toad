@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import os
 from pathlib import Path
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
+
+from toad.paths import APP_NAME
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
@@ -33,10 +36,34 @@ class Roots:
 
     attempt: Path
 
+    # Every test's Toad starts from these settings: no test reports usage to the real
+    # analytics service or fetches the latest release (both default on), so no app test
+    # touches the network.
+    SETTINGS: ClassVar[dict[str, object]] = {"statistics": {"allow_collect": False},
+                                             "updates": {"check": False}}
+
     @classmethod
     def create(cls) -> Roots:
         # tempfile owns the configured scratch location, including TMPDIR.
-        return cls(Path(tempfile.mkdtemp(prefix="toad-test-")))
+        roots = cls(Path(tempfile.mkdtemp(prefix="toad-test-")))
+        roots.save_settings({})
+        return roots
+
+    @property
+    def config(self) -> Path:
+        """This test's XDG_CONFIG_HOME."""
+        return self.attempt / "config"
+
+    @property
+    def settings(self) -> Path:
+        """Toad's settings file under this test's config."""
+        return self.config / APP_NAME / "toad.json"
+
+    def save_settings(self, settings: dict[str, object]) -> Path:
+        """Toad's saved settings for this test: SETTINGS with ``settings`` over them."""
+        self.settings.parent.mkdir(parents=True, exist_ok=True)
+        self.settings.write_text(json.dumps(self.SETTINGS | settings))
+        return self.settings
 
     @classmethod
     def of_this_process(cls) -> Roots:
@@ -58,7 +85,7 @@ class Roots:
         env.update({
             ATTEMPT: str(self.attempt),
             "AGENT_COMMS_ROOT": str(self.wire),
-            "XDG_CONFIG_HOME": str(self.attempt / "config"),
+            "XDG_CONFIG_HOME": str(self.config),
             "XDG_DATA_HOME": str(self.attempt / "data"),
             "XDG_STATE_HOME": str(self.attempt / "state"),
             "XDG_CACHE_HOME": str(self.attempt / "cache"),
