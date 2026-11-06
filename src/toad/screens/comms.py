@@ -25,7 +25,9 @@ from toad.conversation_kind import ConversationKind
 from toad.widgets.comms_chat import CommsChatView
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
+from toad.constants import WELCOME
 from toad.navigation_context import NavigationContext
+from toad.session_scope import NoSessionOrigin
 from toad.navigation_target import HistoryTarget, NavigationTarget, SelectTarget
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
@@ -93,18 +95,15 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
         self,
         *,
         project_path: Checkout,
-        owner_mode: str,
         me: str,
         conversation: ConversationKind,
-        owner_root: str | None = None,
-        wire_root: str | None = None,
+        wire_root: str,
     ) -> None:
         super().__init__()
         self.project_path = project_path
-        self.owner_mode = owner_mode
         from toad.thread_identity import SessionIdentity
 
-        self._identity = SessionIdentity.for_thread(me, owner_root)
+        self._identity = SessionIdentity.for_thread(me, wire_root)
         self.conversation = conversation
         self.wire_root = wire_root
         self._content_ready = asyncio.Event()
@@ -117,8 +116,9 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
         return self.wire_root
 
     @property
-    def origin(self):
-        return self.app.workspace_sessions.origin(self.owner_mode)
+    def origin(self) -> NoSessionOrigin:
+        """A conversation tab belongs to no session, so it has no session transcript."""
+        return NoSessionOrigin()
 
     @property
     def navigation_target(self) -> NavigationTarget:
@@ -127,25 +127,6 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
             self.app.coordination_access.observation.observed()
             .sidebar.observation.thread_names(),
         )
-
-    def rebind_identity(self, identity: str) -> None:
-        with self.changing_identity():
-            self._identity = self.thread_identity.with_thread(identity)
-            if chat := self.query_one_optional(CommsChatView):
-                chat._me = identity
-
-    def rebind_owner_root(self, root: str | None) -> None:
-        with self.changing_identity():
-            self._identity = self.thread_identity.with_root(root)
-
-    def rebind_project(self, project: Checkout) -> None:
-        changed = project != self.project_path
-        self.project_path = project
-        if changed:
-            self.link_context_changed()
-        if chat := self.query_one_optional(CommsChatView):
-            chat.project_path = project
-            chat.working_directory = str(project)
 
     def make_thread_sidebar(self) -> ThreadSidebar:
         return ThreadSidebar(
@@ -279,9 +260,10 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
 
     @property
     def navigation_context(self) -> NavigationContext:
+        # Threads opened from a conversation tab attach to home: no session owns this tab.
         return NavigationContext(
             self.app,
-            self.owner_mode,
+            WELCOME,
             self.project_path,
             self.thread_identity.thread_name(),
         )
@@ -299,5 +281,5 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
 
     def navigate_session(self, direction: Literal[-1, 1]) -> None:
         self.app.session_navigation.events.publish(
-            session_requests.SessionNavigate(self.owner_mode, direction)
+            session_requests.SessionNavigate(self.id, direction)
         )

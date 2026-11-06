@@ -29,7 +29,6 @@ from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
-from toad.tab_identity.history_origin import WelcomeHistoryOrigin
 from toad.thread_identity import ThreadIdentity
 from toad.widgets.comms_sidebar import ChannelRow, CommsRow, ListedRow, NewSessionButton, ThreadStatusRow
 from toad.widgets.sidebar_tree import (
@@ -247,9 +246,6 @@ class WelcomeScreen(
         "[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
         "[b]↑ ↓[/b] choose   [b]enter[/b] open"
     )
-
-    def history_origin(self) -> WelcomeHistoryOrigin:
-        return WelcomeHistoryOrigin()
 
     def __init__(self) -> None:
         super().__init__()

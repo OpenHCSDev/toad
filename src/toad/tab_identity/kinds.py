@@ -56,13 +56,26 @@ class MailboxTab(SessionTabIdentity):
 
 @dataclass(frozen=True)
 class HistoryTab(TabIdentity):
+    """A conversation tab saved when it still belonged to the session that opened it. Saved
+    workspaces hold these rows, so they decode; each reopens nowhere and is removed."""
+
     key: ConversationKind
     owner: HistoryOrigin
     root: str
 
     async def entry(self, navigation):
-        source = await self.owner.restore(navigation)
-        return await navigation.history_entry(self, source)
+        raise TabTargetGone(self, "saved when conversation tabs belonged to a session; reopen it from the sidebar")
+
+
+@dataclass(frozen=True)
+class CommsTab(TabIdentity):
+    """A conversation on one bus, as the owner views it."""
+
+    key: ConversationKind
+    root: str
+
+    async def entry(self, navigation):
+        return await navigation.history_entry(self)
 
 
 @dataclass(frozen=True)

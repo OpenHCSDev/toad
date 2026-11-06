@@ -16,15 +16,6 @@ tests = [
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_found_in_several_places_says_so_instead_of_guessing",
 ]
 
-[shared-channel-tab]
-defect = "A channel has one tab for all sessions (deliberate). When a second session opens a channel the first already has open, the tab still sends as the first session's thread, Back returns to the first session, and closing the first session closes the tab (leaving the store screen). The old per-session expectations were written before tabs were shared. Needs a product decision on what a shared tab does for the second session; the three tests state the proposed answer."
-owner = "Tristan (product meaning), then the comms UI owner"
-tests = [
-    "tests/app/test_channel_tab_sharing.py::test_going_back_from_a_shared_channel_tab_returns_to_the_session_it_was_opened_from",
-    "tests/app/test_channel_tab_sharing.py::test_a_shared_channel_tab_sends_as_the_session_it_was_opened_from",
-    "tests/app/test_channel_tab_sharing.py::test_closing_one_session_keeps_the_channel_tab_another_session_opened",
-]
-
 [key-burst-order]
 defect = "Typing while the history has focus: the first printable key moves focus to the editor, but a non-printable key that arrives before the focus change lands is handled by the history window instead. 'x', Left, 'y' sent in one burst gives 'xy', not 'yx' (Conversation.on_key forwards only printable keys)."
 owner = "unassigned: Toad input handling (widgets/conversation.py is being edited by the frame-time agent)"

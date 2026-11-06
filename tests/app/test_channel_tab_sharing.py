@@ -1,9 +1,7 @@
-"""A channel has one tab however many sessions open it; what that tab does for the second session.
+"""A channel has one tab however many sessions open it, and no session owns it.
 
-One tab per channel is deliberate (channel tabs are keyed by wire and channel, not
-by the session that opened them). The three tests after the first describe what a
-second session should get from the shared tab; they are open defects pending a
-product decision (tests/open_defects.toml, shared-channel-tab).
+The tab is the owner's view of the channel: it sends as the user, Back follows the
+visited tabs, and closing a session leaves it open.
 """
 
 from agent_comms.channel_targets import CommandTarget
@@ -34,7 +32,7 @@ async def test_going_back_from_a_shared_channel_tab_returns_to_the_session_it_wa
         assert ui.selected_tab == second
 
 
-async def test_a_shared_channel_tab_sends_as_the_session_it_was_opened_from(workspace):
+async def test_a_shared_channel_tab_sends_as_the_user_whichever_session_opened_it(workspace):
     async with workspace.app(size=(120, 44)) as ui:
         first, second, channel = await two_sessions_on_one_channel(workspace, ui)
         await ui.write_draft("hello shared channel")
@@ -46,7 +44,7 @@ async def test_a_shared_channel_tab_sends_as_the_session_it_was_opened_from(work
             ).messages if message.body == "hello shared channel")
 
         await ui.until(sent_messages, why="the message on the wire")
-        assert sent_messages()[0].sender == "owner-b"
+        assert sent_messages()[0].sender == workspace.viewer
 
 
 async def test_closing_one_session_keeps_the_channel_tab_another_session_opened(workspace):
