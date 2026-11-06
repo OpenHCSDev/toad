@@ -50,7 +50,8 @@ from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from agent_comms.presentation import MessageNotification, NoRevision, ReadState
+from agent_comms.message_notification import MessageNotification
+from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, RegistrationsView, StatusView
 from agent_comms.route_selection import RouteSelection
 from agent_comms.root_runtime import RootRuntime

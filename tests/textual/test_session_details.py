@@ -8,7 +8,7 @@ from textual.widgets import Input
 from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.messages import InfoKind, Message
 from agent_comms.notification_progress import HarnessConsumedProgress
-from agent_comms.presentation import MessageNotification
+from agent_comms.message_notification import MessageNotification
 from agent_comms.transcripts import NotifiedThreadPresentation
 from agent_comms.ui_model.delivery import ReadDeliveryView
 from agent_comms.input_disposition import DeliveryOverview

@@ -14,6 +14,7 @@ from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Awaitable, Callable
 
+from agent_comms.native_failures import NativePiUnavailable
 from toad.mcp_inventory import installed_mcp_command, read_inventory
 from toad.terminal_execution import PtyProcess
 from toad.ansi import TerminalState
@@ -66,8 +67,6 @@ class LocalDecisionPTY:
                 return UnavailableOutcome()
             if not command.available(selection):
                 return UnsupportedOutcome()
-            from agent_comms.native_pi import NativePiUnavailable
-
             try:
                 node, cli = await asyncio.to_thread(installed_mcp_command)
             except (OSError, ValueError, NativePiUnavailable):

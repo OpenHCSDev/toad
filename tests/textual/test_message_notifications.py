@@ -12,7 +12,7 @@ from agent_comms.notification_progress import (
     CompletedProgress, ConsumingProgress, IgnoredProgress, SendingProgress,
     ShownToModelProgress, UnrecordedProgress,
 )
-from agent_comms.presentation import MessageNotification
+from agent_comms.message_notification import MessageNotification
 from agent_comms.coordination.errors import ReloadRequired
 from agent_comms.ui_model.observation import NotificationsObserved, NotificationsReload, NotificationsUnreadable, UnreadableHistory
 from toad.notification_status import CheckedNotifications
