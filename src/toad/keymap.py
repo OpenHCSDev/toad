@@ -116,8 +116,10 @@ class KeymapCatalog:
         contexts: tuple[type[DOMNode], ...],
         actions: tuple[type[ApplicationAction], ...],
     ) -> KeymapCatalog:
-        """A function of the declarations it is given and nothing else, so a class declared
-        later is a different argument and never a stale answer."""
+        """A function of the declarations it is given, so a context or action declared later is
+        a different argument and never a stale answer. Families a context's keymap_claims reads
+        for itself (Menu reads MenuCommand's members) are settled by discover(), which capture
+        runs first and which imports every toad module."""
         invocations: dict[KeyInvocationId, KeyInvocation] = {}
         scopes: dict[type[KeyMode], tuple[tuple[KeymapClaim, ...], ...]] = {}
         keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
