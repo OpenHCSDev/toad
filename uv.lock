@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.14.*"
 
 [[package]]
@@ -422,7 +422,7 @@ wheels = [
 [[package]]
 name = "formbridge"
 version = "0.2.0"
-source = { git = "https://github.com/OpenHCSDev/formbridge.git?branch=main#b67c97e5c3ad1eda5c06a464fdc578038d01e3e8" }
+source = { git = "https://github.com/OpenHCSDev/formbridge.git?branch=main#0547625fd956077b3130fb1bad9e942f38783149" }
 dependencies = [
     { name = "annotated-types" },
     { name = "docutils" },

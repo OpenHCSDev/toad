@@ -186,9 +186,11 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:
-        snapshot = source.registry()
-        resolved = ChannelTarget(name).resolve(snapshot, lambda channel: source.core.call(CommsChannelTool(name=channel)))
-        return ResolvedConversation(snapshot.canonical_name(me), cls(ChannelTarget(resolved.channel.name)))
+        # The opening needs the channel's own declaration and the viewer's name, as a direct
+        # message reads its two threads; resolving every member would read the whole registry.
+        target = ChannelTarget(name)
+        channel = source.core.call(CommsChannelTool(name=target.name))
+        return ResolvedConversation(source.registry_for(me).canonical_name(me), cls(ChannelTarget(channel.name)))
 
     @classmethod
     def compose_activity(cls, view: CommsChatView) -> ComposeResult:

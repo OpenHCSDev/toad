@@ -1,6 +1,7 @@
 """Durable session rows; SQLite and JSON are decoded only at this boundary."""
 
 import asyncio
+import re
 import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
@@ -9,7 +10,9 @@ from pathlib import Path
 from time import time_ns
 from typing import Annotated, Self
 
-from agent_comms.nominal.field_codec import NullMember, RecordedTimestamp, TimestampText
+from agent_comms.nominal.field_codec import (
+    NominalSpelling, NominalText, NullMember, RecordedTimestamp, TimestampText,
+)
 from agent_comms.repo import Checkout
 from agent_comms.storage.store_files import DEFAULT_ISOLATION
 from agent_comms.storage.typed_table import (
@@ -72,10 +75,28 @@ class Session(ToadTables, TypedTable, declared_name="sessions"):
     meta_json: SessionMeta = field(default_factory=SessionMeta)
 
 
+class TabScope(NominalText):
+    """The Core a saved tab belongs to: its connection's location, a root path or a connector
+    endpoint. Two Cores can share a root path (every machine's ~/.agent-comms), so a tab's own
+    root does not say whose tab it is."""
+
+    __slots__ = ()
+
+
+class TabScopeText(NominalSpelling[TabScope]):
+    spelling = re.compile(r"\S.{0,4095}")
+
+
+UNSCOPED_TABS = TabScope("unscoped")
+"""Tabs saved before tabs had a scope; a local connection reads them as its own."""
+
+
 @dataclass(frozen=True)
 class OpenTabRow(ToadTables, TypedTable, declared_name="open_tabs"):
     identity: Annotated[TabIdentity, Column(primary_key=True)]
     position: int
+    # Part of the key: two Cores at one root path can hold the same tab identity.
+    scope: Annotated[TabScope, Column(primary_key=True)] = UNSCOPED_TABS
 
 
 @dataclass(frozen=True)
@@ -116,18 +137,24 @@ class DB:
     async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
         return await asyncio.to_thread(self.transaction, operation)
 
-    async def tab_roster(self, identities: tuple[TabIdentity, ...]) -> None:
-        def write(db):
-            OpenTabRow.delete(db)
+    async def tab_roster(self, scopes: tuple[TabScope, ...], identities: tuple[TabIdentity, ...]) -> None:
+        """Replace these scopes' tabs and only theirs, writing them under the first: another
+        Core's Toad keeps its own."""
+        def write(db: sqlite3.Connection) -> None:
+            for scope in scopes:
+                OpenTabRow.delete(db, scope=scope)
             for position, identity in enumerate(identities):
-                OpenTabRow(identity, position).upsert(db)
+                OpenTabRow(identity, position, scopes[0]).upsert(db)
 
         await self._transaction(write)
 
-    async def tab_list(self) -> list[OpenTabRow]:
-        return await self._transaction(lambda db: OpenTabRow.select(
-            db, order_by=("position",),
-        ))
+    async def tab_list(self, scopes: tuple[TabScope, ...]) -> list[OpenTabRow]:
+        def read(db: sqlite3.Connection) -> list[OpenTabRow]:
+            # The connection's own scope first, then the scopes it adopts, each in its order.
+            return [row for scope in scopes
+                    for row in OpenTabRow.select(db, scope=scope, order_by=("position",))]
+
+        return await self._transaction(read)
 
     async def record_model_usage(
         self, agent_identity: str, model_id: str, *, last_used: int | None = None,

@@ -187,6 +187,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             lambda identity, index: self.select_session(identity.mode_name, history_index=index),
             home=WELCOME,
             db=DB(),
+            scopes=connection.tab_scopes(),
         )
         self._session_tracker = SessionTracker(self.tab_order)
         self.coordination_access = connection.open_access(self)

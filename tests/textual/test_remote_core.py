@@ -205,3 +205,35 @@ async def test_a_remote_target_menu_and_reconnect_read_registry_slices_not_the_w
             assert await asyncio.to_thread(context.available_actions)
             await app.session_navigation.reconnect(captured, ("remote-peer",))
             assert whole == []
+
+
+async def test_opening_a_remote_channel_reads_its_declaration_not_the_whole_registry(
+        workspace, tmp_path, monkeypatch):
+    """A channel opening once resolved every member through the whole registry, about 6 s over
+    the Funnel, and kept only the channel's name and the viewer's."""
+    from toad.conversation_kind import ChannelConversation
+
+    workspace.thread("remote-peer", "team")
+    with remote_core(workspace, tmp_path, monkeypatch) as connection:
+        async with workspace.app(session=False, connect=lambda _: connection) as ui:
+            app, _ = ui.textual
+            sidebar = app.workspace_chrome.channels
+            if sidebar.collapsed:
+                sidebar.toggle()
+            tree = sidebar.query_one(CommsSidebar)
+            await ui.until(lambda: "#team" in tree.groups, seconds=REMOTE_FIRST_ANSWER,
+                           why="the remote Core's channel group")
+            observed = app.coordination_access.observation
+            whole = []
+            original = RemoteObserving.registry
+
+            def counted(self):
+                whole.append(self)
+                return original(self)
+
+            monkeypatch.setattr(RemoteObserving, "registry", counted)
+            resolved = await asyncio.to_thread(
+                ChannelConversation.resolve, observed, workspace.viewer, "#team")
+            assert resolved.conversation.target.name == "#team"
+            assert resolved.viewer == workspace.viewer
+            assert whole == []

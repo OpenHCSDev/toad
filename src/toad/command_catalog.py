@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
 from typing import TYPE_CHECKING
 
+from agent_comms.errors import UnregisteredThreadError
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
 from toad.target_commands import CommandContextChanged, TargetContext, ThreadCommand
 
@@ -13,7 +14,12 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CommandCatalog:
+    """The projected choices, read once on the preparation worker: a command's applicability
+    can ask Core (a remote one over the connector), so it is never evaluated on the event loop."""
+
     entries: tuple[CommandPresentation, ...]
+    commands: list[SlashCommand]
+    target_choices: tuple
     context: TargetContext | None = None
 
     @classmethod
@@ -24,8 +30,6 @@ class CommandCatalog:
         This value is consumed by a refresh or execution and then released;
         widgets retain completion display resources, never applicability.
         """
-        from agent_comms.errors import UnregisteredThreadError
-
         # Local declaration spelling remains authoritative when unavailable.
         commands = {command.command: command for command in advertised}
         try:
@@ -34,11 +38,11 @@ class CommandCatalog:
         except UnregisteredThreadError:
             # An unbound or shell-only view has no backend thread. The session
             # identity and the registry query, not a UI-side presence read, own that fact.
-            return cls.joined(commands)
+            return await app.preparation.run_thread(cls.joined, commands)
         for definition in definitions:
             command = ThreadCommand(definition)
             commands[command.command] = command
-        return cls.joined(commands, target)
+        return await app.preparation.run_thread(cls.joined, commands, target)
 
     @classmethod
     def joined(cls, commands: dict[str, CommandPresentation], *context: TargetContext):
@@ -46,17 +50,14 @@ class CommandCatalog:
         for member in SlashCommand.members_with(LocalCommand):
             command = member()
             commands[command.command] = command
-        return cls(tuple(sorted(commands.values(), key=lambda command: command.command)), *context)
-
-    @property
-    def commands(self) -> list[SlashCommand]:
-        return [choice for command in self.entries
-                for choice in command.completion(self.context)]
-
-    @property
-    def target_choices(self):
-        return tuple(choice for command in self.entries
-                     for choice in command.target_choices(self.context))
+        entries = tuple(sorted(commands.values(), key=lambda command: command.command))
+        target = context[0] if context else None
+        return cls(
+            entries,
+            [choice for command in entries for choice in command.completion(target)],
+            tuple(choice for command in entries for choice in command.target_choices(target)),
+            target,
+        )
 
     @classmethod
     async def execute(cls, text: str, conversation: Conversation) -> bool:

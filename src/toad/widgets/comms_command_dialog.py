@@ -23,7 +23,7 @@ from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
 from toad.widgets.checkbox import Checkbox
 from toad.forms.editors import MultilineEditor, ValueEditor
 from toad.forms.form_view import InlineFormView
-from formbridge.forms.declared_fields import Multiline
+from formbridge.forms.declared_fields import DeclaredMetadata, Multiline
 from toad.native_style import AutoWidth, EllipsisOverflow, SideMargin
 from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ModalScreen, ShadedScreen
 from toad.widget_actions import WidgetAction
@@ -32,7 +32,7 @@ from toad.widgets.model_switcher import ModelSelection
 
 
 @dataclass(eq=False)
-class PreparedChoices(AnnotationChoices):
+class PreparedChoices(AnnotationChoices, DeclaredMetadata):
     """The catalog last prepared for a draft, not another copy of its value."""
     parameter: ChoiceTargetField
 
@@ -42,24 +42,22 @@ class PreparedChoices(AnnotationChoices):
     def label(self, choice):
         return next((label for label, value in self.parameter.choices if value == choice), 'Choose…')
 
-
-ValueEditor.shown_by[PreparedChoices] = lambda field: ValueEditor.showing(
-    (*field.metadata(PreparedChoices).parameter.editor_declarations, AnnotationChoices)
-)(field)
+    def declares(self):
+        """The prepared parameter names its own editors first; any choices editor follows."""
+        yield from self.parameter.editor_declarations
+        yield from super().declares()
 
 
 class CommandText(Multiline):
     """A command parameter of several lines; the command form shows it five rows tall."""
 
 
-class CommandTextEditor(MultilineEditor):
-    shows = (CommandText,)
+class CommandTextEditor(MultilineEditor, shows=(CommandText,)):
     height = Scalar.from_number(5)
 
 
-class CatalogField(ValueEditor, Button):
+class CatalogField(ValueEditor, Button, shows=(ModelConfigOption,)):
     """The shared model selector edits the form's canonical draft value."""
-    shows = (ModelConfigOption,)
 
     def bind_control(self):
         self.paint()
@@ -242,7 +240,6 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
         if paths & self.choices.keys():
             self.run_worker(self.refresh_catalogs(self.arguments()),
                             group='command-catalogs', exclusive=True)
-
 
 
     def arguments(self):

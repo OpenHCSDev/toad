@@ -102,9 +102,7 @@ class ValueEditor(DeclaredViews, EditorWidget):
         self.post_message(self.Feedback(text))
 
 
-class BoolEditor(ValueEditor, FormCheckbox):
-    shows = (bool,)
-
+class BoolEditor(ValueEditor, FormCheckbox, shows=(bool,)):
     def control_arguments(self) -> dict[str, object]:
         return {"value": bool(self.field.value)}
 
@@ -166,23 +164,19 @@ class LineEditor(ValueEditor, FormInput):
         self.value = self.value_text(self.field.value)
 
 
-class IntEditor(LineEditor):
-    shows = (int,)
+class IntEditor(LineEditor, shows=(int,)):
     accepts = "integer"
 
 
-class FloatEditor(LineEditor):
-    shows = (float,)
+class FloatEditor(LineEditor, shows=(float,)):
     accepts = "number"
 
 
-class StrEditor(LineEditor):
-    shows = (str,)
+class StrEditor(LineEditor, shows=(str,)):
     accepts = "text"
 
 
-class MultilineEditor(ValueEditor, UntintedTonePaint, FramedControl, TextArea):
-    shows = (Multiline,)
+class MultilineEditor(ValueEditor, UntintedTonePaint, FramedControl, TextArea, shows=(Multiline,)):
     height = Scalar.from_number(10)
     padding = Spacing(0, 1, 0, 1)
 
@@ -256,9 +250,7 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
             self.value = value if self.lists(value) else Select.NULL
 
 
-class ChoicesEditor(SelectEditor):
-    shows = (AnnotationChoices,)
-
+class ChoicesEditor(SelectEditor, shows=(AnnotationChoices,)):
     def paint(self) -> None:
         with self.prevent(Select.Changed):
             self.set_options(self.options())
@@ -274,19 +266,15 @@ class ChoicesEditor(SelectEditor):
         return ((self.choices.label(choice), choice) for choice in self.choices.choices())
 
 
-class EnumEditor(SelectEditor):
-    shows = (Enum,)
-
+class EnumEditor(SelectEditor, shows=(Enum,)):
     def options(self) -> Iterable[tuple[str, object]]:
         members: type[Enum] = resolve_annotated(self.field.annotation)  # type: ignore[assignment]
         return ((format_enum_display(member), member) for member in members)
 
 
-class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
+class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup, shows=(Optional,)):
     """A field that may hold nothing: a box says whether it holds a value, and the
     editor of that value is shown while it does."""
-
-    shows = (Optional,)
 
     def bind_control(self) -> None:
         self.holds_value = FormCheckbox("Set", value=self.field.value is not None)
