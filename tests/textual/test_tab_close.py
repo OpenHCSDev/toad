@@ -40,18 +40,16 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
             if access.route_task is not None:
                 await access.route_task
             changes = ObservationChanges()
-            with access.events.subscribe(ObservedServiceChanged, changes.received):
-                # The app's connection owns its root, so a process-selected root no
-                # longer reaches it. A connection to a root with no route makes the
-                # real route capture fail through this access, without mocks.
-                other = LocalCoreConnection(workspace.project / "other-root")
-
-                def open_other():
-                    with access.opening:
-                        return other.open_current(access)
-
-                failed = await access.preparation.run_thread(open_other)
-                repeated = await access.preparation.run_thread(open_other)
+            # The app's connection owns its root, so a process-selected root no longer
+            # reaches it. A root that is a file can never open, so the access a connection
+            # to it builds fails through its own open_current every time; Observation.adopt
+            # keeps the first failure when the next one equals it. No mocks.
+            unopenable = workspace.project / "other-root"
+            unopenable.write_text("")
+            other = LocalCoreConnection(unopenable).open_access(app)
+            with other.events.subscribe(ObservedServiceChanged, changes.received):
+                failed = await other.preparation.run_thread(other.open_current)
+                repeated = await other.preparation.run_thread(other.open_current)
                 await ui.step()
                 assert isinstance(failed, FailedObservation)
                 assert failed == repeated and failed is repeated
