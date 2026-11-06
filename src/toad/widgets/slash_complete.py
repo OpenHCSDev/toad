@@ -88,8 +88,7 @@ class SlashComplete(PriorityActions, VisibleActions, ForwardsCursor, Submits, Co
     def refresh_commands(self) -> None:
         """Only an open completion view borrows current applicability."""
         if self.is_open:
-            from toad.widgets.conversation import Conversation
-            self.query_ancestor(Conversation).update_slash_commands()
+            self.prompt.conversation.update_slash_commands()
 
     @on(widgets.Input.Changed)
     def on_input_changed(self, event: widgets.Input.Changed) -> None:
