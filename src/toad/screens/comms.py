@@ -118,7 +118,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
     @property
     def origin(self) -> NoSessionOrigin:
         """A conversation tab belongs to no session, so it has no session transcript."""
-        return NoSessionOrigin()
+        return NoSessionOrigin(self.id or "conversation tab")
 
     @property
     def navigation_target(self) -> NavigationTarget:
@@ -267,6 +267,12 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
             self.project_path,
             self.thread_identity.thread_name(),
         )
+
+    async def open_sidebar_target(self, target: NavigationTarget) -> None:
+        """Navigation from a conversation tab is home's: home is prepared as the origin first."""
+        home = await self.app.prepare_session(WELCOME)
+        await home.origin.require().prepare_history_origin()
+        await super().open_sidebar_target(target)
 
     @handles(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
