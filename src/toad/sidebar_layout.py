@@ -163,12 +163,13 @@ class SidebarLayout:
 
     def splits_after(self, identity: type[SidebarPlacement],
                      collapsed: Mapping[type[SidebarPlacement], bool]) -> bool:
-        """Whether the next bar in this one's band sits beside it, so its splitter shows: bars
-        whose folds take equal shares share a row; a folded strip under an open bar does not."""
-        slot = self._slot(self.placements, identity)
-        index = slot.index(identity)
+        """Whether the next shown bar in this one's band sits beside it, so its splitter shows:
+        bars whose folds take equal shares share a row; a folded strip under an open bar does
+        not. `collapsed` holds the shown bars, as `resolve` reads it; a hidden bar has none."""
+        shown = tuple(key for key in self._slot(self.placements, identity) if key in collapsed)
+        index = shown.index(identity)
         return any(SidebarFold.of(collapsed[identity]).shares == SidebarFold.of(collapsed[after]).shares
-                   for after in slot[index + 1:index + 2])
+                   for after in shown[index + 1:index + 2])
 
     def _store(self, placements: dict[type[SidebarPlacement], SidebarPlacement]) -> None:
         self._save(replace(self.terminal, placements=tuple(placements.values())))
