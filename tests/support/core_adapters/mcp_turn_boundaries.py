@@ -9,7 +9,10 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from functools import partial
 import os
 from pathlib import Path
+from typing import Any
 
+from acp import schema
+from acp.connection import StreamDirection, StreamEvent
 from agent_comms.acp import CommsAgent
 from agent_comms.acp_extension import (
     McpClientAcknowledgementUpdate, TurnChangedUpdate, encode_updates,
@@ -20,6 +23,9 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, TurnId
 from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.pi_payloads import ReadyMcpServerState, ConfirmMcpCallPolicy
+from textual.pilot import Pilot
+from toad.acp.agent import Agent
+from toad.widgets.conversation import Conversation
 from toad.widgets.note import Note
 
 RETIRED = TurnId("0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a")
@@ -72,19 +78,34 @@ async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
         os.environ.update(previous)
 
 
-async def exercise_boundaries(agent, view, pilot):
+async def receive_update(agent: Agent, session_id: str, update: dict[str, Any]) -> None:
+    """One session/update through the ACP pipe's own entry: the SDK's stream observer keeps
+    the raw frame, then the handler it dispatches to decodes and receives it."""
+    frame = {"jsonrpc": "2.0", "method": "session/update",
+             "params": {"sessionId": session_id, "update": update}}
+    agent.process.observe_stream(StreamEvent(StreamDirection.INCOMING, frame))
+    notification = schema.SessionNotification.model_validate(frame["params"])
+    await agent.process.session_update(session_id, notification.update)
+
+
+async def request_permission(agent: Agent, session_id: str, tool_call: dict[str, Any],
+                             options: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+    """One session/request_permission through the handler the SDK dispatches it to, answered
+    as the JSON the pipe would carry back."""
+    response = await agent.process.request_permission(
+        session_id, schema.ToolCallUpdate.model_validate(tool_call),
+        [schema.PermissionOption.model_validate(option) for option in options], **kwargs)
+    return response.model_dump(mode="json", by_alias=True, exclude_none=True)
+
+
+async def exercise_boundaries(agent: Agent, view: Conversation, pilot: Pilot) -> None:
     receipt = McpLiveAcknowledgement(1, "pi-mcp-client", "a" * 32, "running", "turn", (
         McpServerReceipt("fixture", "project", ReadyMcpServerState,
                          ConfirmMcpCallPolicy, 1, 0, 0),
     ))
 
     async def send(*facts, session=None):
-        result = await agent.server.call({
-            "jsonrpc": "2.0", "method": "session/update", "params": {
-                "sessionId": session or agent.session_id, "update": packet(*facts),
-            },
-        })
-        assert result is None, result
+        await receive_update(agent, session or agent.session_id, packet(*facts))
         await pilot.pause()
 
     session_id = FieldCodec.decode(AcpSessionId, agent.session_id)
@@ -112,12 +133,7 @@ async def exercise_boundaries(agent, view, pilot):
             assert not notes(view)
             malformed = packet(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             malformed["_meta"]["agentComms"]["updates"][0]["receipt"]["version"] = True
-            result = await agent.server.call({
-                "jsonrpc": "2.0", "method": "session/update", "params": {
-                    "sessionId": session_id, "update": malformed,
-                },
-            })
-            assert result is None, result
+            await receive_update(agent, session_id, malformed)
             await pilot.pause()
             assert not notes(view)
             await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
