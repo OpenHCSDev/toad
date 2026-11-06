@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import gc
+import importlib
 import json
+import pkgutil
 import os
 import socket
 import sys
@@ -17,6 +19,7 @@ import threading
 import traceback
 
 import pytest
+import toad
 
 import support.workspace  # noqa: F401  (the app, its fixtures and the comms package)
 from agent_comms.storage.locked_store import RootFile
@@ -85,6 +88,10 @@ def serve() -> None:
     """Warm what every app test pays for, then fork each test and its helper spawner."""
     # Every agent_comms module once, so a forked helper imports and walks nothing.
     RootFile.load_declarations()
+    # Every toad module once: the app imports its screens and widgets as it mounts them
+    # (51 modules, 0.21 s cold), and every test paid for the ones it reached.
+    for module in pkgutil.walk_packages(toad.__path__, "toad."):
+        importlib.import_module(module.name)
     # The file-preview terminal probe: 0.15 s of every app's start. Neither this process nor
     # a forked test has a terminal, so both detect the same answer.
     FileKind.prepare_terminal()

@@ -108,5 +108,9 @@ class Roots:
             "TERM": "xterm-256color",
             "COLORTERM": "truecolor",
             "FORCE_COLOR": "1",
+            # A test app publishes every 1 ms instead of 1/144 s. Each input still gets its
+            # own frame; a wheel walk that waited one 7 ms tick per event no longer does
+            # (the saved-history scroll test went from 36.5 s to 26.5 s).
+            "TEXTUAL_FPS": "1000",
         })
         return env

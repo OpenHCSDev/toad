@@ -474,26 +474,33 @@ class SavedSettings(ExternalStore):
         if path.exists():
             FieldCodec.decode(ToadSettings, FieldCodec.parse(path.read_text("utf-8")))
 
-    def saved_key(self, path: DottedFieldPath) -> str:
-        owner = DeclaredField(self.state, path).owner_type
-        return next(key for declaration, key in FieldCodec.record_fields(owner)
-                    if declaration.name == path.field_name)
+    def saved_keys(self, path: str) -> list[tuple[DottedFieldPath, str]]:
+        """Each setting or group directly below `path`, with its key in the file.
+
+        They share one owner record, so its class is resolved once for the level: resolving
+        it again per field cost every launch 0.04 s of value resolution for the keys alone.
+        """
+        below = self.state.direct_parameter_paths(path)
+        if not below:
+            return []
+        owner = DeclaredField(self.state, below[0]).owner_type
+        keys = {declaration.name: key for declaration, key in FieldCodec.record_fields(owner)}
+        return [(field, keys[field.field_name]) for field in below]
 
     def keys_held(self, path: str, raw: object) -> list[DottedFieldPath]:
         """The settings and groups a document read from the file has a key for."""
         if not isinstance(raw, dict):
             return []
         held = []
-        for below in self.state.direct_parameter_paths(path):
-            if (key := self.saved_key(below)) in raw:
+        for below, key in self.saved_keys(path):
+            if key in raw:
                 held += [below, *self.keys_held(below.value, raw[key])]
         return held
 
     def kept(self, path: str) -> dict[str, JsonValue]:
         """The part of the whole encoded tree that belongs in the file."""
         document: dict[str, JsonValue] = {}
-        for below in self.state.direct_parameter_paths(path):
-            key = self.saved_key(below)
+        for below, key in self.saved_keys(path):
             if self.state.has_parameter_descendants(below.value):
                 part = self.kept(below.value)
                 if part or below in self.user_set:
