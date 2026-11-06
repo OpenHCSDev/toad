@@ -54,7 +54,7 @@ class GroupTitle(WidgetView, Static):
         return self.app.colours.colour(PrimaryColour)
 
 
-class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
+class FieldView(DeclaredViews, WidgetView, containers.VerticalGroup):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
     def __init__(self, field: DeclaredField) -> None:
@@ -84,10 +84,8 @@ class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
         raise NotImplementedError
 
 
-class ValueView(FieldView):
+class ValueView(FieldView, shows=(ParameterInfo,)):
     """A field with one value: its label, its help and the editor for its kind."""
-
-    shows = (ParameterInfo,)
 
     CHANGED_MARK = " ●"
 
@@ -132,10 +130,8 @@ class ValueView(FieldView):
         )
 
 
-class GroupView(FocusWithinView, FieldView):
+class GroupView(FocusWithinView, FieldView, shows=(DirectDataclassInfo,)):
     """A nested dataclass: a heading and the views of its fields."""
-
-    shows = (DirectDataclassInfo,)
 
     padding = Spacing(0, 1, 0, 1)
 

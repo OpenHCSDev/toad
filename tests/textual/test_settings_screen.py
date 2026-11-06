@@ -29,8 +29,7 @@ class Shouted:
     """Declares text that is kept in capitals."""
 
 
-class ShoutedEditor(editors.StrEditor):
-    shows = (Shouted,)
+class ShoutedEditor(editors.StrEditor, shows=(Shouted,)):
 
     def read(self, text: str) -> object:
         return text.upper()

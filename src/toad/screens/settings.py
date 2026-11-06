@@ -27,10 +27,8 @@ from toad.setting_choices import SchemeName
 from toad.app_node import ToadNode
 
 
-class SchemeEditor(SelectEditor, ToadNode):
+class SchemeEditor(SelectEditor, ToadNode, shows=(SchemeName,)):
     """A colour scheme's name, picked from the schemes the running app has."""
-
-    shows = (SchemeName,)
 
     def options(self) -> Iterable[tuple[str, object]]:
         return ((name, name) for name in self.app.colours.schemes)
