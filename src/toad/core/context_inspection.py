@@ -20,6 +20,7 @@ from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
 from agent_comms.session_revision import SessionObservation
 from agent_comms.thread_status import ActiveThreadPresence, HeartbeatThreadStatus, ThreadStatus
+from agent_comms.threads import ExternalThread, Thread
 from agent_comms.turn_context import (
     CodexRolloutProvenance,
     ContextManifest,
@@ -540,7 +541,7 @@ class ContextInspection:
         previous: tuple[CapturedContext, ...] = (),
     ):
         read = observed.context_inspection(owner, cursor=cursor, previous=previous)
-        inspection_type = ThreadInspectionSource().project_value(read.entry.status)
+        inspection_type = ThreadInspectionSource().project_value(read.entry.thread)(read.entry.status)
         return inspection_type(read.entry, read.page, read.source, observed, read.annotations, read.imported)
 
     async def acquire(self, revision: ReadState):
@@ -688,8 +689,22 @@ class SavedContextInspection(ContextInspection):
         return ContextSourceText(segment.public_description(), text)
 
 
-class ThreadInspectionSource(MroProjection[type[ContextInspection]]):
-    """The original registry state selects the inspection's source capability."""
+class ThreadInspectionSource(MroProjection[Callable[[ThreadStatus], type[ContextInspection]]]):
+    """A thread with no owner runtime reads its retained records; a native thread's status
+    decides whether its owner can answer for a live core."""
+
+    @handles(Thread)
+    def native(self, thread: Thread) -> Callable[[ThreadStatus], type[ContextInspection]]:
+        return ThreadStatusInspection().project_value
+
+    @handles(ExternalThread)
+    def external(self, thread: ExternalThread) -> Callable[[ThreadStatus], type[ContextInspection]]:
+        """A claude.ai or CLI session: the connector is its pipe, never an owner to ask."""
+        return lambda status: SavedContextInspection
+
+
+class ThreadStatusInspection(MroProjection[type[ContextInspection]]):
+    """A native thread's registry state selects the inspection's source capability."""
 
     @handles(ThreadStatus)
     def saved(self, status: ThreadStatus) -> type[ContextInspection]:

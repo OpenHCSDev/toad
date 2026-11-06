@@ -78,7 +78,7 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
     comms.registry.declare(owner)
     entry = comms.registry.entry(owner.name).entry
     page = ContextManifestPage((comms.contexts.record_after(UNREAD_CONTEXT, manifest),))
-    inspection = ThreadInspectionSource().project_value(entry.status)(
+    inspection = ThreadInspectionSource().project_value(entry.thread)(entry.status)(
         entry, page, NoSessionObservation(), LocalContextReads(comms), labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()
