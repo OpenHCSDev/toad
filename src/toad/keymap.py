@@ -103,18 +103,32 @@ class KeymapCatalog:
 
     @classmethod
     def capture(cls, modes: tuple[type[KeyMode], ...]) -> KeymapCatalog:
+        """The catalog of the classes declared now. Reading those declarations is a class walk;
+        building their bindings is not, so it runs once per distinct set of declarations."""
         discover()
+        return cls.declared(tuple(modes), DOMNode.contexts(), tuple(ApplicationAction.declarations()))
+
+    @classmethod
+    @cache
+    def declared(
+        cls,
+        modes: tuple[type[KeyMode], ...],
+        contexts: tuple[type[DOMNode], ...],
+        actions: tuple[type[ApplicationAction], ...],
+    ) -> KeymapCatalog:
+        """A function of the declarations it is given and nothing else, so a class declared
+        later is a different argument and never a stale answer."""
         invocations: dict[KeyInvocationId, KeyInvocation] = {}
         scopes: dict[type[KeyMode], tuple[tuple[KeymapClaim, ...], ...]] = {}
         keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
         for mode in modes:
             native_mode = mode().binding_mode
             application = tuple(KeymapClaim.from_bindings(
-                binding for declaration in ApplicationAction.declarations()
+                binding for declaration in actions
                 for binding in declaration.exclusive_bindings(native_mode)
             ))
             owned = [application]
-            for owner in DOMNode.contexts():
+            for owner in contexts:
                 defaults = owner.keymap_claims(native_mode)
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
