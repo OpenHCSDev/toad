@@ -58,18 +58,21 @@ class ErrorExpectation(ABC):
     def unexpected(self, ui: "TextualUi") -> ReportedError | None: ...
 
 
+@dataclass(frozen=True)
 class RefusesErrors(ErrorExpectation):
-    """The default: the first saved error nobody acknowledged ends the wait with its traceback."""
+    """The default: the first saved error not acknowledged ends the wait with its traceback."""
+
+    acknowledged: frozenset[Path] = frozenset()
 
     def unexpected(self, ui: "TextualUi") -> ReportedError | None:
         for path in ui.reported_errors():
-            if path not in ui.acknowledged_errors:
+            if path not in self.acknowledged:
                 return ReportedError(f"the app reported {path.name}:\n{path.read_text()}")
         return None
 
 
 class ExpectsErrors(ErrorExpectation):
-    """Inside `reporting_errors()`: the test shows an error on purpose and waits for it."""
+    """Inside `reporting_error()`: the test shows an error on purpose and waits for it."""
 
     def unexpected(self, ui: "TextualUi") -> ReportedError | None:
         return None
@@ -257,7 +260,6 @@ class TextualUi(AppAgents, Ui):
         super().__init__(app)
         self.pilot = pilot
         self.errors: ErrorExpectation = RefusesErrors()
-        self.acknowledged_errors: set[Path] = set()
 
     @property
     def textual(self) -> tuple[ToadApp, Pilot]:
@@ -469,14 +471,20 @@ class TextualUi(AppAgents, Ui):
         return self.app._exception or self.errors.unexpected(self)
 
     @contextmanager
-    def reporting_errors(self) -> Iterator[None]:
-        """The enclosed steps show an error on purpose; it is acknowledged when they end."""
+    def reporting_error(self) -> Iterator[None]:
+        """The enclosed steps show exactly one error on purpose; it is acknowledged when they end,
+        and any second error saved in the same steps fails the test instead of hiding behind it."""
+        before = frozenset(self.reported_errors())
         self.errors = ExpectsErrors()
         try:
             yield
         finally:
-            self.acknowledged_errors.update(self.reported_errors())
-            self.errors = RefusesErrors()
+            saved = frozenset(self.reported_errors())
+            self.errors = RefusesErrors(saved)
+        new = sorted(saved - before)
+        if len(new) != 1:
+            raise ReportedError(f"expected exactly one reported error, the app saved {len(new)}: "
+                                + "".join(f"\n{path.name}:\n{path.read_text()}" for path in new))
 
     def reported_errors(self) -> list[Path]:
         return sorted(paths.get_errors().glob("*.txt"))

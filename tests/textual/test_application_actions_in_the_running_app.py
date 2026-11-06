@@ -147,7 +147,7 @@ async def test_a_settings_file_that_cannot_be_written_is_reported_kept_dirty_and
         original = path.read_bytes()
         path.unlink()
         path.mkdir()
-        with ui.reporting_errors():
+        with ui.reporting_error():
             app.saved_settings.set(SETTINGS.ui.footer, False)
             await app.saved_settings.save()
             assert app.saved_settings.unsaved and path.is_dir()
