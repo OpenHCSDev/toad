@@ -35,8 +35,10 @@ from ui_theme.scheme import (
 from toad.native_style import (
     AutoHeight,
     Borderless,
+    EllipsisOverflow,
     MutedText,
     NoPadding,
+    NoWrap,
     OneRow,
     PointerCursor,
     ScreenOverlay,
@@ -113,7 +115,7 @@ class ModelCount(MutedText, OneRow, SidePadding, Static):
     """Its look is its bases."""
 
 
-class ModelOptionList(Borderless, AutoHeight, NoPadding, PaddedOptionRows, SelectionOptionList):
+class ModelOptionList(Borderless, AutoHeight, NoPadding, NoWrap, EllipsisOverflow, PaddedOptionRows, SelectionOptionList):
     native_components = {
         OptionListComponent.OPTION_HIGHLIGHTED: (
             NativeDeclaration.of(Styles.background, Variable(BlockCursorBackgroundColour.name)),
