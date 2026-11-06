@@ -184,7 +184,7 @@ class SessionNavigation:
             return
         originals = self.members
         snapshot = await self.app.preparation.run_thread(
-            lambda: selected.observed(self.app.coordination_access).registry()
+            lambda: selected.observed(self.app.coordination_access).registry_for(*targets)
         )
         for member in originals:
             await member.reconnect(self, selected, snapshot, targets)
