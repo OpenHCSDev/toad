@@ -13,6 +13,7 @@ import os
 import shlex
 import sys
 from pathlib import Path
+from collections.abc import AsyncIterator
 from typing import Any
 
 from agent_comms.acp import CommsAgent
@@ -125,7 +126,10 @@ class Relay:
         return "\n".join(strip.text for strip in self.view.app.screen._compositor.render_strips())
 
 
-async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) -> None:
+@asynccontextmanager
+async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) -> AsyncIterator[None]:
+    """Exercise the authored MCP boundaries, then keep their turn source open for the caller:
+    the turn records Toad last saw live in it, so it outlives everything sent after them."""
     receipt = McpLiveAcknowledgement(1, "pi-mcp-client", InputId("a" * 32), "running", "turn", (
         McpServerReceipt("fixture", "project", ReadyMcpServerState,
                          ConfirmMcpCallPolicy, 1, 0, 0),
@@ -177,3 +181,4 @@ async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) ->
         assert not notes(view)
         await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
         assert not notes(view)
+        yield

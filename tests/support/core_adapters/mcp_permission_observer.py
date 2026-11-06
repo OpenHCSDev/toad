@@ -66,7 +66,7 @@ class Observer:
         # The relay asks Toad over its ACP pipe and answers with the outcome JSON the pipe
         # carries back, which is what the harness's callback returns.
         task = asyncio.create_task(self.relay.step(
-            {"permission": {"toolCall": tool_call, "options": options}}))
+            {"permission": {"toolCall": tool_call, "options": options}, "session": session_id}))
         self.permission_tasks.add(task)
         try:
             # The request crosses the pipe, so wait for the UI to mount the exact Ask before
@@ -163,8 +163,8 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
             relay = await Relay.started(app.project_dir.path, view, pilot)
             observer = Observer(case, app, pilot, agent, session, root, relay)
             try:
-                await exercise_boundaries(relay, agent, view)
-                yield observer
+                async with exercise_boundaries(relay, agent, view):
+                    yield observer
                 assert len(observer.receipts) == 1
                 assert observer.permissions == (0 if case == "no_controller" else 1)
                 assert observer.disconnected_seen == (case == "disconnect")
