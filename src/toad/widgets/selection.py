@@ -12,7 +12,7 @@ from textual import events, on
 from textual._paint_state import PaintState
 from textual.content import Content
 from textual.strip import Strip
-from textual.visual import VisualType
+from textual.visual import VisualType, visualize
 from textual.widgets import ListItem, ListView, OptionList, Static
 from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
 from ui_theme.scheme import (
@@ -35,7 +35,7 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
         not even layout. A link resolved later, or a theme's new colours, keeps the text but draws
         differently."""
         markup = self._render_markup
-        if Content.from_text(self.content, markup=markup).draws_like(Content.from_text(content, markup=markup)):
+        if visualize(self, self.content, markup).draws_like(visualize(self, content, markup)):
             return
         super().update(content, layout=layout)
         if self.is_mounted:
