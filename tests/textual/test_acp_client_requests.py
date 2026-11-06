@@ -1,6 +1,6 @@
 """Textual-facing: a scripted ACP agent uses every client request (modes, files, permission, terminals);
 the permission dialog and the tool call block are the Textual widgets that answer and show them."""
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 
 from support.agents import peer
 from toad.core import input_events

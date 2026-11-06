@@ -26,7 +26,7 @@ from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 
 
 async def until(pilot, predicate, seconds=20):

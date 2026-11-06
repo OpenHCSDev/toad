@@ -7,7 +7,7 @@ tells it to. The wire, the Pi settings and the project are the test's private ro
 
 from __future__ import annotations
 from agent_comms.repo import Checkout
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 
 import asyncio
 from collections.abc import Callable

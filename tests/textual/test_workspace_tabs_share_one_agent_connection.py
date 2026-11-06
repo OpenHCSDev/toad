@@ -7,7 +7,7 @@ from support.shared_stdio import stdio_agent_definition, threads_owned_here
 
 from toad.app import ToadApp
 from toad.screens.main import MainScreen
-from toad.session_scope import AgentAttached, AgentSession
+from toad.agent_origin import AgentAttached, AgentSession
 from support.ui import saved_tab
 
 

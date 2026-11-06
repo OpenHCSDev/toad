@@ -4,7 +4,7 @@ from dataclasses import replace
 from agent_comms.session_file import RegistrySessionLocation
 from support.native import comms_agent
 from support.journals import assistant_entry, write_journal
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 
 
 async def test_opening_stopped_thread_reads_history_without_loading_an_agent(workspace):

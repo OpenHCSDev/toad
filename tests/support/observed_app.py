@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 
 from toad.app import ToadApp
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 from toad.cli import run_terminal
 
 from agents import peer

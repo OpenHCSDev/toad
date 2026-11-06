@@ -2,7 +2,7 @@
 in wrapped text, and the channel composer's mention list are Textual widgets that paint and take focus."""
 from toad.widgets.path_search import FuzzyPane, SwitchPathPickerAction, TreePane
 from textual.document._editing import EditingMode
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 
 import json
 

@@ -11,7 +11,7 @@ from agent_comms.root_runtime import RootRuntime, RootRuntimeStore
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
 from toad.application_outcome import Succeeded
-from toad.session_scope import NoAgent
+from toad.agent_origin import NoAgent
 
 
 async def relaunched_onto(workspace, publish) -> Succeeded:

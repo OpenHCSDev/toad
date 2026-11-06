@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 async def saved_tab(app: ToadApp) -> AcpTab:
     """A test-made native session is saved the way launch saves one, with the app's agent;
     a session with no agent saves an inert one."""
-    from toad.session_scope import AgentAttached
+    from toad.agent_origin import AgentAttached
 
     binding = app.agent_binding
     agent = (binding.agent if isinstance(binding, AgentAttached)

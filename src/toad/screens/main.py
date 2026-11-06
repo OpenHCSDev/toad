@@ -47,7 +47,7 @@ from toad.navigation_target import (
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
 from toad.session_presentation import OperationalSessionPresentation
-from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
+from toad.agent_origin import AgentBinding, NoAgent, ViewSessionOrigin
 from toad.session_tracker import SessionDetails
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar

@@ -1,5 +1,5 @@
 """A declared local command shows its hint and runs while the agent is still starting."""
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 
 from support.agents import peer
 from toad.slash_command import NoArgumentsCommand

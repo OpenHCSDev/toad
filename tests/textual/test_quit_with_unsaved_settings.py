@@ -1,5 +1,5 @@
 """Textual-facing: quitting with a settings edit that cannot be written keeps the app open, shows the error and keeps the draft; a retry saves the exact edit and exits."""
-from toad.session_scope import AgentAttached
+from toad.agent_origin import AgentAttached
 
 import json
 

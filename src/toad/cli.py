@@ -10,7 +10,7 @@ import click
 from agent_comms import launch_root
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.repo import Checkout
-from toad.session_scope import AgentAttached, AgentBinding, NoAgent
+from toad.agent_origin import AgentAttached, AgentBinding, NoAgent
 from toad.comms_root import CoreConnection
 
 if TYPE_CHECKING:
