@@ -14,12 +14,8 @@ from agent_comms.repo import Checkout
 from agent_comms.launch_root import LaunchRoot
 from typing import Any, AsyncIterator
 
-from mcp_turn_boundaries import AGENT_DATA, exercise_boundaries, notes, receive_update, request_permission
-from textual.pilot import Pilot
+from mcp_turn_boundaries import AGENT_DATA, exercise_boundaries, notes
 from toad.acp.agent import Agent
-from toad.app import ToadApp
-from toad.comms_root import LocalCoreConnection
-from toad.session_scope import NoAgent
 from toad.agent_schema import AgentDefinition
 from agent_comms.acp_extension import McpClientAcknowledgementUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
@@ -29,7 +25,7 @@ SESSION_ID = "project"
 
 
 class Observer:
-    def __init__(self, case: str, app: ToadApp, pilot: Pilot, agent: Agent, session: MainScreen, root: Path):
+    def __init__(self, case, app, pilot, agent, session, root):
         self.case, self.app, self.pilot = case, app, pilot
         self.agent, self.session, self.root = agent, session, root
         self.receipts: list[list[str]] = []
@@ -45,7 +41,12 @@ class Observer:
     async def session_update(self, session_id: str, update: dict[str, Any]) -> None:
         with (self.root / "toad-updates.jsonl").open("a") as log:
             log.write(json.dumps({"session": session_id, "update": update}) + "\n")
-        await receive_update(self.agent, session_id, update)
+        result = await self.agent.server.call({
+            "jsonrpc": "2.0", "method": "session/update", "params": {
+                "sessionId": session_id, "update": update,
+            },
+        })
+        assert result is None, result
         await self.pilot.pause()
         with (self.root / "toad-states.jsonl").open("a") as log:
             log.write(json.dumps({"agent": self.agent.current_turn.managed_id,
@@ -67,8 +68,11 @@ class Observer:
         self.permissions += 1
         # The external callback supplies JSON. The existing exposed SDK method
         # owns its decoding and result encoding, exactly as on a real ACP pipe.
-        task = asyncio.create_task(
-            request_permission(self.agent, session_id, tool_call, options, **kwargs))
+        task = asyncio.create_task(self.agent.server.call({
+            "jsonrpc": "2.0", "id": "mcp-permission", "method": "session/request_permission",
+            "params": {"sessionId": session_id, "toolCall": tool_call,
+                       "options": options, **kwargs},
+        }))
         self.permission_tasks.add(task)
         try:
             await self.pilot.pause()
@@ -76,7 +80,9 @@ class Observer:
             # the exact Ask before simulated selection (not merely received RPC).
             ask = self.view.prompt._ask
             if self.disconnected_seen:
-                return await task
+                response = await task
+                assert "error" not in response, response
+                return response["result"]
             assert ask is not None and self.view.prompt.is_mounted
             frame="\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
             assert any(option.text in frame for option in ask.options), "Native permission options must actually paint"
@@ -113,7 +119,9 @@ class Observer:
                                      if (a.kind or "").startswith(os.environ.get("AC_MCP_PERMISSION_ANSWER", "allow")))
                 self.view.prompt.on_question_answer(Question.Answer(index, answer, ask))
                 await self.pilot.pause()
-            result = await task
+            response = await task
+            assert "error" not in response, response
+            result = response["result"]
             if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
                 assert result["outcome"]["outcome"] == "selected"
                 assert result["outcome"]["optionId"] == answer.id
@@ -137,6 +145,10 @@ class Observer:
 
 @asynccontextmanager
 async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer]:
+    from toad.app import ToadApp
+    from toad.comms_root import LocalCoreConnection
+    from toad.session_scope import NoAgent
+
     root = Path(artifact_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
     (root / "project").mkdir(exist_ok=True)
@@ -151,15 +163,14 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
             # Toad starts with no tab open; the observed session is opened here.
             definition = AgentDefinition.decode(AGENT_DATA)
             await app.session_navigation.new(
-                await app.session_navigation.saved(definition, app.project_dir),
+                await app.session_navigation.saved(definition, root / "project"),
                 lambda: MainScreen(app.project_dir, app.agent_binding))
             session = app.selected_session
             assert isinstance(session, MainScreen)
             await session.wait_content_ready()
             await pilot.pause()
             view = session.conversation
-            agent = Agent(app.project_dir.path, definition, SESSION_ID, app_events=app.events,
-                          transcripts=app.coordination_access.transcripts)
+            agent = Agent(root / "project", definition, SESSION_ID)
             observer = Observer(case, app, pilot, agent, session, root)
             try:
                 view.bind_agent(agent)
