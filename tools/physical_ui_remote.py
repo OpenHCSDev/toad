@@ -7,7 +7,7 @@ No attachment, debugger permission, code injection or signal handler is used.
 
 from abc import abstractmethod
 from contextlib import ExitStack, contextmanager
-from functools import partial
+from functools import cache, partial
 from dataclasses import dataclass
 from importlib.metadata import distribution
 import importlib.machinery
@@ -476,6 +476,14 @@ class ObserveOperation(PhysicalOperation):
         """The read-only observation protocol owns its one packet filename."""
         return directory / "request.json"
 
+    @staticmethod
+    @cache
+    def resolved_location(location: str) -> Path:
+        """A loaded module's location resolves once per process: it runs on the frontend's loop,
+        and resolving every toad, textual and agent_comms location on each observation took
+        about 60 ms, which the frame meter then had to censor as the harness's own pause."""
+        return Path(location).resolve(strict=True)
+
     def require_modules(self, packages: tuple[ModuleType, ...]) -> int:
         """Observe foreign ModuleSpec origins through this startup's validator.
 
@@ -496,7 +504,7 @@ class ObserveOperation(PhysicalOperation):
             if not locations:
                 raise RuntimeError(f'Loaded package has no owned locations: {name[:160]}')
             for location in locations:
-                resolved = Path(location).resolve(strict=True)
+                resolved = self.resolved_location(location)
                 if not resolved.is_relative_to(runtime):
                     raise RuntimeError(f'Loaded package outside approved runtime: {name[:160]} {str(resolved)[:384]}')
             checked += 1
