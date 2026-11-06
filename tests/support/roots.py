@@ -17,6 +17,13 @@ if TYPE_CHECKING:
 ATTEMPT = "TOAD_TEST_ATTEMPT"
 
 
+def settings_over(base: dict[str, object], top: dict[str, object]) -> dict[str, object]:
+    """A saved settings document with ``top`` over ``base``, merging nested sections."""
+    return base | {key: settings_over(section, value)
+                   if isinstance(section := base.get(key), dict) and isinstance(value, dict) else value
+                   for key, value in top.items()}
+
+
 def installed_wire(root: Path) -> Comms:
     """Prepare the same bus and native schemas that an installed owner uses."""
     from agent_comms.bus import Bus
@@ -66,9 +73,10 @@ class Roots:
         return self.config / APP_NAME / "toad.json"
 
     def save_settings(self, settings: dict[str, object]) -> Path:
-        """Toad's saved settings for this test: SETTINGS with ``settings`` over them."""
+        """Toad's saved settings for this test: SETTINGS with ``settings`` over them, section by
+        section, so a test's own ``ui`` keys keep the default theme beside them."""
         self.settings.parent.mkdir(parents=True, exist_ok=True)
-        self.settings.write_text(json.dumps(self.SETTINGS | settings))
+        self.settings.write_text(json.dumps(settings_over(self.SETTINGS, settings)))
         return self.settings
 
     @classmethod
