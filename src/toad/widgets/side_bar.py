@@ -9,7 +9,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.worker_group import WorkerGroup
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, VisibleActions
+from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, StepsHorizontalCursor, StepsVerticalCursor, VisibleActions
 from textual.document._editing import EditingMode
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
@@ -22,7 +22,6 @@ from textual import containers, events, on, widgets
 from textual.app import ComposeResult
 from textual.events import Click
 from textual.geometry import Offset
-from textual.navigation import MovesCursor, MovesHorizontalCursor
 from textual.message import Message
 from textual.reactive import reactive
 from textual._activation import PrimaryActivation
@@ -537,7 +536,7 @@ class SidebarSlider(
     FillWidth,
     PointerCursor,
     VisibleActions,
-    MovesHorizontalCursor,
+    StepsHorizontalCursor,
     CapturedDrag,
     ColourSelection,
     widgets.Static,
@@ -593,13 +592,7 @@ class SidebarSlider(
             self.refresh()
             self.post_message(self.Changed(self, value))
 
-    def action_cursor_left(self) -> None:
-        self.step(-1)
-
-    def action_cursor_right(self) -> None:
-        self.step(1)
-
-    def step(self, direction: int) -> None:
+    def step_horizontal(self, direction: int) -> None:
         if self.reversed:
             direction = -direction
         value = max(self.minimum, min(self.maximum, self.value + direction))
@@ -663,8 +656,8 @@ class SidebarAction(
 class SidebarResizeHandle(
     NoPadding,
     VisibleActions,
-    MovesHorizontalCursor,
-    MovesCursor,
+    StepsHorizontalCursor,
+    StepsVerticalCursor,
     CapturedDrag,
     ColourSelection,
     widgets.Static,
@@ -704,17 +697,11 @@ class SidebarResizeHandle(
         placement = bar.placement
         bar.resize_to(placement.extent_percent + placement.side.sign * placement.side.coordinate(direction))
 
-    def action_cursor_left(self) -> None:
-        self.resize_by(Offset(-1, 0))
+    def step_horizontal(self, direction: int) -> None:
+        self.resize_by(Offset(direction, 0))
 
-    def action_cursor_right(self) -> None:
-        self.resize_by(Offset(1, 0))
-
-    def action_cursor_up(self) -> None:
-        self.resize_by(Offset(0, -1))
-
-    def action_cursor_down(self) -> None:
-        self.resize_by(Offset(0, 1))
+    def step_vertical(self, direction: int) -> None:
+        self.resize_by(Offset(0, direction))
 
     def drag_start(self, event: events.MouseDown) -> None:
         bar = self.query_ancestor(SideBar)
@@ -727,7 +714,7 @@ class SidebarResizeHandle(
 class BandSplitHandle(
     NoPadding,
     VisibleActions,
-    MovesHorizontalCursor,
+    StepsHorizontalCursor,
     CapturedDrag,
     ColourSelection,
     widgets.Static,
@@ -774,11 +761,8 @@ class BandSplitHandle(
         delta = position.x - self._start_point.x
         self.split_to(self._start_percent + round(100 * delta / max(1, self._drag_width)))
 
-    def action_cursor_left(self) -> None:
-        self.split_to(self.drawn_percent - 1)
-
-    def action_cursor_right(self) -> None:
-        self.split_to(self.drawn_percent + 1)
+    def step_horizontal(self, direction: int) -> None:
+        self.split_to(self.drawn_percent + direction)
 
 
 class ClearSidebarSearchAction(WidgetAction):

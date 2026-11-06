@@ -17,7 +17,7 @@ from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.keys import DeclaredKey, KeyDeclaration, KeyDeclarationType, UndecodedKey
-from textual.navigation import SelectCursor
+from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
 from textual.widgets.text_area import EditingMode
 from textual.dom import DOMNode
 from toad.app_node import ToadNode
@@ -451,6 +451,32 @@ class DismissibleControl(Dismisses):
     @abstractmethod
     def dismiss_control(self) -> None:
         """Close this control without imposing a native screen result contract."""
+
+
+class StepsHorizontalCursor(MovesHorizontalCursor):
+    """Left and Right step the horizontal cursor by -1 and +1; the widget says what a step is."""
+
+    @abstractmethod
+    def step_horizontal(self, direction: Literal[-1, 1]) -> None: ...
+
+    def action_cursor_left(self) -> None:
+        self.step_horizontal(-1)
+
+    def action_cursor_right(self) -> None:
+        self.step_horizontal(+1)
+
+
+class StepsVerticalCursor(MovesCursor):
+    """Up and Down step the vertical cursor by -1 and +1; the widget says what a step is."""
+
+    @abstractmethod
+    def step_vertical(self, direction: Literal[-1, 1]) -> None: ...
+
+    def action_cursor_up(self) -> None:
+        self.step_vertical(-1)
+
+    def action_cursor_down(self) -> None:
+        self.step_vertical(+1)
 
 
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):
