@@ -186,9 +186,8 @@ class CurrentObservation(CapturedSource):
 class CoreConnection(ABC):
     """The selected Core transport: it owns its route selection and opens its observation."""
 
-    # How this launch starts the helper interpreters that run Toad's own code (its local
-    # route observer, its render workers): a fresh spawn, whose atexit heap freeze runs.
     helper_start: ClassVar[HelperStart] = SpawnedHelper()
+    """How this launch starts its local route observer and its render workers."""
 
     @staticmethod
     def select(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
