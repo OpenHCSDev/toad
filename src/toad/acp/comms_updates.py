@@ -30,7 +30,7 @@ from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.native_output import AssistantOutput, ToolOutput
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import NoGoal
-from agent_comms.order_tools import OwnerGoalRead
+from agent_comms.transport.tools.reads import OwnerGoalRead
 from agent_comms.ui_model.observation import ReadOwnerOperation
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.transcripts import NativeCommittedPrefix

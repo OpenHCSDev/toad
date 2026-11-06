@@ -14,7 +14,7 @@ from agent_comms.disclosure_text import (
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.task_attachments.team_pings import AlarmGroup, AlarmSection
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.order_tools import TeammateRead
+from agent_comms.transport.tools.reads import TeammateRead
 from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
 from agent_comms.ui_model.teammate_state import HudGroup
 from agent_comms.work_branches import WorkBranchError
