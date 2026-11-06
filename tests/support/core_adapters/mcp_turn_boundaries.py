@@ -50,7 +50,7 @@ async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
         async with AsyncExitStack() as resources:
             project.mkdir(parents=True, exist_ok=True)
             comms = await Coordination.run_worker(partial(wire, wire_root))
-            producer = CommsAgent(comms, runtime_enabled=False, auto_wake=False)
+            producer = CommsAgent(comms, auto_wake=False)
 
             def declare():
                 thread = producer.sessions.declare_thread(str(project))
@@ -63,8 +63,7 @@ async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
 
             thread = await Coordination.run_worker(declare)
             # Retirement runs in reverse: the owner releases its own binding first, so the
-            # stop retires a released declaration. This owner serves no runtime socket
-            # (runtime_enabled=False), and a stop of a still-bound owner dials one.
+            # stop retires a released declaration.
             resources.push_async_callback(producer.shutdown)
             await producer.sessions.bind_owned(thread, session_id)
             yield producer
