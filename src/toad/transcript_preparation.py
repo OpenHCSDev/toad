@@ -605,6 +605,9 @@ class ClosedHistory(ReplaceablePageSource):
     def command_context(self, view: CommsChatView):
         return None
 
+    def refresh_identity(self, view: CommsChatView) -> None:
+        """A closed history reads no root; a retired view has no references to follow."""
+
     def begin_submission(
         self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
     ) -> SubmissionStart:

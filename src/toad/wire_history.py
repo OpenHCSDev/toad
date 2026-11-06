@@ -459,6 +459,10 @@ class WirePageBuffer(SavedHistory):
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.root, access)
 
+    def refresh_identity(self, view: CommsChatView) -> None:
+        """Dispatch the references of this source's own root: the source the view was opened on."""
+        view.dispatch_sync(view.app.coordination_access.reference_context(str(self.loader.root)))
+
     def command_context(self, view):
         from toad.session_scope import SessionScope
         from toad.target_commands import TargetContext
