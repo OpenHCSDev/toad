@@ -11,7 +11,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.nominal.field_codec import InputId
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from support import agents, journals
 
 from toad.screens.main import MainScreen

@@ -5,8 +5,8 @@ from collections import Counter
 import sys
 
 from agent_comms.comms import Comms
-from agent_comms.registry_store import RegistryStore
-from agent_comms.threads import NativeThread
+from agent_comms.registry.registry_store import RegistryStore
+from agent_comms.registry.threads import NativeThread
 from textual.widgets import OptionList
 
 from support.roots import installed_wire

@@ -12,7 +12,7 @@ from agent_comms.comms import Comms
 from agent_comms.context_store import UNREAD_CONTEXT, ContextManifestPage
 from agent_comms.session_revision import NoSessionObservation
 from agent_comms.thread_identity import RecordedThreadIncarnation, TurnId, TurnIdentity
-from agent_comms.registration import Registration
+from agent_comms.registry.registration import Registration
 from agent_comms.turn_context import (
     ContextManifest, ContextSpan, ContributionCoordinates, RecordedContextTurn,
     UnattributedProvenance, UserInputSegment,
@@ -21,7 +21,7 @@ from agent_comms.working_memory_labels import (
     AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion,
 )
 from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from toad.core.context_inspection import ContextInspection, ThreadInspectionSource
 from support.context_reads import LocalContextReads
 

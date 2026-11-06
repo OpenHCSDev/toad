@@ -16,7 +16,7 @@ from agent_comms.cli_command import CliCommand
 from agent_comms.cli_verbs.archive import ArchiveCliCommand
 from agent_comms.goal_actions import SetGoalAction
 from agent_comms.thread_status import ArchivedThreadStatus, StoppedThreadStatus
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from textual.geometry import Offset
 
 from toad.db import DB

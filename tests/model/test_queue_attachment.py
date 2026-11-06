@@ -9,7 +9,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import AcpSessionId
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 from support.roots import installed_wire
 

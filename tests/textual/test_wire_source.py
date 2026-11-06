@@ -13,7 +13,7 @@ from support.roots import installed_wire
 from support.agents import AppAgents
 from agent_comms.historical_views import UnobservedConversation
 from agent_comms.page_traversal import LiveCursor
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 from toad.conversation_kind import ChannelConversation
 from toad.transcript_preparation import PageRequest, Unchanged

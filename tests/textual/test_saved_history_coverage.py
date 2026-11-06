@@ -8,7 +8,7 @@ from agent_comms.repo import Checkout
 from functools import partial
 
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from support import journals
 from toad.screens.main import MainScreen
 from toad.tab_identity.kinds import MailboxTab

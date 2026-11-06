@@ -4,7 +4,7 @@ from agent_comms.repo import Checkout
 from dataclasses import replace
 
 from agent_comms.session_revision import SessionRevision
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 from toad.core.context_inspection import ContextInspection, HoldingInspection
 from support.context_reads import LocalContextReads

@@ -7,7 +7,7 @@ import json
 import os
 from pathlib import Path
 from support.roots import installed_wire
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 
 def private_root(path: Path, project: Path, message: str) -> Path:

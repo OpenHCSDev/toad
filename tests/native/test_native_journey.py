@@ -20,7 +20,7 @@ from agent_comms.input_disposition import InputDispositions
 from agent_comms.input_key import AcpInputKey
 from agent_comms.input_attempt import StartedInput
 from agent_comms.pi_vocabulary import OffThinkingLevel
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 from support.native import ControlledProvider, native_session
 from support.native_steps import channel_message_feedback, direct_reply_feedback

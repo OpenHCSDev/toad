@@ -5,7 +5,7 @@ from agent_comms.session_file import RegistrySessionLocation
 from dataclasses import replace
 
 from agent_comms.acp_extension import TranscriptSnapshotUpdate, encode_updates
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from toad.acp.agent_controller import SessionBinding
 
 from support.agents import deliver

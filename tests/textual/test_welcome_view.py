@@ -6,7 +6,7 @@ from support.agents import peer
 from support.ui import TextualUi
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.read_basis import NamedViewer
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from toad.constants import ALL_COMMS_TARGET
 from toad.screens.welcome import WelcomeChannels, WelcomeEntries, WelcomeScreen, WelcomeThreads
 from toad.widgets.comms_sidebar import CommsRow
@@ -84,7 +84,7 @@ async def test_opening_a_channel_opens_its_tab_in_place_of_the_view(workspace):
 async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user(
     workspace,
 ):
-    from agent_comms.threads import ExternalThread
+    from agent_comms.registry.threads import ExternalThread
 
     workspace.comms.registry.declare(
         ExternalThread(

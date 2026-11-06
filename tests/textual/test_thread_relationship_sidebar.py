@@ -17,7 +17,7 @@ from agent_comms.relationships import (
 )
 from agent_comms.thread_creation import RecordedCreationTime
 from agent_comms.thread_text import ForkedParent, NoParent
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from agent_comms.tool_caller import ThreadCaller
 from agent_comms.tools import invoke_tool
 

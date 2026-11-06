@@ -9,7 +9,7 @@ import psutil
 from support.native import attached_app, start_private_native_wire, without_provider
 from support.textual_steps import reveal_project_tree
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 
 async def project_applied(ui, project) -> None:

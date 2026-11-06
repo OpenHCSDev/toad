@@ -3,7 +3,7 @@
 from agent_comms.repo import Checkout
 from agent_comms.historical_views import HistoricalThread
 from agent_comms.notification_reads import RecordedNotificationRead
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 from support.roots import installed_wire
 from toad.screens.historical_sessions import HistoricalSessions, RecordedContents

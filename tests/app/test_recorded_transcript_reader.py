@@ -11,7 +11,7 @@ from agent_comms.coordination.errors import HistoricalSourceChanged, ReloadRequi
 from agent_comms.transport.tools.reads import TranscriptPageRead
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.transcripts import EarlierThan, LaterThan, RecordedPageSource, RecordedTranscriptReadIdentity
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
