@@ -1205,12 +1205,19 @@ class Conversation(
         await self._apply_session_name(name)
 
     async def auto_name_from_prompt(self, prompt: str) -> None:
+        """A guess from the first prompt stands in until the thread presents its own title.
+
+        It is not the user's label and not the thread's name: publishing it as an
+        authored title made every later presented title lose, and naming the
+        coordination thread after a prompt left sessions stuck under a guess long
+        after they had moved on.
+        """
         if not self._auto_title_eligible:
             return
         self._auto_title_eligible = False
         if not self.agent_binding.automatic_titles:
             return
-        await self._apply_session_name(make_session_title(prompt))
+        self.publish_core(core_events.SessionThreadTitle(make_session_title(prompt)))
 
     @handles(core_events.SessionInfoUpdate)
     async def on_session_info_update(self, event: core_events.SessionInfoUpdate) -> None:
