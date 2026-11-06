@@ -123,8 +123,9 @@ async def test_unexpected_source_failure_is_shown_once_and_retires_the_history(w
             async def failed_read():
                 raise error
 
-            worker = history.reserve_source_work().schedule(history, failed_read)
-            await ui.until(lambda: worker.is_finished, why="the failed pager finishes")
+            with ui.reporting_errors():
+                worker = history.reserve_source_work().schedule(history, failed_read)
+                await ui.until(lambda: worker.is_finished, why="the failed pager finishes")
             logs = set(get_errors().glob("*.txt")) - before
             assert len(logs) == 1
             assert str(error) in next(iter(logs)).read_text()

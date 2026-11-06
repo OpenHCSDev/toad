@@ -9,8 +9,9 @@ async def test_an_error_with_markup_brackets_is_shown_verbatim(workspace):
     async with workspace.app(size=(110, 30)) as ui:
         app, pilot = ui.textual
         record_notifications(app)
-        app.show_error(ValueError("bad [bold] value"), "Settings")
-        await pilot.pause()
+        with ui.reporting_errors():
+            app.show_error(ValueError("bad [bold] value"), "Settings")
+            await pilot.pause()
         # Toad presents notifications through TerminalAttention, which parsed markup and crashed on brackets.
         assert app.is_running
         note = list(app._notifications)[-1]
