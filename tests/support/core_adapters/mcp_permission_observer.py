@@ -21,8 +21,10 @@ from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
 from toad.session_scope import AgentAttached, NoAgent
 from toad.agent_schema import AgentDefinition
+from acp.schema import PermissionOption, ToolCallUpdate
 from agent_comms.acp_extension import McpClientAcknowledgementUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
+from toad.widgets.conversation import Conversation
 from toad.widgets.question import Question
 
 
@@ -63,23 +65,29 @@ class Observer:
                 assert self.agent.current_turn.managed_id is self.view.turns.managed_id is None
                 assert not notes(self.view)
 
-    async def request_permission(self, *, session_id, tool_call, options, **kwargs):
+    async def request_permission(self, *, session_id, tool_call: ToolCallUpdate,
+                                 options: list[PermissionOption], **kwargs):
+        """The owner hands its ACP models; they cross the relay as the JSON the pipe carries."""
         self.permissions += 1
+        asked: dict[str, Any] = {"toolCall": tool_call.model_dump(mode="json", by_alias=True, exclude_none=True),
+                 "options": [option.model_dump(mode="json", by_alias=True, exclude_none=True)
+                             for option in options]}
         # The relay asks Toad over its ACP pipe and answers with the outcome JSON the pipe
         # carries back, which is what the harness's callback returns. If Toad refuses, the
         # step raises Toad's own error rather than a guessed denial.
         task = asyncio.create_task(self.relay.step(
-            {"permission": {"toolCall": tool_call, "options": options},
-             "session": self.agent.session_id}))
+            {"permission": asked, "session": self.agent.session_id}))
         self.permission_tasks.add(task)
         try:
             # The request crosses the pipe, so wait for the UI to mount the exact Ask before
             # simulated selection (not merely for the request to be sent).
+            # A step that ends first (the relay refused it, or Toad answered without asking)
+            # gives its own result or error, not a timeout that hides it.
             async with asyncio.timeout(10):
-                while self.view.prompt._ask is None and not self.disconnected_seen:
+                while self.view.prompt._ask is None and not self.disconnected_seen and not task.done():
                     await self.pilot.pause(.02)
             ask = self.view.prompt._ask
-            if self.disconnected_seen:
+            if self.disconnected_seen or task.done():
                 return await task
             assert ask is not None and self.view.prompt.is_mounted
             frame="\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
@@ -88,7 +96,7 @@ class Observer:
             from toad.widgets.tool_content import ToolContent
             preview = self.view.prompt.query_one(ACPToolCallContent)
             markdown = preview.query_one(ToolContent)
-            assert markdown.get_clipboard_text() == tool_call["content"][0]["content"]["text"]
+            assert markdown.get_clipboard_text() == asked["toolCall"]["content"][0]["content"]["text"]
             async with asyncio.timeout(10):
                 while "ACCEPTANCE_ECHO" not in frame:
                     await self.pilot.pause(.05)
@@ -102,11 +110,12 @@ class Observer:
                 await presentation.retire(self.session)
                 await presentation.evict(self.session)
                 assert request.pending and not self.agent.controller.surface.owns(previous)
-                assert not previous.is_mounted and presentation.sources.agent is self.agent
+                assert not previous.is_mounted and presentation.sources.agent_binding is self.agent
                 await presentation.prepare(self.session)
                 await self.pilot.pause()
-                replacement = self.view
-                assert replacement is presentation.widget and replacement is not previous
+                replacement = presentation.widget
+                assert isinstance(replacement, Conversation) and replacement is self.view
+                assert replacement is not previous
                 assert self.agent.controller.surface.owns(replacement)
                 ask = replacement.prompt._ask
                 assert ask is not None and request.pending
