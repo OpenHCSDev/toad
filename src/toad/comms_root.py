@@ -27,6 +27,7 @@ from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
 from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
+from toad.db import UNSCOPED_TABS, TabScope
 from toad.referenced_core import ReferencedCore
 from agent_comms.repo import Checkout
 from agent_comms.threads import Thread
@@ -198,6 +199,10 @@ class CoreConnection(ABC):
     def location(self) -> str:
         """Where this connection's Core is, as shown to the owner."""
 
+    def tab_scopes(self) -> tuple[TabScope, ...]:
+        """The saved tabs this connection owns, written under the first: its Core's location."""
+        return (TabScope(self.location),)
+
     @abstractmethod
     def route_selection(self) -> RouteSelection: ...
 
@@ -228,6 +233,11 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
     @property
     def location(self) -> str:
         return str(self.path)
+
+    def tab_scopes(self) -> tuple[TabScope, ...]:
+        """Tabs saved before scopes existed were local sessions' tabs; this Core reads them as
+        its own and rewrites them under its location."""
+        return (*super().tab_scopes(), UNSCOPED_TABS)
 
     def route_selection(self) -> RouteSelection:
         return RouteSelection.of(self)

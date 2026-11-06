@@ -3,7 +3,7 @@
 import pytest
 
 from toad.core.events import SessionChangedEvent
-from toad.db import DB
+from toad.db import DB, TabScope
 from toad.tab_order import TabOrder
 from toad.tab_identity.kinds import AcpTab
 from toad.session_tracker import (
@@ -50,7 +50,8 @@ class SessionChanges(list[SessionChangedEvent]):
 
 
 def test_session_tracker_publishes_only_changed_labels(tmp_path):
-    order = TabOrder(lambda identity, index: None, home="home", db=DB(tmp_path / "toad.db"))
+    order = TabOrder(lambda identity, index: None, home="home", db=DB(tmp_path / "toad.db"),
+                     scopes=(TabScope("test-core"),))
     tracker = SessionTracker(order)
     details = tracker.new_session(AcpTab(1), title="old")
     changes = SessionChanges()
