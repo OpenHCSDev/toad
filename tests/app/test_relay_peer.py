@@ -18,11 +18,14 @@ async def test_relayed_steps_reach_toad_and_an_ask_answers_back(workspace):
         await relay.step({"say": "RELAYED_FROM_OUTSIDE"})
         await ui.until_shows("RELAYED_FROM_OUTSIDE")
         asked = asyncio.ensure_future(relay.step({"permission": {
-            "toolCall": {"toolCallId": "relay-call", "title": "RELAYED_PERMISSION", "kind": "other"},
+            "toolCall": {"toolCallId": "relay-call", "title": "RELAYED_PERMISSION", "kind": "other",
+                         "content": [{"type": "content",
+                                      "content": {"type": "text", "text": "RELAYED_PREVIEW"}}]},
             "options": [{"optionId": "yes", "name": "Allow", "kind": "allow_once"},
                         {"optionId": "no", "name": "Reject", "kind": "reject_once"}]}}))
         await ui.until_shows("RELAYED_PERMISSION")
         await ui.until_shows("a Allow")
+        await ui.until_shows("RELAYED_PREVIEW")
         await ui.press("a")
         await ui.until(asked.done, why="the outcome back on the relay socket")
         assert asked.result() == {"outcome": {"outcome": "selected", "optionId": "yes"}}

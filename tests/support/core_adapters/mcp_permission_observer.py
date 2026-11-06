@@ -90,19 +90,8 @@ class Observer:
             if self.disconnected_seen or task.done():
                 return await task
             assert ask is not None and self.view.prompt.is_mounted
-            from toad.widgets.acp_content import ACPToolCallContent
-            from toad.widgets.tool_content import ToolContent
-            preview = self.view.prompt.query_one(ACPToolCallContent)
-            markdown = preview.query_one(ToolContent)
-            assert markdown.get_clipboard_text() == asked["toolCall"]["content"][0]["content"]["text"]
-            # Mounting is not painting: the options and the call's own text must reach the
-            # screen, which takes refreshes after the Ask mounts.
-            async with asyncio.timeout(10):
-                while True:
-                    frame = "\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
-                    if "ACCEPTANCE_ECHO" in frame and any(option.text in frame for option in ask.options):
-                        break
-                    await self.pilot.pause(.05)
+            preview = await self.painted_preview(self.view)
+            assert preview == asked["toolCall"]["content"][0]["content"]["text"]
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
             self.permission_presented.set()
             if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
@@ -121,7 +110,7 @@ class Observer:
                 assert self.agent.controller.surface.owns(replacement)
                 ask = replacement.prompt._ask
                 assert ask is not None and request.pending
-                assert replacement.prompt.query_one(ACPToolCallContent).query_one(ToolContent).get_clipboard_text() == markdown.get_clipboard_text()
+                assert await self.painted_preview(replacement) == preview
                 (self.root / "permission-rebind.txt").write_text("Actual native permission remained pending across rich surface removal and remounted on replacement.\n")
             if self.case != "disconnect":
                 index, answer = next((i, a) for i, a in enumerate(ask.options)
@@ -139,6 +128,25 @@ class Observer:
                 task.cancel()
             await asyncio.gather(task, return_exceptions=True)
             self.permission_tasks.discard(task)
+
+    async def painted_preview(self, view: Conversation) -> str:
+        """The pending Ask's preview text, once it is on screen. Mounting is not composing or
+        painting: the preview's content, the options and the call's own text arrive over the
+        refreshes after the Ask mounts."""
+        from toad.widgets.acp_content import ACPToolCallContent
+        from toad.widgets.tool_content import ToolContent
+
+        async with asyncio.timeout(10):
+            while True:
+                ask = view.prompt._ask
+                previews = [text for content in view.prompt.query(ACPToolCallContent)
+                            for text in content.query(ToolContent)]
+                frame = "\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
+                if (ask is not None and previews and "ACCEPTANCE_ECHO" in frame
+                        and any(option.text in frame for option in ask.options)):
+                    preview, = previews
+                    return preview.get_clipboard_text()
+                await self.pilot.pause(.05)
 
     async def disconnected(self):
         self.disconnected_seen = True
