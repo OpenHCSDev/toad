@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 from toad.line_blocks import OpenTarget
+from toad.link_click import OpenLineLink
 from toad.message_rows import MessageRow
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.goal_bar import GoalBar
@@ -31,7 +32,7 @@ async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(worksp
         await ui.select_tab(owner)
         await ui.open_channel("#team", actor="owner", owner=owner)
         await ui.until_shows(header.label)
-        await ui.until(lambda: app.screen.get_style_at(*ui.link_cell(header, sender)).meta.get("@click") == sender.click,
+        await ui.until(lambda: app.screen.get_style_at(*ui.link_cell(header, sender)).meta.get("@click") == OpenLineLink(sender),
                        why="the sender drawn as a link")
         # The channel tab's unread count clears as its message is read; the tabs themselves must not change.
         def order():
@@ -49,8 +50,8 @@ async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(worksp
             assert not app.thread_navigation.pending
             # Repeated and self links reuse the very same mounted tab too.
             for _ in range(2):
-                assert await app.thread_navigation.open(
-                    owner_mode=existing, project_path=ui.app.project_dir, target="peer") == existing
+                assert await app.thread_navigation.open_named(
+                    owner_mode=existing, project_path=ui.app.project_dir, name="peer") == existing
             assert reads.call_count == 0
             assert order() == opened
 
@@ -82,7 +83,7 @@ async def test_name_clicked_in_a_narrow_direct_chat_reuses_the_open_thread_tab(w
         clip = app.screen._compositor.find_widget(underline).clip
         assert underline.region.intersection(clip).height == 1
         await ui.until_shows(header.label)
-        await ui.until(lambda: app.screen.get_style_at(*ui.link_cell(header, sender)).meta.get("@click") == sender.click,
+        await ui.until(lambda: app.screen.get_style_at(*ui.link_cell(header, sender)).meta.get("@click") == OpenLineLink(sender),
                        why="the sender drawn as a link")
         # The chat tab's title drops its unread count once the message is marked read.
         order = [tab.identity for tab in ui.tabs()]

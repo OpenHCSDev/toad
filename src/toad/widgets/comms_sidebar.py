@@ -38,7 +38,7 @@ from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import channel_target, ThreadTarget
+from toad.navigation_target import KnownThreadTarget, NavigationTarget, ThreadTarget, channel_target
 from toad.session_tracker import SidebarSelection
 from toad.widgets.selection import HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
@@ -48,7 +48,6 @@ from toad.widgets.sidebar_tree import ActiveSegment, GroupHeaderLine, HeaderSegm
 from toad.tone_paint import AlternatingTone
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
-from toad.navigation_target import NavigationTarget
 from toad.app_node import ToadNode
 from toad.native_style import (
     AutoHeight,
@@ -300,6 +299,8 @@ class ThreadStatusRow(MutedText, ListedRow, ToadNode):
             return
         previous = self.thread_row
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
+        # The drawn row knows the thread's birth: opening it asks Core nothing first.
+        self.target = KnownThreadTarget(row.name, row.incarnation)
         summary = action_status if action_status is not None else row.summary
         self.tooltip = Content("\n".join(value for value in (
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, *row.model.texts(),

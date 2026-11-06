@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from textual.actions import StyleAction
+
 from rich.cells import cell_len
 from support.agents import AppAgents, command
 from toad import paths
@@ -134,8 +136,8 @@ class Ui(ABC):
         """Click the first cell of `text` where it is drawn on screen."""
 
     @abstractmethod
-    def link_at(self, text: str, *, occurrence: int = 0) -> tuple[str, tuple] | None:
-        """The action a click on `text` would trigger, as (name, arguments), if it is a link."""
+    def link_at(self, text: str, *, occurrence: int = 0) -> StyleAction | None:
+        """The action a click on `text` would run, if it is a link."""
 
     @abstractmethod
     def hyperlink_at(self, text: str, *, occurrence: int = 0) -> str | None:
@@ -369,7 +371,7 @@ class TextualUi(AppAgents, Ui):
         ), f"the click on {text!r} left the screen"
         await self.step()
 
-    def link_at(self, text: str, *, occurrence: int = 0) -> tuple[str, tuple] | None:
+    def link_at(self, text: str, *, occurrence: int = 0) -> StyleAction | None:
         return self.app.screen.get_style_at(*self._cell_of(text, occurrence)).meta.get(
             "@click"
         )

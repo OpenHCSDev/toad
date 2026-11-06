@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.errors import RelationViolationError
 from agent_comms.repo import Checkout
+from toad.navigation_target import ThreadTarget
 from toad.tab_identity.kinds import MailboxTab
 from toad.navigation_preparation import (
     OpenThread,
@@ -52,7 +53,11 @@ class ThreadNavigator:
         self.app = app
         self.pending: dict[tuple[str, str, str], ThreadOpening] = {}
 
-    async def open(self, *, owner_mode: str, project_path: Checkout, target: str) -> str:
+    async def open_named(self, *, owner_mode: str, project_path: Checkout, name: str) -> str:
+        """A thread known only by name (a command's result, a label): Core answers its birth."""
+        return await self.open(owner_mode=owner_mode, project_path=project_path, target=ThreadTarget(name))
+
+    async def open(self, *, owner_mode: str, project_path: Checkout, target: ThreadTarget) -> str:
         app = self.app
         try:
             source = app.workspace_sessions.origin(owner_mode).require()
@@ -64,11 +69,7 @@ class ThreadNavigator:
         requested_root = str(observed.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode
-        identity = await app.preparation.run_thread(
-            lambda: MailboxTab(
-                observed.registry_for(target).require(target).incarnation, requested_root
-            )
-        )
+        identity = MailboxTab(await target.incarnation_in(app.preparation, observed), requested_root)
         mounted_root = str(Path(requested_root).expanduser())
         open_threads = []
         for details in app.session_tracker.ordered_sessions:
@@ -76,13 +77,13 @@ class ThreadNavigator:
             if view is None:
                 continue
             root, name = view.coordination_root, view.thread_identity.thread_name()
-            if (root, name) == (mounted_root, target):
+            if (root, name) == (mounted_root, target.name):
                 await app.select_session(details.mode_name)
                 return details.mode_name
             if root is not None:
                 open_threads.append(OpenThread(details.mode_name, root, name))
         request = ThreadNavigationRequest(
-            observed, target, project_path, tuple(open_threads)
+            observed, target.name, project_path, tuple(open_threads)
         )
         key = owner_mode, request.root, request.target
         if pending := self.pending.get(key):

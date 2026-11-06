@@ -11,6 +11,7 @@ from textual.pilot import _get_mouse_message_arguments
 from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.threads import NativeThread
+from toad.link_click import OpenLineLink
 from toad.app import ToadApp
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
@@ -153,7 +154,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
         for row in page.fragment_placement(fragment).rows:
             x = 0
             for segment in page.render_line(row, page._paint_state):
-                if segment.style is not None and segment.style.meta.get("@click") == fragment.details_link.click:
+                if segment.style is not None and segment.style.meta.get("@click") == OpenLineLink(fragment.details_link):
                     links.append((x, row))
                 x += segment.cell_length
         assert links, "The second occurrence has no rendered disclosure link"

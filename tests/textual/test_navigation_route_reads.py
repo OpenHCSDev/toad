@@ -22,7 +22,7 @@ async def test_a_renamed_thread_reuses_its_open_tab_before_the_rename_reaches_th
         existing = app.session_navigation.source(other)
         await workspace.bind(existing, "metadata-peer")
         workspace.comms.registry.rename("metadata-peer", "metadata-renamed")
-        reused = await app.thread_navigation.open(
-            owner_mode=owner, project_path=ui.app.project_dir, target="metadata-peer"
+        reused = await app.thread_navigation.open_named(
+            owner_mode=owner, project_path=ui.app.project_dir, name="metadata-peer"
         )
         assert reused == other and app.session_tracker.session_count == 2

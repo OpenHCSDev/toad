@@ -108,8 +108,8 @@ class ThreadAction:
         await app.session_navigation.retire_missing()
         await app.session_navigation.reconnect(selected, result.reconnect_targets())
         for target in result.open_targets():
-            await app.thread_navigation.open(owner_mode=self.context.mode,
-                project_path=self.context.project, target=target)
+            await app.thread_navigation.open_named(owner_mode=self.context.mode,
+                project_path=self.context.project, name=target)
         result.show(app, self.definition.label, self.context.title)
 
     @classmethod

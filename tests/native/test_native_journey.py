@@ -232,8 +232,8 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
             model=parent.model, thinking_level=parent.thinking_level,
         ).apply, comms)
         assert result.created == "fork"
-        child_tab = await app.thread_navigation.open(
-            owner_mode=parent_tab, project_path=app.project_dir, target="fork")
+        child_tab = await app.thread_navigation.open_named(
+            owner_mode=parent_tab, project_path=app.project_dir, name="fork")
         assert child_tab != parent_tab and ui.selected_tab == child_tab
         await ui.until_agent_ready()
         view = ui.conversation
@@ -340,7 +340,7 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
         app, _pilot = ui.textual
         owner_tab = ui.selected_tab
         await ui.until_agent_ready()
-        opened = await app.thread_navigation.open(owner_mode=owner_tab, project_path=app.project_dir, target="gamma")
+        opened = await app.thread_navigation.open_named(owner_mode=owner_tab, project_path=app.project_dir, name="gamma")
         assert opened != owner_tab and ui.selected_tab == opened
         assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
         view = ui.conversation
