@@ -73,7 +73,10 @@ async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and
             )
             assert status.name == status_name
 
-            outgoing = f"{workspace.roots.attempt.name}: P390_SENT_TO_{destination}"
+            # The body is painted as Markdown: keep it free of emphasis markers, or a
+            # random attempt name with an underscore italicises half of it.
+            attempt = workspace.roots.attempt.name.replace("_", "-")
+            outgoing = f"{attempt}: P390 sent to {destination}"
             await ui.write_draft(outgoing)
             await ui.press("enter")
             await ui.until(
