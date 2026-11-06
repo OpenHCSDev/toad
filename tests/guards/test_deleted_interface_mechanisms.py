@@ -54,7 +54,7 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
     assert 'render' not in vars(MessageDivider) and issubclass(MessageDivider, OpensLinks)
 
     # The message owns its menu and one class runs it: a view has no open actions or menu entries of its own.
-    for name, home in (('action_link', 'widgets/linked_rows.py'), ('opens', 'project_link.py')):
+    for name, home in (('open_link', 'widgets/linked_rows.py'), ('opens', 'project_link.py')):
         assert declared[name] == [home], (name, declared[name])
     assert declared['OpenSenderCommand'] == declared['OpenDestinationCommand'] == ['menus.py']
 
