@@ -10,7 +10,7 @@ from agent_comms.context_store import (
 from agent_comms.transport.request import CoreAccess
 from agent_comms.runtime_server import RuntimeRequest
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.threads import Thread
+from agent_comms.registry.threads import Thread
 from agent_comms.transport.tools.sidebar import (
     CommsContextInspectionTool, CommsImportedSourceTool, CommsOwnerRequestTool, CommsSavedSegmentTool,
     CommsSavedSourceTool, ContextInspectionRead,

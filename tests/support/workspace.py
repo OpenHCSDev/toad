@@ -14,7 +14,7 @@ from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
 from agent_comms.comms import Comms
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
 from toad.screens.main import MainScreen

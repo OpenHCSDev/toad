@@ -4,7 +4,7 @@
 from agent_comms.repo import Checkout
 from support.coordination import coordination_fact
 from support.native import attached_app, start_private_native_wire, without_provider
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 
 async def test_saved_context_use_is_shown_on_attach_and_replaced_by_live_reports(workspace, native_package):

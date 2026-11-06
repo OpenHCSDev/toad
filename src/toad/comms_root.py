@@ -28,11 +28,11 @@ from agent_comms.comms import Comms
 from agent_comms.active_route import CommsRoute
 from agent_comms.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess
-from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
+from agent_comms.registry.registry_document import ProjectThreadSelection, RegistrySnapshot
 from toad.db import UNSCOPED_TABS, TabScope
 from toad.referenced_core import ReferencedCore
 from agent_comms.repo import Checkout
-from agent_comms.threads import Thread
+from agent_comms.registry.threads import Thread
 from agent_comms.remote_core import RemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads

@@ -6,7 +6,7 @@ and the 1fr child that takes the panel's remaining height above its docked or au
 
 from agent_comms.historical_views import HistoricalThread
 from agent_comms.repo import Checkout
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 
 from support.goals import published_goal
 from support.roots import installed_wire

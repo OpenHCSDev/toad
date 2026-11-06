@@ -2,7 +2,7 @@
 
 from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from support.journals import assistant_entry, write_journal
 
 

@@ -21,7 +21,7 @@ from agent_comms.goal_actions import (
 from agent_comms.goal_presentation import IdleGoalExecution
 from agent_comms.goal_scope import OneGoal
 from agent_comms.goals import NoGoal
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from rich.cells import cell_len
 from support.native import ControlledProvider, native_session
 from support.native_steps import goal_on_real_owner

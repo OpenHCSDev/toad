@@ -10,7 +10,7 @@ from textual.pilot import _get_mouse_message_arguments
 
 from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 from toad.link_click import OpenLineLink
 from toad.app import ToadApp
 from toad.preferences import SETTINGS

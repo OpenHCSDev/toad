@@ -634,7 +634,7 @@ class StopRootOperation(PhysicalOperation):
             raise ValueError("Private-copy shutdown must run in its declared runtime")
         from agent_comms.comms import wire
         from agent_comms.launch_root import LaunchRoot
-        from agent_comms.registry_document import RosterVisibility
+        from agent_comms.registry.registry_document import RosterVisibility
 
         with LaunchRoot.from_path(self.target.root).selected():
             copied = wire()

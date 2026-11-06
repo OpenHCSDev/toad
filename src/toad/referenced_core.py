@@ -8,7 +8,7 @@ from pathlib import Path
 from agent_comms.transport.request import CoreAccess
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.presentation import WireRevision
-from agent_comms.registry_document import RegistrySnapshot
+from agent_comms.registry.registry_document import RegistrySnapshot
 from agent_comms.transport.tools.sidebar import (CommsReferenceNamesTool, CommsRegistrySliceTool, CommsRegistryTool,
                                CommsWireRevisionTool)
 

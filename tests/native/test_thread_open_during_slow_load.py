@@ -7,7 +7,7 @@ import asyncio
 from functools import partial
 
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.threads import NativeThread
+from agent_comms.registry.threads import NativeThread
 import os
 
 from support.agents import peer
