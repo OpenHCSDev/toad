@@ -18,6 +18,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily, UnknownFamilyMem
 from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import log
+from textual.app import App
 from textual.binding import Binding
 from textual.cursor_shape import CursorShape, SteadyBlock, TextEntryCursor
 from textual.document._document import DocumentBase, Location, RangedEditResult, Selection
@@ -462,9 +463,9 @@ class NeovimRequest(ABC):
     @abstractmethod
     def arguments(self) -> Sequence[object]: ...
 
-    async def send(self, owner: NeovimEditing) -> None:
+    async def send(self, host: NeovimHost) -> None:
         self.dispatched.set_result(None)
-        await owner.write_frame([0, self.identity, self.method, list(self.arguments)])
+        await host.write_frame([0, self.identity, self.method, list(self.arguments)])
 
     def resolve(self, value: object) -> None:
         self.reply.set_result(value)
@@ -501,15 +502,15 @@ class NeovimCall(NeovimRequest):
 
 
 class NeovimOperation(NeovimCall):
-    """Programmatic mutation executes on the same engine and invalidates its proof."""
+    """Programmatic mutation executes on its session's buffer and invalidates that buffer's proof."""
 
     operation: ClassVar[str] = "assert(vim.api[operation], operation)"
 
-    def __init__(self, generation: int, method: str, arguments: Sequence[object]) -> None:
+    def __init__(self, buffer: int, generation: int, method: str, arguments: Sequence[object]) -> None:
         super().__init__("nvim_exec_lua", [
-            "local serial, operation, arguments = ...; "
-            f"return ToadEditor.call(serial, {self.operation}, arguments)",
-            [generation, method, list(arguments)],
+            "local buffer, serial, operation, arguments = ...; "
+            f"return ToadEditor.call(buffer, serial, {self.operation}, arguments)",
+            [buffer, generation, method, list(arguments)],
         ])
 
 
@@ -522,13 +523,13 @@ class NeovimLuaOperation(NeovimOperation):
 class NeovimInput(NeovimFastRequest):
     method = "nvim__exec_lua_fast"
 
-    def __init__(self, generation: int, keys: str) -> None:
+    def __init__(self, buffer: int, generation: int, keys: str) -> None:
         super().__init__()
-        self.generation, self.keys = generation, keys
+        self.buffer, self.generation, self.keys = buffer, generation, keys
 
     @property
     def arguments(self) -> Sequence[object]:
-        return ("return ToadEditor.input(...)", [self.generation, self.keys])
+        return ("return ToadEditor.input(...)", [self.buffer, self.generation, self.keys])
 
     def resolve(self, value: object) -> None:
         accepted = FieldCodec.decode(int, value)
@@ -640,25 +641,25 @@ class NeovimMethod:
 class NeovimNotification(NeovimMethod, DeclaredFamily, affix="Notification"):
     @classmethod
     @abstractmethod
-    def receive(cls, owner: NeovimEditing, arguments: object) -> None: ...
+    def receive(cls, host: NeovimHost, arguments: object) -> None: ...
 
 
 class DisplayNotification(NeovimNotification):
     method = "toad_editor_state"
 
     @classmethod
-    def receive(cls, owner: NeovimEditing, arguments: object) -> None:
-        display, = FieldCodec.decode(tuple[NeovimDisplay], arguments)
-        owner.accept_display(display)
+    def receive(cls, host: NeovimHost, arguments: object) -> None:
+        buffer, display = FieldCodec.decode(tuple[int, NeovimDisplay], arguments)
+        host.session(buffer).accept_display(display)
 
 
 class LinesNotification(NeovimNotification):
     method = "toad_editor_lines"
 
     @classmethod
-    def receive(cls, owner: NeovimEditing, arguments: object) -> None:
-        change, = FieldCodec.decode(tuple[NeovimLineChange], arguments)
-        owner.accept_lines(change)
+    def receive(cls, host: NeovimHost, arguments: object) -> None:
+        buffer, change = FieldCodec.decode(tuple[int, NeovimLineChange], arguments)
+        host.session(buffer).accept_lines(change)
 
 
 class RedrawNotification(NeovimNotification):
@@ -667,23 +668,23 @@ class RedrawNotification(NeovimNotification):
     method = "redraw"
 
     @classmethod
-    def receive(cls, owner: NeovimEditing, arguments: object) -> None:
+    def receive(cls, host: NeovimHost, arguments: object) -> None:
         pass
 
 
 class NeovimHostRequest(NeovimMethod, DeclaredFamily, affix="Request"):
     @classmethod
     @abstractmethod
-    def receive(cls, owner: NeovimEditing, arguments: object) -> object: ...
+    def receive(cls, host: NeovimHost, arguments: object) -> object: ...
 
 
 class CursorBoundaryRequest(NeovimHostRequest):
     method = "toad_cursor_boundary"
 
     @classmethod
-    def receive(cls, owner: NeovimEditing, arguments: object) -> bool:
-        boundary, display = FieldCodec.decode(tuple[int, NeovimDisplay], arguments)
-        return owner.engine_boundary(boundary, display)
+    def receive(cls, host: NeovimHost, arguments: object) -> bool:
+        buffer, boundary, display = FieldCodec.decode(tuple[int, int, NeovimDisplay], arguments)
+        return host.session(buffer).engine_boundary(boundary, display)
 
 
 class NeovimReply(SubclassUnion, affix="Reply"):
@@ -726,7 +727,7 @@ class NeovimFrame(DeclaredFamily, affix="Frame"):
             raise NeovimWireFailure(f"Invalid {cls.__name__} header or arity") from error
 
     @abstractmethod
-    async def receive(self, owner: NeovimEditing) -> None: ...
+    async def receive(self, host: NeovimHost) -> None: ...
 
 
 class IdentifiedFrame(NeovimFrame, declared_name=None):
@@ -750,27 +751,291 @@ class ResponseFrame(IdentifiedFrame):
         self.reply = FieldCodec.decode(NeovimReply, reply)
         self.value = value
 
-    async def receive(self, owner: NeovimEditing) -> None:
-        owner.resolve_reply(self.identity, self.reply, self.value)
+    async def receive(self, host: NeovimHost) -> None:
+        host.resolve_route(self.identity, self.reply, self.value)
 
 
 class NotificationFrame(MethodFrame):
     kind = 2
 
-    async def receive(self, owner: NeovimEditing) -> None:
-        NeovimNotification.member_selected(self.method).receive(owner, self.arguments)
+    async def receive(self, host: NeovimHost) -> None:
+        NeovimNotification.member_selected(self.method).receive(host, self.arguments)
 
 
 class RequestFrame(IdentifiedFrame, MethodFrame):
     kind = 0
 
-    async def receive(self, owner: NeovimEditing) -> None:
-        reply = NeovimHostRequest.member_selected(self.method).receive(owner, self.arguments)
-        await owner.answer_request(self.identity, reply)
+    async def receive(self, host: NeovimHost) -> None:
+        reply = NeovimHostRequest.member_selected(self.method).receive(host, self.arguments)
+        await host.answer_request(self.identity, reply)
 
 
-class NeovimEditing(VimMode, MroDispatch):
-    """One engine, one input queue, completed snapshots only from SafeState."""
+class NeovimRequester(ABC):
+    """Whoever sent a request is the one its reply resolves: the host for the engine's own
+    bootstrap, a session for its buffer, whose completion proof waits on its pending replies."""
+
+    @abstractmethod
+    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None: ...
+
+
+@dataclass(frozen=True)
+class NeovimRoute:
+    requester: NeovimRequester
+    request: NeovimRequest
+
+    def resolve(self, reply: NeovimReply, value: object) -> None:
+        self.requester.resolve_reply(self.request, reply, value)
+
+    def fail(self, error: EditingFailure) -> None:
+        for outcome in (self.request.dispatched, self.request.reply):
+            if not outcome.done():
+                outcome.set_exception(error)
+
+    def cancel(self) -> None:
+        self.request.dispatched.cancel()
+        self.request.reply.cancel()
+
+
+class NeovimSession(NeovimRequester):
+    """What the host routes a buffer's notifications to."""
+
+    @abstractmethod
+    def accept_display(self, display: NeovimDisplay) -> None: ...
+
+    @abstractmethod
+    def accept_lines(self, change: NeovimLineChange) -> None: ...
+
+    @abstractmethod
+    def engine_boundary(self, boundary: int, display: NeovimDisplay) -> bool: ...
+
+    @abstractmethod
+    def engine_failed(self, error: EditingFailure) -> None: ...
+
+    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None:
+        reply.resolve(request, value)
+
+
+class UnclaimedBuffer(NeovimSession):
+    """A buffer no editing session holds: the engine's first buffer, which also parks the
+    window while a closed session's buffer is deleted. Its updates have no reader."""
+
+    def accept_display(self, display: NeovimDisplay) -> None:
+        pass
+
+    def accept_lines(self, change: NeovimLineChange) -> None:
+        pass
+
+    def engine_boundary(self, boundary: int, display: NeovimDisplay) -> bool:
+        return False
+
+    def engine_failed(self, error: EditingFailure) -> None:
+        pass
+
+
+UNCLAIMED = UnclaimedBuffer()
+
+
+class NeovimHost(NeovimRequester, MroDispatch):
+    """The application's one embedded Neovim. Each editing session is a buffer in it, so the
+    process count no longer grows with the tabs; registers and the search pattern are shared
+    across those buffers on purpose, as in any one Neovim."""
+
+    def __init__(self, application: HostsNeovim) -> None:
+        self._application = application
+        self._routes: dict[int, NeovimRoute] = {}
+        self._outgoing: asyncio.Queue[NeovimRequest] = asyncio.Queue()
+        self._api_types: dict[str, NeovimApiType] = {}
+        self._sessions: dict[int, NeovimSession] = {}
+        self._focused: NeovimSession = UNCLAIMED
+
+    @cached_property
+    def ready(self) -> asyncio.Task[None]:
+        self._child_ready: asyncio.Future[AttachedChild] = asyncio.get_running_loop().create_future()
+        self._lifetime = self._application.run_worker(self._run(), name="Neovim", exit_on_error=True)
+        return asyncio.create_task(self._start())
+
+    def session(self, buffer: int) -> NeovimSession:
+        return self._sessions.get(buffer, UNCLAIMED)
+
+    async def _run(self) -> None:
+        try:
+            async with AsyncExitStack() as cleanup:
+                async def acquire_child() -> AttachedChild:
+                    child = await AttachedChild.start(Neovim().command())
+                    cleanup.push_async_callback(child.stop)
+                    return child
+
+                spawn = asyncio.create_task(acquire_child())
+                try:
+                    child = await asyncio.shield(spawn)
+                except asyncio.CancelledError:
+                    await join_retirement(spawn)
+                    raise
+                self._child = child
+                self._child_ready.set_result(child)
+                async with asyncio.TaskGroup() as tasks:
+                    tasks.create_task(self._write_queued())
+                    await self._read(child)
+        except* (EditingFailure, OSError, msgpack.UnpackException,
+                 UnicodeDecodeError, MalformedRecord) as errors:
+            failure = NeovimWireFailure("; ".join(str(error) for error in errors.exceptions))
+            for route in self._routes.values():
+                route.fail(failure)
+            self._routes.clear()
+            for session in self._sessions.values():
+                session.engine_failed(failure)
+        finally:
+            # Shutdown is not a failure: what was still waiting is cancelled, never reported.
+            self._application.forget_neovim()
+            self._child_ready.cancel()
+            for route in self._routes.values():
+                route.cancel()
+            self._routes.clear()
+
+    @cached_property
+    def _unpacker(self) -> msgpack.Unpacker:
+        return msgpack.Unpacker(raw=False, strict_map_key=False,
+                                max_buffer_size=16 * 1024 * 1024,
+                                ext_hook=self._decode_handle)
+
+    @boundary_decoder
+    async def _read(self, child: AttachedChild) -> None:
+        stream = child.stdout
+        assert stream is not None
+        while chunk := await stream.read(65536):
+            self._unpacker.feed(chunk)
+            for message in self._unpacker:
+                await self._receive(message)
+        raise NeovimWireFailure(f"Neovim exited: {await child.stderr_tail()}")
+
+    def accept_api_info(self, response: object) -> NeovimApiInfo:
+        api = NeovimApiInfo.from_response(response)
+        self._api_types = api.metadata.types
+        return api
+
+    @boundary_decoder
+    def _decode_handle(self, code: int, data: bytes) -> NeovimHandle:
+        try:
+            name = next(name for name, definition in self._api_types.items()
+                        if definition.id == code)
+            member = NeovimHandle.member_named(name.casefold())
+        except (StopIteration, UnknownFamilyMember) as error:
+            raise NeovimWireFailure(f"Unknown Neovim extension code {code}") from error
+        return member(FieldCodec.decode(int, msgpack.unpackb(data, raw=False)))
+
+    @boundary_decoder
+    def _encode_handle(self, value: object) -> msgpack.ExtType:
+        try:
+            encoder: Callable[[NeovimHost, object], msgpack.ExtType] = self.handler_for(type(value))
+        except StopIteration as error:
+            raise NeovimWireFailure("Unsupported Neovim MessagePack value") from error
+        return encoder(self, value)
+
+    @handles(NeovimHandle)
+    def _native_handle(self, value: NeovimHandle) -> msgpack.ExtType:
+        try:
+            return value.extension(self._api_types)
+        except KeyError as error:
+            raise NeovimWireFailure("Unknown Neovim extension type") from error
+
+    async def write_frame(self, frame: Sequence[object]) -> None:
+        try:
+            await self._child.write(msgpack.packb(
+                frame, use_bin_type=True, default=self._encode_handle))
+        except OSError as error:
+            raise NeovimWireFailure(str(error)) from error
+
+    async def _write_queued(self) -> None:
+        await self.ready
+        while True:
+            request = await self._outgoing.get()
+            await request.send(self)
+
+    def register(self, requester: NeovimRequester, request: NeovimRequest) -> None:
+        self._routes[request.identity] = NeovimRoute(requester, request)
+
+    async def bootstrap(self, requester: NeovimRequester, request: NeovimRequest) -> object:
+        """Sent at once, ahead of the queue: the engine's own setup, and a session opening its buffer."""
+        self.register(requester, request)
+        await request.send(self)
+        return await request.result()
+
+    def enqueue(self, session: NeovimEditing, request: NeovimRequest) -> None:
+        """The engine's keys and edits act on its current buffer, so a session's request
+        follows its own buffer's focus. A cancelled operator stays with the buffer it began in."""
+        if self._focused is not session:
+            self._focused = session
+            self._send(session, session.focus_request())
+        self._send(session, request)
+
+    def _send(self, requester: NeovimRequester, request: NeovimRequest) -> None:
+        self.register(requester, request)
+        self._outgoing.put_nowait(request)
+
+    def adopt(self, buffer: int, session: NeovimSession) -> None:
+        self._sessions[buffer] = session
+
+    async def release(self, buffer: int) -> None:
+        session = self._sessions.pop(buffer, UNCLAIMED)
+        if self._focused is session:
+            self._focused = UNCLAIMED
+        await self.bootstrap(self, NeovimCall("nvim_exec_lua", ["ToadEditor.close(...)", [buffer]]))
+
+    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None:
+        reply.resolve(request, value)
+
+    async def _start(self) -> None:
+        await self._child_ready
+        api = self.accept_api_info(await self.bootstrap(self, NeovimCall("nvim_get_api_info", [])))
+        await self.bootstrap(self, NeovimCall("nvim_ui_attach", [80, 24,
+            {"ext_linegrid": True, "ext_cmdline": True, "ext_messages": True}]))
+        script = files(toad).joinpath("neovim_editing.lua").read_text()
+        await self.bootstrap(self, NeovimCall("nvim_exec_lua", [script, [api.channel]]))
+
+    @boundary_decoder
+    async def _receive(self, message: object) -> None:
+        """Decode the envelope tag here; its member alone decodes the raw payload."""
+        if not isinstance(message, list) or not message:
+            raise NeovimWireFailure("Invalid Neovim RPC message")
+        kind = FieldCodec.decode(int, message[0])
+        try:
+            frame = NeovimFrame.member_selected(kind).from_payload(message[1:])
+            await frame.receive(self)
+        except UnknownFamilyMember as error:
+            raise NeovimWireFailure(str(error)) from error
+
+    def resolve_route(self, identity: int, reply: NeovimReply, value: object) -> None:
+        try:
+            route = self._routes.pop(identity)
+        except KeyError as error:
+            raise NeovimWireFailure("Unexpected Neovim RPC response") from error
+        route.resolve(reply, value)
+
+    async def answer_request(self, identity: int, reply: object) -> None:
+        await self.write_frame([1, identity, None, reply])
+
+
+class HostsNeovim(App[object]):
+    """An application that owns the one embedded Neovim its editors share."""
+
+    @cached_property
+    def neovim(self) -> NeovimHost:
+        return NeovimHost(self)
+
+    def forget_neovim(self) -> None:
+        """A failed engine is never reused; the next editor that starts gets a new one."""
+        self.__dict__.pop("neovim")
+
+    @classmethod
+    def serving(cls, editor: TextArea) -> NeovimHost:
+        application = editor.app
+        if not isinstance(application, HostsNeovim):
+            raise NeovimWireFailure(f"{type(application).__name__} hosts no Neovim engine")
+        return application.neovim
+
+
+class NeovimEditing(VimMode, NeovimSession):
+    """One buffer session in the application's engine: its own input proof, its own paint."""
 
     initial_keys = ""
     map_modes: ClassVar[tuple[str, ...]] = ()
@@ -785,7 +1050,6 @@ class NeovimEditing(VimMode, MroDispatch):
         self._rendered: NeovimSnapshot = self.snapshot.unpainted()
         self._update_queued = False
         self._boundaries: list[Binding] = []
-        self._api_types: dict[str, NeovimApiType] = {}
 
     @property
     def label(self) -> str:
@@ -827,10 +1091,10 @@ class NeovimEditing(VimMode, MroDispatch):
     @cached_property
     def _started(self) -> asyncio.Task[None]:
         editor = self._receiver.require()
+        self._host = HostsNeovim.serving(editor)
         self._initial_lines = tuple(editor.document.lines)
         self._initial_selection = editor.selection
-        self._child_ready: asyncio.Future[AttachedChild] = asyncio.get_running_loop().create_future()
-        self._lifetime = editor.app.run_worker(self._run(), name="Neovim editor", exit_on_error=True)
+        self._lifetime = asyncio.create_task(self._write_queued(), name="Neovim session")
         task = asyncio.create_task(self._start())
         task.add_done_callback(self._observe_failure)
         return task
@@ -870,116 +1134,23 @@ class NeovimEditing(VimMode, MroDispatch):
         await join_retirement(asyncio.create_task(self._join()))
 
     async def _join(self) -> None:
-        await asyncio.gather(self._started, return_exceptions=True)
-        try:
-            await self._lifetime.wait()
-        except asyncio.CancelledError:
-            pass
-
-    async def _run(self) -> None:
-        try:
-            async with AsyncExitStack() as cleanup:
-                async def acquire_child() -> AttachedChild:
-                    child = await AttachedChild.start(Neovim().command())
-                    cleanup.push_async_callback(child.stop)
-                    return child
-
-                spawn = asyncio.create_task(acquire_child())
-                try:
-                    child = await asyncio.shield(spawn)
-                except asyncio.CancelledError:
-                    await join_retirement(spawn)
-                    raise
-                self._child = child
-                if self._child_ready.cancelled():
-                    return
-                self._child_ready.set_result(child)
-                async with asyncio.TaskGroup() as tasks:
-                    tasks.create_task(self._write_queued())
-                    await self._read(child)
-        except* (EditingFailure, OSError, msgpack.UnpackException,
-                 UnicodeDecodeError, MalformedRecord) as errors:
-            self._fail(NeovimWireFailure("; ".join(str(error) for error in errors.exceptions)))
-        finally:
-            error = self.snapshot.state.close_error()
-            if not self._child_ready.done():
-                self._child_ready.set_exception(error)
-            for request in self._pending.values():
-                if not request.dispatched.done():
-                    request.dispatched.set_exception(error)
-                if not request.reply.done():
-                    request.reply.set_exception(error)
-            self._pending.clear()
-
-    @cached_property
-    def _unpacker(self) -> msgpack.Unpacker:
-        return msgpack.Unpacker(raw=False, strict_map_key=False,
-                                max_buffer_size=16 * 1024 * 1024,
-                                ext_hook=self._decode_handle)
-
-    @boundary_decoder
-    async def _read(self, child: AttachedChild) -> None:
-        stream = child.stdout
-        assert stream is not None
-        while chunk := await stream.read(65536):
-            self._unpacker.feed(chunk)
-            for message in self._unpacker:
-                await self._receive(message)
-        raise NeovimWireFailure(f"Neovim exited: {await child.stderr_tail()}")
-
-    def accept_api_info(self, response: object) -> NeovimApiInfo:
-        api = NeovimApiInfo.from_response(response)
-        self._api_types = api.metadata.types
-        return api
-
-    @boundary_decoder
-    def _decode_handle(self, code: int, data: bytes) -> NeovimHandle:
-        try:
-            name = next(name for name, definition in self._api_types.items()
-                        if definition.id == code)
-            member = NeovimHandle.member_named(name.casefold())
-        except (StopIteration, UnknownFamilyMember) as error:
-            raise NeovimWireFailure(f"Unknown Neovim extension code {code}") from error
-        return member(FieldCodec.decode(int, msgpack.unpackb(data, raw=False)))
-
-    @boundary_decoder
-    def _encode_handle(self, value: object) -> msgpack.ExtType:
-        try:
-            encoder: Callable[[NeovimEditing, object], msgpack.ExtType] = self.handler_for(type(value))
-        except StopIteration as error:
-            raise NeovimWireFailure("Unsupported Neovim MessagePack value") from error
-        return encoder(self, value)
-
-    @handles(NeovimHandle)
-    def _native_handle(self, value: NeovimHandle) -> msgpack.ExtType:
-        try:
-            return value.extension(self._api_types)
-        except KeyError as error:
-            raise NeovimWireFailure("Unknown Neovim extension type") from error
-
-    async def write_frame(self, frame: Sequence[object]) -> None:
-        try:
-            await self._child.write(msgpack.packb(
-                frame, use_bin_type=True, default=self._encode_handle))
-        except OSError as error:
-            raise NeovimWireFailure(str(error)) from error
+        await asyncio.gather(self._started, self._lifetime, return_exceptions=True)
 
     async def _write_queued(self) -> None:
+        """Requests made before this buffer exists wait for it, in the order they were made.
+        Only a session that opened its buffer reaches the loop, so only it deletes one."""
         await self._started
-        while True:
-            request = await self._outgoing.get()
-            await request.send(self)
+        try:
+            while True:
+                self._host.enqueue(self, await self._outgoing.get())
+        finally:
+            await self._host.release(self.buffer)
 
     def _register(self, request: NeovimRequest) -> None:
         request.reply.add_done_callback(self._observe_failure)
         request.dispatched.add_done_callback(self._observe_failure)
         self.snapshot.state.raise_failure()
         self._pending[request.identity] = request
-
-    async def _bootstrap(self, request: NeovimRequest) -> object:
-        self._register(request)
-        await request.send(self)
-        return await request.result()
 
     def _enqueue(self, request: NeovimRequest) -> asyncio.Task[object]:
         try:
@@ -998,38 +1169,37 @@ class NeovimEditing(VimMode, MroDispatch):
         return self._generation
 
     def _call(self, method: str, arguments: Sequence[object]) -> asyncio.Future[object]:
-        return self._enqueue(NeovimOperation(self._next_generation(), method, arguments))
+        return self._enqueue(NeovimOperation(self.buffer, self._next_generation(), method, arguments))
 
     def _lua(self, code: str, arguments: Sequence[object]) -> asyncio.Future[object]:
-        return self._enqueue(NeovimLuaOperation(self._next_generation(), code, arguments))
+        return self._enqueue(NeovimLuaOperation(self.buffer, self._next_generation(), code, arguments))
 
     def _input(self, keys: str) -> asyncio.Future[object]:
-        return self._enqueue(NeovimInput(self._next_generation(), keys))
+        return self._enqueue(NeovimInput(self.buffer, self._next_generation(), keys))
 
     # Escape is the person's key: Neovim offers it back at the Standard boundary.
     # The application reaches Normal from any mode with Neovim's own CTRL-\ CTRL-N,
     # on the same ordered input path, so its keys never reach that boundary.
     to_normal = "<C-\\><C-N>"
 
+    def focus_request(self) -> NeovimInput:
+        """Take the engine's window: the buffer it leaves keeps its mode and cursor for its
+        return, and CTRL-\\ CTRL-N cancels any operator or command line it left pending, so
+        this buffer's first key can never complete another buffer's command."""
+        request = NeovimInput(self.buffer, self._next_generation(),
+                              f"<Cmd>lua ToadEditor.leave()<CR>{self.to_normal}"
+                              f"<Cmd>lua ToadEditor.enter({self.buffer})<CR>")
+        self._register(request)
+        return request
+
     async def _start(self) -> None:
-        await self._child_ready
+        host = self._host
+        await host.ready
         editor = self._receiver.require()
-        width, height = max(1, editor.wrap_width), max(3, editor.content_size.height + 2)
-        api = self.accept_api_info(await self._bootstrap(NeovimCall("nvim_get_api_info", [])))
-        await self._bootstrap(NeovimCall("nvim_ui_attach", [width, height,
-            {"ext_linegrid": True, "ext_cmdline": True, "ext_messages": True}]))
         initial_lines = self._initial_lines
-        undo_levels = await self._bootstrap(NeovimCall("nvim_get_option_value", ["undolevels", {"buf": 0}]))
-        await self._bootstrap(NeovimCall("nvim_set_option_value", ["undolevels", -1, {"buf": 0}]))
-        await self._bootstrap(NeovimCall("nvim_buf_set_lines", [0, 0, -1, True, list(initial_lines)]))
-        await self._bootstrap(NeovimCall("nvim_set_option_value", ["undolevels", undo_levels, {"buf": 0}]))
         initial_cursor = self._initial_selection.end
-        row, column = initial_cursor
-        await self._bootstrap(NeovimCall("nvim_win_set_cursor", [0,
-            [row + 1, len(initial_lines[row][:column].encode("utf-8"))]]))
-        script = files(toad).joinpath("neovim_editing.lua").read_text()
         mappings: list[list[object]] = []
-        # One engine crosses every Neovim mode, so each mode takes its own profile's keys.
+        # One buffer crosses every Neovim mode, so each mode takes its own profile's keys.
         for profile in NeovimEditing.__subclasses__():
             for key, binding in editor.binding_map(profile):
                 for spelling, native in binding.declared_key.input_bindings(key):
@@ -1037,32 +1207,23 @@ class NeovimEditing(VimMode, MroDispatch):
                     self._boundaries.append(binding)
                     mappings.append([self.input_code(spelling), self.input_code(native), index,
                                      list(profile.map_modes)])
-        await self._bootstrap(NeovimCall("nvim_exec_lua", [script, [mappings, api.channel]]))
-        await self._bootstrap(NeovimCall("nvim_set_option_value", ["tabstop", editor.indent_width, {}]))
+        self.buffer = FieldCodec.decode(int, await host.bootstrap(self, NeovimCall("nvim_exec_lua", [
+            "return ToadEditor.open(...)",
+            [list(initial_lines), list(initial_cursor), editor.indent_width, mappings]])))
+        host.adopt(self.buffer, self)
+        # The opening requests go ahead of anything queued while the buffer was being made.
+        opening = [NeovimCall("nvim_ui_try_resize", self.viewport(editor))]
         if self.initial_keys:
-            await self._bootstrap(NeovimInput(self._next_generation(), self.initial_keys))
-            await self._bootstrap(NeovimLuaOperation(self._next_generation(),
-                                                   "return ToadEditor.cursor(...)", [initial_cursor]))
+            opening += [NeovimInput(self.buffer, self._next_generation(), self.initial_keys),
+                        NeovimLuaOperation(self.buffer, self._next_generation(),
+                                           "return ToadEditor.cursor(...)", [initial_cursor])]
+        for request in opening:
+            self._register(request)
+            host.enqueue(self, request)
 
-    @boundary_decoder
-    async def _receive(self, message: object) -> None:
-        """Decode the envelope tag here; its member alone decodes the raw payload."""
-        if not isinstance(message, list) or not message:
-            raise NeovimWireFailure("Invalid Neovim RPC message")
-        kind = FieldCodec.decode(int, message[0])
-        try:
-            frame = NeovimFrame.member_selected(kind).from_payload(message[1:])
-            await frame.receive(self)
-        except UnknownFamilyMember as error:
-            raise NeovimWireFailure(str(error)) from error
-
-    def resolve_reply(self, identity: int, reply: NeovimReply, value: object) -> None:
-        try:
-            request = self._pending[identity]
-        except KeyError as error:
-            raise NeovimWireFailure("Unexpected Neovim RPC response") from error
+    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None:
         reply.resolve(request, value)
-        del self._pending[identity]
+        self._pending.pop(request.identity, None)
         # SafeState can arrive before the final RPC response. Its
         # publication and that response must invalidate the same view owner.
         if self.completed:
@@ -1075,9 +1236,6 @@ class NeovimEditing(VimMode, MroDispatch):
         self._receiver.visit(self.render)
         return self._receiver.boundary(self._boundaries[boundary])
 
-    async def answer_request(self, identity: int, reply: object) -> None:
-        await self.write_frame([1, identity, None, reply])
-
     def accept_lines(self, change: NeovimLineChange) -> None:
         if change.last == -1:
             self._changes.append(NeovimBufferTransfer(change.lines))
@@ -1087,6 +1245,10 @@ class NeovimEditing(VimMode, MroDispatch):
 
     def accept_display(self, display: NeovimDisplay) -> None:
         self.publish(self.snapshot.with_display(display))
+
+    def engine_failed(self, error: EditingFailure) -> None:
+        self._pending.clear()
+        self._fail(error)
 
     def publish(self, snapshot: NeovimSnapshot) -> None:
         """Project preceding lines before exposing the display that describes them."""
@@ -1185,11 +1347,14 @@ class NeovimEditing(VimMode, MroDispatch):
         base = base.replace("<", "LT")
         return "<" + "-".join([*(NeovimKey.member_named(part).notation for part in modifiers), base]) + ">"
 
+    @staticmethod
+    def viewport(editor: TextArea) -> list[int]:
+        return [max(1, editor.wrap_width), max(3, editor.content_size.height + 2)]
+
     def resize(self, editor: TextArea) -> None:
         # This UI API is RPC-only, like nvim_ui_attach during startup. A
         # viewport resize is not a buffer edit and must not advance its generation.
-        self._enqueue(NeovimCall("nvim_ui_try_resize",
-                                [max(1, editor.wrap_width), max(3, editor.content_size.height + 2)]))
+        self._enqueue(NeovimCall("nvim_ui_try_resize", self.viewport(editor)))
 
     def enter_text(self, editor: TextArea) -> None:
         self._input(self.to_normal + "i")

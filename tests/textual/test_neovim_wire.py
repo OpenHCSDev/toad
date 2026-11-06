@@ -6,7 +6,7 @@ import pytest
 from toad.neovim_editing import (
     BufferHandle,
     NeovimCall,
-    NeovimEditing,
+    NeovimHost,
     NeovimWireFailure,
     TabpageHandle,
     WindowHandle,
@@ -14,7 +14,7 @@ from toad.neovim_editing import (
 
 
 async def test_native_redraw_and_response_keep_nominal_window() -> None:
-    owner = NeovimEditing()
+    owner = NeovimHost(None)
     owner.accept_api_info([1, {"types": {
         "Buffer": {"id": 0, "prefix": "nvim_buf_"},
         "Window": {"id": 1, "prefix": "nvim_win_"},
@@ -33,7 +33,7 @@ async def test_native_redraw_and_response_keep_nominal_window() -> None:
     await owner._receive(redraw)
 
     request = NeovimCall("nvim_get_current_win", [])
-    owner._register(request)
+    owner.register(owner, request)
     owner._unpacker.feed(msgpack.packb([1, request.identity, None, native_window]))
     response, = owner._unpacker
     await owner._receive(response)
