@@ -456,11 +456,21 @@ class MarkdownBody(Body):
     def prepare(self, markdown: Callable[[Body], LineBlock]) -> LineBlock:
         return markdown(self)
 
-    @classmethod
-    def code(cls, text: str, language: str = "", **shown) -> Body:
-        """Text drawn as it is written, in a language's colours when the language is known."""
-        ticks = "`" * max(3, 1 + max(map(len, re.findall("`+", text)), default=0))
-        return cls(f"{ticks}{language}\n{text}\n{ticks}", **shown)
+
+@dataclass(frozen=True)
+class CodeBody(MarkdownBody):
+    """Source drawn as it is written, in a language's colours when the language is known.
+
+    Its text is the source, so copying and selecting give the source; the fence that asks
+    Markdown for those colours exists only while it is prepared.
+    """
+
+    language: str = ""
+
+    def prepare(self, markdown: Callable[[Body], LineBlock]) -> LineBlock:
+        ticks = "`" * max(3, 1 + max(map(len, re.findall("`+", self.text)), default=0))
+        return markdown(MarkdownBody(f"{ticks}{self.language}\n{self.text}\n{ticks}",
+                                     role=self.role, bar=self.bar))
 
 
 class MessageBody(Body):

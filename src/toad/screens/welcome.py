@@ -6,6 +6,7 @@ entry or a new session opens the first tab, which replaces it.
 """
 
 from __future__ import annotations
+from abc import abstractmethod
 
 
 from metaclass_registry.mro_dispatch import handles
@@ -101,8 +102,9 @@ class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
         # Shown once the model lists something for it.
         self.display = False
 
+    @abstractmethod
     def keys(self, model: SidebarModel) -> tuple[str, ...]:
-        raise NotImplementedError
+        ...
 
     @property
     def member_keys(self):
@@ -178,14 +180,7 @@ class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, Targe
     def accepts_observation(self) -> bool:
         return self.is_attached and self.query_ancestor(WelcomeScreen).is_current
 
-    def accepts_selection(self) -> bool:
-        return False  # Rows open; the view keeps no selected set.
-
-    def row_selected(self, row) -> bool:
-        return False
-
     def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        self.pointer_select(row, menu=True)
         row.target.menu_context(self, channel=NoChannel()).show_menu(self, offset)
 
     @RowReconciliation.sync

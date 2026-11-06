@@ -1,6 +1,7 @@
 """A form over an ObjectState, laid out the way formbridge reads its declarations."""
 
 from __future__ import annotations
+from abc import abstractmethod
 
 from collections.abc import Iterator
 
@@ -75,13 +76,13 @@ class FieldView(DeclaredViews, WidgetView, containers.VerticalGroup):
         return [FieldView.showing(type(parameter).__mro__)(DeclaredField(state, path))
                 for path, parameter in ParameterFormService().parameters_for_state(state, parent)]
 
+    @abstractmethod
     def values(self) -> Iterator[ValueView]:
         """The views below this one that hold a single value."""
-        raise NotImplementedError
 
+    @abstractmethod
     def filter(self, term: str) -> bool:
         """Show this view only if it matches a search; say whether it is shown."""
-        raise NotImplementedError
 
 
 class ValueView(FieldView, shows=(ParameterInfo,)):

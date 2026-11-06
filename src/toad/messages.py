@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 
 from typing import Literal
@@ -10,9 +11,9 @@ from textual.message import Message
 class QueueEvidenceOwner:
     """The widget that owns a queue's evidence; a view inside it reports changes to it directly."""
 
+    @abstractmethod
     def queue_evidence_changed(self) -> None:
         """Repaint the local queue after its existing evidence changes."""
-        raise NotImplementedError
 
 
 class SendPromptNow(Message):

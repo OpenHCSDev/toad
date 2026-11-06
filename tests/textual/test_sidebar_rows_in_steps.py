@@ -1,4 +1,5 @@
 """Textual-facing: a long sidebar list is mounted a layout step at a time, top first, a step's worth per frame by the screen's stepped layout."""
+from pathlib import Path
 
 import asyncio
 import unittest
@@ -40,9 +41,18 @@ class Group(SidebarGroup):
 
 
 class Tree(TargetTree):
+    """A tree that only builds rows: it opens no menus and navigates from a fixed root."""
+
     @property
     def navigation_groups(self):
         return self.query(Group)
+
+    def show_row_menu(self, row, offset) -> None:
+        """This fixture never opens a row menu."""
+
+    @property
+    def navigation_root(self) -> Path:
+        return Path(".")
 
 
 class Rows(ThemedApp, App):

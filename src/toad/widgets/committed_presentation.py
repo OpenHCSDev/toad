@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+
+from textual.abstract_hooks import AbstractHooksMeta
 from collections.abc import Awaitable, Callable, Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -208,12 +210,13 @@ class StartedInputClaim(CommitClaim):
     def repeats_native(self, fragment: TranscriptFragment) -> bool:
         return self.source.native_id in TranscriptCoverage(fragment.events).native_inputs
 
-class CommitParticipant:
+class CommitParticipant(metaclass=AbstractHooksMeta):
     """Nominal widget contract; unrelated/local widgets are retained by default."""
 
     @property
+    @abstractmethod
     def commit_claim(self) -> CommitClaim:
-        raise NotImplementedError
+        ...
 
 
 class RetainedBlockClaim(CommitClaim):

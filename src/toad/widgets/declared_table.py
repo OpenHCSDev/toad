@@ -21,11 +21,11 @@ class SelectionView[R]:
 
     @abstractmethod
     def clear_selection(self) -> None:
-        raise NotImplementedError
+        ...
 
     @abstractmethod
     def show_selection(self, key: DisclosureKey, record: R) -> None:
-        raise NotImplementedError
+        ...
 
 
 @dataclass(frozen=True)

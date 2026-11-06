@@ -1,5 +1,6 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
 from __future__ import annotations
+from abc import abstractmethod
 
 from collections import deque
 from contextlib import AsyncExitStack
@@ -235,9 +236,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if snapshot.current(self) and await self._load_page(end):
             self.request_preparation()
 
+    @abstractmethod
     async def _load_page(self, end) -> bool:
         """Publish one source range; return whether this edge still needs rows."""
-        raise NotImplementedError
 
     def request_latest(self, destination: LatestPosition) -> None:
         # End supersedes any admitted edge publication. Its worker may finish
@@ -480,10 +481,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
 
     @property
+    @abstractmethod
     def drawn_extent(self) -> tuple[int, int]:
         """Rows drawn and the source items they show, for converting rows to items."""
-        raise NotImplementedError
 
     def source_resumed(self) -> None:
-        """A parked source publishes again: report what its drawn pages mean to their owner."""
-        raise NotImplementedError
+        """A parked source publishes again: report what its drawn pages mean to their owner.
+
+        A source with no owner to report to (the saved LineHistory a historical view builds)
+        has nothing to say; CommittedHistory and WireHistory override it."""

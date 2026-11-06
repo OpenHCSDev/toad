@@ -44,7 +44,7 @@ from toad.widgets.selection import HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widget_actions import HiddenActions, OpenSelectedAction, OpensSelected
 from toad.widgets.session_sort import ChannelListSort, CommsSortChoice, ThreadSortForm
-from toad.widgets.sidebar_tree import ActiveSegment, GroupHeaderLine, HeaderSegment, SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
+from toad.widgets.sidebar_tree import ActiveSegment, GroupHeaderLine, HeaderSegment, SelectsTargets, SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.tone_paint import AlternatingTone
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
@@ -401,7 +401,7 @@ class CommsSidebar(
     SidebarModelView,
     SidebarVisibilityObserver,
     SearchFollower,
-    TargetTree,
+    SelectsTargets,
     OpensSelected,
 ):
     """The view of the observed service's sidebar model: channel groups and their threads.

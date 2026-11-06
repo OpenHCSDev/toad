@@ -14,7 +14,7 @@ from typing import ClassVar, Iterator
 
 from textual.binding import Binding
 from textual.dom import DOMNode
-from textual.navigation import MovesCursor
+from textual import navigation
 from textual.screen import ModalScreen
 
 ROOT = Path(__file__).resolve().parents[2] / 'src/toad'
@@ -85,17 +85,26 @@ class ModeBindings(KeymapMeasure):
                     yield node.lineno
 
 
+def navigation_contract(family: type[navigation.Navigation] = navigation.Navigation) -> Iterator[str]:
+    """The actions Textual's own navigation families declare for their key commands to call."""
+    yield from vars(family)
+    for member in family.__subclasses__():
+        if member.__module__ == navigation.__name__:
+            yield from navigation_contract(member)
+
+
 class ActionMethods(KeymapMeasure):
-    """`def action_*`: behaviour Textual finds by string name. A method MovesCursor declares is
-    a required contract its key family calls, so its implementers are not this."""
+    """`def action_*`: behaviour Textual finds by string name. A method a Textual navigation
+    family declares is a required contract its key family calls, so its implementers are not this."""
     ceiling = 9
+    contract = frozenset(navigation_contract())
 
     @classmethod
     def lines(cls, tree):
         for node in ast.walk(tree):
             match node:
                 case ast.FunctionDef(name=name) | ast.AsyncFunctionDef(name=name) if (
-                        name.startswith('action_') and name not in vars(MovesCursor)):
+                        name.startswith('action_') and name not in cls.contract):
                     yield node.lineno
 
 

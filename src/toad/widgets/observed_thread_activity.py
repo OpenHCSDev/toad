@@ -1,6 +1,9 @@
 """An open thread's status line, observed locally or marked on another route."""
 
 from __future__ import annotations
+from abc import abstractmethod
+
+from textual.abstract_hooks import AbstractHooksMeta
 
 from dataclasses import dataclass
 
@@ -15,18 +18,21 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.status_thread import NoStatusThread, StatusThread
 
 
-class ActivityView:
+class ActivityView(metaclass=AbstractHooksMeta):
     """The status display a conversation kind supplies, mounted or absent."""
 
+    @abstractmethod
     def bind(self, thread: StatusThread) -> None:
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def show(self, row: ThreadStatusModel) -> None:
-        raise NotImplementedError
+        ...
 
     @property
+    @abstractmethod
     def working(self) -> bool:
-        raise NotImplementedError
+        ...
 
 
 @dataclass(frozen=True)
@@ -96,8 +102,9 @@ class ThreadStatusOwner(ToadNode):
         """Observed work cannot settle an independently owned ACP request."""
         return self.thread_activity.working
 
+    @abstractmethod
     def status_thread(self) -> StatusThread:
-        raise NotImplementedError
+        ...
 
     def thread_observed(self, event: ThreadRowsChanged) -> None:
         """Consume the observed thread's presentation once per store change."""

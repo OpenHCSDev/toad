@@ -27,7 +27,7 @@ from rich.text import Text
 
 from acp import schema
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from toad.line_blocks import Body, MarkdownBody, LineBlock, MutedRole, ToolOutputRole
+from toad.line_blocks import Body, CodeBody, MarkdownBody, LineBlock, MutedRole, ToolOutputRole
 from toad.patch import parse_patch, parse_numbered_patch
 from toad.rich_preparation import RichTextBody
 
@@ -153,7 +153,7 @@ class ReadToolOutputPart(SpecificTextToolOutputPart):
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
-        return (MarkdownBody.code(self.text, PurePath(self.path).suffix.removeprefix("."), bar=MutedRole),)
+        return (CodeBody(self.text, bar=MutedRole, language=PurePath(self.path).suffix.removeprefix(".")),)
 
 
 @dataclass(frozen=True)
