@@ -40,10 +40,13 @@ class Roots:
     # analytics service or fetches the latest release (both default on), so no app test
     # touches the network. It starts installed, as Tristan's Toad does: with no anon_id,
     # every start mints one and saves the whole settings file again (ensure_installation),
-    # about 0.3 s that no test is about.
+    # about 0.3 s that no test is about. Its theme is one every test host has: the default,
+    # wal, exists only once pywal has written its palette, so without it every app opened
+    # with a theme warning toast over the bottom-right controls.
     SETTINGS: ClassVar[dict[str, object]] = {"anon_id": "00000000-0000-0000-0000-000000000002",
                                              "statistics": {"allow_collect": False},
-                                             "updates": {"check": False}}
+                                             "updates": {"check": False},
+                                             "ui": {"theme": "textual-dark"}}
 
     @classmethod
     def create(cls) -> Roots:
