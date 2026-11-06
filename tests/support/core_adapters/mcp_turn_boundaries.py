@@ -160,6 +160,9 @@ async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) ->
             active = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
             await send(TurnChangedUpdate(active.state))
             assert agent.current_turn.managed_id == view.turns.managed_id == OBSERVED
+            # Deliberate: Toad must refuse a session it does not hold. Its log then carries one
+            # "ACP session is retired or unknown" (agent_process.py recipient); that line is
+            # this boundary passing, not a fault.
             await send(McpClientAcknowledgementUpdate(OBSERVED, receipt), session="foreign")
             await send(McpClientAcknowledgementUpdate(RETIRED, receipt))
             assert not notes(view)
