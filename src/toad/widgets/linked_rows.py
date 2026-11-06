@@ -17,6 +17,7 @@ from textual.selection import Selection
 from textual.strip import Strip
 from textual.visual import Visual
 from textual.widget import Widget
+from textual.widgets._markdown import OpensMarkdownLinks
 
 from toad.app_node import FollowsTheme
 from toad.block_navigation import ConversationEntry
@@ -61,12 +62,9 @@ class ReferenceRendering(RestylesOnTheme, CoreEventReceiver):
         self.invalidate_lines()
 
 
-class OpensLinks(CoreEventReceiver, MroDispatch):
-    """A widget whose drawn links open what they name: one handler per kind of link."""
-
-    def action_open(self, link: LineLink) -> None:
-        """What a click on a drawn link runs (`LineLink.click`); the keyboard calls it too."""
-        self.dispatch_sync(link)
+class OpensLinks(OpensMarkdownLinks, CoreEventReceiver, MroDispatch):
+    """A widget whose drawn links open what they name: one handler per kind of link. A click
+    runs the link itself (OpenLineLink); the keyboard dispatches the same link."""
 
     @handles(OpenTarget)
     def open_target(self, link: OpenTarget) -> None:
@@ -96,9 +94,9 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
     def open_project_link(self, link: ProjectLink) -> None:
         self.run_worker(link.preview(self), group="open-link")
 
-    def action_link(self, href: str) -> None:
-        """Decode Markdown's transport once, then use the ordinary typed actions."""
-        self.action_open(LineLink.from_href(href))
+    def open_link(self, href: str) -> None:
+        """Markdown hands its href back as a string; decode it once into the link it carries."""
+        self.dispatch_sync(LineLink.from_href(href))
 
 
 class MessageRowBlock(OpensLinks):

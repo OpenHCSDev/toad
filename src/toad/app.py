@@ -3,6 +3,7 @@ from agent_comms.storage.locked_store import RootFile
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoreConnection
+from toad.link_click import OpenLineLink
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -494,8 +495,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     async def dispatch_style_action(self, handler, event, default_namespace) -> bool:
         """Right-click adds its menu to the original decoded link action."""
         if isinstance(event, events.Click) and event.button == 3:
-            from toad.line_blocks import LineLink
-            if await LineLink.from_action(handler.action).copy_menu(default_namespace, event):
+            if await OpenLineLink.link_of(handler.action).copy_menu(default_namespace, event):
                 return True
         return await super().dispatch_style_action(handler, event, default_namespace)
 

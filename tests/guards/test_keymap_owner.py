@@ -1,13 +1,13 @@
 """Keys belong to the Action family (plans/KEYMAP-PLAN.md, wave K0).
 
-Each measure counts one way a binding is written outside its owner. A ceiling is the count
-at the head this guard landed on and only falls: a migration wave lowers it in the same
-change, and nothing raises it. The second test is the registry's conflict check: an app key
+Each measure is one way a binding is written outside its owner, and every measure is zero:
+a key a menu cannot show, or a method a key reaches by its name, has no tolerated count. The second test is the registry's conflict check: an app key
 that a binding closer to the focus also claims is a conflict unless the app action yields
 (YieldingKey) or the claimant is a modal screen, which owns the keyboard while it is up.
 """
 import ast
 import importlib
+from functools import cache
 import inspect
 from pathlib import Path
 from typing import ClassVar, Iterator
@@ -25,9 +25,8 @@ CONTRACT_HANDLERS = {ROOT / 'widgets/conversation.py', ROOT / 'widgets/terminal.
 
 
 class KeymapMeasure:
-    """One way of writing a key outside the Action family, and its ceiling."""
+    """One way of writing a key outside the Action family."""
     members: ClassVar[list[type['KeymapMeasure']]] = []
-    ceiling: ClassVar[int]
     exempt: ClassVar[frozenset[Path]] = frozenset({OWNER})
 
     def __init_subclass__(cls, **kwargs):
@@ -46,7 +45,6 @@ class KeymapMeasure:
 
 class RawBindings(KeymapMeasure):
     """`BINDINGS =` written by hand on a class."""
-    ceiling = 4
 
     @classmethod
     def lines(cls, tree):
@@ -62,7 +60,6 @@ class RawBindings(KeymapMeasure):
 
 class HandBindings(KeymapMeasure):
     """`Binding(key, "action_name")` written by hand: a key tied to an action by its name."""
-    ceiling = 5
 
     @classmethod
     def lines(cls, tree):
@@ -75,7 +72,6 @@ class HandBindings(KeymapMeasure):
 class ModeBindings(KeymapMeasure):
     """`ModeBinding(key, method)`: a key tied to a method object, whose qualified name is the binding
     id and whose subclass overrides never run. Each one becomes an Action member."""
-    ceiling = 0
 
     @classmethod
     def lines(cls, tree):
@@ -93,24 +89,41 @@ def navigation_contract(family: type[navigation.Navigation] = navigation.Navigat
             yield from navigation_contract(member)
 
 
+@cache
+def textual_operations() -> frozenset[str]:
+    """Methods Textual itself declares as operations: a navigation contract's (the scroll,
+    cursor and list families) and those carrying their own key declaration (TextArea's). Toad
+    overriding one changes the operation, never a key's spelling."""
+    importlib.import_module('toad.app')
+    def walk(cls):
+        for sub in cls.__subclasses__():
+            yield sub
+            yield from walk(sub)
+    textual = [cls for cls in walk(DOMNode) if cls.__module__.startswith('textual.')]
+    return frozenset((
+        *(name for cls in textual if issubclass(cls, navigation.Navigable)
+          for name in vars(cls) if name.startswith('action_')),
+        *(binding.action.__name__ for cls in textual
+          for binding in cls.__dict__.get('_declared_key_bindings', ())),
+    ))
+
+
 class ActionMethods(KeymapMeasure):
-    """`def action_*`: behaviour Textual finds by string name. A method a Textual navigation
-    family declares is a required contract its key family calls, so its implementers are not this."""
-    ceiling = 9
-    contract = frozenset(navigation_contract())
+    """`def action_*`: behaviour Textual finds by string name, unless it is an operation Textual
+    declares (textual_operations)."""
 
     @classmethod
     def lines(cls, tree):
+        operations = textual_operations()
         for node in ast.walk(tree):
             match node:
                 case ast.FunctionDef(name=name) | ast.AsyncFunctionDef(name=name) if (
-                        name.startswith('action_') and name not in cls.contract):
+                        name.startswith('action_') and name not in operations):
                     yield node.lineno
 
 
 class KeyHandlers(KeymapMeasure):
     """An `on_key` handler deciding by the pressed key: bindings no menu can show."""
-    ceiling = 1
     exempt = frozenset({OWNER, *CONTRACT_HANDLERS})
 
     @classmethod
@@ -124,7 +137,6 @@ class KeyHandlers(KeymapMeasure):
 
 class VimFlagReads(KeymapMeasure):
     """The `vim_keys` flag read outside the preference store: a mode decided by a bool."""
-    ceiling = 0
     exempt = frozenset({PREFERENCES})
 
     @classmethod
@@ -137,7 +149,6 @@ class VimFlagReads(KeymapMeasure):
 
 class MenuOrders(KeymapMeasure):
     """`menu_order`: a hand-numbered rank where declaration order already orders."""
-    ceiling = 0
     exempt = frozenset()
 
     @classmethod
@@ -151,7 +162,6 @@ class MenuOrders(KeymapMeasure):
 class KeyLiterals(KeymapMeasure):
     """A key spelled outside an action's default and the preference store: compared with
     an event's key, given as a `key_display`, or kept in a `*_KEYS` constant."""
-    ceiling = 0
     exempt = frozenset({OWNER, PREFERENCES, *CONTRACT_HANDLERS})
 
     @staticmethod
@@ -175,11 +185,10 @@ class KeyLiterals(KeymapMeasure):
                     yield node.lineno
 
 
-def test_keys_written_outside_the_action_family_only_fall():
-    over = {measure.__name__: (len(sites), measure.ceiling, sites[:5])
-            for measure in KeymapMeasure.members
-            if len(sites := measure.sites()) > measure.ceiling}
-    assert not over, over
+def test_no_key_is_written_outside_the_action_family():
+    found = {measure.__name__: sites[:5] for measure in KeymapMeasure.members
+             if (sites := measure.sites())}
+    assert not found, found
 
 
 def declared_nodes() -> Iterator[type[DOMNode]]:

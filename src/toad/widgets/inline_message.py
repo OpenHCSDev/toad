@@ -9,6 +9,7 @@ from metaclass_registry.mro_dispatch import handles
 
 from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
+from toad.link_click import OpenLineLink
 from toad.line_blocks import LineLink, NoLink
 
 if TYPE_CHECKING:
@@ -20,7 +21,7 @@ class InlineLink(MroProjection[Content]):
 
     @handles(LineLink)
     def linked(self, link: LineLink, part: Content) -> Content:
-        return part.stylize(Style.from_meta({"@click": link.click}))
+        return part.stylize(Style.from_meta({"@click": OpenLineLink(link)}))
 
     @handles(NoLink)
     def plain(self, link: NoLink, part: Content) -> Content:
