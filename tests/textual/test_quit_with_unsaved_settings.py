@@ -37,8 +37,9 @@ async def test_quit_that_cannot_save_stays_open_and_a_retry_saves_the_edit_and_e
         original = path.read_bytes()
         path.unlink()
         path.mkdir()
-        await ui.press('home', 'shift+end', '1', '3', '7', 'ctrl+q')
-        await ui.until_shows('Failed to write')
+        with ui.reporting_error():
+            await ui.press('home', 'shift+end', '1', '3', '7', 'ctrl+q')
+            await ui.until_shows('Failed to write')
         assert app.is_running and not app._exit
         assert app.saved_settings.unsaved and app.settings.ui.column_width == 137
         assert path.is_dir() and not list(config.glob('.toad.json_tmp_*'))

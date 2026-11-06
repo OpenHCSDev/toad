@@ -16,6 +16,13 @@ class QueueEvidenceOwner:
         """Repaint the local queue after its existing evidence changes."""
 
 
+class HoldsNoQueue(QueueEvidenceOwner):
+    """A view with no queue, such as a recorded archive: its evidence changes repaint nothing."""
+
+    def queue_evidence_changed(self) -> None:
+        pass
+
+
 class SendPromptNow(Message):
     pass
 

@@ -18,7 +18,7 @@ async def test_a_failed_mount_names_the_session_and_leaves_no_dead_view(workspac
     async with workspace.app(size=(110, 35)) as ui:
         app, _ = ui.textual
         before = set(app.workspace_sessions.views)
-        with pytest.raises(SessionStartFailed):
+        with ui.reporting_error(), pytest.raises(SessionStartFailed):
             await app.session_navigation.new(
                 await saved_tab(app), lambda: FailsToStart(Checkout(workspace.project)))
         assert set(app.workspace_sessions.views) == before
