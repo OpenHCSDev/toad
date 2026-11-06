@@ -1,5 +1,8 @@
 """Textual-facing: vim `i` asks the prompt for insert mode; the prompt owns whether its editor exists."""
 
+import os
+import signal
+
 import pytest
 from textual import events
 
@@ -279,6 +282,28 @@ async def test_two_prompts_share_one_engine_and_each_buffer_keeps_its_own_mode(w
         await ui.until(lambda: channel.text == "a" and channel.editing_mode.completed,
                        why="x deletes in the channel: the d it left pending was cancelled, not resumed")
         assert main.text == "first!"
+
+
+async def test_a_killed_engine_restarts_and_reopens_the_prompt_from_its_text(workspace):
+    """One engine serves every tab, so its death must not cost every draft: each open
+    buffer reopens in a new engine from the text its prompt last painted."""
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real engine in Insert")
+        area.focus()
+        await ui.type("kept")
+        await ui.until(lambda: area.text == "kept" and area.editing_mode.completed,
+                       why="a real draft before the engine dies")
+        dead = ui.app.neovim
+        os.kill(dead._child.identity.pid, signal.SIGKILL)
+        await ui.until(lambda: ui.app.neovim is not dead and area.editing_mode.completed,
+                       why="a new engine with the prompt's buffer reopened")
+        assert area.text == "kept"
+        await ui.type(" again")
+        await ui.until(lambda: area.text == "kept again" and area.editing_mode.completed,
+                       why="the reopened buffer to take input in the new engine")
 
 
 async def test_normal_hjkl_and_arrows_reach_neovim_motions(workspace):

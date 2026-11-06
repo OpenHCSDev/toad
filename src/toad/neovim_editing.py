@@ -501,17 +501,29 @@ class NeovimCall(NeovimRequest):
         return self._arguments
 
 
+class HoldsBuffer(ABC):
+    """Whose buffer a request acts on. A key typed before the buffer is open is queued, so the
+    request reads the number when it is sent, not when it is made."""
+
+    @property
+    @abstractmethod
+    def buffer(self) -> int: ...
+
+
 class NeovimOperation(NeovimCall):
     """Programmatic mutation executes on its session's buffer and invalidates that buffer's proof."""
 
     operation: ClassVar[str] = "assert(vim.api[operation], operation)"
 
-    def __init__(self, buffer: int, generation: int, method: str, arguments: Sequence[object]) -> None:
-        super().__init__("nvim_exec_lua", [
-            "local buffer, serial, operation, arguments = ...; "
-            f"return ToadEditor.call(buffer, serial, {self.operation}, arguments)",
-            [buffer, generation, method, list(arguments)],
-        ])
+    def __init__(self, holder: HoldsBuffer, generation: int, method: str, arguments: Sequence[object]) -> None:
+        super().__init__("nvim_exec_lua", arguments)
+        self.holder, self.generation, self.operation_name = holder, generation, method
+
+    @property
+    def arguments(self) -> Sequence[object]:
+        return ["local buffer, serial, operation, arguments = ...; "
+                f"return ToadEditor.call(buffer, serial, {self.operation}, arguments)",
+                [self.holder.buffer, self.generation, self.operation_name, list(self._arguments)]]
 
 
 class NeovimLuaOperation(NeovimOperation):
@@ -523,13 +535,13 @@ class NeovimLuaOperation(NeovimOperation):
 class NeovimInput(NeovimFastRequest):
     method = "nvim__exec_lua_fast"
 
-    def __init__(self, buffer: int, generation: int, keys: str) -> None:
+    def __init__(self, holder: HoldsBuffer, generation: int, keys: str) -> None:
         super().__init__()
-        self.buffer, self.generation, self.keys = buffer, generation, keys
+        self.holder, self.generation, self.keys = holder, generation, keys
 
     @property
     def arguments(self) -> Sequence[object]:
-        return ("return ToadEditor.input(...)", [self.buffer, self.generation, self.keys])
+        return ("return ToadEditor.input(...)", [self.holder.buffer, self.generation, self.keys])
 
     def resolve(self, value: object) -> None:
         accepted = FieldCodec.decode(int, value)
@@ -786,14 +798,35 @@ class NeovimRoute:
     def resolve(self, reply: NeovimReply, value: object) -> None:
         self.requester.resolve_reply(self.request, reply, value)
 
-    def fail(self, error: EditingFailure) -> None:
-        for outcome in (self.request.dispatched, self.request.reply):
-            if not outcome.done():
-                outcome.set_exception(error)
 
-    def cancel(self) -> None:
-        self.request.dispatched.cancel()
-        self.request.reply.cancel()
+class EngineEnding(ABC):
+    """How the engine's life ended decides what everything still waiting on it is told."""
+
+    @abstractmethod
+    def end(self, host: NeovimHost) -> None: ...
+
+
+class EngineShutDown(EngineEnding):
+    """The application closed it: what was still waiting is cancelled, never reported."""
+
+    def end(self, host: NeovimHost) -> None:
+        host.end_requests()
+        host.end_start(lambda ready: ready.cancel())
+
+
+@dataclass(frozen=True)
+class EngineFailed(EngineEnding):
+    """It died. Requests in flight are cancelled, never failed: their input is not replayed, and
+    a failure arriving after the restart would fail the reopened buffer. Every open buffer
+    reopens in a new engine and says why. A session still waiting for this engine to start
+    fails with the reason, so an engine that cannot start is never restarted in a loop."""
+
+    failure: EditingFailure
+
+    def end(self, host: NeovimHost) -> None:
+        host.end_requests()
+        host.end_start(lambda ready: ready.set_exception(self.failure))
+        host.restart_sessions(self.failure)
 
 
 class NeovimSession(NeovimRequester):
@@ -878,19 +911,28 @@ class NeovimHost(NeovimRequester, MroDispatch):
                     await self._read(child)
         except* (EditingFailure, OSError, msgpack.UnpackException,
                  UnicodeDecodeError, MalformedRecord) as errors:
-            failure = NeovimWireFailure("; ".join(str(error) for error in errors.exceptions))
-            for route in self._routes.values():
-                route.fail(failure)
-            self._routes.clear()
-            for session in self._sessions.values():
-                session.engine_failed(failure)
+            self._ending = EngineFailed(
+                NeovimWireFailure("; ".join(str(error) for error in errors.exceptions)))
         finally:
-            # Shutdown is not a failure: what was still waiting is cancelled, never reported.
+            # Forgotten first, so a buffer reopening after a failure finds a new engine.
             self._application.forget_neovim()
-            self._child_ready.cancel()
-            for route in self._routes.values():
-                route.cancel()
-            self._routes.clear()
+            self._ending.end(self)
+
+    _ending: EngineEnding = EngineShutDown()
+
+    def end_requests(self) -> None:
+        for route in self._routes.values():
+            route.request.dispatched.cancel()
+            route.request.reply.cancel()
+        self._routes.clear()
+
+    def end_start(self, outcome: Callable[[asyncio.Future[AttachedChild]], None]) -> None:
+        if not self._child_ready.done():
+            outcome(self._child_ready)
+
+    def restart_sessions(self, failure: EditingFailure) -> None:
+        for session in tuple(self._sessions.values()):
+            session.engine_failed(failure)
 
     @cached_property
     def _unpacker(self) -> msgpack.Unpacker:
@@ -1015,6 +1057,44 @@ class NeovimHost(NeovimRequester, MroDispatch):
         await self.write_frame([1, identity, None, reply])
 
 
+class BufferLease(ABC):
+    """The buffer a session holds in an engine, and what closing the session owes it."""
+
+    @property
+    @abstractmethod
+    def number(self) -> int: ...
+
+    @abstractmethod
+    async def release(self) -> None: ...
+
+
+class NoBuffer(BufferLease):
+    """None opened yet, or the engine that held it died and took it along: nothing to delete."""
+
+    @property
+    def number(self) -> int:
+        raise NeovimWireFailure("This Neovim session has no open buffer")
+
+    async def release(self) -> None:
+        pass
+
+
+NO_BUFFER = NoBuffer()
+
+
+@dataclass(frozen=True)
+class OpenBuffer(BufferLease):
+    host: NeovimHost
+    buffer: int
+
+    @property
+    def number(self) -> int:
+        return self.buffer
+
+    async def release(self) -> None:
+        await self.host.release(self.buffer)
+
+
 class HostsNeovim(App[object]):
     """An application that owns the one embedded Neovim its editors share."""
 
@@ -1034,7 +1114,7 @@ class HostsNeovim(App[object]):
         return application.neovim
 
 
-class NeovimEditing(VimMode, NeovimSession):
+class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     """One buffer session in the application's engine: its own input proof, its own paint."""
 
     initial_keys = ""
@@ -1050,6 +1130,7 @@ class NeovimEditing(VimMode, NeovimSession):
         self._rendered: NeovimSnapshot = self.snapshot.unpainted()
         self._update_queued = False
         self._boundaries: list[Binding] = []
+        self._lease: BufferLease = NO_BUFFER
 
     @property
     def label(self) -> str:
@@ -1135,16 +1216,17 @@ class NeovimEditing(VimMode, NeovimSession):
 
     async def _join(self) -> None:
         await asyncio.gather(self._started, self._lifetime, return_exceptions=True)
+        await self._lease.release()
 
     async def _write_queued(self) -> None:
-        """Requests made before this buffer exists wait for it, in the order they were made.
-        Only a session that opened its buffer reaches the loop, so only it deletes one."""
+        """Requests made before this buffer exists wait for it, in the order they were made."""
         await self._started
-        try:
-            while True:
-                self._host.enqueue(self, await self._outgoing.get())
-        finally:
-            await self._host.release(self.buffer)
+        while True:
+            self._host.enqueue(self, await self._outgoing.get())
+
+    @property
+    def buffer(self) -> int:
+        return self._lease.number
 
     def _register(self, request: NeovimRequest) -> None:
         request.reply.add_done_callback(self._observe_failure)
@@ -1169,13 +1251,13 @@ class NeovimEditing(VimMode, NeovimSession):
         return self._generation
 
     def _call(self, method: str, arguments: Sequence[object]) -> asyncio.Future[object]:
-        return self._enqueue(NeovimOperation(self.buffer, self._next_generation(), method, arguments))
+        return self._enqueue(NeovimOperation(self, self._next_generation(), method, arguments))
 
     def _lua(self, code: str, arguments: Sequence[object]) -> asyncio.Future[object]:
-        return self._enqueue(NeovimLuaOperation(self.buffer, self._next_generation(), code, arguments))
+        return self._enqueue(NeovimLuaOperation(self, self._next_generation(), code, arguments))
 
     def _input(self, keys: str) -> asyncio.Future[object]:
-        return self._enqueue(NeovimInput(self.buffer, self._next_generation(), keys))
+        return self._enqueue(NeovimInput(self, self._next_generation(), keys))
 
     # Escape is the person's key: Neovim offers it back at the Standard boundary.
     # The application reaches Normal from any mode with Neovim's own CTRL-\ CTRL-N,
@@ -1186,7 +1268,7 @@ class NeovimEditing(VimMode, NeovimSession):
         """Take the engine's window: the buffer it leaves keeps its mode and cursor for its
         return, and CTRL-\\ CTRL-N cancels any operator or command line it left pending, so
         this buffer's first key can never complete another buffer's command."""
-        request = NeovimInput(self.buffer, self._next_generation(),
+        request = NeovimInput(self, self._next_generation(),
                               f"<Cmd>lua ToadEditor.leave()<CR>{self.to_normal}"
                               f"<Cmd>lua ToadEditor.enter({self.buffer})<CR>")
         self._register(request)
@@ -1199,6 +1281,7 @@ class NeovimEditing(VimMode, NeovimSession):
         initial_lines = self._initial_lines
         initial_cursor = self._initial_selection.end
         mappings: list[list[object]] = []
+        self._boundaries = []
         # One buffer crosses every Neovim mode, so each mode takes its own profile's keys.
         for profile in NeovimEditing.__subclasses__():
             for key, binding in editor.binding_map(profile):
@@ -1207,15 +1290,15 @@ class NeovimEditing(VimMode, NeovimSession):
                     self._boundaries.append(binding)
                     mappings.append([self.input_code(spelling), self.input_code(native), index,
                                      list(profile.map_modes)])
-        self.buffer = FieldCodec.decode(int, await host.bootstrap(self, NeovimCall("nvim_exec_lua", [
-            "return ToadEditor.open(...)",
-            [list(initial_lines), list(initial_cursor), editor.indent_width, mappings]])))
+        self._lease = OpenBuffer(host, FieldCodec.decode(int, await host.bootstrap(self, NeovimCall(
+            "nvim_exec_lua", ["return ToadEditor.open(...)",
+                              [list(initial_lines), list(initial_cursor), editor.indent_width, mappings]]))))
         host.adopt(self.buffer, self)
         # The opening requests go ahead of anything queued while the buffer was being made.
         opening = [NeovimCall("nvim_ui_try_resize", self.viewport(editor))]
         if self.initial_keys:
-            opening += [NeovimInput(self.buffer, self._next_generation(), self.initial_keys),
-                        NeovimLuaOperation(self.buffer, self._next_generation(),
+            opening += [NeovimInput(self, self._next_generation(), self.initial_keys),
+                        NeovimLuaOperation(self, self._next_generation(),
                                            "return ToadEditor.cursor(...)", [initial_cursor])]
         for request in opening:
             self._register(request)
@@ -1247,8 +1330,24 @@ class NeovimEditing(VimMode, NeovimSession):
         self.publish(self.snapshot.with_display(display))
 
     def engine_failed(self, error: EditingFailure) -> None:
+        """The engine died with this buffer in it. The prompt still shows the last text it
+        painted, so the buffer reopens in a new engine from that; input in flight is lost,
+        never replayed, and the tab says so."""
+        self._lease = NO_BUFFER
         self._pending.clear()
-        self._fail(error)
+        self._changes.clear()
+        self._lifetime.cancel()
+        del self._started
+        # Not published: projecting the starting state would move the prompt's cursor to its
+        # default before the reopened buffer reads where the cursor really is.
+        self.snapshot = StartingState().snapshot()
+        self.request_paint()
+        def reopen(editor: TextArea) -> None:
+            editor.notify(f"{error}. Neovim restarted from the text on screen; "
+                          "input it had not finished was not replayed.",
+                          title="Neovim restarted", severity="warning")
+            self.attach(editor)
+        self._receiver.visit(reopen)
 
     def publish(self, snapshot: NeovimSnapshot) -> None:
         """Project preceding lines before exposing the display that describes them."""
