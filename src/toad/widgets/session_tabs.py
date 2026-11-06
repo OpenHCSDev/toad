@@ -34,7 +34,7 @@ from toad.core import events as core_events
 from toad.core import session_requests
 from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, EffectInContent
 from toad.session_tracker import OpenTab
 from toad.app_node import ToadNode
 from toad.widgets.selection import ChangingText, ViewLabel
@@ -136,7 +136,7 @@ class SessionTabClose(WidgetView, ActivationKeys, widgets.Static, can_focus=True
 TAB_SLIDE = Transition(Amount, 0.0, 1.0, duration=0.18, frames_per_second=60)
 
 
-class Underline(WidgetView, Animated[Amount]):
+class Underline(EffectInContent, WidgetView, Animated[Amount]):
     """The track under the tab cells, marking the selected tab's cells.
 
     It is laid out under the cells themselves (TabCells), so it spans every

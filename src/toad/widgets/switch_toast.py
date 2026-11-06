@@ -196,7 +196,7 @@ class SwitchToast(CoreEventReceiver, ScreenOverlay, Animated[Amount], ToadNode):
     def repaint(self) -> None:
         """The clock's paint request: the toast leaves the layout once its swell ends."""
         self.display = self.effect_phase(TAB_TOAST).in_motion
-        self.refresh()
+        self.refresh_lines()
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         colours = self.app.colours

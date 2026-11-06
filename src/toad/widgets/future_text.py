@@ -11,11 +11,11 @@ from textual.widgets import Static
 from ui_theme.effects import Wipe, Band
 from ui_theme.scheme import AccentColour, PrimaryColour
 
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import AutoWidth, NoWrap, OneRow
 
 
-class FutureText(AutoWidth, OneRow, NoWrap, Animated[Band], Static):
+class FutureText(EffectInContent, AutoWidth, OneRow, NoWrap, Animated[Band], Static):
     """Reveal one text from elapsed time, then leave it still."""
 
     native_theme = (NativeDeclaration.of(Styles.color, Variable(PrimaryColour.name)),)
