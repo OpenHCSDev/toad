@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .agent_session import SessionDisposition
     from .agent_controller import SessionBinding
 from acp.exceptions import RequestError
-from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 
 
 @dataclass(frozen=True)
@@ -79,7 +79,7 @@ class ClientRequestOwner:
     def __init__(self, agent):
         self.agent = agent
 
-    def session_request(self, session_id):
-        request = ClientSessionRequest(self.agent, session_id)
+    def session_request(self, session_id: str):
+        request = ClientSessionRequest(self.agent, FieldCodec.decode(AcpSessionId, session_id))
         request.require()
         return request

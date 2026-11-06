@@ -26,6 +26,7 @@ from toad.acp.agent_session import AgentSession
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 from toad.resource_release import AsyncResourceRelease
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 
 
 class AgentProcess(Client):
@@ -113,9 +114,10 @@ class AgentProcess(Client):
             session.agent.log(line)
 
     def recipient(self, session_id: str):
+        selected = FieldCodec.decode(AcpSessionId, session_id)
         members = tuple(member.agent for member in self.sessions if member.accepts_updates)
         for agent in members:
-            if agent.session.accepts_session(session_id):
+            if agent.session.accepts_session(selected):
                 return agent
         if len(members) == 1 and not members[0].controller.session.bound:
             return members[0]
