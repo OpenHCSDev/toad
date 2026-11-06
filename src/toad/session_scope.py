@@ -48,9 +48,10 @@ from toad.widgets.side_bar import SideBar
 from toad.agent_schema import AgentDefinition
 from toad.comms_root import CoordinationAccess, Observing
 
+from toad.conversation_kind import DmConversation
+from toad.navigation_target import NavigationTarget
+
 if TYPE_CHECKING:
-    from toad.conversation_kind import DmConversation
-    from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
     from toad.widgets.conversation import Conversation
@@ -136,13 +137,12 @@ class TranscriptScope(ABC):
         owner: SubmissionOwner,
         submission: SubmittedText,
         view: Conversation,
-        conversation_type: type[DmConversation],
         sources: MailboxSent,
     ) -> SubmissionStart: ...
 
     @abstractmethod
     async def show_mailbox_status(
-        self, view: Conversation, conversation_type: type[DmConversation]
+        self, view: Conversation
     ) -> None: ...
 
 
@@ -225,19 +225,18 @@ class KnownTranscript(TranscriptScope):
         owner: SubmissionOwner,
         submission: SubmittedText,
         view: Conversation,
-        conversation_type: type[DmConversation],
         sources: MailboxSent,
     ) -> SubmissionStart:
         return owner.start_bus(submission, MailboxDestination(
-            self.root, self.mailbox_conversation(view, conversation_type), self, view, sources))
+            self.root, self.mailbox_conversation(view), self, view, sources))
 
     async def show_mailbox_status(
-        self, view: Conversation, conversation_type: type[DmConversation]
+        self, view: Conversation
     ) -> None:
         """A CLI thread shows the same Core configuration answer a DM shows."""
         try:
             observed = await view.app.preparation.run_thread(view.app.coordination_access.observing, self.root)
-            status = await self.mailbox_conversation(view, conversation_type).status_text(
+            status = await self.mailbox_conversation(view).status_text(
                 observed, read_only=False
             )
         except (CoordinationReadUnavailable, ReadAgain):
@@ -251,10 +250,8 @@ class KnownTranscript(TranscriptScope):
         return view.is_attached and view.transcript.binding.thread_scope == self
 
     @staticmethod
-    def mailbox_conversation(
-        view: Conversation, conversation_type: type[DmConversation]
-    ) -> DmConversation:
-        return conversation_type(
+    def mailbox_conversation(view: Conversation) -> DmConversation:
+        return DmConversation(
             view.query_ancestor(SessionScope).thread_identity.thread_incarnation()
         )
 
@@ -313,13 +310,12 @@ class NoTranscript(TranscriptScope):
         owner: SubmissionOwner,
         submission: SubmittedText,
         view: Conversation,
-        conversation_type: type[DmConversation],
         sources: MailboxSent,
     ) -> SubmissionStart:
         return owner.unbound(submission, TranscriptNotReady())
 
     async def show_mailbox_status(
-        self, view: Conversation, conversation_type: type[DmConversation]
+        self, view: Conversation
     ) -> None:
         """No bound thread has no configuration to show."""
 

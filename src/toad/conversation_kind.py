@@ -32,7 +32,7 @@ from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 
 from toad.bus_submission import MessageDestination
-from toad.conversation_submission import ConversationSubmissions
+from toad.bus_submission import SubmissionOwner
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
 from toad.referenced_core import ReferencedCore
@@ -139,7 +139,7 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     def compose_activity(cls, view: CommsChatView) -> ComposeResult: ...
 
     @abstractmethod
-    def prompt(self, project: Checkout, *, submissions: ConversationSubmissions): ...
+    def prompt(self, project: Checkout, *, submissions: SubmissionOwner): ...
 
     @classmethod
     def seen_page(cls, history: WireHistory, seen):
@@ -206,7 +206,7 @@ class ChannelConversation(ConversationKind):
     def initial_placeholder(self) -> str:
         return f"Message {self.target.name}"
 
-    def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
+    def prompt(self, project: Checkout, *, submissions: SubmissionOwner):
         return ChannelPrompt(project=project, placeholder=self.initial_placeholder, submissions=submissions)
 
     def read_only(self, core: CoreAccess) -> bool:
@@ -296,7 +296,7 @@ class DmConversation(ConversationKind):
         view.thread_activity = ConversationSessionDetails(view.conversation.peer)
         yield view.thread_activity
 
-    def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
+    def prompt(self, project: Checkout, *, submissions: SubmissionOwner):
         return MessagePrompt(project=project, submissions=submissions)
 
     async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
