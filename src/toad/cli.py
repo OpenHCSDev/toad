@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import sys
 from typing import TYPE_CHECKING
 
@@ -110,6 +111,11 @@ class AcpCommand(click.Command):
 def main(ctx, version):
     """🐸 Toad — AI for your terminal."""
     launch_root.started()
+    # Toad's entry is its package __main__, whichever launcher ran it: say so, as `python -m
+    # toad` does. A console script leaves __main__ without a spec, so every spawned helper
+    # (render workers, the observation service) re-runs the script and imports the whole app
+    # before its own work; a `.__main__` spec is the one spawn skips (multiprocessing/spawn.py).
+    sys.modules["__main__"].__spec__ = importlib.util.find_spec("toad.__main__")
     if version:
         from toad import get_version
 
