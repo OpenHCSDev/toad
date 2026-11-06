@@ -484,15 +484,13 @@ class ForwardsCursor(MovesCursor):
 
     @property
     @abstractmethod
-    def cursor_owner(self) -> MovesCursor | None: ...
+    def cursor_owner(self) -> MovesCursor: ...
 
     def action_cursor_up(self) -> None:
-        if owner := self.cursor_owner:
-            owner.action_cursor_up()
+        self.cursor_owner.action_cursor_up()
 
     def action_cursor_down(self) -> None:
-        if owner := self.cursor_owner:
-            owner.action_cursor_down()
+        self.cursor_owner.action_cursor_down()
 
 
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):

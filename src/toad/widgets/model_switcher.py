@@ -11,8 +11,7 @@ from typing import TYPE_CHECKING, Self, Protocol
 from textual import getters, on, work
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
-from textual.navigation import MovesCursor
-from toad.widget_actions import WidgetAction, PriorityActions, Submits, DismissibleControl
+from toad.widget_actions import ForwardsCursor, WidgetAction, PriorityActions, Submits, DismissibleControl
 from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.css.native import Keyword, NativeDeclaration, Variable
@@ -131,7 +130,7 @@ class ModelOptionList(Borderless, AutoHeight, NoPadding, PaddedOptionRows, Selec
 class ModelSelection(
     SpacedAround,
     PriorityActions,
-    MovesCursor,
+    ForwardsCursor,
     Submits,
     DismissibleControl,
     CoreEventReceiver,
@@ -257,16 +256,18 @@ class ModelSelection(
             if model.value != model.name:
                 label += Content.styled(f" · {model.value}", "dim")
             options.append(Option(label, id=model.value))
-        self.option_list.set_options(options)
-        if options:
-            ids = [option.id for option in options]
-            self.option_list.highlighted = (
-                ids.index(previous_id)
-                if preserve_selection and previous_id in ids
-                else 0
-            )
-        else:
-            self.option_list.highlighted = None
+        # Only the user moves the highlight with an OptionHighlighted; see on_option_highlighted.
+        with self.option_list.prevent(OptionList.OptionHighlighted):
+            self.option_list.set_options(options)
+            if options:
+                ids = [option.id for option in options]
+                self.option_list.highlighted = (
+                    ids.index(previous_id)
+                    if preserve_selection and previous_id in ids
+                    else 0
+                )
+            else:
+                self.option_list.highlighted = None
         self.query_one(ModelCount).update(
             f"{len(options)} / {len(models)} {self.choice_name} · {'best matches' if terms else 'recent first' if recent else 'current first'}"
             if options
@@ -286,10 +287,7 @@ class ModelSelection(
 
     @on(OptionList.OptionHighlighted, "SelectionOptionList")
     def on_option_highlighted(self, event: OptionList.OptionHighlighted):
-        event.stop()
-
-    @on(SelectionOptionList.PointerSelected)
-    def on_pointer_selected(self, event: SelectionOptionList.PointerSelected) -> None:
+        """Arrow keys and the pointer: filter_models moves the highlight without this event."""
         event.stop()
         self._selection_moved = True
 
@@ -299,13 +297,9 @@ class ModelSelection(
         if event.option_id is not None:
             self.select_model(event.option_id)
 
-    def action_cursor_up(self):
-        self._selection_moved = True
-        self.option_list.action_cursor_up()
-
-    def action_cursor_down(self):
-        self._selection_moved = True
-        self.option_list.action_cursor_down()
+    @property
+    def cursor_owner(self) -> SelectionOptionList:
+        return self.option_list
 
     def submit(self):
         connect = self.query_one(ConnectProvider)

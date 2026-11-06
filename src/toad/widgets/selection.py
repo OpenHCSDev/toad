@@ -11,7 +11,6 @@ from rich.style import Style
 from textual import events, on
 from textual._paint_state import PaintState
 from textual.content import Content
-from textual.message import Message
 from textual.strip import Strip
 from textual.visual import VisualType
 from textual.widgets import ListItem, ListView, OptionList, Static
@@ -125,9 +124,6 @@ class ColourSelection(HoverSelection):
 
 
 class SelectionOptionList(OptionList):
-    class PointerSelected(Message):
-        pass
-
     def _on_mouse_move(self, event: events.MouseMove) -> None:
         event.prevent_default()
         self._mouse_hovering_over = None
@@ -135,7 +131,6 @@ class SelectionOptionList(OptionList):
         if isinstance(index, int) and 0 <= index < self.option_count:
             if index != self.highlighted and not self.get_option_at_index(index).disabled:
                 self.highlighted = index
-                self.post_message(self.PointerSelected())
 
 
 class SelectionListItem(ListItem):
