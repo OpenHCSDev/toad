@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from agent_comms.repo import Checkout, Repo
 from agent_comms.launch_root import LaunchRoot
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from contextlib import asynccontextmanager
 from functools import cached_property
 import os
@@ -106,10 +107,9 @@ class Workspace:
         to resume (``resume``); ``session=False`` yields what it started with.
         ``connection`` selects the Core; by default the workspace's own local root.
         """
-        launch = {} if resume is None else {"agent_session_id": resume}
         app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project),
                                       connection=(connect or self.local_connection.from_launch)(self.launch_root),
-                                      **launch)
+                                      agent_session_id=FieldCodec.decode(AcpSessionId | NoAcpSessionId, resume))
         async with app.run_test(size=size, notifications=notifications) as pilot:
             await app.application.start_worker.wait()
             ui = TextualUi(app, pilot)
