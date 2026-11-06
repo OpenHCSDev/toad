@@ -7,7 +7,7 @@ from importlib import import_module
 import platform
 from time import monotonic
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, ClassVar
+from typing import TYPE_CHECKING, Awaitable, Callable, ClassVar
 
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
@@ -130,15 +130,16 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
-        destination = None
+        restored: Callable[[], Awaitable[None]] = self.restore_nothing
         for identity in await app.tab_order.load():
             try:
-                destination = await identity.restore(app.session_navigation)
+                restored = partial(app.session_navigation.open,
+                                   await identity.restore(app.session_navigation))
             except TabTargetGone as error:
                 await app.tab_order.close((identity,))
                 app.log.error(f"Removed stale tab {error.identity}: {error.reason}")
         await self.resumed_session.selected(
-            partial(self.open_restored, destination),
+            restored,
             lambda resumed: partial(self.open_resumed, resumed),
         )()
         if not app.tab_order.names:
@@ -149,9 +150,8 @@ class ApplicationLifetime:
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)
         app.update_show_sessions()
 
-    async def open_restored(self, destination) -> None:
-        if destination is not None:
-            await self.app.session_navigation.open(destination)
+    async def restore_nothing(self) -> None:
+        """No saved tab came back; the home tab below is selected instead."""
 
     async def open_resumed(self, resumed: AcpSessionId) -> None:
         """The thread's declaration decides how it opens, as from the sidebar."""

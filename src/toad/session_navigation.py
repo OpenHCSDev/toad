@@ -322,8 +322,9 @@ class SessionNavigation(StartsSessions):
 
         app = self.app
         database = await app.get_db()
-        make_binding: Callable[[AgentDefinition], AgentBinding] = agent_session_id.selected(
-            AgentAttached, lambda resumed: partial(AgentSession, session_id=resumed)
+        fresh: Callable[[AgentDefinition], AgentBinding] = AgentAttached
+        make_binding = agent_session_id.selected(
+            fresh, lambda resumed: partial(AgentSession, session_id=resumed)
         )
         existing = next(
             (

@@ -196,7 +196,7 @@ class ProjectionAttachment:
     def callback(
         self, value: CursorEnvelope | QueueChangedUpdate | None, session_id: AcpSessionId
     ) -> str:
-        if not self._session_id.admits(session_id):
+        if not self._session_id.accepts(session_id):
             return "reject_foreign_session"
         if self._evidence_lost:
             return "reject_evidence_lost"
