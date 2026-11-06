@@ -113,7 +113,8 @@ from toad.session_observation import (
     SessionObservation,
 )
 from toad.navigation_context import NavigationScope
-from toad.session_scope import SessionScope, TranscriptScope
+from toad.session_scope import SessionScope
+from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
@@ -540,7 +541,7 @@ class ConversationSessionBinding(
         return self.query_ancestor(SessionScope).origin.transcript_scope()
 
     def status_thread(self) -> StatusThread:
-        return self.transcript.binding.thread_scope.status_thread(
+        return self.thread_scope.status_thread(
             self.app.coordination_access
         )
 
@@ -922,6 +923,7 @@ class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
 
 
 class Conversation(
+    TranscriptView,
     FollowsLayoutPreferences,
     QueueEvidenceOwner,
     ConversationCommsHandlers,
@@ -932,6 +934,10 @@ class Conversation(
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
+
+    @property
+    def thread_scope(self) -> TranscriptScope:
+        return self.transcript.binding.thread_scope
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""

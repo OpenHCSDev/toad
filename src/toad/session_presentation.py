@@ -22,7 +22,7 @@ from agent_comms.message_reference import MessageReference
 
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
-from toad.session_scope import MailboxSent
+from toad.transcript_scope import MailboxSent
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
 from toad.native_style import StartsHidden
@@ -195,7 +195,7 @@ class OperationalSessionSources(NativeQueueSource):
         return agent.readiness_decision.then(
             lambda: agent.configuration.model.input_decision
         ).then(
-            lambda: conversation.transcript.binding.thread_scope.owner_decision(
+            lambda: conversation.thread_scope.owner_decision(
                 conversation.thread_presentation
             )
         )
@@ -279,7 +279,7 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
 
     def thread_presented(self, conversation: Conversation) -> None:
         conversation.run_worker(
-            conversation.transcript.binding.thread_scope.show_mailbox_status(conversation),
+            conversation.thread_scope.show_mailbox_status(conversation),
             group="mailbox-status",
             exclusive=True,
         )
@@ -292,7 +292,7 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
     def begin_submission(self, owner, submission):
         """A CLI thread's input is a message to its inbox, queued like a prompt."""
         view = owner.view
-        return view.transcript.binding.thread_scope.begin_mailbox(owner, submission, view, self)
+        return view.thread_scope.begin_mailbox(owner, submission, view, self)
 
     async def mailbox_sent(self, view: Conversation, sent: MessageReference) -> None:
         """Follow the transcript's end; the inbox message shows once the thread records it."""

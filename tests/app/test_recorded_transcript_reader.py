@@ -17,7 +17,7 @@ from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
 from support.coordination import coordination_fact
 from agent_comms.thread_identity import ThreadIncarnationRecord
-from toad.session_scope import KnownTranscript
+from toad.transcript_scope import KnownTranscript
 
 
 @pytest.fixture

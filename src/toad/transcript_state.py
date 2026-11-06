@@ -334,7 +334,7 @@ class WaitingSourceWork[Result]:
     def observe(self):
         from toad.widgets.conversation import Conversation
 
-        scope = self.owner.query_ancestor(Conversation).transcript.binding.thread_scope
+        scope = self.owner.query_ancestor(Conversation).thread_scope
         with self.owner.app.coordination_access.observe_thread_changes(self.owner, scope, self.resume):
             yield self
 
