@@ -139,13 +139,14 @@ def test_sshd_sessions_read_the_ssh_arrangement():
 
 
 @pytest.mark.parametrize("edge", (TopSidebarEdge, BottomSidebarEdge))
-def test_a_collapsed_top_or_bottom_bar_is_two_rows_with_its_arrow_on_both(edge):
+def test_a_collapsed_top_or_bottom_bar_is_two_rows_its_heading_between_arrows(edge):
     layout = layout_for()
     layout.move(ChannelsSidebarPlacement, edge)
     resolved = layout.resolve(Size(60, 30), {ChannelsSidebarPlacement: True, ThreadSidebarPlacement: True})
     assert resolved.bars[ChannelsSidebarPlacement].height == 2
     for collapsed in (False, True):
-        assert edge.toggle_text(collapsed).split("\n") == [edge.toggle_symbol(collapsed)] * 2
+        symbol = edge.toggle_symbol(collapsed)
+        assert edge.toggle_text(collapsed, "all").split("\n") == [f"{symbol}  all  {symbol}", symbol]
 
 
 @pytest.mark.parametrize("side, resized, percent", list(product(
@@ -187,3 +188,34 @@ def test_a_band_split_shares_the_width_survives_other_changes_and_keeps_both_bar
     assert layout.splits_after(layout.ordered()[0]) != layout.splits_after(layout.ordered()[1])
     reloaded = layout_for(SavedSettings(layout.settings.document()))
     assert reloaded.split(side) == 0 and reloaded.placements == layout.placements, "The split is saved"
+
+
+@pytest.mark.parametrize("side", SidebarEdge.members_with(HeightSidebarEdge))
+def test_one_open_bar_in_a_band_takes_the_band_and_only_two_open_bars_split_it(side):
+    """A folded bar beside an open one keeps only the narrowest width; it held half the band,
+    so the open bar got half the room it asked for."""
+    layout = layout_for()
+    layout.move(ChannelsSidebarPlacement, side)
+    layout.move(ThreadSidebarPlacement, side)
+    first, second = layout.ordered()
+
+    def widths(collapsed: dict) -> list[int]:
+        bars = layout.resolve(Size(80, 40), collapsed).bars
+        return [bars[key].width for key in (first, second)]
+
+    narrowest = HeightSidebarEdge.cross_minimum
+    assert widths({first: False, second: False}) == [40, 40]
+    assert widths({first: False, second: True}) == [80 - narrowest, narrowest]
+    assert widths({first: True, second: False}) == [narrowest, 80 - narrowest]
+    assert widths({first: True, second: True}) == [40, 40], "Two folded bars still share the band"
+
+
+def test_the_thread_bar_names_the_viewed_tab_and_the_channels_bar_its_scope():
+    """The toggle names what the bar shows: the viewed tab's own title, the one the tab bar
+    draws, or the bar's scope while no tab is viewed."""
+    assert ThreadSidebarPlacement.heading(["#comms"]) == "#comms"
+    assert ThreadSidebarPlacement.heading([]) == ThreadSidebarPlacement.scope
+    assert ChannelsSidebarPlacement.heading(["#comms"]) == ChannelsSidebarPlacement.scope
+    for edge in EDGES:
+        text = edge.toggle_text(False, "#comms")
+        assert "#comms" in text.replace("\n", "") and text.count(edge.toggle_symbol(False)) >= 2
