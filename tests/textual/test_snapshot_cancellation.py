@@ -16,7 +16,6 @@ from support import journals
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from toad.live_output import ResponseStream
-from support.textual_steps import saved_history
 
 
 def saved_page(workspace, name):
@@ -29,22 +28,26 @@ def saved_page(workspace, name):
     return workspace.comms.transcripts.capture_page_read(name).read()
 
 
-async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_history_and_covered_stream(workspace):
-    """Cancel an accepted commit while the live output owner is held."""
+async def test_a_source_change_replaces_the_history_and_a_cancelled_commit_retires_the_covered_stream(workspace):
+    """The source change retires the old history at delivery; the output lock holds only its own
+    stream blocks, so a commit cancelled under it detaches the covered block once released."""
     old_page, new_page = saved_page(workspace, "old"), saved_page(workspace, "replacement")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
         agent = ui.detached_agent("snapshot-cancel")
         ui.attach_agent(agent)
-        old = await saved_history(view, old_page, view.transcript.get_transcript_page)
-        await view.contents.mount(old)
-        await ui.until(lambda: old in view.window.histories, why="the old history")
-        thread = workspace.comms.registry.require("replacement")
-        coordination = replace(
-            coordination_fact(workspace.comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
-                              worktree=workspace.project, model="test-model"),
-            thread=thread.incarnation)
-        await deliver(agent, carrying(coordination))
+        owner = ProcessIdentity.capture(os.getpid())
+        # The conversation owns its history: the agent coordinates a saved thread, and the
+        # binding reads that thread's page as its own history.
+        await deliver(agent, carrying(coordination_fact(
+            workspace.comms, "old", owner=owner, worktree=workspace.project, model="test-model")))
+        await ui.until(lambda: view.transcript.binding.history.page_source.through == old_page.after,
+                       why="the old thread's saved page as the conversation's history")
+        old = view.transcript.binding.history
+        await deliver(agent, carrying(coordination_fact(
+            workspace.comms, "replacement", owner=owner, worktree=workspace.project, model="test-model")))
+        await ui.until(lambda: not old.is_attached and old not in view.window.histories,
+                       why="the source change replacing the old history at delivery")
         agent.session.settled.set()
         # A live stream block that the saved page already covers.
         block = await view.output.append(ResponseStream(), new_page.events[0].text)
@@ -53,10 +56,9 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         async with view.output.lock:
             # The transcript owner runs its own commit; a second one built here would race it.
             view.transcript.require_commit()
-            await ui.until(lambda: not old.display and not block.display,
-                           why="accepted source retirement to withdraw both original resources")
-            # Withdrawal is synchronous; the real output lock still prevents teardown.
-            assert old.is_attached and block.is_attached
+            await ui.until(lambda: not block.display, why="the commit withdrawing the covered block")
+            # Withdrawal is synchronous; the output lock holds its own stream's teardown.
+            assert block.is_attached
             # Joining retirement must not retain the source and tree locks.
             async with asyncio.timeout(5):
                 async with view.window.history_lock:
@@ -68,7 +70,6 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         with pytest.raises(WorkerCancelled):
             await asyncio.wait_for(work.worker.wait(), 5)
         await ui.step(0.1)
-        assert not old.is_attached, "Accepted cancellation abandoned the old history"
-        assert old not in view.window.histories, "Accepted cancellation kept two histories"
+        assert len(view.window.histories) == 1, "The cancelled commit left two histories"
         assert not block.is_attached, "The covered live stream block survived retirement"
         assert ResponseStream not in view.output.streams, "The retired source kept its stream association"
