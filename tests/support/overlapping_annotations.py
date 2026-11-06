@@ -22,7 +22,9 @@ from agent_comms.working_memory_labels import (
 )
 from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
 from agent_comms.threads import NativeThread
-from toad.core.context_inspection import ContextInspection
+from agent_comms.core_access import LocalCoreAccess
+from toad.core.context_inspection import ContextInspection, ThreadInspectionSource
+from toad.core.context_reads import ContextReads
 
 
 @dataclass(frozen=True)
@@ -35,6 +37,21 @@ class OverlappingAnnotations:
     long: object
     corrected: HumanLabel
     refined_groups: tuple
+
+
+@dataclass(frozen=True)
+class LocalContextReads(ContextReads):
+    """The fixture's Core, read the way an Observing reads it, without an observation process."""
+
+    service: Comms
+
+    @property
+    def core(self) -> LocalCoreAccess:
+        return LocalCoreAccess(self.service)
+
+    @property
+    def root(self) -> Path:
+        return self.service.root
 
 
 def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
@@ -59,9 +76,10 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         (observed,), "authored-navigation")
     comms = Comms(resolve_comms_route(directory / "unused-wire"))
     comms.registry.declare(owner)
+    entry = comms.registry.entry(owner.name).entry
     page = ContextManifestPage((comms.contexts.record_after(UNREAD_CONTEXT, manifest),))
-    inspection = ContextInspection(comms.registry.entry(owner.name).entry, page,
-                                   NoSessionObservation(), comms, labels)
+    inspection = ThreadInspectionSource().project_value(entry.status)(
+        entry, page, NoSessionObservation(), LocalContextReads(comms), labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()
     corrected = HumanLabel.correct(labels[0], RuleSpan, RecordedThreadIncarnation("authored-user", 2.0))
