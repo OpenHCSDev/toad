@@ -34,6 +34,9 @@ class SendState:
         """Whether this send is now drawn in `view`, so compose can open again."""
         return False
 
+    def abandoned(self, view: "DeliveryFailureView", body: str) -> None:
+        """The send's own failure handling already answered; nothing is left pending."""
+
 
 class NoSend(SendState):
     pass
@@ -41,6 +44,10 @@ class NoSend(SendState):
 
 class SendPending(SendState):
     reason = "Send pending; do not retry"
+
+    def abandoned(self, view: "DeliveryFailureView", body: str) -> None:
+        """The send failed before its request left: nothing was sent, compose reopens."""
+        view.delivery_refused("the send failed before it left this machine", body)
 
 
 @dataclass(frozen=True)
@@ -54,15 +61,6 @@ class SentUndrawn(SendState):
 
     def drawn_in(self, view) -> bool:
         return view.draws_user_message(self.sent)
-
-
-@dataclass(frozen=True)
-class SendBlocked(SendState):
-    description: str
-
-    @property
-    def reason(self) -> str:
-        return f"Send blocked: {self.description}"
 
 
 class DeliveryFailureView(ToadNode, Widget):
@@ -150,6 +148,11 @@ class DeliveryFailureView(ToadNode, Widget):
         except (HumanSendError, RouteChangedError) as error:
             delivery_failure(error).present(self, body)
             return
+        except Exception:
+            # An unexpected failure still fails loudly; it never leaves compose held by a
+            # send that is no longer running.
+            self._send_state.abandoned(self, body)
+            raise
         if sent is None:
             return
         await present(sent)
@@ -159,11 +162,15 @@ class DeliveryFailureView(ToadNode, Widget):
         try:
             sent = await asyncio.shield(task)
         except asyncio.CancelledError:
-            self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
+            self.delivery_unknown("the send was cancelled while it may still be writing", body)
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             return None
         except CommittedMessageError as error:
             sent = error.record.reference
+        except Exception:
+            # The request left: Core may have published it. Raise for the log, never hold compose.
+            self.delivery_unknown("its reply could not be read", body)
+            raise
         self._enter_send_state(SentUndrawn(observed.root, sent))
         return sent
 
@@ -172,10 +179,14 @@ class DeliveryFailureView(ToadNode, Widget):
         if self._send_state.drawn_in(self):
             self._enter_send_state(NoSend())
 
-    def delivery_blocked(self, description: str, body: str) -> None:
+    def delivery_unknown(self, description: str, body: str) -> None:
+        """The request may have reached Core. The owner sees whether it landed in this view,
+        so compose reopens with the draft instead of locking on an answer it cannot get."""
         self.prompt.restore_draft(body)
-        self._enter_send_state(SendBlocked(description))
-        self.feedback.flash(self.send_block_reason, style="error")
+        self._enter_send_state(NoSend())
+        self.feedback.flash(
+            f"Send outcome unknown: {description}. Check this conversation before resending.",
+            style="error")
 
     def delivery_refused(self, description: str, body: str) -> None:
         self.prompt.restore_draft(body)
