@@ -166,7 +166,7 @@ class ThreadIdentity(NamedThreadIdentity):
         return self.root_path == root
 
     def transcript_scope(self) -> KnownTranscript:
-        return KnownTranscript(self.root, self.thread_name())
+        return KnownTranscript(self.root, self.owner)
 
     def transcript_state(self):
         return UnreadTranscript()

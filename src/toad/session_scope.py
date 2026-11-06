@@ -90,9 +90,7 @@ class TranscriptScope(ABC):
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision: ...
 
     @abstractmethod
-    def original_threads(
-        self, identity: SessionIdentity
-    ) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
+    def original_threads(self) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
 
     @abstractmethod
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool: ...
@@ -148,9 +146,15 @@ class TranscriptScope(ABC):
 
 @dataclass(frozen=True)
 class KnownTranscript(TranscriptScope):
+    """A transcript of one thread birth: a redeclared thread with the same name is another scope."""
+
     root: str
-    name: str
+    incarnation: ThreadIncarnation
     readable = True
+
+    @property
+    def name(self) -> str:
+        return self.incarnation.name
 
     def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
         observed = observing()
@@ -161,10 +165,8 @@ class KnownTranscript(TranscriptScope):
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
         return ExistingOwnerPlan.from_binding(presentation.binding).decision
 
-    def original_threads(
-        self, identity: SessionIdentity
-    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
-        return ((self.root, identity.thread_incarnation()),)
+    def original_threads(self) -> tuple[tuple[str, ThreadIncarnation], ...]:
+        return ((self.root, self.incarnation),)
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
         registry = access.observing(self.root).registry_for(session_id, self.name)
@@ -228,7 +230,7 @@ class KnownTranscript(TranscriptScope):
         sources: MailboxSent,
     ) -> SubmissionStart:
         return owner.start_bus(submission, MailboxDestination(
-            self.root, self.mailbox_conversation(view), self, view, sources))
+            self.root, self.mailbox_conversation(), self, view, sources))
 
     async def show_mailbox_status(
         self, view: Conversation
@@ -236,7 +238,7 @@ class KnownTranscript(TranscriptScope):
         """A CLI thread shows the same Core configuration answer a DM shows."""
         try:
             observed = await view.app.preparation.run_thread(view.app.coordination_access.observing, self.root)
-            status = await self.mailbox_conversation(view).status_text(
+            status = await self.mailbox_conversation().status_text(
                 observed, read_only=False
             )
         except (CoordinationReadUnavailable, ReadAgain):
@@ -249,11 +251,8 @@ class KnownTranscript(TranscriptScope):
         """This transcript is still the one the view is bound to."""
         return view.is_attached and view.transcript.binding.thread_scope == self
 
-    @staticmethod
-    def mailbox_conversation(view: Conversation) -> DmConversation:
-        return DmConversation(
-            view.query_ancestor(SessionScope).thread_identity.thread_incarnation()
-        )
+    def mailbox_conversation(self) -> DmConversation:
+        return DmConversation(self.incarnation)
 
 
 @dataclass(frozen=True)
@@ -263,9 +262,7 @@ class NoTranscript(TranscriptScope):
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
         return InputAccepted()
 
-    def original_threads(
-        self, identity: SessionIdentity
-    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
+    def original_threads(self) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:

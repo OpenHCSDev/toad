@@ -16,6 +16,7 @@ from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
 from support.coordination import coordination_fact
+from agent_comms.thread_identity import ThreadIncarnationRecord
 from toad.session_scope import KnownTranscript
 
 
@@ -36,7 +37,7 @@ async def test_recorded_snapshot_stays_immutable_when_original_grows_and_rejects
 
     async with workspace.app() as ui:
         reader = ui.app.coordination_access.transcripts
-        update = await reader.snapshot(KnownTranscript(str(live.root), "reader"),
+        update = await reader.snapshot(KnownTranscript(str(live.root), ThreadIncarnationRecord("reader", 20.0).incarnation()),
                                        page_source=RecordedPageSource(source.key))
         assert isinstance(update.identity, RecordedTranscriptReadIdentity)
         assert decode_updates(encode_updates(update)) == (update,)
@@ -77,7 +78,7 @@ async def test_recorded_presentation_does_not_acquire_live_owner(recorded, works
 
 def test_known_transcript_requests_carry_the_page_operation_and_keep_root_at_the_envelope(recorded):
     live, source, _native = recorded
-    scope = KnownTranscript(str(live.root), "reader")
+    scope = KnownTranscript(str(live.root), ThreadIncarnationRecord("reader", 20.0).incarnation())
     cursor = live.transcripts.capture_page_read("reader", page_source=RecordedPageSource(source.key)).read().after
     snapshot = scope.snapshot_request(position=EarlierThan(cursor), page_source=RecordedPageSource(source.key))
     assert snapshot.root == str(live.root)
