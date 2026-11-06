@@ -90,11 +90,9 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     def original_channels(self) -> tuple[tuple[str, str], ...]:
         return ()
 
-    def entered(self, previous: str) -> None:
-        """Only entries with a return destination retain entry intent."""
-
     async def return_to(self, sessions: SessionNavigation) -> None:
-        await sessions.app.select_session(sessions.previous(self.identity))
+        """Back to the tab selected before this one; the visit history owns that."""
+        await sessions.app.select_session(sessions.came_from(self.identity))
 
     def forget(self, sessions: SessionNavigation) -> None:
         """End the view's observations before forgetting its logical membership."""
@@ -273,17 +271,15 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
 class PreviewSessionEntry(SessionEntry):
     """A read-only file in its own tab."""
 
-    def __init__(self, identity: TabIdentity, path: Path, origin: str) -> None:
+    def __init__(self, identity: TabIdentity, path: Path) -> None:
         super().__init__(identity)
-        self.path, self.origin = path, origin
+        self.path = path
 
     @classmethod
-    def of(cls, identity: TabIdentity, path: Path, origin: str) -> PreviewSessionEntry:
+    def of(cls, identity: TabIdentity, path: Path) -> PreviewSessionEntry:
         from toad.acp.agent_log import AgentLog
 
-        return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(
-            identity, path, origin
-        )
+        return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(identity, path)
 
     def __call__(self):
         from toad.screens.file_preview import FilePreviewScreen
@@ -306,18 +302,6 @@ class PreviewSessionEntry(SessionEntry):
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.identity, self.title)
 
-    def entered(self, previous: str) -> None:
-        if previous != self.mode:
-            self.origin = previous
-
-    async def return_to(self, sessions: SessionNavigation) -> None:
-        app = sessions.app
-        target = (
-            self.origin
-            if sessions.get(self.origin) is not None
-            else sessions.previous(self.identity)
-        )
-        await app.select_session(target)
 
 
 class AcpLogSessionEntry(PreviewSessionEntry):

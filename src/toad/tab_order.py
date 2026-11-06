@@ -112,6 +112,10 @@ class TabOrder:
             else:
                 self._focus(mode, index)
 
+    def came_from(self, current: TabIdentity) -> TabIdentity | None:
+        """The tab selected before ``current``: the newest other visit, then the open tabs."""
+        return next((mode for mode in self.recent if mode != current), None)
+
     def record_visit(self, mode: TabIdentity, history_index: int | None = None) -> None:
         if mode not in self:
             return

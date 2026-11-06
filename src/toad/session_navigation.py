@@ -139,6 +139,10 @@ class SessionNavigation(StartsSessions):
         entry = self.get(mode)
         return self.app.session_tracker.get_session(entry.identity) if entry else None
 
+    def came_from(self, current: TabIdentity) -> str:
+        identity = self.app.tab_order.came_from(current)
+        return identity.mode_name if identity is not None else self.app.tab_order.home
+
     def previous(self, current: TabIdentity, *, eligible=None) -> str:
         identity = self.app.tab_order.previous(current, eligible=eligible)
         return identity.mode_name if identity is not None else self.app.tab_order.home
@@ -438,9 +442,7 @@ class SessionNavigation(StartsSessions):
         path = path.expanduser().resolve()
         entry = self.find(path)
         if entry is None:
-            entry = PreviewSessionEntry.of(
-                PreviewTab(path), path, self.app.selected_mode
-            )
+            entry = PreviewSessionEntry.of(PreviewTab(path), path)
             await self.open(entry, after=self.app.selected_mode)
         else:
             await self.app.select_session(entry.mode)
@@ -448,10 +450,6 @@ class SessionNavigation(StartsSessions):
             view = self.app.workspace_sessions.views[entry.mode]
             await view.preview.reveal(position)
         return entry.mode
-
-    def entered(self, mode: str, previous: str) -> None:
-        if entry := self.get(mode):
-            entry.entered(previous)
 
     async def return_from(self, mode: str) -> None:
         if entry := self.get(mode):
