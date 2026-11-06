@@ -140,7 +140,7 @@ class DB:
     async def tab_roster(self, scopes: tuple[TabScope, ...], identities: tuple[TabIdentity, ...]) -> None:
         """Replace these scopes' tabs and only theirs, writing them under the first: another
         Core's Toad keeps its own."""
-        def write(db):
+        def write(db: sqlite3.Connection) -> None:
             for scope in scopes:
                 OpenTabRow.delete(db, scope=scope)
             for position, identity in enumerate(identities):
@@ -149,7 +149,7 @@ class DB:
         await self._transaction(write)
 
     async def tab_list(self, scopes: tuple[TabScope, ...]) -> list[OpenTabRow]:
-        def read(db):
+        def read(db: sqlite3.Connection) -> list[OpenTabRow]:
             # The connection's own scope first, then the scopes it adopts, each in its order.
             return [row for scope in scopes
                     for row in OpenTabRow.select(db, scope=scope, order_by=("position",))]
