@@ -4,7 +4,7 @@ from __future__ import annotations
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Self, Protocol
 
@@ -129,7 +129,7 @@ class ModelOptionList(Borderless, AutoHeight, NoPadding, NoWrap, EllipsisOverflo
         self.styles.max_height = "45vh"
 
 
-class HighlightPlacement:
+class HighlightPlacement(ABC):
     """Where a refilter puts the highlight."""
 
     @abstractmethod
