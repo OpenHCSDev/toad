@@ -13,7 +13,7 @@ from agent_comms.native_build_inputs import DetachedChildStdio
 from support.agents import deliver
 
 
-PRODUCER = Path(__file__).resolve().parents[1] / "support/peers/typed_turn_events.py"
+PRODUCER = Path(__file__).resolve().parents[1] / "support/core_adapters/typed_turn_events.py"
 
 
 async def test_core_compaction_publications_retain_the_active_turn_and_refuse_a_finished_cut(workspace):

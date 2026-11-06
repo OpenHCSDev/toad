@@ -40,7 +40,7 @@ def notes(view):
 
 
 @asynccontextmanager
-async def turn_source(root: Path, session_id: AcpSessionId):
+async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
     """Use the original declaration, attachment and retirement owners once."""
     # This authored owner has its own registry. Inherited public caller names
     # must not select a different participant during same-process retirement.
@@ -48,9 +48,8 @@ async def turn_source(root: Path, session_id: AcpSessionId):
     ThreadLaunch.strip(os.environ)
     try:
         async with AsyncExitStack() as resources:
-            project = root / "project"
             project.mkdir(parents=True, exist_ok=True)
-            comms = await Coordination.run_worker(partial(wire, root / "wire"))
+            comms = await Coordination.run_worker(partial(wire, wire_root))
             producer = CommsAgent(comms, runtime_enabled=False, auto_wake=False)
 
             def declare():
@@ -91,7 +90,7 @@ async def exercise_boundaries(agent, view, pilot):
 
     session_id = FieldCodec.decode(AcpSessionId, agent.session_id)
     source_root = agent.project_root_path.parent / "mcp-boundaries"
-    async with turn_source(source_root, session_id) as producer:
+    async with turn_source(source_root / "wire", source_root / "project", session_id) as producer:
         name = producer.sessions.require(session_id)
         async with AsyncExitStack() as custody:
             retired_owner = await Coordination.run_worker(partial(

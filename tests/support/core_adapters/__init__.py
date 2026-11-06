@@ -3,5 +3,7 @@
 These are not tests of this suite and nothing here runs them. agent-comms loads
 ``mcp_permission_observer.py`` through ``AC_MCP_TOAD_ADAPTER`` (tests/test_mcp_acceptance.py) and
 ``human_input_observer.py`` from its ``--toad-driver-dir`` (tests/turn_context_installed_journey.py,
-tests/test_native_context_inspection.py). Each opens the real Toad app on the wire Core's test owns.
+tests/test_native_context_inspection.py). Each opens the real Toad app on the wire Core's test owns. ``typed_turn_events.py`` is the
+one Toad itself runs (test_compaction_turn_events): it shares ``mcp_turn_boundaries.turn_source``,
+which is why it lives beside it.
 """
