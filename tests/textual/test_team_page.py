@@ -4,7 +4,7 @@ import json
 from dataclasses import replace
 
 from agent_comms.team.vibe_check import OverloadDegradation
-from agent_comms.team_hud import CodexUsage, TeamFrame, TeamHud, TeamPlan, UnreadableUsage
+from agent_comms.team_hud import TeamFrame, TeamHud, TeamPlan, CodexUsage, UnreadableUsage
 from agent_comms.team_hud_records import HudRecord, Teammate
 from agent_comms.disclosure_text import DisclosureEntry, DisclosureText, FieldKey, RootKey, StructuredText
 from agent_comms.recorded_time import RecordedEventTime
@@ -127,7 +127,9 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         assert not notice.display
         assert rows.query_one(TeamFrameView) is view
         assert view.query_one(TeamTable) is table and table.has_focus
-        assert table.selected == selected(repaired.units[0])
+        # The table takes the repaired record when it reconciles its rows, after the details do.
+        await ui.until(lambda: table.selected == selected(repaired.units[0]),
+                       why="the table to reconcile the repaired record")
         assert table.source != original_source
         assert tuple(table.entity_keys.values()) == original_keys and row_maps_cohere(table)
         assert len(view.hud.forks) == 1 and view.hud.forks[0].name == "recovered"
