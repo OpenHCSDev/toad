@@ -27,7 +27,8 @@ from toad.native_style import (
     StartsHidden,
 )
 from toad.message_rows import LiveMessageClock, MessageClock, MessageRow
-from toad.widgets.committed_presentation import CommitParticipant, block_claim
+from toad.widgets.committed_presentation import block_claim
+from toad.commit_claims import CommitParticipant
 from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
 from toad.widgets.transcript_lines import (
     BlockLines,

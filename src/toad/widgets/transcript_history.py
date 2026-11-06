@@ -72,11 +72,8 @@ from toad.transcript_state import (
     ReplacementViewportRequest,
     TranscriptState,
 )
-from toad.widgets.committed_presentation import (
-    RETAINED_SOURCE_CLAIM,
-    CommitClaim,
-    SnapshotPresentation,
-)
+from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim
 from toad.widgets.history_anchor import (
     FragmentLocation,
     FragmentNotLoaded,

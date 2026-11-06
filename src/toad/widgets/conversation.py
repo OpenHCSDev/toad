@@ -913,7 +913,7 @@ from toad.agent_schema import Command
 from toad.catalog_actions import CatalogCommandAction
 from toad.screens.action_modal import ActionModal
 from toad.db import DB
-from toad.widgets.committed_presentation import StartedInputClaim
+from toad.commit_claims import StartedInputClaim
 from toad.widgets.plan import ConversationPlan
 from toad.widgets.message_divider import AgentActivityDivider
 from toad.agent_surface import AttachedSurfaceBinding

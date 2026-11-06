@@ -16,7 +16,7 @@ from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.input_decision import InputAccepted, InputDecision, NoLiveAgent
-from toad.widgets.committed_presentation import CommitSource
+from toad.commit_claims import CommitSource
 from toad.conversation_turn import TurnOwner
 from toad.core_event_carrier import CoreEventMessage
 from toad.acp.comms_updates import NoPendingThreadRead

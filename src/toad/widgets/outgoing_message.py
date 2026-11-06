@@ -15,7 +15,7 @@ from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.linked_rows import MessageRowBlock
 from toad.widgets.message_row_owner import MessageRowOwner
 from toad.notification_status import CheckedNotifications, MessageQueueEntry, NotificationStatus
-from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
+from toad.commit_claims import CommitParticipant, OutgoingMessageClaim
 
 
 class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, SeparatedBlock, CategorizedBlock, VerticalGroup):

@@ -21,7 +21,8 @@ from toad.line_blocks import Body, ToggleDetails, ToolOutputRole
 from toad.block_content import CollapseCommand, ExpandCommand
 from toad.menus import MenuCommand
 from agent_comms.ui_model.message_category import MessageCategory
-from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation, ToolOutputClaim
+from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim, ToolOutputClaim
 
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown

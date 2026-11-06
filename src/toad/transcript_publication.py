@@ -63,14 +63,8 @@ from toad.session_scope import (
     TranscriptScope,
 )
 from toad.transcript_preparation import PreparedPageSource
-from toad.widgets.committed_presentation import (
-    CommitEvidence,
-    NativeCommitEvidence,
-    block_claim,
-    commit_plan,
-    protected_blocks,
-    retirement_candidates,
-)
+from toad.widgets.committed_presentation import block_claim, commit_plan, protected_blocks, retirement_candidates
+from toad.commit_claims import CommitEvidence, NativeCommitEvidence
 from toad.widgets.history_anchor import (
     HistoryWindow,
     TailPosition,

@@ -14,6 +14,8 @@ from textual.widget import Widget
 from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
+from toad.core.events import ThreadRowsChanged
+from toad.commit_claims import CommitClaim
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -21,13 +23,11 @@ if TYPE_CHECKING:
     from agent_comms.transcripts import TranscriptCursor, TranscriptPage
     from textual.worker import Worker
 
-    from toad.core.events import ThreadRowsChanged
     from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
     from toad.transcript_source_preparation import (
         HistorySourceSnapshot,
         TranscriptSourcePreparation,
     )
-    from toad.widgets.committed_presentation import CommitClaim
     from toad.widgets.history_anchor import HistoryWindow, LatestPosition
     from toad.widgets.transcript_history import (
         ConversationHistory,

@@ -8,7 +8,7 @@ from agent_comms.transcripts import NativeCommittedPrefix
 from toad.core import events
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import ToolCallStatus
-from toad.widgets.committed_presentation import CapturedClaim
+from toad.commit_claims import CapturedClaim
 
 
 @dataclass(frozen=True)

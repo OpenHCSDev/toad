@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
-from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim
+from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim
 
 if TYPE_CHECKING:
     from textual.widget import Widget
