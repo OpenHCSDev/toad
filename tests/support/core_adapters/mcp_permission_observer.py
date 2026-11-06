@@ -170,7 +170,8 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
             await session.wait_content_ready()
             await pilot.pause()
             view = session.conversation
-            agent = Agent(root / "project", definition, SESSION_ID)
+            agent = Agent(app.project_dir.path, definition, SESSION_ID, app_events=app.events,
+                          transcripts=app.coordination_access.transcripts)
             observer = Observer(case, app, pilot, agent, session, root)
             try:
                 view.bind_agent(agent)
