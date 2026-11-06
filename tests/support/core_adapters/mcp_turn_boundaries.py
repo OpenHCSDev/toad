@@ -24,6 +24,7 @@ from agent_comms.comms import wire
 from agent_comms.coordination.coordinator import Coordination
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, InputId, TurnId
 from agent_comms.launch_runtime import ThreadLaunch
+from agent_comms.turn_lease import NoFinishedTurn
 from agent_comms.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.pi_payloads import ReadyMcpServerState, ConfirmMcpCallPolicy
 from textual.pilot import Pilot
@@ -147,6 +148,8 @@ async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) ->
                 producer.turns.acquire_turn, custody, session_id, name,
                 RETIRED, "Authored MCP boundary; no input",
             ))
+            # The lease is read while the turn is held: closing this stack retires its file.
+            retired_lease = retired_owner.turn_lease
         retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
         await send(McpClientAcknowledgementUpdate(RETIRED, receipt))
         assert not notes(view)
@@ -171,8 +174,8 @@ async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) ->
             await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             assert notes(view) == rendered
             assert await Coordination.run_worker(partial(
-                producer._comms.agents.finish_turn, retired_owner.turn_lease,
-            )) is None
+                producer._comms.agents.finish_turn, retired_lease,
+            )) == NoFinishedTurn()
             await send(TurnChangedUpdate(retired.state))
             assert agent.current_turn.managed_id == view.turns.managed_id == OBSERVED
         terminal = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))

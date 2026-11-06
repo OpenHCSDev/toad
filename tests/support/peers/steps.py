@@ -22,13 +22,43 @@ from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter
 OptionKind = Literal["allow_once", "allow_always", "reject_once", "reject_always"]
 
 
+class PeerSession(ABC):
+    """Which session a step acts under."""
+
+    @classmethod
+    def decode(cls, raw: dict) -> "PeerSession":
+        """The JSON boundary: a step that names a session acts under it."""
+        return NamedSession(TypeAdapter(str).validate_python(raw["session"])) if "session" in raw else OwnSession()
+
+    @abstractmethod
+    def session_for(self, own: str) -> str: ...
+
+
+@dataclass(frozen=True)
+class OwnSession(PeerSession):
+    """The peer's own session."""
+
+    def session_for(self, own: str) -> str:
+        return own
+
+
+@dataclass(frozen=True)
+class NamedSession(PeerSession):
+    """Another session id, sent as given (Toad refuses one it does not hold)."""
+
+    name: str
+
+    def session_for(self, own: str) -> str:
+        return self.name
+
+
 @dataclass(frozen=True, kw_only=True)
 class PeerStep(ABC):
     """A step names its member by the one key it carries; its fields are decoded once, here."""
 
     key: ClassVar[str]
     members: ClassVar[dict[str, type["PeerStep"]]] = {}
-    session: str | None = None
+    session: PeerSession = OwnSession()
 
     def __init_subclass__(cls, *, key: str | None = None, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
@@ -40,14 +70,14 @@ class PeerStep(ABC):
     def decode(cls, raw: dict) -> "PeerStep":
         """The JSON boundary: the step's one known key selects its member, which decodes the rest."""
         (key,) = raw.keys() & cls.members.keys()
-        return replace(cls.members[key].from_raw(raw[key], raw), session=raw.get("session"))
+        return replace(cls.members[key].from_raw(raw[key], raw), session=PeerSession.decode(raw))
 
     @classmethod
     @abstractmethod
     def from_raw(cls, value: object, raw: dict) -> Self: ...
 
     def session_for(self, session_id: str) -> str:
-        return self.session or session_id
+        return self.session.session_for(session_id)
 
     @abstractmethod
     async def perform(self, peer, session_id: str) -> object:
