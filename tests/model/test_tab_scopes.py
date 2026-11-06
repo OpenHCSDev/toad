@@ -9,11 +9,14 @@ from toad.db import DB, TabScope, UNSCOPED_TABS
 from toad.tab_identity.kinds import PreviewTab
 
 
+# Both machines' roots have the same path; which machine's home it sits in is not the point.
+ROOT = "/srv/core/.agent-comms"
+
 # A mailbox tab exactly as a live toad.db stored it before tabs had a scope.
 SAVED_MAILBOX = ('{"kind":"mailbox","key":{"name":"claude-laptop","created_at":1793929021.25345},'
-                 '"root":"/home/ts/.agent-comms"}')
+                 f'"root":"{ROOT}"}}')
 
-LOCAL, REMOTE = TabScope("/home/ts/.agent-comms"), TabScope("https://ts-gaming.example/mcp")
+LOCAL, REMOTE = TabScope(ROOT), TabScope("https://ts-gaming.example/mcp")
 
 
 async def test_one_cores_roster_write_keeps_the_other_cores_tabs(tmp_path):
