@@ -16,7 +16,7 @@ from toad.comms_root import Observing
 from toad.work_preparation import PreparationRuntime
 from toad.core.events import CoreEvent
 from toad.constants import ALL_COMMS_TARGET
-from toad.navigation_context import NavigationContext, NavigationOwner
+from toad.navigation_context import NavigationContext, NavigationDestination, NavigationOwner
 from toad.conversation_kind import (
     ChannelConversation,
     ConversationKind,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from toad.widgets.sidebar_tree import SidebarGroup
 
 @dataclass(frozen=True)
-class NavigationTarget(DeclaredFamily, affix="Target"):
+class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
     name: str
 
     expanded_by_default: ClassVar[bool] = False
@@ -52,19 +52,12 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
                              sidebar.app.workspace_sessions.navigation_owner().navigation_context.actor,
                              sidebar.app.project_dir, mode_name, channel)
 
-    def selected(self, owner: NavigationOwner) -> None:
-        """Apply view-specific selection intent before beginning navigation."""
-
     def matches(self, target: NavigationTarget) -> bool:
         """Different opening behaviors may display the same sidebar address."""
         return self.name == target.name
 
     def rows_in(self, group: SidebarGroup[ListedRow]) -> tuple[CommsRow, ...]:
         return group.rows_for_target(self.name)
-
-    @abstractmethod
-    async def open(self, context: NavigationContext) -> str:
-        pass
 
 
 @dataclass(frozen=True)
