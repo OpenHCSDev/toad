@@ -5,7 +5,7 @@ from weakref import ref
 
 from rich.cells import cell_len
 from textual import events
-from textual.app import ComposeResult
+from textual.widget import Widget
 from toad.widget_actions import VisibleActions, Activates
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.layouts.horizontal import HorizontalLayout
@@ -26,6 +26,7 @@ from toad.widgets.goal_text import GoalText
 from toad.frame_presentation import Animated
 from toad.native_style import (
     AutoWidth,
+    ComposedWhenShown,
     FillWidth,
     MutedText,
     OneRow,
@@ -124,7 +125,7 @@ class GrabbedGoalEdge(GoalEdge):
     )
 
 
-class GoalBar(SidePadding, VerticalGroup):
+class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
     collapsed: var[bool] = var(False)
     edge = ThemeState(GoalEdge)
     _separator_update_pending = False
@@ -186,11 +187,8 @@ class GoalBar(SidePadding, VerticalGroup):
             self.styles.border_top if queue_visible else None
         )
 
-    def compose(self) -> ComposeResult:
-        yield self.header
-        yield self.execution_row
-        yield self.document
-        yield self.controls
+    def shown_children(self) -> tuple[Widget, ...]:
+        return self.header, self.execution_row, self.document, self.controls
 
     def watch_collapsed(self) -> None:
         # A collapsed bar packs its controls closer; the bar's state owns their gap.
@@ -203,7 +201,7 @@ class GoalBar(SidePadding, VerticalGroup):
     def watch_goal_display(self) -> None:
         """The goal's own text is parsed here only: an execution or collapse change never re-reads it."""
         goal = self.goal_display.snapshot
-        self.display = self.goal_display.visible
+        self.show(self.goal_display.visible)
         if not self.goal_display.visible:
             self._end_resize()
         if self.is_attached:
