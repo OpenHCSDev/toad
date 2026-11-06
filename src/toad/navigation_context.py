@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING
@@ -20,11 +21,17 @@ class NavigationContext:
 
 
 class NavigationOwner:
-    """Views supply context, targets supply behavior, App owns execution."""
+    """A view that navigates: it supplies context, targets supply behavior, App owns execution.
+
+    Only a navigating view shows the channels sidebar, whose rows open their
+    targets through the selected view.
+    """
+
+    shows_channels = True
 
     @property
-    def navigation_context(self) -> NavigationContext:
-        raise NotImplementedError
+    @abstractmethod
+    def navigation_context(self) -> NavigationContext: ...
 
     def remember_direct_target(self, target: str) -> None:
         """Optional view-local return-to-DM intent."""

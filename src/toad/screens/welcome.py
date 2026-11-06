@@ -24,7 +24,7 @@ from textual.widgets import Static
 from toad.constants import ALL_COMMS_TARGET
 from toad.core.events import SessionSelected
 from toad.format_path import format_path
-from toad.navigation_context import NavigationContext
+from toad.navigation_context import NavigationContext, NavigationOwner
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionView
@@ -223,6 +223,7 @@ class NewSessionAction(WelcomeAction):
 class WelcomeScreen(
     NativeMethodKeys,
     TogglesIrc,
+    NavigationOwner,
     ProjectSessionOrigin,
     CenteredChildren,
     SessionView,

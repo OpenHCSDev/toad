@@ -14,7 +14,6 @@ from toad.widgets.side_bar import TabHistoryControls
 
 class FilePreviewScreen(SessionView, can_focus=False, actions=(ReturnToViewAction, CloseViewAction)):
     footer_compact = True
-    shows_channels = False
 
     # FilePreview scrolls in its body (1325acc3), so the body takes focus and the close key.
     AUTO_FOCUS = "TextArea, FilePreview > VerticalScroll"
