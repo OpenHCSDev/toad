@@ -140,7 +140,8 @@ async def test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label
 
 
 async def new_session_with_pending_name(ui, workspace):
-    created = NewSessionResponse(sessionId=THREAD, _meta=metadata(workspace, None))
+    workspace.thread(THREAD, "acp")
+    created =NewSessionResponse(sessionId=THREAD, _meta=metadata(workspace, None))
     agent = resumable_agent(ui, workspace)
     agent.session.chosen_name = "My pending title"
     saved = AsyncMock(return_value=7)
