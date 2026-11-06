@@ -4,9 +4,8 @@ import json
 from dataclasses import replace
 
 from agent_comms.team.vibe_check import OverloadDegradation
-from agent_comms.team_hud import (
-    TeamFrame, TeamHud, TeamPlan, Teammate, CodexUsage, HudRecord, UnreadableUsage,
-)
+from agent_comms.team_hud import CodexUsage, TeamFrame, TeamHud, TeamPlan, UnreadableUsage
+from agent_comms.team_hud_records import HudRecord, Teammate
 from agent_comms.disclosure_text import DisclosureEntry, DisclosureText, FieldKey, RootKey, StructuredText
 from agent_comms.recorded_time import RecordedEventTime
 from agent_comms.standing_rules import ServicePassFailing
