@@ -111,7 +111,6 @@ from toad.session_observation import (
     InputDeliveryObservation,
     SessionObservation,
 )
-from toad.navigation_context import NavigationOwner
 from toad.session_scope import SessionScope, TranscriptScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
@@ -1629,7 +1628,7 @@ class Conversation(
             self.prompt.slash_commands = catalog.commands
 
     async def read_command_catalog(self) -> CommandCatalog:
-        source = self.query_ancestor(NavigationOwner)
+        source = self.query_ancestor(SessionScope).navigation_owner
         navigation = source.navigation_context
         agent = self.agent_binding
         context = self.command_target_context()
