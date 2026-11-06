@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import abstractmethod
 
 from functools import cached_property
 
@@ -495,11 +496,13 @@ class CapturedDrag:
         self._dragging = False
         super().__init__(*args, **kwargs)
 
+    @abstractmethod
     def drag_start(self, event: events.MouseDown) -> None:
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def drag_to(self, position: Offset) -> None:
-        raise NotImplementedError
+        ...
 
     def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button == 1:

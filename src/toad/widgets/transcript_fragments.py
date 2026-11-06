@@ -751,7 +751,7 @@ class ContextTranscriptFragment(TranscriptFragment):
 type ResolvedSent = Mapping[SentTranscript, SentTranscript | PublishedSentMessage]
 
 
-class FragmentSlot:
+class FragmentSlot(ABC):
     """One place in a page's fragment order, and what it holds once sent reports are resolved."""
 
     def sent_reports(self) -> tuple[SentTranscript, ...]:
@@ -761,9 +761,9 @@ class FragmentSlot:
     def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
         return self.unresolved()
 
+    @abstractmethod
     def unresolved(self) -> tuple[TranscriptFragment, ...]:
         """The fragments as read, before any publication evidence."""
-        raise NotImplementedError
 
 
 @dataclass(frozen=True)

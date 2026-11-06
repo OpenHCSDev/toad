@@ -1,6 +1,7 @@
 """One control per kind of value, chosen by what the field declares."""
 
 from __future__ import annotations
+from abc import abstractmethod
 
 from collections.abc import Iterable
 from enum import Enum
@@ -62,17 +63,17 @@ class ValueEditor(DeclaredViews, EditorWidget):
         """Arguments for the native control; containers need no initial value."""
         return {}
 
+    @abstractmethod
     def bind_control(self) -> None:
         """Connect the native control's edits after it has been initialized."""
-        raise NotImplementedError
 
     @classmethod
     def declared_for(cls, field: DeclaredField) -> ValueEditor:
         return cls.showing(declarations(field.annotation))(field)
 
+    @abstractmethod
     def paint(self) -> None:
         """Paint the control from the state."""
-        raise NotImplementedError
 
     def finish(self) -> None:
         """Send an edit the user has not finished yet. Most controls have none."""
@@ -230,9 +231,9 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
     def bind_control(self) -> None:
         self.listen(Select.Changed, self.changed)
 
+    @abstractmethod
     def options(self) -> Iterable[tuple[str, object]]:
         """Each value on offer, with how it reads."""
-        raise NotImplementedError
 
     def lists(self, value: object) -> bool:
         return value in self._legal_values

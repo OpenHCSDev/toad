@@ -1,3 +1,4 @@
+from abc import abstractmethod
 """Panels read identity from their logical session, not the native workspace."""
 
 from metaclass_registry.mro_dispatch import handles
@@ -23,5 +24,6 @@ class ShowsThreadIdentity(CoreEventReceiver, Widget):
         if event.view is self.thread_view:
             self.identity_changed(event.view.thread_identity)
 
+    @abstractmethod
     def identity_changed(self, identity: SessionIdentity) -> None:
-        raise NotImplementedError
+        ...

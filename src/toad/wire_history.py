@@ -8,7 +8,7 @@ Nothing here imports a terminal library.
 from __future__ import annotations
 
 import asyncio
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial, singledispatch
 from pathlib import Path
@@ -196,7 +196,7 @@ class PreparedWirePage(PreparedTranscriptPage):
 
 
 @dataclass(kw_only=True)
-class WireFragment(TranscriptFragment):
+class WireFragment(TranscriptFragment, ABC):
     """One wire message drawn as lines.
 
     `evidence` is Core's page whose display evidence can mark this message
@@ -246,9 +246,9 @@ class WireFragment(TranscriptFragment):
         """Blocks below the message's own text."""
         return ()
 
+    @abstractmethod
     def text(self, shown: MessageShown) -> tuple[LineBlock, ...]:
         """The message's own text."""
-        raise NotImplementedError
 
     def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))

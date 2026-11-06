@@ -420,8 +420,9 @@ class CategorizedBlock(ConversationEntry):
     """An entry whose declared category owns filtering and activity grouping."""
 
     @property
+    @abstractmethod
     def message_category(self) -> type[MessageCategory]:
-        raise NotImplementedError
+        ...
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.set_display_constraint(

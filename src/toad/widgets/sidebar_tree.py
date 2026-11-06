@@ -285,8 +285,9 @@ class KeyedRows[KeyT]:
     def should_mount(self, key: KeyT) -> bool:
         return True
 
+    @abstractmethod
     def create_row(self, key: KeyT):
-        raise NotImplementedError
+        ...
 
     def update_row(self, key: KeyT, row) -> None:
         pass
@@ -457,8 +458,9 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         self._step_full = perf_counter_ns() >= self._row_deadline
         return True
 
+    @abstractmethod
     def new_row(self, key: str):
-        raise NotImplementedError
+        ...
 
     def create_row(self, key: str):
         spare = self.reconciliation_tree.row_reconciliation.take(key, self)
@@ -471,9 +473,9 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         row.place(index)
 
     @property
+    @abstractmethod
     def member_keys(self):
         """Keys listed by this group's current model, including hidden rows."""
-        raise NotImplementedError
 
     @property
     def reconciliation_tree(self):
@@ -526,20 +528,24 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
             self.sync_members(frozenset())
 
 
-class SidebarChange:
+class SidebarChange(ABC):
     """The changed model rows choose which native rows need work."""
 
+    @abstractmethod
     def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def apply_activity(self, view: ChannelActivity) -> None:
-        raise NotImplementedError
+        ...
 
     def apply_navigation(self, sidebar: CommsSidebar) -> None:
         sidebar.navigation.apply()
@@ -768,16 +774,16 @@ class SidebarModelView(CoreEventReceiver, Widget):
     def navigation_root(self):
         return self.model_state.root()
 
+    @abstractmethod
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
-        raise NotImplementedError
 
     def model_replaced(self) -> None:
         """Retire what showed the previous service's rows."""
 
+    @abstractmethod
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         """Apply the model's declared row change."""
-        raise NotImplementedError
 
     def unsubscribe(self) -> None:
         self.model_state.unsubscribe(self)
@@ -902,8 +908,9 @@ class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizo
     def selection_for(self, row: CommsRow):
         raise NotImplementedError
 
+    @abstractmethod
     def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        raise NotImplementedError
+        ...
 
     def accepts_selection(self) -> bool:
         return True
@@ -977,8 +984,9 @@ class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizo
             )
 
     @property
+    @abstractmethod
     def navigation_root(self):
-        raise NotImplementedError
+        ...
 
     def row_current(self, row: CommsRow) -> bool:
         return self.app.workspace_sessions.visible_target(self.navigation_root).matches(

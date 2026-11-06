@@ -6,6 +6,7 @@ entry or a new session opens the first tab, which replaces it.
 """
 
 from __future__ import annotations
+from abc import abstractmethod
 
 
 from metaclass_registry.mro_dispatch import handles
@@ -101,8 +102,9 @@ class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
         # Shown once the model lists something for it.
         self.display = False
 
+    @abstractmethod
     def keys(self, model: SidebarModel) -> tuple[str, ...]:
-        raise NotImplementedError
+        ...
 
     @property
     def member_keys(self):
