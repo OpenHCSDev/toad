@@ -22,9 +22,8 @@ from agent_comms.working_memory_labels import (
 )
 from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
 from agent_comms.threads import NativeThread
-from agent_comms.core_access import LocalCoreAccess
 from toad.core.context_inspection import ContextInspection, ThreadInspectionSource
-from toad.core.context_reads import ContextReads
+from support.context_reads import LocalContextReads
 
 
 @dataclass(frozen=True)
@@ -37,21 +36,6 @@ class OverlappingAnnotations:
     long: object
     corrected: HumanLabel
     refined_groups: tuple
-
-
-@dataclass(frozen=True)
-class LocalContextReads(ContextReads):
-    """The fixture's Core, read the way an Observing reads it, without an observation process."""
-
-    service: Comms
-
-    @property
-    def core(self) -> LocalCoreAccess:
-        return LocalCoreAccess(self.service)
-
-    @property
-    def root(self) -> Path:
-        return self.service.root
 
 
 def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
