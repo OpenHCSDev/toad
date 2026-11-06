@@ -17,6 +17,9 @@ import threading
 import traceback
 
 import pytest
+# The file-preview terminal probe (FileKind.prepare_terminal): 0.15 s of every app's start.
+# Neither this process nor a forked test has a terminal, so both detect the same answer.
+import textual_image.widget  # noqa: F401
 
 import support.workspace  # noqa: F401  (the app, its fixtures and the comms package)
 from agent_comms.storage.locked_store import RootFile
