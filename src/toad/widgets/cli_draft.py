@@ -106,10 +106,13 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
                 continue
             window = self.query_ancestor(HistoryWindow)
             window.keep_reader()
+            rows = self._lines.height
             self._lines = prepared.wrap(self._width or width, self.app.colours.line_renderer)
             self._rows = AcquiredRows(source, self._lines, request.context)
             self.display = True
-            self.refresh(layout=True)
+            # A chunk that ends on the row the draft already had changes paint, not geometry:
+            # asking for layout on every chunk re-arranged the window once per streamed token.
+            self.refresh(layout=self._lines.height != rows)
             if window.follows_tail:
                 self.call_after_refresh(window.anchor)
             if draft == self.draft:
