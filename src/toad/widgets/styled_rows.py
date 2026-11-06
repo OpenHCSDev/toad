@@ -88,7 +88,9 @@ class StyledRows(RestylesOnTheme, LinkedRows, ToadNode, Widget):
             before = self._lines(width)
             self._styled = prepared.wrap(width, self.app.colours.line_renderer)
             after = self._lines(width)
-            self.refresh(layout=(before.height, before.content_width) != (after.height, after.content_width))
+            # Width 0 is a body never measured yet (no height, so never placed): only layout
+            # can give it the width its rows need, so an unmeasured body always asks for one.
+            self.refresh(layout=not width or (before.height, before.content_width) != (after.height, after.content_width))
             if blocks == self.styled_blocks():
                 return
             await asyncio.sleep(self.RESTYLE_INTERVAL)
