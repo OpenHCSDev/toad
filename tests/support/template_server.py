@@ -62,6 +62,9 @@ class TestProcess:
             WarmHelpers.spawner = spawner
             Workspace.local_connection = WarmCoreConnection
             sys.argv = ["pytest"]
+            # The fork runs one collected test with the conftest's own hooks; scanning every
+            # installed distribution for pytest11 entry points again is the bulk of its config.
+            os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
             code = int(pytest.main([self.request["nodeid"], *PYTEST_OPTIONS]))
         except BaseException:
             traceback.print_exc()
