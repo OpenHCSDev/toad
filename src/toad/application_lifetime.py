@@ -130,7 +130,7 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
-        restored: Callable[[], Awaitable[None]] = self.restore_nothing
+        restored: Callable[[], Awaitable[object]] = self.restore_nothing
         for identity in await app.tab_order.load():
             try:
                 restored = partial(app.session_navigation.open,

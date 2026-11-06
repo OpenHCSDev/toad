@@ -11,6 +11,7 @@ from typing import Literal
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination.errors import DMScopeChanged, Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
@@ -362,7 +363,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def from_thread(
         cls, project: Checkout, root: str, target, binding: AgentBinding = NoAgent()
     ) -> "MainScreen":
-        screen = cls(project, binding.for_session(target.name))
+        screen = cls(project, binding.for_session(FieldCodec.decode(AcpSessionId, target.name)))
         screen.bind_thread(target, root)
         return screen
 
@@ -381,7 +382,9 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         # The request has only a name; bind the wire after its metadata read.
         screen = cls(
             request.project,
-            origin.source.agent_for_opening(app.agent_binding).for_session(request.target),
+            origin.source.agent_for_opening(app.agent_binding).for_session(
+                FieldCodec.decode(AcpSessionId, request.target)
+            ),
         )
         screen.content = NavigatedOpeningContent()
         return screen
