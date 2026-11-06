@@ -57,7 +57,7 @@ def resumable_agent(ui, workspace, session_id=None, session_pk=None):
 
 
 def metadata(workspace, title):
-    return encode_updates(coordination_fact(THREAD, workspace.roots.wire, title=title, worktree=workspace.project))
+    return encode_updates(coordination_fact(workspace.comms, THREAD, title=title, worktree=workspace.project))
 
 
 def tab_title(ui, identity):
@@ -103,7 +103,7 @@ async def test_new_session_metadata_names_the_tab_and_the_saved_session(workspac
         await ui.until(lambda: expected in tab_title(ui, mode), why="the tab to carry the thread's title")
         assert created_titles == [expected], ("saved title at creation", created_titles, expected)
         assert ui.selected_tab == mode, "No tab switch should be needed"
-        assert displayed_name(ui, mode) == expected
+        await ui.until(lambda: displayed_name(ui, mode) == expected, why="the saved session to carry the thread's title")
         assert agent.session.pk is not None
         assert (await DB().session_get(agent.session.pk)).title == expected
         recorded = workspace.comms.registry.require(THREAD).title
@@ -134,13 +134,14 @@ async def test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label
         app.session_tracker.name_session(tab_identity(ui, loaded), "My explicit label")
         assert displayed_name(ui, loaded) == "My explicit label"
         resumed.comms_consumer_class(resumed, resumed.session_id).dispatch_sync(
-            coordination_fact(THREAD, workspace.roots.wire))
+            coordination_fact(workspace.comms, THREAD))
         await ui.step()
         assert displayed_name(ui, loaded) == "My explicit label"
 
 
 async def new_session_with_pending_name(ui, workspace):
-    created = NewSessionResponse(sessionId=THREAD, _meta=metadata(workspace, None))
+    workspace.thread(THREAD, "acp")
+    created =NewSessionResponse(sessionId=THREAD, _meta=metadata(workspace, None))
     agent = resumable_agent(ui, workspace)
     agent.session.chosen_name = "My pending title"
     saved = AsyncMock(return_value=7)

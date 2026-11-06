@@ -25,6 +25,7 @@ from toad.screens.workspace import WorkspaceFrame
 from toad.widget_view import CenteredView
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
+from toad.messages import HoldsNoQueue
 from toad.widgets.conversation import Contents
 from toad.transcript_state import LiveTranscript
 from toad.widgets.transcript_history import LineHistory
@@ -47,7 +48,7 @@ class SourceLabel(Static):
         self.styles.padding = 1
 
 
-class HistoricalSessions(CenteredView, CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
+class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
 
     def __init__(
         self,

@@ -1183,6 +1183,9 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 for source in documents:
                     source.close()
                 return
+        else:
+            # Nothing parks this source, so nothing outlives the view to close it.
+            history.close()
         self._close_documents()
         self.documents = tuple(documents)
         self._unbind_view()

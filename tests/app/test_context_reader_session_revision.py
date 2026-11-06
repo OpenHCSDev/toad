@@ -7,6 +7,7 @@ from agent_comms.session_revision import SessionRevision
 from agent_comms.threads import NativeThread
 
 from toad.core.context_inspection import ContextInspection, HoldingInspection
+from support.context_reads import LocalContextReads
 
 
 def declared_reader(workspace):
@@ -31,18 +32,18 @@ def with_thread(inspection, **changes):
 def test_context_reader_observes_the_session_and_its_owner_proof(workspace):
     thread, files = declared_reader(workspace)
 
-    before = ContextInspection.read(workspace.comms, thread.name)
+    before = ContextInspection.read(LocalContextReads(workspace.comms), thread.name)
     assert before.source == SessionRevision.observe(files)
     files.input_proof.parent.mkdir(parents=True, exist_ok=True)
     files.input_proof.touch()
-    after = ContextInspection.read(workspace.comms, thread.name)
+    after = ContextInspection.read(LocalContextReads(workspace.comms), thread.name)
     assert after.source == SessionRevision.observe(files)
     assert after.source != before.source
 
 
 def test_held_native_context_is_read_again_only_when_its_launch_or_session_changes(workspace):
     thread, files = declared_reader(workspace)
-    read = ContextInspection.read(workspace.comms, thread.name)
+    read = ContextInspection.read(LocalContextReads(workspace.comms), thread.name)
     held = HoldingInspection(read, revision=1)
 
     assert not held.needs_native(with_thread(read, title="A new title"), False)
@@ -50,4 +51,4 @@ def test_held_native_context_is_read_again_only_when_its_launch_or_session_chang
     assert held.needs_native(with_thread(read, created_at=thread.created_at + 1.0), False)
     files.input_proof.parent.mkdir(parents=True, exist_ok=True)
     files.input_proof.touch()
-    assert held.needs_native(ContextInspection.read(workspace.comms, thread.name), False)
+    assert held.needs_native(ContextInspection.read(LocalContextReads(workspace.comms), thread.name), False)

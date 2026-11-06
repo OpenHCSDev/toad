@@ -24,11 +24,12 @@ class TerminalCrashApp(ToadApp):
 
 if __name__ == "__main__":
     from agent_comms.launch_root import LaunchRoot
+    from toad.comms_root import LocalCoreConnection
 
     from agent_comms.repo import Checkout
     from toad.session_scope import AgentAttached
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()
-    run_terminal(TerminalCrashApp(project_dir=Checkout(sys.argv[1]), launch_root=launch_root,
+    run_terminal(TerminalCrashApp(project_dir=Checkout(sys.argv[1]), connection=LocalCoreConnection.from_launch(launch_root),
                                   agent_binding=AgentAttached(peer("echo"))))

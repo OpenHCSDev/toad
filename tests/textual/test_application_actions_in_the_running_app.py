@@ -144,11 +144,12 @@ async def test_a_settings_file_that_cannot_be_written_is_reported_kept_dirty_and
         original = path.read_bytes()
         path.unlink()
         path.mkdir()
-        app.saved_settings.set(SETTINGS.ui.footer, False)
-        await app.saved_settings.save()
-        assert app.saved_settings.unsaved and path.is_dir()
-        await ui.until(lambda: any(n.title == 'Settings' and n.severity == 'error' for n in app._notifications),
-                       why="the error notification")
+        with ui.reporting_error():
+            app.saved_settings.set(SETTINGS.ui.footer, False)
+            await app.saved_settings.save()
+            assert app.saved_settings.unsaved and path.is_dir()
+            await ui.until(lambda: any(n.title == 'Settings' and n.severity == 'error' for n in app._notifications),
+                           why="the error notification")
         assert not list(config.glob('.toad.json_tmp_*'))
         path.rmdir()
         path.write_bytes(original)

@@ -11,9 +11,10 @@ from toad.widgets.side_bar import BackTabButton, ForwardTabButton
 from toad.session_actions import ReturnToViewAction
 
 import asyncio
+from contextlib import contextmanager
 import inspect
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -46,6 +47,37 @@ async def saved_tab(app: ToadApp) -> AcpTab:
 
 class NotShown(AssertionError):
     """The screen never showed what the test waited for; carries the last screen."""
+
+
+class ReportedError(AssertionError):
+    """The app caught an error, showed it and saved its traceback while the test expected none."""
+
+
+class ErrorExpectation(ABC):
+    """Whether an error the app saves right now is the test's failure."""
+
+    @abstractmethod
+    def unexpected(self, ui: "TextualUi") -> ReportedError | None: ...
+
+
+@dataclass(frozen=True)
+class RefusesErrors(ErrorExpectation):
+    """The default: the first saved error not acknowledged ends the wait with its traceback."""
+
+    acknowledged: frozenset[Path] = frozenset()
+
+    def unexpected(self, ui: "TextualUi") -> ReportedError | None:
+        for path in ui.reported_errors():
+            if path not in self.acknowledged:
+                return ReportedError(f"the app reported {path.name}:\n{path.read_text()}")
+        return None
+
+
+class ExpectsErrors(ErrorExpectation):
+    """Inside `reporting_error()`: the test shows an error on purpose and waits for it."""
+
+    def unexpected(self, ui: "TextualUi") -> ReportedError | None:
+        return None
 
 
 @dataclass(frozen=True)
@@ -229,6 +261,7 @@ class TextualUi(AppAgents, Ui):
     def __init__(self, app: ToadApp, pilot: Pilot) -> None:
         super().__init__(app)
         self.pilot = pilot
+        self.errors: ErrorExpectation = RefusesErrors()
 
     @property
     def textual(self) -> tuple[ToadApp, Pilot]:
@@ -437,7 +470,25 @@ class TextualUi(AppAgents, Ui):
         return self.app.coordination_access.observation.observed().service
 
     def failure(self) -> BaseException | None:
-        return self.app._exception
+        return self.app._exception or self.errors.unexpected(self)
+
+    @contextmanager
+    def reporting_error(self) -> Iterator[None]:
+        """The enclosed steps show exactly one error on purpose; it is acknowledged when they end,
+        and any second error saved in the same steps fails the test instead of hiding behind it."""
+        if unexpected := self.errors.unexpected(self):
+            raise unexpected
+        before = frozenset(self.reported_errors())
+        self.errors = ExpectsErrors()
+        try:
+            yield
+        finally:
+            saved = frozenset(self.reported_errors())
+            self.errors = RefusesErrors(saved)
+        new = sorted(saved - before)
+        if len(new) != 1:
+            raise ReportedError(f"expected exactly one reported error, the app saved {len(new)}: "
+                                + "".join(f"\n{path.name}:\n{path.read_text()}" for path in new))
 
     def reported_errors(self) -> list[Path]:
         return sorted(paths.get_errors().glob("*.txt"))

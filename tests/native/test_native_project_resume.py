@@ -70,7 +70,7 @@ async def test_a_project_change_reported_by_the_agent_moves_the_session(workspac
         await ui.until_agent_ready()
         session = app.selected_session
         agent.comms_consumer_class(agent, agent.session_id).dispatch_sync(
-            coordination_fact("saved", str(workspace.roots.wire), worktree=str(moved)))
+            coordination_fact(workspace.comms, "saved", worktree=str(moved)))
         await ui.until(lambda: session.project_path == moved, why="the session's project to follow the agent's report")
         await ui.until(lambda: ui.conversation.project_path == moved, why="the conversation's project")
         await project_applied(ui, moved)

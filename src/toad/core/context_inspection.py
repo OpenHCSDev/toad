@@ -19,7 +19,8 @@ from agent_comms.pi_payloads import PiMessage
 from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
 from agent_comms.session_revision import SessionObservation
-from agent_comms.thread_status import ActiveThreadPresence, ThreadStatus
+from agent_comms.thread_status import ActiveThreadPresence, HeartbeatThreadStatus, ThreadStatus
+from agent_comms.threads import ExternalThread, Thread
 from agent_comms.turn_context import (
     CodexRolloutProvenance,
     ContextManifest,
@@ -540,7 +541,7 @@ class ContextInspection:
         previous: tuple[CapturedContext, ...] = (),
     ):
         read = observed.context_inspection(owner, cursor=cursor, previous=previous)
-        inspection_type = ThreadInspectionSource().project_value(read.entry.status)
+        inspection_type = ThreadInspectionSource().project_value(read.entry.thread)(read.entry.status)
         return inspection_type(read.entry, read.page, read.source, observed, read.annotations, read.imported)
 
     async def acquire(self, revision: ReadState):
@@ -640,19 +641,19 @@ class ContextInspection:
     async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
         payload = await self._request(ContextReferenceRuntimeRequest(
             thread=self.owner.name, record=self.page.reference(manifest), turn=manifest.turn,
-            request_id=manifest.request_id.require_id(), segment=position, source=source))
+            request_id=manifest.request_id, segment=position, source=source))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def recorded_segment(self, manifest: ContextManifest, position: int, contributors: tuple[int, ...]=()):
         payload = await self._request(ContextRecordedSegmentRuntimeRequest(
             thread=self.owner.name, record=self.page.reference(manifest), turn=manifest.turn,
-            request_id=manifest.request_id.require_id(), segment=position, contributors=contributors))
+            request_id=manifest.request_id, segment=position, contributors=contributors))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def correct_annotation(self, source: RecordedSegmentNode, label: ModelLabel, answer: type[SpanAnswer], worktree: Path):
         payload = await self._request(ContextAnnotationCorrectionRuntimeRequest(
             thread=self.owner.name, record=self.page.reference(source.manifest), turn=source.manifest.turn,
-            request_id=source.manifest.request_id.require_id(), segment=source.position,
+            request_id=source.manifest.request_id, segment=source.position,
             contributors=source.contributors, label=label, answer=answer, worktree=Checkout(worktree)))
         return FieldCodec.decode(ModelLabel, payload)
 
@@ -688,8 +689,22 @@ class SavedContextInspection(ContextInspection):
         return ContextSourceText(segment.public_description(), text)
 
 
-class ThreadInspectionSource(MroProjection[type[ContextInspection]]):
-    """The original registry state selects the inspection's source capability."""
+class ThreadInspectionSource(MroProjection[Callable[[ThreadStatus], type[ContextInspection]]]):
+    """A thread with no owner runtime reads its retained records; a native thread's status
+    decides whether its owner can answer for a live core."""
+
+    @handles(Thread)
+    def native(self, thread: Thread) -> Callable[[ThreadStatus], type[ContextInspection]]:
+        return ThreadStatusInspection().project_value
+
+    @handles(ExternalThread)
+    def external(self, thread: ExternalThread) -> Callable[[ThreadStatus], type[ContextInspection]]:
+        """A claude.ai or CLI session: the connector is its pipe, never an owner to ask."""
+        return lambda status: SavedContextInspection
+
+
+class ThreadStatusInspection(MroProjection[type[ContextInspection]]):
+    """A native thread's registry state selects the inspection's source capability."""
 
     @handles(ThreadStatus)
     def saved(self, status: ThreadStatus) -> type[ContextInspection]:
@@ -698,6 +713,11 @@ class ThreadInspectionSource(MroProjection[type[ContextInspection]]):
     @handles(ActiveThreadPresence)
     def live(self, status: ActiveThreadPresence) -> type[ContextInspection]:
         return ContextInspection
+
+    @handles(HeartbeatThreadStatus)
+    def heartbeat(self, status: HeartbeatThreadStatus) -> type[ContextInspection]:
+        """Seen only by heartbeat, with no owner process to answer for a live core."""
+        return SavedContextInspection
 
 
 class InspectionState(DeclaredFamily, affix="Inspection"):

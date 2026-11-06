@@ -5,6 +5,7 @@ import os
 import signal
 import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import pytest
 
@@ -17,13 +18,15 @@ from toad.comms_root import LocalAnsweringReads
 
 
 async def stopped(pid: int) -> None:
-    """Wait, bounded, until the stop is reported; WUNTRACED reports it without reaping."""
+    """Wait, bounded, until the kernel reports the process stopped. The observer is the
+    forkserver's child (Python 3.14's default start method), not this process's, so
+    waitpid cannot see it; /proc/<pid>/stat reports state T whoever the parent is."""
     loop = asyncio.get_running_loop()
     deadline = loop.time() + 5
+    stat = Path(f"/proc/{pid}/stat")
     while loop.time() < deadline:
-        found, status = os.waitpid(pid, os.WNOHANG | os.WUNTRACED)
-        if found:
-            assert os.WIFSTOPPED(status) and os.WSTOPSIG(status) == signal.SIGSTOP
+        # The state follows the parenthesised command name, which may itself hold spaces.
+        if stat.read_text().rpartition(")")[2].split()[0] == "T":
             return
         await asyncio.sleep(0.01)
     raise AssertionError(f"observer child {pid} did not stop")
@@ -61,24 +64,25 @@ async def test_an_observer_dying_during_shutdown_still_releases_its_resources(wo
             process = access.observation.observed().process
             assert not (await asyncio.wait_for(process.read(empty_read(workspace)), 30)).outcomes
             reading = None
-            try:
-                async with held(process) as pid:
-                    reading = asyncio.create_task(process.read(empty_read(workspace)))
-                    await asyncio.sleep(0)
-                    assert process.reads and not reading.done()
-                    os.kill(pid, signal.SIGKILL)
-                with pytest.raises(ObserverDied) as death:
-                    await asyncio.wait_for(reading, 10)
-            finally:
-                if reading is not None:
-                    await settled(reading)
-            died = death.value
-            assert died.pid == pid
-            assert died.exit_status == -signal.SIGKILL
-            for request in (StopSidebar(), StopObserving()):
-                with pytest.raises(ObserverDied) as again:
-                    process.request(request)
-                assert again.value is died
+            with ui.reporting_error():
+                try:
+                    async with held(process) as pid:
+                        reading = asyncio.create_task(process.read(empty_read(workspace)))
+                        await asyncio.sleep(0)
+                        assert process.reads and not reading.done()
+                        os.kill(pid, signal.SIGKILL)
+                    with pytest.raises(ObserverDied) as death:
+                        await asyncio.wait_for(reading, 10)
+                finally:
+                    if reading is not None:
+                        await settled(reading)
+                died = death.value
+                assert died.process.pid == pid
+                assert died.process.exitcode == -signal.SIGKILL
+                for request in (StopSidebar(), StopObserving()):
+                    with pytest.raises(ObserverDied) as again:
+                        process.request(request)
+                    assert again.value is died
     except* ObserverDied as failures:
         assert died is not None
         _same, other = failures.split(lambda error: error is died)

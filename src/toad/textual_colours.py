@@ -19,6 +19,7 @@ from functools import lru_cache, partial
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.cli_result import ResultShower
+from agent_comms.errors import GoalRefused, ToolRefusedError
 from agent_comms.nominal.field_codec import FieldCodec
 from rich.color import Color as RichColor
 from rich.console import RenderableType
@@ -549,9 +550,12 @@ class ThemedApp(App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
         self.notify(text, title=title)
 
     def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
-        """Persist real exceptions; text from ResultShower is a transient refusal."""
-        if isinstance(error, str):
-            self.notify(error, title=title, severity=severity, markup=False)
+        """Persist real exceptions. A refusal is transient: ResultShower's text, or a Core
+        refusal (ToolRefusedError, such as an unknown channel, or GoalRefused, a refused goal
+        action): an intentional answer, not a failure. A bare Refused also carries real
+        backend failures, so it is saved."""
+        if isinstance(error, (str, ToolRefusedError, GoalRefused)):
+            self.notify(str(error), title=title, severity=severity, markup=False)
             return
         path = paths.save_error(error, title)
         text = str(error).partition("\n")[0]

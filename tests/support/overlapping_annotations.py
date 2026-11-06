@@ -22,7 +22,8 @@ from agent_comms.working_memory_labels import (
 )
 from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
 from agent_comms.threads import NativeThread
-from toad.core.context_inspection import ContextInspection
+from toad.core.context_inspection import ContextInspection, ThreadInspectionSource
+from support.context_reads import LocalContextReads
 
 
 @dataclass(frozen=True)
@@ -43,7 +44,7 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         "authored-navigation", frozenset(), Checkout(directory), created_at=1.0)
     segment = UserInputSegment(content="Keep the original instruction.",
                                provenance=(UnattributedProvenance(),))
-    observed = segment.manifest(0)
+    observed = replace(segment.manifest(0), captured_text=(segment.content,))
     spans = tuple(ContextSpan(observed.sha256, ContributionCoordinates.capture(
         type(segment), segment.provenance, 0, text))
         for text in ("Keep", segment.content))
@@ -58,8 +59,11 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         RecordedContextTurn(TurnId.mint(), TurnIdentity(owner.incarnation, 1)),
         (observed,), "authored-navigation")
     comms = Comms(resolve_comms_route(directory / "unused-wire"))
+    comms.registry.declare(owner)
+    entry = comms.registry.entry(owner.name).entry
     page = ContextManifestPage((comms.contexts.record_after(UNREAD_CONTEXT, manifest),))
-    inspection = ContextInspection(owner, page, NoSessionObservation(), comms, labels)
+    inspection = ThreadInspectionSource().project_value(entry.thread)(entry.status)(
+        entry, page, NoSessionObservation(), LocalContextReads(comms), labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()
     corrected = HumanLabel.correct(labels[0], RuleSpan, RecordedThreadIncarnation("authored-user", 2.0))

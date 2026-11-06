@@ -9,7 +9,7 @@ from agent_comms.threads import NativeThread
 from toad.acp.agent_controller import SessionBinding
 
 from support.agents import deliver
-from support.coordination import carrying, registered_coordination_fact
+from support.coordination import carrying, coordination_fact
 from support.journals import assistant_entry, write_journal
 
 
@@ -23,7 +23,7 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
         read = workspace.comms.transcripts.capture_page_read(name)
         updates[name] = TranscriptSnapshotUpdate(read.read(), read.identity)
 
-    expected = registered_coordination_fact(workspace.comms, "alpha")
+    expected = coordination_fact(workspace.comms, "alpha")
     owner = workspace.agents.detached_agent("alpha")
     await owner.comms_consumer_class(owner, owner.session_id).consume_metadata(encode_updates(expected))
     identity = updates["alpha"].identity

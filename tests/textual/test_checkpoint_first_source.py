@@ -12,7 +12,7 @@ from agent_comms.child_process import ProcessIdentity
 
 from support import journals
 from support.agents import deliver
-from support.coordination import carrying, registered_coordination_fact
+from support.coordination import carrying, coordination_fact
 from toad.live_output import ResponseStream
 from toad.transcript_publication import CommitPublication
 from toad.widgets.agent_response import AgentResponse
@@ -29,7 +29,7 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         view = ui.conversation
         agent = ui.detached_agent("checkpoint-first")
         ui.attach_agent(agent)
-        coordination = registered_coordination_fact(
+        coordination = coordination_fact(
             comms, "source", owner=ProcessIdentity.capture(os.getpid()), worktree=workspace.project, model="test-model")
         await deliver(agent, carrying(coordination))
         agent.session.settled.set()

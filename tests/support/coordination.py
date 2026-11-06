@@ -2,29 +2,23 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from pathlib import Path
 from agent_comms.repo import Checkout
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.context_reading import ContextReading, UnmeasuredContext
-from agent_comms.thread_identity import RecordedThreadIncarnation
 
 
-def coordination_fact(thread, wire_root, *, owner=ProcessIdentity(1, 1), model="fixture-model", thinking_level=None,
+def coordination_fact(comms, thread, *, owner=ProcessIdentity(1, 1), model="fixture-model", thinking_level=None,
                       worktree=None, title=None,
                       context_usage: ContextReading = UnmeasuredContext()) -> CoordinationChangedUpdate:
+    """The fact Core carries for a thread declared on `comms`, with the registry's own incarnation:
+    an invented one names a thread Core never declared, and every source check refuses it."""
     # Core declares model a str and context usage a ContextReading (7c5fdc279, 3e7aabe09).
     return CoordinationChangedUpdate(
-        RecordedThreadIncarnation(thread, 1.0), str(wire_root), owner, Checkout(Path(worktree or wire_root)),
-        model, thinking_level, title or thread, context_usage)
-
-
-def registered_coordination_fact(comms, thread, **facts) -> CoordinationChangedUpdate:
-    """The fact for a thread declared on `comms`, with the registry's own incarnation."""
-    return replace(coordination_fact(thread, comms.root, **facts),
-                   thread=comms.registry.require(thread).incarnation)
+        comms.registry.require(thread).incarnation, str(comms.root), owner,
+        Checkout(Path(worktree or comms.root)), model, thinking_level, title or thread, context_usage)
 
 
 def carrying(*facts) -> dict:
