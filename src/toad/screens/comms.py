@@ -287,5 +287,5 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
 
     def navigate_session(self, direction: Literal[-1, 1]) -> None:
         self.app.session_navigation.events.publish(
-            session_requests.SessionNavigate(self.id, direction)
+            session_requests.SessionNavigate(direction)
         )

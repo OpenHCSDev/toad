@@ -542,7 +542,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def navigate_session(self, direction: Literal[-1, 1]) -> None:
         if self.id is not None:
             self.app.session_navigation.events.publish(
-                session_requests.SessionNavigate(self.id, direction)
+                session_requests.SessionNavigate(direction)
             )
 
     @handles(input_events.ProjectDirectoryUpdated)
