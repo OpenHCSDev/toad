@@ -208,10 +208,9 @@ class OperationalSessionSources(ConversationSources, NativeQueueSource):
     def create_agent(self, conversation: Conversation) -> None:
         """The unbound state requests a new operational connection."""
 
-        assert conversation._agent_data is not None
         agent = Agent(
             conversation.project_path.path,
-            conversation._agent_data,
+            conversation.launch.require_agent(),
             conversation._agent_session_id,
             conversation._session_pk,
             app_events=conversation.app.events,

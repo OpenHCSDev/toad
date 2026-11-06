@@ -8,6 +8,7 @@ from ui_theme.effects import PlayedText, TextFrame
 from ui_theme.scheme import ColourScheme
 from ui_theme.splash import loading_splash
 
+from toad.launch_binding import AgentBinding
 from toad.frame_presentation import Animated, EffectInContent
 from toad.block_navigation import ConversationBlock
 from toad.native_style import (
@@ -74,9 +75,9 @@ class ThreadLoading(
     LABEL = TEXT = "Loading thread and history…"
 
     @classmethod
-    def initial_contents(cls, agent):
+    def initial_contents(cls, launch: AgentBinding):
         """The loading declaration serves first composition and source rebinding."""
-        return (cls(),) if agent is not None else ()
+        return launch.selected_agent((), lambda _agent: (cls(),))
 
 
 

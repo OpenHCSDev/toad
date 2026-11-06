@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from collections.abc import Callable
 from functools import partial
 
 from agent_comms.repo import Checkout
@@ -12,6 +13,8 @@ from textual.abstract_hooks import AbstractHooksMeta
 
 from toad.agent_binding import AgentConnection
 from toad.agent_schema import AgentDefinition
+from toad.core import session_requests
+from toad.core.events import CoreEventStream
 from toad.app_node import ToadNode
 from toad.thread_identity import SessionIdentity
 from toad.transcript_scope import TranscriptScope
@@ -19,14 +22,19 @@ from agent_comms.nominal.field_codec import AcpSessionId
 
 
 class AgentConversation(ToadNode):
-    """What a launch's agent binding does to the conversation it builds: give it the agent's
-    definition (or none), resume a named session, and start its session."""
+    """What a launch's agent binding does to the conversation it builds: hand it the launch,
+    resume a named session, and start its session."""
 
     @abstractmethod
-    def attach_agent_definition(self, definition: AgentDefinition) -> None: ...
+    def attach_launch(self, launch: AgentBinding) -> None: ...
 
     @abstractmethod
-    def clear_agent_definition(self) -> None: ...
+    def present_without_agent(self) -> None:
+        """No agent to start: show the shell's info and take input."""
+
+    @abstractmethod
+    def defer_agent_start(self) -> None:
+        """Start the attached agent once the frame is presented."""
 
     @abstractmethod
     def resume_agent_session(self, session_id: AcpSessionId) -> None: ...
@@ -76,13 +84,27 @@ class AgentBinding(ABC):
     @abstractmethod
     def for_session(self, session_id: AcpSessionId) -> AgentBinding: ...
 
-    @abstractmethod
-    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C: ...
+    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
+        return constructor(launch=self)
 
-    @abstractmethod
-    def attach_to(
-        self, origin: AgentOrigin, conversation: AgentConversation
-    ) -> None: ...
+    def attach_to(self, origin: AgentOrigin, conversation: AgentConversation) -> None:
+        conversation.attach_launch(self)
+
+    def selected_agent[T](self, absent: T, attached: Callable[[AgentDefinition], T]) -> T:
+        """The caller's answer for this launch: its no-agent answer, or one from the agent."""
+        return absent
+
+    def publish_usage(self, publish: Callable[..., object], event: str, **fields: object) -> None:
+        """Usage is counted per agent; a launch without one reports nothing."""
+
+    def start_unbound(self, conversation: AgentConversation) -> None:
+        conversation.present_without_agent()
+
+    def request_new_session(self, events: CoreEventStream, working_directory: str, prompt: str) -> None:
+        """/new opens a session of the attached agent; without one there is nothing to open."""
+
+    def require_agent(self) -> AgentDefinition:
+        raise ValueError("This launch attached no agent to start.")
 
     @abstractmethod
     def matches_launch(
@@ -109,12 +131,6 @@ class NoAgent(AgentBinding):
     def for_session(self, session_id: AcpSessionId) -> AgentBinding:
         return self
 
-    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
-        return constructor()
-
-    def attach_to(self, origin: AgentOrigin, conversation: AgentConversation) -> None:
-        conversation.clear_agent_definition()
-
     def matches_launch(
         self, origin: AgentOrigin, agent_identity: str, session_id: AcpSessionId
     ) -> bool:
@@ -137,13 +153,25 @@ class AgentAttached(AgentBinding):
     def for_session(self, session_id: AcpSessionId) -> AgentBinding:
         return AgentSession(self.agent, session_id)
 
-    def make_conversation[C: AgentConversation](self, constructor: partial[C]) -> C:
-        return constructor(agent=self.agent)
-
     def attach_to(self, origin: AgentOrigin, conversation: AgentConversation) -> None:
-        conversation.attach_agent_definition(self.agent)
+        super().attach_to(origin, conversation)
         if origin.is_current:
             conversation.start_native_session()
+
+    def selected_agent[T](self, absent: T, attached: Callable[[AgentDefinition], T]) -> T:
+        return attached(self.agent)
+
+    def publish_usage(self, publish: Callable[..., object], event: str, **fields: object) -> None:
+        publish(event, agent=self.agent.identity, **fields)
+
+    def start_unbound(self, conversation: AgentConversation) -> None:
+        conversation.defer_agent_start()
+
+    def request_new_session(self, events: CoreEventStream, working_directory: str, prompt: str) -> None:
+        events.publish(session_requests.SessionNew(working_directory, self.agent.identity, prompt))
+
+    def require_agent(self) -> AgentDefinition:
+        return self.agent
 
     def matches_launch(
         self, origin: AgentOrigin, agent_identity: str, session_id: AcpSessionId

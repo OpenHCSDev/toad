@@ -11,6 +11,7 @@ from toad.cli import get_agent_binding
 from toad.screens.main import MainScreen
 from toad.launch_binding import AgentAttached, AgentSession, NoAgent
 from toad.thread_identity import NoThreadIdentity
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 async def test_startup_binding_is_decoded_once_and_retained_by_the_app(workspace):
@@ -64,7 +65,7 @@ async def test_agent_session_matches_its_saved_session_without_crossing_agent_id
     workspace,
 ):
     definition = peer("echo")
-    view = MainScreen(Checkout(workspace.project), AgentSession(definition, "retained-session"))
+    view = MainScreen(Checkout(workspace.project), AgentSession(definition, AcpSessionId("retained-session")))
     assert view.matches_launch(definition.identity, "retained-session")
     assert not view.matches_launch(definition.identity + "-other", "retained-session")
     assert view.thread_identity.thread_name() == "retained-session"

@@ -116,7 +116,8 @@ from toad.session_observation import (
 from toad.navigation_context import NavigationScope
 from toad.session_scope import SessionScope
 from toad.input_decision import InputDecision
-from toad.launch_binding import AgentConversation
+from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
+from toad.session_clock import NotStarted, SessionClock, StartedAt
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.shell import Shell
 from toad.status_thread import StatusThread
@@ -607,10 +608,7 @@ class ConversationSessionBinding(
 
     def agent_connected(self, agent: AgentBase) -> None:
         self.feedback.flash(Content.assemble(agent.get_info(), " connected"), style="success")
-        if self._agent_data is not None:
-            self.app.application.usage.publish(
-                "agent-session-begin", agent=self._agent_data.identity
-            )
+        self.launch.publish_usage(self.app.application.usage.publish, "agent-session-begin")
 
     async def cancel_bound_turn(self, agent: AgentBase) -> None:
         self.feedback.flash("Cancelling agent turn…")
@@ -661,7 +659,7 @@ class ConversationSessionBinding(
     def __init__(
         self,
         project_path: Checkout,
-        agent: AgentDefinition | None = None,
+        launch: AgentBinding = NoAgent(),
         agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         session_title: str | None = None,
@@ -675,7 +673,7 @@ class ConversationSessionBinding(
         self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(
             project_path,
-            agent,
+            launch,
             agent_session_id,
             session_pk,
             session_title,
@@ -686,7 +684,7 @@ class ConversationSessionBinding(
     def _initialize_session(
         self,
         project_path: Checkout,
-        agent: AgentDefinition | None = None,
+        launch: AgentBinding = NoAgent(),
         agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         session_title: str | None = None,
@@ -706,11 +704,11 @@ class ConversationSessionBinding(
 
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
-        self._agent_data = agent
-        self._thread_loading = ThreadLoading.initial_contents(agent)
+        self.launch = launch
+        self._thread_loading = ThreadLoading.initial_contents(launch)
         self.set_reactive(
             ConversationSessionBinding.model_history_scope,
-            agent.identity if agent else "",
+            launch.selected_agent("", attrgetter("identity")),
         )
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
@@ -730,7 +728,7 @@ class ConversationSessionBinding(
             ),
         )
 
-        self.session_start_time: float | None = None
+        self.session_clock: SessionClock = NotStarted()
         self._terminal_count = 0
         self._require_check_prune = False
 
@@ -767,16 +765,13 @@ class ConversationSessionBinding(
             release.push_async_callback(self._release_source_resources)
 
     def _publish_session_end(self) -> None:
-        if self._agent_data is not None and self.session_start_time is not None:
-            session_time = monotonic() - self.session_start_time
-            self.app.application.usage.publish(
-                "agent-session-end",
-                agent=self._agent_data.identity,
-                duration=session_time,
-                agent_session_fail=self._agent_fail,
-                shell_count=self._shell_count,
-                turn_count=self._turn_count,
-            )
+        self.session_clock.report_end(
+            self.launch,
+            self.app.application.usage.publish,
+            agent_session_fail=self._agent_fail,
+            shell_count=self._shell_count,
+            turn_count=self._turn_count,
+        )
 
     async def _release_source_resources(self) -> None:
         """Release the view's acquired sources once, completing every step."""
@@ -810,12 +805,9 @@ class ConversationSessionBinding(
         """Publish bound owner facts and invalidate the delivery read resource."""
         self.agent_binding.refresh_projection(self)
 
-    def attach_agent_definition(self, definition: AgentDefinition) -> None:
-        """Selection changes write the conversation's definition at its owner."""
-        self._agent_data = definition
-
-    def clear_agent_definition(self) -> None:
-        self._agent_data = None
+    def attach_launch(self, launch: AgentBinding) -> None:
+        """Selection changes write the conversation's launch at its owner."""
+        self.launch = launch
 
     def resume_agent_session(self, session_id: AcpSessionId) -> None:
         self._agent_session_id = session_id
@@ -835,11 +827,8 @@ class ConversationSessionBinding(
         presentation = self.transcript
         if not presentation.binding.matches(self):
             return
-        if (
-            self._native_agent_started_here
-            and (agent_data := self._agent_data) is not None
-        ):
-            welcome = agent_data.welcome
+        if self._native_agent_started_here:
+            welcome = self.launch.selected_agent(None, attrgetter("welcome"))
             if welcome is not None:
 
                 await self.post(MarkdownNote(welcome))
@@ -878,7 +867,7 @@ class ConversationSessionBinding(
     @handles(AgentReady)
     async def on_agent_ready(self, event: AgentReady) -> None:
         if not event.reconnected:
-            self.session_start_time = monotonic()
+            self.session_clock = StartedAt(monotonic())
             self.agent_binding.connected(self)
 
         self.session_ready()
@@ -1002,11 +991,14 @@ class Conversation(
         self.dispatch_sync(presentation)
 
     def start_unbound_session(self) -> None:
-        if self._agent_data is not None:
-            self.screen.frame_presentation.defer(self, self._start_agent)
-        else:
-            self.agent_info = Content(self.operational_sources.agent_info(self))
-            self.session_ready()
+        self.launch.start_unbound(self)
+
+    def defer_agent_start(self) -> None:
+        self.screen.frame_presentation.defer(self, self._start_agent)
+
+    def present_without_agent(self) -> None:
+        self.agent_info = Content(self.operational_sources.agent_info(self))
+        self.session_ready()
 
     def _start_agent(self) -> None:
         self.operational_sources.start_agent(self)
@@ -1330,13 +1322,12 @@ class Conversation(
             details.sync_turn()
         self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
 
-        if self._agent_data is not None:
-            self.app.application.usage.publish(
-                "agent-session-error",
-                agent=self._agent_data.identity,
-                message=event.message,
-                details=event.details,
-            )
+        self.launch.publish_usage(
+            self.app.application.usage.publish,
+            "agent-session-error",
+            message=event.message,
+            details=event.details,
+        )
 
         await self.agent_binding.session_disposition.present_failure(
             event, self
