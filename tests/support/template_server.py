@@ -23,6 +23,7 @@ from agent_comms.storage.locked_store import RootFile
 from agent_comms.storage.typed_table import ProducedTable, TypedTable
 from support.warm_helpers import HelperSpawner, WarmCoreConnection, WarmHelpers
 from support.workspace import Workspace
+from toad.file_kind import FileKind
 
 PYTEST_OPTIONS = ("-p", "no:cacheprovider", "-q", "--no-header", "--tb=short", "--color=no")
 
@@ -84,6 +85,9 @@ def serve() -> None:
     """Warm what every app test pays for, then fork each test and its helper spawner."""
     # Every agent_comms module once, so a forked helper imports and walks nothing.
     RootFile.load_declarations()
+    # The file-preview terminal probe: 0.15 s of every app's start. Neither this process nor
+    # a forked test has a terminal, so both detect the same answer.
+    FileKind.prepare_terminal()
     # Each table's declared SQL is built once per process (0.74 s for all of them); every
     # test's stores compare against it, so the forks inherit it built.
     for table in TypedTable.members_with(TypedTable):
