@@ -4,7 +4,7 @@ from __future__ import annotations
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Self, Protocol
 
@@ -35,8 +35,10 @@ from ui_theme.scheme import (
 from toad.native_style import (
     AutoHeight,
     Borderless,
+    EllipsisOverflow,
     MutedText,
     NoPadding,
+    NoWrap,
     OneRow,
     PointerCursor,
     ScreenOverlay,
@@ -113,7 +115,7 @@ class ModelCount(MutedText, OneRow, SidePadding, Static):
     """Its look is its bases."""
 
 
-class ModelOptionList(Borderless, AutoHeight, NoPadding, PaddedOptionRows, SelectionOptionList):
+class ModelOptionList(Borderless, AutoHeight, NoPadding, NoWrap, EllipsisOverflow, PaddedOptionRows, SelectionOptionList):
     native_components = {
         OptionListComponent.OPTION_HIGHLIGHTED: (
             NativeDeclaration.of(Styles.background, Variable(BlockCursorBackgroundColour.name)),
@@ -125,6 +127,27 @@ class ModelOptionList(Borderless, AutoHeight, NoPadding, PaddedOptionRows, Selec
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.max_height = "45vh"
+
+
+class HighlightPlacement(ABC):
+    """Where a refilter puts the highlight."""
+
+    @abstractmethod
+    def index(self, ids: list[str | None], previous_id: str | None) -> int: ...
+
+
+class ResetsHighlight(HighlightPlacement):
+    """Nothing touched since the picker opened: the best match, first in the list."""
+
+    def index(self, ids: list[str | None], previous_id: str | None) -> int:
+        return 0
+
+
+class KeepsHighlight(HighlightPlacement):
+    """The user moved or typed: stay on their option while the filter still lists it."""
+
+    def index(self, ids: list[str | None], previous_id: str | None) -> int:
+        return ids.index(previous_id) if previous_id in ids else 0
 
 
 class ModelSelection(
@@ -156,7 +179,7 @@ class ModelSelection(
         super().__init__()
         self.recent_ids: list[str] = []
         self._open_generation = 0
-        self._selection_moved = False
+        self.refilter: HighlightPlacement = ResetsHighlight()
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -194,15 +217,15 @@ class ModelSelection(
 
     def configuration_changed(self) -> None:
         if self.is_mounted and self.selection_active:
-            self.filter_models(preserve_selection=True)
+            self.filter_models(KeepsHighlight())
 
     def focus_content(self, scroll_visible: bool) -> None:
         self._open_generation += 1
-        self._selection_moved = False
+        self.refilter = ResetsHighlight()
         self.recent_ids = []
         with self.search_input.prevent(Input.Changed):
             self.search_input.value = ""
-        self.filter_models()
+        self.filter_models(self.refilter)
         self.search_input.focus(scroll_visible=False)
         self.load_recents(self._open_generation, self.history_scope)
 
@@ -218,12 +241,9 @@ class ModelSelection(
             and scope == self.history_scope
         ):
             self.recent_ids = recent
-            self.filter_models(
-                preserve_selection=self._selection_moved
-                or bool(self.search_input.value)
-            )
+            self.filter_models(self.refilter)
 
-    def filter_models(self, *, preserve_selection: bool = False) -> None:
+    def filter_models(self, placement: HighlightPlacement) -> None:
         highlighted = self.option_list.highlighted_option
         previous_id = highlighted.id if highlighted is not None else None
         terms = self.search_input.value.casefold().split()
@@ -260,11 +280,8 @@ class ModelSelection(
         with self.option_list.prevent(OptionList.OptionHighlighted):
             self.option_list.set_options(options)
             if options:
-                ids = [option.id for option in options]
-                self.option_list.highlighted = (
-                    ids.index(previous_id)
-                    if preserve_selection and previous_id in ids
-                    else 0
+                self.option_list.highlighted = placement.index(
+                    [option.id for option in options], previous_id
                 )
             else:
                 self.option_list.highlighted = None
@@ -277,8 +294,8 @@ class ModelSelection(
     @on(Input.Changed)
     def on_search_changed(self, event: Input.Changed):
         event.stop()
-        self._selection_moved = False
-        self.filter_models()
+        self.filter_models(ResetsHighlight())
+        self.refilter = KeepsHighlight()
 
     @on(Input.Submitted)
     def on_search_submitted(self, event: Input.Submitted) -> None:
@@ -289,7 +306,7 @@ class ModelSelection(
     def on_option_highlighted(self, event: OptionList.OptionHighlighted):
         """Arrow keys and the pointer: filter_models moves the highlight without this event."""
         event.stop()
-        self._selection_moved = True
+        self.refilter = KeepsHighlight()
 
     @on(OptionList.OptionSelected, "SelectionOptionList")
     def on_option_selected(self, event: OptionList.OptionSelected):
