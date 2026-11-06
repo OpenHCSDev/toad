@@ -378,7 +378,7 @@ class HeaderButton(
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
-        self.styles.width = 7
+        self.styles.width = 5
         self.styles.height = 3
 
     def native_declarations(self) -> tuple[NativeDeclaration, ...]:

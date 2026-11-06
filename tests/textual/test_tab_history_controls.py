@@ -24,7 +24,7 @@ async def test_unavailable_buttons_sit_in_the_header_and_ignore_hover(workspace)
         assert screen.query_one(SessionsTabs).parent is header
         assert controls.region.y == screen.query_one(SessionsTabs).region.y == 0
         back = controls.query_one(BackTabButton)
-        assert back.region.width == 7 and back.region.height == 3
+        assert back.region.width == 5 and back.region.height == 3
         assert controls.region.height == 3
         assert back.disabled
         assert controls.query_one(ForwardTabButton).disabled
