@@ -11,7 +11,7 @@ from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.fresh_private_session import create_fresh_private_session
 
 from support.agents import deliver
-from support.coordination import carrying, registered_coordination_fact
+from support.coordination import carrying, coordination_fact
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -42,7 +42,7 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
         view = ui.conversation
         agent = ui.detached_agent("closing")
         view.bind_agent(agent)
-        coordination = registered_coordination_fact(
+        coordination = coordination_fact(
             comms, "source", owner=ProcessIdentity.capture(os.getpid()), worktree=project, model="test-model")
         await deliver(agent, carrying(coordination))
         await ui.until(lambda: "SAVED_NOTICE" in ui.painted(view.window), why="the saved history")

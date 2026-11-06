@@ -41,7 +41,7 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         await ui.until(lambda: old in view.window.histories, why="the old history")
         thread = workspace.comms.registry.require("replacement")
         coordination = replace(
-            coordination_fact(thread.name, workspace.roots.wire, owner=ProcessIdentity.capture(os.getpid()),
+            coordination_fact(workspace.comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
                               worktree=workspace.project, model="test-model"),
             thread=thread.incarnation)
         await deliver(agent, carrying(coordination))

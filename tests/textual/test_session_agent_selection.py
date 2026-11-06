@@ -6,14 +6,14 @@ from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.ui_model.delivery import DeliveryView
 
-from support.coordination import registered_coordination_fact
+from support.coordination import coordination_fact
 from support.workspace import Workspace
 from toad.acp.client_session import ClientSessionRequest
 
 
 def update_for(workspace: Workspace, name: str) -> CoordinationChangedUpdate:
     thread = workspace.thread(name)
-    return registered_coordination_fact(
+    return coordination_fact(
         workspace.comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
         worktree=workspace.project)
 

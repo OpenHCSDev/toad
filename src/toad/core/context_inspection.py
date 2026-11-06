@@ -640,19 +640,19 @@ class ContextInspection:
     async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
         payload = await self._request(ContextReferenceRuntimeRequest(
             thread=self.owner.name, record=self.page.reference(manifest), turn=manifest.turn,
-            request_id=manifest.request_id.require_id(), segment=position, source=source))
+            request_id=manifest.request_id, segment=position, source=source))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def recorded_segment(self, manifest: ContextManifest, position: int, contributors: tuple[int, ...]=()):
         payload = await self._request(ContextRecordedSegmentRuntimeRequest(
             thread=self.owner.name, record=self.page.reference(manifest), turn=manifest.turn,
-            request_id=manifest.request_id.require_id(), segment=position, contributors=contributors))
+            request_id=manifest.request_id, segment=position, contributors=contributors))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def correct_annotation(self, source: RecordedSegmentNode, label: ModelLabel, answer: type[SpanAnswer], worktree: Path):
         payload = await self._request(ContextAnnotationCorrectionRuntimeRequest(
             thread=self.owner.name, record=self.page.reference(source.manifest), turn=source.manifest.turn,
-            request_id=source.manifest.request_id.require_id(), segment=source.position,
+            request_id=source.manifest.request_id, segment=source.position,
             contributors=source.contributors, label=label, answer=answer, worktree=Checkout(worktree)))
         return FieldCodec.decode(ModelLabel, payload)
 

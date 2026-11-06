@@ -15,7 +15,7 @@ from agent_comms.threads import NativeThread
 from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
-from support.coordination import registered_coordination_fact
+from support.coordination import coordination_fact
 from toad.session_scope import KnownTranscript
 
 
@@ -62,7 +62,7 @@ async def test_recorded_presentation_does_not_acquire_live_owner(recorded, works
     agent = workspace.agents.detached_agent("authored")
     try:
         await agent.comms_consumer_class(agent, agent.session_id).consume_metadata(
-            encode_updates(registered_coordination_fact(live, "reader", worktree=workspace.project)))
+            encode_updates(coordination_fact(live, "reader", worktree=workspace.project)))
         consumer = agent.thread_read()
         assert consumer.owner.authority.current
         assert consumer.owner.coordination.thread != identity.thread.incarnation

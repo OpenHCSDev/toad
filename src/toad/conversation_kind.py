@@ -106,8 +106,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         await ReturnToViewAction().apply(screen)
         screen.app.session_navigation.direct_messages()
 
-    def unread(self, observation: SidebarObservation, references: ThreadNames):
-        return observation.channel_unread(self.destination(references).name)
+    def unread(self, observation: SidebarObservation):
+        return observation.channel_unread(self.retained_target().name)
 
     def send_target(self) -> NamedTarget:
         return self.retained_target()
@@ -256,8 +256,9 @@ class DmConversation(ConversationKind):
     def threads_needed(self, source: ReferencedCore, me: str):
         return source.registry_for(me).require(me).incarnation, self.peer
 
-    def unread(self, observation: SidebarObservation, references: ThreadNames):
-        return observation.bus_unread(self.destination(references).name)
+    def unread(self, observation: SidebarObservation):
+        """The peer's name and its count come from the observation's one cut, by birth."""
+        return observation.peer_unread(self.peer)
 
     @classmethod
     def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:

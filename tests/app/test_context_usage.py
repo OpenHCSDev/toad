@@ -28,7 +28,7 @@ async def test_usage_updates_reach_the_status_line(workspace):
         await deliver(agent, usage(27000))
         await ui.until(lambda: "27.0K" in ui.status(), why="the next valid estimate")
 
-        saved = coordination_fact("fixture", workspace.roots.wire, worktree=str(workspace.project),
+        saved = coordination_fact(workspace.comms, "fixture", worktree=str(workspace.project),
                                   context_usage=ContextUsage(38723, 272000))
         await deliver(agent, carrying(saved))
         await ui.until(lambda: "38,723/272,000 tokens" in ui.status(),

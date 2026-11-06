@@ -57,7 +57,7 @@ def resumable_agent(ui, workspace, session_id=None, session_pk=None):
 
 
 def metadata(workspace, title):
-    return encode_updates(coordination_fact(THREAD, workspace.roots.wire, title=title, worktree=workspace.project))
+    return encode_updates(coordination_fact(workspace.comms, THREAD, title=title, worktree=workspace.project))
 
 
 def tab_title(ui, identity):
@@ -134,7 +134,7 @@ async def test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label
         app.session_tracker.name_session(tab_identity(ui, loaded), "My explicit label")
         assert displayed_name(ui, loaded) == "My explicit label"
         resumed.comms_consumer_class(resumed, resumed.session_id).dispatch_sync(
-            coordination_fact(THREAD, workspace.roots.wire))
+            coordination_fact(workspace.comms, THREAD)
         await ui.step()
         assert displayed_name(ui, loaded) == "My explicit label"
 

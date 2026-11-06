@@ -55,7 +55,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         agent = ui.detached_agent("arrival-fade")
         view.bind_agent(agent)
         coordination = replace(
-            coordination_fact(thread.name, workspace.roots.wire, owner=ProcessIdentity.capture(os.getpid()),
+            coordination_fact(workspace.comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
                               worktree=project, model="test-model"),
             thread=thread.incarnation)
         await deliver(agent, carrying(coordination))
