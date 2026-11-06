@@ -932,9 +932,7 @@ class SideBar(
         super().__init__(name=name, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
         self.content_stack = SidebarContentStack()
-        self.search_input = SidebarSearch(placeholder="Search", compact=True)
-        self.panels_viewport: SidebarViewport = SidebarViewport()
-        self.layout_controls = SidebarControls()
+        self.new_shell()
         self.hide = hide
         self.extent_slider = SidebarSlider(
             SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
@@ -946,6 +944,22 @@ class SideBar(
 
     def invalidate_controls(self) -> None:
         self._presented_layout = UnpresentedBar()
+
+    def new_shell(self) -> None:
+        """The search box, panel viewport and controls a loaded sidebar shows. A sidebar whose
+        panels are absent mounts none of them (each tab's collapsed sidebar built and styled
+        them for nothing), and a removed widget is never mounted again, so every load gets
+        its own."""
+        self.search_input = SidebarSearch(value=self.search, placeholder="Search", compact=True)
+        self.panels_viewport: SidebarViewport = SidebarViewport()
+        self.layout_controls = SidebarControls()
+
+    def _compose_shell(self) -> ComposeResult:
+        yield self.search_input
+        with self.panels_viewport:
+            yield from self._compose_panels()
+        with self.layout_controls:
+            yield from self._compose_controls()
 
     @cached_property
     def toggle_control(self) -> SideBarToggle:
@@ -1030,6 +1044,8 @@ class SideBar(
         # A screen covering the workspace, or a hidden ancestor, does not stop a load
         # it finds midway: stopping left panels mounted without their controls and no
         # state that would ever finish them. Leaving the view cancels this worker.
+        await self.content_stack.mount_all(
+            (self.search_input, self.panels_viewport, self.layout_controls))
         await self.panels_viewport.mount_all(self._compose_panels())
         await self.layout_controls.mount_all(self._compose_controls())
         self.panel_state = LoadedPanels()
@@ -1045,13 +1061,8 @@ class SideBar(
         yield self.resize_handle
         yield self.split_handle
         with self.content_stack:
-            yield self.search_input
-            with self.panels_viewport:
-                if self.panels_loaded:
-                    yield from self._compose_panels()
-            with self.layout_controls:
-                if self.panels_loaded:
-                    yield from self._compose_controls()
+            if self.panels_loaded:
+                yield from self._compose_shell()
 
     @on(widgets.Input.Changed)
     def search_changed(self, event: widgets.Input.Changed) -> None:
