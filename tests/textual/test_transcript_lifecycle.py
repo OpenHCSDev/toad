@@ -11,7 +11,7 @@ from support import journals
 from support.agents import RecordedEvents
 from support.textual_steps import saved_history
 from toad.core.source_events import TranscriptCoverage
-from toad.paths import get_log
+from toad.paths import get_errors
 from toad.transcript_state import DetachedTranscript, LiveTranscript, ProvisionalTranscript
 
 
@@ -118,20 +118,20 @@ async def test_unexpected_source_failure_is_shown_once_and_retires_the_history(w
             await ui.until(lambda: not history.undrawn and history.state.accepts_source_work,
                            why="the initial message body")
             error = RuntimeError("source read failed loudly")
-            before = set(get_log().glob("*.txt"))
+            before = set(get_errors().glob("*.txt"))
 
             async def failed_read():
                 raise error
 
             worker = history.reserve_source_work().schedule(history, failed_read)
             await ui.until(lambda: worker.is_finished, why="the failed pager finishes")
-            logs = set(get_log().glob("*.txt")) - before
+            logs = set(get_errors().glob("*.txt")) - before
             assert len(logs) == 1
             assert str(error) in next(iter(logs)).read_text()
             assert not history.state.accepts_source_work
             workspace.comms.messaging.send("peer", "#one", "A later observation must not retry")
             await ui.step(.2)
-            assert set(get_log().glob("*.txt")) - before == logs
+            assert set(get_errors().glob("*.txt")) - before == logs
             assert worker not in ui.app.workers
             assert not history.state.accepts_source_work
         assert not unhandled

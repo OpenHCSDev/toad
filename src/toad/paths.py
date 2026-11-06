@@ -65,10 +65,17 @@ def save_error(error: BaseException, prefix: str) -> Path:
     import traceback
     from toad.acp.agent import generate_datetime_filename
 
-    path = get_log() / generate_datetime_filename(prefix, ".txt")
+    path = get_errors() / generate_datetime_filename(prefix, ".txt")
     descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
         traceback.print_exception(error, file=stream)
+    return path
+
+
+def get_errors() -> Path:
+    """The directory holding saved exception tracebacks, apart from agent logs."""
+    path = get_log() / "errors"
+    path.mkdir(0o700, exist_ok=True)
     return path
 
 
