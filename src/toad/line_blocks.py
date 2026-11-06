@@ -189,14 +189,8 @@ class LineLink(DeclaredFamily, affix="Link"):
 
     # Whether the text is underlined to show that it leads somewhere.
     underlined: ClassVar[bool] = True
-    # The widget action a click runs (OpensLinks.action_open), and the transport prefix of the
-    # Markdown href that carries a link through a string-only boundary.
-    open_action: ClassVar[str] = "open"
+    # The transport prefix of the Markdown href that carries a link through a string-only boundary.
     href_scheme: ClassVar[str] = "toad-link:"
-
-    @property
-    def click(self) -> str | tuple[str, tuple]:
-        return self.open_action, (self,)
 
     async def copy_menu(self, widget, event):
         return False
@@ -224,17 +218,6 @@ class LineLink(DeclaredFamily, affix="Link"):
         if not href.startswith(cls.href_scheme):
             raise ValueError("Expected a resolved Markdown action")
         return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix(cls.href_scheme))))
-
-    @classmethod
-    def from_action(cls, action: tuple[str, str, tuple[object, ...]]) -> LineLink:
-        """Decode Textual's parsed click action back into the link that encoded it (`click`
-        or `encoded_href`); any other action leads nowhere."""
-        match action:
-            case ("", cls.open_action, (LineLink() as link,)):
-                return link
-            case ("", "link", (str() as href,)) if href.startswith(cls.href_scheme):
-                return cls.from_href(href)
-        return NoLink()
 
 
 @dataclass(frozen=True)

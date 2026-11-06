@@ -511,7 +511,7 @@ class ConversationSessionBinding(
         return self.is_current_session and self.navigation.accepts_menu_owner(owner)
 
     def open_line_link(self, link: LineLink) -> None:
-        self.transcript.binding.history.action_open(link)
+        self.transcript.binding.history.dispatch_sync(link)
 
     @property
     def operational_sources(self):

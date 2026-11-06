@@ -34,6 +34,7 @@ from rich.text import Text
 from textual.strip import Strip
 from ui_theme.scheme import MutedColour, ThemeColour
 
+from toad.link_click import OpenLineLink
 from toad.line_blocks import (
     Body,
     Divider,
@@ -114,7 +115,7 @@ class LinkStyle(MroProjection[Style]):
 
     @handles(LineLink)
     def linked(self, link: LineLink) -> Style:
-        return Style(underline=link.underlined or None, meta={"@click": link.click})
+        return Style(underline=link.underlined or None, meta={"@click": OpenLineLink(link)})
 
     @handles(NoLink)
     def plain(self, link: NoLink) -> Style:

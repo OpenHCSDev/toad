@@ -492,11 +492,10 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
                 )
 
     async def dispatch_style_action(self, handler, event, default_namespace) -> bool:
-        """Right-click adds its menu to the original decoded link action."""
-        if isinstance(event, events.Click) and event.button == 3:
-            from toad.line_blocks import LineLink
-            if await LineLink.from_action(handler.action).copy_menu(default_namespace, event):
-                return True
+        """A right-click offers the drawn action's menu before the click's own action."""
+        if (isinstance(event, events.Click) and event.button == 3
+                and await handler.action.secondary(self, default_namespace, event)):
+            return True
         return await super().dispatch_style_action(handler, event, default_namespace)
 
     def _set_mouse_over(self, widget, hover_widget) -> None:
