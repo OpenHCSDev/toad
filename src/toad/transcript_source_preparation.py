@@ -485,6 +485,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def drawn_extent(self) -> tuple[int, int]:
         """Rows drawn and the source items they show, for converting rows to items."""
 
-    @abstractmethod
     def source_resumed(self) -> None:
-        """A parked source publishes again: report what its drawn pages mean to their owner."""
+        """A parked source publishes again: report what its drawn pages mean to their owner.
+
+        A source with no owner to report to (the saved LineHistory a historical view builds)
+        has nothing to say; CommittedHistory and WireHistory override it."""
