@@ -474,6 +474,8 @@ class TextualUi(AppAgents, Ui):
     def reporting_error(self) -> Iterator[None]:
         """The enclosed steps show exactly one error on purpose; it is acknowledged when they end,
         and any second error saved in the same steps fails the test instead of hiding behind it."""
+        if unexpected := self.errors.unexpected(self):
+            raise unexpected
         before = frozenset(self.reported_errors())
         self.errors = ExpectsErrors()
         try:
