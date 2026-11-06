@@ -307,15 +307,22 @@ class SideBarToggle(
             super().__init__()
             self.focus = focus
 
-    def __init__(self, collapsed: bool, *, edge: type[SidebarEdge]) -> None:
+    def __init__(self, collapsed: bool, *, edge: type[SidebarEdge], heading: str) -> None:
         super().__init__()
+        self.heading = heading
         self.set_collapsed(collapsed, edge)
+
+    def show_heading(self, heading: str, collapsed: bool, edge: type[SidebarEdge]) -> None:
+        """The bar names what it shows now; only a changed name redraws."""
+        if heading != self.heading:
+            self.heading = heading
+            self.set_collapsed(collapsed, edge)
 
     def set_collapsed(self, collapsed: bool, edge: type[SidebarEdge]) -> None:
         edge.size_toggle(self)
         self.styles.dock = edge.opposite().dock
         self.offset = edge.control_offset(0 if collapsed else 1)
-        text = edge.toggle_text(collapsed)
+        text = edge.toggle_text(collapsed, self.heading)
         if self.content != text:
             self.update(text, layout=False)
         tooltip = "Expand sidebar" if collapsed else "Collapse sidebar"
@@ -486,14 +493,60 @@ class TabHistoryControls(
             button.sync(app.tab_order)
 
 
+class Gesture:
+    """Where one pointer gesture on a control stands: nothing, a press, or a drag. A press that
+    moves becomes a drag; a press released where it began is a click."""
+
+    # Whether a newer pointer move may replace a pending one: only while the gesture holds it.
+    holds_pointer: ClassVar[bool] = True
+
+    def moved(self, control: CapturedDrag, position: Offset) -> Gesture:
+        return self
+
+    def released(self, control: CapturedDrag, position: Offset) -> Gesture:
+        return NO_GESTURE
+
+
+class NoGesture(Gesture):
+    holds_pointer = False
+
+
+@dataclass(frozen=True)
+class PressedGesture(Gesture):
+    start: Offset
+
+    def moved(self, control: CapturedDrag, position: Offset) -> Gesture:
+        if position == self.start:
+            return self
+        control.drag_to(position)
+        return DRAGGING
+
+    def released(self, control: CapturedDrag, position: Offset) -> Gesture:
+        control.clicked()
+        return NO_GESTURE
+
+
+class DraggingGesture(Gesture):
+    def moved(self, control: CapturedDrag, position: Offset) -> Gesture:
+        control.drag_to(position)
+        return self
+
+    def released(self, control: CapturedDrag, position: Offset) -> Gesture:
+        control.drag_to(position)
+        return NO_GESTURE
+
+
+NO_GESTURE, DRAGGING = NoGesture(), DraggingGesture()
+
+
 class CapturedDrag:
-    """One captured pointer gesture; controls own its coordinate mapping."""
+    """One captured pointer gesture; controls own its coordinate mapping and what a click does."""
 
     # Screen selection starts before MouseDown reaches the control.
     ALLOW_SELECT = False
 
     def __init__(self, *args, **kwargs) -> None:
-        self._dragging = False
+        self._gesture: Gesture = NO_GESTURE
         super().__init__(*args, **kwargs)
 
     @abstractmethod
@@ -504,33 +557,35 @@ class CapturedDrag:
     def drag_to(self, position: Offset) -> None:
         ...
 
+    def clicked(self) -> None:
+        """A press released without moving: by default it moved nothing, so it does nothing."""
+
     def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button == 1:
             event.stop()
-            self._dragging = True
+            self._gesture = PressedGesture(event.screen_offset)
             self.capture_mouse()
             self.drag_start(event)
 
     def on_mouse_move(self, event: events.MouseMove) -> None:
-        if self._dragging:
+        if self._gesture.holds_pointer:
             event.stop()
-            self.drag_to(event.screen_offset)
+            self._gesture = self._gesture.moved(self, event.screen_offset)
 
     def can_replace_mouse_move(
         self, event: events.MouseMove, pending: events.MouseMove
     ) -> bool:
         # Both controls map the latest absolute position, not motion deltas.
-        return self._dragging and event.button == pending.button == 1
+        return self._gesture.holds_pointer and event.button == pending.button == 1
 
     def on_mouse_up(self, event: events.MouseUp) -> None:
-        if event.button == 1 and self._dragging:
+        if event.button == 1 and self._gesture.holds_pointer:
             event.stop()
-            self.drag_to(event.screen_offset)
-            self._dragging = False
+            self._gesture = self._gesture.released(self, event.screen_offset)
             self.release_mouse()
 
     def on_mouse_release(self) -> None:
-        self._dragging = False
+        self._gesture = NO_GESTURE
 
 
 class SidebarSlider(
@@ -688,6 +743,11 @@ class SidebarResizeHandle(
     def render(self) -> str:
         return self.query_ancestor(SideBar).placement.side.handle_text(self.size)
 
+    def clicked(self) -> None:
+        """A click, not a drag, shows or hides the bar's placement buttons and extent slider."""
+        controls = self.query_ancestor(SideBar).layout_controls
+        controls.display = not controls.display
+
     def drag_to(self, position: Offset) -> None:
         edge = self._drag_edge
         delta = edge.sign * edge.coordinate(position - self._start_point)
@@ -792,10 +852,6 @@ class SearchSidebarAction(WidgetAction):
         sidebar.search_input.focus()
 
 
-class SidebarScope(Bold, MutedText, widgets.Static):
-    """The bar's one-word header, "this" or "all", from its placement."""
-
-
 class SidebarContentStack(containers.Vertical):
     """One padded flow for content; padding never intercepts the outer handles."""
 
@@ -893,7 +949,18 @@ class SideBar(
 
     @cached_property
     def toggle_control(self) -> SideBarToggle:
-        return SideBarToggle(self.collapsed, edge=self.placement.side)
+        return SideBarToggle(self.collapsed, edge=self.placement.side, heading=self.heading)
+
+    @property
+    def heading(self) -> str:
+        """The placement names what this bar shows, from the titles of the tabs being viewed."""
+        app = self.app
+        return self.placement_identity.heading(
+            tab.title for tab in app.open_tabs if tab.mode_name == app.selected_mode)
+
+    @handles(core_events.SessionSelected, core_events.OpenTabsChanged)
+    async def viewed_changed(self, event: core_events.SessionSelected | core_events.OpenTabsChanged) -> None:
+        self.toggle_control.show_heading(self.heading, self.collapsed, self.placement.side)
 
     @cached_property
     def resize_handle(self) -> SidebarResizeHandle:
@@ -927,6 +994,7 @@ class SideBar(
 
     def on_mount(self) -> None:
         self.trap_focus()
+        self.observe_core(self.app.events)
         self.mount_collapse()
         self.watch_collapsed(self.collapsed)
         self.schedule_hydration()
@@ -977,7 +1045,6 @@ class SideBar(
         yield self.resize_handle
         yield self.split_handle
         with self.content_stack:
-            yield SidebarScope(self.placement_identity.scope)
             yield self.search_input
             with self.panels_viewport:
                 if self.panels_loaded:

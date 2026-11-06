@@ -11,7 +11,7 @@ from textual.geometry import Region, Size, Spacing
 from textual.widgets import Static
 
 from toad.preferences import SETTINGS, SavedSettings
-from toad.sidebar_placement import BandSplit, SidebarEdge, SidebarGeometry, SidebarPlacement
+from toad.sidebar_placement import BandSplit, SidebarEdge, SidebarFold, SidebarGeometry, SidebarPlacement
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
 
 
@@ -297,7 +297,9 @@ class SidebarLayout:
             for side, keys in sides.items():
                 sized = {key: axis.collapsed_extent if collapsed[key] and not folded[slot] else extents[slot]
                          for slot in side.slots(keys) for key in slot}
-                packed = dict(zip(keys, side.pack([sized[key] for key in keys], viewport, self.split(side))))
+                packed = dict(zip(keys, side.pack([sized[key] for key in keys],
+                                                  [SidebarFold.of(collapsed[key]) for key in keys],
+                                                  viewport, self.split(side))))
                 spans.update(packed)
                 reach = {key: span.offset + span.extent for key, span in packed.items()}
                 occupied += side.gutter(max(reach.values(), default=0))

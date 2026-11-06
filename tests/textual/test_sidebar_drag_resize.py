@@ -55,7 +55,7 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         await ui.step()
         assert bar.size.width == old_width + 12, (side, bar.size, old_width)
         assert slider.value == bar.placement.extent_percent == 40
-        assert not handle._dragging and app.mouse_captured is None
+        assert not handle._gesture.holds_pointer and app.mouse_captured is None
 
         # The physical arrow keys and slider endpoints mirror as well.
         slider.focus()
@@ -113,7 +113,7 @@ async def test_zero_motion_resize_keeps_requested_percentage_on_every_edge(works
         await ui.step()
         assert bar.placement.extent_percent == 40
         assert bar.region == before
-        assert not handle._dragging and app.mouse_captured is None
+        assert not handle._gesture.holds_pointer and app.mouse_captured is None
 
 
 @pytest.mark.parametrize("side", SidebarEdge.members_with(HeightSidebarEdge))
@@ -140,7 +140,7 @@ async def test_dragging_the_band_splitter_shares_the_band_and_only_the_first_bar
         await ui.step()
         assert app.sidebar_layout.split(side) == 60
         assert first.region.width == 72 and second.region.x == 72, (first.region, second.region)
-        assert not handle._dragging and app.mouse_captured is None
+        assert not handle._gesture.holds_pointer and app.mouse_captured is None
         handle.focus()
         await ui.press("left")
         assert app.sidebar_layout.split(side) == 59
@@ -160,3 +160,25 @@ async def test_dragging_the_band_splitter_shares_the_band_and_only_the_first_bar
         app.workspace_chrome.refresh_layout()
         await ui.step()
         assert not channels.split_handle.display and not thread.split_handle.display
+
+
+async def test_a_click_on_the_resize_handle_toggles_the_controls_and_a_drag_does_not(workspace):
+    """Clicking the handle hides the placement buttons and the extent slider, and a second
+    click shows them; dragging it only resizes."""
+    async with workspace.app(size=(120, 40)) as ui:
+        app, pilot = ui.textual
+        bar = app.workspace_chrome.channels
+        await ui.step()
+        handle = bar.query_one(SidebarResizeHandle)
+        controls = bar.layout_controls
+        assert controls.display
+        for shown in (False, True):
+            assert await pilot.click(handle, offset=(0, 3))
+            await ui.step()
+            assert controls.display is shown and not handle._gesture.holds_pointer
+        start, y = handle.region.x, handle.region.y + 3
+        assert await pilot.mouse_down(handle, offset=(0, 3))
+        await pilot.hover(offset=(start + bar.placement.side.sign * 6, y))
+        await pilot.mouse_up(offset=(start + bar.placement.side.sign * 6, y))
+        await ui.step()
+        assert controls.display, "A drag resizes without hiding the controls"
