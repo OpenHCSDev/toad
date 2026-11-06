@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -46,6 +47,10 @@ class SessionIdentity(ABC):
     def wire_root(self) -> str | None:
         return None
 
+    def belongs_to_wire(self, root: Path) -> bool:
+        """A session without a managed wire may project whichever wire is selected."""
+        return True
+
     def transcript_scope(self) -> TranscriptScope:
         return NoTranscript()
 
@@ -63,6 +68,7 @@ class SessionIdentity(ABC):
 
         return DetachedInspection()
 
+    @property
     def root_path(self) -> Path | None:
         return None
 
@@ -156,6 +162,9 @@ class ThreadIdentity(NamedThreadIdentity):
     def wire_root(self) -> str:
         return self.root
 
+    def belongs_to_wire(self, root: Path) -> bool:
+        return self.root_path == root
+
     def transcript_scope(self) -> KnownTranscript:
         return KnownTranscript(self.root, self.thread_name())
 
@@ -163,12 +172,15 @@ class ThreadIdentity(NamedThreadIdentity):
         return UnreadTranscript()
 
     def display_root(self) -> str:
-        return format_path(self.root_path())
+        return format_path(self.root_path)
 
     def inspection_state(self):
         from toad.core.context_inspection import ReadingOwnerInspection
 
         return ReadingOwnerInspection()
 
+    @cached_property
     def root_path(self) -> Path:
+        """The bound wire's root as the observer names it, resolved once per identity: the
+        sidebar asks for it on every row of every paint."""
         return Path(self.root).expanduser().resolve()

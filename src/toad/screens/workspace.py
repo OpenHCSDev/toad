@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass, replace
 from functools import cached_property
+from pathlib import Path
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.containers import Container
@@ -126,7 +127,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
     def binding_scopes(self):
         return tuple((node, node.scope_bindings()) for node in self.app.workspace_sessions.source.keyboard_scopes())
 
-    def belongs_to_wire(self, root) -> bool:
+    def belongs_to_wire(self, root: Path) -> bool:
         """Shared workspace chrome follows the observed wire, not a retained tab."""
         return True
 
