@@ -17,7 +17,7 @@ from ui_theme.scheme import TurnBandColour
 
 from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import FullWidth, OneRow
-from toad.textual_colours import BlockInk, BottomInk
+from toad.textual_colours import BlockInk, FullInk
 
 
 class ThrobberVisual(Visual):
@@ -91,6 +91,6 @@ class ObservedThrobber(Throbber):
 
 
 class AboveThrobber(ObservedThrobber):
-    """The upper bar hugs the status from its cell's bottom edge."""
+    """The bar above the status, in whole blocks."""
 
-    ink_edge = BottomInk
+    ink_edge = FullInk

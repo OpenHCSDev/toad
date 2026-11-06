@@ -76,7 +76,7 @@ class BarPresentation:
     collapsed: bool
     directions: tuple[type[SidebarShift], ...]
     leads_band: bool
-    """Another bar follows this one in its band, so this bar carries the splitter."""
+    """The next bar in its band sits beside this one, so this bar carries the splitter."""
 
     @classmethod
     def from_placement(
@@ -1104,7 +1104,9 @@ class SideBar(
         current = PresentedBar(
             presentation=BarPresentation.from_placement(
                 placement, collapsed=self.collapsed, directions=directions,
-                leads_band=self.app.sidebar_layout.splits_after(self.placement_identity),
+                leads_band=self.app.sidebar_layout.splits_after(self.placement_identity, {
+                    bar.placement_identity: bar.collapsed
+                    for bar in self.app.workspace_chrome.presented_sidebars()}),
             ),
             extent_percent=placement.extent_percent,
         )
@@ -1121,7 +1123,7 @@ class SideBar(
             edge.size_handle(handle)
             handle.styles.dock = edge.opposite().dock
             handle.display = not self.collapsed
-            self.split_handle.display = current.presentation.leads_band and not self.collapsed
+            self.split_handle.display = current.presentation.leads_band
             if self.panels_loaded:
                 slider.reversed = edge.sign < 0
                 slider.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,

@@ -161,6 +161,12 @@ class BottomInk(BlockInk):
     GLYPHS = " ▄█"
 
 
+class FullInk(BlockInk):
+    """Every inked cell is a whole block; the sweep's tails fade by colour, not by shape."""
+
+    GLYPHS = " █"
+
+
 class PaletteState(AnsiPalette, ABC):
     def refresh_colours(self, colours: TextualColours) -> None:
         """Native colours already in the stylesheet need no RGB replacement."""

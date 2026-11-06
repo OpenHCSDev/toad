@@ -186,7 +186,12 @@ def test_a_band_split_shares_the_width_survives_other_changes_and_keeps_both_bar
     assert layout.split(side) == 70 and widths() == [56, 24], "Placement changes keep the split"
     assert layout.set_split(side, 0)
     assert widths() == [HeightSidebarEdge.cross_minimum, 80 - HeightSidebarEdge.cross_minimum]
-    assert layout.splits_after(layout.ordered()[0]) != layout.splits_after(layout.ordered()[1])
+    first, second = layout.ordered()
+    for folds in product((False, True), repeat=2):
+        collapsed = dict(zip((first, second), folds))
+        splitters = sum(layout.splits_after(bar, collapsed) for bar in (first, second))
+        assert splitters == (folds[0] is folds[1]), (
+            "One splitter separates bars sharing a row, both open or both folded; none otherwise")
     reloaded = layout_for(SavedSettings(layout.settings.document()))
     assert reloaded.split(side) == 0 and reloaded.placements == layout.placements, "The split is saved"
 

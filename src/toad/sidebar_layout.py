@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, replace
 
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -161,10 +161,14 @@ class SidebarLayout:
         self._save(replace(self.terminal, splits=(*others, BandSplit(side, percent))))
         return True
 
-    def splits_after(self, identity: type[SidebarPlacement]) -> bool:
-        """Whether another bar follows this one in the room it shares: its splitter shows."""
+    def splits_after(self, identity: type[SidebarPlacement],
+                     collapsed: Mapping[type[SidebarPlacement], bool]) -> bool:
+        """Whether the next bar in this one's band sits beside it, so its splitter shows: bars
+        whose folds take equal shares share a row; a folded strip under an open bar does not."""
         slot = self._slot(self.placements, identity)
-        return slot.index(identity) < len(slot) - 1
+        index = slot.index(identity)
+        return any(SidebarFold.of(collapsed[identity]).shares == SidebarFold.of(collapsed[after]).shares
+                   for after in slot[index + 1:index + 2])
 
     def _store(self, placements: dict[type[SidebarPlacement], SidebarPlacement]) -> None:
         self._save(replace(self.terminal, placements=tuple(placements.values())))

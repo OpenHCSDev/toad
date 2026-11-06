@@ -201,7 +201,7 @@ class NormalInputBox(TitledChoice, InputBox):
     """The classic prompt: a bordered, padded box above the info bar."""
 
     title = "Normal (bordered and padded)"
-    frame_margin = Spacing(1, 1, 0, 1)
+    frame_margin = Spacing(0, 1, 0, 1)
     frame_padding = Spacing(0, 1, 0, 0)
 
     @classmethod
