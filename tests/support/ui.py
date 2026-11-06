@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 
 from rich.cells import cell_len
 from support.agents import AppAgents, command
+from toad import paths
 from toad.navigation_context import NavigationContext
 
 if TYPE_CHECKING:
@@ -174,6 +175,10 @@ class Ui(ABC):
     def failure(self) -> BaseException | None:
         """An exception the interface caught while running, if any."""
 
+    @abstractmethod
+    def reported_errors(self) -> list[Path]:
+        """Tracebacks of errors the interface caught, showed and saved instead of raising."""
+
     def visible_text(self) -> str:
         return "\n".join(self.visible_lines())
 
@@ -199,8 +204,10 @@ class Ui(ABC):
                         return
                     await self.step(0.02)
         except TimeoutError:
+            reported = "".join(f"\nerror the app reported, {path.name}:\n{path.read_text()}"
+                               for path in self.reported_errors())
             raise NotShown(
-                f"{why or 'condition'} not reached in {seconds}s; screen:\n{self.visible_text()}"
+                f"{why or 'condition'} not reached in {seconds}s; screen:\n{self.visible_text()}{reported}"
             ) from None
 
     async def until_agent_ready(self, *, seconds: float = 30) -> None:
@@ -429,3 +436,6 @@ class TextualUi(AppAgents, Ui):
 
     def failure(self) -> BaseException | None:
         return self.app._exception
+
+    def reported_errors(self) -> list[Path]:
+        return sorted(paths.get_errors().glob("*.txt"))
