@@ -13,7 +13,7 @@ from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
-from agent_comms.order_tools import InputDeliveryRead
+from agent_comms.transport.tools.reads import InputDeliveryRead
 from agent_comms.goal_scope import OneGoal
 from agent_comms.repo import Checkout
 from agent_comms.runtime_server import AttachedRuntimeRequest
