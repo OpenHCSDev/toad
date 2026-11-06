@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -45,6 +46,10 @@ class SessionIdentity(ABC):
 
     def wire_root(self) -> str | None:
         return None
+
+    def belongs_to_wire(self, root: Path) -> bool:
+        """A session without a managed wire may project whichever wire is selected."""
+        return True
 
     def transcript_scope(self) -> TranscriptScope:
         return NoTranscript()
@@ -155,6 +160,14 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def wire_root(self) -> str:
         return self.root
+
+    @cached_property
+    def wire_path(self) -> Path:
+        """The bound wire's root as the observer names it, resolved once per identity."""
+        return Path(self.root).expanduser().resolve()
+
+    def belongs_to_wire(self, root: Path) -> bool:
+        return self.wire_path == root
 
     def transcript_scope(self) -> KnownTranscript:
         return KnownTranscript(self.root, self.thread_name())

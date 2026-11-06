@@ -9,6 +9,7 @@ from textual.layout import Layout
 from ui_theme.scheme import BackgroundColour
 from textual.reactive import reactive
 from contextlib import contextmanager
+from pathlib import Path
 from metaclass_registry.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
 from toad.layout_preferences import FollowsLayoutPreferences
@@ -77,12 +78,9 @@ class SessionView(
     def navigation_target(self) -> NavigationTarget:
         return NoTarget()
 
-    def belongs_to_wire(self, root) -> bool:
+    def belongs_to_wire(self, root: Path) -> bool:
         """Unbound views may project the selected wire; bound views stay on it."""
-        from pathlib import Path
-
-        source = self.coordination_root
-        return source is None or Path(source).expanduser().resolve() == root
+        return self._identity.belongs_to_wire(root)
 
     def read_visible(self) -> PaintedRead:
         """Views without a conversation have no native transcript to mark read."""
