@@ -31,15 +31,11 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
     text_fades = (NEW_TEXT,)
 
     def update(self, content: VisualType = "", *, layout: bool | None = None) -> None:
-        """New content redraws and fades in; the content already shown changes nothing, not even layout.
-
-        Textual's Content compares its text only, so "already shown" also compares the spans:
-        a link resolved later, or a theme's new colours, is new content with the same text."""
-        shown = self.content
-        if isinstance(shown, Content) and isinstance(content, Content):
-            if shown.plain == content.plain and list(shown.spans) == list(content.spans):
-                return
-        elif shown == content:
+        """New content redraws and fades in; content that draws like what is shown changes nothing,
+        not even layout. A link resolved later, or a theme's new colours, keeps the text but draws
+        differently."""
+        markup = self._render_markup
+        if Content.from_text(self.content, markup=markup).draws_like(Content.from_text(content, markup=markup)):
             return
         super().update(content, layout=layout)
         if self.is_mounted:
