@@ -39,7 +39,7 @@ from agent_comms.runtime_requests import (
     ContextRecordedSegmentRuntimeRequest, ContextReferenceRuntimeRequest, ContextRuntimeRequest,
     ContextSourceRuntimeRequest,
 )
-from agent_comms.runtime_request import RuntimeRequest
+from agent_comms.runtime_server import RuntimeRequest
 
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
