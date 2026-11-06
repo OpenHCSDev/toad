@@ -1,7 +1,7 @@
 """The shared line-block view for live tool details and permission previews."""
 from textual.strip import Strip
 from textual.widget import Widget
-from toad.block_content import BlockContent
+from toad.block_content import SelectsSource
 from toad.native_style import AutoHeight
 from toad.line_blocks import LineBlock
 from toad.widgets.linked_rows import HorizontalRows, ReferenceRendering, selection_painted
@@ -9,11 +9,11 @@ from toad.widgets.styled_rows import StyledRows
 
 
 class ToolContent(
+    SelectsSource,
     AutoHeight,
     StyledRows,
     ReferenceRendering,
     HorizontalRows,
-    BlockContent,
     Widget,
 ):
     """One live details widget painting the parts' canonical line blocks."""

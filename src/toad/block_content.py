@@ -5,6 +5,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
 
+from textual.selection import Selection
 from textual.widgets import _markdown as native_markdown
 
 from toad.menus import KeyedMenuCommand, MenuCommand, MenuConversation
@@ -42,6 +43,13 @@ class BlockContent:
 
     def collapse_block(self) -> None:
         pass
+
+
+class SelectsSource(BlockContent):
+    """Selecting the block extracts the same source text copying gives, not its painted rows."""
+
+    def get_selection(self, selection: Selection) -> tuple[str, str]:
+        return selection.extract(self.get_clipboard_text()), "\n"
 
 
 class ExpansionCommand(ExclusiveKeys, KeyedMenuCommand, declared_name=None):

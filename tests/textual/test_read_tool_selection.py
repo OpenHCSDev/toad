@@ -1,10 +1,9 @@
-"""Textual-facing: a large Read tool result prepared by the render workers selects as the exact source text."""
+"""Textual-facing: a large Read tool result, styled by the render workers, selects as the exact source text."""
 
 from textual.selection import SELECT_ALL
 
 from support.textual_steps import tool_status
-from toad.widgets.tool_call import ToolCall
-from toad.widgets.worker_static import WorkerStatic
+from toad.widgets.tool_call import ToolCall, ToolCallContent
 
 
 async def test_read_result_selection_is_the_full_source(workspace):
@@ -17,10 +16,8 @@ async def test_read_result_selection_is_the_full_source(workspace):
                 "content": [{"type": "content", "content": {"type": "text", "text": source}}]}))
             await ui.conversation.post(tool)
             tool.set_expanded(True)
-            await ui.until(lambda: tool.query(WorkerStatic), seconds=25, why="the read output")
-            widget = tool.query_one(WorkerStatic)
-            await widget.wait_ready()
-            await ui.step()
+            widget = tool.query_one(ToolCallContent)
+            await ui.until(lambda: widget.size.height > 1, seconds=25, why="the read output")
             actual = widget.get_selection(SELECT_ALL)[0]
             expected = SELECT_ALL.extract(source)
             assert actual == expected, (index, len(actual), len(expected), repr(actual[:90]), repr(actual[-90:]))
