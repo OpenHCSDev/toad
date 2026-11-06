@@ -22,7 +22,7 @@ from agent_comms.transport.tools.sidebar import CommsExportWireTool, CommsImport
 
 from agent_comms.exporting import WireExportProvenance, JsonlFormat, TextFormat, ChannelScope, DmScope, EverythingScope, FullLimit, MaxBytesLimit, WireExportFormat, WireExportLimit, WireExportScope
 from agent_comms.transport.progress import CancellableWireExport, WireExportCancelled, WireExportObserver, WireExportProgress
-from agent_comms.cli_bridges.history import ExpectedSession
+from agent_comms.thread_text import ExpectedSession
 from agent_comms.harness_install import Harness
 from agent_comms.thread_management import ImportDirectory
 from textual import on
