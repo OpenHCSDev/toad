@@ -37,6 +37,8 @@ from textual.visual import RenderOptions
 from textual.widgets import OptionList, Input, DirectoryTree
 from textual.widgets.option_list import Option
 from textual.widgets.input import InputComponent
+from textual.widgets.directory_tree import DirEntry
+from textual.widgets.tree import TreeNode
 
 from metaclass_registry.mro_dispatch import handles
 
@@ -55,8 +57,6 @@ from toad.widgets.prompt_popup import CompletionInput, CompletionOptionList, Com
 
 
 if TYPE_CHECKING:
-    from textual.widgets._directory_tree import DirEntry
-    from textual.widgets.tree import TreeNode
     from toad.widgets.prompt import Prompt
 
 
