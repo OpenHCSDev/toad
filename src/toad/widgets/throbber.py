@@ -15,7 +15,7 @@ from textual.text_format import TextFormat
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import TurnBandColour
 
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import FullWidth, OneRow
 from toad.textual_colours import BlockInk, BottomInk
 
@@ -45,7 +45,7 @@ class ThrobberVisual(Visual):
         return 1
 
 
-class Throbber(FullWidth, OneRow, Animated[Ribbon]):
+class Throbber(EffectInContent, FullWidth, OneRow, Animated[Ribbon]):
     _paint_only_render = True
     tone = TurnBandColour
     # The row is always reserved; only its paint and animation change.

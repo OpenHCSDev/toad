@@ -17,7 +17,7 @@ from ui_theme.effects import NEW_MESSAGE, Mix
 
 from toad.block_content import BlockContent
 from toad.block_navigation import CategorizedBlock, ConversationBlock
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, EffectInContent
 from toad.line_blocks import Divider, Gap, LineBlock
 from toad.native_style import (
     AutoHeight,
@@ -121,7 +121,7 @@ class StickyHeader(StartsHidden, ScreenOverlay, LineBlockRow):
         self.display = bool(pinned.headers)
 
 
-class MessageDivider(SpacedAbove, Animated[Mix], ConversationLineBlock):
+class MessageDivider(EffectInContent, SpacedAbove, Animated[Mix], ConversationLineBlock):
     """The rule above a live message: the same `Divider` block saved history draws.
 
     A message that has just arrived fades in from the accent colour.

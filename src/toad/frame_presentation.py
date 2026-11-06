@@ -311,11 +311,11 @@ class AnimationEffects[FrameT: Frame](TonePaint):
     def on_hide(self) -> None:
         for effect in tuple(self.effects):
             self.effects.pop(effect).stop()
-        self.refresh()
+        self.repaint()
 
     def on_show(self) -> None:
         self.start_wanted()
-        self.refresh()
+        self.repaint()
 
     def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
         # Background-origin text rises from the widget's tone; accent flashes
@@ -344,6 +344,16 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         except ScreenStackError, UnknownModeError:
             return False
         return screen is current and self in screen._compositor.visible_widgets
+
+    def repaint(self) -> None:
+        """A frame paints over the lines (paint_effects in render_line); the content they
+        show is unchanged, so it is not rendered again."""
+        self.refresh_lines()
+
+
+class EffectInContent:
+    """A widget whose content itself reads the effect frame (in render or its strips), so each
+    frame renders the content again instead of repainting the same lines."""
 
     def repaint(self) -> None:
         self.refresh()
