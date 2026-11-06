@@ -83,7 +83,8 @@ def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels,
         pair.float_mode(name)
         assert pair.ordered() == order, "Float must not reorder sidebars"
         assert pair.resolve(viewport, collapsed).bars == before.bars
-    assert side_by_side(*before.bars.values()), before.bars
+    first_bar, second_bar = before.bars.values()
+    assert not first_bar.overlaps(second_bar), before.bars
     assert all(viewport.region.contains_region(bar) for bar in before.bars.values())
     for name, hidden in collapsed.items():
         if hidden:
@@ -192,23 +193,25 @@ def test_a_band_split_shares_the_width_survives_other_changes_and_keeps_both_bar
 
 @pytest.mark.parametrize("side", SidebarEdge.members_with(HeightSidebarEdge))
 def test_one_open_bar_in_a_band_takes_the_band_and_only_two_open_bars_split_it(side):
-    """A folded bar beside an open one keeps only the narrowest width; it held half the band,
-    so the open bar got half the room it asked for."""
+    """A folded bar beside an open one is only its toggle: it lies along the wall as a
+    full-width strip, and the open bar takes the whole width beside it. Held half the band,
+    the open bar got half the room it asked for; held the narrowest bar width, still less."""
     layout = layout_for()
     layout.move(ChannelsSidebarPlacement, side)
     layout.move(ThreadSidebarPlacement, side)
     first, second = layout.ordered()
 
-    def widths(collapsed: dict) -> list[int]:
-        bars = layout.resolve(Size(80, 40), collapsed).bars
-        return [bars[key].width for key in (first, second)]
+    def bars(collapsed: dict):
+        resolved = layout.resolve(Size(80, 40), collapsed).bars
+        return resolved[first], resolved[second]
 
-    narrowest = HeightSidebarEdge.cross_minimum
-    assert widths({first: False, second: False}) == [40, 40]
-    assert widths({first: False, second: True}) == [80 - narrowest, narrowest]
-    assert widths({first: True, second: False}) == [narrowest, 80 - narrowest]
-    assert widths({first: True, second: True}) == [40, 40], "Two folded bars still share the band"
-
+    assert [bar.width for bar in bars({first: False, second: False})] == [40, 40]
+    for opened, folded in ((first, second), (second, first)):
+        placed = dict(zip((first, second), bars({opened: False, folded: True})))
+        assert placed[opened].width == placed[folded].width == 80
+        assert placed[folded].height == HeightSidebarEdge.collapsed_extent
+        assert not placed[opened].overlaps(placed[folded]), placed
+    assert [bar.width for bar in bars({first: True, second: True})] == [40, 40], "Two folded bars share the band"
 
 def test_the_thread_bar_names_the_viewed_tab_and_the_channels_bar_its_scope():
     """The toggle names what the bar shows: the viewed tab's own title, the one the tab bar
