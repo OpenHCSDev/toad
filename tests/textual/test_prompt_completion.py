@@ -1,6 +1,6 @@
 """Textual-facing: the prompt's popups (slash commands, file search, model picker), its cursor and selection
 in wrapped text, and the channel composer's mention list are Textual widgets that paint and take focus."""
-from toad.widgets.path_search import SwitchPathPickerAction
+from toad.widgets.path_search import FuzzyPane, SwitchPathPickerAction, TreePane
 from textual.document._editing import EditingMode
 from toad.session_scope import AgentAttached
 
@@ -164,9 +164,9 @@ async def test_file_search_inserts_a_path_and_follows_picker_focus_resize_and_ca
         await ui.press("-", "1", "2", "7")
         await ui.until(lambda: painted_text(paths, "target-127.txt"), why="the narrowed candidate")
         await ui.press("f8")
-        await ui.until(lambda: paths.show_tree_picker and paths.tree_view.has_focus, why="the tree picker")
+        await ui.until(lambda: isinstance(paths.picked, TreePane) and paths.tree_view.has_focus, why="the tree picker")
         await ui.press("f8")
-        await ui.until(lambda: not paths.show_tree_picker and paths.input.has_focus, why="focus back in the query")
+        await ui.until(lambda: isinstance(paths.picked, FuzzyPane) and paths.input.has_focus, why="focus back in the query")
         assert paths.is_open, "Moving between actual picker children closed their owner"
         await ui.resize(104, 35)
         await ui.until(lambda: painted_text(paths, "target-127.txt"), why="the candidate after resize")

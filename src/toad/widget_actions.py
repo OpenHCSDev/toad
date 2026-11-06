@@ -479,6 +479,20 @@ class StepsVerticalCursor(MovesCursor):
         self.step_vertical(+1)
 
 
+class ForwardsCursor(MovesCursor):
+    """Up and Down move the cursor of the child list that holds it; the widget names that child."""
+
+    @property
+    @abstractmethod
+    def cursor_owner(self) -> MovesCursor: ...
+
+    def action_cursor_up(self) -> None:
+        self.cursor_owner.action_cursor_up()
+
+    def action_cursor_down(self) -> None:
+        self.cursor_owner.action_cursor_down()
+
+
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):
 
     @abstractmethod

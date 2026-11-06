@@ -2,7 +2,9 @@ from __future__ import annotations
 
 
 import asyncio
+from abc import abstractmethod
 from dataclasses import replace
+from functools import cached_property
 
 import os
 from pathlib import Path
@@ -14,7 +16,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
 from textual.navigation import MovesCursor
-from toad.widget_actions import WidgetAction, PriorityActions, HiddenActions, Submits, DismissAction, SubmitAction, VisibleActions
+from toad.widget_actions import ForwardsCursor, WidgetAction, PriorityActions, HiddenActions, Submits, DismissAction, SubmitAction, VisibleActions
 from textual import work
 from textual import getters
 from textual import containers
@@ -35,6 +37,8 @@ from textual.visual import RenderOptions
 from textual.widgets import OptionList, Input, DirectoryTree
 from textual.widgets.option_list import Option
 from textual.widgets.input import InputComponent
+from textual.widgets.directory_tree import DirEntry
+from textual.widgets.tree import TreeNode
 
 from metaclass_registry.mro_dispatch import handles
 
@@ -140,12 +144,103 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
         return super().render_line(y, paint)
 
 
-class FuzzyPane(containers.VerticalGroup):
+class PickerPane(containers.VerticalGroup):
+    """One way of picking a path. The popup shows only the picked pane, and every key,
+    submit and suggestion goes to it."""
+
+    @property
+    def search(self) -> PathSearch:
+        return self.query_ancestor(PathSearch)
+
+    @property
+    @abstractmethod
+    def toggled(self) -> PickerPane:
+        """The pane Tab switches to."""
+
+    @property
+    @abstractmethod
+    def cursor_owner(self) -> MovesCursor: ...
+
+    @property
+    @abstractmethod
+    def focus_target(self) -> Widget: ...
+
+    async def prepare(self) -> None:
+        """Make this pane ready to be picked."""
+
+    @abstractmethod
+    def submit(self) -> None: ...
+
+    def suggest_option(self, option: Option) -> None:
+        """A list highlight suggests nothing unless this pane picks from the list."""
+
+    async def suggest_node(self, node: TreeNode[DirEntry]) -> None:
+        """A tree highlight suggests nothing unless this pane picks from the tree."""
+
+
+class FuzzyPane(PickerPane):
     """Fuzzy search over the project's paths."""
 
+    @property
+    def toggled(self) -> PickerPane:
+        return self.search.query_one(TreePane)
 
-class TreePane(containers.VerticalGroup):
-    """The project's directory tree."""
+    @property
+    def cursor_owner(self) -> FuzzyPathOptionList:
+        return self.query_one(FuzzyPathOptionList)
+
+    @property
+    def focus_target(self) -> FuzzyInput:
+        return self.query_one(FuzzyInput)
+
+    def submit(self) -> None:
+        option_list = self.cursor_owner
+        if (highlighted := option_list.highlighted) is not None:
+            option = option_list.options[highlighted]
+            if option.id:
+                self.post_message(InsertPath(option.id))
+                self.post_message(Dismiss(self.search))
+
+    def suggest_option(self, option: Option) -> None:
+        self.post_message(PromptSuggestion(option.id))
+
+
+class TreePane(PickerPane):
+    """The project's directory tree, mounted the first time it is picked."""
+
+    @cached_property
+    def mount_lock(self) -> asyncio.Lock:
+        return asyncio.Lock()
+
+    @property
+    def toggled(self) -> PickerPane:
+        return self.search.query_one(FuzzyPane)
+
+    @property
+    def cursor_owner(self) -> ProjectDirectoryTree:
+        return self.query_one(ProjectDirectoryTree)
+
+    @property
+    def focus_target(self) -> ProjectDirectoryTree:
+        return self.cursor_owner
+
+    async def prepare(self) -> None:
+        async with self.mount_lock:
+            if self.query_one_optional(ProjectDirectoryTree) is None:
+                tree = PathSearchTree(self.search.root)
+                tree.guide_depth = 2
+                tree.center_scroll = True
+                await self.mount(tree)
+
+    def submit(self) -> None:
+        """Enter belongs to the tree, which opens directories and selects files."""
+        raise SkipAction()
+
+    async def suggest_node(self, node: TreeNode[DirEntry]) -> None:
+        if (dir_entry := node.data) is not None:
+            search = self.search
+            path = await asyncio.to_thread(search.make_relative, dir_entry.path, search.root)
+            self.post_message(PromptSuggestion(str(path)))
 
 
 class PathSearchTree(SideMargin, ProjectDirectoryTree):
@@ -169,11 +264,11 @@ class SwitchPathPickerAction(WidgetAction):
     priority = True
 
     async def apply(self, context: PathSearch) -> None:
-        context.show_tree_picker = not context.show_tree_picker
+        await context.pick(context.picked.toggled)
 
 
 class PathSearch(
-    CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, MovesCursor, Submits, CompletionPopup,
+    CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, ForwardsCursor, Submits, CompletionPopup,
     scopes={HiddenActions: (DismissAction, SubmitAction)},
     actions=(SwitchPathPickerAction,),
 ):
@@ -183,7 +278,7 @@ class PathSearch(
 
     paths: var[list[Path]] = var(list, init=False)
     display_paths: var[list[str]] = var(list)
-    show_tree_picker: var[bool] = var(False, init=False)
+    picked: PickerPane
 
     option_list = getters.query_one(FuzzyPathOptionList)
     tree_view = getters.query_one(ProjectDirectoryTree)
@@ -193,7 +288,6 @@ class PathSearch(
         super().__init__()
         self.ranking = PathSearchRanking()
         self._paths_dirty = True
-        self._tree_mount_lock = asyncio.Lock()
 
     @classmethod
     def for_prompt(cls, prompt: Prompt) -> Self | None:
@@ -232,33 +326,26 @@ class PathSearch(
 
     def compose_content(self) -> ComposeResult:
         with containers.VerticalGroup():
-            with FuzzyPane():
+            with FuzzyPane() as self.picked:
                 yield FuzzyInput(
                     compact=True, placeholder="fuzzy search \t[r]▌tab▐[/r] tree view"
                 )
                 yield FuzzyPathOptionList()
-            with TreePane():
+            with TreePane() as tree_pane:
+                tree_pane.display = False
                 yield PathSearchMessage(
                     Content.from_markup(
                         "tree view \t[r]▌tab▐[/] fuzzy search"
                     ).expand_tabs(),
                 )
 
-    async def watch_show_tree_picker(self, show_tree_picker: bool) -> None:
-        self.query_one(FuzzyPane).display = not show_tree_picker
-        self.query_one(TreePane).display = show_tree_picker
-        if show_tree_picker:
-            async with self._tree_mount_lock:
-                if self.query_one_optional(ProjectDirectoryTree) is None:
-                    tree = PathSearchTree(self.root)
-                    tree.guide_depth = 2
-                    tree.center_scroll = True
-                    await self.query_one(TreePane).mount(tree)
-            if self.show_tree_picker:
-                self.tree_view.focus()
-
-        else:
-            self.input.focus()
+    async def pick(self, pane: PickerPane) -> None:
+        """Show and focus one pane; it is picked only once it is ready, so a picked tree is mounted."""
+        await pane.prepare()
+        self.picked.display = False
+        pane.display = True
+        self.picked = pane
+        pane.focus_target.focus()
 
     async def search(self, search: str) -> None:
         if not search:
@@ -297,19 +384,9 @@ class PathSearch(
             self.option_list.highlighted = 0
         self.post_message(PromptSuggestion(""))
 
-    def action_cursor_down(self) -> None:
-        if self.show_tree_picker:
-            if tree := self.query_one_optional(ProjectDirectoryTree):
-                tree.action_cursor_down()
-        else:
-            self.option_list.action_cursor_down()
-
-    def action_cursor_up(self) -> None:
-        if self.show_tree_picker:
-            if tree := self.query_one_optional(ProjectDirectoryTree):
-                tree.action_cursor_up()
-        else:
-            self.option_list.action_cursor_up()
+    @property
+    def cursor_owner(self) -> MovesCursor:
+        return self.picked.cursor_owner
 
     def invalidate_paths(self) -> None:
         self._paths_dirty = True
@@ -320,10 +397,7 @@ class PathSearch(
         self.input.clear()
         if self._paths_dirty:
             self.refresh_paths()
-        if self.show_tree_picker and (tree := self.query_one_optional(ProjectDirectoryTree)):
-            tree.focus(scroll_visible=scroll_visible)
-        else:
-            self.input.focus(scroll_visible=scroll_visible)
+        self.picked.focus_target.focus(scroll_visible=scroll_visible)
 
     @classmethod
     def make_relative(cls, path: Path, root: Path) -> Path:
@@ -341,16 +415,7 @@ class PathSearch(
     @on(DirectoryTree.NodeHighlighted)
     async def on_node_highlighted(self, event: DirectoryTree.NodeHighlighted) -> None:
         event.stop()
-        if not self.show_tree_picker:
-            return
-
-        dir_entry = event.node.data
-        if dir_entry is not None:
-            path = await asyncio.to_thread(
-                self.make_relative, dir_entry.path, self.root
-            )
-            tree_path = str(path)
-            self.post_message(PromptSuggestion(tree_path))
+        await self.picked.suggest_node(event.node)
 
     @on(DirectoryTree.FileSelected)
     async def on_file_selected(self, event: DirectoryTree.FileSelected) -> None:
@@ -372,22 +437,15 @@ class PathSearch(
     @on(OptionList.OptionHighlighted)
     async def on_option_list_changed(self, event: OptionList.OptionHighlighted):
         event.stop()
-        if event.option and not self.show_tree_picker:
-            self.post_message(PromptSuggestion(event.option.id))
+        if event.option:
+            self.picked.suggest_option(event.option)
 
     @on(OptionList.OptionSelected)
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         self.submit()
 
-    def submit(self):
-        if self.show_tree_picker:
-            raise SkipAction()
-
-        elif (highlighted := self.option_list.highlighted) is not None:
-            option = self.option_list.options[highlighted]
-            if option.id:
-                self.post_message(InsertPath(option.id))
-                self.post_message(Dismiss(self))
+    def submit(self) -> None:
+        self.picked.submit()
 
     @work(exclusive=True)
     async def refresh_paths(self):
