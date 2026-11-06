@@ -169,3 +169,39 @@ async def test_a_remote_core_lists_a_target_menu_and_keeps_its_root_spelling(
             spelled_elsewhere.symlink_to(observed.root)
             assert observed.observes(observed.root)
             assert not observed.observes(spelled_elsewhere)
+
+
+async def test_a_remote_target_menu_and_reconnect_read_registry_slices_not_the_whole_registry(
+        workspace, tmp_path, monkeypatch):
+    """Over the connector the whole registry is megabytes; a menu render and a reconnect name
+    their targets, so they read those rows. A full read here once kept 3-7 whole-registry
+    transfers in flight and froze a remote Toad."""
+    from toad.comms_root import CurrentObservation
+    from toad.target_commands import TargetContext
+
+    workspace.thread("remote-peer", "team")
+    with remote_core(workspace, tmp_path, monkeypatch) as connection:
+        async with workspace.app(session=False, connect=lambda _: connection) as ui:
+            app, _ = ui.textual
+            sidebar = app.workspace_chrome.channels
+            if sidebar.collapsed:
+                sidebar.toggle()
+            tree = sidebar.query_one(CommsSidebar)
+            await ui.until(lambda: "#team" in tree.groups, seconds=REMOTE_FIRST_ANSWER,
+                           why="the remote Core's channel group")
+            observed = app.coordination_access.observation
+            captured = app.coordination_access.selected(observed.root)
+            assert captured == CurrentObservation(observed)
+            whole = []
+            original = RemoteObserving.registry
+
+            def counted(self):
+                whole.append(self)
+                return original(self)
+
+            monkeypatch.setattr(RemoteObserving, "registry", counted)
+            context = TargetContext(app, observed, CommandTarget.named("remote-peer"),
+                                    workspace.viewer, Checkout(workspace.project))
+            assert await asyncio.to_thread(context.available_actions)
+            await app.session_navigation.reconnect(captured, ("remote-peer",))
+            assert whole == []
