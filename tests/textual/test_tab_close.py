@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 
 from agent_comms.launch_root import LaunchRoot
-from toad.comms_root import FailedObservation, UnselectedRoute
+from toad.comms_root import FailedObservation, LocalCoreConnection, UnselectedRoute
 from toad.core.events import ObservedServiceChanged
 from support.applications import record_notifications
 from toad.preferences import SETTINGS
@@ -41,15 +41,21 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
                 await access.route_task
             changes = ObservationChanges()
             with access.events.subscribe(ObservedServiceChanged, changes.received):
-                # The app remains bound to its original root. Selecting another
-                # process root makes its real route capture fail, without mocks.
-                with LaunchRoot.from_path(workspace.project / "other-root").selected():
-                    failed = await access.preparation.run_thread(access.open_current)
-                    repeated = await access.preparation.run_thread(access.open_current)
-                    await ui.step()
-                    assert isinstance(failed, FailedObservation)
-                    assert failed == repeated and failed is repeated
-                    assert changes.count == 1
+                # The app's connection owns its root, so a process-selected root no
+                # longer reaches it. A connection to a root with no route makes the
+                # real route capture fail through this access, without mocks.
+                other = LocalCoreConnection(workspace.project / "other-root")
+
+                def open_other():
+                    with access.opening:
+                        return other.open_current(access)
+
+                failed = await access.preparation.run_thread(open_other)
+                repeated = await access.preparation.run_thread(open_other)
+                await ui.step()
+                assert isinstance(failed, FailedObservation)
+                assert failed == repeated and failed is repeated
+                assert changes.count == 1
             await access.route_changed()
 
             app.saved_settings.set(SETTINGS.sidebar.show_stopped, True)
