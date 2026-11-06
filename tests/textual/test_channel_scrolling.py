@@ -153,3 +153,34 @@ async def test_a_growing_channel_draws_new_messages_for_a_tail_reader_and_keeps_
         await ui.press("end")
         await ui.until(lambda: window.follows_tail and not history.has_more(NEWER_END), why="End to reach the newest message")
         await ui.until_shows("GROWN-WHILE-AWAY 59")
+
+
+async def test_paging_down_at_the_bottom_keeps_the_reader_on_the_tail(workspace):
+    """A page down at the bottom released the anchor and moved nothing, so no scroll change
+    told the window the reader was still at the end: "Back to bottom" showed at the bottom."""
+    scroll_messages(workspace, 80)
+    async with workspace.app(size=(110, 35)) as ui:
+        chat, history, window = await long_channel(workspace, ui)
+        await ui.until_shows("Message 79:")
+        await ui.until(lambda: window.follows_tail, why="the reader on the tail")
+        window.focus(scroll_visible=False)
+        for _ in range(2):
+            window.action_page_down()
+            await ui.step()
+        await ui.until(lambda: window.follows_tail and not window.jump_bar.display,
+                       why="the reader at the bottom to keep following")
+
+
+async def test_a_reader_left_at_the_end_by_a_geometry_change_follows_the_tail(workspace):
+    """Being at the end is geometry: a reader released at the bottom whom a layout leaves there
+    (a tool collapsing below them, a resize) follows again with no scroll of their own."""
+    scroll_messages(workspace, 80)
+    async with workspace.app(size=(110, 35)) as ui:
+        chat, history, window = await long_channel(workspace, ui)
+        await ui.until_shows("Message 79:")
+        await ui.until(lambda: window.follows_tail, why="the reader on the tail")
+        window.release_anchor()
+        assert not window.follows_tail and window.scroll_y >= window.max_scroll_y
+        await ui.resize(110, 42)  # taller: the end moves up to meet the reader, who is clamped there
+        await ui.until(lambda: window.follows_tail and not window.jump_bar.display,
+                       why="the reader the layout left at the end to follow")
