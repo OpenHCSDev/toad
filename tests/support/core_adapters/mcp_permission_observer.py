@@ -42,14 +42,16 @@ class Observer:
         return self.session.conversation
 
     async def session_update(self, session_id: str, update: dict[str, Any]) -> None:
+        """The harness's session is the owner's; Toad's agent holds the relay peer's own. The
+        relay sends each update under Toad's id, as the one ACP agent Toad attached to."""
         with (self.root / "toad-updates.jsonl").open("a") as log:
-            log.write(json.dumps({"session": session_id, "update": update}) + "\n")
-        await self.relay.update(update, session_id)
+            log.write(json.dumps({"session": session_id, "update": update,
+                                  "toad": type(self.agent.session.disposition).__name__}) + "\n")
+        await self.relay.update(update, self.agent.session_id)
         with (self.root / "toad-states.jsonl").open("a") as log:
             log.write(json.dumps({"agent": self.agent.current_turn.managed_id,
                                  "view": self.view.turns.managed_id,
                                  "notes": notes(self.view)}) + "\n")
-        assert self.agent.session_id == session_id
         for fact in decode_updates(update.get("_meta")):
             if isinstance(fact, McpClientAcknowledgementUpdate):
                 rendered = notes(self.view)
@@ -64,9 +66,11 @@ class Observer:
     async def request_permission(self, *, session_id, tool_call, options, **kwargs):
         self.permissions += 1
         # The relay asks Toad over its ACP pipe and answers with the outcome JSON the pipe
-        # carries back, which is what the harness's callback returns.
+        # carries back, which is what the harness's callback returns. If Toad refuses, the
+        # step raises Toad's own error rather than a guessed denial.
         task = asyncio.create_task(self.relay.step(
-            {"permission": {"toolCall": tool_call, "options": options}, "session": session_id}))
+            {"permission": {"toolCall": tool_call, "options": options},
+             "session": self.agent.session_id}))
         self.permission_tasks.add(task)
         try:
             # The request crosses the pipe, so wait for the UI to mount the exact Ask before

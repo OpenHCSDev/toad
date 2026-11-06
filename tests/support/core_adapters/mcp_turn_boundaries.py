@@ -8,7 +8,6 @@ from __future__ import annotations
 import asyncio
 from contextlib import AsyncExitStack, asynccontextmanager
 from functools import partial
-import json
 import os
 import shlex
 import sys
@@ -37,6 +36,12 @@ RETIRED = TurnId("0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a")
 OBSERVED = TurnId("9f8e7d6c5b4a39281706f5e4d3c2b1a0")
 
 RELAY = Path(__file__).resolve().parents[1] / "peers" / "relay.py"
+
+# The relay's socket module sits beside the relay script, which imports it as a script. This
+# adapter is loaded by file, so it reaches the same module the same way: from its directory.
+sys.path.append(str(RELAY.parent))
+from relay_socket import RelaySocket  # noqa: E402
+
 AGENT_DATA = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
               "run_command": {"*": shlex.join((sys.executable, str(RELAY)))}, "protocol": "acp"}
 
@@ -84,31 +89,22 @@ async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
         os.environ.update(previous)
 
 
-class Relay:
+class Relay(RelaySocket):
     """The adapter's end of the relay peer Toad runs as its agent: every update and permission
     request goes to Toad over that peer's ACP pipe, as a real agent's would."""
 
     def __init__(self, port: int, view: Conversation, pilot: Pilot) -> None:
-        self.port, self.view, self.pilot = port, view, pilot
+        super().__init__(port)
+        self.view, self.pilot = view, pilot
         self.settled_count = 0
 
     @classmethod
     async def started(cls, project: Path, view: Conversation, pilot: Pilot) -> Relay:
-        port_file = project / "peer-relay.port"
+        port_file = cls.port_file(project)
         async with asyncio.timeout(30):
             while not port_file.exists():
                 await pilot.pause(.05)
-        return cls(int(port_file.read_text()), view, pilot)
-
-    async def step(self, raw: dict[str, Any]) -> dict[str, Any]:
-        """One step on its own connection, so a pending ask never holds up an update."""
-        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
-        try:
-            writer.write(json.dumps(raw).encode() + b"\n")
-            await writer.drain()
-            return json.loads(await reader.readline())
-        finally:
-            writer.close()
+        return cls(RelaySocket.published(project).port, view, pilot)
 
     async def update(self, update: dict[str, Any], session: str) -> None:
         await self.step({"update": update, "session": session})
