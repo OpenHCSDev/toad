@@ -77,7 +77,7 @@ async def test_an_observer_dying_during_shutdown_still_releases_its_resources(wo
                     await settled(reading)
             died = death.value
             assert died.process.pid == pid
-            assert died.exit_status == -signal.SIGKILL
+            assert died.process.exitcode == -signal.SIGKILL
             for request in (StopSidebar(), StopObserving()):
                 with pytest.raises(ObserverDied) as again:
                     process.request(request)
