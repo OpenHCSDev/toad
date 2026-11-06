@@ -58,8 +58,10 @@ if [[ ! -e "$environment" ]]; then
     # The sibling checkouts own agent-comms and textual; agent-comms' dev extra carries
     # the tools its tests need.
     "$uv" pip install -q --python "$stage/bin/python" -e "$textual[syntax]" -e "$agent_comms[dev]"
-    # Toad reads its own distribution metadata; its source still comes from src.
-    "$uv" pip install -q --python "$stage/bin/python" --no-deps "$toad_root"
+    # Toad reads its own distribution metadata, and every process imports its source from src:
+    # this environment is reused across source changes, so a copied Toad would freeze at the
+    # tree that first built it, and every test that starts its own Python would run that copy.
+    "$uv" pip install -q --python "$stage/bin/python" --no-deps -e "$toad_root"
     # Vim key modes run a real Neovim; its verified release lives under the
     # environment's own prefix, exactly as the installed runtime carries it.
     "$stage/bin/python" -c 'from toad.neovim_runtime import Neovim; Neovim().prepare()'

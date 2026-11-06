@@ -13,6 +13,8 @@ def usage(used, **more):
 
 
 async def test_usage_updates_reach_the_status_line(workspace):
+    # The saved measurement below is Core's fact for a thread Core declared.
+    workspace.thread("fixture")
     async with workspace.app(size=(100, 35)) as ui:
         agent = ui.detached_agent("fixture")
         ui.attach_agent(agent)
