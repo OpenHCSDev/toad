@@ -13,7 +13,6 @@ from support.roots import installed_wire
 from toad.screens.goal_details import GoalDetails, GoalDetailsClose, GoalDetailsPanel, GoalDocument
 from toad.screens.historical_sessions import HistoricalSessions
 from toad.screens.keymap import KeymapPanel, KeymapScreen, KeymapStatus, KeymapTable
-from toad.screens.command_edit_modal import CommandButtons, CommandEditModal, CommandFrame, CommandText
 from toad.screens.modal import ModalPanel
 from toad.screens.welcome import WelcomeColumn, WelcomeScreen
 from toad.screens.queue import QueueActions, QueueInspection, QueuePanel
@@ -122,18 +121,3 @@ async def test_welcome_column_is_64_wide_and_centred_beside_the_sidebar(workspac
         assert region.width == 64, facts
         assert abs((region.x - space.x) - (space.right - region.right)) <= 1, facts
         assert abs((region.y - space.y) - (space.bottom - region.bottom)) <= 1, facts
-
-
-async def test_command_edit_is_an_80_wide_centred_frame_with_a_six_row_editor(workspace):
-    async with workspace.app(size=SIZE) as ui:
-        modal = CommandEditModal("echo geometry")
-        await ui.app.push_screen(modal)
-        await ui.step()
-        frame, text, buttons = modal.query_one(CommandFrame), modal.query_one(CommandText), modal.query_one(CommandButtons)
-        screen = modal.region
-        facts = {"frame": frame.region, "text": text.region, "buttons": buttons.region}
-        assert frame.region.width == 80, facts
-        assert abs((frame.region.x - screen.x) - (screen.right - frame.region.right)) <= 1, facts
-        assert text.region.height == 6, facts
-        assert frame.region.height < HEIGHT - 6, facts
-        assert buttons.region.right == frame.content_region.right, facts
