@@ -485,7 +485,10 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
         return TailPosition().place(window)
 
     def revealed(self, window: HistoryWindow) -> None:
-        if not self.tall(window):
+        # A tick can come before the layout that draws the arrival: until then it has no row
+        # to measure, and the layout that adds it places the reader (FragmentNotLoaded,
+        # 2026-11-06 13:25).
+        if self.laid_out(window) and not self.tall(window):
             TailPosition().revealed(window)
 
     def shifted(self, rows: float) -> ReaderPosition:
@@ -806,6 +809,9 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         # the native action moves the reader.
         if not self.lookahead.request_boundary(distance):
             action(*args)
+            # A move that leaves the reader at the end (ctrl+d at the bottom moves nothing,
+            # so no scroll change reports it) still reads the tail once it settles.
+            self.call_after_refresh(self.rejoin_reached_tail)
 
     def action_scroll_up(self) -> None:
         self._scroll_or_prepare(-1, super().action_scroll_up)
@@ -1168,13 +1174,18 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
             if self.lookahead.observe(new_value):
                 self._schedule_settle()
             self.request_preparation()
-        # The source tail, not a mounted page edge, rejoins the same owner
-        # used by explicit tail selection. Native geometry only paints motion.
+        self.rejoin_reached_tail()
+        self.tail_follow_changed()
+
+    def rejoin_reached_tail(self) -> None:
+        """A reader at the end of the source tail follows it again, through the same owner as
+        explicit tail selection. Being at the end is geometry, not a scroll: asked only when
+        scroll_y changed, a page down at the bottom (released, moved nothing) or a tool
+        collapsing under the reader left "Back to bottom" showing at the bottom."""
         if (not self._restoring and not self.follows_tail
-                and new_value >= self.max_scroll_y
+                and self.scroll_y >= self.max_scroll_y
                 and all(not NEWER_END.visible_more(history) for history in self.histories)):
             self.anchor(True)
-        self.tail_follow_changed()
 
     def _size_updated(self, size: Size, virtual_size: Size, container_size: Size, layout: bool=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement
@@ -1183,6 +1194,9 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
             changed = super()._size_updated(size, virtual_size, container_size, layout)
         if changed:
             self.check_follow()
+            # Geometry can put a reader at the end without a scroll of theirs: a tool
+            # collapsing below them clamps them there inside layout_scroll.
+            self.rejoin_reached_tail()
             self.request_preparation()
         return changed
 
