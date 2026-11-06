@@ -31,7 +31,7 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.agent_origin import AgentAttached, AgentBinding, AgentSession, StartsSessions
+from toad.launch_binding import AgentAttached, AgentBinding, AgentSession, StartsSessions
 from toad.session_scope import SessionScope
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabTargetGone

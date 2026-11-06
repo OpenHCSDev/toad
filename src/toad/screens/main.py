@@ -46,12 +46,14 @@ from toad.navigation_target import (
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
-from toad.session_presentation import OperationalSessionPresentation
-from toad.agent_origin import AgentBinding, NoAgent, ViewSessionOrigin
+from toad.agent_binding import AgentConnection
+from toad.session_presentation import OperationalSessionPresentation, OperationalSessionSources
+from toad.launch_binding import AgentBinding, NoAgent
+from toad.session_scope import ViewSessionOrigin
 from toad.session_tracker import SessionDetails
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.widgets.conversation import Conversation
+from toad.widgets.conversation import Conversation, SourcesScope
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import NO_PROJECT_VIEW, ProjectSearchButton, ProjectView
@@ -300,9 +302,19 @@ class GoHomeAction(MainAction):
         await context.app.select_session(context.app.tab_order.home)
 
 
-class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SidebarSessionView[SessionThreadSidebar], ToadNode,
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
+                 SidebarSessionView[SessionThreadSidebar], ToadNode,
                  actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
+    presentation: OperationalSessionPresentation
+
+    @property
+    def operational_sources(self) -> OperationalSessionSources:
+        return self.presentation.sources
+
+    @property
+    def operational_binding(self) -> AgentConnection:
+        return self.presentation.operational_binding
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
 

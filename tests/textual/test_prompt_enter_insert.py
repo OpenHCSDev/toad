@@ -13,7 +13,7 @@ from toad.prompt_actions import SubmitAction, SubmitInputAction, SubmitNowAction
 from toad.key_modes import Standard, VimInsert, VimNormal
 from toad.preferences import SETTINGS
 from toad.screens.settings import SettingsScreen
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 from toad.widgets.prompt import MessagePrompt
 
 

@@ -1,5 +1,5 @@
 """Textual-facing: agent tool-call updates reach the ToolCall widget as merged snapshots, and the widget paints the read output."""
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import sys
 from pathlib import Path

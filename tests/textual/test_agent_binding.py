@@ -9,7 +9,7 @@ from support.agents import peer
 from toad.agents import read_agents
 from toad.cli import get_agent_binding
 from toad.screens.main import MainScreen
-from toad.agent_origin import AgentAttached, AgentSession, NoAgent
+from toad.launch_binding import AgentAttached, AgentSession, NoAgent
 from toad.thread_identity import NoThreadIdentity
 
 

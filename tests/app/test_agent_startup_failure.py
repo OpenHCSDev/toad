@@ -1,5 +1,5 @@
 """An agent that cannot start is reported in the conversation and never accepts input."""
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import sys
 

@@ -6,7 +6,6 @@ from collections.abc import Callable
 from functools import partial
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING
 from weakref import ref
 
@@ -27,7 +26,7 @@ from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
 from toad.native_style import StartsHidden
 from toad.resource_release import AsyncResourceRelease
-from toad.widgets.conversation import Conversation
+from toad.widgets.conversation import Conversation, ConversationSources
 from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
@@ -149,7 +148,7 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     async def attach_binding(self, conversation: Conversation) -> None: ...
 
 
-class OperationalSessionSources(NativeQueueSource):
+class OperationalSessionSources(ConversationSources, NativeQueueSource):
     """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:

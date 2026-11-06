@@ -1,5 +1,5 @@
 """Textual-facing: the conversation widget draws a submitted message before its slow history write finishes."""
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import asyncio
 

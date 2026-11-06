@@ -1,6 +1,6 @@
 """Textual-facing: a plan sent by an ACP agent is drawn as one Plan widget in the conversation and in the sidebar (status markers, completion strike-through animation, reset, return), and malformed plan updates are rejected with a visible note."""
 from toad.widgets.side_bar import ThreadSidebar
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import asyncio
 from contextlib import asynccontextmanager

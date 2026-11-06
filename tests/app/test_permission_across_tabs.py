@@ -1,5 +1,5 @@
 """A permission question asked while its tab is hidden is there on return and its answer reaches the agent."""
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 
 from support.agents import peer, script
 

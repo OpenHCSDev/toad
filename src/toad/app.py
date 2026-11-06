@@ -40,7 +40,7 @@ from toad import messages
 from toad.core import session_requests
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
-from toad.agent_origin import AgentBinding
+from toad.launch_binding import AgentBinding
 from toad.session_scope import SessionScope
 from toad.render_backend import Renderer
 from toad.work_preparation import PreparationRuntime

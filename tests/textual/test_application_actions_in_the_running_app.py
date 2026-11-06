@@ -1,5 +1,5 @@
 """Textual-facing: application actions (help, settings screen, command palette, sidebar buttons, tab close) run through Textual screens and keep the session, its draft and the saved settings."""
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 
 from contextlib import asynccontextmanager
 import json

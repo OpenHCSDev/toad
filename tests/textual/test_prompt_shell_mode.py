@@ -6,7 +6,7 @@ import sys
 from textual.document._editing import EditingMode
 from toad.conversation_actions import InterruptAction
 from support.agents import peer
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 from toad.prompt_actions import CompleteAction
 from toad.widgets.prompt import Prompt, PromptTextArea
 

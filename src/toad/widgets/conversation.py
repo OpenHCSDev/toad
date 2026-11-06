@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from contextlib import suppress
 from functools import cached_property
 from itertools import filterfalse
@@ -30,6 +30,7 @@ from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.content import Content
+from textual.dom import DOMNode
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.query import NoMatches
 from textual.css.styles import Styles
@@ -114,7 +115,8 @@ from toad.session_observation import (
 )
 from toad.navigation_context import NavigationScope
 from toad.session_scope import SessionScope
-from toad.agent_origin import AgentConversation
+from toad.input_decision import InputDecision
+from toad.launch_binding import AgentConversation
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.shell import Shell
 from toad.status_thread import StatusThread
@@ -534,8 +536,8 @@ class ConversationSessionBinding(
         self.transcript.binding.history.dispatch_sync(link)
 
     @property
-    def operational_sources(self):
-        return self.query_ancestor(SessionScope).presentation.sources
+    def operational_sources(self) -> ConversationSources:
+        return self.query_ancestor(SourcesScope).operational_sources
 
     def transcript_scope(self) -> TranscriptScope:
         """The native session identity whose canonical transcript this view shows."""
@@ -924,6 +926,41 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
     """The controls docked under the window: activity, goal and prompt."""
 
+
+
+class ConversationSources(ABC):
+    """What a conversation asks of the sources its session presents: its status row, agent
+    label, prompt, input decision and submissions, and the hooks for a presented thread and a
+    started agent."""
+
+    @abstractmethod
+    def status_row(self, conversation: Conversation): ...
+
+    @abstractmethod
+    def agent_info(self, conversation: Conversation) -> str: ...
+
+    @abstractmethod
+    def thread_presented(self, conversation: Conversation) -> None: ...
+
+    @abstractmethod
+    def prompt(self, conversation: Conversation): ...
+
+    @abstractmethod
+    def begin_submission(self, owner, submission): ...
+
+    @abstractmethod
+    def input_decision(self, conversation: Conversation) -> InputDecision: ...
+
+    @abstractmethod
+    def start_agent(self, conversation: Conversation) -> None: ...
+
+
+class SourcesScope(DOMNode):
+    """The ancestor that presents a conversation's sources."""
+
+    @property
+    @abstractmethod
+    def operational_sources(self) -> ConversationSources: ...
 
 
 class Conversation(

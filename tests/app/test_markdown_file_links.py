@@ -1,6 +1,6 @@
 """A file named in an agent answer is a link to the project file; clicking it opens the file's preview and returning keeps the draft."""
 from toad.link_click import OpenLineLink
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 
 from support.agents import peer
 from toad.project_link import DirectProjectFileLink

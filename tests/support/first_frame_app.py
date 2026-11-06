@@ -11,7 +11,7 @@ from time import monotonic_ns
 from textual.widgets import Input
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
-from toad.agent_origin import AgentAttached
+from toad.launch_binding import AgentAttached
 from toad.screens.workspace import WorkspaceScreen
 from toad.widgets.prompt import Prompt
 from toad.widgets.slash_complete import SlashComplete

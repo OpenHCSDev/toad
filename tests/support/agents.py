@@ -9,7 +9,7 @@ import shlex
 import sys
 from typing import TYPE_CHECKING
 
-from toad.agent_origin import NoAgent
+from toad.launch_binding import NoAgent
 from toad.core.events import CoreEvent
 
 if TYPE_CHECKING:

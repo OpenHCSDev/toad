@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Awaitable
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Never
+from typing import ClassVar, Never
 
 from agent_comms.errors import RelationViolationError
 
@@ -20,12 +20,8 @@ from toad.widgets.side_bar import SideBar
 
 from toad.navigation_target import NavigationTarget
 
+from toad.launch_binding import AgentBinding, AgentOrigin, NoAgent
 from toad.thread_identity import SessionIdentity
-
-if TYPE_CHECKING:
-    from toad.agent_origin import AgentBinding
-    from toad.session_presentation import OperationalSessionPresentation
-
 
 class SessionOrigin(metaclass=AbstractHooksMeta):
     """An origin answers for itself, including when its view is unavailable."""
@@ -60,7 +56,6 @@ class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):
     COMMANDS: ClassVar[set[type[Provider]]] = set()
     AUTO_FOCUS = ""
     footer_compact = False
-    presentation: OperationalSessionPresentation
 
     async def _pre_process(self) -> bool:
         """Textual tears a failed start down; the workspace must not keep the dead tree."""
@@ -144,5 +139,24 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
         observed = self.app.coordination_access.observing(identity.wire_root())
         return identity.resolve_thread(observed, self.project_root)
 
+    _agent_binding: AgentBinding = NoAgent()
+    """A project origin with no launch of its own opens views with the app's binding."""
+
     def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
-        return default
+        return self._agent_binding.attached(default)
+
+
+class ViewSessionOrigin(ProjectSessionOrigin, AgentOrigin):
+    """Only actual native-session views own agent/session launch matching."""
+
+    def attach_agent_definition(self) -> AgentBinding:
+        self._agent_binding = self._agent_binding.attached(
+            self.app.agent_binding
+        ).for_session(self.thread_identity.thread_name())
+        return self._agent_binding
+
+    def use_mailbox(self) -> None:
+        self._agent_binding = NoAgent()
+
+    def matches_launch(self, agent_identity: str, session_id: str) -> bool:
+        return self._agent_binding.matches_launch(self, agent_identity, session_id)
