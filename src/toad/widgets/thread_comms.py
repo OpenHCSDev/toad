@@ -306,7 +306,7 @@ class ThreadCommsSidebar(
 
     async def relationship_source(self, identity: ThreadIdentity) -> Observing:
         access = self.app.coordination_access
-        return await self.app.preparation.run_thread(lambda: access.observing(identity.root_path()))
+        return await self.app.preparation.run_thread(lambda: access.observing(identity.root_path))
 
 
     def compose(self):
@@ -366,7 +366,7 @@ class ThreadCommsSidebar(
 
     def accepts_observation(self) -> bool:
         identity = self.thread_view.thread_identity
-        return self.model_state.serves(identity.root_path())
+        return self.model_state.serves(identity.root_path)
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         change.apply_relationships(self.navigation_groups)
@@ -542,12 +542,12 @@ class ThreadCommsSidebar(
 
     @property
     def navigation_root(self):
-        return self.thread_view.thread_identity.root_path()
+        return self.thread_view.thread_identity.root_path
 
     def open_target(self, target: NavigationTarget):
         identity = self.thread_view.thread_identity
         if (
-            identity.root_path()
+            identity.root_path
             != self.app.coordination_access.observation.observed().root
         ):
             self.notify(

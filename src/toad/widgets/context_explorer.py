@@ -537,7 +537,7 @@ class ContextExplorer(
         previous = self.state
         self.state = previous.observe(access.revision)
         try:
-            observed = await self.app.preparation.run_thread(lambda: access.observing(identity.root_path()))
+            observed = await self.app.preparation.run_thread(lambda: access.observing(identity.root_path))
             if not self._reading(identity):
                 return
             acquired = await self.state.acquire(observed, access.revision, identity, cursor=self.intent.cursor)

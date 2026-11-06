@@ -68,6 +68,7 @@ class SessionIdentity(ABC):
 
         return DetachedInspection()
 
+    @property
     def root_path(self) -> Path | None:
         return None
 
@@ -161,13 +162,8 @@ class ThreadIdentity(NamedThreadIdentity):
     def wire_root(self) -> str:
         return self.root
 
-    @cached_property
-    def wire_path(self) -> Path:
-        """The bound wire's root as the observer names it, resolved once per identity."""
-        return Path(self.root).expanduser().resolve()
-
     def belongs_to_wire(self, root: Path) -> bool:
-        return self.wire_path == root
+        return self.root_path == root
 
     def transcript_scope(self) -> KnownTranscript:
         return KnownTranscript(self.root, self.thread_name())
@@ -176,12 +172,15 @@ class ThreadIdentity(NamedThreadIdentity):
         return UnreadTranscript()
 
     def display_root(self) -> str:
-        return format_path(self.root_path())
+        return format_path(self.root_path)
 
     def inspection_state(self):
         from toad.core.context_inspection import ReadingOwnerInspection
 
         return ReadingOwnerInspection()
 
+    @cached_property
     def root_path(self) -> Path:
+        """The bound wire's root as the observer names it, resolved once per identity: the
+        sidebar asks for it on every row of every paint."""
         return Path(self.root).expanduser().resolve()
