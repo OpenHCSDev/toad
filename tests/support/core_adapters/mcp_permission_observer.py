@@ -163,7 +163,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
             # Toad starts with no tab open; the observed session is opened here.
             definition = AgentDefinition.decode(AGENT_DATA)
             await app.session_navigation.new(
-                await app.session_navigation.saved(definition, root / "project"),
+                await app.session_navigation.saved(definition, app.project_dir),
                 lambda: MainScreen(app.project_dir, app.agent_binding))
             session = app.selected_session
             assert isinstance(session, MainScreen)
