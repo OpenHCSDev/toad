@@ -8,13 +8,13 @@ from contextlib import asynccontextmanager
 from functools import cached_property
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from support.agents import AppAgents
 from support.roots import Roots, installed_wire
-from support.template_observation import ObserverChannel
 from support.ui import TextualUi
 from agent_comms.threads import NativeThread
+from toad.comms_root import LocalCoreConnection
 from toad.session_scope import AgentBinding, NoAgent
 
 if TYPE_CHECKING:
@@ -24,6 +24,10 @@ if TYPE_CHECKING:
 
 class Workspace:
     """Everything a test of the running app starts from."""
+
+    # The Core connection an app gets unless its test names one. A test the template forked
+    # gets support.warm_helpers.WarmCoreConnection, whose helpers fork from the warm template.
+    local_connection: ClassVar[type[LocalCoreConnection]] = LocalCoreConnection
 
     def __init__(self, roots: Roots) -> None:
         self.roots = roots
@@ -107,7 +111,7 @@ class Workspace:
 
         launch = {} if resume is None else {"agent_session_id": resume}
         app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project),
-                                      connection=(connect or ObserverChannel.current.connection)(self.launch_root),
+                                      connection=(connect or self.local_connection.from_launch)(self.launch_root),
                                       **launch)
         async with app.run_test(size=size, notifications=notifications) as pilot:
             await app.application.start_worker.wait()

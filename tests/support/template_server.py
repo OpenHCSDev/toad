@@ -21,7 +21,8 @@ import pytest
 import support.workspace  # noqa: F401  (the app, its fixtures and the comms package)
 from agent_comms.storage.locked_store import RootFile
 from agent_comms.storage.typed_table import ProducedTable, TypedTable
-from support.template_observation import ForkedObservers, ObserverChannel, ObserverSpawner
+from support.warm_helpers import HelperSpawner, WarmCoreConnection, WarmHelpers
+from support.workspace import Workspace
 
 PYTEST_OPTIONS = ("-p", "no:cacheprovider", "-q", "--no-header", "--tb=short", "--color=no")
 
@@ -29,7 +30,8 @@ PYTEST_OPTIONS = ("-p", "no:cacheprovider", "-q", "--no-header", "--tb=short", "
 @dataclass(frozen=True)
 class TestProcess:
     """One test's process, as both of its forks become it: the test itself, and the spawner
-    that forks its observers. Each gets the test's files, environment and directory."""
+    that forks its helpers (its route observer, its render workers). Each gets the test's
+    files, environment and directory."""
 
     request: dict
 
@@ -48,12 +50,13 @@ class TestProcess:
         tempfile.tempdir = None
         os.chdir(self.request["cwd"])
 
-    def run(self, observers: ForkedObservers) -> None:
-        """The test: run it with its observers forked by the spawner, and never return."""
+    def run(self, spawner: socket.socket) -> None:
+        """The test: run it with its helpers forked by the spawner, and never return."""
         code = 70
         try:
             self.become()
-            ObserverChannel.current = observers
+            WarmHelpers.spawner = spawner
+            Workspace.local_connection = WarmCoreConnection
             sys.argv = ["pytest"]
             code = int(pytest.main([self.request["nodeid"], *PYTEST_OPTIONS]))
         except BaseException:
@@ -63,12 +66,12 @@ class TestProcess:
             sys.stderr.flush()
             os._exit(code)
 
-    def spawn_observers(self, test: socket.socket) -> None:
-        """The spawner: serve the test's observer requests until it exits, and never return."""
+    def spawn_helpers(self, test: socket.socket) -> None:
+        """The spawner: serve the test's helper requests until it exits, and never return."""
         code = 0
         try:
             self.become()
-            ObserverSpawner(test).serve()
+            HelperSpawner(test).serve()
         except BaseException:
             traceback.print_exc()
             code = 70
@@ -78,8 +81,8 @@ class TestProcess:
 
 
 def serve() -> None:
-    """Warm what every app test pays for, then fork each test and its observer spawner."""
-    # Every agent_comms module once, so a forked observer's declarations_in walks nothing.
+    """Warm what every app test pays for, then fork each test and its helper spawner."""
+    # Every agent_comms module once, so a forked helper imports and walks nothing.
     RootFile.load_declarations()
     # Each table's declared SQL is built once per process (0.74 s for all of them); every
     # test's stores compare against it, so the forks inherit it built.
@@ -102,10 +105,10 @@ def serve() -> None:
         test_end, spawner_end = socket.socketpair()
         if (spawner := os.fork()) == 0:
             test_end.close()
-            process.spawn_observers(spawner_end)
+            process.spawn_helpers(spawner_end)
         spawner_end.close()
         if (pid := os.fork()) == 0:
-            process.run(ForkedObservers(test_end))
+            process.run(test_end)
         # The test holds the only other end: its exit is the spawner's end of input.
         test_end.close()
         reply({"pid": pid})

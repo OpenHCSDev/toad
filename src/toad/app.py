@@ -167,7 +167,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
-        self.preparation = PreparationRuntime(RenderProcessPool())
+        self.preparation = PreparationRuntime(RenderProcessPool(connection.helper_start))
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()

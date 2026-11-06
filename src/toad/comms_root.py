@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.message_reference import MessageReference
-from agent_comms.child_process import join_retirement
+from agent_comms.child_process import HelperStart, SpawnedHelper, join_retirement
 from agent_comms.comms import Comms
 from agent_comms.active_route import CommsRoute
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
@@ -186,6 +186,10 @@ class CurrentObservation(CapturedSource):
 class CoreConnection(ABC):
     """The selected Core transport: it owns its route selection and opens its observation."""
 
+    # How this launch starts the helper interpreters that run Toad's own code (its local
+    # route observer, its render workers): a fresh spawn, whose atexit heap freeze runs.
+    helper_start: ClassVar[HelperStart] = SpawnedHelper()
+
     @staticmethod
     def select(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
         """Select once at the process boundary; a UI profile selects the remote Core."""
@@ -250,7 +254,7 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
 
     def observation_source(self, route: CommsRoute) -> ObservationSource:
         """A local route is observed in a process this machine starts for it."""
-        return LocalRouteObservation(route)
+        return LocalRouteObservation(route, self.helper_start)
 
     def capture(self, access: CoordinationAccess, source: str | Path) -> SelectedRoute:
         return SelectedRoute(self.route_selection().require_source(source))
