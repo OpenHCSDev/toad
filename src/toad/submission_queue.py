@@ -190,6 +190,9 @@ class BusQueueSource(QueueSource):
                 observed.core.call, CommsQueueActionTool(lookup=recipient.lookup, action=action))
 
     def queue_summary(self, evidence: QueueEvidence) -> str:
+        """Shown only while input is held, as a DM's queue line is: a quiet channel shows none."""
+        if not self.holds_input(evidence):
+            return ""
         entries = evidence.entries
         previews = " · ".join(entry.summary for entry in entries[:self.preview_limit])
         coverage = f"Delivery ({len(entries)} visible messages)"
