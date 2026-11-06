@@ -36,7 +36,7 @@ async def test_saved_view_shows_union_history_keeps_its_pin_and_refuses_to_send(
                        why="the saved view's history")
         assert chat.prompt.prompt_text_area.disabled
         await ui.until(lambda: "Read-only" in chat.status, why="the read-only status")
-        await chat.submit_input(input_events.UserInputSubmitted("must not publish"))
+        await (await chat.submissions.submit(input_events.UserInputSubmitted("must not publish"))).wait()
         assert chat.prompt.text == "must not publish"
         assert comms.bus.log.path.read_bytes() == before
         assert next(view for view in comms.views.channel_views() if view.channel.name == "#engineering").channel.pinned

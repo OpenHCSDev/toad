@@ -15,7 +15,7 @@ async def test_thinking_level_changes_during_a_turn_and_survives_reattaching(wor
         view = ui.conversation
         await ui.until_agent_ready()
         provider.hold_next_request()
-        await view.submit_input(input_events.UserInputSubmitted("CONFIGURATION_SAVED_HISTORY"))
+        await view.submissions.submit(input_events.UserInputSubmitted("CONFIGURATION_SAVED_HISTORY"))
         await ui.until(provider.entered.is_set, seconds=30, why="the input at the provider")
         assert native.executing
         await ui.write_draft("CONFIGURATION_UNSENT_DRAFT")
