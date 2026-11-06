@@ -246,6 +246,23 @@ class SubmissionExecution(SubmissionStart):
         """A native input start answers only the agent prompt that requested it."""
 
 
+class PromptPhase(ABC):
+    """Whether the agent has started this prompt: until it does, the prompt still shows as submitting."""
+
+    @abstractmethod
+    def submitting(self, text: str) -> tuple[str, ...]: ...
+
+
+class PromptUnstarted(PromptPhase):
+    def submitting(self, text: str) -> tuple[str, ...]:
+        return (text,)
+
+
+class PromptStarted(PromptPhase):
+    def submitting(self, text: str) -> tuple[str, ...]:
+        return ()
+
+
 class AgentSubmissionExecution(SubmissionExecution):
     """A prompt for this view's ACP agent."""
 
@@ -257,14 +274,14 @@ class AgentSubmissionExecution(SubmissionExecution):
         self.authority = ClientSessionRequest(agent, agent.session_id)
         self.scope = agent.queue_attachment.scope
         self.request = submission.request
-        self.started_update: InputStartedUpdate | None = None
+        self.phase: PromptPhase = PromptUnstarted()
 
     async def present(self) -> None:
         await self.submission.feedback(self)
 
     def input_presented(self, started: InputStartedUpdate) -> None:
         if self.current and started.started_request(self.request.input_id):
-            self.started_update = started
+            self.phase = PromptStarted()
 
     @property
     def current(self):
@@ -277,8 +294,8 @@ class AgentSubmissionExecution(SubmissionExecution):
         queue = self.agent.presentation.queue
         accepted = {row.input_id for row in (*queue.items, *queue.restored)}
         if (self.current and self.agent.presentation.uses_managed_turns
-                and self.request.input_id not in accepted and self.started_update is None):
-            return (self.submission.text,)
+                and self.request.input_id not in accepted):
+            return self.phase.submitting(self.submission.text)
         return ()
 
     async def send(self):
