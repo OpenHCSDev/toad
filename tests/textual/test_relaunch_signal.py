@@ -15,7 +15,7 @@ from toad.session_scope import NoAgent
 
 
 async def relaunched_onto(workspace, publish) -> Succeeded:
-    app = ToadApp(agent_binding=NoAgent(), mode="store", project_dir=Checkout(workspace.project),
+    app = ToadApp(agent_binding=NoAgent(), project_dir=Checkout(workspace.project),
                   connection=LocalCoreConnection.from_launch(workspace.launch_root))
     async with app.run_test(size=(140, 48)):
         publish(app.coordination_access.selection.root)

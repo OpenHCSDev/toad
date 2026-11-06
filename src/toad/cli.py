@@ -137,7 +137,6 @@ def run(connection: CoreConnection, project_dir: str, agent: str = "1"):
 
     binding = asyncio.run(get_agent_binding(agent))
     app = ToadApp(
-        mode=binding.startup_mode,
         agent_binding=binding,
         project_dir=project,
         connection=connection,

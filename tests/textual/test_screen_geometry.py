@@ -14,8 +14,7 @@ from toad.screens.goal_details import GoalDetails, GoalDetailsClose, GoalDetails
 from toad.screens.historical_sessions import HistoricalSessions
 from toad.screens.keymap import KeymapPanel, KeymapScreen, KeymapStatus, KeymapTable
 from toad.screens.command_edit_modal import CommandButtons, CommandEditModal, CommandFrame, CommandText
-from toad.screens.modal import ModalFrame, ModalPanel
-from toad.screens.session_resume_modal import ResumeTable, SessionResumeModal
+from toad.screens.modal import ModalPanel
 from toad.screens.welcome import WelcomeColumn, WelcomeScreen
 from toad.screens.queue import QueueActions, QueueInspection, QueuePanel
 from toad.screens.team import HudRows, TeamClose, TeamPage, TeamPanel
@@ -138,16 +137,3 @@ async def test_command_edit_is_an_80_wide_centred_frame_with_a_six_row_editor(wo
         assert text.region.height == 6, facts
         assert frame.region.height < HEIGHT - 6, facts
         assert buttons.region.right == frame.content_region.right, facts
-
-
-async def test_resume_modal_is_a_framed_column_with_a_twelve_row_table(workspace):
-    async with workspace.app(size=SIZE) as ui:
-        modal = SessionResumeModal()
-        await ui.app.push_screen(modal)
-        await ui.step()
-        frame, table = modal.query_one(ModalFrame), modal.query_one(ResumeTable)
-        facts = {"frame": frame.region, "table": table.region}
-        assert frame.region.width == WIDTH - 8, facts
-        assert frame.region.x == 4, facts
-        assert table.region.height == 12, facts
-        assert frame.region.height < HEIGHT - 3, facts

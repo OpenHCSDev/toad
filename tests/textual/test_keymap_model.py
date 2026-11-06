@@ -5,7 +5,6 @@ from toad.application_actions import TeamAction, HelpQuitAction, KeymapAction
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.keymap import Keymap, KeymapCatalog, KeymapRow
 from toad.preferences import SETTINGS, SavedSettings
-from toad.screens.store import LaunchSlotAction
 
 
 def test_saved_remaps_keep_modes_independent_and_reset_to_the_declaration():
@@ -50,21 +49,6 @@ def test_reset_cannot_reintroduce_a_collision_and_duplicate_rows_are_refused():
         keymap.reset(menu)
     with pytest.raises(ValueError, match="only one override"):
         Keymap(bindings=(keymap.bindings[0], keymap.bindings[0]))
-
-
-def test_launch_slots_have_distinct_saved_invocations_and_mode_defaults():
-    catalog = KeymapCatalog.capture(KeyMode.members_with(KeyMode))
-    rows = tuple(KeymapRow.of(LaunchSlotAction(slot), Standard) for slot in range(15))
-    assert len({row.declaration for row in rows}) == len(rows)
-    assert tuple(catalog.defaults(row) for row in rows) == tuple((key,) for key in LaunchSlotAction.keys[Standard().binding_mode])
-    keymap = Keymap().changed(rows[0], ("f6",))
-    settings = SavedSettings()
-    settings.set(SETTINGS.ui.keymap.bindings, keymap.bindings)
-    loaded = SavedSettings(settings.document()).current.ui.keymap
-    assert loaded == keymap
-    assert catalog.effective(rows[0], loaded) == ("f6",)
-    assert catalog.effective(rows[1], loaded) == catalog.defaults(rows[1])
-    assert catalog.effective(KeymapRow.of(LaunchSlotAction(0), VimNormal), loaded) == ("1",)
 
 
 def test_hidden_system_bindings_keep_their_valid_saved_references():
