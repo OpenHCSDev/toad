@@ -55,23 +55,24 @@ from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.render_backend import ReusableRenderTask
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 from toad.widgets.presentation_window import UNPLACED, Unplaced
+from toad.commit_claims import CommitClaim
+from toad.tool_output import ToolOutputPart
+from toad.widgets.transcript_lines import (
+    BlockLines,
+    Lines,
+    LineTheme,
+    TranscriptLinesRenderTask,
+)
+from toad.widgets.transcript_lines import link_place
 
 if TYPE_CHECKING:
 
-    from toad.tool_output import ToolOutputPart
     from textual.widget import Widget
 
     from toad.block_navigation import FragmentBlockCursor
-    from toad.widgets.committed_presentation import CommitClaim
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
     from toad.widgets.transcript_history import LaidOut, RowChange
-    from toad.widgets.transcript_lines import (
-        BlockLines,
-        Lines,
-        LineTheme,
-        TranscriptLinesRenderTask,
-    )
 
 
 @dataclass(frozen=True)
@@ -452,7 +453,7 @@ class TranscriptFragment(CursorRest):
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
         """Whether the live block that claim retires already showed this saved row."""
-        return claim.repeats_native(self)
+        return claim.repeats_native(self.events)
 
     _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
     _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
@@ -583,7 +584,6 @@ class TranscriptFragment(CursorRest):
     @cached_property
     def link_place(self) -> int:
         """What tells this fragment's drawn links apart from equal links in other fragments."""
-        from toad.widgets.transcript_lines import link_place
 
         return link_place()
 
@@ -690,7 +690,7 @@ class BusMessageFragment(TranscriptFragment):
         return self.events[0].source == reference
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
-        return claim.repeats_received(self)
+        return claim.repeats_received(self.events)
 
     @property
     def block_menu(self):
@@ -733,7 +733,7 @@ class SentMessageFragment(BusMessageFragment):
         return self.part_position.outgoing_sources(self.publication)
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
-        return claim.repeats_sent(self)
+        return claim.repeats_sent(self.publication.reference)
 
 
 class ContextTranscriptFragment(TranscriptFragment):

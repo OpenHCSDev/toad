@@ -8,7 +8,7 @@ from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
-from typing import TYPE_CHECKING, Callable, ClassVar
+from typing import Callable, ClassVar
 
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
@@ -30,6 +30,7 @@ from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.content import Content
+from textual.dom import DOMNode
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.query import NoMatches
 from textual.css.styles import Styles
@@ -112,7 +113,12 @@ from toad.session_observation import (
     InputDeliveryObservation,
     SessionObservation,
 )
-from toad.session_scope import SessionScope, TranscriptScope
+from toad.navigation_context import NavigationScope
+from toad.session_scope import SessionScope
+from toad.input_decision import InputDecision
+from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
+from toad.session_clock import NotStarted, SessionClock, StartedAt
+from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
@@ -157,10 +163,9 @@ def make_session_title(prompt: str) -> str:
     return title
 
 
-if TYPE_CHECKING:
-    from toad.widgets.question import Ask
-    from toad.widgets.terminal import Terminal
-    from toad.widgets.transcript_history import LineHistory
+from toad.widgets.question import Ask
+from toad.widgets.transcript_history import LineHistory
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
@@ -229,7 +234,6 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
 
     def line_histories(self):
         """Visit history containers without entering their rich bodies."""
-        from toad.widgets.transcript_history import LineHistory
 
         pending = list(reversed(self.children))
         while pending:
@@ -501,6 +505,7 @@ class ConversationSessionBinding(
     WorkspaceHosted,
     ThreadStatusOwner,
     DeliveryFailureView,
+    AgentConversation,
     containers.Vertical,
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
@@ -531,17 +536,15 @@ class ConversationSessionBinding(
         self.transcript.binding.history.dispatch_sync(link)
 
     @property
-    def operational_sources(self):
-        return self.query_ancestor(SessionScope).presentation.sources
+    def operational_sources(self) -> ConversationSources:
+        return self.query_ancestor(SourcesScope).operational_sources
 
     def transcript_scope(self) -> TranscriptScope:
         """The native session identity whose canonical transcript this view shows."""
         return self.query_ancestor(SessionScope).origin.transcript_scope()
 
-    def status_thread(self) -> StatusThread:
-        return self.transcript.binding.thread_scope.status_thread(
-            self.app.coordination_access
-        )
+    @abstractmethod
+    def status_thread(self) -> StatusThread: ...
 
     def arm_thread_read(self) -> None:
         """Capture turn token and client authority for the next observed presentation."""
@@ -559,12 +562,8 @@ class ConversationSessionBinding(
         self.arm_thread_read()
         read.settle(presentation).present(self.thread_presented)
 
-    def thread_presented(self, presentation: ThreadPresentation) -> None:
-        """A settled member owns whether this view has source work to publish."""
-        self.thread_presentation = presentation
-        self._update_model_info()
-        self.operational_sources.thread_presented(self)
-        self.dispatch_sync(presentation)
+    @abstractmethod
+    def thread_presented(self, presentation: ThreadPresentation) -> None: ...
 
     @handles(NoThreadPresentation)
     def _no_thread_source(self, presentation: NoThreadPresentation) -> object:
@@ -576,7 +575,6 @@ class ConversationSessionBinding(
         if not self.transcript.readable:
             return
         if self.is_current_session:
-            from toad.transcript_publication import ObservedSourcePublication
 
             self._unpublished_presentation = NoThreadPresentation()
             self.transcript.source_requests.request(
@@ -610,10 +608,7 @@ class ConversationSessionBinding(
 
     def agent_connected(self, agent: AgentBase) -> None:
         self.feedback.flash(Content.assemble(agent.get_info(), " connected"), style="success")
-        if self._agent_data is not None:
-            self.app.application.usage.publish(
-                "agent-session-begin", agent=self._agent_data.identity
-            )
+        self.launch.publish_usage(self.app.application.usage.publish, "agent-session-begin")
 
     async def cancel_bound_turn(self, agent: AgentBase) -> None:
         self.feedback.flash("Cancelling agent turn…")
@@ -664,8 +659,8 @@ class ConversationSessionBinding(
     def __init__(
         self,
         project_path: Checkout,
-        agent: AgentDefinition | None = None,
-        agent_session_id: str | None = None,
+        launch: AgentBinding = NoAgent(),
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         session_title: str | None = None,
         initial_prompt: str | None = None,
@@ -678,7 +673,7 @@ class ConversationSessionBinding(
         self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(
             project_path,
-            agent,
+            launch,
             agent_session_id,
             session_pk,
             session_title,
@@ -689,8 +684,8 @@ class ConversationSessionBinding(
     def _initialize_session(
         self,
         project_path: Checkout,
-        agent: AgentDefinition | None = None,
-        agent_session_id: str | None = None,
+        launch: AgentBinding = NoAgent(),
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         session_title: str | None = None,
         initial_prompt: str | None = None,
@@ -709,16 +704,16 @@ class ConversationSessionBinding(
 
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
-        self._agent_data = agent
-        self._thread_loading = ThreadLoading.initial_contents(agent)
+        self.launch = launch
+        self._thread_loading = ThreadLoading.initial_contents(launch)
         self.set_reactive(
             ConversationSessionBinding.model_history_scope,
-            agent.identity if agent else "",
+            launch.selected_agent("", attrgetter("identity")),
         )
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
         self._auto_title_eligible = (
-            agent_session_id is None and session_title is None
+            not agent_session_id.bound and session_title is None
         )
         self._agent_fail = False
         self._mouse_down_offset: Offset | None = None
@@ -728,11 +723,12 @@ class ConversationSessionBinding(
         self.project_data_path = paths.get_project_data(project_path)
         self.input_histories = InputHistories(
             self.project_data_path,
-            agent_session_id
-            or (f"session-{session_pk}" if session_pk is not None else ""),
+            agent_session_id.selected(
+                f"session-{session_pk}" if session_pk is not None else "", str
+            ),
         )
 
-        self.session_start_time: float | None = None
+        self.session_clock: SessionClock = NotStarted()
         self._terminal_count = 0
         self._require_check_prune = False
 
@@ -769,16 +765,13 @@ class ConversationSessionBinding(
             release.push_async_callback(self._release_source_resources)
 
     def _publish_session_end(self) -> None:
-        if self._agent_data is not None and self.session_start_time is not None:
-            session_time = monotonic() - self.session_start_time
-            self.app.application.usage.publish(
-                "agent-session-end",
-                agent=self._agent_data.identity,
-                duration=session_time,
-                agent_session_fail=self._agent_fail,
-                shell_count=self._shell_count,
-                turn_count=self._turn_count,
-            )
+        self.session_clock.report_end(
+            self.launch,
+            self.app.application.usage.publish,
+            agent_session_fail=self._agent_fail,
+            shell_count=self._shell_count,
+            turn_count=self._turn_count,
+        )
 
     async def _release_source_resources(self) -> None:
         """Release the view's acquired sources once, completing every step."""
@@ -812,25 +805,21 @@ class ConversationSessionBinding(
         """Publish bound owner facts and invalidate the delivery read resource."""
         self.agent_binding.refresh_projection(self)
 
-    def attach_agent_definition(self, definition: AgentDefinition) -> None:
-        """Selection changes write the conversation's definition at its owner."""
-        self._agent_data = definition
+    def attach_launch(self, launch: AgentBinding) -> None:
+        """Selection changes write the conversation's launch at its owner."""
+        self.launch = launch
 
-    def clear_agent_definition(self) -> None:
-        self._agent_data = None
+    def resume_agent_session(self, session_id: AcpSessionId) -> None:
+        self._agent_session_id = session_id
 
     def start_native_session(self) -> None:
         self.agent_binding.start_session(self)
 
-    def start_unbound_session(self) -> None:
-        if self._agent_data is not None:
-            self.screen.frame_presentation.defer(self, self._start_agent)
-        else:
-            self.agent_info = Content(self.operational_sources.agent_info(self))
-            self.session_ready()
+    @abstractmethod
+    def start_unbound_session(self) -> None: ...
 
-    def _start_agent(self) -> None:
-        self.operational_sources.start_agent(self)
+    @abstractmethod
+    def _start_agent(self) -> None: ...
 
     @work
     async def session_ready(self) -> None:
@@ -838,11 +827,8 @@ class ConversationSessionBinding(
         presentation = self.transcript
         if not presentation.binding.matches(self):
             return
-        if (
-            self._native_agent_started_here
-            and (agent_data := self._agent_data) is not None
-        ):
-            welcome = agent_data.welcome
+        if self._native_agent_started_here:
+            welcome = self.launch.selected_agent(None, attrgetter("welcome"))
             if welcome is not None:
 
                 await self.post(MarkdownNote(welcome))
@@ -881,7 +867,7 @@ class ConversationSessionBinding(
     @handles(AgentReady)
     async def on_agent_ready(self, event: AgentReady) -> None:
         if not event.reconnected:
-            self.session_start_time = monotonic()
+            self.session_clock = StartedAt(monotonic())
             self.agent_binding.connected(self)
 
         self.session_ready()
@@ -913,6 +899,15 @@ class ConversationSessionBinding(
 
 
 from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
+from toad.transcript_publication import ObservedSourcePublication
+from toad.agent_schema import Command
+from toad.catalog_actions import CatalogCommandAction
+from toad.screens.action_modal import ActionModal
+from toad.db import DB
+from toad.commit_claims import StartedInputClaim
+from toad.widgets.plan import ConversationPlan
+from toad.widgets.message_divider import AgentActivityDivider
+from toad.agent_surface import AttachedSurfaceBinding
 
 
 class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
@@ -920,7 +915,51 @@ class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
 
 
 
+class ConversationSources(QueueSource):
+    """What a conversation asks of the sources its session presents: its status row, agent
+    label, prompt, input decision and submissions, and the hooks for a presented thread and a
+    started agent."""
+
+    @abstractmethod
+    def status_row(self, conversation: Conversation): ...
+
+    @abstractmethod
+    def agent_info(self, conversation: Conversation) -> str: ...
+
+    @abstractmethod
+    def thread_presented(self, conversation: Conversation) -> None: ...
+
+    @abstractmethod
+    def prompt(self, conversation: Conversation): ...
+
+    @abstractmethod
+    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart: ...
+
+    @abstractmethod
+    def input_decision(self, conversation: Conversation) -> InputDecision: ...
+
+    @abstractmethod
+    def start_agent(self, conversation: Conversation) -> None: ...
+
+    @abstractmethod
+    def external_transcript_changed(self, conversation: Conversation) -> None: ...
+
+
+class SourcesScope(DOMNode):
+    """The ancestor that presents a conversation: its sources, and the editing mode its prompt
+    starts in."""
+
+    @property
+    @abstractmethod
+    def operational_sources(self) -> ConversationSources: ...
+
+    @property
+    @abstractmethod
+    def initial_editing_mode(self) -> EditingMode: ...
+
+
 class Conversation(
+    TranscriptView,
     FollowsLayoutPreferences,
     QueueEvidenceOwner,
     ConversationCommsHandlers,
@@ -931,6 +970,41 @@ class Conversation(
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
+
+    @property
+    def thread_scope(self) -> TranscriptScope:
+        return self.transcript.binding.thread_scope
+
+    def follow_latest(self) -> None:
+        self.window.jump_to_latest()
+
+    def status_thread(self) -> StatusThread:
+        return self.thread_scope.status_thread(
+            self.app.coordination_access
+        )
+
+    def thread_presented(self, presentation: ThreadPresentation) -> None:
+        """A settled member owns whether this view has source work to publish."""
+        self.thread_presentation = presentation
+        self._update_model_info()
+        self.operational_sources.thread_presented(self)
+        self.dispatch_sync(presentation)
+
+    def start_unbound_session(self) -> None:
+        self.launch.start_unbound(self)
+
+    def defer_agent_start(self) -> None:
+        self.screen.frame_presentation.defer(self, self._start_agent)
+
+    def present_without_agent(self) -> None:
+        self.agent_info = Content(self.operational_sources.agent_info(self))
+        self.session_ready()
+
+    def _start_agent(self) -> None:
+        self.operational_sources.start_agent(self)
+
+    def transcript_changed(self) -> None:
+        self.operational_sources.external_transcript_changed(self)
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""
@@ -1102,9 +1176,7 @@ class Conversation(
             )
             # A retained editor is installed before Prompt.on_mount can apply a
             # profile. Returning to a tab must not spawn a throwaway Neovim.
-            prompt.initial_editing_mode = self.query_ancestor(
-                SessionScope
-            ).presentation.initial_editing_mode
+            prompt.initial_editing_mode = self.query_ancestor(SourcesScope).initial_editing_mode
             self.goal_bar: GoalBar = GoalBar(self, prompt=prompt)
             yield self.goal_bar
             yield prompt
@@ -1250,13 +1322,12 @@ class Conversation(
             details.sync_turn()
         self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
 
-        if self._agent_data is not None:
-            self.app.application.usage.publish(
-                "agent-session-error",
-                agent=self._agent_data.identity,
-                message=event.message,
-                details=event.details,
-            )
+        self.launch.publish_usage(
+            self.app.application.usage.publish,
+            "agent-session-error",
+            message=event.message,
+            details=event.details,
+        )
 
         await self.agent_binding.session_disposition.present_failure(
             event, self
@@ -1276,9 +1347,6 @@ class Conversation(
     async def provider_login(self) -> None:
         import shlex
 
-        from toad.agent_schema import Command
-        from toad.catalog_actions import CatalogCommandAction
-        from toad.screens.action_modal import ActionModal
 
         agent = self.agent_binding
         methods = agent.presentation.auth_methods
@@ -1364,7 +1432,6 @@ class Conversation(
         if error is not None:
             self.app.show_error(error, "Set Model")
         elif (model := agent.configuration.model.selected) is not None:
-            from toad.db import DB
 
             # Recent-model persistence is optional metadata, not a prerequisite
             # for opening the model's already advertised thinking choices.
@@ -1419,7 +1486,6 @@ class Conversation(
         self._agent_activity_boundary.reset()
         model = self.agent_binding.configuration.model.selected
         if stop_reason.completed and model is not None:
-            from toad.db import DB
 
             # Complete visible turn settlement independently of recent-model
             # database contention. The native worker owns this optional write.
@@ -1505,7 +1571,6 @@ class Conversation(
         await self.output.append(event.stream, event.text)
 
     async def present_started_input(self, started) -> None:
-        from toad.widgets.committed_presentation import StartedInputClaim
 
         self.output.boundary()
         if started.text:
@@ -1540,7 +1605,6 @@ class Conversation(
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, event: core_events.Plan) -> None:
-        from toad.widgets.plan import ConversationPlan
 
         if self.contents.children and isinstance(
             (current_plan := self.contents.children[-1]), ConversationPlan
@@ -1601,7 +1665,6 @@ class Conversation(
             options: A list of (ANSWER, ANSWER_ID) tuples.
             callback: Optional callable that will be invoked with the result.
         """
-        from toad.widgets.question import Ask
 
         self.agent_info
 
@@ -1649,7 +1712,7 @@ class Conversation(
             self.prompt.slash_commands = catalog.commands
 
     async def read_command_catalog(self) -> CommandCatalog:
-        source = self.query_ancestor(SessionScope).navigation_owner
+        source = self.query_ancestor(NavigationScope).navigation_owner
         navigation = source.navigation_context
         agent = self.agent_binding
         context = self.command_target_context()
@@ -1817,7 +1880,6 @@ class Conversation(
             self.output.boundary()
         if not self.contents.is_attached:
             return widget
-        from toad.widgets.message_divider import AgentActivityDivider
 
         if widget.starts_agent_activity(self._agent_activity_boundary):
             await self.contents.mount(
@@ -1946,7 +2008,6 @@ class Conversation(
         """A Shell instance."""
 
         if self._shell is None or self._shell.is_finished:
-            from toad.agent_surface import AttachedSurfaceBinding
 
             shell_command = self.app.settings.shell.command
             shell_start = self.app.settings.shell.command_start

@@ -16,7 +16,11 @@ from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.input_decision import InputAccepted, InputDecision, NoLiveAgent
-from toad.widgets.committed_presentation import CommitSource
+from toad.commit_claims import CommitSource
+from toad.conversation_turn import TurnOwner
+from toad.core_event_carrier import CoreEventMessage
+from toad.acp.comms_updates import NoPendingThreadRead
+from agent_comms.nominal.field_codec import AcpSessionId
 
 if TYPE_CHECKING:
     from agent_comms.goal_actions import GoalAction
@@ -29,8 +33,6 @@ if TYPE_CHECKING:
         ConversationSubmissions,
         SubmissionStart,
     )
-    from toad.conversation_turn import TurnOwner
-    from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
     from toad.session_observation import SessionObservation
     from toad.session_presentation import OperationalSessionSources
@@ -59,8 +61,16 @@ class AgentConnection(ABC):
     @abstractmethod
     async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None: ...
 
+    @abstractmethod
+    def matches_session(self, session_id: AcpSessionId) -> bool: ...
+
+    @abstractmethod
+    def borrowed_processes(self): ...
+
+    @abstractmethod
+    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None: ...
+
     def thread_read(self):
-        from toad.acp.comms_updates import NoPendingThreadRead
 
         return NoPendingThreadRead()
 
@@ -198,7 +208,7 @@ class NoAgentConnection(AgentConnection):
     async def cancel(self) -> bool:
         return False
 
-    def matches_session(self, session_id: str) -> bool:
+    def matches_session(self, session_id: AcpSessionId) -> bool:
         return False
 
     def borrowed_processes(self):

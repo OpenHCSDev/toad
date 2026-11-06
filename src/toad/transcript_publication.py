@@ -63,30 +63,24 @@ from toad.session_scope import (
     TranscriptScope,
 )
 from toad.transcript_preparation import PreparedPageSource
-from toad.widgets.committed_presentation import (
-    CommitEvidence,
-    NativeCommitEvidence,
-    block_claim,
-    commit_plan,
-    protected_blocks,
-    retirement_candidates,
-)
+from toad.widgets.committed_presentation import block_claim, commit_plan, protected_blocks, retirement_candidates
+from toad.commit_claims import CommitEvidence, NativeCommitEvidence
 from toad.widgets.history_anchor import (
     HistoryWindow,
     TailPosition,
 )
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.live_output import LiveOutput
+from toad.widgets.cli_draft import CliDraft
+from toad.widgets.transcript_history import CommittedHistory
 
 if TYPE_CHECKING:
-    from toad.live_output import LiveOutput
-    from toad.widgets.cli_draft import CliDraft
     from toad.widgets.conversation import (
         Contents,
         Conversation,
         ConversationSessionBinding,
     )
-    from toad.widgets.transcript_history import CommittedHistory
 
 
 @dataclass(frozen=True)
@@ -553,9 +547,9 @@ class CommitPublication(CanonicalSourcePublication):
         evidence = NativeCommitEvidence(
             self.captured,
             prepared.sequences,
-            prepared.history,
-            TranscriptCoverage(page.events).native_inputs,
-            prepared.outgoing,
+            retained=frozenset({prepared.history}),
+            native_inputs=TranscriptCoverage(page.events).native_inputs,
+            outgoing=prepared.outgoing,
             identity=replace(self.identity, limit=Through(page.after)),
         )
         retired = retirement_candidates(contents.children, evidence)
@@ -848,9 +842,9 @@ class BoundView(ViewBinding):
                             for sequence in block_claim(child).required_sequences
                         )
                     ),
-                    history,
-                    coverage.native_inputs,
-                    history.outgoing_coverage,
+                    retained=frozenset({history}),
+                    native_inputs=coverage.native_inputs,
+                    outgoing=history.outgoing_coverage,
                 ),
             )
             protected = protected_blocks(view, candidates)

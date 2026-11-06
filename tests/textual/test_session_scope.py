@@ -5,7 +5,10 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.launch_root import LaunchRoot
 from support.agents import peer
 
-from toad.session_scope import AgentAttached, NoSessionOrigin, NoTranscript, SessionScope
+from toad.launch_binding import AgentAttached
+
+from toad.session_scope import NoSessionOrigin, SessionScope
+from toad.transcript_scope import NoTranscript
 
 
 async def test_real_conversation_discovers_screen_free_scope(workspace):

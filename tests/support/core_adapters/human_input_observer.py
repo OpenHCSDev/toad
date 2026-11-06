@@ -16,7 +16,7 @@ from pathlib import Path
 import shlex
 import sys
 
-from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.input_disposition import InputDispositions
@@ -26,7 +26,7 @@ from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 
 async def until(pilot, predicate, seconds=20):
@@ -181,7 +181,7 @@ async def _open_actual_s2_ingress(owner, subject, output):
             'accepts_comms_root': True,
         })
         app = ToadApp(agent_binding=AgentAttached(definition), project_dir=subject.worktree,
-                      agent_session_id=subject.name,
+                      agent_session_id=AcpSessionId(subject.name),
                       connection=LocalCoreConnection.from_launch(LaunchRoot.from_path(owner._comms.root)))
         phase('before_actual_toad_run_test')
         async with app.run_test(headless=True, size=(160, 44)) as pilot:

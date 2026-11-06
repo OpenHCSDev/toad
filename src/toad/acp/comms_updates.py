@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from functools import partial
 from dataclasses import dataclass
 
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
     CompactionCommittedUpdate,
@@ -61,7 +63,7 @@ class CommsUpdateConsumer(MroDispatch):
     def __init__(
         self,
         agent,
-        session_id: str,
+        session_id: AcpSessionId | NoAcpSessionId,
         *,
         cursor_token: int | None = None,
         queue_token: int | None = None,
@@ -170,8 +172,12 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(InputStartedUpdate)
     def input_started(self, update: InputStartedUpdate) -> None:
         update.when_unidentified(lambda: self._post_unidentified(update))
-        if update.scope.matches_session(self.session_id):
-            starts = self.agent.queue_attachment.started(update, self.session_id)
+        self.session_id.selected(None, partial(self._queue_started, update))
+
+    def _queue_started(self, update: InputStartedUpdate, session: AcpSessionId) -> None:
+        """Only a bound session's own scope starts queued input."""
+        if update.scope.matches_session(session):
+            starts = self.agent.queue_attachment.started(update, session)
             self.agent._post_queue_view(starts)
 
     def _post_unidentified(self, update: InputStartedUpdate) -> None:

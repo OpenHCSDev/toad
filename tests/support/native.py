@@ -7,7 +7,7 @@ tells it to. The wire, the Pi settings and the project are the test's private ro
 
 from __future__ import annotations
 from agent_comms.repo import Checkout
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import asyncio
 from collections.abc import Callable
@@ -28,6 +28,7 @@ from agent_comms.thread_model import DeclaredModel
 from agent_comms.registry.threads import NativeThread
 
 from support.roots import installed_wire
+from agent_comms.nominal.field_codec import AcpSessionId
 
 PROVIDER = "selected-offline"
 MODEL = DeclaredModel(f"{PROVIDER}/fixture")
@@ -229,7 +230,7 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
     from toad.agent import AgentBase
 
     agent = None
-    started = partial(application or ToadApp, agent_session_id=thread)
+    started = partial(application or ToadApp, agent_session_id=AcpSessionId(thread))
     if project is not None:
         started = partial(started, project_dir=Checkout(project))
     try:

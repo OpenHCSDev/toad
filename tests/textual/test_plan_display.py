@@ -1,6 +1,6 @@
 """Textual-facing: a plan sent by an ACP agent is drawn as one Plan widget in the conversation and in the sidebar (status markers, completion strike-through animation, reset, return), and malformed plan updates are rejected with a visible note."""
 from toad.widgets.side_bar import ThreadSidebar
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import asyncio
 from contextlib import asynccontextmanager
@@ -19,6 +19,7 @@ from toad.widgets.note import Note
 from toad.widgets.plan import Plan
 from toad.widgets.strike_text import Complete, StrikeText
 from support.ui import saved_tab
+from agent_comms.nominal.field_codec import AcpSessionId
 
 FIRST = {"entries": [{"content": f"ACP_{name}_ITEM", "priority": "high", "status": name}
                      for name in get_args(PlanEntryStatus)]}
@@ -154,7 +155,7 @@ async def test_a_plan_sent_while_no_view_shows_the_agent_is_drawn_when_its_view_
         original_document, original_history = editor.document, editor.history
         await app.session_navigation.new(
             await saved_tab(app),
-            lambda: MainScreen(app.project_dir, app.agent_binding.for_session("plan-blank"))
+            lambda: MainScreen(app.project_dir, app.agent_binding.for_session(AcpSessionId("plan-blank")))
         )
         assert agent.controller.surface.target is None
         detached_plan = {"entries": [{"content": "DETACHED_PLAN_ITEM", "priority": "high", "status": "pending"}]}

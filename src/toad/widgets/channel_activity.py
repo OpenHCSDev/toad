@@ -14,7 +14,6 @@ from textual.containers import VerticalGroup
 from textual.content import Content
 
 from toad.comms_root import CoordinationAccess
-from toad.session_scope import SessionScope
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
@@ -70,9 +69,7 @@ class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGr
         return tuple(row.incarnation for row in self.members)
 
     def accepts_observation(self) -> bool:
-        return self.view.query_ancestor(
-            SessionScope
-        ).is_current and self.model_state.serves(self.view._bound_root)
+        return self.view.is_current_session and self.model_state.serves(self.view._bound_root)
 
     def model_replaced(self) -> None:
         self.member_container.remove_children()

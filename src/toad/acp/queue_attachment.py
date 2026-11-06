@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.acp_extension import (
     IdentifiedInputStarted,
     InputStartedUpdate,
@@ -61,7 +62,7 @@ class QueueAttachment(ProjectionAttachment):
         self.unavailable = UnavailableQueueProjection()
         return super().begin(session_id)
 
-    def bind(self, value: QueueChangedUpdate, session_id: str, token: int):
+    def bind(self, value: QueueChangedUpdate, session_id: AcpSessionId, token: int):
         result = super().bind(value, session_id, token)
         pending, self._pending_starts = self._pending_starts, []
         starts = tuple(
@@ -70,12 +71,12 @@ class QueueAttachment(ProjectionAttachment):
         return result, starts
 
     def started(
-        self, update: InputStartedUpdate, session_id: str
+        self, update: InputStartedUpdate, session_id: AcpSessionId
     ) -> tuple[InputStartedUpdate, ...]:
         return update.queue_started(lambda identified: self._identified_started(identified, session_id))
 
     def _identified_started(
-        self, update: IdentifiedInputStarted, session_id: str,
+        self, update: IdentifiedInputStarted, session_id: AcpSessionId,
     ) -> tuple[IdentifiedInputStarted, ...]:
         if not update.scope.matches_session(session_id):
             return ()

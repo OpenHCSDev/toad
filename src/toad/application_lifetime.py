@@ -7,7 +7,9 @@ from importlib import import_module
 import platform
 from time import monotonic
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, ClassVar
+from typing import TYPE_CHECKING, Awaitable, Callable, ClassVar
+
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 from toad import get_version
 from toad.version import VersionMonitor
@@ -108,7 +110,7 @@ class ApplicationLifetime:
 
         setproctitle.setproctitle(title)
 
-    def __init__(self, app: ToadApp, resumed_session: str | None) -> None:
+    def __init__(self, app: ToadApp, resumed_session: AcpSessionId | NoAcpSessionId) -> None:
         self.app = app
         # The agent session the launch asked to resume, if it named one.
         self.resumed_session = resumed_session
@@ -128,23 +130,18 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
-        destination = None
+        restored: Callable[[], Awaitable[object]] = self.restore_nothing
         for identity in await app.tab_order.load():
             try:
-                destination = await identity.restore(app.session_navigation)
+                restored = partial(app.session_navigation.open,
+                                   await identity.restore(app.session_navigation))
             except TabTargetGone as error:
                 await app.tab_order.close((identity,))
                 app.log.error(f"Removed stale tab {error.identity}: {error.reason}")
-        if self.resumed_session is not None:
-            # The thread's declaration decides how it opens, as from the sidebar.
-            navigation = await app.preparation.run_thread(self.launch_navigation)
-            await app.session_navigation.new(
-                MailboxTab(navigation.thread.incarnation, navigation.root),
-                partial(navigation.launch_screen, app),
-                original=(navigation.root, navigation.thread.incarnation),
-            )
-        elif destination is not None:
-            await app.session_navigation.open(destination)
+        await self.resumed_session.selected(
+            restored,
+            lambda resumed: partial(self.open_resumed, resumed),
+        )()
         if not app.tab_order.names:
             await app.select_session(app.tab_order.home)
         app.terminal_attention.attach()
@@ -153,11 +150,24 @@ class ApplicationLifetime:
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)
         app.update_show_sessions()
 
-    def launch_navigation(self):
+    async def restore_nothing(self) -> None:
+        """No saved tab came back; the home tab below is selected instead."""
+
+    async def open_resumed(self, resumed: AcpSessionId) -> None:
+        """The thread's declaration decides how it opens, as from the sidebar."""
+        app = self.app
+        navigation = await app.preparation.run_thread(partial(self.launch_navigation, resumed))
+        await app.session_navigation.new(
+            MailboxTab(navigation.thread.incarnation, navigation.root),
+            partial(navigation.launch_screen, app),
+            original=(navigation.root, navigation.thread.incarnation),
+        )
+
+    def launch_navigation(self, resumed: AcpSessionId):
         from toad.navigation_preparation import ThreadNavigationRequest
 
         request = ThreadNavigationRequest(self.app.coordination_access.observation.observed(),
-                                          self.resumed_session, self.app.project_dir, ())
+                                          resumed, self.app.project_dir, ())
         return request.read()
 
     async def check_version(self) -> None:

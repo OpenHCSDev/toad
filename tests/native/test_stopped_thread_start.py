@@ -9,7 +9,7 @@ from agent_comms.session_file import RegistrySessionLocation
 from support.journals import assistant_entry, write_journal
 from support.native import ControlledProvider, MODEL, comms_agent, configure_provider
 from toad.agent import AgentBase
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 

@@ -12,6 +12,7 @@ from support.coordination import coordination_fact
 from toad.acp.agent import Agent
 from toad.core.events import CoreEvent, SessionInfoUpdate
 from toad.db import DB
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 THREAD = "existing-worker"
 
@@ -44,7 +45,7 @@ class StubConnection:
         pass
 
 
-def resumable_agent(ui, workspace, session_id=None, session_pk=None):
+def resumable_agent(ui, workspace, session_id=NoAcpSessionId(), session_pk=None):
     """An agent object with no process whose handshake advertises session loading."""
     access = ui.textual[0].coordination_access
     agent = Agent(workspace.project, command("false", name="fixture", identity="agent-comms.openhcs.dev"),
@@ -123,7 +124,7 @@ async def test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label
         agent.process.connection.new = created
         await agent.session.new()
         loaded = await ui.new_session()
-        resumed = resumable_agent(ui, workspace, THREAD, agent.session.pk)
+        resumed = resumable_agent(ui, workspace, AcpSessionId(THREAD), agent.session.pk)
         ui.attach_agent(resumed)
         resumed.process.connection.load = loaded_response
         await resumed.session.load()
@@ -193,7 +194,7 @@ async def test_a_reopened_tab_keeps_the_label_it_was_saved_with(workspace):
         await ui.until(lambda: agent.session.pk is not None, why="the session row to exist")
         await DB().session_update_title(agent.session.pk, "Renamed by the reader")
 
-        reopened = resumable_agent(ui, workspace, THREAD, agent.session.pk)
+        reopened = resumable_agent(ui, workspace, AcpSessionId(THREAD), agent.session.pk)
         ui.attach_agent(reopened)
         reopened.process.connection.load = LoadSessionResponse(_meta=meta)
         await reopened.session.load()

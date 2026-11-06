@@ -18,7 +18,7 @@ from agent_comms.registry.threads import NativeThread
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
 from toad.screens.main import MainScreen
-from toad.session_scope import AgentBinding, NoAgent
+from toad.launch_binding import AgentBinding, NoAgent
 
 
 class Workspace:

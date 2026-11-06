@@ -7,18 +7,17 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
 from toad.format_path import format_path
-from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
+from toad.transcript_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
 from toad.comms_root import Observing
+from toad.session_tracker import SessionDetails
+from agent_comms.nominal.field_codec import AcpSessionId
 
-if TYPE_CHECKING:
-    from toad.session_tracker import SessionDetails
 
 
 class SessionIdentity(ABC):
@@ -40,7 +39,7 @@ class SessionIdentity(ABC):
     def with_root(self, root: str | None):
         return self.for_thread(self.thread_name(), root)
 
-    def with_session(self, session_id: str):
+    def with_session(self, session_id: AcpSessionId):
         """A newly attached ACP session supplies an unbound view's name."""
         return LocalThreadIdentity(session_id)
 
@@ -149,7 +148,7 @@ class ThreadIdentity(NamedThreadIdentity):
     def with_root(self, root: str | None):
         return self if root == self.root else super().with_root(root)
 
-    def with_session(self, session_id: str):
+    def with_session(self, session_id: AcpSessionId):
         """A managed thread keeps its declared name and incarnation."""
         return self
 
@@ -166,7 +165,7 @@ class ThreadIdentity(NamedThreadIdentity):
         return self.root_path == root
 
     def transcript_scope(self) -> KnownTranscript:
-        return KnownTranscript(self.root, self.thread_name())
+        return KnownTranscript(self.root, self.owner)
 
     def transcript_state(self):
         return UnreadTranscript()

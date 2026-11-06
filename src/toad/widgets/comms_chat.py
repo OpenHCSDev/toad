@@ -38,7 +38,8 @@ from toad.widgets.conversation import (
 from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.session_scope import NoTranscript, SessionScope
+from toad.session_scope import SessionScope
+from toad.transcript_scope import NoTranscript
 
 
 def session_thread_name(project_path) -> str:

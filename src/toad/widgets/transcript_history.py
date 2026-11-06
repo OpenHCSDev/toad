@@ -72,11 +72,8 @@ from toad.transcript_state import (
     ReplacementViewportRequest,
     TranscriptState,
 )
-from toad.widgets.committed_presentation import (
-    RETAINED_SOURCE_CLAIM,
-    CommitClaim,
-    SnapshotPresentation,
-)
+from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim
 from toad.widgets.history_anchor import (
     FragmentLocation,
     FragmentNotLoaded,
@@ -120,6 +117,7 @@ from toad.widgets.transcript_lines import (
     TranscriptLinesBatchRenderTask,
 )
 from agent_comms.message_reference import MessageReference
+from toad.transcript_filter import Filtered
 
 if TYPE_CHECKING:
 
@@ -1445,7 +1443,6 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
         self.filter = FilterState.for_selection(self)
         projected = source.projection_source
         if projected.held_pages:
-            from toad.transcript_filter import Filtered
             projection = ProjectedTranscriptHistory.from_source(projected, owner=self)
             self.filter = Filtered(self, projection)
         await self.notification_view.prepare_history(self, current, window=self.window)

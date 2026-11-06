@@ -40,7 +40,8 @@ from toad import messages
 from toad.core import session_requests
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
-from toad.session_scope import AgentBinding, SessionScope
+from toad.launch_binding import AgentBinding
+from toad.session_scope import SessionScope
 from toad.render_backend import Renderer
 from toad.work_preparation import PreparationRuntime
 from toad.navigation_preparation import (
@@ -69,6 +70,7 @@ from agent_comms.nominal.field_codec import boundary_decoder
 from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
 from toad.resource_release import AsyncResourceRelease
 from toad.native_style import TransparentBackground
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -156,7 +158,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         agent_binding: AgentBinding,
         project_dir: Checkout,
         connection: CoreConnection,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
     ) -> None:
         """Toad app.
 

@@ -37,6 +37,7 @@ from toad.core.events import (
     UnsupportedResumeAgentFail,
 )
 from toad.db import DB, SessionMeta
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 
 PROTOCOL_VERSION = 1
 
@@ -170,7 +171,7 @@ class AgentSession:
     def accepts_updates(self):
         return self.disposition.accepts_updates
 
-    def accepts_session(self, session_id: str | None) -> bool:
+    def accepts_session(self, session_id: AcpSessionId | NoAcpSessionId) -> bool:
         """Only this active session may consume work for its current binding."""
         return self.accepts_updates and self.agent.session_id == session_id
 
@@ -389,8 +390,8 @@ class AgentSession:
         """Create a new session."""
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        cursor_token = self.agent._private_cursor.begin(None)
-        queue_token = self.agent.queue_attachment.begin(None)
+        cursor_token = self.agent._private_cursor.begin(NoAcpSessionId())
+        queue_token = self.agent.queue_attachment.begin(NoAcpSessionId())
         self.agent._post_private_cursor()
         self.agent._post_queue_view()
         response = await self.agent.process.rpc.new_session(
@@ -399,7 +400,7 @@ class AgentSession:
         if not self.agent._private_cursor.is_current_request(cursor_token):
             return
         assert response is not None
-        self.agent.session_id = response.session_id
+        self.agent.session_id = FieldCodec.decode(AcpSessionId, response.session_id)
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         await self.agent.comms_consumer_class(
             self.agent, self.agent.session_id,

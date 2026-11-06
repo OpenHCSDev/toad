@@ -1,5 +1,5 @@
 """The status line shows context use as reported; a zero after compaction means unknown, not empty."""
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 from agent_comms.context_reading import ContextUsage, UnmeasuredContext
 from toad.acp.context_measurement import ContextMeasurement

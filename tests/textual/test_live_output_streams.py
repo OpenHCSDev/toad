@@ -10,7 +10,7 @@ from toad.live_output import CompleteResponseStream, OutputStream, ResponseStrea
 from toad.response_delivery import RoutedResponse
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from toad.widgets.committed_presentation import CapturedClaim
+from toad.commit_claims import CapturedClaim
 
 
 class DiagnosticStream(OutputStream):

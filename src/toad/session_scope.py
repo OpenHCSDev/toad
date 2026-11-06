@@ -2,328 +2,27 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
-from functools import partial
+from abc import abstractmethod
+from collections.abc import Awaitable
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Never
+from typing import ClassVar, Never
 
-from agent_comms.channel_targets import ThreadTarget
-from agent_comms.repo import Checkout
-from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
-from agent_comms.errors import RelationViolationError, RouteChangedError
-from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.transport.tools.reads import TranscriptPageRead
-from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
-from agent_comms.ui_model.observation import (
-    ReadTranscript,
-    ReadTranscriptUpdate,
-    TranscriptPublicationState,
-)
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
+from agent_comms.errors import RelationViolationError
 
 from toad.app_node import ToadNode
-from toad.core.events import ThreadRowsChanged
-from toad.core_event_carrier import ThreadCallbackSubscription
-from toad.input_decision import InputAccepted, InputDecision, TranscriptNotReady
-from toad.navigation_context import NavigationOwner, NoNavigationOwner
-from toad.owner_preparation import ExistingOwnerPlan
+from toad.navigation_context import NavigationOwner, NavigationScope, NoNavigationOwner
+from toad.transcript_scope import NoTranscript, TranscriptScope
 from textual.abstract_hooks import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
-from toad.resource_release import ResourceRelease
-from toad.status_thread import NoStatusThread, StatusThread
-from agent_comms.message_reference import MessageReference
-from toad.comms_root import Observing
+from toad.widget_actions import DeclaredWidgetActions
+from textual.command import Provider
+from toad.widgets.side_bar import SideBar
 
-from toad.bus_submission import (
-    BusDestination,
-    SubmissionOwner,
-    SubmissionStart,
-    SubmittedText,
-)
+from toad.navigation_target import NavigationTarget
 
-if TYPE_CHECKING:
-    from toad.widget_actions import DeclaredWidgetActions
-    from agent_comms.thread_presentation import ThreadPresentation
-    from textual.command import Provider
-    from toad.widgets.side_bar import SideBar
-
-    from toad.agent_schema import AgentDefinition
-    from toad.comms_root import CoordinationAccess
-    from toad.conversation_kind import DmConversation
-    from toad.navigation_target import NavigationTarget
-    from toad.session_presentation import OperationalSessionPresentation
-    from toad.thread_identity import SessionIdentity
-    from toad.widgets.conversation import Conversation
-
-
-class MailboxSent(ABC):
-    """What a CLI thread's sources do once its inbox message is delivered."""
-
-    @abstractmethod
-    async def mailbox_sent(self, view: Conversation, sent: MessageReference) -> None: ...
-
-
-@dataclass(frozen=True)
-class MailboxDestination(BusDestination):
-    """A CLI thread's inbox: shown while its view stays bound to this transcript."""
-
-    scope: KnownTranscript
-    view: Conversation
-    sources: MailboxSent
-
-    def shown(self) -> bool:
-        return self.scope.shown_by(self.view)
-
-    async def presented(self, sent: MessageReference) -> None:
-        await self.sources.mailbox_sent(self.view, sent)
-
-
-class TranscriptScope(ABC):
-    """A transcript address owns its reads, observations and absent behavior."""
-
-    @property
-    @abstractmethod
-    def readable(self) -> bool: ...
-
-    @abstractmethod
-    def owner_decision(self, presentation: ThreadPresentation) -> InputDecision: ...
-
-    @abstractmethod
-    def original_threads(
-        self, identity: SessionIdentity
-    ) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
-
-    @abstractmethod
-    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool: ...
-
-    @abstractmethod
-    def status_thread(self, access: CoordinationAccess) -> StatusThread: ...
-
-    @abstractmethod
-    def observe(
-        self,
-        view: Conversation,
-        access: CoordinationAccess,
-        resume: Callable[[ThreadRowsChanged], bool | None],
-    ) -> ResourceRelease: ...
-
-    @abstractmethod
-    def snapshot_request(
-        self,
-        *,
-        position: PagePosition = LatestPage(),
-        limit: PageLimit = AtFrontier(),
-        page_source: PageSource = LivePageSource(),
-    ) -> ReadTranscript: ...
-
-    @abstractmethod
-    def update_request(
-        self,
-        previous: TranscriptPublicationState,
-        *,
-        position: PagePosition = LatestPage(),
-    ) -> ReadTranscriptUpdate: ...
-
-    def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
-        raise RouteChangedError("The queue has no original transcript source")
-
-    @abstractmethod
-    def mailbox_target(self) -> ThreadTarget: ...
-
-    @abstractmethod
-    def begin_mailbox(
-        self,
-        owner: SubmissionOwner,
-        submission: SubmittedText,
-        view: Conversation,
-        conversation_type: type[DmConversation],
-        sources: MailboxSent,
-    ) -> SubmissionStart: ...
-
-    @abstractmethod
-    async def show_mailbox_status(
-        self, view: Conversation, conversation_type: type[DmConversation]
-    ) -> None: ...
-
-
-@dataclass(frozen=True)
-class KnownTranscript(TranscriptScope):
-    root: str
-    name: str
-    readable = True
-
-    def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
-        observed = observing()
-        if observed.root != Path(self.root):
-            raise RouteChangedError("The queue's original transcript root changed")
-        return observed
-
-    def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
-        return ExistingOwnerPlan.from_binding(presentation.binding).decision
-
-    def original_threads(
-        self, identity: SessionIdentity
-    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
-        return ((self.root, identity.thread_incarnation()),)
-
-    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        registry = access.observing(self.root).registry_for(session_id, self.name)
-        return registry.canonical_name(session_id) == registry.require(self.name).name
-
-    def status_thread(self, access: CoordinationAccess) -> StatusThread:
-        return StatusThread.for_root(Path(self.root), self.name, access)
-
-    def observe(
-        self,
-        view: Conversation,
-        access: CoordinationAccess,
-        resume: Callable[[ThreadRowsChanged], bool | None],
-    ) -> ResourceRelease:
-        release = ResourceRelease()
-        release.callback(
-            view.retire_core,
-            view.observe_core_callback(
-                access.events,
-                ThreadRowsChanged,
-                resume,
-                factory=partial(
-                    ThreadCallbackSubscription, scope=(self.root, self.name)
-                ),
-            ),
-        )
-        return release
-
-    def snapshot_request(
-        self,
-        *,
-        position: PagePosition = LatestPage(),
-        limit: PageLimit = AtFrontier(),
-        page_source: PageSource = LivePageSource(),
-    ) -> ReadTranscript:
-        return ReadTranscript(self.root, TranscriptPageRead(
-            thread=self.name,
-            position=position,
-            limit=limit,
-            page_source=page_source,
-        ))
-
-    def update_request(
-        self,
-        previous: TranscriptPublicationState,
-        *,
-        position: PagePosition = LatestPage(),
-    ) -> ReadTranscriptUpdate:
-        return ReadTranscriptUpdate(
-            self.root, TranscriptPageRead(thread=self.name, position=position), previous=previous
-        )
-
-    def mailbox_target(self) -> ThreadTarget:
-        return ThreadTarget(self.name)
-
-    def begin_mailbox(
-        self,
-        owner: SubmissionOwner,
-        submission: SubmittedText,
-        view: Conversation,
-        conversation_type: type[DmConversation],
-        sources: MailboxSent,
-    ) -> SubmissionStart:
-        return owner.start_bus(submission, MailboxDestination(
-            self.root, self.mailbox_conversation(view, conversation_type), self, view, sources))
-
-    async def show_mailbox_status(
-        self, view: Conversation, conversation_type: type[DmConversation]
-    ) -> None:
-        """A CLI thread shows the same Core configuration answer a DM shows."""
-        try:
-            observed = await view.app.preparation.run_thread(view.app.coordination_access.observing, self.root)
-            status = await self.mailbox_conversation(view, conversation_type).status_text(
-                observed, read_only=False
-            )
-        except (CoordinationReadUnavailable, ReadAgain):
-            # The next observed presentation reads the answer again.
-            return
-        if self.shown_by(view):
-            view.thread_status = status
-
-    def shown_by(self, view: Conversation) -> bool:
-        """This transcript is still the one the view is bound to."""
-        return view.is_attached and view.transcript.binding.thread_scope == self
-
-    @staticmethod
-    def mailbox_conversation(
-        view: Conversation, conversation_type: type[DmConversation]
-    ) -> DmConversation:
-        return conversation_type(
-            view.query_ancestor(SessionScope).thread_identity.thread_incarnation()
-        )
-
-
-@dataclass(frozen=True)
-class NoTranscript(TranscriptScope):
-    readable = False
-
-    def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
-        return InputAccepted()
-
-    def original_threads(
-        self, identity: SessionIdentity
-    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
-        return ()
-
-    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        return False
-
-    def status_thread(self, access: CoordinationAccess) -> StatusThread:
-        return NoStatusThread()
-
-    def observe(
-        self,
-        view: Conversation,
-        access: CoordinationAccess,
-        resume: Callable[[ThreadRowsChanged], bool | None],
-    ) -> ResourceRelease:
-        return ResourceRelease()
-
-    def unavailable(self) -> Never:
-        raise ValueError("Transcript paging requires a bound thread")
-
-    def snapshot_request(
-        self,
-        *,
-        position: PagePosition = LatestPage(),
-        limit: PageLimit = AtFrontier(),
-        page_source: PageSource = LivePageSource(),
-    ) -> Never:
-        self.unavailable()
-
-    def update_request(
-        self,
-        previous: TranscriptPublicationState,
-        *,
-        position: PagePosition = LatestPage(),
-    ) -> Never:
-        self.unavailable()
-
-    def mailbox_target(self) -> Never:
-        self.unavailable()
-
-    def begin_mailbox(
-        self,
-        owner: SubmissionOwner,
-        submission: SubmittedText,
-        view: Conversation,
-        conversation_type: type[DmConversation],
-        sources: MailboxSent,
-    ) -> SubmissionStart:
-        return owner.unbound(submission, TranscriptNotReady())
-
-    async def show_mailbox_status(
-        self, view: Conversation, conversation_type: type[DmConversation]
-    ) -> None:
-        """No bound thread has no configuration to show."""
-
+from toad.launch_binding import AgentBinding, AgentOrigin, NoAgent
+from toad.thread_identity import SessionIdentity
 
 class SessionOrigin(metaclass=AbstractHooksMeta):
     """An origin answers for itself, including when its view is unavailable."""
@@ -352,13 +51,17 @@ class NoSessionOrigin(SessionOrigin):
         self.require()
 
 
-class SessionScope(ProjectPathOwner, ToadNode):
+class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):
     """The session answers read by ancestors and workspace owners."""
 
     COMMANDS: ClassVar[set[type[Provider]]] = set()
     AUTO_FOCUS = ""
     footer_compact = False
-    presentation: OperationalSessionPresentation
+
+    @property
+    def navigation_owner(self) -> NavigationOwner:
+        """A session that does not navigate answers the owner that refuses."""
+        return NoNavigationOwner(self.app)
 
     async def _pre_process(self) -> bool:
         """Textual tears a failed start down; the workspace must not keep the dead tree."""
@@ -367,11 +70,7 @@ class SessionScope(ProjectPathOwner, ToadNode):
             self.app.workspace_sessions.detach(self.id)
         return started
 
-    @property
-    def navigation_owner(self) -> NavigationOwner:
-        return NoNavigationOwner(self.app)
-
-    def matches_launch(self, agent_identity: str, session_id: str) -> bool:
+    def matches_launch(self, agent_identity: str, session_id: AcpSessionId) -> bool:
         return False
 
     @property
@@ -446,164 +145,24 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
         observed = self.app.coordination_access.observing(identity.wire_root())
         return identity.resolve_thread(observed, self.project_root)
 
-    def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
-        return default
-
-
-class StartsSessions(metaclass=AbstractHooksMeta):
-    """What a launch's New Session needs from the application it starts in."""
-
-    @abstractmethod
-    def open_thread_form(self, project: Checkout) -> None:
-        """The native thread form, for a launch with no attached agent."""
-
-    @abstractmethod
-    async def start_agent_session(self, binding: AgentAttached, project: Checkout) -> None:
-        """A new session of the agent this launch attached: saved, then opened."""
-
-
-class AgentBinding(ABC):
-    """Known native launch state carries construction and attachment behavior."""
-
-    @property
-    @abstractmethod
-    def welcome_prefix(self) -> str: ...
-
-    @abstractmethod
-    def attached(self, app_binding: AgentBinding) -> AgentBinding: ...
-
-    @abstractmethod
-    def for_session(self, session_id: str) -> AgentBinding: ...
-
-    @abstractmethod
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation: ...
-
-    @abstractmethod
-    def attach_to(
-        self, origin: ViewSessionOrigin, conversation: Conversation
-    ) -> None: ...
-
-    @abstractmethod
-    def matches_launch(
-        self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
-    ) -> bool: ...
-
-    def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
-        return empty
-
-    @abstractmethod
-    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
-        """New Session in this launch: a native thread form, or the attached agent's session."""
-
-
-@dataclass(frozen=True)
-class NoAgent(AgentBinding):
-    @property
-    def welcome_prefix(self) -> str:
-        return ""
-
-    def attached(self, app_binding: AgentBinding) -> AgentBinding:
-        return app_binding
-
-    def for_session(self, session_id: str) -> AgentBinding:
-        return self
-
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
-        return constructor()
-
-    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
-        conversation.clear_agent_definition()
-
-    def matches_launch(
-        self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
-    ) -> bool:
-        return False
-
-    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
-        app.open_thread_form(project)
-
-
-@dataclass(frozen=True)
-class AgentAttached(AgentBinding):
-    agent: AgentDefinition
-    @property
-    def welcome_prefix(self) -> str:
-        return f"{self.agent.name} · "
-
-    def attached(self, app_binding: AgentBinding) -> AgentBinding:
-        return self
-
-    def for_session(self, session_id: str) -> AgentBinding:
-        return AgentSession(self.agent, session_id)
-
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
-        return constructor(agent=self.agent)
-
-    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
-        conversation.attach_agent_definition(self.agent)
-        if origin.is_current:
-            conversation.start_native_session()
-
-    def matches_launch(
-        self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
-    ) -> bool:
-        return self.agent.identity == agent_identity and self.matches_session(
-            origin, session_id
-        )
-
-    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
-        await app.start_agent_session(self, project)
-
-    def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
-        return origin.presentation.operational_binding.matches_session(
-            session_id
-        ) or origin.transcript_scope().matches_session(
-            origin.app.coordination_access, session_id
-        )
-
-
-@dataclass(frozen=True)
-class AgentSession(AgentAttached):
-    session_id: str
-
-    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
-        conversation._agent_session_id = self.session_id
-        super().attach_to(origin, conversation)
-
-    async def start_session(self, app: StartsSessions, project: Checkout) -> None:
-        """A new session, not this one again."""
-        await AgentAttached(self.agent).start_session(app, project)
-
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
-        return super().make_conversation(
-            partial(constructor, agent_session_id=self.session_id)
-        )
-
-    def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
-        return empty.with_session(self.session_id)
-
-    def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
-        return self.session_id == session_id or super().matches_session(
-            origin, session_id
-        )
-
-
-class ViewSessionOrigin(ProjectSessionOrigin):
-    """Only actual native-session views own agent/session launch matching."""
-
-    _agent_binding: AgentBinding
+    _agent_binding: AgentBinding = NoAgent()
+    """A project origin with no launch of its own opens views with the app's binding."""
 
     def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
         return self._agent_binding.attached(default)
 
+
+class ViewSessionOrigin(ProjectSessionOrigin, AgentOrigin):
+    """Only actual native-session views own agent/session launch matching."""
+
     def attach_agent_definition(self) -> AgentBinding:
         self._agent_binding = self._agent_binding.attached(
             self.app.agent_binding
-        ).for_session(self.thread_identity.thread_name())
+        ).for_session(FieldCodec.decode(AcpSessionId, self.thread_identity.thread_name()))
         return self._agent_binding
 
     def use_mailbox(self) -> None:
         self._agent_binding = NoAgent()
 
-    def matches_launch(self, agent_identity: str, session_id: str) -> bool:
+    def matches_launch(self, agent_identity: str, session_id: AcpSessionId) -> bool:
         return self._agent_binding.matches_launch(self, agent_identity, session_id)

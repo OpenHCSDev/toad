@@ -19,7 +19,7 @@ from textual.pilot import Pilot
 from toad.acp.agent import Agent
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
-from toad.session_scope import AgentAttached, NoAgent
+from toad.launch_binding import AgentAttached, NoAgent
 from toad.agent_schema import AgentDefinition
 from acp.schema import PermissionOption, ToolCallUpdate
 from agent_comms.acp_extension import McpClientAcknowledgementUpdate, TurnChangedUpdate, decode_updates

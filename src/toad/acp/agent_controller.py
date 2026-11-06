@@ -9,6 +9,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from acp.exceptions import RequestError
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.acp_extension import (
     ClearQueueRequest,
     CommsRequest,
@@ -57,20 +58,20 @@ class SourceIdentity:
 class SessionBinding:
     """Actual ACP binding identity, preserved only until session replacement."""
 
-    session_id: str | None
+    session_id: AcpSessionId | NoAcpSessionId
     output: SessionOutput = field(default_factory=SessionOutput, compare=False)
 
     @property
     def bound(self) -> bool:
-        return self.session_id is not None
+        return self.session_id.bound
 
-    def accepts_notification(self, session_id: str):
-        return self.bound and self.session_id == session_id
+    def accepts_notification(self, session_id: AcpSessionId):
+        return self.session_id == session_id
 
     def accepts_snapshot(
         self, identity: TranscriptReadIdentity, owner: SourceIdentity
     ) -> bool:
-        return (self.accepts_notification(identity.requested_name)
+        return (self.accepts_notification(FieldCodec.decode(AcpSessionId, identity.requested_name))
                 and owner.matches_source(identity.root, identity.thread.incarnation))
 
 
@@ -102,7 +103,7 @@ class AgentController(OperationalTerminalOwner):
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
         self.transcripts = transcripts
-        self.session = SessionBinding(None)
+        self.session = SessionBinding(NoAcpSessionId())
         self.commands: list[AvailableCommand] = []
         self.plan_entries: list[PlanItem] | None = None
 

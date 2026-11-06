@@ -31,7 +31,8 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.session_scope import AgentAttached, AgentBinding, AgentSession, SessionScope, StartsSessions
+from toad.launch_binding import AgentAttached, AgentBinding, AgentSession, StartsSessions
+from toad.session_scope import SessionScope
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
@@ -41,13 +42,18 @@ from toad.thread_actions import ThreadAction
 from agent_comms.cli_command import CreatesThread
 from agent_comms.channel_targets import ProjectTarget
 from toad.screens.main import MainScreen
+from toad.agent_schema import AgentDefinition
+from toad.navigation_target import HistoryRouted
+from toad.navigation_target import DirectTarget
+from toad.widgets.comms_sidebar import CommsSidebar
+from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.agents import read_agents
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
 
-    from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
-    from toad.navigation_target import HistoryRouted
 
 
 @dataclass(frozen=True)
@@ -71,7 +77,6 @@ class SessionNavigation(StartsSessions):
 
     def direct_messages(self, target: str | None = None):
         """Capture the navigating view once; every DM entry point opens through it."""
-        from toad.navigation_target import DirectTarget
 
         owner = self.app.workspace_sessions.navigation_owner()
         operation = (
@@ -90,8 +95,6 @@ class SessionNavigation(StartsSessions):
         )
 
     async def reveal(self) -> None:
-        from toad.widgets.comms_sidebar import CommsSidebar
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         app = self.app
         sidebar = app.screen.query_one_optional(CommsSidebar)
@@ -279,7 +282,7 @@ class SessionNavigation(StartsSessions):
 
     async def saved(
         self, agent: AgentDefinition, project: Checkout, *,
-        title: str = "New Session", agent_session_id: str | None = None,
+        title: str = "New Session", agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
     ) -> AcpTab:
         """A native session is saved before it opens; its row is the tab's identity."""
         database = await self.app.get_db()
@@ -292,7 +295,7 @@ class SessionNavigation(StartsSessions):
         self,
         agent_identity: str,
         *,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         project: Checkout,
         initial_prompt: str | None = None,
@@ -311,28 +314,28 @@ class SessionNavigation(StartsSessions):
         self,
         agent_identity: str,
         *,
-        agent_session_id: str | None = None,
+        agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
         session_pk: int | None = None,
         project: Checkout,
         initial_prompt: str | None = None,
     ) -> SessionEntry:
-        from toad.agents import read_agents
 
         app = self.app
         database = await app.get_db()
-        make_binding: Callable[[AgentDefinition], AgentBinding] = AgentAttached
-        if agent_session_id is not None:
-            make_binding = partial(AgentSession, session_id=agent_session_id)
-            existing = next(
-                (
-                    identity
-                    for identity, origin in app.workspace_sessions.views.items()
-                    if origin.matches_launch(agent_identity, agent_session_id)
-                ),
-                None,
-            )
-            if existing is not None:
-                return self.entries[existing][existing]
+        fresh: Callable[[AgentDefinition], AgentBinding] = AgentAttached
+        make_binding = agent_session_id.selected(
+            fresh, lambda resumed: partial(AgentSession, session_id=resumed)
+        )
+        existing = next(
+            (
+                identity
+                for identity, origin in app.workspace_sessions.views.items()
+                if agent_session_id.selected(False, partial(origin.matches_launch, agent_identity))
+            ),
+            None,
+        )
+        if existing is not None:
+            return self.entries[existing][existing]
         agent, title = None, None
         if session_pk is not None:
             saved = await database.session_get(session_pk)

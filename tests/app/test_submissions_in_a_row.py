@@ -1,5 +1,5 @@
 """Twenty submissions in a row and then typed keys all reach the agent, in order and none lost."""
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 from support.agents import peer
 

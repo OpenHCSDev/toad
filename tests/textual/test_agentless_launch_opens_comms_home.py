@@ -11,7 +11,7 @@ from agent_comms.repo import Checkout
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
 from toad.constants import WELCOME
-from toad.session_scope import NoAgent
+from toad.launch_binding import NoAgent
 
 
 async def test_an_agentless_launch_opens_the_welcome_workspace(workspace):

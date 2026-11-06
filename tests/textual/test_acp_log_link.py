@@ -1,6 +1,6 @@
 """Textual-facing: the "Open ACP log" link under a failed request is a Textual link target drawn with the
 widget's hover link style, and the tab it opens holds the log in the log view's text area."""
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import asyncio
 

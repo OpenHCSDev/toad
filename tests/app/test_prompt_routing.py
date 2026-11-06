@@ -2,7 +2,7 @@
 
 An exclamation mark typed into an empty prompt enters shell mode (tests/textual/test_prompt_shell_mode.py);
 anywhere else it is text."""
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 from support.agents import peer
 

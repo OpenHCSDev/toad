@@ -1,7 +1,7 @@
 """Opening a thread whose session loads slowly: one tab from the first click, the loading state,
 then the saved history; the session left behind keeps its editor."""
 from agent_comms.repo import Checkout
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 import asyncio
 from functools import partial
@@ -17,6 +17,7 @@ from toad.app import ToadApp
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.comms_sidebar import ChannelGroup
 from toad.widgets.conversation import ThreadLoading
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 class TabFramesApp(ToadApp):
@@ -39,7 +40,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
                                       process_identity=ProcessIdentity.capture(os.getpid())))
     comms.channels.create_tag("journey")
     comms.messaging.send("owner", "#journey", "SAVED_CHANNEL_JOURNEY")
-    started = partial(TabFramesApp, agent_session_id="owner")
+    started = partial(TabFramesApp, agent_session_id=AcpSessionId("owner"))
     async with workspace.app(size=(139, 25), binding=AgentAttached(peer("delayed_load")), application=started) as ui:
         app, pilot = ui.textual
         await ui.until_agent_ready()

@@ -27,7 +27,7 @@ from agent_comms.ui_model.observation import (
 )
 
 from agent_comms.transport.tools.sidebar import CommsThreadPresentationTool
-from toad.session_scope import TranscriptScope
+from toad.transcript_scope import TranscriptScope
 
 
 class CoordinationTranscriptReader:

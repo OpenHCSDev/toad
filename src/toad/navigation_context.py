@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.navigation_target import NavigationTarget
 
 
 @dataclass(frozen=True)
@@ -18,6 +17,24 @@ class NavigationContext:
     owner_mode: str
     project_path: Checkout
     actor: str
+
+
+class NavigationDestination(ABC):
+    """What a navigating view opens: each sidebar row's target."""
+
+    def selected(self, owner: NavigationOwner) -> None:
+        """Apply view-specific selection intent before beginning navigation."""
+
+    @abstractmethod
+    async def open(self, context: NavigationContext) -> str: ...
+
+
+class NavigationScope:
+    """An ancestor its descendants open targets through."""
+
+    @property
+    @abstractmethod
+    def navigation_owner(self) -> NavigationOwner: ...
 
 
 class NavigationOwner:
@@ -40,7 +57,7 @@ class NavigationOwner:
     def remember_direct_target(self, target: str) -> None:
         """Optional view-local return-to-DM intent."""
 
-    async def open_sidebar_target(self, target: NavigationTarget) -> None:
+    async def open_sidebar_target(self, target: NavigationDestination) -> None:
         target.selected(self)
         await target.open(self.navigation_context)
 
@@ -78,6 +95,6 @@ class NoNavigationOwner(NavigationOwner):
     def navigation_context(self) -> NavigationContext:
         raise NavigationUnavailable("No navigating view is selected")
 
-    async def open_sidebar_target(self, target: NavigationTarget) -> None:
+    async def open_sidebar_target(self, target: NavigationDestination) -> None:
         """A target asked of no navigating view is refused with a notice, not a traceback."""
         self.app.notify("Nothing opens from this view", title="Navigation")

@@ -23,6 +23,7 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 from toad.worker_group import WorkerGroup
 from agent_comms.team_hud import TeamHud
 from toad.tab_identity import TabIdentity
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 class ThreadInterestUpdate(WorkerGroup):
@@ -91,7 +92,7 @@ class CommsUpdated(CoreEvent):
     session_scoped = True
 
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
-    session_id: str | None = None
+    session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId()
     sequence: int | None = None
     recover_draft: bool = False
     queue_scope: QueueScope = field(default_factory=NoQueueScope)
@@ -313,7 +314,7 @@ class McpClientStopped(CoreEvent):
 class AgentReady(CoreEvent):
     """The original ACP session handshake completed."""
 
-    session_id: str
+    session_id: AcpSessionId
     reconnected: bool = False
 
 

@@ -498,7 +498,7 @@ class ConversationSubmissions(SubmissionOwner):
             self.view.agent_binding.presentation, self.delivering, self.view.turns.owner.busy,
             self.view.contents.notification_targets,
             self.view.queue_source.capture_queue_observing(
-                self.view.transcript.binding.thread_scope.queue_observing,
+                self.view.thread_scope.queue_observing,
                 self.view.app.coordination_access.observation.queue_observing))
 
     @property

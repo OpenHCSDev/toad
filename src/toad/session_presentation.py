@@ -6,7 +6,6 @@ from collections.abc import Callable
 from functools import partial
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING
 from weakref import ref
 
@@ -22,18 +21,22 @@ from agent_comms.message_reference import MessageReference
 
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
-from toad.conversation_kind import DmConversation
-from toad.session_scope import MailboxSent
+from toad.transcript_scope import MailboxSent, TranscriptView
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
 from toad.native_style import StartsHidden
 from toad.resource_release import AsyncResourceRelease
-from toad.widgets.conversation import Conversation
+from toad.widgets.conversation import Conversation, ConversationSources
 from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
 from toad.comms_root import Observing
+from toad.transcript_publication import CanonicalSourcePublication
+from toad.widgets.prompt import Prompt
+from toad.acp.agent import Agent
+from toad.core import events as core_events
+from toad.transcript_publication import SessionTranscriptPresentation
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -150,7 +153,7 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     async def attach_binding(self, conversation: Conversation) -> None: ...
 
 
-class OperationalSessionSources(NativeQueueSource):
+class OperationalSessionSources(ConversationSources, NativeQueueSource):
     """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:
@@ -178,12 +181,10 @@ class OperationalSessionSources(NativeQueueSource):
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
         """Core publishes native and CLI drafts through the same transcript store."""
-        from toad.transcript_publication import CanonicalSourcePublication
 
         conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
     def prompt(self, conversation: Conversation):
-        from toad.widgets.prompt import Prompt
 
         return Prompt(project=conversation.project_path, submissions=conversation.submissions)
 
@@ -196,7 +197,7 @@ class OperationalSessionSources(NativeQueueSource):
         return agent.readiness_decision.then(
             lambda: agent.configuration.model.input_decision
         ).then(
-            lambda: conversation.transcript.binding.thread_scope.owner_decision(
+            lambda: conversation.thread_scope.owner_decision(
                 conversation.thread_presentation
             )
         )
@@ -206,13 +207,10 @@ class OperationalSessionSources(NativeQueueSource):
 
     def create_agent(self, conversation: Conversation) -> None:
         """The unbound state requests a new operational connection."""
-        from toad.acp.agent import Agent
-        from toad.core import events as core_events
 
-        assert conversation._agent_data is not None
         agent = Agent(
             conversation.project_path.path,
-            conversation._agent_data,
+            conversation.launch.require_agent(),
             conversation._agent_session_id,
             conversation._session_pk,
             app_events=conversation.app.events,
@@ -280,9 +278,7 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
 
     def thread_presented(self, conversation: Conversation) -> None:
         conversation.run_worker(
-            conversation.transcript.binding.thread_scope.show_mailbox_status(
-                conversation, DmConversation
-            ),
+            conversation.thread_scope.show_mailbox_status(conversation),
             group="mailbox-status",
             exclusive=True,
         )
@@ -295,12 +291,12 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
     def begin_submission(self, owner, submission):
         """A CLI thread's input is a message to its inbox, queued like a prompt."""
         view = owner.view
-        return view.transcript.binding.thread_scope.begin_mailbox(owner, submission, view, DmConversation, self)
+        return view.thread_scope.begin_mailbox(owner, submission, view, self)
 
-    async def mailbox_sent(self, view: Conversation, sent: MessageReference) -> None:
+    async def mailbox_sent(self, view: TranscriptView, sent: MessageReference) -> None:
         """Follow the transcript's end; the inbox message shows once the thread records it."""
-        view.window.jump_to_latest()
-        self.external_transcript_changed(view)
+        view.follow_latest()
+        view.transcript_changed()
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresentation):
@@ -308,7 +304,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresent
 
     def __init__(self) -> None:
         super().__init__()
-        from toad.transcript_publication import SessionTranscriptPresentation
 
         self.transcript = SessionTranscriptPresentation()
         self.sources = OperationalSessionSources()

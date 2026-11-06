@@ -11,7 +11,7 @@ from agent_comms.channel_targets import NamedTarget
 from agent_comms.message_reference import MessageReference
 from agent_comms.transport.request import CoreAccess
 
-from toad.input_decision import InputRefused
+from toad.input_decision import InputDecision, InputRefused
 
 
 class SubmissionStart(ABC):
@@ -57,7 +57,20 @@ class BusDestination(ABC):
 
 
 class SubmissionOwner(ABC):
-    """A view's pending submissions: a source starts its input here or refuses it here."""
+    """A view's pending submissions: a source starts its input here or refuses it here, and
+    the view's prompt reads whether input is held and what the queue shows."""
+
+    @property
+    @abstractmethod
+    def input_decision(self) -> InputDecision: ...
+
+    @property
+    @abstractmethod
+    def holds_input(self) -> bool: ...
+
+    @property
+    @abstractmethod
+    def queue_summary(self) -> str: ...
 
     @abstractmethod
     def start_bus(

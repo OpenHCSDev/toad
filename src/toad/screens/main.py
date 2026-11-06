@@ -11,6 +11,7 @@ from typing import Literal
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination.errors import DMScopeChanged, Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
@@ -46,12 +47,14 @@ from toad.navigation_target import (
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
-from toad.session_presentation import OperationalSessionPresentation
-from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
+from toad.agent_binding import AgentConnection
+from toad.session_presentation import OperationalSessionPresentation, OperationalSessionSources
+from toad.launch_binding import AgentBinding, NoAgent
+from toad.session_scope import ViewSessionOrigin
 from toad.session_tracker import SessionDetails
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.widgets.conversation import Conversation
+from toad.widgets.conversation import Conversation, SourcesScope
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import NO_PROJECT_VIEW, ProjectSearchButton, ProjectView
@@ -300,9 +303,23 @@ class GoHomeAction(MainAction):
         await context.app.select_session(context.app.tab_order.home)
 
 
-class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SidebarSessionView[SessionThreadSidebar], ToadNode,
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
+                 SidebarSessionView[SessionThreadSidebar], ToadNode,
                  actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
+    presentation: OperationalSessionPresentation
+
+    @property
+    def operational_sources(self) -> OperationalSessionSources:
+        return self.presentation.sources
+
+    @property
+    def operational_binding(self) -> AgentConnection:
+        return self.presentation.operational_binding
+
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return self.presentation.initial_editing_mode
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
@@ -346,7 +363,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def from_thread(
         cls, project: Checkout, root: str, target, binding: AgentBinding = NoAgent()
     ) -> "MainScreen":
-        screen = cls(project, binding.for_session(target.name))
+        screen = cls(project, binding.for_session(FieldCodec.decode(AcpSessionId, target.name)))
         screen.bind_thread(target, root)
         return screen
 
@@ -365,7 +382,9 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         # The request has only a name; bind the wire after its metadata read.
         screen = cls(
             request.project,
-            origin.source.agent_for_opening(app.agent_binding).for_session(request.target),
+            origin.source.agent_for_opening(app.agent_binding).for_session(
+                FieldCodec.decode(AcpSessionId, request.target)
+            ),
         )
         screen.content = NavigatedOpeningContent()
         return screen

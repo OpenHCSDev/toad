@@ -21,6 +21,7 @@ from acp.schema import (
     UsageUpdate,
     UserMessageChunk,
 )
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.acp_extension import AgentCommsUpdate
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
@@ -147,14 +148,14 @@ class SessionNotificationOwner(ClientRequestOwner):
                 return
             validation.publish(self, notification.session_id, raw_update, notification.field_meta)
 
-    def reject(self, session_id: str, update, metadata, error: str):
+    def reject(self, session_id: AcpSessionId, update, metadata, error: str):
         self.agent.log(
             f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
             f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
         )
         self.agent.events.publish(events.RejectedSessionUpdate())
 
-    def publish(self, session_id: str, update: SessionNotification, facts: tuple[AgentCommsUpdate, ...]):
+    def publish(self, session_id: AcpSessionId, update: SessionNotification, facts: tuple[AgentCommsUpdate, ...]):
         metadata = update.update.field_meta
         consumer = self.agent.comms_consumer_class(self.agent, session_id)
         effect = SessionUpdateEffect(self.agent, consumer)

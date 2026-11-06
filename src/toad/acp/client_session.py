@@ -11,12 +11,13 @@ if TYPE_CHECKING:
     from .agent_session import SessionDisposition
     from .agent_controller import SessionBinding
 from acp.exceptions import RequestError
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 @dataclass(frozen=True)
 class ClientSessionRequest:
     agent: "Agent"
-    session_id: str | None
+    session_id: AcpSessionId | NoAcpSessionId
     disposition: "SessionDisposition" = field(init=False)
     binding: "SessionBinding" = field(init=False)
 

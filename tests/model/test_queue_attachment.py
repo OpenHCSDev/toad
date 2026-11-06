@@ -34,25 +34,25 @@ def test_capture_before_binding_is_refused():
 def test_prebinding_receipt_keeps_first_observation_pending(tmp_path):
     _comms, scope = declared_scope(tmp_path)
     attachment = QueueAttachment()
-    attachment.begin("source")
-    attachment.callback(QueueChangedUpdate(scope, 1, AvailableQueueProjection()), "source")
+    attachment.begin(AcpSessionId("source"))
+    attachment.callback(QueueChangedUpdate(scope, 1, AvailableQueueProjection()), AcpSessionId("source"))
     assert isinstance(attachment.projection, PendingQueueProjection)
 
 
 def test_capture_after_binding_names_the_bound_scope(tmp_path):
     comms, scope = declared_scope(tmp_path)
     attachment = QueueAttachment()
-    token = attachment.begin("source")
-    attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
+    token = attachment.begin(AcpSessionId("source"))
+    attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), AcpSessionId("source"), token)
     assert attachment.input_identity(scope) == scope.claimed_identity
 
 
 def test_capture_after_a_replacement_begins_is_refused(tmp_path):
     comms, scope = declared_scope(tmp_path)
     attachment = QueueAttachment()
-    token = attachment.begin("source")
-    attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
-    attachment.begin("source")  # keeps the old observed scope behind a pending projection
+    token = attachment.begin(AcpSessionId("source"))
+    attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), AcpSessionId("source"), token)
+    attachment.begin(AcpSessionId("source"))  # keeps the old observed scope behind a pending projection
     with pytest.raises(ValueError, match="Checking input queue"):
         attachment.input_identity(scope)
 
@@ -66,16 +66,16 @@ def test_input_start_members_dispatch_before_queue_revision_checks(tmp_path):
 
     _, scope = declared_scope(tmp_path)
     attachment = QueueAttachment()
-    token = attachment.begin("source")
+    token = attachment.begin(AcpSessionId("source"))
     native_id, input_id = InputId.mint(), InputId.mint()
     unidentified = UnidentifiedInputStarted("routed", scope, 1, native_id)
-    assert attachment.started(unidentified, "source") == ()
+    assert attachment.started(unidentified, AcpSessionId("source")) == ()
     identified = IdentifiedInputStarted("queued", scope, 2, native_id, input_id)
-    assert attachment.started(identified, "source") == ()
+    assert attachment.started(identified, AcpSessionId("source")) == ()
     _, starts = attachment.bind(
-        QueueChangedUpdate(scope, 1, AvailableQueueProjection()), "source", token,
+        QueueChangedUpdate(scope, 1, AvailableQueueProjection()), AcpSessionId("source"), token,
     )
     assert starts == (identified,)
-    assert attachment.started(identified, "source") == ()
+    assert attachment.started(identified, AcpSessionId("source")) == ()
     newer = IdentifiedInputStarted("queued", scope, 3, native_id, input_id)
-    assert attachment.started(newer, "source") == (newer,)
+    assert attachment.started(newer, AcpSessionId("source")) == (newer,)

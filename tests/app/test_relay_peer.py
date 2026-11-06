@@ -5,7 +5,7 @@ import asyncio
 
 import pytest
 
-from toad.session_scope import AgentAttached
+from toad.launch_binding import AgentAttached
 
 from support.agents import peer
 from support.peers.relay_socket import RelaySocket, RelayStepFailed

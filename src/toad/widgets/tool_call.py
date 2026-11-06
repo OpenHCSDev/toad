@@ -21,7 +21,8 @@ from toad.line_blocks import Body, ToggleDetails, ToolOutputRole
 from toad.block_content import CollapseCommand, ExpandCommand
 from toad.menus import MenuCommand
 from agent_comms.ui_model.message_category import MessageCategory
-from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation, ToolOutputClaim
+from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim, ToolOutputClaim
 
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
@@ -29,6 +30,7 @@ from toad.widgets.message_divider import ConversationLineBlock
 from toad.widgets.tool_content import ToolContent
 from toad.app_node import ToadNode
 from toad.native_style import PointerCursor, RightMargin
+from toad.widgets.conversation import Conversation
 
 
 class HeaderPointer(DeclaresTheme):
@@ -150,7 +152,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self._manual_expansion = expanded
         self._auto_expanded = False
         self.expanded = expanded
-        from toad.widgets.conversation import Conversation
 
         try:
             conversation = self.query_ancestor(Conversation)
@@ -173,7 +174,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         yield details
 
     def on_mount(self) -> None:
-        from toad.widgets.conversation import Conversation
 
         try:
             conversation = self.query_ancestor(Conversation)
@@ -228,7 +228,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             self.query_one(ToolTitle).display = self.query_one(ToolCallContent).display = self.expanded
         except NoMatches:
             pass
-        from toad.widgets.conversation import Conversation
 
         try:
             conversation = self.query_ancestor(Conversation)

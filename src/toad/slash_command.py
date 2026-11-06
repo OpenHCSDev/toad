@@ -327,14 +327,11 @@ class SessionNewCommand(SlashCommand, LocalCommand, declared_name="toad:session-
         return cls(arguments.strip())
 
     async def apply(self, conversation: Conversation) -> bool:
-        if conversation._agent_data is not None:
-            conversation.app.session_navigation.events.publish(
-                session_requests.SessionNew(
-                    conversation.working_directory,
-                    conversation._agent_data.identity,
-                    self.prompt,
-                )
-            )
+        conversation.launch.request_new_session(
+            conversation.app.session_navigation.events,
+            conversation.working_directory,
+            self.prompt,
+        )
         return True
 
 

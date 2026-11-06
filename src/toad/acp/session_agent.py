@@ -35,6 +35,7 @@ from toad.agent import AgentBase
 from toad.core import events as core_events
 from .agent_controller import AgentController, SourceIdentity
 from .client_session import ClientSessionRequest, OwnerRequest
+from agent_comms.nominal.field_codec import AcpSessionId
 
 
 class SessionAgent(AgentBase, SourceIdentity):
@@ -51,7 +52,7 @@ class SessionAgent(AgentBase, SourceIdentity):
     def tool_scope(self) -> AssignedSourceIdentity | None:
         return None
 
-    def publish_coordination(self, session_id: str) -> None:
+    def publish_coordination(self, session_id: AcpSessionId) -> None:
         """No coordinator source belongs to the uncoordinated session."""
 
     def publish_thread_row_state(self) -> None:
@@ -157,7 +158,7 @@ class CoordinationIdentity(SessionAgent):
         return coordination.thread.recorded_or(
             lambda recorded: AssignedSourceIdentity(coordination.wire_root, recorded), lambda: None)
 
-    def publish_coordination(self, session_id: str) -> None:
+    def publish_coordination(self, session_id: AcpSessionId) -> None:
         self.events.publish(core_events.CommsUpdated(self.coordination, session_id))
 
     def publish_thread_row_state(self) -> None:

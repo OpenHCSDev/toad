@@ -16,22 +16,23 @@ from toad.comms_root import Observing
 from toad.work_preparation import PreparationRuntime
 from toad.core.events import CoreEvent
 from toad.constants import ALL_COMMS_TARGET
-from toad.navigation_context import NavigationContext, NavigationOwner
+from toad.navigation_context import NavigationContext, NavigationDestination, NavigationOwner
 from toad.conversation_kind import (
     ChannelConversation,
     ConversationKind,
     DmConversation,
     IrcConversation,
 )
+from toad.widgets.sidebar_tree import SidebarGroup
+from toad.target_commands import TargetContext
 
 if TYPE_CHECKING:
     from agent_comms.display_references import ThreadNames
 
     from toad.widgets.comms_sidebar import CommsRow, ListedRow
-    from toad.widgets.sidebar_tree import SidebarGroup
 
 @dataclass(frozen=True)
-class NavigationTarget(DeclaredFamily, affix="Target"):
+class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
     name: str
 
     expanded_by_default: ClassVar[bool] = False
@@ -47,13 +48,9 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
         raise TypeError("Expected a named channel or thread target")
 
     def menu_context(self, sidebar, *, channel: ChannelSelection, mode_name=None):
-        from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.model_state.observed, CommandTarget.named(self.name),
                              sidebar.app.workspace_sessions.navigation_owner().navigation_context.actor,
                              sidebar.app.project_dir, mode_name, channel)
-
-    def selected(self, owner: NavigationOwner) -> None:
-        """Apply view-specific selection intent before beginning navigation."""
 
     def matches(self, target: NavigationTarget) -> bool:
         """Different opening behaviors may display the same sidebar address."""
@@ -61,10 +58,6 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     def rows_in(self, group: SidebarGroup[ListedRow]) -> tuple[CommsRow, ...]:
         return group.rows_for_target(self.name)
-
-    @abstractmethod
-    async def open(self, context: NavigationContext) -> str:
-        pass
 
 
 @dataclass(frozen=True)
@@ -167,7 +160,6 @@ class ChannelLike:
     """Shared channel-row capability; consumers never enumerate row kinds."""
 
     def menu_context(self, sidebar, **kwargs):
-        from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.model_state.observed, CommandTarget.named(self.name),
                               sidebar.app.workspace_sessions.navigation_owner().navigation_context.actor,
                               sidebar.app.project_dir)

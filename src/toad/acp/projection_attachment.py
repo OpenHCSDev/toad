@@ -12,6 +12,7 @@ from toad.private_native_cursor import (
     UnavailableCursorStatus,
 )
 
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.acp_extension import (
     CursorEnvelope,
     CursorScope,
@@ -70,7 +71,7 @@ class ProjectionAttachment:
         self.current: CursorEnvelope | QueueChangedUpdate | None = None
         self.quarantined = False
         self.floor: CursorScope | QueueScope | None = None
-        self._buffer: list[tuple[str, CursorEnvelope]] = []
+        self._buffer: list[tuple[AcpSessionId, CursorEnvelope | QueueChangedUpdate]] = []
         # Keep invalidating scopes after their status updates are discarded.
         # In particular begin() after uncertainty must not erase a newer generation
         # merely because an older in-flight result has not arrived yet.
@@ -81,7 +82,7 @@ class ProjectionAttachment:
         self._evidence_lost = False
         self._pending = True
         self._token = 0
-        self._session_id: str | None = None
+        self._session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId()
 
     @property
     def state(self) -> type[AttachmentState]:
@@ -91,7 +92,7 @@ class ProjectionAttachment:
             return UnavailableAttachment
         return AvailableAttachment
 
-    def begin(self, session_id: str | None) -> int:
+    def begin(self, session_id: AcpSessionId | NoAcpSessionId) -> int:
         self._token += 1
         self._session_id = session_id
         self._pending = True
@@ -128,7 +129,7 @@ class ProjectionAttachment:
     def bind(
         self,
         value: CursorEnvelope | QueueChangedUpdate | None,
-        session_id: str,
+        session_id: AcpSessionId,
         token: int,
     ) -> str:
         if token != self._token:
@@ -193,9 +194,9 @@ class ProjectionAttachment:
         return "bind"
 
     def callback(
-        self, value: CursorEnvelope | QueueChangedUpdate | None, session_id: str
+        self, value: CursorEnvelope | QueueChangedUpdate | None, session_id: AcpSessionId
     ) -> str:
-        if self._session_id is not None and session_id != self._session_id:
+        if not self._session_id.accepts(session_id):
             return "reject_foreign_session"
         if self._evidence_lost:
             return "reject_evidence_lost"

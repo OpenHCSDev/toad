@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 from agent_comms.repo import Checkout
-from agent_comms.nominal.field_codec import RecordedTimestamp
+from agent_comms.nominal.field_codec import AcpSessionId, RecordedTimestamp
 from agent_comms.errors import RelationViolationError
 
 from toad.agent_schema import AgentDefinition
@@ -46,7 +46,7 @@ async def test_saved_row_reads_as_typed_session_and_updates_keep_its_agent(tmp_p
         await store.session_update_last_used(1)
         assert (await store.session_get(1)).title == "Renamed"
         metadata = SessionMeta(Checkout(tmp_path), AgentDefinition.decode(SAVED_AGENT))
-        pk = await store.session_new("New", "Agent", "id", "session2", meta=metadata)
+        pk = await store.session_new("New", "Agent", "id", AcpSessionId("session2"), meta=metadata)
         saved = await store.session_get(pk)
         assert saved.id == pk and saved.meta_json == metadata
         reopened = DB()
@@ -63,7 +63,7 @@ async def test_fresh_schema_stores_metadata_and_a_busy_writer_does_not_block_the
     with patch("toad.db.paths.get_state", return_value=tmp_path):
         store = DB()
         await store.create()
-        pk = await store.session_new("New", "Agent", "id", "session", meta=SessionMeta(Checkout(Path("/project"))))
+        pk = await store.session_new("New", "Agent", "id", AcpSessionId("session"), meta=SessionMeta(Checkout(Path("/project"))))
         assert (await store.session_get(pk)).meta_json.cwd == Checkout(Path("/project"))
         await store.record_model_usage("id", "model")
         assert await store.recent_models("id") == ["model"]

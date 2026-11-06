@@ -14,6 +14,7 @@ from textual.widget import Widget
 from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
+from toad.commit_claims import CommitClaim
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -21,13 +22,11 @@ if TYPE_CHECKING:
     from agent_comms.transcripts import TranscriptCursor, TranscriptPage
     from textual.worker import Worker
 
-    from toad.core.events import ThreadRowsChanged
     from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
     from toad.transcript_source_preparation import (
         HistorySourceSnapshot,
         TranscriptSourcePreparation,
     )
-    from toad.widgets.committed_presentation import CommitClaim
     from toad.widgets.history_anchor import HistoryWindow, LatestPosition
     from toad.widgets.transcript_history import (
         ConversationHistory,
@@ -334,11 +333,11 @@ class WaitingSourceWork[Result]:
     def observe(self):
         from toad.widgets.conversation import Conversation
 
-        scope = self.owner.query_ancestor(Conversation).transcript.binding.thread_scope
+        scope = self.owner.query_ancestor(Conversation).thread_scope
         with self.owner.app.coordination_access.observe_thread_changes(self.owner, scope, self.resume):
             yield self
 
-    def resume(self, _event: ThreadRowsChanged) -> None:
+    def resume(self, _event: object) -> None:
         self.owner._source_observation.close()
         if self.snapshot.current(self.owner) and self.owner._source_state is self.state:
             self.state.schedule(self.owner, self.work)
