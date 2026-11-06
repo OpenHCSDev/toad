@@ -1,25 +1,32 @@
 from __future__ import annotations
 
 import __main__
+import asyncio
 import importlib.util
+import shlex
 import sys
-from typing import TYPE_CHECKING
+import time
 
 import click
+import rich
 
 from agent_comms import launch_root
+from agent_comms.active_route import ActiveRoute
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.repo import Checkout
 from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
+from toad import about, get_version, paths
+from toad.agent_schema import AgentDefinition
+from toad.agents import read_agents
+from toad.app import ToadApp
+from toad.application_lifetime import ApplicationLifetime
 from toad.comms_root import CoreConnection
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
+from toad.preferences import SavedSettings
+from toad.web_server import ToadWebServer
 
 
 def persist_terminal_failure(error: Exception) -> None:
     """Keep Textual's terminal failure in the existing diagnostic directory."""
-    from toad import paths
 
     try:
         path = paths.save_error(error, "Terminal_crash")
@@ -51,7 +58,6 @@ async def get_agent_binding(launch_agent: str) -> AgentBinding:
         return NoAgent()
     requested = launch_agent.lower()
 
-    from toad.agents import read_agents
 
     agents = await read_agents()
 
@@ -78,7 +84,6 @@ class DefaultCommandGroup(click.Group):
             return super().parse_args(ctx, args)
         if "--version" in args or "-v" in args:
             return super().parse_args(ctx, args)
-        from agent_comms.active_route import ActiveRoute
 
         # Select once at the process boundary; apps receive this captured value.
         ctx.obj = CoreConnection.select(args, ActiveRoute.published_launch)
@@ -118,7 +123,6 @@ def main(ctx, version):
     # before its own work; a `.__main__` spec is the one spawn skips (multiprocessing/spawn.py).
     __main__.__spec__ = importlib.util.find_spec(".__main__", __package__)
     if version:
-        from toad import get_version
 
         click.echo(get_version())
         ctx.exit()
@@ -138,9 +142,7 @@ def run(connection: CoreConnection, project_dir: str, agent: str = "1"):
 
     project = FieldCodec.decode(Checkout, project_dir).resolved(strict=True)
 
-    import asyncio
 
-    from toad.app import ToadApp
 
     binding = asyncio.run(get_agent_binding(agent))
     app = ToadApp(
@@ -178,8 +180,6 @@ def acp(
 ) -> None:
     """Run an ACP agent from a command."""
 
-    from rich import print
-    from toad.agent_schema import AgentDefinition
 
     command_name = command.split(" ", 1)[0].lower()
     identity = f"{command_name}.custom.batrachian.ai"
@@ -202,7 +202,6 @@ def acp(
         "run_command": {"*": command},
         "actions": {},
     })
-    from toad.app import ToadApp
 
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
@@ -212,16 +211,15 @@ def acp(
     )
     run_terminal(app)
 
-    print("")
-    print("[bold magenta]Thanks for trying out Toad!")
-    print("Please head to Discussions to share your experiences (good or bad).")
-    print("https://github.com/batrachianai/toad/discussions")
+    rich.print("")
+    rich.print("[bold magenta]Thanks for trying out Toad!")
+    rich.print("Please head to Discussions to share your experiences (good or bad).")
+    rich.print("https://github.com/batrachianai/toad/discussions")
 
 
 @main.command("settings")
 def settings() -> None:
     """Settings information."""
-    from toad.preferences import SavedSettings
     print(f"{SavedSettings.path()}")
 
 
@@ -238,7 +236,6 @@ def replay(path: str) -> None:
 
     This will replay the agents output, and Toad will update the conversation as it would a real agent.
     """
-    import time
 
     stdout = sys.stdout.buffer
     with open(path, "rb") as replay_file:
@@ -270,10 +267,7 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
     `toad serve acp agent-comms-acp`.
     """
-    import shlex
 
-    from toad.application_lifetime import ApplicationLifetime
-    from toad.web_server import ToadWebServer
 
     command = shlex.join([sys.executable, "-m", "toad", *toad_args])
     server = ToadWebServer(command, host=host, port=port, title="Toad")
@@ -283,10 +277,9 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
 
 @main.command("about")
 @click.pass_obj
-def about(connection: CoreConnection) -> None:
+def show_about(connection: CoreConnection) -> None:
     """Show about information."""
 
-    from toad import about
 
     print(about.render(connection.location))
 

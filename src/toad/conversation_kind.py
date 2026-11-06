@@ -40,14 +40,15 @@ from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import UnpaintedChannel
+from toad.comms_root import CoordinationAccess
+from toad.session_tracker import CommsViewKey
+from toad.session_tracker import ChannelViewAddress
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 
-    from toad.comms_root import CoordinationAccess
     from toad.screens.comms import CommsScreen
     from toad.screens.historical_sessions import HistoricalSessions
-    from toad.session_tracker import CommsViewKey
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.wire_history import WireHistory
     from toad.wire_history import WireSource
@@ -183,7 +184,6 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def view_identity(cls, key: CommsViewKey):
-        from toad.session_tracker import ChannelViewAddress
 
         return ChannelViewAddress(key.root, key.conversation)
 

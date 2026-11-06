@@ -30,10 +30,15 @@ from toad.session_tracker import (
     SessionDetails,
     ThreadTab,
 )
+from toad.comms_root import Observing
+from toad.screens.main import MainScreen
+from toad.screens.comms import CommsScreen
+from toad.acp.agent_log import AgentLog
+from toad.screens.file_preview import FilePreviewScreen
+from toad.widgets.project_panel import FilePreview
+from toad.widgets.acp_log import AcpLogPreview
 
 if TYPE_CHECKING:
-    from toad.comms_root import Observing
-    from toad.screens.main import MainScreen
     from toad.session_navigation import SessionNavigation
 
 
@@ -228,7 +233,6 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
         return self.key.conversation.channels_needed(self.key.root)
 
     def __call__(self):
-        from toad.screens.comms import CommsScreen
 
         key = self.key
         return CommsScreen(
@@ -275,17 +279,14 @@ class PreviewSessionEntry(SessionEntry):
 
     @classmethod
     def of(cls, identity: TabIdentity, path: Path) -> PreviewSessionEntry:
-        from toad.acp.agent_log import AgentLog
 
         return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(identity, path)
 
     def __call__(self):
-        from toad.screens.file_preview import FilePreviewScreen
 
         return FilePreviewScreen(self.path, self.content)
 
     def content(self):
-        from toad.widgets.project_panel import FilePreview
 
         return FilePreview(self.path)
 
@@ -306,7 +307,6 @@ class AcpLogSessionEntry(PreviewSessionEntry):
     """An agent's ACP log in its own tab, named for the agent and start time in the file name."""
 
     def content(self):
-        from toad.widgets.acp_log import AcpLogPreview
 
         return AcpLogPreview(self.path)
 

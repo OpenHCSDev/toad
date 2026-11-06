@@ -42,13 +42,17 @@ from toad.thread_actions import ThreadAction
 from agent_comms.cli_command import CreatesThread
 from agent_comms.channel_targets import ProjectTarget
 from toad.screens.main import MainScreen
+from toad.agent_schema import AgentDefinition
+from toad.navigation_target import HistoryRouted
+from toad.navigation_target import DirectTarget
+from toad.widgets.comms_sidebar import CommsSidebar
+from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.agents import read_agents
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
 
-    from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
-    from toad.navigation_target import HistoryRouted
 
 
 @dataclass(frozen=True)
@@ -72,7 +76,6 @@ class SessionNavigation(StartsSessions):
 
     def direct_messages(self, target: str | None = None):
         """Capture the navigating view once; every DM entry point opens through it."""
-        from toad.navigation_target import DirectTarget
 
         owner = self.app.workspace_sessions.navigation_owner()
         operation = (
@@ -91,8 +94,6 @@ class SessionNavigation(StartsSessions):
         )
 
     async def reveal(self) -> None:
-        from toad.widgets.comms_sidebar import CommsSidebar
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         app = self.app
         sidebar = app.screen.query_one_optional(CommsSidebar)
@@ -317,7 +318,6 @@ class SessionNavigation(StartsSessions):
         project: Checkout,
         initial_prompt: str | None = None,
     ) -> SessionEntry:
-        from toad.agents import read_agents
 
         app = self.app
         database = await app.get_db()

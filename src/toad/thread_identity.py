@@ -7,7 +7,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
@@ -16,9 +15,8 @@ from toad.format_path import format_path
 from toad.transcript_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
 from toad.comms_root import Observing
+from toad.session_tracker import SessionDetails
 
-if TYPE_CHECKING:
-    from toad.session_tracker import SessionDetails
 
 
 class SessionIdentity(ABC):

@@ -163,7 +163,6 @@ def make_session_title(prompt: str) -> str:
 
 
 from toad.widgets.question import Ask
-from toad.widgets.terminal import Terminal
 from toad.widgets.transcript_history import LineHistory
 
 
@@ -233,7 +232,6 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
 
     def line_histories(self):
         """Visit history containers without entering their rich bodies."""
-        from toad.widgets.transcript_history import LineHistory
 
         pending = list(reversed(self.children))
         while pending:
@@ -575,7 +573,6 @@ class ConversationSessionBinding(
         if not self.transcript.readable:
             return
         if self.is_current_session:
-            from toad.transcript_publication import ObservedSourcePublication
 
             self._unpublished_presentation = NoThreadPresentation()
             self.transcript.source_requests.request(
@@ -911,6 +908,15 @@ class ConversationSessionBinding(
 
 
 from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
+from toad.transcript_publication import ObservedSourcePublication
+from toad.agent_schema import Command
+from toad.catalog_actions import CatalogCommandAction
+from toad.screens.action_modal import ActionModal
+from toad.db import DB
+from toad.widgets.committed_presentation import StartedInputClaim
+from toad.widgets.plan import ConversationPlan
+from toad.widgets.message_divider import AgentActivityDivider
+from toad.agent_surface import AttachedSurfaceBinding
 
 
 class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
@@ -1348,9 +1354,6 @@ class Conversation(
     async def provider_login(self) -> None:
         import shlex
 
-        from toad.agent_schema import Command
-        from toad.catalog_actions import CatalogCommandAction
-        from toad.screens.action_modal import ActionModal
 
         agent = self.agent_binding
         methods = agent.presentation.auth_methods
@@ -1436,7 +1439,6 @@ class Conversation(
         if error is not None:
             self.app.show_error(error, "Set Model")
         elif (model := agent.configuration.model.selected) is not None:
-            from toad.db import DB
 
             # Recent-model persistence is optional metadata, not a prerequisite
             # for opening the model's already advertised thinking choices.
@@ -1491,7 +1493,6 @@ class Conversation(
         self._agent_activity_boundary.reset()
         model = self.agent_binding.configuration.model.selected
         if stop_reason.completed and model is not None:
-            from toad.db import DB
 
             # Complete visible turn settlement independently of recent-model
             # database contention. The native worker owns this optional write.
@@ -1577,7 +1578,6 @@ class Conversation(
         await self.output.append(event.stream, event.text)
 
     async def present_started_input(self, started) -> None:
-        from toad.widgets.committed_presentation import StartedInputClaim
 
         self.output.boundary()
         if started.text:
@@ -1612,7 +1612,6 @@ class Conversation(
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, event: core_events.Plan) -> None:
-        from toad.widgets.plan import ConversationPlan
 
         if self.contents.children and isinstance(
             (current_plan := self.contents.children[-1]), ConversationPlan
@@ -1673,7 +1672,6 @@ class Conversation(
             options: A list of (ANSWER, ANSWER_ID) tuples.
             callback: Optional callable that will be invoked with the result.
         """
-        from toad.widgets.question import Ask
 
         self.agent_info
 
@@ -1889,7 +1887,6 @@ class Conversation(
             self.output.boundary()
         if not self.contents.is_attached:
             return widget
-        from toad.widgets.message_divider import AgentActivityDivider
 
         if widget.starts_agent_activity(self._agent_activity_boundary):
             await self.contents.mount(
@@ -2018,7 +2015,6 @@ class Conversation(
         """A Shell instance."""
 
         if self._shell is None or self._shell.is_finished:
-            from toad.agent_surface import AttachedSurfaceBinding
 
             shell_command = self.app.settings.shell.command
             shell_start = self.app.settings.shell.command_start

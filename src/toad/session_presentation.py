@@ -32,6 +32,11 @@ from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
 from toad.comms_root import Observing
+from toad.transcript_publication import CanonicalSourcePublication
+from toad.widgets.prompt import Prompt
+from toad.acp.agent import Agent
+from toad.core import events as core_events
+from toad.transcript_publication import SessionTranscriptPresentation
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -176,12 +181,10 @@ class OperationalSessionSources(ConversationSources, NativeQueueSource):
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
         """Core publishes native and CLI drafts through the same transcript store."""
-        from toad.transcript_publication import CanonicalSourcePublication
 
         conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
     def prompt(self, conversation: Conversation):
-        from toad.widgets.prompt import Prompt
 
         return Prompt(project=conversation.project_path, submissions=conversation.submissions)
 
@@ -204,8 +207,6 @@ class OperationalSessionSources(ConversationSources, NativeQueueSource):
 
     def create_agent(self, conversation: Conversation) -> None:
         """The unbound state requests a new operational connection."""
-        from toad.acp.agent import Agent
-        from toad.core import events as core_events
 
         assert conversation._agent_data is not None
         agent = Agent(
@@ -304,7 +305,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresent
 
     def __init__(self) -> None:
         super().__init__()
-        from toad.transcript_publication import SessionTranscriptPresentation
 
         self.transcript = SessionTranscriptPresentation()
         self.sources = OperationalSessionSources()

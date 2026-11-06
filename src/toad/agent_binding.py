@@ -17,6 +17,9 @@ from toad.acp.agent_session import SessionDisposition, UnopenedSessionDispositio
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.input_decision import InputAccepted, InputDecision, NoLiveAgent
 from toad.widgets.committed_presentation import CommitSource
+from toad.conversation_turn import TurnOwner
+from toad.core_event_carrier import CoreEventMessage
+from toad.acp.comms_updates import NoPendingThreadRead
 
 if TYPE_CHECKING:
     from agent_comms.goal_actions import GoalAction
@@ -29,8 +32,6 @@ if TYPE_CHECKING:
         ConversationSubmissions,
         SubmissionStart,
     )
-    from toad.conversation_turn import TurnOwner
-    from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
     from toad.session_observation import SessionObservation
     from toad.session_presentation import OperationalSessionSources
@@ -69,7 +70,6 @@ class AgentConnection(ABC):
     async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None: ...
 
     def thread_read(self):
-        from toad.acp.comms_updates import NoPendingThreadRead
 
         return NoPendingThreadRead()
 
