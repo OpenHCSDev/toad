@@ -46,3 +46,16 @@ async def test_tabs_saved_before_scopes_carry_onto_the_scoped_table(tmp_path):
     rows = await database.tab_list((UNSCOPED_TABS,))
     assert [row.identity.key.name for row in rows] == ["claude-laptop"]
     assert [row.scope for row in rows] == [UNSCOPED_TABS]
+
+
+async def test_two_cores_holding_the_same_tab_identity_each_keep_their_own(tmp_path):
+    """Both buses sit at ~/.agent-comms, so one mailbox identity can be saved by both Cores;
+    neither roster write may move the other's row."""
+    database = DB(tmp_path / "toad.db")
+    await database.create()
+    shared = PreviewTab(tmp_path / "shared")
+    await database.tab_roster((LOCAL,), (shared,))
+    await database.tab_roster((REMOTE,), (PreviewTab(tmp_path / "first"), shared))
+    assert [row.identity for row in await database.tab_list((LOCAL,))] == [shared]
+    assert [(row.identity, row.position) for row in await database.tab_list((REMOTE,))] == [
+        (PreviewTab(tmp_path / "first"), 0), (shared, 1)]

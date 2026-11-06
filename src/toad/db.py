@@ -95,7 +95,8 @@ UNSCOPED_TABS = TabScope("unscoped")
 class OpenTabRow(ToadTables, TypedTable, declared_name="open_tabs"):
     identity: Annotated[TabIdentity, Column(primary_key=True)]
     position: int
-    scope: TabScope = UNSCOPED_TABS
+    # Part of the key: two Cores at one root path can hold the same tab identity.
+    scope: Annotated[TabScope, Column(primary_key=True)] = UNSCOPED_TABS
 
 
 @dataclass(frozen=True)
@@ -149,8 +150,9 @@ class DB:
 
     async def tab_list(self, scopes: tuple[TabScope, ...]) -> list[OpenTabRow]:
         def read(db):
-            rows = (row for scope in scopes for row in OpenTabRow.select(db, scope=scope))
-            return sorted(rows, key=lambda row: row.position)
+            # The connection's own scope first, then the scopes it adopts, each in its order.
+            return [row for scope in scopes
+                    for row in OpenTabRow.select(db, scope=scope, order_by=("position",))]
 
         return await self._transaction(read)
 
