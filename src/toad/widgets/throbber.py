@@ -13,7 +13,7 @@ from textual.reactive import reactive
 from textual.text_format import TextFormat
 
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
-from ui_theme.scheme import TurnBandColour
+from ui_theme.scheme import BackgroundColour
 
 from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import FullWidth, OneRow
@@ -47,7 +47,8 @@ class ThrobberVisual(Visual):
 
 class Throbber(EffectInContent, FullWidth, OneRow, Animated[Ribbon]):
     _paint_only_render = True
-    tone = TurnBandColour
+    tone = BackgroundColour
+    """The sweep runs on the transcript's own background, not the band below it."""
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
     effect = ACTIVITY_SWEEP
