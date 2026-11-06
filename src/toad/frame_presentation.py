@@ -16,7 +16,7 @@ from textual.app import ScreenStackError, UnknownModeError
 from textual.strip import Strip
 from textual.widget import Widget
 from ui_theme.clock import Animation
-from ui_theme.effects import Effect, Fade, Frame, Mix
+from ui_theme.effects import NEW_TEXT, Effect, Fade, Frame, Mix
 from ui_theme.scheme import BackgroundColour
 
 from toad.tone_paint import TonePaint
@@ -200,6 +200,42 @@ class FramePresentation:
         return self.ready and screen.is_attached and screen.is_current
 
 
+@dataclass(frozen=True)
+class Cascade(Effect[Mix]):
+    """One fade played row after row: each row starts `position * span` later.
+
+    A burst of rows comes in progressively, top to bottom, instead of rising as
+    one block. Row 0 is the plain fade; a row whose start has not come yet is
+    still the fade's first frame, the background, so it is not yet visible.
+    """
+
+    fade: Fade
+    span: float
+
+    @property
+    def duration(self) -> float:  # type: ignore[override]
+        return self.fade.duration + self.span
+
+    @property
+    def frames_per_second(self) -> float:  # type: ignore[override]
+        return self.fade.frames_per_second
+
+    def frame(self, elapsed: float) -> Mix:
+        return self.fade.frame(elapsed)
+
+    def at(self, elapsed: float, position: float) -> Mix:
+        """The frame of a row `position` (0 first, 1 last) of the way through the cascade."""
+        return self.fade.frame(elapsed - position * self.span)
+
+    @property
+    def final(self) -> Mix:
+        return self.fade.final
+
+
+# Arriving transcript rows: the new-text fade, started row after row across 0.4 s.
+ARRIVAL = Cascade(NEW_TEXT, span=0.4)
+
+
 class EffectPhase:
     """Where an effect is: running, not yet started or finished. Only a running one moves."""
 
@@ -217,6 +253,10 @@ class EffectPhase:
 
     def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
         return owner.paint_effects(strip, owner.effect_frame(effect))
+
+    def paint_row(self, owner: AnimationEffects[Mix], effect: Cascade, strip: Strip, position: float):
+        """One row of a cascade; only a running one has rows at different frames."""
+        return self.paint(owner, effect, strip)
 
     def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return arrivals
@@ -238,6 +278,12 @@ class EffectRunning(EffectPhase):
 
     def now(self) -> EffectPhase:
         return EFFECT_FINISHED if self.animation.finished else self
+
+    def paint_row(self, owner: AnimationEffects[Mix], effect: Cascade, strip: Strip, position: float):
+        animation = self.animation
+        shown = (effect.final if animation.finished or not owner.animation_visible
+                 else effect.at(animation.elapsed, position))
+        return owner.paint_effects(strip, shown)
 
     def stop(self) -> None:
         self.animation.stop()
