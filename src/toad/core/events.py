@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import Annotated, ClassVar
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -21,10 +21,8 @@ from toad.live_output import OutputStream, ThoughtStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.worker_group import WorkerGroup
-
-if TYPE_CHECKING:
-    from agent_comms.team_hud import TeamHud
-    from toad.tab_identity import TabIdentity
+from agent_comms.team_hud import TeamHud
+from toad.tab_identity import TabIdentity
 
 
 class ThreadInterestUpdate(WorkerGroup):

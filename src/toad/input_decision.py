@@ -4,16 +4,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.content import Content
+from textual.widget import Widget
 
 from toad import messages
 
-if TYPE_CHECKING:
-    from toad.acp.agent_session import SessionDisposition
-    from toad.widgets.prompt import PromptTextArea
+from toad.acp.agent_session import SessionDisposition
 
 
 class InputDecision(DeclaredFamily, ABC):
@@ -26,7 +25,7 @@ class InputDecision(DeclaredFamily, ABC):
     def agent_info_text(self, agent_info: Content) -> Content: ...
 
     @abstractmethod
-    def announce(self, editor: PromptTextArea) -> None: ...
+    def announce(self, editor: Widget) -> None: ...
 
 
 class InputAccepted(InputDecision):
@@ -38,7 +37,7 @@ class InputAccepted(InputDecision):
     def agent_info_text(self, agent_info: Content) -> Content:
         return agent_info
 
-    def announce(self, editor: PromptTextArea) -> None:
+    def announce(self, editor: Widget) -> None:
         """Accepted input needs no refusal feedback."""
 
 
@@ -55,7 +54,7 @@ class InputRefused(InputDecision):
     def agent_info_text(self, agent_info: Content) -> Content:
         return Content(self.message)
 
-    def announce(self, editor: PromptTextArea) -> None:
+    def announce(self, editor: Widget) -> None:
         editor.app.bell()
         editor.post_message(messages.Flash(self.message, "error"))
 
