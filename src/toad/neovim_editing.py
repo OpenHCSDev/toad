@@ -926,7 +926,7 @@ class NeovimHost(NeovimRequester, MroDispatch):
             route.request.reply.cancel()
         self._routes.clear()
 
-    def end_start(self, outcome: Callable[[asyncio.Future[AttachedChild]], None]) -> None:
+    def end_start(self, outcome: Callable[[asyncio.Future[AttachedChild]], object]) -> None:
         if not self._child_ready.done():
             outcome(self._child_ready)
 
@@ -1005,10 +1005,14 @@ class NeovimHost(NeovimRequester, MroDispatch):
     def enqueue(self, session: NeovimEditing, request: NeovimRequest) -> None:
         """The engine's keys and edits act on its current buffer, so a session's request
         follows its own buffer's focus. A cancelled operator stays with the buffer it began in."""
+        self.focus(session)
+        self._send(session, request)
+
+    def focus(self, session: NeovimEditing) -> None:
         if self._focused is not session:
             self._focused = session
-            self._send(session, session.focus_request())
-        self._send(session, request)
+            for request in session.focus_requests():
+                self._send(session, request)
 
     def _send(self, requester: NeovimRequester, request: NeovimRequest) -> None:
         self.register(requester, request)
@@ -1131,6 +1135,7 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         self._update_queued = False
         self._boundaries: list[Binding] = []
         self._lease: BufferLease = NO_BUFFER
+        self._viewport = [80, 24]
 
     @property
     def label(self) -> str:
@@ -1264,15 +1269,18 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     # on the same ordered input path, so its keys never reach that boundary.
     to_normal = "<C-\\><C-N>"
 
-    def focus_request(self) -> NeovimInput:
+    def focus_requests(self) -> tuple[NeovimRequest, ...]:
         """Take the engine's window: the buffer it leaves keeps its mode and cursor for its
         return, and CTRL-\\ CTRL-N cancels any operator or command line it left pending, so
-        this buffer's first key can never complete another buffer's command."""
-        request = NeovimInput(self, self._next_generation(),
-                              f"<Cmd>lua ToadEditor.leave()<CR>{self.to_normal}"
-                              f"<Cmd>lua ToadEditor.enter({self.buffer})<CR>")
-        self._register(request)
-        return request
+        this buffer's first key can never complete another buffer's command. The engine's one
+        UI then takes this prompt's size, so motions over wrapped lines use its width."""
+        requests = (NeovimInput(self, self._next_generation(),
+                                f"<Cmd>lua ToadEditor.leave()<CR>{self.to_normal}"
+                                f"<Cmd>lua ToadEditor.enter({self.buffer})<CR>"),
+                    NeovimCall("nvim_ui_try_resize", self._viewport))
+        for request in requests:
+            self._register(request)
+        return requests
 
     async def _start(self) -> None:
         host = self._host
@@ -1294,12 +1302,14 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
             "nvim_exec_lua", ["return ToadEditor.open(...)",
                               [list(initial_lines), list(initial_cursor), editor.indent_width, mappings]]))))
         host.adopt(self.buffer, self)
+        self._viewport = self.viewport(editor)
         # The opening requests go ahead of anything queued while the buffer was being made.
-        opening = [NeovimCall("nvim_ui_try_resize", self.viewport(editor))]
+        host.focus(self)
+        opening: tuple[NeovimRequest, ...] = ()
         if self.initial_keys:
-            opening += [NeovimInput(self, self._next_generation(), self.initial_keys),
-                        NeovimLuaOperation(self, self._next_generation(),
-                                           "return ToadEditor.cursor(...)", [initial_cursor])]
+            opening = (NeovimInput(self, self._next_generation(), self.initial_keys),
+                       NeovimLuaOperation(self, self._next_generation(),
+                                          "return ToadEditor.cursor(...)", [initial_cursor]))
         for request in opening:
             self._register(request)
             host.enqueue(self, request)
@@ -1453,7 +1463,8 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     def resize(self, editor: TextArea) -> None:
         # This UI API is RPC-only, like nvim_ui_attach during startup. A
         # viewport resize is not a buffer edit and must not advance its generation.
-        self._enqueue(NeovimCall("nvim_ui_try_resize", self.viewport(editor)))
+        self._viewport = self.viewport(editor)
+        self._enqueue(NeovimCall("nvim_ui_try_resize", self._viewport))
 
     def enter_text(self, editor: TextArea) -> None:
         self._input(self.to_normal + "i")
