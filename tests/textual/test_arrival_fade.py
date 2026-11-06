@@ -17,7 +17,7 @@ from ui_theme.effects import NEW_TEXT
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.textual_steps import tool_status
-from toad.frame_presentation import EFFECT_UNSTARTED
+from toad.frame_presentation import ARRIVAL, EFFECT_UNSTARTED
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.transcript_history import TranscriptHistory
@@ -65,7 +65,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         await ui.until(lambda: "EARLIER_NOTICE" in ui.painted(view.window), why="the saved history")
         history = view.contents.query_one(TranscriptHistory)
         # Saved history is not a live block: its rows fade as they arrive, not the whole body on mount.
-        assert history.effect_phase(NEW_TEXT) is EFFECT_UNSTARTED
+        assert history.effect_phase(ARRIVAL) is EFFECT_UNSTARTED
         view.window.anchor()
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ANSWER}})
@@ -101,3 +101,17 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         screen._on_frame_published = published
         # The live block leaves in the frame that draws its saved rows: no frame shows both, or neither.
         assert [frame.count(ANSWER) for frame in frames] == [1] * len(frames)
+
+
+def test_a_burst_comes_in_row_after_row_and_ends_whole():
+    early = ARRIVAL.span / 2
+    first, last = ARRIVAL.at(early, 0.0), ARRIVAL.at(early, 1.0)
+    # The first row is already rising while the last has not started: it is still the background.
+    assert first.amount > 0 and last.amount == 0
+    assert ARRIVAL.at(ARRIVAL.duration, 1.0) == ARRIVAL.final
+
+
+def test_a_following_reader_stops_above_the_rows_still_to_rise():
+    # Five rows: at the start four wait below the window, half way two, at the end none.
+    assert [ARRIVAL.unstarted(elapsed, 5) for elapsed in (0.0, ARRIVAL.span / 2, ARRIVAL.span)] == [4, 2, 0]
+    assert ARRIVAL.unstarted(0.0, 1) == 0

@@ -114,6 +114,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def window(self) -> HistoryWindow:
         return self.query_ancestor(HistoryWindow)
 
+    def unrevealed_rows(self) -> int:
+        """Arriving rows that have not started rising: a following reader stops above them."""
+        return 0
+
     def __init__(self, *args, source_state: TranscriptState, page_source: PreparedPageSource, **kwargs):
         self._source_state = source_state
         self._generation = 0

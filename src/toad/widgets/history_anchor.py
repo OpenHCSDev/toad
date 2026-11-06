@@ -227,6 +227,9 @@ class ReaderPosition(ABC):
         """The position after a message arrived at the followed end: only following hands it the reader."""
         return self
 
+    def revealed(self, window: HistoryWindow) -> None:
+        """Arriving rows rose a step: only a reader following the tail goes down with them."""
+
     def placed(self, window: HistoryWindow, reached: bool) -> ReaderPosition:
         """What the window keeps after a layout placed this: itself while the history is still changing.
 
@@ -292,8 +295,13 @@ class TailPosition(ReaderPosition):
     def place(self, window: HistoryWindow) -> bool:
         if not window.follows_tail:
             window.anchor()
-        window.scroll_y = window.max_scroll_y
+        window.scroll_y = window.tail_scroll_y
         return True
+
+    def revealed(self, window: HistoryWindow) -> None:
+        if window.follows_tail:
+            with window.layout_scroll():
+                window.scroll_y = window.tail_scroll_y
 
     def shifted(self, rows: float) -> ReaderPosition:
         return self
@@ -476,6 +484,10 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
             return super().place(window)
         return TailPosition().place(window)
 
+    def revealed(self, window: HistoryWindow) -> None:
+        if not self.tall(window):
+            TailPosition().revealed(window)
+
     def shifted(self, rows: float) -> ReaderPosition:
         # Kept through its change, so every layout of the change places it
         # from its own page; afterwards the window reads where the reader is.
@@ -649,7 +661,7 @@ class NoHistoryChange:
             return False
         previous = window.scroll_y
         with window.layout_scroll():
-            window.scroll_y = window.max_scroll_y
+            window.scroll_y = window.tail_scroll_y
         return previous != window.scroll_y
 
     def finish_layout(self, answered: int) -> None:
@@ -1131,6 +1143,11 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         # Stop native following, rather than leaving a released native anchor
         # which can silently rejoin at a mounted page edge.
         self.anchor(False)
+
+    @property
+    def tail_scroll_y(self) -> float:
+        """The followed tail: the end, less the arriving rows that have not risen yet."""
+        return max(0, self.max_scroll_y - sum(history.unrevealed_rows() for history in self.histories))
 
     def message_too_tall(self, height: int) -> bool:
         """A message taller than the viewport needs its head placed; a short one stays put."""
