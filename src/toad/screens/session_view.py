@@ -17,6 +17,7 @@ from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.navigation_context import NavigationOwner
 from toad.navigation_target import NavigationTarget, NoTarget
 from toad.app_node import ToadNode
 from toad.session_tracker import SidebarState
@@ -98,12 +99,6 @@ class SessionView(
     def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
         message.stop()
         self.history_painted()
-
-    async def open_direct_messages(self) -> None:
-        """Open this session's direct-message destination when it has one."""
-        self.notify(
-            "Direct messages are unavailable from this view", title="Direct messages"
-        )
 
     def sidebars(self) -> tuple[SideBar, ...]:
         """Supply this view's native sidebar resources through its declaration."""
@@ -201,7 +196,7 @@ class SessionContents(WidgetView, FollowsLayoutPreferences, ToadNode, Vertical):
         self.refresh(layout=True)
 
 
-class SidebarSessionView[SidebarT: ThreadSidebar](WidgetView, SessionView):
+class SidebarSessionView[SidebarT: ThreadSidebar](WidgetView, NavigationOwner, SessionView):
     """One session-owned sidebar survives construction, mounting and retirement.
 
     Composition mounts this resource; it does not create its identity. Chrome

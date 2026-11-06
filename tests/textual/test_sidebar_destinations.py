@@ -34,7 +34,7 @@ async def test_new_destination_uses_existing_row(workspace):
         await group.member_container.mount(row)
         row.scroll_visible(animate=False)
         await ui.step()
-        context = app.selected_session.navigation_context
+        context = app.workspace_sessions.navigation_owner().navigation_context
         assert await pilot.click(row)
         await ui.until(
             lambda: bool(opened), why="the row opening its declared destination"

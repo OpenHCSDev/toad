@@ -133,8 +133,9 @@ class WorkspaceChrome(VerticalLayout):
     async def select(self, view: "SessionScope") -> None:
         roster = self.channels.roster
         roster.navigation.capture()
-        roster.set_enabled(view.shows_channels)
-        self.channels.display = view.shows_channels
+        shown = view.navigation_owner.shows_channels
+        roster.set_enabled(shown)
+        self.channels.display = shown
         self.footer.compact = view.footer_compact
         self.footer.call_later(self.footer.bindings_changed, view.screen)
         self.refresh_layout()

@@ -164,8 +164,9 @@ class LinkedRows(OpensLinks):
                              if isinstance(entry, ConversationEntry)), LinkedRows.arrival)
 
     @property
+    @abstractmethod
     def line_sets(self) -> tuple[Lines, ...]:
-        raise NotImplementedError
+        """The prepared rows this widget draws, which its selection copies."""
 
     def get_selection(self, selection: Selection) -> tuple[str, str]:
         rows = "\n".join("".join(segment.text for segment in row).rstrip()

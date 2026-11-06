@@ -59,6 +59,10 @@ class LineBlockRow(FillWidth, AutoHeight, LinkedRows, Widget):
             self.block, self._lines = block, NoRows()
             self.refresh(layout=True)
 
+    @property
+    def line_sets(self) -> tuple[BlockLines, ...]:
+        return (self.prepared_lines(self.size.width),)
+
     def prepared_lines(self, width: int) -> BlockLines:
         measured = self._lines.plain(
             width, RichLineRenderer(self.line_theme, width), (self.block,)

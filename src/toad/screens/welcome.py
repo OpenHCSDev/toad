@@ -24,7 +24,7 @@ from textual.widgets import Static
 from toad.constants import ALL_COMMS_TARGET
 from toad.core.events import SessionSelected
 from toad.format_path import format_path
-from toad.navigation_context import NavigationContext
+from toad.navigation_context import NavigationContext, NavigationOwner
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionView
@@ -223,6 +223,7 @@ class NewSessionAction(WelcomeAction):
 class WelcomeScreen(
     NativeMethodKeys,
     TogglesIrc,
+    NavigationOwner,
     ProjectSessionOrigin,
     CenteredChildren,
     SessionView,
@@ -273,9 +274,9 @@ class WelcomeScreen(
         with self.changing_identity():
             self._identity = await app.preparation.run_thread(self.read_history_identity, project)
 
-    async def open_sidebar_target(self, target: NavigationTarget) -> str:
+    async def open_sidebar_target(self, target: NavigationTarget) -> None:
         await self.prepare_history_origin()
-        return await super().open_sidebar_target(target)
+        await super().open_sidebar_target(target)
 
     async def prepare_presentation(self) -> None:
         await super().prepare_presentation()

@@ -66,16 +66,14 @@ class SessionNavigation:
         self._closing_retired: set[asyncio.Future] = set()
 
     def direct_messages(self, target: str | None = None):
-        """Capture the original view once; all DM entry points require it."""
+        """Capture the navigating view once; every DM entry point opens through it."""
         from toad.navigation_target import DirectTarget
 
-        source = self.app.selected_session
-        if source is None:
-            raise ValueError("Direct messages require an open session")
+        owner = self.app.workspace_sessions.navigation_owner()
         operation = (
-            source.open_direct_messages()
+            owner.open_direct_messages()
             if target is None
-            else source.open_sidebar_target(DirectTarget(target))
+            else owner.open_sidebar_target(DirectTarget(target))
         )
         return self.app.run_worker(operation, group="direct-messages")
 

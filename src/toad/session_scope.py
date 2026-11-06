@@ -26,7 +26,7 @@ from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.input_decision import InputAccepted, InputDecision
-from toad.navigation_context import NavigationOwner
+from toad.navigation_context import NavigationOwner, NoNavigationOwner
 from toad.owner_preparation import ExistingOwnerPlan
 from textual.abstract_hooks import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
@@ -326,12 +326,11 @@ class NoSessionOrigin(SessionOrigin):
         self.require()
 
 
-class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
+class SessionScope(ProjectPathOwner, ToadNode):
     """The session answers read by ancestors and workspace owners."""
 
     COMMANDS: ClassVar[set[type[Provider]]] = set()
     AUTO_FOCUS = ""
-    shows_channels = True
     footer_compact = False
     presentation: OperationalSessionPresentation
 
@@ -341,6 +340,10 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
         if not started:
             self.app.workspace_sessions.detach(self.id)
         return started
+
+    @property
+    def navigation_owner(self) -> NavigationOwner:
+        return NoNavigationOwner(self.app)
 
     def matches_launch(self, agent_identity: str, session_id: str) -> bool:
         return False

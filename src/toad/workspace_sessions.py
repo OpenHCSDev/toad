@@ -10,6 +10,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._time import after_input
 
 from toad.constants import WELCOME
+from toad.navigation_context import NavigationOwner, NoNavigationOwner
 from toad.navigation_target import NavigationTarget, NoTarget
 from toad.session_scope import (
     NoSessionOrigin,
@@ -64,6 +65,10 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
 
     @abstractmethod
+    def navigation_owner(self, sessions: WorkspaceSessions) -> NavigationOwner:
+        """The view the shared channels sidebar and DM entry points open through."""
+
+    @abstractmethod
     def sidebars(self) -> tuple[SideBar, ...]:
         """Native sidebar membership belongs to this logical source."""
         ...
@@ -94,6 +99,9 @@ class DetachedWorkspaceSource(WorkspaceSource):
     def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
         return NoTarget()
 
+    def navigation_owner(self, sessions: WorkspaceSessions) -> NavigationOwner:
+        return NoNavigationOwner(sessions.app)
+
     def sidebars(self) -> tuple[SideBar, ...]:
         return ()
 
@@ -111,6 +119,9 @@ class BoundWorkspaceSource(WorkspaceSource):
 
     def matches(self, view):
         return self.view is view
+
+    def navigation_owner(self, sessions: WorkspaceSessions) -> NavigationOwner:
+        return self.view.navigation_owner
 
     async def retire(self):
         # Source retirement captures the departing reader from its committed
@@ -233,6 +244,10 @@ class WorkspaceSessions:
 
     async def retire(self) -> None:
         self.source = await self.source.retire()
+
+    def navigation_owner(self) -> NavigationOwner:
+        """Derived from the selected view, so a closed or non-navigating view never answers."""
+        return self.source.navigation_owner(self)
 
     def owns(self, view: "SessionScope") -> bool:
         return self.source.current(view)
