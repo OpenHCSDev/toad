@@ -1,5 +1,8 @@
 """Textual-facing: vim `i` asks the prompt for insert mode; the prompt owns whether its editor exists."""
 
+import os
+import signal
+
 import pytest
 from textual import events
 
@@ -166,7 +169,8 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
                        why="the declared Neovim profile")
         await ui.until(lambda: area.editing_mode.completed,
                        why="a completed real child before selecting Standard")
-        previous = area.editing_mode._child
+        engine = app.neovim
+        previous = area.editing_mode
         area.focus()
         await ui.type("retained draft")
         await ui.until(lambda: area.text == "retained draft" and area.editing_mode.completed,
@@ -181,7 +185,7 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
         chooser.value = Standard
         await ui.until(lambda: app.settings.ui.key_mode is Standard and area.key_mode is Standard,
                        why="Standard selected through the real settings editor")
-        assert previous.returncode is not None
+        await ui.until(lambda: previous._lifetime.done(), why="the Neovim session's buffer released")
         assert area.text == "retained draft"
         await ui.press("escape")
         await ui.until(lambda: app.screen is app.workspace_screen and not app.saved_settings.unsaved,
@@ -196,14 +200,14 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
                        why="returning to the declared engine profile")
         await ui.until(lambda: area.editing_mode.completed,
                        why="the new generation's real child and transferred draft")
-        current = area.editing_mode._child
-        assert current.identity != previous.identity
-        assert current.returncode is None
+        current = area.editing_mode
+        assert current.buffer != previous.buffer, "the new generation opens its own buffer"
+        assert app.neovim is engine, "one engine serves the application across generations"
         assert area.text == "retained draft kept"
         app.saved_settings.set(SETTINGS.ui.key_mode, Standard)
         await ui.until(lambda: area.key_mode is Standard,
-                       why="retiring the second child through the same mode owner")
-        assert current.returncode is not None
+                       why="retiring the second buffer through the same mode owner")
+        await ui.until(lambda: current._lifetime.done(), why="the second buffer released")
         await app.saved_settings.save()
     async with workspace.app() as ui:
         await ui.until(lambda: ui.conversation.prompt.prompt_text_area.key_mode is Standard,
@@ -238,6 +242,68 @@ async def test_ctrl_w_typed_into_a_channel_in_real_insert_deletes_a_word_and_kee
         await ui.until(lambda: area.text == "kept " and area.editing_mode.completed,
                        why="Neovim's own ctrl+w to delete the word")
         assert ui.selected_tab == channel and area.has_focus and area.editing_mode.accepts_text
+
+
+async def test_two_prompts_share_one_engine_and_each_buffer_keeps_its_own_mode(workspace):
+    """Nine tabs used to start nine Neovim processes. One engine now holds a buffer per prompt,
+    so leaving a buffer must cancel its pending operator and returning must restore its Insert."""
+    workspace.thread("owner", "team", running=True)
+    async with workspace.app(size=(100, 36)) as ui:
+        app, _pilot = ui.textual
+        owner = ui.selected_tab
+        main = ui.conversation.prompt.prompt_text_area
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimNormal)
+        await ui.until(lambda: main.key_mode is VimNormal and main.editing_mode.completed,
+                       why="the first prompt's buffer in Normal")
+        main.focus()
+        await ui.press("i")
+        await ui.type("first")
+        await ui.until(lambda: main.text == "first" and main.editing_mode.completed
+                       and main.editing_mode.accepts_text, why="the first prompt left in Insert")
+        await workspace.bind(app.selected_session, "owner")
+        await ui.open_channel("#team", actor="owner", owner=owner)
+        channel = app.selected_session.query_one("CommsChatView Prompt TextArea")
+        await ui.until(lambda: channel.key_mode is VimNormal and channel.editing_mode.completed,
+                       why="the channel prompt's own buffer in Normal")
+        assert channel.editing_mode._host is main.editing_mode._host, "one engine, two buffers"
+        channel.focus()
+        await ui.press("i")
+        await ui.type("ab")
+        await ui.press("escape")
+        await ui.until(lambda: channel.text == "ab" and channel.editing_mode.allows_application_commands,
+                       why="the channel draft in Normal")
+        await ui.press("d")
+        await ui.until(lambda: not channel.editing_mode.snapshot.state.transferable,
+                       why="a pending operator left in the channel's buffer")
+        await main.editing_mode.handle_key(main, events.Key("exclamation_mark", "!"))
+        await ui.until(lambda: main.text == "first!" and main.editing_mode.completed,
+                       why="the first prompt resumed in its own Insert at its own cursor")
+        await ui.press("x")
+        await ui.until(lambda: channel.text == "a" and channel.editing_mode.completed,
+                       why="x deletes in the channel: the d it left pending was cancelled, not resumed")
+        assert main.text == "first!"
+
+
+async def test_a_killed_engine_restarts_and_reopens_the_prompt_from_its_text(workspace):
+    """One engine serves every tab, so its death must not cost every draft: each open
+    buffer reopens in a new engine from the text its prompt last painted."""
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real engine in Insert")
+        area.focus()
+        await ui.type("kept")
+        await ui.until(lambda: area.text == "kept" and area.editing_mode.completed,
+                       why="a real draft before the engine dies")
+        dead = ui.app.neovim
+        os.kill(dead._child.identity.pid, signal.SIGKILL)
+        await ui.until(lambda: ui.app.neovim is not dead and area.editing_mode.completed,
+                       why="a new engine with the prompt's buffer reopened")
+        assert area.text == "kept"
+        await ui.type(" again")
+        await ui.until(lambda: area.text == "kept again" and area.editing_mode.completed,
+                       why="the reopened buffer to take input in the new engine")
 
 
 async def test_normal_hjkl_and_arrows_reach_neovim_motions(workspace):

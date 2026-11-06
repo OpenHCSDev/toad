@@ -1,5 +1,6 @@
 -- Application integration, not a Vim interpreter. Neovim interprets every key.
-local mappings, channel = ...
+-- One engine serves the whole application; each editing session is one buffer.
+local channel = ...
 local api = vim.api
 local namespace = api.nvim_create_namespace('toad-editor')
 vim.opt.swapfile = false
@@ -10,12 +11,11 @@ vim.opt.modeline = false
 vim.opt.hidden = true
 vim.opt.clipboard = ''
 vim.opt.shortmess:append('I')
-vim.bo.buftype = 'nofile'
-vim.bo.bufhidden = 'hide'
 
 -- Admission is not completion. Only SafeState, which excludes typeahead,
 -- mappings and unfinished commands, may certify a completed generation.
-local generation, completed = 0, -1
+-- Each buffer is its own session, so each keeps its own proof.
+local generation, completed = {}, {}
 local scheduled = false
 local function location(position)
   local row = position[2] - 1
@@ -40,30 +40,33 @@ local function state()
   end
   return {mode = api.nvim_get_mode(), cursor = location(cursor),
           command_line = vim.fn.getcmdtype() .. vim.fn.getcmdline(),
-          regions = regions, selected = selected, completed = completed}
+          regions = regions, selected = selected,
+          completed = completed[api.nvim_get_current_buf()] or -1}
 end
 local function publish()
-  vim.rpcnotify(channel, 'toad_editor_state', state())
+  vim.rpcnotify(channel, 'toad_editor_state', api.nvim_get_current_buf(), state())
 end
 local function schedule_publish()
   if scheduled then return end
   scheduled = true
   vim.schedule(function() scheduled = false; publish() end)
 end
--- Buffer subscriptions belong to this engine, including :edit/:buffer changes.
--- Only its current buffer publishes rendering deltas; returning to a buffer is
--- an ownership transfer, not another callback registration.
+local function invalidate()
+  completed[api.nvim_get_current_buf()] = -1
+end
+-- A session's buffer publishes its rendering deltas while it is the current
+-- buffer; returning to it is an ownership transfer, not another registration.
 local subscriptions = {}
 local function entered(buffer)
-  vim.rpcnotify(channel, 'toad_editor_lines', {first = 0, last = -1,
+  vim.rpcnotify(channel, 'toad_editor_lines', buffer, {first = 0, last = -1,
     lines = api.nvim_buf_get_lines(buffer, 0, -1, true)})
   if subscriptions[buffer] then return end
   subscriptions[buffer] = true
   api.nvim_buf_attach(buffer, false, {
     on_lines = function(_, buf, tick, first, last, new_last)
       if api.nvim_get_current_buf() == buf then
-        completed = -1
-        vim.rpcnotify(channel, 'toad_editor_lines', {first = first, last = last,
+        completed[buf] = -1
+        vim.rpcnotify(channel, 'toad_editor_lines', buf, {first = first, last = last,
                       lines = api.nvim_buf_get_lines(buf, first, new_last, true)})
         schedule_publish()
       end
@@ -72,17 +75,17 @@ local function entered(buffer)
   })
 end
 api.nvim_create_autocmd('BufEnter', {callback = function(event)
-  completed = -1
+  completed[event.buf] = -1
   entered(event.buf)
   schedule_publish()
 end})
-entered(api.nvim_get_current_buf())
 api.nvim_create_autocmd({'ModeChanged', 'CursorMoved', 'CursorMovedI',
                         'TextChanged', 'TextChangedI', 'CmdlineChanged'},
                        {callback = schedule_publish})
 api.nvim_create_autocmd('SafeState', {callback = function()
-  if completed ~= generation then
-    completed = generation
+  local buf = api.nvim_get_current_buf()
+  if generation[buf] and completed[buf] ~= generation[buf] then
+    completed[buf] = generation[buf]
     -- Do not queue work from the idle notification: running that work returns
     -- to SafeState and would schedule the next idle notification forever.
     publish()
@@ -91,33 +94,90 @@ end})
 vim.on_key(function()
   -- lua.txt: on_key runs BEFORE further processing. This invalidates a proof;
   -- it cannot create one, even if the host has already received the input reply.
-  completed = -1
+  invalidate()
   schedule_publish()
 end, namespace)
 
--- Install the actual native arrow declarations, including saved aliases, inside
--- Neovim. Its mapping engine knows that the k in fk is an operand, not Up.
-for _, mapping in ipairs(mappings) do
-  local lhs, rhs, boundary, modes = unpack(mapping)
-  for _, mode in ipairs(modes) do
-    vim.keymap.set(mode, lhs, function()
-      if vim.v.count == 0 and not vim.fn.mode(1):match('^no') then
-        if vim.rpcrequest(channel, 'toad_cursor_boundary', boundary, state()) then return '' end
-      end
-      return rhs
-    end, {expr = true, noremap = true, silent = true})
+-- Install the editor's actual native arrow declarations, including saved aliases,
+-- on its own buffer. Neovim's mapping engine knows the k in fk is an operand, not Up.
+local function map(buf, mappings)
+  for _, mapping in ipairs(mappings) do
+    local lhs, rhs, boundary, modes = unpack(mapping)
+    for _, mode in ipairs(modes) do
+      vim.keymap.set(mode, lhs, function()
+        if vim.v.count == 0 and not vim.fn.mode(1):match('^no') then
+          if vim.rpcrequest(channel, 'toad_cursor_boundary', buf, boundary, state()) then
+            return ''
+          end
+        end
+        return rhs
+      end, {buffer = buf, expr = true, noremap = true, silent = true})
+    end
   end
 end
 
+-- The mode and cursor a session left its buffer in. Mode is global to the
+-- engine, so leaving a buffer cancels any pending operator or command line,
+-- and entering it again restores that buffer's own Insert or Replace.
+local resumed = {}
+-- Normal mode cannot hold a cursor past the line's last character, so an Insert
+-- cursor parked at the end of its line resumes with Vim's own append there.
+local resume = {i = {inside = 'startinsert', at_end = 'startinsert!'},
+                R = {inside = 'startreplace', at_end = 'startinsert!'}}
+
 ToadEditor = {}
-function ToadEditor.input(serial, keys)
-  generation = math.max(generation, serial)
-  completed = -1
+function ToadEditor.open(lines, cursor, tabstop, mappings)
+  local buf = api.nvim_create_buf(false, true)
+  map(buf, mappings)
+  vim.bo[buf].buftype = 'nofile'
+  vim.bo[buf].bufhidden = 'hide'
+  vim.bo[buf].swapfile = false
+  vim.bo[buf].tabstop = tabstop
+  local undo_levels = vim.bo[buf].undolevels
+  vim.bo[buf].undolevels = -1
+  api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+  vim.bo[buf].undolevels = undo_levels
+  local row = cursor[1]
+  resumed[buf] = {mode = 'n', cursor = {row + 1,
+    vim.str_byteindex(lines[row + 1], 'utf-32', cursor[2], false)}}
+  generation[buf], completed[buf] = 0, -1
+  return buf
+end
+function ToadEditor.leave()
+  -- Typeahead is ordered, so every key and call this buffer was sent is done by now:
+  -- the buffer parks complete, in the mode it will resume, its pending operator cancelled.
+  local buf = api.nvim_get_current_buf()
+  local code = vim.fn.mode(1):sub(1, 1)
+  if not resume[code] then code = 'n' end
+  resumed[buf] = {mode = code, cursor = api.nvim_win_get_cursor(0)}
+  completed[buf] = generation[buf] or -1
+  local parked = state()
+  parked.mode = {mode = code, blocking = false}
+  parked.regions, parked.selected, parked.command_line = {}, '', ''
+  vim.rpcnotify(channel, 'toad_editor_state', buf, parked)
+end
+function ToadEditor.enter(buf)
+  api.nvim_win_set_buf(0, buf)
+  local saved = resumed[buf]
+  api.nvim_win_set_cursor(0, saved.cursor)
+  local command = resume[saved.mode]
+  if command then
+    local line = api.nvim_buf_get_lines(buf, saved.cursor[1] - 1, saved.cursor[1], true)[1]
+    vim.cmd(saved.cursor[2] >= #line and command.at_end or command.inside)
+  end
+end
+function ToadEditor.close(buf)
+  resumed[buf], generation[buf], completed[buf] = nil, nil, nil
+  api.nvim_buf_delete(buf, {force = true})
+end
+function ToadEditor.input(buf, serial, keys)
+  generation[buf] = math.max(generation[buf], serial)
+  completed[buf] = -1
   return api.nvim_input(keys)
 end
-function ToadEditor.call(serial, operation, arguments)
-  generation = math.max(generation, serial)
-  completed = -1
+function ToadEditor.call(buf, serial, operation, arguments)
+  generation[buf] = math.max(generation[buf], serial)
+  completed[buf] = -1
   local result = operation(unpack(arguments))
   schedule_publish()
   return result

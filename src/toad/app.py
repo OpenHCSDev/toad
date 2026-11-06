@@ -6,6 +6,7 @@ from toad.comms_root import CoreConnection
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
+from toad.neovim_editing import HostsNeovim
 import asyncio
 import signal
 import gc
@@ -131,7 +132,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, Transfers, actions=(ApplicationAction,), inherit_bindings=False):
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
     COMMANDS = {ApplicationCommands}
