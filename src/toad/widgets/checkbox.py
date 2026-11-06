@@ -2,7 +2,8 @@
 
 from textual import widgets
 
+from toad.native_style import ClipOverflow
 
 
-class Checkbox(widgets.Checkbox):
+class Checkbox(ClipOverflow, widgets.Checkbox):
     """Its look is its bases."""

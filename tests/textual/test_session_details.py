@@ -9,7 +9,7 @@ from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.messages import InfoKind, Message
 from agent_comms.notification_progress import HarnessConsumedProgress
 from agent_comms.presentation import MessageNotification
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.transcripts import NotifiedThreadPresentation
 from agent_comms.ui_model.delivery import ReadDeliveryView
 from agent_comms.input_disposition import DeliveryOverview
 from agent_comms.input_attempt import UnobservedInputDeliveryScope
@@ -18,16 +18,16 @@ from toad.line_blocks import NoticeRole
 from toad.widgets.input_delivery import InputDeliveryBar
 from toad.private_native_cursor import NoneCursorStatus
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.session_details import SessionDetails
+from toad.widgets.session_details import SessionDetails, SessionDetailsContents
 
 
 @pytest.mark.parametrize("ansi", [False, True], ids=["rgb", "ansi"])
 async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi):
     notifications = tuple(MessageNotification(
-        FrozenRecipient("owner", "owner"), "peer", HarnessConsumedProgress(), message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
+        FrozenRecipient("owner", "owner"), "peer", HarnessConsumedProgress(0), message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
                                                  InfoKind, seq=index + 1),
     ) for index in range(30))
-    state = ThreadPresentation("owner", "●", "Ready", notifications=notifications)
+    state = NotifiedThreadPresentation("owner", "●", "Ready", notifications=notifications)
     history = NativeHistory()
     history.status = NoneCursorStatus
     delivery = InputDeliveryBar()
@@ -62,7 +62,7 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
 
         assert await pilot.click(details.query_one("CollapsibleTitle"))
         await ui.step()
-        assert not details.collapsed and details.size.height <= details.DETAIL_ROWS + 1
+        assert not details.collapsed and details.size.height <= SessionDetailsContents.DETAIL_ROWS + 1
         assert "Recent incoming messages" in str(details.notifications.render())
         history.scroll_visible(animate=False, immediate=True)
         await ui.step()
