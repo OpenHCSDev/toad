@@ -6,9 +6,28 @@ from textual.containers import VerticalGroup
 from textual.content import Content
 
 from toad.session_scope import SessionScope
-from toad.status_thread import StatusThread
+from agent_comms.display_references import RetiredThreadReference, ThreadDisplayReference
+from metaclass_registry.mro_dispatch import handles
+
+from toad.core.projection import MroProjection
+from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
+
+
+class PeerStatus(MroProjection[StatusThread]):
+    """A member row's status is its current thread's; a retired birth has none to show."""
+
+    @handles(ThreadDisplayReference)
+    def current(self, reference: ThreadDisplayReference, root, access) -> StatusThread:
+        return StatusThread.for_root(root, reference.name, access)
+
+    @handles(RetiredThreadReference)
+    def retired(self, reference: RetiredThreadReference, root, access) -> StatusThread:
+        return NoStatusThread()
+
+
+PEER_STATUS = PeerStatus()
 
 
 class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGroup):
@@ -62,9 +81,8 @@ class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGr
 
     def update_row(self, peer: ThreadIncarnation, row) -> None:
         references = self.model_state.shown.observation.require_snapshot().references
-        row.bind(StatusThread.for_root(
-            self.model_state.root(), references.thread(peer).name,
-            self.app.coordination_access,
+        row.bind(PEER_STATUS.project_value(
+            references.thread(peer), self.model_state.root(), self.app.coordination_access,
         ))
 
     def changed_keys(self, names: frozenset[str]) -> frozenset[ThreadIncarnation]:

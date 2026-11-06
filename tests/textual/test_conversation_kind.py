@@ -7,7 +7,7 @@ from dataclasses import FrozenInstanceError
 from functools import partial
 
 import pytest
-from agent_comms.channel_targets import ChannelTarget
+from agent_comms.channel_targets import ChannelTarget, IncarnationThreadTarget
 from agent_comms.comms import Comms
 from agent_comms.active_route import resolve_comms_route
 from support.roots import installed_wire
@@ -146,8 +146,10 @@ def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
     assert recreated != direct
     assert CommsViewKey(str(comms.root), recreated) != CommsViewKey(str(comms.root), direct)
     assert recreated.label(references) == "@peer"
-    with pytest.raises(KeyError):
-        direct.destination(references)
+    # The retired DM answers for its own birth: never the successor that reused the name.
+    assert direct.label(references) == "@peer (gone)"
+    assert direct.destination(references) == IncarnationThreadTarget(direct.peer)
+    assert recreated.destination(references) != direct.destination(references)
 
 
 def test_history_picker_and_channel_status_use_the_same_declared_value(copied_conversations):
