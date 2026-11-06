@@ -75,9 +75,10 @@ class ThreadLoading(
     LABEL = TEXT = "Loading thread and history…"
 
     @classmethod
-    def initial_contents(cls, launch: AgentBinding):
+    def initial_contents(cls, launch: AgentBinding) -> tuple[ThreadLoading, ...]:
         """The loading declaration serves first composition and source rebinding."""
-        return launch.selected_agent((), lambda _agent: (cls(),))
+        nothing: tuple[ThreadLoading, ...] = ()
+        return launch.selected_agent(nothing, lambda _agent: (cls(),))
 
 
 
