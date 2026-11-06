@@ -14,24 +14,23 @@ from agent_comms.repo import Checkout
 from agent_comms.launch_root import LaunchRoot
 from typing import Any, AsyncIterator
 
-from mcp_turn_boundaries import AGENT_DATA, exercise_boundaries, notes, receive_update, request_permission
+from mcp_turn_boundaries import AGENT_DATA, Relay, exercise_boundaries, notes
 from textual.pilot import Pilot
 from toad.acp.agent import Agent
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
-from toad.session_scope import NoAgent
+from toad.session_scope import AgentAttached, NoAgent
 from toad.agent_schema import AgentDefinition
 from agent_comms.acp_extension import McpClientAcknowledgementUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
 from toad.widgets.question import Question
 
-SESSION_ID = "project"
-
 
 class Observer:
-    def __init__(self, case: str, app: ToadApp, pilot: Pilot, agent: Agent, session: MainScreen, root: Path):
+    def __init__(self, case: str, app: ToadApp, pilot: Pilot, agent: Agent, session: MainScreen, root: Path,
+                 relay: Relay):
         self.case, self.app, self.pilot = case, app, pilot
-        self.agent, self.session, self.root = agent, session, root
+        self.agent, self.session, self.root, self.relay = agent, session, root, relay
         self.receipts: list[list[str]] = []
         self.permissions = 0
         self.permission_presented = asyncio.Event()
@@ -45,13 +44,12 @@ class Observer:
     async def session_update(self, session_id: str, update: dict[str, Any]) -> None:
         with (self.root / "toad-updates.jsonl").open("a") as log:
             log.write(json.dumps({"session": session_id, "update": update}) + "\n")
-        await receive_update(self.agent, session_id, update)
-        await self.pilot.pause()
+        await self.relay.update(update, session_id)
         with (self.root / "toad-states.jsonl").open("a") as log:
             log.write(json.dumps({"agent": self.agent.current_turn.managed_id,
                                  "view": self.view.turns.managed_id,
                                  "notes": notes(self.view)}) + "\n")
-        assert self.agent.session_id == SESSION_ID
+        assert self.agent.session_id == session_id
         for fact in decode_updates(update.get("_meta")):
             if isinstance(fact, McpClientAcknowledgementUpdate):
                 rendered = notes(self.view)
@@ -65,15 +63,17 @@ class Observer:
 
     async def request_permission(self, *, session_id, tool_call, options, **kwargs):
         self.permissions += 1
-        # The external callback supplies JSON. The existing exposed SDK method
-        # owns its decoding and result encoding, exactly as on a real ACP pipe.
-        task = asyncio.create_task(
-            request_permission(self.agent, session_id, tool_call, options, **kwargs))
+        # The relay asks Toad over its ACP pipe and answers with the outcome JSON the pipe
+        # carries back, which is what the harness's callback returns.
+        task = asyncio.create_task(self.relay.step(
+            {"permission": {"toolCall": tool_call, "options": options}}))
         self.permission_tasks.add(task)
         try:
-            await self.pilot.pause()
-            # A callback scheduled through the actual UI queue must have mounted
-            # the exact Ask before simulated selection (not merely received RPC).
+            # The request crosses the pipe, so wait for the UI to mount the exact Ask before
+            # simulated selection (not merely for the request to be sent).
+            async with asyncio.timeout(10):
+                while self.view.prompt._ask is None and not self.disconnected_seen:
+                    await self.pilot.pause(.02)
             ask = self.view.prompt._ask
             if self.disconnected_seen:
                 return await task
@@ -149,21 +149,21 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
                       connection=LocalCoreConnection.from_launch(LaunchRoot.from_path(root / "wire")))
         async with app.run_test(size=(120, 40)) as pilot:
             # Toad starts with no tab open; the observed session is opened here.
+            # The relay peer is the observed session's agent: Toad starts it and attaches over ACP.
             definition = AgentDefinition.decode(AGENT_DATA)
-            await app.session_navigation.new(
-                await app.session_navigation.saved(definition, app.project_dir),
-                lambda: MainScreen(app.project_dir, app.agent_binding))
+            await app.session_navigation.start_agent_session(AgentAttached(definition), app.project_dir)
             session = app.selected_session
             assert isinstance(session, MainScreen)
             await session.wait_content_ready()
-            await pilot.pause()
             view = session.conversation
-            agent = Agent(app.project_dir.path, definition, SESSION_ID, app_events=app.events,
-                          transcripts=app.coordination_access.transcripts)
-            observer = Observer(case, app, pilot, agent, session, root)
+            async with asyncio.timeout(30):
+                while not (isinstance(view.agent_binding, Agent) and view.agent_binding.session.settled.is_set()):
+                    await pilot.pause(.05)
+            agent = view.agent_binding
+            relay = await Relay.started(app.project_dir.path, view, pilot)
+            observer = Observer(case, app, pilot, agent, session, root, relay)
             try:
-                view.bind_agent(agent)
-                await exercise_boundaries(agent, view, pilot)
+                await exercise_boundaries(relay, agent, view)
                 yield observer
                 assert len(observer.receipts) == 1
                 assert observer.permissions == (0 if case == "no_controller" else 1)

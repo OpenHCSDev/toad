@@ -5,14 +5,16 @@ The external observer separately receives the actual native producer's updates.
 """
 from __future__ import annotations
 
+import asyncio
 from contextlib import AsyncExitStack, asynccontextmanager
 from functools import partial
+import json
 import os
+import shlex
+import sys
 from pathlib import Path
 from typing import Any
 
-from acp import schema
-from acp.connection import StreamDirection, StreamEvent
 from agent_comms.acp import CommsAgent
 from agent_comms.acp_extension import (
     McpClientAcknowledgementUpdate, TurnChangedUpdate, encode_updates,
@@ -31,8 +33,9 @@ from toad.widgets.note import Note
 RETIRED = TurnId("0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a")
 OBSERVED = TurnId("9f8e7d6c5b4a39281706f5e4d3c2b1a0")
 
+RELAY = Path(__file__).resolve().parents[1] / "peers" / "relay.py"
 AGENT_DATA = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
-              "run_command": {"*": "true"}, "protocol": "acp"}
+              "run_command": {"*": shlex.join((sys.executable, str(RELAY)))}, "protocol": "acp"}
 
 
 def packet(*facts):
@@ -78,35 +81,58 @@ async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
         os.environ.update(previous)
 
 
-async def receive_update(agent: Agent, session_id: str, update: dict[str, Any]) -> None:
-    """One session/update through the ACP pipe's own entry: the SDK's stream observer keeps
-    the raw frame, then the handler it dispatches to decodes and receives it."""
-    frame = {"jsonrpc": "2.0", "method": "session/update",
-             "params": {"sessionId": session_id, "update": update}}
-    agent.process.observe_stream(StreamEvent(StreamDirection.INCOMING, frame))
-    notification = schema.SessionNotification.model_validate(frame["params"])
-    await agent.process.session_update(session_id, notification.update)
+class Relay:
+    """The adapter's end of the relay peer Toad runs as its agent: every update and permission
+    request goes to Toad over that peer's ACP pipe, as a real agent's would."""
+
+    def __init__(self, port: int, view: Conversation, pilot: Pilot) -> None:
+        self.port, self.view, self.pilot = port, view, pilot
+        self.settled_count = 0
+
+    @classmethod
+    async def started(cls, project: Path, view: Conversation, pilot: Pilot) -> Relay:
+        port_file = project / "peer-relay.port"
+        async with asyncio.timeout(30):
+            while not port_file.exists():
+                await pilot.pause(.05)
+        return cls(int(port_file.read_text()), view, pilot)
+
+    async def step(self, raw: dict[str, Any]) -> dict[str, Any]:
+        """One step on its own connection, so a pending ask never holds up an update."""
+        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
+        try:
+            writer.write(json.dumps(raw).encode() + b"\n")
+            await writer.drain()
+            return json.loads(await reader.readline())
+        finally:
+            writer.close()
+
+    async def update(self, update: dict[str, Any], session: str) -> None:
+        await self.step({"update": update, "session": session})
+        await self.settled()
+
+    async def settled(self) -> None:
+        """Toad handles a session's updates in order: once a marker said after them is drawn,
+        everything sent before it has been handled."""
+        self.settled_count += 1
+        marker = f"RELAY_SETTLED_{self.settled_count}"
+        await self.step({"say": marker})
+        async with asyncio.timeout(10):
+            while marker not in self.drawn():
+                await self.pilot.pause(.02)
+
+    def drawn(self) -> str:
+        return "\n".join(strip.text for strip in self.view.app.screen._compositor.render_strips())
 
 
-async def request_permission(agent: Agent, session_id: str, tool_call: dict[str, Any],
-                             options: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
-    """One session/request_permission through the handler the SDK dispatches it to, answered
-    as the JSON the pipe would carry back."""
-    response = await agent.process.request_permission(
-        session_id, schema.ToolCallUpdate.model_validate(tool_call),
-        [schema.PermissionOption.model_validate(option) for option in options], **kwargs)
-    return response.model_dump(mode="json", by_alias=True, exclude_none=True)
-
-
-async def exercise_boundaries(agent: Agent, view: Conversation, pilot: Pilot) -> None:
+async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) -> None:
     receipt = McpLiveAcknowledgement(1, "pi-mcp-client", InputId("a" * 32), "running", "turn", (
         McpServerReceipt("fixture", "project", ReadyMcpServerState,
                          ConfirmMcpCallPolicy, 1, 0, 0),
     ))
 
     async def send(*facts, session=None):
-        await receive_update(agent, session or agent.session_id, packet(*facts))
-        await pilot.pause()
+        await relay.update(packet(*facts), session or agent.session_id)
 
     session_id = FieldCodec.decode(AcpSessionId, agent.session_id)
     source_root = agent.project_root_path.parent / "mcp-boundaries"
@@ -133,8 +159,7 @@ async def exercise_boundaries(agent: Agent, view: Conversation, pilot: Pilot) ->
             assert not notes(view)
             malformed = packet(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             malformed["_meta"]["agentComms"]["updates"][0]["receipt"]["version"] = True
-            await receive_update(agent, session_id, malformed)
-            await pilot.pause()
+            await relay.update(malformed, session_id)
             assert not notes(view)
             await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             rendered = notes(view)
