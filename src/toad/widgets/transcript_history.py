@@ -38,7 +38,7 @@ from textual.worker import Worker
 from ui_theme.effects import NEW_TEXT
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
-from toad.core.source_events import TranscriptCoverage
+from toad.history_coverage import HistoryCoverage
 from toad.message_rows import RecordedMessageClock
 from toad.native_style import (
     AutoHeight,
@@ -1294,9 +1294,12 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
     def covers_outgoing(self, message: PublishedSentMessage) -> bool:
         return message.reference in self.outgoing_coverage
 
+    @property
+    def coverage(self) -> HistoryCoverage:
+        return self._source_state.coverage
+
     def source_resumed(self) -> None:
-        if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+        self.coverage.publish(self)
 
     def publish_committed(self) -> None:
         """Acquire source ownership now; report coverage after its first painted frame."""
@@ -1305,8 +1308,7 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
         self.request_preparation()
 
     def publish_coverage(self) -> None:
-        if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+        self.coverage.publish(self)
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
@@ -1314,25 +1316,14 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
 
     @property
     def outgoing_coverage(self):
-        if self._source_state.reports_coverage:
-            references = frozenset(reference for page in self.pages
-                                   for reference in page.prepared.outgoing_coverage)
-            return references | self.filter.overlay.outgoing_coverage
-        return frozenset()
+        return self.coverage.outgoing(self)
 
     def covers_incoming(self, sequence: int) -> bool:
-        if not self._source_state.reports_coverage:
-            return False
-        if self.page_source.through.covers_incoming(sequence):
-            return True
-        if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
-            return True
-        return self.filter.overlay.covers_incoming(sequence)
+        return self.coverage.covers_incoming(self, sequence)
 
     def covers_input(self, started: InputStartedUpdate) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""
-        return (self._source_state.reports_coverage
-                and started.native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
+        return self.coverage.covers_input(self, started)
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""
@@ -1398,10 +1389,7 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
         return SavedHistory(view.transcript.get_transcript_page, through, view.app.preparation)
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        if self._source_state.reports_coverage:
-            view = self.view
-            view.transcript.binding.covered(
-                view.transcript, TranscriptCoverage(page.events), self).call_when_ready(view)
+        self.coverage.page_added(self, page)
 
     async def restore_source(self, source: PreparedPageSource, current) -> None:
         """Put the parked pages back into the same mounted reader."""

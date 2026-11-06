@@ -33,7 +33,7 @@ async def saved_history(workspace, ui):
         original=(root, owner.incarnation),
     )
     conversation = ui.conversation
-    await ui.until(lambda: conversation.transcript.reports_coverage,
+    await ui.until(lambda: (h := conversation.transcript.binding.history).state.coverage.retained_through(h),
                    why="the retained owner's saved history")
     page = workspace.comms.transcripts.capture_page_read(owner.name).read()
     return page, conversation.contents.query_children(TranscriptHistory).first(), conversation.query_one(SessionDetails)
@@ -49,10 +49,10 @@ async def test_saved_history_is_unavailable_while_its_source_is_parked_and_retur
         await history.retire_source(parked=True)
         await conversation.transcript.binding.reveal_retained(conversation.transcript, history)
         await ui.until(lambda: "Saved history not loaded" in str(details.title), why="saved history reported not loaded")
-        assert not history.state.reports_coverage
+        assert not history.state.coverage.retained_through(history)
 
         conversation.transcript.received(page)
-        await ui.until(lambda: history.state.reports_coverage, why="coverage reported again")
+        await ui.until(lambda: history.state.coverage.retained_through(history), why="coverage reported again")
         await ui.until(lambda: "Saved history available" in str(details.title), why="saved history reported available again")
         assert "Saved history available" in details.overview_text
         assert history is conversation.transcript.binding.history
@@ -71,7 +71,7 @@ async def test_a_live_message_does_not_count_as_saved_history_coverage(workspace
         await history.retire_source(parked=True)
         await conversation.transcript.binding.reveal_retained(conversation.transcript, history)
         await ui.until(lambda: "Saved history not loaded" in str(details.title), why="saved history reported not loaded")
-        assert not conversation.transcript.reports_coverage
+        assert not (h := conversation.transcript.binding.history).state.coverage.retained_through(h)
         conversation.transcript.received(page)
         await ui.until(lambda: "Saved history available" in str(details.title), why="saved history reported available")
         assert tuple(history.pages) == pages

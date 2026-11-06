@@ -52,6 +52,7 @@ from textual.worker import Worker, WorkerCancelled, get_current_worker
 from toad.core.events import CoreEventStream, ThreadRowsChanged
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
+from toad.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.worker_group import WorkerGroup
 from toad.screens.session_view import SessionView
@@ -173,11 +174,7 @@ class TranscriptPublication(BoundFrame, ABC):
         if self.native_current() and not self.binding.view.turns.owner.busy:
             return cursor
         history = self.binding.history
-        retained = (
-            (history.page_source.through,)
-            if history in self.captured and history.state.reports_coverage
-            else ()
-        )
+        retained = history.state.coverage.retained_through(history) if history in self.captured else ()
         source = self.native_frontier
         certified = source.prefixes(self.identity, cursor)
         committed = cursor.over_native(retained + certified)
@@ -608,7 +605,9 @@ class ViewBinding:
     def thread_scope(self) -> TranscriptScope:
         return NoTranscript()
 
-    reports_coverage = False
+    @property
+    def coverage(self) -> HistoryCoverage:
+        return NO_COVERAGE
 
     def covers_outgoing(self, message: PublishedSentMessage) -> bool:
         return False
@@ -741,8 +740,8 @@ class BoundView(ViewBinding):
         view.consume_thread_presentation()
 
     @property
-    def reports_coverage(self):
-        return self.history.state.reports_coverage
+    def coverage(self) -> HistoryCoverage:
+        return self.history.state.coverage
 
     def covers_outgoing(self, message: PublishedSentMessage):
         return self.history.covers_outgoing(message)
@@ -976,8 +975,8 @@ class TranscriptPresentation:
             self.require_commit()
 
     @property
-    def reports_coverage(self) -> bool:
-        return self.binding.reports_coverage
+    def coverage(self) -> HistoryCoverage:
+        return self.binding.coverage
 
     def covers_outgoing(self, message: PublishedSentMessage) -> bool:
         return self.binding.covers_outgoing(message)
@@ -1171,22 +1170,13 @@ class SessionTranscriptPresentation(TranscriptPresentation):
         if self.closed or not self.binding.matches(view):
             return
         generation = self.generation
-        documents = []
         history = self.binding.history
-        if history._source_state.retirement_source().reports_coverage:
-            documents.append(await history.park_document())
-            if (
-                self.closed
-                or not self.binding.matches(view)
-                or self.generation != generation
-            ):
-                for source in documents:
-                    source.close()
-                return
-        else:
-            # Nothing parks this source, so nothing outlives the view to close it.
-            history.close()
+        documents = await history._source_state.retirement_source().coverage.retire(history)
+        if self.closed or not self.binding.matches(view) or self.generation != generation:
+            for source in documents:
+                source.close()
+            return
         self._close_documents()
-        self.documents = tuple(documents)
+        self.documents = documents
         self._unbind_view()
         self.displayed_cursor = UnreadTranscriptCursor()

@@ -17,8 +17,7 @@ class SessionHistoryDetails:
     def summary(self):
         parts = []
         if self.transcript is not None:
-            parts.append("Saved history available" if self.transcript.reports_coverage
-                         else "Saved history not loaded")
+            parts.append(self.transcript.coverage.summary)
         status = self.native.status
         if status.summary:
             parts.append(status.summary)

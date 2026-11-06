@@ -87,7 +87,7 @@ async def test_wheel_up_through_saved_history_never_moves_forward(workspace, siz
             MailboxTab(owner.incarnation, root),
             partial(MainScreen.from_thread, owner.worktree, root, owner.incarnation),
             original=(root, owner.incarnation))
-        await ui.until(lambda: ui.conversation.transcript.reports_coverage,
+        await ui.until(lambda: (h := ui.conversation.transcript.binding.history).state.coverage.retained_through(h),
                        why="the retained transcript to load", seconds=60)
         window = ui.conversation.window
         history = ui.conversation.contents.query_one(TranscriptHistory)
@@ -132,7 +132,7 @@ async def test_wrapped_header_pins_once_its_first_row_leaves_and_matches_the_flo
             MailboxTab(owner.incarnation, root),
             partial(MainScreen.from_thread, owner.worktree, root, owner.incarnation),
             original=(root, owner.incarnation))
-        await ui.until(lambda: ui.conversation.transcript.reports_coverage,
+        await ui.until(lambda: (h := ui.conversation.transcript.binding.history).state.coverage.retained_through(h),
                        why="the retained transcript to load", seconds=60)
         window = ui.conversation.window
         history = ui.conversation.contents.query_one(TranscriptHistory)
@@ -233,7 +233,7 @@ async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspa
             MailboxTab(owner.incarnation, root),
             partial(MainScreen.from_thread, owner.worktree, root, owner.incarnation),
             original=(root, owner.incarnation))
-        await ui.until(lambda: ui.conversation.transcript.reports_coverage,
+        await ui.until(lambda: (h := ui.conversation.transcript.binding.history).state.coverage.retained_through(h),
                        why="the retained transcript to load", seconds=60)
         window = ui.conversation.window
         history = ui.conversation.contents.query_one(TranscriptHistory)
