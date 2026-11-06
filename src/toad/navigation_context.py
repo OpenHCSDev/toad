@@ -23,8 +23,8 @@ class NavigationContext:
 class NavigationOwner:
     """A view that navigates: it supplies context, targets supply behavior, App owns execution.
 
-    Only a navigating view shows the shared channels sidebar, and the chrome opens
-    that sidebar's rows through it.
+    Only a navigating view shows the shared channels sidebar, and that sidebar's rows
+    open through it.
     """
 
     shows_channels = True
@@ -57,12 +57,13 @@ class NavigationOwner:
 
 
 class NavigationUnavailable(RuntimeError):
-    """Navigation was asked of the chrome while no navigating view is selected."""
+    """Navigation was asked for while no navigating view is selected."""
 
 
 class NoNavigationOwner(NavigationOwner):
-    """The chrome's owner while no navigating view is selected: before the first, and while one
-    that does not navigate (a file preview) is shown. It refuses instead of reaching a closed view."""
+    """The owner the workspace answers while no navigating view is selected: a file preview, or
+    no view at all. It refuses instead of reaching a closed view.
+    """
 
     shows_channels = False
 
