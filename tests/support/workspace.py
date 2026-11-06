@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 from support.agents import AppAgents
 from support.roots import Roots, installed_wire
+from support.template_observation import ObserverChannel
 from support.ui import TextualUi
 from agent_comms.threads import NativeThread
 from toad.session_scope import AgentBinding, NoAgent
@@ -103,11 +104,10 @@ class Workspace:
         ``connection`` selects the Core; by default the workspace's own local root.
         """
         from toad.app import ToadApp
-        from toad.comms_root import LocalCoreConnection
 
         launch = {} if resume is None else {"agent_session_id": resume}
         app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project),
-                                      connection=(connect or LocalCoreConnection.from_launch)(self.launch_root),
+                                      connection=(connect or ObserverChannel.current.connection)(self.launch_root),
                                       **launch)
         async with app.run_test(size=size, notifications=notifications) as pilot:
             await app.application.start_worker.wait()
