@@ -37,7 +37,7 @@ from toad.core.events import (
     UnsupportedResumeAgentFail,
 )
 from toad.db import DB, SessionMeta
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 
 PROTOCOL_VERSION = 1
 
@@ -400,7 +400,7 @@ class AgentSession:
         if not self.agent._private_cursor.is_current_request(cursor_token):
             return
         assert response is not None
-        self.agent.session_id = response.session_id
+        self.agent.session_id = FieldCodec.decode(AcpSessionId, response.session_id)
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         await self.agent.comms_consumer_class(
             self.agent, self.agent.session_id,

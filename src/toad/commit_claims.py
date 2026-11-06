@@ -18,6 +18,8 @@ from textual.widget import Widget
 class CommitEvidence:
     captured: frozenset[Widget]
     sequences: frozenset[int] = frozenset()
+    retained: frozenset[Widget] = frozenset()
+    """Widgets this commit keeps whatever it covers: the history view it publishes into."""
     native_inputs: frozenset[str] = frozenset()
     outgoing: frozenset[OutgoingMessageReference] = frozenset()
 
@@ -113,7 +115,8 @@ class CapturedClaim(CommitClaim):
         return widget in captured and self.source.accepts(identity)
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return widget in evidence.captured and self.source.covered(evidence)
+        return (widget in evidence.captured - evidence.retained
+                and self.source.covered(evidence))
 
     def repeats_native(self, events: tuple[TranscriptEvent, ...]) -> bool:
         # The snapshot captured the native output its saved records hold.
@@ -142,7 +145,7 @@ class RetainedSourceClaim(CapturedClaim):
         return True
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return True
+        return widget not in evidence.retained
 
 @dataclass(frozen=True)
 class OutgoingMessageClaim(CommitClaim):

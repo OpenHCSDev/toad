@@ -547,9 +547,9 @@ class CommitPublication(CanonicalSourcePublication):
         evidence = NativeCommitEvidence(
             self.captured,
             prepared.sequences,
-            prepared.history,
-            TranscriptCoverage(page.events).native_inputs,
-            prepared.outgoing,
+            retained=frozenset({prepared.history}),
+            native_inputs=TranscriptCoverage(page.events).native_inputs,
+            outgoing=prepared.outgoing,
             identity=replace(self.identity, limit=Through(page.after)),
         )
         retired = retirement_candidates(contents.children, evidence)
@@ -842,9 +842,9 @@ class BoundView(ViewBinding):
                             for sequence in block_claim(child).required_sequences
                         )
                     ),
-                    history,
-                    coverage.native_inputs,
-                    history.outgoing_coverage,
+                    retained=frozenset({history}),
+                    native_inputs=coverage.native_inputs,
+                    outgoing=history.outgoing_coverage,
                 ),
             )
             protected = protected_blocks(view, candidates)
