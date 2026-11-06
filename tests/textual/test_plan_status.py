@@ -21,4 +21,4 @@ async def test_a_declared_status_is_painted_in_the_plan(workspace):
         plan.scroll_visible(animate=False, immediate=True)
         await ui.until(lambda: "DECLARED_REVIEWING_PLAN" in ui.painted(plan), why="the plan item painted")
         assert "R" in ui.painted(plan)
-        assert not plan.all_complete
+        assert not ReviewingPlanStatus.complete

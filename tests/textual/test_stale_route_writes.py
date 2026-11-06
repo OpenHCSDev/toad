@@ -15,7 +15,7 @@ async def test_a_view_that_changed_during_send_preflight_keeps_the_draft_editabl
         await ui.open_channel("#team", actor=workspace.viewer)
         await ui.until_shows("CURRENT_HISTORY")
         view = ui.app.selected_session.query_one(CommsChatView)
-        messaging = view.message_history.page_source.loader.comms.messaging
+        messaging = workspace.comms.messaging
         before = messaging.bus.bus.revision()
         await view.submit_comms_message(workspace.roots.wire, view.conversation, "STALE_DRAFT",
                                        lambda: False, view._show_sent)
@@ -33,7 +33,7 @@ async def test_a_route_change_during_service_acquisition_restores_the_draft(work
     async with workspace.app() as ui:
         await ui.open_channel("#team", actor=workspace.viewer)
         view = ui.app.selected_session.query_one(CommsChatView)
-        first = view.message_history.page_source.loader.comms
+        first = workspace.comms
         before = first.bus.bus.revision(), second.bus.bus.revision()
         with LaunchRoot.from_path(second.root).selected():
             await view.submit_input(UserInputSubmitted("SERVICE_ROUTE_REFUSED"))

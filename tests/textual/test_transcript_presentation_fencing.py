@@ -124,12 +124,12 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
         requests.request(DeclaredCase, queued_entered, queued_release)
         view.transcript.invalidate_publications()
         release.set()
-        await requests.worker.wait()
+        await requests.worker.settled()
         await ui.step()
         assert not view.contents.query(AgentResponse), "A pending request painted the replacement source"
         assert not queued_entered.is_set()
         requests.request(DeclaredCase, queued_entered, queued_release)
-        await requests.worker.wait()
+        await requests.worker.settled()
         await ui.until(lambda: len(view.contents.query(AgentResponse)) == 1, why="the new source's request to paint once")
 
 
