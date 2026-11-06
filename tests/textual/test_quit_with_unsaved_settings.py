@@ -10,11 +10,8 @@ from toad.screens.settings import SettingsScreen
 
 
 async def test_quit_that_cannot_save_stays_open_and_a_retry_saves_the_edit_and_exits(workspace):
-    config = workspace.roots.attempt / 'config' / 'toad'
-    config.mkdir(parents=True)
-    path = config / 'toad.json'
-    path.write_text(json.dumps({'anon_id': 'quit-save-durable', 'statistics': {'allow_collect': False},
-                                'ui': {'column-width': 100}}))
+    path = workspace.roots.save_settings({'anon_id': 'quit-save-durable', 'ui': {'column-width': 100}})
+    config = path.parent
     async with workspace.app(size=(130, 44), binding=AgentAttached(peer("completion", name="Quit save peer", identity="quit-save-peer"))) as ui:
         app, pilot = ui.textual
         view = ui.conversation

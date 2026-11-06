@@ -50,8 +50,18 @@ class AvailableVersion(VersionStatus):
 
 
 class VersionMonitor:
+    """Whether a newer Toad is out. This member never asks, so the running version stands;
+    UpdateSettings (preferences.py) chooses the member that checks."""
+
     def __init__(self) -> None:
         self.status: VersionStatus = CurrentVersion()
+
+    async def check(self, scheduler: ThreadScheduler) -> None:
+        """Nothing to fetch: the running version is the answer."""
+
+
+class CheckedVersionMonitor(VersionMonitor):
+    """Fetches the latest release's version once after startup."""
 
     async def check(
         self, scheduler: ThreadScheduler,
@@ -129,7 +139,7 @@ class VersionMonitor:
 if __name__ == "__main__":
 
     async def run() -> None:
-        result = await VersionMonitor.check_version(ThreadScheduler())
+        result = await CheckedVersionMonitor.check_version(ThreadScheduler())
         from rich import print
 
         print(result)

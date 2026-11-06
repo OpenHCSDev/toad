@@ -53,6 +53,7 @@ from toad.setting_choices import (
 from toad.setting_declarations import Effect, FamilyChoices
 from toad.setting_widget import PromptSettingEffects
 from toad.terminal_origin import TerminalLayout
+from toad.version import CheckedVersionMonitor, VersionMonitor
 from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
@@ -303,6 +304,16 @@ class StatisticsSettings(AnnotatedDataclassValidationMixin):
             await operation()
 
 
+@dataclass(frozen=True)
+class UpdateSettings(AnnotatedDataclassValidationMixin):
+    check: Annotated[bool, FieldLabel("Check for a newer Toad at startup?")] = True
+    """A second after it starts, Toad fetches the latest release's version from batrachian.ai and says when a newer one is out."""
+
+    def monitor(self) -> VersionMonitor:
+        """The version monitor this setting asks for, decoded once when Toad starts."""
+        return CheckedVersionMonitor() if self.check else VersionMonitor()
+
+
 INTERFACE = FormPage("Interface")
 """How Toad looks and responds: layout, input box, sidebar, notifications and diffs."""
 
@@ -362,6 +373,11 @@ class ToadSettings(AnnotatedDataclassValidationMixin):
         default_factory=StatisticsSettings
     )
     """Preferences regarding data collection."""
+
+    updates: Annotated[UpdateSettings, FieldLabel("Updates"), SESSIONS] = field(
+        default_factory=UpdateSettings
+    )
+    """Whether Toad looks for a newer release."""
 
 
 # ObjectState refuses to hold any object until a process-wide root type is
