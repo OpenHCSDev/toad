@@ -114,6 +114,7 @@ from toad.session_observation import (
 )
 from toad.navigation_context import NavigationScope
 from toad.session_scope import SessionScope
+from toad.agent_origin import AgentConversation
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.shell import Shell
 from toad.status_thread import StatusThread
@@ -821,6 +822,9 @@ class ConversationSessionBinding(
     def clear_agent_definition(self) -> None:
         self._agent_data = None
 
+    def resume_agent_session(self, session_id: str) -> None:
+        self._agent_session_id = session_id
+
     def start_native_session(self) -> None:
         self.agent_binding.start_session(self)
 
@@ -924,6 +928,7 @@ class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
 
 class Conversation(
     TranscriptView,
+    AgentConversation,
     FollowsLayoutPreferences,
     QueueEvidenceOwner,
     ConversationCommsHandlers,

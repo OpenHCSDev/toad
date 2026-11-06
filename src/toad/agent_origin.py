@@ -10,9 +10,26 @@ from agent_comms.repo import Checkout
 from textual.abstract_hooks import AbstractHooksMeta
 
 from toad.agent_schema import AgentDefinition
+from toad.app_node import ToadNode
 from toad.session_scope import ProjectSessionOrigin
 from toad.thread_identity import SessionIdentity
-from toad.widgets.conversation import Conversation
+
+
+class AgentConversation(ToadNode):
+    """What a launch's agent binding does to the conversation it builds: give it the agent's
+    definition (or none), resume a named session, and start its session."""
+
+    @abstractmethod
+    def attach_agent_definition(self, definition: AgentDefinition) -> None: ...
+
+    @abstractmethod
+    def clear_agent_definition(self) -> None: ...
+
+    @abstractmethod
+    def resume_agent_session(self, session_id: str) -> None: ...
+
+    @abstractmethod
+    def start_native_session(self) -> None: ...
 
 
 class StartsSessions(metaclass=AbstractHooksMeta):
@@ -41,11 +58,11 @@ class AgentBinding(ABC):
     def for_session(self, session_id: str) -> AgentBinding: ...
 
     @abstractmethod
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation: ...
+    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation: ...
 
     @abstractmethod
     def attach_to(
-        self, origin: ViewSessionOrigin, conversation: Conversation
+        self, origin: ViewSessionOrigin, conversation: AgentConversation
     ) -> None: ...
 
     @abstractmethod
@@ -73,10 +90,10 @@ class NoAgent(AgentBinding):
     def for_session(self, session_id: str) -> AgentBinding:
         return self
 
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
+    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation:
         return constructor()
 
-    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
+    def attach_to(self, origin: ViewSessionOrigin, conversation: AgentConversation) -> None:
         conversation.clear_agent_definition()
 
     def matches_launch(
@@ -101,10 +118,10 @@ class AgentAttached(AgentBinding):
     def for_session(self, session_id: str) -> AgentBinding:
         return AgentSession(self.agent, session_id)
 
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
+    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation:
         return constructor(agent=self.agent)
 
-    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
+    def attach_to(self, origin: ViewSessionOrigin, conversation: AgentConversation) -> None:
         conversation.attach_agent_definition(self.agent)
         if origin.is_current:
             conversation.start_native_session()
@@ -131,15 +148,15 @@ class AgentAttached(AgentBinding):
 class AgentSession(AgentAttached):
     session_id: str
 
-    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
-        conversation._agent_session_id = self.session_id
+    def attach_to(self, origin: ViewSessionOrigin, conversation: AgentConversation) -> None:
+        conversation.resume_agent_session(self.session_id)
         super().attach_to(origin, conversation)
 
     async def start_session(self, app: StartsSessions, project: Checkout) -> None:
         """A new session, not this one again."""
         await AgentAttached(self.agent).start_session(app, project)
 
-    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
+    def make_conversation(self, constructor: partial[AgentConversation]) -> AgentConversation:
         return super().make_conversation(
             partial(constructor, agent_session_id=self.session_id)
         )
