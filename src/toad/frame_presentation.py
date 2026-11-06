@@ -348,7 +348,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
     def repaint(self) -> None:
         """A frame paints over the lines (paint_effects in render_line); the content they
         show is unchanged, so it is not rendered again."""
-        self.refresh_lines()
+        self.repaint_lines()
 
 
 class EffectInContent:
