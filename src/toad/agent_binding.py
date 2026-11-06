@@ -59,6 +59,15 @@ class AgentConnection(ABC):
     @abstractmethod
     async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None: ...
 
+    @abstractmethod
+    def matches_session(self, session_id: str) -> bool: ...
+
+    @abstractmethod
+    def borrowed_processes(self): ...
+
+    @abstractmethod
+    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None: ...
+
     def thread_read(self):
         from toad.acp.comms_updates import NoPendingThreadRead
 

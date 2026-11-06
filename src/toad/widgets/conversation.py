@@ -506,6 +506,7 @@ class ConversationSessionBinding(
     WorkspaceHosted,
     ThreadStatusOwner,
     DeliveryFailureView,
+    AgentConversation,
     containers.Vertical,
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
@@ -965,7 +966,6 @@ class SourcesScope(DOMNode):
 
 class Conversation(
     TranscriptView,
-    AgentConversation,
     FollowsLayoutPreferences,
     QueueEvidenceOwner,
     ConversationCommsHandlers,
