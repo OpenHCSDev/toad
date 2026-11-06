@@ -26,6 +26,7 @@ from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.input_decision import InputAccepted, InputDecision
+from toad.navigation_context import NavigationOwner, NoNavigationOwner
 from toad.owner_preparation import ExistingOwnerPlan
 from textual.abstract_hooks import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
@@ -344,6 +345,10 @@ class SessionScope(ProjectPathOwner, ToadNode):
     def present_channels(self, chrome: WorkspaceChrome) -> None:
         """A view that does not navigate leaves the shared channels sidebar hidden."""
         chrome.hide_channels()
+
+    @property
+    def navigation_owner(self) -> NavigationOwner:
+        return NoNavigationOwner(self.app)
 
     def matches_launch(self, agent_identity: str, session_id: str) -> bool:
         return False

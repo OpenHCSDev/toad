@@ -100,12 +100,6 @@ class SessionView(
         message.stop()
         self.history_painted()
 
-    async def open_direct_messages(self) -> None:
-        """Open this session's direct-message destination when it has one."""
-        self.notify(
-            "Direct messages are unavailable from this view", title="Direct messages"
-        )
-
     def sidebars(self) -> tuple[SideBar, ...]:
         """Supply this view's native sidebar resources through its declaration."""
         return ()

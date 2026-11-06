@@ -28,8 +28,14 @@ class NavigationOwner:
     that sidebar's rows through it.
     """
 
+    app: ToadApp
+
     def present_channels(self, chrome: WorkspaceChrome) -> None:
-        chrome.show_channels(self)
+        chrome.show_channels()
+
+    @property
+    def navigation_owner(self) -> NavigationOwner:
+        return self
 
     @property
     @abstractmethod
@@ -41,3 +47,25 @@ class NavigationOwner:
     async def open_sidebar_target(self, target: NavigationTarget) -> str:
         target.selected(self)
         return await target.open(self.navigation_context)
+
+    async def open_direct_messages(self) -> None:
+        """Open this view's direct-message destination when it has one."""
+        self.app.notify(
+            "Direct messages are unavailable from this view", title="Direct messages"
+        )
+
+
+class NavigationUnavailable(RuntimeError):
+    """Navigation was asked of the chrome while no navigating view is selected."""
+
+
+class NoNavigationOwner(NavigationOwner):
+    """The chrome's owner while no navigating view is selected: before the first, and while one
+    that does not navigate (a file preview) is shown. It refuses instead of reaching a closed view."""
+
+    def __init__(self, app: ToadApp) -> None:
+        self.app = app
+
+    @property
+    def navigation_context(self) -> NavigationContext:
+        raise NavigationUnavailable("No navigating view is selected")

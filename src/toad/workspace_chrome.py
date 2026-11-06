@@ -25,7 +25,6 @@ from toad.sidebar_placement import SidebarEdge
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.navigation_context import NavigationOwner
     from toad.session_scope import SessionScope
 
 
@@ -59,11 +58,7 @@ class WorkspaceChrome(VerticalLayout):
         self.switch_toast = SwitchToast()
         self.native = NativeSessionSurface(app)
 
-    navigation_owner: "NavigationOwner"
-    """The selected view the shared Channels surface opens rows through; set when one shows it."""
-
-    def show_channels(self, owner: "NavigationOwner") -> None:
-        self.navigation_owner = owner
+    def show_channels(self) -> None:
         self.channels.roster.set_enabled(True)
         self.channels.display = True
 

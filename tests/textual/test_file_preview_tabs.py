@@ -1,5 +1,6 @@
 """Textual-facing: a file preview is a closeable tab whose FilePreview widget is retained, highlighted and bounded in size."""
 
+import pytest
 from toad.widgets.line_markdown import LineMarkdown
 from toad.session_actions import ReturnToViewAction
 from textual.document._editing import EditingMode
@@ -155,3 +156,24 @@ async def test_preview_opened_from_a_channel_sits_above_it_and_closing_returns_t
         assert ui.selected_tab == channel
         await ui.select_tab(owner)
         assert ui.draft() == "Keep this draft"
+
+
+async def test_a_selected_preview_navigates_nowhere_and_direct_messages_say_so(workspace):
+    """A preview does not navigate: the channels hide, the owner refuses, and a DM request is
+    told it is unavailable here instead of opening through the conversation behind it."""
+    from support.applications import record_notifications
+    from toad.navigation_context import NavigationUnavailable
+
+    path = write_plan(workspace)
+    async with workspace.app(size=(110, 35)) as ui:
+        app, _ = ui.textual
+        record_notifications(app)
+        assert app.workspace_sessions.navigation_owner() is app.selected_session
+        await preview(ui, path)
+        assert not app.workspace_chrome.channels.display
+        owner = app.workspace_sessions.navigation_owner()
+        assert owner is not app.selected_session
+        with pytest.raises(NavigationUnavailable):
+            owner.navigation_context
+        await app.session_navigation.direct_messages().wait()
+        assert [note.message for note in app._notifications][-1] == "Direct messages are unavailable from this view"
