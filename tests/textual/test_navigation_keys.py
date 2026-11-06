@@ -98,11 +98,11 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         assert ui.selected_tab == third
         assert tuple(tab.identity for tab in app.session_navigation.tabs) == moved
         database = await app.get_db()
-        assert tuple(row.identity for row in await database.tab_list()) == moved
+        assert tuple(row.identity for row in await database.tab_list(app.tab_order.scopes)) == moved
         await ui.press('ctrl+shift+k')
         await ui.until(lambda: app.tab_order.names == originals, why='the same tab moves right')
         assert ui.selected_tab == third
-        assert tuple(row.identity for row in await database.tab_list()) == originals
+        assert tuple(row.identity for row in await database.tab_list(app.tab_order.scopes)) == originals
         # Moving past the outside edge is a no-op, not a wrap to the other end.
         await ui.press('ctrl+shift+k')
         assert app.tab_order.names == originals and ui.selected_tab == third
