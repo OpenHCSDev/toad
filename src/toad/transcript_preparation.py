@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
 from itertools import islice
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
@@ -506,6 +507,10 @@ class ReplaceablePageSource(PreparedPageSource):
 
     @abstractmethod
     def replacement(self, through) -> ReplaceablePageSource: ...
+
+    def reads_from(self, root: str | Path) -> bool:
+        """Whether this reader reads a conversation from ``root``; a closed one reads none."""
+        return False
 
 
 class SavedHistory(ReplaceablePageSource):
