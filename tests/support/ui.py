@@ -131,6 +131,10 @@ class Ui(ABC):
         """Whether the selected conversation's agent accepts input."""
 
     @abstractmethod
+    def selected_agent(self):
+        """The agent behind the selected conversation; it keeps answering while its tab is hidden."""
+
+    @abstractmethod
     async def press(self, *keys: str) -> None: ...
 
     @abstractmethod
@@ -365,6 +369,9 @@ class TextualUi(AppAgents, Ui):
 
     def agent_ready(self) -> bool:
         return self._prompt.agent_ready
+
+    def selected_agent(self):
+        return self.conversation.agent_binding
 
     async def press(self, *keys: str) -> None:
         await self.pilot.press(*keys)
