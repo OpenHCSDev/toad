@@ -1,4 +1,10 @@
-"""Textual-facing: the animation clock's timer returns to the event loop between ticks, so hidden fades whose interval shrinks every tick cannot freeze the app."""
+"""Textual-facing: the animation clock's timer returns to the event loop between ticks, so hidden fades whose interval shrinks every tick cannot freeze the app.
+
+ui_theme's clock now takes its interval from visible animations only, so the hidden fades
+started here no longer schedule ticks at all; the visible cursor blink (2 per second) drives
+the clock. The test runs until that clock has ticked twice and holds the same two guarantees:
+ticks never nest, and the event loop never stalls.
+"""
 
 import asyncio
 
@@ -27,11 +33,12 @@ async def test_hidden_fades_tick_once_per_loop_turn():
         asyncio.get_running_loop().set_task_factory(asyncio.eager_task_factory)
         clock = app.colours.clock
         tick = clock.tick
-        depth = deepest = 0
+        depth = deepest = ticks = 0
 
         def counted() -> None:
-            nonlocal depth, deepest
+            nonlocal depth, deepest, ticks
             depth += 1
+            ticks += 1
             deepest = max(deepest, depth)
             try:
                 tick()
@@ -46,9 +53,13 @@ async def test_hidden_fades_tick_once_per_loop_turn():
             await asyncio.sleep(0.013 * index)
         lag = 0.0
         loop = asyncio.get_running_loop()
-        for _ in range(20):
+        # Bounded at 3 s; the blink ticks every 0.5 s.
+        for _ in range(150):
+            if ticks >= 2:
+                break
             started = loop.time()
             await asyncio.sleep(0.02)
             lag = max(lag, loop.time() - started)
+    assert ticks >= 2, f"the animation clock ticked {ticks} times in 3 s"
     assert deepest == 1
     assert lag < 0.2
