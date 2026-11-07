@@ -488,11 +488,11 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
         A parked tab draws nothing, but its presentation still holds the source, and asking
         only while current dropped the change: the missed range was then read on return, which
-        drew the newest page and the rest afterwards as one burst (Tristan, 2026-11-07). A tab
-        switch is not a source change for the tabs being left, so it refreshes only the
-        destination.
+        drew the newest page and the rest afterwards as one burst (Tristan, 2026-11-07). Which
+        screens a publication is for belongs to the publication: SessionSelected answers "the
+        arriving tab only", so this screen never classifies events by type.
         """
-        if isinstance(event, core_events.SessionSelected) and not self.is_current:
+        if not event.refreshes(self):
             return
         self.presentation.external_transcript_changed()
 
