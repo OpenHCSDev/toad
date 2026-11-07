@@ -39,8 +39,7 @@ async def test_channel_menu_toggles_member_activity_and_keeps_unpainted_traffic_
         sidebar = await channel_roster(ui, "#team")
         assert ACTION in await open_menu(ui, sidebar, "#team")
         await ui.choose_menu_action(ACTION)
-        await ui.step()
-        assert comms.bus.require_channel("#team").any_mode
+        await ui.until(lambda: comms.bus.require_channel("#team").any_mode, why="member activity on")
         assert bodies(comms) == ["exact route", "outbound from member", "inbound to member"]
         assert comms.views.viewer_snapshot(Checkout(workspace.project)).channel_unread["#team"] == ExactUnread(count=3)
 
@@ -53,8 +52,7 @@ async def test_channel_menu_toggles_member_activity_and_keeps_unpainted_traffic_
 
         assert ACTION in await open_menu(ui, sidebar, "#team")
         await ui.choose_menu_action(ACTION)
-        await ui.step()
-        assert not comms.bus.require_channel("#team").any_mode
+        await ui.until(lambda: not comms.bus.require_channel("#team").any_mode, why="member activity off")
         assert bodies(comms) == ["exact route"]
 
 
