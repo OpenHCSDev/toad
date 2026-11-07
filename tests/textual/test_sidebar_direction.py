@@ -2,7 +2,7 @@
 
 import pytest
 
-from toad.sidebar_placement import SidebarEdge
+from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, WidthSidebarEdge
 from toad.widgets.side_bar import SideBar, SidebarAction
 
 from test_sidebar_layout_policy import side_by_side
@@ -106,3 +106,26 @@ async def test_panel_headers_follow_their_bar_through_band_swaps(workspace):
             await ui.step()
             await ui.step()
             assert not stranded(), stranded()
+
+
+@pytest.mark.parametrize("side", SidebarEdge.members_with(HeightSidebarEdge))
+@pytest.mark.parametrize("collapsed", (True, False))
+def test_a_horizontal_bar_keeps_both_arrows_on_every_row(side, collapsed):
+    """More arrow on one side than the other is the defect Tristan reported: a bare arrow
+    on its own row sits against whichever edge that row starts at."""
+    symbol = side.toggle_symbol(collapsed)
+    rows = side.toggle_text(collapsed, "claude-laptop").split("\n")
+    assert len(rows) == side.collapsed_extent
+    assert [row.count(symbol) for row in rows] == [2] * len(rows)
+    assert [(row[0], row[-1]) for row in rows] == [(symbol, symbol)] * len(rows)
+    assert len({len(row) for row in rows}) == 1, "one width, so the arrows read as two columns"
+
+
+@pytest.mark.parametrize("side", SidebarEdge.members_with(WidthSidebarEdge))
+@pytest.mark.parametrize("collapsed", (True, False))
+def test_a_vertical_bar_keeps_an_arrow_at_each_end(side, collapsed):
+    """Its strip reads downward, so its two arrows are its first and last rows."""
+    symbol = side.toggle_symbol(collapsed)
+    rows = side.toggle_text(collapsed, "claude-laptop").split("\n")
+    assert (rows[0], rows[-1]) == (symbol, symbol)
+    assert symbol not in "".join(rows[1:-1])

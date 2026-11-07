@@ -140,14 +140,14 @@ def test_sshd_sessions_read_the_ssh_arrangement():
 
 
 @pytest.mark.parametrize("edge", (TopSidebarEdge, BottomSidebarEdge))
-def test_a_collapsed_top_or_bottom_bar_is_two_rows_its_heading_between_arrows(edge):
+def test_a_collapsed_top_or_bottom_bar_is_two_rows(edge):
+    """What those two rows draw is the edge's own, asserted over every member of its axis in
+    test_sidebar_direction; this assertion used to pin a bare arrow on the second row."""
     layout = layout_for()
     layout.move(ChannelsSidebarPlacement, edge)
     resolved = layout.resolve(Size(60, 30), {ChannelsSidebarPlacement: True, ThreadSidebarPlacement: True})
     assert resolved.bars[ChannelsSidebarPlacement].height == 2
-    for collapsed in (False, True):
-        symbol = edge.toggle_symbol(collapsed)
-        assert edge.toggle_text(collapsed, "all").split("\n") == [f"{symbol}  all  {symbol}", symbol]
+    assert len(edge.toggle_text(True, "all").split("\n")) == resolved.bars[ChannelsSidebarPlacement].height
 
 
 @pytest.mark.parametrize("side, resized, percent", list(product(
