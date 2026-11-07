@@ -58,15 +58,13 @@ async def test_picking_a_bus_ends_the_app_onto_it(workspace, tmp_path):
 
 
 async def test_a_dismissed_picker_changes_nothing(workspace):
-    app = ToadApp(agent_binding=NoAgent(), project_dir=Checkout(workspace.project),
-                  connection=LocalCoreConnection.from_launch(workspace.launch_root))
-    async with app.run_test(size=(140, 48)) as pilot:
-        app.open_bus(None)
-        await pilot.pause()
-        # Esc out of the picker leaves this session on its own bus: whatever ends it
-        # later, nothing here relaunches onto another one.
-        assert not isinstance(app.return_value, Reconnected)
-    assert not isinstance(app.return_value, Reconnected)
+    """Through the fixture that owns a running app: the earlier hand-built ToadApp here was
+    the only test that let one close on its own, and it died in application start."""
+    async with workspace.app(size=(140, 48)) as ui:
+        ui.app.open_bus(None)
+        await ui.step()
+        # Esc out of the picker leaves this session on its own bus.
+        assert not isinstance(ui.app.return_value, Reconnected)
 
 
 def test_both_exec_outcomes_share_one_exec_and_differ_only_in_arguments(monkeypatch, tmp_path):
