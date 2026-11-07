@@ -48,7 +48,7 @@ class OpenBusAction(ApplicationAction):
     def apply(self, app: ToadApp) -> None:
         from toad.screens.bus_choice import BusChoices
 
-        app.push_screen(BusChoices.offered(), app.open_bus)
+        app.push_screen(BusChoices.offered(), app.picked_bus)
 
 
 class SettingsAction(ApplicationAction):

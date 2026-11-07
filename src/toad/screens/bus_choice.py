@@ -1,17 +1,22 @@
-"""Which bus this Toad opens: this machine's own, or a remote one it holds a profile for."""
+"""Which bus this Toad opens: this machine's own, one it holds a profile for, or one it finds.
+
+The picker opens on what this machine already knows, which is instant, and asks the tailnet
+afterwards, which is seconds of ssh: probing in compose would hold the dialog closed for as
+long as the slowest peer takes to refuse.
+"""
 
 from __future__ import annotations
 
 import time
 
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
 from textual.widgets import Select, Static
 from ui_theme.scheme import PrimaryColour
 
-from toad.comms_root import BusChoice
+from toad.comms_root import BusChoice, DiscoveredPeer, PickerRow, TailnetBuses
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from toad.widget_actions import PriorityActions
 
@@ -21,7 +26,7 @@ class BusPanel(SurfacePanel):
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
-        self.styles.width = 64
+        self.styles.width = 72
         self.styles.height = "auto"
         self.styles.padding = (1, 2)
 
@@ -30,21 +35,22 @@ class BusPrompt(Static):
     """What the picker is for, above its rows."""
 
 
-class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[BusChoice]):
-    """The buses this machine can open, dismissed with the one the reader picked.
+class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[PickerRow]):
+    """The buses this machine can open, dismissed with the row the reader picked.
 
-    The picker does not relaunch: `CoreConnection.select` chooses at the process
-    boundary, so its caller ends the application onto the choice. A machine holding no
-    remote profile still sees its own bus named, because an empty list would leave the
-    reader guessing whether the picker worked.
+    The picker does not relaunch: `CoreConnection.select` chooses at the process boundary,
+    so its caller ends the application onto the choice. A machine holding no remote profile
+    still sees its own bus named, because an empty list would leave the reader guessing
+    whether the picker worked.
     """
 
-    def __init__(self, choices: tuple[BusChoice, ...]) -> None:
+    def __init__(self, rows: tuple[PickerRow, ...]) -> None:
         super().__init__()
-        self.choices = choices
+        self.rows = rows
 
     @classmethod
     def offered(cls) -> BusChoices:
+        """What this machine knows without asking anyone: instant."""
         return cls(BusChoice.offered(time.time()))
 
     def compose(self) -> ComposeResult:
@@ -52,14 +58,35 @@ class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[BusChoice]):
             yield BusPrompt("Open a bus · Esc returns")
             # Blank until the reader picks: a Select posts Changed when its initial value is
             # set, so starting on a row chose that row before the list had been read.
-            yield Select(
-                [(choice.label(), index) for index, choice in enumerate(self.choices)],
-                allow_blank=True, prompt="Choose a bus",
-            )
+            yield Select(self.options(), allow_blank=True, prompt="Choose a bus")
+
+    def options(self) -> list[tuple[str, int]]:
+        return [(row.label(), index) for index, row in enumerate(self.rows)]
+
+    def on_mount(self) -> None:
+        self.discover()
+
+    @work(exclusive=True, group="bus-discovery", thread=True)
+    def discover(self) -> None:
+        """Ask the tailnet after the dialog is up; each peer's own CLI owns its answer."""
+        found = TailnetBuses.seen()
+        self.app.call_from_thread(self.discovered, found)
+
+    def discovered(self, found) -> None:
+        """Add the peers holding a bus, keeping the rows this machine already offered."""
+        if not self.is_mounted:
+            return
+        peers = tuple(DiscoveredPeer(entry) for entry in found if entry.openable)
+        if not peers:
+            return
+        self.rows = (*self.rows, *peers)
+        self.query_one(Select).set_options(self.options())
+        self.query_one(BusPrompt).update(
+            f"Open a bus · {len(peers)} found on your tailnet · Esc returns")
 
     @on(Select.Changed)
     def picked(self, event: Select.Changed) -> None:
-        """A picked row is the answer; the caller relaunches onto it. Blank is not a pick."""
+        """A picked row is the answer; the row itself says what picking it does."""
         match event.value:
             case int() as index:
-                self.dismiss(self.choices[index])
+                self.dismiss(self.rows[index])
