@@ -5,11 +5,16 @@ import os
 import pytest
 
 from acp.exceptions import RequestError
-from acp.schema import AvailableCommand, AvailableCommandsUpdate
+from acp.schema import AvailableCommand, AvailableCommandsUpdate, RequestPermissionResponse
 from agent_comms.comms import wire
 from agent_comms.launch_runtime import ThreadLaunch
 from support.shared_stdio import stdio_agent_definition, threads_owned_here
 from toad.acp.agent import Agent
+
+
+def cancelled(outcome: dict[str, object]) -> bool:
+    """The runtime answers with the outcome its controller sent; ACP's response type decodes it."""
+    return RequestPermissionResponse.model_validate({'outcome': outcome}).outcome.outcome == 'cancelled'
 
 
 @pytest.fixture
@@ -66,12 +71,11 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
                     await asyncio.sleep(0)
             await alpha.stop()
             async with asyncio.timeout(5):
-                answer = await permissions[0]
-                assert answer is None or answer.outcome.outcome == 'cancelled'
+                assert cancelled(await permissions[0])
             assert not permissions[1].done() and beta.permissions.pending
             beta.permissions.cancel()
             async with asyncio.timeout(5):
-                assert (await permissions[1]).outcome.outcome == 'cancelled'
+                assert cancelled(await permissions[1])
             assert shared.sessions == {beta.session} and beta.ready
             assert shared.process is child and shared.runner is not None and not shared.runner.done()
             with pytest.raises(RequestError):

@@ -66,7 +66,8 @@ class AppAgents:
     def agent[A: Agent](self, kind: type[A], definition: AgentDefinition, session_id: str | None = None,
                         **fields: object) -> A:
         """An agent of ``kind`` built through the app's own Agent constructor; ``fields`` are the subclass's own."""
-        return kind(self.app.project_dir.path, definition, session_id, app_events=self.app.events,
+        return kind(self.app.project_dir.path, definition,
+                    FieldCodec.decode(AcpSessionId | NoAcpSessionId, session_id), app_events=self.app.events,
                     transcripts=self.app.coordination_access.transcripts, **fields)
 
     def detached_agent(self, session_id: str | None = None, *, identity: str = "test-agent") -> Agent:
@@ -74,8 +75,7 @@ class AppAgents:
         from toad.acp.agent import Agent
         from toad.agent_schema import AgentDefinition
 
-        return self.agent(Agent, AgentDefinition(identity, identity, {"*": "true"}),
-                          FieldCodec.decode(AcpSessionId | NoAcpSessionId, session_id))
+        return self.agent(Agent, AgentDefinition(identity, identity, {"*": "true"}), session_id)
 
 
 async def deliver(agent, update: dict, *, session_id: str | None = None):
