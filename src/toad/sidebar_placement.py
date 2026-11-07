@@ -259,10 +259,19 @@ class HeightSidebarEdge(SidebarEdge):
 
     @classmethod
     def toggle_text(cls, collapsed: bool, heading: str) -> str:
-        """The heading between its arrows on the first row, the arrow alone on the rest, so a
-        two-row bar reads centred."""
+        """Every row is the heading's width between the same two arrows: the first row names
+        the bar and the rest hold the arrows' columns.
+
+        A bare arrow on its own row sits against whichever edge the row starts at, which
+        reads as more arrow on one side than the other, and the width edge next door
+        already keeps both of its arrows.
+        """
         symbol = cls.toggle_symbol(collapsed)
-        return "\n".join((f"{symbol}  {heading}  {symbol}", *(symbol for _ in range(cls.collapsed_extent - 1))))
+        blank = " " * len(heading)
+        return "\n".join(
+            f"{symbol}  {words}  {symbol}"
+            for words in (heading, *(blank for _ in range(cls.collapsed_extent - 1)))
+        )
 
     @classmethod
     def control_offset(cls, distance: int) -> Offset:
