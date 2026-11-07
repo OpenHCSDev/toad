@@ -393,7 +393,9 @@ class JumpBar(
         self.styles.visibility = "hidden"
 
 
-class BackToBottom(PrimaryText, AutoWidth, SidePadding, JumpToLatest):
+class BackToBottom(PrimaryText, AutoWidth, AutoHeight, SidePadding, JumpToLatest):
+    """Two rows of its own: JumpToLatest is one row, and this one names its key below."""
+
     native_theme = (NativeDeclaration.of(Styles.background, Variable(SurfaceHoverColour.name)),)
 
     def apply_native_layout(self) -> None:
@@ -422,7 +424,10 @@ This is a view of your conversation with the agent.
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.jump_bar = JumpBar(BackToBottom("↓ Back to bottom · Esc"))
+        # Two rows: what it does, then the key that does it. BackToBottomAction declares
+        # both words, but reading them here would import the screen that reaches this
+        # module through the workspace chrome.
+        self.jump_bar = JumpBar(BackToBottom("Back to bottom\n↓ Esc ↓"))
         self.sticky_header = StickyHeader()
 
     def apply_native_layout(self) -> None:
