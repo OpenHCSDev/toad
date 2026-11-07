@@ -87,3 +87,21 @@ async def test_the_hamburger_offers_the_picker_under_its_own_name(workspace):
         offered = {type(command).__name__: label for command, label in ApplicationAction.menu(app)}
         # Derived from the declared name, so the menu cannot drift from the action.
         assert offered["OpenBusAction"] == "Open bus"
+
+
+async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(workspace):
+    """Tristan: "I see the window come up and then it immediately loads the local bus again".
+
+    A Select posts Changed when its initial value is set, so a picker that acts on every
+    Changed chooses its own first row before the reader has read it.
+    """
+    from toad.screens.bus_choice import BusChoices
+
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        app.push_screen(BusChoices.offered(), app.open_bus)
+        await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
+        for _ in range(4):
+            await ui.step()
+        assert isinstance(app.screen, BusChoices), "the picker stays up until a row is chosen"
+        assert not isinstance(app.return_value, Reconnected), "nothing is opened by showing a list"

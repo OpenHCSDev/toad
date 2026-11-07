@@ -178,6 +178,19 @@ class CenteredContent(Widget):
         self.styles.content_align = ("center", "middle")
 
 
+class CenteredText(Widget):
+    """Centres each of its own rows.
+
+    Not CenteredContent: that centres the whole content box inside the widget, which an
+    AutoWidth widget has already shrunk to its longest row, so a shorter row still starts
+    at the left. Each row is centred against the widest one here.
+    """
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_align = "center"
+
+
 class SpacedAbove(Widget):
     """One blank row above it."""
 
