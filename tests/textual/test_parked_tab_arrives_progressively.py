@@ -23,9 +23,8 @@ async def test_control_a_visible_channel_loads_the_messages(workspace):
         before = loaded(chat)
         for body in missed:
             comms.messaging.send("sender", "#alpha", body)
-        await ui.step(1.2)
-        after = loaded(chat)
-        assert after[1] >= before[1] + len(missed), f"visible channel did not load them: {before} -> {after}"
+        await ui.until(lambda: loaded(chat)[1] >= before[1] + len(missed),
+                       why=f"the visible channel to load {len(missed)} new messages")
 
 
 async def test_a_parked_tab_loads_the_backlog_while_it_is_parked(workspace):
@@ -48,11 +47,8 @@ async def test_a_parked_tab_loads_the_backlog_while_it_is_parked(workspace):
         before = loaded(chat)
         for body in missed:
             comms.messaging.send("sender", "#alpha", body)
-        await ui.step(1.2)
-        while_parked = loaded(chat)
+        # Waited for before the tab is selected again: the backlog loads while it is parked,
+        # not as a burst on return.
+        await ui.until(lambda: loaded(chat)[1] >= before[1] + len(missed),
+                       why=f"the parked tab to load {len(missed)} missed messages while away")
         await ui.select_tab(mode)
-        await ui.step(0.05)
-        assert while_parked[1] >= before[1] + len(missed), (
-            f"the parked tab loaded {while_parked[1] - before[1]} of {len(missed)} missed items "
-            f"while it was away; the rest load on return as a burst"
-        )
