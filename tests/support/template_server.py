@@ -27,6 +27,8 @@ from agent_comms.storage.typed_table import ProducedTable, TypedTable
 from support.warm_helpers import HelperSpawner, WarmCoreConnection, WarmHelpers
 from support.workspace import Workspace
 from toad.file_kind import FileKind
+from toad.key_modes import KeyMode
+from toad.keymap import KeymapCatalog
 
 PYTEST_OPTIONS = ("-p", "no:cacheprovider", "-q", "--no-header", "--tb=short", "--color=no")
 
@@ -107,6 +109,9 @@ def serve() -> None:
     # schema: about 4 s of every test's store creation, the same answer every time.
     for produced in ProducedTable.members_with(ProducedTable):
         produced.producer_digest()
+    # Every mode's keymap catalog is a function of the classes imported above: each test that
+    # opens the keymap editor or decodes a saved remap built them again (about 0.3 s a mode).
+    KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
     # The warm heap is about 880,000 objects that no test frees. Frozen, a child's full
     # collection (pytest runs five at unconfigure) skips them: 0.23 s each becomes nothing.
     gc.freeze()
