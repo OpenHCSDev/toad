@@ -240,6 +240,8 @@ async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspa
                        why="the initial retained page to be measured", seconds=60)
         for _ in range(12):
             await wheel(ui, window, events.MouseScrollUp)
+        # The baseline is the row the reader settles on, not a frame of the wheel's animation.
+        await ui.until(lambda: not window.is_scrolling, why="the wheel scroll to settle")
         await ui.step()
         top = top_row_text(window)
         assert top.strip(), "The reader's top row draws no text to keep"
@@ -298,13 +300,16 @@ async def test_returning_to_tab_keeps_the_reader_below_a_live_thought(
         await ui.until(lambda: window.max_scroll_y > 0 and window.follows_tail,
                        why="the actual rendered tail before reader input")
         await wheel(ui, window, events.MouseScrollUp)
-        for _ in range(4):
-            await ui.step()
-            baseline = block_top_row_text(window, later.body)
-            if baseline.strip():
-                break
+        # A wheel animates the scroll, and the response's paragraphs alternate with blank
+        # separator rows: the reader settles first, steps up once more if it rests on a
+        # separator, and the baseline is the text row it is then painted on.
+        await ui.until(lambda: not window.is_scrolling, why="the wheel scroll to settle")
+        await ui.step()
+        if not block_top_row_text(window, later.body).strip():
             window.action_scroll_up()
-        assert baseline.strip(), "The reader must start on a painted response row"
+        await ui.until(lambda: not window.is_scrolling and block_top_row_text(window, later.body).strip(),
+                       why="the reader settled on a painted response row")
+        baseline = block_top_row_text(window, later.body)
         assert later.body.region.y < window.content_region.y < later.body.region.bottom
         assert thought.region.bottom <= window.content_region.y
         assert not window.follows_tail
@@ -353,7 +358,10 @@ async def test_a_live_thought_crossing_the_top_edge_keeps_its_rows_at_phone_widt
             if thought.region.y + 2 < window.content_region.y < thought.region.bottom - 6:
                 break
             await wheel(ui, window, events.MouseScrollUp)
-        await ui.step()
+            # A wheel animates the scroll; regions are measured, and the top row read, only
+            # once it has settled and been laid out.
+            await ui.until(lambda: not window.is_scrolling, why="the wheel scroll to settle")
+            await ui.step()
         top = block_top_row_text(window, thought)
         assert top.strip(), f"The thought never crossed the top edge at width {thought.size.width}"
         screen = ui.app.screen
