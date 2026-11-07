@@ -50,14 +50,16 @@ class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[BusChoice]):
     def compose(self) -> ComposeResult:
         with BusPanel():
             yield BusPrompt("Open a bus · Esc returns")
+            # Blank until the reader picks: a Select posts Changed when its initial value is
+            # set, so starting on a row chose that row before the list had been read.
             yield Select(
                 [(choice.label(), index) for index, choice in enumerate(self.choices)],
-                allow_blank=False, value=0,
+                allow_blank=True, prompt="Choose a bus",
             )
 
     @on(Select.Changed)
     def picked(self, event: Select.Changed) -> None:
-        """A picked row is the answer; the caller relaunches onto it."""
+        """A picked row is the answer; the caller relaunches onto it. Blank is not a pick."""
         match event.value:
             case int() as index:
                 self.dismiss(self.choices[index])
