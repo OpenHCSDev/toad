@@ -254,6 +254,11 @@ class Ui(ABC):
             lambda: self.shows(text), seconds=seconds, why=f"{text!r} on screen"
         )
 
+    async def until_delivery_shown(self) -> None:
+        """A sent message's delivery status arrives from Core after its rows and lifts the
+        bottom-anchored page; a click aimed at the message waits for it."""
+        await self.until_shows("Sent · Observed")
+
 
 class TextualUi(AppAgents, Ui):
     """Toad drawn by Textual, driven headless through Textual's pilot; its agents attach to that app."""
