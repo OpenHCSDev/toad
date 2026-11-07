@@ -1,0 +1,69 @@
+"""Where a following reader lands when a tall message arrives in the session conversation.
+
+Tristan, three times: a large message "comes in in one shot and it scrolls to the bottom of
+the message, and then the fade effect happens, but the scrolling doesn't actually match it".
+A tall arrival into a channel behaves (test_tall_arrival_scroll), and so does this one: a
+tall saved row places its head rather than parking the reader below it. Both saved-row
+paths are therefore ruled out by measurement, which leaves the live block: a streaming
+answer fades with ConversationBlock.text_fades (block_navigation.py:439) while
+LineHistory.unrevealed_rows (transcript_history.py:1111) counts saved pages only, so a
+live block holds no rows back and the tail sits at the very bottom while its fade plays.
+"""
+
+import os
+from dataclasses import replace
+
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.fresh_private_session import create_fresh_private_session
+from agent_comms.session_file import RegistrySessionLocation
+
+from support.agents import deliver
+from support.coordination import carrying, coordination_fact
+from toad.frame_presentation import ARRIVAL
+from toad.widgets.transcript_history import TranscriptHistory
+
+
+async def session_following_its_tail(workspace, ui, backlog: int):
+    """The session conversation, bound to its thread, scrolled to the end of a peer backlog."""
+    comms = workspace.comms
+    saved = create_fresh_private_session(workspace.project / "sessions",
+                                         worktree=workspace.project).path
+    thread = comms.registry.declare(replace(
+        workspace.thread("source"),
+        session_file=RegistrySessionLocation.from_path(str(saved), comms.root)))
+    workspace.thread("peer")
+    for index in range(backlog):
+        comms.messaging.send("peer", "source", f"BACKLOG {index:02d}: " + "body text " * 8)
+
+    view = ui.conversation
+    agent = ui.detached_agent("session-tall-arrival")
+    view.bind_agent(agent)
+    coordination = replace(
+        coordination_fact(comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
+                          worktree=workspace.project, model="test-model"),
+        thread=thread.incarnation)
+    await deliver(agent, carrying(coordination))
+    # The view opens at the tail, so the newest backlog row is the one on screen.
+    await ui.until(lambda: f"BACKLOG {backlog - 1:02d}" in ui.painted(view.window),
+                   why="the peer backlog")
+    history = view.contents.query_one(TranscriptHistory)
+    return view, history, view.window
+
+
+async def test_a_tall_arrival_does_not_land_the_session_reader_at_its_bottom(workspace):
+    comms = workspace.comms
+    async with workspace.app(size=(120, 35)) as ui:
+        view, history, window = await session_following_its_tail(workspace, ui, backlog=30)
+        await ui.until(lambda: window.follows_tail, why="the reader on the tail")
+        viewport = window.scrollable_content_region.height
+
+        comms.messaging.send("peer", "source", "TALL ARRIVAL\n" + "\n".join(
+            f"row {row} of a message taller than the window" for row in range(viewport + 12)))
+        await ui.until(lambda: "TALL ARRIVAL" in ui.painted(window), why="the tall arrival")
+
+        assert window.scroll_y < window.max_scroll_y, (
+            f"parked at the bottom of a message taller than the window: "
+            f"scroll_y={window.scroll_y} max_scroll_y={window.max_scroll_y} viewport={viewport} "
+            f"tail_scroll_y={window.tail_scroll_y} unrevealed={history.unrevealed_rows()} "
+            f"phase={type(history.effect_phase(ARRIVAL)).__name__} "
+            f"reader={type(window.reader_position).__name__}")
