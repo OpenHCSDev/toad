@@ -995,12 +995,24 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.conversation.focus_prompt(scroll_end=False)
 
     @property
-    def typing_target(self) -> Widget:
-        """The control typed text belongs to: the question watch__ask shows, else the editor."""
+    def typing_target(self) -> Widget | None:
+        """The control typed text belongs to, or None while Textual is still composing this prompt.
+
+        `question` and `prompt_text_area` are lazy queries, so asking one before the children
+        exist raised `NoMatches: No nodes match 'Question' on Prompt()` out of
+        `Conversation.initialize_view` while a tab was opening. Whether the controls exist yet
+        is this prompt's own fact: `enter_insert` already answers it with `is_mounted`, and the
+        callers below act on the same answer instead of querying a prompt that has no children.
+        """
+        if not self.is_mounted:
+            return None
         return self.question if self.question.display else self.prompt_text_area
 
     def focus(self, scroll_visible: bool = True) -> Self:
-        self.typing_target.focus(scroll_visible=scroll_visible)
+        """Focus the control typed text belongs to; a prompt still composing has none."""
+        target = self.typing_target
+        if target is not None:
+            target.focus(scroll_visible=scroll_visible)
         return self
 
     def append(self, text: str) -> None:

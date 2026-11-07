@@ -496,7 +496,9 @@ This is a view of your conversation with the agent.
             return
         event.stop()
         event.prevent_default()
-        conversation.prompt.typing_target.post_message(events.Key(event.key, event.character))
+        target = conversation.prompt.typing_target
+        if target is not None:
+            target.post_message(events.Key(event.key, event.character))
 
     @on(JumpToLatest.Requested)
     def on_back_to_bottom(self, event: JumpToLatest.Requested) -> None:
@@ -1148,7 +1150,9 @@ class Conversation(
 
     def start_typing(self) -> None:
         """Focus moves now, not after the queued keys: the rest of a burst follows it."""
-        self.screen.set_focus(self.prompt.typing_target, scroll_visible=False)
+        target = self.prompt.typing_target
+        if target is not None:
+            self.screen.set_focus(target, scroll_visible=False)
 
     def retire_loading_splash(self) -> None:
         """The composed splash is consumed once when saved history paints or fails."""
