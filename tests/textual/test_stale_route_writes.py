@@ -19,8 +19,7 @@ async def test_a_view_that_changed_before_its_send_left_keeps_the_draft_editable
         messaging = workspace.comms.messaging
         before = messaging.bus.bus.revision()
         # Built for a conversation the view no longer shows: the view moved on before the send left.
-        stale = ChannelDestination(workspace.roots.wire, ChannelConversation(ChannelTarget("#elsewhere")),
-                                   view.message_history.page_source, view)
+        stale = ChannelDestination(workspace.roots.wire, ChannelConversation(ChannelTarget("#elsewhere")), view)
         await view.submissions.start_bus(OrdinaryInputSubmission("STALE_DRAFT"), stale).prepare()
         await ui.until(lambda: view.prompt.text == "STALE_DRAFT", why="the refused draft back in the composer")
         assert not view.submissions.delivering

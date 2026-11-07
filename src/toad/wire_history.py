@@ -439,15 +439,15 @@ class WirePageWork(TranscriptPageWork[WireCut]):
 
 @dataclass(frozen=True)
 class ChannelDestination(BusDestination):
-    """A channel or inbox page: shown while its view still reads this conversation from this source."""
+    """A channel or inbox page: shown while its view still reads this conversation from this
+    root. A page reader the view replaces (a refresh, the next page) still shows it."""
 
-    source: WirePageBuffer
     view: CommsChatView
 
     def shown(self) -> bool:
         view = self.view
-        return view.is_attached and self.source is view.message_history.page_source and (
-            self.conversation == view.conversation)
+        return view.is_attached and self.conversation == view.conversation and (
+            view.message_history.page_source.reads_from(self.root))
 
     async def presented(self, sent: MessageReference) -> None:
         await self.view.show_sent(sent)
@@ -466,6 +466,9 @@ class WirePageBuffer(SavedHistory):
 
     def replacement(self, through) -> WirePageBuffer:
         return type(self)(self.loader, through, self.runtime, revision=self.revision)
+
+    def reads_from(self, root: str | Path) -> bool:
+        return self.loader.root == root
 
     def uses_observation(self, observation: Observation) -> bool:
         return observation.observes(self.loader.root)
@@ -502,7 +505,7 @@ class WirePageBuffer(SavedHistory):
         self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
     ) -> SubmissionStart:
         """A channel or inbox message queues behind the view's earlier ones; compose stays open."""
-        return owner.start_bus(submission, ChannelDestination(self.loader.root, self.loader.conversation, self, view))
+        return owner.start_bus(submission, ChannelDestination(self.loader.root, self.loader.conversation, view))
 
     def schedule_refresh(self, view: CommsChatView):
         history = view.message_history
