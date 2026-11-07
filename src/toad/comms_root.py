@@ -15,7 +15,7 @@ import asyncio
 import threading
 from concurrent.futures import Future
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, fields, replace
 from functools import partial
 from pathlib import Path
@@ -33,6 +33,7 @@ from toad.db import UNSCOPED_TABS, TabScope
 from toad.referenced_core import ReferencedCore
 from agent_comms.repo import Checkout
 from agent_comms.registry.threads import Thread
+from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.remote_core import RemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
@@ -336,6 +337,66 @@ class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
         except (OSError, ValueError, RuntimeError) as error:
             return access.observation.failed(error, UnselectedRoute())
         return access.observe_remote(self, Path(served.root))
+
+
+class BusChoice(ABC):
+    """A bus the next launch of this Toad selects.
+
+    `CoreConnection.select` chooses once at the process boundary and tab scopes are
+    written under that connection's location, so a reader changing bus relaunches onto
+    their choice rather than re-parenting every observation in place. The choice owns
+    how it writes itself into the next launch's arguments; nothing else spells them.
+    """
+
+    @abstractmethod
+    def label(self) -> str:
+        """How a picker names this bus in one line."""
+
+    @abstractmethod
+    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
+        """``argv`` rewritten so the next launch opens this bus."""
+
+    @staticmethod
+    def without_profile(argv: Sequence[str]) -> tuple[str, ...]:
+        """``argv`` with every profile selection removed, so one launch names one bus."""
+        remaining = list(argv)
+        while RemoteCoreConnection.argument in remaining:
+            index = remaining.index(RemoteCoreConnection.argument)
+            del remaining[index:index + 2]
+        return tuple(remaining)
+
+    @staticmethod
+    def offered(now: float) -> tuple[BusChoice, ...]:
+        """This machine's own bus, then every remote one it holds an open profile for."""
+        return (LocalBus(), *(
+            HeldBus(entry) for entry in HeldUiProfiles.held(now)
+            if isinstance(entry, OpenableProfile)
+        ))
+
+
+@dataclass(frozen=True)
+class LocalBus(BusChoice):
+    """This machine's own bus, which a launch opens when it names no profile."""
+
+    def label(self) -> str:
+        return "This machine"
+
+    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
+        return self.without_profile(argv)
+
+
+@dataclass(frozen=True)
+class HeldBus(BusChoice):
+    """A remote bus this machine holds an unexpired profile for."""
+
+    profile: OpenableProfile
+
+    def label(self) -> str:
+        return self.profile.label()
+
+    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
+        return (*self.without_profile(argv),
+                RemoteCoreConnection.argument, str(self.profile.path))
 
 
 @dataclass(frozen=True)

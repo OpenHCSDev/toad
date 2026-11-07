@@ -2,7 +2,7 @@ from toad.core import events as core_events
 from agent_comms.storage.locked_store import RootFile
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
-from toad.comms_root import CoreConnection
+from toad.comms_root import BusChoice, CoreConnection
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -68,7 +68,7 @@ from toad.application_actions import ApplicationCommands
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime
 from agent_comms.nominal.field_codec import boundary_decoder
-from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
+from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
 from toad.resource_release import AsyncResourceRelease
 from toad.native_style import TransparentBackground
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
@@ -234,6 +234,12 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def succeed_onto(self, runtime: LaunchRuntime) -> Never:
         self.call_from_thread(self.exit, Succeeded(runtime))
         raise asyncio.CancelledError
+
+    def open_bus(self, choice: BusChoice | None) -> None:
+        """End this session onto the picked bus; a picker the reader dismissed changes nothing."""
+        match choice:
+            case BusChoice():
+                self.exit(Reconnected(LaunchRuntime.running(), choice))
 
     def relaunch(self) -> None:
         running = LaunchRuntime.running()
