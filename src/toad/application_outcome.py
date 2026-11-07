@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from agent_comms.launch_runtime import LaunchRuntime
 
+from toad.comms_root import BusChoice
 from toad.version import VersionMonitor
 
 
@@ -28,14 +29,39 @@ class Ended(ApplicationOutcome):
 
 
 @dataclass(frozen=True)
-class Succeeded(ApplicationOutcome):
+class ExecutedOutcome(ApplicationOutcome):
+    """Ends this session by exec'ing a runtime's toad in place. Members differ only in the
+    arguments the replacement is given, so the runtime and the exec live here."""
+
     runtime: LaunchRuntime
+
+    @abstractmethod
+    def arguments(self) -> tuple[str, ...]:
+        """What the replacement launch is given, after its own program name."""
 
     def finish(self) -> None:
         self.runtime.require_available()
         executable = str(self.runtime.interpreter.with_name("toad"))
         os.execve(
             executable,
-            [executable, *sys.argv[1:]],
+            [executable, *self.arguments()],
             self.runtime.environment(os.environ),
         )
+
+
+@dataclass(frozen=True)
+class Succeeded(ExecutedOutcome):
+    """The runtime it switched to, opening whatever this launch already opened."""
+
+    def arguments(self) -> tuple[str, ...]:
+        return tuple(sys.argv[1:])
+
+
+@dataclass(frozen=True)
+class Reconnected(ExecutedOutcome):
+    """The reader picked another bus: the same launch, selecting their choice."""
+
+    choice: BusChoice
+
+    def arguments(self) -> tuple[str, ...]:
+        return self.choice.arguments(sys.argv[1:])
