@@ -1,7 +1,6 @@
 """Textual-facing: the history window follows live output at the tail, releases while reading, resumes at the tail."""
 
 from toad.widgets.agent_response import AgentResponse
-from support.styling import awaits_styling
 
 
 async def test_window_follows_tail_releases_on_scroll_up_and_resumes(workspace):
@@ -9,7 +8,7 @@ async def test_window_follows_tail_releases_on_scroll_up_and_resumes(workspace):
         conversation = ui.conversation
         response = await conversation.post(AgentResponse("\n\n".join(f"Paragraph {i}" for i in range(40))))
         # A block's rows are its styled rows: scrolling needs them to exist.
-        await ui.until(lambda: not awaits_styling(response.body._styled), why="the response's first styled rows")
+        await ui.until(lambda: response.body.rows_ready, why="the response's first styled rows")
         window = conversation.window
         window.anchor(False)
         conversation.refresh_block_cursor(lambda cursor: cursor.show_moved_to(conversation.window))

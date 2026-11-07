@@ -7,7 +7,6 @@ from __future__ import annotations
 from toad.widgets.side_bar import ThreadSidebar
 
 import asyncio
-from support.styling import awaits_styling
 
 
 async def reveal_project_tree(ui):
@@ -135,7 +134,7 @@ async def wait_for_tool_diff(ui, tool):
 
     content = tool.query_one(ToolContent)
     # Replaced blocks keep their old rows until the render of the new ones lands, so wait for it.
-    await ui.until(lambda: content._render_worker.is_finished and not awaits_styling(content._styled),
+    await ui.until(lambda: content.rows_ready,
                    seconds=10, why="the styled tool rows")
     await ui.step()
     return content

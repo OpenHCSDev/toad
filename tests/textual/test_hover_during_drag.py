@@ -12,8 +12,8 @@ async def test_pointer_steps_inside_one_widget_cause_no_restyle(workspace):
     async with workspace.app(size=(120, 40)) as ui:
         app, pilot = ui.textual
         response = await ui.conversation.post(AgentResponse("Select this phrase " * 25))
-        await ui.step()
         text = response.body
+        await ui.until(lambda: text.rows_ready, why="the response's styled rows")
         await pilot.mouse_down(text, offset=(1, 0))
         screen = app.screen
         x, y = text.region.x + 3, text.region.y

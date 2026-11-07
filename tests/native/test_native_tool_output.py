@@ -9,7 +9,6 @@ from support.textual_steps import wait_for_tool_diff
 from textual.selection import SELECT_ALL
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.tool_content import ToolContent
-from support.styling import awaits_styling
 
 SOURCE = "# Native tool output\nvalue = 1\n"
 CALLS = (
@@ -56,7 +55,7 @@ async def test_read_edit_and_bash_output_is_drawn_and_survives_collapse(workspac
             read.scroll_visible(animate=False)
             await ui.until(lambda: bool(read.query(ToolContent)), why="the read output")
             code = read.query_one(ToolContent)
-            await ui.until(lambda: not awaits_styling(code._styled), why="prepared read rows")
+            await ui.until(lambda: code.rows_ready, why="prepared read rows")
             assert "value = 1" in code.get_selection(SELECT_ALL)[0]
             await ui.until(lambda: drawn(read, "value = 1"), why="the read output on screen")
             read.set_expanded(False)
@@ -80,7 +79,7 @@ async def test_read_edit_and_bash_output_is_drawn_and_survives_collapse(workspac
             bash.scroll_visible(animate=False)
             await ui.until(lambda: bool(bash.query(ToolContent)), why="the bash output")
             text = bash.query_one(ToolContent)
-            await ui.until(lambda: not awaits_styling(text._styled), why="prepared ANSI rows")
+            await ui.until(lambda: text.rows_ready, why="prepared ANSI rows")
             assert "NATIVE_TOOL_TEXT" in text.get_selection(SELECT_ALL)[0]
             assert "\x1b" not in text.get_selection(SELECT_ALL)[0]
             await ui.until(lambda: drawn(bash, "NATIVE_TOOL_TEXT"), why="the bash output on screen")
