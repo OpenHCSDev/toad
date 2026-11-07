@@ -19,6 +19,7 @@ from agent_comms.acp_extension import (
 from agent_comms.child_process import join_retirement
 from agent_comms.coordination.errors import (
     CoordinationReadUnavailable,
+    ReadAgain,
     ReloadRequired,
     StaleRevision,
     TranscriptChanged,
@@ -345,7 +346,9 @@ class Uncaptured:
         return False
 
     async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
-        raise ValueError("Transcript paging requires a bound thread")
+        # A page request queued before the view lost its binding: its answer no longer
+        # stands, and the request a new binding makes reads again.
+        raise ReadAgain()
 
     async def publish(self) -> bool:
         """Nothing to publish: the request is done."""
