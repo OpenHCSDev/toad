@@ -57,10 +57,16 @@ async def test_a_tall_arrival_does_not_land_the_session_reader_at_its_bottom(wor
         await ui.until(lambda: window.follows_tail, why="the reader on the tail")
         viewport = window.scrollable_content_region.height
 
+        before = window.max_scroll_y
         comms.messaging.send("peer", "source", "TALL ARRIVAL\n" + "\n".join(
             f"row {row} of a message taller than the window" for row in range(viewport + 12)))
         await ui.until(lambda: "TALL ARRIVAL" in ui.painted(window), why="the tall arrival")
 
+        # The premise, measured rather than assumed: markdown joins single newlines, so a
+        # message built from them can wrap into one paragraph far shorter than intended.
+        assert window.max_scroll_y - before > viewport, (
+            f"the arrival was not taller than the window: max_scroll_y {before} -> "
+            f"{window.max_scroll_y} against a viewport of {viewport}")
         assert window.scroll_y < window.max_scroll_y, (
             f"parked at the bottom of a message taller than the window: "
             f"scroll_y={window.scroll_y} max_scroll_y={window.max_scroll_y} viewport={viewport} "
