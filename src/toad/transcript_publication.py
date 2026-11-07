@@ -1020,10 +1020,17 @@ class TranscriptPresentation:
     async def mark_read(
         self, through: TranscriptCursor, acknowledge: Callable[[TranscriptCursor], None], selected: Callable[[], bool]
     ) -> None:
-        """A replaced source gets one fresh painted cursor, never a fatal read worker."""
+        """A replaced source gets one fresh painted cursor, never a fatal read worker.
+
+        An acknowledgement is in-flight view work: if this source's work was revoked
+        while it ran (suspended, retired, closed or changed), the work that replaced it
+        paints and acknowledges its own cursor, so a stale one asks for nothing."""
+        generation = self.generation
         try:
             await asyncio.to_thread(acknowledge, through)
         except TranscriptChanged:
+            if self.generation != generation:
+                return
             try:
                 fresh = await self.refresh_cursor()
                 if selected():
