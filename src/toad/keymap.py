@@ -115,53 +115,75 @@ class KeymapCatalog:
         """The catalog of the classes declared now. Reading those declarations is a class walk;
         building their bindings is not, so it runs once per distinct set of declarations."""
         discover()
-        return cls.declared(tuple(modes), DOMNode.contexts(), tuple(ApplicationAction.declarations()))
+        return cls.of(tuple(modes), DOMNode.contexts(), tuple(ApplicationAction.declarations()))
 
     @classmethod
     @cache
-    def declared(
+    def of(
         cls,
         modes: tuple[type[KeyMode], ...],
         contexts: tuple[type[DOMNode], ...],
         actions: tuple[type[ApplicationAction], ...],
     ) -> KeymapCatalog:
-        """A function of the declarations it is given, so a context or action declared later is
-        a different argument and never a stale answer. Families a context's keymap_claims reads
-        for itself (Menu reads MenuCommand's members) are settled by discover(), which capture
-        runs first and which imports every toad module."""
+        """The modes' catalogs together: each mode is built once, whichever set asks for it (the
+        editor shows every mode; a conflict check or its message reads one)."""
+        catalogs = tuple(cls.declared(mode, contexts, actions) for mode in modes)
         invocations: dict[KeyInvocationId, KeyInvocation] = {}
-        scopes: dict[type[KeyMode], tuple[tuple[ScopedClaim, ...], ...]] = {}
-        keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
-        for mode in modes:
-            native_mode = mode.binding_mode()
-            application = tuple(KeymapClaim.from_bindings(
-                binding for declaration in actions
-                for binding in declaration.exclusive_bindings(native_mode)
-            ))
-            owned = [application]
-            for owner in contexts:
-                defaults = owner.keymap_claims(native_mode)
-                if not issubclass(owner, ModalScreen):
-                    defaults = (*defaults, *application)
-                owned.append(defaults)
-            scoped: list[tuple[ScopedClaim, ...]] = []
-            for defaults in owned:
-                claims: list[ScopedClaim] = []
-                for claim in defaults:
-                    reference = KeyInvocationId(claim.invocation.key_identity())
-                    invocations.setdefault(reference, claim.invocation)
-                    claims.append(ScopedClaim(KeymapRow(reference, mode), claim.keys))
-                    for key in claim.keys:
-                        keys.setdefault((reference, mode), {})[key] = None
-                scoped.append(tuple(claims))
-            scopes[mode] = tuple(scoped)
-        rows = {mode: MappingProxyType({row.binding_id: row for reference in invocations
-                                         for row in (KeymapRow(reference, mode),)})
-                for mode in modes}
-        return cls(MappingProxyType(invocations), MappingProxyType(scopes), MappingProxyType({
-            (reference, mode): tuple(keys.get((reference, mode), ()))
-            for reference in invocations for mode in modes
-        }), MappingProxyType(rows))
+        for catalog in catalogs:
+            for reference, invocation in catalog.invocations.items():
+                invocations.setdefault(reference, invocation)
+        return cls(MappingProxyType(invocations), MappingProxyType({
+            mode: scopes for catalog in catalogs for mode, scopes in catalog.scopes.items()
+        }), MappingProxyType({
+            (reference, mode): catalog.default_keys.get((reference, mode), ())
+            for reference in invocations for catalog in catalogs for mode in catalog.scopes
+        }), MappingProxyType({mode: cls.mode_rows(mode, invocations) for mode in modes}))
+
+    @staticmethod
+    def mode_rows(mode: type[KeyMode], invocations: Mapping[KeyInvocationId, KeyInvocation],
+                  ) -> Mapping[str, KeymapRow]:
+        return MappingProxyType({row.binding_id: row for reference in invocations
+                                 for row in (KeymapRow(reference, mode),)})
+
+    @classmethod
+    @cache
+    def declared(
+        cls,
+        mode: type[KeyMode],
+        contexts: tuple[type[DOMNode], ...],
+        actions: tuple[type[ApplicationAction], ...],
+    ) -> KeymapCatalog:
+        """One mode's catalog, a function of the declarations it is given, so a context or action
+        declared later is a different argument and never a stale answer. Families a context's
+        keymap_claims reads for itself (Menu reads MenuCommand's members) are settled by
+        discover(), which capture runs first and which imports every toad module."""
+        native_mode = mode.binding_mode()
+        application = tuple(KeymapClaim.from_bindings(
+            binding for declaration in actions
+            for binding in declaration.exclusive_bindings(native_mode)
+        ))
+        owned = [application]
+        for owner in contexts:
+            defaults = owner.keymap_claims(native_mode)
+            if not issubclass(owner, ModalScreen):
+                defaults = (*defaults, *application)
+            owned.append(defaults)
+        invocations: dict[KeyInvocationId, KeyInvocation] = {}
+        keys: dict[KeyInvocationId, dict[str, None]] = {}
+        scoped: list[tuple[ScopedClaim, ...]] = []
+        for defaults in owned:
+            claims: list[ScopedClaim] = []
+            for claim in defaults:
+                reference = KeyInvocationId(claim.invocation.key_identity())
+                invocations.setdefault(reference, claim.invocation)
+                claims.append(ScopedClaim(KeymapRow(reference, mode), claim.keys))
+                for key in claim.keys:
+                    keys.setdefault(reference, {})[key] = None
+            scoped.append(tuple(claims))
+        return cls(MappingProxyType(invocations), MappingProxyType({mode: tuple(scoped)}),
+                   MappingProxyType({(reference, mode): tuple(keys.get(reference, ()))
+                                     for reference in invocations}),
+                   MappingProxyType({mode: cls.mode_rows(mode, invocations)}))
 
     @staticmethod
     def menu_keys(command: MenuCommand, mode: type[KeyMode], keymap: Keymap) -> tuple[str, ...]:
