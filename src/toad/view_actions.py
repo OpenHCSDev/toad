@@ -45,7 +45,10 @@ class OpenBusAction(ViewAction):
     """Pick which bus this Toad opens, including a remote one it holds a profile for."""
 
     title = 'Open a bus'
-    keys = {EditingMode: ('f9',)}
+    # Beside ctrl+b for the sidebar. Not a function key: f8 and f20 are claimed, and the
+    # rest are what tests bind their own fixtures to, so an action taking one steals the
+    # press a keymap test makes to prove nothing answers it.
+    keys = {EditingMode: ('ctrl+shift+b',)}
     show = True
 
     def apply(self, context: ToadNode) -> None:
