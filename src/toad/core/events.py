@@ -37,6 +37,15 @@ class CoreEvent(DeclaredFamily, affix="Event"):
 
     session_scoped: ClassVar[bool] = False
 
+    def refreshes(self, screen: object) -> bool:
+        """Whether this publication is the given screen's to act on.
+
+        A publication owns what it means for the views that receive it, so a screen asks this
+        question instead of classifying events by type. Every event is news to every screen
+        unless its member says otherwise.
+        """
+        return True
+
     def subscribers(self, stream: CoreEventStream):
         for event_type in type(self).__mro__:
             yield from stream.subscriptions.get(event_type, ())
@@ -136,6 +145,10 @@ class SessionSelected(CoreEvent):
 
     mode_name: str
     previous_mode: str
+
+    def refreshes(self, screen: object) -> bool:
+        """Only the arriving tab: a switch is not news to the tabs left behind."""
+        return screen.is_current
 
 
 @dataclass(frozen=True)
