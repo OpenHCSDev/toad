@@ -11,7 +11,8 @@ import click
 import rich
 
 from agent_comms import launch_root
-from agent_comms.active_route import ActiveRoute
+from agent_comms.active_route import CommsRoute
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.repo import Checkout
 from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
@@ -87,7 +88,11 @@ class DefaultCommandGroup(click.Group):
             return super().parse_args(ctx, args)
 
         # Select once at the process boundary; apps receive this captured value.
-        ctx.obj = CoreConnection.select(args, ActiveRoute.published_launch)
+        # A frontend-only install has no published agent runtime yet. The route owner
+        # supplies its normal local default when absent, while a broken route still refuses.
+        ctx.obj = CoreConnection.select(
+            args, lambda: LaunchRoot.from_path(CommsRoute.current().root)
+        )
         # Check if first arg is a known subcommand
         if not args or args[0] not in self.commands:
             # If not a subcommand, prepend the default command name
