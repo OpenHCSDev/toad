@@ -1157,13 +1157,16 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """What this window subtracts from its followed tail: the pagers drawing saved pages.
 
         A live block cascades too and answers `unrevealed_rows` for itself, and it is not in
-        this sum yet. Measured, with it in: the reveal moves the reader every frame while
-        something else re-scrolls to the end between frames, so the tail reaches 55 of 55
-        with 79 rows still unrisen, a 128-paragraph answer never settles its height, and a
-        wheel-up reader moves forward (test_transcript_presentation_fencing,
-        test_window_top_edge). The two fight because this window follows the end, not the
-        tail; making the follow target itself the tail is the change that lets a live block
-        join, and those tests are its guard.
+        this sum. Holding the tail above unrisen rows means scrolling *up*, and scrolling up
+        is how this window asks for older history: with a live block in the sum, a
+        128-paragraph answer kept loading pages behind itself and never settled
+        (test_transcript_presentation_fencing, which stalls on exactly that, both with the
+        reader driven per frame and without).
+
+        Doing it for a live block therefore means the block withholding the height of its
+        unrisen rows, so the end of the document is where the risen rows end and nobody
+        scrolls anywhere. That is a change to what a growing block reports as its height,
+        and that test is its guard.
         """
         return tuple(self.histories)
 
@@ -1173,8 +1176,19 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     @property
     def tail_scroll_y(self) -> float:
-        """The followed tail: the end, less the arriving rows that have not risen yet."""
-        return max(0, self.max_scroll_y - sum(holder.unrevealed_rows() for holder in self.row_holders))
+        """The followed tail: the end, less the arriving rows that have not risen yet, and
+        never more than one window above it.
+
+        A reader held back further than fills the window is off the arrival entirely, and
+        the count can exceed the whole scroll range while a layout is in flight: a live
+        block reports its rows as soon as layout gives it a height, before the document it
+        sits in has grown to hold them. Subtracting that unclamped put the reader at the top
+        of the history mid-layout, which is both wrong and a scroll the layout then has to
+        answer (test_transcript_presentation_fencing stalled on it).
+        """
+        held = min(sum(holder.unrevealed_rows() for holder in self.row_holders),
+                   self.scrollable_content_region.height)
+        return max(0, self.max_scroll_y - held)
 
     def message_too_tall(self, height: int) -> bool:
         """A message taller than the viewport needs its head placed; a short one stays put."""
