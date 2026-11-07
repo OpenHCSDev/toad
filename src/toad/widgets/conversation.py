@@ -14,6 +14,7 @@ from acp import schema as acp_protocol
 from acp.exceptions import RequestError
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.layout_preferences import FollowsLayoutPreferences
+from toad.view_actions import BackToBottomAction
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
@@ -424,10 +425,10 @@ This is a view of your conversation with the agent.
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        # Two rows: what it does, then the key that does it. BackToBottomAction declares
-        # both words, but reading them here would import the screen that reaches this
-        # module through the workspace chrome.
-        self.jump_bar = JumpBar(BackToBottom("Back to bottom\n↓ Esc ↓"))
+        # Two rows: what the action does, then the key that does it. Both words are the
+        # action's own declaration; only the arrows and the row break are the button's.
+        self.jump_bar = JumpBar(BackToBottom(
+            f"{BackToBottomAction.title}\n↓ {BackToBottomAction.key_display} ↓"))
         self.sticky_header = StickyHeader()
 
     def apply_native_layout(self) -> None:

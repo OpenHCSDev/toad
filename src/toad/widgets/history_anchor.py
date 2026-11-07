@@ -21,6 +21,7 @@ from textual.timer import Timer
 from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
+from toad.history_jump import JumpsToLatest
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
 from toad.transcript_state import LatestViewportRequest
@@ -795,8 +796,8 @@ class LatestAction(ReaderAction):
         window.jump_to_latest()
 
 
-class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]], VerticalScroll,
-                    actions=(ReaderAction,)):
+class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
+                    JumpsToLatest, VerticalScroll, actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
