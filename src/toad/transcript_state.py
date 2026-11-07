@@ -319,6 +319,11 @@ class PreparedReplacementViewportRequest(ReplacementViewportRequest):
     async def page(self, owner: TranscriptSourcePreparation, source: PreparedPageSource):
         return self.initial.for_view()
 
+    def defer(self, owner: TranscriptSourcePreparation) -> LatestViewportState:
+        """A commit's page publishes only with its commit, which records the painted cursor and
+        retries itself; drawn later on its own, its rows would show a source the cursor never reached."""
+        return NoLatestRequest()
+
 
 @dataclass(frozen=True, eq=False)
 class WaitingSourceWork[Result]:
