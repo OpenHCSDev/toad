@@ -151,8 +151,10 @@ async def test_a_tall_live_answer_reveals_its_rows_row_after_row(workspace):
         # Its rows are the run the cascade plays across, counted by the layout that drew them.
         assert sum(live.cascade_runs()) > viewport, (
             f"a live answer taller than the window reported {tuple(live.cascade_runs())} rows")
-        # And while that cascade runs, it says how many of them have not risen.
-        held = [live.unrevealed_rows() for _ in range(4) if not await ui.step()]
+        # And while that cascade runs, it says how many of them have not risen. The window
+        # does not subtract them: `HistoryWindow.row_holders` says why, and that is the open
+        # half of Tristan's report.
+        held = [live.unrevealed_rows() for _ in range(6) if not await ui.step()]
         assert any(rows > 0 for rows in held), (
             f"the answer reported nothing still rising while its cascade ran: held={held} "
             f"phase={type(live.effect_phase(ARRIVAL)).__name__}")
