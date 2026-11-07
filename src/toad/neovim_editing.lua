@@ -143,6 +143,15 @@ function ToadEditor.open(lines, cursor, tabstop, mappings)
   generation[buf], completed[buf] = 0, -1
   return buf
 end
+-- The current buffer, complete, as the state its session resumes: its saved mode, no
+-- selection, no command line.
+local function park(buf)
+  completed[buf] = generation[buf] or -1
+  local parked = state()
+  parked.mode = {mode = resumed[buf].mode, blocking = false}
+  parked.regions, parked.selected, parked.command_line = {}, '', ''
+  vim.rpcnotify(channel, 'toad_editor_state', buf, parked)
+end
 function ToadEditor.leave()
   -- Typeahead is ordered, so every key and call this buffer was sent is done by now:
   -- the buffer parks complete, in the mode it will resume, its pending operator cancelled.
@@ -150,11 +159,7 @@ function ToadEditor.leave()
   local code = vim.fn.mode(1):sub(1, 1)
   if not resume[code] then code = 'n' end
   resumed[buf] = {mode = code, cursor = api.nvim_win_get_cursor(0)}
-  completed[buf] = generation[buf] or -1
-  local parked = state()
-  parked.mode = {mode = code, blocking = false}
-  parked.regions, parked.selected, parked.command_line = {}, '', ''
-  vim.rpcnotify(channel, 'toad_editor_state', buf, parked)
+  park(buf)
 end
 function ToadEditor.enter(buf)
   api.nvim_win_set_buf(0, buf)
@@ -178,8 +183,23 @@ end
 function ToadEditor.call(buf, serial, operation, arguments)
   generation[buf] = math.max(generation[buf], serial)
   completed[buf] = -1
+  local current = api.nvim_get_current_buf()
+  if current == buf then
+    local result = operation(unpack(arguments))
+    schedule_publish()
+    return result
+  end
+  -- A call runs once typeahead drains, keys sent after it included, so another session's
+  -- focus may hold the window by now. The call still acts on its own buffer: it visits that
+  -- parked buffer, parks it again complete, and returns the window to the session holding it.
+  local held = api.nvim_win_get_cursor(0)
+  api.nvim_win_set_buf(0, buf)
+  api.nvim_win_set_cursor(0, resumed[buf].cursor)
   local result = operation(unpack(arguments))
-  schedule_publish()
+  resumed[buf].cursor = api.nvim_win_get_cursor(0)
+  park(buf)
+  api.nvim_win_set_buf(0, current)
+  api.nvim_win_set_cursor(0, held)
   return result
 end
 function ToadEditor.load(text)
