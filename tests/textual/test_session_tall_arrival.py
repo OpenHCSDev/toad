@@ -67,3 +67,45 @@ async def test_a_tall_arrival_does_not_land_the_session_reader_at_its_bottom(wor
             f"tail_scroll_y={window.tail_scroll_y} unrevealed={history.unrevealed_rows()} "
             f"phase={type(history.effect_phase(ARRIVAL)).__name__} "
             f"reader={type(window.reader_position).__name__}")
+
+
+async def test_the_tail_never_sits_at_the_bottom_while_rows_are_still_rising(workspace):
+    """Where the reader is *during* the arrival, not after it settles.
+
+    The earlier assertion read the end state, which is the head placed correctly, and so
+    could not see Tristan's report: "it scrolls to the bottom of the message, and then the
+    fade effect happens". This records every frame the terminal received across the arrival.
+    """
+    comms = workspace.comms
+    async with workspace.app(size=(120, 35)) as ui:
+        view, history, window = await session_following_its_tail(workspace, ui, backlog=30)
+        await ui.until(lambda: window.follows_tail, why="the reader on the tail")
+        viewport = window.scrollable_content_region.height
+
+        screen = ui.app.screen
+        published = screen._on_frame_published
+        frames: list[tuple[float, float, int]] = []
+
+        def recording() -> None:
+            published()
+            frames.append((window.scroll_y, window.max_scroll_y, history.unrevealed_rows()))
+
+        screen._on_frame_published = recording
+        try:
+            comms.messaging.send("peer", "source", "TALL ARRIVAL\n" + "\n".join(
+                f"row {row} of a message taller than the window" for row in range(viewport + 12)))
+            await ui.until(lambda: "TALL ARRIVAL" in ui.painted(window), why="the tall arrival")
+            for _ in range(6):
+                await ui.step()
+        finally:
+            screen._on_frame_published = published
+
+        # Vacuous otherwise: a filter on held > 0 that never matches proves nothing.
+        assert any(held > 0 for _scroll, _bottom, held in frames), (
+            f"no frame held a row back, so this arrival never revealed progressively; "
+            f"frames={frames[:12]}")
+        parked = [(scroll, bottom, held) for scroll, bottom, held in frames
+                  if held > 0 and scroll >= bottom]
+        assert not parked, (
+            f"the tail sat at the bottom while {parked[0][2]} rows had not risen; "
+            f"frames={frames[-8:]}")
