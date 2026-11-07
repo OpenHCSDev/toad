@@ -200,3 +200,63 @@ async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypat
         assert "would not hand out a profile" in said[0]
         assert "No tailnet-only endpoint" in said[0], "the peer's own sentence, not a summary"
         assert not isinstance(app.return_value, Reconnected)
+
+
+async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monkeypatch, tmp_path):
+    """Tristan: "histiry of last connected accunukates in the remote bus dialog".
+
+    A held profile and a discovered peer were two rows for one machine: one named by its
+    certificate and grant id, one by its hostname and thread count. The found row wins,
+    because it says which machine and how much is on it.
+    """
+    import time
+
+    from agent_comms.connector_profile import (
+        BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
+    )
+    from agent_comms.connector_store import HeldUiProfiles
+    from agent_comms.nominal.field_codec import RootId
+    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
+    from toad.comms_root import DiscoveredPeer, HeldBus
+    from toad.screens.bus_choice import BusChoices
+    from yarl import URL
+
+    monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
+    for address, name in (("100.119.57.99", "ts-gaming"), ("100.112.213.110", "pixel-8a")):
+        UiConnectionProfile(
+            HttpsMcpEndpoint(URL(f"https://{name}.tail553874.ts.net:8443/mcp")),
+            UiCredential(UiGrantId(f"{ord(name[0]):02x}" * 16), RootId("0" * 32), time.time() + 3600,
+                         BearerSecret("secret")),
+            ReachedRoute(address),
+        ).write_new(tmp_path / f"{name}.json")
+    found = (PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43),)
+    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: found))
+
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        app.push_screen(BusChoices.offered(), app.picked_bus)
+        await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
+        picker = app.screen
+        assert [type(row).__name__ for row in picker.rows] == ["LocalBus", "HeldBus", "HeldBus"]
+        await ui.until(lambda: any(isinstance(row, DiscoveredPeer) for row in picker.rows),
+                       why="the tailnet peer to arrive")
+        kinds = [type(row).__name__ for row in picker.rows]
+        assert kinds == ["LocalBus", "HeldBus", "DiscoveredPeer"], (
+            f"the held row for the found machine is replaced, not stacked beside it: {kinds}")
+        # The one held row left is the machine the tailnet did not report.
+        held = next(row for row in picker.rows if isinstance(row, HeldBus))
+        assert "pixel-8a" in held.label()
+        assert picker.rows[-1].label() == "ts-gaming · 43 threads"
+
+
+def test_a_dialog_fits_a_narrow_window():
+    """Tristan: "the remote buf dialog isnt mobike layout fridnely cant be narrow enough"."""
+    from textual.css.scalar import Unit
+
+    from toad.screens.bus_choice import BusPanel
+
+    panel = BusPanel()
+    panel.apply_native_layout()
+    assert panel.styles.width.unit is Unit.WIDTH, (
+        f"a fixed {panel.styles.width} cannot fit a phone-width window")
+    assert panel.styles.max_width.value == 72, "and it still stops growing on a wide one"

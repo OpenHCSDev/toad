@@ -356,6 +356,11 @@ class PickerRow(ABC):
     def chosen(self, app) -> None:
         """What picking this row does."""
 
+    def same_bus(self, found: PeerHoldsBus) -> bool:
+        """Whether this row is already that machine's bus, so the picker shows one row for
+        it. Most rows are not any machine the tailnet reports; the ones that are say so."""
+        return False
+
 
 class BusChoice(PickerRow):
     """A bus the next launch of this Toad selects.
@@ -411,6 +416,11 @@ class HeldBus(BusChoice):
 
     def label(self) -> str:
         return self.profile.label()
+
+    def same_bus(self, found: PeerHoldsBus) -> bool:
+        """The route this profile was held with names the address it was reached on, which
+        is the address the tailnet reports for that machine."""
+        return self.profile.profile.route.reaches(found.peer.address)
 
     def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
         return (*self.without_profile(argv),

@@ -26,7 +26,10 @@ class BusPanel(SurfacePanel):
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
-        self.styles.width = 72
+        # A share of the window with a ceiling, like every other dialog here (QueuePanel):
+        # a fixed 72 columns does not fit a phone-width terminal, and Tristan's did not.
+        self.styles.width = "90%"
+        self.styles.max_width = 72
         self.styles.height = "auto"
         self.styles.padding = (1, 2)
 
@@ -73,13 +76,22 @@ class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[PickerRow]):
         self.app.call_from_thread(self.discovered, found)
 
     def discovered(self, found) -> None:
-        """Add the peers holding a bus, keeping the rows this machine already offered."""
+        """Add the peers holding a bus, and drop the rows that were already them.
+
+        A machine this one holds a profile for is also a machine the tailnet reports, so it
+        was two rows: one named by its certificate and grant id, one by its hostname and
+        thread count (Tristan: "histiry of last connected accunukates in the remote bus
+        dialog"). The found row wins, because it says which machine and how much is on it,
+        and picking it asks for a profile that replaces the one being dropped.
+        """
         if not self.is_mounted:
             return
         peers = tuple(DiscoveredPeer(entry) for entry in found if entry.openable)
         if not peers:
             return
-        self.rows = (*self.rows, *peers)
+        covered = tuple(row for row in self.rows
+                        if not any(row.same_bus(peer.found) for peer in peers))
+        self.rows = (*covered, *peers)
         self.query_one(Select).set_options(self.options())
         self.query_one(BusPrompt).update(
             f"Open a bus · {len(peers)} found on your tailnet · Esc returns")
