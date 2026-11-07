@@ -150,3 +150,22 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
                 await settled(reading)
         assert set(result.outcomes) == {(message.seq, message.message_id)}
         assert process.peer.process.is_alive()
+
+
+async def test_an_observation_whose_connection_closed_still_ends_its_updates(workspace):
+    """A peer that already dropped must not veto this observation's ending.
+
+    The goodbye is a courtesy; the answering member is the result. Sending it through the dead
+    connection raised out of `stop_updates`, and that escape is what turned a connector outage
+    into `Terminal_crash` (17 logs, 2026-11-06 02:51).
+    """
+    async with workspace.app() as ui:
+        app, _pilot = ui.textual
+        observing = app.coordination_access.observation.observed()
+        # The peer's end is gone: closing the real pipe is the state the connector leaves
+        # behind when the host stops answering, and `closed` is derived from it.
+        observing.process.connection.close()
+        assert observing.process.connection.closed
+        answering = observing.stop_updates()
+        assert type(answering) is LocalAnsweringReads
+        assert answering.process is observing.process

@@ -776,8 +776,17 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         self.views_changed()
 
     def stop_updates(self) -> AnsweringReads:
+        """End this observation's updates, then say so to the peer.
+
+        The answering member is what an observation becomes once its interests end, and it is
+        reached whether or not the peer is still there to hear it: a goodbye sent through a
+        connection the peer already dropped raised `ConnectorObserverClosed` out of
+        `stop_updates`, so a network blip escaped `AsyncResourceRelease._raise_errors` and
+        killed Toad's own teardown (17 `Terminal_crash` logs, 2026-11-06 02:51).
+        """
         super().stop_updates()
-        self.process.request(StopObserving())
+        if not self.process.connection.closed:
+            self.process.request(StopObserving())
         return self.answering(**{item.name: getattr(self, item.name) for item in fields(self)})
 
     def retire(self, access: CoordinationAccess):
