@@ -484,8 +484,17 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     @handles(core_events.ExternalTranscriptChanged, core_events.SessionSelected)
     def external_transcript_changed(self, event: core_events.ExternalTranscriptChanged | core_events.SessionSelected) -> None:
-        if self.is_current:
-            self.presentation.external_transcript_changed()
+        """A transcript's own source changed: its owner reads it, parked or not.
+
+        A parked tab draws nothing, but its presentation still holds the source, and asking
+        only while current dropped the change: the missed range was then read on return, which
+        drew the newest page and the rest afterwards as one burst (Tristan, 2026-11-07). A tab
+        switch is not a source change for the tabs being left, so it refreshes only the
+        destination.
+        """
+        if isinstance(event, core_events.SessionSelected) and not self.is_current:
+            return
+        self.presentation.external_transcript_changed()
 
     def bind_project(self, project: Checkout) -> None:
         """The accepted source and later coordination updates use one project owner."""

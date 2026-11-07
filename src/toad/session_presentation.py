@@ -426,7 +426,12 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresent
         await self.remove_native_tree(screen)
 
     def external_transcript_changed(self) -> None:
-        """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
+        """Refresh the owned view's source, whether it is current or parked.
+
+        A parked tab is hidden, not gone: it keeps its source and reads the change while it
+        is away, so returning draws the rows it missed instead of the newest page followed by
+        the rest as one burst. An unbuilt view reads its source on attach.
+        """
         if self.widget is not None:
             self.sources.external_transcript_changed(self.widget)
 
