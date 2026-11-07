@@ -1,6 +1,6 @@
 """Textual-facing: the tab strip's horizontal scrollbar is drawn above the labels and underline, with matching pointer geometry, as overflow comes and goes."""
 
-from toad.widgets.session_tabs import SessionLabel, SessionsTabs, SessionTabClose, Underline
+from toad.widgets.session_tabs import TAB_SLIDE, SessionLabel, SessionsTabs, SessionTabClose, Underline
 
 HEIGHT = 35
 
@@ -13,9 +13,17 @@ async def open_peers(ui, count: int) -> list[str]:
         ui.app.session_tracker.name_session(
             ui.app.session_navigation.get(identity).identity, f"thread-{index}-long-title")
         peers.append(identity)
+    await strip_settled(ui)
+    return peers
+
+
+async def strip_settled(ui) -> None:
+    """Wait for the strip's scroll animations and its underline's slide, which runs on Toad's own clock."""
     await ui.step()
     await ui.pilot.wait_for_scheduled_animations()
-    return peers
+    underline = ui.app.screen.query_one(SessionsTabs).query_one(Underline)
+    await ui.until(lambda: not underline.effect_phase(TAB_SLIDE).in_motion, why="the underline's slide")
+    await ui.step()
 
 
 def underline_is_painted(ui, tabs, underline, x_from=None, x_to=None):
@@ -142,8 +150,7 @@ async def test_overflow_appearing_on_a_mounted_strip_keeps_the_underline_painted
                     title = (f"pr17-standby-liveness-owner-{index} working on active goal"
                              if long_titles else str(index))
                     app.session_tracker.name_session(session.identity, title)
-                await ui.step()
-                await ui.pilot.wait_for_scheduled_animations()
+                await strip_settled(ui)
                 assert tabs.show_horizontal_scrollbar == long_titles
                 label = tabs.query_one(f"#{owner}", SessionLabel)
                 underline = tabs.query_one(Underline)
