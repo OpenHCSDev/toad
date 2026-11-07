@@ -15,6 +15,7 @@ from textual.worker import Worker, WorkerCancelled
 
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventReceiver
+from toad.frame_presentation import UnrisenRows
 from toad.resource_release import ResourceRelease
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_state import (
@@ -99,8 +100,12 @@ class HistorySourceSnapshot:
         return owner.is_attached and self == owner.source_snapshot()
 
 
-class TranscriptSourcePreparation(CoreEventReceiver):
-    """Shared source preparation; native widget and operational session stay separate."""
+class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
+    """Shared source preparation; native widget and operational session stay separate.
+
+    A pager can hold arriving rows below a following reader (`UnrisenRows`); one whose
+    rows never cascade holds none, which is that contract's default.
+    """
 
 
     pages: deque[TranscriptPageView]
@@ -114,10 +119,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     @property
     def window(self) -> HistoryWindow:
         return self.query_ancestor(HistoryWindow)
-
-    def unrevealed_rows(self) -> int:
-        """Arriving rows that have not started rising: a following reader stops above them."""
-        return 0
 
     def __init__(self, *args, source_state: TranscriptState, page_source: PreparedPageSource, **kwargs):
         self._source_state = source_state
@@ -176,8 +177,16 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.app.show_error(error, "History")
 
     def observe_source(self) -> None:
-        self.window.histories.add(self)
+        self.followed_here()
         self.request_preparation()
+
+    def followed_here(self) -> None:
+        """Register with the window drawing these pages, and keep it: it needs this pager in
+        its tail arithmetic, and this pager needs it to move the reader as rows rise. One
+        call, so a holder is never in the sum without being able to move the reader."""
+        window = self.window
+        window.histories.add(self)
+        self.followed_by(window)
 
     async def on_unmount(self) -> None:
         self._source_observation.close()
@@ -479,7 +488,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def resume_source(self) -> None:
         self._source_state = self._source_state.resume()
-        self.window.histories.add(self)
+        self.followed_here()
         self.source_resumed()
         self.window.check_follow()
         self.request_preparation()

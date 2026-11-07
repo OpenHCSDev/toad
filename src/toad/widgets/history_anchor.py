@@ -21,6 +21,7 @@ from textual.timer import Timer
 from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
+from toad.frame_presentation import FollowsUnrisenRows, UnrisenRows
 from toad.history_jump import JumpsToLatest
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
@@ -797,7 +798,7 @@ class LatestAction(ReaderAction):
 
 
 class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
-                    JumpsToLatest, VerticalScroll, actions=(ReaderAction,)):
+                    JumpsToLatest, FollowsUnrisenRows, VerticalScroll, actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -1152,9 +1153,28 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         self.anchor(False)
 
     @property
+    def row_holders(self) -> tuple[UnrisenRows, ...]:
+        """What this window subtracts from its followed tail: the pagers drawing saved pages.
+
+        A live block cascades too and answers `unrevealed_rows` for itself, and it is not in
+        this sum yet. Measured, with it in: the reveal moves the reader every frame while
+        something else re-scrolls to the end between frames, so the tail reaches 55 of 55
+        with 79 rows still unrisen, a 128-paragraph answer never settles its height, and a
+        wheel-up reader moves forward (test_transcript_presentation_fencing,
+        test_window_top_edge). The two fight because this window follows the end, not the
+        tail; making the follow target itself the tail is the change that lets a live block
+        join, and those tests are its guard.
+        """
+        return tuple(self.histories)
+
+    def rows_revealed(self) -> None:
+        """A frame of a cascade inside this window: the reader goes down with the rows."""
+        self.reader_position.revealed(self)
+
+    @property
     def tail_scroll_y(self) -> float:
         """The followed tail: the end, less the arriving rows that have not risen yet."""
-        return max(0, self.max_scroll_y - sum(history.unrevealed_rows() for history in self.histories))
+        return max(0, self.max_scroll_y - sum(holder.unrevealed_rows() for holder in self.row_holders))
 
     def message_too_tall(self, height: int) -> bool:
         """A message taller than the viewport needs its head placed; a short one stays put."""

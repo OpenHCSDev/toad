@@ -38,7 +38,7 @@ from textual.worker import Worker
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
-from toad.frame_presentation import ARRIVAL
+from toad.frame_presentation import ARRIVAL, ArrivalRun
 from toad.history_coverage import CoveredHistory, HistoryCoverage, ReportsCoveredPages
 from toad.message_rows import RecordedMessageClock
 from toad.native_style import (
@@ -521,19 +521,19 @@ class TranscriptPageView(
         strip = lines.strips_at(fragment.link_place)[row]
         if fragment.key in self.arrivals:
             history = self.history
-            strip = history.effect_phase(ARRIVAL).paint_row(history, ARRIVAL, strip, self.arrival_position(y))
+            strip = history.effect_phase(ARRIVAL).paint(history, ARRIVAL, strip, self.arrival_position(y))
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
     @property
-    def arrival_rows(self) -> range:
-        """The rows this page draws for its arriving fragments, first to last."""
-        rows = [(first, lines.height) for fragment, first, lines in self._layout if fragment.key in self.arrivals]
-        return range(rows[0][0], rows[-1][0] + rows[-1][1]) if rows else range(0)
+    def arrival_run(self) -> ArrivalRun:
+        """The rows this page draws for its arriving fragments, in drawing order."""
+        return ArrivalRun(tuple(
+            range(first, first + lines.height)
+            for fragment, first, lines in self._layout if fragment.key in self.arrivals))
 
     def arrival_position(self, y: int) -> float:
         """How far row `y` is through this page's arriving rows: 0 the first, 1 the last."""
-        rows = self.arrival_rows
-        return (y - rows.start) / (len(rows) - 1) if len(rows) > 1 else 0.0
+        return self.arrival_run.row_position(y)
 
     def hold_fragment_top(self, window: HistoryWindow, key: FragmentKey) -> None:
         """Keep this page's activated source occurrence at the top while its details change."""
@@ -1108,9 +1108,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         # The burst is decided by the cascade's phase.
         self.run_effect(ARRIVAL)
 
-    def unrevealed_rows(self) -> int:
-        phase = self.effect_phase(ARRIVAL)
-        return sum(phase.unrevealed(ARRIVAL, len(page.arrival_rows)) for page in self.pages)
+    def cascade_runs(self) -> Iterable[int]:
+        """One run per page: each page's arriving rows cascade across themselves."""
+        return (page.arrival_run.cascade_rows() for page in self.pages)
 
     def hold_arrival(self, arrivals: tuple[TranscriptFragment, ...]) -> None:
         """The first shown arriving message places a following reader: from its head when it is taller than the window."""
@@ -1127,8 +1127,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         phase = self.effect_phase(ARRIVAL)
         if not fragments and self.is_attached:
             # A clock tick: a following reader goes down with the rows as they rise.
-            window = self.window
-            window.reader_position.revealed(window)
+            self.frame_moved()
         if fragments:
             phase.on_new_arrival(self, ARRIVAL, self.pages)
         positions = {fragment.arrival_position for fragment in (*fragments, *phase.keeps_arrivals(continuing))}

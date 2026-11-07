@@ -1740,7 +1740,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#f4c6ce2e37200f223e2274b3bdde4088ed23265f" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#458ba2588e1f002398374316b3d34033fc59f3b0" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },

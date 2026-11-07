@@ -14,10 +14,10 @@ from textual.app import App
 from textual.geometry import Spacing
 from textual.message import Message
 from textual.widget import Widget
-from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
+from ui_theme.effects import TextFade  # type: ignore[import-untyped]
 
 from toad.block_content import BlockContent
-from toad.frame_presentation import AnimationEffects
+from toad.frame_presentation import ARRIVAL, CascadingRows
 from toad.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import UNPLACED, NewerEnd, OlderEnd, PageEnd, Placed, Unplaced, arranged
 from toad.widgets.transcript_fragments import NO_REST, CursorRest
@@ -342,10 +342,11 @@ class ChildBlockCursor(BlockCursor):
         self._child = NO_ENTRY
 
 
-class ConversationEntry(AnimationEffects[Mix], BlockContent):
+class ConversationEntry(CascadingRows, BlockContent):
     """Conversation content, with an owned atomic cursor by default.
 
-    The rows drawn inside an entry paint its fades (`LinkedRows.arrival`).
+    The rows drawn inside an entry paint its fades (`LinkedRows.arrival`), and report
+    themselves as the runs those fades play across (`CascadingRows.row_runs`).
     """
 
     # Saved source blocks precede this live tail; equal orders retain arrival order.
@@ -357,7 +358,7 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     def starts_agent_activity(self, boundary: AgentActivityBoundary) -> bool:
         return OtherCategory.observe(boundary)
 
-    def repaint(self) -> None:
+    def redraw(self) -> None:
         # The widgets inside the entry draw its rows.
         for widget in cast(Widget, self).walk_children(with_self=True):
             widget.repaint_lines()
@@ -434,9 +435,15 @@ class CategorizedBlock(ConversationEntry):
 
 
 class ConversationBlock(ConversationEntry):
-    """A live entry: it fades into its own colours as it appears."""
+    """A live entry: its rows rise into their own colours row after row as it appears.
 
-    text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
+    The same cascade the saved pages use, so a live arrival and a saved one reveal
+    alike and a following window holds its tail above both (`UnrisenRows`). As one
+    block-wide fade, a tall message appeared whole and the tail sat at its bottom
+    while the text was still rising.
+    """
+
+    text_fades: ClassVar[tuple[TextFade, ...]] = (ARRIVAL,)
 
     if TYPE_CHECKING:
         # Every live block is a widget: the host class supplies its message pump.

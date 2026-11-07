@@ -12,8 +12,6 @@ from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.fresh_private_session import create_fresh_private_session
-from ui_theme.effects import NEW_TEXT
-
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.textual_steps import tool_status
@@ -27,7 +25,8 @@ ANSWER, PEER = "LIVE_ANSWER_ROW", "PEER_SAVED_ROW"
 FIRST_TURN = TurnId("f1e2d3c4b5a697881726354453627180")
 
 
-async def test_every_live_conversation_block_runs_the_arrival_fade_on_mount(workspace):
+async def test_every_live_conversation_block_runs_the_arrival_cascade_on_mount(workspace):
+    """A live block runs the same cascade saved rows run, not a fade over its whole body."""
     async with workspace.app(size=(120, 40)) as ui:
         conversation = ui.conversation
         streamed = await conversation.post(AgentResponse(""))
@@ -36,7 +35,13 @@ async def test_every_live_conversation_block_runs_the_arrival_fade_on_mount(work
             "toolCallId": "read-1", "title": "Read notes", "kind": "read", "status": "completed",
             "content": [{"type": "content", "content": {"type": "text", "text": "notes"}}]})))
         await ui.step()
-        assert [block.effect_phase(NEW_TEXT) is EFFECT_UNSTARTED for block in (streamed, tool)] == [False, False]
+        blocks = (streamed, tool)
+        assert [block.effect_phase(ARRIVAL) is EFFECT_UNSTARTED for block in blocks] == [False, False]
+        # What it plays across is its own rows, so it can say which have not risen.
+        assert [block.text_fades for block in blocks] == [(ARRIVAL,), (ARRIVAL,)]
+        assert all(sum(block.cascade_runs()) > 0 for block in blocks), (
+            f"a live block reporting no rows holds none back: "
+            f"{[tuple(block.cascade_runs()) for block in blocks]}")
 
 
 async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(workspace):
@@ -64,7 +69,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         # The saved history the commit grows: the earlier notice, read once the view binds its thread.
         await ui.until(lambda: "EARLIER_NOTICE" in ui.painted(view.window), why="the saved history")
         history = view.contents.query_one(TranscriptHistory)
-        # Saved history is not a live block: its rows fade as they arrive, not the whole body on mount.
+        # A pager's cascade starts when rows arrive into it, not when it mounts with saved rows.
         assert history.effect_phase(ARRIVAL) is EFFECT_UNSTARTED
         view.window.anchor()
         await deliver(agent, {

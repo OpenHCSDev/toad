@@ -24,7 +24,7 @@ from toad.block_navigation import ConversationEntry
 from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.core_event_carrier import CoreEventReceiver
-from toad.frame_presentation import AnimationEffects
+from toad.frame_presentation import CascadingRows, RowRun
 from toad.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
 from toad.menus import MenuCommand
 from toad.message_rows import MessageRow
@@ -149,10 +149,10 @@ def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
     return Strip.join((*head, painted, *tail))
 
 
-class LinkedRows(OpensLinks):
+class LinkedRows(OpensLinks, RowRun):
     """Draw prepared rows on the native background, using their entry's arrival fade."""
 
-    arrival: AnimationEffects = AnimationEffects()
+    arrival: CascadingRows = CascadingRows()
 
     @cached_property
     def link_place(self) -> int:
@@ -162,6 +162,8 @@ class LinkedRows(OpensLinks):
     def on_mount(self) -> None:
         self.arrival = next((entry for entry in cast(Widget, self).ancestors_with_self
                              if isinstance(entry, ConversationEntry)), LinkedRows.arrival)
+        # The entry's cascade plays across these rows, so it has to know they are here.
+        self.arrival.drawing_rows(self)
 
     @property
     @abstractmethod
@@ -175,7 +177,7 @@ class LinkedRows(OpensLinks):
 
     def on_background(self, strip: Strip, paint: PaintState, y: int, x: int = 0) -> Strip:
         """Apply this entry's arrival fade and the widget's current background."""
-        strip = self.arrival.paint_effects(strip)
+        strip = self.arrival.paint_effects(strip, position=self.row_position(y))
         return strip.apply_style(paint.rich_style).apply_offsets(x, y)
 
     def blank_row(self, width: int, paint: PaintState) -> Strip:
