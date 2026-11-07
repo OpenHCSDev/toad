@@ -8,7 +8,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
@@ -21,6 +21,7 @@ from textual.timer import Timer
 from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
+from toad.frame_presentation import FollowsUnrisenRows, UnrisenRows
 from toad.history_jump import JumpsToLatest
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
@@ -797,7 +798,7 @@ class LatestAction(ReaderAction):
 
 
 class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
-                    JumpsToLatest, VerticalScroll, actions=(ReaderAction,)):
+                    JumpsToLatest, FollowsUnrisenRows, VerticalScroll, actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -1152,9 +1153,24 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         self.anchor(False)
 
     @property
+    def row_holders(self) -> tuple[UnrisenRows, ...]:
+        """Everything mounted here that can hold arriving rows back: the pagers drawing saved
+        pages and the live blocks drawing the newest message. Both cascade, so both are asked:
+        counting only the pagers left a live arrival's tail at the bottom of text still rising.
+
+        Every live block is a `ConversationBlock`, so every one of them cascades; the set
+        itself is typed by what the reader position does with them, which is be widgets.
+        """
+        return (*self.histories, *cast(Iterable[UnrisenRows], self.live_blocks))
+
+    def rows_revealed(self) -> None:
+        """A frame of a cascade inside this window: the reader goes down with the rows."""
+        self.reader_position.revealed(self)
+
+    @property
     def tail_scroll_y(self) -> float:
         """The followed tail: the end, less the arriving rows that have not risen yet."""
-        return max(0, self.max_scroll_y - sum(history.unrevealed_rows() for history in self.histories))
+        return max(0, self.max_scroll_y - sum(holder.unrevealed_rows() for holder in self.row_holders))
 
     def message_too_tall(self, height: int) -> bool:
         """A message taller than the viewport needs its head placed; a short one stays put."""

@@ -15,6 +15,7 @@ from textual.worker import Worker, WorkerCancelled
 
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventReceiver
+from toad.frame_presentation import UnrisenRows
 from toad.resource_release import ResourceRelease
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_state import (
@@ -99,8 +100,12 @@ class HistorySourceSnapshot:
         return owner.is_attached and self == owner.source_snapshot()
 
 
-class TranscriptSourcePreparation(CoreEventReceiver):
-    """Shared source preparation; native widget and operational session stay separate."""
+class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
+    """Shared source preparation; native widget and operational session stay separate.
+
+    A pager can hold arriving rows below a following reader (`UnrisenRows`); one whose
+    rows never cascade holds none, which is that contract's default.
+    """
 
 
     pages: deque[TranscriptPageView]
@@ -114,10 +119,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     @property
     def window(self) -> HistoryWindow:
         return self.query_ancestor(HistoryWindow)
-
-    def unrevealed_rows(self) -> int:
-        """Arriving rows that have not started rising: a following reader stops above them."""
-        return 0
 
     def __init__(self, *args, source_state: TranscriptState, page_source: PreparedPageSource, **kwargs):
         self._source_state = source_state

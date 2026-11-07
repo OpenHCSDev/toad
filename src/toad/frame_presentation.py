@@ -6,9 +6,9 @@ import asyncio
 from collections import deque
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, replace
-from functools import partial
-from typing import TYPE_CHECKING, ClassVar
-from weakref import ref
+from functools import cached_property, partial
+from typing import TYPE_CHECKING, ClassVar, cast
+from weakref import WeakSet, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._paint_state import PaintState
@@ -17,8 +17,8 @@ from textual import events
 from textual.strip import Strip
 from textual.widget import Widget
 from ui_theme.clock import Animation
-from ui_theme.effects import NEW_TEXT, Effect, Fade, Frame, Mix
-from ui_theme.scheme import BackgroundColour
+from ui_theme.effects import NEW_TEXT, Effect, Fade, Frame, Mix, TextFade
+from ui_theme.scheme import BackgroundColour, ThemeColour
 
 from toad.tone_paint import TonePaint
 
@@ -202,7 +202,7 @@ class FramePresentation:
 
 
 @dataclass(frozen=True)
-class Cascade(Effect[Mix]):
+class Cascade(TextFade):
     """One fade played row after row: each row starts `position * span` later.
 
     A burst of rows comes in progressively, top to bottom, instead of rising as
@@ -220,6 +220,11 @@ class Cascade(Effect[Mix]):
     @property
     def frames_per_second(self) -> float:  # type: ignore[override]
         return self.fade.frames_per_second
+
+    @property
+    def start(self) -> type[ThemeColour]:  # type: ignore[override]
+        """Its fade's: re-timing a fade row by row does not change what it rises from."""
+        return self.fade.start
 
     def frame(self, elapsed: float) -> Mix:
         return self.fade.frame(elapsed)
@@ -274,12 +279,12 @@ class EffectPhase:
     def stop(self) -> None:
         """Nothing runs, so nothing stops."""
 
-    def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
-        return owner.paint_effects(strip, owner.effect_frame(effect))
-
-    def paint_row(self, owner: AnimationEffects[Mix], effect: Cascade, strip: Strip, position: float):
-        """One row of a cascade; only a running one has rows at different frames."""
-        return self.paint(owner, effect, strip)
+    def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip,
+              position: float = 0.0):
+        """One row of `owner`, at its place through what the effect plays across: the frame
+        comes from the phase, so a finished, invisible or row-after-row effect all answer
+        in one body (`shown`)."""
+        return owner.paint_effects(strip, owner.effect_frame(effect, position))
 
     def unrevealed(self, effect: Cascade, rows: int) -> int:
         """Rows of a cascade still waiting to rise; only a running one holds any back."""
@@ -308,12 +313,6 @@ class EffectRunning(EffectPhase):
 
     def now(self) -> EffectPhase:
         return EFFECT_FINISHED if self.animation.finished else self
-
-    def paint_row(self, owner: AnimationEffects[Mix], effect: Cascade, strip: Strip, position: float):
-        animation = self.animation
-        shown = (effect.final if animation.finished or not owner.animation_visible
-                 else effect.at(animation.elapsed, position))
-        return owner.paint_effects(strip, shown)
 
     def unrevealed(self, effect: Cascade, rows: int) -> int:
         animation = self.animation
@@ -346,10 +345,79 @@ class EffectFinished(EffectPhase):
 EFFECT_UNSTARTED, EFFECT_FINISHED = EffectUnstarted(), EffectFinished()
 
 
+class RowRun:
+    """Something drawn as a run of rows, which a cascade plays across.
+
+    One declaration of where a row stands in its run, for both kinds of row count:
+    a widget's own layout height, and prepared rows counted from themselves.
+    """
+
+    def cascade_rows(self) -> int:
+        """How many rows the run draws."""
+        return 0
+
+    def row_position(self, y: int) -> float:
+        """How far row `y` is through the run: 0 the first row, 1 the last."""
+        rows = self.cascade_rows()
+        return y / (rows - 1) if rows > 1 else 0.0
+
+
+@dataclass(frozen=True)
+class ArrivalRun(RowRun):
+    """A run whose rows need not be contiguous: the rows a page draws for its arriving
+    fragments, in drawing order.
+
+    Rows between two arriving fragments belong to older messages and are not in the run.
+    Reading the run as the whole span from the first arriving row to the last counted every
+    row in between as arriving, so a following tail stopped that far above the newest
+    message (2026-11-07: "my viewpoert randomly scrolled way up outof nowhere in this clib
+    rbdige inbox").
+    """
+
+    spans: tuple[range, ...] = ()
+
+    def cascade_rows(self) -> int:
+        return sum(len(span) for span in self.spans)
+
+    def row_position(self, y: int) -> float:
+        rows = self.cascade_rows()
+        if rows < 2:
+            return 0.0
+        passed = 0
+        for span in self.spans:
+            if y in span:
+                return (passed + y - span.start) / (rows - 1)
+            passed += len(span)
+        return 0.0
+
+
+class FollowsUnrisenRows:
+    """A scrolling view that keeps a following reader above the rows still rising.
+
+    Implemented by `HistoryWindow`: it owns both the tail and the reader, and the cascades
+    inside it tell it, every frame, that their front has moved (`CascadingRows.cascade_frame`).
+    """
+
+    def rows_revealed(self) -> None:
+        """Another frame of a cascade below: re-place a reader who follows the tail."""
+
+
+class UnrisenRows:
+    """Something that can hold arriving rows below a following reader until they rise.
+
+    A window following its tail stops above them (`HistoryWindow.tail_scroll_y`), so the
+    rows reveal under a tail that waits for them instead of behind one already at the end.
+    Holding nothing back is the default: most of what a window mounts never cascades.
+    """
+
+    def unrevealed_rows(self) -> int:
+        return 0
+
+
 class AnimationEffects[FrameT: Frame](TonePaint):
     """A native widget whose effect uses the app clock and published visibility."""
 
-    text_fades: ClassVar[tuple[Fade, ...]] = ()
+    text_fades: ClassVar[tuple[TextFade, ...]] = ()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -429,6 +497,17 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         return screen is current and self in screen._compositor.visible_widgets
 
     def repaint(self) -> None:
+        """What the clock calls on each frame of this widget's effects: what the frame moved,
+        then the redraw that shows it. Two questions, so two methods: every widget here has a
+        redraw policy and overrode this one for it, which left a frame with nowhere to say
+        that a reveal had advanced."""
+        self.frame_moved()
+        self.redraw()
+
+    def frame_moved(self) -> None:
+        """What this frame changed beyond the widget's own pixels; nothing, for most."""
+
+    def redraw(self) -> None:
         """A frame paints over the lines (paint_effects in render_line); the content they
         show is unchanged, so it is not rendered again."""
         self.repaint_lines()
@@ -438,12 +517,55 @@ class EffectInContent:
     """A widget whose content itself reads the effect frame (in render or its strips), so each
     frame renders the content again instead of repainting the same lines."""
 
-    def repaint(self) -> None:
+    def redraw(self) -> None:
         self.refresh()
 
 
-class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget):
-    """A widget whose own rendered rows receive its declared text fades."""
+class CascadingRows(UnrisenRows, AnimationEffects[Mix]):
+    """A widget whose arriving rows rise one after another, in runs it declares.
+
+    Each run holds its own rows back while its front climbs, which is why the pager
+    reports per page and a live entry per row widget: the cascade restarts with each
+    run, so one run's unrisen rows say nothing about another's.
+    """
+
+    @cached_property
+    def row_runs(self) -> WeakSet[RowRun]:
+        """Every prepared-row widget drawing inside this one; each adds itself when it mounts,
+        so an entry needs no DOM query and no import of the widget that draws its rows."""
+        return WeakSet()
+
+    def drawing_rows(self, run: RowRun) -> None:
+        self.row_runs.add(run)
+
+    def cascade_runs(self) -> Iterable[int]:
+        """Each run of arriving rows this widget draws, by row count."""
+        return (run.cascade_rows() for run in self.row_runs)
+
+    def unrevealed_rows(self) -> int:
+        phase = self.effect_phase(ARRIVAL)
+        return sum(phase.unrevealed(ARRIVAL, rows) for rows in self.cascade_runs())
+
+    def frame_moved(self) -> None:
+        """The cascade's front has moved down since the last frame, so the window above
+        re-places a reader following the tail. Reporting rows held back is not enough on its
+        own: nothing re-reads the tail between frames, so a window already at the end stayed
+        there while the rows rose under it."""
+        if not self.is_attached:
+            return
+        for ancestor in cast(Widget, self).ancestors_with_self:
+            if isinstance(ancestor, FollowsUnrisenRows):
+                ancestor.rows_revealed()
+                return
+
+
+class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget, RowRun):
+    """A widget whose own rendered rows receive its declared text fades.
+
+    `RowRun` sits after `Widget` because the row widgets it shares that contract with
+    reach it behind their own message pump (`LinkedRows`): one order for both, or a
+    class that is both has no linearization.
+    """
 
     drawn_rows: int = 0
     """How many rows the last layout gave this widget; a row's place is read from it."""
@@ -457,6 +579,5 @@ class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget):
     def render_line(self, y: int, paint: PaintState) -> Strip:
         return self.paint_effects(super().render_line(y, paint), position=self.row_position(y))
 
-    def row_position(self, y: int) -> float:
-        """How far row `y` is through this widget: 0 the first row, 1 the last."""
-        return y / (self.drawn_rows - 1) if self.drawn_rows > 1 else 0.0
+    def cascade_rows(self) -> int:
+        return self.drawn_rows
