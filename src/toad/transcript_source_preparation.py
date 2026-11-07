@@ -94,8 +94,9 @@ class HistorySourceSnapshot:
         Being on screen decides whether rows can be drawn, not whether the read may
         finish: requiring it here discarded every read a tab started while it was
         not visible, so the whole missed run loaded in one burst on return.
+        A history that has left its window holds no source, so no snapshot is current.
         """
-        return self == owner.source_snapshot()
+        return owner.is_attached and self == owner.source_snapshot()
 
 
 class TranscriptSourcePreparation(CoreEventReceiver):
