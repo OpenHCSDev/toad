@@ -61,7 +61,9 @@ async def open_column_width_editor(ui, app):
 async def palette(ui, app, query, completed):
     await ui.press('ctrl+p')
     await ui.until(lambda: isinstance(app.screen, CommandPalette), why="the command palette")
-    assert await ui.textual[1].click(app.screen.query_one(Input))
+    field = app.screen.query_one(Input)
+    await ui.until_clickable(field, why="the palette's input drawn")
+    assert await ui.textual[1].click(field)
     await ui.type(query)
     await ui.until(lambda: app.screen.query_one(OptionList).option_count > 0, why="palette matches")
     await ui.press('enter')
@@ -112,11 +114,7 @@ async def test_new_session_button_opens_creation_and_tab_close_keeps_the_origina
         await ui.step()
         new = app.screen.query_one(CommsSidebar).query_one(NewSessionButton)
         new.scroll_visible(animate=False, immediate=True)
-        # A click reaches what the published frame shows (compositor
-        # published_widgets), not a newer layout that has not been written yet.
-        await ui.until(lambda: new.region.width > 3 and new.region.height > 0
-                       and app.screen.get_widget_at(new.region.x + 3, new.region.y)[0] is new,
-                       why="the new-session control to be shown where it is clicked")
+        await ui.until_clickable(new, (3, 0), why="the new-session control to be shown where it is clicked")
         assert await ui.textual[1].click(new, offset=(3, 0))
         await ui.until(lambda: isinstance(app.screen, CommandDialog),
                        why="the declared new-thread creation form")

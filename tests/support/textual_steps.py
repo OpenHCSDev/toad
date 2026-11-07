@@ -53,27 +53,6 @@ async def reveal_session_details(ui, target=None):
     return details
 
 
-async def command_dialog(ui, *, seconds: float = 20):
-    """Wait for the command dialog to be mounted, focused on its name field and clickable."""
-    from textual.widgets import Input
-    from toad.widgets.comms_command_dialog import CommandDialog
-
-    def usable():
-        dialog = ui.app.screen
-        if not (isinstance(dialog, CommandDialog) and dialog.is_mounted and dialog.is_attached):
-            return False
-        field = dialog.form.values.get("name")
-        entry = field.editor if field is not None else None
-        return (isinstance(entry, Input) and entry.is_mounted and entry.is_attached
-                and dialog.focused is entry and ui.app.focused is entry
-                and entry.region.width > 0 and entry.region.height > 0
-                and entry.region.offset in dialog.size.region
-                and dialog.get_widget_at(*entry.region.offset)[0] is entry)
-
-    await ui.until(usable, seconds=seconds, why="the command dialog")
-    return ui.app.screen
-
-
 async def refresh_chat(view) -> None:
     """Run the chat view's history read now and wait for it; a view that is not shown reads nothing."""
     history = view.message_history

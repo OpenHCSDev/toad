@@ -20,6 +20,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from textual.actions import StyleAction
+from textual.errors import NoWidget
+from textual.geometry import Offset
 
 from rich.cells import cell_len
 from support.agents import AppAgents, command
@@ -275,6 +277,24 @@ class TextualUi(AppAgents, Ui):
 
     def visible_lines(self) -> list[str]:
         return [strip.text for strip in self.app.screen._compositor.render_strips()]
+
+    def clickable(self, widget, offset: tuple[int, int] = (0, 0)) -> bool:
+        """Whether a click at `offset` in `widget` reaches it: a click lands on what the
+        published frame shows there, which a newly pushed or moving widget may not be yet."""
+        if not widget.is_attached:
+            return False
+        region, screen = widget.region, widget.screen
+        point = Offset(region.x + offset[0], region.y + offset[1])
+        if point not in region or point not in screen.size.region:
+            return False
+        try:
+            return screen.get_widget_at(*point)[0] is widget
+        except NoWidget:
+            # A screen pushed since the last frame has none of its widgets placed yet.
+            return False
+
+    async def until_clickable(self, widget, offset: tuple[int, int] = (0, 0), *, why: str) -> None:
+        await self.until(lambda: self.clickable(widget, offset), why=why)
 
     async def menu(self, why: str) -> dict:
         """The open context menu's actions and their labels, once it shows."""
