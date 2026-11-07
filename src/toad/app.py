@@ -409,29 +409,27 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     async def _switch_mode_ready(self, mode: str, visited: Callable[[TabIdentity], object]) -> None:
         async with self._mode_switch_lock:
             previous = self.selected_mode
-            try:
-                # Source retirement and native preparation may await I/O,
-                # child pumps or compensated layout. Their original owners
-                # fence those mutations; holding a global paint batch here
-                # also withholds the frames those operations may need.
-                if self.current_mode != "workspace":
-                    await super().switch_mode("workspace")
-                # A switch is several frames of work: hold the workspace's
-                # frames and let the loop run due input and timers between steps, so input is
-                # never held behind the whole switch and no half-switched
-                # scene is written. Layout still runs for steps that measure.
-                with self.workspace_screen.hold_frames():
-                    await self.workspace_sessions.select(mode)
-                    await after_input()
-                    await self.workspace_screen.prepare_navigation()
-                    await after_input()
-                    await self.workspace_screen.layout_navigation()
-                if mode != previous:
-                    if entry := self.session_navigation.get(mode):
-                        visited(entry.identity)
-                    self.events.publish(core_events.SessionSelected(mode, previous))
-            finally:
-                self.screen.refresh()
+            # Source retirement and native preparation may await I/O,
+            # child pumps or compensated layout. Their original owners
+            # fence those mutations; holding a global paint batch here
+            # also withholds the frames those operations may need.
+            if self.current_mode != "workspace":
+                await super().switch_mode("workspace")
+            # A switch is several frames of work: hold the workspace's
+            # frames and let the loop run due input and timers between steps, so input is
+            # never held behind the whole switch and no half-switched
+            # scene is written. Layout still runs for steps that measure.
+            # Releasing the hold repaints the screen it held, however the switch ends.
+            with self.workspace_screen.hold_frames():
+                await self.workspace_sessions.select(mode)
+                await after_input()
+                await self.workspace_screen.prepare_navigation()
+                await after_input()
+                await self.workspace_screen.layout_navigation()
+            if mode != previous:
+                if entry := self.session_navigation.get(mode):
+                    visited(entry.identity)
+                self.events.publish(core_events.SessionSelected(mode, previous))
 
 
     @property
