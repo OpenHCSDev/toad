@@ -246,11 +246,19 @@ class SubmissionExecution(SubmissionStart):
         """A native input start answers only the agent prompt that requested it."""
 
 
-class PromptPhase(ABC):
-    """Whether the agent has started this prompt: until it does, the prompt still shows as submitting."""
+class SubmittingPhase(ABC):
+    """Whether a submission still shows as submitting: its destination has not taken it yet.
+
+    Both kinds of destination answer this, so both kinds of execution read their own
+    phase for it instead of each deciding again from whatever is in reach.
+    """
 
     @abstractmethod
     def submitting(self, text: str) -> tuple[str, ...]: ...
+
+
+class PromptPhase(SubmittingPhase):
+    """Whether the agent has started this prompt: until it does, the prompt still shows as submitting."""
 
 
 class PromptUnstarted(PromptPhase):
@@ -323,7 +331,7 @@ class AgentSubmissionExecution(SubmissionExecution):
             await self.owner.view.agent_turn_over(reason)
 
 
-class BusOutcome(ABC):
+class BusOutcome(SubmittingPhase):
     """Where a bus send stands: only a sent message can be drawn by its view."""
 
     def drawn_by(self, view: DeliveryFailureView) -> bool:
@@ -333,9 +341,17 @@ class BusOutcome(ABC):
 class NotYetSent(BusOutcome):
     """Still queued or on its way to Core."""
 
+    def submitting(self, text: str) -> tuple[str, ...]:
+        return (text,)
+
 
 class DeliveryOutcome(BusOutcome):
     """What Core's answer leaves the execution to do."""
+
+    def submitting(self, text: str) -> tuple[str, ...]:
+        """Core answered, so nothing is being submitted: the entry that stays is waiting
+        to be drawn, which is not the same thing as a message still on its way."""
+        return ()
 
     @abstractmethod
     async def settle_into(self, execution: BusSubmissionExecution) -> None: ...
@@ -380,7 +396,9 @@ class BusSubmissionExecution(SubmissionExecution):
         return self.destination.shown()
 
     def delivering(self) -> tuple[str, ...]:
-        return (self.submission.text,) if self.current else ()
+        """The outcome owns whether this is still submitting; `current` only says the
+        destination is still shown, which is a different question."""
+        return self.outcome.submitting(self.submission.text) if self.current else ()
 
     def retire_unsent(self) -> None:
         """A message to a view that changed before it left comes back as the draft."""
