@@ -314,6 +314,7 @@ class BackToBottomAction(ViewAction):
 
     title = "Back to bottom"
     keys = {EditingMode: ("escape",)}
+    key_display = "Esc"
     priority = True
 
     def available(self, context: WorkspaceScreen) -> bool:

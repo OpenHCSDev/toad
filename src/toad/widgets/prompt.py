@@ -980,17 +980,19 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.prompt_label.refresh()
 
     def enter_insert(self) -> None:
-        """Vim `i`: show the latest prompt, ready for text entry.
+        """Vim `i`: ready the prompt for text entry, where the reader already is.
+
+        Typing is not reading: somebody scrolled up to quote or check something and
+        then pressed `i` to answer it, so this keeps their place instead of jumping
+        the transcript to the latest message under them.
 
         Textual composes the editor before it marks the prompt mounted, so a key
         pressed while a tab is still opening has no editor to act on yet.
         """
         if not self.is_mounted:
             return
-        from toad.widgets.conversation import Conversation
-
         self.prompt_text_area.editing_mode.enter_text(self.prompt_text_area)
-        self.conversation.focus_prompt()
+        self.conversation.focus_prompt(scroll_end=False)
 
     @property
     def typing_target(self) -> Widget:
