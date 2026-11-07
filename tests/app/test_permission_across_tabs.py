@@ -23,7 +23,7 @@ async def test_permission_asked_while_another_tab_is_shown_is_answered_on_return
     async with workspace.app(size=(110, 40), binding=AgentAttached(peer("scripted"))) as ui:
         await ui.until_agent_ready()
         first = ui.selected_tab
-        agent = ui.conversation.agent_binding
+        agent = ui.selected_agent()
         await ui.write_draft(script({"wait": "hidden"}, {"ask": "PERMISSION_WHILE_HIDDEN"}))
         await ui.press("enter")
         await ui.new_session()
