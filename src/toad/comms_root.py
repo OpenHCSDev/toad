@@ -419,20 +419,26 @@ class HeldBus(BusChoice):
 
 @dataclass(frozen=True)
 class DiscoveredPeer(PickerRow):
-    """A tailnet machine holding a bus this one has no profile for.
+    """A tailnet machine holding a bus this one has no profile for yet.
 
-    Shown rather than hidden: a machine whose bus is right there and unreachable is the row
-    the owner needs to see, and picking it says what it needs instead of doing nothing.
+    Picking it asks that machine for one. It had to say "grant one over there and hold it
+    here" while the hoop it described was a person carrying a file between two machines that
+    can already talk.
     """
 
     found: PeerHoldsBus
 
     def label(self) -> str:
-        return f"{self.found.label()} · hold a profile to open it"
+        return self.found.label()
 
     def chosen(self, app) -> None:
-        app.notify(f"{self.found.peer.name} needs a UI profile: grant one on that machine and "
-                   f"hold it here with agent-comms-connector hold-ui.", severity="warning")
+        """Ask it for a profile and open it: a bus on your own tailnet needs no errand.
+
+        Tristan: "it's a bus on my private tailnet why would want to have to jupm throuhg
+        hoops". The peer decides whether its endpoint is tailnet-only and says no itself
+        when it is not (agent_comms.served_endpoints.ProfileOffer).
+        """
+        app.ask_peer_for_profile(self.found)
 
 
 @dataclass(frozen=True)

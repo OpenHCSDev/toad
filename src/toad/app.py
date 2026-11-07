@@ -2,13 +2,14 @@ from toad.core import events as core_events
 from agent_comms.storage.locked_store import RootFile
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
-from toad.comms_root import BusChoice, CoreConnection, PickerRow
+from toad.comms_root import BusChoice, CoreConnection, HeldBus, PickerRow
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 from toad.neovim_editing import HostsNeovim
 import asyncio
 import signal
+import time
 import gc
 import sys
 import json
@@ -20,8 +21,11 @@ from time import monotonic
 from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
+from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.repo import Checkout
+from agent_comms.tailnet_buses import PeerHoldsBus
+from agent_comms.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
 from agent_comms.root_runtime import RootRuntime
 from toad.core import input_events
 from rich.console import RenderableType
@@ -244,6 +248,33 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def open_bus(self, choice: BusChoice) -> None:
         """End this session onto a bus the reader picked."""
         self.exit(Reconnected(LaunchRuntime.running(), choice))
+
+    @work(exclusive=True, group="peer-profile", thread=True)
+    def ask_peer_for_profile(self, found: PeerHoldsBus) -> None:
+        """Ask a discovered peer to hand over a profile, then open its bus.
+
+        In a thread because it is one ssh call to another machine: on the message pump it
+        would hold every frame for as long as that machine takes to answer.
+        """
+        self.call_from_thread(self.asked_peer, TailnetProfiles.ask(found))
+
+    def asked_peer(self, asked: AskedPeer) -> None:
+        """What the peer answered: its bus, or the reason in the words it used.
+
+        The profile it handed over is read back through the held family rather than assumed
+        openable, because that family is what says whether a held file can open a bus; a
+        fresh one that reads back expired or unreadable is worth saying out loud.
+        """
+        match asked:
+            case HoldingPeerProfile(path=path):
+                match HeldUiProfiles.entry(path, time.time()):
+                    case OpenableProfile() as openable:
+                        self.open_bus(HeldBus(openable))
+                    case held:
+                        self.notify(f"{asked.found.peer.name} handed over a profile this "
+                                    f"machine cannot open: {held.label()}", severity="warning")
+            case _:
+                self.notify(asked.reason(), severity="warning")
 
     def relaunch(self) -> None:
         running = LaunchRuntime.running()

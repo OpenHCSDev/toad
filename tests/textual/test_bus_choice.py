@@ -107,20 +107,24 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
         assert not isinstance(app.return_value, Reconnected), "nothing is opened by showing a list"
 
 
-async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch):
+async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch, tmp_path):
     """Tristan: "it only detects this machine shohld detect gaming desktop".
 
     The dialog opens on what this machine knows and asks the tailnet after, so the probe is
-    stubbed here: what matters is that a found peer becomes a row, and that picking it says
-    what it needs instead of relaunching onto a bus there is no profile for.
+    stubbed here: what matters is that a found peer becomes a row named by what it holds.
     """
     from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
     from toad.comms_root import DiscoveredPeer
     from toad.screens.bus_choice import BusChoices
 
+    from agent_comms.connector_store import HeldUiProfiles
+
     found = (PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43),
              PeerHoldsBus(TailnetPeer("desktop", "100.124.133.120", True), 247))
     monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: found))
+    # This machine's own held profiles are not this test's subject, and a real one in the
+    # owner's home would be a row here.
+    monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
@@ -130,10 +134,69 @@ async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch
         assert [type(row).__name__ for row in picker.rows] == ["LocalBus"], "instant rows first"
         await ui.until(lambda: len(picker.rows) == 3, why="the tailnet peers to arrive")
         assert [row.label() for row in picker.rows[1:]] == [
-            "ts-gaming · 43 threads · hold a profile to open it",
-            "desktop · 247 threads · hold a profile to open it"]
-        # Picking one explains what it needs; it does not relaunch onto a bus with no profile.
-        picker.rows[1].chosen(app)
-        await ui.step()
+            "ts-gaming · 43 threads", "desktop · 247 threads"]
+        assert all(isinstance(row, DiscoveredPeer) for row in picker.rows[1:])
+
+
+async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace, monkeypatch, tmp_path):
+    """Tristan: "it's a bus on my private tailnet why would want to have to jupm throuhg hoops".
+
+    The ask is one ssh call to that machine's own connector, stubbed here; what matters is
+    that picking the row ends this session onto the bus the peer handed over, with no errand
+    in between.
+    """
+    import time
+    from agent_comms.connector_profile import (
+        BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
+    )
+    from agent_comms.connector_store import HeldUiProfiles
+    from agent_comms.nominal.field_codec import RootId
+    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
+    from agent_comms.tailnet_profiles import HoldingPeerProfile, PeerRefusedProfile, TailnetProfiles
+    from toad.comms_root import DiscoveredPeer, HeldBus
+    from yarl import URL
+
+    found = PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
+    profile = UiConnectionProfile(
+        HttpsMcpEndpoint(URL("https://ts-gaming.tail553874.ts.net:8443/mcp")),
+        UiCredential(UiGrantId("b" * 32), RootId("0" * 32), time.time() + 3600,
+                     BearerSecret("secret")),
+        ReachedRoute("100.119.57.99"))
+    monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
+    held = profile.write_new(tmp_path / f"ts-gaming-{profile.credential.grant_id}.json")
+    monkeypatch.setattr(TailnetProfiles, "ask",
+                        classmethod(lambda cls, peer: HoldingPeerProfile(peer, held)))
+
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        DiscoveredPeer(found).chosen(app)
+        await ui.until(lambda: isinstance(app.return_value, Reconnected),
+                       why="the session to end onto the peer's bus")
+        opened = app.return_value.choice
+        assert isinstance(opened, HeldBus)
+        assert str(opened.profile.profile.endpoint.url).endswith(":8443/mcp")
+        from toad.comms_root import RemoteCoreConnection
+        assert opened.arguments(("toad",))[-2:] == (RemoteCoreConnection.argument, str(held)), (
+            "the next launch names the profile the peer handed over")
+
+
+async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypatch):
+    """A public endpoint refuses, and the reason belongs on screen, not in a log."""
+    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
+    from agent_comms.tailnet_profiles import PeerRefusedProfile, TailnetProfiles
+    from toad.comms_root import DiscoveredPeer
+
+    found = PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
+    monkeypatch.setattr(TailnetProfiles, "ask", classmethod(
+        lambda cls, peer: PeerRefusedProfile(peer, "No tailnet-only endpoint serves 127.0.0.1:18766")))
+
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        said: list[str] = []
+        monkeypatch.setattr(type(app), "notify",
+                            lambda self, message, **options: said.append(message))
+        DiscoveredPeer(found).chosen(app)
+        await ui.until(lambda: said, why="the peer's refusal on screen")
+        assert "would not hand out a profile" in said[0]
+        assert "No tailnet-only endpoint" in said[0], "the peer's own sentence, not a summary"
         assert not isinstance(app.return_value, Reconnected)
-        assert isinstance(picker.rows[1], DiscoveredPeer)
