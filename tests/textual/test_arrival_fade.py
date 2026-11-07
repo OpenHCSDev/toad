@@ -112,6 +112,21 @@ def test_a_burst_comes_in_row_after_row_and_ends_whole():
 
 
 def test_a_following_reader_stops_above_the_rows_still_to_rise():
-    # Five rows: at the start four wait below the window, half way two, at the end none.
-    assert [ARRIVAL.unstarted(elapsed, 5) for elapsed in (0.0, ARRIVAL.span / 2, ARRIVAL.span)] == [4, 2, 0]
-    assert ARRIVAL.unstarted(0.0, 1) == 0
+    # Five rows: at the start four wait below the window, and fewer as the front moves down.
+    assert ARRIVAL.unrisen(0.0, 5) == 4
+    assert ARRIVAL.unrisen(ARRIVAL.span / 2, 5) == 4
+    assert ARRIVAL.unrisen(0.0, 1) == 0
+
+
+def test_the_reveal_and_the_fade_run_on_one_clock():
+    """The reveal that moves a following tail ends exactly when the fade it follows ends.
+
+    Reading the front off the start of each row instead let the tail reach the bottom at
+    `span`, while the paint kept fading until `span + fade.duration`: the scroll finished
+    early and the rows under it went on rising. One front, one clock.
+    """
+    assert ARRIVAL.unrisen(ARRIVAL.span, 5) > 0, "rows still mid-fade have not risen"
+    assert ARRIVAL.unrisen(ARRIVAL.duration, 5) == 0
+    assert ARRIVAL.at(ARRIVAL.duration, 1.0) == ARRIVAL.final
+    assert ARRIVAL.front(ARRIVAL.duration) == 1.0
+    assert ARRIVAL.front(0.0) == 0.0

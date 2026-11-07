@@ -223,15 +223,30 @@ class Cascade(Effect[Mix]):
     def frame(self, elapsed: float) -> Mix:
         return self.fade.frame(elapsed)
 
+    def began(self, position: float) -> float:
+        """When the row `position` (0 first, 1 last) of the way through starts to rise."""
+        return position * self.span
+
     def at(self, elapsed: float, position: float) -> Mix:
         """The frame of a row `position` (0 first, 1 last) of the way through the cascade."""
-        return self.fade.frame(elapsed - position * self.span)
+        return self.fade.frame(elapsed - self.began(position))
 
-    def unstarted(self, elapsed: float, rows: int) -> int:
-        """How many of `rows` have not started rising yet: they are still below what the reader sees."""
+    def front(self, elapsed: float) -> float:
+        """How far through the cascade the risen front stands, 0 to 1.
+
+        A row is risen when its own fade has finished, which is `fade.duration` after
+        that row began. Reading the front off the start of each row instead would put
+        it at 1 while the last rows were still mid-fade, which is a second clock for
+        one animation: the paint would still be running and a following tail would
+        already sit at the bottom.
+        """
+        return min(1.0, max(0.0, (elapsed - self.fade.duration) / self.span)) if self.span else 1.0
+
+    def unrisen(self, elapsed: float, rows: int) -> int:
+        """How many of `rows` have not risen yet: they are still below what the reader reads."""
         if rows < 2:
             return 0
-        return max(0, rows - 1 - int(elapsed / self.span * (rows - 1)))
+        return max(0, rows - 1 - int(self.front(elapsed) * (rows - 1)))
 
     @property
     def final(self) -> Mix:
@@ -297,7 +312,7 @@ class EffectRunning(EffectPhase):
 
     def unrevealed(self, effect: Cascade, rows: int) -> int:
         animation = self.animation
-        return 0 if animation.finished else effect.unstarted(animation.elapsed, rows)
+        return 0 if animation.finished else effect.unrisen(animation.elapsed, rows)
 
     def stop(self) -> None:
         self.animation.stop()
