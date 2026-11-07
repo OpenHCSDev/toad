@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from toad.widget_actions import Action
+from agent_comms.nominal.declared_family import DeclaredFamily
 from toad.agent_schema import Command
 
 if TYPE_CHECKING:
@@ -12,8 +12,15 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class CatalogCommandAction(Action, affix="Action"):
-    """A bounded selector binding references the original configured record."""
+class CatalogCommandAction(DeclaredFamily, affix="Action"):
+    """A bounded selector binding references the original configured record.
+
+    Its whole interface is the one `ActionModal` reads: `command_complete` and `description`.
+    It is not a key-binding `Action`, which declares `apply(context)` abstract for members a
+    widget applies to a context; inheriting that made every member uninstantiable, and login
+    died with "Can't instantiate abstract class RunAction without an implementation for
+    abstract method 'apply'" (Toad log WorkerFailed_2026-11-07T14_00_38, at `provider_login`).
+    """
 
     name: str
     command: Command
