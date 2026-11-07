@@ -13,7 +13,7 @@ from toad.tab_identity import TabIdentity
 
 class TabOrder:
     def __init__(
-        self, focus: Callable[[TabIdentity, int | None], object], home: str, db: DB,
+        self, focus: Callable[[TabIdentity], object], home: str, db: DB,
         scopes: tuple[TabScope, ...],
     ) -> None:
         # What is shown while no tab is open.
@@ -105,12 +105,15 @@ class TabOrder:
         return None
 
     def navigate(self, direction: int) -> None:
+        """The cursor moves when the step is taken: a switch runs over several frames, and
+        a second step taken meanwhile counts from this one, not from where it started."""
         if target := self.history_target(direction):
             index, mode = target
-            if mode == self._visits[self._cursor]:
-                self.record_visit(mode, index)
-            else:
-                self._focus(mode, index)
+            switching = mode != self._visits[self._cursor]
+            self._cursor = index
+            self.events.publish(TabHistoryChanged())
+            if switching:
+                self._focus(mode)
 
     def came_from(self, current: TabIdentity) -> str:
         """The tab selected before ``current``: the newest other visit, then the open tabs;
@@ -120,19 +123,13 @@ class TabOrder:
             current.mode_name if current in self else self.home,
         )
 
-    def record_visit(self, mode: TabIdentity, history_index: int | None = None) -> None:
+    def record_visit(self, mode: TabIdentity) -> None:
+        """A new visit: it drops the steps ahead of the cursor and becomes the newest."""
         if mode not in self:
             return
-        if (
-            history_index is not None
-            and 0 <= history_index < len(self._visits)
-            and self._visits[history_index] == mode
-        ):
-            self._cursor = history_index
-        else:
-            del self._visits[self._cursor + 1 :]
-            self._visits.append(mode)
-            self._cursor = len(self._visits) - 1
+        del self._visits[self._cursor + 1 :]
+        self._visits.append(mode)
+        self._cursor = len(self._visits) - 1
         self.events.publish(TabHistoryChanged())
 
     async def close(self, modes: Collection[TabIdentity]) -> None:
