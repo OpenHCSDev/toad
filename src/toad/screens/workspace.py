@@ -17,7 +17,9 @@ from textual.screen import Screen
 from textual.view import WidgetView
 from textual.widget import Widget
 
-from toad.widget_actions import WidgetAction, ProfileKeys
+from toad.widget_actions import ProfileKeys
+from toad.history_jump import JumpsHistory, JumpsToLatest
+from toad.view_actions import ViewAction
 from toad.workspace_chrome import WorkspaceBody
 from toad.widgets.comms_transfer import WireExportProgressView
 
@@ -77,27 +79,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         )
 
 
-class ViewAction(WidgetAction, affix="Action"):
-    pass
-
-
-class ShowSidebarAction(ViewAction):
-    title = 'Sidebar'
-    keys = {EditingMode: ('ctrl+b', 'f20')}
-    show = True
-
-    def available(self, context: WorkspaceFrame) -> bool:
-        sidebar = context.app.workspace_chrome.channels
-        return sidebar.display and not sidebar.has_focus_within
-
-    def apply(self, context: WorkspaceFrame) -> None:
-        sidebar = context.app.workspace_chrome.channels
-        sidebar.reveal()
-        if title := sidebar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
-            title.focus()
-
-
-class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
+class WorkspaceFrame(ProfileKeys, JumpsHistory, WidgetView, Screen):
     """Native frame and history layout shared by the workspace and saved-history modal."""
     layer_order = (DEFAULT_LAYER, "comms-sidebar", WireExportProgressView.layer_name,
                    "_tooltips", "_toastrack")
@@ -138,7 +120,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         self.app.workspace_sessions.source.focus_sidebar_return()
 
     @property
-    def back_to_bottom_windows(self) -> tuple:
+    def back_to_bottom_windows(self) -> tuple[JumpsToLatest, ...]:
         """Drawn history windows that are scrolled away from their latest entry."""
         published = self._compositor.published_widgets
         return tuple(
@@ -161,7 +143,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         return FramePresentation(self)
 
     @cached_property
-    def history_windows(self) -> set:
+    def history_windows(self) -> set[JumpsToLatest]:
         """Mounted history windows; each registers itself for its lifetime."""
         return set()
 
@@ -307,38 +289,6 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         for bar in chrome.presented_sidebars():
             bar.schedule_hydration()
         chrome.refresh_layout()
-
-
-class OpenBusAction(ViewAction):
-    """Pick which bus this Toad opens, including a remote one it holds a profile for."""
-
-    title = 'Open a bus'
-    keys = {EditingMode: ('f9',)}
-    show = True
-
-    def apply(self, context: WorkspaceFrame) -> None:
-        from toad.screens.bus_choice import BusChoices
-
-        context.app.push_screen(BusChoices.offered(), context.app.open_bus)
-
-
-class BackToBottomAction(ViewAction):
-    """Jump the shown history back to its latest message."""
-
-    title = "Back to bottom"
-    keys = {EditingMode: ("escape",)}
-    key_display = "Esc"
-    priority = True
-
-    def available(self, context: WorkspaceScreen) -> bool:
-        match context.focused:
-            case Widget(uses_screen_coordinates=True):
-                return False
-        return bool(context.back_to_bottom_windows)
-
-    def apply(self, context: WorkspaceScreen) -> None:
-        for window in context.back_to_bottom_windows[:1]:
-            window.jump_to_latest()
 
 
 class SessionHost(Container):
