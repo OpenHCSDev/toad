@@ -57,6 +57,7 @@ from toad.native_style import (
     AutoHeight,
     AutoWidth,
     CenteredChildren,
+    CenteredContent,
     DockedBottom,
     FillWidth,
     PrimaryText,
@@ -394,8 +395,12 @@ class JumpBar(
         self.styles.visibility = "hidden"
 
 
-class BackToBottom(PrimaryText, AutoWidth, AutoHeight, SidePadding, JumpToLatest):
-    """Two rows of its own: JumpToLatest is one row, and this one names its key below."""
+class BackToBottom(PrimaryText, CenteredContent, AutoWidth, AutoHeight, SidePadding, JumpToLatest):
+    """Two rows of its own: JumpToLatest is one row, and this one names its key below.
+
+    CenteredContent because its rows are different widths: the key row is shorter than the
+    name above it and would otherwise sit against the left edge.
+    """
 
     native_theme = (NativeDeclaration.of(Styles.background, Variable(SurfaceHoverColour.name)),)
 

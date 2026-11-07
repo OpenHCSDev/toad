@@ -11,6 +11,7 @@ from agent_comms.repo import Checkout
 from yarl import URL
 
 from toad.app import ToadApp
+from toad.widget_actions import ApplicationAction
 from toad.application_outcome import Reconnected, Succeeded
 from toad.comms_root import BusChoice, HeldBus, LocalBus, LocalCoreConnection
 from toad.launch_binding import NoAgent
@@ -76,3 +77,13 @@ def test_both_exec_outcomes_share_one_exec_and_differ_only_in_arguments(monkeypa
     chosen = openable(tmp_path / "box-b.json")
     assert Reconnected(runtime, HeldBus(chosen)).arguments() == (
         "--theme", "dark", "--comms-profile", str(tmp_path / "box-b.json"))
+
+
+async def test_the_hamburger_offers_the_picker_under_its_own_name(workspace):
+    """One declaration, both doors: the key and the menu entry are the same action, so the
+    menu cannot offer a command the keymap does not know."""
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        offered = {type(command).__name__: label for command, label in ApplicationAction.menu(app)}
+        # Derived from the declared name, so the menu cannot drift from the action.
+        assert offered["OpenBusAction"] == "Open bus"

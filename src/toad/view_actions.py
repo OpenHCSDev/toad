@@ -41,22 +41,6 @@ class ShowSidebarAction(ViewAction):
             title.focus()
 
 
-class OpenBusAction(ViewAction):
-    """Pick which bus this Toad opens, including a remote one it holds a profile for."""
-
-    title = 'Open a bus'
-    # Beside ctrl+b for the sidebar. Not a function key: f8 and f20 are claimed, and the
-    # rest are what tests bind their own fixtures to, so an action taking one steals the
-    # press a keymap test makes to prove nothing answers it.
-    keys = {EditingMode: ('ctrl+shift+b',)}
-    show = True
-
-    def apply(self, context: ToadNode) -> None:
-        from toad.screens.bus_choice import BusChoices
-
-        context.app.push_screen(BusChoices.offered(), context.app.open_bus)
-
-
 class BackToBottomAction(ViewAction):
     """Jump the shown history back to its latest message."""
 
