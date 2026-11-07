@@ -36,6 +36,21 @@ class NewThreadAction(ApplicationAction):
         navigation.open_thread_form(navigation.selected_project())
 
 
+class OpenBusAction(ApplicationAction):
+    """Pick which bus this Toad opens, including a remote one it holds a profile for."""
+
+    # An application action, so the hamburger offers it through ApplicationAction.menu and
+    # the key is the same declaration: a menu entry beside a widget action would be the same
+    # command declared twice. Beside ctrl+b for the sidebar, and not a function key, because
+    # f8 and f20 are claimed and the rest are what tests bind their own fixtures to.
+    keys = {EditingMode: ("ctrl+shift+b",)}
+
+    def apply(self, app: ToadApp) -> None:
+        from toad.screens.bus_choice import BusChoices
+
+        app.push_screen(BusChoices.offered(), app.open_bus)
+
+
 class SettingsAction(ApplicationAction):
     """Edit persistent application preferences."""
 
