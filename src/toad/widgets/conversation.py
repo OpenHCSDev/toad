@@ -360,10 +360,12 @@ class CursorContainer(Animated[Mix], Static):
             strips[0] = Strip([Segment(" ")], cell_length=1)
         # Selection belongs to ContentNavigation. The published scene supplies
         # its current position, including nested and lazily replaced bodies.
-        visible = self.screen._compositor.visible_widgets
+        # This column's own placement is the fact the compositor's arranged map would only
+        # restate, and asking that map for it by key raised KeyError: CursorContainer() in a
+        # frame that cropped none of this column (Toad log KeyError_2026-11-07T15_52_49).
         cursor = self.query_ancestor(Conversation).navigation.cursor
         selected = colours.paint_mix(self.effect_frame(CURSOR_BLINK), Strip([Segment("▌")], cell_length=1))
-        for row in cursor.visible_region.rows_within(visible[self][0].y + crop.y, crop.height):
+        for row in cursor.visible_region.rows_within(self.region.y + crop.y, crop.height):
             strips[row] = selected
         return strips
 
