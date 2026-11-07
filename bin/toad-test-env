@@ -68,4 +68,19 @@ if [[ ! -e "$environment" ]]; then
     mv -- "$stage" "$environment"
     trap - EXIT
 fi
+# The sibling checkouts are installed editable, so every run reads their working tree:
+# this environment cannot go stale, but a checkout can, and a run against a checkout
+# behind its remote reads as a failure of the branch under test. Name what is being run.
+for checkout in "$toad_root" "$agent_comms" "$textual"; do
+    head=$(git -C "$checkout" rev-parse --short HEAD 2>/dev/null) || {
+        printf 'toad-test-env: %s is not a git checkout\n' "$checkout" >&2
+        continue
+    }
+    behind=$(git -C "$checkout" rev-list --count "HEAD..origin/main" 2>/dev/null) || behind=''
+    case "$behind" in
+        ''|0) printf 'toad-test-env: %s %s\n' "$head" "$checkout" >&2 ;;
+        *) printf 'toad-test-env: %s %s is %s commits behind origin/main as of its last fetch\n' \
+               "$head" "$checkout" "$behind" >&2 ;;
+    esac
+done
 printf 'cd %s && %s -m pytest -n auto\n' "$toad_root" "$environment/bin/python"
