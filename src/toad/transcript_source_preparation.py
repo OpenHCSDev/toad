@@ -177,8 +177,16 @@ class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
         self.app.show_error(error, "History")
 
     def observe_source(self) -> None:
-        self.window.histories.add(self)
+        self.followed_here()
         self.request_preparation()
+
+    def followed_here(self) -> None:
+        """Register with the window drawing these pages, and keep it: it needs this pager in
+        its tail arithmetic, and this pager needs it to move the reader as rows rise. One
+        call, so a holder is never in the sum without being able to move the reader."""
+        window = self.window
+        window.histories.add(self)
+        self.followed_by(window)
 
     async def on_unmount(self) -> None:
         self._source_observation.close()
@@ -480,7 +488,7 @@ class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
 
     def resume_source(self) -> None:
         self._source_state = self._source_state.resume()
-        self.window.histories.add(self)
+        self.followed_here()
         self.source_resumed()
         self.window.check_follow()
         self.request_preparation()

@@ -180,11 +180,6 @@ class LinkedRows(OpensLinks, RowRun):
         strip = self.arrival.paint_effects(strip, position=self.row_position(y))
         return strip.apply_style(paint.rich_style).apply_offsets(x, y)
 
-    def cascade_rows(self) -> int:
-        """The rows drawn here, counted from the prepared rows themselves: a count taken from
-        the widget's geometry while painting stalls a scrolling container (`Animated`)."""
-        return sum(lines.height for lines in self.line_sets)
-
     def blank_row(self, width: int, paint: PaintState) -> Strip:
         return Strip.blank(width, paint.rich_style)
 

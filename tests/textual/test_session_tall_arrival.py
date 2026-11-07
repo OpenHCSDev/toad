@@ -118,13 +118,15 @@ async def test_the_tail_never_sits_at_the_bottom_while_rows_are_still_rising(wor
             f"frames={frames[-8:]}")
 
 
-async def test_a_tall_live_answer_holds_its_own_rows_back(workspace):
+async def test_a_tall_live_answer_reveals_its_rows_row_after_row(workspace):
     """The path Tristan actually saw: the agent's own streamed answer, not a peer's saved row.
 
-    A live block is not one of the window's pagers, so while it ran a single body-wide fade
-    nothing reported rows still to rise and `tail_scroll_y` was the very bottom: the answer
-    appeared whole, the tail sat under it, and the fade then played where the reader had
-    already arrived.
+    It ran one fade over its whole body, so a tall answer appeared whole and then faded where
+    the reader already was. It now runs the same cascade the saved pages run, across its own
+    rows, and answers for the rows that have not risen.
+
+    What it does not do yet is move this window's reader: `HistoryWindow.row_holders` says
+    why, and the two parked-tab tests are the guard for the change that will.
     """
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
@@ -133,51 +135,24 @@ async def test_a_tall_live_answer_holds_its_own_rows_back(workspace):
         viewport = window.scrollable_content_region.height
         before = window.max_scroll_y
 
-        def held() -> int:
-            return sum(holder.unrevealed_rows() for holder in window.row_holders)
-
-        screen = ui.app.screen
-        published = screen._on_frame_published
-        frames: list[tuple[float, float, int]] = []
-
-        def recording() -> None:
-            published()
-            frames.append((window.scroll_y, window.max_scroll_y, held()))
-
-        screen._on_frame_published = recording
-        try:
-            live = await view.post(AgentResponse(""))
-            await live.append_fragment("LIVE TALL ANSWER\n\n" + "\n\n".join(
-                f"row {row} of a live answer taller than the window"
-                for row in range(viewport + 12)))
-            # The cascade runs for ARRIVAL.duration, so the frames are read as it plays and
-            # not after: measuring once at the end reads a reveal that has already finished.
-            await ui.until(lambda: window.max_scroll_y > before + viewport,
-                           why="the live answer laid out taller than the window")
-            for _ in range(4):
-                await ui.step()
-        finally:
-            screen._on_frame_published = published
+        live = await view.post(AgentResponse(""))
+        await live.append_fragment("LIVE TALL ANSWER\n\n" + "\n\n".join(
+            f"row {row} of a live answer taller than the window"
+            for row in range(viewport + 12)))
+        await ui.until(lambda: window.max_scroll_y > before + viewport,
+                       why="the live answer laid out taller than the window")
 
         # The premise, measured: blank lines keep the rows separate paragraphs, so the answer
         # really is taller than the window rather than one wrapped paragraph.
         assert window.max_scroll_y - before > viewport, (
             f"the live answer was not taller than the window: max_scroll_y {before} -> "
             f"{window.max_scroll_y} against a viewport of {viewport}")
-        # The window asks the block, which is not one of its pagers: the sum that counted
-        # saved pages only is why a live arrival's tail went straight to the bottom.
-        assert live in list(window.row_holders), (
-            f"a mounted live block is not one of the window's row holders: "
-            f"{[type(holder).__name__ for holder in window.row_holders]}")
-        # Vacuous otherwise: with nothing held back every frame trivially sits below the end.
-        assert any(rows > 0 for _scroll, _bottom, rows in frames), (
-            f"no frame held a row back, so the live answer never revealed progressively; "
-            f"runs={tuple(live.cascade_runs())} frames={frames[:12]}")
-        waited = [(scroll, bottom, rows) for scroll, bottom, rows in frames
-                  if rows > 0 and scroll < bottom]
-        assert waited, (
-            f"the tail never waited above the rows still rising, so the answer appeared whole "
-            f"with the reader already at its end; frames={frames}")
-        # And it does reach the end once they have all risen.
-        assert frames[-1][0] >= frames[-1][1] and frames[-1][2] == 0, (
-            f"the reveal left the reader short of the end: {frames[-1]}")
+        assert live.text_fades == (ARRIVAL,)
+        # Its rows are the run the cascade plays across, counted by the layout that drew them.
+        assert sum(live.cascade_runs()) > viewport, (
+            f"a live answer taller than the window reported {tuple(live.cascade_runs())} rows")
+        # And while that cascade runs, it says how many of them have not risen.
+        held = [live.unrevealed_rows() for _ in range(4) if not await ui.step()]
+        assert any(rows > 0 for rows in held), (
+            f"the answer reported nothing still rising while its cascade ran: held={held} "
+            f"phase={type(live.effect_phase(ARRIVAL)).__name__}")

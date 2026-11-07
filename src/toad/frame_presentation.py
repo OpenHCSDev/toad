@@ -7,7 +7,7 @@ from collections import deque
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, replace
 from functools import cached_property, partial
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -323,9 +323,10 @@ class EffectRunning(EffectPhase):
 
 
 class EffectUnstarted(EffectPhase):
-    def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
+    def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip,
+              position: float = 0.0):
         owner.run_effect(effect)
-        return super().paint(owner, effect, strip)
+        return super().paint(owner, effect, strip, position)
 
     def on_new_arrival(self, owner: LineHistory, effect: Effect[Mix], pages: deque[TranscriptPageView]):
         owner.arrivals_began()
@@ -348,13 +349,22 @@ EFFECT_UNSTARTED, EFFECT_FINISHED = EffectUnstarted(), EffectFinished()
 class RowRun:
     """Something drawn as a run of rows, which a cascade plays across.
 
-    One declaration of where a row stands in its run, for both kinds of row count:
-    a widget's own layout height, and prepared rows counted from themselves.
+    One declaration of where a row stands in its run, and one of how many rows it has:
+    the height the last layout gave it. Counting from the content instead (summing its
+    prepared rows) measures during paint and scroll, which stalls layout: a live block of
+    128 paragraphs never settled its height
+    (tests/textual/test_transcript_presentation_fencing.py).
     """
+
+    drawn_rows: int = 0
+    """How many rows the last layout gave this run."""
+
+    def on_resize(self, event: events.Resize) -> None:
+        self.drawn_rows = event.size.height
 
     def cascade_rows(self) -> int:
         """How many rows the run draws."""
-        return 0
+        return self.drawn_rows
 
     def row_position(self, y: int) -> float:
         """How far row `y` is through the run: 0 the first row, 1 the last."""
@@ -395,11 +405,16 @@ class FollowsUnrisenRows:
     """A scrolling view that keeps a following reader above the rows still rising.
 
     Implemented by `HistoryWindow`: it owns both the tail and the reader, and the cascades
-    inside it tell it, every frame, that their front has moved (`CascadingRows.cascade_frame`).
+    inside it tell it, every frame, that their front has moved (`CascadingRows.frame_moved`).
     """
 
     def rows_revealed(self) -> None:
         """Another frame of a cascade below: re-place a reader who follows the tail."""
+
+
+NOT_FOLLOWED = FollowsUnrisenRows()
+"""Nobody follows this holder's rows, so a frame of its reveal moves no reader: a widget
+mounted outside a window, or one whose window has not taken it yet."""
 
 
 class UnrisenRows:
@@ -409,6 +424,15 @@ class UnrisenRows:
     rows reveal under a tail that waits for them instead of behind one already at the end.
     Holding nothing back is the default: most of what a window mounts never cascades.
     """
+
+    following: FollowsUnrisenRows = NOT_FOLLOWED
+    """Who to tell when this holder's reveal moves. The window hands itself over as the
+    holder registers (it already keeps every one of them), rather than the holder walking
+    its ancestors asking each one whether it follows rows: that probe is what
+    tests/guards/test_prompt_frame.py bans at this boundary, and it is right to."""
+
+    def followed_by(self, window: FollowsUnrisenRows) -> None:
+        self.following = window
 
     def unrevealed_rows(self) -> int:
         return 0
@@ -547,16 +571,18 @@ class CascadingRows(UnrisenRows, AnimationEffects[Mix]):
         return sum(phase.unrevealed(ARRIVAL, rows) for rows in self.cascade_runs())
 
     def frame_moved(self) -> None:
-        """The cascade's front has moved down since the last frame, so the window above
-        re-places a reader following the tail. Reporting rows held back is not enough on its
-        own: nothing re-reads the tail between frames, so a window already at the end stayed
-        there while the rows rose under it."""
-        if not self.is_attached:
-            return
-        for ancestor in cast(Widget, self).ancestors_with_self:
-            if isinstance(ancestor, FollowsUnrisenRows):
-                ancestor.rows_revealed()
-                return
+        """The cascade's front has moved down since the last frame, so whoever follows these
+        rows re-places its reader. Reporting rows held back is not enough on its own: nothing
+        re-reads the tail between frames, so a window already at the end stayed there while
+        the rows rose under it.
+
+        Only while rows are actually held back, because re-placing a reader is a scroll and a
+        scroll is layout: a block whose rows were still being measured moved the reader on
+        every frame, and the churn kept a 128-paragraph answer from ever settling its height
+        (tests/textual/test_transcript_presentation_fencing.py).
+        """
+        if self.unrevealed_rows():
+            self.following.rows_revealed()
 
 
 class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget, RowRun):
@@ -567,17 +593,9 @@ class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget, RowRun):
     class that is both has no linearization.
     """
 
-    drawn_rows: int = 0
-    """How many rows the last layout gave this widget; a row's place is read from it."""
-
-    def on_resize(self, event: events.Resize) -> None:
-        # The row count comes from the layout that set it, never from a measurement taken
-        # while painting: reading self.size in render_line stalls a scrolling container's
-        # paging (test_channel_scrolling's held paging stopped moving).
-        self.drawn_rows = event.size.height
+    # The row count comes from the layout that set it (RowRun.on_resize), never from a
+    # measurement taken while painting: reading self.size in render_line stalls a scrolling
+    # container's paging (test_channel_scrolling's held paging stopped moving).
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         return self.paint_effects(super().render_line(y, paint), position=self.row_position(y))
-
-    def cascade_rows(self) -> int:
-        return self.drawn_rows

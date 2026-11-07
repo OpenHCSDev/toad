@@ -8,7 +8,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
@@ -1154,14 +1154,18 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     @property
     def row_holders(self) -> tuple[UnrisenRows, ...]:
-        """Everything mounted here that can hold arriving rows back: the pagers drawing saved
-        pages and the live blocks drawing the newest message. Both cascade, so both are asked:
-        counting only the pagers left a live arrival's tail at the bottom of text still rising.
+        """What this window subtracts from its followed tail: the pagers drawing saved pages.
 
-        Every live block is a `ConversationBlock`, so every one of them cascades; the set
-        itself is typed by what the reader position does with them, which is be widgets.
+        A live block cascades too and answers `unrevealed_rows` for itself, and it is not in
+        this sum yet. Measured, with it in: the reveal moves the reader every frame while
+        something else re-scrolls to the end between frames, so the tail reaches 55 of 55
+        with 79 rows still unrisen, a 128-paragraph answer never settles its height, and a
+        wheel-up reader moves forward (test_transcript_presentation_fencing,
+        test_window_top_edge). The two fight because this window follows the end, not the
+        tail; making the follow target itself the tail is the change that lets a live block
+        join, and those tests are its guard.
         """
-        return (*self.histories, *cast(Iterable[UnrisenRows], self.live_blocks))
+        return tuple(self.histories)
 
     def rows_revealed(self) -> None:
         """A frame of a cascade inside this window: the reader goes down with the rows."""
