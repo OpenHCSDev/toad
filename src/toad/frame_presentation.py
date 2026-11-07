@@ -13,6 +13,7 @@ from weakref import ref
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._paint_state import PaintState
 from textual.app import ScreenStackError, UnknownModeError
+from textual import events
 from textual.strip import Strip
 from textual.widget import Widget
 from ui_theme.clock import Animation
@@ -263,7 +264,8 @@ class EffectPhase:
     # Whether the effect is moving now.
     in_motion: ClassVar[bool] = False
 
-    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool) -> Shown:
+    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool,
+                            position: float = 0.0) -> Shown:
         return effect.final
 
     def now(self) -> EffectPhase:
@@ -295,11 +297,14 @@ class EffectRunning(EffectPhase):
     animation: Animation
     in_motion = True
 
-    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool) -> Shown:
+    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool,
+                            position: float = 0.0) -> Shown:
         # The clock ticks only animation-visible targets, but an unfocused app or a
         # covered screen still paints them: a frame frozen at the effect's start would
         # leave an arrival's revealed rows blank and its fade at the background colour.
-        return self.animation.frame() if visible else effect.final
+        # Through the animation, which owns the phase time a continuous effect reads from
+        # the clock: the effect alone cannot answer for one.
+        return self.animation.at(position) if visible else effect.final
 
     def now(self) -> EffectPhase:
         return EFFECT_FINISHED if self.animation.finished else self
@@ -374,8 +379,9 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         for effect in effects or tuple(self.effects):
             self.effects.pop(effect, EFFECT_UNSTARTED).stop()
 
-    def effect_frame[Shown: Frame](self, effect: Effect[Shown]) -> Shown:
-        return self.effects.get(effect, EFFECT_UNSTARTED).shown(effect, self.animation_visible)
+    def effect_frame[Shown: Frame](self, effect: Effect[Shown], position: float = 0.0) -> Shown:
+        return self.effects.get(effect, EFFECT_UNSTARTED).shown(
+            effect, self.animation_visible, position)
 
     def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         return self.effects.get(effect, EFFECT_UNSTARTED).now()
@@ -392,16 +398,18 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         self.start_wanted()
         self.repaint()
 
-    def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
+    def paint_effects(self, strip: Strip, *frames: Mix, position: float = 0.0) -> Strip:
         # Background-origin text rises from the widget's tone; accent flashes
         # keep their declared origin. Both finish at each run's own ink.
+        # `position` is the row being drawn: an effect that plays row after row uses it,
+        # and one that treats its rows alike ignores it (Effect.at).
         for frame in (
             *frames,
             *(
                 (
-                    replace(self.effect_frame(effect), start=self.text_background)
+                    replace(self.effect_frame(effect, position), start=self.text_background)
                     if effect.start is BackgroundColour
-                    else self.effect_frame(effect)
+                    else self.effect_frame(effect, position)
                 )
                 for effect in self.text_fades
             ),
@@ -437,5 +445,18 @@ class EffectInContent:
 class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget):
     """A widget whose own rendered rows receive its declared text fades."""
 
+    drawn_rows: int = 0
+    """How many rows the last layout gave this widget; a row's place is read from it."""
+
+    def on_resize(self, event: events.Resize) -> None:
+        # The row count comes from the layout that set it, never from a measurement taken
+        # while painting: reading self.size in render_line stalls a scrolling container's
+        # paging (test_channel_scrolling's held paging stopped moving).
+        self.drawn_rows = event.size.height
+
     def render_line(self, y: int, paint: PaintState) -> Strip:
-        return self.paint_effects(super().render_line(y, paint))
+        return self.paint_effects(super().render_line(y, paint), position=self.row_position(y))
+
+    def row_position(self, y: int) -> float:
+        """How far row `y` is through this widget: 0 the first row, 1 the last."""
+        return y / (self.drawn_rows - 1) if self.drawn_rows > 1 else 0.0

@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.14.*"
 
 [[package]]
@@ -332,7 +332,7 @@ name = "cffi"
 version = "2.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pycparser" },
+    { name = "pycparser", marker = "implementation_name != 'PyPy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9e/ef/008a1939e372c06329a3fce4279c02f328488f3526744906eeec3da7ad5f/cffi-2.1.1.tar.gz", hash = "sha256:dd31f52ea1086513bb9df30f8fcee9b8918323ae067a3d5b78bc826a000712be", size = 530807, upload-time = "2026-08-03T21:21:18.939Z" }
 wheels = [
@@ -1740,7 +1740,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#bb373820ab2d45c86f3b640d36b06a3c7a542706" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#f4c6ce2e37200f223e2274b3bdde4088ed23265f" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },
