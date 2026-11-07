@@ -225,8 +225,8 @@ async def test_a_status_of_the_same_height_repaints_its_rows_without_measuring_t
 
         history.show_details(page, newest, newest.shown.toggled())
         await ui.until(lambda: newest.shown.details_open, why="the details opened")
-        await ui.step()
-        assert page._fragment_slots is not measured, "a taller status kept the old box"
+        # The taller rows come from the render processes; the page measures again when they land.
+        await ui.until(lambda: page._fragment_slots is not measured, why="a taller status measured again")
 
 
 async def test_a_reread_or_resubscribed_message_starts_from_its_known_answer(workspace):

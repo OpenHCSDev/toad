@@ -59,6 +59,7 @@ from toad.sidebar_layout import SidebarLayout
 from toad.terminal_origin import TerminalOrigin
 from toad.clipboard import Clipboard
 from toad.constants import WELCOME
+from toad.tab_identity import TabIdentity
 from toad.tab_order import TabOrder
 from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionNavigation
@@ -189,7 +190,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.sidebar_state = SidebarState()
         self._mode_switch_lock = asyncio.Lock()
         self.tab_order = TabOrder(
-            lambda identity, index: self.select_session(identity.mode_name, history_index=index),
+            lambda identity: self.show_history_step(identity.mode_name),
             home=WELCOME,
             db=DB(),
             scopes=connection.tab_scopes(),
@@ -386,12 +387,20 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         async with self._mode_switch_lock:
             return await self.workspace_sessions.prepare(mode)
 
-    def select_session(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
+    def select_session(self, mode: str) -> AwaitComplete:
+        """A person's selection: its visit is recorded once the tab is shown."""
+        return self._switch(mode, self.tab_order.record_visit)
+
+    def show_history_step(self, mode: str) -> AwaitComplete:
+        """A history step: TabOrder recorded its visit when the step was taken."""
+        return self._switch(mode, lambda identity: None)
+
+    def _switch(self, mode: str, visited: Callable[[TabIdentity], object]) -> AwaitComplete:
         if mode != self.selected_mode:
             self.navigation_reader.invalidate()
-        return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
+        return AwaitComplete(self._switch_mode_ready(mode, visited))
 
-    async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:
+    async def _switch_mode_ready(self, mode: str, visited: Callable[[TabIdentity], object]) -> None:
         async with self._mode_switch_lock:
             previous = self.selected_mode
             try:
@@ -413,7 +422,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
                     await self.workspace_screen.layout_navigation()
                 if mode != previous:
                     if entry := self.session_navigation.get(mode):
-                        self.tab_order.record_visit(entry.identity, history_index)
+                        visited(entry.identity)
                     self.events.publish(core_events.SessionSelected(mode, previous))
             finally:
                 self.screen.refresh()

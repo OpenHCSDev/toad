@@ -48,6 +48,14 @@ class StyledRows(RestylesOnTheme, LinkedRows, ToadNode, Widget):
     def styled_blocks(self) -> tuple[LineBlock, ...]:
         """The semantic rows the next render styles."""
 
+    @property
+    def rows_ready(self) -> bool:
+        """Whether the drawn rows are the render worker's for the current blocks.
+
+        The rows come from the render processes, which no message queue owes, so a caller that
+        needs them (a click aimed at text, a copy of what is drawn) waits on this receipt."""
+        return self._render_worker.is_finished and not self._styled.unstyled(self)
+
     def invalidate_lines(self) -> None:
         """Restyle for a new theme or link context; the drawn rows stand until then."""
         self._request_render()

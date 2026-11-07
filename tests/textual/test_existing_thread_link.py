@@ -32,6 +32,7 @@ async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(worksp
         await ui.select_tab(owner)
         await ui.open_channel("#team", actor="owner", owner=owner)
         await ui.until_shows(header.label)
+        await ui.until_delivery_shown()
         await ui.until(lambda: app.screen.get_style_at(*ui.link_cell(header, sender)).meta.get("@click") == OpenLineLink(sender),
                        why="the sender drawn as a link")
         # The channel tab's unread count clears as its message is read; the tabs themselves must not change.

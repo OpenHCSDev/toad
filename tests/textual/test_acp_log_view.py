@@ -50,10 +50,17 @@ def view_button(view, name):
     return next(button for button in view.query(LogViewButton) if button.kind is LogView.member_named(name))
 
 
-async def reread(ui, view, button):
+async def press(ui, button):
+    """Click a log control as a user does: a button refuses a press during the last one's effect."""
     _app, pilot = ui.textual
-    assert await pilot.click(button)
+    widget = button if not isinstance(button, type) else ui.app.screen.query_one(button)
+    await ui.until(lambda: widget.accepts_press, why=f"{type(widget).__name__} to accept a press")
+    assert await pilot.click(widget)
     await ui.step()
+
+
+async def reread(ui, view, button):
+    await press(ui, button)
     await asyncio.wait_for(view.wait_ready(), 10)
     await ui.step()
 
@@ -67,14 +74,11 @@ async def test_log_views_wrap_keyboard_resize_and_latest_read_the_physical_log(w
         assert "Unsettled owner input; compaction not dispatched" in area.text
         assert "The usage limit has been reached" in area.text
         assert area.soft_wrap and area.read_only
-        assert await pilot.click(view_button(view, "events"))
-        await ui.step()
+        await press(ui, view_button(view, "events"))
         assert "session/update" in area.text and "response" in area.text
-        assert await pilot.click(view_button(view, "raw"))
-        await ui.step()
+        await press(ui, view_button(view, "raw"))
         assert area.text == log.read_bytes().decode("utf-8", errors="replace")
-        assert await pilot.click(LogWrapButton)
-        await ui.step()
+        await press(ui, LogWrapButton)
         assert not area.soft_wrap
         # Keyboard reaches the final column rather than clipping it.
         longest = max(range(len(area.document.lines)), key=lambda index: len(area.document.lines[index]))
@@ -89,11 +93,9 @@ async def test_log_views_wrap_keyboard_resize_and_latest_read_the_physical_log(w
         await ui.resize(50, 24)
         for button in view.query(LogButton):
             assert button.region.right <= app.screen.size.width, (button, button.region)
-        assert await pilot.click(LogWrapButton)
-        await ui.step()
+        await press(ui, LogWrapButton)
         assert area.soft_wrap
-        assert await pilot.click(view_button(view, "errors"))
-        await ui.step()
+        await press(ui, view_button(view, "errors"))
         assert "Provider usage limit reached" in area.text
         assert area.region.height >= 5
         with log.open("a") as stream:
@@ -128,9 +130,6 @@ async def test_earlier_and_latest_page_through_a_log_larger_than_one_page_and_re
         assert "Unable to read log" in area.text
         assert view.page is None and view.query_one(LogEarlierButton).disabled
         log.write_bytes(original)
-        # Textual ignores another click during its active effect; wait for the control to accept it.
-        await ui.until(lambda: not view.query_one(LogLatestButton).has_class("-active"),
-                       why="the Latest button to accept a click")
         await reread(ui, view, LogLatestButton)
         assert "The usage limit has been reached" in area.text
         assert ui.failure() is None

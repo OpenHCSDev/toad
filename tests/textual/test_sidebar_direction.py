@@ -23,7 +23,9 @@ async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
         app.sidebar_layout.move(channels.placement_identity, side)
         app.sidebar_layout.move(thread.placement_identity, side)
         app.workspace_chrome.refresh_layout()
-        await ui.step()
+        # Moving a bar recomposes its controls; read them once both bars have them again.
+        await ui.until(lambda: all(bar.query(SidebarAction) for bar in (channels, thread)),
+                       why="both sidebars' arrow controls")
 
         async def click(bar: SideBar, edge) -> None:
             button = bar.query_one(f"#sidebar-{edge.declared_name}", SidebarAction)

@@ -7,7 +7,6 @@ from __future__ import annotations
 from toad.widgets.side_bar import ThreadSidebar
 
 import asyncio
-from support.styling import awaits_styling
 
 
 async def reveal_project_tree(ui):
@@ -52,27 +51,6 @@ async def reveal_session_details(ui, target=None):
         target.scroll_visible(animate=False, immediate=True)
         await ui.step()
     return details
-
-
-async def command_dialog(ui, *, seconds: float = 20):
-    """Wait for the command dialog to be mounted, focused on its name field and clickable."""
-    from textual.widgets import Input
-    from toad.widgets.comms_command_dialog import CommandDialog
-
-    def usable():
-        dialog = ui.app.screen
-        if not (isinstance(dialog, CommandDialog) and dialog.is_mounted and dialog.is_attached):
-            return False
-        field = dialog.form.values.get("name")
-        entry = field.editor if field is not None else None
-        return (isinstance(entry, Input) and entry.is_mounted and entry.is_attached
-                and dialog.focused is entry and ui.app.focused is entry
-                and entry.region.width > 0 and entry.region.height > 0
-                and entry.region.offset in dialog.size.region
-                and dialog.get_widget_at(*entry.region.offset)[0] is entry)
-
-    await ui.until(usable, seconds=seconds, why="the command dialog")
-    return ui.app.screen
 
 
 async def refresh_chat(view) -> None:
@@ -135,7 +113,7 @@ async def wait_for_tool_diff(ui, tool):
 
     content = tool.query_one(ToolContent)
     # Replaced blocks keep their old rows until the render of the new ones lands, so wait for it.
-    await ui.until(lambda: content._render_worker.is_finished and not awaits_styling(content._styled),
+    await ui.until(lambda: content.rows_ready,
                    seconds=10, why="the styled tool rows")
     await ui.step()
     return content

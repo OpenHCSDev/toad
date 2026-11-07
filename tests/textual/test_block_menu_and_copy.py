@@ -113,6 +113,7 @@ async def test_clipboard_image_sends_to_channel_and_dm_and_opens_its_preview(
                 why="the original image reference delivered to the recipient",
             )
             await ui.until_shows("clipboard-")
+            await ui.until_delivery_shown()
             expected = DirectProjectFileLink(path, original_root=workspace.project)
             await ui.until(lambda: ui.link_at("clipboard-") == OpenLineLink(expected),
                            why="the complete quoted attachment rendered as a file link")

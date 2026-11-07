@@ -19,6 +19,7 @@ from agent_comms.acp_extension import (
 from agent_comms.child_process import join_retirement
 from agent_comms.coordination.errors import (
     CoordinationReadUnavailable,
+    ReadAgain,
     ReloadRequired,
     StaleRevision,
     TranscriptChanged,
@@ -345,7 +346,9 @@ class Uncaptured:
         return False
 
     async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
-        raise ValueError("Transcript paging requires a bound thread")
+        # A page request queued before the view lost its binding: its answer no longer
+        # stands, and the request a new binding makes reads again.
+        raise ReadAgain()
 
     async def publish(self) -> bool:
         """Nothing to publish: the request is done."""
@@ -1020,10 +1023,17 @@ class TranscriptPresentation:
     async def mark_read(
         self, through: TranscriptCursor, acknowledge: Callable[[TranscriptCursor], None], selected: Callable[[], bool]
     ) -> None:
-        """A replaced source gets one fresh painted cursor, never a fatal read worker."""
+        """A replaced source gets one fresh painted cursor, never a fatal read worker.
+
+        An acknowledgement is in-flight view work: if this source's work was revoked
+        while it ran (suspended, retired, closed or changed), the work that replaced it
+        paints and acknowledges its own cursor, so a stale one asks for nothing."""
+        generation = self.generation
         try:
             await asyncio.to_thread(acknowledge, through)
         except TranscriptChanged:
+            if self.generation != generation:
+                return
             try:
                 fresh = await self.refresh_cursor()
                 if selected():
