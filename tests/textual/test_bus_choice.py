@@ -48,7 +48,7 @@ async def test_picking_a_bus_ends_the_app_onto_it(workspace, tmp_path):
                   connection=LocalCoreConnection.from_launch(workspace.launch_root))
     choice = HeldBus(openable(tmp_path / "box-b.json"))
     async with app.run_test(size=(140, 48)):
-        app.open_bus(choice)
+        app.picked_bus(choice)
 
         async def ended() -> None:
             while not isinstance(app.return_value, Reconnected):
@@ -62,7 +62,7 @@ async def test_a_dismissed_picker_changes_nothing(workspace):
     """Through the fixture that owns a running app: the earlier hand-built ToadApp here was
     the only test that let one close on its own, and it died in application start."""
     async with workspace.app(size=(140, 48)) as ui:
-        ui.app.open_bus(None)
+        ui.app.picked_bus(None)
         await ui.step()
         # Esc out of the picker leaves this session on its own bus.
         assert not isinstance(ui.app.return_value, Reconnected)
@@ -99,9 +99,41 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
-        app.push_screen(BusChoices.offered(), app.open_bus)
+        app.push_screen(BusChoices.offered(), app.picked_bus)
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         for _ in range(4):
             await ui.step()
         assert isinstance(app.screen, BusChoices), "the picker stays up until a row is chosen"
         assert not isinstance(app.return_value, Reconnected), "nothing is opened by showing a list"
+
+
+async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch):
+    """Tristan: "it only detects this machine shohld detect gaming desktop".
+
+    The dialog opens on what this machine knows and asks the tailnet after, so the probe is
+    stubbed here: what matters is that a found peer becomes a row, and that picking it says
+    what it needs instead of relaunching onto a bus there is no profile for.
+    """
+    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
+    from toad.comms_root import DiscoveredPeer
+    from toad.screens.bus_choice import BusChoices
+
+    found = (PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43),
+             PeerHoldsBus(TailnetPeer("desktop", "100.124.133.120", True), 247))
+    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: found))
+
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        app.push_screen(BusChoices.offered(), app.picked_bus)
+        await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
+        picker = app.screen
+        assert [type(row).__name__ for row in picker.rows] == ["LocalBus"], "instant rows first"
+        await ui.until(lambda: len(picker.rows) == 3, why="the tailnet peers to arrive")
+        assert [row.label() for row in picker.rows[1:]] == [
+            "ts-gaming · 43 threads · hold a profile to open it",
+            "desktop · 247 threads · hold a profile to open it"]
+        # Picking one explains what it needs; it does not relaunch onto a bus with no profile.
+        picker.rows[1].chosen(app)
+        await ui.step()
+        assert not isinstance(app.return_value, Reconnected)
+        assert isinstance(picker.rows[1], DiscoveredPeer)

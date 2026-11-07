@@ -2,7 +2,7 @@ from toad.core import events as core_events
 from agent_comms.storage.locked_store import RootFile
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
-from toad.comms_root import BusChoice, CoreConnection
+from toad.comms_root import BusChoice, CoreConnection, PickerRow
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -235,11 +235,15 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.call_from_thread(self.exit, Succeeded(runtime))
         raise asyncio.CancelledError
 
-    def open_bus(self, choice: BusChoice | None) -> None:
-        """End this session onto the picked bus; a picker the reader dismissed changes nothing."""
-        match choice:
-            case BusChoice():
-                self.exit(Reconnected(LaunchRuntime.running(), choice))
+    def picked_bus(self, row: PickerRow | None) -> None:
+        """The picked row says what picking it does; a dismissed picker changes nothing."""
+        match row:
+            case PickerRow():
+                row.chosen(self)
+
+    def open_bus(self, choice: BusChoice) -> None:
+        """End this session onto a bus the reader picked."""
+        self.exit(Reconnected(LaunchRuntime.running(), choice))
 
     def relaunch(self) -> None:
         running = LaunchRuntime.running()

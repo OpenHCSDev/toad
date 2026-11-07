@@ -34,6 +34,7 @@ from toad.referenced_core import ReferencedCore
 from agent_comms.repo import Checkout
 from agent_comms.registry.threads import Thread
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
+from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses
 from agent_comms.remote_core import RemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
@@ -339,7 +340,24 @@ class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
         return access.observe_remote(self, Path(served.root))
 
 
-class BusChoice(ABC):
+class PickerRow(ABC):
+    """One row the bus picker shows, and what picking it does.
+
+    A bus this Toad can open and a peer it has only discovered are both rows, and they do
+    different things when picked. Each says which, so the picker calls the row rather than
+    asking what kind it is.
+    """
+
+    @abstractmethod
+    def label(self) -> str:
+        """How the picker names this row in one line."""
+
+    @abstractmethod
+    def chosen(self, app) -> None:
+        """What picking this row does."""
+
+
+class BusChoice(PickerRow):
     """A bus the next launch of this Toad selects.
 
     `CoreConnection.select` chooses once at the process boundary and tab scopes are
@@ -348,9 +366,9 @@ class BusChoice(ABC):
     how it writes itself into the next launch's arguments; nothing else spells them.
     """
 
-    @abstractmethod
-    def label(self) -> str:
-        """How a picker names this bus in one line."""
+    def chosen(self, app) -> None:
+        """A bus is opened by ending this session onto it."""
+        app.open_bus(self)
 
     @abstractmethod
     def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
@@ -397,6 +415,24 @@ class HeldBus(BusChoice):
     def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
         return (*self.without_profile(argv),
                 RemoteCoreConnection.argument, str(self.profile.path))
+
+
+@dataclass(frozen=True)
+class DiscoveredPeer(PickerRow):
+    """A tailnet machine holding a bus this one has no profile for.
+
+    Shown rather than hidden: a machine whose bus is right there and unreachable is the row
+    the owner needs to see, and picking it says what it needs instead of doing nothing.
+    """
+
+    found: PeerHoldsBus
+
+    def label(self) -> str:
+        return f"{self.found.label()} · hold a profile to open it"
+
+    def chosen(self, app) -> None:
+        app.notify(f"{self.found.peer.name} needs a UI profile: grant one on that machine and "
+                   f"hold it here with agent-comms-connector hold-ui.", severity="warning")
 
 
 @dataclass(frozen=True)
