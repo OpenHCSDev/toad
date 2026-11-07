@@ -96,9 +96,10 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
         entries = await welcome_entries(ui, "scribe")
         await focus_row(ui, entries.query_one(WelcomeThreads).rows["scribe"])
         await ui.press("enter")
-        await ui.until(lambda: len(ui.tabs()) == 1, why="the thread's tab")
         app, _ = ui.textual
-        assert app.selected_session.thread_identity.thread_name() == "scribe"
+        await ui.until(lambda: app.selected_session.thread_identity.thread_name() == "scribe",
+                       why="the thread's tab selected")
+        assert len(ui.tabs()) == 1
         await ui.write_draft("hello scribe")
         await ui.press("enter")
 
