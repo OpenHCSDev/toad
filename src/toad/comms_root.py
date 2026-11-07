@@ -785,8 +785,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         killed Toad's own teardown (17 `Terminal_crash` logs, 2026-11-06 02:51).
         """
         super().stop_updates()
-        if not self.process.connection.closed:
-            self.process.request(StopObserving())
+        self.process.stop_observing()
         return self.answering(**{item.name: getattr(self, item.name) for item in fields(self)})
 
     def retire(self, access: CoordinationAccess):
