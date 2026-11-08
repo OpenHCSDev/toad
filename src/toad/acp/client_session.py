@@ -16,10 +16,10 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessi
 
 @dataclass(frozen=True)
 class ClientSessionRequest:
-    agent: "Agent"
+    agent: Agent
     session_id: AcpSessionId | NoAcpSessionId
-    disposition: "SessionDisposition" = field(init=False)
-    binding: "SessionBinding" = field(init=False)
+    disposition: SessionDisposition = field(init=False)
+    binding: SessionBinding = field(init=False)
 
     def __post_init__(self):
         object.__setattr__(self, 'disposition', self.agent.session.disposition)
@@ -56,7 +56,7 @@ class QueueSessionRequest(ClientSessionRequest):
 class OwnerRequest:
     """One original source and its independently captured physical authority."""
 
-    coordination: "CoordinationChangedUpdate"
+    coordination: CoordinationChangedUpdate
     authority: ClientSessionRequest
 
     @property

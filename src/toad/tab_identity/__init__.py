@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class TabTargetGone(Exception):
-    def __init__(self, identity: "TabIdentity", reason: str) -> None:
+    def __init__(self, identity: TabIdentity, reason: str) -> None:
         self.identity = identity
         self.reason = reason
         super().__init__(f"{identity}: {reason}")

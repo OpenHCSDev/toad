@@ -26,7 +26,7 @@ class PatchSide:
         """The text copied from this side; a side with no line copies nothing."""
         return ""
 
-    def otherwise(self, other: "PatchSide") -> "PatchSide":
+    def otherwise(self, other: PatchSide) -> PatchSide:
         """The line a unified row shows: this side when it has one."""
         return self
 

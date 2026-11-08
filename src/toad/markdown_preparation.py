@@ -74,10 +74,10 @@ class PreparedMarkdownPart:
     text: str = field(compare=False)
     tokens: tuple[Token, ...] = field(compare=False, repr=False)
     @classmethod
-    def capture(cls, text: str) -> "PreparedMarkdownPart":
+    def capture(cls, text: str) -> PreparedMarkdownPart:
         return cls(text, tuple(parse_markdown_syntax(text)))
 
-    def select_blocks(self, text: str, first: int, tokens: slice) -> "PreparedMarkdownPart":
+    def select_blocks(self, text: str, first: int, tokens: slice) -> PreparedMarkdownPart:
         """Select complete top-level blocks, retaining their closing tokens."""
         if text == self.text and first == 0 and tokens.start == 0 and tokens.stop == len(self.tokens):
             return self
@@ -87,7 +87,7 @@ class PreparedMarkdownPart:
                 token.map = [line - first for line in token.map]
         return PreparedMarkdownPart(text, tuple(selected))
 
-    def select_table_rows(self, ranges: Iterable[tuple[int, int]]) -> Iterator["PreparedMarkdownPart"]:
+    def select_table_rows(self, ranges: Iterable[tuple[int, int]]) -> Iterator[PreparedMarkdownPart]:
         """Repeat the original parsed header, never parse a synthetic table."""
         lines = self.text.splitlines(keepends=True)
         rows = {}

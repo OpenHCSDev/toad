@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class SessionThreadSidebar(ThreadSidebar, NativePresentation):
     """Keep warm panels until eviction releases their widgets."""
 
-    def __init__(self, screen: "MainScreen") -> None:
+    def __init__(self, screen: MainScreen) -> None:
         self._owner = ref(screen)
         self._panel_owners = tuple(member() for member in SessionPanel.members_with(SessionPanel))
         self.plan = next(owner for owner in self._panel_owners if isinstance(owner, PlanSessionPanel))
@@ -41,7 +41,7 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
             except WorkerCancelled:
                 pass
 
-    async def retire_presentation(self, screen: "MainScreen") -> None:
+    async def retire_presentation(self, screen: MainScreen) -> None:
         if not self.panels_loaded:
             # A partial mount is discarded rather than parked as a complete view.
             await self.evict(screen)
@@ -50,7 +50,7 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
         for panel in self.panels:
             panel.widget.sidebar_visibility_changed()
 
-    async def evict(self, screen: "MainScreen") -> None:
+    async def evict(self, screen: MainScreen) -> None:
         """Release panels on eviction or close, preserving their reader position."""
         await self._cancel_panel_workers()
         self.navigation.panel_scroll_y = self.panels_viewport.scroll_y
@@ -73,7 +73,7 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
         """Absent panels consume the latest source value, never a replay buffer."""
         self.plan.update(self, entries)
 
-    def capture_panels(self, screen: "MainScreen") -> None:
+    def capture_panels(self, screen: MainScreen) -> None:
         for owner, panel in zip(self._panel_owners, self.panels):
             owner.capture(panel.widget)
         screen._project_panel = NO_PROJECT_VIEW

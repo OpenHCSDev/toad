@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class OperationalTerminalOwner(ClientRequestOwner, ABC):
-    surface: "SurfaceBinding"
+    surface: SurfaceBinding
 
     def __init__(self, agent) -> None:
         super().__init__(agent)

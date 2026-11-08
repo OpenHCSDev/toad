@@ -49,7 +49,7 @@ class WorkspaceBody(Horizontal):
 
 
 class WorkspaceChrome(VerticalLayout):
-    def __init__(self, app: "ToadApp") -> None:
+    def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.navigation = WorkspaceHeader()
         self.channels = ChannelsSidebar()
@@ -130,7 +130,7 @@ class WorkspaceChrome(VerticalLayout):
                 )
         return placements
 
-    async def select(self, view: "SessionScope") -> None:
+    async def select(self, view: SessionScope) -> None:
         roster = self.channels.roster
         roster.navigation.capture()
         shown = view.navigation_owner.shows_channels

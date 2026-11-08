@@ -345,10 +345,10 @@ class PageEnd(ABC):
                    for position in (window.scroll_y, window.scroll_target_y))
 
     @abstractmethod
-    def work_revision[Cursor](self, request: "PageRequest[Cursor]", through: Cursor) -> WorkRevision: ...
+    def work_revision[Cursor](self, request: PageRequest[Cursor], through: Cursor) -> WorkRevision: ...
     @abstractmethod
     async def load_page(self, loader, cursor: TranscriptCursor, through) -> TranscriptPage: ...
-    def progressed(self, page: "TranscriptPage", cursor: TranscriptCursor) -> bool:
+    def progressed(self, page: TranscriptPage, cursor: TranscriptCursor) -> bool:
         edge = self.edge((page.before, page.after))
         start, stop = self.edge(((edge, cursor), (cursor, edge)))
         return cursor.accepts_source(edge) and not (
@@ -404,7 +404,7 @@ class PageEnd(ABC):
 
 
 class OlderEnd(PageEnd):
-    def work_revision[Cursor](self, request: "PageRequest[Cursor]", through: Cursor) -> WorkRevision:
+    def work_revision[Cursor](self, request: PageRequest[Cursor], through: Cursor) -> WorkRevision:
         return PageRevision(request)
 
     step = -1
@@ -439,7 +439,7 @@ class OlderEnd(PageEnd):
 
 
 class NewerEnd(PageEnd):
-    def work_revision[Cursor](self, request: "PageRequest[Cursor]", through: Cursor) -> WorkRevision:
+    def work_revision[Cursor](self, request: PageRequest[Cursor], through: Cursor) -> WorkRevision:
         return GrowingPageRevision(request, through)
 
     step = 1
@@ -489,7 +489,7 @@ class PageRequest[Cursor = TranscriptCursor]:
     end: PageEnd
     cursor: Cursor
 
-    def progressed(self: PageRequest[TranscriptCursor], page: "TranscriptPage") -> bool:
+    def progressed(self: PageRequest[TranscriptCursor], page: TranscriptPage) -> bool:
         return self.end.progressed(page, self.cursor)
 
 
@@ -514,7 +514,7 @@ class PreparationDemand(ABC):
     @abstractmethod
     def rows(self, horizon: float) -> float: ...
 
-    def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
+    def moved(self, travel: float, elapsed: float) -> PreparationDemand:
         return MovingPreparation(travel, elapsed)
 
     def accepts_result(self, end: PageEnd) -> bool:
@@ -522,7 +522,7 @@ class PreparationDemand(ABC):
         return True
 
     def read_rows(
-        self, preparation: "DirectionalPreparation", history: LineHistory, end: PageEnd, runway: Runway,
+        self, preparation: DirectionalPreparation, history: LineHistory, end: PageEnd, runway: Runway,
     ) -> int:
         """Stationary input never requests another source page."""
         return 0
@@ -533,7 +533,7 @@ class PreparationDemand(ABC):
     def prepare_ahead(self, preparation: DirectionalPreparation, history: LineHistory, page, end: PageEnd) -> None:
         """Only measured movement speculates beyond its current destination."""
 
-    def destination_painted(self) -> "PreparationDemand":
+    def destination_painted(self) -> PreparationDemand:
         return self
 
 

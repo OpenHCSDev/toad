@@ -369,7 +369,7 @@ class Spans(SpanText):
     """Wrapped text made of spans; line breaks in the text are kept."""
 
     @classmethod
-    def from_lines(cls, lines: tuple[tuple[Span, ...], ...], indent: str = "") -> "Spans":
+    def from_lines(cls, lines: tuple[tuple[Span, ...], ...], indent: str = "") -> Spans:
         """One block out of lines of spans, each line starting at ``indent``."""
         drawn: list[Span] = []
         for index, line in enumerate(lines):
