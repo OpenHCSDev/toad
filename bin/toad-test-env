@@ -72,12 +72,13 @@ if [[ ! -e "$environment" ]]; then
 import sys
 from pathlib import Path
 
+from packaging.utils import canonicalize_name
+
 from agent_comms.installer.runtime_resolution import ResolvedLock
 
-editable = set(sys.argv[2:])
-for requirement in ResolvedLock.read(Path(sys.argv[1])).tracked_requirements():
-    if requirement.split(" @ ", 1)[0] not in editable:
-        print(requirement)
+lock = ResolvedLock.read(Path(sys.argv[1]))
+editable = frozenset(canonicalize_name(name) for name in sys.argv[2:])
+print("\n".join(lock.tracked_requirements(editable)))
 TRACKED
     "$uv" pip install -q --python "$stage/bin/python" --no-deps -r "$stage/tracked.txt"
     # Toad reads its own distribution metadata, and every process imports its source from src:
