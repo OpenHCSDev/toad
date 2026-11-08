@@ -21,7 +21,7 @@ from agent_comms.registry.registry_document import RegistryEntry
 from agent_comms.session_revision import SessionObservation
 from agent_comms.thread_status import ActiveThreadPresence, HeartbeatThreadStatus, ThreadStatus
 from agent_comms.registry.threads import ExternalThread, Thread
-from agent_comms.turn_context import (
+from agent_comms.execution.turn_context import (
     CodexRolloutProvenance,
     ContextManifest,
     ContextSegment,

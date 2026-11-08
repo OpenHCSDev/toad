@@ -15,7 +15,11 @@ from agent_comms.transport.tools.sidebar import (
     CommsContextInspectionTool, CommsImportedSourceTool, CommsOwnerRequestTool, CommsSavedSegmentTool,
     CommsSavedSourceTool, ContextInspectionRead,
 )
-from agent_comms.turn_context import ContextSourceText, Provenance, SegmentManifest
+from agent_comms.execution.turn_context import (
+    ContextSourceText,
+    Provenance,
+    SegmentManifest,
+)
 
 
 class ContextReads:
