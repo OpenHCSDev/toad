@@ -1850,6 +1850,7 @@ class Conversation(
     async def post_welcome(self) -> None:
         """Post any welcome content."""
 
+    @on(events.MouseDown)
     def on_mouse_down(self, event: events.MouseDown) -> None:
         self._mouse_down_offset = event.screen_offset
 
