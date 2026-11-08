@@ -194,6 +194,7 @@ Tap escape *twice* to exit.
         )
         return selection.extract(text), "\n"
 
+    @on(events.Resize)
     def _on_resize(self, event: events.Resize) -> None:
         if self._get_terminal_dimensions is None:
             width, height = self.scrollable_content_region.size

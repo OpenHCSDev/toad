@@ -14,6 +14,8 @@ from textual.widgets._data_table import RowKey
 from ui_theme.scheme import ForegroundColour, ThemeColour
 
 from toad.widget_actions import OpensSelected
+from textual.events import Resize
+from textual import on
 
 
 class SelectionView[R]:
@@ -154,6 +156,7 @@ class DeclaredTable[R](OpensSelected, DataTable[Content]):
         if self.selected != previous:
             self.selection_changed()
 
+    @on(Resize)
     def on_resize(self) -> None:
         self.call_after_refresh(self.reconcile_source)
 

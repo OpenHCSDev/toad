@@ -11,6 +11,7 @@ from textual.widgets import Collapsible, Static
 
 from toad.native_style import AutoHeight, Borderless, NoMargin, NoPadding
 from toad.widgets.sidebar_tree import KeyedRows
+from textual import on
 
 
 class DisclosureContents(AutoHeight, Collapsible.Contents):
@@ -97,6 +98,7 @@ class DeclaredDisclosure(
         title = Content(f"{self.entry.label}: {self.entry.value.summary}".partition("\n")[0])
         self.title = title.truncate(width, ellipsis=True)
 
+    @on(events.Resize)
     def on_resize(self, event: events.Resize) -> None:
         self.fit_title()
 

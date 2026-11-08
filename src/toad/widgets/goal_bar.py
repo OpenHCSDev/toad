@@ -240,6 +240,7 @@ class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
         self._update_control_layout()
         self.call_after_refresh(self.update_document_height)
 
+    @on(events.Resize)
     def on_resize(self) -> None:
         self._update_control_layout()
         self.call_after_refresh(self.update_document_height)
