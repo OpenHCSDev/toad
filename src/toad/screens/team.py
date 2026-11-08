@@ -214,8 +214,25 @@ class RefreshDetail(AutoWidth, NoMargin, ActingButton):
         self.query_ancestor(TeamDetails).refresh_detail()
 
 
-class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup):
-    """The selected native record owns its one bounded original-details read."""
+class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Collapsible):
+    """The selected record's own records, disclosed rather than dumped.
+
+    This was an always-mounted VerticalGroup at the bottom of the window, so whatever row
+    happened to be selected had its whole described record printed underneath the tables,
+    along with a refresh button and a status line, whether or not anybody had asked for
+    it: Tristan, 2026-11-08, "there's like a big block of random text at the bottom". It
+    is the same shape TeamAlarm already uses in this file - a one-line title that stays
+    visible, with the originals behind a disclosure - so the bottom of the window is one
+    line and the detail is one keypress away.
+    """
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        # The disclosure owns its one-line title's width, as the status row does.
+        self._title.styles.width = "1fr"
+        self._title.styles.height = 1
+        self._title.styles.text_wrap = "nowrap"
+        self._title.styles.text_overflow = "ellipsis"
 
     def __init__(self, teammate: ThreadIncarnation) -> None:
         self.teammate = teammate
@@ -223,12 +240,16 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         self.status = Static("", markup=False)
         self.original = VerticalGroup()
         self.original.display = False
-        super().__init__()
+        super().__init__(
+            self.status, RefreshDetail("Read these records again", compact=True), self.original,
+            title="", collapsed=True,
+        )
 
-    def compose(self) -> ComposeResult:
-        yield self.status
-        yield RefreshDetail("Refresh original details", compact=True)
-        yield self.original
+    def say(self, line: str) -> None:
+        """What the title says now. The status line inside repeats it for a reader who
+        opened the disclosure and is watching the read happen."""
+        self.title = line
+        self.status.update(line)
 
     def present(self, selection: TableSelection[HudRecord]) -> None:
         if self.selection == selection:
@@ -242,7 +263,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
     def clear_selection(self) -> None:
         TeamDetailRead.cancel_all(self)
         self.original.display = False
-        self.status.update("No records match the filter.")
+        self.say("No records match the filter.")
 
     def show_selection(self, key: DisclosureKey, record: HudRecord) -> None:
         self.read_detail(SelectedTableRecord(key, record))
@@ -267,24 +288,25 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         self.original.display = False
         card = selection.record
         label = DisclosureText.describe(card).summary
-        self.status.update(f"Reading original records for {label}…")
+        self.say(f"Reading the records behind {label}…")
         try:
             detail = await type(self).handler_for(type(card))(self, card)
         except (DeferredRead, ReadAgain, RelationViolationError, RouteChangedError,
                 ToolRefusedError, UnreadableHistory, WorkBranchError) as error:
             if self.is_attached and self.selection == selection:
-                self.status.update(f"Original details unavailable: {error}")
+                self.say(f"Could not read the records behind {label}: {error}")
             return
         if not self.is_attached or self.selection != selection:
             return
-        entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosureText.describe(detail))
+        entry = DisclosureEntry(RootKey(type(detail)), "The records behind this row",
+                                DisclosureText.describe(detail))
         for view in self.original.query_children(DeclaredDisclosure):
             view.present(entry)
             break
         else:
             self.original.mount(DeclaredDisclosure(entry))
         self.original.display = True
-        self.status.update("Original records; unit activity is bounded by Core.")
+        self.say(f"The records behind {label}")
 
     def on_unmount(self) -> None:
         TeamDetailRead.cancel_all(self)
