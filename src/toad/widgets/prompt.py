@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from types import FunctionType
 from agent_comms.repo import Checkout
-from typing import TYPE_CHECKING, ClassVar, Literal, Self
+from typing import ClassVar, Literal, Self
 
 
 from rich.text import Text as RichText
@@ -73,6 +73,7 @@ from toad.native_style import (
 from toad.tone_paint import TonePaint
 from toad.path_complete import AnyPath, CompletingEditor, DirectoriesOnly, FilesOnly, PathComplete
 from toad.prompt_actions import PromptAction, SubmitInputAction, SubmitNowAction
+from toad.app_node import ToadNode
 from toad.prompt_cursor import (
     CommandText,
     HistoryCursor,
@@ -93,10 +94,6 @@ from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PaddedOptionRo
 from toad.widgets.question import Ask, PromptQuestion, Question
 from toad.widgets.selection import ChangingText, InlineSelection, SelectionOptionList
 from toad.widgets.slash_complete import SlashComplete
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
 
 class ModeSwitcher(
     SpacedAround,
@@ -411,6 +408,7 @@ class PromptTextArea(
     Borderless,
     AutoHeight,
     PromptSubmission,
+    ToadNode,
     actions=(PromptAction,),
 ):
     HELP = """\
@@ -429,8 +427,6 @@ See on-screen instructions for details.
     native_components = {
         TextAreaComponent.PLACEHOLDER: (NativeDeclaration.of(Styles.color, TextVariable(MutedColour.name)),),
     }
-
-    app: ToadApp
 
     auto_completes: var[list[Option]] = var(list)
     shell_mode = var(False, bindings=True)
@@ -703,7 +699,7 @@ class EnterInsertAction(PromptFrameAction):
 
 
 class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingEffects, TonePaint,
-             containers.VerticalGroup, actions=(PromptFrameAction,)):
+             containers.VerticalGroup, ToadNode, actions=(PromptFrameAction,)):
     tone = PromptToneColour
 
 
@@ -730,8 +726,6 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     agent_binding = var(NoAgentConnection)
     model_history_scope = var("")
     status: var[str | Content | RichText] = var("")
-
-    app: ToadApp
 
     def __init__(
         self,

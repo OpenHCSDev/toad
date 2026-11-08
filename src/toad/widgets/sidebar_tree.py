@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from textual.events import Click
     from textual.layout import WidgetPlacement
 
-    from toad.app import ToadApp
     from toad.comms_root import FailedObservation, Observing
     from toad.navigation_target import NavigationTarget
     from toad.widgets.channel_activity import ChannelActivity
@@ -52,6 +51,7 @@ from toad.core.events import (
     SessionSelected,
     ThreadRowStateChanged,
 )
+from toad.app_node import ToadNode
 from toad.core_event_carrier import CoreEventReceiver
 from toad.native_style import PointerCursor
 from toad.no_worker import NoWorker
@@ -735,8 +735,7 @@ class Behind(BoundSidebar):
         return dict(change=AllSidebarRows(), reorder=True)
 
 
-class SidebarModelView(CoreEventReceiver, Widget):
-    app: ToadApp
+class SidebarModelView(CoreEventReceiver, ToadNode, Widget):
     """A widget showing the observed service's sidebar model.
 
     Core's model is observed only while a view shows it. Changes that arrive
