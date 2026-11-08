@@ -313,7 +313,7 @@ class ToolContentDecoder(MroDispatch):
     @handles(PublishedSentMessage)
     def published_message(self, message):
         assert self.report is not None
-        original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
+        original = message.original
         self.part = PublishedSentMessageToolOutputPart(
             message, self.report.literal, MessageRow(original, message.scope.recipient.name))
 
