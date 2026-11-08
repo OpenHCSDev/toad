@@ -582,12 +582,11 @@ class FailedObservation(Observation):
         view.bind_failed_observation(self)
 
     def activate(self, access: CoordinationAccess):
-        self.observe_sidebar(None)
-
-    def observe_sidebar(self, wanted):
-        access = self.access
         for view in tuple(access.sidebar_views):
             self.show_sidebar(view)
+
+    def observe_sidebar(self, wanted):
+        """Failure was published on activation; interest changes cannot rebind its views."""
 
     def observe_notifications(self, wanted: ObserveNotifications):
         for view in tuple(self.access.notification_views):

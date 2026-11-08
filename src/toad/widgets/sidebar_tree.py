@@ -655,9 +655,11 @@ class SidebarModelState(ABC):
     def apply(self, view: SidebarModelView, changes) -> None:
         pass
 
-    def present(self, view: SidebarModelView):
-        view.app.coordination_access.show_sidebar(view, False)
+    def current_for(self, view: SidebarModelView) -> SidebarModelState:
         return self
+
+    def present(self, view: SidebarModelView) -> None:
+        view.app.coordination_access.show_sidebar(view, False)
 
 
 class Detached(SidebarModelState):
@@ -674,10 +676,9 @@ class FailedSidebarState(SidebarModelState):
     def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
         return child is view.unavailable
 
-    def present(self, view: SidebarModelView):
+    def present(self, view: SidebarModelView) -> None:
         view.unavailable.update(f"Comms unavailable\n{self.observed.error}")
         view.app.coordination_access.show_sidebar(view, view.accepts_observation())
-        return self
 
 
 @dataclass(frozen=True)
@@ -700,13 +701,14 @@ class BoundSidebar(SidebarModelState):
         self.observed.sidebar.channels.unsubscribe(view.channels_changed)
         self.observed.sidebar.threads.unsubscribe(view.threads_changed)
 
-    def present(self, view: SidebarModelView):
-        view.unavailable.update(self.observed.sidebar.observation.status_text())
-        shown = view.accepts_observation()
-        view.app.coordination_access.show_sidebar(view, shown)
-        if not shown:
+    def current_for(self, view: SidebarModelView) -> SidebarModelState:
+        if not view.accepts_observation():
             return Behind(self.observed)
         return self.present_current()
+
+    def present(self, view: SidebarModelView) -> None:
+        view.unavailable.update(self.observed.sidebar.observation.status_text())
+        view.app.coordination_access.show_sidebar(view, view.accepts_observation())
 
     def present_current(self):
         return self
@@ -786,8 +788,9 @@ class SidebarModelView(CoreEventReceiver, Widget):
         """Apply the model's declared row change."""
 
     def unsubscribe(self) -> None:
-        self.model_state.unsubscribe(self)
+        previous = self.model_state
         self.model_state = Detached()
+        previous.unsubscribe(self)
 
     def stop_showing(self) -> None:
         self.app.coordination_access.show_sidebar(self, False)
@@ -826,7 +829,8 @@ class SidebarModelView(CoreEventReceiver, Widget):
     def present(self, **changes) -> None:
         """Publish the next state before it applies pending model changes."""
         previous = self.model_state
-        self.model_state = previous.present(self)
+        self.model_state = previous.current_for(self)
+        self.model_state.present(self)
         self.model_state.apply(self, previous.changes(changes))
 
     @handles(CoordinationObserved)
