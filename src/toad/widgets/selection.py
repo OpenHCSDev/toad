@@ -48,11 +48,8 @@ class ViewLabel(Animated[Band], Static):
     def activity_content(self, label: Content, busy: bool, *, prefix: Content) -> Content:
         """The row's own label, working or not: being busy is drawn, never spelled.
 
-        The spinner used to take the label's leading cell and animate a glyph where the
-        status marker already sits - a working thread's label is "⌛ name" before anything
-        here touches it - and it swapped the label for the bare title to make room, so the
-        row's text changed every time work started or stopped and fired the content fade
-        with it. Now only the wave moves.
+        The typed status starts the wave without changing the label or firing a
+        content fade. The shared app clock owns its frames.
         """
         if busy:
             if NAME_WAVE not in self.effects:
@@ -71,7 +68,8 @@ class ViewLabel(Animated[Band], Static):
             # The frame is a span of the line; the backend owns how a span is inked.
             line = self.effect_frame(NAME_WAVE).paint(self.app.colours, line)
         current = self.current
-        return self.emphasize(line, Style(bold=current, underline=current), y)
+        return self.emphasize(
+            line, Style(bold=current or NAME_WAVE in self.effects, underline=current), y)
 
     def emphasize(self, line: Strip, style: Style, y: int) -> Strip:
         """The whole line carries the row's current-target emphasis."""

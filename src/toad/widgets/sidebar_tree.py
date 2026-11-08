@@ -67,7 +67,7 @@ class UnpaintedChannel(ChannelRowModel):
 
     def __init__(self, name: str) -> None:
         super().__init__(
-            name, False, 0, 0, (), UnobservedUnread(), False, (), frozenset(), ThreadSort
+            name, False, 0, 0, (), UnobservedUnread(), 0, (), frozenset(), ThreadSort
         )
 
     def label(self) -> str:

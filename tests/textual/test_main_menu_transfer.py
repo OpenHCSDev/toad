@@ -14,6 +14,7 @@ from agent_comms.harness_install import OpenCodeHarness
 from support.applications import record_notifications
 from toad.widget_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
+from toad.screens.bus_choice import BusChoices
 from toad.widgets.comms_transfer import (
     ExportPath,
     ExportScopeChoice,
@@ -55,6 +56,15 @@ async def test_main_menu_sits_left_of_back_and_forward(workspace):
         assert [type(item) for item in controls.children] == [
             MainMenuButton, BackTabButton, ForwardTabButton,
         ], "Main menu must be left of Back and Forward"
+
+
+async def test_main_menu_opens_and_dismisses_the_bus_picker(workspace):
+    async with workspace.app(size=(110, 40)) as ui:
+        app, _ = ui.textual
+        await choose(ui, await open_main_menu(ui), "Switch bus (local or remote)")
+        await ui.until(lambda: isinstance(app.screen, BusChoices), why="the bus picker")
+        await ui.press("escape")
+        await ui.until(lambda: not isinstance(app.screen, BusChoices), why="return from the picker")
 
 
 async def test_main_menu_exports_the_wire_as_jsonl(workspace):
