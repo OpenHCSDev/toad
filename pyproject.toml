@@ -46,7 +46,7 @@ metaclass-registry = { git = "https://github.com/OpenHCSDev/metaclass-registry",
 textual = { git = "https://github.com/OpenHCSDev/textual.git", branch = "main" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", branch = "main" }
 objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "b5dd9f78b9293df145d7629f21deb89b042b9400" }
-textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", rev = "1f1d8b8ea3c30b39da3b14ea0ac0786ce9c49a80" }
+textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", branch = "main" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", branch = "main" }
 
 [project.scripts]
