@@ -13,6 +13,7 @@ import tarfile
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path, PurePosixPath
+from shutil import copyfileobj
 from tempfile import TemporaryDirectory
 from typing import ClassVar
 from urllib.request import urlopen
@@ -82,6 +83,52 @@ class ReleaseArchive:
             actual = hashlib.file_digest(stream, "sha256").digest()
         if actual != self.sha256:
             raise NeovimUnavailable(f"Neovim archive SHA-256 mismatch: {path}")
+
+    kept: ClassVar[Path] = Path.home() / ".cache/toad/neovim-archives"
+    """Every verified release archive, kept under its own SHA-256 for later runtimes. An
+    archive's identity is its content, but its only copy lived inside one runtime's prefix,
+    so every fresh prefix re-fetched the same pinned 11 MB from GitHub and two installs
+    failed on HTTP 504 (2026-11-08) with verified byte-identical copies already on the disk."""
+
+    @property
+    def held(self) -> Path:
+        """Where these exact bytes live once this disk has them."""
+        return self.kept / self.sha256.hex()
+
+    def kept_copy(self) -> Path | None:
+        """A verified copy of exactly these bytes on this disk, or None.
+
+        The file's name is its content, so one that fails verification under that name is
+        not this archive: it is discarded and fetched again, rather than failing every
+        future install from one bad write.
+        """
+        if not self.held.is_file():
+            return None
+        try:
+            self.verify(self.held)
+        except NeovimUnavailable:
+            self.held.unlink(missing_ok=True)
+            return None
+        return self.held
+
+    def acquire(self, url: str, destination: Path) -> None:
+        """These bytes: from this disk when it already holds them, from the network once."""
+        kept = self.kept_copy()
+        if kept is None:
+            self.download(url, destination)
+            self.keep(destination)
+            return
+        with kept.open("rb") as source, destination.open("xb") as output:
+            copyfileobj(source, output)
+        self.verify(destination)
+
+    def keep(self, source: Path) -> None:
+        """Publish a verified download for every later runtime, visible only once complete."""
+        self.kept.mkdir(mode=0o700, parents=True, exist_ok=True)
+        staged = self.kept.joinpath(f".{self.sha256.hex()}.{os.getpid()}")
+        with source.open("rb") as reading, staged.open("wb") as output:
+            copyfileobj(reading, output)
+        os.replace(staged, self.held)
 
     def download(self, url: str, destination: Path) -> None:
         remaining = self.size
@@ -218,7 +265,7 @@ class Neovim(RuntimePreparation, Executable):
             staged.root.mkdir(mode=0o700, parents=True)
             url = (f"https://github.com/neovim/neovim/releases/download/"
                    f"v{self.version}/{self.archive.name}")
-            self.archive.download(url, staged.payload)
+            self.archive.acquire(url, staged.payload)
             with tarfile.open(staged.payload, "r:gz") as archive:
                 archive.extractall(staged.root, filter="data")
             staged.executable.chmod(self.executable_mode)
