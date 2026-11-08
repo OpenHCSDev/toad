@@ -22,7 +22,7 @@ from agent_comms.connector import Connector
 from agent_comms.connector_profile import HttpsMcpEndpoint
 from agent_comms.connector_store import ConnectorStore, UiAccess, UiGrantAccess, UiReadAccess
 from agent_comms.read_basis import NamedViewer
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import ExternalThread
 
 from toad.comms_root import RemoteCoreConnection, RemoteObserving

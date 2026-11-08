@@ -1,7 +1,7 @@
 """Requests the agent makes of its client (files, permission, terminal) on a real native session,
 and what happens to them when the tab is left, the session is replaced or the agent is stopped."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 import asyncio
 from acp import schema
 

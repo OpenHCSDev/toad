@@ -14,7 +14,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.installer.probes.interpreter import InterpreterBuildProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution
 from agent_comms.installer.refusals import UpgradeRefused
-from agent_comms.storage_rules import StorageRule
+from agent_comms.projects.storage_rules import StorageRule
 from agent_comms.nominal.field_codec import FieldCodec
 from tools.physical_ui_admission import (
     AdmitOperation, AdmittedResult, RunTarget, StartAdmittedOperation,

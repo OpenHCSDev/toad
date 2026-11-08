@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 import shlex

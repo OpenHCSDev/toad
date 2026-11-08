@@ -2,7 +2,7 @@
 
 import asyncio
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.unread import ExactUnread
 
 from support.textual_steps import text_rows_of

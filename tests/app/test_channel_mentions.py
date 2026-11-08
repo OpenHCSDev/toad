@@ -3,7 +3,7 @@
 
 from agent_comms.channel_targets import ChannelTarget
 from agent_comms.display_references import ThreadDisplayReference
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 from toad.link_click import OpenLineLink
 from toad.line_blocks import OpenReference

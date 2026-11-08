@@ -1,7 +1,7 @@
 """Textual-facing: stable conversation identities resolve current names through Core references."""
 
 from agent_comms.core_access import LocalCoreAccess
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.launch_root import LaunchRoot
 from dataclasses import FrozenInstanceError
 from functools import partial

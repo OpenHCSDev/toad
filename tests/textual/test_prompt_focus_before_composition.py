@@ -10,7 +10,7 @@ out of `Conversation.initialize_view` → `Prompt.focus()` while a tab was openi
 same question with `is_mounted`; this is that answer reaching the other two callers.
 """
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 from toad.widgets.prompt import MessagePrompt
 

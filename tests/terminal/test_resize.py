@@ -1,6 +1,6 @@
 """Toad repaints its transcript, sidebar and composer across large terminal size changes."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 import sys
 
 from agent_comms.session_file import RegistrySessionLocation

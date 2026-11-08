@@ -67,7 +67,7 @@ async def test_wheel_up_through_saved_history_never_moves_forward(workspace, siz
     from functools import partial
     from pathlib import Path
 
-    from agent_comms.repo import Checkout
+    from agent_comms.projects.checkouts import Checkout
     from agent_comms.session_file import RegistrySessionLocation
     from agent_comms.registry.threads import NativeThread
     from toad.screens.main import MainScreen
@@ -112,7 +112,7 @@ async def test_wrapped_header_pins_once_its_first_row_leaves_and_matches_the_flo
     from functools import partial
     from pathlib import Path
 
-    from agent_comms.repo import Checkout
+    from agent_comms.projects.checkouts import Checkout
     from agent_comms.session_file import RegistrySessionLocation
     from agent_comms.registry.threads import NativeThread
     from toad.screens.main import MainScreen
@@ -213,7 +213,7 @@ async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspa
     import gzip
     from pathlib import Path
 
-    from agent_comms.repo import Checkout
+    from agent_comms.projects.checkouts import Checkout
     from agent_comms.session_file import RegistrySessionLocation
     from agent_comms.registry.threads import NativeThread
     from toad.screens.main import MainScreen

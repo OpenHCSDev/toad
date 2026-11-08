@@ -1,6 +1,6 @@
 """Textual-facing: a mounted any-mode channel's message rows (widgets of the chat view) follow its scope."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from support.textual_steps import refresh_chat
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.presentation_window import OLDER_END

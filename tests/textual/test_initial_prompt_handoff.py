@@ -2,7 +2,7 @@
 conversation widget being evicted and remounted, and keeps the editor's document and undo history."""
 
 import asyncio
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from collections import Counter
 
 

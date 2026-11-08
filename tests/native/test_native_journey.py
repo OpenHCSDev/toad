@@ -3,7 +3,7 @@
 The model is the controlled loopback provider; everything else is the real path.
 """
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 import base64

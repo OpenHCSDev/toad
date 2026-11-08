@@ -6,7 +6,7 @@ import signal
 import pytest
 from textual import events
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from support.agents import RecordedEvents, peer
 from toad.core.input_events import UserInputSubmitted
 from toad.prompt_actions import SubmitAction, SubmitInputAction, SubmitNowAction

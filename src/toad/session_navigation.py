@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.errors import (

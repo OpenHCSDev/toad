@@ -1,6 +1,6 @@
 """Textual-facing: a session whose mount fails leaves the workspace, instead of crashing later as a missing sidebar."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 import pytest
 
 from support.ui import saved_tab

@@ -1,6 +1,6 @@
 """A replay belongs to its requested tab, not whichever tab is still opening."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 from dataclasses import replace
 

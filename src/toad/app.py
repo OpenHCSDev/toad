@@ -23,7 +23,7 @@ from typing import Callable, Never, TypeVar, cast
 from agent_comms.acp_extension import TranscriptChangedUpdate
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.launch_runtime import LaunchRuntime
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.tailnet_buses import PeerBus
 from agent_comms.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
 from agent_comms.transport.tools.tailnet import CommsTailnetProfileTool

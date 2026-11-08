@@ -1,6 +1,6 @@
 """A resumed thread's saved project replaces the directory Toad was launched in, in every view that shows it."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 import asyncio
 from pathlib import Path
 

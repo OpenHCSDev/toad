@@ -1,6 +1,6 @@
 """A mounted any-mode channel reveals older messages entering its scope."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 
 async def test_mounted_any_mode_channel_reveals_older_messages_entering_its_scope(workspace):

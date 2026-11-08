@@ -1,7 +1,7 @@
 import os
 from contextlib import suppress
 from pathlib import Path
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from typing import Final
 
 from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home

@@ -15,7 +15,7 @@ from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.transport.tools.reads import InputDeliveryRead
 from agent_comms.goal_scope import OneGoal
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.runtime_server import AttachedRuntimeRequest
 from agent_comms.runtime_requests import (
     DismissHistoricalInputsRuntimeRequest, EditGoalRuntimeRequest, GoalHistoryRuntimeRequest,

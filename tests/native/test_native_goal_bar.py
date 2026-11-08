@@ -2,7 +2,7 @@
 
 from toad.goal_interaction import EditInteraction, HistoryInteraction, ToggleInteraction
 from support.goal_controls import goal_control
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 import asyncio
 import json
 import os

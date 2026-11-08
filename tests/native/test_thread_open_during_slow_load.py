@@ -1,6 +1,6 @@
 """Opening a thread whose session loads slowly: one tab from the first click, the loading state,
 then the saved history; the session left behind keeps its editor."""
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from toad.launch_binding import AgentAttached
 
 import asyncio

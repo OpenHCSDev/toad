@@ -8,7 +8,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Literal
 
 from agent_comms.command import Command
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from toad.core.events import CoreEvent
 
 if TYPE_CHECKING:

@@ -8,7 +8,7 @@ from pathlib import Path
 from textual import events
 from textual.pilot import _get_mouse_message_arguments
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.registry.threads import NativeThread
 from toad.link_click import OpenLineLink

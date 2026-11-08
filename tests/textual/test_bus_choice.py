@@ -7,7 +7,7 @@ from agent_comms.connector_profile import BearerSecret, HttpsMcpEndpoint, UiConn
 from agent_comms.connector_store import OpenableProfile
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.nominal.field_codec import RootId
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from yarl import URL
 
 from toad.app import ToadApp

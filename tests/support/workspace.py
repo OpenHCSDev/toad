@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from agent_comms.repo import Checkout, Repo
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.projects.repo import Repo
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from contextlib import asynccontextmanager

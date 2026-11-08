@@ -21,7 +21,7 @@ async def threads_owned_here(comms, project, names=("alpha", "beta")):
     """Declare `names` as threads of `project`, owned by this process through Core's ACP agent."""
     from agent_comms.acp import CommsAgent
     from agent_comms.nominal.field_codec import AcpSessionId
-    from agent_comms.repo import Checkout
+    from agent_comms.projects.checkouts import Checkout
 
     owner = CommsAgent(comms, auto_wake=False)
     try:
