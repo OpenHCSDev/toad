@@ -77,15 +77,6 @@ class DeliveryBarText(FillWidth, AutoHeight, ChangingText):
 
 
 
-class DeliverySummary(AutoWidth, DeliveryBarText):
-    native_theme = (NativeDeclaration.of(Styles.color, Variable(WarningColour.name)),)
-
-
-
-class DeliveryNoticesSummary(MutedText, DeliveryBarText):
-    """Its look is its bases."""
-
-
 class DeliveryBarError(DeliveryBarText):
     native_theme = (NativeDeclaration.of(Styles.color, Variable(WarningColour.name)),)
 
@@ -95,8 +86,13 @@ class InputDeliveryBar(AutoHeight, SidePadding, HorizontalGroup):
 
 
     def compose(self) -> ComposeResult:
-        yield DeliverySummary(markup=False)
-        yield DeliveryNoticesSummary(markup=False)
+        """Only what the status title above cannot say: a failure to read delivery at all.
+
+        The counts used to be previewed here as well, in two widgets whose separator lived
+        inside one of their strings, directly under a status title already listing the same
+        counts. Tristan, 2026-11-08: fold the duplicated delivery preview into the expanded
+        status. The title owns the line now; this row owns the failure.
+        """
         yield DeliveryBarError(markup=False)
 
     def watch_delivery(self) -> None:
@@ -104,14 +100,8 @@ class InputDeliveryBar(AutoHeight, SidePadding, HorizontalGroup):
 
     def _refresh_summary(self) -> None:
         delivery = self.delivery
-        self.display = delivery.shown or bool(delivery.error)
+        self.display = bool(delivery.error)
         if self.is_attached:
-            summary = self.query_one(DeliverySummary)
-            summary.display = bool(delivery.current)
-            summary.update(delivery.summary)
-            historical = self.query_one(DeliveryNoticesSummary)
-            historical.display = bool(delivery.notices)
-            historical.update(delivery.notices_summary)
             error = self.query_one(DeliveryBarError)
             error.display = bool(delivery.error)
             error.update(delivery.error)

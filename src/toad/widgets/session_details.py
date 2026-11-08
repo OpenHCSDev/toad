@@ -168,14 +168,19 @@ class SessionDetails(
         return ()
 
     def summary_title(self, row: ThreadStatusModel) -> str:
-        """The collapsed row: its status, saved history and delivery notices."""
-        parts = [*self.title_names, *row.summary, *self.history_details.summary]
+        """The collapsed row: its status, saved history and what delivery has to say.
+
+        Delivery's parts come from delivery, which is the point: this line used to spell
+        the notice count itself as f"{delivery.notices} notices" while the bar inside the
+        expanded contents spelled the same count its own way, two paces below. One owner
+        now, joined by whoever is joining.
+        """
         delivery = self.delivery.delivery
-        if delivery.notices:
-            parts.append(f"{delivery.notices} notices")
-        if delivery.error:
-            parts.append("Delivery unavailable")
-        return " · ".join(parts)
+        return " · ".join((
+            *self.title_names, *row.summary, *self.history_details.summary,
+            *delivery.parts(),
+            *(("Delivery unavailable",) if delivery.error else ()),
+        ))
 
     def _refresh_summary(self, *_args) -> None:
         row = self.status_source()
