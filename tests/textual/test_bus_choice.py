@@ -152,7 +152,7 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
     from agent_comms.connector_store import HeldUiProfiles
     from agent_comms.nominal.field_codec import RootId
     from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
-    from agent_comms.tailnet_profiles import HoldingPeerProfile, PeerRefusedProfile, TailnetProfiles
+    from agent_comms.tailnet_profiles import OfferedPeerProfile, PeerRefusedProfile, TailnetProfiles
     from toad.comms_root import DiscoveredPeer, HeldBus
     from yarl import URL
 
@@ -163,9 +163,11 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
                      BearerSecret("secret")),
         ReachedRoute("100.119.57.99"))
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
-    held = profile.write_new(tmp_path / f"ts-gaming-{profile.credential.grant_id}.json")
+    held = tmp_path / "ts-gaming.json"
+    from agent_comms.tailnet_buses import TailnetBuses
+    monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (found.peer,)))
     monkeypatch.setattr(TailnetProfiles, "ask",
-                        classmethod(lambda cls, peer: HoldingPeerProfile(peer, held)))
+                        classmethod(lambda cls, peer, previous: OfferedPeerProfile(peer, profile)))
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
@@ -187,8 +189,10 @@ async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypat
     from toad.comms_root import DiscoveredPeer
 
     found = PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
+    from agent_comms.tailnet_buses import TailnetBuses
+    monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (found.peer,)))
     monkeypatch.setattr(TailnetProfiles, "ask", classmethod(
-        lambda cls, peer: PeerRefusedProfile(peer, "No tailnet-only endpoint serves 127.0.0.1:18766")))
+        lambda cls, peer, previous: PeerRefusedProfile(peer, "No tailnet-only endpoint serves 127.0.0.1:18766")))
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
@@ -260,3 +264,56 @@ def test_a_dialog_fits_a_narrow_window():
     assert panel.styles.width.unit is Unit.WIDTH, (
         f"a fixed {panel.styles.width} cannot fit a phone-width window")
     assert panel.styles.max_width.value == 72, "and it still stops growing on a wide one"
+
+
+async def test_discovery_uses_selected_core_and_never_holds_the_message_pump(monkeypatch):
+    """A terminal without tailscale still paints while its selected Core discovers peers."""
+    import threading
+    from dataclasses import dataclass
+    from textual.app import App
+    from agent_comms.nominal.field_codec import FieldCodec
+    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
+    from agent_comms.transport.request import CoreAccess
+    from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, TailnetBusesRead
+    from toad.screens.bus_choice import BusChoices
+
+    started, release = threading.Event(), threading.Event()
+    expected = TailnetBusesRead((PeerHoldsBus(TailnetPeer("discovered", "100.64.1.2", True), 9),))
+
+    class RemoteAnswer(CoreAccess):
+        def call(self, request):
+            assert isinstance(request, CommsTailnetBusesTool)
+            started.set()
+            assert release.wait(5), "the test releases the remote answer after checking paint"
+            return FieldCodec.decode(TailnetBusesRead, FieldCodec.encode(expected))
+
+    @dataclass
+    class SelectedCore:
+        core: CoreAccess
+
+        def open_current(self):
+            return self
+
+    class PickerHost(App):
+        coordination_access = SelectedCore(RemoteAnswer())
+
+    def no_terminal_cli(cls):
+        raise AssertionError("The terminal has no tailscale CLI; ask the selected Core")
+
+    monkeypatch.setattr(TailnetBuses, "seen", classmethod(no_terminal_cli))
+    app = PickerHost()
+    try:
+        async with app.run_test(size=(44, 28)) as pilot:
+            picker = BusChoices(())
+            app.push_screen(picker)
+            assert await asyncio.to_thread(started.wait, 3)
+            painted = asyncio.Event()
+            app.call_later(painted.set)
+            await asyncio.wait_for(painted.wait(), 1)
+            assert picker.is_mounted and not picker.rows
+            release.set()
+            await picker.workers.wait_for_complete()
+            await pilot.pause()
+            assert [row.label() for row in picker.rows] == ["discovered · 9 threads"]
+    finally:
+        release.set()

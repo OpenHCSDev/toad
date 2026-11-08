@@ -16,7 +16,9 @@ from textual.css.styles import Styles
 from textual.widgets import Select, Static
 from ui_theme.scheme import PrimaryColour
 
-from toad.comms_root import BusChoice, DiscoveredPeer, PickerRow, TailnetBuses
+from toad.comms_root import BusChoice, DiscoveredPeer, PickerRow
+from agent_comms.tailnet_buses import PeerBus
+from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from toad.widget_actions import PriorityActions
 
@@ -72,10 +74,19 @@ class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[PickerRow]):
     @work(exclusive=True, group="bus-discovery", thread=True)
     def discover(self) -> None:
         """Ask the tailnet after the dialog is up; each peer's own CLI owns its answer."""
-        found = TailnetBuses.seen()
-        self.app.call_from_thread(self.discovered, found)
+        try:
+            core = self.app.coordination_access.open_current().core
+            found = core.call(CommsTailnetBusesTool())
+        except (OSError, ValueError, RuntimeError) as error:
+            self.app.call_from_thread(self.discovery_failed, str(error))
+            return
+        self.app.call_from_thread(self.discovered, found.peers)
 
-    def discovered(self, found) -> None:
+    def discovery_failed(self, reason: str) -> None:
+        if self.is_mounted:
+            self.query_one(BusPrompt).update(f"Discovery: {reason} · Esc returns")
+
+    def discovered(self, found: tuple[PeerBus, ...]) -> None:
         """Add the peers holding a bus, and drop the rows that were already them.
 
         A machine this one holds a profile for is also a machine the tailnet reports, so it
