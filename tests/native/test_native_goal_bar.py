@@ -1,5 +1,6 @@
 """The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, pause/resume and clear."""
 
+from agent_comms.nominal.field_codec import TurnId
 from support.goal_controls import goal_control
 from agent_comms.projects.checkouts import Checkout
 import asyncio
@@ -42,7 +43,7 @@ def standing_by_for_a_peer(workspace):
     def arrange(comms, session, goal):
         comms.registry.declare(NativeThread("peer", frozenset(), Checkout(workspace.project),
                                       process_identity=ProcessIdentity.capture(os.getpid())))
-        comms.agents.begin_turn("peer", "peer-turn-the-goal-waits-for")
+        comms.agents.begin_turn("peer", TurnId.mint())
         comms.goals.update_goal(session, StandbyGoalAction(
             wait_for=["peer"], progress="Progress details. " * 40 + " PROGRESS_END",
             expect=GoalPrecondition(goal_id=OneGoal(goal.id))))
@@ -90,6 +91,7 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
         ui, comms, session = native.ui, native.comms, native.thread
         app, pilot = ui.textual
         conversation = ui.conversation
+        bar = conversation.goal_bar
         await pilot.click(goal_control(bar, HistoryInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="goal details")
         details = app.screen

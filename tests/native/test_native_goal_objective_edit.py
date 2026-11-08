@@ -42,6 +42,7 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
         first = comms.registry.require(session).goal.require()
         app, pilot = ui.textual
         conversation = ui.conversation
+        bar = conversation.goal_bar
         current = first
         for objective in ("Short updated goal", "Second short goal"):
             await pilot.click(goal_control(bar, EditInteraction))
