@@ -19,9 +19,11 @@ from agent_comms.planning.goals import (
 from agent_comms.transport.tools.reads import InputDeliveryRead
 from agent_comms.planning.goal_scope import OneGoal
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.runtime_server import AttachedRuntimeRequest
-from agent_comms.runtime_requests import (
-    DismissHistoricalInputsRuntimeRequest, EditGoalRuntimeRequest, GoalHistoryRuntimeRequest,
+from agent_comms.transport.runtime_request import AttachedRuntimeRequest
+from agent_comms.transport.runtime_requests import (
+    DismissHistoricalInputsRuntimeRequest,
+    EditGoalRuntimeRequest,
+    GoalHistoryRuntimeRequest,
 )
 from agent_comms.transport.tools.sidebar import (
     CommsCaptureHumanInputTool, CommsMoveThreadProjectTool,
