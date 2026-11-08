@@ -108,6 +108,7 @@ class DeclaredDisclosure(
         if self.is_mounted and not self.collapsed:
             self.show_source()
 
+    @on(Collapsible.Expanded)
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
         if event.collapsible is self:
             event.stop()

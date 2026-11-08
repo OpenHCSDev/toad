@@ -160,10 +160,12 @@ class DeclaredTable[R](OpensSelected, DataTable[Content]):
     def on_resize(self) -> None:
         self.call_after_refresh(self.reconcile_source)
 
+    @on(DataTable.RowHighlighted)
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         event.stop()
         self.selection_highlighted()
 
+    @on(DataTable.RowSelected)
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         event.stop()
         self.selection_highlighted()

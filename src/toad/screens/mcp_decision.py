@@ -88,6 +88,7 @@ class MCPDecisionScreen(CenteredScreen, PriorityActions, DismissibleScreen[None]
         super()._on_screen_suspend()
         self._stop()  # A covered modal is not a controlling local terminal.
 
+    @on(events.ScreenResume)
     def _on_screen_resume(self, event: events.ScreenResume) -> None:
         super()._on_screen_resume(event)
         if self._runner is not None and not self._running:

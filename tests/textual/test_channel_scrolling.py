@@ -1,6 +1,6 @@
 """Textual-facing: a long channel scrolls like a thread's history: held paging never draws a blank message area, the history grows under a reader without moving them, and End reaches the newest message with the draft untouched."""
 
-from support.textual_steps import refresh_chat
+from support.textual_steps import painted_text, refresh_chat
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.presentation_window import NEWER_END, OLDER_END
 from toad.widgets.transcript_history import LineHistory
@@ -216,3 +216,83 @@ async def test_scrolling_prepared_history_keeps_its_intrinsic_content_geometry(w
         assert not calls, "scrolling rediscovered unchanged prepared history layout"
         assert screen._compositor._subtree_geometry[history] is captured
         assert history.visible_fragments(), "the reused source still draws its prepared messages"
+
+
+async def test_the_placement_scan_answers_once_per_publication(workspace):
+    """The sticky header asks which page is under the top row on every scroll tick.
+
+    Where a page sits is layout-space and which pages are drawn come from the published
+    frame, so the answer changes when the publication does and not when scroll_y does.
+    Rebuilding it per tick cost 1.005s of a 31s phone trace inside top_message_header,
+    allocating an ancestor chain per page and walking the layout map for each one.
+
+    The reuse is only worth having if the header still names the right sender, so this
+    asserts what the header paints, from two senders whose headers differ. An earlier
+    version of this test compared top_message_header() with top_page().pinned_header(),
+    which is its own one-line body: a stale answer agrees with itself.
+    """
+    workspace.thread("alpha", "scroll", running=True)
+    workspace.thread("beta", "scroll", running=True)
+    for index in range(16):
+        workspace.comms.messaging.send("alpha", "#scroll", f"Alpha {index}: " + "wrapped body " * 12)
+    for index in range(16):
+        workspace.comms.messaging.send("beta", "#scroll", f"Beta {index}: " + "wrapped body " * 12)
+
+    async with workspace.app(size=(110, 35)) as ui:
+        app, _pilot = ui.textual
+        await ui.open_channel("#scroll", actor="alpha")
+        chat = app.screen.query_one(CommsChatView)
+        window = chat.window
+        await ui.until(lambda: window.max_scroll_y > window.scrollable_content_region.height,
+                       why="scrollable conversation history")
+
+        builds = 0
+        original = type(window).placed_in
+
+        def counted(self, geometry, widgets):
+            nonlocal builds
+            builds += 1
+            return original(self, geometry, widgets)
+
+        # The newest messages are beta's, so the tail pins beta's header.
+        window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
+        await ui.step()
+        await ui.until(lambda: painted_text(window.sticky_header, "beta"),
+                       why="the pinned header names the sender at the top row")
+
+        type(window).placed_in = counted
+        try:
+            # Asking again inside one publication must not scan again, and the painted
+            # header must still be beta's rather than blank or alpha's.
+            for _ in range(8):
+                window.placed_pages()
+                window.top_message_header()
+            assert builds <= 1, "an unchanged publication is answered without scanning again"
+            assert painted_text(window.sticky_header, "beta"), "the held answer still paints beta"
+
+            # Real scrolling back through alpha's messages must repaint alpha's header.
+            scanned = builds
+            window.scroll_to(y=0, animate=False, immediate=True)
+            await ui.step()
+            await ui.until(lambda: not window.sticky_header.display
+                                   or painted_text(window.sticky_header, "alpha"),
+                           why="the pinned header follows the reader back to alpha")
+            assert builds > scanned, "a republished frame scans again"
+
+            # A real width publication is a new answer the header must follow.
+            window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
+            await ui.step()
+            republished = builds
+            await ui.resize(90, 30)
+            await ui.step()
+            assert builds > republished, "the resized publication scans again"
+            # The header is pinned only while a message's own header is scrolled above the
+            # top row, so the tail of a republished frame may legitimately pin nothing.
+            # Re-establish a known position rather than guess the new geometry.
+            window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
+            window.scroll_relative(y=-2, animate=False, immediate=True)
+            await ui.step()
+            await ui.until(lambda: painted_text(window.sticky_header, "beta"),
+                           why="the republished frame still pins beta inside beta's message")
+        finally:
+            type(window).placed_in = original

@@ -895,7 +895,18 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         Viewport layout places what is on screen plus the screen's declared
         geometry targets; a widget off screen is not yielded.
         """
-        geometry = self.screen._compositor._layout_map
+        return self.placed_in(self.screen._compositor._layout_map, widgets)
+
+    def placed_in[Placed: Widget](
+        self, geometry: object, widgets: Iterable[Placed]
+    ) -> Iterator[tuple[Placed, int]]:
+        """One reading of a geometry map, from whichever map the caller means.
+
+        A caller that remembers an answer must remember which geometry answered it: the
+        current layout map is replaced by a prepared layout before it is published, so
+        reading that map while keying on the published one labels an answer with a map
+        that did not supply it.
+        """
         for widget in widgets:
             chain = widget.ancestors_with_self
             path = chain[:chain.index(self)] if self in chain else chain
@@ -936,11 +947,34 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
                                     message.size.width)
         return PinnedHeader((), 0, 0)
 
+    _placed_pages: tuple[tuple[tuple[TranscriptPageView, int], ...], object] = ((), None)
+    """The last published placement of this window's drawn pages, and the map it came from."""
+
+    def placed_pages(self) -> tuple[tuple[TranscriptPageView, int], ...]:
+        """The drawn pages and their first rows, as the published geometry placed them.
+
+        Keyed on the published map itself, which is the publication: the compositor
+        replaces it only with an actual writer update and drops its published widgets in
+        the same breath (`_compositor.py:669`). So this cannot answer for a frame that has
+        been replaced, and it needs no expiry of its own.
+
+        Scrolling moves `scroll_y` and nothing here: a page's first row is layout-space,
+        and which pages are drawn comes from the published frame. Rebuilding this per
+        scroll tick cost 1.005s of a 31s phone trace in `top_message_header`, each tick
+        allocating an ancestor chain per page and walking the layout map for it.
+        """
+        published = self.screen._compositor._published_map
+        placed, against = self._placed_pages
+        if against is not published:
+            placed = tuple(self.placed_in(published, self.drawn_pages()))
+            self._placed_pages = (placed, published)
+        return placed
+
     def top_page(self) -> TopPage:
         """The drawn page under the window's top row, else the nearest one below it, else none."""
         y = self.scroll_y
         return min(((PageUnderTop if first <= y else PageBelowTop)(page, first)
-                    for page, first in self.placements(self.drawn_pages())
+                    for page, first in self.placed_pages()
                     if page.line_count and first + page.line_count > y),
                    key=lambda placed: max(y, placed.first), default=TopPage())
 
@@ -955,6 +989,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """Every live block mounted inside this window; each announces itself when it mounts."""
         return WeakSet()
 
+    @on(ConversationBlock.Mounted)
     def on_conversation_block_mounted(self, message: ConversationBlock.Mounted) -> None:
         message.stop()
         self.live_blocks.add(message.block)

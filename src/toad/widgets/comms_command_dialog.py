@@ -69,6 +69,7 @@ class CatalogField(ValueEditor, Button, shows=(ModelConfigOption,)):
         self.label = next((choice.name for choice in self.field.metadata(PreparedChoices).parameter.options
                            if choice.value == self.field.value), 'Choose / connect a provider…')
 
+    @on(Button.Pressed)
     def on_button_pressed(self, event: Button.Pressed):
         event.stop()
         self.choose()
