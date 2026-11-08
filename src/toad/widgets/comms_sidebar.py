@@ -44,7 +44,7 @@ from toad.widgets.selection import HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widget_actions import HiddenActions, OpenSelectedAction, OpensSelected
 from toad.widgets.session_sort import ChannelListSort, CommsSortChoice, ThreadSortForm
-from toad.widgets.sidebar_tree import ActiveSegment, GroupHeaderLine, HeaderSegment, SelectsTargets, SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
+from toad.widgets.sidebar_tree import ActiveSegment, DetailedRow, GroupHeaderLine, HeaderSegment, SelectsTargets, SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.tone_paint import AlternatingTone
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
@@ -120,14 +120,15 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         """Paint the header and return members whose channel pin changed."""
         previous, self.channel = self.channel, channel
         row = self.row
-        if previous.label != channel.label:
-            row.set_label(channel.label)
-        row.tooltip = channel.tooltip
+        if previous.label() != channel.label():
+            row.set_label(channel.label())
+        row.tooltip = channel.tooltip()
         if row.is_mounted and (previous.active != channel.active or previous.unread != channel.unread):
             row.run_effect(NEW_MESSAGE)
         self.sort_choice.update_order(channel.order)
-        if previous.unread != channel.unread or previous.order is not channel.order:
-            # The badge and the order are stretches of the header line: paint only.
+        if (previous.unread != channel.unread or previous.order is not channel.order
+                or previous.summary() != channel.summary()):
+            # The badge, the order and the detail line are painted stretches, not layout.
             row.refresh(layout=False)
         return previous.pinned_members ^ channel.pinned_members
 
@@ -268,20 +269,22 @@ class ChannelRow(ListedRow):
     row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
 
 
-class ChannelHeaderRow(GroupHeaderLine, ChannelRow):
-    """A channel group's header line: disclosure, the channel's name, unread and order."""
+class ChannelHeaderRow(DetailedRow, GroupHeaderLine, ChannelRow):
+    """A channel group's header line: disclosure, the channel's name, unread and order,
+    over a second line carrying how many of its agents are up and which tags it covers."""
+
+    def detail(self) -> str:
+        return self.header_group.channel.summary()
+
+    def header_lines(self, line: Content) -> Content:
+        return self.with_detail(line)
 
 
-class ThreadStatusRow(MutedText, ListedRow, ToadNode):
+class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRow, ToadNode):
     """Thread rows show activity through their glyph and summary, not held ink."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.styles.height = 2
-        self.styles.padding = 0
-        self.styles.text_wrap = "nowrap"
-        self.styles.text_overflow = "ellipsis"
-        self.styles.pointer = "pointer"
         self.thread_row: ThreadRowModel | None = None
         self.pinned = False
         self.action_status: str | None = None
@@ -289,6 +292,12 @@ class ThreadStatusRow(MutedText, ListedRow, ToadNode):
     @property
     def busy(self) -> bool:
         return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
+
+    def detail(self) -> str:
+        """A pending action's own status while one runs, else the thread's summary."""
+        if self.thread_row is None:
+            return ""
+        return self.action_status if self.action_status is not None else self.thread_row.summary
 
     def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
         """Render the model with this app's pin and pending action."""
@@ -301,15 +310,15 @@ class ThreadStatusRow(MutedText, ListedRow, ToadNode):
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         # The drawn row knows the thread's birth: opening it asks Core nothing first.
         self.target = KnownThreadTarget(row.name, row.incarnation)
-        summary = action_status if action_status is not None else row.summary
         self.tooltip = Content("\n".join(value for value in (
-            row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, *row.model.texts(),
+            row.name, self.detail(), row.unread.detail,
+            "Pinned in this channel" if pinned else None, *row.model.texts(),
         ) if value))
         shown = self.app.settings.sidebar.unread_counts.badge(row.unread)
         badge = f"{shown} " if shown else ""
         title = self.activity_content(row.title, Content(row.label), self.busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
-        self.update(Content.assemble(title, f"\n  {summary}"), layout=False)
+        self.update(self.with_detail(title), layout=False)
         if self.is_mounted and previous is not None and (
                 previous.status.working != row.status.working or previous.unread != row.unread):
             self.run_effect(NEW_MESSAGE)
