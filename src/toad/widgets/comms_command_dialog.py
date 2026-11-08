@@ -31,6 +31,7 @@ from textual.document._editing import EditingMode
 from toad.widgets.model_switcher import ModelSelection
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
 
 
 @dataclass(eq=False)
@@ -236,6 +237,7 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
         self.state.on_resolved_changed(self.draft_changed)
         self.update_confirmation()
 
+    @on(Unmount)
     def on_unmount(self):
         self.state.off_resolved_changed(self.draft_changed)
 

@@ -56,6 +56,8 @@ from toad.widget_actions import WidgetAction, OpensSelected
 from toad.worker_group import WorkerGroup
 from toad.comms_root import Observing
 from textual.events import Mount
+from textual.events import Unmount
+from textual.events import Show
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -332,6 +334,7 @@ class ThreadCommsSidebar(
         self._sync_filter_control()
         self.refresh_relationships()
 
+    @on(Show)
     def on_show(self):
         if not self._presentation_visible():
             return
@@ -341,6 +344,7 @@ class ThreadCommsSidebar(
         self._sync_filter_control()
         self.refresh_relationships()
 
+    @on(Unmount)
     def on_unmount(self):
         self._generation += 1
         if self._refresh_task is not None:

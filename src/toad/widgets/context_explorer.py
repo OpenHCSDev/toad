@@ -39,6 +39,8 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibility
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.worker_group import WorkerGroup
 from textual.events import Mount
+from textual.events import Unmount
+from textual.events import Show
 
 if TYPE_CHECKING:
     from agent_comms.working_memory_questions import SpanAnswer
@@ -132,6 +134,7 @@ class ContextTree(Tree[ContextNode]):
         self.context_nodes.clear()
         return super().clear()
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self.context_nodes.clear()
 
@@ -488,6 +491,7 @@ class ContextExplorer(
             and not self.query_ancestor(SideBarCollapsible).collapsed
         )
 
+    @on(Show)
     def on_show(self) -> None:
         self.call_after_refresh(self._observed)
 
@@ -504,6 +508,7 @@ class ContextExplorer(
         if not self.state.observed_at(access.revision):
             self.read()
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self.state = DetachedInspection()
 

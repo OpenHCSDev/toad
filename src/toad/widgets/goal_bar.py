@@ -278,9 +278,11 @@ class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
             self._drag_resize(event.screen_y)
             self._end_resize()
 
+    @on(events.Leave)
     def on_leave(self) -> None:
         self.edge = (GoalEdge, GrabbedGoalEdge)[self._resize_origin is not None]
 
+    @on(events.Unmount)
     def on_unmount(self) -> None:
         self._end_resize()
 

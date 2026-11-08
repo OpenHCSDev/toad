@@ -120,6 +120,7 @@ from toad.widgets.transcript_lines import (
 from agent_comms.message_reference import MessageReference
 from toad.transcript_filter import Filtered
 from textual.events import Mount
+from textual.events import Hide
 
 if TYPE_CHECKING:
 
@@ -1141,6 +1142,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             if previous or page.arrivals:
                 page.refresh()
 
+    @on(Hide)
     def on_hide(self) -> None:
         for page in self.pages:
             page.arrivals.clear()

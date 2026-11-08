@@ -59,6 +59,7 @@ from toad.widgets.declared_table import (
 from toad.widgets.sidebar_tree import KeyedRows
 from toad.worker_group import WorkerGroup
 from textual.events import Mount
+from textual.events import Unmount
 
 
 class TeamDetailRead(WorkerGroup):
@@ -310,6 +311,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Collapsible):
         self.original.display = True
         self.say(f"The records behind {label}")
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         TeamDetailRead.cancel_all(self)
 
@@ -484,6 +486,7 @@ class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreE
         self.subscribe_core(access.events)
         access.show_team(self, True)
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self.app.coordination_access.show_team(self, False)
         self.close_core_events()

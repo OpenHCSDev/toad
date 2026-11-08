@@ -250,6 +250,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         """Borrow the original current paint resource, never a loading preview."""
         return self._prepared if self.paint_ready and self._ready.is_set() else None
 
+    @on(events.Unmount)
     def on_unmount(self) -> None:
         self._closed = True
         if self._layout_screen is not None:

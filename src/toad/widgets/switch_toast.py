@@ -28,6 +28,8 @@ from toad.native_style import ScreenOverlay
 from toad.widgets.conversation import Conversation
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
+from textual.events import Show
 
 if TYPE_CHECKING:
     from textual._paint_state import PaintState
@@ -102,6 +104,7 @@ class SwitchToast(CoreEventReceiver, ScreenOverlay, Animated[Amount], ToadNode):
         self._layout_screen = self.screen
         self._layout_screen.screen_layout_refresh_signal.subscribe(self, self.refit)
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self._layout_screen.screen_layout_refresh_signal.unsubscribe(self)
 
@@ -192,6 +195,7 @@ class SwitchToast(CoreEventReceiver, ScreenOverlay, Animated[Amount], ToadNode):
         elif self.fit(areas[0]):
             self.refresh(layout=True)
 
+    @on(Show)
     def on_show(self) -> None:
         super().on_show()
         self.repaint()

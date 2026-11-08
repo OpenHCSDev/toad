@@ -274,9 +274,11 @@ Tap escape *twice* to exit.
         strip = self._render_line(scroll_x, scroll_y + y, self.state.width, paint)
         return strip
 
+    @on(events.Focus)
     def on_focus(self) -> None:
         self.border_subtitle = "Tap [b]esc[/b] [i]twice[/i] to exit"
 
+    @on(events.Blur)
     def on_blur(self) -> None:
         self.border_subtitle = "Click to focus"
 
@@ -464,6 +466,7 @@ Tap escape *twice* to exit.
             case "sgr":
                 await self.write_process_stdin(self._encode_mouse_event_sgr(event))
 
+    @on(events.Paste)
     async def on_paste(self, event: events.Paste) -> None:
         await self.paste(event.text)
 

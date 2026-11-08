@@ -34,6 +34,7 @@ from toad.keymap import KeymapCatalog
 from toad.widgets.selection import SelectionListItem
 from toad.tone_paint import UntintedTonePaint
 from textual.events import Mount
+from textual.events import Blur
 
 
 class NonSelectableLabel(Label):
@@ -149,6 +150,7 @@ class Menu(
         self.display = False
         self.remove()
 
+    @on(Blur)
     def on_blur(self) -> None:
         self.dismiss_control()
 

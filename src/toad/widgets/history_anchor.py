@@ -1053,6 +1053,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         self.screen.history_windows.add(self)
         self.request_preparation()
 
+    @on(events.Unmount)
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
         self.settle_preparation()

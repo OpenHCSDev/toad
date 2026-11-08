@@ -95,6 +95,7 @@ class MCPDecisionScreen(CenteredScreen, PriorityActions, DismissibleScreen[None]
                 "Controller hidden; child stopped. A prior package write may have committed. Close and refresh."
             )
 
+    @on(events.Unmount)
     def on_unmount(self) -> None:
         self._stop()
 
