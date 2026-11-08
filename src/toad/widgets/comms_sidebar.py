@@ -316,7 +316,7 @@ class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRo
         ) if value))
         shown = self.app.settings.sidebar.unread_counts.badge(row.unread)
         badge = f"{shown} " if shown else ""
-        title = self.activity_content(row.title, Content(row.label), self.busy,
+        title = self.activity_content(Content(row.label), self.busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         self.update(self.with_detail(title), layout=False)
         if self.is_mounted and previous is not None and (
