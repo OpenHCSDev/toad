@@ -85,24 +85,27 @@ class BothExpansion(SuccessExpansion, FailExpansion):
 
 
 class UnreadCount(DeclaredChoice, affix="UnreadCount"):
-    """Whether a row says how many messages it has not shown you.
+    """Whether a row marks that it has messages it has not shown you.
 
     One owner for the decision, because four places were each deciding it: a channel on
     the welcome screen, a channel group header, a sidebar row and a session tab. Each
     still places the badge its own way, which is a real difference; whether there is one
     at all is not, and a reader on a narrow terminal wants those columns back.
+
+    What the mark looks like belongs to the unread presentation itself, which already
+    owns whether anything is unread; this family only decides whether to show it.
     """
 
     @classmethod
     @abstractmethod
     def badge(cls, unread) -> str:
-        """The count to show for ``unread``, or nothing."""
+        """The mark to show for ``unread``, or nothing."""
 
 
 class ShownUnreadCount(UnreadCount):
     @classmethod
     def badge(cls, unread) -> str:
-        return unread.label
+        return unread.badge
 
 
 class HiddenUnreadCount(UnreadCount):
