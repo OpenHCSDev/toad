@@ -1,5 +1,6 @@
 """Textual-facing: retain the real team page across Core frame replacements."""
 
+from contextlib import suppress
 from dataclasses import replace
 
 from agent_comms.team.vibe_check import OverloadDegradation
@@ -10,7 +11,10 @@ from agent_comms.recorded_time import RecordedEventTime
 from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
 from agent_comms.thread_identity import RecordedThreadIncarnation
-from agent_comms.ui_model.observation import ObserveTeamHud, StopTeamHud
+from agent_comms.errors import RelationViolationError
+from agent_comms.transport.tools.reads import TeammateRead
+from agent_comms.ui_model.observation import ObserveTeamHud, ReadOperation, StopTeamHud
+from agent_comms_hooks import ToolRefusedError
 from agent_comms.ui_model.teammate_state import Detached, Moving, PendingClock
 from support.workspace import Workspace
 from textual.worker import Worker, WorkerState
@@ -54,7 +58,14 @@ async def frames_from_the_test(ui, app, page: TeamPage) -> None:
     page's interest is stopped through the observation's own request first."""
     await app.push_screen(page)
     await ui.step()
-    app.coordination_access.observation.observed().observe_team(StopTeamHud())
+    observed = app.coordination_access.observation.observed()
+    observed.observe_team(StopTeamHud())
+    # The observer answers in arrival order, and publishes no frame once it has the stop: when
+    # a read sent after it is answered, every frame published before it has reached the page.
+    nobody = RecordedThreadIncarnation("nobody", 0.0)
+    with suppress(RelationViolationError, ToolRefusedError):
+        await observed.process.read(ReadOperation(
+            str(observed.root), TeammateRead(frame_owner=nobody, unit=nobody, orders=())))
     await ui.step()
 
 
