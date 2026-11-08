@@ -62,7 +62,7 @@ async def frames_from_the_test(ui, app, page: TeamPage) -> None:
     observed.observe_team(StopTeamHud())
     # The observer answers in arrival order, and publishes no frame once it has the stop: when
     # a read sent after it is answered, every frame published before it has reached the page.
-    nobody = RecordedThreadIncarnation("nobody", 0.0)
+    nobody = RecordedThreadIncarnation("nobody", 1.0)
     with suppress(RelationViolationError, ToolRefusedError):
         await observed.process.read(ReadOperation(
             str(observed.root), TeammateRead(frame_owner=nobody, unit=nobody, orders=())))
