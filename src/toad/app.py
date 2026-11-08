@@ -517,6 +517,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
         loop.call_soon_threadsafe(run)
 
+    @on(events.Mount)
     async def on_mount(self) -> None:
         # The terminal driver is running now, so ANSI themes can query its colours.
         await self.colours.mount()

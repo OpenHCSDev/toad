@@ -18,6 +18,8 @@ from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
 from toad.app_node import ToadNode
+from textual.events import Mount
+from textual import on
 
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
@@ -75,6 +77,7 @@ class ActionModal(CenteredScreen, CoreEventReceiver, DismissibleScreen[int], Toa
     def on_command_complete(self, event: CommandComplete) -> None:
         self.operation.command_complete(self, event.return_code)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.ok_button.loading = True
         self.command_pane.border_title = Content(self.operation.description)

@@ -22,6 +22,7 @@ from toad.mcp_inventory import (
     read_inventory,
     render_inventory,
 )
+from textual.events import Mount
 
 
 class MCPDecisionButton(ActingButton):
@@ -89,6 +90,7 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
                 yield RefreshInventory("Refresh")
                 yield DismissButton("Close")
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.refresh_inventory()
 

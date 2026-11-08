@@ -21,6 +21,8 @@ from toad.frame_presentation import ARRIVAL, CascadingRows
 from toad.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import UNPLACED, NewerEnd, OlderEnd, PageEnd, Placed, Unplaced, arranged
 from toad.widgets.transcript_fragments import NO_REST, CursorRest
+from textual.events import Mount
+from textual import on
 
 if TYPE_CHECKING:
     from agent_comms.message_reference import MessageReference
@@ -456,6 +458,7 @@ class ConversationBlock(ConversationEntry):
             super().__init__()
             self.block = block
 
+    @on(Mount)
     def on_mount(self) -> None:
         for fade in self.text_fades:
             self.run_effect(fade)

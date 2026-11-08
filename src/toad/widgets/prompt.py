@@ -483,6 +483,7 @@ See on-screen instructions for details.
         content = content.add_spans(spans)
         return content
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
@@ -893,6 +894,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             self.sync_turn()
             self._update_queue_summary()
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.sync_configuration()
         self.sync_session()

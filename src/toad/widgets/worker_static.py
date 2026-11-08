@@ -27,6 +27,7 @@ from toad.rich_preparation import (
     ContentSource, PreparedPaintSource, PreparedRichContent, RenderableSource, RichPresentation, RichSource,
     SyntaxPalette, SyntaxSource,
 )
+from textual import on
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         return cls(SyntaxSource(text, filename, lexer=lexer,
                                 line_numbers=line_numbers, filename_only=filename_only))
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self._closed = False
         self._ready.clear()

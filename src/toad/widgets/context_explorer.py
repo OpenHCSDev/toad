@@ -38,6 +38,7 @@ from toad.native_style import MutedText
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.worker_group import WorkerGroup
+from textual.events import Mount
 
 if TYPE_CHECKING:
     from agent_comms.working_memory_questions import SpanAnswer
@@ -402,6 +403,7 @@ class ContextDetail(Borderless, ProcessTextArea):
         self.styles.min_height = 6
         self.maximized_changed(None)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.watch(self.screen, "maximized", self.maximized_changed, init=False)
 
@@ -468,6 +470,7 @@ class ContextExplorer(
         yield ContextExportPath(placeholder="Export to a new text file · path")
         yield ContextExport("Export selected text + source")
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.observe_core(self.app.coordination_access.events)
         self.observe_core(self.app.events)

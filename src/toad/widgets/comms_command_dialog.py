@@ -29,6 +29,8 @@ from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, Mo
 from toad.widget_actions import WidgetAction
 from textual.document._editing import EditingMode
 from toad.widgets.model_switcher import ModelSelection
+from textual.events import Mount
+from textual import on
 
 
 @dataclass(eq=False)
@@ -97,6 +99,7 @@ class CatalogFieldSelection(ModelSelection):
     def compose(self):
         yield from self.compose_content()
 
+    @on(Mount)
     def on_mount(self):
         self.focus_content(False)
 
@@ -228,6 +231,7 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
     async def confirm(self) -> None:
         self.form.finish()
 
+    @on(Mount)
     def on_mount(self):
         self.state.on_resolved_changed(self.draft_changed)
         self.update_confirmation()

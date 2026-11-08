@@ -50,6 +50,7 @@ from toad.native_style import (
     SurfaceBackground,
 )
 from toad.app_node import ToadNode
+from textual.events import Mount
 
 
 class TransferProgress(WireExportObserver):
@@ -496,6 +497,7 @@ class WireExportDialog(TransferDialog):
         yield ExportTarget(placeholder="#channel or first,second (for DM)")
         yield ExportLimit("5242880", placeholder="Max bytes; empty = full")
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.destination_input.focus()
 
@@ -545,6 +547,7 @@ class ThreadImportDialog(TransferDialog):
         yield ImportSessionId(placeholder="Session ID (OpenCode database only)")
         yield ImportWorktree(placeholder="Project directory override (optional)")
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.query_one(ImportSource).focus()
 

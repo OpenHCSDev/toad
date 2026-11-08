@@ -33,6 +33,7 @@ from toad.menus import MenuCommand, MenuConversation, MenuOwner
 from toad.keymap import KeymapCatalog
 from toad.widgets.selection import SelectionListItem
 from toad.tone_paint import UntintedTonePaint
+from textual.events import Mount
 
 
 class NonSelectableLabel(Label):
@@ -123,6 +124,7 @@ class Menu(
             MenuOption(command) for command in self._commands
         )
 
+    @on(Mount)
     def on_mount(self) -> None:
         self._insert_options()
         self.screen.bindings_updated_signal.subscribe(self, self.refresh_keys)

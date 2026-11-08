@@ -31,6 +31,7 @@ from toad.widgets.tool_content import ToolContent
 from toad.app_node import ToadNode
 from toad.native_style import PointerCursor, RightMargin
 from toad.widgets.conversation import Conversation
+from textual import on
 
 
 class HeaderPointer(DeclaresTheme):
@@ -173,6 +174,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         yield title
         yield details
 
+    @on(events.Mount)
     def on_mount(self) -> None:
 
         try:

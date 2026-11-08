@@ -13,6 +13,8 @@ from ui_theme.scheme import AccentColour, PrimaryColour
 
 from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import AutoWidth, NoWrap, OneRow
+from textual.events import Mount
+from textual import on
 
 
 class FutureText(EffectInContent, AutoWidth, OneRow, NoWrap, Animated[Band], Static):
@@ -33,6 +35,7 @@ class FutureText(EffectInContent, AutoWidth, OneRow, NoWrap, Animated[Band], Sta
         super().apply_native_layout()
         self.styles.text_align = "center"
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.run_effect(self.effect)
 

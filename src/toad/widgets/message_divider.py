@@ -38,6 +38,8 @@ from toad.widgets.transcript_lines import (
 )
 from toad.widgets.history_anchor import PinnedHeader
 from toad.widgets.agent_activity import AgentActivityPresentation
+from textual.events import Mount
+from textual import on
 
 
 
@@ -144,6 +146,7 @@ class MessageDivider(EffectInContent, SpacedAbove, Animated[Mix], ConversationLi
         return theme.with_colour(self.block.role.colour, Style(color=colour.rich_color),
                                  colours.schemes[self.app.theme].palette)
 
+    @on(Mount)
     def on_mount(self) -> None:
         if self.fresh:
             # Once: a divider moved to another parent is not a new message.

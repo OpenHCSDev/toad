@@ -31,6 +31,8 @@ from toad.native_style import (
     TransparentBackground,
 )
 from toad.worker_group import WorkerGroup
+from textual.events import Mount
+from textual import on
 
 
 
@@ -188,6 +190,7 @@ class FilePreview(SidePadding, Vertical):
         yield self.loading_label
         yield self.body
 
+    @on(Mount)
     def on_mount(self) -> None:
         self._load_preview()
 

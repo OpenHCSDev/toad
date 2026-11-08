@@ -36,6 +36,7 @@ from toad.native_style import (
     StableGutter,
 )
 from toad.widgets.selection import ChangingText, InlineSelection
+from textual import on
 
 
 class GoalControl(
@@ -68,6 +69,7 @@ class StandbyPulse(OneRow, Animated[Mix], Static):
         self.styles.width = 2
     active: var[bool] = var(False)
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.watch_active()
 
@@ -159,6 +161,7 @@ class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
     def execution(self):
         return self._source().goal_execution
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.watch(self._source(), "goal_display", self.watch_goal_display)
         self.watch(self._source(), "goal_execution", self.watch_execution)

@@ -224,6 +224,7 @@ Tap escape *twice* to exit.
             conversation.shell.update_size(width, height)
 
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.anchor()
         if self._get_terminal_dimensions is None:
@@ -504,6 +505,7 @@ if __name__ == "__main__":
         def compose(self) -> ComposeResult:
             yield Terminal()
 
+        @on(events.Mount)
         def on_mount(self) -> None:
             terminal = self.query_one(Terminal)
             terminal.write(TEST)

@@ -9,6 +9,8 @@ from toad.core.events import ThreadIdentityChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.session_scope import SessionScope
 from toad.thread_identity import SessionIdentity
+from textual.events import Mount
+from textual import on
 
 
 class ShowsThreadIdentity(CoreEventReceiver, Widget):
@@ -16,6 +18,7 @@ class ShowsThreadIdentity(CoreEventReceiver, Widget):
     def thread_view(self) -> SessionScope:
         return self.query_ancestor(SessionScope)
 
+    @on(Mount)
     def _on_mount(self) -> None:
         self.observe_core(self.app.events)
         self.identity_changed(self.thread_view.thread_identity)

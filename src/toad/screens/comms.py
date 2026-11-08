@@ -34,6 +34,7 @@ from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.app_node import ToadNode
 from toad.worker_group import WorkerGroup
+from textual.events import Mount
 
 
 class CommsContentLoad(WorkerGroup):
@@ -185,6 +186,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
         )
 
 
+    @on(Mount)
     def on_mount(self) -> None:
         if not self._content_loaded:
             self.screen.frame_presentation.defer(self, self._start_hydration)

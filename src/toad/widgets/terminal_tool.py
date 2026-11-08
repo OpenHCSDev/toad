@@ -17,6 +17,8 @@ from toad.terminal_execution import (
 )
 from toad.native_style import AutoHeight, FillWidth, NoScrollbars, SpacedAround
 from toad.widgets.terminal import Terminal
+from textual.events import Mount
+from textual import on
 
 if TYPE_CHECKING:
     from toad.agent_surface import AttachedSurfaceBinding
@@ -87,6 +89,7 @@ class TerminalTool(
         self.look = look
         self.styles.border_title_style = look.title_style
 
+    @on(Mount)
     def on_mount(self) -> None:
         super().on_mount()
         self.execution.attach(self)

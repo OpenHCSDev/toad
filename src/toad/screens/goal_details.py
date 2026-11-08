@@ -19,6 +19,8 @@ from textual.widgets import Static
 
 from toad.goal_interaction import GoalSession
 from toad.widgets.goal_text import GoalText
+from textual.events import Mount
+from textual import on
 
 
 class GoalDetailsPanel(ModalPanel):
@@ -105,6 +107,7 @@ class GoalDetails(ShadedScreen, CenteredScreen, SourceModal):
                         )
             yield GoalDetailsClose("Close")
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.watch(self.source.view, "goal_display", self._update_current)
         self.watch(self.source.view, "goal_execution", self._update_current)

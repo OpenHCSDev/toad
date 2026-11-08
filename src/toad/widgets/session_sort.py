@@ -35,6 +35,8 @@ from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 from agent_comms.transport.request import ToolRequest
 from toad.comms_root import CoordinationAccess, Observing
+from textual.events import Mount
+from textual import on
 
 
 @dataclass(frozen=True)
@@ -166,6 +168,7 @@ class SortControl[Order: DisplayOrder](
         self.styles.max_width = "60%"
         self.styles.margin = (0, 0, 0, 1)
 
+    @on(Mount)
     def on_mount(self):
         self.sort_changed()
 

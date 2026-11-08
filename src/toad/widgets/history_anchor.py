@@ -36,6 +36,7 @@ from toad.widgets.presentation_window import (
     PresentationBudget,
     Unplaced,
 )
+from textual import on
 
 if TYPE_CHECKING:
     from toad.block_navigation import FragmentBlockCursor
@@ -1047,6 +1048,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """Release a change whose scene no longer promises another frame."""
         self.history_change.release()
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.screen.history_windows.add(self)
         self.request_preparation()

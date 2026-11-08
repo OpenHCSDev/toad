@@ -41,6 +41,8 @@ from toad.native_style import (
     SpacedBelow,
     SurfaceBackground,
 )
+from textual.events import Mount
+from textual import on
 
 
 class DetailAction(
@@ -106,6 +108,7 @@ class InputDeliveryBar(AutoHeight, SidePadding, HorizontalGroup):
             error.display = bool(delivery.error)
             error.update(delivery.error)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self._refresh_summary()
 
@@ -299,6 +302,7 @@ class InputDeliveryDetails(CenteredChildren, DismissibleScreen[None]):
             self.delivery.records_text(self._history.inputs)
         )
 
+    @on(Mount)
     def on_mount(self) -> None:
         self._refresh_records()
         self.watch_error()

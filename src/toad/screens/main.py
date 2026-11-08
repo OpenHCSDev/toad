@@ -62,6 +62,7 @@ from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBar
 from toad.widgets.splash_text import ThreadLoading
 from toad.app_node import ToadNode
+from textual.events import Mount
 
 
 class SessionCommands(Provider):
@@ -638,6 +639,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         if self.id is not None:
             self.app.session_tracker.update_session(self.session_details.identity, path=event.path)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)

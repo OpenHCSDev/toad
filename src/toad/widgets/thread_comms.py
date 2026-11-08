@@ -55,6 +55,7 @@ from agent_comms.relationships import (
 from toad.widget_actions import WidgetAction, OpensSelected
 from toad.worker_group import WorkerGroup
 from toad.comms_root import Observing
+from textual.events import Mount
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -324,6 +325,7 @@ class ThreadCommsSidebar(
             self._filter_controls[checkbox] = category
             yield checkbox
 
+    @on(Mount)
     def on_mount(self):
         # Use the left roster's existing observation cadence; no extra timers
         # per group or per mounted thread view.

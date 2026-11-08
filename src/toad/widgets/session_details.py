@@ -33,6 +33,8 @@ from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
+from textual.events import Mount
+from textual import on
 
 
 if TYPE_CHECKING:
@@ -147,6 +149,7 @@ class SessionDetails(
             self.history.status.present_status(self.status_source().status)
         )
 
+    @on(Mount)
     def on_mount(self) -> None:
         super().on_mount()
         self.watch(self.history, "status", self._refresh_summary)
