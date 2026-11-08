@@ -75,6 +75,16 @@ class LineTheme:
     def style(self, role: type[LineRole]) -> Style:
         return self.styles[role]
 
+    def bar_style(self, role: type[LineRole]) -> Style:
+        """How a block's edge mark is drawn, which is not how its text is drawn.
+
+        The bar is one column of colour standing next to a whole line of it, so at the
+        same weight it reads as fainter than the words beside it. Bold is the one step
+        that lifts it in true colour and in ANSI alike; a brighter hue would need a
+        second palette entry per role and would drift from the text it belongs to.
+        """
+        return self.style(role) + Style(bold=True)
+
     @staticmethod
     def _style(role: type[LineRole], style: Style, palette: PaletteState) -> Style:
         if role.background_tint:
@@ -590,7 +600,7 @@ class RichLineRenderer(MroProjection[None]):
         )
 
     def _body_rows(self, block: Body | RichTextBody, rows: list[Row]) -> None:
-        prefix = Segment(block.bar.bar_mark, self.theme.style(block.bar))
+        prefix = Segment(block.bar.bar_mark, self.theme.bar_style(block.bar))
         rows = [(prefix, *row) for row in rows]
         self.output.extend(rows)
 
