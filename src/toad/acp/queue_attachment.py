@@ -14,7 +14,7 @@ from agent_comms.acp_extension import (
     UnavailableQueueProjection,
 )
 
-from agent_comms.thread_identity import ClaimedIdentity
+from agent_comms.registry.thread_identity import ClaimedIdentity
 
 from .projection_attachment import ProjectionAttachment
 

@@ -9,7 +9,7 @@ from agent_comms.planning.goal_presentation import (
     RunnableExecution,
     StandbyExecution,
 )
-from agent_comms.thread_identity import RecordedThreadIncarnation
+from agent_comms.registry.thread_identity import RecordedThreadIncarnation
 from agent_comms.planning.goals import GoalUnavailable
 
 from toad.screens.goal_details import GoalDetails

@@ -24,7 +24,7 @@ import threading
 
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.launch_runtime import ThreadLaunch
-from agent_comms.thread_model import DeclaredModel
+from agent_comms.registry.thread_model import DeclaredModel
 from agent_comms.registry.threads import NativeThread
 
 from support.roots import installed_wire

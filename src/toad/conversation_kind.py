@@ -31,7 +31,7 @@ from agent_comms.messaging.message_page import (
     PageBounds,
 )
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 
 from toad.bus_submission import MessageDestination

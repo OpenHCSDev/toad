@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
 from toad.core.projection import MroProjection

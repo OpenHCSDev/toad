@@ -7,7 +7,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import ClassVar, TYPE_CHECKING
 
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.errors import GoalRefused
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from textual.content import Content
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     GoalDeclaration,
 )
     from agent_comms.nominal.field_codec import GoalId
-    from agent_comms.session_load import ExistingSessionLoadPlan
+    from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
 
     from toad.conversation_submission import (
         AgentInputSubmission,

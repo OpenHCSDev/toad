@@ -22,7 +22,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.transcripts import TranscriptReadIdentity
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.status import StopReason

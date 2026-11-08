@@ -10,7 +10,10 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.nominal.field_codec import AcpSessionId, InputId
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
+from agent_comms.registry.thread_identity import (
+    ClaimedIdentity,
+    RecordedThreadIncarnation,
+)
 
 from support.agents import PendingAnswer, PendingConnection
 from toad.widgets.prompt import QueueSummary

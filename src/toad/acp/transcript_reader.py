@@ -17,7 +17,7 @@ from functools import partial
 
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.observation import (
     AwaitedRead,
     RefreshTranscript,

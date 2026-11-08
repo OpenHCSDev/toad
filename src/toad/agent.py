@@ -2,7 +2,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.registry.thread_presentation import ThreadPresentation
 from textual.content import Content
 
 from toad.acp.status import StopReason
@@ -13,7 +13,7 @@ from toad.core.events import CoreEventStream
 from toad.surface_binding import SurfaceBinding
 
 if TYPE_CHECKING:
-    from agent_comms.session_load import ExistingSessionLoadPlan
+    from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
 
     from toad.conversation_turn import TurnOwner
     from toad.screens.main import MainScreen

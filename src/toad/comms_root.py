@@ -107,7 +107,7 @@ from agent_comms.transport.request import ToolRequest
 
 if TYPE_CHECKING:
     from agent_comms.display_references import ReferenceContext
-    from agent_comms.thread_identity import ThreadIncarnation
+    from agent_comms.registry.thread_identity import ThreadIncarnation
 
     from toad.app import ToadApp
     from toad.screens.team import TeamPage
