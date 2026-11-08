@@ -18,8 +18,11 @@ from toad.view_actions import BackToBottomAction
 from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transcripts import TranscriptCursor
-from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
-from agent_comms.goals import NoGoal
+from agent_comms.planning.goal_presentation import (
+    GoalExecution,
+    IdleGoalExecution,
+)
+from agent_comms.planning.goals import NoGoal
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.delivery import DeliveryView

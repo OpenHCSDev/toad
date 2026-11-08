@@ -14,7 +14,7 @@ from agent_comms.messaging.read_basis import NamedViewer
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.cli_command import CliCommand
 from agent_comms.cli_verbs.archive import ArchiveCliCommand
-from agent_comms.goal_actions import SetGoalAction
+from agent_comms.planning.goal_actions import SetGoalAction
 from agent_comms.thread_status import ArchivedThreadStatus, StoppedThreadStatus
 from agent_comms.registry.threads import NativeThread
 from textual.geometry import Offset

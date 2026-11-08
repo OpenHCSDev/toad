@@ -140,7 +140,7 @@ async def goal_on_real_owner(workspace, objective: str, *, size=(110, 35), arran
 
     Yields the existing NativeSession. The model uses ControlledProvider.
     """
-    from agent_comms.goal_actions import SetGoalAction
+    from agent_comms.planning.goal_actions import SetGoalAction
 
     from support.native import NativeSession, native_session
 

@@ -3,8 +3,11 @@
 from toad.goal_interaction import EditInteraction, HistoryInteraction
 from support.goal_controls import goal_control
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
-from agent_comms.goal_scope import OneGoal
+from agent_comms.planning.goal_actions import (
+    ActiveGoalAction,
+    GoalPrecondition,
+)
+from agent_comms.planning.goal_scope import OneGoal
 from support.native_steps import goal_on_real_owner
 
 from toad.core.events import CommsUpdated

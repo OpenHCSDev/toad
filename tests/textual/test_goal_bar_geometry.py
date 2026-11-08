@@ -2,8 +2,8 @@
 
 from unittest.mock import patch
 
-from agent_comms.goals import NoGoal
-from agent_comms.goals import GoalUnavailable
+from agent_comms.planning.goals import NoGoal
+from agent_comms.planning.goals import GoalUnavailable
 
 from toad.widgets.goal_bar import GoalBar
 from support.goals import published_goal
