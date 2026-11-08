@@ -18,7 +18,7 @@ from enum import IntEnum
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
-from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
+from typing import Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
@@ -26,6 +26,7 @@ from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.repo import Checkout
 from agent_comms.tailnet_buses import PeerHoldsBus
 from agent_comms.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
+from agent_comms.transport.tools.tailnet import CommsTailnetProfileTool
 from agent_comms.root_runtime import RootRuntime
 from toad.core import input_events
 from rich.console import RenderableType
@@ -46,7 +47,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
 from toad.launch_binding import AgentBinding
 from toad.session_scope import SessionScope
-from toad.render_backend import Renderer
+from toad.render_backend import Renderer, RenderTask
 from toad.work_preparation import PreparationRuntime
 from toad.navigation_preparation import (
     NavigationReader,
@@ -77,10 +78,6 @@ from toad.resource_release import AsyncResourceRelease
 from toad.native_style import TransparentBackground
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
-if TYPE_CHECKING:
-    from toad.db import DB
-    from toad.render_backend import RenderTask
-    from toad.screens.main import MainScreen
 
 RenderResultT = TypeVar("RenderResultT")
 
@@ -256,7 +253,15 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         In a thread because it is one ssh call to another machine: on the message pump it
         would hold every frame for as long as that machine takes to answer.
         """
-        self.call_from_thread(self.asked_peer, TailnetProfiles.ask(found))
+        try:
+            core = self.coordination_access.open_current().core
+            answer = core.call(CommsTailnetProfileTool(
+                found=found, previous=TailnetProfiles.held_grants(found)))
+            held = answer.hold()
+        except (OSError, ValueError, RuntimeError) as error:
+            self.call_from_thread(self.notify, str(error), severity="warning")
+            return
+        self.call_from_thread(self.asked_peer, held)
 
     def asked_peer(self, asked: AskedPeer) -> None:
         """What the peer answered: its bus, or the reason in the words it used.
