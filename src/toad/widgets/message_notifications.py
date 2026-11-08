@@ -5,12 +5,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Iterable
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING
 
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.styles import Styles
+from textual.worker import Worker
 from textual.widgets import Collapsible
 from textual.widgets._collapsible import CollapsibleTitle
 
@@ -21,6 +21,8 @@ from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.message_reference import MessageReference
 from toad.app_node import ToadNode
 from toad.messages import QueueEvidenceOwner
+from toad.project_path_owner import ProjectPathOwner
+from toad.widgets.tool_content import ToolContent
 from toad.native_style import (
     Borderless,
     EllipsisOverflow,
@@ -35,10 +37,6 @@ from toad.native_style import (
 from toad.notification_status import (
     CheckedNotifications, MessageQueueEntry, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
-if TYPE_CHECKING:
-    from toad.widgets.tool_content import ToolContent
-    from toad.widgets.transcript_fragments import TranscriptFragment
-
 
 class NotificationTitle(
     NoPadding,
@@ -86,8 +84,6 @@ class MessageNotifications(
     def details(self) -> ToolContent:
         """The details body, created only when it is first shown."""
         if self._details is None:
-            from toad.widgets.tool_content import ToolContent
-
             self._details = ToolContent()
             if self.is_mounted:
                 self.mount(self.Contents(self._details))
@@ -114,7 +110,7 @@ class PaintedRead(ABC):
     """What a view can start after its current rows have been painted."""
 
     @abstractmethod
-    def start(self, marker: VisibleReadMarking) -> None:
+    def start(self, marker: VisibleReadMarking) -> Worker[None] | None:
         pass
 
 
@@ -131,17 +127,19 @@ class ReadWork(PaintedRead):
         try:
             await self.work
         except MaintenanceHeldError as error:
-            marker.app.show_error(error, "Read not marked", severity="warning")
+            # The refused evidence stays unread; a later paint supplies fresh work.
+            marker.log.debug("Read marking postponed during maintenance", error)
 
-    def start(self, marker: VisibleReadMarking) -> None:
+    def start(self, marker: VisibleReadMarking) -> Worker[None]:
         marker._read_worker = marker.run_worker(self.run(marker), group="painted-read")
+        return marker._read_worker
 
 
 class VisibleReadMarking(ToadNode):
     """One painted-read operation at a time, for pagers and native/CLI sessions."""
 
     def __init__(self, *args, **kwargs):
-        self._read_worker = None
+        self._read_worker: Worker[None] | None = None
         super().__init__(*args, **kwargs)
 
     def mark_visible(self) -> None:
@@ -167,8 +165,6 @@ class HistoryNotifications:
             self.query_ancestor(QueueEvidenceOwner).queue_evidence_changed()
 
     def notification_read(self, references: Iterable[MessageReference]) -> ReadNotifications:
-        from toad.project_path_owner import ProjectPathOwner
-
         root = ProjectPathOwner.containing(self).coordination_root
         if root is None:
             raise ValueError("Notification observation requires a bound thread root")
