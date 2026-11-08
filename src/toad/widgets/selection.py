@@ -128,6 +128,7 @@ class ColourSelection(HoverSelection):
 
 
 class SelectionOptionList(OptionList):
+    @on(events.MouseMove)
     def _on_mouse_move(self, event: events.MouseMove) -> None:
         event.prevent_default()
         self._mouse_hovering_over = None
@@ -144,6 +145,7 @@ class SelectionListItem(ListItem):
         event.prevent_default()
         event.stop()
 
+    @on(events.MouseMove)
     def on_mouse_move(self, event: events.MouseMove) -> None:
         self._select_pointer()
 

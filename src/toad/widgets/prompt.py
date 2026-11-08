@@ -341,6 +341,7 @@ class PromptContainer(FocusWithinView, containers.HorizontalGroup):
         colour = self.app.colours.colour(PrimaryColour if self.has_focus_within else MutedColour)
         return self.app.settings.ui.input.box.frame_border(colour)
 
+    @on(events.MouseDown)
     def on_mouse_down(self, event: events.MouseUp) -> None:
         self.query_ancestor(Prompt).focus()
 

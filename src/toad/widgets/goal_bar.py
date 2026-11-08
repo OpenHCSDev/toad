@@ -245,6 +245,7 @@ class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
         self._update_control_layout()
         self.call_after_refresh(self.update_document_height)
 
+    @on(events.MouseDown)
     def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button != 1 or self.collapsed or not self.goal_display.visible or not self.goal_display.snapshot.shows_document:
             return
@@ -262,6 +263,7 @@ class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
             )
             self.update_document_height()
 
+    @on(events.MouseMove)
     def on_mouse_move(self, event: events.MouseMove) -> None:
         if self._resize_origin is not None:
             event.stop()
@@ -272,6 +274,7 @@ class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
                 and bool(self.styles.border_top[0]) and event.screen_y == self.region.y
             ]
 
+    @on(events.MouseUp)
     def on_mouse_up(self, event: events.MouseUp) -> None:
         if event.button == 1 and self._resize_origin is not None:
             event.stop()

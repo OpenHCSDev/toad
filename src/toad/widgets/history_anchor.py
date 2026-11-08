@@ -822,6 +822,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def action_scroll_down(self) -> None:
         self._scroll_or_prepare(1, super().action_scroll_down)
 
+    @on(events.MouseScrollUp)
     def _on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
         event.prevent_default()
         self._scroll_or_prepare(-self.app.scroll_sensitivity_y, super()._on_mouse_scroll_up, event)
@@ -830,6 +831,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def action_page_up(self) -> None:
         self._scroll_or_prepare(-max(1, self.scrollable_content_region.height), super().action_page_up)
 
+    @on(events.MouseScrollDown)
     def _on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
         event.prevent_default()
         self._scroll_or_prepare(self.app.scroll_sensitivity_y, super()._on_mouse_scroll_down, event)
@@ -844,11 +846,13 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         # frames that move scroll_y and run layout (140 frames for 60 held presses, measured).
         self._scroll_or_prepare(distance, partial(self.scroll_relative, None, distance, animate=False))
 
+    @on(events.MouseScrollLeft)
     def _on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
         event.prevent_default()
         super()._on_mouse_scroll_left(event)
         event.stop()
 
+    @on(events.MouseScrollRight)
     def _on_mouse_scroll_right(self, event: events.MouseScrollRight) -> None:
         event.prevent_default()
         super()._on_mouse_scroll_right(event)

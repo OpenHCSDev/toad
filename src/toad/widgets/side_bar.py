@@ -563,6 +563,7 @@ class CapturedDrag:
     def clicked(self) -> None:
         """A press released without moving: by default it moved nothing, so it does nothing."""
 
+    @on(events.MouseDown)
     def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button == 1:
             event.stop()
@@ -570,6 +571,7 @@ class CapturedDrag:
             self.capture_mouse()
             self.drag_start(event)
 
+    @on(events.MouseMove)
     def on_mouse_move(self, event: events.MouseMove) -> None:
         if self._gesture.holds_pointer:
             event.stop()
@@ -581,12 +583,14 @@ class CapturedDrag:
         # Both controls map the latest absolute position, not motion deltas.
         return self._gesture.holds_pointer and event.button == pending.button == 1
 
+    @on(events.MouseUp)
     def on_mouse_up(self, event: events.MouseUp) -> None:
         if event.button == 1 and self._gesture.holds_pointer:
             event.stop()
             self._gesture = self._gesture.released(self, event.screen_offset)
             self.release_mouse()
 
+    @on(events.MouseRelease)
     def on_mouse_release(self) -> None:
         self._gesture = NO_GESTURE
 
