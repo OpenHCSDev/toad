@@ -28,6 +28,10 @@ class FrameApp(ToadApp):
             for strip in screen._compositor.render_strips()[region.y : region.bottom]
         )
 
+    def has_ready_frame(self, mode):
+        return any(recorded_mode == mode and ready
+                   for recorded_mode, ready, _ in self.panel_frames)
+
     def _display(self, screen, renderable):
         if (
             self.panel_frames is not None
@@ -112,9 +116,8 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         assert channel_mode != owner
         current = app.screen.query_one(CommsSidebar)
         await settled(ui, current)
-        assert app.panel_frames and any(
-            mode == channel_mode and ready for mode, ready, _ in app.panel_frames
-        )
+        await ui.until(lambda: app.has_ready_frame(channel_mode),
+                       why="the selected channel's actual ready frame")
         assert all(
             frame == expected_frame for _, ready, frame in app.panel_frames if ready
         ), app.panel_frames
@@ -160,18 +163,13 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         app.panel_frames = []
         await ui.until(
             lambda: ui.selected_tab == worker.mode_name
-            and any(
-                mode == worker.mode_name and ready
-                for mode, ready, _ in app.panel_frames
-            ),
+            and app.has_ready_frame(worker.mode_name),
             seconds=5,
             why="the worker view's ready sidebar to be drawn",
         )
         current = app.screen.query_one(CommsSidebar)
         await settled(ui, current)
-        assert app.panel_frames and any(
-            mode == worker.mode_name and ready for mode, ready, _ in app.panel_frames
-        )
+        assert app.has_ready_frame(worker.mode_name)
         assert all(
             frame == expected_frame for _, ready, frame in app.panel_frames if ready
         ), app.panel_frames
