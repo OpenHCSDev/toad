@@ -95,6 +95,7 @@ class MessageNotifications(
         self._details.update((self.status.disclosure,))
         return self._details
 
+    @on(Collapsible.Expanded)
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
         if event.collapsible is self:
             _ = self.details

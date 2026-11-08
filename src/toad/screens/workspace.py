@@ -22,6 +22,7 @@ from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.view_actions import ViewAction
 from toad.workspace_chrome import WorkspaceBody
 from toad.widgets.comms_transfer import WireExportProgressView
+from textual import on
 
 
 @dataclass(frozen=True)
@@ -273,6 +274,7 @@ class WorkspaceFrame(ProfileKeys, JumpsHistory, WidgetView, Screen):
             WorkspaceLayoutSnapshot.ready(self, self.app.size)
         )
 
+    @on(ScreenResume)
     def _on_screen_resume(self, event: ScreenResume) -> None:
         # One resume handler: Textual dispatches `_on_screen_resume` or
         # `on_screen_resume` from a class, never both, so a second one never ran.

@@ -142,6 +142,7 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
             event.stop()
             self.dismiss_control()
 
+    @on(events.DescendantBlur)
     def on_descendant_blur(self, event: events.DescendantBlur) -> None:
         # A move between the popup's children is not a departure from the popup.
         self.call_later(self.close_if_unfocused)

@@ -1585,6 +1585,7 @@ class Conversation(
     async def on_mcp_client_stopped(self, event: core_events.McpClientStopped) -> None:
         await self._clear_mcp_live()
 
+    @on(core_events.Update)
     @handles(core_events.Update)
     async def on_acp_agent_message(self, event: core_events.Update, message: CoreEventMessage) -> None:
         message.stop()
