@@ -53,3 +53,10 @@ async def test_painted_read_recovers_when_scope_changes_before_ack(workspace, mo
             ) from None
         assert len(attempts) >= 2
         assert sum(page == attempts[0] for page in attempts) == 1, "A refused proof is never submitted again"
+        await ui.until(
+            lambda: history.page_source is not source and source.closed and history.source_ready,
+            why="the refused proof's source to retire after its replacement is ready",
+        )
+        assert [fragment.message.body for fragment in history.fragments_in_range][:2] == [
+            "older newly visible DM", "painted before scope change",
+        ]
