@@ -31,16 +31,16 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
             await choose_target(lambda target: target.widget is widget, widget)
 
         async def choose_target(matches, described):
-            await ui.until(lambda: any(matches(target) for target in
-                                      app.screen._compositor.activation_targets()),
+            await ui.until(lambda: any(matches(painted.activation) for painted in
+                                      app.screen._compositor.activation_scene().targets.values()),
                            why=f'{described} to be an exposed published hint target')
             await app.screen.action_show_hints()
             await ui.step()
-            labels = [label for label in app.screen.query_children(HintLabel)
+            labels = [label for label in app.screen.query(HintLabel)
                       if matches(label.target) and label.display]
             assert len(labels) == 1, (described, labels)
             await ui.press(*labels[0].text)
-            await ui.until(lambda: not app.screen.query_children(HintSession),
+            await ui.until(lambda: not app.screen.query(HintSession),
                            why='the chosen hint to retire')
             await ui.step()
 
