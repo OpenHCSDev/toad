@@ -24,7 +24,7 @@ from agent_comms.acp_extension import TranscriptChangedUpdate
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.repo import Checkout
-from agent_comms.tailnet_buses import PeerHoldsBus
+from agent_comms.tailnet_buses import PeerBus
 from agent_comms.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
 from agent_comms.transport.tools.tailnet import CommsTailnetProfileTool
 from agent_comms.root_runtime import RootRuntime
@@ -247,7 +247,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.exit(Reconnected(LaunchRuntime.running(), choice))
 
     @work(exclusive=True, group="peer-profile", thread=True)
-    def ask_peer_for_profile(self, found: PeerHoldsBus) -> None:
+    def ask_peer_for_profile(self, found: PeerBus) -> None:
         """Ask a discovered peer to hand over a profile, then open its bus.
 
         In a thread because it is one ssh call to another machine: on the message pump it

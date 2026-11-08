@@ -10,17 +10,18 @@ from __future__ import annotations
 import time
 
 from textual import on, work
+from textual.binding import Binding
 from textual.app import ComposeResult
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
-from textual.widgets import OptionList, Static
+from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
 from toad.comms_root import BusChoice, DiscoveredPeer, PickerRow
-from agent_comms.tailnet_buses import PeerBus
+from agent_comms.tailnet_buses import NamedHost, PeerBus
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
-from toad.native_style import AutoHeight
+from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from textual.widget import Widget
 from toad.widget_actions import PriorityActions
@@ -41,6 +42,16 @@ class BusPanel(SurfacePanel):
 
 class BusPrompt(Static):
     """What the picker is for, above its rows."""
+
+
+class BusAddress(FillWidth, Input):
+    """Where a reader types a machine to add by hand.
+
+    Tristan: let a bus be added by hand - type an address, save it, and be able to remove
+    saved ones again. Submitting runs the same ask-for-profile flow a discovered peer runs,
+    so there is no second way to open a bus; once the host hands a profile over it becomes
+    an ordinary held row, and removing it is removing that profile.
+    """
 
 
 class BusRows(AutoHeight, OptionList):
@@ -143,6 +154,29 @@ class ListsBuses(Widget):
         """What this listing does with the chosen row."""
         row.chosen(self.app)
 
+    @on(Input.Submitted)
+    def typed_a_host(self, event: Input.Submitted) -> None:
+        """A typed address is asked exactly as a discovered peer is asked."""
+        event.stop()
+        address = event.value.strip()
+        if not address:
+            return
+        event.input.value = ""
+        self.app.ask_peer_for_profile(NamedHost.typed(address))
+
+    def forget_highlighted(self) -> None:
+        """Take the highlighted row off the list, if it is a row a reader saved."""
+        rows = self.query_one(BusRows)
+        highlighted = rows.highlighted
+        if highlighted is None:
+            return
+        row = self.rows[highlighted]
+        if not row.removable():
+            return
+        row.remove()
+        self.rows = (*self.rows[:highlighted], *self.rows[highlighted + 1:])
+        rows.clear_options().add_options(self.bus_options())
+
 
 class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[PickerRow]):
     """The buses this machine can open, dismissed with the row the reader picked.
@@ -157,10 +191,16 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
     def offered(cls) -> BusChoices:
         return cls(cls.offered_rows())
 
+    BINDINGS = [Binding("delete", "forget", "Forget this bus", show=True)]
+
     def compose(self) -> ComposeResult:
         with BusPanel():
-            yield BusPrompt("Open a bus · Esc returns")
+            yield BusPrompt("Open a bus · Delete forgets a saved one · Esc returns")
             yield BusRows(*self.bus_options())
+            yield BusAddress(placeholder="Add a machine by name or address")
+
+    def action_forget(self) -> None:
+        self.forget_highlighted()
 
     def on_mount(self) -> None:
         """The reader opened this to choose a bus, so this is where asking belongs."""
