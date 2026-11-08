@@ -9,7 +9,7 @@ from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.errors import GoalRefused
-from agent_comms.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_history import RecordedGoalHistory
 from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
@@ -23,8 +23,11 @@ from toad.acp.comms_updates import NoPendingThreadRead
 from agent_comms.nominal.field_codec import AcpSessionId
 
 if TYPE_CHECKING:
-    from agent_comms.goal_actions import GoalAction
-    from agent_comms.goals import Goal, GoalDeclaration
+    from agent_comms.planning.goal_actions import GoalAction
+    from agent_comms.planning.goals import (
+    Goal,
+    GoalDeclaration,
+)
     from agent_comms.nominal.field_codec import GoalId
     from agent_comms.session_load import ExistingSessionLoadPlan
 

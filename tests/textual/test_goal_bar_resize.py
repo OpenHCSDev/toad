@@ -4,7 +4,7 @@ from toad.goal_interaction import CollapseInteraction
 from support.goal_controls import goal_control
 from dataclasses import replace
 
-from agent_comms.goals import NoGoal
+from agent_comms.planning.goals import NoGoal
 
 from toad.widgets.goal_bar import GoalBar
 from support.goals import published_goal

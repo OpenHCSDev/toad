@@ -8,7 +8,7 @@ import json
 import os
 
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.goal_actions import (
+from agent_comms.planning.goal_actions import (
     ActiveGoalAction,
     ClearGoalAction,
     EditGoalAction,
@@ -18,9 +18,9 @@ from agent_comms.goal_actions import (
     SetGoalAction,
     StandbyGoalAction,
 )
-from agent_comms.goal_presentation import IdleGoalExecution
-from agent_comms.goal_scope import OneGoal
-from agent_comms.goals import NoGoal
+from agent_comms.planning.goal_presentation import IdleGoalExecution
+from agent_comms.planning.goal_scope import OneGoal
+from agent_comms.planning.goals import NoGoal
 from agent_comms.registry.threads import NativeThread
 from rich.cells import cell_len
 from support.native import ControlledProvider, native_session

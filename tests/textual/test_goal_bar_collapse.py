@@ -4,9 +4,13 @@ from toad.goal_interaction import CollapseInteraction, HistoryInteraction
 from support.goal_controls import goal_control
 from dataclasses import replace
 
-from agent_comms.goal_presentation import GoalWaitTarget, RunnableExecution, StandbyExecution
+from agent_comms.planning.goal_presentation import (
+    GoalWaitTarget,
+    RunnableExecution,
+    StandbyExecution,
+)
 from agent_comms.thread_identity import RecordedThreadIncarnation
-from agent_comms.goals import GoalUnavailable
+from agent_comms.planning.goals import GoalUnavailable
 
 from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar, StandbyPulse

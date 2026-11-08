@@ -9,12 +9,15 @@ from pathlib import Path
 from pydantic import JsonValue
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, GoalSnapshotReply, PromptRequest, QueueScope
-from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_history import RecordedGoalHistory
-from agent_comms.goal_presentation import GoalSnapshot
-from agent_comms.goals import Goal, GoalDeclaration
+from agent_comms.planning.goal_actions import GoalAction
+from agent_comms.planning.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_presentation import GoalSnapshot
+from agent_comms.planning.goals import (
+    Goal,
+    GoalDeclaration,
+)
 from agent_comms.transport.tools.reads import InputDeliveryRead
-from agent_comms.goal_scope import OneGoal
+from agent_comms.planning.goal_scope import OneGoal
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.runtime_server import AttachedRuntimeRequest
 from agent_comms.runtime_requests import (

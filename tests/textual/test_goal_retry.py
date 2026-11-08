@@ -2,9 +2,9 @@
 
 from toad.goal_interaction import ToggleInteraction
 from support.goal_controls import goal_control
-from agent_comms.goal_actions import RetryGoalAction
-from agent_comms.goal_presentation import RetryableBlockExecution
-from agent_comms.goal_states import BlockedGoal
+from agent_comms.planning.goal_actions import RetryGoalAction
+from agent_comms.planning.goal_presentation import RetryableBlockExecution
+from agent_comms.planning.goal_states import BlockedGoal
 
 from support.goals import ScriptedGoalOwner, published_goal
 from toad.widgets.goal_bar import GoalBar
