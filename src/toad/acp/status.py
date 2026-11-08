@@ -119,7 +119,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
 
 class PendingToolCallStatus(ToolCallStatus):
     busy = True
-    summary_suffix = ' ⌛'
+    summary_suffix = ' · queued'
 
 
 class InProgressToolCallStatus(ToolCallStatus):

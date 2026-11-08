@@ -85,8 +85,7 @@ async def test_the_hamburger_offers_the_picker_under_its_own_name(workspace):
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
         offered = {type(command).__name__: label for command, label in ApplicationAction.menu(app)}
-        # Derived from the declared name, so the menu cannot drift from the action.
-        assert offered["OpenBusAction"] == "Open bus"
+        assert offered["OpenBusAction"] == "Switch bus (local or remote)"
 
 
 async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(workspace):

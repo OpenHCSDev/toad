@@ -37,7 +37,9 @@ class NewThreadAction(ApplicationAction):
 
 
 class OpenBusAction(ApplicationAction):
-    """Pick which bus this Toad opens, including a remote one it holds a profile for."""
+    """Connect to this machine's bus or choose another machine."""
+
+    title = "Switch bus (local or remote)"
 
     # An application action, so the hamburger offers it through ApplicationAction.menu and
     # the key is the same declaration: a menu entry beside a widget action would be the same
