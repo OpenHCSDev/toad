@@ -1,4 +1,4 @@
-"""Inspect the captured queue source through the actual conversation view."""
+"""Show queued messages, their delivery status and available actions."""
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
@@ -57,7 +57,7 @@ class QueueClear(ActingButton):
 
 
 class QueueInspection(ShadedScreen, CenteredScreen, SourceModal):
-    """One screen captures the source, presentation and scope it actually displays."""
+    """Shows the selected conversation's queue and delivery status."""
 
     def __init__(self, submissions: ConversationSubmissions) -> None:
         super().__init__()
@@ -77,7 +77,7 @@ class QueueInspection(ShadedScreen, CenteredScreen, SourceModal):
                 details = ToolContent()
                 details.update((SpanColumns(self.source.queue_details(self.evidence)),))
                 yield details
-            yield Static("Individual edit/delete/reorder requires ID-targeted, revision-checked backend support.")
+            yield Static("Editing, deleting and reordering individual queued messages isn't available here.")
             yield QueueError("")
             with QueueActions():
                 available = self.source.queue_actions_available(self.evidence)
