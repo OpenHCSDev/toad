@@ -7,6 +7,7 @@ import hashlib
 import os
 import platform
 import stat
+import subprocess
 import sys
 import tarfile
 from dataclasses import dataclass, field
@@ -19,7 +20,7 @@ from urllib.request import urlopen
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.native_build_inputs import Executable
 from agent_comms.runtime_preparation import RuntimePreparation
-from toad.platform import LinuxPlatform, MacPlatform, Platform, host
+from toad.platform import AndroidPlatform, LinuxPlatform, MacPlatform, Platform, host
 
 
 class NeovimUnavailable(OSError):
@@ -44,6 +45,12 @@ class Architecture(DeclaredFamily, affix="Architecture"):
 class X64Architecture(Architecture):
     tag = "x86_64"
     aliases = ("amd64",)
+
+
+class PackageArchitecture(Architecture):
+    """The package manager selects the native machine binary, not a release archive."""
+
+    tag = "native"
 
 
 class Arm64Architecture(Architecture):
@@ -89,7 +96,19 @@ class ReleaseArchive:
 
 @dataclass(frozen=True)
 class Neovim(RuntimePreparation, Executable):
-    """One release declaration supplies preparation, runtime launch and CI."""
+    """The platform owns preparation and launch; the default is the verified release."""
+
+    implementations: ClassVar[dict[type[Platform], type[Neovim]]] = {}
+
+    def __init_subclass__(cls, *, system: type[Platform], **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        if system in cls.implementations:
+            raise TypeError(f"Neovim already has an implementation for {system.system}")
+        cls.implementations[system] = cls
+
+    def __new__(cls, prefix: Path = Path(sys.prefix), system: type[Platform] = host,
+                architecture: type[Architecture] | None = None):
+        return object.__new__(cls.implementations.get(system, cls))
 
     program: ClassVar[str] = "nvim"
     version: ClassVar[str] = "0.12.4"
@@ -211,6 +230,34 @@ class Neovim(RuntimePreparation, Executable):
                     raise
                 # A concurrent preparer may publish the same complete artifact first.
                 self.verify()
+
+
+@dataclass(frozen=True)
+class TermuxNeovim(Neovim, system=AndroidPlatform):
+    """Termux's package owns the Android binary and its runtime files."""
+
+    prefix: Path = Path(sys.base_prefix)
+    system: type[Platform] = AndroidPlatform
+    architecture: type[Architecture] = PackageArchitecture
+
+    @property
+    def executable(self) -> Path:
+        path = self.prefix / "bin" / self.program
+        if not path.is_file() or not os.access(path, os.X_OK):
+            raise NeovimUnavailable(f"Termux Neovim is not installed at {path}; run pkg install neovim")
+        return path
+
+    @cached_property
+    def version(self) -> str:
+        output = subprocess.run((str(self.executable), "--version"), check=True,
+                                capture_output=True, text=True, timeout=30).stdout
+        return output.splitlines()[0].removeprefix("NVIM v")
+
+    def verify(self) -> None:
+        self.executable
+
+    def prepare(self) -> None:
+        self.verify()
 
 
 if __name__ == "__main__":

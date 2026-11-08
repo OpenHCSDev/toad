@@ -5,7 +5,7 @@ from __future__ import annotations
 import platform
 from typing import ClassVar, Literal, Mapping
 
-type OS = Literal["linux", "macos", "windows", "*"]
+type OS = Literal["linux", "macos", "windows", "android", "*"]
 
 
 class DesktopService:
@@ -106,6 +106,11 @@ class LinuxPlatform(Platform):
     @classmethod
     def desktop(cls) -> DesktopService:
         return UncheckedDBusDesktop()
+
+
+class AndroidPlatform(Platform):
+    system = "Android"
+    key = "android"
 
 
 class MacPlatform(Platform):
