@@ -216,3 +216,60 @@ async def test_scrolling_prepared_history_keeps_its_intrinsic_content_geometry(w
         assert not calls, "scrolling rediscovered unchanged prepared history layout"
         assert screen._compositor._subtree_geometry[history] is captured
         assert history.visible_fragments(), "the reused source still draws its prepared messages"
+
+
+async def test_the_placement_scan_answers_once_per_publication(workspace):
+    """The sticky header asks which page is under the top row on every scroll tick.
+
+    Where a page sits is layout-space and which pages are drawn come from the published
+    frame, so the answer changes when the publication does and not when scroll_y does.
+    Rebuilding it per tick cost 1.005s of a 31s phone trace inside top_message_header,
+    allocating an ancestor chain per page and walking the layout map for each one.
+
+    The reuse is only worth having if the shown header still follows the publication, so
+    this scrolls for real and republishes for real, and checks the header as well as the
+    count.
+    """
+    scroll_messages(workspace, 60)
+    async with workspace.app(size=(110, 35)) as ui:
+        chat, history, window = await long_channel(workspace, ui)
+        await ui.until(lambda: window.max_scroll_y > window.scrollable_content_region.height * 2,
+                       why="scrollable conversation history")
+        window.scroll_to(y=window.max_scroll_y / 2, animate=False, immediate=True)
+        await ui.step()
+
+        builds = 0
+        original = type(window).placed_in
+
+        def counted(self, geometry, widgets):
+            nonlocal builds
+            builds += 1
+            return original(self, geometry, widgets)
+
+        type(window).placed_in = counted
+        try:
+            # Real scrolling, through the same path the reader uses.
+            for _ in range(6):
+                window.scroll_relative(y=3, animate=False, immediate=True)
+                window.top_message_header()
+            await ui.step()
+            pinned = window.top_message_header()
+            scrolled = builds
+            assert pinned == window.top_page().pinned_header(window), "the header follows the top page"
+
+            # Asking again inside one publication must not scan again.
+            for _ in range(8):
+                window.placed_pages()
+                window.top_message_header()
+            assert builds == scrolled, "an unchanged publication is answered without scanning again"
+
+            # A real width publication is a new answer, and the header must follow it.
+            await ui.resize(90, 30)
+            await ui.step()
+            republished = window.top_message_header()
+            assert builds > scrolled, "a republished frame scans again"
+            assert republished == window.top_page().pinned_header(window), \
+                "the header follows the republished frame"
+            assert window.placed_pages(), "the republished frame placed some pages"
+        finally:
+            type(window).placed_in = original
