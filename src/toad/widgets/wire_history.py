@@ -18,6 +18,7 @@ from textual.reactive import var
 
 from agent_comms.coordination.errors import ReadAgain
 from agent_comms.historical_views import UnobservedConversation
+from agent_comms.message_page import MessagePage
 
 from toad.session_scope import SessionScope
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
@@ -172,9 +173,17 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
 
     def retain_painted(self, fragment: WireFragment) -> None:
         """Keep actual painted evidence until its original page is acknowledged."""
-        if fragment.evidence is not None and fragment.key not in self._painted_reads:
+        if fragment.evidence is not None and self._painted_reads.get(fragment.key) is not fragment:
             self._painted_reads[fragment.key] = fragment
             self.view.call_after_refresh(self.mark_visible)
+
+    def retire_painted(self, fragments: tuple[WireFragment, ...], proof: MessagePage) -> None:
+        """Release only these receipts, never a newer paint of the same message."""
+        for fragment in fragments:
+            if fragment.evidence is proof:
+                fragment.evidence = None
+                if self._painted_reads.get(fragment.key) is fragment:
+                    del self._painted_reads[fragment.key]
 
     def read_fragments(self) -> tuple[WireFragment, ...]:
         if not self.is_attached or not self.can_draw_on_screen:
@@ -199,15 +208,21 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
         if (selected := self.page_source.seen_page(self, seen)) is not None:
             await self._mark_page(*selected, snapshot)
 
-    async def _mark_page(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
+    async def _mark_page(
+        self, page: MessagePage, marked: tuple[WireFragment, ...], snapshot: HistorySourceSnapshot
+    ) -> None:
         source = self.page_source
+        proof = marked[0].evidence
         try:
             await source.mark_page(page)
-            if snapshot.current(self):
-                for fragment in marked:
-                    fragment.evidence = None
-                    self._painted_reads.pop(fragment.key, None)
+            self.retire_painted(marked, proof)
         except ReadAgain:
+            # Every queued fragment carrying that same refused proof must
+            # release it before reloading can paint a replacement. Keep
+            # unrelated proofs and any newer paint already queued meanwhile.
+            refused = tuple(fragment for fragment in self._painted_reads.values()
+                            if fragment.evidence is proof)
+            self.retire_painted((*marked, *refused), proof)
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
