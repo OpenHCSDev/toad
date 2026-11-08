@@ -27,7 +27,7 @@ from agent_comms.transport.tools.sidebar import CommsSortChannelTool
 from textual.geometry import Offset, Region
 from textual.widget import Widget
 from textual.reactive import reactive
-from ui_theme.effects import NEW_MESSAGE
+from ui_theme.effects import NAME_WAVE, NEW_MESSAGE
 from textual.widgets import Static
 from textual._activation import ContextActivation, PrimaryActivation
 
@@ -335,6 +335,14 @@ class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRo
     def retire_thread_row(self) -> None:
         self.stop_effect()
         self.thread_row = None
+
+    def redraw(self) -> None:
+        # The name wave paints only the label line (ViewLabel.render_line, y == 0). A fade
+        # paints every line, so the whole row repaints only while a fade runs.
+        if NAME_WAVE in self.effects and not any(fade in self.effects for fade in self.text_fades):
+            self.refresh(Region(0, 0, self.size.width, 1))
+            return
+        super().redraw()
 
 
 class ThreadRow(ThreadStatusRow):
