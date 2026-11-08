@@ -23,7 +23,7 @@ from toad.core_event_carrier import CoreEventMessage
 from textual.app import ComposeResult
 from textual.content import Content
 
-from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.message_reference import MessageReference
 from toad.bus_submission import SubmissionStart
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.conversation_kind import ConversationKind

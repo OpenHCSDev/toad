@@ -8,14 +8,18 @@ from agent_comms.context_store import (
     LATEST_CONTEXT, CapturedContext, ContextManifestCursor, ContextManifestReference,
 )
 from agent_comms.transport.request import CoreAccess
-from agent_comms.runtime_server import RuntimeRequest
+from agent_comms.transport.runtime_request import RuntimeRequest
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import Thread
 from agent_comms.transport.tools.sidebar import (
     CommsContextInspectionTool, CommsImportedSourceTool, CommsOwnerRequestTool, CommsSavedSegmentTool,
     CommsSavedSourceTool, ContextInspectionRead,
 )
-from agent_comms.turn_context import ContextSourceText, Provenance, SegmentManifest
+from agent_comms.execution.turn_context import (
+    ContextSourceText,
+    Provenance,
+    SegmentManifest,
+)
 
 
 class ContextReads:

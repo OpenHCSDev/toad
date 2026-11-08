@@ -3,7 +3,7 @@
 from toad.widgets.side_bar import ThreadSidebar
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.messaging.channel_targets import CommandTarget
+from agent_comms.channel_targets import CommandTarget
 
 from toad.app import ToadApp
 from toad.widgets.side_bar import SideBar

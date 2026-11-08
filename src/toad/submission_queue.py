@@ -11,7 +11,7 @@ from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.transport.tools.sidebar import (ClearQueueQueueAction, CommsQueueActionTool, QueueAction,
                                                   SendNowQueueAction)
-from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.message_reference import MessageReference
 from agent_comms.notification_assignment import NotificationSelection
 from agent_comms.nominal.field_codec import ThreadLookup
 

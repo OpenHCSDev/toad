@@ -35,7 +35,7 @@ from agent_comms.planning.goals import (
 )
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.thread_identity import RecordedThreadIncarnation
-from agent_comms.turn_failure import NativeChildSignaled
+from agent_comms.execution.turn_failure import NativeChildSignaled
 
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from support.agents import RecordedEvents

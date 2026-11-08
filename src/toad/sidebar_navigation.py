@@ -1,11 +1,7 @@
 """Hydration and navigation of the existing shared channel hierarchy."""
 from __future__ import annotations
 import asyncio
-from agent_comms.messaging.channel_targets import (
-    CommandTarget,
-    OneChannel,
-    PerTargetChannels,
-)
+from agent_comms.channel_targets import CommandTarget, OneChannel, PerTargetChannels
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
 from toad.widgets.comms_sidebar import CommsRow

@@ -1,7 +1,7 @@
 """A mounted sender refuses a stale destination before entering the write worker."""
 
 
-from agent_comms.messaging.channel_targets import ChannelTarget
+from agent_comms.channel_targets import ChannelTarget
 
 from toad.conversation_kind import ChannelConversation
 from toad.conversation_submission import OrdinaryInputSubmission

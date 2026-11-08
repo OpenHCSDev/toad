@@ -40,7 +40,7 @@ from toad.db import SessionMeta
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from agent_comms.cli_command import CreatesThread
-from agent_comms.messaging.channel_targets import ProjectTarget
+from agent_comms.channel_targets import ProjectTarget
 from toad.screens.main import MainScreen
 from toad.agent_schema import AgentDefinition
 from toad.navigation_target import HistoryRouted

@@ -1,11 +1,7 @@
 """Textual-facing: the command dialog. Toad passes Core's declared channel context through real command discovery."""
 import pytest
 
-from agent_comms.messaging.channel_targets import (
-    NoChannel,
-    OneChannel,
-    PerTargetChannels,
-)
+from agent_comms.channel_targets import NoChannel, OneChannel, PerTargetChannels
 from agent_comms.native_arguments import ConfiguredBinary
 from toad import about
 from toad.navigation_target import NavigationTarget

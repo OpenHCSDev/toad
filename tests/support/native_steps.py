@@ -6,7 +6,7 @@ from agent_comms.projects.checkouts import Checkout
 import asyncio
 from contextlib import asynccontextmanager
 
-from agent_comms.messaging.channel_targets import ChannelTarget
+from agent_comms.channel_targets import ChannelTarget
 from agent_comms.notification_progress import AnsweredProgress, ConsumedDelivery
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events

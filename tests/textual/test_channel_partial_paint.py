@@ -1,6 +1,6 @@
 """Textual-facing: read marks follow the message text the viewport has painted; scrolling the window reveals the rest."""
 
-from agent_comms.messaging.read_basis import ChannelConversation
+from agent_comms.read_basis import ChannelConversation
 from support.painted_app import PaintedApp
 
 

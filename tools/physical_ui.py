@@ -27,7 +27,7 @@ import time
 from typing import get_args, get_type_hints
 
 from agent_comms.active_route import ActiveRoute, active_route_path, route_new_bus, resolve_comms_route
-from agent_comms.messaging.bus import Bus
+from agent_comms.bus import Bus
 from agent_comms.check_root import CheckRoot
 from agent_comms.child_process import DetachedChildStdio, ProcessIdentity, SpawnedProcess
 from agent_comms.comms import Comms

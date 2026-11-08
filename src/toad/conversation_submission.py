@@ -17,7 +17,7 @@ from agent_comms.errors import (
     RelationViolationError,
     RouteChangedError,
 )
-from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.message_reference import MessageReference
 from agent_comms.acp_extension import (
     InputStartedUpdate,
     PendingQueueProjection,

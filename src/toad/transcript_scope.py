@@ -10,10 +10,10 @@ from functools import partial
 from pathlib import Path
 from typing import Never
 
-from agent_comms.messaging.channel_targets import ThreadTarget
+from agent_comms.channel_targets import ThreadTarget
 from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
 from agent_comms.errors import RouteChangedError
-from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.message_reference import MessageReference
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transport.tools.reads import TranscriptPageRead

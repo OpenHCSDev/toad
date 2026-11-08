@@ -17,7 +17,7 @@ from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
-from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.message_reference import MessageReference
 
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding

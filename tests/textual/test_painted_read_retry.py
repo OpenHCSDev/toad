@@ -2,7 +2,7 @@
 
 import asyncio
 
-from agent_comms.messaging.read_basis import ChannelConversation
+from agent_comms.read_basis import ChannelConversation
 from toad.widgets.comms_chat import CommsChatView
 from toad.wire_history import WirePageBuffer
 

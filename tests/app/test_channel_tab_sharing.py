@@ -4,7 +4,7 @@ The tab is the owner's view of the channel: it sends as the user, Back follows t
 visited tabs, and closing a session leaves it open.
 """
 
-from agent_comms.messaging.channel_targets import CommandTarget
+from agent_comms.channel_targets import CommandTarget
 
 
 async def two_sessions_on_one_channel(workspace, ui):

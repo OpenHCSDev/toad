@@ -1,11 +1,7 @@
 """Textual-facing: a saved view opens from the sidebar as normal history with a disabled composer (widget state)."""
 
 from agent_comms.catalog_document import CatalogDocument, ChannelPreferences
-from agent_comms.messaging.channels import (
-    ActivityView,
-    AnyOfMatch,
-    ViewPredicate,
-)
+from agent_comms.channels import ActivityView, AnyOfMatch, ViewPredicate
 
 from support.textual_steps import channel_roster
 

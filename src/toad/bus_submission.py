@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-from agent_comms.messaging.channel_targets import NamedTarget
-from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.channel_targets import NamedTarget
+from agent_comms.message_reference import MessageReference
 from agent_comms.transport.request import CoreAccess
 
 from toad.input_decision import InputDecision, InputRefused

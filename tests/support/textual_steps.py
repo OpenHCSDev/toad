@@ -87,7 +87,7 @@ def text_rows_of(chat, message) -> range | None:
 
 def request_target_command(app, command, subject) -> None:
     """Invoke a target command (as the sidebar menu would) on `subject`."""
-    from agent_comms.messaging.channel_targets import NoChannel
+    from agent_comms.channel_targets import NoChannel
     from toad.navigation_target import NavigationTarget
     from toad.thread_actions import ThreadAction
     from toad.widgets.comms_sidebar import CommsSidebar

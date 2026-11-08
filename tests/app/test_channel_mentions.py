@@ -1,7 +1,7 @@
 """Completing a thread mention in a channel keeps the draft and delivers to the channel."""
 
 
-from agent_comms.messaging.channel_targets import ChannelTarget
+from agent_comms.channel_targets import ChannelTarget
 from agent_comms.display_references import ThreadDisplayReference
 from agent_comms.projects.checkouts import Checkout
 

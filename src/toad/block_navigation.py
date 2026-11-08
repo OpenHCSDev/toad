@@ -8,10 +8,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.messaging.read_basis import (
-    DisplayCut,
-    NoDisplaySelection,
-)
+from agent_comms.read_basis import DisplayCut, NoDisplaySelection
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
 from textual.app import App
 from textual.geometry import Spacing
@@ -28,7 +25,7 @@ from textual.events import Mount
 from textual import on
 
 if TYPE_CHECKING:
-    from agent_comms.messaging.message_reference import MessageReference
+    from agent_comms.message_reference import MessageReference
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
 
