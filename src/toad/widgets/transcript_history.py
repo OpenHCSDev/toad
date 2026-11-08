@@ -615,6 +615,21 @@ class TranscriptPageView(
                 if first + lines.height > top:
                     yield fragment, range(max(0, top - first), min(lines.height, bottom - first)), lines
 
+    def text_fragments_in(self, regions: tuple[Region, ...], origin: Region) -> Iterator[TranscriptFragment]:
+        """Fragments with their own text exposed in the accepted native scene."""
+        for fragment, first, lines in self._layout:
+            text = fragment.text_rows(lines)
+            for region in regions:
+                start = max(text.start, region.y - origin.y - first)
+                stop = min(text.stop, region.bottom - origin.y - first)
+                if start >= stop:
+                    continue
+                left, right = region.x - origin.x, region.right - origin.x
+                strips = lines.strips_at(fragment.link_place)
+                if any(strips[row].crop(left, right).text.strip() for row in range(start, stop)):
+                    yield fragment
+                    break
+
     def visible_fragments(self, window: HistoryWindow) -> tuple[TranscriptFragment, ...]:
         """The fragments this page draws inside the window's viewport."""
         return tuple(fragment for fragment, _rows, _lines in self.visible_rows(window))
@@ -785,12 +800,15 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         return tuple(fragment for page in self.pages for fragment in page.prepared.fragments)
 
     def read_fragments(self) -> tuple[TranscriptFragment, ...]:
-        """Fragments whose own text has a row in the viewport."""
+        """Fragments whose own text is uncovered in the published scene."""
         if not self.is_attached or not self.can_draw_on_screen:
             return ()
+        compositor = self.screen._compositor
+        pages = (page for page in self.pages if page.parent is self)
         return tuple(
-            fragment for page in self.visible_pages() for fragment, rows, lines in page.visible_rows(self.window)
-            if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
+            fragment for page, regions in compositor.exposed_regions(pages).items()
+            for fragment in page.text_fragments_in(regions, compositor.published_widgets[page][0])
+        )
 
     def visible_pages(self) -> list[TranscriptPageView]:
         """This history's laid-out pages, in row order, without visiting retained pages."""

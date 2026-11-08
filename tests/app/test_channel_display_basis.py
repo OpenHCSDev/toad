@@ -1,10 +1,13 @@
 """A channel marks read exactly the messages whose text it showed, never the history it left out."""
-from agent_comms.read_basis import ChannelConversation
+import pytest
+
+from agent_comms.read_basis import ChannelConversation, NamedViewer
 from agent_comms.repo import Checkout
 from agent_comms.ui_model.unread import ExactUnread
 
 
-async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread(workspace):
+@pytest.mark.parametrize("height", [39, 40, 41, 43, 47])
+async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread(workspace, height):
     for name, tags in (("alice", ("team",)), ("bob", ()), ("carol", ())):
         workspace.thread(name, *tags, running=True)
     comms = workspace.comms
@@ -19,7 +22,7 @@ async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread
     snapshot = comms.registry.snapshot()
     channel = ChannelConversation("#team")
 
-    async with workspace.app(size=(120, 40)) as ui:
+    async with workspace.app(size=(120, height)) as ui:
         owner = ui.selected_tab
         await ui.open_channel("#team", actor=viewer)
         await ui.until_shows("channel 11 line")
@@ -37,11 +40,21 @@ async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread
             count=len(messages) - len(shown()))
         assert hidden.seq not in ledger.cursor(viewer, snapshot).for_conversation(
             ledger.conversation(hidden, snapshot))
+        shown_before_leaving = shown()
         await ui.select_tab(owner)
         comms.channels.set_channel_any_mode("#team", True)
         comms.channels.update_tags("bob", add=frozenset({"team"}))
         # Expanding a hidden tab's view never manufactures read facts.
+        # Tag changes also publish membership messages. Acquire the expanded
+        # source without acknowledging it; every row not actually shown stays
+        # unread, including those new announcements and the older hidden DM.
+        expanded = comms.views.presentation.channel_page("#team", viewer=NamedViewer(viewer))
+        current = comms.registry.snapshot()
+        cursor = ledger.cursor(viewer, current)
+        for message in expanded.messages:
+            assert (message.seq in cursor.for_conversation(ledger.conversation(message, current))) == (
+                message.seq in shown_before_leaving)
         assert comms.views.viewer_snapshot(project).channel_unread["#team"] == ExactUnread(
-            count=len(messages) - len(shown()) + 1)
+            count=len({message.seq for message in expanded.messages} - shown_before_leaving))
         assert hidden.seq not in ledger.cursor(viewer, snapshot).for_conversation(
             ledger.conversation(hidden, snapshot))
