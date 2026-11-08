@@ -25,7 +25,6 @@ from agent_comms.transcript_events import (
     TranscriptEvent,
     UserTranscript,
 )
-from agent_comms.transcript_sources import AssignedTranscriptSource
 from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
 
 from toad.acp.status import ToolCallStatus
@@ -871,7 +870,7 @@ class TranscriptFragmentConsumer(MroProjection[None]):
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage) -> None:
-        original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
+        original = message.original
         self.text(
             message.message,
             SentMessageFragment,
