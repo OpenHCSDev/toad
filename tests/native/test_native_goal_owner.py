@@ -2,8 +2,8 @@
 
 import pytest
 from agent_comms.coordination.errors import Refused
-from agent_comms.goal_actions import SetGoalAction
-from agent_comms.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_actions import SetGoalAction
+from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.input_attempt import OwnerQueueInputDeliveryScope
 from agent_comms.ui_model.delivery import ReadDeliveryView
 from support.native import native_session

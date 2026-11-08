@@ -30,8 +30,11 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.native_output import AssistantOutput, ToolOutput
-from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
-from agent_comms.goals import NoGoal
+from agent_comms.planning.goal_presentation import (
+    GoalSnapshot,
+    IdleGoalExecution,
+)
+from agent_comms.planning.goals import NoGoal
 from agent_comms.transport.tools.reads import OwnerGoalRead
 from agent_comms.ui_model.observation import ReadOwnerOperation
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation

@@ -8,17 +8,31 @@ from dataclasses import replace
 import pytest
 
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.goal_actions import ClearGoalAction, RetryGoalAction
+from agent_comms.planning.goal_actions import (
+    ClearGoalAction,
+    RetryGoalAction,
+)
 from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, TurnId
-from agent_comms.goal_failure_observation import FailedTurnEvidence
-from agent_comms.goal_history import (
-    RecordedGoalHistory, RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,
+from agent_comms.planning.goal_failure_observation import FailedTurnEvidence
+from agent_comms.planning.goal_history import (
+    RecordedGoalHistory,
+    RecordedGoalRevision,
+    BaselineRevision,
+    TransitionRevision,
+    ObservedGapRevision,
 )
-from agent_comms.goal_presentation import (
-    GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
+from agent_comms.planning.goal_presentation import (
+    GoalWaitTarget,
+    IdleGoalExecution,
+    PausedExecution,
+    RunnableExecution,
+    StandbyExecution,
 )
-from agent_comms.goal_states import PausedGoal
-from agent_comms.goals import Goal, NoGoal
+from agent_comms.planning.goal_states import PausedGoal
+from agent_comms.planning.goals import (
+    Goal,
+    NoGoal,
+)
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.turn_failure import NativeChildSignaled

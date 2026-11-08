@@ -5,13 +5,20 @@ from __future__ import annotations
 from dataclasses import replace
 
 from agent_comms.errors import GoalRefused
-from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_mentions import bind_goal_mentions
-from agent_comms.goal_presentation import GoalExecution, GoalSnapshot, RunnableExecution
-from agent_comms.goal_states import ActiveGoal
-from agent_comms.goals import Goal, GoalDeclaration
+from agent_comms.planning.goal_actions import GoalAction
+from agent_comms.planning.goal_mentions import bind_goal_mentions
+from agent_comms.planning.goal_presentation import (
+    GoalExecution,
+    GoalSnapshot,
+    RunnableExecution,
+)
+from agent_comms.planning.goal_states import ActiveGoal
+from agent_comms.planning.goals import (
+    Goal,
+    GoalDeclaration,
+)
 from agent_comms.registry.registry_document import RegistrySnapshot
-from agent_comms.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.registry.threads import Thread
 
 from toad.acp.agent import Agent

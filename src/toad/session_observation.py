@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 import asyncio
 from weakref import ref
 
-from agent_comms.goal_presentation import GoalSnapshot
+from agent_comms.planning.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.delivery import DeliveryView
-from agent_comms.goals import GoalUnavailable
+from agent_comms.planning.goals import GoalUnavailable
 from toad.agent_binding import AgentConnection, NoAgentConnection
 
 

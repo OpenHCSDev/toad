@@ -1,7 +1,7 @@
 """A full-height, scrollable projection of a persistent goal."""
 from datetime import datetime
 
-from agent_comms.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_history import RecordedGoalHistory
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from toad.widgets.acting_button import DismissButton

@@ -1,8 +1,11 @@
 """Goal display permissions and a new nominal case use the same contract."""
 
-from agent_comms.goal_presentation import IdleGoalExecution
-from agent_comms.goals import GoalDeclaration, NoGoal
-from agent_comms.goals import GoalUnavailable
+from agent_comms.planning.goal_presentation import IdleGoalExecution
+from agent_comms.planning.goals import (
+    GoalDeclaration,
+    NoGoal,
+)
+from agent_comms.planning.goals import GoalUnavailable
 from agent_comms.ui_model.goal import GoalDisplay
 from support.goals import published_goal
 
