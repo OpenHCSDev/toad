@@ -92,3 +92,24 @@ def test_runtime_does_not_prepare_or_search_path(tmp_path: Path):
     with pytest.raises(NeovimUnavailable):
         requirement.command()
     assert not requirement.root.exists()
+
+
+def test_android_uses_the_native_package_without_an_archive(tmp_path: Path):
+    from toad.platform import Platform
+
+    executable = tmp_path / "bin" / "nvim"
+    executable.parent.mkdir()
+    executable.write_text("#!/bin/sh\nexit 0\n")
+    executable.chmod(0o700)
+    requirement = Neovim(tmp_path, Platform.decode("Android"))
+    assert requirement.command() == (str(executable), "--embed", "--clean", "-n")
+    requirement.prepare()
+    assert not (tmp_path / "share").exists()
+
+
+def test_android_missing_package_names_its_install_command(tmp_path: Path):
+    from toad.platform import Platform
+
+    requirement = Neovim(tmp_path, Platform.decode("Android"))
+    with pytest.raises(NeovimUnavailable, match="pkg install neovim"):
+        requirement.command()
