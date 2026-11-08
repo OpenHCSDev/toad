@@ -3,23 +3,19 @@ from functools import cached_property
 from typing import ClassVar
 
 from rich.segment import Segment
-
-from textual.visual import Visual
-
-from textual.style import Style
-from textual.strip import Strip
-from textual.visual import RenderOptions
+from textual import on
+from textual.events import Mount
 from textual.reactive import reactive
+from textual.strip import Strip
+from textual.style import Style
 from textual.text_format import TextFormat
-
+from textual.visual import RenderOptions, Visual
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import BackgroundColour
 
 from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import FullWidth, OneRow
 from toad.textual_colours import BlockInk, FullInk
-from textual.events import Mount
-from textual import on
 
 
 class ThrobberVisual(Visual):
@@ -91,7 +87,22 @@ class ObservedThrobber(Throbber):
         return self._read_busy()
 
     def sync(self) -> None:
-        self.watch_busy(self.busy)
+        """Read the activity owner again, and let the reactive do the rest.
+
+        `busy` is computed, so it recomputes when it is read and invokes its own watcher
+        if the answer changed (textual `reactive.py:170`). Calling the watcher by hand as
+        well ran it twice for every source round: a phone capture of a landing page with
+        no input recorded 238 `watch_busy` invocations for 60 hidden source rounds, each
+        one ending in a `refresh()` of a throbber that renders nothing when it is not
+        busy, on a view nobody was looking at.
+
+        Unlike `on_mount`, this has nothing of its own to say: mounting changes whether
+        the effect may run without `busy` changing, while a sync only asks the question
+        again.
+        """
+        # The read *is* the recompute; it is bound to a name only because a bare
+        # attribute read looks like a mistake and lints as one.
+        _recomputed = self.busy
 
 
 class AboveThrobber(ObservedThrobber):
