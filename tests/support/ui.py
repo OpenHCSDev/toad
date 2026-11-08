@@ -23,6 +23,7 @@ from textual.actions import StyleAction
 from textual.errors import NoWidget
 from textual.geometry import Offset
 
+from agent_comms.notification_progress import DeliveryProgress
 from rich.cells import cell_len
 from support.agents import AppAgents, command
 from toad import paths
@@ -262,8 +263,13 @@ class Ui(ABC):
 
     async def until_delivery_shown(self) -> None:
         """A sent message's delivery status arrives from Core after its rows and lifts the
-        bottom-anchored page; a click aimed at the message waits for it."""
-        await self.until_shows("Sent · Observed")
+        bottom-anchored page; a click aimed at the message waits for it.
+
+        It asks the label's owner rather than retyping it: the hand-written copy here read
+        "Sent · Observed" and kept waiting for it after Core's receipts dropped the jargon,
+        so every test through this helper timed out on a screen that already showed the row.
+        """
+        await self.until_shows(DeliveryProgress.label)
 
 
 class TextualUi(AppAgents, Ui):

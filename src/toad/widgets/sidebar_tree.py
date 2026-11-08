@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from functools import wraps
 from itertools import islice
 from time import perf_counter_ns
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
     from textual.events import Click
@@ -53,18 +53,31 @@ from toad.core.events import (
 )
 from toad.app_node import ToadNode
 from toad.core_event_carrier import CoreEventReceiver
-from toad.native_style import PointerCursor
+from toad.native_style import EllipsisOverflow, NoWrap, PointerCursor, TwoRows
 from toad.no_worker import NoWorker
 from toad.widgets.side_bar import SideBar
 
 
 class UnpaintedChannel(ChannelRowModel):
-    """An unobserved channel has no painted fields or known members."""
+    """An unobserved channel has no painted fields or known members.
+
+    Its counts are not zero, they are unknown, so it paints nothing rather than
+    claiming 0/0 agents on the row's second line.
+    """
 
     def __init__(self, name: str) -> None:
         super().__init__(
-            name, "", "", UnobservedUnread(), False, (), frozenset(), ThreadSort
+            name, False, 0, 0, (), UnobservedUnread(), False, (), frozenset(), ThreadSort
         )
+
+    def label(self) -> str:
+        return ""
+
+    def summary(self) -> str:
+        return ""
+
+    def tooltip(self) -> str:
+        return ""
 
 
 class TargetTreeMember(HiddenActions):
@@ -127,6 +140,25 @@ class TitleSegment(HeaderSegment):
 TITLE = TitleSegment()
 
 
+class DetailedRow(TwoRows, NoWrap, EllipsisOverflow, Widget):
+    """A sidebar row whose second line is its own quieter detail, indented under the title.
+
+    Two rows wanted this independently: a thread's summary and a channel's agent counts.
+    The newline, the indent and the muted ink are declared here once, so a row that grows
+    a second line cannot invent its own spelling of one.
+    """
+
+    detail_indent: ClassVar[int] = 2
+
+    def detail(self) -> str:
+        """The row's second line. A row with nothing to add leaves it blank."""
+        return ""
+
+    def with_detail(self, title: Content) -> Content:
+        return Content.assemble(title, Content.styled(
+            f"\n{' ' * self.detail_indent}{self.detail()}", "$text-muted"))
+
+
 class GroupHeaderLine(PointerCursor, Static):
     """A group's whole header line as one widget: its segments around the row's title.
 
@@ -153,7 +185,11 @@ class GroupHeaderLine(PointerCursor, Static):
             end += content.cell_length
             ends.append((end, segment))
         self._segment_ends = tuple(ends)
-        return Content.assemble(*(content for _, content in pieces))
+        return self.header_lines(Content.assemble(*(content for _, content in pieces)))
+
+    def header_lines(self, line: Content) -> Content:
+        """The segment line alone. A header that declares a detail line adds it."""
+        return line
 
     def segment_at(self, x: int) -> HeaderSegment:
         return next((segment for end, segment in self._segment_ends if x < end), TITLE)
@@ -171,8 +207,14 @@ class GroupHeaderLine(PointerCursor, Static):
         content = self.content_region
         return Region(content.x + start, content.y, end - start, 1)
 
-    def emphasize(self, line: Strip, style: Style) -> Strip:
-        """Only the title carries the row's emphasis; the arrow and controls keep their ink."""
+    def emphasize(self, line: Strip, style: Style, y: int) -> Strip:
+        """Only the title carries the row's emphasis; the arrow and controls keep their ink.
+
+        Segments are the first line only, so a detail line beneath them is emphasised whole,
+        the way an ordinary row's is.
+        """
+        if y:
+            return line.apply_style(style)
         start, end = self.segment_span(TITLE)
         return Strip.join((line.crop(0, start), line.crop(start, end).apply_style(style),
                            line.crop(end, line.cell_length)))

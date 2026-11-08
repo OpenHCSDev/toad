@@ -68,9 +68,9 @@ class ViewLabel(Animated[TextFrame], Static):
             line = Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
                                line.crop(glyph.cell_length))).crop(0, line.cell_length)
         current = self.current
-        return self.emphasize(line, Style(bold=current, underline=current))
+        return self.emphasize(line, Style(bold=current, underline=current), y)
 
-    def emphasize(self, line: Strip, style: Style) -> Strip:
+    def emphasize(self, line: Strip, style: Style, y: int) -> Strip:
         """The whole line carries the row's current-target emphasis."""
         return line.apply_style(style)
 

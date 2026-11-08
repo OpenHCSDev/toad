@@ -55,6 +55,14 @@ class OneRow(Widget):
         self.styles.height = 1
 
 
+class TwoRows(Widget):
+    """Occupies exactly two terminal rows, for a title and its detail beneath it."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 2
+
+
 class SidePadding(Widget):
     """One cell of padding on the left and right."""
 

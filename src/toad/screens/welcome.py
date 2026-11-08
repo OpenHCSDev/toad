@@ -132,8 +132,8 @@ class WelcomeChannels(WelcomeSection):
             key
         ]
         badge = self.app.settings.sidebar.unread_counts.badge(channel.unread)
-        row.set_label(f"{channel.label} {badge}" if badge else channel.label)
-        row.tooltip = channel.tooltip
+        row.set_label(f"{channel.label()} {badge}" if badge else channel.label())
+        row.tooltip = channel.tooltip()
         row.refresh_paint()
 
 
