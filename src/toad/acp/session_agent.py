@@ -48,11 +48,12 @@ from pydantic import JsonValue
 
 from toad.acp.agent_controller import AgentController, SourceIdentity
 from toad.acp.client_session import ClientSessionRequest, OwnerRequest
+from toad.acp.goal_control import ClientGoalControls
 from toad.agent import AgentBase
 from toad.core import events as core_events
 
 
-class SessionAgent(AgentBase, SourceIdentity):
+class SessionAgent(AgentBase, SourceIdentity, ClientGoalControls):
     """Operational resources stay on the same agent through SDK source selection."""
 
     controller: AgentController
@@ -144,14 +145,13 @@ class SessionAgent(AgentBase, SourceIdentity):
         ))
         return FieldCodec.decode(GoalSnapshotReply, result).goal.require()
 
+    async def observed_goal(self, authority: OwnerRequest) -> GoalDeclaration:
+        return (await self.owner_read(authority).goal_snapshot(self.controller.transcripts)).goal
+
     async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
         request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
         request.require()
-        result = await action.submit_control(
-            request.coordination.thread,
-            partial(self.owner_read(request).goal_snapshot, self.controller.transcripts),
-            partial(self.request_owner, request), text,
-        )
+        result = await action.submit_control(self, request, text)
         request.require()
         return result
 
