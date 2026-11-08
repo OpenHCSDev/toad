@@ -18,6 +18,8 @@ from ui_theme.scheme import BackgroundColour
 from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import FullWidth, OneRow
 from toad.textual_colours import BlockInk, FullInk
+from textual.events import Mount
+from textual import on
 
 
 class ThrobberVisual(Visual):
@@ -61,6 +63,7 @@ class Throbber(EffectInContent, FullWidth, OneRow, Animated[Ribbon]):
         return ThrobberVisual(self)
 
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.watch_busy(self.busy)
 

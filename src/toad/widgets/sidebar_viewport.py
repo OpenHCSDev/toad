@@ -9,6 +9,8 @@ from textual.containers import HorizontalGroup, VerticalScroll
 from textual.geometry import Size
 
 from toad.native_style import FullWidth, OneRow, StableGutter
+from textual.events import Mount
+from textual import on
 
 
 class SidebarHeader(FullWidth, OneRow, HorizontalGroup):
@@ -32,6 +34,7 @@ class ViewportHeader(SidebarHeader):
             constrain_width, greedy,
         )
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.query_ancestor(SidebarViewport).align_header(self)
 
@@ -61,6 +64,7 @@ class SidebarViewport(StableGutter, VerticalScroll):
         self.app.animator.transform_running_animation(self, "scroll_y", lambda value: value + shift)
         self.scroll_target_y += shift
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.watch(self, "scroll_x", self._align_headers, init=False)
         self._align_headers()

@@ -23,6 +23,8 @@ from toad.native_style import (
     NoWrap,
     OneRow,
 )
+from textual.events import Mount
+from textual import on
 
 
 class LogLine(MutedText, OneRow, NoWrap, EllipsisOverflow, Static):
@@ -123,6 +125,7 @@ class AcpLogPreview(Vertical):
         )
         yield LogStatus("", markup=False)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.load_page()
         self.query_one(TextArea).focus()

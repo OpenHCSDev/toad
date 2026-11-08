@@ -25,6 +25,7 @@ from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from textual.widget import Widget
 from toad.widget_actions import PriorityActions
+from textual.events import Mount
 
 
 class BusPanel(SurfacePanel):
@@ -202,6 +203,7 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
     def action_forget(self) -> None:
         self.forget_highlighted()
 
+    @on(Mount)
     def on_mount(self) -> None:
         """The reader opened this to choose a bus, so this is where asking belongs."""
         self.discover()

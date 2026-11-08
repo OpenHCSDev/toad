@@ -12,6 +12,8 @@ from toad.terminal_environment import TerminalEnvironment
 from toad.native_style import NoScrollbars
 from toad.terminal_execution import Command, TerminalExecution
 from toad.widgets.terminal import Terminal
+from textual.events import Mount
+from textual import on
 
 
 class CommandFrame(DeclaresTheme):
@@ -105,6 +107,7 @@ if __name__ == "__main__":
         def compose(self) -> ComposeResult:
             yield CommandPane(TerminalExecution(Command.for_script(COMMAND)))
 
+        @on(Mount)
         def on_mount(self) -> None:
             command_pane = self.query_one(CommandPane)
             command_pane.border_title = Content(COMMAND)

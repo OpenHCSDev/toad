@@ -479,6 +479,7 @@ class TabHistoryControls(
         yield BackTabButton()
         yield ForwardTabButton()
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         app = self.app
         self.observe_core(app.tab_order.events)
@@ -1008,6 +1009,7 @@ class SideBar(
         app.saved_settings.set(SETTINGS.sidebar.hide, value)
         self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.trap_focus()
         self.observe_core(self.app.events)

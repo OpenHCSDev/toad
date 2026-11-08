@@ -58,6 +58,7 @@ from toad.widgets.declared_table import (
 )
 from toad.widgets.sidebar_tree import KeyedRows
 from toad.worker_group import WorkerGroup
+from textual.events import Mount
 
 
 class TeamDetailRead(WorkerGroup):
@@ -257,6 +258,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Collapsible):
         self.selection = selection
         selection.present_to(self)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.selection.present_to(self)
 
@@ -476,6 +478,7 @@ class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreE
                 yield HudEmpty("Waiting for the team heartbeat.", markup=False)
             yield TeamClose("Close", compact=True)
 
+    @on(Mount)
     def on_mount(self) -> None:
         access = self.app.coordination_access
         self.subscribe_core(access.events)

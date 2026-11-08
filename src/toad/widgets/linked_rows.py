@@ -32,6 +32,8 @@ from toad.navigation_target import NavigationTarget, SelectTarget
 from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines, link_place
+from textual.events import Mount
+from textual import on
 
 class RestylesOnTheme(FollowsTheme):
     """Rows restyle when the theme changes; each member says how in invalidate_lines."""
@@ -45,6 +47,7 @@ class RestylesOnTheme(FollowsTheme):
 
 class ReferenceRendering(RestylesOnTheme, CoreEventReceiver):
     """Borrow the source's observation for exactly this rendering lifetime."""
+    @on(Mount)
     def _on_mount(self):
         owner = ProjectPathOwner.containing(self)
         self.observe_core(self.app.coordination_access.events)
@@ -159,6 +162,7 @@ class LinkedRows(OpensLinks, RowRun):
         """What tells the links these rows draw apart from equal links drawn elsewhere."""
         return link_place()
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.arrival = next((entry for entry in cast(Widget, self).ancestors_with_self
                              if isinstance(entry, ConversationEntry)), LinkedRows.arrival)

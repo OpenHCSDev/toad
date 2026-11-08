@@ -228,7 +228,12 @@ class ChannelConversation(ConversationKind):
         )
         if not await history.source_is_current(shown) or view.conversation != conversation:
             return
-        view.query_one(ChannelPrompt).set_mention_candidates(mentions)
+        # Mentions are read in the chat-labels worker, which runs after the drawing work
+        # and can take seconds on a busy bus (comms_chat.py:265). The composer can be
+        # removed in that window, and a view with no composer has nothing to tell: the
+        # query answers membership, so no match is not an exception.
+        for prompt in view.query(ChannelPrompt):
+            prompt.set_mention_candidates(mentions)
 
 
 class PeerLabel(ThreadReferenceReader[str]):

@@ -19,6 +19,8 @@ from toad.native_style import (
     MutedText,
     NoMargin,
 )
+from textual.events import Mount
+from textual import on
 
 
 class SplashText(EffectInContent, Animated[TextFrame], Static):
@@ -82,5 +84,6 @@ class ThreadLoading(
 
 
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.play()

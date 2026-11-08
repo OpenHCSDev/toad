@@ -18,6 +18,7 @@ from textual.widgets import Static
 from toad.mcp_decision import LocalDecisionPTY
 from toad.mcp_commands import MCPDecision, MCPSelection
 from toad.widgets.terminal import ControlledTerminal
+from textual import on
 
 
 class DecisionPanel(SurfacePanel):
@@ -75,6 +76,7 @@ class MCPDecisionScreen(CenteredScreen, PriorityActions, DismissibleScreen[None]
             with DecisionControls():
                 yield DismissButton("Cancel / close")
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self._running = True
         terminal = self.query_one(DecisionTerminal)

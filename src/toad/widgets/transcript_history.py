@@ -119,6 +119,7 @@ from toad.widgets.transcript_lines import (
 )
 from agent_comms.message_reference import MessageReference
 from toad.transcript_filter import Filtered
+from textual.events import Mount
 
 if TYPE_CHECKING:
 
@@ -400,6 +401,7 @@ class TranscriptPageView(
         """Whether the rows this page reports are those of the messages it has now."""
         return self._measured
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.history.window.page_views.add(self)
 
@@ -1033,6 +1035,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             yield page
         yield self.newer
 
+    @on(Mount)
     async def on_mount(self) -> None:
         await self._finish_mount()
         self.state.mounted(self)

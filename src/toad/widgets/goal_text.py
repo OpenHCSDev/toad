@@ -5,6 +5,8 @@ from toad.widgets.selection import ChangingText
 
 from toad.widgets.inline_message import inline_message
 from toad.widgets.linked_rows import OpensLinks, ReferenceRendering
+from textual.events import Mount
+from textual import on
 
 
 def goal_mention_candidates(observed) -> tuple[MentionCandidate, ...]:
@@ -17,6 +19,7 @@ class GoalText(ReferenceRendering, OpensLinks, ChangingText):
         self.goal_text = text
         super().__init__(text, markup=False, **kwargs)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.update_goal_text(self.goal_text)
 

@@ -50,6 +50,8 @@ from toad.native_style import (
     NoWrap,
     SpacedAbove,
 )
+from textual.events import Mount
+from textual import on
 
 
 class WelcomeTitle(SplashText, MutedText, NoWrap):
@@ -71,6 +73,7 @@ class WelcomeTitle(SplashText, MutedText, NoWrap):
         super().apply_native_layout()
         self.styles.width = self.styles.height = "auto"
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.watch(self.app, "app_focus", self.focus_changed, init=False)
 

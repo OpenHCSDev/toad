@@ -26,6 +26,8 @@ from toad.large_text import LargeText
 from toad.app_node import ToadNode
 from toad.native_style import ScreenOverlay
 from toad.widgets.conversation import Conversation
+from textual.events import Mount
+from textual import on
 
 if TYPE_CHECKING:
     from textual._paint_state import PaintState
@@ -94,6 +96,7 @@ class SwitchToast(CoreEventReceiver, ScreenOverlay, Animated[Amount], ToadNode):
         super().apply_native_layout()
         self.styles.position = "absolute"
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.observe_core(self.app.events)
         self._layout_screen = self.screen

@@ -16,6 +16,8 @@ from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.status_thread import NoStatusThread, StatusThread
+from textual.events import Mount
+from textual import on
 
 
 class ActivityView(metaclass=AbstractHooksMeta):
@@ -62,6 +64,7 @@ class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
         self.thread: StatusThread = NoStatusThread()
         super().__init__(*args, **kwargs)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.thread.observe(self)
         self.thread.bind(self)

@@ -263,6 +263,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
     def _visibility_changed(self, shown: bool) -> None:
         self.refresh(layout=True)
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.watch(self.app, "show_sessions", self._visibility_changed)
         # Metadata can arrive after compose built the labels. Keep that exact

@@ -343,6 +343,7 @@ class CursorContainer(Animated[Mix], Static):
         super().__init__(*args, **kwargs)
         self.styles.width = 1
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.watch(
             self.query_ancestor(Window), "has_focus", self.app.colours.clock.refresh
@@ -456,6 +457,7 @@ This is a view of your conversation with the agent.
         super().prepare_viewport()
         self.sticky_header.pin(self.top_message_header())
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         super().on_mount()
         self.tail_follow_changed()
@@ -1757,6 +1759,7 @@ class Conversation(
         """A native session publishes its transcript through this view."""
         return BoundView(self)
 
+    @on(events.Mount)
     async def on_mount(self) -> None:
         self.transcript.bind(self)
         await self.initialize_view()

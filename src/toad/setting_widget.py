@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from toad.setting_declarations import EachOpenWidget
+from textual.events import Mount
+from textual import on
 
 
 class SettingVisibility:
@@ -9,6 +11,7 @@ class SettingVisibility:
         super().__init_subclass__(**kwargs)
         cls.visibility_setting = setting
 
+    @on(Mount)
     def on_mount(self):
         self.display = self.app.saved_settings.state.get_resolved_value(self.visibility_setting)
 

@@ -14,6 +14,8 @@ from toad.native_style import (
     SpacedAround,
 )
 from toad.widgets.terminal import Terminal
+from textual.events import Mount
+from textual import on
 
 
 class ShellTerminal(
@@ -54,5 +56,6 @@ class ShellTerminal(
     def get_clipboard_text(self) -> str:
         return "\n".join(line.content.plain for line in self.state.buffer.lines)
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.border_title = Content(self.name)

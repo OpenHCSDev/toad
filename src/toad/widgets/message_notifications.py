@@ -37,6 +37,8 @@ from toad.native_style import (
 from toad.notification_status import (
     CheckedNotifications, MessageQueueEntry, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
+from textual.events import Mount
+from textual import on
 
 class NotificationTitle(
     NoPadding,
@@ -214,6 +216,7 @@ class HistoryNotifications:
         for target in self.notification_targets():
             await target.reload_notification_source()
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.call_after_refresh(self.check_notifications)
 

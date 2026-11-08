@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from textual import events
 from textual.dom import DOMNode
+from textual import on
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -21,6 +22,7 @@ class ToadNode(DOMNode):
 class FollowsTheme(DOMNode):
     """Redraws when the app's theme changes; each member says how in theme_changed."""
 
+    @on(events.Mount)
     def _on_mount(self, event: events.Mount) -> None:
         # Textual dispatches each class's handler; the signal's theme is read from the app.
         self.app.theme_changed_signal.subscribe(

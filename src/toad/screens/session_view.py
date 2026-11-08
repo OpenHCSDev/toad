@@ -28,6 +28,8 @@ from toad.widgets.message_notifications import (
     PaintedRead,
     VisibleReadMarking,
 )
+from textual.events import Mount
+from textual import on
 
 
 class SessionView(
@@ -187,6 +189,7 @@ class SessionContents(WidgetView, FollowsLayoutPreferences, ToadNode, Vertical):
 
     width = height = FILL
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.apply_layout_preferences()
 

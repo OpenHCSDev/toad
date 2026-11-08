@@ -265,6 +265,7 @@ class Question(VisibleActions, StepsVerticalCursor, QuestionContext, containers.
         for marker in self.query(OptionMarker):
             marker.refresh_paint()
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.presentation.reopen()
         self.presentation.start(self, self._option_view)

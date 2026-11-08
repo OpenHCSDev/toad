@@ -17,6 +17,7 @@ from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 from toad.native_style import AutoHeight, FillHeight, FillWidth, ScrollsVertically
 from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ShadedScreen
+from textual.events import Mount
 
 
 
@@ -108,6 +109,7 @@ class KeymapScreen(ShadedScreen, CenteredScreen, DismissibleScreen[None]):
                 yield DismissButton("Close")
             yield KeymapStatus("", markup=False)
 
+    @on(Mount)
     def on_mount(self) -> None:
         table = self.query_one(KeymapTable)
         table.add_columns("Action", *(self.mode_choices.label(mode) for mode in self.modes))

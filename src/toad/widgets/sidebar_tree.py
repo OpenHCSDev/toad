@@ -428,6 +428,7 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         yield self.row
         yield self.member_container
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         if self.accepts_members():
             self.sync_members(frozenset(self.member_keys))
@@ -790,6 +791,7 @@ class SidebarModelView(CoreEventReceiver, ToadNode, Widget):
         super().__init__(*args, **kwargs)
         self.unavailable = Static("", markup=False)
 
+    @on(events.Mount)
     async def on_mount(self) -> None:
         await self.mount(self.unavailable)
         self.watch_model_state(self.model_state)
@@ -887,6 +889,7 @@ class SidebarModelView(CoreEventReceiver, ToadNode, Widget):
 
 
 class SearchFollower:
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.watch(
             self.query_ancestor(SideBar), "search", self._apply_search, init=True

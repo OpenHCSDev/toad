@@ -297,6 +297,7 @@ class PathSearch(
     def root(self) -> Path:
         return ProjectPathOwner.containing(self).project_root
 
+    @on(events.Mount)
     def on_mount(self) -> None:
         self.observe_core(ProjectPathOwner.containing(self).link_context_events)
 

@@ -59,6 +59,7 @@ from toad.native_style import (
     OneRow,
     PointerCursor,
 )
+from textual.events import Mount
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
@@ -213,6 +214,7 @@ class CommsRow(
         super().__init__(Content(label))
         self.target = target
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.run_effect(NEW_MESSAGE)
 
@@ -459,6 +461,7 @@ class CommsSidebar(
         return (self.enabled and self.accepts_publication()
                 and not self.query_ancestor(SideBar).collapsed)
 
+    @on(Mount)
     async def on_mount(self) -> None:
         app = self.app
         self.subscribe_core(app.session_tracker.events)

@@ -24,6 +24,8 @@ from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from metaclass_registry.mro_dispatch import handles
 from toad.widgets.channel_prompt import DraftPrompt
+from textual.events import Mount
+from textual import on
 
 
 class GoalEditPanel(AutoHeight, ModalPanel):
@@ -103,6 +105,7 @@ class GoalEdit(Confirms, ShadedScreen, CenteredScreen, CoreEventReceiver, Dismis
                 yield GoalSave("Save", variant="primary")
                 yield GoalCancel("Cancel")
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.editor.text = self.goal.text
 
