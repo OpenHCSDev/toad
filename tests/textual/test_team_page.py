@@ -8,7 +8,7 @@ from agent_comms.team_hud import TeamFrame, TeamHud, TeamPlan, CodexUsage, Unrea
 from agent_comms.team_hud_records import HudRecord, Teammate
 from agent_comms.disclosure_text import DisclosureEntry, DisclosureText, FieldKey, RootKey, StructuredText
 from agent_comms.recorded_time import RecordedEventTime
-from agent_comms.standing_rules import ServicePassFailing
+from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.ui_model.observation import ObserveTeamHud
