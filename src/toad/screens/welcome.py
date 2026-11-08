@@ -16,7 +16,7 @@ from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
 from toad.widget_actions import NativeMethodKeys, TogglesIrc, WidgetAction
-from textual.containers import VerticalScroll
+from textual.containers import VerticalGroup, VerticalScroll
 from textual.geometry import Offset
 from textual.content import Content
 from textual.widgets import Static
@@ -27,6 +27,7 @@ from toad.format_path import format_path
 from toad.navigation_context import NavigationContext, NavigationOwner
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
+from toad.screens.bus_choice import BusRows, ListsBuses
 from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
 from toad.thread_identity import ThreadIdentity
@@ -85,8 +86,19 @@ class WelcomeTitle(SplashText, MutedText, NoWrap):
             self.refresh()
 
 
-class WelcomeSectionTitle(MutedText, GroupTitle):
-    """A welcome section's title line."""
+class WelcomeHeading(MutedText, Static):
+    """How a title line on the splash looks, declared once.
+
+    The look is MutedText; GroupTitle is the separate fact that a sidebar group's title
+    renders from its group and toggles its members on activation. A section whose rows are
+    not sidebar-model rows wants the look and not the group - and reusing the group variant
+    outside a SidebarGroup raises NoMatches from its own header_group, which is how I found
+    out it was two facts in one class.
+    """
+
+
+class WelcomeSectionTitle(WelcomeHeading, GroupTitle):
+    """A sidebar-group section's title line on the splash: the look, plus its group."""
 
 
 class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
@@ -158,8 +170,30 @@ class WelcomeThreads(WelcomeSection):
         row.show(thread)
 
 
+class WelcomeBuses(SpacedAbove, AutoHeight, ListsBuses, VerticalGroup):
+    """The buses this machine can open, on the splash beside its channels and threads.
+
+    Tristan: "I would like it to show the buses as well so that it would list out the buses
+    that are available". It inherits the Open-bus dialog's own listing (ListsBuses), so the
+    rows, the tailnet discovery and what choosing one does are the dialog's, not a second
+    set that can drift from it - and a bus did not have to become a comms target to get
+    keyboard navigation, because BusRows is an OptionList and already has it.
+
+    Not a WelcomeSection: those read their keys from the sidebar model, and a bus is not in
+    it. The rows come from what this machine holds, and the tailnet's arrive after.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(ListsBuses.offered_rows())
+
+    def compose(self) -> ComposeResult:
+        yield WelcomeHeading(Content("Buses"))
+        yield BusRows(*self.bus_options())
+
+
 class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, TargetTree):
-    """New session, channels and threads: the sidebar model's rows, opened as the sidebar opens them."""
+    """New session, channels, threads and buses: the rows the sidebar opens, plus the buses
+    this machine can open."""
 
 
     def __init__(self) -> None:
@@ -169,6 +203,7 @@ class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, Targe
     def compose(self) -> ComposeResult:
         yield StartSessionButton()
         yield from self.navigation_groups
+        yield WelcomeBuses()
 
     def accepts_observation(self) -> bool:
         return self.is_attached and self.query_ancestor(WelcomeScreen).is_current
