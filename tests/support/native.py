@@ -47,7 +47,10 @@ def last_user_texts(request: dict) -> tuple[str, ...]:
 def selected_triage_reply(request: dict, decision=None) -> dict | None:
     """The answer to Core's "should this thread respond" question, when `request` is one."""
     from agent_comms.nominal.field_codec import FieldCodec
-    from agent_comms.selected_triage import IgnoreSelectedTriage, SelectedTriage
+    from agent_comms.execution.selected.triage import (
+        IgnoreSelectedTriage,
+        SelectedTriage,
+    )
     from agent_comms.execution.turn_context import InstructionFile
 
     texts = last_user_texts(request)
