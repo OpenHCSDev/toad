@@ -39,6 +39,9 @@ from toad.notification_status import (
 )
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
+from textual.events import Hide
+from textual.events import Show
 
 class NotificationTitle(
     NoPadding,
@@ -220,12 +223,15 @@ class HistoryNotifications:
     def on_mount(self) -> None:
         self.call_after_refresh(self.check_notifications)
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self.app.coordination_access.stop_notifications(self)
 
+    @on(Hide)
     def on_hide(self) -> None:
         self.app.coordination_access.stop_notifications(self)
 
+    @on(Show)
     def on_show(self) -> None:
         self.call_after_refresh(self.check_notifications)
 

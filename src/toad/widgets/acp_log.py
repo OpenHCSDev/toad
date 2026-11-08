@@ -25,6 +25,7 @@ from toad.native_style import (
 )
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
 
 
 class LogLine(MutedText, OneRow, NoWrap, EllipsisOverflow, Static):
@@ -131,6 +132,7 @@ class AcpLogPreview(Vertical):
         self.query_one(TextArea).focus()
         self.set_interval(self.FOLLOW_INTERVAL, self.read_new_lines)
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self._ready.set()
 

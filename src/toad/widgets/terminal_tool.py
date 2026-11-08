@@ -19,6 +19,7 @@ from toad.native_style import AutoHeight, FillWidth, NoScrollbars, SpacedAround
 from toad.widgets.terminal import Terminal
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
 
 if TYPE_CHECKING:
     from toad.agent_surface import AttachedSurfaceBinding
@@ -94,6 +95,7 @@ class TerminalTool(
         super().on_mount()
         self.execution.attach(self)
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self.execution.detach(self)
 

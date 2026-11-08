@@ -775,6 +775,7 @@ class ConversationSessionBinding(
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
 
+    @on(events.Unmount)
     async def on_unmount(self) -> None:
         async with AsyncResourceRelease() as release:
             release.callback(self._publish_session_end)

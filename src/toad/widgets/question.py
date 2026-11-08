@@ -271,6 +271,7 @@ class Question(VisibleActions, StepsVerticalCursor, QuestionContext, containers.
         self.presentation.start(self, self._option_view)
         self.screen.bindings_updated_signal.subscribe(self, self.refresh_option_keys)
 
+    @on(events.Unmount)
     def on_unmount(self) -> None:
         self.presentation.retire()
 

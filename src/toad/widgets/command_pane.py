@@ -14,6 +14,7 @@ from toad.terminal_execution import Command, TerminalExecution
 from toad.widgets.terminal import Terminal
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
 
 
 class CommandFrame(DeclaresTheme):
@@ -85,6 +86,7 @@ class CommandPane(NoScrollbars, CoreEventReceiver, Terminal):
     async def cancel_command(self) -> None:
         await self.execution.close()
 
+    @on(Unmount)
     async def on_unmount(self) -> None:
         await self.cancel_command()
 

@@ -947,6 +947,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         bounds.entered(self)
         self.query_one(PromptPath).update_node_styles()
 
+    @on(events.Unmount)
     def on_unmount(self) -> None:
         self.app.terminal_attention.release(self)
 

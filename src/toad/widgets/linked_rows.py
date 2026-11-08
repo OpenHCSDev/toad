@@ -34,6 +34,7 @@ from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines, link_place
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
 
 class RestylesOnTheme(FollowsTheme):
     """Rows restyle when the theme changes; each member says how in invalidate_lines."""
@@ -54,6 +55,7 @@ class ReferenceRendering(RestylesOnTheme, CoreEventReceiver):
         self.observe_core(owner.link_context_events)
         self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
 
+    @on(Unmount)
     def _on_unmount(self):
         # Textual dispatches each class's handler, including CoreEventReceiver's.
         self.app.coordination_access.show_references(self, False)

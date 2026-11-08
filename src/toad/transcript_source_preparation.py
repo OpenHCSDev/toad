@@ -34,6 +34,8 @@ from toad.widgets.history_anchor import (
     LatestPosition,
 )
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageEnd, PageRequest
+from textual.events import Unmount
+from textual import on
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -188,6 +190,7 @@ class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
         window.histories.add(self)
         self.followed_by(window)
 
+    @on(Unmount)
     async def on_unmount(self) -> None:
         self._source_observation.close()
         # Parked preparation belongs to the logical document. Unmount revokes

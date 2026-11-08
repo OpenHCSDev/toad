@@ -12,9 +12,13 @@ from rich.segment import Segment
 from rich.syntax import Syntax
 from toad.line_blocks import GreenTextRole
 from toad.markdown_links import MessageMarkdownParser, parse_markdown_syntax
+from textual.events import Enter
+from textual import on
+from textual.events import Leave
 
 
 class StyledCodeBlock(CodeBlock):
+    @on(Leave)
     def on_leave(self, context):
         super().on_leave(context)
         syntax = Syntax(str(self.text).rstrip().expandtabs(4), self.lexer_name, theme=self.theme)
@@ -29,6 +33,7 @@ class StyledCodeBlock(CodeBlock):
 class GreenText(BlockQuote):
     """A quoted line keeps its `>` and reads in the greentext role's colour."""
 
+    @on(Enter)
     def on_enter(self, context):
         self.style = context.enter_style(context.console.line_theme.style(GreenTextRole))
 

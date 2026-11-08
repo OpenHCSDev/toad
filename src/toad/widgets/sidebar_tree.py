@@ -802,9 +802,11 @@ class SidebarModelView(CoreEventReceiver, ToadNode, Widget):
         )
         observed.show_sidebar(self)
 
+    @on(events.Unmount)
     def on_unmount(self) -> None:
         self.stop_showing()
 
+    @on(events.Show)
     def on_show(self) -> None:
         self.present()
 

@@ -12,6 +12,8 @@ from textual.widgets.directory_tree import DirEntry
 
 from toad.path_filter import PathFilter
 from toad.tone_paint import UntintedTonePaint
+from textual.events import Show
+from textual import on
 
 
 class ProjectTreeAction(Action, affix="Action"):
@@ -108,6 +110,7 @@ This shows the files in your project directory.
             old_queue.task_done()
         return super().reload()
 
+    @on(Show)
     def on_show(self) -> None:
         self.refresh_if_visible()
 

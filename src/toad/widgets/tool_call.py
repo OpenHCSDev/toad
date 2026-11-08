@@ -54,10 +54,12 @@ class ToolCallHeader(PointerCursor, ConversationLineBlock):
     def native_declarations(self) -> tuple[NativeDeclaration, ...]:
         return (*super().native_declarations(), *self.pointer_place.declared_theme())
 
+    @on(events.Enter)
     def on_enter(self, event: events.Enter) -> None:
         self.pointer_place = HoveredHeader
         self.app.update_styles(self)
 
+    @on(events.Leave)
     def on_leave(self, event: events.Leave) -> None:
         self.pointer_place = HeaderPointer
         self.app.update_styles(self)

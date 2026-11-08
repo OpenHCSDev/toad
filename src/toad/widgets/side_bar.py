@@ -1096,6 +1096,7 @@ class SideBar(
             ),
         )
 
+    @on(events.Show)
     def on_show(self) -> None:
         self.restore_navigation()
 

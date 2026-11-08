@@ -33,6 +33,8 @@ from toad.native_style import (
 from toad.worker_group import WorkerGroup
 from textual.events import Mount
 from textual import on
+from textual.events import Unmount
+from textual.events import Show
 
 
 
@@ -110,6 +112,7 @@ class ProjectPanel(ProjectView, SidebarPanelWidget, Vertical):
     def show_project(self, path: Path) -> None:
         self.path = path
 
+    @on(Show)
     def on_show(self) -> None:
         self.call_after_refresh(self._ensure_tree)
 
@@ -197,6 +200,7 @@ class FilePreview(SidePadding, Vertical):
     async def wait_ready(self) -> None:
         await self._ready.wait()
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self._ready.set()
 

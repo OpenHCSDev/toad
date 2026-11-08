@@ -480,14 +480,17 @@ class AnimationEffects[FrameT: Frame](TonePaint):
     def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         return self.effects.get(effect, EFFECT_UNSTARTED).now()
 
+    @on(events.Unmount)
     async def on_unmount(self) -> None:
         self.stop_effect()
 
+    @on(events.Hide)
     def on_hide(self) -> None:
         for effect in tuple(self.effects):
             self.effects.pop(effect).stop()
         self.repaint()
 
+    @on(events.Show)
     def on_show(self) -> None:
         self.start_wanted()
         self.repaint()

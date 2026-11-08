@@ -51,6 +51,7 @@ from toad.native_style import (
 )
 from toad.app_node import ToadNode
 from textual.events import Mount
+from textual.events import Unmount
 
 
 class TransferProgress(WireExportObserver):
@@ -387,6 +388,7 @@ class WireExportProgressView(CancellableWireExport, TransferProgress, WidgetView
         button.label = "Cancelling…"
         button.disabled = True
 
+    @on(Unmount)
     def on_unmount(self) -> None:
         self.cancel()
 
