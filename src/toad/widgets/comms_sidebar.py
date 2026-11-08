@@ -397,8 +397,11 @@ class CoordinationStatus(
         )
         args = shlex.join(InheritedArguments().configured().argv)
         self.tooltip = (
-            "Coordination state persists in the shared wire; the stdio ACP transport "
-            "is scoped to this Toad session.\n\n"
+            # Plain words: it read "Coordination state persists in the shared wire; the
+            # stdio ACP transport is scoped to this Toad session", which is four internal
+            # nouns for one fact a reader can act on.
+            "Messages and threads live on the bus and outlast this window. This agent "
+            "runs inside this Toad and stops when it closes.\n\n"
             f"AGENT_COMMS_ROOT={identity.root_path}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
             f"AGENT_COMMS_AGENT_ARGS={args}"
