@@ -35,12 +35,16 @@ from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.working_memory_labels import ModelLabel
 from agent_comms.working_memory_questions import SpanAnswer
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.runtime_requests import (
-    ContextAnnotationCorrectionRuntimeRequest, ContextCoreRuntimeRequest, ContextCoreSourceRuntimeRequest,
-    ContextRecordedSegmentRuntimeRequest, ContextReferenceRuntimeRequest, ContextRuntimeRequest,
+from agent_comms.transport.runtime_requests import (
+    ContextAnnotationCorrectionRuntimeRequest,
+    ContextCoreRuntimeRequest,
+    ContextCoreSourceRuntimeRequest,
+    ContextRecordedSegmentRuntimeRequest,
+    ContextReferenceRuntimeRequest,
+    ContextRuntimeRequest,
     ContextSourceRuntimeRequest,
 )
-from agent_comms.runtime_server import RuntimeRequest
+from agent_comms.transport.runtime_request import RuntimeRequest
 
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
