@@ -89,7 +89,6 @@ class CommsChatView(Conversation):
                     yield self.message_history
         yield Flash()
         with PromptStack():
-            yield from self.conversation.compose_activity(self)
             yield self.throbber_above
             yield self.conversation.prompt(self.project_path, submissions=self.submissions).data_bind(
                 project_path=Conversation.project_path,
@@ -98,6 +97,10 @@ class CommsChatView(Conversation):
                 agent_binding=Conversation.agent_binding,
                 status=Conversation.status,
             )
+            # Under the prompt, not over it: who is here is reference, and reference
+            # belongs below the thing you are typing into rather than between you and
+            # the conversation you are reading.
+            yield from self.conversation.compose_activity(self)
 
     async def initialize_view(self) -> None:
         # Reuse the canonical core service already shared by tab sidebars and
