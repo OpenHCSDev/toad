@@ -86,6 +86,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         if self.styles.is_auto_width:
             self._request_preparation()
 
+    @on(events.Resize)
     def on_resize(self, _event: events.Resize) -> None:
         self._request_preparation()
 

@@ -9,6 +9,8 @@ from textual.content import Content
 from textual.widget import Widget
 
 from toad.native_style import OneRow
+from textual.events import Resize
+from textual import on
 
 
 def radiate_range(total: int) -> Iterable[tuple[int, int]]:
@@ -83,6 +85,7 @@ class CondensedPath(OneRow, Widget):
         self.set_reactive(CondensedPath.path, path)
         self._directory = directory
 
+    @on(Resize)
     def on_resize(self) -> None:
         self.watch_path(self.path)
 

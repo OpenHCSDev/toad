@@ -80,6 +80,7 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
         self.update(content, layout=width_changed)
         return width_changed
 
+    @on(events.Resize)
     def on_resize(self) -> None:
         # A label laid out for the first time, or at a new width, moves the
         # cells the underline marks.

@@ -11,6 +11,7 @@ from textual.geometry import Size
 from toad.native_style import FullWidth, OneRow, StableGutter
 from textual.events import Mount
 from textual import on
+from textual.events import Resize
 
 
 class SidebarHeader(FullWidth, OneRow, HorizontalGroup):
@@ -69,6 +70,7 @@ class SidebarViewport(StableGutter, VerticalScroll):
         self.watch(self, "scroll_x", self._align_headers, init=False)
         self._align_headers()
 
+    @on(Resize)
     def on_resize(self) -> None:
         # Native resize commits the scrollport, including its scrollbar gutter. A header
         # measured in the same pass read the width before that commit, and its auto-width

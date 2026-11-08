@@ -21,6 +21,7 @@ from ui_theme.effects import NEW_TEXT, Effect, Fade, Frame, Mix, TextFade
 from ui_theme.scheme import BackgroundColour, ThemeColour
 
 from toad.tone_paint import TonePaint
+from textual import on
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceFrame
@@ -359,6 +360,7 @@ class RowRun:
     drawn_rows: int = 0
     """How many rows the last layout gave this run."""
 
+    @on(events.Resize)
     def on_resize(self, event: events.Resize) -> None:
         self.drawn_rows = event.size.height
 
