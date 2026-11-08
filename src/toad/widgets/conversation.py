@@ -17,10 +17,7 @@ import platformdirs
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
 from agent_comms.messaging.channel_targets import CommandTarget
-from agent_comms.planning.goal_presentation import (
-    GoalExecution,
-    IdleGoalExecution,
-)
+from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
 from agent_comms.planning.goals import NoGoal
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_presentation import (
@@ -692,7 +689,7 @@ class ConversationSessionBinding(
 
     goal_display: var[GoalDisplay] = var(NoGoal())
 
-    goal_execution: var[GoalExecution] = var(IdleGoalExecution())
+    goal_execution: var[GoalExecutionControls] = var(IdleGoalExecution())
 
     title = var("")
 

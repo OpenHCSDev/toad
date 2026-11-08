@@ -10,11 +10,8 @@ from weakref import ReferenceType, ref
 from agent_comms.coordination.errors import Refused
 from agent_comms.errors import GoalRefused
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.planning.goal_actions import (
-    ClearGoalAction,
-    GoalAction,
-)
-from agent_comms.planning.goal_presentation import GoalExecution
+from agent_comms.planning.goal_actions import ClearGoalAction, GoalAction
+from agent_comms.planning.goal_presentation import GoalExecutionControls
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from toad.agent_binding import AgentConnection
 
@@ -76,7 +73,7 @@ class CollapseInteraction(GoalInteraction):
 
 
 class ToggleInteraction(GoalInteraction):
-    label = GoalExecution.toggle_label
+    label = GoalExecutionControls.toggle_label
 
     @classmethod
     def visible(cls, session: GoalSession) -> bool:
@@ -136,7 +133,7 @@ class GoalSession:
         return self.view.goal_display
 
     @property
-    def execution(self) -> GoalExecution:
+    def execution(self) -> GoalExecutionControls:
         return self.view.goal_execution
 
     def owns(self, agent: AgentConnection) -> bool:
