@@ -239,7 +239,7 @@ class QueueSummary(
     Label,
     can_focus=True,
 ):
-    """Shows the remote queue while it has one; activation reports available control support."""
+    """Shows queued messages and opens their delivery status when selected."""
 
 
     def apply_native_layout(self) -> None:
@@ -908,7 +908,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         text = self.operational_submissions.queue_summary
         summary = self.query_one(QueueSummary)
         summary.display = bool(text)
-        summary.tooltip = "Inspect this source's actual queue or visible message delivery evidence. Acceptance is not consumption; unsupported actions remain unavailable."
+        summary.tooltip = "Show queued messages and delivery status."
         summary.update(Content(text))
 
     @on(messages.SendPromptNow)
