@@ -13,7 +13,11 @@ from typing import TYPE_CHECKING, Self
 from textual.geometry import Region
 
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
+from agent_comms.messaging.channel_targets import (
+    ChannelSelection,
+    CommandTarget,
+    NoChannel,
+)
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_command import TargetAction
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool

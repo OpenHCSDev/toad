@@ -7,9 +7,12 @@ from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.nominal.field_codec import ToolCallId
-from agent_comms.message_reference import MessageReference
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.recorded_time import EventTime
-from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
+from agent_comms.messaging.read_basis import (
+    DisplayIdentity,
+    NoDisplaySelection,
+)
 from agent_comms.turn_item import NativeItemId
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage

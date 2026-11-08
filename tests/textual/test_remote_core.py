@@ -17,11 +17,11 @@ from pathlib import Path
 from aiohttp import web
 from yarl import URL
 
-from agent_comms.channel_targets import CommandTarget
+from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.connector import Connector
 from agent_comms.connector_profile import HttpsMcpEndpoint
 from agent_comms.connector_store import ConnectorStore, UiAccess, UiGrantAccess, UiReadAccess
-from agent_comms.read_basis import NamedViewer
+from agent_comms.messaging.read_basis import NamedViewer
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import ExternalThread
 

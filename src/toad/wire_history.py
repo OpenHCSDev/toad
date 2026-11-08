@@ -20,9 +20,18 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
 from agent_comms.transport.tools.sidebar import CommsConversationRevisionTool, CommsLatestSequenceTool, CommsMarkPageReadTool
-from agent_comms.message_page import MessagePage, MessagePageRequest
-from agent_comms.message_reference import MessageReference
-from agent_comms.messages import ConversationRole, Membership, Message, NoHistorySource, NoticeRole
+from agent_comms.messaging.message_page import (
+    MessagePage,
+    MessagePageRequest,
+)
+from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.messaging.messages import (
+    ConversationRole,
+    Membership,
+    Message,
+    NoHistorySource,
+    NoticeRole,
+)
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.page_traversal import (
     LiveCursor,

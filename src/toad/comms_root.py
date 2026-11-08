@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
-from agent_comms.message_reference import MessageReference
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.child_process import HelperStart, SpawnedHelper, join_retirement
 from agent_comms.comms import Comms
 from agent_comms.active_route import CommsRoute
@@ -36,7 +36,7 @@ from agent_comms.registry.threads import Thread
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses
 from agent_comms.remote_core import RemoteCoreAccess
-from agent_comms.channel_targets import NamedTarget
+from agent_comms.messaging.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
 from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
@@ -52,7 +52,7 @@ from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from agent_comms.message_notification import MessageNotification
+from agent_comms.messaging.message_notification import MessageNotification
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, RegistrationsView, StatusView
 from agent_comms.route_selection import RouteSelection

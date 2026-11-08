@@ -6,9 +6,12 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.channel_targets import ChannelSelection, CommandTarget
-from agent_comms.channel_targets import ChannelTarget as CoreChannelTarget
-from agent_comms.channel_targets import ThreadTarget as CoreThreadTarget
+from agent_comms.messaging.channel_targets import (
+    ChannelSelection,
+    CommandTarget,
+)
+from agent_comms.messaging.channel_targets import ChannelTarget as CoreChannelTarget
+from agent_comms.messaging.channel_targets import ThreadTarget as CoreThreadTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.thread_identity import ThreadIncarnation
 

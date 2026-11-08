@@ -17,8 +17,11 @@ from textual.widgets._collapsible import CollapsibleTitle
 from agent_comms.storage.maintenance_barrier import MaintenanceHeldError
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
-from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
-from agent_comms.message_reference import MessageReference
+from agent_comms.messaging.read_basis import (
+    DisplayIdentity,
+    NoDisplaySelection,
+)
+from agent_comms.messaging.message_reference import MessageReference
 from toad.app_node import ToadNode
 from toad.messages import QueueEvidenceOwner
 from toad.project_path_owner import ProjectPathOwner

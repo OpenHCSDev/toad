@@ -3,7 +3,7 @@
 
 from abc import abstractmethod
 
-from agent_comms.message_reference import MessageReference
+from agent_comms.messaging.message_reference import MessageReference
 from rich.text import Text as RichText
 from textual import getters
 from textual.content import Content

@@ -385,7 +385,7 @@ def _metadata_boundary():
     unsupported metadata, not permission to guess fields or kill the capture.
     """
     from metaclass_registry.mro_dispatch import handles
-    from agent_comms.message_page import MessagePage
+    from agent_comms.messaging.message_page import MessagePage
     from agent_comms.page_traversal import PageCursor
     from agent_comms.transcripts import TranscriptCursor, TranscriptPage
     from toad.core.projection import MroProjection

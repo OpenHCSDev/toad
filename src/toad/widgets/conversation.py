@@ -15,7 +15,7 @@ from acp.exceptions import RequestError
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.layout_preferences import FollowsLayoutPreferences
 from toad.view_actions import BackToBottomAction
-from agent_comms.channel_targets import CommandTarget
+from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transcripts import TranscriptCursor
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution

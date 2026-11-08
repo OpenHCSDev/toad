@@ -5,7 +5,7 @@ import asyncio
 import pytest
 
 from agent_comms.storage.maintenance_barrier import MaintenanceOperator, NoMaintenanceHolder
-from agent_comms.read_ledger import ReadLedger
+from agent_comms.messaging.read_ledger import ReadLedger
 
 from toad.widgets.message_notifications import ReadWork
 

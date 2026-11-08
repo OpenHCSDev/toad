@@ -14,12 +14,19 @@ from dataclasses import dataclass
 import time
 from typing import ClassVar
 
-from agent_comms.channel_targets import CommandTarget, ChannelTarget, ThreadTarget
+from agent_comms.messaging.channel_targets import (
+    CommandTarget,
+    ChannelTarget,
+    ThreadTarget,
+)
 from metaclass_registry.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.historical_views import HistorySource
-from agent_comms.messages import Message, NoHistorySource
+from agent_comms.messaging.messages import (
+    Message,
+    NoHistorySource,
+)
 from agent_comms.recorded_time import EventTime
 from agent_comms.routing import MessageRoute
 
