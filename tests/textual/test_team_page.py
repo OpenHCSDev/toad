@@ -1,24 +1,23 @@
 """Textual-facing: retain the real team page across Core frame replacements."""
 
-import json
 from dataclasses import replace
 
 from agent_comms.team.vibe_check import OverloadDegradation
-from agent_comms.team_hud import TeamFrame, TeamHud, TeamPlan, CodexUsage, UnreadableUsage
+from agent_comms.team_hud import TeamHud, CodexUsage, UnreadableUsage
 from agent_comms.team_hud_records import HudRecord, Teammate
 from agent_comms.disclosure_text import DisclosureEntry, DisclosureText, FieldKey, RootKey, StructuredText
 from agent_comms.recorded_time import RecordedEventTime
 from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
 from agent_comms.thread_identity import RecordedThreadIncarnation
-from agent_comms.ui_model.observation import ObserveTeamHud
+from agent_comms.ui_model.observation import ObserveTeamHud, StopTeamHud
 from agent_comms.ui_model.teammate_state import Detached, Moving, PendingClock
 from support.workspace import Workspace
 from textual.worker import Worker, WorkerState
 from textual.widgets import Button, Static
 
 from toad.comms_root import FailedObservation, UnselectedRoute
-from toad.core.events import TeamHudChanged
+from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.screens.team import (
     HudError, HudRows, TeamAlarm, TeamFrameView, TeamGroup, TeamPage, TeamTable,
 )
@@ -48,18 +47,34 @@ def published_hud() -> TeamHud:
     )
 
 
+async def frames_from_the_test(ui, app, page: TeamPage) -> None:
+    """The page under test takes its frames from the test, through the inputs the observation
+    publishes (TeamHudChanged, TeamHudFailed). The live observer derives the workspace's real
+    board, which has no team and so no rows, and would replace the test's frames with it; the
+    page's interest is stopped through the observation's own request first."""
+    await app.push_screen(page)
+    await ui.step()
+    app.coordination_access.observation.observed().observe_team(StopTeamHud())
+    await ui.step()
+
+
+def publish_frames(app, *huds: TeamHud) -> None:
+    app.coordination_access.events.publish(TeamHudChanged(huds))
+
+
+def publish_unreadable(app) -> None:
+    app.coordination_access.events.publish(TeamHudFailed(
+        ValueError("TeamHud does not declare field_from_a_newer_build")))
+
+
 async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Workspace) -> None:
     hud = published_hud()
     unit, = hud.units
-    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
-    frame, = TeamFrame.matching_in(workspace.comms.root)
-    written = json.loads(frame.read_text())
-    unreadable = json.dumps({**written, "field_from_a_newer_build": []})
-    frame.write_text(unreadable)
     async with workspace.app() as ui:
         app, pilot = ui.textual
         page = TeamPage()
-        await app.push_screen(page)
+        await frames_from_the_test(ui, app, page)
+        publish_unreadable(app)
         notice = page.query_one(HudError)
         await ui.until(lambda: notice.display, why="the unreadable frame to reach the page")
         assert "field_from_a_newer_build" in str(notice.render())
@@ -68,7 +83,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
             "Waiting for the team heartbeat.",
         ]
 
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
+        publish_frames(app, hud)
         await ui.until_shows("Team claude-code")
         assert not notice.display
         last_good = tuple(rows.children)
@@ -81,7 +96,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         await ui.until_shows(Detached.action)
         # There is no registered unit behind this published fixture. Its real
         # original-detail refusal must remain visible while observation recovers.
-        await ui.until_shows("Original details unavailable:")
+        await ui.until_shows("Could not read the records behind hud-worker:")
         assert str(view.heading.render()) == "Team claude-code"
         strip = str(view.status.render())
         assert "Load: 0" in strip and "Forks: 1" in strip
@@ -108,7 +123,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         assert table.selected == selected(unit) and row_maps_cohere(table)
         assert not [event for event in events if event.state is WorkerState.PENDING]
 
-        frame.write_text(unreadable)
+        publish_unreadable(app)
         await ui.until(lambda: notice.display, why="the next unreadable frame to reach the page")
         assert "field_from_a_newer_build" in str(notice.render())
         assert tuple(rows.children) == last_good
@@ -118,12 +133,12 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
             hud, units=(replace(unit, strikes=2),),
             forks=(RecordedThreadIncarnation("recovered", 3.0),),
         )
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (repaired,))
+        publish_frames(app, repaired)
         await ui.until(lambda: view.details.selection == selected(repaired.units[0]),
                        why="changed strikes to invalidate the real selected card")
         await ui.until(lambda: len([event for event in events if event.state is WorkerState.PENDING]) == 1,
                        why="one new original-detail worker for the changed card")
-        await ui.until_shows("Original details unavailable:")
+        await ui.until_shows("Could not read the records behind hud-worker:")
         assert not notice.display
         assert rows.query_one(TeamFrameView) is view
         assert view.query_one(TeamTable) is table and table.has_focus
@@ -168,11 +183,11 @@ async def test_a_refresh_right_after_a_key_keeps_the_key(workspace: Workspace) -
     hud = published_hud()
     first, = hud.units
     second = replace(first, unit=RecordedThreadIncarnation("second-worker", 3.0))
-    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, second)),))
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         page = TeamPage()
-        await app.push_screen(page)
+        await frames_from_the_test(ui, app, page)
+        publish_frames(app, replace(hud, units=(first, second)))
         await ui.until(lambda: bool(page.query(TeamTable)), why="the native table to mount")
         view = page.query_one(TeamFrameView)
         table = view.query_one(TeamTable)
@@ -191,11 +206,11 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
     first, = hud.units
     second = replace(first, unit=RecordedThreadIncarnation("second-worker", 3.0))
     hud = replace(hud, units=(first, second))
-    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         page = TeamPage()
-        await app.push_screen(page)
+        await frames_from_the_test(ui, app, page)
+        publish_frames(app, hud)
         await ui.until(lambda: bool(page.query(TeamTable)), why="the native table to mount")
         view = page.query_one(TeamFrameView)
         table = view.query_one(TeamTable)
@@ -234,7 +249,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         table.move_cursor(row=1, animate=False)
         await ui.until(lambda: view.selected == selected(second), why="the second semantic identity to be selected again")
         moved = replace(second, state=Moving)
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, moved)),))
+        publish_frames(app, replace(hud, units=(first, moved)))
         await ui.until(lambda: view.selected == selected(moved), why="the original selection to move between groups")
         await ui.until(lambda: any(native.selected == selected(moved) for native in view.query(TeamTable)),
                        why="the target group to resolve the same semantic key")
@@ -244,9 +259,9 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
                        why="native focus to follow its selected semantic record", seconds=2)
         assert view.details.selection == selected(moved)
         assert all(row_maps_cohere(native) for native in view.query(TeamTable))
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=()),))
+        publish_frames(app, replace(hud, units=()))
         await ui.until(lambda: view.selected == EmptyTableSelection(), why="an actually empty frame")
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
+        publish_frames(app, hud)
         await ui.until(lambda: view.selected == selected(first), why="a later frame to refill the original records")
 
 
