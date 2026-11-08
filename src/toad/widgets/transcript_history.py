@@ -24,6 +24,7 @@ from agent_comms.ui_model.message_category import (
 )
 from rich.style import Style as RichStyle
 from textual import on
+from textual._compositor import IntrinsicSubtreeGeometry
 from toad.widget_actions import Activates
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
@@ -681,6 +682,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_BUDGET = PresentationBudget(max_items=240)
+
+    def subtree_geometry_resource(self, *, visible_only: bool):
+        """Prepared pages retain their content layout independently of scrolling."""
+        return IntrinsicSubtreeGeometry
 
 
     def owns_projection(self, projection: ProjectedTranscriptHistory) -> bool:

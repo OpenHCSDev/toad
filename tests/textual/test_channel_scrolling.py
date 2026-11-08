@@ -3,6 +3,7 @@
 from support.textual_steps import refresh_chat
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.presentation_window import NEWER_END, OLDER_END
+from toad.widgets.transcript_history import LineHistory
 
 
 def messages(history):
@@ -184,3 +185,34 @@ async def test_a_reader_left_at_the_end_by_a_geometry_change_follows_the_tail(wo
         await ui.resize(110, 42)  # taller: the end moves up to meet the reader, who is clamped there
         await ui.until(lambda: window.follows_tail and not window.jump_bar.display,
                        why="the reader the layout left at the end to follow")
+
+
+async def test_scrolling_prepared_history_keeps_its_intrinsic_content_geometry(workspace, monkeypatch):
+    """A reader moves prepared rows; those rows do not acquire new layouts."""
+    scroll_messages(workspace, 40)
+    async with workspace.app(size=(70, 28)) as ui:
+        chat, history, window = await long_channel(workspace, ui)
+        for _ in range(4):
+            await ui.press("pageup")
+        await ui.until(lambda: window.max_scroll_y > 12,
+                       why="prepared rows on both sides of the scroll trial")
+        window.scroll_to(y=window.max_scroll_y / 2, animate=False, immediate=True)
+        await ui.step()
+        screen = ui.app.screen
+        captured = screen._compositor._subtree_geometry[history]
+        calls = []
+        arrange = LineHistory.arrange
+
+        def arranged(document, *args, **kwargs):
+            calls.append(document)
+            return arrange(document, *args, **kwargs)
+
+        monkeypatch.setattr(LineHistory, "arrange", arranged)
+        initial = window.scroll_y
+        for delta in (-3, -3, 3, 3):
+            window.scroll_to(y=window.scroll_y + delta, animate=False, immediate=True)
+            await ui.step()
+        assert window.scroll_y == initial
+        assert not calls, "scrolling rediscovered unchanged prepared history layout"
+        assert screen._compositor._subtree_geometry[history] is captured
+        assert history.visible_fragments(), "the reused source still draws its prepared messages"
