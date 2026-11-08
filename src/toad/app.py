@@ -348,6 +348,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.clipboard_transport = self.clipboard_transport.publish(self, text)
 
 
+    @on(Notify)
     def on_notify(self, event: Notify) -> None:
         self.terminal_attention.notification(event.notification)
 

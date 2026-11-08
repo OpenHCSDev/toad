@@ -955,6 +955,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """Every live block mounted inside this window; each announces itself when it mounts."""
         return WeakSet()
 
+    @on(ConversationBlock.Mounted)
     def on_conversation_block_mounted(self, message: ConversationBlock.Mounted) -> None:
         message.stop()
         self.live_blocks.add(message.block)

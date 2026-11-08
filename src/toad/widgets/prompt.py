@@ -508,6 +508,7 @@ See on-screen instructions for details.
         if self.key_mode is not mode:
             await self.switch_editing_mode(mode())
 
+    @on(NeovimUpdated)
     async def on_neovim_updated(self, event: NeovimUpdated) -> None:
         event.stop()
         event.owner.paint(self)
