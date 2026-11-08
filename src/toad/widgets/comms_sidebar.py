@@ -66,7 +66,7 @@ class ChannelUnreadSegment(HeaderSegment):
     """The channel's unread count, beside its title; a click opens the channel like the title."""
 
     def content(self, group: ChannelGroup) -> Content:
-        label = group.channel.unread.label
+        label = group.app.settings.sidebar.unread_counts.badge(group.channel.unread)
         return Content.styled(f" {label}", "$text-muted") if label else Content("")
 
 
@@ -305,7 +305,8 @@ class ThreadStatusRow(MutedText, ListedRow, ToadNode):
         self.tooltip = Content("\n".join(value for value in (
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, *row.model.texts(),
         ) if value))
-        badge = f"{row.unread.label} " if row.unread.label else ""
+        shown = self.app.settings.sidebar.unread_counts.badge(row.unread)
+        badge = f"{shown} " if shown else ""
         title = self.activity_content(row.title, Content(row.label), self.busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         self.update(Content.assemble(title, f"\n  {summary}"), layout=False)

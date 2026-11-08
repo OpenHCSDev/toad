@@ -33,6 +33,7 @@ from toad.keymap import Keymap
 from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
+    HiddenUnreadCount,
     BlurNotification,
     ColumnAlignment,
     CompactInputBox,
@@ -48,6 +49,8 @@ from toad.setting_choices import (
     SchemeName,
     Scrollbar,
     SessionBar,
+    ShownUnreadCount,
+    UnreadCount,
     TopNavigationBar,
 )
 from toad.setting_declarations import Effect, FamilyChoices
@@ -231,6 +234,18 @@ class SidebarSettings(AnnotatedDataclassValidationMixin):
     show_archived: Annotated[
         bool, FieldLabel("Show archived"), effects.sidebar_filters
     ] = False
+
+    unread_counts: Annotated[
+        type[UnreadCount],
+        FieldLabel("Show unread counts?"),
+        FamilyChoices(UnreadCount),
+        # Re-asking for the sidebar re-presents its rows, the welcome entries and every
+        # open tab, which is all three places a count appears. A second effect with the
+        # same one-line body would be a copy of this one.
+        effects.sidebar_filters,
+        WireName("unread-counts"),
+    ] = ShownUnreadCount
+    """The number beside a channel, thread or tab. Hide it to spend those columns on the name."""
 
 
 @mark_ui_hidden_config

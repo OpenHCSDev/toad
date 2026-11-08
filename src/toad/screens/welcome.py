@@ -131,13 +131,8 @@ class WelcomeChannels(WelcomeSection):
         channel = self.query_ancestor(WelcomeEntries).model_state.shown.channels.rows[
             key
         ]
-        row.set_label(
-            (
-                f"{channel.label} {channel.unread.label}"
-                if channel.unread.label
-                else channel.label
-            ),
-        )
+        badge = self.app.settings.sidebar.unread_counts.badge(channel.unread)
+        row.set_label(f"{channel.label} {badge}" if badge else channel.label)
         row.tooltip = channel.tooltip
         row.refresh_paint()
 
