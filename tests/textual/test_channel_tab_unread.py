@@ -22,13 +22,13 @@ async def test_open_channel_tab_tracks_unread_without_switching(workspace):
             return observed.sidebar.observation.channel_unread("#team")
 
         await ui.until(
-            lambda: bool(unread().label) and unread().label in label.content.plain,
+            lambda: bool(unread().badge) and unread().badge in label.content.plain,
             why="the open tab showing unread messages outside its viewport",
         )
         before = label.content.plain
         comms.views.mark_user_view_read("#team", worktree=Checkout(workspace.project))
         await ui.until(
-            lambda: not unread().label and label.content.plain == "#team",
+            lambda: not unread().badge and label.content.plain == "#team",
             why="the same tab repainting the sidebar's zero-unread observation",
         )
         assert ui.selected_tab == selected
