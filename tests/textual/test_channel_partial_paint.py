@@ -1,6 +1,7 @@
 """Textual-facing: read marks follow the message text the viewport has painted; scrolling the window reveals the rest."""
 
 from agent_comms.read_basis import ChannelConversation
+from support.painted_app import PaintedApp
 
 
 async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_remaining_messages(workspace):
@@ -10,12 +11,12 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
     workspace.thread("peer", "team", running=True)
     comms = workspace.comms
     viewer = workspace.viewer
-    rows = [comms.messaging.send("peer", "#team", f"row {i}\n" + "body\n" * 10).message for i in range(8)]
+    rows = [comms.messaging.send("peer", "#team", f"row {i}\n" + f"body {i}\n" * 10).message for i in range(8)]
     ledger = comms.bus.reads
     snapshot = comms.registry.snapshot()
     channel = ChannelConversation("#team")
 
-    async with workspace.app(size=(90, 24)) as ui:
+    async with workspace.app(size=(90, 24), application=PaintedApp) as ui:
         app = ui.textual[0]
         await ui.open_channel("#team", actor=viewer)
         chat = app.screen.query_one(CommsChatView)
@@ -24,7 +25,8 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
             viewer, snapshot).for_conversation(channel) for row in rows),
             why="the first viewport to be marked")
         await history._read_worker.wait()
-        in_view = {fragment.message.seq for fragment in history.read_fragments()}
+        in_view = {message.seq for i, message in enumerate(rows)
+                   if app.has_shown(f"body {i}") or app.has_shown(f"row {i}")}
         assert 0 < len(in_view) < len(rows)
         cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
         assert all((message.seq in cursor) == (message.seq in in_view) for message in rows)
