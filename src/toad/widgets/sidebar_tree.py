@@ -56,6 +56,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.native_style import EllipsisOverflow, NoWrap, PointerCursor, TwoRows
 from toad.no_worker import NoWorker
 from toad.widgets.side_bar import SideBar
+from textual import on
 
 
 class UnpaintedChannel(ChannelRowModel):
@@ -226,6 +227,7 @@ class GroupHeaderLine(PointerCursor, Static):
     def row_activation_targets(self, region: Region):
         return super().primary_activation_targets(region)
 
+    @on(events.Click)
     async def on_click(self, event: events.Click) -> None:
         # Segments are measured from the painted content, not the row's padding.
         await self.segment_at(event.x - self.gutter.left).click(self, event)

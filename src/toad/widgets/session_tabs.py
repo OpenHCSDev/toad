@@ -38,6 +38,7 @@ from toad.frame_presentation import Animated, EffectInContent
 from toad.session_tracker import OpenTab
 from toad.app_node import ToadNode
 from toad.widgets.selection import ChangingText, ViewLabel
+from textual import on
 
 
 class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widgets.Label):
@@ -91,6 +92,7 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
     def select_session(self) -> None:
         self.app.select_session(self.mode_name)
 
+    @on(events.Click)
     def on_click(self, event: events.Click) -> None:
         if event.button == 2:
             event.stop()
@@ -194,6 +196,7 @@ class Underline(EffectInContent, WidgetView, Animated[Amount]):
             background_style=RichStyle.from_color(background.rich_color),
         )
 
+    @on(events.Click)
     def _on_click(self, event: events.Click):
         """Catch clicks, so that the underline can activate the tabs."""
         event.stop()

@@ -33,6 +33,7 @@ from toad.tone_paint import UntintedTonePaint
 from toad.question_actions import QuestionAction, QuestionContext, SelectKindAction
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import StepsVerticalCursor, VisibleActions
+from textual import on
 
 type Options = list[Answer]
 
@@ -190,6 +191,7 @@ class Option(PrimaryActivation, TransparentBackground, containers.HorizontalGrou
         for marker in self.query(OptionKeys):
             marker.update(Content.styled(", ".join(keys) or " ", "b"))
 
+    @on(events.Click)
     def on_click(self, event: events.Click) -> None:
         event.stop()
         self.select_option()

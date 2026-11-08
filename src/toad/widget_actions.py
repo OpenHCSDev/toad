@@ -23,6 +23,7 @@ from textual.dom import DOMNode
 from toad.app_node import ToadNode
 from copy import replace
 from dataclasses import dataclass
+from textual import on
 
 if TYPE_CHECKING:
     from textual.widgets import TextArea
@@ -509,6 +510,7 @@ class ActivationKeys(PrimaryActivation, DeclaredWidgetActions, actions=(Activate
 
     activation_buttons: ClassVar[tuple[int, ...]] = (1,)
 
+    @on(events.Click)
     async def on_click(self, event: events.Click) -> None:
         if event.button in self.activation_buttons:
             event.stop()

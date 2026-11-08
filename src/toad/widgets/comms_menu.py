@@ -18,6 +18,7 @@ from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour
 from toad.screens.modal import DismissibleScreen
+from textual import on
 
 
 class ContextMenuItem[Choice](Option):
@@ -88,6 +89,7 @@ class ContextMenu[Choice](HiddenActions, WidgetView, DismissibleScreen[Choice]):
         event.stop()
         self.dismiss(cast(ContextMenuItem[Choice], event.option).action)
 
+    @on(events.Click)
     def on_click(self, event: events.Click) -> None:
         if not self.options.region.contains(*event.screen_offset):
             event.stop()

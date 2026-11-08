@@ -49,6 +49,8 @@ from toad.tone_paint import AlternatingTone
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.app_node import ToadNode
+from textual import on
+from textual.events import Click
 from toad.native_style import (
     AutoHeight,
     FillWidth,
@@ -246,6 +248,7 @@ class CommsRow(
             group="sidebar-open",
         )
 
+    @on(Click)
     def on_click(self, event) -> None:
         if event.button == 3:
             event.stop()

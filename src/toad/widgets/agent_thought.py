@@ -11,6 +11,8 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.native_style import FillWidth
+from textual import on
+from textual.events import Click
 
 
 class AgentThought(
@@ -36,6 +38,7 @@ class AgentThought(
     def line_blocks(self, text: str) -> tuple[LineBlock, ...]:
         return AgentActivityPresentation.thinking(text)
 
+    @on(Click)
     def on_click(self) -> None:
         self.focus()
 
