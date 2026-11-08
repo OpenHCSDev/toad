@@ -49,8 +49,13 @@ if [[ ! -e "$environment" ]]; then
     stage=$(mktemp -d "$environment.stage.XXXXXXXX")
     trap 'rm -rf -- "$stage"' EXIT
     "$uv" venv -q --relocatable --python "$python" "$stage"
+    # The sibling checkouts below own these two distributions. One list, so the export's
+    # exclusions and the branch refresh further down cannot drift apart.
+    siblings=(agent-comms textual)
+    no_emit=()
+    for sibling in "${siblings[@]}"; do no_emit+=(--no-emit-package "$sibling"); done
     "$uv" export -q --project "$toad_root" --frozen --group dev --no-emit-project \
-        --no-emit-package agent-comms --no-emit-package textual --no-hashes \
+        "${no_emit[@]}" --no-hashes \
         -o "$stage/requirements.txt"
     # The export is the whole locked closure, so its own declared requirements are not
     # resolved again: textual-diff-view's textual@main would contest the checkout below.
@@ -58,6 +63,23 @@ if [[ ! -e "$environment" ]]; then
     # The sibling checkouts own agent-comms and textual; agent-comms' dev extra carries
     # the tools its tests need.
     "$uv" pip install -q --python "$stage/bin/python" -e "$textual[syntax]" -e "$agent_comms[dev]"
+    # The freeze above is right for every pinned package and wrong for every one that
+    # follows a branch: ui-theme arrived at the revision the lock recorded weeks earlier,
+    # without NAME_WAVE, and 71 of 74 tests failed at collection on untouched main. The
+    # lock already names that set and every install re-resolves exactly it, so ask the
+    # lock rather than keeping a second list of names here.
+    "$stage/bin/python" - "$toad_root/uv.lock" "${siblings[@]}" <<'TRACKED' > "$stage/tracked.txt"
+import sys
+from pathlib import Path
+
+from agent_comms.installer.runtime_resolution import ResolvedLock
+
+editable = set(sys.argv[2:])
+for requirement in ResolvedLock.read(Path(sys.argv[1])).tracked_requirements():
+    if requirement.split(" @ ", 1)[0] not in editable:
+        print(requirement)
+TRACKED
+    "$uv" pip install -q --python "$stage/bin/python" --no-deps -r "$stage/tracked.txt"
     # Toad reads its own distribution metadata, and every process imports its source from src:
     # this environment is reused across source changes, so a copied Toad would freeze at the
     # tree that first built it, and every test that starts its own Python would run that copy.
@@ -68,9 +90,10 @@ if [[ ! -e "$environment" ]]; then
     mv -- "$stage" "$environment"
     trap - EXIT
 fi
-# The sibling checkouts are installed editable, so every run reads their working tree:
-# this environment cannot go stale, but a checkout can, and a run against a checkout
-# behind its remote reads as a failure of the branch under test. Name what is being run.
+# The sibling checkouts are installed editable, so every run reads their working tree,
+# and the branch-tracked packages were refreshed from their branches above: what can still
+# go stale is a checkout, and a run against a checkout behind its remote reads as a failure
+# of the branch under test. Name what is being run.
 for checkout in "$toad_root" "$agent_comms" "$textual"; do
     head=$(git -C "$checkout" rev-parse --short HEAD 2>/dev/null) || {
         printf 'toad-test-env: %s is not a git checkout\n' "$checkout" >&2
