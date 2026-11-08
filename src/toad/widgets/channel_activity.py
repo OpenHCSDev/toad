@@ -34,16 +34,30 @@ class PeerStatus(ThreadReferenceReader[StatusThread]):
 
 
 class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGroup):
+    DEFAULT_CSS = """
+    ChannelActivity {
+        height: auto;
+        max-height: 33vh;
+        overflow-y: auto;
+
+        & > Collapsible {
+            border-top: none;
+            padding: 0;
+
+            & > Contents {
+                padding: 0 0 0 1;
+            }
+        }
+    }
+    """
+
     def __init__(self, view):
         self.view = view
         self._members = VerticalGroup()
         self.details = widgets.Collapsible(
             self._members, title="0 active", collapsed=True
         )
-        self.details.styles.padding = 0
         super().__init__()
-        self.styles.overflow_y = "auto"
-        self.styles.max_height = "33vh"
 
     def compose(self):
         yield self.details
