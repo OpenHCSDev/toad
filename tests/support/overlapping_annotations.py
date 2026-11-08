@@ -13,9 +13,13 @@ from agent_comms.context_store import UNREAD_CONTEXT, ContextManifestPage
 from agent_comms.session_revision import NoSessionObservation
 from agent_comms.thread_identity import RecordedThreadIncarnation, TurnId, TurnIdentity
 from agent_comms.registry.registration import Registration
-from agent_comms.turn_context import (
-    ContextManifest, ContextSpan, ContributionCoordinates, RecordedContextTurn,
-    UnattributedProvenance, UserInputSegment,
+from agent_comms.execution.turn_context import (
+    ContextManifest,
+    ContextSpan,
+    ContributionCoordinates,
+    RecordedContextTurn,
+    UnattributedProvenance,
+    UserInputSegment,
 )
 from agent_comms.working_memory_labels import (
     AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion,

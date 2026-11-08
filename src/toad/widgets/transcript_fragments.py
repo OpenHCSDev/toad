@@ -10,7 +10,7 @@ from agent_comms.nominal.field_codec import ToolCallId
 from agent_comms.message_reference import MessageReference
 from agent_comms.recorded_time import EventTime
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
-from agent_comms.turn_item import NativeItemId
+from agent_comms.execution.turn_item import NativeItemId
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import (
