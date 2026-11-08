@@ -7,6 +7,7 @@ service.
 """
 
 import asyncio
+import os
 import socket
 import ssl
 import threading
@@ -25,6 +26,8 @@ from agent_comms.repo import Checkout
 from agent_comms.registry.threads import ExternalThread
 
 from toad.comms_root import RemoteCoreConnection, RemoteObserving
+from toad.render_processes import RenderProcessPool
+from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask
 from toad.widgets.comms_sidebar import CommsSidebar
 
 TLS = Path(__file__).parents[1] / "support" / "tls"
@@ -237,3 +240,44 @@ async def test_opening_a_remote_channel_reads_its_declaration_not_the_whole_regi
             assert resolved.conversation.target.name == "#team"
             assert resolved.viewer == workspace.viewer
             assert whole == []
+
+
+def execute_with_process_identity(function, arguments):
+    """Diagnostic transport witness: run the original job in its actual worker."""
+    return os.getpid(), function(*arguments)
+
+
+async def test_remote_conversation_prepares_transcript_lines_in_a_render_process(
+        workspace, tmp_path, monkeypatch):
+    workspace.thread("remote-peer", "team")
+    workspace.thread("source")
+    workspace.comms.messaging.send("source", "remote-peer", "REMOTE_RENDER_WORKER_PROOF **fresh content**")
+    completed = []
+    run = RenderProcessPool.run
+
+    async def witnessed(pool, function, *arguments):
+        pid, result = await run(pool, execute_with_process_identity, function, arguments)
+        completed.append((pid, type(function.__self__)))
+        return result
+
+    monkeypatch.setattr(RenderProcessPool, "run", witnessed)
+    with remote_core(workspace, tmp_path, monkeypatch, UiAccess) as connection:
+        async with workspace.app(session=False, connect=lambda _: connection) as ui:
+            app, _ = ui.textual
+            sidebar = app.workspace_chrome.channels
+            if sidebar.collapsed:
+                sidebar.toggle()
+            tree = sidebar.query_one(CommsSidebar)
+            await ui.until(lambda: "#team" in tree.groups, seconds=REMOTE_FIRST_ANSWER,
+                           why="the remote sidebar")
+            group = tree.groups["#team"]
+            if not group.expanded:
+                group.toggle_members()
+            await ui.until(lambda: "remote-peer" in group.rows, why="the remote thread row")
+            group.rows["remote-peer"].open_selected()
+            await ui.until(lambda: any(kind is TranscriptLinesBatchRenderTask for _, kind in completed),
+                           seconds=REMOTE_FIRST_ANSWER, why="fresh remote lines to finish in a render process")
+            line_jobs = [(pid, kind) for pid, kind in completed if kind is TranscriptLinesBatchRenderTask]
+            assert line_jobs
+            assert all(pid != os.getpid() for pid, _ in line_jobs)
+            print(f"Remote transcript line jobs: {len(line_jobs)}; UI PID {os.getpid()}; worker PIDs {sorted({pid for pid, _ in line_jobs})}")
