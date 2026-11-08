@@ -50,7 +50,7 @@ from toad.work_preparation import (
 )
 
 if TYPE_CHECKING:
-    from agent_comms.message_page import MessagePage
+    from agent_comms.messaging.message_page import MessagePage
 
     from toad.comms_root import CoordinationAccess, Observation
     from toad.transcript_source_preparation import TranscriptSourcePreparation

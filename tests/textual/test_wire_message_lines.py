@@ -4,7 +4,7 @@ from dataclasses import replace
 
 from rich.style import Style
 
-from agent_comms.message_page import MessagePageRequest
+from agent_comms.messaging.message_page import MessagePageRequest
 from agent_comms.display_references import ProjectReferences
 from agent_comms.messages import InfoKind, Message
 from textual.app import App

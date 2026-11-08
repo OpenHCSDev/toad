@@ -14,7 +14,7 @@ from support.roots import installed_wire
 from support.agents import AppAgents
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
-from agent_comms.message_page import PageBounds
+from agent_comms.messaging.message_page import PageBounds
 from agent_comms.registry.threads import NativeThread
 
 from toad.constants import ALL_COMMS_TARGET

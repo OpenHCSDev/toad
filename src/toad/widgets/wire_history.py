@@ -18,7 +18,7 @@ from textual.reactive import var
 
 from agent_comms.coordination.errors import ReadAgain
 from agent_comms.historical_views import UnobservedConversation
-from agent_comms.message_page import MessagePage
+from agent_comms.messaging.message_page import MessagePage
 
 from toad.session_scope import SessionScope
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
