@@ -8,7 +8,9 @@ from agent_comms.channel_targets import CommandTarget
 from agent_comms.read_basis import NamedViewer
 from agent_comms.registry.threads import NativeThread
 from toad.constants import ALL_COMMS_TARGET
-from toad.screens.welcome import WelcomeChannels, WelcomeEntries, WelcomeScreen, WelcomeThreads
+from toad.screens.welcome import (
+    WelcomeChannels, WelcomeEntries, WelcomeHeading, WelcomeScreen, WelcomeThreads,
+)
 from toad.widgets.comms_sidebar import CommsRow
 
 HINT = "n new session"
@@ -159,3 +161,44 @@ async def test_a_thread_row_tooltip_names_its_model_by_text(workspace):
         entries = await welcome_entries(ui, "alpha")
         row = entries.query_one(WelcomeThreads).rows["alpha"]
         assert "openai-codex/gpt-6.1-sol" in str(row.tooltip).splitlines()
+
+
+async def test_the_splash_lists_the_buses_this_machine_can_open(workspace, monkeypatch, tmp_path):
+    """Tristan: "I would like it to show the buses as well so that it would list out the
+    buses that are available".
+
+    The section inherits the Open-bus dialog's own listing, so what it shows and what
+    choosing a row does are the dialog's; this holds that the splash really lists them and
+    that a found peer arrives in the same row set.
+    """
+    from agent_comms.connector_store import HeldUiProfiles
+    from agent_comms.tailnet_buses import TailnetBuses
+    from toad.comms_root import LocalBus
+    from toad.screens.bus_choice import BusRows
+    from toad.screens.welcome import WelcomeBuses
+
+    monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
+    def no_discovery_from_the_splash(cls):
+        raise AssertionError("the splash must not sweep the tailnet to list buses")
+
+    monkeypatch.setattr(TailnetBuses, "seen", classmethod(no_discovery_from_the_splash))
+
+    # session=False, like every other splash case here: the splash is what shows when no
+    # tab is open, and workspace.app() opens one.
+    async with workspace.app(session=False) as ui:
+        entries = await welcome_entries(ui)
+        buses = entries.query_one(WelcomeBuses)
+        # This machine's own bus is listed without asking anyone, so the section is never
+        # an empty box while the tailnet is still answering.
+        assert [type(row).__name__ for row in buses.rows] == ["LocalBus"]
+        assert "Buses" in ui.painted(buses.query_one(WelcomeHeading))
+        assert LocalBus().label() in ui.painted(buses.query_one(BusRows))
+        # And it does NOT sweep the tailnet to show this. The splash appears whenever
+        # there are no tabs open, so discovering here would be seconds of ssh to every
+        # peer on every launch, for a list nobody asked to see. The dialog asks; this
+        # lists what the machine already holds.
+        for _ in range(6):
+            await ui.step()
+        assert [type(row).__name__ for row in buses.rows] == ["LocalBus"], (
+            "the splash lists held buses and starts no discovery")
+        assert not any(worker.group == "bus-discovery" for worker in buses.workers)
