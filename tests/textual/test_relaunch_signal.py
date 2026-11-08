@@ -5,7 +5,7 @@ import os
 import signal
 
 from agent_comms.launch_runtime import LaunchRuntime
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.root_runtime import RootRuntime, RootRuntimeStore
 
 from toad.app import ToadApp

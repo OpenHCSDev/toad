@@ -5,7 +5,7 @@ from collections.abc import Awaitable, Callable
 from agent_comms.coordination.errors import Refused
 from agent_comms.goals import Goal
 from agent_comms.mentions import MentionCandidate
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup
 from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton

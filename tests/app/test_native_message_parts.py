@@ -1,6 +1,6 @@
 """One saved native assistant message keeps its Markdown parts together under a single timestamp."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.registry.threads import NativeThread
 from support.journals import assistant_entry, write_journal

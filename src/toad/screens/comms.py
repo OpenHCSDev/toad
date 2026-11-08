@@ -9,7 +9,7 @@ import asyncio
 from functools import partial
 from pathlib import Path
 from typing import Literal
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 from textual import on
 from textual.app import ComposeResult

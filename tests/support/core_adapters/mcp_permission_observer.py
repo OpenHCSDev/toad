@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 import json
 import os
 from pathlib import Path
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.launch_root import LaunchRoot
 from typing import Any, AsyncIterator
 

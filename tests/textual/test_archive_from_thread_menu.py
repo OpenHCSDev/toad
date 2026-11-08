@@ -8,7 +8,7 @@ from importlib import import_module
 
 from agent_comms import cli_verbs
 from agent_comms.native_entries import SessionEntry
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.read_basis import NamedViewer
 from agent_comms.session_file import RegistrySessionLocation

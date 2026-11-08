@@ -19,7 +19,7 @@ from agent_comms.goal_presentation import (
 )
 from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import Goal, NoGoal
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.turn_failure import NativeChildSignaled
 

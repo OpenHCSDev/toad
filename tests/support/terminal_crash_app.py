@@ -27,7 +27,7 @@ if __name__ == "__main__":
     from agent_comms.launch_root import LaunchRoot
     from toad.comms_root import LocalCoreConnection
 
-    from agent_comms.repo import Checkout
+    from agent_comms.projects.checkouts import Checkout
     from toad.launch_binding import AgentAttached
 
     launch_root = LaunchRoot.from_path(sys.argv[2])

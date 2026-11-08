@@ -2,7 +2,7 @@
 from toad.widgets.side_bar import ThreadSidebar
 from pathlib import Path
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from unittest.mock import patch
 
 from agent_comms.activity import ActivityState

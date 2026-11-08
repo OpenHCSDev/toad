@@ -8,7 +8,7 @@ import sqlite3
 from unittest.mock import patch
 
 import pytest
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.nominal.field_codec import AcpSessionId, RecordedTimestamp
 from agent_comms.errors import RelationViolationError
 

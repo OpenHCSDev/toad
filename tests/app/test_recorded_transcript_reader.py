@@ -1,6 +1,6 @@
 """A recorded transcript keeps its selected source through snapshot, refresh and presentation, with no live owner."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 import json
 from dataclasses import replace
 

@@ -1,7 +1,7 @@
 """Attaching to a saved native thread shows its recorded context use before any model is asked."""
 
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from support.coordination import coordination_fact
 from support.native import attached_app, start_private_native_wire, without_provider
 from agent_comms.registry.threads import NativeThread

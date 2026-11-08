@@ -6,7 +6,7 @@ the agent binding; a remote launch has no local agent and landed in it. The fork
 
 import asyncio
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection

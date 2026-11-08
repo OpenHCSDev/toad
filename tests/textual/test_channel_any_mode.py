@@ -1,6 +1,6 @@
 """Textual-facing: the channel row's context menu (a modal screen opened by a right click) toggles member activity."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.unread import ExactUnread
 from support.textual_steps import channel_roster
 

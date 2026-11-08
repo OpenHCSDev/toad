@@ -1,5 +1,5 @@
 """A displayed channel page clears its own unread rows after every navigation."""
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 
 

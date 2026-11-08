@@ -13,7 +13,7 @@ from toad.transcript_publication import NoView, ViewBinding
 import re
 from pathlib import Path
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from metaclass_registry.mro_dispatch import handles

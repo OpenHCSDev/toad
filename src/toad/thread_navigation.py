@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.errors import RelationViolationError
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from toad.navigation_target import ThreadTarget
 from toad.tab_identity.kinds import MailboxTab
 from toad.navigation_preparation import (

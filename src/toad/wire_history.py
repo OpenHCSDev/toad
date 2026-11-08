@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, ClassVar
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.transport.request import CoreAccess
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
 from agent_comms.transport.tools.sidebar import CommsConversationRevisionTool, CommsLatestSequenceTool, CommsMarkPageReadTool
 from agent_comms.message_page import MessagePage, MessagePageRequest

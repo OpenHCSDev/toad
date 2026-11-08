@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily

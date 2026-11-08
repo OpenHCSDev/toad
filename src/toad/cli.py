@@ -14,7 +14,7 @@ from agent_comms import launch_root
 from agent_comms.active_route import CommsRoute
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
 from toad import about, get_version, paths
 from toad.agent_schema import AgentDefinition

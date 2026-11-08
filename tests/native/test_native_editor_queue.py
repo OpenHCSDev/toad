@@ -1,6 +1,6 @@
 """Enter in the editor while a native turn runs queues the input; leaving and returning by tab click keeps the editor."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.pi_vocabulary import HighThinkingLevel
 
 from support.native import native_session

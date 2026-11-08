@@ -1,6 +1,6 @@
 """An already-open channel tab paints each new sidebar observation."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
 

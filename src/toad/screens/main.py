@@ -13,7 +13,7 @@ from agent_comms.coordination.errors import DMScopeChanged, Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.transcripts import TranscriptCursor
 from textual import getters, on
 from textual.app import ComposeResult

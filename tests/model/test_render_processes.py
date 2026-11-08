@@ -12,7 +12,7 @@ from unittest.mock import patch
 import pytest
 
 from agent_comms.launch_runtime import ThreadLaunch
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 from toad.comms_root import CoreConnection
 from toad.render_processes import RenderProcessPool

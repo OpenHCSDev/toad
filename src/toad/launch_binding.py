@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from collections.abc import Callable
 from functools import partial
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from textual.abstract_hooks import AbstractHooksMeta
 
 from toad.agent_binding import AgentConnection

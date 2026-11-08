@@ -1,7 +1,7 @@
 """Message journeys through a native session that more than one native test walks."""
 
 from __future__ import annotations
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 import asyncio
 from contextlib import asynccontextmanager

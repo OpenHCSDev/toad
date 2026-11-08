@@ -31,7 +31,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.registry.registry_document import ProjectThreadSelection, RegistrySnapshot
 from toad.db import UNSCOPED_TABS, TabScope
 from toad.referenced_core import ReferencedCore
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import Thread
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses

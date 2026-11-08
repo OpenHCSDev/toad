@@ -34,7 +34,7 @@ from agent_comms.turn_context import (
 from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.working_memory_labels import ModelLabel
 from agent_comms.working_memory_questions import SpanAnswer
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.runtime_requests import (
     ContextAnnotationCorrectionRuntimeRequest, ContextCoreRuntimeRequest, ContextCoreSourceRuntimeRequest,
     ContextRecordedSegmentRuntimeRequest, ContextReferenceRuntimeRequest, ContextRuntimeRequest,

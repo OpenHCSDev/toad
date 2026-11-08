@@ -1,5 +1,5 @@
 """Toad starts with no tab open and shows the welcome view until one is opened."""
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from toad.launch_binding import AgentAttached
 
 from support.agents import peer

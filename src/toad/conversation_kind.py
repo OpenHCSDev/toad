@@ -27,7 +27,7 @@ from agent_comms.display_references import (
     RetiredThreadReference, ThreadDisplayReference, ThreadNames, ThreadReferenceReader,
 )
 from agent_comms.message_page import MessagePage, PageBounds
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 

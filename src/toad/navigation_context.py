@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

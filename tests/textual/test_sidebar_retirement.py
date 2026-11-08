@@ -4,7 +4,7 @@ import asyncio
 import gc
 from weakref import ref
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.relationships import (
     AddRelationshipEdit,
     CollaboratingRelationshipGroup,

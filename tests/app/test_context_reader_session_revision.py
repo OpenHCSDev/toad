@@ -1,6 +1,6 @@
 """Context inspection observes the saved session and its owner proof on a real wire."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from dataclasses import replace
 
 from agent_comms.session_revision import SessionRevision

@@ -6,7 +6,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 
 if TYPE_CHECKING:
     from textual.widget import Widget

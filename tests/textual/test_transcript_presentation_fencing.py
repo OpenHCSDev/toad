@@ -1,6 +1,6 @@
 """Textual-facing: transcript presentations queue behind Textual's callback pump and paint into the conversation window."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 import asyncio
 import os
 from contextlib import asynccontextmanager

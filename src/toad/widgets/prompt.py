@@ -6,7 +6,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import FunctionType
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from typing import ClassVar, Literal, Self
 
 

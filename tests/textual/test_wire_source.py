@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from agent_comms.core_access import LocalCoreAccess
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.child_process import ProcessIdentity

@@ -1,6 +1,6 @@
 """Textual-facing: the channels sidebar's expansion, scroll position and range anchor survive switching between views, painted identically from its first ready frame."""
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from support.textual_steps import channel_roster
 
 from toad.app import ToadApp

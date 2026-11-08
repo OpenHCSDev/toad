@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from agent_comms.repo import Repo
+from agent_comms.projects.repo import Repo
 from toad.path_filter import PathFilter
 
 

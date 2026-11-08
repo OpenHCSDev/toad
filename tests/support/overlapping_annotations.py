@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from agent_comms.repo import Checkout
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.active_route import resolve_comms_route
 
 from dataclasses import dataclass, replace
