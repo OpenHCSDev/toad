@@ -237,7 +237,7 @@ class Shown:
         The full text is behind the disclosure, which only the reader opens."""
         return Summary((Span(("▼ " if self.details_open else "▶ ") + title, role, link),))
 
-    def toggled(self) -> "Shown":
+    def toggled(self) -> Shown:
         return replace(self, details_open=not self.details_open)
 
 
@@ -631,7 +631,7 @@ class ToolTranscriptFragment(TranscriptFragment):
 
     events: tuple[ToolTranscript, ...] = field(kw_only=False)
     tool_call: ToolCallStatus
-    output_parts: "tuple[ToolOutputPart, ...]"
+    output_parts: tuple[ToolOutputPart, ...]
 
     @property
     def source_identity(self) -> ToolCallId:

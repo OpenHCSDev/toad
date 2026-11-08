@@ -61,7 +61,7 @@ class SessionObservation(ABC):
         self.agent = NoAgentConnection()
 
     @staticmethod
-    async def close_all(*observations: "SessionObservation") -> None:
+    async def close_all(*observations: SessionObservation) -> None:
         """Join every independent observation before reporting close failures."""
         results = await asyncio.gather(
             *(observation.close() for observation in observations), return_exceptions=True,

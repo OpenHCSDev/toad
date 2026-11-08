@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-def welcome_view() -> "SessionScope":
+def welcome_view() -> SessionScope:
     from toad.screens.welcome import WelcomeScreen
 
     return WelcomeScreen()
@@ -34,12 +34,12 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     """Owns the selected view, including closing it outside the workspace."""
 
     @abstractmethod
-    def matches(self, view: "SessionScope") -> bool: ...
+    def matches(self, view: SessionScope) -> bool: ...
 
-    def current(self, view: "SessionScope") -> bool:
+    def current(self, view: SessionScope) -> bool:
         return False
 
-    def shown(self, view: "SessionScope") -> bool:
+    def shown(self, view: SessionScope) -> bool:
         return False
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
@@ -47,7 +47,7 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
         return ()
 
     @abstractmethod
-    async def retire(self) -> "WorkspaceSource": ...
+    async def retire(self) -> WorkspaceSource: ...
 
     @abstractmethod
     def hide(self) -> None: ...
@@ -107,11 +107,11 @@ class DetachedWorkspaceSource(WorkspaceSource):
 
 
 class BoundWorkspaceSource(WorkspaceSource):
-    def __init__(self, view: "SessionScope") -> None:
+    def __init__(self, view: SessionScope) -> None:
         self.view = view
 
     @abstractmethod
-    def current(self, view: "SessionScope") -> bool: ...
+    def current(self, view: SessionScope) -> bool: ...
 
     @property
     def identity(self):
@@ -182,14 +182,14 @@ class SessionStartFailed(RuntimeError):
 
 
 class WorkspaceSessions:
-    def __init__(self, app: "ToadApp") -> None:
+    def __init__(self, app: ToadApp) -> None:
         self.app = app
         # Views the workspace always has; they are not tabs and never close.
         self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: welcome_view}
         self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 
-    def require(self, identity: str) -> "SessionScope":
+    def require(self, identity: str) -> SessionScope:
         return self.views[identity]
 
     def origin(self, identity: str) -> SessionOrigin:
@@ -202,7 +202,7 @@ class WorkspaceSessions:
                 return view.origin
         return NoSessionOrigin(identity)
 
-    async def prepare(self, identity: str) -> "SessionScope":
+    async def prepare(self, identity: str) -> SessionScope:
         if view := self.views.get(identity):
             return view
         await self.app._init_mode("workspace")
@@ -216,7 +216,7 @@ class WorkspaceSessions:
             raise SessionStartFailed(identity)
         return view
 
-    async def select(self, identity: str) -> "SessionScope":
+    async def select(self, identity: str) -> SessionScope:
         destination = await self.prepare(identity)
         if self.source.shown(destination):
             return destination
@@ -249,7 +249,7 @@ class WorkspaceSessions:
         """Derived from the selected view, so a closed or non-navigating view never answers."""
         return self.source.navigation_owner(self)
 
-    def owns(self, view: "SessionScope") -> bool:
+    def owns(self, view: SessionScope) -> bool:
         return self.source.current(view)
 
     def visible_target(self, root: Path | None) -> NavigationTarget:

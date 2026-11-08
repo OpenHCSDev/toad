@@ -131,7 +131,7 @@ class RenderProcessPool(Renderer):
         await self.wait_for_work(future)
         return future.result()
 
-    async def capture(self, task: "RenderTask[Result]") -> "PreparedValue[Result]":
+    async def capture(self, task: RenderTask[Result]) -> PreparedValue[Result]:
         """Submit a typed rendering operation to the persistent app-owned pool."""
         return await task.complete_capture(self.run(task.capture_result))
 

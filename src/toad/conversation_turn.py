@@ -65,7 +65,7 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
 
         return frozenset(widget for widget in widgets if block_claim(widget).capture(not self.busy))
 
-    def with_activity(self, activity: str) -> "TurnOwner":
+    def with_activity(self, activity: str) -> TurnOwner:
         return ActivityTurn(activity) if activity else self
 
 

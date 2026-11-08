@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class ProjectPathOwner:
     @classmethod
-    def containing(cls, widget: Widget) -> "ProjectPathOwner":
+    def containing(cls, widget: Widget) -> ProjectPathOwner:
         return next(
             owner for owner in widget.ancestors_with_self if isinstance(owner, cls)
         )

@@ -118,18 +118,18 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def line(self) -> str:
         """The opening line this content state shows; empty hides it."""
 
-    def render(self, screen: "MainScreen") -> Static:
+    def render(self, screen: MainScreen) -> Static:
         """Describe content preparation; connection state belongs to its status row."""
         line = self.line()
         return self.label(screen, line, visible=bool(line))
 
     @abstractmethod
-    async def wait(self, screen: "MainScreen") -> None: ...
+    async def wait(self, screen: MainScreen) -> None: ...
 
     @abstractmethod
-    async def prepare(self, screen: "MainScreen") -> None: ...
+    async def prepare(self, screen: MainScreen) -> None: ...
 
-    def finish(self, screen: "MainScreen", content: "ScreenContent") -> None:
+    def finish(self, screen: MainScreen, content: ScreenContent) -> None:
         if screen.content is not self:
             return
         screen.content = content
@@ -139,10 +139,10 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def finished(self) -> None:
         """Only opening content has completion waiters to release."""
 
-    def close(self, screen: "MainScreen") -> None:
+    def close(self, screen: MainScreen) -> None:
         self.finish(screen, ClosedContent())
 
-    def detaching(self, screen: "MainScreen") -> None:
+    def detaching(self, screen: MainScreen) -> None:
         """Only mounted content has reader keys to withdraw."""
 
     def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
@@ -157,11 +157,11 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def focus_sidebar_return(self, screen: MainScreen) -> None:
         """Content without a mounted composer has no return target."""
 
-    async def attached(self, screen: "MainScreen") -> None:
+    async def attached(self, screen: MainScreen) -> None:
         """Repaint the current content state when its session becomes ready."""
         self.render(screen)
 
-    def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
+    def label(self, screen: MainScreen, text: str, *, visible: bool) -> Static:
         label = screen.query_one_optional(SessionOpening)
         if label is None:
             label = SessionOpening(markup=False)
@@ -179,17 +179,17 @@ class OpeningContent(ScreenContent):
     def line(self) -> str:
         return ThreadLoading.LABEL
 
-    async def wait(self, screen: "MainScreen") -> None:
+    async def wait(self, screen: MainScreen) -> None:
         await asyncio.shield(self.completion)
         await screen.content.wait(screen)
 
-    async def prepare(self, screen: "MainScreen") -> None:
+    async def prepare(self, screen: MainScreen) -> None:
         await screen._prepare_content()
 
     def finished(self) -> None:
         self.completion.set_result(None)
 
-    def detaching(self, screen: "MainScreen") -> None:
+    def detaching(self, screen: MainScreen) -> None:
         replacement = OpeningContent(self.completion)
         screen.content = replacement
         replacement.render(screen)
@@ -199,18 +199,18 @@ class ClosedContent(ScreenContent):
     def line(self) -> str:
         return ""
 
-    async def wait(self, screen: "MainScreen") -> None:
+    async def wait(self, screen: MainScreen) -> None:
         """Closing has released the content's waiters."""
 
-    async def prepare(self, screen: "MainScreen") -> None:
+    async def prepare(self, screen: MainScreen) -> None:
         """A closed tab cannot mount content again."""
 
-    def finish(self, screen: "MainScreen", content: ScreenContent) -> None:
+    def finish(self, screen: MainScreen, content: ScreenContent) -> None:
         """In-flight preparation cannot revive a closed tab."""
 
 
 class NavigatedOpeningContent(OpeningContent):
-    async def prepare(self, screen: "MainScreen") -> None:
+    async def prepare(self, screen: MainScreen) -> None:
         """Navigation runs _prepare_content after mounting; selecting the shell does no I/O."""
 
 
@@ -218,7 +218,7 @@ class ReadyContent(ScreenContent):
     def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
         return (screen, *screen.conversation.keyboard_scopes())
 
-    def detaching(self, screen: "MainScreen") -> None:
+    def detaching(self, screen: MainScreen) -> None:
         self.finish(screen, OpeningContent())
 
     def focus_prompt(self, screen: MainScreen, *, scroll_end: bool = True) -> None:
@@ -256,13 +256,13 @@ class ReadyContent(ScreenContent):
 
         return ReadWork(mark())
 
-    async def prepare(self, screen: "MainScreen") -> None:
+    async def prepare(self, screen: MainScreen) -> None:
         await screen._prepare_content()
 
     def line(self) -> str:
         return ""
 
-    async def wait(self, screen: "MainScreen") -> None:
+    async def wait(self, screen: MainScreen) -> None:
         """The content has already been accepted."""
 
 
@@ -273,17 +273,17 @@ class FailedContent(ScreenContent):
     def line(self) -> str:
         return f"Thread unavailable: {self.error}"
 
-    async def wait(self, screen: "MainScreen") -> None:
+    async def wait(self, screen: MainScreen) -> None:
         raise self.error
 
-    async def prepare(self, screen: "MainScreen") -> None:
+    async def prepare(self, screen: MainScreen) -> None:
         agent = screen.presentation.operational_binding
         if agent.ready:
             await self.attached(screen)
         else:
             self.render(screen)
 
-    async def attached(self, screen: "MainScreen") -> None:
+    async def attached(self, screen: MainScreen) -> None:
         self.finish(screen, OpeningContent())
         if screen.is_current:
             await screen.prepare_presentation()
@@ -362,7 +362,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     @classmethod
     def from_thread(
         cls, project: Checkout, root: str, target, binding: AgentBinding = NoAgent()
-    ) -> "MainScreen":
+    ) -> MainScreen:
         screen = cls(project, binding.for_session(FieldCodec.decode(AcpSessionId, target.name)))
         screen.bind_thread(target, root)
         return screen
@@ -378,7 +378,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
             )
 
     @classmethod
-    def opening(cls, request, origin, app) -> "MainScreen":
+    def opening(cls, request, origin, app) -> MainScreen:
         # The request has only a name; bind the wire after its metadata read.
         screen = cls(
             request.project,
