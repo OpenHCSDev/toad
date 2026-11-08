@@ -261,6 +261,7 @@ Tap escape *twice* to exit.
         return scrollback_changed or alternate_changed
 
 
+    @on(events.Click)
     def on_click(self, event: events.Click) -> None:
         self.focus()
         event.stop()

@@ -63,6 +63,7 @@ from toad.sidebar_layout import (
 from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, SidebarPlacement, ThreadSidebarPlacement
 from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 from toad.app_node import ToadNode
+from textual import on
 
 if TYPE_CHECKING:
     from toad.tab_order import TabOrder
@@ -342,6 +343,7 @@ class SideBarToggle(
         # It remains keyboard-focusable through normal Tab navigation.
         return False
 
+    @on(Click)
     def on_click(self, event: Click) -> None:
         if event.button == 1:
             event.stop()
@@ -1201,6 +1203,7 @@ class SideBar(
         event.stop()
         self.toggle(focus=event.focus)
 
+    @on(Click)
     def on_click(self, event: Click) -> None:
         if self.collapsed and event.button == 1:
             event.stop()

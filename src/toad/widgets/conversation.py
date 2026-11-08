@@ -923,6 +923,7 @@ from toad.commit_claims import StartedInputClaim
 from toad.widgets.plan import ConversationPlan
 from toad.widgets.message_divider import AgentActivityDivider
 from toad.agent_surface import AttachedSurfaceBinding
+from textual import on
 
 
 class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
@@ -1848,6 +1849,7 @@ class Conversation(
     def on_mouse_down(self, event: events.MouseDown) -> None:
         self._mouse_down_offset = event.screen_offset
 
+    @on(events.Click)
     def on_click(self, event: events.Click) -> None:
         # A queued history click may arrive after its logical source retired.
         if not self.is_current_session:
