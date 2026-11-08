@@ -12,7 +12,10 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import AcpSessionId, RootId
 from agent_comms.native_input_record import FullNativeExecution, NumberNativeColumn, TextNativeColumn
 from agent_comms.native_runtime_input import CurrentNativeCursor
-from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
+from agent_comms.registry.thread_identity import (
+    ClaimedIdentity,
+    RecordedThreadIncarnation,
+)
 
 from support.textual_steps import reveal_session_details
 from toad.widgets.native_history import NativeHistory

@@ -8,7 +8,7 @@ from agent_comms.display_references import (
     ThreadDisplayReference,
     ThreadReferenceReader,
 )
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from textual import widgets
 from textual.containers import VerticalGroup
 from textual.content import Content

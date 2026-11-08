@@ -5,10 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.thread_presentation import (
-    ThreadPresentationStatus, SessionDisconnected,
-    WorkingThreadPresentationStatus, ThreadRetired,
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_presentation import (
+    ThreadPresentationStatus,
+    SessionDisconnected,
+    WorkingThreadPresentationStatus,
+    ThreadRetired,
 )
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.core.projection import MroProjection

@@ -9,7 +9,10 @@ from functools import cached_property
 from pathlib import Path
 
 from agent_comms.errors import UnregisteredThreadError
-from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
+from agent_comms.registry.thread_identity import (
+    ThreadIncarnation,
+    UnrecordedThreadIncarnation,
+)
 
 from toad.format_path import format_path
 from toad.transcript_scope import KnownTranscript, NoTranscript, TranscriptScope
