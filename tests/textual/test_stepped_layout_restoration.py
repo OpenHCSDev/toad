@@ -8,7 +8,11 @@
 - The stepped layout's scene equals a one-shot layout of the same change.
 """
 
+import asyncio
+
 from textual import messages
+from textual.screen import Screen
+from textual.widgets import Static
 from textual._compositor import StepDeadline
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.history_anchor import NO_HISTORY_CHANGE, BlockPosition, HistoryChange
@@ -33,7 +37,7 @@ async def widen(ui, screen, width):
     await screen._on_layout(messages.Layout(view))
 
 
-async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the_next_layout(workspace):
+async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the_next_layout(workspace, monkeypatch):
     async with workspace.app(size=(139, 30)) as ui:
         screen = ui.app.screen
         view = ui.conversation
@@ -74,6 +78,14 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         offsets = [row for _, row in window.placements(placed)]
         position = BlockPosition.of(window)
         assert placed and position is not None and position.bodies(window)
+        geometry_passes = []
+        arrange = Screen._arrange_steps
+
+        def measured(frame, size, scroll, deadline):
+            geometry_passes.append((scroll, deadline))
+            yield from arrange(frame, size, scroll, deadline)
+
+        monkeypatch.setattr(Screen, "_arrange_steps", measured)
         with screen.hold_frames():
             steps = drive(screen)
             restoration.request_layout(window)  # made while the layout is paused
@@ -102,7 +114,43 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         # The arrangement may commit in the last step itself, where it is published at once.
         assert compositor._layout_map is not layout_map, "the stepped layout never committed"
         assert pauses > 10, pauses
+        assert geometry_passes
+        deadline = geometry_passes[0][1]
+        assert isinstance(deadline, StepDeadline)
+        assert all(passed is deadline for _, passed in geometry_passes), geometry_passes
         assert scene(screen) == one_shot
         assert not restoration.layout_ready.is_set(), "released by a layout that started before its request"
         await ui.until(restoration.layout_ready.is_set, why="the next layout to answer the request")
         window.history_change = NO_HISTORY_CHANGE
+
+
+class PaintProbe(Screen):
+    def __init__(self):
+        super().__init__()
+        self.painted = asyncio.Event()
+
+    def compose(self):
+        yield Static("A newly selected screen can paint")
+
+    def _on_frame_published(self):
+        super()._on_frame_published()
+        self.painted.set()
+
+
+async def test_a_paused_workspace_layout_does_not_stop_another_screen_painting(workspace):
+    async with workspace.app(size=(100, 30)) as ui:
+        screen = ui.app.screen
+        await ui.conversation.post(AgentResponse("\n\n".join("A paragraph " + "word " * i for i in range(30))))
+        await ui.step()
+        await widen(ui, screen, 80)
+        steps = drive(screen)
+        probe = PaintProbe()
+        try:
+            await ui.app.push_screen(probe)
+            async with asyncio.timeout(5):
+                await probe.painted.wait()
+            assert screen._stepped_layout is steps, "the old layout must remain paused during the new frame"
+        finally:
+            screen._stop_stepped_layout()
+            if probe.is_mounted:
+                await ui.app.pop_screen()

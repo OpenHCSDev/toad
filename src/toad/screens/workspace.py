@@ -179,24 +179,19 @@ class WorkspaceFrame(ProfileKeys, JumpsHistory, WidgetView, Screen):
     def _use_viewport_layout(self) -> bool:
         return self.is_current
 
-    def _layout_steps(
-        self, size: Size | None = None, scroll: bool = False, deadline=None
-    ):
+    def _arrange_steps(self, size: Size, scroll: bool, deadline):
         changes = tuple(
             (window.history_change, window.history_change.layout_requests)
             for window in self.history_windows
         )
-        # Capture the old rows before any descendant measures its new width;
-        # that layout and reader placement belong to one unpublished frame.
-        with self.app.batch_update():
-            for window in self.history_windows:
-                if window.shown:
-                    window.keep_reader()
-            yield from super()._layout_steps(size, scroll, deadline)
-            if any(
-                [window.place_layout_reader() for window in self.history_windows]
-            ):
-                yield from super()._layout_steps(size, scroll=True)
+        # Reader compensation is part of geometry, before Screen publishes the
+        # frame. It must not hold other screens' paint while this one yields.
+        for window in self.history_windows:
+            if window.shown:
+                window.keep_reader()
+        yield from super()._arrange_steps(size, scroll, deadline)
+        if any([window.place_layout_reader() for window in self.history_windows]):
+            yield from super()._arrange_steps(size, scroll=True, deadline=deadline)
         for change, answered in changes:
             change.finish_layout(answered)
 
