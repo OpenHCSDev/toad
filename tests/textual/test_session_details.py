@@ -63,7 +63,11 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         assert delivery.delivery.parts() == ("5 earlier notices cleared",)
         for part in delivery.delivery.parts():
             assert part in frame
-        assert "Notice 0" not in frame and "Bus history:" not in frame
+        # Asked of the owner. This read '"Bus history:" not in frame', a prefix that no
+        # longer exists anywhere, so it would have passed with the detail on screen: a
+        # negative assertion against a deleted string cannot fail.
+        assert "Notice 0" not in frame
+        assert NoneCursorStatus.label not in frame, "the collapsed row holds no history line"
         assert composer.region.y == details.region.bottom
 
         assert await pilot.click(details.query_one("CollapsibleTitle"))
@@ -73,7 +77,8 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         history.scroll_visible(animate=False, immediate=True)
         await ui.step()
         assert history in app.screen._compositor.visible_widgets
-        assert "no verified input" in str(history.render())
+        # The status's own label, not a fragment of it typed out here.
+        assert str(history.render()) == NoneCursorStatus.label
         details.collapsed = True
         delivery.delivery = delivery.delivery.failed(OSError("Could not read delivery state"))
         details.show(row.with_delivery(delivery.delivery))
