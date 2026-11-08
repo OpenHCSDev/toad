@@ -56,7 +56,13 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         # SessionDetails.summary_title owns the live caption; there is no fixed one.
         title = details.title.plain
         assert title and title in frame
-        assert "30 recent" in frame and "5 notices" in frame
+        # Delivery's own words, not a copy of them. The title used to read "5 notices" for
+        # five notices that were CLEARED, one phrase answering two questions (IDEN-1); it
+        # now joins the parts delivery itself supplies.
+        assert "30 recent" in frame
+        assert delivery.delivery.parts() == ("5 earlier notices cleared",)
+        for part in delivery.delivery.parts():
+            assert part in frame
         assert "Notice 0" not in frame and "Bus history:" not in frame
         assert composer.region.y == details.region.bottom
 
