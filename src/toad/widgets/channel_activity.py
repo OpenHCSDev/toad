@@ -34,35 +34,16 @@ class PeerStatus(ThreadReferenceReader[StatusThread]):
 
 
 class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGroup):
-    DEFAULT_CSS = """
-    ChannelActivity {
-        height: auto;
-        max-height: 33vh;
-        overflow-y: auto;
-
-        & > Collapsible {
-            /* A Collapsible draws a rule above itself and reserves a blank row below.
-               Sitting under the prompt this list needs neither: the prompt's own edge
-               already separates them, and the blank row only pushed the window up. */
-            border-top: none;
-            padding: 0;
-
-            & > Contents {
-                /* Textual indents contents by three and opens with a blank row. One
-                   column is enough to show the members belong to the title. */
-                padding: 0 0 0 1;
-            }
-        }
-    }
-    """
-
     def __init__(self, view):
         self.view = view
         self._members = VerticalGroup()
         self.details = widgets.Collapsible(
             self._members, title="0 active", collapsed=True
         )
+        self.details.styles.padding = 0
         super().__init__()
+        self.styles.overflow_y = "auto"
+        self.styles.max_height = "33vh"
 
     def compose(self):
         yield self.details
