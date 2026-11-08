@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Generic, TypeVar, cast
 from agent_comms.coordination.errors import Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.registry_document import RegistrySnapshot
-from agent_comms.session_load import ExistingSessionLoadPlan
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import ConversationPreparation, Thread
 from agent_comms.projects.checkouts import Checkout
 

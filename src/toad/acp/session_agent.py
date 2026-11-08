@@ -29,9 +29,9 @@ from agent_comms.transport.tools.sidebar import (
     CommsCaptureHumanInputTool, CommsMoveThreadProjectTool,
     CommsOwnerRequestTool, CommsRenameManagedThreadTool,
 )
-from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.thread_presentation import ThreadPresentation
-from agent_comms.session_load import ExistingSessionLoadPlan
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_presentation import ThreadPresentation
+from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
 from agent_comms.sent_message import AssignedSourceIdentity
 from agent_comms.nominal.field_codec import FieldCodec, GoalId
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView

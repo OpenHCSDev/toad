@@ -153,7 +153,7 @@ async def test_a_launch_that_names_a_session_opens_it(workspace):
 async def test_a_thread_row_tooltip_names_its_model_by_text(workspace):
     from dataclasses import replace
 
-    from agent_comms.thread_model import DeclaredModel
+    from agent_comms.registry.thread_model import DeclaredModel
 
     thread = NativeThread("alpha", frozenset({"team"}), Checkout(workspace.project))
     workspace.comms.registry.declare(replace(thread, model=DeclaredModel("openai-codex/gpt-6.1-sol")))

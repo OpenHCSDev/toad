@@ -28,7 +28,7 @@ from agent_comms.external_transcript import DraftRow
 from agent_comms.transcript_sources import NoDraft
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.sent_message import PublishedSentMessage
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.transcripts import (
     AtFrontier,

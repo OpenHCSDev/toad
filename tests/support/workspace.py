@@ -48,7 +48,7 @@ class Workspace:
                root: Path | None = None):
         """Declare a thread on the wire; a running thread is owned by this process."""
         from agent_comms.child_process import NoProcess, ProcessIdentity
-        from agent_comms.thread_text import ThreadText
+        from agent_comms.registry.thread_text import ThreadText
 
         comms = self.comms if root is None else installed_wire(root)
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()

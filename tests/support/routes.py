@@ -12,7 +12,7 @@ from agent_comms.registry.threads import NativeThread
 
 def private_root(path: Path, project: Path, message: str) -> Path:
     """A private bus at `path` holding `message` in #team from `peer`; returns `path`."""
-    from agent_comms.thread_identity import UserThreadRole
+    from agent_comms.registry.thread_identity import UserThreadRole
 
     path.mkdir(mode=0o700)
     comms = installed_wire(path)

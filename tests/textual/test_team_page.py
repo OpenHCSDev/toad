@@ -10,7 +10,7 @@ from agent_comms.disclosure_text import DisclosureEntry, DisclosureText, FieldKe
 from agent_comms.recorded_time import RecordedEventTime
 from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
-from agent_comms.thread_identity import RecordedThreadIncarnation
+from agent_comms.registry.thread_identity import RecordedThreadIncarnation
 from agent_comms.ui_model.observation import ObserveTeamHud
 from agent_comms.ui_model.teammate_state import Detached, Moving, PendingClock
 from support.workspace import Workspace

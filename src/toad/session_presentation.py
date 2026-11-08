@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.session_load import EnsuringSessionLoadPlan
+from agent_comms.registry.thread_presentation import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
 from textual.document._editing import EditingMode
 from textual.screen import Screen

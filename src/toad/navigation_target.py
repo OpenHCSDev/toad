@@ -10,7 +10,7 @@ from agent_comms.channel_targets import ChannelSelection, CommandTarget
 from agent_comms.channel_targets import ChannelTarget as CoreChannelTarget
 from agent_comms.channel_targets import ThreadTarget as CoreThreadTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.comms_root import Observing
 from toad.work_preparation import PreparationRuntime

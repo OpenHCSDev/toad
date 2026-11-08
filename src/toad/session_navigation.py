@@ -19,7 +19,7 @@ from agent_comms.errors import (
 )
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import RegistrationsView
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.core import events as core_events
 from toad.agents import AgentNotFound

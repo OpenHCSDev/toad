@@ -18,13 +18,13 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
-from agent_comms.session_load import (
+from agent_comms.registry.thread_presentation import (
     EnsuringSessionLoadPlan,
     ExistingSessionLoadPlan,
     FailedSessionLoadPlan,
     SessionLoadPlan,
 )
-from agent_comms.thread_presentation import SessionDisconnected
+from agent_comms.registry.thread_presentation import SessionDisconnected
 
 import toad
 from toad import constants

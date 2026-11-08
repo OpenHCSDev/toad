@@ -14,8 +14,8 @@ from agent_comms.channel_targets import ThreadTarget
 from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
 from agent_comms.errors import RouteChangedError
 from agent_comms.message_reference import MessageReference
-from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.transport.tools.reads import TranscriptPageRead
 from agent_comms.ui_model.observation import ReadTranscript, ReadTranscriptUpdate, TranscriptPublicationState
 from rich.text import Text as RichText

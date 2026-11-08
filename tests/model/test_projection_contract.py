@@ -70,7 +70,7 @@ def test_projection_without_a_declared_handler_fails_loud() -> None:
 
 
 def test_unavailable_owner_projection_does_not_supply_a_load_plan():
-    from agent_comms.thread_presentation import UnavailableThreadOwnerBinding
+    from agent_comms.registry.thread_presentation import UnavailableThreadOwnerBinding
     from toad.owner_preparation import ExistingOwnerPlan
 
     plan = ExistingOwnerPlan.from_binding(UnavailableThreadOwnerBinding())
@@ -81,9 +81,12 @@ def test_unavailable_owner_projection_does_not_supply_a_load_plan():
 
 def test_live_owner_projection_retains_the_exact_load_binding():
     from agent_comms.child_process import ProcessIdentity
-    from agent_comms.session_load import ExistingSessionLoadPlan
-    from agent_comms.thread_identity import OwnerIdentity, RecordedThreadIncarnation
-    from agent_comms.thread_presentation import LiveThreadOwnerBinding
+    from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
+    from agent_comms.registry.thread_identity import (
+    OwnerIdentity,
+    RecordedThreadIncarnation,
+)
+    from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
     from toad.owner_preparation import ExistingOwnerPlan
 
     binding = LiveThreadOwnerBinding(
