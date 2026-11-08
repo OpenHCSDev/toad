@@ -6,7 +6,6 @@ Hover is an input to those owners, never another independently rendered state.
 
 from typing import ClassVar
 
-from rich.segment import Segment
 from rich.style import Style
 from textual import events, on
 from textual._paint_state import PaintState
@@ -14,7 +13,7 @@ from textual.content import Content
 from textual.strip import Strip
 from textual.visual import VisualType, visualize
 from textual.widgets import ListItem, ListView, OptionList, Static
-from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
+from ui_theme.effects import NAME_WAVE, NEW_TEXT, Band, Frame
 from ui_theme.scheme import (
     BlockCursorBackgroundColour,
     BlockCursorForegroundColour,
@@ -43,17 +42,24 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
                 self.run_effect(effect)
 
 
-class ViewLabel(Animated[TextFrame], Static):
-    """Activity glyph and workspace emphasis, independent of content-change fades."""
+class ViewLabel(Animated[Band], Static):
+    """A working view waves through its own name; emphasis is independent of content fades."""
 
-    def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:
-        """One activity slot, before decorations; idle keeps its declared marker."""
-        if not busy:
-            self.stop_effect(SPINNER)
-            return Content.assemble(prefix, label)
-        if SPINNER not in self.effects:
-            self.run_effect(SPINNER)
-        return Content.assemble(SPINNER.final.paint(self.app.colours, None), " ", prefix, title)
+    def activity_content(self, label: Content, busy: bool, *, prefix: Content) -> Content:
+        """The row's own label, working or not: being busy is drawn, never spelled.
+
+        The spinner used to take the label's leading cell and animate a glyph where the
+        status marker already sits - a working thread's label is "⌛ name" before anything
+        here touches it - and it swapped the label for the bare title to make room, so the
+        row's text changed every time work started or stopped and fired the content fade
+        with it. Now only the wave moves.
+        """
+        if busy:
+            if NAME_WAVE not in self.effects:
+                self.run_effect(NAME_WAVE)
+        else:
+            self.stop_effect(NAME_WAVE)
+        return Content.assemble(prefix, label)
 
     @property
     def current(self) -> bool:
@@ -61,12 +67,9 @@ class ViewLabel(Animated[TextFrame], Static):
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         line = super().render_line(y, paint)
-        if SPINNER in self.effects and y == 0:
-            glyph = self.effect_frame(SPINNER).paint(self.app.colours, None)
-            style = next((segment.style for segment in line), None)
-            # Native clipping owns empty or partial lines.
-            line = Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
-                               line.crop(glyph.cell_length))).crop(0, line.cell_length)
+        if NAME_WAVE in self.effects and y == 0:
+            # The frame is a span of the line; the backend owns how a span is inked.
+            line = self.effect_frame(NAME_WAVE).paint(self.app.colours, line)
         current = self.current
         return self.emphasize(line, Style(bold=current, underline=current), y)
 

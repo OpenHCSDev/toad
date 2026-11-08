@@ -66,7 +66,7 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
 
     def present(self, tab: OpenTab) -> bool:
         """The label owns activity, unread ink and native text width."""
-        content = self.activity_content(tab.title, tab.label(), tab.busy, prefix=Content())
+        content = self.activity_content(tab.label(), tab.busy, prefix=Content())
         if shown := self.app.settings.sidebar.unread_counts.badge(tab.unread):
             badge = (Style(foreground=self.app.colours.colour(AccentColour))
                      if tab.unread.highlighted else Style())
