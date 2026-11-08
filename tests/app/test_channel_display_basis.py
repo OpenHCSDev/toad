@@ -4,6 +4,7 @@ import pytest
 from agent_comms.read_basis import ChannelConversation, NamedViewer
 from agent_comms.repo import Checkout
 from agent_comms.ui_model.unread import ExactUnread
+from support.painted_app import PaintedApp
 
 
 @pytest.mark.parametrize("height", [39, 40, 41, 43, 47])
@@ -22,20 +23,23 @@ async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread
     snapshot = comms.registry.snapshot()
     channel = ChannelConversation("#team")
 
-    async with workspace.app(size=(120, height)) as ui:
+    async with workspace.app(size=(120, height), application=PaintedApp) as ui:
         owner = ui.selected_tab
         await ui.open_channel("#team", actor=viewer)
         await ui.until_shows("channel 11 line")
 
         def shown():
-            return {message.seq for i, message in enumerate(messages) if ui.shows(f"channel {i:02d} line")}
+            app, _pilot = ui.textual
+            return {message.seq for i, message in enumerate(messages) if app.has_shown(f"channel {i:02d} line")}
 
         await ui.until(lambda: all(
             (message.seq in ledger.cursor(viewer, snapshot).for_conversation(channel))
             == (message.seq in shown()) for message in messages
         ), why="the shown messages to be marked read")
-        # Earlier messages were read from Core for scrolling, but never shown.
-        assert 0 < len(shown()) < len(messages) and not ui.shows("channel 00 line")
+        # Cold loading can paint an earlier page before following the tail.
+        # Those reads remain valid after it leaves the screen. The unread
+        # messages are exactly those absent from every accepted frame.
+        assert 0 < len(shown()) < len(messages)
         assert comms.views.viewer_snapshot(project).channel_unread["#team"] == ExactUnread(
             count=len(messages) - len(shown()))
         assert hidden.seq not in ledger.cursor(viewer, snapshot).for_conversation(
