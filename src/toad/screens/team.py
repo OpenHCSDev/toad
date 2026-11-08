@@ -18,7 +18,7 @@ from agent_comms.task_attachments.team_pings import AlarmGroup, AlarmSection
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.transport.tools.reads import TeammateRead
 from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
-from agent_comms.ui_model.teammate_state import HudGroup
+from agent_comms.ui_model.hud_groups import HudGroup
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on
