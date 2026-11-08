@@ -317,3 +317,99 @@ async def test_discovery_uses_selected_core_and_never_holds_the_message_pump(mon
             assert [row.label() for row in picker.rows] == ["discovered · 9 threads"]
     finally:
         release.set()
+
+
+async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspace, monkeypatch, tmp_path):
+    """Tristan, UX 10: let a bus be added by hand - type an address, save it, and be able
+    to remove saved ones again.
+
+    Typing runs the same ask-for-profile flow a discovered peer runs, so there is no
+    second way into a bus: the host hands a profile over and it becomes an ordinary held
+    row, which is also where saving and removing come from.
+    """
+    import time
+
+    from agent_comms.connector_profile import (
+        BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
+    )
+    from agent_comms.connector_store import HeldUiProfiles
+    from agent_comms.nominal.field_codec import RootId
+    from agent_comms.tailnet_buses import NamedHost, TailnetBuses, TailnetPeer
+    from agent_comms.tailnet_profiles import OfferedPeerProfile, TailnetProfiles
+    from toad.screens.bus_choice import BusAddress, BusChoices, BusRows
+    from yarl import URL
+
+    asked: list[object] = []
+    profile = UiConnectionProfile(
+        HttpsMcpEndpoint(URL("https://typed-host.example:8443/mcp")),
+        UiCredential(UiGrantId("c" * 32), RootId("0" * 32), time.time() + 3600,
+                     BearerSecret("secret")),
+        ReachedRoute("typed-host.example"))
+
+    def offer(cls, peer, previous):
+        asked.append(peer)
+        return OfferedPeerProfile(peer, profile)
+
+    # Typing names a peer Core's own tailnet reports; it is never an arbitrary ssh
+    # destination, which the served tool's own guard refuses (Core
+    # test_a_typed_address_must_name_a_peer_core_already_reports holds that half).
+    typed = TailnetPeer("typed-host", "100.64.9.9", True)
+    monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
+    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: ()))
+    monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (typed,)))
+    monkeypatch.setattr(TailnetProfiles, "ask", classmethod(offer))
+
+    async with workspace.app(size=(140, 48)) as ui:
+        app, pilot = ui.textual
+        app.push_screen(BusChoices.offered(), app.picked_bus)
+        await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
+        picker = app.screen
+        await ui.until(lambda: bool(picker.query(BusAddress)), why="the picker to compose")
+        assert [type(row).__name__ for row in picker.rows] == ["LocalBus"]
+
+        field = picker.query_one(BusAddress)
+        field.focus()
+        await ui.type("typed-host")
+        await ui.press("enter")
+        await ui.until(lambda: asked, why="the typed host to be asked for a profile")
+        # Resolved to Core's own peer, not to the text: the same ask, and the same
+        # destination a discovered row would have reached.
+        assert [entry.peer for entry in asked] == [typed]
+        assert isinstance(asked[0], NamedHost), "the member a typed address is"
+        assert field.value == "", "the field clears once its host is asked"
+
+
+async def test_a_saved_bus_can_be_forgotten_and_its_profile_goes_with_it(workspace, monkeypatch, tmp_path):
+    """Removing a saved bus is removing the profile that saved it; HeldUiProfiles lists
+    exactly that directory, so there is no second record of what is saved."""
+    from agent_comms.connector_store import HeldUiProfiles
+    from agent_comms.tailnet_buses import TailnetBuses
+    from toad.comms_root import HeldBus, LocalBus
+    from toad.screens.bus_choice import BusChoices, BusRows
+
+    monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
+    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: ()))
+    held = tmp_path / "box-b.json"
+    openable(held).profile.write_new(held)
+
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        app.push_screen(BusChoices.offered(), app.picked_bus)
+        await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
+        picker = app.screen
+        await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")
+        assert [type(row).__name__ for row in picker.rows] == ["LocalBus", "HeldBus"]
+        assert held.is_file()
+
+        rows = picker.query_one(BusRows)
+        rows.highlighted = 0
+        picker.forget_highlighted()
+        assert [type(row).__name__ for row in picker.rows] == ["LocalBus", "HeldBus"], (
+            "this machine's own bus is a fact, not a saved row, so Delete leaves it alone"
+        )
+        assert held.is_file()
+
+        rows.highlighted = 1
+        picker.forget_highlighted()
+        assert [type(row).__name__ for row in picker.rows] == ["LocalBus"]
+        assert not held.exists(), "forgetting a saved bus removes the profile that saved it"

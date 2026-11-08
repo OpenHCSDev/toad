@@ -361,6 +361,15 @@ class PickerRow(ABC):
         it. Most rows are not any machine the tailnet reports; the ones that are say so."""
         return False
 
+    def removable(self) -> bool:
+        """Whether a reader can take this row off the list. Nothing is, by default: this
+        machine's own bus and a machine the tailnet reports are facts, not saved entries."""
+        return False
+
+    def remove(self) -> None:
+        """Take this row off the list for good. Only a row that says it is removable."""
+        raise TypeError(f"{type(self).__name__} is not a saved row")
+
 
 class BusChoice(PickerRow):
     """A bus the next launch of this Toad selects.
@@ -425,6 +434,17 @@ class HeldBus(BusChoice):
     def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
         return (*self.without_profile(argv),
                 RemoteCoreConnection.argument, str(self.profile.path))
+
+    def removable(self) -> bool:
+        """A held profile is the saved entry, so this is the row that can be removed."""
+        return True
+
+    def remove(self) -> None:
+        """Forget this bus: the profile file IS the saved entry, so deleting it is the
+        removal. Tristan: type an address, save it, and be able to remove saved ones
+        again - and HeldUiProfiles.held already lists exactly the files in that directory,
+        so there is no second record of what is saved to keep in step."""
+        self.profile.path.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True)
