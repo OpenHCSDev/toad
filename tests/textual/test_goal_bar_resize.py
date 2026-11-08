@@ -1,11 +1,11 @@
 """Textual-facing: dragging the goal bar's separator (mouse capture, regions, bounds)."""
 
-from toad.goal_interaction import CollapseInteraction
 from support.goal_controls import goal_control
 from dataclasses import replace
 
 from agent_comms.planning.goals import NoGoal
 
+from toad.goal_interactions.controls import CollapseInteraction
 from toad.widgets.goal_bar import GoalBar
 from support.goals import published_goal
 

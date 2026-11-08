@@ -94,6 +94,7 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
+from toad.goal_view import GoalView
 from toad.input_decision import InputDecision
 from toad.input_history import InputHistories
 from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
@@ -148,10 +149,7 @@ from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.flash import Flash
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.input_delivery import (
-    InputDeliveryBar,
-    InputDeliveryDetails,
-)
+from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.widgets.menu import Menu
 from toad.widgets.message_divider import StickyHeader
@@ -997,6 +995,7 @@ class SourcesScope(DOMNode):
 
 
 class Conversation(
+    GoalView[GoalSession],
     TranscriptView,
     FollowsLayoutPreferences,
     QueueEvidenceOwner,
@@ -1385,8 +1384,6 @@ class Conversation(
 
     @work(group="provider-login", exclusive=True)
     async def provider_login(self) -> None:
-
-
         agent = self.agent_binding
         methods = agent.presentation.auth_methods
         if not methods:

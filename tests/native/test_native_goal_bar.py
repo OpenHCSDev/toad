@@ -1,6 +1,5 @@
 """The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, pause/resume and clear."""
 
-from toad.goal_interaction import EditInteraction, HistoryInteraction, ToggleInteraction
 from support.goal_controls import goal_control
 from agent_comms.projects.checkouts import Checkout
 import asyncio
@@ -26,6 +25,11 @@ from rich.cells import cell_len
 from support.native import ControlledProvider, native_session
 from support.native_steps import goal_on_real_owner
 
+from toad.goal_interactions.controls import (
+    EditInteraction,
+    HistoryInteraction,
+    ToggleInteraction,
+)
 from toad.screens.goal_details import CurrentHeading, CurrentObjective, GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse

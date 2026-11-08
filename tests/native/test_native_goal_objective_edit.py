@@ -2,7 +2,6 @@
 
 import pytest
 
-from toad.goal_interaction import EditInteraction, HistoryInteraction
 from support.goal_controls import goal_control
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.planning.goal_actions import (
@@ -17,6 +16,10 @@ from agent_comms.planning.goal_scope import OneGoal
 from support.native_steps import goal_on_real_owner
 
 from toad.core.events import CommsUpdated
+from toad.goal_interactions.controls import (
+    EditInteraction,
+    HistoryInteraction,
+)
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit, GoalEditProgress, GoalSave
 

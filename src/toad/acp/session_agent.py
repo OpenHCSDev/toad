@@ -48,6 +48,7 @@ from pydantic import JsonValue
 
 from toad.acp.agent_controller import AgentController, SourceIdentity
 from toad.acp.client_session import ClientSessionRequest, OwnerRequest
+from toad.acp.comms_updates import PendingThreadRead
 from toad.acp.goal_control import ClientGoalControls
 from toad.agent import AgentBase
 from toad.core import events as core_events
@@ -227,11 +228,10 @@ class OwnerReads(CoordinationIdentity):
             return
         await session.reconnect(ExistingSessionLoadPlan(binding))
 
-    def owner_read(self, request: OwnerRequest):
-        from toad.acp.comms_updates import PendingThreadRead
+    def owner_read(self, request: OwnerRequest) -> PendingThreadRead:
         return PendingThreadRead(request, turn_token=self.presentation.turns.sequence)
 
-    def thread_read(self):
+    def thread_read(self) -> PendingThreadRead:
         return self.owner_read(self.capture_owner_request(ClientSessionRequest(self, self.session_id)))
 
     async def input_delivery(self, *, include_history: bool = False) -> DeliveryView:

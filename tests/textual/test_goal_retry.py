@@ -1,12 +1,12 @@
 """Textual-facing: the goal bar's Retry control is a mounted button that reaches the goal owner."""
 
-from toad.goal_interaction import ToggleInteraction
 from support.goal_controls import goal_control
 from agent_comms.planning.goal_actions import RetryGoalAction
 from agent_comms.planning.goal_presentation import RetryableBlockExecution
 from agent_comms.planning.goal_states import BlockedGoal
 
 from support.goals import ScriptedGoalOwner, published_goal
+from toad.goal_interactions.controls import ToggleInteraction
 from toad.widgets.goal_bar import GoalBar
 
 

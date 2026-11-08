@@ -1,6 +1,5 @@
 """Textual-facing: goal bar standby row, goal edit screen and goal details screen as Textual widgets over a scripted goal owner."""
 
-from toad.goal_interaction import ClearInteraction, EditInteraction, HistoryInteraction
 from support.goal_controls import goal_control
 import asyncio
 from dataclasses import replace
@@ -8,18 +7,11 @@ from dataclasses import replace
 import pytest
 
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.planning.goal_actions import (
-    ClearGoalAction,
-    RetryGoalAction,
-)
-from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, TurnId
+from agent_comms.planning.goal_actions import ClearGoalAction, RetryGoalAction
+from agent_comms.nominal.field_codec import AttemptId, FieldCodec, MalformedRecord, TurnId
 from agent_comms.planning.goal_failure_observation import FailedTurnEvidence
 from agent_comms.planning.goal_history import (
-    RecordedGoalHistory,
-    RecordedGoalRevision,
-    BaselineRevision,
-    TransitionRevision,
-    ObservedGapRevision,
+    RecordedGoalHistory, RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,
 )
 from agent_comms.planning.goal_presentation import (
     GoalWaitTarget,
@@ -41,6 +33,11 @@ from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from support.agents import RecordedEvents
 from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
+from toad.goal_interactions.controls import (
+    ClearInteraction,
+    EditInteraction,
+    HistoryInteraction,
+)
 from toad.navigation_target import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit, GoalEditButton, GoalEditError, GoalSave
@@ -62,8 +59,8 @@ def goal_owner(workspace, app):
         RecordedGoalRevision(sequence=3, kind=ObservedGapRevision, observed_at=1002.0,
                              before=transitioned, after=goal),
     ), (FailedTurnEvidence(
-        attempt_id="attempt-1", goal_id=goal.id, generation=3, owner="goal-owner", owner_created_at=1.0,
-        worktree="/work", claim_generation=1, turn_generation=1, goal_revision=4, turn_id=TurnId.mint(),
+        attempt_id=AttemptId.mint(), goal_id=goal.id, generation=3, owner="goal-owner", owner_created_at=1.0,
+        worktree=Checkout("/work"), claim_generation=1, turn_generation=1, goal_revision=4, turn_id=TurnId.mint(),
         failure=NativeChildSignaled,
     ),))
     owner = ScriptedGoalOwner.owning(app, goal, execution, history=history)

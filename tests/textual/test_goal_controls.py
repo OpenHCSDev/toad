@@ -1,11 +1,11 @@
 """Textual-facing: the goal bar mounts one control per declared interaction, paints them, and collapses."""
 
-from toad.goal_interaction import CollapseInteraction
 from support.goal_controls import goal_control
 from agent_comms.planning.goal_actions import PausedGoalAction
 from agent_comms.planning.goal_presentation import RunnableExecution
 
 from toad.goal_interaction import GoalInteraction, GoalSession
+from toad.goal_interactions.controls import CollapseInteraction
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from support.goals import published_goal
 
