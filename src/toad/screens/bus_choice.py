@@ -13,12 +13,14 @@ from textual import on, work
 from textual.app import ComposeResult
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
-from textual.widgets import Select, Static
+from textual.widgets import OptionList, Static
+from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
 from toad.comms_root import BusChoice, DiscoveredPeer, PickerRow
 from agent_comms.tailnet_buses import PeerBus
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
+from toad.native_style import AutoHeight
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from toad.widget_actions import PriorityActions
 
@@ -38,6 +40,27 @@ class BusPanel(SurfacePanel):
 
 class BusPrompt(Static):
     """What the picker is for, above its rows."""
+
+
+class BusRows(AutoHeight, OptionList):
+    """The buses, listed where they are rather than behind a dropdown.
+
+    A Select is fewer lines and was the wrong shape twice over. It opens a second overlay
+    inside this dialog, so at a phone's 40 columns the list renders straight through the
+    panel's bottom border and over the sidebar behind it, and three rows that all fit on
+    screen at once sit behind two steps and a broken-looking box (Tristan: "the bus menu
+    does not work well on a narrow screen"). And a Select posts Changed the moment its
+    initial value is set, which is why the old one had to start deliberately blank: here
+    highlighting a row is not choosing it, so there is nothing to defend against.
+    """
+
+    ROWS = 10
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        # Tall enough for every bus a tailnet realistically holds, bounded so a long list
+        # scrolls inside the panel instead of growing past the window.
+        self.styles.max_height = self.ROWS
 
 
 class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[PickerRow]):
@@ -61,12 +84,10 @@ class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[PickerRow]):
     def compose(self) -> ComposeResult:
         with BusPanel():
             yield BusPrompt("Open a bus · Esc returns")
-            # Blank until the reader picks: a Select posts Changed when its initial value is
-            # set, so starting on a row chose that row before the list had been read.
-            yield Select(self.options(), allow_blank=True, prompt="Choose a bus")
+            yield BusRows(*self.options())
 
-    def options(self) -> list[tuple[str, int]]:
-        return [(row.label(), index) for index, row in enumerate(self.rows)]
+    def options(self) -> list[Option]:
+        return [Option(row.label()) for row in self.rows]
 
     def on_mount(self) -> None:
         self.discover()
@@ -103,13 +124,11 @@ class BusChoices(CenteredScreen, PriorityActions, DismissibleScreen[PickerRow]):
         covered = tuple(row for row in self.rows
                         if not any(row.same_bus(peer.found) for peer in peers))
         self.rows = (*covered, *peers)
-        self.query_one(Select).set_options(self.options())
+        self.query_one(BusRows).clear_options().add_options(self.options())
         self.query_one(BusPrompt).update(
             f"Open a bus · {len(peers)} found on your tailnet · Esc returns")
 
-    @on(Select.Changed)
-    def picked(self, event: Select.Changed) -> None:
-        """A picked row is the answer; the row itself says what picking it does."""
-        match event.value:
-            case int() as index:
-                self.dismiss(self.rows[index])
+    @on(OptionList.OptionSelected)
+    def picked(self, event: OptionList.OptionSelected) -> None:
+        """A chosen row is the answer; the row itself says what choosing it does."""
+        self.dismiss(self.rows[event.option_index])
