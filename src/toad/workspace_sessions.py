@@ -2,6 +2,7 @@
 
 from toad.screens.workspace import SessionHost
 from abc import abstractmethod
+from dataclasses import dataclass
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -63,6 +64,9 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
 
     @abstractmethod
     def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
+
+    def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
+        return VisiblePublication(NoTarget(), None)
 
     @abstractmethod
     def navigation_owner(self, sessions: WorkspaceSessions) -> NavigationOwner:
@@ -149,6 +153,12 @@ class BoundWorkspaceSource(WorkspaceSource):
             else NoTarget()
         )
 
+    def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
+        if not sessions.owns(self.view):
+            return VisiblePublication(NoTarget(), None)
+        view = sessions.views.get(self.identity)
+        return VisiblePublication(view.navigation_target if view is not None else NoTarget(), view)
+
     def sidebars(self) -> tuple[SideBar, ...]:
         return self.view.sidebars()
 
@@ -179,6 +189,22 @@ class ParkedWorkspaceSource(BoundWorkspaceSource):
 
 class SessionStartFailed(RuntimeError):
     """A session's own startup failed; the app has already shown that error."""
+
+
+@dataclass(frozen=True)
+class VisiblePublication:
+    """The selected source's target, published once when the source changes. A consumer
+    asks for its root; the root check is the view's existing belongs_to_wire."""
+
+    target: NavigationTarget
+    view: SessionScope | None
+
+    def target_for(self, root: Path | None) -> NavigationTarget:
+        return (
+            self.target
+            if root is not None and self.view is not None and self.view.belongs_to_wire(root)
+            else NoTarget()
+        )
 
 
 class WorkspaceSessions:
@@ -251,9 +277,10 @@ class WorkspaceSessions:
 
     @source.setter
     def source(self, source: WorkspaceSource) -> None:
-        """Every change to the selected source passes here, so every change to the
-        visible target is one assignment away from publication."""
+        """Every change to the selected source passes here: the source's target is published
+        once, and consumers read that value instead of asking the source per line."""
         self._source = source
+        self._publication = source.publication(self)
 
     def navigation_owner(self) -> NavigationOwner:
         """Derived from the selected view, so a closed or non-navigating view never answers."""
@@ -264,7 +291,7 @@ class WorkspaceSessions:
 
     def visible_target(self, root: Path | None) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
-        return self.source.visible_target(self, root)
+        return self._publication.target_for(root)
 
     def target_for_mode(self, identity: str, root: Path | None) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
