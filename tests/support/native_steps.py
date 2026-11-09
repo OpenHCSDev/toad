@@ -167,7 +167,7 @@ async def goal_on_real_owner(workspace, objective: str, *, size=(110, 35), arran
         expected_goal = native.comms.registry.require(native.thread).goal
         view = native.ui.conversation
         await native.ui.until(
-            lambda: view.goal_display.snapshot == expected_goal and view.goal_bar.controls.is_mounted,
+            lambda: view.goal_display == expected_goal and view.goal_bar.controls.is_mounted,
             why="the owner's current goal and its mounted controls",
         )
         yield native
