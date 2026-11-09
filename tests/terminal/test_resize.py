@@ -20,7 +20,7 @@ async def test_every_terminal_resize_repaints_transcript_sidebar_and_composer(
         "AGENT_COMMS_AGENT_ARGS": "--model test/model"}
     workspace.comms.registry.declare(NativeThread(
         "resize", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
-    command = toad_command("acp", f"{sys.executable} -m agent_comms.acp", "--session", "resize")
+    command = toad_command("acp", f"{sys.executable} -m agent_comms.execution.acp", "--session", "resize")
     async with terminal_running(workspace, terminal_emulator, command, environment=environment) as terminal:
         await terminal.until(lambda: terminal.shows("A paragraph") or terminal.shows("REPLAY_MARKER_39"),
                              seconds=30, why="the saved transcript")

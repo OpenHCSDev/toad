@@ -15,7 +15,7 @@ import threading
 from contextlib import contextmanager
 from pathlib import Path
 
-from agent_comms.connector import Connector
+from agent_comms.transport.connector import Connector
 from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.messaging.read_basis import NamedViewer
 from agent_comms.projects.checkouts import Checkout

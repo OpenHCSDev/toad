@@ -198,13 +198,13 @@ def configure_provider(base_url: str, *, settings: dict | None = None,
 
 
 def comms_agent():
-    """The agent definition for Core's own ACP server (``python -m agent_comms.acp``)."""
+    """The agent definition for Core's own ACP server (``python -m agent_comms.execution.acp``)."""
     from toad.agent_schema import AgentDefinition
 
     return AgentDefinition.decode({
         "name": "Native fixture", "identity": "native-fixture", "short_name": "native", "protocol": "acp",
         "accepts_comms_root": True,
-        "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
+        "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.execution.acp"])},
     })
 
 
