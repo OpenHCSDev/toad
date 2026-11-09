@@ -6,8 +6,10 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
+from hashlib import sha256
 from itertools import islice
 from pathlib import Path
+import pickle
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
@@ -434,10 +436,9 @@ class RangeCategoryProjection(CategoryProjection):
 class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentAddressedRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
 
-    @property
-    def preparation_inputs(self) -> object:
+    def preparation_digest(self, work: RenderPreparation[PreparedTranscriptPage]) -> bytes:
         """Read marks and coordination activity cannot change prepared content."""
-        return FieldCodec.project(self.page, ContentExclude)
+        return sha256(pickle.dumps(FieldCodec.project(self.page, ContentExclude), protocol=5)).digest()
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
         return result.retained_bytes

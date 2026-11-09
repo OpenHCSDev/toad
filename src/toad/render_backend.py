@@ -7,22 +7,24 @@ import os
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from contextvars import Context, copy_context
+from hashlib import sha256
 from types import get_original_bases
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast, get_args, get_origin
+from typing import ClassVar, Generic, TypeVar, cast, get_args, get_origin
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad.work_preparation import (
+    ContentRevision,
     PreparationRuntime,
     PreparationStorage,
+    PreparedValue,
     RenderPreparation,
     SerializedStorage,
+    UniqueRevision,
+    WorkKey,
 )
 
 ResultT = TypeVar("ResultT")
-
-if TYPE_CHECKING:
-    from toad.work_preparation import PreparedValue, WorkKey
 
 class RenderExecution(ABC, Generic[ResultT]):
     _matches_result: ClassVar[Callable[[object], bool]]
@@ -67,15 +69,12 @@ class RenderExecution(ABC, Generic[ResultT]):
 class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], DeclaredFamily, affix="RenderTask"):
     """A nominal operation with an exact input and result contract."""
 
-    @property
-    def preparation_inputs(self) -> object:
-        """The task's captured inputs, independent of transport and storage.
+    def preparation_digest(self, work: RenderPreparation[ResultT]) -> bytes:
+        """The content key of this task's inputs: the pickled task the child receives.
 
-        A task whose published resources have another owner supplies its actual
-        preparation inputs here. The existing preparation runtime retains and
-        hashes that supply; it never infers it from a task's concrete type.
+        A task carrying data that cannot change its result hashes only the rest.
         """
-        return self
+        return sha256(work.submission).digest()
 
     def capture_result(self) -> PreparedValue[ResultT]:
         """Store the result in the worker which produced it.
@@ -87,25 +86,18 @@ class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], Declared
         return self.store_result(self.execute())
 
     async def complete_capture(self, execution: Awaitable[object]) -> PreparedValue[ResultT]:
-        from toad.work_preparation import PreparedValue
-
         return PreparedValue.accept(await execution)
 
     async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
         """External state requires independent work for each submission."""
-        from toad.work_preparation import UniqueRevision, WorkKey
-
         return WorkKey(type(work), UniqueRevision(), work.scope)
 
 class ContentAddressedRenderTask(RenderTask[ResultT]):
     """Reusable input identity, independent of the result's storage declaration."""
 
     async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
-        from dataclasses import replace
-
-        from toad.work_preparation import ContentAddressedWork
-
-        return replace(await ContentAddressedWork.identity(work, runtime), scope=work.scope)
+        digest = await runtime.run_thread(self.preparation_digest, work)
+        return WorkKey(type(work), ContentRevision(digest), work.scope)
 
 
 class ReusableRenderTask(SerializedStorage[ResultT], ContentAddressedRenderTask[ResultT]):
@@ -235,6 +227,13 @@ class Renderer(RendererSpawn):
     @abstractmethod
     async def capture(self, task: RenderTask[ResultT]) -> PreparedValue[ResultT]:
         """Prepare one typed result, keeping its work slot until execution finishes."""
+
+    async def capture_submitted(
+        self, task: RenderTask[ResultT], submission: bytes,
+    ) -> PreparedValue[ResultT]:
+        """Prepare a task its preparation already pickled; an in-process renderer has no
+        use for the bytes."""
+        return await self.capture(task)
 
     @abstractmethod
     async def aclose(self) -> None:

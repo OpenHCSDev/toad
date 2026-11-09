@@ -9,7 +9,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
-from hashlib import sha256
+from functools import cached_property
 import pickle
 from sys import getsizeof
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast
@@ -190,17 +190,6 @@ class PreparationWork(ABC, Generic[ResultT]):
 class ReusableWork(ReusableStorage[ResultT], PreparationWork[ResultT]):
     """Mixin for results whose declared identity fully describes their inputs."""
 
-class ContentAddressedWork(PreparationWork[ResultT]):
-    @property
-    @abstractmethod
-    def inputs(self) -> object:
-        """Data-only inputs; no widgets, services or mutable presentation state."""
-
-    async def identity(self, runtime: PreparationRuntime) -> WorkKey:
-        digest = await runtime.run_thread(lambda: sha256(pickle.dumps(self.inputs, protocol=5)).digest())
-        return WorkKey(type(self), ContentRevision(digest))
-
-
 class ScopedWork(PreparationWork[ResultT]):
     @property
     @abstractmethod
@@ -232,21 +221,25 @@ class RendererWork(PreparationWork[ResultT]):
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[ResultT]:
-        prepared = await runtime.renderer.capture(self.task)
+        submission = await runtime.run_thread(lambda: self.submission)
+        prepared = await runtime.renderer.capture_submitted(self.task, submission)
         return await runtime.run_thread(self.task.finish_prepared, key, prepared)
+
+    @cached_property
+    def submission(self) -> bytes:
+        """The task pickled once, off the loop: the bytes a render child receives, and for
+        most tasks also the bytes their cache key hashes. Pickling holds the interpreter
+        lock, so pickling the same task twice made painting wait twice."""
+        return pickle.dumps(self.task, protocol=5)
 
 
 @dataclass(frozen=True)
-class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
+class RenderPreparation(RendererWork[ResultT]):
     task: RenderTask[ResultT]
     scope: PreparationScope = UNSCOPED
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
         return await self.task.preparation_identity(self, runtime)
-
-    @property
-    def inputs(self) -> object:
-        return (type(self.task), self.task.preparation_inputs)
 
 
 class ThreadScheduler:
