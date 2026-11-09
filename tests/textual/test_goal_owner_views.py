@@ -9,7 +9,7 @@ import pytest
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.planning.goal_actions import ClearGoalAction, RetryGoalAction
 from agent_comms.nominal.field_codec import AttemptId, FieldCodec, MalformedRecord, TurnId
-from agent_comms.planning.goal_failure_observation import FailedTurnEvidence
+from agent_comms.planning.goal_ledger import FailedTurnEvidence
 from agent_comms.planning.goal_history import (
     RecordedGoalHistory, RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,
 )

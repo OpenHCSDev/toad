@@ -17,8 +17,8 @@ from agent_comms.coordination.coordinator import Coordination
 from agent_comms.coordination.errors import Refused
 from agent_comms.coordination.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.execution.session_revision import SessionObservation
+from agent_comms.cli_bridges.codex_records import CodexRolloutProvenance
 from agent_comms.execution.turn_context import (
-    CodexRolloutProvenance,
     ContextManifest,
     ContextSegment,
     ContextSourceText,
