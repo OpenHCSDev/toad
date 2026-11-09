@@ -31,7 +31,7 @@ from toad.answer import Answer
 from toad.widgets.question import Question
 from toad.question_actions import SelectKindAction, QuestionContext, PermissionNavigationAction
 from textual.widget import Widget
-from textual.events import Mount
+from textual.events import Mount, ScreenResume
 
 
 class DiffOption(Option):
@@ -284,9 +284,7 @@ class PermissionReview(PermissionsScreen):
         if self.is_active:
             self.dismiss(None)
 
-    def on_screen_resume(self, event):
-        self.on_mount(event)
-
+    @on(ScreenResume)
     @on(Mount)
     def on_mount(self, event):
         view = self._view()

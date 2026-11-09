@@ -20,6 +20,7 @@ from ui_theme.scheme import TurnBandColour
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
+from textual.widgets.collapsible import CollapsibleTitle
 
 from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.native_style import (
@@ -237,7 +238,10 @@ class ConversationSessionDetails(SessionDetails):
     def title_names(self) -> tuple[str, ...]:
         return (self.label,)
 
-    async def _on_collapsible_title_toggle(self, event) -> None:
+    # Same name as Collapsible's decorated handler, so this one replaces it: the title opens the
+    # thread instead of toggling the section.
+    @on(CollapsibleTitle.Toggle)
+    async def _on_collapsible_title_toggle(self, event: CollapsibleTitle.Toggle) -> None:
         event.prevent_default()
         event.stop()
         context = self.query_ancestor(NavigationScope).navigation_owner.navigation_context
