@@ -10,10 +10,10 @@ from typing import Literal
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination.errors import DMScopeChanged, Refused
+from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transcript.transcripts import TranscriptCursor
 from metaclass_registry.mro_dispatch import handles
 from textual import getters, on
 from textual.app import ComposeResult

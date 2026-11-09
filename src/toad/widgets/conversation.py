@@ -16,6 +16,7 @@ from typing import Callable, ClassVar
 import platformdirs
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
+from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
 from agent_comms.planning.goals import NoGoal
@@ -24,7 +25,6 @@ from agent_comms.registry.thread_presentation import (
     NoThreadPresentation,
     ThreadPresentation,
 )
-from agent_comms.transcript.transcripts import TranscriptCursor
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.ui_model.message_category import (

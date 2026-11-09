@@ -13,17 +13,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
+from agent_comms.execution.transcript_sources import (
+    TranscriptCursor,
+    UnreadTranscriptCursor,
+)
 from agent_comms.messaging.historical_views import (
     ConversationObservation,
     UnobservedConversation,
 )
 from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.nominal.field_codec import ContentExclude, FieldCodec
-from agent_comms.transcript.transcripts import (
-    TranscriptCursor,
-    TranscriptPage,
-    UnreadTranscriptCursor,
-)
+from agent_comms.transcript.transcripts import TranscriptPage
 from agent_comms.ui_model.message_category import MessageCategory
 
 from toad.bus_submission import (

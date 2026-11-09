@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING
 
-from agent_comms.transcript.transcripts import TranscriptCursor
+from agent_comms.execution.transcript_sources import TranscriptCursor
 from textual import on
 from textual.await_complete import AwaitComplete
 from textual.events import Unmount

@@ -10,12 +10,10 @@ from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.coordination.errors import TranscriptChanged
+from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.transcript.transcript_events import TranscriptCoverage
-from agent_comms.transcript.transcripts import (
-    TranscriptCursor,
-    TranscriptPage,
-)
+from agent_comms.transcript.transcripts import TranscriptPage
 from metaclass_registry.mro_dispatch import handles
 from textual.widget import Widget
 
