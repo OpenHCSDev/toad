@@ -116,7 +116,9 @@ class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectP
         item = self.threads[event.value]
         previous = self.query_one(Contents)
         content = RecordedContents(item.source.key)
-        with self.app.batch_update():
+        # This screen's own swap, so this screen withholds its frames: an app-wide batch
+        # stops every other screen painting until the remove and the mount both finish.
+        with self.hold_frames():
             await previous.remove()
             await self.query_one(HistoryWindow).mount(content)
         self.query_one(SourceLabel).update(
