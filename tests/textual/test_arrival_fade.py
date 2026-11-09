@@ -1,24 +1,25 @@
 """Textual-facing: a new conversation entry fades in as it appears, whether it first shows as a live
 block or as a saved row, and a commit that replaces live blocks still fades the rows they never showed."""
 
-from dataclasses import replace
 import json
 import os
+from dataclasses import replace
 
 from agent_comms.acp_extension import TurnChangedUpdate
 from agent_comms.execution.child_process import ProcessIdentity
-from agent_comms.nominal.field_codec import TurnId
+from agent_comms.execution.fresh_private_session import create_fresh_private_session
+from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.execution.turn_lease import (
     ActiveTurn,
     FinishedTurn,
     TurnState,
 )
 from agent_comms.execution.turn_phase import PublishingPhase
-from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.fresh_private_session import create_fresh_private_session
+from agent_comms.nominal.field_codec import TurnId
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.textual_steps import tool_status
+
 from toad.frame_presentation import ARRIVAL, EFFECT_UNSTARTED
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall

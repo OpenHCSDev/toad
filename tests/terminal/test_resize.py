@@ -1,11 +1,10 @@
 """Toad repaints its transcript, sidebar and composer across large terminal size changes."""
 
-from agent_comms.projects.checkouts import Checkout
 import sys
 
-from agent_comms.session_file import RegistrySessionLocation
+from agent_comms.execution.session_file import RegistrySessionLocation
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
-
 from support.journals import assistant_entry, write_journal
 from support.terminal import terminal_running, toad_command
 

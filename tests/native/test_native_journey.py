@@ -3,8 +3,6 @@
 The model is the controlled loopback provider; everything else is the real path.
 """
 
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 import base64
 import json
@@ -13,18 +11,20 @@ from pathlib import Path
 
 import psutil
 from agent_comms.acp_extension import QueuePromptRequest
-from agent_comms.cli_verbs.queue_restart import QueueRestartCliCommand
 from agent_comms.cli_verbs.fork import ForkCliCommand
+from agent_comms.cli_verbs.queue_restart import QueueRestartCliCommand
 from agent_comms.cli_verbs.start import StartCliCommand
-from agent_comms.input_disposition import InputDispositions
-from agent_comms.input_key import AcpInputKey
+from agent_comms.execution.input_key import AcpInputKey
+from agent_comms.execution.pi_vocabulary import OffThinkingLevel
+from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.input_attempt import StartedInput
-from agent_comms.pi_vocabulary import OffThinkingLevel
+from agent_comms.input_disposition import InputDispositions
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
-
 from support.native import ControlledProvider, native_session
 from support.native_steps import channel_message_feedback, direct_reply_feedback
 from support.textual_steps import request_target_command
+
 from toad.agent import AgentBase
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.comms_sidebar import CommsSidebar, ThreadRow

@@ -1,16 +1,21 @@
 """Textual-facing: live agent output merges into blocks that the conversation window paints and retires."""
 
-from agent_comms.routing import MessageRoute
+from agent_comms.messaging.routing import MessageRoute
 from support.agents import RecordedEvents
 
 from toad.acp.comms_updates import CommsUpdateConsumer
+from toad.commit_claims import CapturedClaim
 from toad.core.events import CoreEvent, Update
 from toad.core_event_carrier import CoreEventMessage
-from toad.live_output import CompleteResponseStream, OutputStream, ResponseStream, ThoughtStream
+from toad.live_output import (
+    CompleteResponseStream,
+    OutputStream,
+    ResponseStream,
+    ThoughtStream,
+)
 from toad.response_delivery import RoutedResponse
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from toad.commit_claims import CapturedClaim
 
 
 class DiagnosticStream(OutputStream):

@@ -15,37 +15,41 @@ from agent_comms.messaging.channel_targets import (
     ThreadTarget,
 )
 from agent_comms.messaging.channels import AllChannel
-from agent_comms.transport.request import CoreAccess
-from agent_comms.transport.tools.sidebar import (
-    CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
-)
-from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.display_references import (
-    RetiredThreadReference, ThreadDisplayReference, ThreadNames, ThreadReferenceReader,
+from agent_comms.messaging.display_references import (
+    RetiredThreadReference,
+    ThreadDisplayReference,
+    ThreadNames,
+    ThreadReferenceReader,
 )
 from agent_comms.messaging.message_page import (
     MessagePage,
     PageBounds,
 )
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.transport.request import CoreAccess
+from agent_comms.transport.tools.sidebar import (
+    CommsChannelTool,
+    CommsConversationPageTool,
+    CommsThreadConfigurationTool,
+)
+from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from textual.app import ComposeResult
 
-from toad.bus_submission import MessageDestination
-from toad.bus_submission import SubmissionOwner
+from toad.bus_submission import MessageDestination, SubmissionOwner
+from toad.comms_root import CoordinationAccess
+from toad.conversation_capabilities import (
+    ConversationActivity,
+    ConversationNavigation,
+    ConversationSource,
+)
+from toad.referenced_core import ReferencedCore
+from toad.session_tracker import ChannelViewAddress, CommsViewKey
+from toad.sidebar_models import UnpaintedChannel
+from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
-from toad.referenced_core import ReferencedCore
-from toad.status_thread import NoStatusThread, StatusThread
-from toad.comms_root import CoordinationAccess
-from toad.session_tracker import CommsViewKey
-from toad.session_tracker import ChannelViewAddress
-
-from toad.sidebar_models import UnpaintedChannel
-
-
-from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
-from toad.conversation_capabilities import ConversationActivity, ConversationNavigation, ConversationSource
 
 
 @dataclass(frozen=True)

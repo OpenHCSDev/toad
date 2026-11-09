@@ -1,38 +1,46 @@
-from toad.conversation_capabilities import ConversationNavigation
-from toad.screens.historical_sessions import HistoricalSessions
-from toad.thread_identity import SessionIdentity
-from metaclass_registry.mro_dispatch import handles
-from agent_comms.historical_views import AllHistoricalSenders, NamedHistoricalSender
-from toad.core_event_carrier import CoreEventMessage
-from toad.core import session_requests
-from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
-from toad.project_path_owner import CheckoutRoot
 import asyncio
 from functools import partial
 from typing import Literal
-from agent_comms.projects.checkouts import Checkout
 
+from agent_comms.messaging.historical_views import (
+    AllHistoricalSenders,
+    NamedHistoricalSender,
+)
+from agent_comms.projects.checkouts import Checkout
+from metaclass_registry.mro_dispatch import handles
 from textual import on
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
-from toad.session_actions import ReturnToViewAction, CloseViewAction
-from toad.widget_actions import WidgetAction, TogglesIrc, CyclesSessions
-from textual.worker import WorkerCancelled
+from textual.events import Mount
 from textual.widgets import Static
+from textual.worker import WorkerCancelled
 
-from toad.conversation_kind import ConversationKind
-from toad.widgets.comms_chat import CommsChatView
-from toad.core.input_events import SelectHistoricalIdentity
-from toad.widgets.comms_sidebar import CoordinationStatus
+from toad.app_node import ToadNode
 from toad.constants import WELCOME
+from toad.conversation_capabilities import ConversationNavigation
+from toad.conversation_kind import ConversationKind
+from toad.core import session_requests
+from toad.core.input_events import SelectHistoricalIdentity
+from toad.core_event_carrier import CoreEventMessage
 from toad.navigation_context import NavigationContext
+from toad.navigation_target import (
+    FeedTarget,
+    HistoryTarget,
+    NavigationTarget,
+    SelectTarget,
+)
+from toad.project_path_owner import CheckoutRoot
+from toad.screens.historical_sessions import HistoricalSessions
+from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
+from toad.session_actions import CloseViewAction, ReturnToViewAction
 from toad.session_scope import NoSessionOrigin
-from toad.navigation_target import FeedTarget, HistoryTarget, NavigationTarget, SelectTarget
+from toad.thread_identity import SessionIdentity
+from toad.widget_actions import CyclesSessions, TogglesIrc, WidgetAction
+from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.app_node import ToadNode
 from toad.worker_group import WorkerGroup
-from textual.events import Mount
 
 
 class CommsContentLoad(WorkerGroup):

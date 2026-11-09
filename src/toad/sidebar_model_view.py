@@ -8,7 +8,7 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from agent_comms.display_references import ReferenceContext
+from agent_comms.messaging.display_references import ReferenceContext
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import SidebarModel
 from metaclass_registry.mro_dispatch import handles
@@ -25,7 +25,12 @@ from toad.comms_root import FailedObservation, Observing
 from toad.comms_subscribers import SidebarSubscriber
 from toad.core.events import CoordinationObserved, ThreadRowStateChanged
 from toad.core_event_carrier import CoreEventReceiver
-from toad.sidebar_changes import AllSidebarRows, ChangedChannels, ChangedThreads, SidebarChange
+from toad.sidebar_changes import (
+    AllSidebarRows,
+    ChangedChannels,
+    ChangedThreads,
+    SidebarChange,
+)
 
 EMPTY = SidebarModel(lambda callback: None)
 

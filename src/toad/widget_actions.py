@@ -4,26 +4,30 @@ from __future__ import annotations
 import inspect
 from abc import abstractmethod
 from collections.abc import Callable, Iterator, Mapping
+from copy import replace
+from dataclasses import dataclass
 from functools import lru_cache, partialmethod
 from operator import or_
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar, cast
 
-from agent_comms.command import Command
-from agent_comms.nominal.declared_family import DeclaredFamily, FamilyMeta, declared_words
+from agent_comms.nominal.declared_family import (
+    DeclaredFamily,
+    FamilyMeta,
+    declared_words,
+)
 from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
-from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
-from textual import events
+from agent_comms.planning.command import Command
+from textual import events, on
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
+from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
+from textual.dom import DOMNode
 from textual.keys import DeclaredKey, KeyDeclaration, KeyDeclarationType, UndecodedKey
 from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
 from textual.widgets.text_area import EditingMode
-from textual.dom import DOMNode
+
 from toad.app_node import ToadNode
-from copy import replace
-from dataclasses import dataclass
-from textual import on
 
 if TYPE_CHECKING:
     from textual.widgets import TextArea

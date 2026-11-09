@@ -10,8 +10,8 @@ from pathlib import Path
 from threading import local
 from typing import TYPE_CHECKING
 
+from agent_comms.messaging.display_references import ReferenceContext
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.display_references import ReferenceContext
 from agent_comms.nominal.field_codec import FieldCodec
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore

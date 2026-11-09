@@ -2,23 +2,28 @@
 
 from dataclasses import replace
 
-from rich.style import Style
-
+from agent_comms.messaging.display_references import ProjectReferences
 from agent_comms.messaging.message_page import MessagePageRequest
-from agent_comms.display_references import ProjectReferences
 from agent_comms.messaging.messages import InfoKind, Message
+from rich.style import Style
+from support.styling import awaits_styling
 from textual.app import App
 
-from toad.link_click import OpenLineLink
 from toad.line_blocks import Divider, OpenTarget, Span, UserRole
+from toad.link_click import OpenLineLink
 from toad.markdown_links import LinkContext
+from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.notification_status import CheckedNotifications
 from toad.textual_colours import ThemedApp
-from toad.widgets.transcript_lines import LinePreparation, NoRows, PlainLines, RichLineRenderer, TranscriptLinesRenderTask
-from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.widgets.transcript_fragments import MessageShown
+from toad.widgets.transcript_lines import (
+    LinePreparation,
+    NoRows,
+    PlainLines,
+    RichLineRenderer,
+    TranscriptLinesRenderTask,
+)
 from toad.wire_history import WireFragment
-from support.styling import awaits_styling
 
 
 class MessageApp(ThemedApp, App):
@@ -125,7 +130,10 @@ def test_every_notification_answer_keeps_a_narrow_message_at_one_height():
     """Status arrives after layout, only for messages in view: its answer may
     change the receipt's text but never the message's height, or the rows
     below jump while the reader scrolls."""
-    from toad.notification_status import UncheckedNotifications, UnavailableNotifications
+    from toad.notification_status import (
+        UnavailableNotifications,
+        UncheckedNotifications,
+    )
 
     statuses = (UncheckedNotifications(), CheckedNotifications.from_notifications(()),
                 UnavailableNotifications("could not reach Core " * 8))

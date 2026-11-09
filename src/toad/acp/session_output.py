@@ -1,6 +1,6 @@
 """Original output evidence outlives its optional native presentation."""
 
-from agent_comms.transcripts import NativeCommittedPrefix
+from agent_comms.transcript.transcripts import NativeCommittedPrefix
 
 from toad.commit_claims import CapturedClaim, CommitSource, NativeCommitSource
 

@@ -1,18 +1,24 @@
 """Reported patch hunks shared by live tools, saved tools and display styles."""
 
-from abc import abstractmethod
-from dataclasses import dataclass
-from collections.abc import Iterable, Iterator
-from itertools import chain, zip_longest
 import re
-
-from rich.text import Text
+from abc import abstractmethod
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
+from itertools import chain, zip_longest
 from typing import Annotated, ClassVar
-from agent_comms.declared_choice import DeclaredChoice, TitledChoice
-from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
-from toad.setting_declarations import Effect, FamilyChoices
 
-from toad.line_blocks import LineBlock, LineRole, TextRole, AddedCodeRole, RemovedCodeRole
+from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
+from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
+from rich.text import Text
+
+from toad.line_blocks import (
+    AddedCodeRole,
+    LineBlock,
+    LineRole,
+    RemovedCodeRole,
+    TextRole,
+)
+from toad.setting_declarations import Effect, FamilyChoices
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 

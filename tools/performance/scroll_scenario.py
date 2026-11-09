@@ -8,18 +8,19 @@ This retained-history scenario is NOT comparable to the old active-response
 shell benchmark without stating their different source/traffic scopes.
 """
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from agent_comms.active_route import ActiveRoute
 from agent_comms.comms import wire
-from agent_comms.launch_root import LaunchRoot
-from agent_comms.launch_runtime import LaunchRuntime
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.execution.launch_runtime import LaunchRuntime
+from agent_comms.installer.active_route import ActiveRoute
+from textual.geometry import Size
+
 from tools.physical_ui import OwnedDisplay
 from tools.physical_ui_candidate import TerminalApp
 from tools.physical_ui_remote import ObservedResult, PhysicalOperation
-from textual.geometry import Size
 
 
 def main():

@@ -1,7 +1,7 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
 from __future__ import annotations
-from abc import abstractmethod
 
+from abc import abstractmethod
 from collections import deque
 from contextlib import AsyncExitStack
 from contextvars import Context
@@ -9,8 +9,10 @@ from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING
 
-from agent_comms.transcripts import TranscriptCursor
+from agent_comms.transcript.transcripts import TranscriptCursor
+from textual import on
 from textual.await_complete import AwaitComplete
+from textual.events import Unmount
 from textual.worker import Worker, WorkerCancelled
 
 from toad.core.source_events import TranscriptSourceWorkFinished
@@ -34,8 +36,6 @@ from toad.widgets.history_anchor import (
     LatestPosition,
 )
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageEnd, PageRequest
-from textual.events import Unmount
-from textual import on
 
 if TYPE_CHECKING:
     from collections.abc import Callable

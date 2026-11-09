@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-import agent_comms.transcript_events as transcript_events
+import agent_comms.transcript.transcript_events as transcript_events
 
 from toad.core.events import CoreEvent
 

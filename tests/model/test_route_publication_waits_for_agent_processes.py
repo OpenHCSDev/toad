@@ -8,7 +8,7 @@ import sys
 
 import psutil
 from agent_comms.execution.child_process import AttachedChild
-from agent_comms.launch_root import LaunchRoot
+from agent_comms.execution.launch_root import LaunchRoot
 
 
 def live_members(group: int) -> list[int]:

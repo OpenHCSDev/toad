@@ -2,11 +2,12 @@
 
 
 from agent_comms.messaging.channel_targets import ChannelTarget
-from agent_comms.display_references import ThreadDisplayReference
+from agent_comms.messaging.display_references import ThreadDisplayReference
 from agent_comms.projects.checkouts import Checkout
 
-from toad.link_click import OpenLineLink
 from toad.line_blocks import OpenReference
+from toad.link_click import OpenLineLink
+
 
 async def test_mention_completion_delivery_and_link(workspace):
     alpha = workspace.thread("alpha", "team")

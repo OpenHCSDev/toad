@@ -4,12 +4,13 @@ Not carried over from the old script: the wait for a nested rendering pager insi
 (agent text is line-drawn now, so a live message has no pager of its own).
 """
 
-from agent_comms.projects.checkouts import Checkout
 from functools import partial
 
-from agent_comms.session_file import RegistrySessionLocation
+from agent_comms.execution.session_file import RegistrySessionLocation
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
 from support import journals
+
 from toad.screens.main import MainScreen
 from toad.tab_identity.kinds import MailboxTab
 from toad.widgets.agent_response import AgentResponse

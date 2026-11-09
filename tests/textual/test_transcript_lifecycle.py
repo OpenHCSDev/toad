@@ -1,18 +1,23 @@
 """Textual-facing: a transcript history widget's source state follows its real mount, commit, worker and removal."""
 
-from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 from dataclasses import replace
-import pytest
-from textual.await_complete import AwaitComplete
-from textual.worker import DeadlockError, get_current_worker
 
+import pytest
+from agent_comms.execution.session_file import RegistrySessionLocation
 from support import journals
 from support.agents import RecordedEvents
 from support.textual_steps import saved_history
+from textual.await_complete import AwaitComplete
+from textual.worker import DeadlockError, get_current_worker
+
 from toad.core.source_events import TranscriptCoverage
 from toad.paths import get_errors
-from toad.transcript_state import DetachedTranscript, LiveTranscript, ProvisionalTranscript
+from toad.transcript_state import (
+    DetachedTranscript,
+    LiveTranscript,
+    ProvisionalTranscript,
+)
 
 
 async def test_source_state_follows_mount_commit_worker_retirement_and_removal(workspace):

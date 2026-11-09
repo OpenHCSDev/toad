@@ -1,7 +1,8 @@
 """One context measurement says whether usage is known, where it came from and how it reads."""
-from agent_comms.context_reading import ContextUsage, UnmeasuredContext
-from toad.acp.context_measurement import ContextMeasurement, Cost
+from agent_comms.execution.context_reading import ContextUsage, UnmeasuredContext
 from rich.text import Text as RichText
+
+from toad.acp.context_measurement import ContextMeasurement, Cost
 
 
 def test_measurement_availability_source_and_status_text():

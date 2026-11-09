@@ -21,10 +21,10 @@ import sys
 import time
 from pathlib import Path
 
-from agent_comms.active_route import ActiveRoute
 from agent_comms.comms import wire
-from agent_comms.launch_root import LaunchRoot
-from agent_comms.launch_runtime import LaunchRuntime
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.execution.launch_runtime import LaunchRuntime
+from agent_comms.installer.active_route import ActiveRoute
 
 from tools.physical_ui import OwnedDisplay
 from tools.physical_ui_candidate import TerminalApp

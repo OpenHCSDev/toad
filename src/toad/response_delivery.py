@@ -5,8 +5,8 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from agent_comms.messaging.routing import MessageRoute, NoMessageRoute
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.routing import MessageRoute, NoMessageRoute
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.message_category import MessageCategory

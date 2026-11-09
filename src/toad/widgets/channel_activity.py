@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from agent_comms.display_references import (
+from agent_comms.messaging.display_references import (
     ReferenceContext,
     RetiredThreadReference,
     ThreadDisplayReference,
@@ -15,13 +15,12 @@ from textual.containers import VerticalGroup
 from textual.content import Content
 
 from toad.comms_root import CoordinationAccess
-from toad.status_thread import NoStatusThread, StatusThread
-from toad.sidebar_contracts import ActivityRows
-from toad.widgets.session_details import ConversationSessionDetails
-
 from toad.keyed_rows import KeyedRows
 from toad.sidebar_changes import SidebarChange
+from toad.sidebar_contracts import ActivityRows
 from toad.sidebar_model_view import SidebarModelView
+from toad.status_thread import NoStatusThread, StatusThread
+from toad.widgets.session_details import ConversationSessionDetails
 
 
 @dataclass(frozen=True)

@@ -7,27 +7,26 @@ internals asks for ``ui.textual`` instead and lives under ``tests/textual``.
 
 from __future__ import annotations
 
-from toad.widgets.side_bar import BackTabButton, ForwardTabButton
-from toad.session_actions import ReturnToViewAction
-
 import asyncio
-from contextlib import contextmanager
 import inspect
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from agent_comms.messaging.notification_progress import DeliveryProgress
+from rich.cells import cell_len
 from textual.actions import StyleAction
 from textual.errors import NoWidget
 from textual.geometry import Offset
 
-from agent_comms.notification_progress import DeliveryProgress
-from rich.cells import cell_len
 from support.agents import AppAgents, command
 from toad import paths
 from toad.navigation_context import NavigationContext
+from toad.session_actions import ReturnToViewAction
+from toad.widgets.side_bar import BackTabButton, ForwardTabButton
 
 if TYPE_CHECKING:
     from textual.pilot import Pilot

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
 import os
-from pathlib import Path
 import tempfile
+from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from toad.paths import APP_NAME
@@ -26,10 +26,9 @@ def settings_over(base: dict[str, object], top: dict[str, object]) -> dict[str, 
 
 def installed_wire(root: Path) -> Comms:
     """Prepare the same bus and native schemas that an installed owner uses."""
-    from agent_comms.bus import Bus
     from agent_comms.comms import Comms
-
-    from agent_comms.active_route import resolve_comms_route
+    from agent_comms.installer.active_route import resolve_comms_route
+    from agent_comms.messaging.bus import Bus
 
     comms = Comms(resolve_comms_route(root))
     comms.registry.store.prepare_native_root()

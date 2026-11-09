@@ -1,14 +1,14 @@
 """Non-blocking native clipboard PNG capture for terminal image attachments."""
 
 import asyncio
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import hashlib
 import os
 import shutil
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
 
-from agent_comms.image_input import MAX_IMAGE_BYTES
+from agent_comms.execution.image_input import MAX_IMAGE_BYTES
 
 from toad import paths
 

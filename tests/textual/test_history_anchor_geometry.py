@@ -1,19 +1,23 @@
 """Textual-facing: reader positions work on the history window's scroll animation and the compositor's arranged layout."""
 
-import pytest
-
 from unittest.mock import patch
 
-from agent_comms.transcript_events import AssistantTranscript
+import pytest
+from agent_comms.transcript.transcript_events import AssistantTranscript
 from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
-from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.history_anchor import (
-    BlockPosition, FragmentNotLoaded, FragmentPosition, HistoryWindow, ReaderPosition, RowPosition,
+    BlockPosition,
+    FragmentNotLoaded,
+    FragmentPosition,
+    HistoryWindow,
+    ReaderPosition,
+    RowPosition,
     TailPosition,
 )
+from toad.widgets.transcript_fragments import TranscriptFragment
 
 
 def records(count):

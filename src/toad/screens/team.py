@@ -5,21 +5,30 @@ from __future__ import annotations
 import time
 from dataclasses import replace
 
-from agent_comms.team_hud import TeamHud
-from agent_comms.team_hud_records import HudRecord, HudSection, Teammate
 from agent_comms.coordination.errors import DeferredRead, ReadAgain
-from agent_comms.disclosure_text import (
-    AccentTone, DisclosureEntry, DisclosureKey, DisclosureText, ErrorTone, HudTone,
-    MutedTone, RootKey, SuccessTone, ViewTable, WarningTone,
-)
 from agent_comms.errors import RelationViolationError, RouteChangedError
-from agent_comms_hooks import ToolRefusedError
-from agent_comms.task_attachments.team_pings import AlarmGroup, AlarmSection
+from agent_comms.projects.work_branches import WorkBranchError
 from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.task_attachments.disclosure_text import (
+    AccentTone,
+    DisclosureEntry,
+    DisclosureKey,
+    DisclosureText,
+    ErrorTone,
+    HudTone,
+    MutedTone,
+    RootKey,
+    SuccessTone,
+    ViewTable,
+    WarningTone,
+)
+from agent_comms.task_attachments.team_pings import AlarmGroup, AlarmSection
+from agent_comms.team.team_hud import TeamHud
+from agent_comms.team.team_hud_records import HudRecord, HudSection, Teammate
 from agent_comms.transport.tools.reads import TeammateRead
-from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
 from agent_comms.ui_model.hud_groups import HudGroup
-from agent_comms.work_branches import WorkBranchError
+from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
+from agent_comms_hooks import ToolRefusedError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on
 from textual.app import ComposeResult
@@ -27,18 +36,23 @@ from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.styles import Styles
+from textual.events import Mount, Unmount
 from textual.message import Message
 from textual.style import Style
 from textual.widgets import Collapsible, Input, Static
-from toad.widgets.acting_button import ActingButton, DismissButton
-from toad.widgets.checkbox import Checkbox
 from ui_theme.scheme import (
-    AccentColour, ErrorColour, MutedColour, SuccessColour, ThemeColour, WarningColour,
+    AccentColour,
+    ErrorColour,
+    MutedColour,
+    SuccessColour,
+    ThemeColour,
+    WarningColour,
 )
 
 from toad.app_node import ToadNode
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.core_event_carrier import CoreEventReceiver
+from toad.keyed_rows import KeyedRows
 from toad.native_style import (
     AutoHeight,
     AutoWidth,
@@ -50,17 +64,23 @@ from toad.native_style import (
     StableGutter,
     StartsHidden,
 )
-from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ShadedScreen
-
+from toad.screens.modal import (
+    CenteredScreen,
+    DismissibleScreen,
+    ModalPanel,
+    ShadedScreen,
+)
+from toad.widgets.acting_button import ActingButton, DismissButton
+from toad.widgets.checkbox import Checkbox
 from toad.widgets.declared_disclosure import DeclaredDisclosure
 from toad.widgets.declared_table import (
-    DeclaredTable, EmptyTableSelection, SelectedTableRecord, SelectionView, TableSelection,
+    DeclaredTable,
+    EmptyTableSelection,
+    SelectedTableRecord,
+    SelectionView,
+    TableSelection,
 )
 from toad.worker_group import WorkerGroup
-from textual.events import Mount
-from textual.events import Unmount
-
-from toad.keyed_rows import KeyedRows
 
 
 class TeamDetailRead(WorkerGroup):

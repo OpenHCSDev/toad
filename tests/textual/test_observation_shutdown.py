@@ -8,12 +8,16 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
-
-from agent_comms.notification_reads import LiveNotificationRead
+from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import (
-    ObservationProcess, ObserverDied, ObserveNotifications, ReadNotifications, StopObserving,
+    ObservationProcess,
+    ObserveNotifications,
+    ObserverDied,
+    ReadNotifications,
+    StopObserving,
     StopSidebar,
 )
+
 from toad.comms_root import LocalAnsweringReads
 
 

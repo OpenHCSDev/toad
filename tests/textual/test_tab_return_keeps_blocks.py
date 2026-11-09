@@ -29,7 +29,7 @@ async def test_evicted_saved_tab_restores_before_its_first_published_frame(works
     import asyncio
     from dataclasses import replace
 
-    from agent_comms.session_file import RegistrySessionLocation
+    from agent_comms.execution.session_file import RegistrySessionLocation
     from support.journals import assistant_entry, write_journal
 
     saved = workspace.thread('saved-return')

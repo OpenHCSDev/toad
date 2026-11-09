@@ -6,27 +6,30 @@ The external observer separately receives the actual native producer's updates.
 from __future__ import annotations
 
 import asyncio
-from contextlib import AsyncExitStack, asynccontextmanager
-from functools import partial
 import os
 import shlex
 import sys
-from pathlib import Path
 from collections.abc import AsyncIterator
+from contextlib import AsyncExitStack, asynccontextmanager
+from functools import partial
+from pathlib import Path
 from typing import Any
 
 from agent_comms.acp import CommsAgent
 from agent_comms.acp_extension import (
-    McpClientAcknowledgementUpdate, TurnChangedUpdate, encode_updates,
+    McpClientAcknowledgementUpdate,
+    TurnChangedUpdate,
+    encode_updates,
 )
 from agent_comms.comms import wire
 from agent_comms.coordination.coordinator import Coordination
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, InputId, TurnId
-from agent_comms.launch_runtime import ThreadLaunch
+from agent_comms.execution.launch_runtime import ThreadLaunch
+from agent_comms.execution.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.execution.turn_lease import NoFinishedTurn
-from agent_comms.pi_wire import McpLiveAcknowledgement, McpServerReceipt
-from agent_comms.pi_payloads import ReadyMcpServerState, ConfirmMcpCallPolicy
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, InputId, TurnId
+from agent_comms.pi_payloads import ConfirmMcpCallPolicy, ReadyMcpServerState
 from textual.pilot import Pilot
+
 from toad.acp.agent import Agent
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation

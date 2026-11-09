@@ -9,24 +9,28 @@ from typing import ClassVar
 from agent_comms.messaging.channel_targets import ChannelSelection, CommandTarget
 from agent_comms.messaging.channel_targets import ChannelTarget as CoreChannelTarget
 from agent_comms.messaging.channel_targets import ThreadTarget as CoreThreadTarget
+from agent_comms.messaging.display_references import ThreadNames
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.comms_root import Observing
-from toad.work_preparation import PreparationRuntime
-from toad.core.events import CoreEvent
 from toad.constants import ALL_COMMS_TARGET
-from toad.navigation_context import NavigationContext, NavigationDestination, NavigationOwner
 from toad.conversation_kind import (
     ChannelConversation,
     ConversationKind,
     DmConversation,
     IrcConversation,
 )
+from toad.core.events import CoreEvent
+from toad.navigation_context import (
+    NavigationContext,
+    NavigationDestination,
+    NavigationOwner,
+)
 from toad.sidebar_contracts import TargetRows
 from toad.target_commands import TargetContext
+from toad.work_preparation import PreparationRuntime
 
-from agent_comms.display_references import ThreadNames
 
 @dataclass(frozen=True)
 class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):

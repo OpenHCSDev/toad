@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Iterator
 import inspect
 import json
 import os
-from pathlib import Path
 import shutil
 import time
 import warnings
+from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
-
 from support.agents import AppAgents
 from support.requirements import Requirement
 from support.roots import ATTEMPT, Roots
@@ -44,7 +43,7 @@ def pytest_addoption(parser):
 @pytest.fixture
 def launch_root(tmp_path):
     """The comms root the test's app selects: a private one; a module overrides it to need another."""
-    from agent_comms.launch_root import LaunchRoot
+    from agent_comms.execution.launch_root import LaunchRoot
 
     return LaunchRoot.from_path(tmp_path / "wire")
 

@@ -7,20 +7,25 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
 from typing import ClassVar
+
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
-from agent_comms.frozen_recipient import FrozenRecipient
-from agent_comms.transport.tools.sidebar import (ClearQueueQueueAction, CommsQueueActionTool, QueueAction,
-                                                  SendNowQueueAction)
+from agent_comms.messaging.frozen_recipient import FrozenRecipient
 from agent_comms.messaging.message_reference import MessageReference
-from agent_comms.notification_assignment import NotificationSelection
 from agent_comms.nominal.field_codec import ThreadLookup
+from agent_comms.notification_assignment import NotificationSelection
+from agent_comms.transport.tools.sidebar import (
+    ClearQueueQueueAction,
+    CommsQueueActionTool,
+    QueueAction,
+    SendNowQueueAction,
+)
 
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
 from toad.block_navigation import ConversationEntry
+from toad.comms_root import Observing
 from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines, MessageQueueEntry
-from toad.comms_root import Observing
 
 
 @dataclass(frozen=True)

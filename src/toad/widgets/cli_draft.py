@@ -2,16 +2,20 @@
 
 from functools import partial
 
-from agent_comms.external_transcript import DraftRow
-from agent_comms.transcript_sources import NoDraft
+from agent_comms.execution.transcript_sources import NoDraft
+from agent_comms.transcript.external_transcript import DraftRow
+from metaclass_registry.mro_dispatch import handles
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
-from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+
 from toad.block_navigation import ConversationBlock
+from toad.core.projection import MroProjection
 from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
+from toad.widgets.transcript_fragments import DraftBlocksRenderTask, FragmentPlan
 from toad.widgets.transcript_lines import (
     AcquiredRows,
     BlockLines,
@@ -21,10 +25,7 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     TranscriptLinesBatchRenderTask,
 )
-from toad.widgets.transcript_fragments import DraftBlocksRenderTask, FragmentPlan
-from toad.core.projection import MroProjection
 from toad.worker_group import WorkerGroup
-from metaclass_registry.mro_dispatch import handles
 
 
 class CliDraftRender(WorkerGroup):

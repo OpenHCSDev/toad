@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agent_comms.comms import Comms
-from agent_comms.core_access import LocalCoreAccess
+from agent_comms.transport.core_access import LocalCoreAccess
 
 from toad.core.context_reads import ContextReads
 

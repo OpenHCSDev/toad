@@ -1,11 +1,14 @@
 """Context measurement owns availability, sources and shared status text."""
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import floor
 from typing import NamedTuple
+
+from agent_comms.execution.context_reading import ContextReading, UnmeasuredContext
 from rich.text import Text as RichText
-from agent_comms.context_reading import ContextReading, UnmeasuredContext
+
 
 class Cost(NamedTuple):
     """A cost with associated currency."""

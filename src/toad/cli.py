@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import __main__
 import asyncio
 import importlib.util
 import shlex
@@ -9,22 +8,22 @@ import time
 
 import click
 import rich
-
-from agent_comms import launch_root
-from agent_comms.active_route import CommsRoute
-from agent_comms.launch_root import LaunchRoot
-from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.execution import launch_root
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.installer.active_route import CommsRoute
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.projects.checkouts import Checkout
-from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
+
+import __main__
 from toad import about, get_version, paths
 from toad.agent_schema import AgentDefinition
 from toad.agents import read_agents
 from toad.app import ToadApp
 from toad.application_lifetime import ApplicationLifetime
 from toad.comms_root import CoreConnection
+from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer
-from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 def persist_terminal_failure(error: Exception) -> None:

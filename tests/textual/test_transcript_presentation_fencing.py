@@ -1,16 +1,20 @@
 """Textual-facing: transcript presentations queue behind Textual's callback pump and paint into the conversation window."""
 
-from agent_comms.projects.checkouts import Checkout
 import asyncio
 import os
 from contextlib import asynccontextmanager
-import pytest
 
-from support.journals import assistant_entry, write_journal
-from agent_comms.session_file import RegistrySessionLocation
+import pytest
+from agent_comms.execution.session_file import RegistrySessionLocation
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
+from support.journals import assistant_entry, write_journal
+
 from toad.transcript_publication import (
-    CLEAN_PUBLICATION, COMMIT_DEMAND, CommitPublication, TranscriptPublication,
+    CLEAN_PUBLICATION,
+    COMMIT_DEMAND,
+    CommitPublication,
+    TranscriptPublication,
 )
 from toad.widgets.agent_response import AgentResponse
 
@@ -319,6 +323,7 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
 @pytest.mark.parametrize("pressure", (False, True))
 async def test_prune_pressure_counts_live_blocks_not_saved_history(workspace, pressure):
     from dataclasses import replace
+
     from toad.preferences import SETTINGS
 
     thread = workspace.thread("pressure-source")
@@ -368,6 +373,7 @@ async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
 @pytest.mark.parametrize("empty", (False, True))
 async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage_read(workspace, empty):
     from dataclasses import replace
+
     from toad.transcript_preparation import ClosedHistory, TranscriptPageRenderTask
     from toad.transcript_state import PreparedReplacementViewportRequest
     from toad.widgets.history_anchor import LatestPosition

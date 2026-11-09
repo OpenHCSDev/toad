@@ -8,23 +8,11 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
-from agent_comms.coordination.errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordination.coordinator import Coordination
-from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.nominal.field_codec import FieldCodec
-from metaclass_registry.mro_dispatch import handles
-from agent_comms.pi_payloads import NativeContextData
-from agent_comms.pi_payloads import PiMessage
-from agent_comms.presentation import ReadState
-from agent_comms.registry.registry_document import RegistryEntry
-from agent_comms.session_revision import SessionObservation
-from agent_comms.registry.thread_status import (
-    ActiveThreadPresence,
-    HeartbeatThreadStatus,
-    ThreadStatus,
-)
-from agent_comms.registry.threads import ExternalThread, Thread
+from agent_comms.coordination.errors import Refused
+from agent_comms.coordination.working_memory_annotations import WorkingMemoryAnnotations
+from agent_comms.execution.session_revision import SessionObservation
 from agent_comms.execution.turn_context import (
     CodexRolloutProvenance,
     ContextManifest,
@@ -35,10 +23,19 @@ from agent_comms.execution.turn_context import (
     SegmentManifest,
     TurnContext,
 )
-from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
-from agent_comms.working_memory_labels import ModelLabel
-from agent_comms.working_memory_questions import SpanAnswer
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.pi_payloads import NativeContextData, PiMessage
+from agent_comms.presentation import ReadState
 from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.registry_document import RegistryEntry
+from agent_comms.registry.thread_status import (
+    ActiveThreadPresence,
+    HeartbeatThreadStatus,
+    ThreadStatus,
+)
+from agent_comms.registry.threads import ExternalThread, Thread
+from agent_comms.transport.runtime_request import RuntimeRequest
 from agent_comms.transport.runtime_requests import (
     ContextAnnotationCorrectionRuntimeRequest,
     ContextCoreRuntimeRequest,
@@ -48,11 +45,13 @@ from agent_comms.transport.runtime_requests import (
     ContextRuntimeRequest,
     ContextSourceRuntimeRequest,
 )
-from agent_comms.transport.runtime_request import RuntimeRequest
+from agent_comms.working_memory.working_memory_labels import ModelLabel
+from agent_comms.working_memory.working_memory_questions import SpanAnswer
+from metaclass_registry.mro_dispatch import handles
 
+from toad.comms_root import Observing
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
-from toad.comms_root import Observing
 
 if TYPE_CHECKING:
     from agent_comms.context_store import (

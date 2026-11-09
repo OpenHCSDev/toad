@@ -2,28 +2,33 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from abc import abstractmethod
+from collections.abc import Callable
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
 from typing import Annotated, ClassVar
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
+from agent_comms.acp_extension import (
+    AgentCommsUpdate,
+    NoQueueScope,
+    QueueScope,
+    RequestFailedUpdate,
+)
+from agent_comms.messaging.sent_message import AssignedSourceIdentity
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.nominal.field_codec import PathText
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId, PathText
 from agent_comms.presentation import ReadState
-from agent_comms.sent_message import AssignedSourceIdentity
-from toad.plan import PlanItem
-from toad.acp.status import ToolCallStatus
-from toad.acp.sdk_boundary import ToolCallWire
-from toad.live_output import OutputStream, ThoughtStream
-from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
+from agent_comms.team.team_hud import TeamHud
+
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.worker_group import WorkerGroup
-from agent_comms.team_hud import TeamHud
+from toad.acp.sdk_boundary import ToolCallWire
+from toad.acp.status import ToolCallStatus
+from toad.live_output import OutputStream, ThoughtStream
+from toad.plan import PlanItem
 from toad.tab_identity import TabIdentity
-from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
+from toad.worker_group import WorkerGroup
 
 
 class ThreadInterestUpdate(WorkerGroup):
@@ -343,6 +348,7 @@ class AgentFail(CoreEvent):
 
     async def present(self, view) -> None:
         from textual.content import Content
+
         from toad.widgets.note import ErrorNote
 
         if self.message:
@@ -397,9 +403,10 @@ class FailureLog:
     log_path: Path
 
     async def show_log(self, view) -> None:
+        from agent_comms.ui_model.message_category import OtherCategory
+
         from toad.project_link import AcpLogLink
         from toad.widgets.agent_response import AgentResponse
-        from agent_comms.ui_model.message_category import OtherCategory
 
         link = AgentResponse(AcpLogLink.markdown(self.log_path),
                              show_divider=False, category=OtherCategory)

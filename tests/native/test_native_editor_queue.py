@@ -1,9 +1,9 @@
 """Enter in the editor while a native turn runs queues the input; leaving and returning by tab click keeps the editor."""
 
+from agent_comms.execution.pi_vocabulary import HighThinkingLevel
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.pi_vocabulary import HighThinkingLevel
-
 from support.native import native_session
+
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import channel_target
 from toad.widgets.comms_menu import ContextMenu

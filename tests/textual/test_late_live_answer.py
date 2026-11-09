@@ -2,28 +2,31 @@
 covers it is drawn once, never twice, whichever way the saved history arrived."""
 
 import asyncio
-from dataclasses import replace
 import os
+from dataclasses import replace
 
 import pytest
 from agent_comms.acp_extension import (
-    NativeOutputCommittedUpdate, NativeRoundCommittedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate,
+    NativeOutputCommittedUpdate,
+    NativeRoundCommittedUpdate,
+    TranscriptSnapshotUpdate,
+    TurnChangedUpdate,
 )
 from agent_comms.execution.native_output import AssistantOutput, NativeOutputLocation
-from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.nominal.field_codec import FieldCodec, TurnId
+from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.execution.turn_lease import (
     ActiveTurn,
     FinishedTurn,
     TurnState,
 )
 from agent_comms.execution.turn_phase import PublishingPhase
-
-from toad.core.events import CommsUpdated, Update
-from toad.transcript_publication import CommitPublication
+from agent_comms.nominal.field_codec import FieldCodec, TurnId
 from support.agents import deliver
 from support.coordination import carrying
 from support.journals import assistant_entry, write_journal
+
+from toad.core.events import CommsUpdated, Update
+from toad.transcript_publication import CommitPublication
 
 TOKEN = "LATE_LIVE_ANSWER"
 
@@ -159,8 +162,9 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
 
 async def test_an_advancing_commit_retires_the_outgoing_body_and_its_tool_report(workspace):
     from acp.schema import ToolCall as AcpToolCall
-    from agent_comms.sent_message import PublishedSentMessage
-    from agent_comms.transcript_events import SentTranscript
+    from agent_comms.messaging.sent_message import PublishedSentMessage
+    from agent_comms.transcript.transcript_events import SentTranscript
+
     from toad.acp.status import ToolCallStatus
     from toad.tool_output import ToolOutput
     from toad.widgets.outgoing_message import OutgoingMessage

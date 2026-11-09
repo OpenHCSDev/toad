@@ -3,12 +3,13 @@
 Run as a script by ``terminal/test_first_frame.py``: ``first_frame_app.py PROJECT``.
 """
 import json
-from pathlib import Path
 import shlex
 import sys
+from pathlib import Path
 from time import monotonic_ns
 
 from textual.widgets import Input
+
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.launch_binding import AgentAttached
@@ -50,9 +51,10 @@ class FrameApp(ToadApp):
 
 if __name__ == "__main__":
     peer = Path(__file__).with_name("peers") / "first_frame.py"
-    from agent_comms.launch_root import LaunchRoot
-    from toad.comms_root import LocalCoreConnection
+    from agent_comms.execution.launch_root import LaunchRoot
     from agent_comms.projects.checkouts import Checkout
+
+    from toad.comms_root import LocalCoreConnection
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()

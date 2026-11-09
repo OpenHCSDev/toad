@@ -1,18 +1,18 @@
 """Textual-facing: downward wheel travel never publishes a backwards reader after page eviction."""
 
 import asyncio
-from functools import partial
 import gzip
+from functools import partial
 from pathlib import Path
 
+from agent_comms.execution.session_file import RegistrySessionLocation
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.threads import NativeThread
 from textual import events
 from textual.pilot import _get_mouse_message_arguments
 
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.registry.threads import NativeThread
-from toad.link_click import OpenLineLink
 from toad.app import ToadApp
+from toad.link_click import OpenLineLink
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
 from toad.screens.workspace import WorkspaceScreen

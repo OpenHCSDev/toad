@@ -1,8 +1,7 @@
 """Reconnecting to a native owner shows each saved answer exactly once, even when two answers have the same text."""
 
-from agent_comms.transcript_events import AssistantTranscript, UserTranscript
 import pytest
-
+from agent_comms.transcript.transcript_events import AssistantTranscript, UserTranscript
 from support.native import ControlledProvider, native_session
 
 BODY = "EQUAL_NATIVE_REPLY"

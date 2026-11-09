@@ -13,9 +13,9 @@ from collections.abc import Awaitable, Callable
 from concurrent.futures import ProcessPoolExecutor
 from typing import TypeVar
 
-from agent_comms import launch_root
+from agent_comms.execution import launch_root
 from agent_comms.execution.child_process import HelperStart
-from agent_comms.launch_runtime import ThreadLaunch
+from agent_comms.execution.launch_runtime import ThreadLaunch
 
 from toad.render_backend import Renderer, RenderTask
 from toad.work_preparation import PreparedValue

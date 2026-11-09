@@ -6,16 +6,16 @@ Usage: ``typed_turn_events.py <wire> <project>``.
 """
 
 import asyncio
+import json
+import sys
 from contextlib import AsyncExitStack
 from functools import partial
-import json
 from pathlib import Path
-import sys
 
 import agent_comms.agent_events as agent_events
 from agent_comms.agent_event_updates import AcpEventConsumer
-from agent_comms.controller import SessionUpdateSink
 from agent_comms.coordination.coordinator import Coordination
+from agent_comms.execution.controller import SessionUpdateSink
 from agent_comms.nominal.field_codec import AcpSessionId, TurnId
 from mcp_turn_boundaries import turn_source
 

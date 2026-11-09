@@ -3,24 +3,42 @@
 import json
 from dataclasses import replace
 
-from agent_comms.team.vibe_check import OverloadDegradation
-from agent_comms.team_hud import TeamFrame, TeamHud, TeamPlan, CodexUsage, UnreadableUsage
-from agent_comms.team_hud_records import HudRecord, Teammate
-from agent_comms.disclosure_text import DisclosureEntry, DisclosureText, FieldKey, RootKey, StructuredText
-from agent_comms.recorded_time import RecordedEventTime
-from agent_comms.team.standing_rules import ServicePassFailing
-from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
 from agent_comms.registry.thread_identity import RecordedThreadIncarnation
+from agent_comms.storage.recorded_time import RecordedEventTime
+from agent_comms.task_attachments.disclosure_text import (
+    DisclosureEntry,
+    DisclosureText,
+    FieldKey,
+    RootKey,
+    StructuredText,
+)
+from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
+from agent_comms.team.standing_rules import ServicePassFailing
+from agent_comms.team.team_hud import (
+    CodexUsage,
+    TeamFrame,
+    TeamHud,
+    TeamPlan,
+    UnreadableUsage,
+)
+from agent_comms.team.team_hud_records import HudRecord, Teammate
+from agent_comms.team.vibe_check import OverloadDegradation
 from agent_comms.ui_model.observation import ObserveTeamHud
 from agent_comms.ui_model.teammate_state import Detached, Moving, PendingClock
 from support.workspace import Workspace
-from textual.worker import Worker, WorkerState
 from textual.widgets import Button, Static
+from textual.worker import Worker, WorkerState
 
 from toad.comms_root import FailedObservation, UnselectedRoute
 from toad.core.events import TeamHudChanged
 from toad.screens.team import (
-    HudError, HudRows, TeamAlarm, TeamFrameView, TeamGroup, TeamPage, TeamTable,
+    HudError,
+    HudRows,
+    TeamAlarm,
+    TeamFrameView,
+    TeamGroup,
+    TeamPage,
+    TeamTable,
 )
 from toad.widgets.declared_disclosure import DeclaredDisclosure
 from toad.widgets.declared_table import EmptyTableSelection, SelectedTableRecord

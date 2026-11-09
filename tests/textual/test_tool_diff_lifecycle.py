@@ -1,9 +1,9 @@
 """Textual-facing: a tool call's diff, prepared by the render worker processes, survives being hidden and shown, replaced, retheme'd, collapsed, remounted and removed."""
 
-from agent_comms.tool_results import ToolDiff, tool_result_content
+from agent_comms.execution.tool_results import ToolDiff, tool_result_content
+from support.textual_steps import tool_status, wait_for_tool_diff
 from textual.screen import Screen
 
-from support.textual_steps import tool_status, wait_for_tool_diff
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.tool_content import ToolContent
 

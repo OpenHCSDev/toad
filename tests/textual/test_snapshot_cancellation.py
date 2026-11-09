@@ -3,18 +3,18 @@
 Textual owns mounting, pruning and unmount of the history widgets that the publication replaces.
 """
 
-from agent_comms.session_file import RegistrySessionLocation
 import asyncio
-from dataclasses import replace
 import os
+from dataclasses import replace
 
-from agent_comms.execution.child_process import ProcessIdentity
 import pytest
-from textual.worker import WorkerCancelled
-
+from agent_comms.execution.child_process import ProcessIdentity
+from agent_comms.execution.session_file import RegistrySessionLocation
 from support import journals
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
+from textual.worker import WorkerCancelled
+
 from toad.live_output import ResponseStream
 
 

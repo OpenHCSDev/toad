@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from abc import abstractmethod
 from dataclasses import dataclass
-import os
 
-from agent_comms.command import Command
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.planning.command import Command
+
 from toad.mcp_declarations import Declaration, Inventory
 
 

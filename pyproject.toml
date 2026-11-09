@@ -52,7 +52,7 @@ textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git
 [project.scripts]
 toad = "toad.cli:main"
 
-[project.entry-points."agent_comms.runtime_preparation"]
+[project.entry-points."agent_comms.installer.runtime_preparation"]
 neovim = "toad.neovim_runtime:Neovim"
 
 [project.entry-points."agent_comms.writer_owned_stores"]

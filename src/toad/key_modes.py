@@ -1,9 +1,10 @@
 """Saved profiles select an editing owner, not a handwritten command subset."""
 from __future__ import annotations
 
-from agent_comms.declared_choice import DeclaredChoice
+from agent_comms.nominal.declared_choice import DeclaredChoice
 from textual.document._editing import EditingMode, VimMode
 from textual.keys import NavigationKey
+
 from toad.neovim_editing import NeovimEditing
 
 

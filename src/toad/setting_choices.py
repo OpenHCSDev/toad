@@ -9,7 +9,7 @@ from random import choice
 from threading import Lock
 from typing import ClassVar
 
-from agent_comms.declared_choice import DeclaredChoice, TitledChoice
+from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from textual.color import TRANSPARENT, Color
 from textual.content import Content
 from textual.css._style_properties import Edges

@@ -1,13 +1,11 @@
 """Textual-facing: the right-hand relationship panel (collapsible side bar, row widgets, menus) follows Core's relationships."""
-from toad.widgets.side_bar import ThreadSidebar
 from pathlib import Path
-
-from agent_comms.projects.checkouts import Checkout
 from unittest.mock import patch
 
-from agent_comms.activity import ActivityState
 from agent_comms.display_order import LastActivityThreadSort
-from agent_comms.relationships import (
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.activity import ActivityState
+from agent_comms.registry.relationships import (
     AddRelationshipEdit,
     ChildrenRelationshipGroup,
     CollaboratingRelationshipGroup,
@@ -21,8 +19,10 @@ from agent_comms.registry.thread_text import (
     NoParent,
 )
 from agent_comms.registry.threads import NativeThread
-from agent_comms.tool_caller import ThreadCaller
+from agent_comms.transport.tool_caller import ThreadCaller
 from agent_comms.transport.tools.served import invoke_tool
+
+from toad.widgets.side_bar import ThreadSidebar
 
 
 async def reveal(ui, session):

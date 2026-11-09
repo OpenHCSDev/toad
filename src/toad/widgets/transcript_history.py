@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from bisect import bisect_right
 from collections import deque
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import accumulate, chain, islice
@@ -14,22 +14,27 @@ from typing import TYPE_CHECKING, ClassVar, Final
 from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
-from metaclass_registry.mro_dispatch import handles
-from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
-from agent_comms.transcript_events import TranscriptEvent
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.messaging.sent_message import (
+    OutgoingMessageReference,
+    PublishedSentMessage,
+)
+from agent_comms.nominal.fold import Absorbs, Accumulates, Fold
+from agent_comms.transcript.transcript_events import TranscriptEvent
+from agent_comms.transcript.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.ui_model.message_category import (
     MessageCategory,
     all_categories,
 )
+from metaclass_registry.mro_dispatch import handles
 from rich.style import Style as RichStyle
 from textual import on
 from textual._compositor import IntrinsicSubtreeGeometry
-from toad.widget_actions import Activates
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
+from textual.events import Hide, Mount
 from textual.geometry import Region, Size
 from textual.message import Message
 from textual.strip import Strip
@@ -38,6 +43,7 @@ from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
+from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.frame_presentation import ARRIVAL, ArrivalRun
 from toad.history_coverage import CoveredHistory, HistoryCoverage, ReportsCoveredPages
@@ -51,7 +57,7 @@ from toad.native_style import (
 )
 from toad.no_worker import NoWorker
 from toad.session_scope import SessionScope
-from toad.transcript_filter import FilterState
+from toad.transcript_filter import Filtered, FilterState
 from toad.transcript_preparation import (
     ClosedHistory,
     PageFragmentRange,
@@ -73,8 +79,8 @@ from toad.transcript_state import (
     ReplacementViewportRequest,
     TranscriptState,
 )
+from toad.widget_actions import Activates
 from toad.widgets.committed_presentation import SnapshotPresentation
-from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim
 from toad.widgets.history_anchor import (
     FragmentLocation,
     FragmentNotLoaded,
@@ -108,7 +114,6 @@ from toad.widgets.transcript_fragments import (
     Shown,
     TranscriptFragment,
 )
-from agent_comms.nominal.fold import Absorbs, Accumulates, Fold
 from toad.widgets.transcript_lines import (
     BlockLines,
     BlockSpan,
@@ -117,10 +122,6 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     TranscriptLinesBatchRenderTask,
 )
-from agent_comms.messaging.message_reference import MessageReference
-from toad.transcript_filter import Filtered
-from textual.events import Mount
-from textual.events import Hide
 
 if TYPE_CHECKING:
 

@@ -3,12 +3,18 @@
 from collections.abc import Awaitable, Callable
 
 from agent_comms.coordination.errors import Refused
+from agent_comms.messaging.mentions import MentionCandidate
 from agent_comms.planning.goals import Goal
-from agent_comms.mentions import MentionCandidate
 from agent_comms.projects.checkouts import Checkout
+from metaclass_registry.mro_dispatch import handles
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup
-from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
+from textual.events import Mount
+from textual.widgets import Button, Static
+
+from toad.core.input_events import UserInputSubmitted
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.native_style import (
     AutoHeight,
     MutedText,
@@ -16,16 +22,14 @@ from toad.native_style import (
     SpacedAround,
     SpacedBelow,
 )
-from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ShadedScreen
-
-from textual.widgets import Button, Static
-
-from toad.core.input_events import UserInputSubmitted
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from metaclass_registry.mro_dispatch import handles
+from toad.screens.modal import (
+    CenteredScreen,
+    DismissibleScreen,
+    ModalPanel,
+    ShadedScreen,
+)
+from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
 from toad.widgets.channel_prompt import DraftPrompt
-from textual.events import Mount
-from textual import on
 
 
 class GoalEditPanel(AutoHeight, ModalPanel):

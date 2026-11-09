@@ -5,29 +5,27 @@ and saved session."""
 import json
 from datetime import UTC, datetime
 from importlib import import_module
+
 from agent_comms import cli_verbs
+from agent_comms.cli_verbs.archive import ArchiveCliCommand
+from agent_comms.cli_verbs.cli_command import CliCommand
 from agent_comms.execution.native_entries import SessionEntry
-from agent_comms.projects.checkouts import Checkout
+from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.messaging.read_basis import NamedViewer
-from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.cli_command import CliCommand
-from agent_comms.cli_verbs.archive import ArchiveCliCommand
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.planning.goal_actions import SetGoalAction
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_status import (
     ArchivedThreadStatus,
     StoppedThreadStatus,
 )
 from agent_comms.registry.threads import NativeThread
 from textual.geometry import Offset
+
 from toad.db import DB
-from toad.widgets.sidebar_tree import CommsRow
 from toad.widgets.comms_sidebar import CommsSidebar
-from agent_comms.nominal.field_codec import AcpSessionId
-
-
-
-
+from toad.widgets.sidebar_tree import CommsRow
 
 
 async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_history(workspace, tmp_path, monkeypatch):

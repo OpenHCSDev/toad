@@ -6,24 +6,24 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Iterable
 from dataclasses import dataclass, replace
 
+from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.messaging.notification_reads import LiveNotificationRead
+from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
+from agent_comms.storage.maintenance_barrier import MaintenanceHeldError
+from agent_comms.ui_model.observation import ReadNotifications
+from textual import on
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.styles import Styles
-from textual.worker import Worker
+from textual.events import Hide, Mount, Show, Unmount
 from textual.widgets import Collapsible
 from textual.widgets._collapsible import CollapsibleTitle
+from textual.worker import Worker
 
-from agent_comms.storage.maintenance_barrier import MaintenanceHeldError
-from agent_comms.notification_reads import LiveNotificationRead
-from agent_comms.ui_model.observation import ReadNotifications
-from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
-from agent_comms.messaging.message_reference import MessageReference
 from toad.app_node import ToadNode
 from toad.comms_subscribers import NotificationSubscriber
 from toad.messages import QueueEvidenceOwner
-from toad.project_path_owner import ProjectPathOwner
-from toad.widgets.tool_content import ToolContent
 from toad.native_style import (
     Borderless,
     EllipsisOverflow,
@@ -34,15 +34,16 @@ from toad.native_style import (
     OneRow,
     TransparentBackground,
 )
-
 from toad.notification_status import (
-    CheckedNotifications, MessageQueueEntry, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    CheckedNotifications,
+    MessageQueueEntry,
+    NotificationStatus,
+    UnavailableNotifications,
+    UncheckedNotifications,
 )
-from textual.events import Mount
-from textual import on
-from textual.events import Unmount
-from textual.events import Hide
-from textual.events import Show
+from toad.project_path_owner import ProjectPathOwner
+from toad.widgets.tool_content import ToolContent
+
 
 class NotificationTitle(
     NoPadding,

@@ -5,15 +5,15 @@ import asyncio
 from pathlib import Path
 from types import SimpleNamespace
 
-from agent_comms.messaging.channel_targets import ThreadTarget
 from agent_comms.cli_verbs.channels import ChannelsCliCommand
-from agent_comms.cli_command import (
+from agent_comms.cli_verbs.cli_command import (
     TargetBatchResult,
     TargetCompleted,
     TargetFailed,
 )
-from agent_comms.cli_result import ResultShower, ToolCatalogResult
-from agent_comms.restart_refusals import OwnerBusyRefusal
+from agent_comms.cli_verbs.cli_result import ResultShower, ToolCatalogResult
+from agent_comms.execution.restart_refusals import OwnerBusyRefusal
+from agent_comms.messaging.channel_targets import ThreadTarget
 
 from toad.thread_actions import ThreadActionExecution
 

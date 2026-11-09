@@ -12,17 +12,14 @@ from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination.errors import DMScopeChanged, Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
-from metaclass_registry.mro_dispatch import handles
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transcripts import TranscriptCursor
+from agent_comms.transcript.transcripts import TranscriptCursor
+from metaclass_registry.mro_dispatch import handles
 from textual import getters, on
 from textual.app import ComposeResult
-from textual.document._editing import EditingMode
-from toad.widget_actions import (
-    TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction, DeclaredWidgetActions,
-    NativeMethodKeys, WidgetAction,
-)
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
+from textual.document._editing import EditingMode
+from textual.events import Mount
 from textual.reactive import Required, var
 from textual.widget import Widget
 from textual.widgets import (
@@ -33,12 +30,15 @@ from textual.widgets import (
 )
 
 from toad.acp.agent_session import SessionDisposition
+from toad.agent_binding import AgentConnection
+from toad.app_node import ToadNode
+from toad.command_target_scope import CommandTargetScope
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
+from toad.launch_binding import AgentBinding, NoAgent
 from toad.navigation_context import NavigationContext
-from toad.command_target_scope import CommandTargetScope
 from toad.navigation_target import (
     DirectTarget,
     FeedTarget,
@@ -48,12 +48,22 @@ from toad.navigation_target import (
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
-from toad.agent_binding import AgentConnection
-from toad.session_presentation import OperationalSessionPresentation, OperationalSessionSources
-from toad.launch_binding import AgentBinding, NoAgent
+from toad.session_presentation import (
+    OperationalSessionPresentation,
+    OperationalSessionSources,
+)
 from toad.session_scope import ViewSessionOrigin
 from toad.session_tracker import SessionDetails
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
+from toad.widget_actions import (
+    CyclesSessions,
+    DeclaredWidgetActions,
+    HiddenActions,
+    NativeMethodKeys,
+    SessionNavigationAction,
+    TogglesIrc,
+    WidgetAction,
+)
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation, SourcesScope
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
@@ -62,8 +72,6 @@ from toad.widgets.project_panel import NO_PROJECT_VIEW, ProjectSearchButton, Pro
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBar
 from toad.widgets.splash_text import ThreadLoading
-from toad.app_node import ToadNode
-from textual.events import Mount
 
 
 class SessionCommands(Provider):

@@ -4,12 +4,24 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
-from typing import ClassVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.frozen_recipient import FrozenRecipient
+from agent_comms.messaging.frozen_recipient import FrozenRecipient
+from agent_comms.messaging.message_notification import MessageNotification
 from agent_comms.messaging.message_reference import MessageReference
-from agent_comms.message_notification import MessageNotification
-from toad.line_blocks import LineBlock, LineLink, LineRole, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
+
+from toad.line_blocks import (
+    LineBlock,
+    LineLink,
+    LineRole,
+    MutedRole,
+    NameRole,
+    NoticeRole,
+    OpenTarget,
+    Span,
+    SpanColumns,
+    WorkingRole,
+)
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import Shown

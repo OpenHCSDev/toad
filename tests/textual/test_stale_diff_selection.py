@@ -2,13 +2,12 @@
 
 from unittest.mock import patch
 
+from agent_comms.execution.tool_results import ToolDiff, tool_result_content
+from support.textual_steps import tool_status, wait_for_tool_diff
 from textual import events
 from textual.geometry import Offset
 from textual.screen import Screen
 
-from agent_comms.tool_results import ToolDiff, tool_result_content
-
-from support.textual_steps import tool_status, wait_for_tool_diff
 from toad.widgets.tool_call import ToolCall
 
 

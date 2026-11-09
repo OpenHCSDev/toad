@@ -4,11 +4,14 @@ and remote failure facts never overwrite what the user is typing."""
 from unittest.mock import patch
 
 from acp.exceptions import RequestError
-
-from agent_comms.acp_extension import InputFailedUpdate, RequestFailedUpdate, encode_updates
-from agent_comms.acp_failure import BackendDeliveryFailure
-
+from agent_comms.acp_extension import (
+    InputFailedUpdate,
+    RequestFailedUpdate,
+    encode_updates,
+)
+from agent_comms.execution.acp_failure import BackendDeliveryFailure
 from support.agents import deliver
+
 from toad.conversation_submission import ImmediateInputSubmission
 from toad.core.input_events import UserInputSubmitted
 
@@ -179,9 +182,9 @@ async def test_a_send_whose_reply_cannot_be_read_returns_the_draft(workspace):
     loudly, and the draft comes back instead of a queue entry nothing is running.
     A remote Toad once decoded a published send's reply as abstract ToolResult and stayed held."""
     import pytest
+    from agent_comms.nominal.field_codec import UnsupportedFieldType
     from textual.worker import WorkerFailed
 
-    from agent_comms.nominal.field_codec import UnsupportedFieldType
     from toad.comms_root import Observing
     from toad.widgets.comms_chat import CommsChatView
 

@@ -1,87 +1,94 @@
-from toad.core import events as core_events
-from agent_comms.storage.locked_store import RootFile
-from toad.workspace_chrome import WorkspaceChrome
-from toad.workspace_sessions import WorkspaceHost, WorkspaceSessionShutdown, WorkspaceSessions
-from inspect import isabstract
-from toad.comms_root import CoreConnection
-
-from toad.thread_actions import ThreadActions
-from toad.widgets.comms_transfer import Transfers
-from toad.neovim_editing import HostsNeovim
 import asyncio
-import signal
-import time
 import gc
-import sys
 import json
 import os
+import signal
+import sys
+import time
 from enum import IntEnum
 from functools import cached_property
+from inspect import isabstract
 from pathlib import Path
 from time import monotonic
 from typing import Callable, Never, TypeVar, cast
 
-from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
-from agent_comms.launch_runtime import LaunchRuntime
+from agent_comms.execution.launch_runtime import LaunchRuntime
+from agent_comms.execution.root_runtime import RootRuntime
+from agent_comms.nominal.field_codec import (
+    AcpSessionId,
+    NoAcpSessionId,
+    boundary_decoder,
+)
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.tailnet_buses import PeerBus
-from agent_comms.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
+from agent_comms.storage.locked_store import RootFile
+from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
+from agent_comms.transport.tailnet_buses import PeerBus
+from agent_comms.transport.tailnet_profiles import (
+    AskedPeer,
+    HoldingPeerProfile,
+    TailnetProfiles,
+)
 from agent_comms.transport.tools.tailnet import CommsTailnetProfileTool
-from agent_comms.root_runtime import RootRuntime
-from toad.core import input_events
+from metaclass_registry.mro_dispatch import handles
 from rich.console import RenderableType
-from textual._time import after_input
 from textual import events, on, work
+from textual._time import after_input
 from textual.await_complete import AwaitComplete
 from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import Required, var
 from textual.widget import Widget
 from textual.widgets import LoadingIndicator
-
-from toad.core import session_requests
-from metaclass_registry.mro_dispatch import handles
-from toad.launch_binding import AgentBinding
-from toad.session_scope import SessionScope
-from toad.render_backend import PreparedRenderer, Renderer, RenderTask
-from toad.render_processes import RenderProcessPool
-from toad.file_kind import FileKind
-from toad.screens.workspace import WorkspaceScreen
 from textual.widgets._footer import KeyGroup
 from textual.widgets.markdown import Markdown
-from toad.screens import comms, main  # noqa: F401 - register widget classes
-from toad.widgets import tool_call  # noqa: F401 - register widget classes
-from toad.work_preparation import PreparationRuntime
+
+from toad.application_actions import ApplicationCommands
+from toad.application_lifetime import ApplicationLifetime
+from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
+from toad.bus_selection import BusChoice, HeldBus, PickerRow
+from toad.clipboard import Clipboard
+from toad.comms_root import CoreConnection
+from toad.constants import WELCOME
+from toad.core import events as core_events
+from toad.core import input_events, session_requests
+from toad.db import DB
+from toad.file_kind import FileKind
+from toad.launch_binding import AgentBinding
+from toad.native_style import TransparentBackground
 from toad.navigation_preparation import (
     NavigationReader,
 )
-from toad.db import DB
+from toad.neovim_editing import HostsNeovim
 from toad.preferences import SavedSettings
+from toad.render_backend import PreparedRenderer, Renderer, RenderTask
+from toad.render_processes import RenderProcessPool
+from toad.resource_release import AsyncResourceRelease
+from toad.screens import comms, main  # noqa: F401 - register widget classes
+from toad.screens.workspace import WorkspaceScreen
+from toad.session_navigation import SessionNavigation
+from toad.session_scope import SessionScope
 from toad.session_tracker import (
     OpenTab,
     SessionTracker,
     SidebarState,
 )
 from toad.sidebar_layout import SidebarLayout
-from toad.terminal_origin import TerminalOrigin
-from toad.clipboard import Clipboard
-from toad.constants import WELCOME
 from toad.tab_identity import TabIdentity
 from toad.tab_order import TabOrder
-from toad.thread_navigation import ThreadNavigator
-from toad.session_navigation import SessionNavigation
 from toad.terminal_attention import TerminalAttention
-from toad.application_actions import ApplicationCommands
+from toad.terminal_origin import TerminalOrigin
+from toad.thread_actions import ThreadActions
+from toad.thread_navigation import ThreadNavigator
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
-from toad.application_lifetime import ApplicationLifetime
-from agent_comms.nominal.field_codec import boundary_decoder
-from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
-from toad.resource_release import AsyncResourceRelease
-from toad.native_style import TransparentBackground
-from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
-
-from toad.bus_selection import BusChoice, HeldBus, PickerRow
-
+from toad.widgets import tool_call  # noqa: F401 - register widget classes
+from toad.widgets.comms_transfer import Transfers
+from toad.work_preparation import PreparationRuntime
+from toad.workspace_chrome import WorkspaceChrome
+from toad.workspace_sessions import (
+    WorkspaceHost,
+    WorkspaceSessions,
+    WorkspaceSessionShutdown,
+)
 
 RenderResultT = TypeVar("RenderResultT")
 

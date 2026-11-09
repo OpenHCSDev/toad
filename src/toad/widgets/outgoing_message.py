@@ -1,21 +1,24 @@
 """A message this thread just sent on the bus, drawn live."""
 
-from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.messaging.sent_message import PublishedSentMessage
+from agent_comms.ui_model.message_category import OutboundCategory
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 
 from toad.block_navigation import CategorizedBlock, SeparatedBlock
-from toad.message_rows import MessageRow
+from toad.commit_claims import CommitParticipant, OutgoingMessageClaim
+from toad.message_rows import LiveMessageClock, MessageRow
+from toad.notification_status import (
+    CheckedNotifications,
+    MessageQueueEntry,
+    NotificationStatus,
+)
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
-from toad.message_rows import LiveMessageClock
-from toad.widgets.message_divider import MessageRowDivider
-from agent_comms.ui_model.message_category import OutboundCategory
-from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.linked_rows import MessageRowBlock
+from toad.widgets.message_divider import MessageRowDivider
+from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.message_row_owner import MessageRowOwner
-from toad.notification_status import CheckedNotifications, MessageQueueEntry, NotificationStatus
-from toad.commit_claims import CommitParticipant, OutgoingMessageClaim
 
 
 class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, SeparatedBlock, CategorizedBlock, VerticalGroup):

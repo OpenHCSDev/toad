@@ -10,11 +10,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import ClassVar
 
-from agent_comms.connector_store import (
+from agent_comms.transport.connector_store import (
     HeldUiProfiles,
     OpenableProfile,
 )
-from agent_comms.tailnet_buses import PeerHoldsBus
+from agent_comms.transport.tailnet_buses import PeerHoldsBus
 from textual.abstract_hooks import AbstractHooksMeta
 
 
@@ -160,6 +160,6 @@ class DiscoveredPeer(PickerRow):
 
         Tristan: "it's a bus on my private tailnet why would want to have to jupm throuhg
         hoops". The peer decides whether its endpoint is tailnet-only and says no itself
-        when it is not (agent_comms.served_endpoints.ProfileOffer).
+        when it is not (agent_comms.transport.served_endpoints.ProfileOffer).
         """
         app.ask_peer_for_profile(self.found)

@@ -2,27 +2,26 @@
 
 from __future__ import annotations
 
-from toad.core import session_requests
-
 from abc import ABC, abstractmethod
 from asyncio import CancelledError
 from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING, Self
 
-from textual.geometry import Region
-
-from agent_comms.projects.checkouts import Checkout
+from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.messaging.channel_targets import (
     ChannelSelection,
     CommandTarget,
     NoChannel,
 )
-from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
-from agent_comms.cli_command import TargetAction
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
-from toad.thread_actions import ThreadAction
+from textual.geometry import Region
+
 from toad.comms_root import Observing
+from toad.core import session_requests
+from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
+from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
     from toad.app import ToadApp

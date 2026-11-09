@@ -27,7 +27,7 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.context_reading import UnmeasuredContext
+from agent_comms.execution.context_reading import UnmeasuredContext
 from agent_comms.execution.native_output import AssistantOutput, ToolOutput
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.planning.goal_presentation import (
@@ -39,7 +39,7 @@ from agent_comms.registry.thread_presentation import (
     NoThreadPresentation,
     ThreadPresentation,
 )
-from agent_comms.transcripts import NativeCommittedPrefix
+from agent_comms.transcript.transcripts import NativeCommittedPrefix
 from agent_comms.transport.tools.reads import OwnerGoalRead
 from agent_comms.ui_model.observation import ReadOwnerOperation
 from metaclass_registry.mro_dispatch import MroDispatch, handles

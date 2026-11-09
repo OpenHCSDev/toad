@@ -3,20 +3,23 @@
 from __future__ import annotations
 
 import asyncio
+import pickle
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
 from hashlib import sha256
 from itertools import islice
 from pathlib import Path
-import pickle
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
-from agent_comms.historical_views import ConversationObservation, UnobservedConversation
+from agent_comms.messaging.historical_views import (
+    ConversationObservation,
+    UnobservedConversation,
+)
+from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.nominal.field_codec import ContentExclude, FieldCodec
-from agent_comms.sent_message import OutgoingMessageReference
-from agent_comms.transcripts import (
+from agent_comms.transcript.transcripts import (
     TranscriptCursor,
     TranscriptPage,
     UnreadTranscriptCursor,

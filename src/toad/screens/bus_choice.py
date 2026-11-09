@@ -9,24 +9,23 @@ from __future__ import annotations
 
 import time
 
+from agent_comms.transport.tailnet_buses import NamedHost, PeerBus
+from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
 from textual import on, work
-from textual.binding import Binding
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
+from textual.events import Mount
+from textual.widget import Widget
 from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
-from agent_comms.tailnet_buses import NamedHost, PeerBus
-from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
+from toad.bus_selection import BusChoice, DiscoveredPeer, PickerRow
 from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
-from textual.widget import Widget
 from toad.widget_actions import PriorityActions
-from textual.events import Mount
-
-from toad.bus_selection import BusChoice, DiscoveredPeer, PickerRow
 
 
 class BusPanel(SurfacePanel):
