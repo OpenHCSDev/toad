@@ -776,7 +776,7 @@ class LocalObserving(Observing):
 
     @property
     def core(self) -> CoreAccess:
-        return LocalCoreAccess(self.service)
+        return LocalCoreAccess(self.service, self.process)
 
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         return self if self.selection == selected else access.open_selected(selected)
