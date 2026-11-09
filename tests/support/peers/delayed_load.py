@@ -5,19 +5,26 @@ the project and waits until the test releases ``load-<id>`` (``Workspace.release
 one-answer session file, records it on the thread and publishes the transcript page.
 """
 
-from agent_comms.session_file import RegistrySessionLocation
 import asyncio
-from dataclasses import replace
 import json
 import os
+from dataclasses import replace
 from pathlib import Path
 
 from acp.schema import (
-    AgentCapabilities, AgentMessageChunk, InitializeResponse, LoadSessionResponse, NewSessionResponse,
+    AgentCapabilities,
+    AgentMessageChunk,
+    InitializeResponse,
+    LoadSessionResponse,
+    NewSessionResponse,
     TextContentBlock,
 )
-from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptSnapshotUpdate, encode_updates
-
+from agent_comms.acp_extension import (
+    CoordinationChangedUpdate,
+    TranscriptSnapshotUpdate,
+    encode_updates,
+)
+from agent_comms.execution.session_file import RegistrySessionLocation
 from base import Peer
 
 

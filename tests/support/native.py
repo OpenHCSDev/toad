@@ -6,29 +6,29 @@ tells it to. The wire, the Pi settings and the project are the test's private ro
 """
 
 from __future__ import annotations
-from agent_comms.projects.checkouts import Checkout
-from toad.launch_binding import AgentAttached
 
 import asyncio
+import json
+import os
+import shlex
+import sys
+import threading
 from collections.abc import Callable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import json
-import os
 from pathlib import Path
-import shlex
-import sys
-import threading
 
-from agent_comms.pi_vocabulary import OffThinkingLevel
+from agent_comms.execution.pi_vocabulary import OffThinkingLevel
 from agent_comms.launch_runtime import ThreadLaunch
+from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_model import DeclaredModel
 from agent_comms.registry.threads import NativeThread
 
 from support.roots import installed_wire
-from agent_comms.nominal.field_codec import AcpSessionId
+from toad.launch_binding import AgentAttached
 
 PROVIDER = "selected-offline"
 MODEL = DeclaredModel(f"{PROVIDER}/fixture")
@@ -46,12 +46,12 @@ def last_user_texts(request: dict) -> tuple[str, ...]:
 
 def selected_triage_reply(request: dict, decision=None) -> dict | None:
     """The answer to Core's "should this thread respond" question, when `request` is one."""
-    from agent_comms.nominal.field_codec import FieldCodec
     from agent_comms.execution.selected.triage import (
         IgnoreSelectedTriage,
         SelectedTriage,
     )
     from agent_comms.execution.turn_context import InstructionFile
+    from agent_comms.nominal.field_codec import FieldCodec
 
     texts = last_user_texts(request)
     output = InstructionFile.read("selected-triage-output.md").render(SelectedTriage.output_values()).strip()
@@ -229,8 +229,8 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
                        application: type | None = None, attached: bool = True, project: Path | None = None):
     """Start Toad on declared thread `thread` through Core's ACP server; yields (ui, agent) once
     the session has settled. Stops the agent and every owner on the wire afterwards."""
-    from toad.app import ToadApp
     from toad.agent import AgentBase
+    from toad.app import ToadApp
 
     agent = None
     started = partial(application or ToadApp, agent_session_id=AcpSessionId(thread))

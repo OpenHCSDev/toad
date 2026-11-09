@@ -16,11 +16,11 @@ from pathlib import PurePath
 from weakref import ref
 
 from acp import schema
+from agent_comms.execution.tool_results import ToolDiff, ToolText
 from agent_comms.execution.transcript_sources import AssignedTranscriptSource
 from agent_comms.messaging.sent_message import PublishedSentMessage
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.tool_results import ToolDiff, ToolText
-from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
+from agent_comms.transcript.transcript_events import SentTranscript, ToolEndTranscript
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich.text import Text
 from textual.await_complete import AwaitComplete
@@ -296,7 +296,7 @@ class ToolContentDecoder(MroDispatch):
 
     @handles(schema.TextResourceContents, ToolDiff)
     def text_resource(self, item):
-        from agent_comms.tool_results import SENT_MESSAGE_MIME
+        from agent_comms.execution.tool_results import SENT_MESSAGE_MIME
 
         if item.mime_type == SENT_MESSAGE_MIME:
             import json

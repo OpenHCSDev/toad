@@ -17,11 +17,11 @@ from agent_comms.errors import (
     UnregisteredThreadError,
 )
 from agent_comms.messaging.channel_targets import ProjectTarget
+from agent_comms.messaging.revision_views import RegistrationsView
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
-from agent_comms.revision_views import RegistrationsView
 from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
 from agent_comms.ui_model.sidebar import ThreadRowModel
 

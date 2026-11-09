@@ -2,11 +2,15 @@
 
 from dataclasses import replace
 
-from agent_comms.frozen_recipient import FrozenRecipient
-from agent_comms.notification_progress import (
-    CompletedProgress, ConsumingProgress, QueuedProgress, SentProgress, ShownToModelProgress,
-)
 from agent_comms.message_notification import MessageNotification
+from agent_comms.messaging.frozen_recipient import FrozenRecipient
+from agent_comms.notification_progress import (
+    CompletedProgress,
+    ConsumingProgress,
+    QueuedProgress,
+    SentProgress,
+    ShownToModelProgress,
+)
 
 from toad.line_blocks import MutedRole, NoticeRole, WorkingRole
 from toad.notification_status import CheckedNotifications, UnavailableNotifications

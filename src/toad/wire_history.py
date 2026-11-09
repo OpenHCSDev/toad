@@ -14,7 +14,7 @@ from functools import singledispatch
 from pathlib import Path
 from typing import ClassVar
 
-from agent_comms.historical_views import (
+from agent_comms.messaging.historical_views import (
     ConversationObservation,
     ConversationRevision,
     HistorySource,
@@ -39,7 +39,7 @@ from agent_comms.messaging.page_traversal import (
     PageCursor,
 )
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transcript_events import IncomingTranscript
+from agent_comms.transcript.transcript_events import IncomingTranscript
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsConversationRevisionTool,

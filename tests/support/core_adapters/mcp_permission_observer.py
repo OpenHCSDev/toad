@@ -6,26 +6,31 @@ Toad never automates the package's PTY challenge or permission answers.
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager
 import json
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.launch_root import LaunchRoot
 from typing import Any, AsyncIterator
 
+from acp.schema import PermissionOption, ToolCallUpdate
+from agent_comms.acp_extension import (
+    McpClientAcknowledgementUpdate,
+    TurnChangedUpdate,
+    decode_updates,
+)
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.projects.checkouts import Checkout
 from mcp_turn_boundaries import AGENT_DATA, Relay, exercise_boundaries, notes
 from textual.pilot import Pilot
+
 from toad.acp.agent import Agent
+from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
 from toad.launch_binding import AgentAttached, NoAgent
-from toad.agent_schema import AgentDefinition
-from acp.schema import PermissionOption, ToolCallUpdate
-from agent_comms.acp_extension import McpClientAcknowledgementUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
-from toad.widgets.conversation import Conversation
 from toad.widgets.acp_content import ACPToolCallContent
+from toad.widgets.conversation import Conversation
 from toad.widgets.question import Question
 from toad.widgets.tool_content import ToolContent
 

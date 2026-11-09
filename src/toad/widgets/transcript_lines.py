@@ -14,12 +14,12 @@ from functools import cached_property
 from itertools import chain, count, zip_longest
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
     from toad.widgets.transcript_fragments import TranscriptFragment
     from toad.widgets.transcript_history import LaidOut, RowChange
 
+from agent_comms.storage.recorded_time import RecordedEventTime, UnrecordedEventTime
 from metaclass_registry.mro_dispatch import handles
 from rich._wrap import divide_line
 from rich.cells import cell_len, set_cell_size
@@ -34,7 +34,7 @@ from rich.text import Text
 from textual.strip import Strip
 from ui_theme.scheme import MutedColour, ThemeColour
 
-from toad.link_click import OpenLineLink
+from toad.core.projection import MroProjection
 from toad.line_blocks import (
     Body,
     Divider,
@@ -51,12 +51,19 @@ from toad.line_blocks import (
     Summary,
     TextRole,
 )
-from toad.core.projection import MroProjection
+from toad.link_click import OpenLineLink
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
-from agent_comms.recorded_time import RecordedEventTime, UnrecordedEventTime
 from toad.message_rows import RecordedMessageClock, WireBody
-from toad.patch import DiffSettings, NoPatchCell, Patch, PatchCell, PatchSide, SplitRows, UnifiedRows
+from toad.patch import (
+    DiffSettings,
+    NoPatchCell,
+    Patch,
+    PatchCell,
+    PatchSide,
+    SplitRows,
+    UnifiedRows,
+)
 from toad.render_backend import ReusableRenderTask
 from toad.rich_preparation import RichTextBody, SyntaxPalette
 

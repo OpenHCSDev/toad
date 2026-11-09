@@ -1,22 +1,31 @@
 """A recorded transcript keeps its selected source through snapshot, refresh and presentation, with no live owner."""
 
-from agent_comms.projects.checkouts import Checkout
 import json
 from dataclasses import replace
 
 import pytest
-
-from agent_comms.acp_extension import TranscriptSnapshotUpdate, decode_updates, encode_updates
+from agent_comms.acp_extension import (
+    TranscriptSnapshotUpdate,
+    decode_updates,
+    encode_updates,
+)
 from agent_comms.coordination.errors import HistoricalSourceChanged, ReloadRequired
-from agent_comms.transport.tools.reads import TranscriptPageRead
-from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.transcripts import EarlierThan, LaterThan, RecordedPageSource, RecordedTranscriptReadIdentity
-from agent_comms.registry.threads import NativeThread
-from agent_comms.ui_model.observation import NotPublished
-from support.roots import installed_wire
-from support.journals import assistant_entry, write_journal
-from support.coordination import coordination_fact
+from agent_comms.execution.session_file import RegistrySessionLocation
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnationRecord
+from agent_comms.registry.threads import NativeThread
+from agent_comms.transcript.transcripts import (
+    EarlierThan,
+    LaterThan,
+    RecordedPageSource,
+    RecordedTranscriptReadIdentity,
+)
+from agent_comms.transport.tools.reads import TranscriptPageRead
+from agent_comms.ui_model.observation import NotPublished
+from support.coordination import coordination_fact
+from support.journals import assistant_entry, write_journal
+from support.roots import installed_wire
+
 from toad.transcript_scope import KnownTranscript
 
 

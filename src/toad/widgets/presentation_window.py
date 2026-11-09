@@ -11,17 +11,18 @@ from time import get_clock_info, monotonic
 from typing import TYPE_CHECKING, Annotated, ClassVar, get_args
 
 from agent_comms.messaging.message_page import PageBounds
-from agent_comms.transcripts import TranscriptCursor
+from agent_comms.transcript.transcripts import TranscriptCursor
 from textual.geometry import Region
 from textual.screen import Screen
 from textual.widget import Widget
+
 from toad.work_preparation import WorkRevision
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from agent_comms.messaging.message_page import MessagePage
-    from agent_comms.transcripts import TranscriptPage
+    from agent_comms.transcript.transcripts import TranscriptPage
     from agent_comms.ui_model.message_category import MessageCategory
 
     from toad.transcript_preparation import (

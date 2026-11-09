@@ -12,7 +12,9 @@ from time import monotonic
 from typing import ClassVar
 
 from agent_comms.cli_verbs.cli_result import CliResult
-from agent_comms.exporting import (
+from agent_comms.importing import ThreadImported
+from agent_comms.installer.harness_install import Harness
+from agent_comms.messaging.exporting import (
     ChannelScope,
     DmScope,
     EverythingScope,
@@ -25,8 +27,6 @@ from agent_comms.exporting import (
     WireExportProvenance,
     WireExportScope,
 )
-from agent_comms.harness_install import Harness
-from agent_comms.importing import ThreadImported
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
 from agent_comms.registry.thread_management import ImportDirectory

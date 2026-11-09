@@ -3,10 +3,11 @@
 import asyncio
 from dataclasses import replace
 
-from agent_comms.session_file import RegistrySessionLocation
-from support import journals
 import pytest
+from agent_comms.execution.session_file import RegistrySessionLocation
+from support import journals
 from support.textual_steps import saved_history
+
 from toad.transcript_preparation import SavedHistory
 from toad.widgets.presentation_window import OLDER_END
 

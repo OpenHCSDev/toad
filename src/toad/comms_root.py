@@ -22,26 +22,32 @@ from pathlib import Path
 from typing import ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
-from agent_comms.active_route import CommsRoute
 from agent_comms.comms import Comms
-from agent_comms.display_references import (
-    PendingReferences,
-    ReferenceContext,
-    RegistryReferenceSource,
-    UnavailableReferences,
-)
 from agent_comms.errors import RouteChangedError
 from agent_comms.execution.child_process import (
     HelperStart,
     SpawnedHelper,
     join_retirement,
 )
-from agent_comms.historical_views import HistoricalSenders, HistoricalThread
-from agent_comms.launch_root import LaunchRoot
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.execution.root_runtime import RootRuntime
+from agent_comms.installer.active_route import CommsRoute
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.message_notification import MessageNotification
 from agent_comms.messaging.channel_targets import NamedTarget
+from agent_comms.messaging.display_references import (
+    PendingReferences,
+    ReferenceContext,
+    RegistryReferenceSource,
+    UnavailableReferences,
+)
+from agent_comms.messaging.historical_views import HistoricalSenders, HistoricalThread
 from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.messaging.revision_views import (
+    ExternalTranscriptsView,
+    RegistrationsView,
+    StatusView,
+)
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.registry_document import (
@@ -51,14 +57,8 @@ from agent_comms.registry.registry_document import (
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import Thread
 from agent_comms.remote_core_process import ProcessRemoteCoreAccess
-from agent_comms.revision_views import (
-    ExternalTranscriptsView,
-    RegistrationsView,
-    StatusView,
-)
-from agent_comms.root_runtime import RootRuntime
 from agent_comms.route_selection import RouteSelection
-from agent_comms.transcripts import TranscriptCursor
+from agent_comms.transcript.transcripts import TranscriptCursor
 from agent_comms.transport.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess, ToolRequest
 from agent_comms.transport.tools.sidebar import (

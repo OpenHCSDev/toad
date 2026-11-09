@@ -20,7 +20,7 @@ from agent_comms.messaging.sent_message import AssignedSourceIdentity
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId, PathText
 from agent_comms.presentation import ReadState
-from agent_comms.team_hud import TeamHud
+from agent_comms.team.team_hud import TeamHud
 
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.sdk_boundary import ToolCallWire

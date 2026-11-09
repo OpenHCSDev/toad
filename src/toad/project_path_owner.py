@@ -21,7 +21,7 @@ class ProjectPathOwner:
 
     @property
     def reference_context(self):
-        from agent_comms.display_references import ProjectReferences
+        from agent_comms.messaging.display_references import ProjectReferences
 
         root = self.coordination_root
         return (

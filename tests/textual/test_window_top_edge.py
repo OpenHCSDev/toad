@@ -7,16 +7,14 @@ from dataclasses import dataclass
 from functools import partial
 
 import pytest
+from support.workspace import Workspace
+from test_scroll_down_bounce import RecordedHistoryScreen, recorded_app, wheel
 from textual import events
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-
-from test_scroll_down_bounce import RecordedHistoryScreen, recorded_app, wheel
-from support.workspace import Workspace
 from toad.widgets.conversation import Conversation
 from toad.widgets.presentation_window import OLDER_END, PresentationBudget
-
 
 THOUGHTS = ("Preparing branch notice tests", "Parametrizing rename routing tests",
             "Checking ThreadIncarnation lookup", "Checking self-delivery behavior",
@@ -67,9 +65,10 @@ async def test_wheel_up_through_saved_history_never_moves_forward(workspace, siz
     from functools import partial
     from pathlib import Path
 
+    from agent_comms.execution.session_file import RegistrySessionLocation
     from agent_comms.projects.checkouts import Checkout
-    from agent_comms.session_file import RegistrySessionLocation
     from agent_comms.registry.threads import NativeThread
+
     from toad.screens.main import MainScreen
     from toad.tab_identity.kinds import MailboxTab
     from toad.widgets.transcript_history import TranscriptHistory
@@ -112,9 +111,10 @@ async def test_wrapped_header_pins_once_its_first_row_leaves_and_matches_the_flo
     from functools import partial
     from pathlib import Path
 
+    from agent_comms.execution.session_file import RegistrySessionLocation
     from agent_comms.projects.checkouts import Checkout
-    from agent_comms.session_file import RegistrySessionLocation
     from agent_comms.registry.threads import NativeThread
+
     from toad.screens.main import MainScreen
     from toad.tab_identity.kinds import MailboxTab
     from toad.widgets.transcript_history import TranscriptHistory
@@ -213,9 +213,10 @@ async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspa
     import gzip
     from pathlib import Path
 
+    from agent_comms.execution.session_file import RegistrySessionLocation
     from agent_comms.projects.checkouts import Checkout
-    from agent_comms.session_file import RegistrySessionLocation
     from agent_comms.registry.threads import NativeThread
+
     from toad.screens.main import MainScreen
     from toad.tab_identity.kinds import MailboxTab
     from toad.widgets.transcript_history import TranscriptHistory

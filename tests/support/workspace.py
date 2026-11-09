@@ -2,25 +2,26 @@
 
 from __future__ import annotations
 
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.projects.repo import Repo
-from agent_comms.launch_root import LaunchRoot
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
+import os
 from contextlib import asynccontextmanager
 from functools import cached_property
-import os
 from pathlib import Path
 from typing import ClassVar
+
+from agent_comms.comms import Comms
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.projects.repo import Repo
+from agent_comms.registry.threads import NativeThread
 
 from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
-from agent_comms.comms import Comms
-from agent_comms.registry.threads import NativeThread
 from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
-from toad.screens.main import MainScreen
 from toad.launch_binding import AgentBinding, NoAgent
+from toad.screens.main import MainScreen
 
 
 class Workspace:

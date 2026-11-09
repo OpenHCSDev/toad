@@ -2,15 +2,15 @@
 
 from unittest.mock import patch
 
-from agent_comms.tool_results import ToolDiff, tool_result_content
+from agent_comms.execution.tool_results import ToolDiff, tool_result_content
+from support.textual_steps import tool_status, wait_for_tool_diff
 from textual import events
 from textual.selection import SELECT_ALL, SelectState
 
-from support.textual_steps import tool_status, wait_for_tool_diff
+from toad.preferences import SETTINGS
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.tool_content import ToolContent
-from toad.preferences import SETTINGS
 
 
 async def test_drag_across_clipped_diff_matches_the_full_walker(workspace):

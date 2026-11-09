@@ -1,12 +1,12 @@
 """Textual-facing: an auto-expanded tool call keeps one leaf and paints its rows when scrolled into view."""
 
-from agent_comms.tool_results import ToolDiff, tool_result_content
-
+from agent_comms.execution.tool_results import ToolDiff, tool_result_content
 from support.textual_steps import tool_status, wait_for_tool_diff
+
+from toad.preferences import SETTINGS
 from toad.setting_choices import AlwaysExpansion
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.tool_content import ToolContent
-from toad.preferences import SETTINGS
 
 PATCH = "--- first.py\n+++ first.py\n@@ -1,2 +1,2 @@\n context\n-old\n+new\n"
 

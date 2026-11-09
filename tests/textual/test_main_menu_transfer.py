@@ -4,27 +4,43 @@ import json
 from pathlib import Path
 
 import pytest
-from textual.widgets import Button, Input, Select
-from agent_comms.exporting import EverythingScope, FullLimit, JsonlFormat, TextFormat
-from agent_comms.transport.progress import WireExportCancelled, WireExportProgress
+from agent_comms.installer.harness_install import OpenCodeHarness
+from agent_comms.messaging.exporting import (
+    EverythingScope,
+    FullLimit,
+    JsonlFormat,
+    TextFormat,
+)
 from agent_comms.messaging.messages import InfoKind, Message, PublicRecord
-from support.workspace import Workspace
-
-from agent_comms.harness_install import OpenCodeHarness
+from agent_comms.transport.progress import WireExportCancelled, WireExportProgress
 from support.applications import record_notifications
+from support.workspace import Workspace
+from textual.widgets import Button, Input, Select
+
+from toad.screens.bus_choice import BusChoices
 from toad.widget_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
-from toad.screens.bus_choice import BusChoices
 from toad.widgets.comms_transfer import (
+    CancelExportButton,
+    ChannelScopeInput,
+    EverythingScopeInput,
     ExportPath,
     ExportScopeChoice,
     ImportName,
     ImportSource,
-    CancelExportButton,
-    ChannelScopeInput, EverythingScopeInput, JsonlFormatInput, TextFormatInput,
-    ThreadImportDialog, WireExportDialog, WireExportProgressView, WireExportRequest,
+    JsonlFormatInput,
+    TextFormatInput,
+    ThreadImportDialog,
+    WireExportDialog,
+    WireExportProgressView,
+    WireExportRequest,
 )
-from toad.widgets.side_bar import BackTabButton, ForwardTabButton, MainMenuButton, TabHistoryControls
+from toad.widgets.side_bar import (
+    BackTabButton,
+    ForwardTabButton,
+    MainMenuButton,
+    TabHistoryControls,
+)
 
 
 async def open_main_menu(ui):

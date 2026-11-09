@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 from agent_comms.acp_extension import InputStartedUpdate
-from agent_comms.reported_turn import ReportedTurnState
+from agent_comms.execution.reported_turn import ReportedTurnState
 
 from toad.private_native_cursor import CursorStatus
 

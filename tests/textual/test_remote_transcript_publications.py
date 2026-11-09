@@ -1,7 +1,8 @@
 """A remote page carries publication answers, never filesystem work for the renderer."""
 
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.transcripts import TranscriptPage
+from agent_comms.transcript.transcripts import TranscriptPage
+
 from toad.transcript_preparation import PreparedTranscriptPage
 
 

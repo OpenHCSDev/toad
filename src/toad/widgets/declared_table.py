@@ -6,16 +6,20 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
-from agent_comms.disclosure_text import AnonymousKey, DisclosureKey, ViewTable
+from agent_comms.task_attachments.disclosure_text import (
+    AnonymousKey,
+    DisclosureKey,
+    ViewTable,
+)
+from textual import on
 from textual.content import Content
+from textual.events import Resize
 from textual.style import Style
 from textual.widgets import DataTable
 from textual.widgets._data_table import RowKey
 from ui_theme.scheme import ForegroundColour, ThemeColour
 
 from toad.widget_actions import OpensSelected
-from textual.events import Resize
-from textual import on
 
 
 class SelectionView[R]:

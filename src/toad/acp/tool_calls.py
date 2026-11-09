@@ -4,7 +4,7 @@ from dataclasses import dataclass, field, replace
 from acp.schema import ToolCall, ToolCallStart, ToolCallUpdate
 from agent_comms.messaging.sent_message import AssignedSourceIdentity
 from agent_comms.nominal.field_codec import ToolCallId
-from agent_comms.transcripts import NativeCommittedPrefix
+from agent_comms.transcript.transcripts import NativeCommittedPrefix
 
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import ToolCallStatus

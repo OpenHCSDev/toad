@@ -9,18 +9,27 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
-from agent_comms.projects.checkouts import Checkout
 
+from agent_comms.messaging.display_references import (
+    CurrentDisplayReferences,
+    ReferenceContext,
+)
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
-from metaclass_registry.mro_dispatch import handles
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ThreadRowModel
+from metaclass_registry.mro_dispatch import handles
 
+from toad.acp.agent_log import AgentLog
+from toad.comms_root import Observing
 from toad.core.projection import MroProjection
 from toad.owner_preparation import ExistingOwnerPlan
+from toad.screens.comms import CommsScreen
+from toad.screens.file_preview import FilePreviewScreen
+from toad.screens.main import MainScreen
+from toad.session_host import SessionNavigator
+from toad.session_projection import SessionProjection
 from toad.session_scope import SessionScope
-from toad.tab_identity import TabIdentity
 from toad.session_tracker import (
     CommsViewKey,
     ConversationTab,
@@ -29,16 +38,9 @@ from toad.session_tracker import (
     SessionDetails,
     ThreadTab,
 )
-from toad.comms_root import Observing
-from toad.screens.main import MainScreen
-from toad.screens.comms import CommsScreen
-from toad.acp.agent_log import AgentLog
-from toad.screens.file_preview import FilePreviewScreen
-from toad.widgets.project_panel import FilePreview
+from toad.tab_identity import TabIdentity
 from toad.widgets.acp_log import AcpLogPreview
-
-from toad.session_host import SessionNavigator
-from toad.session_projection import SessionProjection
+from toad.widgets.project_panel import FilePreview
 
 
 class SessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Observing], affix="Entry"):

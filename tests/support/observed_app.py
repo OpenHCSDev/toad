@@ -3,16 +3,16 @@
 Run as a script by ``terminal/test_observer_death.py``: ``observed_app.py PROJECT WIRE_ROOT``.
 """
 
-from pathlib import Path
 import sys
-
-from toad.app import ToadApp
-from toad.launch_binding import AgentAttached
-from toad.cli import run_terminal
+from pathlib import Path
 
 from agents import peer
 from textual import on
 from textual.events import Mount
+
+from toad.app import ToadApp
+from toad.cli import run_terminal
+from toad.launch_binding import AgentAttached
 
 
 class ObservedApp(ToadApp):
@@ -35,10 +35,10 @@ class ObservedApp(ToadApp):
 
 
 if __name__ == "__main__":
-    from agent_comms.launch_root import LaunchRoot
-    from toad.comms_root import LocalCoreConnection
-
+    from agent_comms.execution.launch_root import LaunchRoot
     from agent_comms.projects.checkouts import Checkout
+
+    from toad.comms_root import LocalCoreConnection
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()

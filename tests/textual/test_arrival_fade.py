@@ -8,6 +8,7 @@ from dataclasses import replace
 from agent_comms.acp_extension import TurnChangedUpdate
 from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.execution.fresh_private_session import create_fresh_private_session
+from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.execution.turn_lease import (
     ActiveTurn,
     FinishedTurn,
@@ -15,7 +16,6 @@ from agent_comms.execution.turn_lease import (
 )
 from agent_comms.execution.turn_phase import PublishingPhase
 from agent_comms.nominal.field_codec import TurnId
-from agent_comms.session_file import RegistrySessionLocation
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.textual_steps import tool_status

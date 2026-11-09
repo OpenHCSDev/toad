@@ -1,20 +1,19 @@
 """A session update that was being validated when its session or process was replaced publishes nothing."""
 from acp import schema
 from agent_comms.acp_extension import TextRouteUpdate, encode_updates
-from agent_comms.routing import MessageRoute
+from agent_comms.messaging.routing import MessageRoute
 from support.agents import RecordedEvents, deliver
+
 from toad.acp.agent_controller import ProcessTaskRunner, ThreadTaskRunner
 from toad.acp.sdk_boundary import (
-    AcceptedSessionUpdateValidation, DecodeCommsMetadataTask, RejectedSessionUpdateValidation,
+    AcceptedSessionUpdateValidation,
+    DecodeCommsMetadataTask,
+    RejectedSessionUpdateValidation,
     ValidateSessionUpdateTask,
 )
 from toad.comms_root import CoreConnection
 from toad.core.events import CoreEvent, Update
 from toad.render_processes import RenderProcessPool
-
-
-
-
 
 
 async def test_comms_facts_survive_validation_workers_and_reach_the_message_route(app_agents, tmp_path):

@@ -1,9 +1,10 @@
 """Opening saved history is not Start; Start attaches the original session."""
 from dataclasses import replace
 
-from agent_comms.session_file import RegistrySessionLocation
-from support.native import comms_agent
+from agent_comms.execution.session_file import RegistrySessionLocation
 from support.journals import assistant_entry, write_journal
+from support.native import comms_agent
+
 from toad.launch_binding import AgentAttached
 
 
@@ -21,9 +22,10 @@ async def test_opening_stopped_thread_reads_history_without_loading_an_agent(wor
 
 
 async def test_started_owner_attaches_original_saved_session_in_place(workspace):
+    import os
+
     from agent_comms.execution.child_process import ProcessIdentity
     from support.agents import peer
-    import os
 
     thread = workspace.thread('stopped')
     async with workspace.app(binding=AgentAttached(peer('load_existing')), resume='stopped') as ui:

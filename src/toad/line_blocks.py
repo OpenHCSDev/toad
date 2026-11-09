@@ -7,23 +7,29 @@ imports a terminal or rendering library.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass, replace
 import json
 import re
+from collections.abc import Callable
+from dataclasses import dataclass, replace
+from typing import ClassVar, Self
 from urllib.parse import quote, unquote
 
+from agent_comms.messaging.display_references import DisplayReference
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.display_references import DisplayReference
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.recorded_time import EventTime, UnrecordedEventTime
-
-from typing import ClassVar, Self
-
+from agent_comms.storage.recorded_time import EventTime, UnrecordedEventTime
 from ui_theme.scheme import (
-    AccentColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour, SuccessColour,
-    ThemeColour, WarningColour,
+    AccentColour,
+    ErrorColour,
+    ForegroundColour,
+    MutedColour,
+    PrimaryColour,
+    SecondaryColour,
+    SuccessColour,
+    ThemeColour,
+    WarningColour,
 )
+
 
 class LineRole(DeclaredFamily, affix="Role"):
     """The meaning of a piece of text, and the theme colour it is drawn in."""

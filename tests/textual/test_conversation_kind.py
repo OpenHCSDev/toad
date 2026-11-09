@@ -4,10 +4,10 @@ from dataclasses import FrozenInstanceError
 from functools import partial
 
 import pytest
-from agent_comms.active_route import resolve_comms_route
 from agent_comms.comms import Comms
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.installer.active_route import resolve_comms_route
 from agent_comms.installer.backup import StoreBackup
-from agent_comms.launch_root import LaunchRoot
 from agent_comms.messaging.channel_targets import ChannelTarget, IncarnationThreadTarget
 from agent_comms.messaging.message_page import PageBounds
 from agent_comms.nominal.field_codec import FieldCodec

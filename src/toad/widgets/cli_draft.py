@@ -3,7 +3,7 @@
 from functools import partial
 
 from agent_comms.execution.transcript_sources import NoDraft
-from agent_comms.external_transcript import DraftRow
+from agent_comms.transcript.external_transcript import DraftRow
 from metaclass_registry.mro_dispatch import handles
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState

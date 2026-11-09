@@ -1,7 +1,6 @@
 """Textual-facing: a sent message whose start notice reaches the conversation after the saved history
 already holds it is drawn once, by the saved history, with no second live block under it."""
 
-from agent_comms.projects.checkouts import Checkout
 from functools import partial
 
 from agent_comms.acp_extension import (
@@ -9,8 +8,9 @@ from agent_comms.acp_extension import (
     UnidentifiedInputStarted,
     encode_updates,
 )
+from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.nominal.field_codec import InputId
-from agent_comms.session_file import RegistrySessionLocation
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
 from support import agents, journals
 

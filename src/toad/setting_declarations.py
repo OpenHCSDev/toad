@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.declared_choice import DeclaredChoice
+from agent_comms.nominal.declared_choice import DeclaredChoice
 from python_introspect import AnnotationChoices
 
 if TYPE_CHECKING:

@@ -13,6 +13,7 @@ from time import monotonic
 from typing import Callable, Never, TypeVar, cast
 
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
+from agent_comms.execution.root_runtime import RootRuntime
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.nominal.field_codec import (
     AcpSessionId,
@@ -20,7 +21,6 @@ from agent_comms.nominal.field_codec import (
     boundary_decoder,
 )
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.root_runtime import RootRuntime
 from agent_comms.storage.locked_store import RootFile
 from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.transport.tailnet_profiles import (

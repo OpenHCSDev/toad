@@ -5,12 +5,16 @@ from __future__ import annotations
 from abc import ABC
 from pathlib import Path
 
-from agent_comms.transport.request import CoreAccess
-from agent_comms.display_references import CurrentDisplayReferences
+from agent_comms.messaging.display_references import CurrentDisplayReferences
 from agent_comms.presentation import WireRevision
 from agent_comms.registry.registry_document import RegistrySnapshot
-from agent_comms.transport.tools.sidebar import (CommsReferenceNamesTool, CommsRegistrySliceTool, CommsRegistryTool,
-                               CommsWireRevisionTool)
+from agent_comms.transport.request import CoreAccess
+from agent_comms.transport.tools.sidebar import (
+    CommsReferenceNamesTool,
+    CommsRegistrySliceTool,
+    CommsRegistryTool,
+    CommsWireRevisionTool,
+)
 
 
 class ReferencedCore(ABC):

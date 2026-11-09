@@ -1,15 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import io
 import os.path
-import platformdirs
 import shlex
-from rich.console import Console
-from textual._files import generate_datetime_filename
-from toad.category_filter import CategoryFilterView
-from toad.command_target_scope import CommandTargetScope
-
-import asyncio
 from abc import abstractmethod
 from contextlib import suppress
 from functools import cached_property
@@ -19,37 +13,42 @@ from pathlib import Path
 from time import monotonic, time_ns
 from typing import Callable, ClassVar
 
+import platformdirs
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
-from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
-from toad.layout_preferences import FollowsLayoutPreferences
-from toad.view_actions import BackToBottomAction
 from agent_comms.messaging.channel_targets import CommandTarget
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.transcripts import TranscriptCursor
 from agent_comms.planning.goal_presentation import (
     GoalExecution,
     IdleGoalExecution,
 )
 from agent_comms.planning.goals import NoGoal
-from metaclass_registry.mro_dispatch import MroDispatch, handles
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_presentation import (
     NoThreadPresentation,
     ThreadPresentation,
 )
+from agent_comms.transcript.transcripts import TranscriptCursor
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
-from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory, all_categories
+from agent_comms.ui_model.message_category import (
+    AgentActivityBoundary,
+    MessageCategory,
+    all_categories,
+)
+from metaclass_registry.mro_dispatch import MroDispatch, handles
+from rich.console import Console
 from rich.segment import Segment
 from rich.style import Style
 from textual import containers, events, getters, on, work
+from textual._files import generate_datetime_filename
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.content import Content
-from textual.dom import DOMNode
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.query import NoMatches
 from textual.css.styles import Styles
+from textual.document._editing import EditingMode
+from textual.dom import DOMNode
 from textual.geometry import Offset, Region, Size
 from textual.layout import WidgetPlacement
 from textual.layouts.grid import GridLayout
@@ -58,7 +57,6 @@ from textual.strip import Strip
 from textual.view import AUTO, FILL
 from textual.widget import Widget
 from textual.widgets import Static
-from textual.document._editing import EditingMode
 from ui_theme.effects import CURSOR_BLINK, Mix
 from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
@@ -67,25 +65,8 @@ from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
-from toad.messages import QueueEvidenceOwner
-from toad.native_style import (
-    AutoHeight,
-    AutoWidth,
-    CenteredChildren,
-    CenteredText,
-    DockedBottom,
-    FillWidth,
-    PrimaryText,
-    RightPadding,
-    ScreenOverlay,
-    SidePadding,
-    StableGutter,
-    StartsHidden,
-)
-from toad.submission_queue import QueueSource
-from toad.screens.queue import QueueInspection
 from toad.answer import Answer
-from toad.conversation_actions import ConversationAction, WindowAction
+from toad.app_node import ToadNode
 from toad.block_navigation import (
     AbsentEntry,
     BlockCursor,
@@ -95,10 +76,12 @@ from toad.block_navigation import (
     SeparatedBlock,
     require_blocks,
 )
-from toad.command_catalog import CommandCatalog
-from toad.target_commands import CommandContextChanged, TargetContext
-from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.bus_submission import SubmissionStart
+from toad.category_filter import CategoryFilterView
+from toad.command_catalog import CommandCatalog
+from toad.command_target_scope import CommandTargetScope
+from toad.conversation_actions import ConversationAction, WindowAction
+from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
@@ -114,31 +97,54 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
+from toad.input_decision import InputDecision
 from toad.input_history import InputHistories
+from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
 from toad.layout import trim_trailing_margin
-from toad.live_output import LiveOutput
+from toad.layout_preferences import FollowsLayoutPreferences
 from toad.line_blocks import LineLink
+from toad.live_output import LiveOutput
 from toad.menus import (
-    CopyClipboardCommand, CopyPromptCommand, ExportSvgCommand, MaximizeBlockCommand, MenuConversation,
+    CopyClipboardCommand,
+    CopyPromptCommand,
+    ExportSvgCommand,
+    MaximizeBlockCommand,
+    MenuConversation,
 )
+from toad.messages import QueueEvidenceOwner
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    CenteredChildren,
+    CenteredText,
+    DockedBottom,
+    FillWidth,
+    PrimaryText,
+    RightPadding,
+    ScreenOverlay,
+    SidePadding,
+    StableGutter,
+    StartsHidden,
+)
+from toad.navigation_context import NavigationScope
 from toad.preferences import SETTINGS
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.resource_release import AsyncResourceRelease
+from toad.screens.queue import QueueInspection
+from toad.session_clock import NotStarted, SessionClock, StartedAt
 from toad.session_observation import (
     GoalObservation,
     InputDeliveryObservation,
     SessionObservation,
 )
-from toad.navigation_context import NavigationScope
 from toad.session_scope import SessionScope
-from toad.input_decision import InputDecision
-from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
-from toad.session_clock import NotStarted, SessionClock, StartedAt
-from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.shell import Shell
 from toad.status_thread import StatusThread
+from toad.submission_queue import QueueSource
+from toad.target_commands import CommandContextChanged, TargetContext
 from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
-from toad.app_node import ToadNode
+from toad.transcript_scope import TranscriptScope, TranscriptView
+from toad.view_actions import BackToBottomAction
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
@@ -149,9 +155,15 @@ from toad.widgets.input_delivery import (
     InputDeliveryBar,
     InputDeliveryDetails,
 )
+from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.widgets.menu import Menu
 from toad.widgets.message_divider import StickyHeader
-from toad.widgets.message_notifications import HistoryNotifications, NothingToRead, PaintedRead, SourceNotifications
+from toad.widgets.message_notifications import (
+    HistoryNotifications,
+    NothingToRead,
+    PaintedRead,
+    SourceNotifications,
+)
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import ErrorNote, Note
 from toad.widgets.observed_thread_activity import (
@@ -179,10 +191,10 @@ def make_session_title(prompt: str) -> str:
     return title
 
 
-from toad.widgets.question import Ask
-from toad.widgets.transcript_history import LineHistory
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
+from toad.widgets.question import Ask
+from toad.widgets.transcript_history import LineHistory
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
 
@@ -925,17 +937,18 @@ class ConversationSessionBinding(
             self.update_slash_commands()
 
 
-from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
-from toad.transcript_publication import ObservedSourcePublication
-from toad.agent_schema import Command
-from toad.catalog_actions import CatalogCommandAction
-from toad.screens.action_modal import ActionModal
-from toad.db import DB
-from toad.commit_claims import StartedInputClaim
-from toad.widgets.plan import ConversationPlan
-from toad.widgets.message_divider import AgentActivityDivider
-from toad.agent_surface import AttachedSurfaceBinding
 from textual import on
+
+from toad.agent_schema import Command
+from toad.agent_surface import AttachedSurfaceBinding
+from toad.catalog_actions import CatalogCommandAction
+from toad.commit_claims import StartedInputClaim
+from toad.db import DB
+from toad.screens.action_modal import ActionModal
+from toad.transcript_publication import ObservedSourcePublication
+from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
+from toad.widgets.message_divider import AgentActivityDivider
+from toad.widgets.plan import ConversationPlan
 
 
 class PromptStack(DockedBottom, AutoHeight, containers.Vertical):

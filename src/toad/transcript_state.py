@@ -8,18 +8,18 @@ from time import monotonic
 from typing import TYPE_CHECKING, ClassVar, Literal
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.lifecycle import LifecycleState
+from agent_comms.nominal.lifecycle import LifecycleState
 from textual.widget import Widget
 
+from toad.commit_claims import CommitClaim
 from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
-from toad.commit_claims import CommitClaim
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from agent_comms.transcript.transcripts import TranscriptCursor, TranscriptPage
     from textual.worker import Worker
 
     from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage

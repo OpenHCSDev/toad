@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from agent_comms.active_route import resolve_comms_route
 from agent_comms.comms import Comms
 from agent_comms.context_store import UNREAD_CONTEXT, ContextManifestPage
 from agent_comms.execution.session_revision import NoSessionObservation
@@ -17,6 +16,7 @@ from agent_comms.execution.turn_context import (
     UnattributedProvenance,
     UserInputSegment,
 )
+from agent_comms.installer.active_route import resolve_comms_route
 from agent_comms.nominal.field_codec import TurnId
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.registration import Registration
@@ -25,14 +25,14 @@ from agent_comms.registry.thread_identity import (
     TurnIdentity,
 )
 from agent_comms.registry.threads import NativeThread
-from agent_comms.working_memory_labels import (
+from agent_comms.working_memory.working_memory_labels import (
     AnswerProbability,
     HumanLabel,
     JevClassifier,
     ModelLabel,
     QuestionVersion,
 )
-from agent_comms.working_memory_questions import (
+from agent_comms.working_memory.working_memory_questions import (
     CommitmentSpan,
     KindQuestion,
     OtherSpan,

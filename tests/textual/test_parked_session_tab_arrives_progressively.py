@@ -28,9 +28,9 @@ def append(journal, *bodies: str, prefix: str) -> None:
 async def test_a_parked_session_tab_reads_the_change_while_parked(workspace):
     """Core publishes ExternalTranscriptChanged for every owned transcript; a parked tab must
     read it rather than wait for its return, where the missed range arrives in one burst."""
-    from toad.core.events import ExternalTranscriptChanged
+    from agent_comms.execution.session_file import RegistrySessionLocation
 
-    from agent_comms.session_file import RegistrySessionLocation
+    from toad.core.events import ExternalTranscriptChanged
 
     saved = workspace.thread('parked-session')
     journal = write_journal(workspace.project / 'parked-session.jsonl',

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from agent_comms.projects.checkouts import Checkout
 import json
 import os
 from pathlib import Path
-from support.roots import installed_wire
+
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
+
+from support.roots import installed_wire
 
 
 def private_root(path: Path, project: Path, message: str) -> Path:
@@ -25,9 +27,9 @@ def private_root(path: Path, project: Path, message: str) -> Path:
 
 def selecting_route(root: Path):
     """The default route that selects `root` and the bus it holds now."""
-    from agent_comms.active_route import ActiveRoute
     from agent_comms.bus import Bus
-    from agent_comms.recorded_bus import RecordedBusIdentity
+    from agent_comms.installer.active_route import ActiveRoute
+    from agent_comms.messaging.recorded_bus import RecordedBusIdentity
 
     return ActiveRoute(root, RecordedBusIdentity.capture(Bus.path_in(root)))
 

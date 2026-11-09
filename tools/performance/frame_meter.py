@@ -387,7 +387,7 @@ def _metadata_boundary():
     """
     from agent_comms.messaging.message_page import MessagePage
     from agent_comms.messaging.page_traversal import PageCursor
-    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from agent_comms.transcript.transcripts import TranscriptCursor, TranscriptPage
     from metaclass_registry.mro_dispatch import handles
 
     from toad.core.projection import MroProjection

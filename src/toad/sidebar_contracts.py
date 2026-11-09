@@ -4,7 +4,7 @@ from abc import abstractmethod
 from collections.abc import Iterable, Mapping
 from contextlib import AbstractContextManager
 
-from agent_comms.display_references import ReferenceContext
+from agent_comms.messaging.display_references import ReferenceContext
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ChannelRowModel
 from textual.abstract_hooks import AbstractHooksMeta

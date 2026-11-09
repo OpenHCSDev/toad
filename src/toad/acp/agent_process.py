@@ -18,7 +18,8 @@ from agent_comms.execution.child_process import (
     StreamingChildStdio,
     join_retirement,
 )
-from agent_comms.launch_root import LaunchRoot
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.route_selection import RouteSelection
 from pydantic import JsonValue
 
@@ -26,7 +27,6 @@ from toad.acp.agent_session import AgentSession
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 from toad.resource_release import AsyncResourceRelease
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 
 
 class AgentProcess(Client):

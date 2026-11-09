@@ -39,7 +39,7 @@ from agent_comms.registry.thread_presentation import (
     NoThreadPresentation,
     ThreadPresentation,
 )
-from agent_comms.transcripts import NativeCommittedPrefix
+from agent_comms.transcript.transcripts import NativeCommittedPrefix
 from agent_comms.transport.tools.reads import OwnerGoalRead
 from agent_comms.ui_model.observation import ReadOwnerOperation
 from metaclass_registry.mro_dispatch import MroDispatch, handles

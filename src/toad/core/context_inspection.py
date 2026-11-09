@@ -45,8 +45,8 @@ from agent_comms.transport.runtime_requests import (
     ContextRuntimeRequest,
     ContextSourceRuntimeRequest,
 )
-from agent_comms.working_memory_labels import ModelLabel
-from agent_comms.working_memory_questions import SpanAnswer
+from agent_comms.working_memory.working_memory_labels import ModelLabel
+from agent_comms.working_memory.working_memory_questions import SpanAnswer
 from metaclass_registry.mro_dispatch import handles
 
 from toad.comms_root import Observing

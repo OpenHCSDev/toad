@@ -1,22 +1,22 @@
 """Textual-facing: the session details disclosure (a Textual Collapsible) takes one row when closed, a bounded height when open, and sits above the composer without moving the draft."""
 
 import pytest
+from agent_comms.input_attempt import UnobservedInputDeliveryScope
+from agent_comms.input_disposition import DeliveryOverview
+from agent_comms.message_notification import MessageNotification
+from agent_comms.messaging.frozen_recipient import FrozenRecipient
+from agent_comms.messaging.messages import InfoKind, Message
+from agent_comms.notification_progress import HarnessConsumedProgress
+from agent_comms.transcript.transcripts import NotifiedThreadPresentation
+from agent_comms.ui_model.delivery import ReadDeliveryView
+from agent_comms.ui_model.status import ThreadStatusModel
 from textual.content import Content
 from textual.screen import Screen
 from textual.widgets import Input
 
-from agent_comms.frozen_recipient import FrozenRecipient
-from agent_comms.messaging.messages import InfoKind, Message
-from agent_comms.notification_progress import HarnessConsumedProgress
-from agent_comms.message_notification import MessageNotification
-from agent_comms.transcripts import NotifiedThreadPresentation
-from agent_comms.ui_model.delivery import ReadDeliveryView
-from agent_comms.input_disposition import DeliveryOverview
-from agent_comms.input_attempt import UnobservedInputDeliveryScope
-from agent_comms.ui_model.status import ThreadStatusModel
 from toad.line_blocks import NoticeRole
-from toad.widgets.input_delivery import InputDeliveryBar
 from toad.private_native_cursor import NoneCursorStatus
+from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails, SessionDetailsContents
 

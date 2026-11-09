@@ -3,23 +3,17 @@
 from bisect import bisect_right
 from dataclasses import dataclass
 
-from textual.widgets import Static
-from textual.geometry import Offset, Region
-from textual.strip import Strip
+from agent_comms.coordination.errors import ReadAgain
+from agent_comms.messaging.historical_views import UnobservedConversation
+from agent_comms.messaging.message_page import MessagePage
 from textual._render_publication import SourcePublication
-from toad.widgets.transcript_fragments import FragmentKey
+from textual.geometry import Offset, Region
+from textual.reactive import var
+from textual.strip import Strip
+from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
-
 from toad.read_marked_history import ReadMarkedHistory
-from toad.wire_conversation_view import WireConversationView
-
-from textual.reactive import var
-
-from agent_comms.coordination.errors import ReadAgain
-from agent_comms.historical_views import UnobservedConversation
-from agent_comms.messaging.message_page import MessagePage
-
 from toad.session_scope import SessionScope
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
@@ -28,10 +22,16 @@ from toad.widgets.message_notifications import (
     PaintedRead,
     VisibleReadMarking,
 )
+from toad.widgets.transcript_fragments import FragmentKey
 from toad.widgets.transcript_history import ConversationHistory, TranscriptPageView
-from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource, WireFragment
-
-
+from toad.wire_conversation_view import WireConversationView
+from toad.wire_history import (
+    PreparedWirePage,
+    WireFragment,
+    WirePage,
+    WirePageBuffer,
+    WireSource,
+)
 
 
 @dataclass(frozen=True)

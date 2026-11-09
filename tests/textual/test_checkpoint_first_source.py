@@ -3,16 +3,16 @@
 Textual owns mounting and removing the history and response widgets that the checkpoint replaces.
 """
 
-from agent_comms.session_file import RegistrySessionLocation
 import asyncio
-from dataclasses import replace
 import os
+from dataclasses import replace
 
 from agent_comms.execution.child_process import ProcessIdentity
-
+from agent_comms.execution.session_file import RegistrySessionLocation
 from support import journals
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
+
 from toad.live_output import ResponseStream
 from toad.transcript_publication import CommitPublication
 from toad.widgets.agent_response import AgentResponse

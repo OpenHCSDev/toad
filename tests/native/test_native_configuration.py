@@ -1,8 +1,8 @@
 """Changing the thinking level from the picker while a native turn runs: applied at once, kept after reattaching."""
 
-from agent_comms.pi_vocabulary import HighThinkingLevel
-
+from agent_comms.execution.pi_vocabulary import HighThinkingLevel
 from support.native import native_session
+
 from toad.core import input_events
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.prompt import AgentInfo

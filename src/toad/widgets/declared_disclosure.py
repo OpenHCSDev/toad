@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
-from agent_comms.disclosure_text import DisclosureEntry, DisclosureKey, DisclosureText, StructuredText
+from agent_comms.task_attachments.disclosure_text import (
+    DisclosureEntry,
+    DisclosureKey,
+    DisclosureText,
+    StructuredText,
+)
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from textual import events
+from textual import events, on
 from textual.containers import VerticalGroup
 from textual.content import Content
 from textual.widgets import Collapsible, Static
 
-from toad.native_style import AutoHeight, Borderless, NoMargin, NoPadding
-from textual import on
-
 from toad.keyed_rows import KeyedRows
+from toad.native_style import AutoHeight, Borderless, NoMargin, NoPadding
 
 
 class DisclosureContents(AutoHeight, Collapsible.Contents):

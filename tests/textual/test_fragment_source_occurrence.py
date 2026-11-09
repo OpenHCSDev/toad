@@ -4,7 +4,10 @@ One Pi reply's thinking parts share its position; Core's event ordinal distingui
 for the reader, details toggle and page lookup, while split parts keep that source identity.
 """
 
-from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript
+from agent_comms.transcript.transcript_events import (
+    AssistantTranscript,
+    ThinkingTranscript,
+)
 
 from toad.widgets.transcript_fragments import RenderBudget, transcript_fragments
 

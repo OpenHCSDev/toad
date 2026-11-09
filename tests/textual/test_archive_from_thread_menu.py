@@ -10,6 +10,7 @@ from agent_comms import cli_verbs
 from agent_comms.cli_verbs.archive import ArchiveCliCommand
 from agent_comms.cli_verbs.cli_command import CliCommand
 from agent_comms.execution.native_entries import SessionEntry
+from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.messaging.read_basis import NamedViewer
 from agent_comms.nominal.field_codec import AcpSessionId
@@ -20,7 +21,6 @@ from agent_comms.registry.thread_status import (
     StoppedThreadStatus,
 )
 from agent_comms.registry.threads import NativeThread
-from agent_comms.session_file import RegistrySessionLocation
 from textual.geometry import Offset
 
 from toad.db import DB

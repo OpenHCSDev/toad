@@ -1,13 +1,14 @@
 """Textual-facing: tab closing. A tab's logical lifetime ends without removing its saved thread."""
 from dataclasses import dataclass
 
-from agent_comms.launch_root import LaunchRoot
+from agent_comms.execution.launch_root import LaunchRoot
+from support.applications import record_notifications
+
 from toad.comms_root import FailedObservation, LocalCoreConnection, UnselectedRoute
 from toad.core.events import ObservedServiceChanged
-from support.applications import record_notifications
 from toad.preferences import SETTINGS
-from toad.widgets.session_tabs import SessionTabClose
 from toad.tab_identity.kinds import MailboxTab
+from toad.widgets.session_tabs import SessionTabClose
 
 
 @dataclass

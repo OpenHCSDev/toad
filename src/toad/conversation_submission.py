@@ -9,15 +9,6 @@ from functools import partial
 from typing import ClassVar
 
 from acp.exceptions import RequestError
-from agent_comms.delivery_failure import delivery_failure
-from agent_comms.errors import (
-    CommittedMessageError,
-    HumanSendError,
-    HumanSendRefusedError,
-    RelationViolationError,
-    RouteChangedError,
-)
-from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.acp_extension import (
     InputStartedUpdate,
     PendingQueueProjection,
@@ -25,28 +16,38 @@ from agent_comms.acp_extension import (
     QueueScope,
     SteerPromptRequest,
 )
+from agent_comms.errors import (
+    CommittedMessageError,
+    HumanSendError,
+    HumanSendRefusedError,
+    RelationViolationError,
+    RouteChangedError,
+)
+from agent_comms.messaging.delivery_failure import delivery_failure
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad import messages
-from toad.delivery_failure_view import DeliveryFailureView
+from toad.acp.agent import Agent
+from toad.acp.client_session import ClientSessionRequest
+from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.status import StopReason, UnreportedStopReason
 from toad.bus_submission import (
     BusDestination,
     SubmissionOwner,
     SubmissionStart,
     SubmittedText,
 )
-from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
-from toad.acp.agent import Agent
-from toad.acp.status import StopReason, UnreportedStopReason
 from toad.comms_root import Observing
-from toad.acp.queue_attachment import QueueActionRefused
-from toad.submission_queue import QueueEvidence, QueueSource
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
+from toad.delivery_failure_view import DeliveryFailureView
 from toad.input_decision import InputDecision, InputRefused
+from toad.submission_queue import QueueEvidence, QueueSource
 from toad.widgets.prompt import Prompt
 from toad.worker_group import InputHistoryRecord
+
 
 @dataclass(frozen=True)
 class InputSubmission(SubmittedText, DeclaredFamily, affix="InputSubmission"):

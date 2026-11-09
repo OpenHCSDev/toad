@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
-from functools import cached_property
-
 from abc import abstractmethod
+from functools import cached_property
 from typing import cast
 
-from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
+from agent_comms.messaging.display_references import (
+    ChannelDisplayReference,
+    HistoricalDisplayReference,
+    ThreadDisplayReference,
+)
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich.segment import Segment
+from textual import on
 from textual._paint_state import PaintState
+from textual.events import Mount, Unmount
 from textual.geometry import Size
 from textual.scroll_view import ScrollView
 from textual.selection import Selection
@@ -32,9 +37,7 @@ from toad.navigation_target import NavigationTarget, SelectTarget
 from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines, link_place
-from textual.events import Mount
-from textual import on
-from textual.events import Unmount
+
 
 class RestylesOnTheme(FollowsTheme):
     """Rows restyle when the theme changes; each member says how in invalidate_lines."""

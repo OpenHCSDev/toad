@@ -4,21 +4,26 @@ Each assertion is one rule that commit deleted: a panel's percentage size, the s
 and the 1fr child that takes the panel's remaining height above its docked or auto-height controls.
 """
 
-from agent_comms.historical_views import HistoricalThread
+from agent_comms.messaging.historical_views import HistoricalThread
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
-
 from support.goals import published_goal
 from support.roots import installed_wire
-from toad.screens.goal_details import GoalDetails, GoalDetailsClose, GoalDetailsPanel, GoalDocument
+from textual.containers import VerticalScroll
+
+from toad.screens.goal_details import (
+    GoalDetails,
+    GoalDetailsClose,
+    GoalDetailsPanel,
+    GoalDocument,
+)
 from toad.screens.historical_sessions import HistoricalSessions
 from toad.screens.keymap import KeymapPanel, KeymapScreen, KeymapStatus, KeymapTable
 from toad.screens.modal import ModalPanel
-from toad.screens.welcome import WelcomeColumn, WelcomeScreen
 from toad.screens.queue import QueueActions, QueueInspection, QueuePanel
 from toad.screens.team import HudRows, TeamClose, TeamPage, TeamPanel
+from toad.screens.welcome import WelcomeColumn, WelcomeScreen
 from toad.widgets.history_anchor import HistoryWindow
-from textual.containers import VerticalScroll
 
 SIZE = WIDTH, HEIGHT = 100, 40
 

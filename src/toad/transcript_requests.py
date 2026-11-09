@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from agent_comms.transcripts import (
+from agent_comms.transcript.transcripts import (
     AtFrontier,
     LatestPage,
     LivePageSource,

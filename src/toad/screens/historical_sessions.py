@@ -7,9 +7,10 @@ from functools import partial
 from pathlib import Path
 
 from agent_comms.coordination.errors import ReadAgain
-from agent_comms.historical_views import HistoricalThread, HistorySourceKey
+from agent_comms.messaging.historical_views import HistoricalThread
 from agent_comms.messaging.notification_reads import RecordedNotificationRead
-from agent_comms.transcripts import RecordedPageSource
+from agent_comms.messaging.page_traversal import HistorySourceKey
+from agent_comms.transcript.transcripts import RecordedPageSource
 from agent_comms.transport.tools.reads import TranscriptPageRead
 from agent_comms.ui_model.observation import ReadTranscript
 from metaclass_registry.mro_dispatch import handles

@@ -8,7 +8,7 @@ from dataclasses import replace
 import pytest
 from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.execution.fresh_private_session import create_fresh_private_session
-from agent_comms.session_file import RegistrySessionLocation
+from agent_comms.execution.session_file import RegistrySessionLocation
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.ui import saved_tab

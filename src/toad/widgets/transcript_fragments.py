@@ -11,8 +11,8 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.messaging.sent_message import PublishedSentMessage
 from agent_comms.nominal.field_codec import ToolCallId
-from agent_comms.recorded_time import EventTime
-from agent_comms.transcript_events import (
+from agent_comms.storage.recorded_time import EventTime
+from agent_comms.transcript.transcript_events import (
     AgentTextTranscript,
     ContextTranscript,
     IncomingTranscript,

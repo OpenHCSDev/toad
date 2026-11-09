@@ -2,39 +2,39 @@
 
 from __future__ import annotations
 
-from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
-from agent_comms.registry.thread_identity import ThreadIncarnation
-from toad.referenced_core import ReferencedCore
-from toad.widgets.channel_activity import ChannelActivity
-from toad.widgets.channel_prompt import ChannelPrompt
-from toad.widgets.session_details import ConversationSessionDetails
-from toad.widgets.presentation_window import OLDER_END, NEWER_END
-from functools import partial
-from toad.widgets.wire_history import HistoryLoading, WireHistory
-from toad.message_rows import IrcMessageStyle
-from toad.transcript_state import DEFERRED_WORK, SourceWork
-from toad.wire_history import WireSource
-from toad.submission_queue import NoQueueSource, QueueSource
-from toad.transcript_publication import NoView, ViewBinding
-
 import re
+from functools import partial
 from pathlib import Path
 
-from agent_comms.projects.checkouts import Checkout
+from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
+from agent_comms.messaging.display_references import (
+    CurrentDisplayReferences,
+    ReferenceContext,
+)
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from metaclass_registry.mro_dispatch import handles
-from toad.core import events as core_events
-from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.core_event_carrier import CoreEventMessage
 from textual.app import ComposeResult
 from textual.content import Content
 
-from agent_comms.messaging.message_reference import MessageReference
 from toad.bus_submission import SubmissionStart
-from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.conversation_kind import ConversationKind
-from toad.wire_conversation_view import WireConversationView
+from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
+from toad.core import events as core_events
+from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.core_event_carrier import CoreEventMessage
+from toad.message_rows import IrcMessageStyle
+from toad.referenced_core import ReferencedCore
+from toad.session_scope import SessionScope
+from toad.status_thread import StatusThread
+from toad.submission_queue import NoQueueSource, QueueSource
+from toad.transcript_publication import NoView, ViewBinding
+from toad.transcript_scope import NoTranscript
+from toad.transcript_state import DEFERRED_WORK, SourceWork
+from toad.widgets.channel_activity import ChannelActivity
+from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
@@ -43,11 +43,13 @@ from toad.widgets.conversation import (
     PromptStack,
     Window,
 )
-from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
+from toad.widgets.presentation_window import NEWER_END, OLDER_END
 from toad.widgets.prompt import Prompt
-from toad.session_scope import SessionScope
-from toad.transcript_scope import NoTranscript
+from toad.widgets.session_details import ConversationSessionDetails
+from toad.widgets.wire_history import HistoryLoading, WireHistory
+from toad.wire_conversation_view import WireConversationView
+from toad.wire_history import WireSource
 
 
 def session_thread_name(project_path) -> str:

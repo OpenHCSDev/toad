@@ -3,10 +3,9 @@
 from pathlib import Path
 
 from agent_comms.acp_extension import QueuePromptRequest
-from agent_comms.input_disposition import InputDispositions
 from agent_comms.execution.native_entries import NativeEntry
-from agent_comms.retained_task_facts import CurrentHumanInputTaskFact
-
+from agent_comms.input_disposition import InputDispositions
+from agent_comms.messaging.retained_task_facts import CurrentHumanInputTaskFact
 from support.native import ControlledProvider, native_session
 
 

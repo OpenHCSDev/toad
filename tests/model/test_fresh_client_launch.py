@@ -1,9 +1,9 @@
 """A plain frontend installation can open before installing a local agent runtime."""
 
 import pytest
+from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.installer import active_route
 
-from agent_comms import active_route
-from agent_comms.launch_root import LaunchRoot
 from toad.cli import main
 from toad.comms_root import LocalCoreConnection
 

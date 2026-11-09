@@ -2,14 +2,23 @@
 
 import pickle
 
-from agent_comms.display_references import ProjectReferences
-from agent_comms.transcript_events import AssistantTranscript
+from agent_comms.messaging.display_references import ProjectReferences
+from agent_comms.transcript.transcript_events import AssistantTranscript
 from textual.app import App
 
 from toad.markdown_links import LinkContext
 from toad.textual_colours import ThemedApp
-from toad.widgets.transcript_fragments import DraftBlocksRenderTask, FragmentPlan, transcript_fragments
-from toad.widgets.transcript_lines import AcquiredRows, LinePreparation, RichLineRenderer, TranscriptLinesRenderTask
+from toad.widgets.transcript_fragments import (
+    DraftBlocksRenderTask,
+    FragmentPlan,
+    transcript_fragments,
+)
+from toad.widgets.transcript_lines import (
+    AcquiredRows,
+    LinePreparation,
+    RichLineRenderer,
+    TranscriptLinesRenderTask,
+)
 
 
 class DraftApp(ThemedApp, App):

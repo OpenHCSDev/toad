@@ -9,30 +9,41 @@ keyboard. Nothing here imports a terminal library.
 
 from __future__ import annotations
 
+import time
 from abc import abstractmethod
 from dataclasses import dataclass
-import time
 from typing import ClassVar
 
 from agent_comms.messaging.channel_targets import (
-    CommandTarget,
     ChannelTarget,
+    CommandTarget,
     ThreadTarget,
 )
-from metaclass_registry.mro_dispatch import handles
-from toad.core.projection import MroProjection
-from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.historical_views import HistorySource
+from agent_comms.messaging.historical_views import HistorySource
 from agent_comms.messaging.messages import Message, NoHistorySource
-from agent_comms.recorded_time import EventTime
-from agent_comms.routing import MessageRoute
+from agent_comms.messaging.routing import MessageRoute
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.storage.recorded_time import EventTime
+from metaclass_registry.mro_dispatch import handles
 
+from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
-from toad.menus import MenuCommand, OpenDestinationCommand, OpenSenderCommand
 from toad.line_blocks import (
-    MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole, NoBar,
-    OpenHistoricalTarget, OpenTarget, OutgoingRole, Span, Spans,
+    Divider,
+    IncomingRole,
+    LineBlock,
+    LineLink,
+    LineRole,
+    MarkdownBody,
+    NameRole,
+    NoBar,
+    OpenHistoricalTarget,
+    OpenTarget,
+    OutgoingRole,
+    Span,
+    Spans,
 )
+from toad.menus import MenuCommand, OpenDestinationCommand, OpenSenderCommand
 
 
 class MessageClock:

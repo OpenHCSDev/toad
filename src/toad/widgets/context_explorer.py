@@ -4,24 +4,24 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from functools import partial
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-from agent_comms.coordination.errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordination.coordinator import Coordination
+from agent_comms.coordination.errors import Refused
 from metaclass_registry.mro_dispatch import handles
 from textual import on, work
-from textual.document._editing import EditingMode
 from textual.containers import Horizontal, Vertical
+from textual.document._editing import EditingMode
+from textual.events import Mount, Show, Unmount
 from textual.widget import Widget
 from textual.widgets import Input, Static, Tree
 from textual.widgets._tree import TreeNode
 from textual.worker import Worker, WorkerCancelled, get_current_worker
 
-from toad.widgets.acting_button import ActingButton
 from toad.core.context_inspection import (
     ContextNode,
     DetachedInspection,
@@ -29,21 +29,18 @@ from toad.core.context_inspection import (
     InspectionState,
 )
 from toad.core.events import CoordinationObserved, SessionSelected
-from toad.native_style import AutoHeight, Borderless, FillWidth
+from toad.native_style import AutoHeight, Borderless, FillWidth, MutedText
 from toad.session_scope import SessionScope
-from toad.widget_actions import Action, NativeMethodKeys
 from toad.thread_identity import SessionIdentity, ThreadIdentity
+from toad.widget_actions import Action, NativeMethodKeys
+from toad.widgets.acting_button import ActingButton
 from toad.widgets.process_text_area import ProcessTextArea
-from toad.native_style import MutedText
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.worker_group import WorkerGroup
-from textual.events import Mount
-from textual.events import Unmount
-from textual.events import Show
 
 if TYPE_CHECKING:
-    from agent_comms.working_memory_questions import SpanAnswer
+    from agent_comms.working_memory.working_memory_questions import SpanAnswer
 
 
 @dataclass

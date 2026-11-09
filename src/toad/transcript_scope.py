@@ -10,21 +10,37 @@ from functools import partial
 from pathlib import Path
 from typing import Never
 
-from agent_comms.messaging.channel_targets import ThreadTarget
 from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
 from agent_comms.errors import RouteChangedError
+from agent_comms.messaging.channel_targets import ThreadTarget
 from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.thread_presentation import ThreadPresentation
+from agent_comms.transcript.transcripts import (
+    AtFrontier,
+    LatestPage,
+    LivePageSource,
+    PageLimit,
+    PagePosition,
+    PageSource,
+)
 from agent_comms.transport.tools.reads import TranscriptPageRead
-from agent_comms.ui_model.observation import ReadTranscript, ReadTranscriptUpdate, TranscriptPublicationState
+from agent_comms.ui_model.observation import (
+    ReadTranscript,
+    ReadTranscriptUpdate,
+    TranscriptPublicationState,
+)
 from rich.text import Text as RichText
 from textual.content import Content
 
-from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
-
 from toad.app_node import ToadNode
-from toad.bus_submission import BusDestination, SubmissionOwner, SubmissionStart, SubmittedText
+from toad.bus_submission import (
+    BusDestination,
+    SubmissionOwner,
+    SubmissionStart,
+    SubmittedText,
+)
 from toad.comms_root import CoordinationAccess, Observing
 from toad.conversation_kind import DmConversation
 from toad.core.events import ThreadRowsChanged
@@ -34,7 +50,6 @@ from toad.owner_preparation import ExistingOwnerPlan
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.transcript_requests import TranscriptRequests
-from agent_comms.nominal.field_codec import AcpSessionId
 
 
 class TranscriptView(CoreEventReceiver, ToadNode):

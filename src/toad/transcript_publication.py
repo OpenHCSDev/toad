@@ -25,11 +25,11 @@ from agent_comms.coordination.errors import (
 )
 from agent_comms.execution.child_process import join_retirement
 from agent_comms.execution.transcript_sources import NoDraft
-from agent_comms.external_transcript import DraftRow
 from agent_comms.messaging.sent_message import PublishedSentMessage
 from agent_comms.registry.thread_presentation import ThreadPresentation
-from agent_comms.transcript_events import TranscriptCoverage
-from agent_comms.transcripts import (
+from agent_comms.transcript.external_transcript import DraftRow
+from agent_comms.transcript.transcript_events import TranscriptCoverage
+from agent_comms.transcript.transcripts import (
     AtFrontier,
     LatestPage,
     PageLimit,

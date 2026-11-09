@@ -1,21 +1,25 @@
 """Textual-facing: changing which message categories show restyles only the affected blocks, never the whole conversation."""
 
-from unittest.mock import patch
 from dataclasses import replace
+from unittest.mock import patch
 
-from toad.widgets.agent_response import AgentResponse
-from toad.widgets.agent_thought import AgentThought
-from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.ui_model.message_category import ThinkingCategory, UserCategory, all_categories
-from agent_comms.ui_model.message_category import InboundCategory
-from toad.message_rows import MarkdownMessageStyle
-from toad.widgets.comms_chat import CommsChatView
-
+from agent_comms.execution.session_file import RegistrySessionLocation
+from agent_comms.ui_model.message_category import (
+    InboundCategory,
+    ThinkingCategory,
+    UserCategory,
+    all_categories,
+)
 from support.journals import assistant_entry, user_entry, write_journal
-from toad.widgets.transcript_history import ProjectedTranscriptHistory
+
+from toad.message_rows import MarkdownMessageStyle
 from toad.transcript_preparation import TranscriptPageRenderTask
 from toad.transcript_state import PreparedReplacementViewportRequest
+from toad.widgets.agent_response import AgentResponse
+from toad.widgets.agent_thought import AgentThought
+from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.history_anchor import LatestPosition
+from toad.widgets.transcript_history import ProjectedTranscriptHistory
 
 
 async def test_category_change_does_not_restyle_the_whole_conversation(workspace):

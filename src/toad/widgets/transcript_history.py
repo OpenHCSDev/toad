@@ -20,8 +20,8 @@ from agent_comms.messaging.sent_message import (
     PublishedSentMessage,
 )
 from agent_comms.nominal.fold import Absorbs, Accumulates, Fold
-from agent_comms.transcript_events import TranscriptEvent
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript.transcript_events import TranscriptEvent
+from agent_comms.transcript.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.ui_model.message_category import (
     MessageCategory,
     all_categories,

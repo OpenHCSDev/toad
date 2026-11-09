@@ -2,11 +2,10 @@
 
 import pytest
 from agent_comms.errors import RelationViolationError
-from agent_comms.launch_root import LaunchRoot
+from agent_comms.execution.launch_root import LaunchRoot
 from support.agents import peer
 
 from toad.launch_binding import AgentAttached
-
 from toad.session_scope import NoSessionOrigin, SessionScope
 from toad.transcript_scope import NoTranscript
 

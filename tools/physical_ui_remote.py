@@ -5,19 +5,19 @@ The controller submits only typed observation packets, applied on Textual's loop
 No attachment, debugger permission, code injection or signal handler is used.
 """
 
-from abc import abstractmethod
-from contextlib import ExitStack, contextmanager
-from functools import cache, partial
-from dataclasses import dataclass
-from importlib.metadata import distribution
 import importlib.machinery
 import json
-from multiprocessing.connection import Connection
 import os
-from pathlib import Path
 import pwd
 import sys
 import time
+from abc import abstractmethod
+from contextlib import ExitStack, contextmanager
+from dataclasses import dataclass
+from functools import cache, partial
+from importlib.metadata import distribution
+from multiprocessing.connection import Connection
+from pathlib import Path
 from threading import Thread
 from types import ModuleType
 from typing import ClassVar, Self
@@ -32,22 +32,23 @@ from agent_comms.execution.child_process import (
     ChildOutcome,
     ProcessIdentity,
 )
-from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.installer.interpreter_operation import RuntimeProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution, ToadPackage
 from agent_comms.installer.runtime_stack import Extendable
-from agent_comms.projects.storage_rules import StorageRule
+from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import DeclaredWireType, FieldCodec
-from pydantic import JsonValue
+from agent_comms.projects.storage_rules import StorageRule
+from agent_comms.storage.store_files import ExclusiveAtomicFile
 from metaclass_registry.mro_dispatch import handles
+from pydantic import JsonValue
 from textual.geometry import Region
+from ui_theme.wal import WalFile
+
 from toad.acp.agent import Agent
 from toad.agent_binding import NoAgentConnection
 from toad.core.projection import MroProjection
 from toad.tab_identity import TabIdentity
-from ui_theme.wal import WalFile
-from agent_comms.storage.store_files import ExclusiveAtomicFile
 
 
 class PendingRun(RuntimeError):
@@ -384,6 +385,7 @@ class StartOperation(PhysicalOperation):
                     or packet != ObserveOperation.packet_path(packet.parent)):
                 raise ValueError("Observation packet is outside this startup's operation directory")
             from textual._context import NoActiveAppError
+
             from toad.app import ToadApp
 
             try:
@@ -526,15 +528,16 @@ class ObserveOperation(PhysicalOperation):
             raise ValueError("Observed HOME is not private")
         import agent_comms
         import textual
-        import toad
-        from toad.app import ToadApp
         from textual._context import NoActiveAppError
         from textual.app import ScreenStackError
+        from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home
+
+        import toad
+        from toad.app import ToadApp
         from toad.live_output import ResponseStream
         from toad.widgets.conversation import Conversation
         from toad.widgets.history_anchor import HistoryWindow
         from toad.widgets.prompt import PromptTextArea
-        from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home
 
         try:
             app = ToadApp.running_app()
@@ -636,7 +639,7 @@ class StopRootOperation(PhysicalOperation):
         if LaunchRuntime.running().prefix != self.target.runtime:
             raise ValueError("Private-copy shutdown must run in its declared runtime")
         from agent_comms.comms import wire
-        from agent_comms.launch_root import LaunchRoot
+        from agent_comms.execution.launch_root import LaunchRoot
         from agent_comms.registry.registry_document import RosterVisibility
 
         with LaunchRoot.from_path(self.target.root).selected():
