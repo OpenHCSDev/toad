@@ -8,20 +8,17 @@ constructing a pool starts no processes.
 
 import asyncio
 import os
+import pickle
 from collections.abc import Awaitable, Callable
 from concurrent.futures import ProcessPoolExecutor
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeVar
 
 from agent_comms import launch_root
 from agent_comms.execution.child_process import HelperStart
 from agent_comms.launch_runtime import ThreadLaunch
 
-from toad.render_backend import Renderer
-
-if TYPE_CHECKING:
-    from toad.render_backend import RenderTask
-    from toad.work_preparation import PreparedValue
-
+from toad.render_backend import Renderer, RenderTask
+from toad.work_preparation import PreparedValue
 
 Result = TypeVar("Result")
 
@@ -41,6 +38,12 @@ def _initialize_worker() -> None:
         sdk_boundary,  # noqa: F401 -- declare worker ingress capabilities
     )
     launch_root.started()
+
+
+def capture_submitted(submission: bytes) -> PreparedValue:
+    """Run a pickled render task in this worker."""
+    task: RenderTask = pickle.loads(submission)
+    return task.capture_result()
 
 
 class RenderProcessPool(Renderer):
@@ -134,6 +137,13 @@ class RenderProcessPool(Renderer):
     async def capture(self, task: RenderTask[Result]) -> PreparedValue[Result]:
         """Submit a typed rendering operation to the persistent app-owned pool."""
         return await task.complete_capture(self.run(task.capture_result))
+
+    async def capture_submitted(
+        self, task: RenderTask[Result], submission: bytes,
+    ) -> PreparedValue[Result]:
+        """Send the bytes preparation already pickled. The executor pickles a bytes object
+        as a copy, so the task is never pickled again on the UI interpreter."""
+        return await task.complete_capture(self.run(capture_submitted, submission))
 
     async def aclose(self) -> None:
         """Asynchronously join this pool; safe to call concurrently or repeatedly."""

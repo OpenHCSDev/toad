@@ -8,6 +8,7 @@ service.
 
 import asyncio
 import os
+import pickle
 import socket
 import ssl
 import threading
@@ -26,7 +27,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import ExternalThread
 
 from toad.comms_root import RemoteCoreConnection, RemoteObserving
-from toad.render_processes import RenderProcessPool
+from toad.render_processes import RenderProcessPool, capture_submitted
 from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask
 from toad.widgets.comms_sidebar import CommsSidebar
 
@@ -257,8 +258,13 @@ async def test_remote_conversation_prepares_transcript_lines_in_a_render_process
 
     async def witnessed(pool, function, *arguments):
         pid, result = await run(pool, execute_with_process_identity, function, arguments)
-        completed.append((pid, type(function.__self__)))
+        completed.append((pid, function, arguments))
         return result
+
+    def line_jobs():
+        # Preparation sends each task as the bytes it already pickled.
+        return [pid for pid, function, arguments in completed if function is capture_submitted
+                and type(pickle.loads(arguments[0])) is TranscriptLinesBatchRenderTask]
 
     monkeypatch.setattr(RenderProcessPool, "run", witnessed)
     with remote_core(workspace, tmp_path, monkeypatch, UiAccess) as connection:
@@ -275,9 +281,8 @@ async def test_remote_conversation_prepares_transcript_lines_in_a_render_process
                 group.toggle_members()
             await ui.until(lambda: "remote-peer" in group.rows, why="the remote thread row")
             group.rows["remote-peer"].open_selected()
-            await ui.until(lambda: any(kind is TranscriptLinesBatchRenderTask for _, kind in completed),
+            await ui.until(lambda: bool(line_jobs()),
                            seconds=REMOTE_FIRST_ANSWER, why="fresh remote lines to finish in a render process")
-            line_jobs = [(pid, kind) for pid, kind in completed if kind is TranscriptLinesBatchRenderTask]
-            assert line_jobs
-            assert all(pid != os.getpid() for pid, _ in line_jobs)
-            print(f"Remote transcript line jobs: {len(line_jobs)}; UI PID {os.getpid()}; worker PIDs {sorted({pid for pid, _ in line_jobs})}")
+            pids = line_jobs()
+            assert all(pid != os.getpid() for pid in pids)
+            print(f"Remote transcript line jobs: {len(pids)}; UI PID {os.getpid()}; worker PIDs {sorted(set(pids))}")
