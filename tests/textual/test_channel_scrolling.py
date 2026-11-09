@@ -1,7 +1,10 @@
 """Textual-facing: a long channel scrolls like a thread's history: held paging never draws a blank message area, the history grows under a reader without moving them, and End reaches the newest message with the draft untouched."""
 
+import asyncio
 import threading
 from unittest.mock import patch
+
+from agent_comms.ui_model.observation import CoreReadAnswered
 
 from support.textual_steps import painted_text, refresh_chat
 from toad.widgets.comms_chat import CommsChatView
@@ -317,29 +320,34 @@ async def test_a_held_child_read_leaves_paint_and_input_live_and_pages_when_it_i
         app, _pilot = ui.textual
         chat, history, window = await long_channel(workspace, ui)
         editor = chat.prompt.prompt_text_area
+        # Holding in front of the call would hold only the parent, with nothing accepted
+        # anywhere. The reply is what waits here: once one exists the child has received,
+        # served and answered the read, so this is a held read and not a held caller.
         released = threading.Event()
-        real_read = type(app.coordination_access.observation.process).read_from_thread
+        entered = threading.Event()
+        real_received = CoreReadAnswered.received
 
-        def held(self, request):
-            released.wait(10)
-            return real_read(self, request)
+        async def holding(self, process, observed):
+            entered.set()
+            await asyncio.to_thread(released.wait)
+            return await real_received(self, process, observed)
 
         window.focus(scroll_visible=False)
         oldest_loaded = messages(history)[0].seq
         frames, stop = record_blank_frames(app, window)
         try:
-            with patch.object(type(app.coordination_access.observation.process),
-                              "read_from_thread", held):
+            with patch.object(CoreReadAnswered, "received", holding):
                 while messages(history)[0].seq >= oldest_loaded and history.has_more(OLDER_END):
                     await ui.press("pageup")
-                    if window.scroll_y == 0:
+                    if entered.is_set() or window.scroll_y == 0:
                         break
-                # The read is held open. Typing still lands and the area still draws.
+                assert entered.is_set(), "no child read was held, so this proves nothing"
+                # A reply is waiting in the child. Typing still lands and the area still draws.
                 editor.focus()
                 await ui.press("h", "e", "l", "d")
                 assert editor.document.text.endswith("held"), "input died while a read was held"
-                assert frames and all(frames), 'the message area went blank while a read was held'
-            released.set()
+                assert frames and all(frames), "the message area went blank while a read was held"
+                released.set()
             await ui.until(lambda: messages(history)[0].seq < oldest_loaded,
                            why="the page the held read owed")
         finally:
