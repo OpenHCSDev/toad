@@ -9,6 +9,7 @@ from pathlib import Path
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._time import after_input
+from textual.app import App
 
 from toad.constants import WELCOME
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
@@ -188,9 +189,9 @@ class VisiblePublication:
         )
 
 
-class WorkspaceHost:
-    """What workspace sessions work through. The app inherits this and provides each member;
-    declaring it here means this module never imports the app."""
+class WorkspaceHost(App):
+    """What workspace sessions work through: an App (whose own _init_mode they call) that
+    also provides these members. ToadApp inherits it, so this module never imports the app."""
 
     workspace_screen: WorkspaceScreen
     workspace_chrome: WorkspaceChrome
