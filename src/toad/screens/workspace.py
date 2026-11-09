@@ -11,7 +11,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.containers import Container
 from textual.document._editing import EditingMode
 from textual.box_model import DEFAULT_LAYER
-from textual.events import ScreenResume
+from textual.events import ScreenResume, ScreenSuspend
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.view import WidgetView
@@ -157,6 +157,7 @@ class WorkspaceFrame(ProfileKeys, JumpsHistory, WidgetView, Screen):
             for target in window.history_geometry_targets()
         )
 
+    @on(ScreenSuspend)
     def on_screen_suspend(self) -> None:
         self.frame_presentation.suspend()
         for window in tuple(self.history_windows):

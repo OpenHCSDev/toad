@@ -7,9 +7,12 @@ from support.ui import saved_tab
 
 from toad.screens.main import MainScreen
 from toad.workspace_sessions import SessionStartFailed
+from textual import on
+from textual.events import Mount
 
 
 class FailsToStart(MainScreen):
+    @on(Mount)
     def on_mount(self) -> None:
         raise ValueError("START_FAILURE")
 

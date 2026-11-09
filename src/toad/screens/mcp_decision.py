@@ -84,6 +84,7 @@ class MCPDecisionScreen(CenteredScreen, PriorityActions, DismissibleScreen[None]
         terminal.focus()
         self._runner = asyncio.create_task(self._run_local_action())
 
+    @on(events.ScreenSuspend)
     def _on_screen_suspend(self) -> None:
         super()._on_screen_suspend()
         self._stop()  # A covered modal is not a controlling local terminal.

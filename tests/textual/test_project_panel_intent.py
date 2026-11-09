@@ -16,6 +16,7 @@ from toad.textual_colours import ThemedApp
 from toad.widgets.project_panel import RestorableProjectPanel
 from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.session_thread_panels import ProjectSessionPanel
+from textual.events import Mount
 
 
 async def test_retirement_during_restore_keeps_the_project_reader(tmp_path: Path):
@@ -36,6 +37,7 @@ async def test_retirement_during_restore_keeps_the_project_reader(tmp_path: Path
         def compose(self):
             yield panel
 
+        @on(Mount)
         def on_mount(self):
             self.mount_worker = panel._mount_tree()
 

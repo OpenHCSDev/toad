@@ -9,6 +9,8 @@ from toad.widgets.observed_thread_activity import (
     ObservedThreadActivity,
     ThreadStatusOwner,
 )
+from textual import on
+from textual.events import Mount
 
 
 class OtherRouteStatusSurface(ThreadStatusOwner, Vertical):
@@ -20,6 +22,7 @@ class OtherRouteStatusSurface(ThreadStatusOwner, Vertical):
     def compose(self) -> ComposeResult:
         yield self.thread_activity
 
+    @on(Mount)
     def on_mount(self) -> None:
         self.thread_activity.bind(self.source)
 

@@ -363,6 +363,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.show_error(error, type(error).__name__)
         return True
 
+    @on(events.Load)
     async def on_load(self) -> None:
         asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, self.exit)
         asyncio.get_running_loop().add_signal_handler(signal.SIGUSR1, self.relaunch)
