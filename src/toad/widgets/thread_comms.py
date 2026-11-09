@@ -33,17 +33,18 @@ from toad.native_style import (
 )
 from toad.widgets.checkbox import Checkbox
 
-from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
+from toad.widgets.comms_sidebar import ThreadStatusRow
 from toad.native_style import MutedText
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
+from toad.sidebar_contracts import RelationshipMemberRows
+from toad.category_filter import CategoryFilterView
+from toad.widgets.comms_menu import show_target_menu
 from toad.widgets.sidebar_tree import (
-    SidebarChange,
     Disclosure,
     GroupTitle,
     SidebarGroup,
-    SidebarModelView,
     SearchFollower,
     SelectsTargets,
 )
@@ -58,6 +59,9 @@ from toad.comms_root import Observing
 from textual.events import Mount
 from textual.events import Unmount
 from textual.events import Show
+
+from toad.sidebar_changes import SidebarChange
+from toad.sidebar_model_view import SidebarModelView
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -208,7 +212,7 @@ class MessageFilter(
 
 
 
-class RelationshipRows(SidebarGroup[RelationshipRow]):
+class RelationshipRows(RelationshipMemberRows, SidebarGroup[RelationshipRow]):
     leading_segments = (Disclosure(1),)
 
     def __init__(self, model: RelationshipGroup, expanded: bool):
@@ -398,9 +402,7 @@ class ThreadCommsSidebar(
         self.refresh_relationships()
 
     def _sync_filter_control(self):
-        from toad.widgets.conversation import Conversation
-
-        view = self.query_ancestor(SessionScope).query_one_optional(Conversation)
+        view = self.query_ancestor(SessionScope).query_one_optional(CategoryFilterView)
         checkboxes = tuple(self.query(Checkbox))
         for checkbox in checkboxes:
             checkbox.display = view is not None
@@ -595,8 +597,6 @@ class ThreadCommsSidebar(
         self.open_target(entry_target(current))
 
     def show_row_menu(self, row: RelationshipRow, offset: Offset) -> None:
-        from toad.widgets.comms_menu import show_target_menu
-
         self.pointer_select(row, menu=True)
         target, entry, generation = row.target_name, row.entry, self._generation
 

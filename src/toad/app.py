@@ -3,7 +3,7 @@ from agent_comms.storage.locked_store import RootFile
 from toad.workspace_chrome import WorkspaceChrome
 from toad.workspace_sessions import WorkspaceHost, WorkspaceSessionShutdown, WorkspaceSessions
 from inspect import isabstract
-from toad.comms_root import BusChoice, CoreConnection, HeldBus, PickerRow
+from toad.comms_root import CoreConnection
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -16,12 +16,11 @@ import sys
 import json
 import os
 from enum import IntEnum
-from functools import cached_property, partial
+from functools import cached_property
 from pathlib import Path
 from time import monotonic
 from typing import Callable, Never, TypeVar, cast
 
-from agent_comms.acp_extension import TranscriptChangedUpdate
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.projects.checkouts import Checkout
@@ -34,21 +33,24 @@ from rich.console import RenderableType
 from textual._time import after_input
 from textual import events, on, work
 from textual.await_complete import AwaitComplete
-from textual.content import Content
 from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import Required, var
-from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets import LoadingIndicator
 
-from toad import messages
 from toad.core import session_requests
-from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
 from toad.launch_binding import AgentBinding
 from toad.session_scope import SessionScope
-from toad.render_backend import Renderer, RenderTask
+from toad.render_backend import PreparedRenderer, Renderer, RenderTask
+from toad.render_processes import RenderProcessPool
+from toad.file_kind import FileKind
+from toad.screens.workspace import WorkspaceScreen
+from textual.widgets._footer import KeyGroup
+from textual.widgets.markdown import Markdown
+from toad.screens import comms, main  # noqa: F401 - register widget classes
+from toad.widgets import tool_call  # noqa: F401 - register widget classes
 from toad.work_preparation import PreparationRuntime
 from toad.navigation_preparation import (
     NavigationReader,
@@ -57,7 +59,6 @@ from toad.db import DB
 from toad.preferences import SavedSettings
 from toad.session_tracker import (
     OpenTab,
-    SessionDetails,
     SessionTracker,
     SidebarState,
 )
@@ -79,15 +80,12 @@ from toad.resource_release import AsyncResourceRelease
 from toad.native_style import TransparentBackground
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
+from toad.bus_selection import BusChoice, HeldBus, PickerRow
+
 
 RenderResultT = TypeVar("RenderResultT")
 
 
-
-
-def get_workspace_screen():
-    from toad.screens.workspace import WorkspaceScreen
-    return WorkspaceScreen()
 
 
 class HeapBeforeFreeze:
@@ -139,11 +137,11 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
+class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
     COMMANDS = {ApplicationCommands}
-    MODES = {"workspace": get_workspace_screen}
+    MODES = {"workspace": WorkspaceScreen}
     BINDING_GROUP_TITLE = "System"
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
@@ -170,9 +168,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             project_dir: Project directory.
             connection: Core transport selected by the launch owner.
         """
-        from toad.render_processes import RenderProcessPool
-        from toad.render_backend import PreparedRenderer
-
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
         self.preparation = PreparationRuntime(RenderProcessPool(connection.helper_start))
@@ -200,7 +195,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self._session_tracker = SessionTracker(self.tab_order)
         self.coordination_access = connection.open_access(self)
 
-        from toad.file_kind import FileKind
         FileKind.prepare_terminal()
         super().__init__()
         # The themed app opened the settings that own this terminal's sidebar arrangement.
@@ -395,13 +389,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         component. Registration deduplicates identical sources when widgets
         eventually mount, avoiding a full CSS rebuild of already-open tabs.
         """
-        from textual.widget import Widget
-        from textual.widgets._footer import KeyGroup
-        from textual.widgets.markdown import Markdown
-
-        from toad.screens import comms, main  # noqa: F401 - register widget classes
-        from toad.widgets import tool_call  # noqa: F401 - register widget classes
-
         started = monotonic()
         source_count = len(self.stylesheet.source)
         pending = [Widget]

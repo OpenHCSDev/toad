@@ -1,12 +1,16 @@
 """Hydration and navigation of the existing shared channel hierarchy."""
 from __future__ import annotations
 import asyncio
+from dataclasses import replace
+from toad.sidebar_contracts import NavigationRefresh
 from agent_comms.channel_targets import CommandTarget, OneChannel, PerTargetChannels
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
-from toad.widgets.comms_sidebar import CommsRow
 
-class SidebarNavigation:
+from toad.widgets.sidebar_tree import CommsRow
+
+
+class SidebarNavigation(NavigationRefresh):
     def __init__(self, sidebar):
         self.sidebar = sidebar
         self.ready = asyncio.Event()
@@ -61,7 +65,6 @@ class SidebarNavigation:
             self.ready.set()
 
     def menu_context(self, row: CommsRow):
-        from dataclasses import replace
         context = row.target.menu_context(
             self.sidebar, mode_name=self.sidebar.open_views.get(row.target_name),
             channel=OneChannel(self.sidebar.selection_for(row).channel))

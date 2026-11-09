@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from toad.comms_root import UnselectedRoute
 from toad.widgets.comms_sidebar import CommsSidebar
-from toad.widgets.sidebar_tree import FailedSidebarState
+from toad.sidebar_model_view import FailedSidebarState
 
 
 class FailNextInterest:

@@ -11,8 +11,9 @@ from dataclasses import dataclass
 
 from agent_comms.launch_runtime import LaunchRuntime
 
-from toad.comms_root import BusChoice
 from toad.version import VersionMonitor
+
+from toad.bus_selection import BusChoice
 
 
 class ApplicationOutcome(ABC):

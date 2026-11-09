@@ -10,8 +10,9 @@ from textual.content import Content
 from textual.widgets import Collapsible, Static
 
 from toad.native_style import AutoHeight, Borderless, NoMargin, NoPadding
-from toad.widgets.sidebar_tree import KeyedRows
 from textual import on
+
+from toad.keyed_rows import KeyedRows
 
 
 class DisclosureContents(AutoHeight, Collapsible.Contents):

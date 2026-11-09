@@ -9,7 +9,7 @@ from pathlib import Path
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._time import after_input
-from textual.app import App
+from toad.session_host import NavigationHost, WorkspaceViews
 
 from toad.constants import WELCOME
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
@@ -185,7 +185,7 @@ class VisiblePublication:
         )
 
 
-class WorkspaceHost(App):
+class WorkspaceHost(NavigationHost):
     """What workspace sessions work through: an App (whose own _init_mode they call) that
     also provides these members. ToadApp inherits it, so this module never imports the app."""
 
@@ -194,7 +194,7 @@ class WorkspaceHost(App):
     session_navigation: SessionNavigation
 
 
-class WorkspaceSessions:
+class WorkspaceSessions(WorkspaceViews):
     def __init__(self, app: WorkspaceHost) -> None:
         self.app = app
         # Views the workspace always has; they are not tabs and never close.

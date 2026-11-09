@@ -9,7 +9,7 @@ from functools import partial
 from pathlib import Path
 from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
 from agent_comms.projects.checkouts import Checkout
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from agent_comms.errors import (
     RelationViolationError,
@@ -50,10 +50,8 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.agents import read_agents
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
-if TYPE_CHECKING:
-    from agent_comms.ui_model.sidebar import ThreadRowModel
-
-    from toad.app import ToadApp
+from agent_comms.ui_model.sidebar import ThreadRowModel
+from toad.session_host import NavigationHost, SessionNavigator
 
 
 @dataclass(frozen=True)
@@ -64,8 +62,8 @@ class Detached:
     returning_view: SessionScope | None
 
 
-class SessionNavigation(StartsSessions):
-    def __init__(self, app: ToadApp) -> None:
+class SessionNavigation(StartsSessions, SessionNavigator):
+    def __init__(self, app: NavigationHost) -> None:
         self.app = app
         self.events = CoreEventStream(self)
         self.entries: dict[str, dict[str, SessionEntry]] = {}

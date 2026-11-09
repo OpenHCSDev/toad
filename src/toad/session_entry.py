@@ -10,7 +10,6 @@ from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
 from agent_comms.projects.checkouts import Checkout
-from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
@@ -38,11 +37,11 @@ from toad.screens.file_preview import FilePreviewScreen
 from toad.widgets.project_panel import FilePreview
 from toad.widgets.acp_log import AcpLogPreview
 
-if TYPE_CHECKING:
-    from toad.session_navigation import SessionNavigation
+from toad.session_host import SessionNavigator
+from toad.session_projection import SessionProjection
 
 
-class SessionEntry(DeclaredFamily, affix="Entry"):
+class SessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Observing], affix="Entry"):
     def __init__(self, identity: TabIdentity) -> None:
         self.identity = identity
 
@@ -57,29 +56,23 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     @abstractmethod
     def __call__(self) -> SessionScope: ...
 
-    def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
-        return self.unobserved_tab()
-
-    @abstractmethod
-    def unobserved_tab(self) -> OpenTab: ...
-
     @property
     @abstractmethod
     def address(self) -> object: ...
 
-    async def ready(self, sessions: SessionNavigation) -> None:
+    async def ready(self, sessions: SessionNavigator) -> None:
         """Views with deferred loading own their loading completion."""
 
     async def reconnect(
-        self, sessions: SessionNavigation, selected, snapshot, targets
+        self, sessions: SessionNavigator, selected, snapshot, targets
     ) -> None:
         """Only a bound native entry can refresh its connection resource."""
 
-    def source(self, sessions: SessionNavigation) -> MainScreen | None:
+    def source(self, sessions: SessionNavigator) -> MainScreen | None:
         return None
 
     def thread_row(
-        self, sessions: SessionNavigation, row: ThreadRowModel
+        self, sessions: SessionNavigator, row: ThreadRowModel
     ) -> ThreadRowModel:
         """How this entry's own session changes a thread's row; most entries hold none."""
         return row
@@ -87,19 +80,14 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     def depends_on(self, mode: str) -> bool:
         return self.mode == mode
 
-    def original_threads(
-        self, sessions: SessionNavigation
-    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
-        return ()
-
     def original_channels(self) -> tuple[tuple[str, str], ...]:
         return ()
 
-    async def return_to(self, sessions: SessionNavigation) -> None:
+    async def return_to(self, sessions: SessionNavigator) -> None:
         """Back to the tab selected before this one; the visit history owns that."""
         await sessions.app.select_session(sessions.app.tab_order.came_from(self.identity))
 
-    def forget(self, sessions: SessionNavigation) -> None:
+    def forget(self, sessions: SessionNavigator) -> None:
         """End the view's observations before forgetting its logical membership."""
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.close_core_events()
@@ -133,7 +121,7 @@ class NativeSessionEntry(SessionEntry):
     def address(self) -> str:
         return self.mode
 
-    def source(self, sessions: SessionNavigation) -> MainScreen | None:
+    def source(self, sessions: SessionNavigator) -> MainScreen | None:
         return sessions.app.workspace_sessions.views.get(self.mode)
 
     def thread_row(self, sessions, row):
@@ -179,7 +167,7 @@ class NativeSessionEntry(SessionEntry):
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.identity, self.details.name.display or "New Session")
 
-    def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
+    def tab(self, sessions: SessionNavigator, observed: Observing) -> OpenTab:
         # The original wire identity exists before a native view. Unopened tabs
         # still show backend status/unread; attachment state belongs to a view.
         row = next(
@@ -196,7 +184,7 @@ class NativeSessionEntry(SessionEntry):
             return ThreadTab(self.identity, self.thread_row(sessions, row))
         return self.unobserved_tab()
 
-    async def return_to(self, sessions: SessionNavigation) -> None:
+    async def return_to(self, sessions: SessionNavigator) -> None:
         app = sessions.app
         # Another session is preferred to a file or history tab between them.
         remaining = [
@@ -208,7 +196,7 @@ class NativeSessionEntry(SessionEntry):
             app.tab_order.previous(self.identity, eligible=remaining or None)
         )
 
-    def forget(self, sessions: SessionNavigation) -> None:
+    def forget(self, sessions: SessionNavigator) -> None:
         super().forget(sessions)
         sessions.app.session_tracker.close_session(self.identity)
 
@@ -246,13 +234,13 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
     def address(self) -> object:
         return self.key.conversation.view_identity(self.key)
 
-    async def ready(self, sessions: SessionNavigation) -> None:
+    async def ready(self, sessions: SessionNavigator) -> None:
         await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()
 
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.identity, self.key.conversation.initial_label)
 
-    def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
+    def tab(self, sessions: SessionNavigator, observed: Observing) -> OpenTab:
         return self.project_value(observed.references_for(self.key.root), observed)
 
     @handles(ReferenceContext)

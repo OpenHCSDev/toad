@@ -1,7 +1,7 @@
 """Toad starts with no tab open and shows the welcome view until one is opened."""
+
 from agent_comms.projects.checkouts import Checkout
 from toad.launch_binding import AgentAttached
-
 from support.agents import peer
 from support.ui import TextualUi
 from agent_comms.channel_targets import CommandTarget
@@ -11,7 +11,17 @@ from toad.constants import ALL_COMMS_TARGET
 from toad.screens.welcome import (
     WelcomeChannels, WelcomeEntries, WelcomeHeading, WelcomeScreen, WelcomeThreads,
 )
-from toad.widgets.comms_sidebar import CommsRow
+from toad.widgets.sidebar_tree import CommsRow
+from agent_comms.registry.threads import ExternalThread
+from dataclasses import replace
+from agent_comms.registry.thread_model import DeclaredModel
+from agent_comms.connector_store import HeldUiProfiles
+from agent_comms.tailnet_buses import TailnetBuses
+from toad.bus_selection import LocalBus
+from toad.screens.bus_choice import BusRows
+from toad.screens.welcome import WelcomeBuses
+
+
 
 HINT = "n new session"
 
@@ -86,7 +96,6 @@ async def test_opening_a_channel_opens_its_tab_in_place_of_the_view(workspace):
 async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user(
     workspace,
 ):
-    from agent_comms.registry.threads import ExternalThread
 
     workspace.comms.registry.declare(
         ExternalThread(
@@ -151,9 +160,7 @@ async def test_a_launch_that_names_a_session_opens_it(workspace):
 
 
 async def test_a_thread_row_tooltip_names_its_model_by_text(workspace):
-    from dataclasses import replace
 
-    from agent_comms.registry.thread_model import DeclaredModel
 
     thread = NativeThread("alpha", frozenset({"team"}), Checkout(workspace.project))
     workspace.comms.registry.declare(replace(thread, model=DeclaredModel("openai-codex/gpt-6.1-sol")))
@@ -171,11 +178,6 @@ async def test_the_splash_lists_the_buses_this_machine_can_open(workspace, monke
     choosing a row does are the dialog's; this holds that the splash really lists them and
     that a found peer arrives in the same row set.
     """
-    from agent_comms.connector_store import HeldUiProfiles
-    from agent_comms.tailnet_buses import TailnetBuses
-    from toad.comms_root import LocalBus
-    from toad.screens.bus_choice import BusRows
-    from toad.screens.welcome import WelcomeBuses
 
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
     def no_discovery_from_the_splash(cls):

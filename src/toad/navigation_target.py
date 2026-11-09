@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from agent_comms.channel_targets import ChannelSelection, CommandTarget
 from agent_comms.channel_targets import ChannelTarget as CoreChannelTarget
@@ -23,13 +23,10 @@ from toad.conversation_kind import (
     DmConversation,
     IrcConversation,
 )
-from toad.widgets.sidebar_tree import SidebarGroup
+from toad.sidebar_contracts import TargetRows
 from toad.target_commands import TargetContext
 
-if TYPE_CHECKING:
-    from agent_comms.display_references import ThreadNames
-
-    from toad.widgets.comms_sidebar import CommsRow, ListedRow
+from agent_comms.display_references import ThreadNames
 
 @dataclass(frozen=True)
 class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
@@ -56,7 +53,7 @@ class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
         """Different opening behaviors may display the same sidebar address."""
         return self.name == target.name
 
-    def rows_in(self, group: SidebarGroup[ListedRow]) -> tuple[CommsRow, ...]:
+    def rows_in[Row](self, group: TargetRows[Row]) -> tuple[Row, ...]:
         return group.rows_for_target(self.name)
 
 
@@ -75,7 +72,7 @@ class NoTarget(NavigationTarget):
     def matches(self, target: NavigationTarget) -> bool:
         return False
 
-    def rows_in(self, group: SidebarGroup[ListedRow]) -> tuple[CommsRow, ...]:
+    def rows_in[Row](self, group: TargetRows[Row]) -> tuple[Row, ...]:
         return ()
 
     async def open(self, context: NavigationContext) -> str:

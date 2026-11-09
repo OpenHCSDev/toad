@@ -1,6 +1,5 @@
 """A channel or direct conversation drawn by the line history, with its read marks."""
 
-from __future__ import annotations
 from bisect import bisect_right
 from dataclasses import dataclass
 
@@ -12,7 +11,8 @@ from toad.widgets.transcript_fragments import FragmentKey
 
 from toad.block_navigation import ConversationBlock
 
-from typing import TYPE_CHECKING
+from toad.read_marked_history import ReadMarkedHistory
+from toad.wire_conversation_view import WireConversationView
 
 from textual.reactive import var
 
@@ -31,8 +31,6 @@ from toad.widgets.message_notifications import (
 from toad.widgets.transcript_history import ConversationHistory, TranscriptPageView
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource, WireFragment
 
-if TYPE_CHECKING:
-    from toad.widgets.comms_chat import CommsChatView
 
 
 
@@ -77,7 +75,7 @@ class ReadTranscriptPage(TranscriptPageView):
 class HistoryLoading(ConversationBlock, Static):
     """Channel history loading is an atomic conversation block."""
 
-class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[ViewT]):
+class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHistory, ConversationHistory[ViewT]):
     """The line history of a channel or direct conversation.
 
     Paging, preparation, trimming and the reader's position are the line

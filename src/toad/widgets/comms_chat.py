@@ -1,6 +1,13 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+
+from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from toad.referenced_core import ReferencedCore
+from toad.widgets.channel_activity import ChannelActivity
+from toad.widgets.channel_prompt import ChannelPrompt
+from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from functools import partial
 from toad.widgets.wire_history import HistoryLoading, WireHistory
@@ -27,6 +34,7 @@ from agent_comms.message_reference import MessageReference
 from toad.bus_submission import SubmissionStart
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.conversation_kind import ConversationKind
+from toad.wire_conversation_view import WireConversationView
 from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
@@ -52,7 +60,7 @@ def session_thread_name(project_path) -> str:
 
 
 
-class CommsChatView(Conversation):
+class CommsChatView(WireConversationView):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
     queue_source: QueueSource = NoQueueSource()
@@ -272,8 +280,6 @@ class CommsChatView(Conversation):
 
     async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
-        from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
-
         history = self.message_history
         snapshot = history.source_snapshot()
         conversation = self.conversation
@@ -305,6 +311,35 @@ class CommsChatView(Conversation):
             self.window.anchor()
         if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
             history.request_preparation()
+
+    def compose_channel_activity(self) -> ComposeResult:
+        yield ChannelActivity(self)
+
+    def compose_peer_activity(self, peer: ThreadIncarnation) -> ComposeResult:
+        self.thread_activity = ConversationSessionDetails(peer)
+        yield self.thread_activity
+
+    async def update_channel_mentions(self, source: ReferencedCore) -> None:
+        history = self.message_history
+        shown = history.source_snapshot()
+        conversation = self.conversation
+        access = self.app.coordination_access
+        answer = await access.current_sidebar()
+        snapshot = answer.require_snapshot()
+        if not access.observation.observes(source.root):
+            raise ValueError("Channel mentions belong to another Core root")
+        mentions = await self.app.preparation.run_thread(
+            snapshot.mention_candidates,
+            conversation.destination(snapshot.references).name,
+        )
+        if not await history.source_is_current(shown) or self.conversation != conversation:
+            return
+        # Mentions are read in the chat-labels worker, which runs after the drawing work
+        # and can take seconds on a busy bus (the chat's refresh worker). The composer can be
+        # removed in that window, and a view with no composer has nothing to tell: the
+        # query answers membership, so no match is not an exception.
+        for prompt in self.query(ChannelPrompt):
+            prompt.set_mention_candidates(mentions)
 
     async def command_target_context(self):
         return self.message_history.page_source.command_context(self)

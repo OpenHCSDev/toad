@@ -15,11 +15,11 @@ import asyncio
 import threading
 from concurrent.futures import Future
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass, field, fields, replace
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, TypeVar
+from typing import ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.message_reference import MessageReference
@@ -33,12 +33,11 @@ from agent_comms.active_route import CommsRoute
 from agent_comms.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess
 from agent_comms.registry.registry_document import ProjectThreadSelection, RegistrySnapshot
+from toad.bus_selection import ProfileArgument
 from toad.db import UNSCOPED_TABS, TabScope
 from toad.referenced_core import ReferencedCore
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import Thread
-from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
-from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses
 from agent_comms.remote_core_process import ProcessRemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
@@ -83,7 +82,6 @@ from agent_comms.ui_model.observation import (
     SidebarObserved,
     SidebarPreparing,
     SidebarUnreadable,
-    StopObserving,
     StopSidebar,
     ThreadsObserved,
     ViewsRetired,
@@ -109,17 +107,14 @@ from toad.notification_status import CheckedNotifications, NotificationStatus, U
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from agent_comms.transport.request import ToolRequest
 
-if TYPE_CHECKING:
-    from agent_comms.display_references import ReferenceContext
-    from agent_comms.registry.thread_identity import ThreadIncarnation
 
-    from toad.app import ToadApp
-    from toad.screens.team import TeamPage
-    from toad.session_entry import SessionEntry
-    from toad.session_navigation import SessionNavigation
-    from toad.widgets.linked_rows import ReferenceRendering
-    from toad.widgets.message_notifications import HistoryNotifications
-    from toad.widgets.sidebar_tree import SidebarModelView
+
+from agent_comms.display_references import ReferenceContext
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from toad.acp.transcript_reader import CoordinationTranscriptReader
+from toad.comms_host import CommsHost
+from toad.comms_subscribers import NotificationSubscriber, SidebarSubscriber
+from toad.session_projection import SessionCollection, SessionProjection
 
 T = TypeVar("T")
 
@@ -204,7 +199,7 @@ class CoreConnection(ABC):
             return RemoteCoreConnection.startup(arguments)
         return LocalCoreConnection.from_launch(LaunchRoot.startup(arguments, published))
 
-    def open_access(self, app: ToadApp) -> CoordinationAccess:
+    def open_access(self, app: CommsHost[Observing]) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
     def close(self) -> None:
@@ -296,10 +291,8 @@ class RemoteRouteNotSelectable(RuntimeError):
 
 
 @dataclass(frozen=True)
-class RemoteCoreConnection(ProcessRemoteCoreAccess, CoreConnection):
+class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnection):
     """The owner's UI profile is the remote connection: Core answers through the connector."""
-
-    argument: ClassVar[str] = "--comms-profile"
 
     @classmethod
     def startup(cls, arguments: list[str]) -> RemoteCoreConnection:
@@ -347,137 +340,6 @@ class RemoteCoreConnection(ProcessRemoteCoreAccess, CoreConnection):
         return access.observe_remote(self, Path(served.root))
 
 
-class PickerRow(ABC):
-    """One row the bus picker shows, and what picking it does.
-
-    A bus this Toad can open and a peer it has only discovered are both rows, and they do
-    different things when picked. Each says which, so the picker calls the row rather than
-    asking what kind it is.
-    """
-
-    @abstractmethod
-    def label(self) -> str:
-        """How the picker names this row in one line."""
-
-    @abstractmethod
-    def chosen(self, app) -> None:
-        """What picking this row does."""
-
-    def same_bus(self, found: PeerHoldsBus) -> bool:
-        """Whether this row is already that machine's bus, so the picker shows one row for
-        it. Most rows are not any machine the tailnet reports; the ones that are say so."""
-        return False
-
-    def removable(self) -> bool:
-        """Whether a reader can take this row off the list. Nothing is, by default: this
-        machine's own bus and a machine the tailnet reports are facts, not saved entries."""
-        return False
-
-    def remove(self) -> None:
-        """Take this row off the list for good. Only a row that says it is removable."""
-        raise TypeError(f"{type(self).__name__} is not a saved row")
-
-
-class BusChoice(PickerRow):
-    """A bus the next launch of this Toad selects.
-
-    `CoreConnection.select` chooses once at the process boundary and tab scopes are
-    written under that connection's location, so a reader changing bus relaunches onto
-    their choice rather than re-parenting every observation in place. The choice owns
-    how it writes itself into the next launch's arguments; nothing else spells them.
-    """
-
-    def chosen(self, app) -> None:
-        """A bus is opened by ending this session onto it."""
-        app.open_bus(self)
-
-    @abstractmethod
-    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
-        """``argv`` rewritten so the next launch opens this bus."""
-
-    @staticmethod
-    def without_profile(argv: Sequence[str]) -> tuple[str, ...]:
-        """``argv`` with every profile selection removed, so one launch names one bus."""
-        remaining = list(argv)
-        while RemoteCoreConnection.argument in remaining:
-            index = remaining.index(RemoteCoreConnection.argument)
-            del remaining[index:index + 2]
-        return tuple(remaining)
-
-    @staticmethod
-    def offered(now: float) -> tuple[BusChoice, ...]:
-        """This machine's own bus, then every remote one it holds an open profile for."""
-        return (LocalBus(), *(
-            HeldBus(entry) for entry in HeldUiProfiles.held(now)
-            if isinstance(entry, OpenableProfile)
-        ))
-
-
-@dataclass(frozen=True)
-class LocalBus(BusChoice):
-    """This machine's own bus, which a launch opens when it names no profile."""
-
-    def label(self) -> str:
-        return "This machine"
-
-    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
-        return self.without_profile(argv)
-
-
-@dataclass(frozen=True)
-class HeldBus(BusChoice):
-    """A remote bus this machine holds an unexpired profile for."""
-
-    profile: OpenableProfile
-
-    def label(self) -> str:
-        return self.profile.label()
-
-    def same_bus(self, found: PeerHoldsBus) -> bool:
-        """The route this profile was held with names the address it was reached on, which
-        is the address the tailnet reports for that machine."""
-        return self.profile.profile.route.reaches(found.peer.address)
-
-    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
-        return (*self.without_profile(argv),
-                RemoteCoreConnection.argument, str(self.profile.path))
-
-    def removable(self) -> bool:
-        """A held profile is the saved entry, so this is the row that can be removed."""
-        return True
-
-    def remove(self) -> None:
-        """Forget this bus: the profile file IS the saved entry, so deleting it is the
-        removal. Tristan: type an address, save it, and be able to remove saved ones
-        again - and HeldUiProfiles.held already lists exactly the files in that directory,
-        so there is no second record of what is saved to keep in step."""
-        self.profile.path.unlink(missing_ok=True)
-
-
-@dataclass(frozen=True)
-class DiscoveredPeer(PickerRow):
-    """A tailnet machine holding a bus this one has no profile for yet.
-
-    Picking it asks that machine for one. It had to say "grant one over there and hold it
-    here" while the hoop it described was a person carrying a file between two machines that
-    can already talk.
-    """
-
-    found: PeerHoldsBus
-
-    def label(self) -> str:
-        return self.found.label()
-
-    def chosen(self, app) -> None:
-        """Ask it for a profile and open it: a bus on your own tailnet needs no errand.
-
-        Tristan: "it's a bus on my private tailnet why would want to have to jupm throuhg
-        hoops". The peer decides whether its endpoint is tailnet-only and says no itself
-        when it is not (agent_comms.served_endpoints.ProfileOffer).
-        """
-        app.ask_peer_for_profile(self.found)
-
-
 @dataclass(frozen=True)
 class UnselectedRoute:
     """Route capture failed before a validated selection existed."""
@@ -511,10 +373,10 @@ class Observation(ABC):
             raise RouteChangedError(f"{source} is not the root this UI observes")
         return self
 
-    def tab(self, entry: SessionEntry, sessions: SessionNavigation):
+    def tab[Navigation](self, entry: SessionProjection[Navigation, Observing], sessions: Navigation):
         return entry.unobserved_tab()
 
-    def tabs(self, sessions: SessionNavigation):
+    def tabs(self, sessions: SessionCollection[Observing]):
         return {entry.identity: self.tab(entry, sessions) for entry in sessions.members}
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         return access.open_selected(selected)
@@ -605,7 +467,7 @@ class FailedObservation(Observation):
     def references_for(self, root: str) -> ReferenceContext:
         return UnavailableReferences(root, str(self.error))
 
-    def show_sidebar(self, view: SidebarModelView):
+    def show_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation]):
         view.bind_failed_observation(self)
 
     def activate(self, access: CoordinationAccess):
@@ -776,10 +638,10 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         thread = identity.resolve_thread(self, project)
         self.core.call(CommsMarkThreadViewReadTool(thread=thread, through=through))
 
-    def tab(self, entry: SessionEntry, sessions: SessionNavigation):
+    def tab[Navigation](self, entry: SessionProjection[Navigation, Observing], sessions: Navigation):
         return entry.tab(sessions, self)
 
-    def show_sidebar(self, view: SidebarModelView) -> None:
+    def show_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation]) -> None:
         if self.is_current():
             view.bind_observation(self)
 
@@ -962,10 +824,9 @@ class RemoteAnsweringReads(AnsweringReads, RemoteObserving, answers_for=RemoteOb
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
-    def __init__(self, app: ToadApp, connection: CoreConnection) -> None:
+    def __init__(self, app: CommsHost[Observing], connection: CoreConnection) -> None:
         self.app = app
         self.connection = connection
-        from toad.acp.transcript_reader import CoordinationTranscriptReader
 
         self.transcripts = CoordinationTranscriptReader(self)
         self.observation: Observation = NotObserving(access=self)
@@ -979,19 +840,19 @@ class CoordinationAccess(MroDispatch):
         # One status row per open thread, whichever service it was read from.
         self.thread_status = OpenThreadStatus(app.call_next)
         # Views showing the sidebar model now, and consumers waiting for current rows.
-        self.sidebar_views: WeakSet[SidebarModelView] = WeakSet()
-        self.reference_views: WeakSet[object] = WeakSet()
+        self.sidebar_views: WeakSet[SidebarSubscriber[Observing, FailedObservation]] = WeakSet()
+        self.reference_views: WeakSet[CoreEventReceiver] = WeakSet()
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
         self.sidebar_current: ObserveSidebar | None = None
         self.views_interest: ObserveViews | None = None
-        self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
+        self.notification_views: WeakKeyDictionary[NotificationSubscriber, ReadNotifications] = WeakKeyDictionary()
         # The last answer for each message under each read scope (root, display, source).
         # A scroll changes which messages a view reads, never what is already known.
         self.notification_known: dict[tuple[ReadNotifications, tuple[int, str]], tuple[MessageNotification, ...]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
         # Open team pages; the heartbeat's frames are observed only while one is shown.
-        self.team_pages: WeakSet[TeamPage] = WeakSet()
+        self.team_pages: WeakSet[CoreEventReceiver] = WeakSet()
         self.team_interest: ObserveTeamHud | StopTeamHud = StopTeamHud()
 
     @property
@@ -1135,7 +996,7 @@ class CoordinationAccess(MroDispatch):
     def views_retired(self, result: ViewsRetired, observed: Observing) -> None:
         self.app.session_navigation.views_retired(observed.root, result.retired)
 
-    def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> bool:
+    def show_notifications(self, view: NotificationSubscriber, read: ReadNotifications) -> bool:
         """Show `read` in `view`; asking again for the read it already shows changes nothing."""
         if self.notification_views.get(view) == read:
             return False
@@ -1163,7 +1024,7 @@ class CoordinationAccess(MroDispatch):
                  for key in keys if (scope, key) in self.notification_known}
         return next(CheckedNotifications.for_references(references, known), UncheckedNotifications())
 
-    def stop_notifications(self, view: HistoryNotifications) -> bool:
+    def stop_notifications(self, view: NotificationSubscriber) -> bool:
         """Whether `view` was showing a read."""
         shown = view in self.notification_views
         self.notification_views.pop(view, None)
@@ -1234,7 +1095,7 @@ class CoordinationAccess(MroDispatch):
             self.team_interest = wanted
             self.observation.observed().observe_team(wanted)
 
-    def show_team(self, page: TeamPage, shown: bool) -> None:
+    def show_team(self, page: CoreEventReceiver, shown: bool) -> None:
         """A team page started or stopped showing the heartbeat's frames."""
         if shown:
             self.team_pages.add(page)
@@ -1242,7 +1103,7 @@ class CoordinationAccess(MroDispatch):
             self.team_pages.discard(page)
         self.update_team_interest()
 
-    def show_sidebar(self, view: SidebarModelView, shown: bool) -> None:
+    def show_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation], shown: bool) -> None:
         """A view started or stopped showing the sidebar model."""
         if shown:
             self.sidebar_views.add(view)
@@ -1250,7 +1111,7 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_views.discard(view)
         self.update_sidebar_interest()
 
-    def show_references(self, view: ReferenceRendering, shown: bool):
+    def show_references(self, view: CoreEventReceiver, shown: bool):
         if shown:
             self.reference_views.add(view)
         else:
