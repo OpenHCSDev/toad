@@ -1,12 +1,18 @@
 """Editing a goal's objective in Toad saves through the real owner and redraws the goal bar; progress stays separate."""
 
+import pytest
+
 from toad.goal_interaction import EditInteraction, HistoryInteraction
 from support.goal_controls import goal_control
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.planning.goal_actions import (
     ActiveGoalAction,
+    ClearGoalAction,
     GoalPrecondition,
+    SetGoalAction,
 )
+from agent_comms.planning.goal_presentation import IdleGoalExecution
+from agent_comms.planning.goals import NoGoal
 from agent_comms.planning.goal_scope import OneGoal
 from support.native_steps import goal_on_real_owner
 
@@ -90,3 +96,44 @@ async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(w
         assert older not in shown, (
             f"A notice of revision {older.revision} was shown over revision {current.revision}")
         assert conversation.goal_display.snapshot == current
+
+
+async def test_owner_edits_reach_the_goal_bar_without_a_manual_refresh(workspace, native_package):
+    async with goal_in_toad(workspace) as native:
+        conversation = native.ui.conversation
+        await conversation.goal_observation.refresh()
+        previous = conversation.goal_display.snapshot
+        current = await native.agent.edit_goal(previous, "The owner changed this goal")
+        await native.ui.until(
+            lambda: conversation.goal_display.snapshot == current,
+            why="the owner edit reaching the goal bar through its notice",
+        )
+
+
+@pytest.mark.parametrize("replacement", [False, True], ids=["cleared", "replaced"])
+async def test_old_notices_do_not_revive_a_cleared_or_replaced_goal(workspace, native_package, replacement):
+    async with goal_in_toad(workspace) as native:
+        ui, agent = native.ui, native.agent
+        conversation = ui.conversation
+        before = await agent.get_goal_snapshot()
+        older = before.goal.require()
+        await conversation.goal_controls.change(ClearGoalAction)
+        assert conversation.goal_display.snapshot == NoGoal()
+        assert conversation.goal_execution == IdleGoalExecution()
+        assert not conversation.goal_bar.display
+        current = NoGoal()
+        if replacement:
+            current = await agent.update_goal(SetGoalAction, "A different goal owns this bar")
+            assert current.id != older.id
+            await conversation.goal_observation.refresh()
+            assert conversation.goal_display.snapshot == current
+        shown = []
+        conversation.watch(conversation, "goal_display", lambda display: shown.append(display.snapshot), init=False)
+        agent.events.publish(CommsUpdated(GoalChangedUpdate(older, before.execution), session_id=agent.session_id))
+        await ui.step(1)
+        await conversation.goal_observation.refresh()
+        assert older not in shown, "A notice revived the goal after its owner cleared or replaced it"
+        assert conversation.goal_display.snapshot == current
+        if not replacement:
+            assert conversation.goal_execution == IdleGoalExecution()
+            assert not conversation.goal_bar.display

@@ -22,11 +22,8 @@ from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.widgets.note import Note
 from toad.widgets.markdown_note import StopReasonNote
-from typing import TYPE_CHECKING
 from agent_comms.acp_extension import NativeRoundCommittedUpdate
-
-if TYPE_CHECKING:
-    from toad.transcript_publication import TranscriptPresentation
+from toad.transcript_publication import TranscriptPresentation
 
 
 class ConversationCommsHandlers(CoreEventReceiver):
@@ -164,7 +161,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     def on_goal_changed(
         self, update: GoalChangedUpdate, message: CoreEventMessage
     ) -> None:
-        self.goal_observation.receive(message.publisher, update)
+        self.goal_observation.invalidate_from(message.publisher)
 
     @handles(CompactionChangedUpdate)
     async def on_compaction_changed(
