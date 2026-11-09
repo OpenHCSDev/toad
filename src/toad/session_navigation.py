@@ -506,8 +506,6 @@ class SessionNavigation(StartsSessions):
                 await self.app.workspace_sessions.finish(view)
 
     def observed(self, event: core_events.CoordinationObserved) -> None:
-        # The comms view's target is built from the observed thread names: republish it.
-        self.app.workspace_sessions.republish()
         # Views on the observed root retire through the observation service
         # (views_retired). Views on another root are read here, only when a
         # registration or channel changed.

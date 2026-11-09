@@ -66,7 +66,7 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
 
     def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
-        return VisiblePublication(NoTarget(), None)
+        return VisiblePublication(None)
 
     @abstractmethod
     def navigation_owner(self, sessions: WorkspaceSessions) -> NavigationOwner:
@@ -154,10 +154,8 @@ class BoundWorkspaceSource(WorkspaceSource):
         )
 
     def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
-        if not sessions.owns(self.view):
-            return VisiblePublication(NoTarget(), None)
-        view = sessions.views.get(self.identity)
-        return VisiblePublication(view.navigation_target if view is not None else NoTarget(), view)
+        return VisiblePublication(
+            sessions.views.get(self.identity) if sessions.owns(self.view) else None)
 
     def sidebars(self) -> tuple[SideBar, ...]:
         return self.view.sidebars()
@@ -193,15 +191,14 @@ class SessionStartFailed(RuntimeError):
 
 @dataclass(frozen=True)
 class VisiblePublication:
-    """The selected source's target, published once when the source changes. A consumer
-    asks for its root; the root check is the view's existing belongs_to_wire."""
+    """The selected view, published when the source changes. The view owns its target and its
+    root applicability; the target is derived live from it on read, never cached."""
 
-    target: NavigationTarget
     view: SessionScope | None
 
     def target_for(self, root: Path | None) -> NavigationTarget:
         return (
-            self.target
+            self.view.navigation_target
             if root is not None and self.view is not None and self.view.belongs_to_wire(root)
             else NoTarget()
         )
@@ -277,8 +274,8 @@ class WorkspaceSessions:
 
     @source.setter
     def source(self, source: WorkspaceSource) -> None:
-        """Every change to the selected source passes here: the source's target is published
-        once, and consumers read that value instead of asking the source per line."""
+        """Every change to the selected source passes here: the selected view is published, and
+        consumers derive its target from it on read."""
         self._source = source
         self._publication = source.publication(self)
 
@@ -292,11 +289,6 @@ class WorkspaceSessions:
     def visible_target(self, root: Path | None) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
         return self._publication.target_for(root)
-
-    def republish(self) -> None:
-        """A thread's name or the observed threads changed under the selected view: recompute
-        the published target from the current source and view (not per line)."""
-        self._publication = self._source.publication(self)
 
     def target_for_mode(self, identity: str, root: Path | None) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
