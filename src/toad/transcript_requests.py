@@ -2,12 +2,14 @@
 
 from abc import ABC, abstractmethod
 
-from agent_comms.transcript.transcripts import (
+from agent_comms.execution.transcript_sources import (
     AtFrontier,
     LatestPage,
-    LivePageSource,
     PageLimit,
     PagePosition,
+)
+from agent_comms.transcript.transcripts import (
+    LivePageSource,
     PageSource,
 )
 from agent_comms.ui_model.observation import (

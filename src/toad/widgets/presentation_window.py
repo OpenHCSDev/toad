@@ -10,8 +10,8 @@ from operator import ge, gt
 from time import get_clock_info, monotonic
 from typing import TYPE_CHECKING, Annotated, ClassVar, get_args
 
+from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.message_page import PageBounds
-from agent_comms.transcript.transcripts import TranscriptCursor
 from textual.geometry import Region
 from textual.screen import Screen
 from textual.widget import Widget

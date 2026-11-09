@@ -24,21 +24,23 @@ from agent_comms.coordination.errors import (
     TranscriptChanged,
 )
 from agent_comms.execution.child_process import join_retirement
-from agent_comms.execution.transcript_sources import DraftRow
-from agent_comms.messaging.sent_message import PublishedSentMessage
-from agent_comms.registry.thread_presentation import ThreadPresentation
-from agent_comms.transcript.transcript_drafts import NoDraft
-from agent_comms.transcript.transcript_events import TranscriptCoverage
-from agent_comms.transcript.transcripts import (
+from agent_comms.execution.transcript_sources import (
     AtFrontier,
+    DraftRow,
     LatestPage,
     PageLimit,
     PagePosition,
     Through,
     TranscriptCursor,
+    UnreadTranscriptCursor,
+)
+from agent_comms.messaging.sent_message import PublishedSentMessage
+from agent_comms.registry.thread_presentation import ThreadPresentation
+from agent_comms.transcript.transcript_drafts import NoDraft
+from agent_comms.transcript.transcript_events import TranscriptCoverage
+from agent_comms.transcript.transcripts import (
     TranscriptPage,
     TranscriptReadIdentity,
-    UnreadTranscriptCursor,
 )
 from agent_comms.ui_model.observation import (
     NotPublished,

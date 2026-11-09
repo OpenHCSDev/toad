@@ -16,13 +16,15 @@ import asyncio
 from functools import partial
 
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
-from agent_comms.registry.thread_presentation import ThreadPresentation
-from agent_comms.transcript.transcripts import (
+from agent_comms.execution.transcript_sources import (
     AtFrontier,
     LatestPage,
-    LivePageSource,
     PageLimit,
     PagePosition,
+)
+from agent_comms.registry.thread_presentation import ThreadPresentation
+from agent_comms.transcript.transcripts import (
+    LivePageSource,
     PageSource,
 )
 from agent_comms.transport.tools.sidebar import CommsThreadPresentationTool
