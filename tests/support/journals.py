@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from agent_comms.native_session_reopen import PiSessionId
+from agent_comms.execution.native_session_reopen import PiSessionId
 
 
 def message_entry(role: str, text: str, *, id: str, parent: str | None = None) -> dict:
@@ -35,7 +35,7 @@ def user_entry(text: str, *, id: str, parent: str | None = None, input_id: str |
 def write_journal(path: Path, *entries: dict) -> Path:
     """Write `entries` as the lines of a session journal and return its path."""
     from agent_comms.nominal.field_codec import FieldCodec
-    from agent_comms.native_entries import MessageEntry, NativeEntry
+    from agent_comms.execution.native_entries import MessageEntry, NativeEntry
     from agent_comms.pi_payloads import UnknownMessage
 
     for entry in entries:

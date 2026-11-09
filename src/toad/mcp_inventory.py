@@ -52,7 +52,7 @@ def parse_inventory(data: bytes, expected_root: Path) -> mcp_declarations.Invent
 
 def installed_mcp_command() -> tuple[str, str]:
     """Use MCP shipped inside the same verified native package as Comms."""
-    from agent_comms.native_pi import NativePiRpcLaunch
+    from agent_comms.execution.native_pi import NativePiRpcLaunch
 
     package = NativePiRpcLaunch.package_for_command("pi", LaunchRuntime.running())
     node = shutil.which("node")

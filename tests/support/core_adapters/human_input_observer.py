@@ -20,7 +20,7 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.input_disposition import InputDispositions
-from agent_comms.native_entries import NativeEntry
+from agent_comms.execution.native_entries import NativeEntry
 from agent_comms.retained_task_facts import HumanInputTaskFact
 from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition

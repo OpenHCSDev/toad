@@ -14,7 +14,7 @@ View, not authority: renders Core's sidebar presentation model
 from __future__ import annotations
 
 import shlex
-from agent_comms.native_arguments import ConfiguredBinary, InheritedArguments
+from agent_comms.execution.native_arguments import ConfiguredBinary, InheritedArguments
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING

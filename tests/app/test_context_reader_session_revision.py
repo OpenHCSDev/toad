@@ -12,7 +12,7 @@ from support.context_reads import LocalContextReads
 
 def declared_reader(workspace):
     from agent_comms.fresh_private_session import create_fresh_private_session
-    from agent_comms.native_session_files import NativeSessionFiles
+    from agent_comms.execution.native_session_files import NativeSessionFiles
     from agent_comms.session_file import RegistrySessionLocation
 
     identity = create_fresh_private_session(workspace.comms.root, worktree=workspace.project)
