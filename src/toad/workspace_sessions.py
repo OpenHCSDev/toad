@@ -245,6 +245,16 @@ class WorkspaceSessions:
     async def retire(self) -> None:
         self.source = await self.source.retire()
 
+    @property
+    def source(self) -> WorkspaceSource:
+        return self._source
+
+    @source.setter
+    def source(self, source: WorkspaceSource) -> None:
+        """Every change to the selected source passes here, so every change to the
+        visible target is one assignment away from publication."""
+        self._source = source
+
     def navigation_owner(self) -> NavigationOwner:
         """Derived from the selected view, so a closed or non-navigating view never answers."""
         return self.source.navigation_owner(self)
