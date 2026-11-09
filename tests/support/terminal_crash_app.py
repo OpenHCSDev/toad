@@ -10,10 +10,13 @@ from toad.app import ToadApp
 from toad.cli import run_terminal
 
 from agents import peer
+from textual import on
+from textual.events import Mount
 
 
 class TerminalCrashApp(ToadApp):
 
+    @on(Mount)
     async def on_mount(self, event):
         event.prevent_default()
         await super().on_mount()

@@ -376,6 +376,7 @@ Tap escape *twice* to exit.
         # ancestor's priority jump, cancellation or unmaximize binding.
         return key == "escape" or super().check_consume_key(key, character)
 
+    @on(events.Key)
     async def on_key(self, event: events.Key):
         event.prevent_default()
         event.stop()
