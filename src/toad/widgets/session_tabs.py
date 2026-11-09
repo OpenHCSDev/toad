@@ -11,6 +11,7 @@ from textual.view import (
     FILL,
     WidgetView,
 )
+from toad.native_style import KeepsFocusOnClick
 from toad.widget_actions import ActivationKeys
 from textual.color import TRANSPARENT
 from textual.content import Content
@@ -106,11 +107,10 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
             self.select_session()
 
 
-class SessionTabClose(WidgetView, ActivationKeys, widgets.Static, can_focus=True):
+class SessionTabClose(KeepsFocusOnClick, WidgetView, ActivationKeys, widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
-    FOCUS_ON_CLICK = False
     activation_buttons = (1, 2)
     width = Scalar.from_number(2)
     height = Scalar.from_number(1)

@@ -34,8 +34,18 @@ async def test_every_declared_interaction_has_a_control_and_a_new_one_works(work
         view, bar = await show_goal(ui)
         declared = set(GoalInteraction.members_with(GoalInteraction))
         assert {control.interaction for control in bar.query(GoalControl)} == declared
-        await pilot.click(goal_control(bar, ProbeInteraction))
+        control = goal_control(bar, ProbeInteraction)
+        editor = view.prompt.prompt_text_area
+        editor.focus()
+        await ui.until(lambda: editor.has_focus, why="the composer to own input focus")
+        assert await pilot.click(control)
         await ui.until(lambda: view.prompt.text == "Declared control exercised", why="the declared control to act")
+        assert editor.has_focus, "Pointer goal actions must retain composer focus"
+        view.prompt.text = ""
+        control.focus()
+        await ui.until(lambda: control.has_focus, why="keyboard focus on the goal action")
+        await ui.press("enter")
+        await ui.until(lambda: view.prompt.text == "Declared control exercised", why="keyboard activation of the same declared action")
 
 
 async def test_collapsing_the_goal_bar_paints_expand_and_keeps_controls(workspace):

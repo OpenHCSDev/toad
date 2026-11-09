@@ -95,6 +95,12 @@ class NoMargin(Widget):
         self.styles.margin = 0
 
 
+class KeepsFocusOnClick:
+    """Pointer activation keeps input focus; keyboard focus remains available."""
+
+    FOCUS_ON_CLICK = False
+
+
 class PointerCursor(Widget):
     """Clickable: the pointer shows it."""
 
