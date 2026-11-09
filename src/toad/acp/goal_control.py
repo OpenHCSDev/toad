@@ -8,13 +8,13 @@ from agent_comms.transport.owner_connection import CapturedOwner
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_control import GoalControlSource
 from agent_comms.planning.goals import Goal, GoalDeclaration
-from agent_comms.runtime_requests import (
-    GoalReply,
+from agent_comms.transport.serving.served_requests import GoalReply
+from agent_comms.transport.runtime_requests import (
     RetryGoalRuntimeRequest,
     SetGoalRuntimeRequest,
     UpdateGoalRuntimeRequest,
 )
-from agent_comms.runtime_server import AttachedRuntimeRequest
+from agent_comms.transport.runtime_request import AttachedRuntimeRequest
 from pydantic import JsonValue
 
 from toad.acp.client_session import OwnerRequest
