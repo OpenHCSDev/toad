@@ -25,10 +25,6 @@ from toad.widgets.side_bar import SideBar
 from toad.workspace_chrome import WorkspaceChrome
 
 
-def welcome_view() -> SessionScope:
-    return WelcomeScreen()
-
-
 class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     """Owns the selected view, including closing it outside the workspace."""
 
@@ -202,7 +198,7 @@ class WorkspaceSessions:
     def __init__(self, app: WorkspaceHost) -> None:
         self.app = app
         # Views the workspace always has; they are not tabs and never close.
-        self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: welcome_view}
+        self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: WelcomeScreen}
         self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 
