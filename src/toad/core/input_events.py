@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 from toad.acp.agent_configuration import ConfigurationSetting
-from toad.input_history import InputHistory
+from toad.core.events import CoreEvent
 from toad.goal_interaction import GoalInteraction
-from .events import CoreEvent
+from toad.input_history import InputHistory
 
 
 @dataclass(frozen=True)

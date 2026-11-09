@@ -3,7 +3,8 @@
 from dataclasses import dataclass
 
 import agent_comms.transcript_events as transcript_events
-from .events import CoreEvent
+
+from toad.core.events import CoreEvent
 
 
 @dataclass(frozen=True)

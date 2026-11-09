@@ -1,6 +1,7 @@
 """The active ACP session owns project file effects."""
 from acp import schema
-from .client_session import ClientRequestOwner
+
+from toad.acp.client_session import ClientRequestOwner
 
 
 class FileClientRequestOwner(ClientRequestOwner):

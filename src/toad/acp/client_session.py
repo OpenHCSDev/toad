@@ -1,15 +1,16 @@
 """One captured session authority for ACP client-side effects."""
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NoReturn
+
 from agent_comms.acp_extension import CoordinationChangedUpdate
 
-from .queue_attachment import QueueActionRefused
-from .status import StopReason, UnreportedStopReason
+from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.status import StopReason, UnreportedStopReason
 
 if TYPE_CHECKING:
-    from .agent import Agent
-    from .agent_session import SessionDisposition
-    from .agent_controller import SessionBinding
+    from toad.acp.agent import Agent
+    from toad.acp.agent_controller import SessionBinding
+    from toad.acp.agent_session import SessionDisposition
 from acp.exceptions import RequestError
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 

@@ -2,10 +2,11 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from .terminal_controller import TerminalController, TerminalSessionRetired
-from .client_session import ClientRequestOwner
-from acp.exceptions import RequestError
 from acp import schema as protocol
+from acp.exceptions import RequestError
+
+from toad.acp.client_session import ClientRequestOwner
+from toad.acp.terminal_controller import TerminalController, TerminalSessionRetired
 from toad.terminal_execution import Command
 
 if TYPE_CHECKING:

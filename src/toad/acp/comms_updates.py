@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from functools import partial
 from dataclasses import dataclass
+from functools import partial
 
-from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
     CompactionCommittedUpdate,
@@ -30,18 +29,19 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.execution.native_output import AssistantOutput, ToolOutput
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.planning.goal_presentation import (
     GoalSnapshot,
     IdleGoalExecution,
 )
 from agent_comms.planning.goals import NoGoal
-from agent_comms.transport.tools.reads import OwnerGoalRead
-from agent_comms.ui_model.observation import ReadOwnerOperation
 from agent_comms.registry.thread_presentation import (
     NoThreadPresentation,
     ThreadPresentation,
 )
 from agent_comms.transcripts import NativeCommittedPrefix
+from agent_comms.transport.tools.reads import OwnerGoalRead
+from agent_comms.ui_model.observation import ReadOwnerOperation
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.client_session import ClientSessionRequest, OwnerRequest
@@ -49,6 +49,7 @@ from toad.acp.context_measurement import ContextMeasurement
 from toad.core import events as core_events
 from toad.live_output import CompleteResponseStream, ResponseStream
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
+
 
 class CompactionReply:
     """The reply owns whether /compact supplied a committed summary."""
@@ -83,7 +84,7 @@ class CommsUpdateConsumer(MroDispatch):
         self.queue_token = queue_token
 
     async def consume_metadata(self, metadata) -> None:
-        from .sdk_boundary import DecodeCommsMetadataTask
+        from toad.acp.sdk_boundary import DecodeCommsMetadataTask
 
         authority = ClientSessionRequest(self.agent, self.session_id)
         facts = await self.agent.controller.task_runner.run(

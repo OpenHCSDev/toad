@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
-from agent_comms.nominal.declared_family import DeclaredFamily
+
 from acp import schema as protocol
-from .client_session import ClientRequestOwner, ClientSessionRequest
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
+
+from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer
 from toad.permission_presentation import PermissionPresentation
 
