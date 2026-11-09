@@ -2,8 +2,9 @@
 
 import json
 
+from agent_comms.execution.provider_records import TextContent, ToolCallContent
 from agent_comms.nominal.field_codec import FieldCodec, ToolCallId
-from agent_comms.pi_payloads import AssistantMessage, ReportedParts, TextContent, ToolCallContent
+from agent_comms.pi_payloads import AssistantMessage, ReportedParts
 from toad.core.context_inspection import NativeMessageNode
 
 
