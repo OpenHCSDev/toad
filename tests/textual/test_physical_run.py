@@ -10,7 +10,7 @@ from textual.geometry import Region
 from tools.physical_ui import MeasuredTerminalApp, ObservedTerminalApp, ScreenCapture
 from tools.physical_ui_candidate import MeasuredCandidateTerminalApp
 
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.installer.probes.interpreter import InterpreterBuildProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution
 from agent_comms.installer.refusals import UpgradeRefused

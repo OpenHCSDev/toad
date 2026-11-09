@@ -13,7 +13,10 @@ from typing import ClassVar, Self
 
 import msgpack
 import toad
-from agent_comms.child_process import AttachedChild, join_retirement
+from agent_comms.execution.child_process import (
+    AttachedChild,
+    join_retirement,
+)
 from agent_comms.nominal.declared_family import DeclaredFamily, UnknownFamilyMember
 from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
 from metaclass_registry.mro_dispatch import MroDispatch, handles

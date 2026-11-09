@@ -13,7 +13,7 @@ reports its own unrisen rows, and the window asks both kinds of holder.
 import os
 from dataclasses import replace
 
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.fresh_private_session import create_fresh_private_session
 from agent_comms.session_file import RegistrySessionLocation
 
