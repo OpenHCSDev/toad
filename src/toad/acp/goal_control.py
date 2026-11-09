@@ -2,18 +2,20 @@
 
 from abc import abstractmethod
 
-from pydantic import JsonValue
-
 from agent_comms.acp_extension import GoalSnapshotReply
-from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_control import GoalControlSource
-from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.owner_connection import CapturedOwner
+from agent_comms.planning.goal_actions import GoalAction
+from agent_comms.planning.goals import Goal, GoalDeclaration
 from agent_comms.runtime_requests import (
-    GoalReply, RetryGoalRuntimeRequest, SetGoalRuntimeRequest, UpdateGoalRuntimeRequest,
+    GoalReply,
+    RetryGoalRuntimeRequest,
+    SetGoalRuntimeRequest,
+    UpdateGoalRuntimeRequest,
 )
 from agent_comms.runtime_server import AttachedRuntimeRequest
+from pydantic import JsonValue
 
 from .client_session import OwnerRequest
 
