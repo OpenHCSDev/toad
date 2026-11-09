@@ -82,11 +82,23 @@ class UnpaintedChannel(ChannelRowModel):
 
 
 class TargetTreeMember(HiddenActions):
-    """A navigation control belongs to one required native tree."""
+    """A navigation control belongs to one required native tree. The tree is bound when the
+    member mounts and released when it unmounts, so painting never walks the DOM to find it."""
+
+    _bound_tree: TargetTree | None = None
+
+    @on(events.Mount)
+    def _bind_navigation_tree(self) -> None:
+        self._bound_tree = self.query_ancestor(TargetTree)
+
+    @on(events.Unmount)
+    def _release_navigation_tree(self) -> None:
+        self._bound_tree = None
 
     @property
     def navigation_tree(self) -> TargetTree:
-        return self.query_ancestor(TargetTree)
+        # Unmounted, the answer is the same as before: the ancestor search, which raises.
+        return self._bound_tree or self.query_ancestor(TargetTree)
 
 class HeaderSegment(ABC):
     """One stretch of a group's header line, painted from its group."""
