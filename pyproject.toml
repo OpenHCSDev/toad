@@ -89,3 +89,9 @@ markers = ["refactor_guard: permanent architecture deletion guards"]
 [tool.mypy]
 follow_untyped_imports = true
 mypy_path = ["src", "."]
+
+[tool.ruff.lint]
+extend-select = ["TID252"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"

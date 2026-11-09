@@ -3,44 +3,53 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from functools import cache, partial
 from dataclasses import replace
+from functools import cache, partial
 from pathlib import Path
-from pydantic import JsonValue
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, GoalSnapshotReply, PromptRequest, QueueScope
+from agent_comms.acp_extension import (
+    CoordinationChangedUpdate,
+    GoalSnapshotReply,
+    PromptRequest,
+    QueueScope,
+)
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, GoalId
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalSnapshot
+from agent_comms.planning.goal_scope import OneGoal
 from agent_comms.planning.goals import (
     Goal,
     GoalDeclaration,
 )
-from agent_comms.transport.tools.reads import InputDeliveryRead
-from agent_comms.planning.goal_scope import OneGoal
 from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_presentation import (
+    ExistingSessionLoadPlan,
+    ThreadPresentation,
+)
+from agent_comms.sent_message import AssignedSourceIdentity
 from agent_comms.transport.runtime_request import AttachedRuntimeRequest
 from agent_comms.transport.runtime_requests import (
     DismissHistoricalInputsRuntimeRequest,
     EditGoalRuntimeRequest,
     GoalHistoryRuntimeRequest,
 )
+from agent_comms.transport.tools.reads import InputDeliveryRead
 from agent_comms.transport.tools.sidebar import (
-    CommsCaptureHumanInputTool, CommsMoveThreadProjectTool,
-    CommsOwnerRequestTool, CommsRenameManagedThreadTool,
+    CommsCaptureHumanInputTool,
+    CommsMoveThreadProjectTool,
+    CommsOwnerRequestTool,
+    CommsRenameManagedThreadTool,
 )
-from agent_comms.registry.thread_identity import ThreadIncarnation
-from agent_comms.registry.thread_presentation import ThreadPresentation
-from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
-from agent_comms.sent_message import AssignedSourceIdentity
-from agent_comms.nominal.field_codec import FieldCodec, GoalId
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
 from agent_comms.ui_model.observation import ReadOwnerOperation
+from pydantic import JsonValue
+
+from toad.acp.agent_controller import AgentController, SourceIdentity
+from toad.acp.client_session import ClientSessionRequest, OwnerRequest
 from toad.agent import AgentBase
 from toad.core import events as core_events
-from .agent_controller import AgentController, SourceIdentity
-from .client_session import ClientSessionRequest, OwnerRequest
-from agent_comms.nominal.field_codec import AcpSessionId
 
 
 class SessionAgent(AgentBase, SourceIdentity):
@@ -219,7 +228,7 @@ class OwnerReads(CoordinationIdentity):
         await session.reconnect(ExistingSessionLoadPlan(binding))
 
     def owner_read(self, request: OwnerRequest):
-        from .comms_updates import PendingThreadRead
+        from toad.acp.comms_updates import PendingThreadRead
         return PendingThreadRead(request, turn_token=self.presentation.turns.sequence)
 
     def thread_read(self):

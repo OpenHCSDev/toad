@@ -2,21 +2,20 @@
 
 from __future__ import annotations
 
-from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.acp_extension import (
     IdentifiedInputStarted,
     InputStartedUpdate,
     LiveAttachmentScope,
-    QueueScope,
     NoQueueScope,
     PendingQueueProjection,
     QueueChangedUpdate,
+    QueueScope,
     UnavailableQueueProjection,
 )
-
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.registry.thread_identity import ClaimedIdentity
 
-from .projection_attachment import ProjectionAttachment
+from toad.acp.projection_attachment import ProjectionAttachment
 
 
 class QueueActionRefused(Exception):

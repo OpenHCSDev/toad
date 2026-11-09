@@ -9,7 +9,6 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from acp.exceptions import RequestError
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.acp_extension import (
     ClearQueueRequest,
     CommsRequest,
@@ -21,22 +20,21 @@ from agent_comms.acp_extension import (
     encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
-from agent_comms.transcripts import TranscriptReadIdentity
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.transcripts import TranscriptReadIdentity
 
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
+from toad.acp.prompt import build as build_prompt
+from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.session_output import SessionOutput
 from toad.acp.status import StopReason
+from toad.acp.terminal_owner import OperationalTerminalOwner
+from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.core import events as core_events
 from toad.core.events import LogAgentFail
 from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
-
-from toad.acp.queue_attachment import QueueActionRefused
-
-from .prompt import build as build_prompt
-from .session_output import SessionOutput
-from .terminal_owner import OperationalTerminalOwner
-from .transcript_reader import CoordinationTranscriptReader
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Coroutine
@@ -44,6 +42,7 @@ if TYPE_CHECKING:
 
     from acp.schema import AvailableCommand
     from agent_comms.acp_extension import QueueScope, TranscriptSnapshotUpdate
+
     from toad.acp.agent import Agent
     from toad.core.events import AgentFail
     from toad.render_backend import Renderer, RenderTask
