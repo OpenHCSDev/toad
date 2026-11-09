@@ -23,9 +23,9 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.comms import wire
 from agent_comms.coordination.coordinator import Coordination
+from agent_comms.execution.launch_runtime import ThreadLaunch
 from agent_comms.execution.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.execution.turn_lease import NoFinishedTurn
-from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, InputId, TurnId
 from agent_comms.pi_payloads import ConfirmMcpCallPolicy, ReadyMcpServerState
 from textual.pilot import Pilot

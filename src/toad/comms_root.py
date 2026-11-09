@@ -1,6 +1,6 @@
 """Toad's cached access to the Comms service of the current route.
 
-Core owns route selection and guarded writes (``agent_comms.route_selection``)
+Core owns route selection and guarded writes (``agent_comms.installer.route_selection``)
 and observes its own stores (``agent_comms.ui_model.observation``). This owner
 caches the service it opened for one selection, runs one observation process
 for it, tells that process what the open views show, and applies its results:
@@ -30,10 +30,11 @@ from agent_comms.execution.child_process import (
     join_retirement,
 )
 from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.execution.launch_runtime import LaunchRuntime
+from agent_comms.execution.remote_core_process import ProcessRemoteCoreAccess
 from agent_comms.execution.root_runtime import RootRuntime
 from agent_comms.installer.active_route import CommsRoute
-from agent_comms.launch_runtime import LaunchRuntime
-from agent_comms.message_notification import MessageNotification
+from agent_comms.installer.route_selection import RouteSelection
 from agent_comms.messaging.channel_targets import NamedTarget
 from agent_comms.messaging.display_references import (
     PendingReferences,
@@ -42,6 +43,7 @@ from agent_comms.messaging.display_references import (
     UnavailableReferences,
 )
 from agent_comms.messaging.historical_views import HistoricalSenders, HistoricalThread
+from agent_comms.messaging.message_notification import MessageNotification
 from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.revision_views import (
     ExternalTranscriptsView,
@@ -56,8 +58,6 @@ from agent_comms.registry.registry_document import (
 )
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import Thread
-from agent_comms.remote_core_process import ProcessRemoteCoreAccess
-from agent_comms.route_selection import RouteSelection
 from agent_comms.transcript.transcripts import TranscriptCursor
 from agent_comms.transport.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess, ToolRequest

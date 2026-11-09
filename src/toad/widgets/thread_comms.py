@@ -1,67 +1,62 @@
 """Owner-scoped right-sidebar communication and explicitly declared work links."""
 
 from __future__ import annotations
-from metaclass_registry.mro_dispatch import handles
-from toad.session_scope import SessionScope
-from toad.thread_identity import ThreadIdentity, SessionIdentity
-from toad.widgets.thread_identity import ShowsThreadIdentity
-from toad.core import events as core_events
-
-from toad.navigation_target import NavigationTarget, SelectTarget, ThreadTarget
-
 
 import asyncio
 from dataclasses import dataclass, field
 
 from agent_comms.display_order import ThreadSort
+from agent_comms.registry.relationships import (
+    RelationshipEntry,
+    RelationshipGroup,
+    ThreadCommsSnapshot,
+)
+from agent_comms.ui_model.message_category import MessageCategory
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from agent_comms.ui_model.unread import UnobservedUnread
+from metaclass_registry.mro_dispatch import handles
 from textual import on
-from textual.document._editing import EditingMode
 from textual.content import Content
+from textual.document._editing import EditingMode
+from textual.events import Mount, Show, Unmount
 from textual.geometry import Offset, Region
 from textual.widgets import Static
+
+from toad.category_filter import CategoryFilterView
+from toad.comms_root import Observing
+from toad.core import events as core_events
 from toad.native_style import (
     AutoHeight,
     Borderless,
     ClipOverflow,
+    MutedText,
     NoMargin,
     NoPadding,
     NoWrap,
     OneRow,
     TransparentBackground,
 )
+from toad.navigation_target import NavigationTarget, SelectTarget, ThreadTarget
+from toad.session_scope import SessionScope
+from toad.sidebar_changes import SidebarChange
+from toad.sidebar_contracts import RelationshipMemberRows
+from toad.sidebar_model_view import SidebarModelView
+from toad.thread_identity import SessionIdentity, ThreadIdentity
+from toad.widget_actions import OpensSelected, WidgetAction
 from toad.widgets.checkbox import Checkbox
-
+from toad.widgets.comms_menu import show_target_menu
 from toad.widgets.comms_sidebar import ThreadStatusRow
-from toad.native_style import MutedText
-from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
-from toad.sidebar_contracts import RelationshipMemberRows
-from toad.category_filter import CategoryFilterView
-from toad.widgets.comms_menu import show_target_menu
 from toad.widgets.sidebar_tree import (
     Disclosure,
     GroupTitle,
-    SidebarGroup,
     SearchFollower,
     SelectsTargets,
+    SidebarGroup,
 )
-from agent_comms.relationships import (
-    RelationshipEntry,
-    RelationshipGroup,
-    ThreadCommsSnapshot,
-)
-from toad.widget_actions import WidgetAction, OpensSelected
+from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.worker_group import WorkerGroup
-from toad.comms_root import Observing
-from textual.events import Mount
-from textual.events import Unmount
-from textual.events import Show
-
-from toad.sidebar_changes import SidebarChange
-from toad.sidebar_model_view import SidebarModelView
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:

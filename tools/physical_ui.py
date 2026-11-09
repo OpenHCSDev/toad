@@ -26,7 +26,6 @@ from multiprocessing import Pipe
 from pathlib import Path
 from typing import get_args, get_type_hints
 
-from agent_comms.bus import Bus
 from agent_comms.comms import Comms
 from agent_comms.execution.check_root import CheckRoot
 from agent_comms.execution.child_process import (
@@ -34,6 +33,7 @@ from agent_comms.execution.child_process import (
     SpawnedProcess,
 )
 from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.execution.launch_runtime import LaunchRuntime, ThreadLaunch
 from agent_comms.execution.native_arguments import ConfiguredBinary, NativeArguments
 from agent_comms.execution.root_runtime import RootRuntime
 from agent_comms.installer.active_route import (
@@ -44,7 +44,7 @@ from agent_comms.installer.active_route import (
 )
 from agent_comms.installer.native_build_inputs import DetachedChildStdio
 from agent_comms.installer.practice import SuppliedRuntimeHome
-from agent_comms.launch_runtime import LaunchRuntime, ThreadLaunch
+from agent_comms.messaging.bus import Bus
 from agent_comms.messaging.recorded_bus import RecordedBusIdentity
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.storage.store_files import ExclusiveAtomicFile

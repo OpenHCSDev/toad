@@ -19,8 +19,8 @@ from agent_comms.execution.child_process import (
     join_retirement,
 )
 from agent_comms.execution.launch_root import LaunchRoot
+from agent_comms.installer.route_selection import RouteSelection
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
-from agent_comms.route_selection import RouteSelection
 from pydantic import JsonValue
 
 from toad.acp.agent_session import AgentSession

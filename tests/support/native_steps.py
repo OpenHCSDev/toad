@@ -1,21 +1,24 @@
 """Message journeys through a native session that more than one native test walks."""
 
 from __future__ import annotations
-from agent_comms.projects.checkouts import Checkout
 
 import asyncio
 from contextlib import asynccontextmanager
 
 from agent_comms.messaging.channel_targets import ChannelTarget
-from agent_comms.notification_progress import AnsweredProgress, ConsumedDelivery
-from toad.conversation_kind import ChannelConversation, DmConversation
-from toad.core import input_events
-from toad.navigation_target import DirectTarget, channel_target
-from toad.navigation_context import NavigationContext
-from toad.widgets.comms_chat import CommsChatView
-from toad.notification_status import CheckedNotifications, NotificationStatus
+from agent_comms.messaging.notification_progress import (
+    AnsweredProgress,
+    ConsumedDelivery,
+)
+from agent_comms.projects.checkouts import Checkout
 
 from support.textual_steps import refresh_chat
+from toad.conversation_kind import ChannelConversation, DmConversation
+from toad.core import input_events
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import DirectTarget, channel_target
+from toad.notification_status import CheckedNotifications, NotificationStatus
+from toad.widgets.comms_chat import CommsChatView
 
 
 def rows_with(chat, predicate):

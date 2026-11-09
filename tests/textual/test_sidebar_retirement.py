@@ -5,7 +5,7 @@ import gc
 from weakref import ref
 
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.relationships import (
+from agent_comms.registry.relationships import (
     AddRelationshipEdit,
     CollaboratingRelationshipGroup,
 )
@@ -17,11 +17,11 @@ from toad.plan import InProgressPlanStatus, PlanItem
 from toad.screens.main import MainScreen
 from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.project_panel import NO_PROJECT_VIEW
+from toad.widgets.project_tree_intent import NO_TREE_INTENT
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import PanelHydration, SideBarCollapsible
 from toad.widgets.thread_comms import ThreadCommsSidebar
-from toad.widgets.project_panel import NO_PROJECT_VIEW
-from toad.widgets.project_tree_intent import NO_TREE_INTENT
 
 
 def viewport_text(widget):

@@ -27,8 +27,8 @@ def private_root(path: Path, project: Path, message: str) -> Path:
 
 def selecting_route(root: Path):
     """The default route that selects `root` and the bus it holds now."""
-    from agent_comms.bus import Bus
     from agent_comms.installer.active_route import ActiveRoute
+    from agent_comms.messaging.bus import Bus
     from agent_comms.messaging.recorded_bus import RecordedBusIdentity
 
     return ActiveRoute(root, RecordedBusIdentity.capture(Bus.path_in(root)))

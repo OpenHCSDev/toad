@@ -6,8 +6,8 @@ from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.message_notification import MessageNotification
 from agent_comms.messaging.frozen_recipient import FrozenRecipient
+from agent_comms.messaging.message_notification import MessageNotification
 from agent_comms.messaging.message_reference import MessageReference
 
 from toad.line_blocks import (

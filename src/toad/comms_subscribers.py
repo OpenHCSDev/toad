@@ -3,7 +3,7 @@
 from abc import abstractmethod
 from collections.abc import Mapping
 
-from agent_comms.message_notification import MessageNotification
+from agent_comms.messaging.message_notification import MessageNotification
 from textual.abstract_hooks import AbstractHooksMeta
 
 

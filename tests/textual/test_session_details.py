@@ -3,10 +3,10 @@
 import pytest
 from agent_comms.input_attempt import UnobservedInputDeliveryScope
 from agent_comms.input_disposition import DeliveryOverview
-from agent_comms.message_notification import MessageNotification
 from agent_comms.messaging.frozen_recipient import FrozenRecipient
+from agent_comms.messaging.message_notification import MessageNotification
 from agent_comms.messaging.messages import InfoKind, Message
-from agent_comms.notification_progress import HarnessConsumedProgress
+from agent_comms.messaging.notification_progress import HarnessConsumedProgress
 from agent_comms.transcript.transcripts import NotifiedThreadPresentation
 from agent_comms.ui_model.delivery import ReadDeliveryView
 from agent_comms.ui_model.status import ThreadStatusModel

@@ -6,8 +6,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
-from agent_comms.launch_runtime import LaunchRuntime
+from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.nominal.field_codec import FieldCodec, RootId
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.connector_profile import (
@@ -18,6 +17,7 @@ from agent_comms.transport.connector_profile import (
     UiCredential,
     UiGrantId,
 )
+from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tailnet_buses import (
     NamedHost,

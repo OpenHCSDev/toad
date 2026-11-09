@@ -7,9 +7,9 @@ The live subscription/return journey is exercised in test_channel_updates_and_re
 from dataclasses import replace
 
 from agent_comms.coordination.errors import ReloadRequired
-from agent_comms.message_notification import MessageNotification
 from agent_comms.messaging.frozen_recipient import FrozenRecipient
-from agent_comms.notification_progress import (
+from agent_comms.messaging.message_notification import MessageNotification
+from agent_comms.messaging.notification_progress import (
     CompletedProgress,
     ConsumingProgress,
     IgnoredProgress,
