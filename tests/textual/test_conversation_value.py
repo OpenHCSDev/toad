@@ -2,8 +2,8 @@
 
 import asyncio
 
-from agent_comms.channel_targets import ChannelTarget
-from agent_comms.channels import AllChannel
+from agent_comms.messaging.channel_targets import ChannelTarget
+from agent_comms.messaging.channels import AllChannel
 from agent_comms.registry.threads import NativeThread
 from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import ChannelConversation, DmConversation, IrcConversation

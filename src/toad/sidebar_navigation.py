@@ -3,7 +3,11 @@ from __future__ import annotations
 import asyncio
 from dataclasses import replace
 from toad.sidebar_contracts import NavigationRefresh
-from agent_comms.channel_targets import CommandTarget, OneChannel, PerTargetChannels
+from agent_comms.messaging.channel_targets import (
+    CommandTarget,
+    OneChannel,
+    PerTargetChannels,
+)
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
 

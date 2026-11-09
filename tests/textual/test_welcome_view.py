@@ -4,8 +4,8 @@ from agent_comms.projects.checkouts import Checkout
 from toad.launch_binding import AgentAttached
 from support.agents import peer
 from support.ui import TextualUi
-from agent_comms.channel_targets import CommandTarget
-from agent_comms.read_basis import NamedViewer
+from agent_comms.messaging.channel_targets import CommandTarget
+from agent_comms.messaging.read_basis import NamedViewer
 from agent_comms.registry.threads import NativeThread
 from toad.constants import ALL_COMMS_TARGET
 from toad.screens.welcome import (

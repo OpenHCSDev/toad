@@ -1,7 +1,7 @@
 """A conversation with a wire-backed, read-marked history."""
 from abc import abstractmethod
 
-from agent_comms.message_reference import MessageReference
+from agent_comms.messaging.message_reference import MessageReference
 
 from toad.conversation_capabilities import ConversationActivity
 from toad.conversation_kind import ConversationKind
