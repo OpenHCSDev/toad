@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from toad.session_actions import ReturnToViewAction
-
 import asyncio
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.channel_targets import (
     ChannelTarget,
@@ -40,8 +37,6 @@ from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
 from toad.referenced_core import ReferencedCore
 from toad.status_thread import NoStatusThread, StatusThread
-from toad.widgets.channel_activity import ChannelActivity
-from toad.widgets.session_details import ConversationSessionDetails
 from toad.comms_root import CoordinationAccess
 from toad.session_tracker import CommsViewKey
 from toad.session_tracker import ChannelViewAddress
@@ -49,14 +44,8 @@ from toad.session_tracker import ChannelViewAddress
 from toad.sidebar_models import UnpaintedChannel
 
 
-if TYPE_CHECKING:
-    from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
-
-    from toad.screens.comms import CommsScreen
-    from toad.screens.historical_sessions import HistoricalSessions
-    from toad.widgets.comms_chat import CommsChatView
-    from toad.widgets.wire_history import WireHistory
-    from toad.wire_history import WireSource
+from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
+from toad.conversation_capabilities import ConversationActivity, ConversationNavigation, ConversationSource
 
 
 @dataclass(frozen=True)
@@ -85,7 +74,7 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     def view_identity(cls, key: CommsViewKey):
         return key
 
-    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
+    def page(self, source: ConversationSource, bounds: PageBounds) -> MessagePage:
         """Every conversation reads its page through the request a remote UI sends too."""
         return source.core.call(CommsConversationPageTool(
             conversation=self.retained_target(), project=source.project, bounds=bounds))
@@ -101,19 +90,16 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     def status_thread(self, root: Path, access: CoordinationAccess) -> StatusThread:
         return NoStatusThread()
 
-    def historical_sessions(self, create_view: partial[HistoricalSessions], references: ThreadNames):
+    def historical_sessions[View](self, create_view: partial[View], references: ThreadNames) -> View:
         return create_view()
 
     @classmethod
-    async def toggle_irc(cls, screen: CommsScreen) -> None:
-        from toad.navigation_target import FeedTarget
-
-        await screen.open_sidebar_target(FeedTarget())
+    async def toggle_irc(cls, screen: ConversationNavigation) -> None:
+        await screen.show_feed()
 
     @classmethod
-    async def toggle_dm(cls, screen: CommsScreen) -> None:
-        await ReturnToViewAction().apply(screen)
-        screen.app.session_navigation.direct_messages()
+    async def toggle_dm(cls, screen: ConversationNavigation) -> None:
+        await screen.show_direct_messages()
 
     def unread(self, observation: SidebarObservation):
         return observation.channel_unread(self.retained_target().name)
@@ -127,7 +113,7 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
 
     @classmethod
     @abstractmethod
-    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore) -> None: ...
+    async def update_mentions(cls, view: ConversationActivity, source: ReferencedCore) -> None: ...
 
     @abstractmethod
     async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str: ...
@@ -140,15 +126,14 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
             model.threads.rows[name] for name in self.activity_members(model) if model.threads.rows[name].active
         )
 
-    @classmethod
     @abstractmethod
-    def compose_activity(cls, view: CommsChatView) -> ComposeResult: ...
+    def compose_activity(self, view: ConversationActivity) -> ComposeResult: ...
 
     @abstractmethod
     def prompt(self, project: Checkout, *, submissions: SubmissionOwner): ...
 
     @classmethod
-    def seen_page(cls, history: WireHistory, seen):
+    def seen_page(cls, seen):
         """Acknowledge visible fragments using their original page's proof."""
         if not seen:
             return None
@@ -200,9 +185,8 @@ class ChannelConversation(ConversationKind):
         channel = source.core.call(CommsChannelTool(name=target.name))
         return ResolvedConversation(source.registry_for(me).canonical_name(me), cls(ChannelTarget(channel.name)))
 
-    @classmethod
-    def compose_activity(cls, view: CommsChatView) -> ComposeResult:
-        yield ChannelActivity(view)
+    def compose_activity(self, view: ConversationActivity) -> ComposeResult:
+        yield from view.compose_channel_activity()
 
     async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
         return "Read-only saved view" if read_only else ""
@@ -218,27 +202,8 @@ class ChannelConversation(ConversationKind):
         return core.call(CommsChannelTool(name=self.target.name)).read_only
 
     @classmethod
-    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore):
-        history = view.message_history
-        shown = history.source_snapshot()
-        conversation = view.conversation
-        access = view.app.coordination_access
-        answer = await access.current_sidebar()
-        snapshot = answer.require_snapshot()
-        if not access.observation.observes(source.root):
-            raise ValueError("Channel mentions belong to another Core root")
-        mentions = await view.app.preparation.run_thread(
-            snapshot.mention_candidates,
-            conversation.destination(snapshot.references).name,
-        )
-        if not await history.source_is_current(shown) or view.conversation != conversation:
-            return
-        # Mentions are read in the chat-labels worker, which runs after the drawing work
-        # and can take seconds on a busy bus (comms_chat.py:265). The composer can be
-        # removed in that window, and a view with no composer has nothing to tell: the
-        # query answers membership, so no match is not an exception.
-        for prompt in view.query(ChannelPrompt):
-            prompt.set_mention_candidates(mentions)
+    async def update_mentions(cls, view: ConversationActivity, source: ReferencedCore):
+        await view.update_channel_mentions(source)
 
 
 class PeerLabel(ThreadReferenceReader[str]):
@@ -274,12 +239,12 @@ class DmConversation(ConversationKind):
     def status_thread(self, root: Path, access: CoordinationAccess) -> StatusThread:
         return StatusThread.for_conversation(root, self, access)
 
-    def historical_sessions(self, create_view: partial[HistoricalSessions], references: ThreadNames):
+    def historical_sessions[View](self, create_view: partial[View], references: ThreadNames) -> View:
         return create_view(name=self.destination(references).name)
 
     @classmethod
-    async def toggle_dm(cls, screen: CommsScreen) -> None:
-        await ReturnToViewAction().apply(screen)
+    async def toggle_dm(cls, screen: ConversationNavigation) -> None:
+        await screen.return_to_view()
 
     def threads_needed(self, source: ReferencedCore, me: str):
         return source.registry_for(me).require(me).incarnation, self.peer
@@ -298,13 +263,11 @@ class DmConversation(ConversationKind):
         return references.thread(self.peer).read(PEER_LABEL)
 
     @classmethod
-    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore) -> None:
+    async def update_mentions(cls, view: ConversationActivity, source: ReferencedCore) -> None:
         """Direct-message composers have no channel mention roster."""
 
-    @classmethod
-    def compose_activity(cls, view) -> ComposeResult:
-        view.thread_activity = ConversationSessionDetails(view.conversation.peer)
-        yield view.thread_activity
+    def compose_activity(self, view: ConversationActivity) -> ComposeResult:
+        yield from view.compose_peer_activity(self.peer)
 
     def prompt(self, project: Checkout, *, submissions: SubmissionOwner):
         return MessagePrompt(project=project, submissions=submissions)
@@ -320,8 +283,8 @@ class DmConversation(ConversationKind):
 
 class IrcConversation(ChannelConversation):
     @classmethod
-    async def toggle_irc(cls, screen: CommsScreen) -> None:
-        await ReturnToViewAction().apply(screen)
+    async def toggle_irc(cls, screen: ConversationNavigation) -> None:
+        await screen.return_to_view()
 
     def label(self, references: ThreadNames) -> str:
         return f"{self.target.name} · all comms"

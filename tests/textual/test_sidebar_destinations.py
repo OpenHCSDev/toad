@@ -1,7 +1,10 @@
 """A declared destination opens through the real app's mounted sidebar row."""
 
 from toad.navigation_target import NavigationTarget
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+from toad.widgets.sidebar_tree import CommsRow
+from toad.widgets.comms_sidebar import CommsSidebar
+
+
 
 
 async def test_new_destination_uses_existing_row(workspace):

@@ -1,13 +1,14 @@
+from toad.conversation_capabilities import ConversationNavigation
+from toad.screens.historical_sessions import HistoricalSessions
+from toad.thread_identity import SessionIdentity
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.historical_views import AllHistoricalSenders, NamedHistoricalSender
 from toad.core_event_carrier import CoreEventMessage
-from toad.core import events as core_events
 from toad.core import session_requests
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
 from toad.project_path_owner import CheckoutRoot
 import asyncio
 from functools import partial
-from pathlib import Path
 from typing import Literal
 from agent_comms.projects.checkouts import Checkout
 
@@ -16,21 +17,18 @@ from textual.app import ComposeResult
 from textual.document._editing import EditingMode
 from toad.session_actions import ReturnToViewAction, CloseViewAction
 from toad.widget_actions import WidgetAction, TogglesIrc, CyclesSessions
-from textual.events import ScreenResume
 from textual.worker import WorkerCancelled
 from textual.widgets import Static
 
-from toad import messages
 from toad.conversation_kind import ConversationKind
 from toad.widgets.comms_chat import CommsChatView
 from toad.core.input_events import SelectHistoricalIdentity
-from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
+from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.constants import WELCOME
 from toad.navigation_context import NavigationContext
 from toad.session_scope import NoSessionOrigin
-from toad.navigation_target import HistoryTarget, NavigationTarget, SelectTarget
-from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
+from toad.navigation_target import FeedTarget, HistoryTarget, NavigationTarget, SelectTarget
+from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.app_node import ToadNode
 from toad.worker_group import WorkerGroup
@@ -53,8 +51,6 @@ class SavedSessionsAction(ViewAction):
     show = True
 
     async def apply(self, context: CommsScreen) -> None:
-        from toad.screens.historical_sessions import HistoricalSessions
-
         observed = context.app.coordination_access.observation.observed()
         threads = await asyncio.to_thread(observed.historical_threads, AllHistoricalSenders())
         if not threads:
@@ -87,7 +83,7 @@ class FocusPromptAction(ViewAction):
             chat.prepare_prompt()
 
 
-class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[ThreadSidebar], ToadNode, can_focus=False,
+class CommsScreen(ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[ThreadSidebar], ToadNode, can_focus=False,
                   actions=(ViewAction, ReturnToViewAction, CloseViewAction)):
     """A channel or DM represented as a native concurrent Toad session."""
 
@@ -102,8 +98,6 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
     ) -> None:
         super().__init__()
         self.project_path = project_path
-        from toad.thread_identity import SessionIdentity
-
         self._identity = SessionIdentity.for_thread(me, wire_root)
         self.conversation = conversation
         self.wire_root = wire_root
@@ -170,8 +164,6 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
     @handles(SelectHistoricalIdentity)
     async def select_historical_identity(self, event: SelectHistoricalIdentity, message: CoreEventMessage) -> None:
         message.stop()
-        from toad.screens.historical_sessions import HistoricalSessions
-
         observed = self.app.coordination_access.observation.observed()
         threads = await asyncio.to_thread(
             observed.historical_threads, NamedHistoricalSender(event.name)
@@ -280,6 +272,16 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
     async def on_select_target(self, event: SelectTarget) -> None:
         await self.open_sidebar_target(event.target)
 
+
+    async def show_feed(self) -> None:
+        await self.open_sidebar_target(FeedTarget())
+
+    async def return_to_view(self) -> None:
+        await ReturnToViewAction().apply(self)
+
+    async def show_direct_messages(self) -> None:
+        await self.return_to_view()
+        self.app.session_navigation.direct_messages()
 
     async def toggle_irc(self) -> None:
         await self.conversation.toggle_irc(self)

@@ -2,19 +2,77 @@
 
 import asyncio
 from pathlib import Path
-
 from agent_comms.connector_profile import BearerSecret, HttpsMcpEndpoint, UiConnectionProfile, UiCredential, UiGrantId
 from agent_comms.connector_store import OpenableProfile
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.nominal.field_codec import RootId
 from agent_comms.projects.checkouts import Checkout
 from yarl import URL
-
 from toad.app import ToadApp
 from toad.widget_actions import ApplicationAction
 from toad.application_outcome import Reconnected, Succeeded
-from toad.comms_root import BusChoice, HeldBus, LocalBus, LocalCoreConnection
+from toad.bus_selection import BusChoice, HeldBus, LocalBus
+from toad.comms_root import LocalCoreConnection
 from toad.launch_binding import NoAgent
+from toad.screens.bus_choice import BusChoices
+from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
+from toad.bus_selection import DiscoveredPeer
+from toad.screens.bus_choice import BusChoices
+from agent_comms.connector_store import HeldUiProfiles
+import time
+from agent_comms.connector_profile import (
+    BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
+)
+from agent_comms.connector_store import HeldUiProfiles
+from agent_comms.nominal.field_codec import RootId
+from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
+from agent_comms.tailnet_profiles import OfferedPeerProfile, PeerRefusedProfile, TailnetProfiles
+from toad.bus_selection import DiscoveredPeer, HeldBus
+from yarl import URL
+from agent_comms.tailnet_buses import TailnetBuses
+from toad.comms_root import RemoteCoreConnection
+from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
+from agent_comms.tailnet_profiles import PeerRefusedProfile, TailnetProfiles
+from toad.bus_selection import DiscoveredPeer
+from agent_comms.tailnet_buses import TailnetBuses
+import time
+from agent_comms.connector_profile import (
+    BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
+)
+from agent_comms.connector_store import HeldUiProfiles
+from agent_comms.nominal.field_codec import RootId
+from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
+from toad.bus_selection import DiscoveredPeer, HeldBus
+from toad.screens.bus_choice import BusChoices
+from yarl import URL
+from textual.css.scalar import Unit
+from toad.screens.bus_choice import BusPanel
+import threading
+from dataclasses import dataclass
+from textual.app import App
+from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
+from agent_comms.transport.request import CoreAccess
+from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, TailnetBusesRead
+from toad.screens.bus_choice import BusChoices
+import time
+from agent_comms.connector_profile import (
+    BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
+)
+from agent_comms.connector_store import HeldUiProfiles
+from agent_comms.nominal.field_codec import RootId
+from agent_comms.tailnet_buses import NamedHost, TailnetBuses, TailnetPeer
+from agent_comms.tailnet_profiles import OfferedPeerProfile, TailnetProfiles
+from toad.screens.bus_choice import BusAddress, BusChoices, BusRows
+from yarl import URL
+from agent_comms.connector_store import HeldUiProfiles
+from agent_comms.tailnet_buses import TailnetBuses
+from toad.bus_selection import HeldBus, LocalBus
+from toad.screens.bus_choice import BusChoices, BusRows
+
+
+
+
 
 
 def openable(path: Path) -> OpenableProfile:
@@ -94,7 +152,6 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
     A Select posts Changed when its initial value is set, so a picker that acts on every
     Changed chooses its own first row before the reader has read it.
     """
-    from toad.screens.bus_choice import BusChoices
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
@@ -112,11 +169,7 @@ async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch
     The dialog opens on what this machine knows and asks the tailnet after, so the probe is
     stubbed here: what matters is that a found peer becomes a row named by what it holds.
     """
-    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
-    from toad.comms_root import DiscoveredPeer
-    from toad.screens.bus_choice import BusChoices
 
-    from agent_comms.connector_store import HeldUiProfiles
 
     found = (PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43),
              PeerHoldsBus(TailnetPeer("desktop", "100.124.133.120", True), 247))
@@ -144,16 +197,6 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
     that picking the row ends this session onto the bus the peer handed over, with no errand
     in between.
     """
-    import time
-    from agent_comms.connector_profile import (
-        BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
-    )
-    from agent_comms.connector_store import HeldUiProfiles
-    from agent_comms.nominal.field_codec import RootId
-    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
-    from agent_comms.tailnet_profiles import OfferedPeerProfile, PeerRefusedProfile, TailnetProfiles
-    from toad.comms_root import DiscoveredPeer, HeldBus
-    from yarl import URL
 
     found = PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
     profile = UiConnectionProfile(
@@ -163,7 +206,6 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
         ReachedRoute("100.119.57.99"))
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
     held = tmp_path / "ts-gaming.json"
-    from agent_comms.tailnet_buses import TailnetBuses
     monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (found.peer,)))
     monkeypatch.setattr(TailnetProfiles, "ask",
                         classmethod(lambda cls, peer, previous: OfferedPeerProfile(peer, profile)))
@@ -176,19 +218,14 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
         opened = app.return_value.choice
         assert isinstance(opened, HeldBus)
         assert str(opened.profile.profile.endpoint.url).endswith(":8443/mcp")
-        from toad.comms_root import RemoteCoreConnection
         assert opened.arguments(("toad",))[-2:] == (RemoteCoreConnection.argument, str(held)), (
             "the next launch names the profile the peer handed over")
 
 
 async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypatch):
     """A public endpoint refuses, and the reason belongs on screen, not in a log."""
-    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
-    from agent_comms.tailnet_profiles import PeerRefusedProfile, TailnetProfiles
-    from toad.comms_root import DiscoveredPeer
 
     found = PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
-    from agent_comms.tailnet_buses import TailnetBuses
     monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (found.peer,)))
     monkeypatch.setattr(TailnetProfiles, "ask", classmethod(
         lambda cls, peer, previous: PeerRefusedProfile(peer, "No tailnet-only endpoint serves 127.0.0.1:18766")))
@@ -212,17 +249,7 @@ async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monk
     certificate and grant id, one by its hostname and thread count. The found row wins,
     because it says which machine and how much is on it.
     """
-    import time
 
-    from agent_comms.connector_profile import (
-        BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
-    )
-    from agent_comms.connector_store import HeldUiProfiles
-    from agent_comms.nominal.field_codec import RootId
-    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
-    from toad.comms_root import DiscoveredPeer, HeldBus
-    from toad.screens.bus_choice import BusChoices
-    from yarl import URL
 
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
     for address, name in (("100.119.57.99", "ts-gaming"), ("100.112.213.110", "pixel-8a")):
@@ -254,9 +281,7 @@ async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monk
 
 def test_a_dialog_fits_a_narrow_window():
     """Tristan: "the remote buf dialog isnt mobike layout fridnely cant be narrow enough"."""
-    from textual.css.scalar import Unit
 
-    from toad.screens.bus_choice import BusPanel
 
     panel = BusPanel()
     panel.apply_native_layout()
@@ -267,14 +292,6 @@ def test_a_dialog_fits_a_narrow_window():
 
 async def test_discovery_uses_selected_core_and_never_holds_the_message_pump(monkeypatch):
     """A terminal without tailscale still paints while its selected Core discovers peers."""
-    import threading
-    from dataclasses import dataclass
-    from textual.app import App
-    from agent_comms.nominal.field_codec import FieldCodec
-    from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
-    from agent_comms.transport.request import CoreAccess
-    from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, TailnetBusesRead
-    from toad.screens.bus_choice import BusChoices
 
     started, release = threading.Event(), threading.Event()
     expected = TailnetBusesRead((PeerHoldsBus(TailnetPeer("discovered", "100.64.1.2", True), 9),))
@@ -326,17 +343,7 @@ async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspac
     second way into a bus: the host hands a profile over and it becomes an ordinary held
     row, which is also where saving and removing come from.
     """
-    import time
 
-    from agent_comms.connector_profile import (
-        BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
-    )
-    from agent_comms.connector_store import HeldUiProfiles
-    from agent_comms.nominal.field_codec import RootId
-    from agent_comms.tailnet_buses import NamedHost, TailnetBuses, TailnetPeer
-    from agent_comms.tailnet_profiles import OfferedPeerProfile, TailnetProfiles
-    from toad.screens.bus_choice import BusAddress, BusChoices, BusRows
-    from yarl import URL
 
     asked: list[object] = []
     profile = UiConnectionProfile(
@@ -381,10 +388,6 @@ async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspac
 async def test_a_saved_bus_can_be_forgotten_and_its_profile_goes_with_it(workspace, monkeypatch, tmp_path):
     """Removing a saved bus is removing the profile that saved it; HeldUiProfiles lists
     exactly that directory, so there is no second record of what is saved."""
-    from agent_comms.connector_store import HeldUiProfiles
-    from agent_comms.tailnet_buses import TailnetBuses
-    from toad.comms_root import HeldBus, LocalBus
-    from toad.screens.bus_choice import BusChoices, BusRows
 
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
     monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: ()))

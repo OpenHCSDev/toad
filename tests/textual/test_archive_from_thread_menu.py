@@ -5,7 +5,6 @@ and saved session."""
 import json
 from datetime import UTC, datetime
 from importlib import import_module
-
 from agent_comms import cli_verbs
 from agent_comms.execution.native_entries import SessionEntry
 from agent_comms.projects.checkouts import Checkout
@@ -21,10 +20,14 @@ from agent_comms.registry.thread_status import (
 )
 from agent_comms.registry.threads import NativeThread
 from textual.geometry import Offset
-
 from toad.db import DB
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+from toad.widgets.sidebar_tree import CommsRow
+from toad.widgets.comms_sidebar import CommsSidebar
 from agent_comms.nominal.field_codec import AcpSessionId
+
+
+
+
 
 
 async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_history(workspace, tmp_path, monkeypatch):

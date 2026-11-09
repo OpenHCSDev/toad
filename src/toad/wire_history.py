@@ -12,7 +12,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import singledispatch
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
+from toad.conversation_capabilities import ConversationSource
+from toad.read_marked_history import ReadMarkedHistory
+from toad.wire_conversation_view import WireConversationView
+from toad.session_scope import SessionScope
+from toad.target_commands import TargetContext
+from toad.widgets.transcript_lines import Lines
+from toad.comms_root import Observation
 
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
@@ -38,7 +45,6 @@ from agent_comms.transcript_events import IncomingTranscript
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
 from toad.core.projection import MroProjection
-from toad.referenced_core import ReferencedCore
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -69,11 +75,6 @@ from toad.widgets.transcript_fragments import (
     TranscriptFragment,
 )
 
-if TYPE_CHECKING:
-    from toad.comms_root import Observation
-    from toad.widgets.comms_chat import CommsChatView
-    from toad.widgets.transcript_lines import Lines
-    from toad.widgets.wire_history import WireHistory
 
 
 @dataclass(frozen=True)
@@ -323,7 +324,7 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
 
 @dataclass(frozen=True, eq=False)
-class WireSource(BusQueueSource, ReferencedCore):
+class WireSource(BusQueueSource, ConversationSource):
     """One conversation as one viewer reads it from Core, and how its messages are styled.
 
     A page read to the newest messages is short so that it is drawn at once;
@@ -407,7 +408,7 @@ class WireObservation(SourceObservation):
 
 
 class ReplacedWireObservation(WireObservation):
-    async def apply(self, history: WireHistory, source: ReplaceablePageSource) -> bool:
+    async def apply(self, history: ReadMarkedHistory, source: ReplaceablePageSource) -> bool:
         return await history.show_newest(ObservedViewportRequest(LatestPosition.hold(history.window), self))
 
 
@@ -432,8 +433,6 @@ class WirePageWork(TranscriptPageWork[WireCut]):
         return self.request.cursor.kept
 
     async def execute(self, runtime, key):
-        import asyncio
-
         prepared = await runtime.run_thread(self.loader.read, self.request, self.through)
         if self.scope.closed:
             raise asyncio.CancelledError
@@ -445,7 +444,7 @@ class ChannelDestination(BusDestination):
     """A channel or inbox page: shown while its view still reads this conversation from this
     root. A page reader the view replaces (a refresh, the next page) still shows it."""
 
-    view: CommsChatView
+    view: WireConversationView
 
     def shown(self) -> bool:
         view = self.view
@@ -484,14 +483,11 @@ class WirePageBuffer(SavedHistory):
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.root, access)
 
-    def refresh_identity(self, view: CommsChatView) -> None:
+    def refresh_identity(self, view: WireConversationView) -> None:
         """Dispatch the references of this source's own root: the source the view was opened on."""
         view.dispatch_sync(view.app.coordination_access.reference_context(str(self.loader.root)))
 
     def command_context(self, view):
-        from toad.session_scope import SessionScope
-        from toad.target_commands import TargetContext
-
         references = (
             view.app.coordination_access.observation.observed().sidebar.observation.thread_names()
         )
@@ -505,19 +501,19 @@ class WirePageBuffer(SavedHistory):
         )
 
     def begin_submission(
-        self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
+        self, view: WireConversationView, owner: SubmissionOwner, submission: SubmittedText
     ) -> SubmissionStart:
         """A channel or inbox message queues behind the view's earlier ones; compose stays open."""
         return owner.start_bus(submission, ChannelDestination(self.loader.root, self.loader.conversation, view))
 
-    def schedule_refresh(self, view: CommsChatView):
+    def schedule_refresh(self, view: WireConversationView):
         history = view.message_history
         return history.schedule_source_work(view._refresh_source)
 
-    def painted_read(self, history: WireHistory) -> PaintedRead:
+    def painted_read(self, history: ReadMarkedHistory) -> PaintedRead:
         return ReadWork(history._mark_read(history.source_snapshot()))
 
-    async def change_style(self, history: WireHistory) -> None:
+    async def change_style(self, history: ReadMarkedHistory) -> None:
         if not history.can_draw_on_screen:
             return
         await history.show_newest(
@@ -541,7 +537,7 @@ class WirePageBuffer(SavedHistory):
         return False
 
     def seen_page(self, history, seen):
-        return self.loader.conversation.seen_page(history, seen)
+        return self.loader.conversation.seen_page(seen)
 
     async def mark_page(self, page: MessagePage) -> None:
         await asyncio.to_thread(
@@ -550,7 +546,7 @@ class WirePageBuffer(SavedHistory):
     async def read_only(self) -> bool:
         return await self.runtime.run_thread(self.loader.conversation.read_only, self.loader.core)
 
-    async def update_mentions(self, view: CommsChatView) -> None:
+    async def update_mentions(self, view: WireConversationView) -> None:
         await self.loader.conversation.update_mentions(view, self.loader)
 
     async def status_text(self, *, read_only):
