@@ -123,6 +123,8 @@ class SessionView(
             if previous != self.thread_identity:
                 self.identity_changed(previous)
                 self.app.events.publish(ThreadIdentityChanged(self))
+                # A rename or bind changes this view's target: republish it.
+                self.app.workspace_sessions.republish()
 
     def identity_changed(self, previous: SessionIdentity) -> None:
         """A source may synchronize its dependent sessions after a real change."""

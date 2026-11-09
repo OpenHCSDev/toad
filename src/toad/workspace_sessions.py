@@ -293,6 +293,11 @@ class WorkspaceSessions:
         """The selected logical destination, including while a modal covers its frame."""
         return self._publication.target_for(root)
 
+    def republish(self) -> None:
+        """A thread's name or the observed threads changed under the selected view: recompute
+        the published target from the current source and view (not per line)."""
+        self._publication = self._source.publication(self)
+
     def target_for_mode(self, identity: str, root: Path | None) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
         view = self.views.get(identity)
