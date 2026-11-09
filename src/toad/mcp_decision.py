@@ -14,7 +14,7 @@ from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Awaitable, Callable
 
-from agent_comms.native_failures import NativePiUnavailable
+from agent_comms.execution.native_failures import NativePiUnavailable
 from toad.mcp_inventory import installed_mcp_command, read_inventory
 from toad.terminal_execution import PtyProcess
 from toad.ansi import TerminalState
