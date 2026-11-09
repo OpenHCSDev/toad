@@ -10,10 +10,8 @@ from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import goal_mention_candidates
 
-from ..goal_interaction import (
-    GoalInteraction,
-    GoalSession,
-)
+from toad.goal_interaction import GoalInteraction
+from toad.goal_interaction import GoalSession
 
 
 class HistoryInteraction(GoalInteraction):

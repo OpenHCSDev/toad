@@ -17,10 +17,10 @@ from agent_comms.runtime_requests import (
 from agent_comms.runtime_server import AttachedRuntimeRequest
 from pydantic import JsonValue
 
-from .client_session import OwnerRequest
+from toad.acp.client_session import OwnerRequest
 
 
-class ClientGoalControls(GoalControlSource[OwnerRequest, GoalAction[GoalDeclaration]]):
+class ClientGoalControls(GoalControlSource[OwnerRequest, GoalAction[GoalDeclaration], Goal, GoalDeclaration]):
     @abstractmethod
     async def request_owner(
         self, captured: OwnerRequest, operation: AttachedRuntimeRequest,
