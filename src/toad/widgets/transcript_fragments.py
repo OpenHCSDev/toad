@@ -6,13 +6,12 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.nominal.field_codec import ToolCallId
-from agent_comms.messaging.message_reference import MessageReference
-from agent_comms.recorded_time import EventTime
-from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.execution.turn_item import NativeItemId
-from metaclass_registry.mro_dispatch import handles
-from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
+from agent_comms.messaging.sent_message import PublishedSentMessage
+from agent_comms.nominal.field_codec import ToolCallId
+from agent_comms.recorded_time import EventTime
 from agent_comms.transcript_events import (
     AgentTextTranscript,
     ContextTranscript,
@@ -26,8 +25,10 @@ from agent_comms.transcript_events import (
     UserTranscript,
 )
 from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
+from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.status import ToolCallStatus
+from toad.commit_claims import CommitClaim
 from toad.core.projection import MroProjection
 from toad.line_blocks import (
     AgentRole,
@@ -48,21 +49,25 @@ from toad.line_blocks import (
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
-from toad.notification_status import MessageQueueEntry, NotificationStatus, UncheckedNotifications
-from toad.tool_output import SentMessageToolOutputPart, ToolOutput
-from toad.widgets.agent_activity import AgentActivityPresentation
+from toad.notification_status import (
+    MessageQueueEntry,
+    NotificationStatus,
+    UncheckedNotifications,
+)
 from toad.render_backend import ReusableRenderTask
-from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
+from toad.tool_output import SentMessageToolOutputPart, ToolOutput, ToolOutputPart
+from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.presentation_window import UNPLACED, Unplaced
-from toad.commit_claims import CommitClaim
-from toad.tool_output import ToolOutputPart
 from toad.widgets.transcript_lines import (
+    AcquiredRows,
     BlockLines,
     Lines,
     LineTheme,
+    NoRows,
+    RowAcquisition,
     TranscriptLinesRenderTask,
+    link_place,
 )
-from toad.widgets.transcript_lines import link_place
 
 if TYPE_CHECKING:
 
@@ -70,8 +75,7 @@ if TYPE_CHECKING:
 
     from toad.block_navigation import FragmentBlockCursor
     from toad.widgets.history_anchor import HistoryWindow
-    from toad.widgets.transcript_history import LineHistory
-    from toad.widgets.transcript_history import LaidOut, RowChange
+    from toad.widgets.transcript_history import LaidOut, LineHistory, RowChange
 
 
 @dataclass(frozen=True)

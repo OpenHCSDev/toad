@@ -1,30 +1,34 @@
 """Textual-facing: stable conversation identities resolve current names through Core references."""
 
-from agent_comms.core_access import LocalCoreAccess
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.launch_root import LaunchRoot
 from dataclasses import FrozenInstanceError
 from functools import partial
 
 import pytest
-from agent_comms.messaging.channel_targets import ChannelTarget, IncarnationThreadTarget
-from agent_comms.comms import Comms
 from agent_comms.active_route import resolve_comms_route
-from support.roots import installed_wire
-from support.agents import AppAgents
-from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.comms import Comms
 from agent_comms.installer.backup import StoreBackup
+from agent_comms.launch_root import LaunchRoot
+from agent_comms.messaging.channel_targets import ChannelTarget, IncarnationThreadTarget
 from agent_comms.messaging.message_page import PageBounds
+from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
+from agent_comms.transport.core_access import LocalCoreAccess
+from support.agents import AppAgents
+from support.roots import installed_wire
 
 from toad.constants import ALL_COMMS_TARGET
-from toad.conversation_kind import ChannelConversation, ConversationKind, IrcConversation
+from toad.conversation_kind import (
+    ChannelConversation,
+    ConversationKind,
+    IrcConversation,
+)
 from toad.message_rows import IrcMessageStyle
 from toad.navigation_target import ChannelTarget as ChannelRoute
 from toad.navigation_target import DirectTarget, FeedTarget, HistoryTarget
+from toad.referenced_core import ReferencedCore
 from toad.session_tracker import CommsViewKey
 from toad.status_thread import NoStatusThread
-from toad.referenced_core import ReferencedCore
 from toad.wire_history import WireSource
 
 

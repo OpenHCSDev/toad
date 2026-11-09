@@ -10,12 +10,17 @@ from typing import Literal
 
 from acp import RequestError
 from acp.schema import (
-    AgentErrorMessage, AgentNotification, AgentRequest, AgentResponseMessage,
-    ContentChunk, SessionNotification, TextContentBlock,
+    AgentErrorMessage,
+    AgentNotification,
+    AgentRequest,
+    AgentResponseMessage,
+    ContentChunk,
+    SessionNotification,
+    TextContentBlock,
 )
-from pydantic import TypeAdapter, ValidationError
-from agent_comms.acp_failure import ACPFailure, RequestFailure
+from agent_comms.execution.acp_failure import ACPFailure, RequestFailure
 from agent_comms.nominal.declared_family import DeclaredFamily
+from pydantic import TypeAdapter, ValidationError
 
 
 class LogSource(DeclaredFamily, affix="LogSource"):

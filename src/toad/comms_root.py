@@ -13,68 +13,74 @@ from __future__ import annotations
 
 import asyncio
 import threading
-from concurrent.futures import Future
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from concurrent.futures import Future
 from dataclasses import dataclass, field, fields, replace
 from functools import partial
 from pathlib import Path
 from typing import ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
-from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.active_route import CommsRoute
+from agent_comms.comms import Comms
+from agent_comms.display_references import (
+    PendingReferences,
+    ReferenceContext,
+    RegistryReferenceSource,
+    UnavailableReferences,
+)
+from agent_comms.errors import RouteChangedError
 from agent_comms.execution.child_process import (
     HelperStart,
     SpawnedHelper,
     join_retirement,
 )
-from agent_comms.comms import Comms
-from agent_comms.active_route import CommsRoute
-from agent_comms.core_access import LocalCoreAccess
-from agent_comms.transport.request import CoreAccess
-from agent_comms.registry.registry_document import ProjectThreadSelection, RegistrySnapshot
-from toad.bus_selection import ProfileArgument
-from toad.db import UNSCOPED_TABS, TabScope
-from toad.referenced_core import ReferencedCore
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.registry.threads import Thread
-from agent_comms.remote_core_process import ProcessRemoteCoreAccess
-from agent_comms.messaging.channel_targets import NamedTarget
-from toad.widgets.thread_comms_source import RelationshipReads
-from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
-from agent_comms.transport.tools.sidebar import (
-    CommsRegistryTool,
-    CommsHistoricalThreadsTool,
-    CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool,
-    CommsUserSendTool,
-)
-from agent_comms.transcripts import TranscriptCursor
-from agent_comms.display_references import PendingReferences, RegistryReferenceSource, UnavailableReferences
-from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
-from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.message_notification import MessageNotification
+from agent_comms.messaging.channel_targets import NamedTarget
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.presentation import NoRevision, ReadState
-from agent_comms.revision_views import ExternalTranscriptsView, RegistrationsView, StatusView
-from agent_comms.route_selection import RouteSelection
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.registry_document import (
+    ProjectThreadSelection,
+    RegistrySnapshot,
+)
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.registry.threads import Thread
+from agent_comms.remote_core_process import ProcessRemoteCoreAccess
+from agent_comms.revision_views import (
+    ExternalTranscriptsView,
+    RegistrationsView,
+    StatusView,
+)
 from agent_comms.root_runtime import RootRuntime
+from agent_comms.route_selection import RouteSelection
+from agent_comms.transcripts import TranscriptCursor
+from agent_comms.transport.core_access import LocalCoreAccess
+from agent_comms.transport.request import CoreAccess, ToolRequest
+from agent_comms.transport.tools.sidebar import (
+    CommsHistoricalThreadsTool,
+    CommsMarkThreadViewReadTool,
+    CommsRegistryTool,
+    CommsServedRootTool,
+    CommsSessionThreadTool,
+    CommsUserSendTool,
+)
 from agent_comms.ui_model.observation import (
     AwaitedRead,
-    TeamHudObserved,
-    TeamHudUnreadable,
-    ObserveTeamHud,
-    StopTeamHud,
+    LocalRouteObservation,
     NotificationsObserved,
     NotificationsReload,
     NotificationsUnreadable,
-    LocalRouteObservation,
-    ObservationSource,
     ObservationProcess,
+    ObservationSource,
     Observed,
     ObserveNotifications,
     ObserveSidebar,
+    ObserveTeamHud,
     ObserveThreads,
     ObserveViews,
     ReadNotifications,
@@ -83,16 +89,22 @@ from agent_comms.ui_model.observation import (
     SidebarPreparing,
     SidebarUnreadable,
     StopSidebar,
+    StopTeamHud,
+    TeamHudObserved,
+    TeamHudUnreadable,
     ThreadsObserved,
     ViewsRetired,
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.acp.transcript_reader import CoordinationTranscriptReader
+from toad.bus_selection import ProfileArgument
+from toad.comms_host import CommsHost
+from toad.comms_subscribers import NotificationSubscriber, SidebarSubscriber
+from toad.core.context_reads import ContextReads
 from toad.core.events import (
-    ThreadInterestUpdate,
-    TeamHudChanged,
-    TeamHudFailed,
     CoordinationObserved,
     CoreEventStream,
     ExternalTranscriptChanged,
@@ -100,21 +112,22 @@ from toad.core.events import (
     ObservedServiceChanged,
     OpenTabsChanged,
     SidebarPresented,
+    TeamHudChanged,
+    TeamHudFailed,
+    ThreadInterestUpdate,
     ThreadRowsChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
-from toad.notification_status import CheckedNotifications, NotificationStatus, UncheckedNotifications
+from toad.db import UNSCOPED_TABS, TabScope
+from toad.notification_status import (
+    CheckedNotifications,
+    NotificationStatus,
+    UncheckedNotifications,
+)
+from toad.referenced_core import ReferencedCore
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from agent_comms.transport.request import ToolRequest
-
-
-
-from agent_comms.display_references import ReferenceContext
-from agent_comms.registry.thread_identity import ThreadIncarnation
-from toad.acp.transcript_reader import CoordinationTranscriptReader
-from toad.comms_host import CommsHost
-from toad.comms_subscribers import NotificationSubscriber, SidebarSubscriber
 from toad.session_projection import SessionCollection, SessionProjection
+from toad.widgets.thread_comms_source import RelationshipReads
 
 T = TypeVar("T")
 

@@ -18,9 +18,10 @@ from tempfile import TemporaryDirectory
 from typing import ClassVar
 from urllib.request import urlopen
 
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.installer.native_build_inputs import Executable
-from agent_comms.runtime_preparation import RuntimePreparation
+from agent_comms.installer.runtime_preparation import RuntimePreparation
+from agent_comms.nominal.declared_family import DeclaredFamily
+
 from toad.platform import AndroidPlatform, LinuxPlatform, MacPlatform, Platform, host
 
 

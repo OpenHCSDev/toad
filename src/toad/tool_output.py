@@ -7,28 +7,34 @@ earlier dictionary or changes Read's filename without changing its text.
 
 from __future__ import annotations
 
-
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from difflib import unified_diff
 from functools import cached_property, partial
 from pathlib import PurePath
-import re
 from weakref import ref
 
-from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
-from agent_comms.tool_results import ToolDiff, ToolText
-from agent_comms.sent_message import PublishedSentMessage
-from agent_comms.transcript_sources import AssignedTranscriptSource
-from toad.message_rows import MessageRow
-from textual.await_complete import AwaitComplete
-from rich.text import Text
-
 from acp import schema
+from agent_comms.execution.transcript_sources import AssignedTranscriptSource
+from agent_comms.messaging.sent_message import PublishedSentMessage
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.tool_results import ToolDiff, ToolText
+from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from toad.line_blocks import Body, CodeBody, MarkdownBody, LineBlock, MutedRole, ToolOutputRole
-from toad.patch import parse_patch, parse_numbered_patch
+from rich.text import Text
+from textual.await_complete import AwaitComplete
+
+from toad.line_blocks import (
+    Body,
+    CodeBody,
+    LineBlock,
+    MarkdownBody,
+    MutedRole,
+    ToolOutputRole,
+)
+from toad.message_rows import MessageRow
+from toad.patch import parse_numbered_patch, parse_patch
 from toad.rich_preparation import RichTextBody
 
 
@@ -191,6 +197,7 @@ class SentMessageToolOutputPart(ToolOutputPart):
     def capture(cls, message, literal=None):
         if literal is None:
             import json
+
             from agent_comms.nominal.field_codec import FieldCodec
 
             literal = json.dumps(FieldCodec.encode(message))
@@ -293,6 +300,7 @@ class ToolContentDecoder(MroDispatch):
 
         if item.mime_type == SENT_MESSAGE_MIME:
             import json
+
             from agent_comms.nominal.field_codec import FieldCodec
             try:
                 message = FieldCodec.decode(SentTranscript, json.loads(item.text))

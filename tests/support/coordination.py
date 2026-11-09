@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from agent_comms.projects.checkouts import Checkout
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
 from agent_comms.execution.child_process import ProcessIdentity
-from agent_comms.context_reading import ContextReading, UnmeasuredContext
+from agent_comms.execution.context_reading import ContextReading, UnmeasuredContext
+from agent_comms.projects.checkouts import Checkout
 
 
 def coordination_fact(comms, thread, *, owner=ProcessIdentity(1, 1), model="fixture-model", thinking_level=None,

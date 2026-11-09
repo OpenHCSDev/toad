@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.active_route import resolve_comms_route
-
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from agent_comms.active_route import resolve_comms_route
 from agent_comms.comms import Comms
 from agent_comms.context_store import UNREAD_CONTEXT, ContextManifestPage
-from agent_comms.session_revision import NoSessionObservation
-from agent_comms.nominal.field_codec import TurnId
-from agent_comms.registry.thread_identity import (
-    RecordedThreadIncarnation,
-    TurnIdentity,
-)
-from agent_comms.registry.registration import Registration
+from agent_comms.execution.session_revision import NoSessionObservation
 from agent_comms.execution.turn_context import (
     ContextManifest,
     ContextSpan,
@@ -25,13 +17,30 @@ from agent_comms.execution.turn_context import (
     UnattributedProvenance,
     UserInputSegment,
 )
-from agent_comms.working_memory_labels import (
-    AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion,
+from agent_comms.nominal.field_codec import TurnId
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.registration import Registration
+from agent_comms.registry.thread_identity import (
+    RecordedThreadIncarnation,
+    TurnIdentity,
 )
-from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
 from agent_comms.registry.threads import NativeThread
-from toad.core.context_inspection import ContextInspection, ThreadInspectionSource
+from agent_comms.working_memory_labels import (
+    AnswerProbability,
+    HumanLabel,
+    JevClassifier,
+    ModelLabel,
+    QuestionVersion,
+)
+from agent_comms.working_memory_questions import (
+    CommitmentSpan,
+    KindQuestion,
+    OtherSpan,
+    RuleSpan,
+)
+
 from support.context_reads import LocalContextReads
+from toad.core.context_inspection import ContextInspection, ThreadInspectionSource
 
 
 @dataclass(frozen=True)

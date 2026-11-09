@@ -27,7 +27,7 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.context_reading import UnmeasuredContext
+from agent_comms.execution.context_reading import UnmeasuredContext
 from agent_comms.execution.native_output import AssistantOutput, ToolOutput
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.planning.goal_presentation import (

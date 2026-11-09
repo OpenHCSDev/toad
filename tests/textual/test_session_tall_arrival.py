@@ -14,11 +14,11 @@ import os
 from dataclasses import replace
 
 from agent_comms.execution.child_process import ProcessIdentity
-from agent_comms.fresh_private_session import create_fresh_private_session
+from agent_comms.execution.fresh_private_session import create_fresh_private_session
 from agent_comms.session_file import RegistrySessionLocation
-
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
+
 from toad.frame_presentation import ARRIVAL
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory

@@ -13,6 +13,7 @@ from agent_comms.acp_extension import (
     PromptRequest,
     QueueScope,
 )
+from agent_comms.messaging.sent_message import AssignedSourceIdentity
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, GoalId
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_history import RecordedGoalHistory
@@ -28,7 +29,6 @@ from agent_comms.registry.thread_presentation import (
     ExistingSessionLoadPlan,
     ThreadPresentation,
 )
-from agent_comms.sent_message import AssignedSourceIdentity
 from agent_comms.transport.runtime_request import AttachedRuntimeRequest
 from agent_comms.transport.runtime_requests import (
     DismissHistoricalInputsRuntimeRequest,

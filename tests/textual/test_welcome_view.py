@@ -1,27 +1,30 @@
 """Toad starts with no tab open and shows the welcome view until one is opened."""
 
-from agent_comms.projects.checkouts import Checkout
-from toad.launch_binding import AgentAttached
-from support.agents import peer
-from support.ui import TextualUi
+from dataclasses import replace
+
+from agent_comms.connector_store import HeldUiProfiles
 from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.messaging.read_basis import NamedViewer
-from agent_comms.registry.threads import NativeThread
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.thread_model import DeclaredModel
+from agent_comms.registry.threads import ExternalThread, NativeThread
+from agent_comms.transport.tailnet_buses import TailnetBuses
+from support.agents import peer
+from support.ui import TextualUi
+
+from toad.bus_selection import LocalBus
 from toad.constants import ALL_COMMS_TARGET
+from toad.launch_binding import AgentAttached
+from toad.screens.bus_choice import BusRows
 from toad.screens.welcome import (
-    WelcomeChannels, WelcomeEntries, WelcomeHeading, WelcomeScreen, WelcomeThreads,
+    WelcomeBuses,
+    WelcomeChannels,
+    WelcomeEntries,
+    WelcomeHeading,
+    WelcomeScreen,
+    WelcomeThreads,
 )
 from toad.widgets.sidebar_tree import CommsRow
-from agent_comms.registry.threads import ExternalThread
-from dataclasses import replace
-from agent_comms.registry.thread_model import DeclaredModel
-from agent_comms.connector_store import HeldUiProfiles
-from agent_comms.tailnet_buses import TailnetBuses
-from toad.bus_selection import LocalBus
-from toad.screens.bus_choice import BusRows
-from toad.screens.welcome import WelcomeBuses
-
-
 
 HINT = "n new session"
 

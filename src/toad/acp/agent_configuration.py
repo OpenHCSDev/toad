@@ -11,7 +11,7 @@ from acp.schema import (
     SessionConfigSelectGroup,
     SessionConfigSelectOption,
 )
-from agent_comms.acp_failure import RequestFailure
+from agent_comms.execution.acp_failure import RequestFailure
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 

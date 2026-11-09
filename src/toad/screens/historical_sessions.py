@@ -2,34 +2,32 @@
 
 from __future__ import annotations
 
-
-
 import asyncio
 from functools import partial
 from pathlib import Path
 
 from agent_comms.coordination.errors import ReadAgain
-from metaclass_registry.mro_dispatch import handles
-from agent_comms.notification_reads import RecordedNotificationRead
+from agent_comms.historical_views import HistoricalThread, HistorySourceKey
+from agent_comms.messaging.notification_reads import RecordedNotificationRead
+from agent_comms.transcripts import RecordedPageSource
 from agent_comms.transport.tools.reads import TranscriptPageRead
 from agent_comms.ui_model.observation import ReadTranscript
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from agent_comms.historical_views import HistoricalThread, HistorySourceKey
-from agent_comms.transcripts import RecordedPageSource
+from metaclass_registry.mro_dispatch import handles
 from textual import on, work
 from textual.app import ComposeResult
-from toad.screens.modal import DismissibleScreen, ModalPanel
 from textual.widgets import Select, Static
 
-from toad.screens.workspace import WorkspaceFrame
-from toad.widget_view import CenteredView
-from toad.project_path_owner import ProjectPathOwner
-from toad.widgets.history_anchor import HistoryWindow
-from toad.messages import HoldsNoQueue
-from toad.widgets.conversation import Contents
-from toad.transcript_state import LiveTranscript
-from toad.widgets.transcript_history import LineHistory
 from toad.comms_root import Observing
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.messages import HoldsNoQueue
+from toad.project_path_owner import ProjectPathOwner
+from toad.screens.modal import DismissibleScreen, ModalPanel
+from toad.screens.workspace import WorkspaceFrame
+from toad.transcript_state import LiveTranscript
+from toad.widget_view import CenteredView
+from toad.widgets.conversation import Contents
+from toad.widgets.history_anchor import HistoryWindow
+from toad.widgets.transcript_history import LineHistory
 
 
 class RecordedContents(Contents):
@@ -149,7 +147,10 @@ class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectP
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            from toad.transcript_preparation import SavedHistory, TranscriptPageRenderTask
+            from toad.transcript_preparation import (
+                SavedHistory,
+                TranscriptPageRenderTask,
+            )
             prepared = await TranscriptPageRenderTask(page).prepared(self.app.preparation)
             if generation != self._selection_generation or not self.is_attached:
                 return

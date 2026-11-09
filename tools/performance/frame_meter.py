@@ -18,6 +18,7 @@ import threading
 import time
 from contextlib import contextmanager
 
+
 class CaptureProcessMismatch(RuntimeError):
     """Remote capture entered a process other than the requested application."""
 
@@ -384,10 +385,11 @@ def _metadata_boundary():
     MroProjection selects one declared handler; unknown values are evidence of
     unsupported metadata, not permission to guess fields or kill the capture.
     """
-    from metaclass_registry.mro_dispatch import handles
     from agent_comms.messaging.message_page import MessagePage
-    from agent_comms.page_traversal import PageCursor
+    from agent_comms.messaging.page_traversal import PageCursor
     from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from metaclass_registry.mro_dispatch import handles
+
     from toad.core.projection import MroProjection
     from toad.transcript_preparation import PreparedTranscriptPage
     from toad.wire_history import WireCut, WirePage
@@ -577,8 +579,9 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
     events are flat records, not growing callback/stack dictionaries.
     """
     import asyncio
-    from textual import events
     from weakref import ref
+
+    from textual import events
 
     app = _running_app(expected_pid)
     app_reference = ref(app)
@@ -815,8 +818,8 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
     import cProfile
     import importlib
     import inspect
-    import pstats
     import io
+    import pstats
 
     if os.getpid() != expected_pid:
         raise RuntimeError("Unexpected capture process")
@@ -1038,6 +1041,7 @@ def remeasure(*, expected_pid, output, iterations=60):
     import contextvars
     import cProfile
     import gc
+
     from textual._context import active_app
     from textual.geometry import Size
 
@@ -1133,8 +1137,10 @@ def repaint(*, expected_pid, output, iterations=40):
     import contextvars
     import cProfile
     import gc
+
     from textual._compositor import ChopsUpdate, Compositor
     from textual._context import active_app
+
     from toad.widgets.history_anchor import HistoryWindow
 
     app = _running_app(expected_pid)
@@ -1420,6 +1426,7 @@ def trace_calls(*, expected_pid, output, targets, seconds=60, max_records=20000,
 def trace_reflows(*, expected_pid, output, seconds=60):
     """Each scoped reflow: duration, roots, widgets placed, shown and hidden."""
     import asyncio
+
     from textual._compositor import Compositor
 
     if os.getpid() != expected_pid:
@@ -1787,6 +1794,7 @@ def trace_abc_growth(*, expected_pid, output, seconds=40):
 def trace_posts(*, expected_pid, output, seconds=40):
     """Every message posted to a screen: when, its type and who posted it."""
     import asyncio
+
     from textual.message_pump import MessagePump
     from textual.screen import Screen
 
@@ -1819,6 +1827,7 @@ def trace_posts(*, expected_pid, output, seconds=40):
 def trace_rules(*, expected_pid, output, seconds=60):
     """Each committed style-rule change: when, on which node, which rules, and whether geometry."""
     import asyncio
+
     from textual.css.styles import Styles
 
     if os.getpid() != expected_pid:
@@ -1853,6 +1862,7 @@ def trace_exit(*, expected_pid, output):
     """Write who asks the app to exit, and when the process ends, as it happens."""
     import atexit
     import traceback
+
     from textual.app import App
 
     if os.getpid() != expected_pid:

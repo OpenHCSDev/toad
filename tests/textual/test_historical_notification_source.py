@@ -1,11 +1,11 @@
 """The mounted historical screen observes its selected archive and retires its subscription."""
 
-from agent_comms.projects.checkouts import Checkout
 from agent_comms.historical_views import HistoricalThread
-from agent_comms.notification_reads import RecordedNotificationRead
+from agent_comms.messaging.notification_reads import RecordedNotificationRead
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
-
 from support.roots import installed_wire
+
 from toad.screens.historical_sessions import HistoricalSessions, RecordedContents
 
 

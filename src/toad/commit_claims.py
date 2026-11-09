@@ -7,9 +7,16 @@ from dataclasses import dataclass, field
 from typing import ClassVar
 
 from agent_comms.acp_extension import InputStartedUpdate
-from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
+from agent_comms.messaging.sent_message import (
+    OutgoingMessageReference,
+    PublishedSentMessage,
+)
 from agent_comms.transcript_events import TranscriptCoverage, TranscriptEvent
-from agent_comms.transcripts import NativeCommittedPrefix, TranscriptCursor, TranscriptReadIdentity
+from agent_comms.transcripts import (
+    NativeCommittedPrefix,
+    TranscriptCursor,
+    TranscriptReadIdentity,
+)
 from textual.abstract_hooks import AbstractHooksMeta
 from textual.widget import Widget
 

@@ -4,18 +4,28 @@ Painting cases use controlled replies after retiring the shared observer's inter
 The live subscription/return journey is exercised in test_channel_updates_and_returns.
 """
 
-from toad.widgets.channels_sidebar import ChannelsSidebar
 from dataclasses import replace
 
-from agent_comms.frozen_recipient import FrozenRecipient
-from agent_comms.notification_progress import (
-    CompletedProgress, ConsumingProgress, IgnoredProgress, SendingProgress,
-    ShownToModelProgress, UnrecordedProgress,
-)
-from agent_comms.message_notification import MessageNotification
 from agent_comms.coordination.errors import ReloadRequired
-from agent_comms.ui_model.observation import NotificationsObserved, NotificationsReload, NotificationsUnreadable, UnreadableHistory
+from agent_comms.frozen_recipient import FrozenRecipient
+from agent_comms.message_notification import MessageNotification
+from agent_comms.notification_progress import (
+    CompletedProgress,
+    ConsumingProgress,
+    IgnoredProgress,
+    SendingProgress,
+    ShownToModelProgress,
+    UnrecordedProgress,
+)
+from agent_comms.ui_model.observation import (
+    NotificationsObserved,
+    NotificationsReload,
+    NotificationsUnreadable,
+    UnreadableHistory,
+)
+
 from toad.notification_status import CheckedNotifications
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.side_bar import SideBar, SideBarToggle
 
 PEERS = 44
@@ -233,8 +243,9 @@ async def test_a_reread_or_resubscribed_message_starts_from_its_known_answer(wor
     """Scrolling re-reads pages and changes the subscribed set. A message whose answer is
     known keeps showing it: a re-read fragment is built with it and a new subscription is
     answered from it at once, so "Checking" never replaces a known answer."""
-    from agent_comms.notification_reads import LiveNotificationRead
+    from agent_comms.messaging.notification_reads import LiveNotificationRead
     from agent_comms.ui_model.observation import ReadNotifications
+
     from toad.notification_status import UncheckedNotifications
 
     CommsChatView = await open_comms_channel(workspace)

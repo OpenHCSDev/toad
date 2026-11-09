@@ -1,17 +1,17 @@
 """Context inspection observes the saved session and its owner proof on a real wire."""
 
-from agent_comms.projects.checkouts import Checkout
 from dataclasses import replace
 
-from agent_comms.session_revision import SessionRevision
+from agent_comms.execution.session_revision import SessionRevision
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
+from support.context_reads import LocalContextReads
 
 from toad.core.context_inspection import ContextInspection, HoldingInspection
-from support.context_reads import LocalContextReads
 
 
 def declared_reader(workspace):
-    from agent_comms.fresh_private_session import create_fresh_private_session
+    from agent_comms.execution.fresh_private_session import create_fresh_private_session
     from agent_comms.execution.native_session_files import NativeSessionFiles
     from agent_comms.session_file import RegistrySessionLocation
 

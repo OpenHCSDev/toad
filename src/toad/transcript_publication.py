@@ -16,7 +16,6 @@ from agent_comms.acp_extension import (
     TranscriptDraftUpdate,
     TranscriptSnapshotUpdate,
 )
-from agent_comms.execution.child_process import join_retirement
 from agent_comms.coordination.errors import (
     CoordinationReadUnavailable,
     ReadAgain,
@@ -24,10 +23,10 @@ from agent_comms.coordination.errors import (
     StaleRevision,
     TranscriptChanged,
 )
+from agent_comms.execution.child_process import join_retirement
+from agent_comms.execution.transcript_sources import NoDraft
 from agent_comms.external_transcript import DraftRow
-from agent_comms.transcript_sources import NoDraft
-from metaclass_registry.mro_dispatch import MroDispatch, handles
-from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.messaging.sent_message import PublishedSentMessage
 from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.transcripts import (
@@ -46,16 +45,18 @@ from agent_comms.ui_model.observation import (
     Published,
     TranscriptPublicationState,
 )
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 from textual.worker import Worker, WorkerCancelled, get_current_worker
 
+from toad.commit_claims import CommitEvidence, NativeCommitEvidence
 from toad.core.events import CoreEventStream, ThreadRowsChanged
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.history_coverage import NO_COVERAGE, HistoryCoverage
+from toad.live_output import LiveOutput
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from toad.worker_group import WorkerGroup
 from toad.screens.session_view import SessionView
 from toad.session_scope import (
     NoTranscript,
@@ -64,17 +65,20 @@ from toad.session_scope import (
     TranscriptScope,
 )
 from toad.transcript_preparation import PreparedPageSource
-from toad.widgets.committed_presentation import block_claim, commit_plan, protected_blocks, retirement_candidates
-from toad.commit_claims import CommitEvidence, NativeCommitEvidence
+from toad.widgets.cli_draft import CliDraft
+from toad.widgets.committed_presentation import (
+    block_claim,
+    commit_plan,
+    protected_blocks,
+    retirement_candidates,
+)
 from toad.widgets.history_anchor import (
     HistoryWindow,
     TailPosition,
 )
 from toad.widgets.session_details import SessionDetails
-from toad.widgets.transcript_history import TranscriptHistory
-from toad.live_output import LiveOutput
-from toad.widgets.cli_draft import CliDraft
-from toad.widgets.transcript_history import CommittedHistory
+from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
+from toad.worker_group import WorkerGroup
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import (

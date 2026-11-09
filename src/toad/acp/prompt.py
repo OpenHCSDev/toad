@@ -3,9 +3,9 @@ from pathlib import Path
 
 from acp import schema
 from acp.helpers import ContentBlock
-from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.image_input import ImageInput
+from agent_comms.execution.image_input import ImageInput
 from agent_comms.image_inputs import prompt_images
+from agent_comms.nominal.field_codec import FieldCodec
 
 from toad.clipboard_image import attachment_directory
 from toad.file_kind import FileKind

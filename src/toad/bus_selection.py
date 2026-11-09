@@ -14,7 +14,7 @@ from agent_comms.connector_store import (
     HeldUiProfiles,
     OpenableProfile,
 )
-from agent_comms.tailnet_buses import PeerHoldsBus
+from agent_comms.transport.tailnet_buses import PeerHoldsBus
 from textual.abstract_hooks import AbstractHooksMeta
 
 

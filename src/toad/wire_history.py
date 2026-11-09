@@ -13,20 +13,12 @@ from dataclasses import dataclass, field, replace
 from functools import singledispatch
 from pathlib import Path
 from typing import ClassVar
-from toad.conversation_capabilities import ConversationSource
-from toad.read_marked_history import ReadMarkedHistory
-from toad.wire_conversation_view import WireConversationView
-from toad.session_scope import SessionScope
-from toad.target_commands import TargetContext
-from toad.widgets.transcript_lines import Lines
-from toad.comms_root import Observation
 
-from agent_comms.notification_reads import LiveNotificationRead
-from agent_comms.ui_model.observation import ReadNotifications
-from agent_comms.transport.request import CoreAccess
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
-from agent_comms.transport.tools.sidebar import CommsConversationRevisionTool, CommsLatestSequenceTool, CommsMarkPageReadTool
+from agent_comms.historical_views import (
+    ConversationObservation,
+    ConversationRevision,
+    HistorySource,
+)
 from agent_comms.messaging.message_page import (
     MessagePage,
     MessagePageRequest,
@@ -39,20 +31,40 @@ from agent_comms.messaging.messages import (
     NoHistorySource,
     NoticeRole,
 )
-from metaclass_registry.mro_dispatch import handles
-from agent_comms.page_traversal import (
+from agent_comms.messaging.notification_reads import LiveNotificationRead
+from agent_comms.messaging.page_traversal import (
     LiveCursor,
     NewerTraversal,
     OlderTraversal,
     PageCursor,
 )
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.transcript_events import IncomingTranscript
+from agent_comms.transport.request import CoreAccess
+from agent_comms.transport.tools.sidebar import (
+    CommsConversationRevisionTool,
+    CommsLatestSequenceTool,
+    CommsMarkPageReadTool,
+)
+from agent_comms.ui_model.observation import ReadNotifications
+from metaclass_registry.mro_dispatch import handles
 
-from toad.comms_root import CoordinationAccess
+from toad.bus_submission import (
+    BusDestination,
+    SubmissionOwner,
+    SubmissionStart,
+    SubmittedText,
+)
+from toad.comms_root import CoordinationAccess, Observation
+from toad.conversation_capabilities import ConversationSource
 from toad.conversation_kind import ConversationKind
 from toad.core.projection import MroProjection
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
+from toad.read_marked_history import ReadMarkedHistory
+from toad.session_scope import SessionScope
+from toad.submission_queue import BusQueueSource
+from toad.target_commands import TargetContext
 from toad.transcript_preparation import (
     PageRequest,
     PreparedTranscriptPage,
@@ -68,19 +80,13 @@ from toad.transcript_state import (
 )
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
-from toad.submission_queue import BusQueueSource
-from toad.bus_submission import (
-    BusDestination,
-    SubmissionOwner,
-    SubmissionStart,
-    SubmittedText,
-)
 from toad.widgets.transcript_fragments import (
     BusMessageFragment,
     MessageShown,
     TranscriptFragment,
 )
-
+from toad.widgets.transcript_lines import Lines
+from toad.wire_conversation_view import WireConversationView
 
 
 @dataclass(frozen=True)

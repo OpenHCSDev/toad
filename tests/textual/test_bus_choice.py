@@ -1,78 +1,47 @@
 """Textual-facing: picking a bus ends the app onto the launch that opens that bus."""
 
 import asyncio
-from pathlib import Path
-from agent_comms.connector_profile import BearerSecret, HttpsMcpEndpoint, UiConnectionProfile, UiCredential, UiGrantId
-from agent_comms.connector_store import OpenableProfile
-from agent_comms.launch_runtime import LaunchRuntime
-from agent_comms.nominal.field_codec import RootId
-from agent_comms.projects.checkouts import Checkout
-from yarl import URL
-from toad.app import ToadApp
-from toad.widget_actions import ApplicationAction
-from toad.application_outcome import Reconnected, Succeeded
-from toad.bus_selection import BusChoice, HeldBus, LocalBus
-from toad.comms_root import LocalCoreConnection
-from toad.launch_binding import NoAgent
-from toad.screens.bus_choice import BusChoices
-from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
-from toad.bus_selection import DiscoveredPeer
-from toad.screens.bus_choice import BusChoices
-from agent_comms.connector_store import HeldUiProfiles
-import time
-from agent_comms.connector_profile import (
-    BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
-)
-from agent_comms.connector_store import HeldUiProfiles
-from agent_comms.nominal.field_codec import RootId
-from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
-from agent_comms.tailnet_profiles import OfferedPeerProfile, PeerRefusedProfile, TailnetProfiles
-from toad.bus_selection import DiscoveredPeer, HeldBus
-from yarl import URL
-from agent_comms.tailnet_buses import TailnetBuses
-from toad.comms_root import RemoteCoreConnection
-from agent_comms.tailnet_buses import PeerHoldsBus, TailnetPeer
-from agent_comms.tailnet_profiles import PeerRefusedProfile, TailnetProfiles
-from toad.bus_selection import DiscoveredPeer
-from agent_comms.tailnet_buses import TailnetBuses
-import time
-from agent_comms.connector_profile import (
-    BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
-)
-from agent_comms.connector_store import HeldUiProfiles
-from agent_comms.nominal.field_codec import RootId
-from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
-from toad.bus_selection import DiscoveredPeer, HeldBus
-from toad.screens.bus_choice import BusChoices
-from yarl import URL
-from textual.css.scalar import Unit
-from toad.screens.bus_choice import BusPanel
 import threading
-from dataclasses import dataclass
-from textual.app import App
-from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses, TailnetPeer
-from agent_comms.transport.request import CoreAccess
-from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, TailnetBusesRead
-from toad.screens.bus_choice import BusChoices
 import time
-from agent_comms.connector_profile import (
-    BearerSecret, HttpsMcpEndpoint, ReachedRoute, UiConnectionProfile, UiCredential, UiGrantId,
+from dataclasses import dataclass
+from pathlib import Path
+
+from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
+from agent_comms.launch_runtime import LaunchRuntime
+from agent_comms.nominal.field_codec import FieldCodec, RootId
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.transport.connector_profile import (
+    BearerSecret,
+    HttpsMcpEndpoint,
+    ReachedRoute,
+    UiConnectionProfile,
+    UiCredential,
+    UiGrantId,
 )
-from agent_comms.connector_store import HeldUiProfiles
-from agent_comms.nominal.field_codec import RootId
-from agent_comms.tailnet_buses import NamedHost, TailnetBuses, TailnetPeer
-from agent_comms.tailnet_profiles import OfferedPeerProfile, TailnetProfiles
-from toad.screens.bus_choice import BusAddress, BusChoices, BusRows
+from agent_comms.transport.request import CoreAccess
+from agent_comms.transport.tailnet_buses import (
+    NamedHost,
+    PeerHoldsBus,
+    TailnetBuses,
+    TailnetPeer,
+)
+from agent_comms.transport.tailnet_profiles import (
+    OfferedPeerProfile,
+    PeerRefusedProfile,
+    TailnetProfiles,
+)
+from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, TailnetBusesRead
+from textual.app import App
+from textual.css.scalar import Unit
 from yarl import URL
-from agent_comms.connector_store import HeldUiProfiles
-from agent_comms.tailnet_buses import TailnetBuses
-from toad.bus_selection import HeldBus, LocalBus
-from toad.screens.bus_choice import BusChoices, BusRows
 
-
-
-
+from toad.app import ToadApp
+from toad.application_outcome import Reconnected, Succeeded
+from toad.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
+from toad.comms_root import LocalCoreConnection, RemoteCoreConnection
+from toad.launch_binding import NoAgent
+from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows
+from toad.widget_actions import ApplicationAction
 
 
 def openable(path: Path) -> OpenableProfile:

@@ -1,16 +1,15 @@
 """Command declarations own completion, argument parsing and execution."""
 
 from __future__ import annotations
-from toad.core import session_requests
 
+import shlex
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar, Self
-import shlex
 from pathlib import Path
+from typing import TYPE_CHECKING, ClassVar, Self
 
-from agent_comms.command import Command
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.planning.command import Command
 from agent_comms.planning.goal_actions import (
     ActiveGoalAction,
     ClearGoalAction,
@@ -20,11 +19,13 @@ from agent_comms.planning.goal_actions import (
     SetGoalAction,
 )
 from textual.content import Content
+
+from toad.core import session_requests
 from toad.screens.team import TeamPage
 
 if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
     from toad.target_commands import TargetContext
+    from toad.widgets.conversation import Conversation
 
 
 class LocalCommand:

@@ -1,18 +1,18 @@
 """Textual-facing: closing Toad closes its sessions first and the Comms observation process after them,
 so a closing view's last interest reaches a live observer and the app shuts down with no trace."""
 
-from dataclasses import replace
 import json
 import os
+from dataclasses import replace
 
 import pytest
 from agent_comms.execution.child_process import ProcessIdentity
+from agent_comms.execution.fresh_private_session import create_fresh_private_session
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.fresh_private_session import create_fresh_private_session
-
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.ui import saved_tab
+
 from toad.screens.main import MainScreen
 from toad.widgets.transcript_history import TranscriptHistory
 

@@ -1,8 +1,6 @@
 """ACP session handshake, durable metadata and reconnection."""
 from __future__ import annotations
 
-from agent_comms.projects.checkouts import Checkout
-
 import asyncio
 import os
 from collections.abc import Callable
@@ -12,19 +10,21 @@ from typing import ClassVar
 from acp import schema
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import HistoryOnlyQueueProjection
-from agent_comms.acp_failure import ACPFailure, RequestFailure
-from agent_comms.execution.child_process import join_retirement
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.errors import RouteChangedError
+from agent_comms.execution.acp_failure import ACPFailure, RequestFailure
+from agent_comms.execution.child_process import join_retirement
 from agent_comms.input_attempt import NotSentInput
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.owner_protocol import IncompatibleOwner
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_presentation import (
     EnsuringSessionLoadPlan,
     ExistingSessionLoadPlan,
     FailedSessionLoadPlan,
+    SessionDisconnected,
     SessionLoadPlan,
 )
-from agent_comms.registry.thread_presentation import SessionDisconnected
 
 import toad
 from toad import constants
@@ -37,7 +37,6 @@ from toad.core.events import (
     UnsupportedResumeAgentFail,
 )
 from toad.db import DB, SessionMeta
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 
 PROTOCOL_VERSION = 1
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-
 from collections.abc import Awaitable, Callable, Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -11,7 +10,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.coordination.errors import TranscriptChanged
-from agent_comms.sent_message import OutgoingMessageReference
+from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.transcripts import (
     TranscriptCursor,
@@ -32,9 +31,8 @@ from toad.commit_claims import (
 )
 from toad.core.projection import MroProjection
 from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
-from toad.widgets.history_anchor import LatestPosition
+from toad.widgets.history_anchor import HistoryWindow, LatestPosition
 from toad.widgets.presentation_window import protected_presentations
-from toad.widgets.history_anchor import HistoryWindow
 
 if TYPE_CHECKING:
     from toad.transcript_preparation import PreparedTranscriptPage

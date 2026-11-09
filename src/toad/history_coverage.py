@@ -7,8 +7,8 @@ from collections.abc import Iterator
 from typing import ClassVar
 
 from agent_comms.acp_extension import InputStartedUpdate
+from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.sent_message import OutgoingMessageReference
 from agent_comms.transcript_events import TranscriptCoverage, TranscriptEvent
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.abstract_hooks import AbstractHooksMeta

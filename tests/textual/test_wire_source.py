@@ -3,25 +3,31 @@
 import os
 from pathlib import Path
 
-from agent_comms.core_access import LocalCoreAccess
-from agent_comms.projects.checkouts import Checkout
+from agent_comms.execution.child_process import ProcessIdentity
+from agent_comms.historical_views import UnobservedConversation
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.messaging.channel_targets import ChannelTarget, ThreadTarget
-from agent_comms.execution.child_process import ProcessIdentity
+from agent_comms.messaging.page_traversal import LiveCursor
 from agent_comms.nominal.field_codec import TurnId
-from support.roots import installed_wire
-from support.agents import AppAgents
-from agent_comms.historical_views import UnobservedConversation
-from agent_comms.page_traversal import LiveCursor
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
+from agent_comms.transport.core_access import LocalCoreAccess
+from support.agents import AppAgents
+from support.roots import installed_wire
 
 from toad.conversation_kind import ChannelConversation
-from toad.transcript_preparation import PageRequest, Unchanged
-from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.message_rows import IrcMessageStyle
+from toad.transcript_preparation import PageRequest, Unchanged
+from toad.widgets.presentation_window import NEWER_END, OLDER_END
 from toad.wire_history import (
-    AfterSequence, GrowingWireObservation, MessageFragment, NothingRead,
-    PreparedWirePage, ReplacedWireObservation, WirePage, WireSource,
+    AfterSequence,
+    GrowingWireObservation,
+    MessageFragment,
+    NothingRead,
+    PreparedWirePage,
+    ReplacedWireObservation,
+    WirePage,
+    WireSource,
 )
 
 
