@@ -7,7 +7,7 @@ import pytest
 from textual.widgets import Button, Input, Select
 from agent_comms.exporting import EverythingScope, FullLimit, JsonlFormat, TextFormat
 from agent_comms.transport.progress import WireExportCancelled, WireExportProgress
-from agent_comms.messages import InfoKind, Message, PublicRecord
+from agent_comms.messaging.messages import InfoKind, Message, PublicRecord
 from support.workspace import Workspace
 
 from agent_comms.harness_install import OpenCodeHarness

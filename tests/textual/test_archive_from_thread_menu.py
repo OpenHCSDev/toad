@@ -9,8 +9,8 @@ from importlib import import_module
 from agent_comms import cli_verbs
 from agent_comms.execution.native_entries import SessionEntry
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.channel_targets import CommandTarget
-from agent_comms.read_basis import NamedViewer
+from agent_comms.messaging.channel_targets import CommandTarget
+from agent_comms.messaging.read_basis import NamedViewer
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.cli_command import CliCommand
 from agent_comms.cli_verbs.archive import ArchiveCliCommand

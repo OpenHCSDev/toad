@@ -117,7 +117,7 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     TranscriptLinesBatchRenderTask,
 )
-from agent_comms.message_reference import MessageReference
+from agent_comms.messaging.message_reference import MessageReference
 from toad.transcript_filter import Filtered
 from textual.events import Mount
 from textual.events import Hide

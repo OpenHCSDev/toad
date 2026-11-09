@@ -6,7 +6,7 @@ from textual.screen import Screen
 from textual.widgets import Input
 
 from agent_comms.frozen_recipient import FrozenRecipient
-from agent_comms.messages import InfoKind, Message
+from agent_comms.messaging.messages import InfoKind, Message
 from agent_comms.notification_progress import HarnessConsumedProgress
 from agent_comms.message_notification import MessageNotification
 from agent_comms.transcripts import NotifiedThreadPresentation

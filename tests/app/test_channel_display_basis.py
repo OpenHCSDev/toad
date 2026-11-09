@@ -1,7 +1,7 @@
 """A channel marks read exactly the messages whose text it showed, never the history it left out."""
 import pytest
 
-from agent_comms.read_basis import ChannelConversation, NamedViewer
+from agent_comms.messaging.read_basis import ChannelConversation, NamedViewer
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.unread import ExactUnread
 from support.painted_app import PaintedApp

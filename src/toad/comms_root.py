@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
-from agent_comms.message_reference import MessageReference
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.execution.child_process import (
     HelperStart,
     SpawnedHelper,
@@ -40,7 +40,7 @@ from agent_comms.registry.threads import Thread
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses
 from agent_comms.remote_core_process import ProcessRemoteCoreAccess
-from agent_comms.channel_targets import NamedTarget
+from agent_comms.messaging.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
 from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread

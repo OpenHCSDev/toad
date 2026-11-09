@@ -24,8 +24,14 @@ from agent_comms.messaging.message_page import (
     MessagePage,
     MessagePageRequest,
 )
-from agent_comms.message_reference import MessageReference
-from agent_comms.messages import ConversationRole, Membership, Message, NoHistorySource, NoticeRole
+from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.messaging.messages import (
+    ConversationRole,
+    Membership,
+    Message,
+    NoHistorySource,
+    NoticeRole,
+)
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.page_traversal import (
     LiveCursor,
