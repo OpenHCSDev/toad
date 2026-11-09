@@ -63,9 +63,9 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         for index, span in enumerate(spans))
     # Navigation only: the manifest is captured through the context store the
     # inspection reads, with no wire message, native owner or saved session.
-    manifest = ContextManifest(owner.incarnation,
-        RecordedContextTurn(TurnId.mint(), TurnIdentity(owner.incarnation, 1)),
-        (observed,), "authored-navigation")
+    manifest = ContextManifest(thread=owner.incarnation,
+        turn=RecordedContextTurn(TurnId.mint(), TurnIdentity(owner.incarnation, 1)),
+        segments=(observed,), counter="authored-navigation")
     comms = Comms(resolve_comms_route(directory / "unused-wire"))
     comms.registry.declare(owner)
     entry = comms.registry.entry(owner.name).entry
