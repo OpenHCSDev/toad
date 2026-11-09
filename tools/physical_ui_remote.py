@@ -28,7 +28,10 @@ if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent))
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.child_process import ChildOutcome, ProcessIdentity
+from agent_comms.execution.child_process import (
+    ChildOutcome,
+    ProcessIdentity,
+)
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.installer.interpreter_operation import RuntimeProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution, ToadPackage

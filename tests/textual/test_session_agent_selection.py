@@ -3,7 +3,7 @@ import os
 
 import pytest
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.ui_model.delivery import DeliveryView
 
 from support.coordination import coordination_fact

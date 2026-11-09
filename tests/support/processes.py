@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 
 import psutil
-from agent_comms.child_process import STOP_GRACE_SECONDS
+from agent_comms.execution.child_process import STOP_GRACE_SECONDS
 
 from support.roots import ATTEMPT
 

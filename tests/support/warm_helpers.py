@@ -1,7 +1,7 @@
 """Every helper an app test starts (its route observer, its render workers) forked warm from
 the test template instead of spawned cold.
 
-The application spawns each helper (HelperStart, agent_comms.child_process): a fresh
+The application spawns each helper (HelperStart, agent_comms.execution.child_process): a fresh
 interpreter that imports the observer's or the renderer's whole module graph again, about
 two seconds a process. The template has already imported all of it, so beside each test it
 forks a HelperSpawner that has become that test's process. A helper keeps multiprocessing's
@@ -29,7 +29,7 @@ import socket
 import struct
 from typing import ClassVar
 
-from agent_comms.child_process import HelperStart
+from agent_comms.execution.child_process import HelperStart
 from toad.comms_root import LocalCoreConnection
 
 EXIT = struct.Struct("i")

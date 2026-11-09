@@ -23,7 +23,11 @@ from typing import TYPE_CHECKING, ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.message_reference import MessageReference
-from agent_comms.child_process import HelperStart, SpawnedHelper, join_retirement
+from agent_comms.execution.child_process import (
+    HelperStart,
+    SpawnedHelper,
+    join_retirement,
+)
 from agent_comms.comms import Comms
 from agent_comms.active_route import CommsRoute
 from agent_comms.core_access import LocalCoreAccess

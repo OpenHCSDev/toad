@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Mapping
 from weakref import ref
 
 from acp import schema as protocol
-from agent_comms.child_process import (
+from agent_comms.execution.child_process import (
     AttachedChild,
     ChildOutcome,
     ExitedOutcome,

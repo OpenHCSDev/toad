@@ -13,7 +13,7 @@ from typing import Optional
 from acp import Client, ClientSideConnection, schema
 from acp.connection import StreamDirection, StreamEvent
 from acp.exceptions import RequestError
-from agent_comms.child_process import (
+from agent_comms.execution.child_process import (
     AttachedChild,
     StreamingChildStdio,
     join_retirement,
