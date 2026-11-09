@@ -5,7 +5,6 @@ from __future__ import annotations
 from agent_comms.acp_extension import (
     IdentifiedInputStarted,
     InputStartedUpdate,
-    LiveAttachmentScope,
     NoQueueScope,
     PendingQueueProjection,
     QueueChangedUpdate,
@@ -15,6 +14,7 @@ from agent_comms.acp_extension import (
 from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.registry.thread_identity import ClaimedIdentity
 
+from agent_comms.transport.attachment_scope import LiveAttachmentScope
 from toad.acp.projection_attachment import ProjectionAttachment
 
 
