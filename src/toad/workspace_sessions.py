@@ -62,9 +62,6 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     @abstractmethod
     def focus_sidebar_return(self) -> None: ...
 
-    @abstractmethod
-    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
-
     def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
         return VisiblePublication(None)
 
@@ -99,9 +96,6 @@ class DetachedWorkspaceSource(WorkspaceSource):
 
     def focus_sidebar_return(self) -> None:
         """A detached workspace has no return target."""
-
-    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
-        return NoTarget()
 
     def navigation_owner(self, sessions: WorkspaceSessions) -> NavigationOwner:
         return NoNavigationOwner(sessions.app)
@@ -145,13 +139,6 @@ class BoundWorkspaceSource(WorkspaceSource):
 
     def focus_sidebar_return(self) -> None:
         self.view.focus_sidebar_return()
-
-    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
-        return (
-            sessions.target_for_mode(self.identity, root)
-            if sessions.owns(self.view)
-            else NoTarget()
-        )
 
     def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
         return VisiblePublication(
