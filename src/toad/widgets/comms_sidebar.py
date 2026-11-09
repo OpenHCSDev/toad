@@ -15,9 +15,7 @@ from __future__ import annotations
 
 import shlex
 from agent_comms.execution.native_arguments import ConfiguredBinary, InheritedArguments
-from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.ui_model.sidebar import ChannelRowModel
 from toad.widget_actions import ActivationKeys
@@ -29,28 +27,36 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from ui_theme.effects import NAME_WAVE, NEW_MESSAGE
 from textual.widgets import Static
-from textual._activation import ContextActivation, PrimaryActivation
 
 
 from metaclass_registry.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent, ThreadIdentityChanged
-from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
-from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import KnownThreadTarget, NavigationTarget, ThreadTarget, channel_target
+from toad.navigation_target import (
+    KnownThreadTarget,
+    ThreadTarget,
+    channel_target,
+)
 from toad.session_tracker import SidebarSelection
-from toad.widgets.selection import HoverSelection, ViewLabel
+from toad.widgets.selection import HoverSelection
 from toad.application_actions import NewThreadAction
-from toad.widget_actions import HiddenActions, OpenSelectedAction, OpensSelected
+from toad.widget_actions import OpensSelected
 from toad.widgets.session_sort import ChannelListSort, CommsSortChoice, ThreadSortForm
-from toad.widgets.sidebar_tree import ActiveSegment, DetailedRow, GroupHeaderLine, HeaderSegment, SelectsTargets, SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
-from toad.tone_paint import AlternatingTone
+from toad.widgets.sidebar_tree import (
+    ActiveSegment,
+    DetailedRow,
+    GroupHeaderLine,
+    HeaderSegment,
+    SelectsTargets,
+    SidebarGroup,
+    SearchFollower,
+    TargetTreeMember,
+)
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.app_node import ToadNode
 from textual import on
-from textual.events import Click
 from toad.native_style import (
     AutoHeight,
     FillWidth,
@@ -61,8 +67,13 @@ from toad.native_style import (
 )
 from textual.events import Mount
 
-if TYPE_CHECKING:
-    from agent_comms.comms import Comms
+from toad.sidebar_contracts import ChannelGroupRows, GroupedSidebar
+from toad.sidebar_navigation import SidebarNavigation
+
+from toad.widgets.sidebar_tree import CommsRow, ListedRow
+from toad.sidebar_changes import SidebarChange
+from toad.sidebar_model_view import SidebarModelView
+from toad.sidebar_models import UnpaintedChannel
 
 
 class ChannelUnreadSegment(HeaderSegment):
@@ -105,7 +116,7 @@ class ChannelSortChoice(CommsSortChoice[ThreadSort]):
         return CommsSortChannelTool(name=self.row.target_name, order=order)
 
 
-class ChannelGroup(SidebarGroup["ThreadRow"]):
+class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
     trailing_segments = (ChannelUnreadSegment(), CHANNEL_SORT)
@@ -182,89 +193,6 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
                  if (view := self.rows.get(name)) is not None and name in threads]
         for name, view in shown:
             self.show_member(name, view)
-
-
-class CommsRow(
-    TargetTreeMember, OpensSelected, PrimaryActivation, ContextActivation, CoreEventReceiver, HoverSelection, ViewLabel,
-    scopes={HiddenActions: (OpenSelectedAction,)},
-):
-    """One interactive row: a channel or a thread."""
-
-    text_fades = (NEW_MESSAGE,)
-
-    @property
-    def target_name(self) -> str:
-        return self.target.name
-
-    def show_menu(self, sidebar: TargetTree, offset: Offset) -> None:
-        sidebar.show_row_menu(self, offset)
-
-    def context_activation(self, offset: Offset) -> None:
-        self.show_menu(self.navigation_tree, offset)
-
-
-    can_focus = True
-
-    def focus_on_click(self) -> bool:
-        # Pointer activation navigates; keyboard traversal still owns row focus.
-        # Avoid restyling/repainting the departing transcript before Click runs.
-        return False
-
-    def __init__(self, target: NavigationTarget, label: str) -> None:
-        super().__init__(Content(label))
-        self.target = target
-
-    @on(Mount)
-    def on_mount(self) -> None:
-        self.run_effect(NEW_MESSAGE)
-
-    def is_navigation_row(self) -> bool:
-        return self.is_attached and not self.is_leaving
-
-    @property
-    def current(self) -> bool:
-        return self.is_navigation_row() and self.navigation_tree.row_current(self)
-
-    @property
-    def selected(self) -> bool:
-        return self.is_navigation_row() and self.navigation_tree.row_selected(self)
-
-    @property
-    def paint_highlighted(self) -> bool:
-        return self.selected or super().paint_highlighted
-
-    def set_label(self, label: str) -> None:
-        self.update(Content(label))
-
-    def expand_members(self, expanded: bool) -> None:
-        """A member row lists nobody; a group's header line overrides this."""
-
-    @property
-    def primary_activation(self):
-        return self.open_selected
-
-    def open_selected(self) -> None:
-        self.navigation_tree.remember_row(self)
-        self.app.run_worker(
-            partial(self.app.workspace_sessions.navigation_owner().open_sidebar_target, self.target),
-            group="sidebar-open",
-        )
-
-    @on(Click)
-    def on_click(self, event) -> None:
-        if event.button == 3:
-            event.stop()
-            self.context_activation(event.screen_offset)
-            return
-        if event.ctrl or event.shift:
-            event.stop()
-            self.navigation_tree.pointer_select(self, control=event.ctrl, shift=event.shift)
-            return
-        self.open_selected()
-
-
-class ListedRow(CommsRow, AlternatingTone):
-    """A row its list orders: it alternates on its family's tone pair."""
 
 
 class ChannelRow(ListedRow):
@@ -432,6 +360,7 @@ class CommsSidebar(
     SidebarVisibilityObserver,
     SearchFollower,
     SelectsTargets,
+    GroupedSidebar,
     OpensSelected,
 ):
     """The view of the observed service's sidebar model: channel groups and their threads.
@@ -448,7 +377,6 @@ class CommsSidebar(
     selected: reactive[str] = reactive("", init=False)
     def __init__(self, *, observe: bool = True, **kwargs):
         super().__init__(**kwargs)
-        from toad.sidebar_navigation import SidebarNavigation
         self.can_focus = True
         self.navigation = SidebarNavigation(self)
         self.enabled = observe

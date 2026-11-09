@@ -31,12 +31,14 @@ from toad.screens.bus_choice import BusRows, ListsBuses
 from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
 from toad.thread_identity import ThreadIdentity
-from toad.widgets.comms_sidebar import ChannelRow, CommsRow, ListedRow, NewSessionButton, ThreadStatusRow
+from toad.widgets.comms_sidebar import (
+    ChannelRow,
+    NewSessionButton,
+    ThreadStatusRow,
+)
 from toad.widgets.sidebar_tree import (
     RowReconciliation,
-    SidebarChange,
     SidebarGroup,
-    SidebarModelView,
     TargetTree,
     GroupTitle,
 )
@@ -52,6 +54,10 @@ from toad.native_style import (
 )
 from textual.events import Mount
 from textual import on
+
+from toad.sidebar_changes import SidebarChange
+from toad.sidebar_model_view import SidebarModelView
+from toad.widgets.sidebar_tree import CommsRow, ListedRow
 
 
 class WelcomeTitle(SplashText, MutedText, NoWrap):

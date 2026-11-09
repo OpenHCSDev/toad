@@ -18,7 +18,6 @@ from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
-from toad.comms_root import BusChoice, DiscoveredPeer, PickerRow
 from agent_comms.tailnet_buses import NamedHost, PeerBus
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
 from toad.native_style import AutoHeight, FillWidth
@@ -26,6 +25,8 @@ from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from textual.widget import Widget
 from toad.widget_actions import PriorityActions
 from textual.events import Mount
+
+from toad.bus_selection import BusChoice, DiscoveredPeer, PickerRow
 
 
 class BusPanel(SurfacePanel):

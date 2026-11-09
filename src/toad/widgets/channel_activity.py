@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agent_comms.display_references import (
+    ReferenceContext,
     RetiredThreadReference,
     ThreadDisplayReference,
     ThreadReferenceReader,
@@ -15,8 +16,12 @@ from textual.content import Content
 
 from toad.comms_root import CoordinationAccess
 from toad.status_thread import NoStatusThread, StatusThread
+from toad.sidebar_contracts import ActivityRows
 from toad.widgets.session_details import ConversationSessionDetails
-from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
+
+from toad.keyed_rows import KeyedRows
+from toad.sidebar_changes import SidebarChange
+from toad.sidebar_model_view import SidebarModelView
 
 
 @dataclass(frozen=True)
@@ -33,7 +38,7 @@ class PeerStatus(ThreadReferenceReader[StatusThread]):
         return NoStatusThread()
 
 
-class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGroup):
+class ChannelActivity(SidebarModelView, ActivityRows, KeyedRows[ThreadIncarnation], VerticalGroup):
     DEFAULT_CSS = """
     ChannelActivity {
         height: auto;
@@ -82,6 +87,9 @@ class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGr
     def member_keys(self):
         return tuple(row.incarnation for row in self.members)
 
+    def channel_name(self, references: ReferenceContext) -> str:
+        return self.view.conversation.destination(references).name
+
     def accepts_observation(self) -> bool:
         return self.view.is_current_session and self.model_state.serves(self.view._bound_root)
 
@@ -95,8 +103,7 @@ class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGr
         return ConversationSessionDetails(peer)
 
     def update_row(self, peer: ThreadIncarnation, row) -> None:
-        references = self.model_state.shown.observation.require_snapshot().references
-        row.bind(references.thread(peer).read(
+        row.bind(self.references.thread(peer).read(
             PeerStatus(self.model_state.root(), self.app.coordination_access)))
 
     def changed_keys(self, names: frozenset[str]) -> frozenset[ThreadIncarnation]:

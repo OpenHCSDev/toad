@@ -38,6 +38,7 @@ from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 from toad.navigation_context import NavigationContext
+from toad.command_target_scope import CommandTargetScope
 from toad.navigation_target import (
     DirectTarget,
     FeedTarget,
@@ -304,7 +305,7 @@ class GoHomeAction(MainAction):
         await context.app.select_session(context.app.tab_order.home)
 
 
-class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
+class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
                  SidebarSessionView[SessionThreadSidebar], ToadNode,
                  actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True

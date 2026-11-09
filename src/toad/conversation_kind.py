@@ -42,10 +42,12 @@ from toad.referenced_core import ReferencedCore
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.session_details import ConversationSessionDetails
-from toad.widgets.sidebar_tree import UnpaintedChannel
 from toad.comms_root import CoordinationAccess
 from toad.session_tracker import CommsViewKey
 from toad.session_tracker import ChannelViewAddress
+
+from toad.sidebar_models import UnpaintedChannel
+
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation

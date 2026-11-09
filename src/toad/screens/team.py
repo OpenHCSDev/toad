@@ -56,10 +56,11 @@ from toad.widgets.declared_disclosure import DeclaredDisclosure
 from toad.widgets.declared_table import (
     DeclaredTable, EmptyTableSelection, SelectedTableRecord, SelectionView, TableSelection,
 )
-from toad.widgets.sidebar_tree import KeyedRows
 from toad.worker_group import WorkerGroup
 from textual.events import Mount
 from textual.events import Unmount
+
+from toad.keyed_rows import KeyedRows
 
 
 class TeamDetailRead(WorkerGroup):

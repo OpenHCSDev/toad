@@ -33,6 +33,7 @@ from toad.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
+from toad.transcript_requests import TranscriptRequests
 from agent_comms.nominal.field_codec import AcpSessionId
 
 
@@ -78,7 +79,7 @@ class MailboxDestination(BusDestination):
         await self.sources.mailbox_sent(self.view, sent)
 
 
-class TranscriptScope(ABC):
+class TranscriptScope(TranscriptRequests):
     """A transcript address owns its reads, observations and absent behavior."""
 
     @property
@@ -104,23 +105,6 @@ class TranscriptScope(ABC):
         access: CoordinationAccess,
         resume: Callable[[ThreadRowsChanged], object],
     ) -> ResourceRelease: ...
-
-    @abstractmethod
-    def snapshot_request(
-        self,
-        *,
-        position: PagePosition = LatestPage(),
-        limit: PageLimit = AtFrontier(),
-        page_source: PageSource = LivePageSource(),
-    ) -> ReadTranscript: ...
-
-    @abstractmethod
-    def update_request(
-        self,
-        previous: TranscriptPublicationState,
-        *,
-        position: PagePosition = LatestPage(),
-    ) -> ReadTranscriptUpdate: ...
 
     def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
         raise RouteChangedError("The queue has no original transcript source")

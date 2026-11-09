@@ -5,29 +5,26 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import Counter
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from contextlib import contextmanager
-from dataclasses import dataclass
-from functools import wraps
+from functools import (
+    partial,
+    wraps,
+)
 from itertools import islice
 from time import perf_counter_ns
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
+from textual.events import (
+    Click,
+    Mount,
+)
+from textual.layout import WidgetPlacement
+from toad.sidebar_contracts import (
+    MemberRows,
+    TargetRows,
+)
 
-if TYPE_CHECKING:
-    from textual.events import Click
-    from textual.layout import WidgetPlacement
-
-    from toad.comms_root import FailedObservation, Observing
-    from toad.navigation_target import NavigationTarget
-    from toad.widgets.channel_activity import ChannelActivity
-    from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ListedRow
-    from toad.widgets.thread_comms import RelationshipRows
-
-from agent_comms.display_order import ThreadSort
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.ui_model.changes import Changes
-from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
-from agent_comms.ui_model.unread import UnobservedUnread
 from toad.widget_actions import Activates
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
@@ -35,7 +32,11 @@ from textual.navigation import CursorCommand, MovesHorizontalCursor
 from toad.widget_actions import HiddenActions, StepsVerticalCursor, VisibleActions
 from textual.containers import Vertical, VerticalGroup
 from textual import events
-from textual._activation import CallbackTarget
+from textual._activation import (
+    CallbackTarget,
+    ContextActivation,
+    PrimaryActivation,
+)
 from rich.style import Style
 from textual.content import Content
 from textual.strip import Strip
@@ -46,39 +47,19 @@ from textual.widget import Widget
 from textual.worker import Worker
 from textual.widgets import Static
 
-from toad.core.events import (
-    CoordinationObserved,
-    SessionSelected,
-    ThreadRowStateChanged,
-)
-from toad.app_node import ToadNode
-from toad.core_event_carrier import CoreEventReceiver
+from toad.core.events import SessionSelected
 from toad.native_style import EllipsisOverflow, NoWrap, PointerCursor, TwoRows
 from toad.no_worker import NoWorker
 from toad.widgets.side_bar import SideBar
 from textual import on
+from ui_theme.effects import NEW_MESSAGE
 
-
-class UnpaintedChannel(ChannelRowModel):
-    """An unobserved channel has no painted fields or known members.
-
-    Its counts are not zero, they are unknown, so it paints nothing rather than
-    claiming 0/0 agents on the row's second line.
-    """
-
-    def __init__(self, name: str) -> None:
-        super().__init__(
-            name, False, 0, 0, (), UnobservedUnread(), 0, (), frozenset(), ThreadSort
-        )
-
-    def label(self) -> str:
-        return ""
-
-    def summary(self) -> str:
-        return ""
-
-    def tooltip(self) -> str:
-        return ""
+from toad.widgets.selection import HoverSelection, ViewLabel
+from toad.core_event_carrier import CoreEventReceiver
+from toad.keyed_rows import KeyedRows
+from toad.navigation_target import NavigationTarget
+from toad.tone_paint import AlternatingTone
+from toad.widget_actions import OpenSelectedAction, OpensSelected
 
 
 class TargetTreeMember(HiddenActions):
@@ -332,76 +313,7 @@ class RowReconciliation:
         return row
 
 
-class KeyedRows[KeyT]:
-    """Retain native member widgets by model key; the container owns their order."""
-
-    def keep_row(self, key: KeyT) -> bool:
-        return False
-
-    def should_mount(self, key: KeyT) -> bool:
-        return True
-
-    @abstractmethod
-    def create_row(self, key: KeyT):
-        ...
-
-    def update_row(self, key: KeyT, row) -> None:
-        pass
-
-    def retire_row(self, row: Widget) -> None:
-        row.remove()
-
-    def rows_changed(self) -> None:
-        pass
-
-    def place_row(self, row, index: int) -> None:
-        """Publish list-position facts only for a new or moved row."""
-
-    def reconcile_keys(self, keys: Iterable[KeyT], *, changed: frozenset[KeyT]):
-        rows = self.rows
-        retained = set(rows.values())
-        previous = {
-            row: index
-            for index, row in enumerate(
-                child for child in self.member_container.children if child in retained
-            )
-        }
-        wanted = set(keys)
-        retired = [key for key in rows if key not in wanted and not self.keep_row(key)]
-        for key in retired:
-            self.retire_row(rows.pop(key))
-        mounted = []
-        for key in keys:
-            if key not in rows:
-                if not self.should_mount(key):
-                    continue
-                current = self.create_row(key)
-                rows[key] = current
-                self.update_row(key, current)
-                if not current.is_attached:
-                    self.member_container.mount(current)
-                mounted.append(current)
-            elif key in changed or not rows[key].is_attached:
-                self.update_row(key, rows[key])
-        ordered = tuple(rows[key] for key in keys if key in rows)
-        positions = {row: index for index, row in enumerate(ordered)}
-        for row, index in positions.items():
-            if previous.get(row) != index:
-                self.place_row(row, index)
-        live = tuple(
-            child for child in self.member_container.children if child in positions
-        )
-        reordered = bool(ordered) and live != ordered
-        if reordered:
-            self.member_container.sort_children(
-                key=lambda child: positions.get(child, len(positions))
-            )
-        if retired or mounted or reordered:
-            self.rows_changed()
-        return ordered
-
-
-class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
+class SidebarGroup[RowT: "ListedRow"](MemberRows[str], TargetRows["CommsRow"], KeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
@@ -585,323 +497,6 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
             self.sync_members(frozenset())
 
 
-class SidebarChange(ABC):
-    """The changed model rows choose which native rows need work."""
-
-    @abstractmethod
-    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
-        ...
-
-    @abstractmethod
-    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
-        ...
-
-    @abstractmethod
-    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
-        ...
-
-    @abstractmethod
-    def apply_activity(self, view: ChannelActivity) -> None:
-        ...
-
-    def apply_navigation(self, sidebar: CommsSidebar) -> None:
-        sidebar.navigation.apply()
-
-
-class AllSidebarRows(SidebarChange):
-    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
-        sidebar.open_views = sidebar.find_open_views()
-        with sidebar.reconcile_members():
-            for name, group in sidebar.groups.items():
-                group.present(rows[name])
-                group.sync_members(frozenset(group.member_keys))
-
-    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
-        channel_list.sync_members(frozenset(channel_list.member_keys))
-        thread_list.sync_members(frozenset(thread_list.member_keys))
-
-    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
-        for group in groups:
-            group.sync_members(frozenset(group.member_keys))
-
-    def apply_activity(self, view: ChannelActivity) -> None:
-        view.call_next(view.sync_members, frozenset(view.member_keys))
-
-
-@dataclass(frozen=True)
-class ChangedChannels(SidebarChange):
-    names: frozenset[str]
-
-    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
-        with sidebar.reconcile_members():
-            for name in self.names:
-                group = sidebar.groups.get(name)
-                if group is not None:
-                    group.sync_members(group.present(rows[name]))
-
-    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
-        channel_list.sync_members(self.names)
-        # A changed channel can change the welcome thread list's order.
-        thread_list.sync_members(frozenset())
-
-    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
-        pass
-
-    def apply_activity(self, view: ChannelActivity) -> None:
-        references = view.model_state.shown.observation.require_snapshot().references
-        if view.view.conversation.destination(references).name in self.names:
-            view.call_next(view.sync_members, frozenset(view.member_keys))
-
-
-@dataclass(frozen=True)
-class ChangedThreads(SidebarChange):
-    names: frozenset[str]
-
-    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
-        for group in sidebar.groups.values():
-            group.repaint_members(self.names)
-
-    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
-        thread_list.sync_members(self.names)
-
-    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
-        for group in groups:
-            changed = group.keys_for_threads(self.names)
-            if changed:
-                group.sync_members(changed=changed)
-
-    def apply_activity(self, view: ChannelActivity) -> None:
-        changed = view.changed_keys(self.names)
-        if changed:
-            view.call_next(view.sync_members, changed)
-
-    def apply_navigation(self, sidebar: CommsSidebar) -> None:
-        pass
-
-
-EMPTY = SidebarModel(lambda callback: None)
-
-
-class SidebarModelState(ABC):
-    @abstractmethod
-    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
-        """Whether this state's sidebar displays this direct child."""
-
-    def root(self):
-        raise RuntimeError("The sidebar has no observed service.")
-
-    @property
-    def shown(self) -> SidebarModel:
-        return EMPTY
-
-    def shows_model(self) -> bool:
-        return False
-
-    def serves(self, path) -> bool:
-        return False
-
-    def observes(self, observed: Observing) -> bool:
-        return False
-
-    def unsubscribe(self, view: SidebarModelView) -> None:
-        pass
-
-    def changes(self, changes):
-        return changes
-
-    def apply(self, view: SidebarModelView, changes) -> None:
-        pass
-
-    def current_for(self, view: SidebarModelView) -> SidebarModelState:
-        return self
-
-    def present(self, view: SidebarModelView) -> None:
-        view.app.coordination_access.show_sidebar(view, False)
-
-
-class Detached(SidebarModelState):
-    """No opened service or model belongs to this view."""
-
-    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
-        return False
-
-
-@dataclass(frozen=True)
-class FailedSidebarState(SidebarModelState):
-    observed: FailedObservation
-
-    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
-        return child is view.unavailable
-
-    def present(self, view: SidebarModelView) -> None:
-        view.unavailable.update(f"Comms unavailable\n{self.observed.error}")
-        view.app.coordination_access.show_sidebar(view, view.accepts_observation())
-
-
-@dataclass(frozen=True)
-class BoundSidebar(SidebarModelState):
-    observed: Observing
-
-    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
-        return (child is view.unavailable) == self.observed.sidebar.observation.shows_status()
-
-    def root(self):
-        return self.observed.root
-
-    def serves(self, path) -> bool:
-        return self.observed.root == path
-
-    def observes(self, observed: Observing) -> bool:
-        return self.observed is observed
-
-    def unsubscribe(self, view: SidebarModelView) -> None:
-        self.observed.sidebar.channels.unsubscribe(view.channels_changed)
-        self.observed.sidebar.threads.unsubscribe(view.threads_changed)
-
-    def current_for(self, view: SidebarModelView) -> SidebarModelState:
-        if not view.accepts_observation():
-            return Behind(self.observed)
-        return self.present_current()
-
-    def present(self, view: SidebarModelView) -> None:
-        view.unavailable.update(self.observed.sidebar.observation.status_text())
-        view.app.coordination_access.show_sidebar(view, view.accepts_observation())
-
-    def present_current(self):
-        return self
-
-
-class Current(BoundSidebar):
-    def shows_model(self) -> bool:
-        return True
-
-    def apply(self, view: SidebarModelView, changes) -> None:
-        if changes:
-            view.sync(**changes)
-
-    @property
-    def shown(self) -> SidebarModel:
-        return self.observed.sidebar
-
-
-class Behind(BoundSidebar):
-    def present_current(self):
-        return Current(self.observed)
-
-    def changes(self, changes):
-        return dict(change=AllSidebarRows(), reorder=True)
-
-
-class SidebarModelView(CoreEventReceiver, ToadNode, Widget):
-    """A widget showing the observed service's sidebar model.
-
-    Core's model is observed only while a view shows it. Changes that arrive
-    while this one is hidden are applied in one pass when it shows again.
-    """
-
-    def __init__(self, *args: Widget, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.unavailable = Static("", markup=False)
-
-    @on(events.Mount)
-    async def on_mount(self) -> None:
-        await self.mount(self.unavailable)
-        self.watch_model_state(self.model_state)
-        self.observe_core(self.app.events)
-        self.observe_core(self.app.coordination_access.events)
-        observed = await self.app.preparation.run_thread(
-            self.app.coordination_access.observation.observed
-        )
-        observed.show_sidebar(self)
-
-    @on(events.Unmount)
-    def on_unmount(self) -> None:
-        self.stop_showing()
-
-    @on(events.Show)
-    def on_show(self) -> None:
-        self.present()
-
-    def sidebar_visibility_changed(self) -> None:
-        self.present()
-
-    model_state: reactive[SidebarModelState] = reactive(Detached, repaint=False, always_update=True)
-
-    def watch_model_state(self, state: SidebarModelState) -> None:
-        for child in self.children:
-            child.display = state.shows_child(self, child)
-
-    @property
-    def navigation_root(self):
-        return self.model_state.root()
-
-    @abstractmethod
-    def accepts_observation(self) -> bool:
-        """Whether this view shows the model now."""
-
-    def model_replaced(self) -> None:
-        """Retire what showed the previous service's rows."""
-
-    @abstractmethod
-    def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
-        """Apply the model's declared row change."""
-
-    def unsubscribe(self) -> None:
-        previous = self.model_state
-        self.model_state = Detached()
-        previous.unsubscribe(self)
-
-    def stop_showing(self) -> None:
-        self.app.coordination_access.show_sidebar(self, False)
-        self.unsubscribe()
-
-    def bind_failed_observation(self, observed: FailedObservation) -> None:
-        self.unsubscribe()
-        self.model_state = FailedSidebarState(observed)
-        self.model_replaced()
-        self.display = True
-        self.present()
-
-    def bind_observation(self, observed: Observing) -> None:
-        if self.model_state.observes(observed):
-            return
-        self.unsubscribe()
-        self.model_state = Behind(observed)
-        observed.sidebar.channels.subscribe(self.channels_changed)
-        observed.sidebar.threads.subscribe(self.threads_changed)
-        self.model_replaced()
-        self.present()
-
-    def channels_changed(self, changes: Changes[str]) -> None:
-        self.present(
-            change=ChangedChannels(frozenset((*changes.added, *changes.changed))),
-            reorder=bool(changes.added or changes.removed or changes.order is not None),
-        )
-
-    def threads_changed(self, changes: Changes[str]) -> None:
-        self.present(
-            change=ChangedThreads(
-                frozenset((*changes.added, *changes.removed, *changes.changed))
-            )
-        )
-
-    def present(self, **changes) -> None:
-        """Publish the next state before it applies pending model changes."""
-        previous = self.model_state
-        self.model_state = previous.current_for(self)
-        self.model_state.present(self)
-        self.model_state.apply(self, previous.changes(changes))
-
-    @handles(CoordinationObserved)
-    async def coordination_observed(self, event: CoordinationObserved) -> None:
-        self.app.coordination_access.observation.observed().show_sidebar(self)
-
-    @handles(ThreadRowStateChanged)
-    async def thread_row_state_changed(self, event: ThreadRowStateChanged) -> None:
-        """Repaint only the thread rows named by the app event."""
-        self.present(change=ChangedThreads(event.names))
-
-
 class SearchFollower:
     @on(events.Mount)
     def on_mount(self) -> None:
@@ -1057,6 +652,89 @@ class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizo
     def open_selected(self) -> None:
         if (row := self.app.focused) in self.rows:
             row.open_selected()
+
+
+class CommsRow(
+    TargetTreeMember, OpensSelected, PrimaryActivation, ContextActivation, CoreEventReceiver, HoverSelection, ViewLabel,
+    scopes={HiddenActions: (OpenSelectedAction,)},
+):
+    """One interactive row: a channel or a thread."""
+
+    text_fades = (NEW_MESSAGE,)
+
+    @property
+    def target_name(self) -> str:
+        return self.target.name
+
+    def show_menu(self, sidebar: TargetTree, offset: Offset) -> None:
+        sidebar.show_row_menu(self, offset)
+
+    def context_activation(self, offset: Offset) -> None:
+        self.show_menu(self.navigation_tree, offset)
+
+
+    can_focus = True
+
+    def focus_on_click(self) -> bool:
+        # Pointer activation navigates; keyboard traversal still owns row focus.
+        # Avoid restyling/repainting the departing transcript before Click runs.
+        return False
+
+    def __init__(self, target: NavigationTarget, label: str) -> None:
+        super().__init__(Content(label))
+        self.target = target
+
+    @on(Mount)
+    def on_mount(self) -> None:
+        self.run_effect(NEW_MESSAGE)
+
+    def is_navigation_row(self) -> bool:
+        return self.is_attached and not self.is_leaving
+
+    @property
+    def current(self) -> bool:
+        return self.is_navigation_row() and self.navigation_tree.row_current(self)
+
+    @property
+    def selected(self) -> bool:
+        return self.is_navigation_row() and self.navigation_tree.row_selected(self)
+
+    @property
+    def paint_highlighted(self) -> bool:
+        return self.selected or super().paint_highlighted
+
+    def set_label(self, label: str) -> None:
+        self.update(Content(label))
+
+    def expand_members(self, expanded: bool) -> None:
+        """A member row lists nobody; a group's header line overrides this."""
+
+    @property
+    def primary_activation(self):
+        return self.open_selected
+
+    def open_selected(self) -> None:
+        self.navigation_tree.remember_row(self)
+        self.app.run_worker(
+            partial(self.app.workspace_sessions.navigation_owner().open_sidebar_target, self.target),
+            group="sidebar-open",
+        )
+
+    @on(Click)
+    def on_click(self, event) -> None:
+        if event.button == 3:
+            event.stop()
+            self.context_activation(event.screen_offset)
+            return
+        if event.ctrl or event.shift:
+            event.stop()
+            self.navigation_tree.pointer_select(self, control=event.ctrl, shift=event.shift)
+            return
+        self.open_selected()
+
+
+class ListedRow(CommsRow, AlternatingTone):
+    """A row its list orders: it alternates on its family's tone pair."""
 
 
 class SelectsTargets(TargetTree):

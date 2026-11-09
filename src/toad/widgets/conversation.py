@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+import io
+import os.path
+import platformdirs
+import shlex
+from rich.console import Console
+from textual._files import generate_datetime_filename
+from toad.category_filter import CategoryFilterView
+from toad.command_target_scope import CommandTargetScope
+
 import asyncio
 from abc import abstractmethod
 from contextlib import suppress
@@ -30,7 +39,7 @@ from agent_comms.registry.thread_presentation import (
 )
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
-from agent_comms.ui_model.message_category import MessageCategory, all_categories
+from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory, all_categories
 from rich.segment import Segment
 from rich.style import Style
 from textual import containers, events, getters, on, work
@@ -75,7 +84,6 @@ from toad.native_style import (
 )
 from toad.submission_queue import QueueSource
 from toad.screens.queue import QueueInspection
-from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
 from toad.block_navigation import (
@@ -314,7 +322,7 @@ class ConversationContents(CategorizedMount, Contents):
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
         return (
-            self.query_ancestor(Conversation).visible_categories
+            self.query_ancestor(CategoryFilterView).visible_categories
             if self.is_attached
             else all_categories()
         )
@@ -529,6 +537,7 @@ class ConversationSessionBinding(
     ThreadStatusOwner,
     DeliveryFailureView,
     AgentConversation,
+    CategoryFilterView,
     containers.Vertical,
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
@@ -647,10 +656,6 @@ class ConversationSessionBinding(
     def _turn_changed(self, owner: TurnOwner) -> None:
         """Publish the concrete conversation's changed turn projection."""
 
-    visible_categories: var[frozenset[type[MessageCategory]]] = var(
-        lambda: all_categories(), init=False
-    )
-
     project_path = var[Checkout](Required())
 
     working_directory: var[str] = var("")
@@ -723,8 +728,6 @@ class ConversationSessionBinding(
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
         self.submissions = ConversationSubmissions(self)
-        from agent_comms.ui_model.message_category import AgentActivityBoundary
-
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self.launch = launch
@@ -1372,7 +1375,6 @@ class Conversation(
 
     @work(group="provider-login", exclusive=True)
     async def provider_login(self) -> None:
-        import shlex
 
 
         agent = self.agent_binding
@@ -1709,10 +1711,8 @@ class Conversation(
         self.prompt.ask(ask)
         return ask
 
-    async def command_target_context(self):
-        from toad.screens.main import MainScreen
-
-        screen = self.query_ancestor(MainScreen)
+    async def command_target_context(self) -> TargetContext:
+        screen = self.query_ancestor(CommandTargetScope)
         nav = screen.navigation_context
         observed = self.app.coordination_access.observation.observed()
         if not self.is_attached or screen.navigation_context != nav:
@@ -2132,14 +2132,6 @@ class Conversation(
 
     def open_render_as_svg(self, size: Size, render: object) -> None:
         width, height = size
-        import platformdirs
-        from textual._files import generate_datetime_filename
-
-        import io
-        import os.path
-
-        from rich.console import Console
-
         console = Console(
             width=width,
             height=height,
