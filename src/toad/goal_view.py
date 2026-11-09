@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from agent_comms.goal_presentation import GoalExecutionControls
+from agent_comms.planning.goal_presentation import GoalExecutionControls
 from agent_comms.ui_model.goal import GoalDisplay
 from textual.widget import Widget
 from toad.agent_binding import AgentConnection

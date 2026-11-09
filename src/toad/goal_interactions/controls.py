@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from agent_comms.errors import GoalRefused
-from agent_comms.goal_actions import ClearGoalAction
-from agent_comms.goal_history import RecordedGoalHistory
-from agent_comms.goal_presentation import GoalExecutionControls
+from agent_comms.planning.goal_actions import ClearGoalAction
+from agent_comms.planning.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_presentation import GoalExecutionControls
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import goal_mention_candidates
