@@ -70,13 +70,11 @@ class SessionObservation(ABC):
         if errors:
             raise BaseExceptionGroup("Session observations failed to close", errors)
 
-    def receive(self, agent, result):
-        """An owner fact supersedes an older in-flight read of that source."""
+    def invalidate_from(self, agent: AgentConnection) -> None:
+        """A notice from the bound owner requests a fresh read, not publication of its past value."""
         view = self.view
-        if view is None or not view.is_attached or not view.agent_binding.matches_agent(agent):
-            return
-        self.revision += 1
-        self.publish(view, result)
+        if view is not None and view.agent_binding.matches_agent(agent):
+            self.invalidate()
 
     async def _run(self):
         while (view := self.view) is not None and view.is_attached:
