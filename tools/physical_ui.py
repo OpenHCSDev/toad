@@ -416,7 +416,7 @@ class ObservedTerminalApp:
                 # Startup instrumentation runs the actual installed Toad CLI.
                 # This is NOT proof of the separate toad-comms shell launcher.
                 command = (str(runtime.interpreter.parent / "toad"), "acp",
-                           shlex.join((str(runtime.interpreter), "-m", "agent_comms.acp")),
+                           shlex.join((str(runtime.interpreter), "-m", "agent_comms.execution.acp")),
                            str(project), "--session", thread, "--title", "Agent Comms")
                 app = cls(command, display, output / "frontend", target, target.home, size=size)
                 with display.recording(output / "journey.mp4", app.environment), app:

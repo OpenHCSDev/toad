@@ -116,7 +116,7 @@ def main() -> None:
     # "toad" is the original application and never shows comms traffic.
     project = str(comms.registry.require(args.thread).worktree)
     base = (str(args.runtime / "toad"), "--comms-root", str(comms.root), "acp",
-            f"{args.runtime}/python -m agent_comms.acp", project,
+            f"{args.runtime}/python -m agent_comms.execution.acp", project,
             "--title", "Agent Comms", "--session", args.thread)
     command = base
 

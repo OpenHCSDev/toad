@@ -18,7 +18,7 @@ async def test_opening_stopped_thread_reads_history_without_loading_an_agent(wor
         await ui.until_shows('SAVED_STOPPED_ANSWER')
         assert not workspace.comms.registry.require('stopped').process_alive
         assert not ui.conversation.agent_binding.ready
-        assert not workspace.child_processes('agent_comms.acp')
+        assert not workspace.child_processes('agent_comms.execution.acp')
 
 
 async def test_started_owner_attaches_original_saved_session_in_place(workspace):

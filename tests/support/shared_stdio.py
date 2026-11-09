@@ -12,14 +12,14 @@ def stdio_agent_definition():
     """The agent definition whose process runs Core's ACP client over stdio, on the root Toad hands it."""
     from toad.agent_schema import AgentDefinition
 
-    return AgentDefinition("real-attachments", "Real attachments", {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
+    return AgentDefinition("real-attachments", "Real attachments", {"*": shlex.join([sys.executable, "-m", "agent_comms.execution.acp"])},
                            accepts_comms_root=True)
 
 
 @asynccontextmanager
 async def threads_owned_here(comms, project, names=("alpha", "beta")):
     """Declare `names` as threads of `project`, owned by this process through Core's ACP agent."""
-    from agent_comms.acp import CommsAgent
+    from agent_comms.execution.acp import CommsAgent
     from agent_comms.nominal.field_codec import AcpSessionId
     from agent_comms.projects.checkouts import Checkout
 
