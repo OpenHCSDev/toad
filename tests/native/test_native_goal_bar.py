@@ -1,13 +1,10 @@
 """The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, pause/resume and clear."""
 
-from agent_comms.nominal.field_codec import TurnId
 from support.goal_controls import goal_control
 from agent_comms.projects.checkouts import Checkout
 import asyncio
 import json
-import os
 
-from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.planning.goal_actions import (
     ActiveGoalAction,
     ClearGoalAction,
@@ -39,11 +36,15 @@ OBJECTIVE = "OBJECTIVE_BEGIN " + "Fully wrapped acceptance criteria. " * 40 + " 
 
 
 def standing_by_for_a_peer(workspace):
-    """Arrange the owner's goal to wait for a peer whose turn is running (this process plays the peer)."""
-    def arrange(comms, session, goal):
-        comms.registry.declare(NativeThread("peer", frozenset(), Checkout(workspace.project),
-                                      process_identity=ProcessIdentity.capture(os.getpid())))
-        comms.agents.begin_turn("peer", TurnId.mint())
+    """Arrange the goal to wait for a peer whose managed owner holds a running turn."""
+    def arrange(comms, session, goal, provider):
+        source = comms.registry.require(session)
+        comms.registry.declare(NativeThread(
+            "peer", frozenset(), Checkout(workspace.project),
+            model=source.model, thinking_level=source.thinking_level))
+        comms.goals.update_goal("peer", SetGoalAction(text="Keep peer work running during the goal controls journey"))
+        comms.owners.start_many(("peer",))
+        assert provider.entered.wait(20), "The managed peer did not start its model call"
         comms.goals.update_goal(session, StandbyGoalAction(
             wait_for=["peer"], progress="Progress details. " * 40 + " PROGRESS_END",
             expect=GoalPrecondition(goal_id=OneGoal(goal.id))))
@@ -53,7 +54,7 @@ def standing_by_for_a_peer(workspace):
 def owner_edit(comms, session, text):
     current = comms.registry.require(session).goal
     comms.goals.update_goal(session, EditGoalAction(
-        text=text, expect=GoalPrecondition(goal_id=OneGoal(current.id), expected_goal=current)), actor=OwnerInvocable)
+        text=text, expect=GoalPrecondition(goal_id=OneGoal(current.id), expected_checkpoint=current.captured)), actor=OwnerInvocable)
 
 
 async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(workspace, native_package):

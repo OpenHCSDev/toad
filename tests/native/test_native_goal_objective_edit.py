@@ -26,7 +26,7 @@ from toad.screens.goal_edit import GoalEdit, GoalEditProgress, GoalSave
 OBJECTIVE = "Work on draft PR #17 and report remaining gaps. " + "Detailed acceptance criteria. " * 30
 
 
-def with_progress(comms, session, goal):
+def with_progress(comms, session, goal, _provider):
     comms.goals.update_goal(session, ActiveGoalAction(
         progress="Renamed parent thread to pr17 and forked implementation.",
         expect=GoalPrecondition(goal_id=OneGoal(goal.id))))
@@ -45,7 +45,8 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
         bar = conversation.goal_bar
         current = first
         for objective in ("Short updated goal", "Second short goal"):
-            await pilot.click(goal_control(bar, EditInteraction))
+            await ui.until_shows(EditInteraction.label)
+            await ui.click(EditInteraction.label)
             await ui.until(lambda: isinstance(app.screen, GoalEdit), why="the goal editor")
             editor = app.screen
             assert editor.editor.text == comms.registry.require(session).goal.text

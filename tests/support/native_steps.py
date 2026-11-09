@@ -6,12 +6,11 @@ import asyncio
 from contextlib import asynccontextmanager
 
 from agent_comms.messaging.channel_targets import ChannelTarget
-from agent_comms.messaging.notification_progress import (
-    AnsweredProgress,
-    ConsumedDelivery,
-)
+from agent_comms.messaging.notification_progress import AnsweredProgress, ConsumedDelivery
+from agent_comms.planning.goal_actions import SetGoalAction
 from agent_comms.projects.checkouts import Checkout
 
+from support.native import ControlledProvider, NativeSession, native_session
 from support.textual_steps import refresh_chat
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
@@ -19,6 +18,19 @@ from toad.navigation_context import NavigationContext
 from toad.navigation_target import DirectTarget, channel_target
 from toad.notification_status import CheckedNotifications, NotificationStatus
 from toad.widgets.comms_chat import CommsChatView
+
+
+class HeldGoalProvider(ControlledProvider):
+    """Keep real goal work running until the native fixture closes."""
+
+    def __init__(self):
+        super().__init__(after_chunk=self.wait_for_fixture_close,
+                         expected_disconnects=frozenset({1}))
+
+    def wait_for_fixture_close(self, _request: int, chunk: int) -> None:
+        if chunk == 0:
+            self.entered.set()
+            assert self.released.wait(90), "The goal fixture did not close its active model reply"
 
 
 def rows_with(chat, predicate):
@@ -143,15 +155,13 @@ async def goal_on_real_owner(workspace, objective: str, *, size=(110, 35), arran
 
     Yields the existing NativeSession. The model uses ControlledProvider.
     """
-    from agent_comms.planning.goal_actions import SetGoalAction
-
-    from support.native import NativeSession, native_session
+    provider = HeldGoalProvider()
 
     async def prepare(comms, _project, _provider):
         session = NativeSession.thread
         goal = comms.goals.update_goal(session, SetGoalAction(text=objective))
         if arrange is not None:
-            arrange(comms, session, goal)
+            await asyncio.to_thread(arrange, comms, session, goal, provider)
 
-    async with native_session(workspace, prepare=prepare, size=size) as native:
+    async with native_session(workspace, prepare=prepare, size=size, provider=provider) as native:
         yield native
