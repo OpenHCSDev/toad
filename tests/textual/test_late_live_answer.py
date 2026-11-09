@@ -9,7 +9,10 @@ import pytest
 from agent_comms.acp_extension import (
     NativeOutputCommittedUpdate, NativeRoundCommittedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate,
 )
-from agent_comms.native_output import AssistantOutput, NativeOutputLocation
+from agent_comms.execution.native_output import (
+    AssistantOutput,
+    NativeOutputLocation,
+)
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.nominal.field_codec import FieldCodec, TurnId
 from agent_comms.execution.turn_lease import (

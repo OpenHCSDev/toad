@@ -1,7 +1,10 @@
 import os
 import shlex
 
-from agent_comms.native_arguments import ConfiguredBinary, InheritedArguments
+from agent_comms.execution.native_arguments import (
+    ConfiguredBinary,
+    InheritedArguments,
+)
 from importlib.metadata import version
 import platform
 from string import Template

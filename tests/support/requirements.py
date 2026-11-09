@@ -42,7 +42,10 @@ class NativePackage(Requirement):
 
     @classmethod
     def find(cls) -> Path | None:
-        from agent_comms.native_package import NativePackageError, VerifiedNativePackage
+        from agent_comms.installer.native_package import (
+            NativePackageError,
+            VerifiedNativePackage,
+        )
 
         if (value := os.environ.get(cls.variable)) is None:
             return None

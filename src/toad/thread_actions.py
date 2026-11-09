@@ -12,7 +12,7 @@ from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool, Co
 from agent_comms.cli_failures import CLI_FAILURES
 from agent_comms.cli_result import CliResult
 from agent_comms.errors import RouteChangedError
-from agent_comms.native_failures import NativePiUnavailable
+from agent_comms.execution.native_failures import NativePiUnavailable
 
 from toad.core import events as core_events
 

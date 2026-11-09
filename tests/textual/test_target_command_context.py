@@ -2,7 +2,7 @@
 import pytest
 
 from agent_comms.channel_targets import NoChannel, OneChannel, PerTargetChannels
-from agent_comms.native_arguments import ConfiguredBinary
+from agent_comms.execution.native_arguments import ConfiguredBinary
 from toad import about
 from toad.navigation_target import NavigationTarget
 from toad.widgets.comms_sidebar import CommsSidebar

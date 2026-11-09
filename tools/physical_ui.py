@@ -35,7 +35,10 @@ from agent_comms.installer.practice import SuppliedRuntimeHome
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime, ThreadLaunch
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.native_arguments import ConfiguredBinary, NativeArguments
+from agent_comms.execution.native_arguments import (
+    ConfiguredBinary,
+    NativeArguments,
+)
 from agent_comms.recorded_bus import RecordedBusIdentity
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.storage.store_files import ExclusiveAtomicFile

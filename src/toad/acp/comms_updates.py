@@ -29,7 +29,10 @@ from agent_comms.acp_extension import (
     TurnChangedUpdate,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.native_output import AssistantOutput, ToolOutput
+from agent_comms.execution.native_output import (
+    AssistantOutput,
+    ToolOutput,
+)
 from agent_comms.planning.goal_presentation import (
     GoalSnapshot,
     IdleGoalExecution,
