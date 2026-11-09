@@ -2,6 +2,7 @@
 
 from toad.screens.workspace import SessionHost
 from abc import abstractmethod
+from dataclasses import dataclass
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -63,6 +64,9 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
 
     @abstractmethod
     def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
+
+    def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
+        return VisiblePublication(None)
 
     @abstractmethod
     def navigation_owner(self, sessions: WorkspaceSessions) -> NavigationOwner:
@@ -149,6 +153,10 @@ class BoundWorkspaceSource(WorkspaceSource):
             else NoTarget()
         )
 
+    def publication(self, sessions: WorkspaceSessions) -> VisiblePublication:
+        return VisiblePublication(
+            sessions.views.get(self.identity) if sessions.owns(self.view) else None)
+
     def sidebars(self) -> tuple[SideBar, ...]:
         return self.view.sidebars()
 
@@ -179,6 +187,21 @@ class ParkedWorkspaceSource(BoundWorkspaceSource):
 
 class SessionStartFailed(RuntimeError):
     """A session's own startup failed; the app has already shown that error."""
+
+
+@dataclass(frozen=True)
+class VisiblePublication:
+    """The selected view, published when the source changes. The view owns its target and its
+    root applicability; the target is derived live from it on read, never cached."""
+
+    view: SessionScope | None
+
+    def target_for(self, root: Path | None) -> NavigationTarget:
+        return (
+            self.view.navigation_target
+            if root is not None and self.view is not None and self.view.belongs_to_wire(root)
+            else NoTarget()
+        )
 
 
 class WorkspaceSessions:
@@ -245,6 +268,17 @@ class WorkspaceSessions:
     async def retire(self) -> None:
         self.source = await self.source.retire()
 
+    @property
+    def source(self) -> WorkspaceSource:
+        return self._source
+
+    @source.setter
+    def source(self, source: WorkspaceSource) -> None:
+        """Every change to the selected source passes here: the selected view is published, and
+        consumers derive its target from it on read."""
+        self._source = source
+        self._publication = source.publication(self)
+
     def navigation_owner(self) -> NavigationOwner:
         """Derived from the selected view, so a closed or non-navigating view never answers."""
         return self.source.navigation_owner(self)
@@ -254,7 +288,7 @@ class WorkspaceSessions:
 
     def visible_target(self, root: Path | None) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
-        return self.source.visible_target(self, root)
+        return self._publication.target_for(root)
 
     def target_for_mode(self, identity: str, root: Path | None) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
