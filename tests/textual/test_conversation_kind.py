@@ -7,7 +7,7 @@ from dataclasses import FrozenInstanceError
 from functools import partial
 
 import pytest
-from agent_comms.channel_targets import ChannelTarget, IncarnationThreadTarget
+from agent_comms.messaging.channel_targets import ChannelTarget, IncarnationThreadTarget
 from agent_comms.comms import Comms
 from agent_comms.active_route import resolve_comms_route
 from support.roots import installed_wire

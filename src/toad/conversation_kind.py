@@ -8,13 +8,13 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 
-from agent_comms.channel_targets import (
+from agent_comms.messaging.channel_targets import (
     ChannelTarget,
     IncarnationThreadTarget,
     NamedTarget,
     ThreadTarget,
 )
-from agent_comms.channels import AllChannel
+from agent_comms.messaging.channels import AllChannel
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
