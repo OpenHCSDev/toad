@@ -13,6 +13,7 @@ from dataclasses import dataclass, field, replace
 from functools import singledispatch
 from pathlib import Path
 from typing import ClassVar
+from agent_comms.messaging.display_references import NoHistorySource
 
 from agent_comms.messaging.historical_views import (
     ConversationObservation,
@@ -28,7 +29,6 @@ from agent_comms.messaging.messages import (
     ConversationRole,
     Membership,
     Message,
-    NoHistorySource,
     NoticeRole,
 )
 from agent_comms.messaging.notification_reads import LiveNotificationRead
