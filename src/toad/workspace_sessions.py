@@ -1,14 +1,15 @@
 """Logical session membership; Textual owns only the persistent native frame."""
 
-from toad.screens.workspace import SessionHost
+from toad.screens.welcome import WelcomeScreen
+from toad.screens.workspace import SessionHost, WorkspaceScreen
 from abc import abstractmethod
 from dataclasses import dataclass
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._time import after_input
+from textual.app import App
 
 from toad.constants import WELCOME
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
@@ -18,17 +19,10 @@ from toad.session_scope import (
     SessionOrigin,
     SessionScope,
 )
+from toad.session_navigation import SessionNavigation
 from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.side_bar import SideBar
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
-
-def welcome_view() -> SessionScope:
-    from toad.screens.welcome import WelcomeScreen
-
-    return WelcomeScreen()
+from toad.workspace_chrome import WorkspaceChrome
 
 
 class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
@@ -191,11 +185,20 @@ class VisiblePublication:
         )
 
 
+class WorkspaceHost(App):
+    """What workspace sessions work through: an App (whose own _init_mode they call) that
+    also provides these members. ToadApp inherits it, so this module never imports the app."""
+
+    workspace_screen: WorkspaceScreen
+    workspace_chrome: WorkspaceChrome
+    session_navigation: SessionNavigation
+
+
 class WorkspaceSessions:
-    def __init__(self, app: ToadApp) -> None:
+    def __init__(self, app: WorkspaceHost) -> None:
         self.app = app
         # Views the workspace always has; they are not tabs and never close.
-        self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: welcome_view}
+        self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: WelcomeScreen}
         self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 

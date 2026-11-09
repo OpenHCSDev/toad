@@ -1,6 +1,7 @@
 from toad.core import events as core_events
 from agent_comms.storage.locked_store import RootFile
-from toad.workspace_sessions import WorkspaceSessionShutdown
+from toad.workspace_chrome import WorkspaceChrome
+from toad.workspace_sessions import WorkspaceHost, WorkspaceSessionShutdown, WorkspaceSessions
 from inspect import isabstract
 from toad.comms_root import BusChoice, CoreConnection, HeldBus, PickerRow
 
@@ -138,7 +139,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
     COMMANDS = {ApplicationCommands}
@@ -479,13 +480,10 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
     @cached_property
     def workspace_chrome(self):
-        from toad.workspace_chrome import WorkspaceChrome
-
         return WorkspaceChrome(self)
 
     @cached_property
     def workspace_sessions(self):
-        from toad.workspace_sessions import WorkspaceSessions
         return WorkspaceSessions(self)
 
     @property
