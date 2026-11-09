@@ -6,7 +6,7 @@ import json
 import os
 
 from agent_comms.acp_extension import TurnChangedUpdate
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import TurnId
 from agent_comms.execution.turn_lease import (
     ActiveTurn,

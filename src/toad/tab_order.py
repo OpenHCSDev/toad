@@ -4,7 +4,7 @@ import asyncio
 from collections.abc import Callable, Collection, Mapping
 from contextlib import asynccontextmanager
 
-from agent_comms.child_process import join_retirement
+from agent_comms.execution.child_process import join_retirement
 
 from toad.core.events import CoreEventStream, TabHistoryChanged
 from toad.db import DB, TabScope

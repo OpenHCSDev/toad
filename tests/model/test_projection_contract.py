@@ -80,7 +80,7 @@ def test_unavailable_owner_projection_does_not_supply_a_load_plan():
 
 
 def test_live_owner_projection_retains_the_exact_load_binding():
-    from agent_comms.child_process import ProcessIdentity
+    from agent_comms.execution.child_process import ProcessIdentity
     from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
     from agent_comms.registry.thread_identity import (
     OwnerIdentity,

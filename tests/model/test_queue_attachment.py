@@ -7,7 +7,7 @@ import pytest
 from agent_comms.acp_extension import (
     AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, LiveQueueScope, NoQueueScope,
 )
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.registry.threads import NativeThread
 

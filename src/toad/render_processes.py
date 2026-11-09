@@ -13,7 +13,7 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import TYPE_CHECKING, TypeVar
 
 from agent_comms import launch_root
-from agent_comms.child_process import HelperStart
+from agent_comms.execution.child_process import HelperStart
 from agent_comms.launch_runtime import ThreadLaunch
 
 from toad.render_backend import Renderer

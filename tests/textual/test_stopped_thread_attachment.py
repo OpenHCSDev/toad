@@ -21,7 +21,7 @@ async def test_opening_stopped_thread_reads_history_without_loading_an_agent(wor
 
 
 async def test_started_owner_attaches_original_saved_session_in_place(workspace):
-    from agent_comms.child_process import ProcessIdentity
+    from agent_comms.execution.child_process import ProcessIdentity
     from support.agents import peer
     import os
 

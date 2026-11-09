@@ -8,7 +8,7 @@ from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
     CursorAdvancedUpdate, CursorEnvelope, LiveCursorScope, VerifiedCursorObservation, encode_updates,
 )
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import AcpSessionId, RootId
 from agent_comms.native_input_record import FullNativeExecution, NumberNativeColumn, TextNativeColumn
 from agent_comms.native_runtime_input import CurrentNativeCursor

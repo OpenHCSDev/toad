@@ -5,7 +5,7 @@ import codecs
 import os
 from contextlib import AsyncExitStack
 import logging
-from agent_comms.child_process import ControllingTerminalCommand
+from agent_comms.execution.child_process import ControllingTerminalCommand
 from toad.surface_binding import SurfaceBinding
 from toad.core.source_events import CurrentWorkingDirectoryChanged
 

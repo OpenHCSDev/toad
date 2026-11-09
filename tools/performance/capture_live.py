@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import FieldCodec
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))

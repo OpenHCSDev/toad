@@ -29,7 +29,11 @@ from typing import get_args, get_type_hints
 from agent_comms.active_route import ActiveRoute, active_route_path, route_new_bus, resolve_comms_route
 from agent_comms.bus import Bus
 from agent_comms.check_root import CheckRoot
-from agent_comms.child_process import DetachedChildStdio, ProcessIdentity, SpawnedProcess
+from agent_comms.execution.child_process import (
+    ProcessIdentity,
+    SpawnedProcess,
+)
+from agent_comms.native_build_inputs import DetachedChildStdio
 from agent_comms.comms import Comms
 from agent_comms.installer.practice import SuppliedRuntimeHome
 from agent_comms.launch_root import LaunchRoot

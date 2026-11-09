@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
     TranscriptDraftUpdate,
     TranscriptSnapshotUpdate,
 )
-from agent_comms.child_process import join_retirement
+from agent_comms.execution.child_process import join_retirement
 from agent_comms.coordination.errors import (
     CoordinationReadUnavailable,
     ReadAgain,

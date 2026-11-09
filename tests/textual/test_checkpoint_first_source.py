@@ -8,7 +8,7 @@ import asyncio
 from dataclasses import replace
 import os
 
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.execution.child_process import ProcessIdentity
 
 from support import journals
 from support.agents import deliver
