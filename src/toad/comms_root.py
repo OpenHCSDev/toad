@@ -35,7 +35,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import Thread
 from agent_comms.connector_store import HeldUiProfiles, OpenableProfile
 from agent_comms.tailnet_buses import PeerHoldsBus, TailnetBuses
-from agent_comms.remote_core import RemoteCoreAccess
+from agent_comms.remote_core_process import ProcessRemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
 from toad.core.context_reads import ContextReads
@@ -203,6 +203,9 @@ class CoreConnection(ABC):
     def open_access(self, app: ToadApp) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
+    def close(self) -> None:
+        """Release connection-owned work after its observations and reads end."""
+
     @property
     @abstractmethod
     def location(self) -> str:
@@ -289,7 +292,7 @@ class RemoteRouteNotSelectable(RuntimeError):
 
 
 @dataclass(frozen=True)
-class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
+class RemoteCoreConnection(ProcessRemoteCoreAccess, CoreConnection):
     """The owner's UI profile is the remote connection: Core answers through the connector."""
 
     argument: ClassVar[str] = "--comms-profile"
@@ -1297,6 +1300,9 @@ class CoordinationAccess(MroDispatch):
     async def close(self) -> None:
         """Retire the observation once the views it served have closed."""
         async with AsyncResourceRelease() as release:
+            # Join remote read processes only after acquired observations and
+            # their pending reads have retired. Joining never borrows the UI loop.
+            release.push_async_callback(asyncio.to_thread, self.connection.close)
             try:
                 with ResourceRelease() as observation:
                     observation.callback(lambda: self.observation.subscriptions.close())
