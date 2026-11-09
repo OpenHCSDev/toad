@@ -1,5 +1,6 @@
 """Textual-facing: vim `i` asks the prompt for insert mode; the prompt owns whether its editor exists."""
 
+import asyncio
 import os
 import signal
 
@@ -360,3 +361,21 @@ async def test_escape_escape_i_in_quick_succession_reach_their_modes(workspace):
         # Escape from Insert leaves the cursor on the last character; Vim's i inserts before it.
         await ui.until(lambda: area.text == "draf!t" and area.editing_mode.completed,
                        why="typed text to land in the returned Insert mode")
+
+
+async def test_a_buffer_released_while_the_engine_stops_writes_nothing(workspace):
+    """The phone's exit: an editor unmounts while the engine's child stop is still awaited.
+    The engine is gone from the moment that stop starts, so the release closes nothing
+    instead of writing ToadEditor.close into the stopping pipe."""
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real engine with the prompt's buffer open")
+        engine = ui.app.neovim
+        buffer = area.editing_mode.buffer
+        engine._lifetime.cancel()
+        # Scheduled behind the worker's cancellation: it runs once the cleanup awaits the stop.
+        release = asyncio.create_task(engine.release(buffer))
+        await release
+        assert engine._child.returncode is None, "the release ran while the child was stopping"

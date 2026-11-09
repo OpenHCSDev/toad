@@ -847,10 +847,11 @@ class EngineLive(EngineLife):
 
 
 class EngineGone(EngineLife):
-    """The engine has stopped, and every buffer went with it: there is nothing left to close,
-    and writing to the stopped child is a broken pipe. On exit Textual cancels the Neovim
-    worker, whose cleanup stops the child, before the editors unmount and release their
-    buffers; every Toad exit logged that write as a crash until 2026-11-06."""
+    """The engine is stopping or has stopped, and every buffer goes with it: there is nothing
+    left to close. The engine is gone from the moment its reading ends, before its task group
+    unwinds or its child stops. An editor unmounting during either await (the phone's exit,
+    2026-11-08) used to write ToadEditor.close into the stopping pipe, or wait on a reply the
+    ending cancels."""
 
     async def close(self, host: NeovimHost, buffer: int) -> None:
         return
@@ -939,18 +940,26 @@ class NeovimHost(NeovimRequester, MroDispatch):
                 self._child_ready.set_result(child)
                 async with asyncio.TaskGroup() as tasks:
                     tasks.create_task(self._write_queued())
-                    await self._read(child)
+                    try:
+                        await self._read(child)
+                    finally:
+                        # Gone before anything awaits on the way out: the task group's
+                        # unwinding and the child's stop both give an unmounting editor a turn.
+                        self._retire()
         except* (EditingFailure, OSError, msgpack.UnpackException,
                  UnicodeDecodeError, MalformedRecord) as errors:
             self._ending = EngineFailed(
                 NeovimWireFailure("; ".join(str(error) for error in errors.exceptions)))
         finally:
-            self._life = EngineGone()
+            self._retire()
             # Forgotten first, so a buffer reopening after a failure finds a new engine.
             self._application.forget_neovim()
             self._ending.end(self)
 
     _ending: EngineEnding = EngineShutDown()
+
+    def _retire(self) -> None:
+        self._life = EngineGone()
 
     def end_requests(self) -> None:
         for route in self._routes.values():
