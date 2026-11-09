@@ -5,33 +5,38 @@ import asyncio
 from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated
 
-from agent_comms.cli_command import PreparedTargetAction
+from agent_comms.cli_verbs.cli_command import PreparedTargetAction
+from agent_comms.cli_verbs.target_fields import ChoiceTargetField, TargetField
+from agent_comms.config_options import ModelConfigOption
+from agent_comms.login import run_login
+from agent_comms.nominal.field_codec import compile_decoder
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool
-from agent_comms.target_fields import ChoiceTargetField, TargetField
-from agent_comms.config_options import ModelConfigOption
-from agent_comms.nominal.field_codec import compile_decoder
-from agent_comms.login import run_login
+from formbridge.forms.declared_fields import DeclaredMetadata, Multiline
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
-from textual import work
+from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
 from textual.css.scalar import Scalar
+from textual.document._editing import EditingMode
+from textual.events import Mount, Unmount
 from textual.widgets import Button, Static
-from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
-from toad.widgets.checkbox import Checkbox
+
 from toad.forms.editors import MultilineEditor, ValueEditor
 from toad.forms.form_view import InlineFormView
-from formbridge.forms.declared_fields import DeclaredMetadata, Multiline
 from toad.native_style import AutoWidth, EllipsisOverflow, SideMargin
-from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ModalScreen, ShadedScreen
+from toad.screens.modal import (
+    CenteredScreen,
+    DismissibleScreen,
+    ModalPanel,
+    ModalScreen,
+    ShadedScreen,
+)
 from toad.widget_actions import WidgetAction
-from textual.document._editing import EditingMode
+from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
+from toad.widgets.checkbox import Checkbox
 from toad.widgets.model_switcher import ModelSelection
-from textual.events import Mount
-from textual import on
-from textual.events import Unmount
 
 
 @dataclass(eq=False)

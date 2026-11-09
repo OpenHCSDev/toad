@@ -7,51 +7,53 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
-from agent_comms.projects.checkouts import Checkout
 from typing import cast
 
+from agent_comms.cli_verbs.cli_command import CreatesThread
 from agent_comms.errors import (
     RelationViolationError,
     RouteChangedError,
     UnknownChannelError,
     UnregisteredThreadError,
 )
+from agent_comms.messaging.channel_targets import ProjectTarget
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.presentation import NoRevision, ReadState
-from agent_comms.revision_views import RegistrationsView
+from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.revision_views import RegistrationsView
+from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
+from agent_comms.ui_model.sidebar import ThreadRowModel
 
+from toad.agent_schema import AgentDefinition
+from toad.agents import AgentNotFound, read_agents
 from toad.core import events as core_events
-from toad.agents import AgentNotFound
 from toad.core.events import CoreEventStream
+from toad.db import SessionMeta
+from toad.launch_binding import (
+    AgentAttached,
+    AgentBinding,
+    AgentSession,
+    StartsSessions,
+)
 from toad.navigation_preparation import CommsNavigationRequest, ThreadNavigationRequest
+from toad.navigation_target import DirectTarget, HistoryRouted
+from toad.screens.main import MainScreen
 from toad.session_entry import (
     HistorySessionEntry,
     NativeSessionEntry,
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.launch_binding import AgentAttached, AgentBinding, AgentSession, StartsSessions
+from toad.session_host import NavigationHost, SessionNavigator
 from toad.session_scope import SessionScope
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
-from toad.db import SessionMeta
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
-from agent_comms.cli_command import CreatesThread
-from agent_comms.messaging.channel_targets import ProjectTarget
-from toad.screens.main import MainScreen
-from toad.agent_schema import AgentDefinition
-from toad.navigation_target import HistoryRouted
-from toad.navigation_target import DirectTarget
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
-from toad.agents import read_agents
-from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
-
-from agent_comms.ui_model.sidebar import ThreadRowModel
-from toad.session_host import NavigationHost, SessionNavigator
 
 
 @dataclass(frozen=True)

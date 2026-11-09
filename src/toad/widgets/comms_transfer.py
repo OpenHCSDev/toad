@@ -1,57 +1,86 @@
 """Inputs for the existing agent-comms export and thread-import operations."""
 
-from textual.view import FILL, WidgetView
-from toad.widgets.acting_button import ActingButton, ConfirmButton, Confirms, DismissButton
-from toad.core import events as core_events
-
-from dataclasses import dataclass
+import asyncio
+from abc import abstractmethod
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from time import monotonic
+from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import ClassVar
-import asyncio
 from functools import cached_property, partial
-from abc import abstractmethod
+from pathlib import Path
+from time import monotonic
+from typing import ClassVar
+
+from agent_comms.cli_verbs.cli_result import CliResult
+from agent_comms.exporting import (
+    ChannelScope,
+    DmScope,
+    EverythingScope,
+    FullLimit,
+    JsonlFormat,
+    MaxBytesLimit,
+    TextFormat,
+    WireExportFormat,
+    WireExportLimit,
+    WireExportProvenance,
+    WireExportScope,
+)
+from agent_comms.harness_install import Harness
+from agent_comms.importing import ThreadImported
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
-from agent_comms.cli_result import CliResult
-from agent_comms.importing import ThreadImported
-from agent_comms.transport.tools.sidebar import CommsExportWireTool, CommsImportThreadTool
-
-from agent_comms.exporting import WireExportProvenance, JsonlFormat, TextFormat, ChannelScope, DmScope, EverythingScope, FullLimit, MaxBytesLimit, WireExportFormat, WireExportLimit, WireExportScope
-from agent_comms.transport.progress import CancellableWireExport, WireExportCancelled, WireExportObserver, WireExportProgress
-from agent_comms.registry.thread_text import ExpectedSession
-from agent_comms.harness_install import Harness
 from agent_comms.registry.thread_management import ImportDirectory
+from agent_comms.registry.thread_text import ExpectedSession
+from agent_comms.transport.progress import (
+    CancellableWireExport,
+    WireExportCancelled,
+    WireExportObserver,
+    WireExportProgress,
+)
+from agent_comms.transport.tools.sidebar import (
+    CommsExportWireTool,
+    CommsImportThreadTool,
+)
 from textual import on
 from textual.app import App, ComposeResult
-from textual.message import Message
-from textual.containers import Vertical, VerticalGroup, VerticalScroll
-from toad.screens.modal import DismissibleScreen
-from toad.comms_root import CapturedSource, CoordinationAccess
-from toad.application_outcome import ApplicationOutcome
-from toad.textual_colours import ThemedApp
-from toad.work_preparation import PreparationRuntime
-
-from textual.widgets import Input, Select, Static
 from textual.color import Color
+from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.css._style_properties import Edges
-from textual.css.scalar import Scalar, Unit
 from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
+from textual.css.scalar import Scalar, Unit
 from textual.css.styles import Styles
+from textual.events import Mount, Unmount
 from textual.geometry import Spacing
-from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
+from textual.message import Message
+from textual.view import FILL, WidgetView
+from textual.widgets import Input, Select, Static
+from ui_theme.scheme import (
+    BackgroundColour,
+    ErrorColour,
+    ForegroundColour,
+    PrimaryColour,
+    SurfaceColour,
+)
+
+from toad.app_node import ToadNode
+from toad.application_outcome import ApplicationOutcome
+from toad.comms_root import CapturedSource, CoordinationAccess
+from toad.core import events as core_events
 from toad.native_style import (
     CenteredChildren,
     DockedBottom,
     FillWidth,
     SurfaceBackground,
 )
-from toad.app_node import ToadNode
-from textual.events import Mount
-from textual.events import Unmount
+from toad.screens.modal import DismissibleScreen
+from toad.textual_colours import ThemedApp
+from toad.widgets.acting_button import (
+    ActingButton,
+    ConfirmButton,
+    Confirms,
+    DismissButton,
+)
+from toad.work_preparation import PreparationRuntime
 
 
 class TransferProgress(WireExportObserver):
