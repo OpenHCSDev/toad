@@ -16,7 +16,7 @@ from textual.app import ScreenStackError, UnknownModeError
 from textual import events
 from textual.strip import Strip
 from textual.widget import Widget
-from ui_theme.clock import Animation
+from ui_theme.clock import Animation, AnimationTarget
 from ui_theme.effects import NEW_TEXT, Effect, Fade, Frame, Mix, TextFade
 from ui_theme.scheme import BackgroundColour, ThemeColour
 
@@ -270,7 +270,7 @@ class EffectPhase:
     # Whether the effect is moving now.
     in_motion: ClassVar[bool] = False
 
-    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool,
+    def shown[Shown: Frame](self, effect: Effect[Shown], owner: AnimationTarget,
                             position: float = 0.0) -> Shown:
         return effect.final
 
@@ -303,14 +303,14 @@ class EffectRunning(EffectPhase):
     animation: Animation
     in_motion = True
 
-    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool,
+    def shown[Shown: Frame](self, effect: Effect[Shown], owner: AnimationTarget,
                             position: float = 0.0) -> Shown:
         # The clock ticks only animation-visible targets, but an unfocused app or a
         # covered screen still paints them: a frame frozen at the effect's start would
         # leave an arrival's revealed rows blank and its fade at the background colour.
         # Through the animation, which owns the phase time a continuous effect reads from
         # the clock: the effect alone cannot answer for one.
-        return self.animation.at(position) if visible else effect.final
+        return self.animation.at(position) if owner.animation_visible else effect.final
 
     def now(self) -> EffectPhase:
         return EFFECT_FINISHED if self.animation.finished else self
@@ -474,8 +474,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
             self.effects.pop(effect, EFFECT_UNSTARTED).stop()
 
     def effect_frame[Shown: Frame](self, effect: Effect[Shown], position: float = 0.0) -> Shown:
-        return self.effects.get(effect, EFFECT_UNSTARTED).shown(
-            effect, self.animation_visible, position)
+        return self.effect_phase(effect).shown(effect, self, position)
 
     def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         return self.effects.get(effect, EFFECT_UNSTARTED).now()
