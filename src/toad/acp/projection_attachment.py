@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import TypeVar
 
+from agent_comms.transport.attachment_scope import CursorScope
 from toad.private_native_cursor import (
     CursorStatus,
     PendingCursorStatus,
@@ -15,7 +16,6 @@ from toad.private_native_cursor import (
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.acp_extension import (
     CursorEnvelope,
-    CursorScope,
     QueueChangedUpdate,
     QueueScope,
 )

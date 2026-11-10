@@ -19,7 +19,8 @@ from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    from agent_comms.transcript.transcripts import TranscriptCursor, TranscriptPage
+    from agent_comms.execution.transcript_sources import TranscriptCursor
+    from agent_comms.transcript.transcripts import TranscriptPage
     from textual.worker import Worker
 
     from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage

@@ -16,18 +16,15 @@ from typing import Callable, ClassVar
 import platformdirs
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
+from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.channel_targets import CommandTarget
-from agent_comms.planning.goal_presentation import (
-    GoalExecution,
-    IdleGoalExecution,
-)
+from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
 from agent_comms.planning.goals import NoGoal
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_presentation import (
     NoThreadPresentation,
     ThreadPresentation,
 )
-from agent_comms.transcript.transcripts import TranscriptCursor
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.ui_model.message_category import (
@@ -97,6 +94,7 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
+from toad.goal_view import GoalView
 from toad.input_decision import InputDecision
 from toad.input_history import InputHistories
 from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
@@ -151,10 +149,7 @@ from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.flash import Flash
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.input_delivery import (
-    InputDeliveryBar,
-    InputDeliveryDetails,
-)
+from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.widgets.menu import Menu
 from toad.widgets.message_divider import StickyHeader
@@ -692,7 +687,7 @@ class ConversationSessionBinding(
 
     goal_display: var[GoalDisplay] = var(NoGoal())
 
-    goal_execution: var[GoalExecution] = var(IdleGoalExecution())
+    goal_execution: var[GoalExecutionControls] = var(IdleGoalExecution())
 
     title = var("")
 
@@ -1000,6 +995,7 @@ class SourcesScope(DOMNode):
 
 
 class Conversation(
+    GoalView[GoalSession],
     TranscriptView,
     FollowsLayoutPreferences,
     QueueEvidenceOwner,
@@ -1388,8 +1384,6 @@ class Conversation(
 
     @work(group="provider-login", exclusive=True)
     async def provider_login(self) -> None:
-
-
         agent = self.agent_binding
         methods = agent.presentation.auth_methods
         if not methods:

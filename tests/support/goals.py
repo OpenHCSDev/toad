@@ -7,16 +7,9 @@ from dataclasses import replace
 from agent_comms.errors import GoalRefused
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_mentions import bind_goal_mentions
-from agent_comms.planning.goal_presentation import (
-    GoalExecution,
-    GoalSnapshot,
-    RunnableExecution,
-)
+from agent_comms.planning.goal_presentation import GoalExecutionControls, GoalSnapshot, RunnableExecution
 from agent_comms.planning.goal_states import ActiveGoal
-from agent_comms.planning.goals import (
-    Goal,
-    GoalDeclaration,
-)
+from agent_comms.planning.goals import Goal, GoalDeclaration
 from agent_comms.registry.registry_document import RegistrySnapshot
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.registry.threads import Thread
@@ -46,7 +39,7 @@ class ScriptedGoalOwner(Agent):
     receives a canned active/runnable reply; this fixture does not implement Core's transitions.
     """
 
-    def __init__(self, *args, goal: GoalDeclaration, execution: GoalExecution, history: RecordedGoalHistory,
+    def __init__(self, *args, goal: GoalDeclaration, execution: GoalExecutionControls, history: RecordedGoalHistory,
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.goal, self.execution, self.history = goal, execution, history
@@ -55,7 +48,7 @@ class ScriptedGoalOwner(Agent):
 
     @classmethod
     def owning(cls, app: ToadApp, goal: GoalDeclaration,
-               execution: GoalExecution, *,
+               execution: GoalExecutionControls, *,
                history: RecordedGoalHistory = RecordedGoalHistory.empty()) -> ScriptedGoalOwner:
         """The goal owner of ``app``, built through the app's own Agent constructor."""
         return AppAgents(app).agent(cls, AgentDefinition("goal-owner", "goal-owner", {"*": "true"}), "goal-owner",

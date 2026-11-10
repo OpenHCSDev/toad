@@ -20,6 +20,8 @@ from ui_theme.scheme import ForegroundColour, SecondaryColour
 from textual.widgets import Static
 
 from toad.goal_interaction import GoalInteraction
+from toad.goal_view import GoalCollapse
+from toad.widgets.prompt import DeliveryControls
 from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
@@ -28,6 +30,7 @@ from toad.native_style import (
     AutoWidth,
     ComposedWhenShown,
     FillWidth,
+    KeepsFocusOnClick,
     MutedText,
     OneRow,
     PointerCursor,
@@ -44,6 +47,7 @@ class GoalControl(
     AutoWidth,
     OneRow,
     PointerCursor,
+    KeepsFocusOnClick,
     VisibleActions,
     Activates,
     InlineSelection,
@@ -127,7 +131,7 @@ class GrabbedGoalEdge(GoalEdge):
     )
 
 
-class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
+class GoalBar(GoalCollapse, ComposedWhenShown, SidePadding, VerticalGroup):
     collapsed: var[bool] = var(False)
     edge = ThemeState(GoalEdge)
     _separator_update_pending = False
@@ -181,8 +185,6 @@ class GoalBar(ComposedWhenShown, SidePadding, VerticalGroup):
 
     def _update_separators(self) -> None:
         self._separator_update_pending = False
-        from toad.widgets.prompt import DeliveryControls
-
         controls = self._prompt.query_one_optional(DeliveryControls)
         queue_visible = controls is not None and controls.display and controls.visible
         # Reuse the theme-resolved separator; only this local box edge changes.

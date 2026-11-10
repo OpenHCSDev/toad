@@ -4,26 +4,23 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Awaitable, Iterator
 from contextlib import contextmanager
-from typing import ClassVar, TYPE_CHECKING
+from typing import ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.coordination.errors import Refused
 from agent_comms.errors import GoalRefused
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.planning.goal_actions import (
-    ClearGoalAction,
-    GoalAction,
-)
-from agent_comms.planning.goal_presentation import GoalExecution
-from agent_comms.planning.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_actions import GoalAction
+from agent_comms.planning.goal_presentation import GoalExecutionControls
 from toad.agent_binding import AgentConnection
 
-if TYPE_CHECKING:
-    from toad.screens.modal import ModalScreen
-    from toad.widgets.conversation import Conversation
+from toad.screens.modal import ModalScreen
+from toad.goal_view import GoalView
 
 
-class GoalInteraction(DeclaredFamily, affix="Interaction"):
+class GoalInteraction(
+    DeclaredFamily, affix="Interaction", discovery_package="toad.goal_interactions",
+):
     label: ClassVar[str]
 
     @classmethod
@@ -43,87 +40,10 @@ class GoalInteraction(DeclaredFamily, affix="Interaction"):
     async def apply(cls, session: GoalSession) -> None: ...
 
 
-class HistoryInteraction(GoalInteraction):
-    label = "History"
-
-    @classmethod
-    async def apply(cls, session: GoalSession) -> None:
-        from toad.screens.goal_details import GoalDetails
-        view = session.view
-        goal, agent = view.goal_display.snapshot.require(), view.agent_binding
-        history: RecordedGoalHistory = await agent.get_goal_history(goal.id)
-        if not session.owns(agent):
-            return
-        details = GoalDetails(session, history=history)
-        session.present(details)
-
-
-class CollapseInteraction(GoalInteraction):
-    label = "Collapse"
-
-    @classmethod
-    def enabled(cls, session):
-        return True
-
-    @classmethod
-    def caption(cls, session, collapsed):
-        return "Expand" if collapsed else cls.label
-
-    @classmethod
-    async def apply(cls, session):
-        bar = session.view.goal_bar
-        bar.collapsed = not bar.collapsed
-
-
-class ToggleInteraction(GoalInteraction):
-    label = GoalExecution.toggle_label
-
-    @classmethod
-    def visible(cls, session: GoalSession) -> bool:
-        return session.display.can_control and session.execution.can_toggle()
-
-    @classmethod
-    def caption(cls, session: GoalSession, collapsed: bool) -> str:
-        return session.execution.toggle_label if cls.visible(session) else cls.label
-
-    @classmethod
-    async def apply(cls, session: GoalSession) -> None:
-        await session.execution.apply_toggle(session.change, session.unavailable)
-
-
-class EditInteraction(GoalInteraction):
-    label = "Edit"
-
-    @classmethod
-    async def apply(cls, session: GoalSession) -> None:
-        from toad.screens.goal_edit import GoalEdit
-        from toad.widgets.goal_text import goal_mention_candidates
-        view = session.view
-        goal = view.goal_display.snapshot.require()
-        agent = view.agent_binding
-
-        async def save(text: str) -> None:
-            if not session.owns(agent):
-                raise GoalRefused("The goal presentation changed; reopen its editor.")
-            await session.write(agent, agent.edit_goal(goal, text))
-
-        observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
-        session.present(GoalEdit(
-            goal, goal_mention_candidates(observed), project=view.project_path, on_save=save))
-
-
-class ClearInteraction(GoalInteraction):
-    label = "Clear"
-
-    @classmethod
-    async def apply(cls, session):
-        await session.change(ClearGoalAction)
-
-
 class GoalSession:
     """Owns the optional dialog and goal controls for this source binding."""
 
-    def __init__(self, view: Conversation):
+    def __init__(self, view: GoalView[GoalSession]):
         self.view = view
         self._modal: ReferenceType[ModalScreen[None]] | None = None
 
@@ -136,7 +56,7 @@ class GoalSession:
         return self.view.goal_display
 
     @property
-    def execution(self) -> GoalExecution:
+    def execution(self) -> GoalExecutionControls:
         return self.view.goal_execution
 
     def owns(self, agent: AgentConnection) -> bool:

@@ -1,13 +1,16 @@
 """The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, pause/resume and clear."""
 
-from toad.goal_interaction import EditInteraction, HistoryInteraction, ToggleInteraction
+from agent_comms.execution.turn_lease import ActiveTurn
+from agent_comms.planning.attempt_resolution import (
+    DecidedResolution,
+    VerifiedTurnDecision,
+)
+from agent_comms.planning.goal_attempt_phase import ResolvedAttempt
 from support.goal_controls import goal_control
 from agent_comms.projects.checkouts import Checkout
 import asyncio
 import json
-import os
 
-from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.planning.goal_actions import (
     ActiveGoalAction,
     ClearGoalAction,
@@ -18,7 +21,11 @@ from agent_comms.planning.goal_actions import (
     SetGoalAction,
     StandbyGoalAction,
 )
-from agent_comms.planning.goal_presentation import IdleGoalExecution
+from agent_comms.planning.goal_presentation import (
+    AttemptFailedExecution,
+    IdleGoalExecution,
+    RunningExecution,
+)
 from agent_comms.planning.goal_scope import OneGoal
 from agent_comms.planning.goals import NoGoal
 from agent_comms.registry.threads import NativeThread
@@ -26,6 +33,11 @@ from rich.cells import cell_len
 from support.native import ControlledProvider, native_session
 from support.native_steps import goal_on_real_owner
 
+from toad.goal_interactions.controls import (
+    EditInteraction,
+    HistoryInteraction,
+    ToggleInteraction,
+)
 from toad.screens.goal_details import CurrentHeading, CurrentObjective, GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
@@ -34,11 +46,15 @@ OBJECTIVE = "OBJECTIVE_BEGIN " + "Fully wrapped acceptance criteria. " * 40 + " 
 
 
 def standing_by_for_a_peer(workspace):
-    """Arrange the owner's goal to wait for a peer whose turn is running (this process plays the peer)."""
-    def arrange(comms, session, goal):
-        comms.registry.declare(NativeThread("peer", frozenset(), Checkout(workspace.project),
-                                      process_identity=ProcessIdentity.capture(os.getpid())))
-        comms.agents.begin_turn("peer", "peer-turn-the-goal-waits-for")
+    """Arrange the goal to wait for a peer whose managed owner holds a running turn."""
+    def arrange(comms, session, goal, provider):
+        source = comms.registry.require(session)
+        comms.registry.declare(NativeThread(
+            "peer", frozenset(), Checkout(workspace.project),
+            model=source.model, thinking_level=source.thinking_level))
+        comms.goals.update_goal("peer", SetGoalAction(text="Keep peer work running during the goal controls journey"))
+        comms.owners.start_many(("peer",))
+        assert provider.entered.wait(20), "The managed peer did not start its model call"
         comms.goals.update_goal(session, StandbyGoalAction(
             wait_for=["peer"], progress="Progress details. " * 40 + " PROGRESS_END",
             expect=GoalPrecondition(goal_id=OneGoal(goal.id))))
@@ -48,7 +64,7 @@ def standing_by_for_a_peer(workspace):
 def owner_edit(comms, session, text):
     current = comms.registry.require(session).goal
     comms.goals.update_goal(session, EditGoalAction(
-        text=text, expect=GoalPrecondition(goal_id=OneGoal(current.id), expected_goal=current)), actor=OwnerInvocable)
+        text=text, expect=GoalPrecondition(goal_id=OneGoal(current.id), expected_checkpoint=current.captured)), actor=OwnerInvocable)
 
 
 async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(workspace, native_package):
@@ -86,6 +102,7 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
         ui, comms, session = native.ui, native.comms, native.thread
         app, pilot = ui.textual
         conversation = ui.conversation
+        bar = conversation.goal_bar
         await pilot.click(goal_control(bar, HistoryInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="goal details")
         details = app.screen
@@ -122,20 +139,23 @@ async def test_pause_resume_and_clear(workspace, native_package):
         assert conversation.goal_execution == IdleGoalExecution() and not bar.display
 
 
-async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(workspace, native_package):
+async def test_failed_ledger_repaints_retry_then_its_live_successor_without_rewriting_goal(workspace, native_package):
     (workspace.project / "proof.txt").write_text("A real tool reads this file.\n")
+
+    productive_turns: list[ActiveTurn] = []
 
     def reply(_request, number):
         if number == 1:
             return {"role": "assistant", "content": ""}, "stop"
         if number == 2:
+            productive_turns.append(comms.registry.require(session).turn_record.read().require_active())
             return {"role": "assistant", "tool_calls": [{
                 "index": 0, "id": "p448-read", "type": "function",
                 "function": {"name": "read", "arguments": json.dumps({"path": "proof.txt"})}}]}, "tool_calls"
         provider.hold_next_request()
         return {"role": "assistant", "content": "PRODUCTIVE_SUCCESSOR"}, "stop"
 
-    provider = ControlledProvider(reply=reply, request_budget=4)
+    provider = ControlledProvider(reply=reply, request_budget=4, expected_disconnects=frozenset({4}))
     async with native_session(workspace, provider=provider) as native:
         ui, agent, comms, session = native.ui, native.agent, native.comms, native.thread
         app, pilot = ui.textual
@@ -148,6 +168,8 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
         assert comms.registry.require(session).goal == first
         await ui.until(lambda: str(goal_control(bar, ToggleInteraction).render()) == "Retry",
                        why="Retry from execution while the stored goal remains active")
+        failed_snapshot = await agent.get_goal_snapshot()
+        assert isinstance(failed_snapshot.execution, AttemptFailedExecution)
         await pilot.click(goal_control(bar, HistoryInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the open goal details")
         details = app.screen
@@ -160,8 +182,22 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
                 sending.cancel()
             await asyncio.gather(sending, return_exceptions=True)
         assert comms.registry.require(session).goal == first
-        await ui.until(lambda: "Active" in str(details.query_one(CurrentHeading).render()),
-                       why="the already-open details following productive settlement")
+        await ui.until(provider.entered.is_set, seconds=30,
+                       why="the next autonomous request is held at the provider")
+        productive, = productive_turns
+        resolved = comms.goals.open_goal_store().read_attempt(failed_snapshot.execution.evidence.attempt_id)
+        assert resolved.resolved_as(ResolvedAttempt(), DecidedResolution(VerifiedTurnDecision(productive.id)))
+        owner = comms.registry.require(session)
+        held = owner.turn_record.read().require_active()
+        assert held.id != productive.id and held.turn_generation != productive.turn_generation
+        assert held.owner == owner.process_identity and held.owner.alive()
+        observed = await agent.get_goal_snapshot()
+        assert observed.goal == first and observed.execution == RunningExecution(first.id)
+        assert owner.turn_record.read().require_active() == held
+        await ui.until(lambda: details.execution == observed.execution
+                       and details.goal_display == observed.goal,
+                       why="the open details agree with the actual held successor snapshot")
+        assert str(details.query_one(CurrentHeading).render()) == observed.goal.details_heading(observed.execution)
         await ui.press("escape")
         await ui.until(lambda: str(goal_control(bar, ToggleInteraction).render()) == "Pause",
                        why="the goal control following the ledger-only change")

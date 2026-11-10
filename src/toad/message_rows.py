@@ -14,13 +14,14 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 
+from agent_comms.messaging.display_references import NoHistorySource
 from agent_comms.messaging.channel_targets import (
     ChannelTarget,
     CommandTarget,
     ThreadTarget,
 )
 from agent_comms.messaging.historical_views import HistorySource
-from agent_comms.messaging.messages import Message, NoHistorySource
+from agent_comms.messaging.messages import Message
 from agent_comms.messaging.routing import MessageRoute
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.storage.recorded_time import EventTime

@@ -1,6 +1,5 @@
 """Textual-facing: the goal bar's compact layout, region sizes and click targets when collapsed or narrow."""
 
-from toad.goal_interaction import CollapseInteraction, HistoryInteraction
 from support.goal_controls import goal_control
 from dataclasses import replace
 
@@ -12,6 +11,10 @@ from agent_comms.planning.goal_presentation import (
 from agent_comms.registry.thread_identity import RecordedThreadIncarnation
 from agent_comms.planning.goals import GoalUnavailable
 
+from toad.goal_interactions.controls import (
+    CollapseInteraction,
+    HistoryInteraction,
+)
 from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar, StandbyPulse
 from support.goals import published_goal

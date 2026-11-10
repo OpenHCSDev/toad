@@ -5,20 +5,23 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial
+from itertools import islice
 from pathlib import Path
-from typing import TYPE_CHECKING, Awaitable, Callable
+from typing import Awaitable, Callable
 
-from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
+from agent_comms.context_store import (
+    LATEST_CONTEXT, CapturedContext, ContextManifestCursor, ContextManifestPage,
+)
+from agent_comms.context_segments.native_messages import NativeMessages
 from agent_comms.coordination.coordinator import Coordination
 from agent_comms.coordination.errors import Refused
 from agent_comms.coordination.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.execution.session_revision import SessionObservation
+from agent_comms.cli_bridges.codex_records import CodexRolloutProvenance
 from agent_comms.execution.turn_context import (
-    CodexRolloutProvenance,
     ContextManifest,
     ContextSegment,
     ContextSourceText,
-    NativeMessages,
     Provenance,
     SegmentManifest,
     TurnContext,
@@ -52,13 +55,6 @@ from metaclass_registry.mro_dispatch import handles
 from toad.comms_root import Observing
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
-
-if TYPE_CHECKING:
-    from agent_comms.context_store import (
-        CapturedContext,
-        ContextManifestPage,
-    )
-
 
 @dataclass(frozen=True)
 class ContextNode(ABC):
@@ -98,8 +94,6 @@ class ContextNode(ABC):
 
     async def find(self, query: str, *, limit: int=100):
         """Search one observed tree in one worker, without a second text index."""
-        from itertools import islice
-
         def read():
             return tuple(islice(self._find_public(query), limit))
 

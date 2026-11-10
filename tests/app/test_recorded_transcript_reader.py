@@ -11,12 +11,14 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.coordination.errors import HistoricalSourceChanged, ReloadRequired
 from agent_comms.execution.session_file import RegistrySessionLocation
+from agent_comms.execution.transcript_sources import (
+    EarlierThan,
+    LaterThan,
+)
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnationRecord
 from agent_comms.registry.threads import NativeThread
 from agent_comms.transcript.transcripts import (
-    EarlierThan,
-    LaterThan,
     RecordedPageSource,
     RecordedTranscriptReadIdentity,
 )
