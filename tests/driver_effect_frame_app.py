@@ -20,7 +20,7 @@ from toad.constants import WELCOME
 from toad.frame_presentation import AnimationEffects, EffectRunning
 from toad.screens.welcome import WelcomeEntries
 from toad.widgets.comms_sidebar import ThreadStatusRow
-from ui_theme.effects import NAME_WAVE, NEW_TEXT
+from ui_theme.effects import NAME_WAVE
 
 
 async def exercise(options, lifetime: ApplicationLifetime) -> None:
@@ -36,12 +36,14 @@ async def exercise(options, lifetime: ApplicationLifetime) -> None:
             entries = app.selected_session.query_one(WelcomeEntries)
             while not entries.model_state.shows_model() or entries.model_state.shown.observation.shows_status():
                 await pilot.pause()
-            remaining = NEW_TEXT.remaining(0)
+            rows = tuple(app.selected_session.query(ThreadStatusRow))
+            remaining = max((fade.remaining(0) for row in rows for fade in row.text_fades), default=0)
             assert remaining is not None
             await asyncio.sleep(remaining + 1)
-            owner = next(row for row in app.selected_session.query(ThreadStatusRow)
+            owner = next(row for row in rows
                          if row.animation_visible and row.busy and row.effect_phase(NAME_WAVE).in_motion
-                         and not row.effect_phase(NEW_TEXT).in_motion)
+                         and all(not row.effect_phase(fade).in_motion for fade in row.text_fades))
+            assert owner.text_fades
             before = runpy.run_path(str(options.before))
             paths = ((before["AnimationEffects"].effect_frame, before["EffectRunning"].shown),
                      (AnimationEffects.effect_frame, original_shown))
@@ -53,9 +55,10 @@ async def exercise(options, lifetime: ApplicationLifetime) -> None:
             def sample(path, effect, count: int):
                 getter, shown = path
                 assert owner.is_attached
-                assert not owner.effect_phase(NEW_TEXT).in_motion
+                assert all(not owner.effect_phase(fade).in_motion for fade in owner.text_fades)
                 expected = owner.effect_frame(effect)
-                moving = owner.effect_phase(effect).in_motion
+                phase = owner.effect_phase(effect)
+                moving = phase.in_motion
                 EffectRunning.shown = shown
                 try:
                     wall, cpu = perf_counter(), thread_time()
@@ -64,13 +67,13 @@ async def exercise(options, lifetime: ApplicationLifetime) -> None:
                     cpu, wall = thread_time() - cpu, perf_counter() - wall
                     assert frame == expected
                     return {"source": getter.__code__.co_filename, "calls": count,
-                            "effect": type(effect).__qualname__, "moving": moving,
+                            "effect": type(effect).__qualname__, "phase": type(phase).__qualname__, "moving": moving,
                             "cpu_seconds": cpu, "wall_seconds": wall}
                 finally:
                     # No event-loop turn ever paints through the old method signature.
                     EffectRunning.shown = original_shown
 
-            for effect in (NEW_TEXT, NAME_WAVE):
+            for effect in (*owner.text_fades, NAME_WAVE):
                 for path in paths:
                     sample(path, effect, max(1, options.iterations // 10))
                 for path in (paths[0], paths[1], paths[1], paths[0]):
