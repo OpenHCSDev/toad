@@ -373,14 +373,25 @@ async def test_a_saved_bus_can_be_forgotten_and_its_profile_goes_with_it(workspa
         assert held.is_file()
 
         rows = picker.query_one(BusRows)
+        rows.highlighted = 1
+        address = picker.query_one(BusAddress)
+        address.focus()
+        await ui.type("ab")
+        await ui.press("home", "delete")
+        assert address.value == "b", "Delete edits the address before the picker sees it"
+        assert held.is_file(), "editing an address must not forget the highlighted saved bus"
+
+        rows.focus()
         rows.highlighted = 0
-        picker.forget_highlighted()
+        await ui.press("delete")
         assert [type(row).__name__ for row in picker.rows] == ["LocalBus", "HeldBus"], (
             "this machine's own bus is a fact, not a saved row, so Delete leaves it alone"
         )
         assert held.is_file()
 
         rows.highlighted = 1
-        picker.forget_highlighted()
+        await ui.press("delete")
         assert [type(row).__name__ for row in picker.rows] == ["LocalBus"]
         assert not held.exists(), "forgetting a saved bus removes the profile that saved it"
+        await ui.press("escape")
+        await ui.until(lambda: not isinstance(app.screen, BusChoices), why="Escape to close the picker")

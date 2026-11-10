@@ -13,9 +13,9 @@ from agent_comms.transport.tailnet_buses import NamedHost, PeerBus
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
 from textual import on, work
 from textual.app import ComposeResult
-from textual.binding import Binding
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
+from textual.document._editing import EditingMode
 from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import Input, OptionList, Static
@@ -25,7 +25,7 @@ from ui_theme.scheme import PrimaryColour
 from toad.bus_selection import BusChoice, DiscoveredPeer, PickerRow
 from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
-from toad.widget_actions import PriorityActions
+from toad.widget_actions import DismissAction, PriorityActions, WidgetAction
 
 
 class BusPanel(SurfacePanel):
@@ -179,7 +179,19 @@ class ListsBuses(Widget):
         rows.clear_options().add_options(self.bus_options())
 
 
-class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[PickerRow]):
+class ForgetSavedBusAction(WidgetAction):
+    """Forget the highlighted saved bus."""
+
+    title = "Forget this bus"
+    keys = {EditingMode: ("delete",)}
+    show = True
+
+    def apply(self, context: ListsBuses) -> None:
+        context.forget_highlighted()
+
+
+class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[PickerRow],
+                 actions=(ForgetSavedBusAction,), scopes={PriorityActions: (DismissAction,)}):
     """The buses this machine can open, dismissed with the row the reader picked.
 
     The picker does not relaunch: `CoreConnection.select` chooses at the process boundary,
@@ -192,16 +204,11 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
     def offered(cls) -> BusChoices:
         return cls(cls.offered_rows())
 
-    BINDINGS = [Binding("delete", "forget", "Forget this bus", show=True)]
-
     def compose(self) -> ComposeResult:
         with BusPanel():
             yield BusPrompt("Open a bus · Delete forgets a saved one · Esc returns")
             yield BusRows(*self.bus_options())
             yield BusAddress(placeholder="Add a machine by name or address")
-
-    def action_forget(self) -> None:
-        self.forget_highlighted()
 
     @on(Mount)
     def on_mount(self) -> None:
