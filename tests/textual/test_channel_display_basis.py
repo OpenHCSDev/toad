@@ -1,4 +1,4 @@
-"""A channel marks read exactly the messages whose text it showed, never the history it left out."""
+"""Textual-facing: accepted frames determine which channel messages were shown and read."""
 import pytest
 
 from agent_comms.messaging.read_basis import ChannelConversation, NamedViewer
