@@ -167,7 +167,7 @@ class ApplicationLifetime:
         from toad.navigation_preparation import ThreadNavigationRequest
 
         request = ThreadNavigationRequest(self.app.coordination_access.observation.observed(),
-                                          resumed, self.app.project_dir, ())
+                                          str(resumed), self.app.project_dir, ())
         return request.read()
 
     async def check_version(self) -> None:
