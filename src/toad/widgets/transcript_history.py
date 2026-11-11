@@ -44,10 +44,11 @@ from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
-from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim
+from toad.commit_claims import CommitClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.frame_presentation import ARRIVAL, ArrivalRun
 from toad.history_coverage import CoveredHistory, HistoryCoverage, ReportsCoveredPages
+from toad.entry_placement import EntryPlacement
 from toad.message_rows import RecordedMessageClock
 from toad.native_style import (
     AutoHeight,
@@ -1303,9 +1304,12 @@ class CommittedHistory(LineHistory, SnapshotPresentation, CoveredHistory[Prepare
 
     conversation_order = 0
 
+    def prepare_post(self, placement: EntryPlacement) -> None:
+        self.conversation_order = placement.live_order - 1
+
     @property
     def commit_claim(self) -> CommitClaim:
-        return RETAINED_SOURCE_CLAIM
+        return self.page_source.commit_claim
 
     def accepts_commit(self, cursor: TranscriptCursor) -> bool:
         return self.page_source.accepts_commit(cursor)

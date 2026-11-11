@@ -17,6 +17,7 @@ from textual.widget import Widget
 from ui_theme.effects import TextFade  # type: ignore[import-untyped]
 
 from toad.block_content import BlockContent
+from toad.entry_placement import PostedEntry
 from toad.frame_presentation import ARRIVAL, CascadingRows
 from toad.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import UNPLACED, NewerEnd, OlderEnd, PageEnd, Placed, Unplaced, arranged
@@ -344,15 +345,12 @@ class ChildBlockCursor(BlockCursor):
         self._child = NO_ENTRY
 
 
-class ConversationEntry(CascadingRows, BlockContent):
+class ConversationEntry(CascadingRows, PostedEntry, BlockContent):
     """Conversation content, with an owned atomic cursor by default.
 
     The rows drawn inside an entry paint its fades (`LinkedRows.arrival`), and report
     themselves as the runs those fades play across (`CascadingRows.row_runs`).
     """
-
-    # Saved source blocks precede this live tail; equal orders retain arrival order.
-    conversation_order: ClassVar[int] = 1
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.set_display_constraint("message-category", OtherCategory in selected)

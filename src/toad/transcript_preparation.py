@@ -26,6 +26,7 @@ from agent_comms.nominal.field_codec import ContentExclude, FieldCodec
 from agent_comms.transcript.transcripts import TranscriptPage
 from agent_comms.ui_model.message_category import MessageCategory
 
+from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim, RetainedBlockClaim
 from toad.bus_submission import (
     SubmissionOwner,
     SubmissionStart,
@@ -37,7 +38,7 @@ from toad.transcript_state import DEFERRED_WORK, LatestViewportRequest, SourceWo
 from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
-from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageEnd, PageRequest
 from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
 from toad.work_preparation import (
     PreparationRuntime,
@@ -332,6 +333,10 @@ class PreparedPageSource:
         """Native acquisition takes these same resources, not materialized copies."""
         self.held_pages, self.projection_source = (), NoProjection()
 
+    async def for_rebuild(self) -> PreparedPageSource:
+        """An ordinary parked source keeps its original pages."""
+        return self
+
     @property
     def closed(self) -> bool:
         return self.scope.closed
@@ -362,6 +367,10 @@ class PreparedPageSource:
 
     def reload_key(self):
         return self.scope
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return RETAINED_SOURCE_CLAIM
 
     def contains(self, cursor: TranscriptCursor) -> bool:
         return self.through.contains(cursor)
@@ -576,6 +585,48 @@ class SavedPrefix(SavedHistory):
         await request.end.edge((self.earlier.prepare, super()._prepare))(request)
 
 
+class RetainedPageSource:
+    """A local entry closed this source range; later commits cannot replace it."""
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return RetainedBlockClaim()
+
+
+class FrozenSavedPrefix(RetainedPageSource, SavedPrefix):
+    """The ordinary saved pager, bounded where a local entry arrived."""
+
+    def close(self) -> None:
+        super().close()
+        self.earlier.close()
+
+
+class SavedSuffix(SavedHistory):
+    """The same saved pager, starting after a local entry's source boundary."""
+
+    def __init__(self, loader, through, runtime, *, after: TranscriptCursor) -> None:
+        super().__init__(loader, through, runtime)
+        self.after = after
+
+    async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
+        prepared = await super()._get(request)
+        if prepared.page.before.within(self.after):
+            prepared = await super()._get(PageRequest(NEWER_END, self.after))
+        if prepared.page.before.same_position(self.after):
+            prepared.page = replace(prepared.page, has_older=False)
+        return prepared
+
+    def replacement(self, through) -> SavedSuffix:
+        return type(self)(self.loader, through, self.runtime, after=self.after)
+
+    async def for_rebuild(self) -> PreparedPageSource:
+        """Local widgets end with their view; the next view reads the whole saved source."""
+        source = SavedHistory(self.loader, self.through, self.runtime)
+        prepared = await source.get(PageRequest(OLDER_END, self.through))
+        source.park((prepared,))
+        return source
+
+
 class SourceObservation:
     async def apply(self, history: WireHistory, source: ReplaceablePageSource) -> bool:
         await history.jump_latest(LatestViewportRequest(LatestPosition.hold(history.window)))
@@ -676,6 +727,13 @@ class ClosedHistory(ReplaceablePageSource):
     async def _prepare(self, request: PageRequest) -> None:
         # No saved read can be speculated for a retained-only range.
         return
+
+
+class FrozenClosedHistory(RetainedPageSource, ClosedHistory):
+    """A local entry before any saved source retains only the empty prefix."""
+
+    async def latest(self, prepared: PreparedTranscriptPage) -> PreparedTranscriptPage:
+        return prepared.for_view()
 
 
 class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):

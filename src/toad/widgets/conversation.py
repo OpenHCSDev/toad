@@ -1919,12 +1919,16 @@ class Conversation(
         if not self.contents.is_attached:
             return widget
 
-        if widget.starts_agent_activity(self._agent_activity_boundary):
-            await self.contents.mount(
-                AgentActivityDivider(widget.message_category, widget), widget
-            )
-        else:
-            await self.contents.mount(widget)
+        blocks = (
+            (AgentActivityDivider(widget.message_category, widget), widget)
+            if widget.starts_agent_activity(self._agent_activity_boundary)
+            else (widget,)
+        )
+        for block in blocks:
+            block.prepare_post(self.transcript)
+        await self.contents.mount(*blocks)
+        for block in blocks:
+            await block.posted(self.transcript)
 
         widget.loading = loading
         self._require_check_prune = True
