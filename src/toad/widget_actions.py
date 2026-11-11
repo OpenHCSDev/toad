@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import lru_cache, partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar, cast
+from typing import ClassVar, Generic, Literal, Self, TypeVar, cast
 
 from agent_comms.nominal.declared_family import (
     DeclaredFamily,
@@ -23,14 +23,14 @@ from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual.dom import DOMNode
+from textual.hint_labels import HintLabelStyle
 from textual.keys import DeclaredKey, KeyDeclaration, KeyDeclarationType, UndecodedKey
 from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
+from textual.widgets import TextArea
 from textual.widgets.text_area import EditingMode
 
 from toad.app_node import ToadNode
 
-if TYPE_CHECKING:
-    from textual.widgets import TextArea
 
 Context = TypeVar("Context", bound=DOMNode)
 
@@ -333,6 +333,10 @@ class ProfileKeys(NativeMethodKeys):
     @property
     def key_mode(self) -> type[EditingMode]:
         return self.app.settings.ui.key_mode
+
+    @property
+    def hint_label_style(self) -> type[HintLabelStyle]:
+        return self.app.settings.ui.hint_labels
 
 
 class WidgetAction(Action, affix="Action"):
