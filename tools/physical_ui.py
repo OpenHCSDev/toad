@@ -43,7 +43,7 @@ from agent_comms.installer.active_route import (
     route_new_bus,
 )
 from agent_comms.installer.native_build_inputs import DetachedChildStdio
-from agent_comms.installer.practice import SuppliedRuntimeHome
+from agent_comms.installer.runtime_home import SuppliedRuntimeHome
 from agent_comms.messaging.bus import Bus
 from agent_comms.messaging.recorded_bus import RecordedBusIdentity
 from agent_comms.nominal.field_codec import FieldCodec
