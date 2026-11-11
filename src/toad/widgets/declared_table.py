@@ -7,7 +7,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from agent_comms.task_attachments.disclosure_text import (
-    AnonymousKey,
     DisclosureKey,
     ViewTable,
 )
@@ -40,7 +39,7 @@ class TableSelection[R](ABC):
 
     @property
     def key(self) -> DisclosureKey:
-        return AnonymousKey()
+        return DisclosureKey()
 
     @abstractmethod
     def present_to(self, view: SelectionView[R]) -> None: ...
