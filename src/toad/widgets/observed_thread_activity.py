@@ -103,7 +103,7 @@ class ThreadStatusOwner(ToadNode):
     @property
     def _observed_working(self) -> bool:
         """Observed work cannot settle an independently owned ACP request."""
-        return self.thread_activity.is_working()
+        return self.thread_activity.working
 
     @abstractmethod
     def status_thread(self) -> StatusThread:
