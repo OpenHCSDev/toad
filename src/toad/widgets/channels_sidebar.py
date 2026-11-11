@@ -9,6 +9,7 @@ from textual.widget import Widget
 
 
 class ChannelsSidebar(SideBar):
+    COMPOSITING_LAYER = True
     def __init__(self, *, observe: bool = True, defer_mount: bool = False) -> None:
         self.roster = CommsSidebar(observe=observe)
         super().__init__(

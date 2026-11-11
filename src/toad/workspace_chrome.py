@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 
 class WorkspaceHeader(FollowsLayoutPreferences, TonePaint, WidgetView, Horizontal):
+    COMPOSITING_LAYER = True
     tone = HeaderToneColour
     width = FILL
     height = AUTO

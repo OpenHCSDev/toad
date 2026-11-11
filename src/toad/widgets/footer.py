@@ -69,6 +69,7 @@ class ToadFooter(
     Footer,
     setting='ui.footer',
 ):
+    COMPOSITING_LAYER = True
     # The footer's tone shows through: no stylesheet paint over it.
     tone = FooterToneColour
     key_type = ToadFooterKey
