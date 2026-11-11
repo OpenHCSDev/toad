@@ -14,7 +14,7 @@ import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from uuid import uuid4
 
 from agent_comms.nominal.field_codec import FieldCodec, WireName
@@ -28,6 +28,7 @@ from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from toad import atomic, paths
 from toad import setting_effects as effects
 from formbridge.forms.declared_fields import DeclaredField, FieldPath, FormPage, Multiline
+from toad.hint_labels import HintLabels, NextLetterHintLabels
 from toad.key_modes import KeyMode, Standard
 from toad.keymap import Keymap
 from toad.patch import DiffSettings
@@ -53,14 +54,11 @@ from toad.setting_choices import (
     UnreadCount,
     TopNavigationBar,
 )
-from toad.setting_declarations import Effect, FamilyChoices
+from toad.setting_declarations import FamilyChoices
 from toad.setting_widget import PromptSettingEffects
 from toad.terminal_origin import TerminalLayout
 from toad.version import CheckedVersionMonitor, VersionMonitor
 from toad.widgets.presentation_window import PresentationBudget
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
 
 
 @dataclass(frozen=True)
@@ -117,6 +115,12 @@ class UiSettings(AnnotatedDataclassValidationMixin):
         effects.key_mode, WireName("key-mode"),
     ] = Standard
     """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
+
+    hint_labels: Annotated[
+        type[HintLabels], FieldLabel("Hint labels"), FamilyChoices(HintLabels),
+        WireName("hint-labels"),
+    ] = NextLetterHintLabels
+    """Show the next letter progressively, or the full assigned key at once."""
 
     keymap: Keymap = field(default_factory=Keymap)
     """Keyboard overrides, edited in the keybinding menu."""
@@ -573,33 +577,10 @@ class SavedSettings(ExternalStore):
         if not self.unsaved:
             exit()
 
-    # The app.
-
-    @classmethod
-    def open(cls, app: ToadApp) -> SavedSettings:
-        path = cls.path()
-        raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
-
-        def applied(field: DeclaredField) -> None:
-            if (effect := field.metadata(Effect)) is not None:
-                effect.apply(app, field)
-
-        def report(error: atomic.AtomicWriteError) -> None:
-            app.show_error(error, "Settings")
-
-        return cls(raw, applied=applied, report_error=report)
-
     def apply_all(self) -> None:
         """Bring a starting app in line with every setting."""
         for path in self.state.parameter_structure.leaf_paths():
             self.applied(DeclaredField(self.state, path))
-
-    def ensure_file(self, app: ToadApp) -> None:
-        path = self.path()
-        if not path.exists():
-            self.save_sync(force=True)
-            if path.is_file():
-                app.notify(f"Wrote default settings to {path}", title="Settings")
 
     def ensure_installation(self) -> bool:
         if self.current.anon_id:

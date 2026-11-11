@@ -59,7 +59,10 @@ from toad.navigation_preparation import (
     NavigationReader,
 )
 from toad.neovim_editing import HostsNeovim
+from formbridge.forms.declared_fields import DeclaredField
+from toad.atomic import AtomicWriteError
 from toad.preferences import SavedSettings
+from toad.setting_declarations import Effect
 from toad.render_backend import PreparedRenderer, Renderer, RenderTask
 from toad.render_processes import RenderProcessPool
 from toad.resource_release import AsyncResourceRelease
@@ -334,7 +337,25 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
 
 
     def open_settings(self) -> SavedSettings:
-        return SavedSettings.open(self)
+        path = SavedSettings.path()
+        raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
+
+        def applied(field: DeclaredField) -> None:
+            if (effect := field.metadata(Effect)) is not None:
+                effect.apply(self, field)
+
+        def report(error: AtomicWriteError) -> None:
+            self.show_error(error, "Settings")
+
+        return SavedSettings(raw, applied=applied, report_error=report)
+
+    def ensure_settings_file(self) -> None:
+        settings = self.saved_settings
+        path = settings.path()
+        if not path.exists():
+            settings.save_sync(force=True)
+            if path.is_file():
+                self.notify(f"Wrote default settings to {path}", title="Settings")
 
     async def get_db(self) -> DB:
         """Get an instance of the database."""
@@ -373,7 +394,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
         self._prewarm_core_modules()
         db = await self.get_db()
         await db.create()
-        self.saved_settings.ensure_file(self)
+        self.ensure_settings_file()
         self.colours.start()
         self.saved_settings.apply_all()
 
