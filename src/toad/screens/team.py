@@ -17,7 +17,7 @@ from agent_comms.task_attachments.disclosure_text import (
     ErrorTone,
     HudTone,
     MutedTone,
-    RootKey,
+    RecordKey,
     SuccessTone,
     ViewTable,
     WarningTone,
@@ -322,7 +322,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Collapsible):
             return
         if not self.is_attached or self.selection != selection:
             return
-        entry = DisclosureEntry(RootKey(type(detail)), "The records behind this row",
+        entry = DisclosureEntry(RecordKey(type(detail)), "The records behind this row",
                                 DisclosureText.describe(detail))
         for view in self.original.query_children(DeclaredDisclosure):
             view.present(entry)

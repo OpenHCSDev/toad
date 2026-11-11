@@ -9,7 +9,7 @@ from agent_comms.task_attachments.disclosure_text import (
     DisclosureEntry,
     DisclosureText,
     FieldKey,
-    RootKey,
+    RecordKey,
     StructuredText,
 )
 from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
@@ -274,7 +274,7 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
         app, _pilot = ui.textual
         for value in (hud.units[0].strikes, Teammate, Detached):
             disclosed = DisclosureText.describe(value)
-            disclosure = DeclaredDisclosure(DisclosureEntry(RootKey(type(value)), "Original", disclosed))
+            disclosure = DeclaredDisclosure(DisclosureEntry(RecordKey(type(value)), "Original", disclosed))
             await app.screen.mount(disclosure)
             disclosure.collapsed = False
             await ui.until(lambda: disclosure.body.display, why="the scalar/class/family body to expand")
@@ -285,7 +285,7 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
 
         source = DisclosureText.describe(hud.units[0])
         assert isinstance(source, StructuredText)
-        entry = DisclosureEntry(RootKey(Teammate), "Original unit", source)
+        entry = DisclosureEntry(RecordKey(Teammate), "Original unit", source)
         original = DeclaredDisclosure(entry)
         await app.screen.mount(original)
         original.collapsed = False
