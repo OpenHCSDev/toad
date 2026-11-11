@@ -4,6 +4,7 @@ import asyncio
 import threading
 from unittest.mock import patch
 
+from agent_comms.transport.tools.sidebar import CommsConversationPageTool
 from agent_comms.ui_model.observation import CoreReadAnswered
 
 from support.textual_steps import painted_text, refresh_chat
@@ -328,6 +329,20 @@ async def test_a_held_child_read_leaves_paint_and_input_live_and_pages_when_it_i
         real_received = CoreReadAnswered.received
 
         async def holding(self, process, observed):
+            """Hold the page this press asked for, and nothing else.
+
+            Patching the reply hook catches every read in flight. A conversation revision
+            poll is live and unrelated: holding one sets `entered`, the loop stops, and this
+            test then waits for a page nobody asked for. A reply whose pending read is
+            already gone is worse, because `received` discards those by design, so holding
+            one holds nothing at all. Both pass through untouched.
+            """
+            pending = process.reads.get(self.request_id)
+            asked = getattr(pending, "asked", None)
+            if pending is None or pending.waiter.done() or not isinstance(
+                getattr(asked, "operation", None), CommsConversationPageTool
+            ):
+                return await real_received(self, process, observed)
             entered.set()
             await asyncio.to_thread(released.wait)
             return await real_received(self, process, observed)
@@ -339,7 +354,14 @@ async def test_a_held_child_read_leaves_paint_and_input_live_and_pages_when_it_i
             with patch.object(CoreReadAnswered, "received", holding):
                 while messages(history)[0].seq >= oldest_loaded and history.has_more(OLDER_END):
                     await ui.press("pageup")
-                    if entered.is_set() or window.scroll_y == 0:
+                    if entered.is_set():
+                        break
+                    if window.scroll_y == 0:
+                        # The top of what is loaded is where the older page is asked for, and
+                        # `entered` is set when that page's REPLY arrives. Breaking here raced
+                        # the child: the request was out and its answer had not landed, so the
+                        # loop ended having held nothing.
+                        await ui.until(entered.is_set, why="the page read this press asked for")
                         break
                 assert entered.is_set(), "no child read was held, so this proves nothing"
                 # A reply is waiting in the child. Typing still lands and the area still draws.
