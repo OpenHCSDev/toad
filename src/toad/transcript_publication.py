@@ -66,7 +66,12 @@ from toad.session_scope import (
     SessionScope,
     TranscriptScope,
 )
-from toad.transcript_preparation import PreparedPageSource
+from toad.entry_placement import ChronologicalEntry, EntryPlacement
+from toad.transcript_preparation import (
+    FrozenClosedHistory, FrozenSavedPrefix, PreparedPageSource, PreparedTranscriptPage,
+    SavedSuffix, UnreadTranscriptPage,
+)
+from toad.transcript_state import LiveTranscript, PreparedReplacementViewportRequest
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.committed_presentation import (
     block_claim,
@@ -76,6 +81,7 @@ from toad.widgets.committed_presentation import (
 )
 from toad.widgets.history_anchor import (
     HistoryWindow,
+    LatestPosition,
     TailPosition,
 )
 from toad.widgets.session_details import SessionDetails
@@ -651,6 +657,14 @@ class ViewBinding:
     def reset_reader(self) -> None:
         pass
 
+    async def keep_before_later_history(self, owner: TranscriptPresentation, entry: ChronologicalEntry,
+                                       cursor: TranscriptCursor) -> None:
+        """An unattached source has no native history to split."""
+
+    @property
+    def live_order(self) -> int:
+        return 1
+
     async def restore_documents(self, owner: TranscriptPresentation) -> None:
         pass
 
@@ -732,6 +746,41 @@ class BoundView(ViewBinding):
     def history(self) -> TranscriptHistory:
         return self._history
 
+    @property
+    def live_order(self) -> int:
+        return self.history.conversation_order + 1
+
+    async def keep_before_later_history(self, owner: TranscriptPresentation, entry: ChronologicalEntry,
+                                       cursor: TranscriptCursor) -> None:
+        history = self.history
+        await owner.suspend()
+        await history.retire_source(parked=True)
+        source = history.page_source
+        prefix = cursor.painted_read(
+            lambda at: FrozenSavedPrefix(source, owner.get_transcript_page, at, self.view.app.preparation),
+            FrozenClosedHistory(cursor, self.view.app.preparation),
+        )
+        prepared = await prefix.latest(history.pages[-1].prepared)
+        if not self.current() or self.history is not history:
+            prefix.close()
+            return
+        async with self.window.preserve_history():
+            history.page_source = prefix
+            history.resume_source()
+            if not prepared.same_source(history.pages[-1].prepared):
+                await history.show_newest(PreparedReplacementViewportRequest(
+                    LatestPosition.hold(self.window), prepared,
+                ))
+            later = TranscriptHistory(
+                PreparedTranscriptPage.empty(UnreadTranscriptPage(before=cursor, after=cursor)),
+                SavedSuffix(owner.get_transcript_page, cursor, self.view.app.preparation, after=cursor),
+                view=self.view, notification_view=self.contents, source_state=LiveTranscript(),
+            )
+            later.conversation_order = entry.conversation_order + 1
+            self._history = later
+            await self.contents.mount(later)
+            owner.require_commit()
+
     def observe_thread(self, owner: TranscriptPresentation) -> None:
         view = self.view
         owner._thread_observation.enter_context(
@@ -779,12 +828,19 @@ class BoundView(ViewBinding):
         if not self.view.is_attached or not owner.documents:
             return
         moment = self.Moment.capture(self, owner)
-        (source,) = owner.documents
-        if not moment.current() or source.closed:
+        (original,) = owner.documents
+        if not moment.current() or original.closed:
+            return
+        source = await original.for_rebuild()
+        if not moment.current():
+            if source is not original:
+                source.close()
             return
         await self.history.restore_source(source, moment.current)
         if moment.current():
             owner.documents = ()
+            if source is not original:
+                original.close()
 
     async def restore(self, owner: TranscriptPresentation) -> None:
         view = self.view
@@ -851,7 +907,7 @@ class BoundView(ViewBinding):
                             for sequence in block_claim(child).required_sequences
                         )
                     ),
-                    retained=frozenset({history}),
+                    retained=frozenset({history, self.history}),
                     native_inputs=coverage.native_inputs,
                     outgoing=history.outgoing_coverage,
                 ),
@@ -916,7 +972,7 @@ REFRESH_DEMAND = RefreshDemand()
 COMMIT_DEMAND = CommitDemand()
 
 
-class TranscriptPresentation:
+class TranscriptPresentation(EntryPlacement):
     """Owns the transcript document; attached native publishers can be replaced."""
 
     def __init__(self) -> None:
@@ -926,11 +982,23 @@ class TranscriptPresentation:
         self.generation = 0
         self.demand: PublicationDemand = CLEAN_PUBLICATION
         self.displayed_cursor: TranscriptCursor = UnreadTranscriptCursor()
+        self.observed_cursor: TranscriptCursor = UnreadTranscriptCursor()
         self.current_read: TranscriptPublicationState = NotPublished()
         self.worker: PublicationWork = NO_PUBLICATION_WORK
         self.source_requests = SourcePublicationRequests(self)
         self._thread_observation = ResourceRelease()
         self.events = CoreEventStream(self)
+
+    @property
+    def latest_cursor(self) -> TranscriptCursor:
+        return self.observed_cursor.painted_read(lambda cursor: cursor, self.displayed_cursor)
+
+    @property
+    def live_order(self) -> int:
+        return self.binding.live_order
+
+    async def keep_before_later_history(self, entry: ChronologicalEntry, cursor: TranscriptCursor) -> None:
+        await self.binding.keep_before_later_history(self, entry, cursor)
 
     def bind(self, view: Conversation) -> ViewBinding:
         if self.closed:
@@ -1017,6 +1085,7 @@ class TranscriptPresentation:
         return True
 
     def changed(self, cursor: TranscriptCursor) -> None:
+        self.observed_cursor = cursor
         self.invalidate_publications()
         self.demand = self.demand.changed(cursor)
         self.binding.request(self)
@@ -1163,6 +1232,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 self._close_documents()
                 self.demand = CLEAN_PUBLICATION
                 self.displayed_cursor = UnreadTranscriptCursor()
+                self.observed_cursor = UnreadTranscriptCursor()
                 work, self.worker = self.worker, NO_PUBLICATION_WORK
                 work.cancel()
                 # A different origin does not authorize reusing these pages.

@@ -4,6 +4,7 @@ from textual.widgets import Static
 from ui_theme.scheme import ErrorColour
 
 from toad.block_navigation import SeparatedBlock
+from toad.entry_placement import ChronologicalEntry
 from toad.native_style import RightPadding
 
 
@@ -13,7 +14,7 @@ class Note(RightPadding, SeparatedBlock, Static):
         return str(self.render())
 
 
-class ErrorNote(Note):
+class ErrorNote(ChronologicalEntry, Note):
     """A note reporting an error, framed in the error colour."""
 
     native_theme = (
