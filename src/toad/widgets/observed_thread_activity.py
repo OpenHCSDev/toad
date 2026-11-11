@@ -91,7 +91,7 @@ class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
 
     @property
     def working(self) -> bool:
-        return self.row.status.working
+        return self.row.status.is_working()
 
 
 class ThreadStatusOwner(ToadNode):
@@ -103,7 +103,7 @@ class ThreadStatusOwner(ToadNode):
     @property
     def _observed_working(self) -> bool:
         """Observed work cannot settle an independently owned ACP request."""
-        return self.thread_activity.working
+        return self.thread_activity.is_working()
 
     @abstractmethod
     def status_thread(self) -> StatusThread:

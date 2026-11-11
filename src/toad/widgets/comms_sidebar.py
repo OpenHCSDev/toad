@@ -224,7 +224,7 @@ class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRo
 
     @property
     def busy(self) -> bool:
-        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
+        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.is_working())
 
     def detail(self) -> str:
         """A pending action's own status while one runs, else the thread's summary."""
@@ -253,7 +253,7 @@ class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRo
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         self.update(self.with_detail(title), layout=False)
         if self.is_mounted and previous is not None and (
-                previous.status.working != row.status.working or previous.unread != row.unread):
+                previous.status.is_working() != row.status.is_working() or previous.unread != row.unread):
             self.run_effect(NEW_MESSAGE)
 
     def set_label(self, label: str) -> None:

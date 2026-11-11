@@ -44,8 +44,10 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
 class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
-    working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
+
+    def is_working(self) -> bool:
+        return False
 
     def failed(self, failure: NotificationStatus) -> NotificationStatus:
         """A failed read replaces this status; a known answer stays until a new answer."""
@@ -79,7 +81,7 @@ class NotificationStatus:
     @property
     def role(self) -> type[LineRole]:
         """The title's meaning and colour, wherever the title is drawn."""
-        return NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
+        return NoticeRole if self.unavailable else WorkingRole if self.is_working() else MutedRole
 
     def blocks(self, shown: Shown, link: LineLink) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
@@ -134,9 +136,8 @@ class CheckedNotifications(NotificationStatus):
     def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
         return tuple(item.recipient_identity for item in self.notifications if not item.state.consumed)
 
-    @property
-    def working(self) -> bool:
-        return any(item.state.working for item in self.notifications)
+    def is_working(self) -> bool:
+        return any(item.state.is_working() for item in self.notifications)
 
     @property
     def title(self) -> str:
