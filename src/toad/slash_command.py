@@ -243,10 +243,7 @@ class ModelCommand(NoArgumentsCommand):
     help = "Choose this thread's model"
 
     async def apply(self, conversation: Conversation) -> bool:
-        if conversation.model_selection_available:
-            conversation.prompt.model_switcher.focus()
-        else:
-            conversation.feedback.flash("This agent has no model selector", style="error")
+        conversation.prompt.model_switcher.focus()
         return True
 
 
