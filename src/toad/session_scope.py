@@ -52,8 +52,13 @@ class NoSessionOrigin(SessionOrigin):
 
 
 class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):
-    """The session answers read by ancestors and workspace owners."""
+    """The session answers read by ancestors and workspace owners.
 
+    A compositing layer: the compositor retains this subtree's geometry while
+    the tab is hidden, so showing it again skips the full layout walk.
+    """
+
+    COMPOSITING_LAYER = True
     COMMANDS: ClassVar[set[type[Provider]]] = set()
     AUTO_FOCUS = ""
     footer_compact = False
