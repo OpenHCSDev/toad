@@ -674,10 +674,6 @@ class ConversationSessionBinding(
     model_history_scope = var("")
 
     @property
-    def model_selection_available(self) -> bool:
-        return self.agent_binding.configuration.model.available
-
-    @property
     def mode_selection_available(self) -> bool:
         return bool(self.agent_binding.available_modes)
 

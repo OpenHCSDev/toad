@@ -856,8 +856,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     @on(events.Click, "AgentInfo")
     def on_agent_info_click(self):
-        if self.agent_binding.configuration.model.available:
-            self.model_switcher.focus()
+        self.model_switcher.focus()
 
     def update_modes(self) -> None:
         from toad.visuals.columns import Columns
