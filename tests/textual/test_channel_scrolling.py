@@ -1,5 +1,11 @@
 """Textual-facing: a long channel scrolls like a thread's history: held paging never draws a blank message area, the history grows under a reader without moving them, and End reaches the newest message with the draft untouched."""
 
+import asyncio
+import threading
+from unittest.mock import patch
+
+from agent_comms.ui_model.observation import CoreReadAnswered
+
 from support.textual_steps import painted_text, refresh_chat
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.presentation_window import NEWER_END, OLDER_END
@@ -95,6 +101,12 @@ async def test_held_paging_and_reversal_never_draw_a_blank_message_area_and_end_
                     window.scroll_y > 0 or history.has_more(OLDER_END)):
                 before = window.scroll_y, messages(history)[0].seq
                 await ui.press("pageup")
+                # A press at a lazy edge asks for the missing history and does not move yet
+                # (history_anchor.py:810); that read may finish after input settles
+                # (presentation_window.py:520). Wait for the page it asked for, then hold the
+                # press to the same promise: it moved.
+                await ui.until(lambda: (window.scroll_y, messages(history)[0].seq) != before,
+                               why="the page that press asked for")
                 assert (window.scroll_y, messages(history)[0].seq) != before, "PageUp stopped moving"
             # PageDown, then a reversal part of the way.
             for key, presses in (("pagedown", 12), ("pageup", 12)):
@@ -296,3 +308,49 @@ async def test_the_placement_scan_answers_once_per_publication(workspace):
                            why="the republished frame still pins beta inside beta's message")
         finally:
             type(window).placed_in = original
+
+
+async def test_a_held_child_read_leaves_paint_and_input_live_and_pages_when_it_is_released(workspace):
+    """A page read in the observation child is not a stall: the rest of the app keeps
+    drawing and taking keys while it is outstanding, and the page the press asked for
+    arrives once the read is released.
+    """
+    scroll_messages(workspace)
+    async with workspace.app(size=(110, 35)) as ui:
+        app, _pilot = ui.textual
+        chat, history, window = await long_channel(workspace, ui)
+        editor = chat.prompt.prompt_text_area
+        # Holding in front of the call would hold only the parent, with nothing accepted
+        # anywhere. The reply is what waits here: once one exists the child has received,
+        # served and answered the read, so this is a held read and not a held caller.
+        released = threading.Event()
+        entered = threading.Event()
+        real_received = CoreReadAnswered.received
+
+        async def holding(self, process, observed):
+            entered.set()
+            await asyncio.to_thread(released.wait)
+            return await real_received(self, process, observed)
+
+        window.focus(scroll_visible=False)
+        oldest_loaded = messages(history)[0].seq
+        frames, stop = record_blank_frames(app, window)
+        try:
+            with patch.object(CoreReadAnswered, "received", holding):
+                while messages(history)[0].seq >= oldest_loaded and history.has_more(OLDER_END):
+                    await ui.press("pageup")
+                    if entered.is_set() or window.scroll_y == 0:
+                        break
+                assert entered.is_set(), "no child read was held, so this proves nothing"
+                # A reply is waiting in the child. Typing still lands and the area still draws.
+                editor.focus()
+                await ui.press("h", "e", "l", "d")
+                assert editor.document.text.endswith("held"), "input died while a read was held"
+                assert frames and all(frames), "the message area went blank while a read was held"
+                released.set()
+            await ui.until(lambda: messages(history)[0].seq < oldest_loaded,
+                           why="the page the held read owed")
+        finally:
+            released.set()
+            stop()
+        assert ui.failure() is None
