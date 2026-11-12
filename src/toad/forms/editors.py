@@ -286,7 +286,7 @@ class ChoicesEditor(SelectEditor, shows=(AnnotationChoices,)):
         return choices
 
     def options(self) -> Iterable[tuple[str, object]]:
-        return ((self.choices.label(choice), choice) for choice in self.choices.choices())
+        return self.choices.labelled_choices()
 
 
 class EnumEditor(SelectEditor, shows=(Enum,)):
