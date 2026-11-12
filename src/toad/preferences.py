@@ -54,7 +54,7 @@ from toad.setting_choices import (
     UnreadCount,
     TopNavigationBar,
 )
-from toad.setting_declarations import FamilyChoices
+from toad.setting_declarations import FamilyChoices, SettingsDeclaration
 from toad.setting_widget import PromptSettingEffects
 from toad.terminal_origin import TerminalLayout
 from toad.version import CheckedVersionMonitor, VersionMonitor
@@ -62,7 +62,7 @@ from toad.widgets.presentation_window import PresentationBudget
 
 
 @dataclass(frozen=True)
-class InputSettings(AnnotatedDataclassValidationMixin):
+class InputSettings(SettingsDeclaration):
     box: Annotated[
         type[InputBox], FieldLabel("Layout"), FamilyChoices(InputBox),
         PromptSettingEffects.apply_input_layout,
@@ -91,7 +91,7 @@ class InputSettings(AnnotatedDataclassValidationMixin):
 
 
 @dataclass(frozen=True)
-class UiSettings(AnnotatedDataclassValidationMixin):
+class UiSettings(SettingsDeclaration):
     wheel_scroll_rows: Annotated[
         int, FieldLabel("Rows per mouse wheel notch"), Ge(1), effects.wheel_scroll_rows,
         WireName("wheel-scroll-rows"),
@@ -207,7 +207,7 @@ class UiSettings(AnnotatedDataclassValidationMixin):
 
 
 @dataclass(frozen=True)
-class NotificationsSettings(AnnotatedDataclassValidationMixin):
+class NotificationsSettings(SettingsDeclaration):
     system: Annotated[
         type[NotificationPolicy],
         FieldLabel("Show Toad notifications on your desktop?"),
@@ -228,7 +228,7 @@ class NotificationsSettings(AnnotatedDataclassValidationMixin):
 
 
 @dataclass(frozen=True)
-class SidebarSettings(AnnotatedDataclassValidationMixin):
+class SidebarSettings(SettingsDeclaration):
     hide: Annotated[bool, FieldLabel("Hide the sidebar when not in use?")] = False
 
     show_stopped: Annotated[
@@ -254,20 +254,20 @@ class SidebarSettings(AnnotatedDataclassValidationMixin):
 
 @mark_ui_hidden_config
 @dataclass(frozen=True)
-class SidebarArrangements(AnnotatedDataclassValidationMixin):
+class SidebarArrangements(SettingsDeclaration):
     """Where each sidebar sits and how large it is, saved per terminal origin."""
 
     terminals: tuple[TerminalLayout, ...] = ()
 
 
 @dataclass(frozen=True)
-class AgentSettings(AnnotatedDataclassValidationMixin):
+class AgentSettings(SettingsDeclaration):
     thoughts: Annotated[bool, FieldLabel("Agent thoughts"), effects.visibility] = True
     """Show agent's 'thoughts' in the conversation?"""
 
 
 @dataclass(frozen=True)
-class ToolsSettings(AnnotatedDataclassValidationMixin):
+class ToolsSettings(SettingsDeclaration):
     expand: Annotated[
         type[Expansion], FieldLabel("Tool call expand"), FamilyChoices(Expansion)
     ] = FailExpansion
@@ -275,7 +275,7 @@ class ToolsSettings(AnnotatedDataclassValidationMixin):
 
 
 @dataclass(frozen=True)
-class ShellSettings(AnnotatedDataclassValidationMixin):
+class ShellSettings(SettingsDeclaration):
     command: Annotated[str, FieldLabel("Shell command")] = "/bin/sh"
     """Command used to launch your shell on macOS.
     [bold]Note:[/] Requires restart."""
@@ -305,12 +305,12 @@ class ShellSettings(AnnotatedDataclassValidationMixin):
 
 
 @dataclass(frozen=True)
-class LauncherSettings(AnnotatedDataclassValidationMixin):
+class LauncherSettings(SettingsDeclaration):
     agents: Annotated[str, FieldLabel("Agents to show in the launcher"), Multiline()] = ""
 
 
 @dataclass(frozen=True)
-class StatisticsSettings(AnnotatedDataclassValidationMixin):
+class StatisticsSettings(SettingsDeclaration):
     allow_collect: Annotated[
         bool, FieldLabel("Allow collection of anonymous usage data?")
     ] = True
@@ -324,7 +324,7 @@ class StatisticsSettings(AnnotatedDataclassValidationMixin):
 
 
 @dataclass(frozen=True)
-class UpdateSettings(AnnotatedDataclassValidationMixin):
+class UpdateSettings(SettingsDeclaration):
     check: Annotated[bool, FieldLabel("Check for a newer Toad at startup?")] = True
     """A second after it starts, Toad fetches the latest release's version from batrachian.ai and says when a newer one is out."""
 
@@ -341,7 +341,7 @@ SESSIONS = FormPage("Agents and shell")
 
 
 @dataclass(frozen=True)
-class ToadSettings(AnnotatedDataclassValidationMixin):
+class ToadSettings(SettingsDeclaration):
     anon_id: str = field(default="", metadata={"ui_hidden": True})
     """Anonymous installation ID"""
 

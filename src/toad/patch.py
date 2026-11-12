@@ -18,7 +18,7 @@ from toad.line_blocks import (
     RemovedCodeRole,
     TextRole,
 )
-from toad.setting_declarations import Effect, FamilyChoices
+from toad.setting_declarations import Effect, FamilyChoices, SettingsDeclaration
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
@@ -181,7 +181,7 @@ class WrapModeEnabled(TitledChoice, WrapMode, declared_name="wrap"):
 
 
 @dataclass(frozen=True)
-class DiffSettings(AnnotatedDataclassValidationMixin):
+class DiffSettings(SettingsDeclaration):
     @Effect
     def changed(app, field) -> None:
         app.colours.refresh_line_renderer()

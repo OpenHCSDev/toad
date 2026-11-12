@@ -1,0 +1,178 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "settings-inherit-native-lazy-configuration-membership",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/setting_declarations.py",
+          "import_source": "from objectstate.lazy_factory import LazyResolutionDataclass"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/setting_declarations.py",
+          "import_source": "from python_introspect import AnnotatedDataclassValidationMixin"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/setting_declarations.py",
+          "target_qualname": "FamilyChoices",
+          "source": "class SettingsDeclaration(AnnotatedDataclassValidationMixin, LazyResolutionDataclass):\n    \"\"\"An actual settings record, recognized by ObjectState's lazy configuration factory.\"\"\""
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "InputSettings",
+          "replacements": [
+            {
+              "old_source": "class InputSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class InputSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "UiSettings",
+          "replacements": [
+            {
+              "old_source": "class UiSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class UiSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "NotificationsSettings",
+          "replacements": [
+            {
+              "old_source": "class NotificationsSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class NotificationsSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "SidebarSettings",
+          "replacements": [
+            {
+              "old_source": "class SidebarSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class SidebarSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "SidebarArrangements",
+          "replacements": [
+            {
+              "old_source": "class SidebarArrangements(AnnotatedDataclassValidationMixin):",
+              "new_source": "class SidebarArrangements(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "AgentSettings",
+          "replacements": [
+            {
+              "old_source": "class AgentSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class AgentSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "ToolsSettings",
+          "replacements": [
+            {
+              "old_source": "class ToolsSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class ToolsSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "ShellSettings",
+          "replacements": [
+            {
+              "old_source": "class ShellSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class ShellSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "LauncherSettings",
+          "replacements": [
+            {
+              "old_source": "class LauncherSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class LauncherSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "StatisticsSettings",
+          "replacements": [
+            {
+              "old_source": "class StatisticsSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class StatisticsSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "UpdateSettings",
+          "replacements": [
+            {
+              "old_source": "class UpdateSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class UpdateSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "target_qualname": "ToadSettings",
+          "replacements": [
+            {
+              "old_source": "class ToadSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class ToadSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/preferences.py",
+          "import_source": "from toad.setting_declarations import SettingsDeclaration"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/patch.py",
+          "target_qualname": "DiffSettings",
+          "replacements": [
+            {
+              "old_source": "class DiffSettings(AnnotatedDataclassValidationMixin):",
+              "new_source": "class DiffSettings(SettingsDeclaration):"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/patch.py",
+          "import_source": "from toad.setting_declarations import SettingsDeclaration"
+        }
+      ]
+    }
+  ]
+}

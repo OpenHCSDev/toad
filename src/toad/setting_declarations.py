@@ -7,12 +7,17 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.nominal.declared_choice import DeclaredChoice
-from python_introspect import AnnotationChoices
+from objectstate.lazy_factory import LazyResolutionDataclass
+from python_introspect import AnnotatedDataclassValidationMixin, AnnotationChoices
 
 if TYPE_CHECKING:
     from formbridge.forms.declared_fields import DeclaredField
 
     from toad.app import ToadApp
+
+
+class SettingsDeclaration(AnnotatedDataclassValidationMixin, LazyResolutionDataclass):
+    """An actual settings record, recognized by ObjectState's lazy configuration factory."""
 
 
 @dataclass(frozen=True)
