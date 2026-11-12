@@ -16,8 +16,9 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from formbridge.forms.declared_fields import DeclaredMetadata
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from objectstate import ObjectState
-from python_introspect import AnnotationChoices, FieldLabel
+from python_introspect import FieldLabel
 
+from python_introspect.choices import LabelledChoices
 from toad.acp.client_session import ClientSessionRequest
 from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import ConfigurationChanged
@@ -116,12 +117,9 @@ class AdvertisedSetting:
 
 
 @dataclass(frozen=True)
-class AdvertisedChoices(AdvertisedSetting, AnnotationChoices, DeclaredMetadata):
-    def choices(self) -> tuple[object, ...]:
-        return tuple(choice.value for choice in self.setting.choices)
-
-    def label(self, value: object) -> str:
-        return next(choice.name for choice in self.setting.choices if choice.value == value)
+class AdvertisedChoices(AdvertisedSetting, LabelledChoices, DeclaredMetadata):
+    def labelled_choices(self) -> tuple[tuple[str, object], ...]:
+        return tuple((choice.name, choice.value) for choice in self.setting.choices)
 
     def declares(self):
         yield from type(self.setting).__mro__[:-1]
