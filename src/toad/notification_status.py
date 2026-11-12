@@ -134,7 +134,7 @@ class CheckedNotifications(NotificationStatus):
 
     @property
     def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
-        return tuple(item.recipient_identity for item in self.notifications if not item.state.consumed)
+        return tuple(item.recipient_identity for item in self.notifications if not item.state.is_consumed())
 
     def is_working(self) -> bool:
         return any(item.state.is_working() for item in self.notifications)
