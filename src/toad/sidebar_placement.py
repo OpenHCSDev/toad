@@ -359,6 +359,10 @@ class ThreadSidebarPlacement(SidebarPlacement):
 class ObjectSidebarPlacement(ThreadSidebarPlacement):
     """Properties follow the viewed object, beside its other panels."""
 
+    @classmethod
+    def heading(cls, viewed: Iterable[str]) -> str:
+        return f"{super().heading(viewed)} properties"
+
 
 @dataclass
 class BandRoom(ABC):

@@ -2,7 +2,6 @@
 from functools import cached_property
 from textual import events, on
 from textual.geometry import Region
-from textual.widgets import Button
 from toad.forms.object_configuration import ObjectFormView
 from toad.object_configuration import ObjectConfiguration
 from toad.screens.modal import DismissibleScreen, ModalPanel
@@ -12,11 +11,22 @@ from toad.settings_scope import ObjectSidebarHost, ViewSettingsScope
 from toad.sidebar_placement import ObjectSidebarPlacement
 from toad.widgets.acting_button import DismissButton
 from toad.widgets.comms_menu import ContextMenu
-from toad.widgets.side_bar import SideBar, SidebarPanelWidget, ThreadSidebar
+from toad.widgets.side_bar import (
+    LazyThreadSidebar,
+    SideBar,
+    SidebarPanelWidget,
+)
 
 
-class ObjectSidebar(ThreadSidebar):
+class ObjectSidebar(LazyThreadSidebar):
     placement_type = ObjectSidebarPlacement
+
+    def __init__(self, configuration):
+        self.configuration = configuration
+        super().__init__(state=SidebarState())
+
+    def make_panels(self):
+        return (SideBar.Panel("Properties", ObjectProperties.whole(self.configuration), flex=True),)
 
 
 class ObjectProperties(ObjectFormView, SidebarPanelWidget):
@@ -47,8 +57,7 @@ class ConfiguredView(ViewSettingsScope):
 
     @cached_property
     def configuration_sidebar(self):
-        return ObjectSidebar(SideBar.Panel("Properties", ObjectProperties.whole(self.configuration_state), flex=True),
-                             state=SidebarState())
+        return ObjectSidebar(self.configuration_state)
 
     def sidebars(self):
         return (*super().sidebars(), self.configuration_sidebar)
@@ -61,7 +70,7 @@ class ConfiguredView(ViewSettingsScope):
     def close_configuration(self):
         self.configuration_state.close()
 
-    @on(events.MouseDown)
+    @on(events.Click)
     def configuration_menu(self, event):
         if event.button != 3:
             return

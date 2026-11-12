@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from annotationlib import Format, get_annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, cast
@@ -29,7 +30,7 @@ class SettingsDeclaration(AnnotatedDataclassValidationMixin, LazyResolutionDatac
     @classmethod
     def field_source(cls, name: str) -> type[SettingsDeclaration]:
         return next(owner for owner in cls.__mro__
-                    if name in vars(owner).get("__annotations__", {}))
+                    if name in get_annotations(owner, format=Format.STRING))
 
     @classmethod
     def admits_field(cls, name: str, scope: SettingsScope) -> bool:

@@ -69,6 +69,14 @@ class FieldView(DeclaredViews, WidgetView, containers.VerticalGroup):
     field_type = DeclaredField
 
     @classmethod
+    def family(cls):
+        return FieldView
+
+    @classmethod
+    def members(cls):
+        return (member for member in super().members() if member.family() is cls.family())
+
+    @classmethod
     def admits(cls, field: DeclaredField) -> bool:
         return True
 
@@ -219,7 +227,9 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
 
     def values_changed(self, paths: set[str]) -> None:
         for path in paths & self.values.keys():
-            self.values[path].editor.paint()
+            editor = self.values[path].editor
+            if editor.is_mounted:
+                editor.paint()
 
     def marks_changed(self, paths: set[str]) -> None:
         differ = self.state.dirty_fields

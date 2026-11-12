@@ -3,14 +3,12 @@ import json
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import cast
 
 from agent_comms.nominal.field_codec import FieldCodec
 from formbridge.forms.declared_fields import DeclaredField
 from objectstate import ObjectState, ObjectStateRegistry, ScopeKey
-from objectstate.lazy_factory import LazyDataclassFactory, get_base_type_for_lazy
+from objectstate.lazy_factory import LazyDataclassFactory
 from pydantic import JsonValue
-from python_introspect import UnifiedParameterAnalyzer
 
 from toad import atomic
 from toad.setting_declarations import Effect, SettingsDeclaration
@@ -78,6 +76,11 @@ class ObjectConfiguration(ObjectState):
 
     def shows(self, path: str) -> bool:
         return any(name == path or name.startswith(path + ".") for name in self.editable_paths)
+
+    def update_parameter(self, param_name: str, value: object) -> set[str]:
+        if param_name not in self.editable_paths:
+            raise ValueError(f"{param_name} cannot be overridden for {self.identity}")
+        return super().update_parameter(param_name, value)
 
     def apply_changes(self, paths: set[str]) -> None:
         for path in paths & self.editable_paths:

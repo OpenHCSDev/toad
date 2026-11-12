@@ -437,7 +437,7 @@ class SavedSettings(ExternalStore):
 
         raw = {} if raw is None else raw
         self.root = FieldPath(root)
-        self.state = ObjectState(FieldCodec.decode(root, raw))
+        self.state = ObjectState(FieldCodec.decode(root, raw), scope_id="")
         self.in_file = frozenset(self.keys_held("", raw))
         self.user_set = set(self.in_file)
         self.applied, self.report_error = applied, report_error

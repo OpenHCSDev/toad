@@ -1267,3 +1267,22 @@ class ThreadSidebar(SideBar):
 
     def store_collapsed(self, value: bool) -> None:
         self.collapsed = value
+
+
+class LazyThreadSidebar(ThreadSidebar):
+    """Create panel widgets only when this view's sidebar opens."""
+
+    def __init__(self, *panels, **kwargs):
+        super().__init__(*panels, defer_mount=True, **kwargs)
+
+    @property
+    def wants_panels(self) -> bool:
+        return super().wants_panels and not self.collapsed
+
+    @abstractmethod
+    def make_panels(self): ...
+
+    def _compose_panels(self):
+        if not self.panels:
+            self.panels.extend(self.make_panels())
+        yield from super()._compose_panels()

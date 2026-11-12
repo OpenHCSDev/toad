@@ -22,7 +22,7 @@ from python_introspect import (
     resolve_annotated,
 )
 from python_introspect.validation import validate_annotation_value
-from textual import containers
+from textual import containers, events
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar
 from textual.geometry import Spacing
@@ -70,6 +70,10 @@ class ValueEditor(DeclaredViews, EditorWidget):
         self.field = field
         super().__init__(**self.control_arguments())
         self.bind_control()
+        self.listen(events.Mount, self.control_mounted)
+
+    def control_mounted(self, event: events.Mount) -> None:
+        self.call_after_refresh(self.paint)
 
     def control_arguments(self) -> dict[str, object]:
         """Arguments for the native control; containers need no initial value."""
