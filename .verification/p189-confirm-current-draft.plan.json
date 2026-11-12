@@ -1,0 +1,47 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "confirm-the-current-draft-through-its-worker-owner",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/worker_group.py",
+          "import_source": "import asyncio"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/worker_group.py",
+          "target_qualname": "WorkerGroup.running_on",
+          "source": "    @classmethod\n    def workers_on(cls, node: DOMNode) -> tuple[Worker, ...]:\n        return tuple(worker for worker in node.workers\n                     if worker.node is node and worker.group == cls.group)\n\n    @classmethod\n    async def wait_on(cls, node: DOMNode) -> None:\n        \"\"\"Wait for the node's actual work; its original error still refuses the caller.\"\"\"\n        await asyncio.gather(*(worker.wait() for worker in cls.workers_on(node)))\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/worker_group.py",
+          "target_qualname": "WorkerGroup.running_on",
+          "replacements": [
+            {
+              "old_source": "return any(worker.node is node and worker.group == cls.group and not worker.is_finished\n                   for worker in node.workers)",
+              "new_source": "return any(not worker.is_finished for worker in cls.workers_on(node))"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from agent_comms.cli_support.cli_failures import CLI_FAILURES"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.confirm",
+          "replacements": [
+            {
+              "old_source": "        self.form.finish()\n        if self.query_one(ApplyCommandButton).disabled:\n            return\n        arguments = self.arguments()\n        confirmed = self.query_one(CommandConfirmed).value\n        self.query_one(ApplyCommandButton).disabled = True\n        await self.app.preparation.run_thread(\n            lambda: self.definition.edited(arguments).with_confirmation(confirmed))\n        if self.is_attached and arguments == self.arguments():\n            self.dismiss(arguments)\n",
+              "new_source": "        button = self.query_one(ApplyCommandButton)\n        if button.disabled:\n            return\n        self.form.finish()\n        try:\n            await CommandPreparation.wait_on(self)\n        except WorkerFailed:\n            # The preparation's own handler shows the original failure.\n            return\n        if not self.is_attached or any(view.editor.feedback for view in self.form.values.values()):\n            return\n        arguments = self.arguments()\n        confirmed = self.query_one(CommandConfirmed).value\n        button.disabled = True\n        try:\n            await self.app.preparation.run_thread(\n                lambda: self.definition.edited(arguments).with_confirmation(confirmed))\n        except CLI_FAILURES as error:\n            self.app.show_error(error, self.definition.label)\n            self.update_confirmation()\n            return\n        if self.is_attached and arguments == self.arguments():\n            self.dismiss(arguments)\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "shared-command-form-preparation-and-confirmation",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from python_introspect.choices import LabelledChoices"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from textual.worker import Worker"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from toad.worker_group import WorkerGroup"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from agent_comms.cli_verbs.cli_command import TargetAction"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from agent_comms.errors import RouteChangedError"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from agent_comms.execution.native_failures import NativePiUnavailable"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "PreparedChoices",
+          "replacements": [
+            {
+              "old_source": "class PreparedChoices(AnnotationChoices, DeclaredMetadata):",
+              "new_source": "class PreparedChoices(LabelledChoices, DeclaredMetadata):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "PreparedChoices",
+          "replacements": [
+            {
+              "old_source": "    def choices(self):\n        return tuple(value for _, value in self.parameter.choices)\n\n    def label(self, choice):\n        return next((label for label, value in self.parameter.choices if value == choice), 'Choose\u2026')",
+              "new_source": "    def labelled_choices(self):\n        return self.parameter.choices"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "ApplyCommandAction.apply",
+          "replacements": [
+            {
+              "old_source": "        await context.confirm()\n        if context.query_one(ApplyCommandButton).disabled:\n            return\n        arguments = context.arguments()\n        confirmed = context.query_one(CommandConfirmed).value\n        context.query_one(ApplyCommandButton).disabled = True\n        await context.app.preparation.run_thread(\n            lambda: context.definition.edited(arguments).with_confirmation(confirmed))\n        if context.is_attached and arguments == context.arguments():\n            context.dismiss(arguments)",
+              "new_source": "        await context.confirm()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.confirm",
+          "replacements": [
+            {
+              "old_source": "        self.form.finish()",
+              "new_source": "        self.form.finish()\n        if self.query_one(ApplyCommandButton).disabled:\n            return\n        arguments = self.arguments()\n        confirmed = self.query_one(CommandConfirmed).value\n        self.query_one(ApplyCommandButton).disabled = True\n        await self.app.preparation.run_thread(\n            lambda: self.definition.edited(arguments).with_confirmation(confirmed))\n        if self.is_attached and arguments == self.arguments():\n            self.dismiss(arguments)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog",
+          "source": "class CommandPreparation(WorkerGroup):\n    \"\"\"One preparation follows the current draft without restarting on each edit.\"\"\"\n\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.__init__",
+          "replacements": [
+            {
+              "old_source": "definition: PreparedTargetAction",
+              "new_source": "definition: TargetAction"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.on_mount",
+          "replacements": [
+            {
+              "old_source": "        self.update_confirmation()",
+              "new_source": "        self.prepare_current()\n        self.update_confirmation()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.draft_changed",
+          "replacements": [
+            {
+              "old_source": "        self.update_confirmation()\n        if paths & self.choices.keys():\n            self.run_worker(self.refresh_catalogs(self.arguments()),\n                            group='command-catalogs', exclusive=True)",
+              "new_source": "        self.prepare_current()\n        self.update_confirmation()"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.arguments",
+          "source": "    def prepare_current(self) -> None:\n        if not CommandPreparation.running_on(self):\n            CommandPreparation.run_on(self, self.refresh_catalogs(self.arguments()))\n\n    @on(Worker.StateChanged)\n    def preparation_changed(self, event: Worker.StateChanged) -> None:\n        if (event.worker.node is self and event.worker.group == CommandPreparation.group\n                and event.worker.is_finished and self.is_attached):\n            self.update_confirmation()\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.refresh_catalogs",
+          "replacements": [
+            {
+              "old_source": "        self.query_one(ApplyCommandButton).disabled = True\n        edited = self.definition.edited(arguments)\n        fields = (await self.app.preparation.run_thread(\n            lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))).fields\n        if not self.is_attached or arguments != self.arguments():\n            return\n        for parameter in fields:\n            if parameter.name in self.choices:\n                self.choices[parameter.name].parameter = parameter\n                self.form.values[parameter.name].editor.paint()\n        self.update_confirmation()\n",
+              "new_source": "        self.query_one(ApplyCommandButton).disabled = True\n        try:\n            while self.is_attached:\n                edited = self.definition.edited(arguments)\n                prepared = await self.app.preparation.run_thread(\n                    lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))\n                if not self.is_attached:\n                    return\n                current = self.arguments()\n                if arguments != current:\n                    arguments = current\n                    continue\n                self.definition = prepared\n                for parameter in prepared.fields:\n                    if parameter.name in self.choices:\n                        self.choices[parameter.name].parameter = parameter\n                        self.form.values[parameter.name].editor.paint()\n                break\n        except (NativePiUnavailable, RouteChangedError) as error:\n            self.app.show_error(error, self.definition.label)\n        if self.is_attached:\n            self.update_confirmation()\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.update_confirmation",
+          "replacements": [
+            {
+              "old_source": "        arguments = self.arguments()\n        async def prepare():",
+              "new_source": "        arguments = self.arguments()\n        if CommandPreparation.running_on(self):\n            self.query_one(CommandConfirmation).update(\"Loading choices\u2026\")\n            confirmed.display = False\n            return\n        async def prepare():"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/thread_actions.py",
+          "target_qualname": "ThreadAction.collect",
+          "replacements": [
+            {
+              "old_source": "                try:\n                    prepared = await ctx.app.preparation.run_thread(\n                        lambda: ctx.observed.core.call(CommsPrepareTargetActionTool(action=definition)))\n                    ctx.current()\n                except (NativePiUnavailable, RouteChangedError) as error:\n                    ctx.app.show_error(error, definition.label)\n                    return\n                if ctx.app.screen is screen:\n                    ctx.app.push_screen(\n                        CommandDialog(prepared, ctx.title, prepared.fields, ctx.observed.core), accepted)",
+              "new_source": "                fields = await ctx.app.preparation.run_thread(lambda: definition.editable_fields)\n                ctx.current()\n                if ctx.app.screen is screen:\n                    ctx.app.push_screen(\n                        CommandDialog(definition, ctx.title, fields, ctx.observed.core), accepted)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

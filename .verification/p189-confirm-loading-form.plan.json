@@ -1,0 +1,35 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "the-confirm-operation-owns-its-preparation-wait",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.update_confirmation",
+          "replacements": [
+            {
+              "old_source": "        if CommandPreparation.running_on(self):\n            self.query_one(CommandConfirmation).update(\"Loading choices\u2026\")\n            confirmed.display = False\n            return",
+              "new_source": "        button = self.query_one(ApplyCommandButton)\n        button.loading = CommandPreparation.running_on(self)\n        if button.loading:\n            self.query_one(CommandConfirmation).update(\"Loading choices\u2026\")\n            confirmed.display = False\n            # Confirm owns the wait, including an edit committed by this click.\n            button.disabled = False\n            return"
+            },
+            {
+              "old_source": "if not self.is_attached or arguments != self.arguments():",
+              "new_source": "if not self.is_attached or arguments != self.arguments() or CommandPreparation.running_on(self):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.confirm",
+          "replacements": [
+            {
+              "old_source": "        self.form.finish()\n        try:\n            await CommandPreparation.wait_on(self)",
+              "new_source": "        self.form.finish()\n        button.disabled = True\n        button.loading = True\n        try:\n            await CommandPreparation.wait_on(self)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

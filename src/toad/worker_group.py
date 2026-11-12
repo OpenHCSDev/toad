@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from typing import ClassVar
 
@@ -42,9 +43,18 @@ class WorkerGroup:
         return node.workers.cancel_group(node, cls.group)
 
     @classmethod
+    def workers_on(cls, node: DOMNode) -> tuple[Worker, ...]:
+        return tuple(worker for worker in node.workers
+                     if worker.node is node and worker.group == cls.group)
+
+    @classmethod
+    async def wait_on(cls, node: DOMNode) -> None:
+        """Wait for the node's actual work; its original error still refuses the caller."""
+        await asyncio.gather(*(worker.wait() for worker in cls.workers_on(node)))
+
+    @classmethod
     def running_on(cls, node: DOMNode) -> bool:
-        return any(worker.node is node and worker.group == cls.group and not worker.is_finished
-                   for worker in node.workers)
+        return any(not worker.is_finished for worker in cls.workers_on(node))
 
 
 class InputHistoryRecord(WorkerGroup):
