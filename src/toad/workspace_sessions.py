@@ -235,8 +235,6 @@ class WorkspaceSessions(WorkspaceViews):
             return destination
         departing = self.source
         await self.retire()
-        # The loop runs due input and timers between the steps (the switch holds the frames).
-        await after_input()
         # The preceding frame certifies the departing source. Revoke it before
         # LoadingWorkspaceSource admits any destination preparation callbacks.
         self.app.workspace_screen.frame_presentation.begin()
@@ -247,7 +245,6 @@ class WorkspaceSessions(WorkspaceViews):
         destination.display = True
         await self.app.workspace_chrome.select(destination)
         await destination.prepare_presentation()
-        await after_input()
         destination.activate_session()
         if destination.AUTO_FOCUS:
             if target := destination.query_one_optional(destination.AUTO_FOCUS):

@@ -480,9 +480,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
             # Releasing the hold repaints the screen it held, however the switch ends.
             with self.workspace_screen.hold_frames():
                 await self.workspace_sessions.select(mode)
-                await after_input()
                 await self.workspace_screen.prepare_navigation()
-                await after_input()
                 await self.workspace_screen.layout_navigation()
             if mode != previous:
                 if entry := self.session_navigation.get(mode):
