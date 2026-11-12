@@ -10,7 +10,7 @@ from toad.session_tracker import SidebarState
 from toad.settings_scope import ObjectSidebarHost, ViewSettingsScope
 from toad.sidebar_placement import ObjectSidebarPlacement
 from toad.widgets.acting_button import DismissButton
-from toad.widgets.comms_menu import ContextMenu
+from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.side_bar import (
     LazyThreadSidebar,
     SideBar,
@@ -77,9 +77,8 @@ class ConfiguredView(ViewSettingsScope):
         event.stop()
         event.prevent_default()
         # The properties form is shared; opening it never copies the state's values.
-        ContextMenu.show(self.screen, Region.from_offset(event.screen_offset, (0, 0)),
-                         self.display_name, [(self.open_configuration, "Properties…")],
-                         callback=lambda chosen: chosen() if chosen is not None else None)
+        ActionMenu.show(self.screen, Region.from_offset(event.screen_offset, (0, 0)),
+                        self.display_name, [(self.open_configuration, "Properties…")])
 
     def open_configuration(self):
         self.app.push_screen(ObjectConfigurationDialog(self.configuration_state))

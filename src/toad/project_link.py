@@ -178,14 +178,13 @@ class ProjectFileLink(ProjectLink):
         widget.app.run_worker(partial(widget.app.session_navigation.preview, path, position=self.position))
 
     def copy_file(self, widget, event, path: Path) -> None:
-        from toad.widgets.comms_menu import ContextMenu
+        from toad.widgets.comms_menu import ActionMenu
 
         full_path = str(path)
         event.prevent_default()
         copy_path = partial(widget.app.copy_to_clipboard, full_path)
-        ContextMenu.show(widget.screen, Region.from_offset(event.screen_offset, (0, 0)), full_path,
-                         [(copy_path, "Copy full path")],
-                         callback=lambda chosen: chosen() if chosen is not None else None)
+        ActionMenu.show(widget.screen, Region.from_offset(event.screen_offset, (0, 0)), full_path,
+                        [(copy_path, "Copy full path")])
 
 
 @dataclass(frozen=True)
