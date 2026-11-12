@@ -400,6 +400,11 @@ class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc
         return screen
 
     async def prepare_presentation(self) -> None:
+        # A warm-parked tab's widget tree is intact: skip the full prepare.
+        conversation = self.presentation.widget
+        if conversation is not None and conversation.is_mounted:
+            await self.presentation.prepare(self)
+            return
         await self.content.prepare(self)
 
     async def _prepare_content(self) -> None:
