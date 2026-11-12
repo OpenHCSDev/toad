@@ -1,7 +1,6 @@
 """Typed ACP advertisements own their selection, publication and request behavior."""
 from __future__ import annotations
 
-from abc import abstractmethod
 from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated, ClassVar, cast
 
@@ -16,9 +15,9 @@ from agent_comms.execution.acp_failure import RequestFailure
 from agent_comms.nominal.declared_family import DeclaredFamily
 from formbridge.forms.declared_fields import DeclaredMetadata
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
+
 from toad.acp.client_session import ClientSessionRequest
 from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import ConfigurationChanged
@@ -58,7 +57,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
     async def recent_choices(self, scope: str) -> list[str]:
         return []
 
-    def selection_event(self, value: str):
+    def selection_event(self, value: str | bool):
         return ChangeConfiguration(self.option.id, value)
 
     @classmethod
@@ -76,7 +75,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
         return self.option is not None
 
     @property
-    def current(self) -> str:
+    def current(self) -> str | bool:
         return self.option.current_value if self.option else ""
 
     @property
@@ -232,8 +231,10 @@ class AgentConfiguration:
         self.selections: dict[str, ConfigurationSetting] = {}
 
     def setting[T: ConfigurationSetting](self, kind: type[T]) -> T:
-        return cast(T, next((setting for setting in self.selections.values()
-                             if isinstance(setting, kind)), kind()))
+        matches = tuple(setting for setting in self.selections.values()
+                        if isinstance(setting, kind))
+        selected, = matches or (kind(),)
+        return cast(T, selected)
 
     def named(self, key: str) -> ConfigurationSetting:
         return self.selections[key]

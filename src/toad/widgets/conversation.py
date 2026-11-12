@@ -18,7 +18,10 @@ from acp import schema as acp_protocol
 from acp.exceptions import RequestError
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.channel_targets import CommandTarget
-from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
+from agent_comms.planning.goal_presentation import (
+    GoalExecutionControls,
+    IdleGoalExecution,
+)
 from agent_comms.planning.goals import NoGoal
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_presentation import (
@@ -54,7 +57,6 @@ from textual.strip import Strip
 from textual.view import AUTO, FILL
 from textual.widget import Widget
 from textual.widgets import Static
-from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from ui_theme.effects import CURSOR_BLINK, Mix
 from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
@@ -84,6 +86,7 @@ from toad.conversation_submission import AgentInputSubmission, ConversationSubmi
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
 from toad.core import input_events
+from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import AgentFail, AgentReady
 from toad.core.preference_events import PreferenceChanged
 from toad.core.source_events import (

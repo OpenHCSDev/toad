@@ -1,20 +1,21 @@
 """Textual-facing: the model picker (an option list popup with a search input) takes keyboard focus, highlights under mouse and keys, stays on screen when resized, and keeps the prompt draft."""
 
-from contextlib import asynccontextmanager
 import json
 import subprocess
 import sys
+from contextlib import asynccontextmanager
 
 from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
-from toad.acp.status import EndTurnStopReason
 from support.agents import AppAgents, command
+from textual.document._editing import EditingMode
+
 from toad.acp.agent import Agent
+from toad.acp.status import EndTurnStopReason
 from toad.command_catalog import CommandCatalog
 from toad.db import DB
 from toad.widgets.model_selection import ClearModelSearchAction
 from toad.widgets.model_switcher import SessionModelEditor
 from toad.widgets.prompt import AgentInfo
-from textual.document._editing import EditingMode
 
 GLM = "openrouter/z-ai/glm-5.3-flash"
 SONNET = "openrouter/anthropic/claude-sonnet-4.6"

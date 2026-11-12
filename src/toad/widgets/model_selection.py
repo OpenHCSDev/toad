@@ -14,6 +14,14 @@ from textual.document._editing import EditingMode
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option, OptionListComponent
+from ui_theme.scheme import (
+    BackgroundColour,
+    BlockCursorBackgroundColour,
+    BlockCursorForegroundColour,
+    BlockCursorTextStyle,
+    PrimaryColour,
+)
+
 from toad.acp.agent_configuration import ModelConfigurationSetting
 from toad.core_event_carrier import CoreEventReceiver
 from toad.native_style import (
@@ -39,13 +47,6 @@ from toad.widget_actions import (
 )
 from toad.widgets.prompt_popup import PaddedOptionRows
 from toad.widgets.selection import InlineSelection, SelectionOptionList
-from ui_theme.scheme import (
-    BackgroundColour,
-    BlockCursorBackgroundColour,
-    BlockCursorForegroundColour,
-    BlockCursorTextStyle,
-    PrimaryColour,
-)
 
 
 class ConnectProvider(

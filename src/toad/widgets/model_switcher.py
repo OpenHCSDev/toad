@@ -1,34 +1,29 @@
 """Searchable, recently-used-first model picker for ACP sessions."""
 
 from __future__ import annotations
-from formbridge.forms.declared_fields import DeclaredField
-from objectstate import ObjectState
-from textual.css.scalar import Scalar
-from toad.core import input_events
 
 from typing import Self
 
-from textual import events, on
+from textual import events
 from textual.app import ComposeResult
-from textual.widgets import Select
+from textual.css.scalar import Scalar
 
 from toad.acp.agent_configuration import (
     AdvertisedChoices,
     AdvertisedSetting,
-    ConfigurationSetting,
     ModelConfigurationSetting,
 )
+from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
+from toad.native_style import ScreenOverlay
 from toad.widgets.model_selection import (
-    ConnectProvider,
     ModelSelection,
     SelectionBounds,
 )
 from toad.widgets.prompt_popup import InfoPopup
 
-from toad.native_style import ScreenOverlay
 
 class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationSetting,)):
     """The ordinary form owns the value; model search is its specialized editor."""

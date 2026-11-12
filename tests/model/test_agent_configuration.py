@@ -2,14 +2,14 @@
 from acp.schema import SetSessionConfigOptionResponse
 from formbridge.forms.declared_fields import DeclaredField
 from objectstate import DottedFieldPath
+from support.agents import RecordedEvents
+
 from toad.acp.agent_configuration import (
     AdvertisedSetting,
     AgentConfiguration,
-    ConfigurationSetting,
     ModelConfigurationSetting,
 )
 from toad.core.events import ConfigurationChanged
-from support.agents import RecordedEvents
 
 
 def test_configuration_owns_typed_groups_replacement_and_new_case(app_agents, tmp_path):
