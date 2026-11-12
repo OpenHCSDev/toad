@@ -54,6 +54,7 @@ from toad.session_presentation import (
 )
 from toad.session_scope import ViewSessionOrigin
 from toad.session_tracker import SessionDetails
+from toad.settings_scope import SettingsReader
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widget_actions import (
     CyclesSessions,
@@ -461,7 +462,7 @@ class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc
         self.app.terminal_attention.update()
 
     def get_loading_widget(self) -> Widget:
-        return self.app.settings.ui.throbber.widget(self)
+        return self.settings.ui.throbber.widget(self)
 
     def activate_session(self) -> None:
         # The identity is updated by ACP's coordination notification and

@@ -1251,9 +1251,11 @@ class SideBar(
 
 
 class ThreadSidebar(SideBar):
+    placement_type = ThreadSidebarPlacement
+
     def __init__(self, *panels, state: SidebarState, **kwargs):
         self.state = state
-        super().__init__(*panels, placement_identity=ThreadSidebarPlacement, hide=True, **kwargs)
+        super().__init__(*panels, placement_identity=self.placement_type, hide=True, **kwargs)
         self.collapsed = self.hide
 
     @property

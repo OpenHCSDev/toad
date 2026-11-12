@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, ClassVar
 from agent_comms.cli_verbs.cli_result import ResultShower
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms_hooks import ToolRefusedError
+from objectstate import ObjectState, ObjectStateRegistry
 from rich.color import Color as RichColor
 from rich.console import RenderableType
 from rich.segment import Segment
@@ -38,6 +39,7 @@ from textual.screen import Screen
 from textual.strip import Strip
 from textual.style import Style as VisualStyle
 from textual.theme import Theme
+from toad.settings_scope import SettingsScope
 from ui_theme.backend import Backend, TerminalBackend
 from ui_theme.catalog import SCHEMES
 from ui_theme.clock import AnimationClock
@@ -516,7 +518,7 @@ class _ThemedAppMeta(_MessagePumpMeta, ABCMeta):
     """Compose Textual message dispatch with the result display capability."""
 
 
-class ThemedApp(App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
+class ThemedApp(SettingsScope, App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
     """A Textual app drawn through ui_theme: mix in before `App`.
 
     Holds the colours owner and answers Textual's three questions from it: the
@@ -531,10 +533,15 @@ class ThemedApp(App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
     def __init__(self) -> None:
         # Line styles read the diff settings, so a themed app holds settings before its colours.
         self.saved_settings = self.open_settings()
+        ObjectStateRegistry.register(self.saved_settings.state)
         # Textual asks for the colour system and the palette while it builds the app.
         self.colours = TextualColours(self)  # type: ignore[arg-type]
         super().__init__()
         self.colours.register_catalog()
+
+    @property
+    def configuration_state(self) -> ObjectState:
+        return self.saved_settings.state
 
     def open_settings(self) -> SavedSettings:
         """Settings held by this app alone; an app with a settings file opens it instead."""

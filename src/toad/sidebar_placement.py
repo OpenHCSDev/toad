@@ -356,6 +356,10 @@ class ThreadSidebarPlacement(SidebarPlacement):
         return next(iter(viewed), cls.scope)
 
 
+class ObjectSidebarPlacement(ThreadSidebarPlacement):
+    """Properties follow the viewed object, beside its other panels."""
+
+
 @dataclass
 class BandRoom(ABC):
     """One band's room while its bars take it, named by the band's most open fold."""

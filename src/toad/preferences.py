@@ -56,13 +56,14 @@ from toad.setting_choices import (
 )
 from toad.setting_declarations import FamilyChoices, SettingsDeclaration
 from toad.setting_widget import PromptSettingEffects
+from toad.settings_scope import ConversationSettingsScope, ViewSettingsScope
 from toad.terminal_origin import TerminalLayout
 from toad.version import CheckedVersionMonitor, VersionMonitor
 from toad.widgets.presentation_window import PresentationBudget
 
 
 @dataclass(frozen=True)
-class InputSettings(SettingsDeclaration):
+class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsScope,)):
     box: Annotated[
         type[InputBox], FieldLabel("Layout"), FamilyChoices(InputBox),
         PromptSettingEffects.apply_input_layout,
@@ -91,13 +92,30 @@ class InputSettings(SettingsDeclaration):
 
 
 @dataclass(frozen=True)
-class UiSettings(SettingsDeclaration):
-    wheel_scroll_rows: Annotated[
-        int, FieldLabel("Rows per mouse wheel notch"), Ge(1), effects.wheel_scroll_rows,
-        WireName("wheel-scroll-rows"),
-    ] = 1
-    """Vertical rows per wheel event in transcripts and sidebars. Increase for faster travel."""
+class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsScope,)):
+    column: Annotated[bool, FieldLabel("Enable column?"), effects.conversation_layout] = False
+    """Enable for a fixed column size. Disable to use the full screen width."""
+    column_width: Annotated[
+        int, FieldLabel("Width of the column"), Ge(40), effects.conversation_layout,
+        WireName("column-width"),
+    ] = 100
+    """Width of the column if enabled. Minimum 40 characters."""
+    column_alignment: Annotated[
+        type[ColumnAlignment], FieldLabel("Column alignment"),
+        FamilyChoices(ColumnAlignment), effects.conversation_layout,
+        WireName("column-alignment"),
+    ] = LeftColumnAlignment
+    """Place the conversation column on the left, in the center, or on the right."""
+    scrollbar: Annotated[
+        type[Scrollbar],
+        FieldLabel("Scrollbar size"),
+        FamilyChoices(Scrollbar),
+        effects.conversation_layout,
+    ] = NormalScrollbar
 
+
+@dataclass(frozen=True)
+class ConversationUiSettings(ViewUiSettings, scopes=(ConversationSettingsScope,)):
     history_buffer_viewports: Annotated[
         int,
         FieldLabel("History buffer in message-area heights"),
@@ -106,6 +124,39 @@ class UiSettings(SettingsDeclaration):
         WireName("history-buffer-viewports"),
     ] = PresentationBudget().buffer_viewports
     """Prepare and retain this distance on both sides of the reader. Memory and widget limits still apply."""
+    input: Annotated[InputSettings, FieldLabel("Input box")] = field(
+        default_factory=InputSettings
+    )
+    """The prompt you type messages and shell commands into."""
+    info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility, WireName("info-bar"),] = True
+    """The info bar is the text below the prompt text area. Disable for more space."""
+    status_line: Annotated[
+        bool, FieldLabel("Show status line in the info bar?"), effects.visibility,
+        WireName("status-line"),
+    ] = True
+    """The status line shows tokens and cost (not available in all agents)."""
+    agent_title: Annotated[
+        bool, FieldLabel("Show agent title the info bar?"), effects.visibility,
+        WireName("agent-title"),
+    ] = True
+    """Disable for a little extras space."""
+    throbber: Annotated[
+        type[LoadingStyle], FieldLabel("Thinking animation"), FamilyChoices(LoadingStyle)
+    ] = PulseLoading
+    """Animation to show while waiting for the agent to respond"""
+    prune_low_mark: Annotated[int, FieldLabel("Target lines"), Ge(100)] = 1500
+    """Keep at least this many number of lines of conversation (minimum 100)."""
+    prune_excess: Annotated[int, FieldLabel("Additional lines"), Ge(0)] = 1000
+    """Start removing lines when the conversation has this number of lines more than the target (see 'Target lines')."""
+
+
+@dataclass(frozen=True)
+class UiSettings(ConversationUiSettings):
+    wheel_scroll_rows: Annotated[
+        int, FieldLabel("Rows per mouse wheel notch"), Ge(1), effects.wheel_scroll_rows,
+        WireName("wheel-scroll-rows"),
+    ] = 1
+    """Vertical rows per wheel event in transcripts and sidebars. Increase for faster travel."""
 
     theme: Annotated[str, SchemeName(), effects.theme] = "wal"
     """wal follows pywal's palette in true colour. ANSI themes inherit your terminal palette."""
@@ -125,11 +176,6 @@ class UiSettings(SettingsDeclaration):
     keymap: Keymap = field(default_factory=Keymap)
     """Keyboard overrides, edited in the keybinding menu."""
 
-    input: Annotated[InputSettings, FieldLabel("Input box")] = field(
-        default_factory=InputSettings
-    )
-    """The prompt you type messages and shell commands into."""
-
     sessions_bar: Annotated[
         type[SessionBar],
         FieldLabel("Show sessions bar?"),
@@ -142,55 +188,12 @@ class UiSettings(SettingsDeclaration):
     footer: Annotated[bool, FieldLabel("Enable footer?"), effects.visibility] = True
     """Disable the footer if you want additional room."""
 
-    info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility, WireName("info-bar"),] = True
-    """The info bar is the text below the prompt text area. Disable for more space."""
-
-    status_line: Annotated[
-        bool, FieldLabel("Show status line in the info bar?"), effects.visibility,
-        WireName("status-line"),
-    ] = True
-    """The status line shows tokens and cost (not available in all agents)."""
-
-    agent_title: Annotated[
-        bool, FieldLabel("Show agent title the info bar?"), effects.visibility,
-        WireName("agent-title"),
-    ] = True
-    """Disable for a little extras space."""
-
-    column: Annotated[bool, FieldLabel("Enable column?"), effects.conversation_layout] = False
-    """Enable for a fixed column size. Disable to use the full screen width."""
-
-    column_width: Annotated[
-        int, FieldLabel("Width of the column"), Ge(40), effects.conversation_layout,
-        WireName("column-width"),
-    ] = 100
-    """Width of the column if enabled. Minimum 40 characters."""
-
-    column_alignment: Annotated[
-        type[ColumnAlignment], FieldLabel("Column alignment"),
-        FamilyChoices(ColumnAlignment), effects.conversation_layout,
-        WireName("column-alignment"),
-    ] = LeftColumnAlignment
-    """Place the conversation column on the left, in the center, or on the right."""
-
     navigation_bar: Annotated[
         type[NavigationBarPosition], FieldLabel("Navigation bar"),
         FamilyChoices(NavigationBarPosition), effects.conversation_layout,
         WireName("navigation-bar"),
     ] = TopNavigationBar
     """Show the menu, history arrows and tabs above the conversation or below it."""
-
-    scrollbar: Annotated[
-        type[Scrollbar],
-        FieldLabel("Scrollbar size"),
-        FamilyChoices(Scrollbar),
-        effects.conversation_layout,
-    ] = NormalScrollbar
-
-    throbber: Annotated[
-        type[LoadingStyle], FieldLabel("Thinking animation"), FamilyChoices(LoadingStyle)
-    ] = PulseLoading
-    """Animation to show while waiting for the agent to respond"""
 
     flash_duration: Annotated[float, FieldLabel("Flash duration"), Ge(0.5)] = 3.0
     """Default duration of flash messages (in seconds)"""
@@ -199,11 +202,9 @@ class UiSettings(SettingsDeclaration):
     """Automatically copy text on selection?
     Doesn't apply to text areas (use ctrl+c to copy)."""
 
-    prune_low_mark: Annotated[int, FieldLabel("Target lines"), Ge(100)] = 1500
-    """Keep at least this many number of lines of conversation (minimum 100)."""
 
-    prune_excess: Annotated[int, FieldLabel("Additional lines"), Ge(0)] = 1000
-    """Start removing lines when the conversation has this number of lines more than the target (see 'Target lines')."""
+
+
 
 
 @dataclass(frozen=True)
@@ -261,13 +262,13 @@ class SidebarArrangements(SettingsDeclaration):
 
 
 @dataclass(frozen=True)
-class AgentSettings(SettingsDeclaration):
+class AgentSettings(SettingsDeclaration, scopes=(ConversationSettingsScope,)):
     thoughts: Annotated[bool, FieldLabel("Agent thoughts"), effects.visibility] = True
     """Show agent's 'thoughts' in the conversation?"""
 
 
 @dataclass(frozen=True)
-class ToolsSettings(SettingsDeclaration):
+class ToolsSettings(SettingsDeclaration, scopes=(ConversationSettingsScope,)):
     expand: Annotated[
         type[Expansion], FieldLabel("Tool call expand"), FamilyChoices(Expansion)
     ] = FailExpansion
