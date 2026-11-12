@@ -11,8 +11,9 @@ from support.agents import AppAgents, command
 from toad.acp.agent import Agent
 from toad.command_catalog import CommandCatalog
 from toad.db import DB
+from toad.widgets.model_selection import ClearModelSearchAction
+from toad.widgets.model_switcher import SessionModelEditor
 from toad.widgets.prompt import AgentInfo
-from toad.widgets.model_switcher import ClearModelSearchAction
 from textual.document._editing import EditingMode
 
 GLM = "openrouter/z-ai/glm-5.3-flash"
@@ -61,8 +62,12 @@ class Picker:
         self.widget = self.prompt.model_switcher
         _app, self.pilot = ui.textual
 
+    @property
+    def selection(self):
+        return self.widget.query_one(SessionModelEditor)
+
     def ids(self):
-        options = self.widget.option_list
+        options = self.selection.option_list
         return [options.get_option_at_index(i).id for i in range(options.option_count)]
 
     async def open_with_command(self):
@@ -96,7 +101,7 @@ async def picker_session(workspace):
 
 async def choose_gpt(picker):
     await picker.open_with_command()
-    assert picker.widget.search_input.has_focus and not picker.widget.search_input.value
+    assert picker.selection.search_input.has_focus and not picker.selection.search_input.value
     await picker.ui.press(*"gpt 5.4")
     assert picker.ids()[0] == GPT
     await picker.ui.press("enter")
@@ -109,7 +114,7 @@ async def choose_gpt(picker):
 async def open_by_clicking_the_model(picker):
     before = await picker.recents()
     assert await picker.pilot.click(picker.prompt.query_one(AgentInfo))
-    await picker.ui.until(lambda: picker.widget.recent_ids == before, why="recent models in the picker")
+    await picker.ui.until(lambda: picker.selection.recent_ids == before, why="recent models in the picker")
     await picker.ui.step()
     return before
 
@@ -123,11 +128,11 @@ async def test_opening_the_picker_focuses_search_and_lists_recent_models_first(w
     async with picker_session(workspace) as picker:
         widget = picker.widget
         await open_by_clicking_the_model(picker)
-        assert widget.search_input.has_focus
+        assert picker.selection.search_input.has_focus
         assert picker.ids()[:3] == [SONNET, GPT, GLM]
-        highlighted_style = row_style(widget.option_list, 0)
+        highlighted_style = row_style(picker.selection.option_list, 0)
         assert highlighted_style.color != highlighted_style.bgcolor
-        assert highlighted_style.bgcolor != row_style(widget.option_list, 1).bgcolor
+        assert highlighted_style.bgcolor != row_style(picker.selection.option_list, 1).bgcolor
         assert "retired/model" not in picker.ids()
 
 
@@ -135,14 +140,14 @@ async def test_hover_and_arrow_keys_move_the_highlight_without_taking_focus_from
     async with picker_session(workspace) as picker:
         widget, ui = picker.widget, picker.ui
         await open_by_clicking_the_model(picker)
-        await picker.pilot.hover(widget.option_list, offset=(2, 1))
+        await picker.pilot.hover(picker.selection.option_list, offset=(2, 1))
         await ui.step()
-        assert widget.option_list.highlighted == 1
-        assert widget.search_input.has_focus
+        assert picker.selection.option_list.highlighted == 1
+        assert picker.selection.search_input.has_focus
         await ui.press("down")
-        assert widget.option_list.highlighted == 2
-        assert widget.option_list._mouse_hovering_over is None
-        assert row_style(widget.option_list, 1).bgcolor != row_style(widget.option_list, 2).bgcolor
+        assert picker.selection.option_list.highlighted == 2
+        assert picker.selection.option_list._mouse_hovering_over is None
+        assert row_style(picker.selection.option_list, 1).bgcolor != row_style(picker.selection.option_list, 2).bgcolor
 
 
 async def test_typing_filters_models_fuzzily_and_escape_closes_without_a_change(workspace):
@@ -167,8 +172,10 @@ async def test_choosing_the_current_model_does_not_reapply_it(workspace):
     async with picker_session(workspace) as picker:
         await picker.open_with_command()
         await picker.ui.press(*"glm")
-        assert await picker.pilot.click(picker.widget.option_list, offset=(2, 0))
-        await picker.ui.until(lambda: not picker.widget.is_open, why="the picker to close")
+        assert await picker.pilot.click(picker.selection.option_list, offset=(2, 0))
+        await picker.ui.step()
+        assert picker.widget.is_open
+        await picker.ui.press("escape")
         assert not picker.agent.calls, "Opening the current model must not reapply it"
 
 
@@ -177,7 +184,7 @@ async def test_choosing_another_model_applies_it_and_makes_it_the_most_recent(wo
         await choose_gpt(picker)
         assert picker.prompt.text == "Keep this unfinished draft"
         await picker.open_with_command()
-        await picker.ui.until(lambda: picker.widget.recent_ids[0] == GPT, why="the chosen model first in the picker")
+        await picker.ui.until(lambda: picker.selection.recent_ids[0] == GPT, why="the chosen model first in the picker")
         assert picker.ids()[0] == GPT
 
 
@@ -189,7 +196,7 @@ async def test_the_picker_stays_inside_the_screen_when_it_is_resized(workspace):
             widget = picker.widget
             assert widget.region.x >= 0 and widget.region.right <= width
             assert widget.region.y >= 0 and widget.region.bottom <= height
-            assert widget.search_input.region.y < widget.option_list.region.y
+            assert picker.selection.search_input.region.y < picker.selection.option_list.region.y
 
 
 async def test_a_model_the_agent_refuses_is_not_applied_or_recorded(workspace):

@@ -1,7 +1,12 @@
 """Typed grouped advertisements, retained state and declaration-owned new cases."""
 from acp.schema import SetSessionConfigOptionResponse
-from toad.acp.agent_configuration import (AgentConfiguration, ConfigurationSetting,
-                                         ModelConfigurationSetting)
+from formbridge.forms.declared_fields import DeclaredField
+from toad.acp.agent_configuration import (
+    AdvertisedSetting,
+    AgentConfiguration,
+    ConfigurationSetting,
+    ModelConfigurationSetting,
+)
 from toad.core.events import ConfigurationChanged
 from support.agents import RecordedEvents
 
@@ -31,21 +36,27 @@ def test_configuration_owns_typed_groups_replacement_and_new_case(app_agents, tm
     assert not configuration.thinking.choices and configuration.thinking.current == ''
     assert isinstance(changes[-1], ConfigurationChanged) and subscription.stream.publisher is agent
 
-    class BudgetConfigurationSetting(ConfigurationSetting):
-        label = 'budget'
-        @classmethod
-        def matches(cls, option):
-            return option.id == 'budget'
-
-    try:
-        extra = AgentConfiguration(agent)
-        extra.receive(SetSessionConfigOptionResponse.model_validate({'configOptions':[{'id':'budget','name':'Budget','type':'select','currentValue':'bounded',
-                                        'options':[{'value':'bounded','name':'Bounded'}]}]}, strict=True).config_options)
-        assert extra.setting(BudgetConfigurationSetting).current == 'bounded'
-        assert extra.setting(BudgetConfigurationSetting).selected.name == 'Bounded'
-        assert isinstance(changes[-1], ConfigurationChanged) and subscription.stream.publisher is agent
-    finally:
-        ConfigurationSetting.__registry__.pop(BudgetConfigurationSetting.declared_name)
+    extra = AgentConfiguration(agent)
+    extra.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [
+        {'id': 'budget', 'name': 'Budget', 'type': 'select', 'currentValue': 'bounded',
+         'options': [{'value': 'bounded', 'name': 'Bounded'}]},
+        {'id': 'other-budget', 'name': 'Another budget', 'type': 'select', 'currentValue': 'free',
+         'options': [{'value': 'free', 'name': 'Free'}]},
+        {'id': 'enabled', 'name': 'Enabled', 'type': 'boolean', 'currentValue': True},
+    ]}, strict=True).config_options)
+    assert extra.named('budget').current == 'bounded'
+    assert extra.named('other-budget').current == 'free'
+    assert extra.named('enabled').current is True
+    state = extra.editing()
+    fields = [DeclaredField(state, path) for path in state.parameter_structure.declarations]
+    advertised = {field.metadata(AdvertisedSetting).setting.option.id: field
+                  for field in fields if field.metadata(AdvertisedSetting).setting.option}
+    assert set(advertised) == {'budget', 'other-budget', 'enabled'}
+    assert advertised['budget'].label == 'Budget'
+    advertised['enabled'].edit(False)
+    event = advertised['enabled'].metadata(AdvertisedSetting).setting.selection_event(False)
+    assert event.setting == 'enabled' and event.value is False
+    assert extra.named('enabled').current is True  # Draft editing does not invent server acceptance.
     subscription.close()
 
 

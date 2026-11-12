@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field, make_dataclass
-from typing import Annotated
+from typing import Annotated, get_args, get_origin
 
 from agent_comms.cli_verbs.cli_command import PreparedTargetAction
 from agent_comms.cli_verbs.target_fields import ChoiceTargetField, TargetField
@@ -36,7 +36,7 @@ from toad.screens.modal import (
 from toad.widget_actions import WidgetAction
 from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
 from toad.widgets.checkbox import Checkbox
-from toad.widgets.model_switcher import ModelSelection
+from toad.widgets.model_selection import ModelSelection
 
 
 @dataclass(eq=False)
@@ -214,7 +214,10 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
         self.choices = {}
         declarations = []
         for parameter in fields:
-            hints = [FieldLabel(parameter.description)]
+            hints = [FieldLabel(parameter.label), parameter.description]
+            if get_origin(parameter.annotation) is Annotated:
+                hints.extend(item for item in get_args(parameter.annotation)[1:]
+                             if not isinstance(item, AnnotationChoices))
             hints.extend(parameter.editor_hints(
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:

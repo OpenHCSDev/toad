@@ -2,19 +2,27 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import dataclass
-from typing import ClassVar
+from dataclasses import dataclass, field, make_dataclass
+from typing import Annotated, ClassVar, cast
 
 from acp.exceptions import RequestError
 from acp.schema import (
+    SessionConfigOptionBoolean,
     SessionConfigOptionSelect,
     SessionConfigSelectGroup,
     SessionConfigSelectOption,
 )
 from agent_comms.execution.acp_failure import RequestFailure
 from agent_comms.nominal.declared_family import DeclaredFamily
+from formbridge.forms.declared_fields import DeclaredMetadata
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from objectstate import ObjectState
+from python_introspect import AnnotationChoices, FieldLabel
+from toad.acp.client_session import ClientSessionRequest
+from toad.core.configuration_events import ChangeConfiguration, ChangeModel
+from toad.core.events import ConfigurationChanged
+from toad.db import DB
 from toad.input_decision import InputAccepted, InputDecision, ModelSelectionRequired
 
 
@@ -36,8 +44,8 @@ class SelectChoices(MroDispatch):
 
 @dataclass(frozen=True)
 class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
-    option: SessionConfigOptionSelect | None = None
-    label: ClassVar[str]
+    option: SessionConfigOptionSelect | SessionConfigOptionBoolean | None = None
+    label: ClassVar[str] = "setting"
     show_provider: ClassVar[bool] = False
 
     @property
@@ -51,12 +59,11 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
         return []
 
     def selection_event(self, value: str):
-        from toad.core.input_events import ChangeConfiguration
-        return ChangeConfiguration(type(self), value)
+        return ChangeConfiguration(self.option.id, value)
 
     @classmethod
-    @abstractmethod
-    def matches(cls, option: SessionConfigOptionSelect) -> bool: ...
+    def matches(cls, option: SessionConfigOptionSelect) -> bool:
+        return False
 
     @classmethod
     def bind(cls, option: SessionConfigOptionSelect):
@@ -80,15 +87,18 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
     def selected(self) -> SessionConfigSelectOption | None:
         return next((choice for choice in self.choices if choice.value == self.current), None)
 
+    @property
+    def annotation(self) -> object:
+        return Annotated[str, AdvertisedChoices(self), FieldLabel(self.picker_title), (self.option.description or "") if self.option else ""]
+
     def with_current(self, value: str):
         if self.option is None:
             raise ValueError(f"ACP {self.label} update arrived without an advertisement")
         return self.bind(self.option.model_copy(update={"current_value": value}))
 
-    async def select(self, agent, value: str) -> str | None:
+    async def select(self, agent, value: str | bool) -> str | None:
         if self.option is None:
             return f"This agent does not advertise {self.label} configuration"
-        from toad.acp.client_session import ClientSessionRequest
         authority = ClientSessionRequest(agent, agent.session_id)
         authority.require()
         try:
@@ -100,6 +110,35 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
         return None
 
 
+@dataclass(frozen=True)
+class AdvertisedSetting:
+    """The original advertised setting behind a projected form field."""
+    setting: ConfigurationSetting
+
+
+@dataclass(frozen=True)
+class AdvertisedChoices(AdvertisedSetting, AnnotationChoices, DeclaredMetadata):
+    def choices(self) -> tuple[object, ...]:
+        return tuple(choice.value for choice in self.setting.choices)
+
+    def label(self, value: object) -> str:
+        return next(choice.name for choice in self.setting.choices if choice.value == value)
+
+    def declares(self):
+        yield from type(self.setting).__mro__[:-1]
+        yield from super().declares()
+
+
+class BooleanConfigurationSetting(ConfigurationSetting):
+    @classmethod
+    def bind(cls, option: SessionConfigOptionBoolean):
+        return cls(option)
+
+    @property
+    def annotation(self) -> object:
+        return Annotated[bool, AdvertisedSetting(self), FieldLabel(self.picker_title), self.option.description or ""]
+
+
 class ModelConfigurationSetting(ConfigurationSetting):
     label = "model"
     show_provider = True
@@ -109,11 +148,9 @@ class ModelConfigurationSetting(ConfigurationSetting):
         return (self,)
 
     async def recent_choices(self, scope: str) -> list[str]:
-        from toad.db import DB
         return await DB().recent_models(scope)
 
     def selection_event(self, value: str):
-        from toad.core.input_events import ChangeModel
         return ChangeModel(value)
 
     @property
@@ -164,15 +201,25 @@ class ModeConfigurationSetting(ConfigurationSetting):
 
 
 class ConfigurationAdvertisements(MroDispatch):
-    def __init__(self, selections: dict[type[ConfigurationSetting], ConfigurationSetting]) -> None:
+    def __init__(self, selections: dict[str, ConfigurationSetting]) -> None:
         self.selections = selections
 
     @handles(SessionConfigOptionSelect)
     def selection(self, option) -> None:
-        for kind in ConfigurationSetting.members_with(ConfigurationSetting):
-            if kind.matches(option):
-                self.selections[kind] = kind.bind(option)
-                return
+        kinds = tuple(kind for kind in ConfigurationSetting.members_with(ConfigurationSetting)
+                      if kind.matches(option))
+        kind, = kinds or (ConfigurationSetting,)
+        self.add(kind.bind(option))
+
+    @handles(SessionConfigOptionBoolean)
+    def boolean(self, option) -> None:
+        self.add(BooleanConfigurationSetting.bind(option))
+
+    def add(self, setting: ConfigurationSetting) -> None:
+        key = setting.option.id
+        if key in self.selections:
+            raise ValueError(f"ACP configuration id {key!r} is advertised twice")
+        self.selections[key] = setting
 
 
 class AgentConfiguration:
@@ -182,11 +229,22 @@ class AgentConfiguration:
         self.reset()
 
     def reset(self) -> None:
-        self.selections = {kind: kind() for kind in ConfigurationSetting.members_with(ConfigurationSetting)}
+        self.selections: dict[str, ConfigurationSetting] = {}
 
     def setting[T: ConfigurationSetting](self, kind: type[T]) -> T:
-        from typing import cast
-        return cast(T, self.selections[kind])
+        return cast(T, next((setting for setting in self.selections.values()
+                             if isinstance(setting, kind)), kind()))
+
+    def named(self, key: str) -> ConfigurationSetting:
+        return self.selections[key]
+
+    def editing(self) -> ObjectState:
+        """An editable projection; every field retains its exact advertisement and writer."""
+        declarations = [
+            (f"option_{index}", setting.annotation, field(default=setting.current))
+            for index, setting in enumerate(self.picker_settings)
+        ]
+        return ObjectState(make_dataclass("SessionConfiguration", declarations)())
 
     @property
     def model(self) -> ModelConfigurationSetting:
@@ -202,21 +260,19 @@ class AgentConfiguration:
 
     @property
     def picker_settings(self) -> tuple[ConfigurationSetting, ...]:
-        return tuple(
-            member
-            for setting in self.selections.values()
-            for member in setting.picker_settings()
-        )
+        model = self.model
+        return (*model.picker_settings(),
+                *(setting for setting in self.selections.values() if setting is not model))
 
     def receive_current_mode(self, value: str) -> None:
-        self.selections[ModeConfigurationSetting] = self.mode.with_current(value)
+        self.selections[self.mode.option.id] = self.mode.with_current(value)
         self.publish()
 
     def receive(self, options) -> None:
         if options is None:
             return
         # Official external decoder once; consumers use its guaranteed typed fields.
-        selections = {kind: kind() for kind in ConfigurationSetting.members_with(ConfigurationSetting)}
+        selections: dict[str, ConfigurationSetting] = {}
         decoder = ConfigurationAdvertisements(selections)
         for option in options:
             decoder.dispatch_sync(option)
@@ -224,5 +280,4 @@ class AgentConfiguration:
         self.publish()
 
     def publish(self) -> None:
-        from toad.core.events import ConfigurationChanged
         self.agent.events.publish(ConfigurationChanged())

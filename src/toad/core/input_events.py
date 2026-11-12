@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from typing import Literal
 
-from toad.acp.agent_configuration import ConfigurationSetting
 from toad.core.events import CoreEvent
 from toad.goal_interaction import GoalInteraction
 from toad.input_history import InputHistory
@@ -34,17 +33,6 @@ class UserInputSubmitted(CoreEvent):
 @dataclass(frozen=True)
 class ChangeMode(CoreEvent):
     mode_id: str | None
-
-
-@dataclass(frozen=True)
-class ChangeModel(CoreEvent):
-    model_id: str
-
-
-@dataclass(frozen=True)
-class ChangeConfiguration(CoreEvent):
-    setting: type[ConfigurationSetting]
-    value: str
 
 
 @dataclass(frozen=True)

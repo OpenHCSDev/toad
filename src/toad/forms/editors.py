@@ -1,12 +1,14 @@
 """One control per kind of value, chosen by what the field declares."""
 
 from __future__ import annotations
+import json
 from abc import abstractmethod
 
 from collections.abc import Iterable
 from enum import Enum
 from typing import TYPE_CHECKING, ClassVar, Optional
 
+from agent_comms.nominal.field_codec import FieldCodec
 from formbridge.forms.ui_utils import format_enum_display
 from python_introspect import (
     AnnotationChoices,
@@ -174,6 +176,17 @@ class FloatEditor(LineEditor, shows=(float,)):
 
 class StrEditor(LineEditor, shows=(str,)):
     accepts = "text"
+
+
+class StructuredEditor(LineEditor, shows=(tuple, list, dict)):
+    """A JSON value checked against the complete declared collection type."""
+    accepts = "text"
+
+    def value_text(self, value: object) -> str:
+        return json.dumps(FieldCodec.encode(value), ensure_ascii=False)
+
+    def read(self, text: str) -> object:
+        return FieldCodec.decode(self.field.annotation, FieldCodec.parse(text.encode()))
 
 
 class MultilineEditor(ValueEditor, UntintedTonePaint, FramedControl, TextArea, shows=(Multiline,)):
