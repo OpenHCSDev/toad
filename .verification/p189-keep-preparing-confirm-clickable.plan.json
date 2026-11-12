@@ -1,0 +1,31 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "pending-work-must-not-remove-the-confirm-buttons-event-handler",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.update_confirmation",
+          "replacements": [
+            {
+              "old_source": "        button.loading = CommandPreparation.running_on(self)\n        if button.loading:\n",
+              "new_source": "        if CommandPreparation.running_on(self):\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.confirm",
+          "replacements": [
+            {
+              "old_source": "        button.loading = True\n",
+              "new_source": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -136,6 +136,59 @@ async def test_new_session_button_opens_creation_and_tab_close_keeps_the_origina
         assert ui.draft() == draft and prompt.prompt_text_area.document is document
 
 
+async def test_command_form_opens_before_preparation_and_first_mouse_confirm_submits(workspace):
+    from threading import Event
+
+    from agent_comms.cli_verbs.cli_command import TargetAction
+    from agent_comms.cli_verbs.new import NewThreadCliCommand
+    from agent_comms.projects.checkouts import Checkout
+    from agent_comms.transport.request import CoreAccess
+    from toad.widgets.comms_command_dialog import ApplyCommandButton, CommandDialog, CommandPreparation
+
+    entered, released = Event(), Event()
+
+    class HeldPreparation(CoreAccess):
+        def __init__(self, original):
+            self.original = original
+
+        def call(self, request):
+            entered.set()
+            if not released.wait(30):
+                raise TimeoutError("The test did not release command preparation")
+            return self.original.call(request)
+
+    async with running_session(workspace) as (ui, app, config, path):
+        project = Checkout(workspace.project)
+        command, = NewThreadCliCommand.project_bindings(workspace.comms, project)
+        action = TargetAction((command,), (), NewThreadCliCommand)
+        observed = await app.preparation.run_thread(app.coordination_access.observation.observed)
+        accepted = []
+        dialog = CommandDialog(action, str(project), action.editable_fields, HeldPreparation(observed.core))
+        app.push_screen(dialog, accepted.append)
+        try:
+            await ui.until(entered.is_set, why="preparation to have entered its held request")
+            assert app.screen is dialog and not released.is_set()
+            assert dialog.form.is_mounted
+            released.set()
+            await ui.until(lambda: not CommandPreparation.running_on(dialog), why="the real catalogs to arrive")
+            button = dialog.query_one(ApplyCommandButton)
+            await ui.until(lambda: not button.disabled, why="the command values to be accepted")
+            editor = dialog.form.values["name"].editor
+            editor.scroll_visible(animate=False, immediate=True)
+            await ui.until_clickable(editor, why="the name editor to be visible")
+            assert await ui.textual[1].click(editor)
+            await ui.type("created-from-first-click")
+            # Do not blur first: this click must commit the focused editor and submit.
+            button.scroll_visible(animate=False, immediate=True)
+            await ui.until_clickable(button, why="the confirm button to be visible")
+            assert await ui.textual[1].click(button)
+            await ui.until(lambda: bool(accepted), why="the first mouse confirmation to submit the form")
+            assert accepted[0]["name"] == "created-from-first-click"
+            assert app.screen is app.workspace_screen
+        finally:
+            released.set()
+
+
 async def test_a_settings_file_that_cannot_be_written_is_reported_kept_dirty_and_saved_on_retry(workspace):
     async with running_session(workspace) as (ui, app, config, path):
         record_notifications(app)

@@ -242,7 +242,6 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
             return
         self.form.finish()
         button.disabled = True
-        button.loading = True
         try:
             await CommandPreparation.wait_on(self)
         except WorkerFailed:
@@ -324,8 +323,7 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
         self.query_one(ApplyCommandButton).disabled = True
         arguments = self.arguments()
         button = self.query_one(ApplyCommandButton)
-        button.loading = CommandPreparation.running_on(self)
-        if button.loading:
+        if CommandPreparation.running_on(self):
             self.query_one(CommandConfirmation).update("Loading choices…")
             confirmed.display = False
             # Confirm owns the wait, including an edit committed by this click.
