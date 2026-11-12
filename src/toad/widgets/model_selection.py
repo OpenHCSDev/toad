@@ -191,7 +191,7 @@ class ModelSelection(
         self._open_generation = 0
         self.refilter: HighlightPlacement = ResetsHighlight()
 
-    
+
 
     @property
     @abstractmethod

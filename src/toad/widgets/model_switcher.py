@@ -102,4 +102,3 @@ class ModelSwitcher(SelectionBounds, ScreenOverlay, InfoPopup):
     @classmethod
     def for_prompt(cls, prompt: object) -> Self | None:
         return cls()
-
