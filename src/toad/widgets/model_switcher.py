@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Self
 
-from textual import events
+from textual import events, work
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar
 
@@ -68,6 +68,11 @@ class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationS
 
 
 class SessionForm(CoreEventReceiver, InlineFormView):
+
+    def represents(self, settings) -> bool:
+        return tuple(row.field.metadata(AdvertisedSetting).setting
+                     for row in self.values.values()) == settings.picker_settings
+
     def values_changed(self, paths: set[str]) -> None:
         super().values_changed(paths)
         for path in paths & self.values.keys():
@@ -89,10 +94,19 @@ class ModelSwitcher(SelectionBounds, ScreenOverlay, InfoPopup):
         yield self.form
 
     def configuration_changed(self) -> None:
-        if self.is_mounted and self._content_build is not None:
-            self.run_worker(self.recompose(), exclusive=True, group="session-form")
+        if self.is_mounted and self.is_open:
+            self.rebuild_form()
+
+    @work(exclusive=True, group="session-form")
+    async def rebuild_form(self) -> None:
+        await self.recompose()
+        if self.is_open:
+            self.focus_content(False)
 
     def focus_content(self, scroll_visible: bool) -> None:
+        if not self.form.represents(self.prompt.agent_binding.configuration):
+            self.rebuild_form()
+            return
         editor = next(iter(self.form.values.values()), None)
         if editor is not None:
             editor.editor.focus()
