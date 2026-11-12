@@ -21,7 +21,11 @@ from toad.acp.agent_configuration import (
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
-from toad.widgets.model_selection import ConnectProvider, ModelSelection
+from toad.widgets.model_selection import (
+    ConnectProvider,
+    ModelSelection,
+    SelectionBounds,
+)
 from toad.widgets.prompt_popup import InfoPopup
 
 from toad.native_style import ScreenOverlay
@@ -34,7 +38,11 @@ class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationS
         return self.query_ancestor(ModelSwitcher).prompt.model_history_scope
 
     def bind_control(self) -> None:
-        pass
+        self.listen(events.Mount, self.opened)
+
+    def opened(self, event: events.Mount) -> None:
+        if self.query_ancestor(ModelSwitcher).is_open:
+            self.focus_content(False)
 
     def compose(self) -> ComposeResult:
         yield from self.compose_content()
@@ -74,7 +82,7 @@ class SessionForm(CoreEventReceiver, InlineFormView):
                 self.publish_core(setting.selection_event(field.value))
 
 
-class ModelSwitcher(ScreenOverlay, InfoPopup):
+class ModelSwitcher(SelectionBounds, ScreenOverlay, InfoPopup):
     """Every advertised session field, edited through the shared form machinery."""
 
     height = Scalar.from_number(24)

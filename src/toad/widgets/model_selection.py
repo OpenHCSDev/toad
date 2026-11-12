@@ -148,7 +148,18 @@ class KeepsHighlight(HighlightPlacement):
         return ids.index(previous_id) if previous_id in ids else 0
 
 
+class SelectionBounds:
+    def apply_native_layout(self) -> None:
+            super().apply_native_layout()
+            self.styles.constrain_x = "inside"
+            self.styles.constrain_y = "inflect"
+            self.styles.width = 80
+            self.styles.max_width = "100%"
+            self.styles.max_height = "80vh"
+
+
 class ModelSelection(
+    SelectionBounds,
     SpacedAround,
     PriorityActions,
     ForwardsCursor,
@@ -179,13 +190,7 @@ class ModelSelection(
         self._open_generation = 0
         self.refilter: HighlightPlacement = ResetsHighlight()
 
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.constrain_x = "inside"
-        self.styles.constrain_y = "inflect"
-        self.styles.width = 80
-        self.styles.max_width = "100%"
-        self.styles.max_height = "80vh"
+    
 
     @property
     @abstractmethod

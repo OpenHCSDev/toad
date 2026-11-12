@@ -1,6 +1,7 @@
 """Typed grouped advertisements, retained state and declaration-owned new cases."""
 from acp.schema import SetSessionConfigOptionResponse
 from formbridge.forms.declared_fields import DeclaredField
+from objectstate import DottedFieldPath
 from toad.acp.agent_configuration import (
     AdvertisedSetting,
     AgentConfiguration,
@@ -48,7 +49,7 @@ def test_configuration_owns_typed_groups_replacement_and_new_case(app_agents, tm
     assert extra.named('other-budget').current == 'free'
     assert extra.named('enabled').current is True
     state = extra.editing()
-    fields = [DeclaredField(state, path) for path in state.parameter_structure.declarations]
+    fields = [DeclaredField(state, DottedFieldPath(path)) for path in state.parameter_structure.declarations]
     advertised = {field.metadata(AdvertisedSetting).setting.option.id: field
                   for field in fields if field.metadata(AdvertisedSetting).setting.option}
     assert set(advertised) == {'budget', 'other-budget', 'enabled'}
