@@ -476,6 +476,17 @@ class NativeSessionSurface:
             await screen.presentation.release_binding(conversation, screen)
             self.view = None
 
+    async def park(self, screen: MainScreen) -> None:
+        """Park a warm tab: release the view pointer without teardown.
+
+        The transcript, binding and widget tree stay live.  activate()
+        detects the intact widget and skips the full acquire/restore.
+        """
+        async with self._lock:
+            if self.view is not screen:
+                return
+            self.view = None
+
     async def activate(self, screen: MainScreen) -> None:
         async with self._lock:
             if self.view is screen:
@@ -483,6 +494,13 @@ class NativeSessionSurface:
             assert (
                 self.view is None
             ), "Departing source must retire before accepting the next source"
+            # A warm-parked tab has its widget tree intact — skip acquire.
+            conversation = screen.presentation.widget
+            if conversation is not None and conversation.is_mounted:
+                self.view = screen
+                conversation.prompt.focus()
+                await self._trim_retained(conversation)
+                return
             async with screen.presentation.acquire(screen) as conversation:
                 self.view = screen
             await self._trim_retained(conversation)

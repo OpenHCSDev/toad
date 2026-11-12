@@ -44,6 +44,10 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     @abstractmethod
     async def retire(self) -> WorkspaceSource: ...
 
+    async def park_for_switch(self) -> WorkspaceSource:
+        """Park for a warm tab switch.  Default: full retire."""
+        return await self.retire()
+
     @abstractmethod
     def hide(self) -> None: ...
 
@@ -157,8 +161,35 @@ class ShownWorkspaceSource(BoundWorkspaceSource):
     def shown(self, view):
         return self.matches(view)
 
+    async def park_for_switch(self):
+        """Park the shown tab for a warm switch without full teardown.
+
+        The transcript and binding stay live.  The full retire() is still
+        used by eviction and lifecycle tests.
+        """
+        await self.view.app.workspace_chrome.native.park(self.view)
+        return WarmParkedSource(self.view)
+
+
+class WarmParkedSource(BoundWorkspaceSource):
+    """A tab whose transcript and binding are still live after a warm switch."""
+
+    def current(self, view):
+        return False
+
+    async def retire(self):
+        """A warm-parked tab does a full retire when evicted."""
+        await self.view.retire_presentation()
+        return ParkedWorkspaceSource(self.view)
+
+    async def park_for_switch(self):
+        """Already parked warm — nothing to tear down."""
+        return self
+
 
 class ParkedWorkspaceSource(BoundWorkspaceSource):
+    """A tab that was fully retired — needs full restore on next visit."""
+
     def current(self, view):
         return False
 
@@ -234,7 +265,7 @@ class WorkspaceSessions(WorkspaceViews):
         if self.source.shown(destination):
             return destination
         departing = self.source
-        await self.retire()
+        self.source = await departing.park_for_switch()
         # The preceding frame certifies the departing source. Revoke it before
         # LoadingWorkspaceSource admits any destination preparation callbacks.
         self.app.workspace_screen.frame_presentation.begin()
