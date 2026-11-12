@@ -57,6 +57,7 @@ from textual.strip import Strip
 from textual.view import AUTO, FILL
 from textual.widget import Widget
 from textual.widgets import Static
+from toad.column_layout import ColumnLayout
 from ui_theme.effects import CURSOR_BLINK, Mix
 from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
@@ -994,7 +995,7 @@ class SourcesScope(DOMNode):
     def initial_editing_mode(self) -> EditingMode: ...
 
 
-class Conversation(
+class Conversation(ColumnLayout, 
     GoalView[GoalSession],
     TranscriptView,
     FollowsLayoutPreferences,
@@ -1769,9 +1770,7 @@ class Conversation(
 
     def apply_layout_preferences(self) -> None:
         """Project the original settings without retaining their semantic values."""
-        ui = self.app.settings.ui
-        self.styles.max_width = max(10, ui.column_width) if ui.column else None
-        self.window.styles.scrollbar_size_vertical = ui.scrollbar.size
+        self.apply_column_layout()
 
     async def initialize_view(self) -> None:
         """Initialize the agent view, separate from the framework mount event."""
@@ -1927,8 +1926,8 @@ class Conversation(
         """Check if a prune is required."""
         if self._require_check_prune:
             self._require_check_prune = False
-            low_mark = self.app.settings.ui.prune_low_mark
-            high_mark = low_mark + self.app.settings.ui.prune_excess
+            low_mark = self.settings.ui.prune_low_mark
+            high_mark = low_mark + self.settings.ui.prune_excess
             if self.transcript.readable:
                 # Height pressure is not source evidence. Dropping the source
                 # pager or an uncovered wire claim lets a later observation

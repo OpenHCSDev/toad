@@ -206,7 +206,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         if self.output.suppress_auto_expansion:
             # Don't auto expand reads, as it can generate a lot of noise
             return
-        tool_call_expand = self.app.settings.tools.expand
+        tool_call_expand = self.settings.tools.expand
         status = tool_call
         if tool_call_expand.expands_preview(status, self.output.preview_fits):
             self._auto_expanded = True

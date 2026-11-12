@@ -329,18 +329,16 @@ class ContextCopy(SelectedSourceButton):
 
 class ContextCorrect(SelectedSourceButton):
     def apply(self, explorer: ContextExplorer, model: ContextNode) -> None:
-        from toad.widgets.comms_menu import show_target_menu
+        from toad.widgets.comms_menu import ActionMenu
 
         answers = model.correction_answers()
         if not answers:
             self.notify("Select an original annotation to correct", severity="warning")
             return
-        show_target_menu(
-            self.screen,
-            self.region,
-            "Correct original answer",
-            [(answer.declared_name, answer.public_title()) for answer in answers],
-            {answer.declared_name: partial(self._correct, explorer, model, answer) for answer in answers},
+        ActionMenu.show(
+            self.screen, self.region, "Correct original answer",
+            [(partial(self._correct, explorer, model, answer), answer.public_title())
+             for answer in answers],
         )
 
     @work(group="context-correction", exclusive=True)

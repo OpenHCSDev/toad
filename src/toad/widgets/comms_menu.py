@@ -5,6 +5,7 @@ from collections.abc import Callable
 from typing import cast
 
 from textual import events, on
+from textual._callback import invoke
 from textual.view import (
     AUTO,
     FILL,
@@ -96,16 +97,15 @@ class ContextMenu[Choice](HiddenActions, WidgetView, DismissibleScreen[Choice]):
             self.dismiss(None)
 
 
-def show_target_menu(
-    screen,
-    anchor: Region,
-    title: str,
-    items: list[tuple[str, str]],
-    actions: dict[str, Callable[[], None]],
-) -> None:
-    """Use the same modal menu for contextual declarations."""
-    def handle(choice: str | None) -> None:
-        if choice and choice in actions:
-            actions[choice]()
+class ActionMenu(ContextMenu[Callable[[], object]]):
+    """The selected row carries the actual operation; there is no second lookup table."""
 
-    ContextMenu.show(screen, anchor, title, items, callback=handle)
+    @classmethod
+    def show(cls, screen, anchor: Region, title: str, items):
+        return super().show(screen, anchor, title, items, callback=cls.run_action)
+
+    @staticmethod
+    async def run_action(action):
+        if action is not None:
+            await invoke(action)
+

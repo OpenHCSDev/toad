@@ -336,6 +336,10 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
         self.background_render_slots.release()
 
 
+    def settings_widgets(self, widget_type):
+        roots = (*self.workspace_sessions.views.values(), *self.screen_stack)
+        return {widget for root in roots for widget in root.walk_children(widget_type)}
+
     def open_settings(self) -> SavedSettings:
         path = SavedSettings.path()
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}

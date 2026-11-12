@@ -1,0 +1,43 @@
+P192 — viewed-object properties
+
+Toad PR: https://github.com/OpenHCSDev/toad/pull/1750
+ObjectState PR: https://github.com/OpenHCSDev/ObjectState/pull/66
+ObjectState merged: 226fcd8918e16f6d1b594cac0bdcf8057aab832a
+
+The same ObjectConfiguration edits the properties sidebar and context form.
+The settings declarations own field scope; ordinary files inherit view settings,
+conversations inherit those and their composer/agent display fields. The actual
+TabIdentity is saved beside raw explicit overrides. None means inherit; choosing
+Override here pins even an equal value, and Use global default resumes inheritance.
+The original global ObjectState supplies values and source information. A duplicate
+open identity or a forbidden override refuses rather than introducing another answer.
+Local display configuration stays local; remote agent and rule writes remain Core's.
+
+ObjectState previously stopped at direct dataclass children. The shared extraction
+now traverses each declared stored object once, retains shared instances and refuses
+conflicting instances of one nominal configuration type. No parallel resolver.
+
+Closed property sidebars inherit LazyThreadSidebar; the native session sidebar uses
+that same lifecycle instead of a copy. Editors paint after native mount. Global and
+object field-view families remain separate through their declared family owner.
+All contextual action menus carry actual operations; the mirrored string/action
+maps and show_target_menu are removed. Link menus keep their original admission.
+
+Evidence:
+- p192-object-control.txt: passed live nested defaults, explicit-equal override,
+  same-state sidebar/context edits, reset, source, persistence, and scope filtering.
+- p192-objectstate-controls.txt: 14 passed, exit 0, including nested/shared identity
+  and collision controls.
+- p192-view-lifecycle.txt: original thread/channel/file navigation and close case,
+  1 passed, exit 0. Initial launch failed before behavior because the inherited
+  descriptor limit was 1024 while the existing helper requests descriptors >=1024;
+  the successful launch used soft limit 8192, below hard limit 524288.
+- App, MainScreen, FilePreviewScreen and the shared forms import on the new sources.
+
+The source check is exactly class ObjectConfiguration(, not the dialog's name.
+The original order's created-owner citation named the new file's first line; the
+actual state class is in object_configuration.py. The eliminated file-menu identity
+copy is now owned by the selected ActionMenu row, not by a second callable map.
+
+No paid provider command or profile was run. No install or physical desktop trial
+is claimed by this source report. Auth recovery is independently held by codex-parallel.

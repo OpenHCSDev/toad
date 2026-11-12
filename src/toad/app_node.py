@@ -8,12 +8,13 @@ from typing import TYPE_CHECKING
 from textual import events
 from textual.dom import DOMNode
 from textual import on
+from toad.settings_scope import SettingsReader
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ToadNode(DOMNode):
+class ToadNode(SettingsReader):
     """Keep the application refinement on one shared native parent."""
 
     app: ToadApp

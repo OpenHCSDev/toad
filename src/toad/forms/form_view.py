@@ -66,15 +66,30 @@ class FieldView(DeclaredViews, WidgetView, containers.VerticalGroup):
     def margin(self) -> Spacing:
         return Spacing(0, 0, 0 if self.last_child else 1, 0)
 
-    @staticmethod
-    def of(state: ObjectState, parent: str = "") -> list[FieldView]:
+    field_type = DeclaredField
+
+    @classmethod
+    def family(cls):
+        return FieldView
+
+    @classmethod
+    def members(cls):
+        return (member for member in super().members() if member.family() is cls.family())
+
+    @classmethod
+    def admits(cls, field: DeclaredField) -> bool:
+        return True
+
+    @classmethod
+    def of(cls, state: ObjectState, parent: str = "") -> list[FieldView]:
         """Show ObjectState's direct children; FormBridge supplies each field's kind.
 
         ObjectState already extracted this topology. Reading it does not rebuild
         a second form tree or re-analyze the held object's values.
         """
-        return [FieldView.showing(type(parameter).__mro__)(DeclaredField(state, path))
-                for path, parameter in ParameterFormService().parameters_for_state(state, parent)]
+        return [cls.showing(type(parameter).__mro__)(field)
+                for path, parameter in ParameterFormService().parameters_for_state(state, parent)
+                if cls.admits(field := cls.field_type(state, path))]
 
     @abstractmethod
     def values(self) -> Iterator[ValueView]:
@@ -144,9 +159,11 @@ class GroupView(FocusWithinView, FieldView, shows=(DirectDataclassInfo,)):
                   colours.colour(ForegroundColour).multiply_alpha(0.2))
         return Edges(*(("tall", colour),) * 4)
 
+    field_family = FieldView
+
     def __init__(self, field: DeclaredField) -> None:
         super().__init__(field)
-        self.parts = FieldView.of(field.state, field.path.value)
+        self.parts = self.field_family.of(field.state, field.path.value)
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
@@ -171,6 +188,7 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
     long form does not hold up the frame it opens in.
     """
 
+    field_family = FieldView
     DEFAULT_LAYOUT = StreamLayout
     height = None
     overflow_y = "scroll"
@@ -188,12 +206,12 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
     @classmethod
     def whole(cls, state: ObjectState) -> FormView:
         """Every shown field of the state on one form."""
-        return cls(state, FieldView.of(state))
+        return cls(state, cls.field_family.of(state))
 
     @classmethod
     def pages(cls, state: ObjectState) -> dict[FormPage, FormView]:
         """One form per page the top-level fields declare, in declaration order."""
-        parts = {part.field.path: part for part in FieldView.of(state)}
+        parts = {part.field.path: part for part in cls.field_family.of(state)}
         return {page: cls(state, [parts[path] for path in paths])
                 for page, paths in form_pages(state, parts).items()}
 
@@ -209,7 +227,9 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
 
     def values_changed(self, paths: set[str]) -> None:
         for path in paths & self.values.keys():
-            self.values[path].editor.paint()
+            editor = self.values[path].editor
+            if editor.is_mounted:
+                editor.paint()
 
     def marks_changed(self, paths: set[str]) -> None:
         differ = self.state.dirty_fields

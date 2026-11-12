@@ -14,6 +14,7 @@ from weakref import WeakSet
 from metaclass_registry.mro_dispatch import handles
 from textual import events
 from textual.widgets.text_area import VimMode
+from toad.settings_scope import SettingsReader
 from toad.widget_actions import Action, NativeMethodKeys
 from textual.containers import VerticalScroll
 from textual.geometry import Size
@@ -1103,7 +1104,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     @cached_property
     def presentation_budget(self) -> PresentationBudget:
-        return PresentationBudget(buffer_viewports=self.app.settings.ui.history_buffer_viewports)
+        return PresentationBudget(buffer_viewports=self.settings.ui.history_buffer_viewports)
 
     @cached_property
     def lookahead(self) -> DirectionalPreparation:

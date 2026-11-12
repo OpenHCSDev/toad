@@ -69,7 +69,7 @@ class TargetContext:
         return actions
 
     def show_menu(self, sidebar, offset):
-        from toad.widgets.comms_menu import show_target_menu
+        from toad.widgets.comms_menu import ActionMenu
         selected_screen = sidebar.app.screen
         source = sidebar.app.selected_session
         async def read():
@@ -78,10 +78,9 @@ class TargetContext:
                     or not sidebar.model_state.serves(self.observed.root)
                     or sidebar.app.screen is not selected_screen):
                 return
-            show_target_menu(selected_screen, Region.from_offset(offset, (0, 0)), self.title,
-                [(command.command.removeprefix('/'), command.label(self)) for command in choices],
-                {command.command.removeprefix('/'): partial(self.execute_menu, sidebar, command)
-                 for command in choices})
+            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), self.title,
+                [(partial(self.execute_menu, sidebar, command), command.label(self))
+                 for command in choices])
         sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
 
     async def command_choices(self):

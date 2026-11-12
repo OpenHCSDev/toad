@@ -6,6 +6,8 @@ from textual.containers import Center, Vertical
 from textual.view import FILL, WidgetView
 from textual.color import Color
 from textual.layout import Layout
+from toad.configured_view import ConfiguredView
+from toad.settings_scope import ConversationSettingsScope, ObjectSidebarHost
 from ui_theme.scheme import BackgroundColour
 from textual.reactive import reactive
 from contextlib import contextmanager
@@ -173,7 +175,7 @@ class SessionView(
         return ()
 
 
-class SessionBody(WidgetView, ToadNode, Center):
+class SessionBody(WidgetView, ToadNode, ObjectSidebarHost, Center):
     """The shared sidebar/content layout reads its owner directly."""
 
     width = height = FILL
@@ -195,11 +197,11 @@ class SessionContents(WidgetView, FollowsLayoutPreferences, ToadNode, Vertical):
 
     def apply_layout_preferences(self) -> None:
         """Place a width-constrained conversation where the column alignment setting puts it."""
-        self.align_horizontal = self.app.settings.ui.column_alignment.horizontal
+        self.align_horizontal = self.settings.ui.column_alignment.horizontal
         self.refresh(layout=True)
 
 
-class SidebarSessionView[SidebarT: ThreadSidebar](WidgetView, NavigationOwner, SessionView):
+class SidebarSessionView[SidebarT: ThreadSidebar](ConfiguredView, ConversationSettingsScope, WidgetView, NavigationOwner, SessionView):
     """One session-owned sidebar survives construction, mounting and retirement.
 
     Composition mounts this resource; it does not create its identity. Chrome
@@ -225,5 +227,5 @@ class SidebarSessionView[SidebarT: ThreadSidebar](WidgetView, NavigationOwner, S
     def thread_sidebar(self) -> SidebarT:
         return self.make_thread_sidebar()
 
-    def sidebars(self) -> tuple[SidebarT, ...]:
-        return (self.thread_sidebar,)
+    def sidebars(self) -> tuple[SideBar, ...]:
+        return (self.thread_sidebar, self.configuration_sidebar)

@@ -18,6 +18,7 @@ from textual.view import (
     FocusWithinView,
     WidgetView,
 )
+from toad.settings_scope import SettingsReader
 from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
@@ -161,7 +162,7 @@ class AgentInfo(
 
     @property
     def padding(self):
-        return self.app.settings.ui.input.box.agent_info_padding
+        return self.settings.ui.input.box.agent_info_padding
 
     @property
     def primary_activation(self):
@@ -312,34 +313,34 @@ class InfoBar(
 
     @property
     def margin(self):
-        ui = self.app.settings.ui
+        ui = self.settings.ui
         return ui.input.box.info_bar_margin(ui.footer)
 
 
-class PromptLabel(WidgetView, Label):
+class PromptLabel(SettingsReader, WidgetView, Label):
     width = AUTO
 
     @property
     def padding(self):
-        return self.app.settings.ui.input.box.label_padding
+        return self.settings.ui.input.box.label_padding
 
     def render(self):
         return self.query_ancestor(Prompt).label_glyph()
 
 
-class PromptContainer(FocusWithinView, containers.HorizontalGroup):
+class PromptContainer(SettingsReader, FocusWithinView, containers.HorizontalGroup):
     @property
     def margin(self):
-        return self.app.settings.ui.input.box.frame_margin
+        return self.settings.ui.input.box.frame_margin
 
     @property
     def padding(self):
-        return self.app.settings.ui.input.box.frame_padding
+        return self.settings.ui.input.box.frame_padding
 
     @property
     def border(self):
         colour = self.app.colours.colour(PrimaryColour if self.has_focus_within else MutedColour)
-        return self.app.settings.ui.input.box.frame_border(colour)
+        return self.settings.ui.input.box.frame_border(colour)
 
     @on(events.MouseDown)
     def on_mouse_down(self, event: events.MouseUp) -> None:
@@ -972,7 +973,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
                 "Enter shell command\t[r]▌esc▐[/r] prompt mode"
             ).expand_tabs(8)
             if shell
-            else self.app.settings.ui.input.placeholder
+            else self.settings.ui.input.placeholder
         )
         editor.highlight_language = "shell" if shell else "markdown"
         self.prompt_label.refresh()
@@ -1042,7 +1043,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def label_glyph(self) -> Content:
-        symbols = self.app.settings.ui.input
+        symbols = self.settings.ui.input
         if self.shell_mode:
             return Content.styled(symbols.shell_symbol, "$text-primary")
         return Content.styled(
@@ -1144,7 +1145,7 @@ class MessagePrompt(Prompt):
         self.prompt_label.refresh()
 
     def label_glyph(self) -> Content:
-        return Content.styled(self.app.settings.ui.input.agent_symbol, "$text-secondary")
+        return Content.styled(self.settings.ui.input.agent_symbol, "$text-secondary")
 
     def compose_info_popups(self) -> ComposeResult:
         return ()

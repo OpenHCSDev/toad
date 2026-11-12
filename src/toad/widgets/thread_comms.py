@@ -44,7 +44,7 @@ from toad.sidebar_model_view import SidebarModelView
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widget_actions import OpensSelected, WidgetAction
 from toad.widgets.checkbox import Checkbox
-from toad.widgets.comms_menu import show_target_menu
+from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.comms_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -601,12 +601,6 @@ class ThreadCommsSidebar(
             if generation == self._generation and row.is_attached and row.available:
                 self.request_navigation(row, entry=entry, generation=generation)
 
-        items = [("open", "Open")] if row.available else []
-        items.append(("copy", "Copy name"))
-        show_target_menu(
-            self.screen,
-            Region.from_offset(offset, (0, 0)),
-            target,
-            items,
-            {"open": open_selected, "copy": lambda: self.app.copy_to_clipboard(target)},
-        )
+        items = [(open_selected, "Open")] if row.available else []
+        items.append((lambda: self.app.copy_to_clipboard(target), "Copy name"))
+        ActionMenu.show(self.screen, Region.from_offset(offset, (0, 0)), target, items)

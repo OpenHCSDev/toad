@@ -19,7 +19,7 @@ def visibility(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.prompt import Prompt
     for widget in Effect.open_widgets(app, SettingVisibility):
         if widget.visibility_setting == field.path.value:
-            widget.display = field.value
+            widget.display = widget.configuration_state.get_resolved_value(field.path.value)
     for prompt in Effect.open_widgets(app, Prompt):
         prompt.refresh(layout=True)
 
@@ -31,10 +31,10 @@ def wheel_scroll_rows(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
-    for view in app.workspace_sessions.views.values():
-        for window in view.query(HistoryWindow):
-            window.presentation_budget = replace(window.presentation_budget, buffer_viewports=field.value)
-            window.request_preparation()
+    for window in Effect.open_widgets(app, HistoryWindow):
+        value = window.configuration_state.get_resolved_value(field.path.value)
+        window.presentation_budget = replace(window.presentation_budget, buffer_viewports=value)
+        window.request_preparation()
 
 
 @Effect

@@ -2,17 +2,40 @@
 
 from __future__ import annotations
 
+from annotationlib import Format, get_annotations
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from agent_comms.nominal.declared_choice import DeclaredChoice
-from python_introspect import AnnotationChoices
+from objectstate.lazy_factory import LazyResolutionDataclass
+from python_introspect import AnnotatedDataclassValidationMixin, AnnotationChoices
+from toad.settings_scope import SettingsScope
 
 if TYPE_CHECKING:
     from formbridge.forms.declared_fields import DeclaredField
 
     from toad.app import ToadApp
+
+
+class SettingsDeclaration(AnnotatedDataclassValidationMixin, LazyResolutionDataclass):
+    """An actual settings record and the scopes its own field declarations admit."""
+
+    configuration_scopes: ClassVar[tuple[type[SettingsScope], ...]] = ()
+
+    def __init_subclass__(cls, *, scopes: tuple[type[SettingsScope], ...] = (), **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.configuration_scopes = scopes
+
+    @classmethod
+    def field_source(cls, name: str) -> type[SettingsDeclaration]:
+        return next(owner for owner in cls.__mro__
+                    if name in get_annotations(owner, format=Format.STRING))
+
+    @classmethod
+    def admits_field(cls, name: str, scope: SettingsScope) -> bool:
+        return any(isinstance(scope, admitted)
+                   for admitted in cls.field_source(name).configuration_scopes)
 
 
 @dataclass(frozen=True)
@@ -34,8 +57,7 @@ class Effect:
 
     @staticmethod
     def open_widgets(app, widget_type):
-        roots = (*app.workspace_sessions.views.values(), *app.screen_stack)
-        return {widget for root in roots for widget in root.walk_children(widget_type)}
+        return app.settings_widgets(widget_type)
 
 
 class EachOpenWidget(Effect):

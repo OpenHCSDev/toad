@@ -4,16 +4,17 @@ from __future__ import annotations
 from toad.setting_declarations import EachOpenWidget
 from textual.events import Mount
 from textual import on
+from toad.settings_scope import SettingsReader
 
 
-class SettingVisibility:
+class SettingVisibility(SettingsReader):
     def __init_subclass__(cls, *, setting: str, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.visibility_setting = setting
 
     @on(Mount)
     def on_mount(self):
-        self.display = self.app.saved_settings.state.get_resolved_value(self.visibility_setting)
+        self.display = self.configuration_state.get_resolved_value(self.visibility_setting)
 
 
 class PromptSettingEffects:

@@ -1,10 +1,13 @@
 """Session side panels retain reader position while their view is parked."""
 from typing import TYPE_CHECKING
 from weakref import ref
-from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
-from toad.widgets.side_bar import AbsentPanels, PanelHydration, ThreadSidebar
+from toad.widgets.side_bar import (
+    AbsentPanels,
+    LazyThreadSidebar,
+    PanelHydration,
+)
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.project_panel import NO_PROJECT_VIEW
@@ -13,23 +16,20 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionThreadSidebar(ThreadSidebar, NativePresentation):
+class SessionThreadSidebar(LazyThreadSidebar, NativePresentation):
     """Keep warm panels until eviction releases their widgets."""
 
     def __init__(self, screen: MainScreen) -> None:
         self._owner = ref(screen)
         self._panel_owners = tuple(member() for member in SessionPanel.members_with(SessionPanel))
         self.plan = next(owner for owner in self._panel_owners if isinstance(owner, PlanSessionPanel))
-        super().__init__(state=screen._thread_sidebar_state, defer_mount=True)
+        super().__init__(state=screen._thread_sidebar_state)
 
     @property
     def retained_widget_count(self) -> int:
         return 1 + self.descendant_count if self.panels_loaded else 0
 
-    @property
-    def wants_panels(self) -> bool:
-        """A collapsed session sidebar keeps its panels released until it opens."""
-        return super().wants_panels and not self.collapsed
+
 
     async def prepare_presentation(self) -> None:
         self.schedule_hydration()
@@ -78,10 +78,8 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
             owner.capture(panel.widget)
         screen._project_panel = NO_PROJECT_VIEW
 
-    def _compose_panels(self) -> ComposeResult:
-        if not self.panels:
-            screen = self._owner()
-            if screen is None:
-                raise ReferenceError("The session sidebar owner has retired")
-            self.panels.extend(owner.compose_panel(screen) for owner in self._panel_owners)
-        yield from super()._compose_panels()
+    def make_panels(self):
+        screen = self._owner()
+        if screen is None:
+            raise ReferenceError("The session sidebar owner has retired")
+        return (owner.compose_panel(screen) for owner in self._panel_owners)
