@@ -4,9 +4,10 @@ from agent_comms.execution.pi_vocabulary import HighThinkingLevel
 from agent_comms.projects.checkouts import Checkout
 from support.native import native_session
 
+from toad.acp.agent_configuration import AdvertisedSetting, ThinkingConfigurationSetting
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import channel_target
-from toad.widgets.comms_menu import ContextMenu
+from toad.widgets.model_switcher import SessionModelEditor
 from toad.widgets.prompt import AgentInfo, QueueSummary
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -76,16 +77,30 @@ async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_ed
         document, undo = editor.document, editor.history
         owner = comms.registry.require("beta").process_identity
         assert await pilot.click(view.prompt.query_one(AgentInfo))
+        popup = view.prompt.model_switcher
         await ui.until(
-            lambda: view.prompt.model_switcher.search_input.has_focus,
-            why="the model picker",
+            lambda: popup.query_one(SessionModelEditor).search_input.has_focus,
+            why="the model search in the configuration form",
         )
+        previous_model = agent.configuration.model.current
         await ui.press("down", "enter")
+        await ui.until(lambda: agent.configuration.model.current != previous_model,
+                       why="the selected model")
+
+        def thinking_editor():
+            return next(row.editor for row in popup.form.values.values()
+                        if isinstance(row.field.metadata(AdvertisedSetting).setting,
+                                      ThinkingConfigurationSetting))
+
         await ui.until(
-            lambda: isinstance(app.screen, ContextMenu), why="the thinking menu"
+            lambda: thinking_editor().field.metadata(AdvertisedSetting).setting
+                    == agent.configuration.thinking,
+            why="the form to show the new model's thinking choices",
         )
-        assert "high" in await ui.menu("the thinking menu options")
-        await ui.choose_menu_action("high")
+        choices = tuple(choice.value for choice in agent.configuration.thinking.choices)
+        assert "high" in choices
+        thinking_editor().focus()
+        await ui.press("enter", "home", *("down" for _ in range(choices.index("high"))), "enter")
         await ui.until(
             lambda: agent.configuration.thinking.current == "high",
             seconds=20,

@@ -1,12 +1,20 @@
 """One control per kind of value, chosen by what the field declares."""
 
 from __future__ import annotations
-from abc import abstractmethod
 
+import json
+from abc import abstractmethod
 from collections.abc import Iterable
 from enum import Enum
 from typing import TYPE_CHECKING, ClassVar, Optional
 
+from agent_comms.nominal.field_codec import FieldCodec
+from formbridge.forms.declared_fields import (
+    DeclaredField,
+    DeclaredViews,
+    Multiline,
+    declarations,
+)
 from formbridge.forms.ui_utils import format_enum_display
 from python_introspect import (
     AnnotationChoices,
@@ -16,18 +24,22 @@ from python_introspect import (
 from python_introspect.validation import validate_annotation_value
 from textual import containers
 from textual.app import ComposeResult
+from textual.css.scalar import Scalar
+from textual.geometry import Spacing
 from textual.message import Message
 from textual.reactive import var
 from textual.validation import Function
-from textual.geometry import Spacing
-from textual.css.scalar import Scalar
 from textual.view import WidgetView
 from textual.widget import Widget
 from textual.widgets import Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
 
-from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, Multiline, declarations
-from toad.forms.presentation import FormCheckbox, FormInput, FormSelectCurrent, FramedControl
+from toad.forms.presentation import (
+    FormCheckbox,
+    FormInput,
+    FormSelectCurrent,
+    FramedControl,
+)
 from toad.tone_paint import UntintedTonePaint
 
 if TYPE_CHECKING:
@@ -174,6 +186,17 @@ class FloatEditor(LineEditor, shows=(float,)):
 
 class StrEditor(LineEditor, shows=(str,)):
     accepts = "text"
+
+
+class StructuredEditor(LineEditor, shows=(tuple, list, dict)):
+    """A JSON value checked against the complete declared collection type."""
+    accepts = "text"
+
+    def value_text(self, value: object) -> str:
+        return json.dumps(FieldCodec.encode(value), ensure_ascii=False)
+
+    def read(self, text: str) -> object:
+        return FieldCodec.decode(self.field.annotation, FieldCodec.parse(text.encode()))
 
 
 class MultilineEditor(ValueEditor, UntintedTonePaint, FramedControl, TextArea, shows=(Multiline,)):

@@ -18,7 +18,10 @@ from acp import schema as acp_protocol
 from acp.exceptions import RequestError
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.channel_targets import CommandTarget
-from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
+from agent_comms.planning.goal_presentation import (
+    GoalExecutionControls,
+    IdleGoalExecution,
+)
 from agent_comms.planning.goals import NoGoal
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_presentation import (
@@ -83,6 +86,7 @@ from toad.conversation_submission import AgentInputSubmission, ConversationSubmi
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
 from toad.core import input_events
+from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import AgentFail, AgentReady
 from toad.core.preference_events import PreferenceChanged
 from toad.core.source_events import (
@@ -1440,19 +1444,20 @@ class Conversation(
                 prompt.focus()
 
     @work
-    @handles(input_events.ChangeConfiguration)
-    async def on_change_configuration(self, event: input_events.ChangeConfiguration) -> None:
+    @handles(ChangeConfiguration)
+    async def on_change_configuration(self, event: ChangeConfiguration) -> None:
         agent = self.agent_binding
-        setting = agent.configuration.setting(event.setting)
+        setting = agent.configuration.named(event.setting)
         error = await setting.select(agent, event.value)
         if agent is not self.agent_binding:
             return
         if error is not None:
+            agent.configuration.publish()
             self.app.show_error(error, f"Set {setting.picker_title}")
 
     @work
-    @handles(input_events.ChangeModel)
-    async def on_change_model(self, event: input_events.ChangeModel) -> None:
+    @handles(ChangeModel)
+    async def on_change_model(self, event: ChangeModel) -> None:
         agent = self.agent_binding
         # Selecting the current model opens its thinking choices. Reapplying it
         # would ask native SetModel to restore that model's default effort.
@@ -1462,6 +1467,7 @@ class Conversation(
         if agent is not self.agent_binding:
             return
         if error is not None:
+            agent.configuration.publish()
             self.app.show_error(error, "Set Model")
         elif (model := agent.configuration.model.selected) is not None:
 
@@ -1472,20 +1478,6 @@ class Conversation(
                     self.model_history_scope, model.value, last_used=time_ns()
                 )
             )
-            levels = [choice.value for choice in agent.configuration.thinking.choices]
-            if len(levels) > 1:
-                level = await ContextMenu.choose(
-                    self.screen,
-                    self.prompt.region,
-                    f"Thinking level for {model.name}",
-                    [(value, value.title()) for value in levels],
-                )
-                if (
-                    level
-                    and (error := await agent.set_thinking_level(level)) is not None
-                ):
-                    self.app.show_error(error, "Set thinking level")
-                    return
             self.feedback.flash(
                 Content.from_markup(
                     "Model [b]$model[/] · thinking [b]$level",
