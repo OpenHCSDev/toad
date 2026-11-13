@@ -1,0 +1,58 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "persist-global-edits-at-the-original-owner",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView.configuration_state",
+          "replacements": [
+            {
+              "old_source": "ObjectConfiguration(identity, self.app.saved_settings.state,",
+              "new_source": "ObjectConfiguration(identity, self.app.saved_settings,"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/object_configuration.py",
+          "target_qualname": "ObjectConfiguration.__init__",
+          "replacements": [
+            {
+              "old_source": "    def __init__(self, identity: TabIdentity, defaults: ObjectState,\n                 directory: Path, owner: SettingsScope) -> None:\n        self.identity, self.defaults, self.owner = identity, defaults, owner",
+              "new_source": "    def __init__(self, identity: TabIdentity, global_settings: SavedSettings,\n                 directory: Path, owner: SettingsScope) -> None:\n        self.global_settings = global_settings\n        defaults = global_settings.state\n        self.identity, self.defaults, self.owner = identity, defaults, owner"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/object_configuration.py",
+          "import_source": "from toad.preferences import SavedSettings"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/object_configuration.py",
+          "target_qualname": "ObjectSettingField.edit",
+          "replacements": [
+            {
+              "old_source": "        return DeclaredField(self.state.defaults, self.path).edit(value)",
+              "new_source": "        result = DeclaredField(self.state.defaults, self.path).edit(value)\n        self.state.global_settings.save_sync()\n        return result"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        assert len(file_menu.entries) < len(menu.entries)",
+              "new_source": "        assert tuple(entry.widget.field.path for entry in file_menu.entries) == tuple(\n            entry.widget.field.path for entry in menu.entries)\n        # The same declarations remain discoverable; the declaring scope owns writes.\n        global_field = file_view.configuration_state.field('notifications.enable_sounds')\n        assert not global_field.allows_override\n        before = app.saved_settings.state.fields.notifications.enable_sounds\n        global_field.edit(not before)\n        assert app.saved_settings.state.fields.notifications.enable_sounds is not before\n        assert state.fields.notifications.enable_sounds is not before\n        assert file_view.configuration_state.fields.notifications.enable_sounds is not before\n        assert file_view.configuration_state.parameters['notifications.enable_sounds'] is None\n        assert app.saved_settings.path().is_file()\n        assert len(file_menu.entries) > 3\n        notifications = next(entry for entry in file_menu.entries\n                             if entry.widget.field.path.value == 'notifications')\n        file_menu.picker.value = notifications\n        await ui.until(lambda: notifications.widget.is_mounted, why='discovered notifications form')\n        await ui.until(lambda: bool(notifications.widget.query(ObjectValueView)), why='global field controls')\n        field_view = next(part for part in notifications.widget.query(ObjectValueView)\n                          if part.field.path.value == 'notifications.enable_sounds')\n        assert not field_view.inherit.display\n        assert 'Global setting' in str(field_view.source.render())"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

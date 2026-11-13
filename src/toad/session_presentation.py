@@ -21,6 +21,7 @@ from agent_comms.messaging.message_reference import MessageReference
 
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
+from toad.configured_view import AgentProperties
 from toad.transcript_scope import MailboxSent, TranscriptView
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
@@ -184,6 +185,9 @@ class OperationalSessionSources(ConversationSources, NativeQueueSource):
 
         conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
+    def configuration_panels(self, view):
+        yield AgentProperties.panel(view)
+
     def prompt(self, conversation: Conversation):
 
         return Prompt(project=conversation.project_path, submissions=conversation.submissions)
@@ -272,6 +276,10 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
 
     def agent_info(self, conversation: Conversation) -> str:
         return conversation.thread_activity.row.presentation.title
+
+    def configuration_panels(self, view):
+        """A mailbox has no native session configuration to advertise."""
+        return ()
 
     def prompt(self, conversation: Conversation):
         return MailboxPrompt(project=conversation.project_path, submissions=conversation.submissions)

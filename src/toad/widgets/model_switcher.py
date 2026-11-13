@@ -30,14 +30,13 @@ class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationS
 
     @property
     def history_scope(self) -> str:
-        return self.query_ancestor(ModelSwitcher).prompt.model_history_scope
+        return self.query_ancestor(SessionForm).prompt.model_history_scope
 
     def bind_control(self) -> None:
         self.listen(events.Mount, self.opened)
 
     def opened(self, event: events.Mount) -> None:
-        if self.query_ancestor(ModelSwitcher).is_open:
-            self.focus_content(False)
+        self.focus_content(False)
 
     def compose(self) -> ComposeResult:
         yield from self.compose_content()
@@ -61,13 +60,25 @@ class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationS
         self.configuration_changed()
 
     def connect_provider(self) -> None:
-        self.publish_core(input_events.ProviderLogin())
+        self.query_ancestor(SessionForm).prompt.publish_core(input_events.ProviderLogin())
 
     def dismiss_control(self) -> None:
-        self.query_ancestor(ModelSwitcher).dismiss_control()
+        self.query_ancestor(SessionForm).dismiss_control()
 
 
 class SessionForm(CoreEventReceiver, InlineFormView):
+
+    def __init__(self, state, parts, prompt):
+        super().__init__(state, parts)
+        self.prompt = prompt
+
+    @classmethod
+    def for_prompt(cls, prompt):
+        state = prompt.agent_binding.configuration.editing()
+        return cls(state, cls.field_family.of(state), prompt)
+
+    def dismiss_control(self):
+        """An inline selection leaves its form open."""
 
     def represents(self, settings) -> bool:
         return tuple(row.field.metadata(AdvertisedSetting).setting
@@ -79,7 +90,14 @@ class SessionForm(CoreEventReceiver, InlineFormView):
             field = self.values[path].field
             setting = field.metadata(AdvertisedSetting).setting
             if field.value != setting.current:
-                self.publish_core(setting.selection_event(field.value))
+                self.prompt.publish_core(setting.selection_event(field.value))
+
+
+class PopupSessionForm(SessionForm):
+    """The popup adds dismissal to the same advertised settings form."""
+
+    def dismiss_control(self):
+        self.query_ancestor(ModelSwitcher).dismiss_control()
 
 
 class ModelSwitcher(SelectionBounds, ScreenOverlay, InfoPopup):
@@ -90,7 +108,7 @@ class ModelSwitcher(SelectionBounds, ScreenOverlay, InfoPopup):
     overflow_y = "auto"
 
     def compose_content(self) -> ComposeResult:
-        self.form = SessionForm.whole(self.prompt.agent_binding.configuration.editing())
+        self.form = PopupSessionForm.for_prompt(self.prompt)
         yield self.form
 
     def configuration_changed(self) -> None:

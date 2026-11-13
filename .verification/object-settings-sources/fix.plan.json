@@ -1,0 +1,69 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "discover-settings-at-their-original-scopes",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView.configuration_panels",
+          "replacements": [
+            {
+              "old_source": "        for path in state.direct_parameter_paths():\n            if state.shows(path.value):\n                field = state.field(path.value)\n                yield SideBar.Panel(field.label, ObjectProperties(field),\n                                    id=f\"settings-{path.value}\", flex=True)",
+              "new_source": "        for path, parameter in ParameterFormService().parameters_for_state(state):\n            field = state.field(path.value)\n            yield SideBar.Panel(field.label, ObjectProperties(field),\n                                id=f\"settings-{path.value}\", flex=True)"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from formbridge.forms.parameter_form_service import ParameterFormService"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/object_configuration.py",
+          "target_qualname": "ObjectSettingField",
+          "replacements": [
+            {
+              "old_source": "    @property\n    def owner_type(self):\n        return DeclaredField(self.state.defaults, self.path).owner_type",
+              "new_source": "    @property\n    def owner_type(self):\n        return DeclaredField(self.state.defaults, self.path).owner_type\n\n    @property\n    def allows_override(self) -> bool:\n        return self.state.admits(self.path.value)\n\n    def edit(self, value):\n        if self.allows_override:\n            return super().edit(value)\n        return DeclaredField(self.state.defaults, self.path).edit(value)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "ObjectFieldView.admits",
+          "replacements": [
+            {
+              "old_source": "        return field.state.shows(field.path.value)",
+              "new_source": "        return True"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "ObjectValueView.mark",
+          "replacements": [
+            {
+              "old_source": "        explicit = self.field.state.parameters[self.field.path.value] is not None\n        super().mark(explicit)\n        self.inherit.label = \"Use global default\" if explicit else \"Override here\"\n        if explicit:\n            self.source.update(\"Override for this object\")\n        else:\n            scope, owner = self.field.state.get_provenance(self.field.path.value)\n            self.source.update(\"Inherited from global defaults\")\n            self.source.tooltip = f\"{owner.__module__}.{owner.__qualname__} \u00b7 {scope or 'global'}\"",
+              "new_source": "        local = self.field.allows_override\n        explicit = local and self.field.state.parameters[self.field.path.value] is not None\n        super().mark(explicit)\n        self.inherit.display = local\n        self.inherit.label = \"Use global default\" if explicit else \"Override here\"\n        if explicit:\n            self.source.update(\"Override for this object\")\n        else:\n            scope, owner = self.field.state.get_provenance(self.field.path.value)\n            self.source.update(\"Inherited from global defaults\" if local else \"Global setting \u00b7 applies to every view\")\n            self.source.tooltip = f\"{owner.__module__}.{owner.__qualname__} \u00b7 {scope or 'global'}\""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/object_configuration.py",
+          "target_qualname": "ObjectConfiguration",
+          "replacements": [
+            {
+              "old_source": "    def shows(self, path: str) -> bool:\n        return any(name == path or name.startswith(path + \".\") for name in self.editable_paths)\n\n",
+              "new_source": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

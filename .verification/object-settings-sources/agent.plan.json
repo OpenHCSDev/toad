@@ -1,0 +1,163 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "share-the-advertised-form-with-view-properties",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionModelEditor.history_scope",
+          "replacements": [
+            {
+              "old_source": "self.query_ancestor(ModelSwitcher).prompt.model_history_scope",
+              "new_source": "self.query_ancestor(SessionForm).prompt.model_history_scope"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionModelEditor.opened",
+          "replacements": [
+            {
+              "old_source": "        if self.query_ancestor(ModelSwitcher).is_open:\n            self.focus_content(False)",
+              "new_source": "        self.focus_content(False)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionModelEditor.connect_provider",
+          "replacements": [
+            {
+              "old_source": "self.publish_core(input_events.ProviderLogin())",
+              "new_source": "self.query_ancestor(SessionForm).prompt.publish_core(input_events.ProviderLogin())"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionModelEditor.dismiss_control",
+          "replacements": [
+            {
+              "old_source": "self.query_ancestor(ModelSwitcher).dismiss_control()",
+              "new_source": "self.query_ancestor(SessionForm).dismiss_control()"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionForm.represents",
+          "source": "    def __init__(self, state, parts, prompt):\n        super().__init__(state, parts)\n        self.prompt = prompt\n\n    @classmethod\n    def for_prompt(cls, prompt):\n        state = prompt.agent_binding.configuration.editing()\n        return cls(state, cls.field_family.of(state), prompt)\n\n    def dismiss_control(self):\n        \"\"\"An inline selection leaves its form open.\"\"\"\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionForm.values_changed",
+          "replacements": [
+            {
+              "old_source": "self.publish_core(setting.selection_event(field.value))",
+              "new_source": "self.prompt.publish_core(setting.selection_event(field.value))"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "ModelSwitcher",
+          "source": "class PopupSessionForm(SessionForm):\n    \"\"\"The popup adds dismissal to the same advertised settings form.\"\"\"\n\n    def dismiss_control(self):\n        self.query_ancestor(ModelSwitcher).dismiss_control()\n\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "ModelSwitcher.compose_content",
+          "replacements": [
+            {
+              "old_source": "SessionForm.whole(self.prompt.agent_binding.configuration.editing())",
+              "new_source": "PopupSessionForm.for_prompt(self.prompt)"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.widgets.model_switcher import SessionForm"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.core_event_carrier import CoreEventReceiver"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.core.events import ConfigurationChanged"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from metaclass_registry.mro_dispatch import handles"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from textual import work"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectConfigurationDialog",
+          "source": "class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):\n    \"\"\"The selected native session's advertisements, using its original writer.\"\"\"\n\n    def __init__(self, view):\n        super().__init__()\n        self.view = view\n        self.listen(events.Mount, self.follow_binding)\n\n    @classmethod\n    def panel(cls, view):\n        return SideBar.Panel(\"Agent settings\", cls(view), id=\"agent-settings\", flex=True)\n\n    def compose(self):\n        self.form = SessionForm.for_prompt(self.view.conversation.prompt)\n        yield self.form\n\n    def follow_binding(self):\n        self.watch(self.view.conversation, \"agent_binding\", self.binding_changed)\n\n    def binding_changed(self, old, new):\n        self.retire_core_observations(old.events)\n        self.observe_core(new.events)\n        self.configuration_changed()\n\n    @handles(ConfigurationChanged)\n    def configuration_changed(self):\n        if self.is_mounted:\n            self.rebuild_form()\n\n    @work(exclusive=True, group=\"agent-settings\")\n    async def rebuild_form(self):\n        await self.recompose()\n\n    def finish(self):\n        self.form.finish()\n\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/agent_binding.py",
+          "import_source": "from toad.core.events import CoreEventStream"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/agent_binding.py",
+          "target_qualname": "NoAgentConnection.presentation",
+          "source": "    @cached_property\n    def events(self):\n        return CoreEventStream(self)\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/main.py",
+          "target_qualname": "MainScreen.keyboard_scopes",
+          "source": "    @property\n    def configuration_panels(self):\n        yield from self.operational_sources.configuration_panels(self)\n        yield from super().configuration_panels\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_presentation.py",
+          "import_source": "from toad.configured_view import AgentProperties"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_presentation.py",
+          "target_qualname": "OperationalSessionSources.prompt",
+          "source": "    def configuration_panels(self, view):\n        yield AgentProperties.panel(view)\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_presentation.py",
+          "target_qualname": "MailboxSessionSources.prompt",
+          "source": "    def configuration_panels(self, view):\n        \"\"\"A mailbox has no native session configuration to advertise.\"\"\"\n        return ()\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "ObjectFieldView",
+          "replacements": [
+            {
+              "old_source": "    @classmethod\n    def admits(cls, field):\n        return True",
+              "new_source": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

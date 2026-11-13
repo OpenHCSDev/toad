@@ -14,9 +14,7 @@ class ObjectFieldView(FieldView):
     def family(cls):
         return ObjectFieldView
 
-    @classmethod
-    def admits(cls, field):
-        return field.state.shows(field.path.value)
+
 
 
 class InheritSettingButton(ActingButton):
@@ -44,14 +42,16 @@ class ObjectValueView(ValueView, ObjectFieldView, shows=(ParameterInfo,)):
         yield self.inherit
 
     def mark(self, changed):
-        explicit = self.field.state.parameters[self.field.path.value] is not None
+        local = self.field.allows_override
+        explicit = local and self.field.state.parameters[self.field.path.value] is not None
         super().mark(explicit)
+        self.inherit.display = local
         self.inherit.label = "Use global default" if explicit else "Override here"
         if explicit:
             self.source.update("Override for this object")
         else:
             scope, owner = self.field.state.get_provenance(self.field.path.value)
-            self.source.update("Inherited from global defaults")
+            self.source.update("Inherited from global defaults" if local else "Global setting · applies to every view")
             self.source.tooltip = f"{owner.__module__}.{owner.__qualname__} · {scope or 'global'}"
 
 

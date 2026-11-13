@@ -54,7 +54,28 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         assert file_view.configuration_state.identity == app.session_navigation.get(file_mode).identity
         assert file_view.configuration_state is not state
         assert not file_bar.query(ThreadCommsSidebar)
-        assert len(file_menu.entries) < len(menu.entries)
+        assert tuple(entry.widget.field.path for entry in file_menu.entries) == tuple(
+            entry.widget.field.path for entry in menu.entries)
+        # The same declarations remain discoverable; the declaring scope owns writes.
+        global_field = file_view.configuration_state.field('notifications.enable_sounds')
+        assert not global_field.allows_override
+        before = app.saved_settings.state.fields.notifications.enable_sounds
+        global_field.edit(not before)
+        assert app.saved_settings.state.fields.notifications.enable_sounds is not before
+        assert state.fields.notifications.enable_sounds is not before
+        assert file_view.configuration_state.fields.notifications.enable_sounds is not before
+        assert file_view.configuration_state.parameters['notifications.enable_sounds'] is None
+        assert app.saved_settings.path().is_file()
+        assert len(file_menu.entries) > 3
+        notifications = next(entry for entry in file_menu.entries
+                             if entry.widget.field.path.value == 'notifications')
+        file_menu.picker.value = notifications
+        await ui.until(lambda: notifications.widget.is_mounted, why='discovered notifications form')
+        await ui.until(lambda: bool(notifications.widget.query(ObjectValueView)), why='global field controls')
+        field_view = next(part for part in notifications.widget.query(ObjectValueView)
+                          if part.field.path.value == 'notifications.enable_sounds')
+        assert not field_view.inherit.display
+        assert 'Global setting' in str(field_view.source.render())
         await ui.select_tab(channel)
         assert view.thread_sidebar is bar and bar.query_one(PanelMenu) is menu
         assert menu.picker.value is ui_entry
@@ -71,6 +92,30 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         await workspace.bind(native, 'panel-owner')
         native_bar = await ui.revealed(native.thread_sidebar)
         native_menu = native_bar.query_one(PanelMenu)
+        from acp.schema import SetSessionConfigOptionResponse
+        from support.agents import AppAgents
+        from toad.configured_view import AgentProperties
+        from toad.widgets.model_switcher import SessionForm
+        agent = AppAgents(app).detached_agent('sidebar-settings')
+        native.conversation.bind_agent(agent)
+        agent.configuration.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [
+            {'id': 'sample-budget', 'name': 'Budget', 'type': 'boolean', 'currentValue': True},
+        ]}).config_options)
+        agent_entry = next(entry for entry in native_menu.entries if isinstance(entry.widget, AgentProperties))
+        native_menu.picker.value = agent_entry
+        await ui.until(lambda: agent_entry.widget.is_mounted and bool(agent_entry.widget.query(SessionForm)),
+                       why='the actual advertised session form')
+        await ui.until(lambda: agent_entry.widget.form.represents(agent.configuration),
+                       why='new advertisements replace the original fields')
+        assert agent_entry.widget.form.prompt is native.conversation.prompt
+        assert 'Budget' in {row.field.label for row in agent_entry.widget.form.values.values()}
+        agent.configuration.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [
+            {'id': 'sample-budget', 'name': 'Budget', 'type': 'boolean', 'currentValue': False},
+            {'id': 'new-setting', 'name': 'New setting', 'type': 'boolean', 'currentValue': True},
+        ]}).config_options)
+        await ui.until(lambda: agent_entry.widget.form.represents(agent.configuration),
+                       why='the sidebar follows the source update')
+        assert 'New setting' in {row.field.label for row in agent_entry.widget.form.values.values()}
         relationships = next(entry for entry in native_menu.entries
                              if isinstance(entry.widget, ThreadCommsSidebar))
         native_menu.picker.value = relationships

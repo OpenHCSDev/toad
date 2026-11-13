@@ -15,6 +15,7 @@ from textual.content import Content
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
+from toad.core.events import CoreEventStream
 from toad.input_decision import InputAccepted, InputDecision, NoLiveAgent
 from toad.commit_claims import CommitSource
 from toad.conversation_turn import TurnOwner
@@ -43,6 +44,7 @@ if TYPE_CHECKING:
 
 
 class AgentConnection(ABC):
+    events: CoreEventStream
     configuration: AgentConfiguration
     presentation: AgentPresentation
     ready: bool
@@ -133,6 +135,10 @@ class NoAgentConnection(AgentConnection):
     available_modes = ()
     current_mode = None
     session_disposition = UnopenedSessionDisposition()
+
+    @cached_property
+    def events(self):
+        return CoreEventStream(self)
 
     @cached_property
     def presentation(self):
