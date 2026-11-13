@@ -1,0 +1,20 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "view-settings-before-inherited-status-panels",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar.panel_entries",
+          "replacements": [
+            {
+              "old_source": "        yield from super().panel_entries()\n        yield from self.query_ancestor(ViewSettingsScope).configuration_panels",
+              "new_source": "        yield from self.query_ancestor(ViewSettingsScope).configuration_panels\n        yield from super().panel_entries()"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

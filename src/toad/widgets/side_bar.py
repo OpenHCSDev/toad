@@ -1359,8 +1359,8 @@ class ThreadSidebar(SideBar):
     placement_type = ThreadSidebarPlacement
 
     def panel_entries(self):
-        yield from super().panel_entries()
         yield from self.query_ancestor(ViewSettingsScope).configuration_panels
+        yield from super().panel_entries()
 
     def _compose_panels(self):
         yield PanelMenu(self.panel_entries(), self.navigation)
