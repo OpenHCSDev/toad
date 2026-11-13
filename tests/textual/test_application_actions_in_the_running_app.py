@@ -1,4 +1,5 @@
 """Textual-facing: application actions (help, settings screen, command palette, sidebar buttons, tab close) run through Textual screens and keep the session, its draft and the saved settings."""
+from agent_comms.config_options import ServiceTierConfigOption
 from agent_comms.nominal.field_codec import FieldCodec
 from toad.forms.editors import ChoicesEditor
 from toad.launch_binding import AgentAttached
@@ -189,12 +190,12 @@ async def test_command_form_opens_before_preparation_and_first_mouse_confirm_sub
             button = dialog.query_one(ApplyCommandButton)
             await ui.until(lambda: not button.disabled, why="the command values to be accepted")
             await ui.until_clickable(button, why="the fixed create control to remain visible before scrolling")
-            lower = next(reversed(dialog.form.values.values())).editor
+            lower = dialog.form.values[ServiceTierConfigOption.declared_field().name].editor
             lower.scroll_visible(animate=False, immediate=True)
             assert isinstance(lower, ChoicesEditor)
             await ui.step()
             await ui.textual[1].click(lower, offset=(3, 1))
-            await ui.until(lambda: lower.expanded, why="the scrolled lower field to open its actual choices")
+            await ui.until(lambda: lower.expanded, why="the scrolled service-tier field to open its actual choices")
             await ui.press('escape')
             assert dialog.query_one(CommandFormScroll).scroll_y > 0
             await ui.until_clickable(button, why="the fixed create control to remain visible after scrolling")
