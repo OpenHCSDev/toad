@@ -1,0 +1,20 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "retain-the-actual-dropdown-paint-placement",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tools/physical_ui_remote.py",
+          "target_qualname": "ObserveOperation.execute",
+          "replacements": [
+            {
+              "old_source": "        frontend = FrontendIdentity(",
+              "new_source": "        from textual.widgets import Select\n        from textual.widgets._select import SelectOverlay\n        (directory / \"select-layout.json\").write_text(json.dumps([\n            dict(select=type(select).__name__, expanded=select.expanded,\n                 overlay=type(overlay).__name__, displayed=overlay.display,\n                 geometry=str(screen._compositor._published_map.get(overlay)),\n                 source=str(screen._compositor._published_map.get(select)))\n            for select in screen.query(Select) for overlay in select.query(SelectOverlay)\n        ], indent=2))\n        frontend = FrontendIdentity("
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

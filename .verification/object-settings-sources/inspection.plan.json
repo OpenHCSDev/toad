@@ -1,0 +1,43 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "read-the-held-coverage-and-retain-form-focus",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tools/physical_ui_remote.py",
+          "target_qualname": "ObserveOperation.execute",
+          "replacements": [
+            {
+              "old_source": "history.state.reports_coverage for history in histories",
+              "new_source": "history.state.coverage.retained_through(history) for history in histories"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionModelEditor.opened",
+          "replacements": [
+            {
+              "old_source": "self.focus_content(False)",
+              "new_source": "self.query_ancestor(SessionForm).open_model(self)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionForm.dismiss_control",
+          "source": "    def open_model(self, editor):\n        \"\"\"An inline form paints its model choices without taking keyboard focus.\"\"\"\n        editor.configuration_changed()\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "PopupSessionForm.dismiss_control",
+          "source": "    def open_model(self, editor):\n        if self.query_ancestor(ModelSwitcher).is_open:\n            editor.focus_content(False)\n\n"
+        }
+      ]
+    }
+  ]
+}

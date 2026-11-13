@@ -342,8 +342,8 @@ class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc
 
     @property
     def configuration_panels(self):
-        yield from self.operational_sources.configuration_panels(self)
         yield from super().configuration_panels
+        yield from self.operational_sources.configuration_panels(self)
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         return self.content.keyboard_scopes(self)

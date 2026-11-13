@@ -36,7 +36,7 @@ class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationS
         self.listen(events.Mount, self.opened)
 
     def opened(self, event: events.Mount) -> None:
-        self.focus_content(False)
+        self.query_ancestor(SessionForm).open_model(self)
 
     def compose(self) -> ComposeResult:
         yield from self.compose_content()
@@ -73,16 +73,25 @@ class SessionForm(CoreEventReceiver, InlineFormView):
         self.prompt = prompt
 
     @classmethod
+    def settings(cls, configuration):
+        return tuple(configuration.selections.values())
+
+    @classmethod
     def for_prompt(cls, prompt):
-        state = prompt.agent_binding.configuration.editing()
+        configuration = prompt.agent_binding.configuration
+        state = configuration.editing_settings(cls.settings(configuration))
         return cls(state, cls.field_family.of(state), prompt)
+
+    def open_model(self, editor):
+        """An inline form paints its model choices without taking keyboard focus."""
+        editor.configuration_changed()
 
     def dismiss_control(self):
         """An inline selection leaves its form open."""
 
     def represents(self, settings) -> bool:
         return tuple(row.field.metadata(AdvertisedSetting).setting
-                     for row in self.values.values()) == settings.picker_settings
+                     for row in self.values.values()) == self.settings(settings)
 
     def values_changed(self, paths: set[str]) -> None:
         super().values_changed(paths)
@@ -95,6 +104,14 @@ class SessionForm(CoreEventReceiver, InlineFormView):
 
 class PopupSessionForm(SessionForm):
     """The popup adds dismissal to the same advertised settings form."""
+
+    @classmethod
+    def settings(cls, configuration):
+        return configuration.picker_settings
+
+    def open_model(self, editor):
+        if self.query_ancestor(ModelSwitcher).is_open:
+            editor.focus_content(False)
 
     def dismiss_control(self):
         self.query_ancestor(ModelSwitcher).dismiss_control()
