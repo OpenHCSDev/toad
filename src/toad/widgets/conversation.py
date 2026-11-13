@@ -383,6 +383,8 @@ class CursorContainer(Animated[Mix], Static):
     def _effect_region(self) -> Region | None:
         cursor = self.query_ancestor(Conversation).navigation.cursor
         visible = cursor.visible_region
+        if not isinstance(visible, Region):
+            return None
         if visible.height == 0:
             return Region(0, 0, 1, 0)
         return Region(0, visible.y - self.region.y, 1, visible.height)
