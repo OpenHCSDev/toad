@@ -243,24 +243,27 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
         self.form.finish()
         button.disabled = True
         try:
-            await CommandPreparation.wait_on(self)
-        except WorkerFailed:
-            # The preparation's own handler shows the original failure.
-            return
-        if not self.is_attached or any(view.editor.feedback for view in self.form.values.values()):
-            return
-        arguments = self.arguments()
-        confirmed = self.query_one(CommandConfirmed).value
-        button.disabled = True
-        try:
-            await self.app.preparation.run_thread(
-                lambda: self.definition.edited(arguments).with_confirmation(confirmed))
-        except CLI_FAILURES as error:
-            self.app.show_error(error, self.definition.label)
-            self.update_confirmation()
-            return
-        if self.is_attached and arguments == self.arguments():
-            self.dismiss(arguments)
+            try:
+                await CommandPreparation.wait_on(self)
+            except WorkerFailed:
+                # Preparation reports its original error through its own handler.
+                return
+            if not self.is_attached or any(view.editor.feedback for view in self.form.values.values()):
+                return
+            arguments = self.arguments()
+            confirmed = self.query_one(CommandConfirmed).value
+            try:
+                await self.app.preparation.run_thread(
+                    lambda: self.validated_action(arguments).with_confirmation(confirmed))
+            except CLI_FAILURES as error:
+                self.app.show_error(error, self.definition.label)
+                self.update_confirmation()
+                return
+            if self.is_attached and arguments == self.arguments():
+                self.dismiss(arguments)
+        finally:
+            if self.is_attached:
+                button.disabled = False
 
     @on(Mount)
     def on_mount(self):
@@ -293,11 +296,16 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
             else:
                 self.update_confirmation()
 
+    def validated_action(self, arguments) -> TargetAction:
+        """The same declared catalog constraints guard the preview and submission."""
+        for name in self.choices:
+            self.form.values[name].field.validate(arguments[name])
+        return self.definition.edited(arguments)
+
     def arguments(self):
         return {name: self.state.get_resolved_value(name) for name in self.form.values}
 
     async def refresh_catalogs(self, arguments):
-        self.query_one(ApplyCommandButton).disabled = True
         while self.is_attached:
             edited = self.definition.edited(arguments)
             prepared = await self.app.preparation.run_thread(
@@ -320,27 +328,20 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
     def update_confirmation(self):
         confirmed = self.query_one(CommandConfirmed)
         confirmed.value = False
-        self.query_one(ApplyCommandButton).disabled = True
         arguments = self.arguments()
-        button = self.query_one(ApplyCommandButton)
         if CommandPreparation.running_on(self):
             self.query_one(CommandConfirmation).update("Loading choices…")
             confirmed.display = False
-            # Confirm owns the wait, including an edit committed by this click.
-            button.disabled = False
             return
         async def prepare():
             def read():
-                for name, choices in self.choices.items():
-                    if arguments[name] not in choices.choices():
-                        return f'Choose {name.replace("_", " ")}', False
-                return self.definition.edited(arguments).confirmation, True
+                try:
+                    return self.validated_action(arguments).confirmation, True
+                except (TypeError, ValueError) as error:
+                    return str(error), False
             confirmation, valid = await self.app.preparation.run_thread(read)
             if not self.is_attached or arguments != self.arguments() or CommandPreparation.running_on(self):
                 return
             self.query_one(CommandConfirmation).update(confirmation)
             confirmed.display = valid and bool(confirmation)
-            self.query_one(ApplyCommandButton).disabled = not valid or any(
-                arguments[name] != choices.parameter.editor_default
-                for name, choices in self.choices.items())
         self.run_worker(prepare, group='command-confirmation', exclusive=True)
