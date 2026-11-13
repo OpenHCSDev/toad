@@ -68,6 +68,9 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     @abstractmethod
     def retained_target(self) -> NamedTarget: ...
 
+    def sidebar_threads(self):
+        return ()
+
     def threads_needed(self, source: ReferencedCore, me: str):
         return ()
 
@@ -249,6 +252,9 @@ class DmConversation(ConversationKind):
     @classmethod
     async def toggle_dm(cls, screen: ConversationNavigation) -> None:
         await screen.return_to_view()
+
+    def sidebar_threads(self):
+        return (self.peer,)
 
     def threads_needed(self, source: ReferencedCore, me: str):
         return source.registry_for(me).require(me).incarnation, self.peer

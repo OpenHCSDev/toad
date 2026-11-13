@@ -1,0 +1,35 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "name-the-shared-backend-form",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from abc import abstractmethod"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from textual.containers import Vertical"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from toad.widget_actions import DismissibleControl"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog",
+          "replacements": [
+            {
+              "old_source": "class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[dict[str, str | None]], actions=(ApplyCommandAction,)):",
+              "new_source": "class CommandForm(Confirms, DismissibleControl, Vertical, actions=(ApplyCommandAction,)):\n    \"\"\"One backend operation, embedded in a panel or presented as a dialog.\"\"\""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

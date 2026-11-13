@@ -1,0 +1,164 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "paint-inherited-previews-and-reset-the-original-parameter",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "import_source": "from ui_theme.scheme import MutedColour"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "ValueEditor.control_mounted",
+          "source": "    @property\n    def previewing(self) -> bool:\n        \"\"\"The raw field inherits; its resolved value is only a preview.\"\"\"\n        return self.field.state.parameters[self.field.path.value] is None and self.field.value is not None\n\n    def paint_value(self) -> None:\n        self.paint()\n        self.styles.color = self.app.colours.colour(MutedColour) if self.previewing else None\n        self.styles.text_style = \"dim\" if self.previewing else \"\"\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "ValueEditor.control_mounted",
+          "replacements": [
+            {
+              "old_source": "self.call_after_refresh(self.paint)",
+              "new_source": "self.call_after_refresh(self.paint_value)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "LineEditor.control_arguments",
+          "source": "    def current_text(self) -> str:\n        return \"\" if self.previewing else self.value_text(self.field.value)\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "LineEditor.control_arguments",
+          "replacements": [
+            {
+              "old_source": "            \"value\": self.value_text(self.field.value),",
+              "new_source": "            \"value\": self.current_text(),\n            \"placeholder\": self.value_text(self.field.value) if self.previewing else self.field.placeholder,"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "LineEditor.finish",
+          "replacements": [
+            {
+              "old_source": "self.value == self.value_text(self.field.value)",
+              "new_source": "self.value == self.current_text()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "LineEditor.paint",
+          "replacements": [
+            {
+              "old_source": "        self.value = self.value_text(self.field.value)",
+              "new_source": "        self.placeholder = self.value_text(self.field.value) if self.previewing else self.field.placeholder\n        self.value = self.current_text()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "SelectEditor.control_arguments",
+          "replacements": [
+            {
+              "old_source": "        listed = any(value == choice for _, choice in options)",
+              "new_source": "        listed = not self.previewing and any(value == choice for _, choice in options)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "SelectEditor.control_arguments",
+          "replacements": [
+            {
+              "old_source": "            \"prompt\": self.field.placeholder if value is None else str(value),",
+              "new_source": "            \"prompt\": next((label for label, choice in options if choice == value),\n                           self.field.placeholder if value is None else str(value)),"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "SelectEditor.paint",
+          "replacements": [
+            {
+              "old_source": "            self.value = value if self.lists(value) else Select.NULL",
+              "new_source": "            self.value = value if not self.previewing and self.lists(value) else Select.NULL"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/form_view.py",
+          "target_qualname": "FormView.values_changed",
+          "replacements": [
+            {
+              "old_source": "editor.paint()",
+              "new_source": "editor.paint_value()"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/object_configuration.py",
+          "target_qualname": "ObjectSettingField.edit",
+          "source": "    def reset(self) -> None:\n        \"\"\"The writer resets its actual parameter to that parameter's signature default.\"\"\"\n        state = self.state if self.allows_override else self.state.defaults\n        state.reset_parameter(self.path.value)\n        if state is self.state.defaults:\n            self.state.global_settings.save_sync()\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "InheritSettingButton",
+          "replacements": [
+            {
+              "old_source": "class InheritSettingButton(ActingButton):\n    def __init__(self, field):\n        super().__init__(\"Override here\")\n        self.field = field\n\n    async def act(self):\n        if self.field.state.parameters[self.field.path.value] is None:\n            self.field.edit(self.field.value)\n        else:\n            self.field.state.reset_parameter(self.field.path.value)",
+              "new_source": "class ResetSettingButton(ActingButton):\n    \"\"\"Reset uses the parameter's own signature, including lazy None defaults.\"\"\"\n    def __init__(self, field):\n        super().__init__(\"Reset\")\n        self.field = field\n\n    async def act(self):\n        self.field.reset()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "ObjectValueView.__init__",
+          "replacements": [
+            {
+              "old_source": "self.inherit = InheritSettingButton(field)",
+              "new_source": "self.reset = ResetSettingButton(field)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "ObjectValueView.compose",
+          "replacements": [
+            {
+              "old_source": "yield self.inherit",
+              "new_source": "yield self.reset"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "ObjectValueView.mark",
+          "replacements": [
+            {
+              "old_source": "        self.inherit.display = local\n        self.inherit.label = \"Use global default\" if explicit else \"Override here\"",
+              "new_source": "        if self.editor.is_mounted:\n            self.editor.paint_value()"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -53,6 +53,10 @@ class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
                              sidebar.app.workspace_sessions.navigation_owner().navigation_context.actor,
                              sidebar.app.project_dir, mode_name, channel)
 
+    def configuration_contexts(self, view):
+        """A destination without a configurable subject supplies no command context."""
+        return ()
+
     def matches(self, target: NavigationTarget) -> bool:
         """Different opening behaviors may display the same sidebar address."""
         return self.name == target.name
@@ -92,7 +96,18 @@ class SessionTarget(NavigationTarget):
         return app.selected_mode
 
 
-class ThreadTarget(NavigationTarget):
+class ConfigurationTarget:
+    """Named thread and history destinations borrow Core's configuration membership."""
+
+    def configuration_contexts(self, view):
+        navigation = view.navigation_context
+        observed = view.app.coordination_access.observing(view.coordination_root)
+        return (TargetContext(view.app, observed, CommandTarget.named(self.name),
+                              navigation.actor, navigation.project_path,
+                              navigation.owner_mode),)
+
+
+class ThreadTarget(ConfigurationTarget, NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path, target=self,
@@ -125,7 +140,7 @@ class HistoryRoute:
     @abstractmethod
     def for_name(cls, name: str) -> HistoryTarget: ...
 
-class HistoryTarget(HistoryRoute, NavigationTarget):
+class HistoryTarget(ConfigurationTarget, HistoryRoute, NavigationTarget):
     @classmethod
     def for_name(cls, name: str) -> HistoryTarget:
         return cls(name)

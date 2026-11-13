@@ -22,7 +22,7 @@ from toad.widgets.side_bar import SideBar
 from toad.navigation_target import NavigationTarget
 
 from toad.launch_binding import AgentBinding, AgentOrigin, NoAgent
-from toad.thread_identity import SessionIdentity
+from toad.thread_identity import SessionIdentity, ThreadIdentityScope
 
 class SessionOrigin(metaclass=AbstractHooksMeta):
     """An origin answers for itself, including when its view is unavailable."""
@@ -51,7 +51,7 @@ class NoSessionOrigin(SessionOrigin):
         self.require()
 
 
-class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):
+class SessionScope(ThreadIdentityScope, ProjectPathOwner, NavigationScope, ToadNode):
     """The session answers read by ancestors and workspace owners.
 
     A compositing layer: the compositor retains this subtree's geometry while
@@ -97,6 +97,10 @@ class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):
     @property
     @abstractmethod
     def thread_identity(self) -> SessionIdentity: ...
+
+    @property
+    def sidebar_thread_identity(self) -> SessionIdentity:
+        return self.thread_identity
 
     @abstractmethod
     def belongs_to_wire(self, root: Path) -> bool: ...

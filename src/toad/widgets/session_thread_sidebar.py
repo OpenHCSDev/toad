@@ -1,19 +1,69 @@
 """Session side panels retain reader position while their view is parked."""
 from typing import TYPE_CHECKING
 from weakref import ref
+from agent_comms.messaging.display_references import ThreadReferenceReader
 from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
+from toad.thread_identity import (
+    LocalThreadIdentity,
+    NoThreadIdentity,
+    SessionIdentity,
+    ThreadIdentity,
+    ThreadIdentityScope,
+)
 from toad.widgets.side_bar import (
     AbsentPanels,
     LazyThreadSidebar,
     PanelHydration,
 )
-from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
+from toad.widgets.session_thread_panels import (
+    PlanSessionPanel,
+    SessionPanel,
+    ThreadDetailsPanel,
+)
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.project_panel import NO_PROJECT_VIEW
 
 if TYPE_CHECKING:
     from toad.screens.main import MainScreen
+
+
+class SidebarThreadIdentity(ThreadReferenceReader[SessionIdentity]):
+    """A retired peer's old name must never address a replacement thread."""
+
+    def __init__(self, root):
+        self.root = root
+
+    def current(self, reference):
+        return ThreadIdentity(reference.incarnation, self.root)
+
+    def retired(self, reference):
+        return LocalThreadIdentity(f"{reference.name} (gone)")
+
+
+class ConversationThreadSidebar(ThreadIdentityScope, LazyThreadSidebar):
+    """A DM's original declared panels describe its peer; channels supply no thread."""
+
+    def __init__(self, screen, threads):
+        self.threads = threads
+        self._owner = ref(screen)
+        super().__init__(state=screen._thread_sidebar_state)
+
+    @property
+    def sidebar_thread_identity(self):
+        screen = self._owner()
+        if screen is None:
+            raise ReferenceError("The conversation sidebar owner has retired")
+        references = screen.app.coordination_access.observation.observed().sidebar.observation.thread_names()
+        return next((references.thread(thread).read(SidebarThreadIdentity(screen.wire_root))
+                     for thread in self.threads), NoThreadIdentity())
+
+    def make_panels(self):
+        screen = self._owner()
+        if screen is None:
+            raise ReferenceError("The conversation sidebar owner has retired")
+        return (member().compose_panel(screen) for thread in self.threads
+                for member in SessionPanel.members_with(ThreadDetailsPanel))
 
 
 class SessionThreadSidebar(LazyThreadSidebar, NativePresentation):

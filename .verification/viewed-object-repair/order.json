@@ -1,0 +1,53 @@
+{
+  "defect": "The viewed-object bar hides thread features and rule settings and paints inherited values as local edits.",
+  "why_stupid": "This is slop because the original thread panels, backend configuration commands and ObjectState already own those answers while the replacement bar keeps an incomplete presentation and an Override toggle.",
+  "unplanned_reason": "Tristan directly reported the missing thread features and wrong inheritance editing behavior after trying the installed bar.",
+  "slop": [
+    {
+      "pattern": "MEMB-5",
+      "fact": "The replacement bar exposes an incomplete set instead of composing the original panel and configuration declarations.",
+      "at": "src/agent_comms/cli_verbs/cli_command.py:90",
+      "derive": "mixin",
+      "by": "src/agent_comms/cli_verbs/cli_command.py:90"
+    }
+  ],
+  "order": {
+    "kind": "pending",
+    "owner": "src/agent_comms/cli_verbs/cli_command.py:90",
+    "scope": {
+      "kind": "fix",
+      "shape": {
+        "parents": [
+          "src/agent_comms/cli_verbs/cli_command.py:90"
+        ],
+        "members": []
+      }
+    },
+    "check": {
+      "directory": "/home/ts/code/projects/agent-comms",
+      "command": "grep -c '^class ConfigurationCommand' src/agent_comms/cli_verbs/cli_command.py || true",
+      "result": {
+        "kind": "count",
+        "expected": 1
+      }
+    },
+    "edits": [
+      "Restore the original thread features through their declared panel owners, bind them to the viewed thread and keep channels/files on their own sources.",
+      "Discover backend configuration forms including rule-gate settings through the existing command owners, sharing their editor and writer.",
+      "Show inherited values as grey previews; typing/selecting supplies a local value and Reset uses ObjectState signature defaults. Remove the Override toggle.",
+      "Use native NRA changes, one bounded original UI control and an isolated physical check; ship one coordinated install."
+    ],
+    "banned": [
+      "Another handwritten setting or panel roster",
+      "Another Override flag or copied resolved-state store",
+      "Dropping existing inbound/outbound, family, context or file views",
+      "Subagents or delegated implementation",
+      "Broad repeated tests"
+    ],
+    "report": "Original owners restored, native plans, focused result, physical evidence, merged source and installed boundary.",
+    "run": {
+      "kind": "application",
+      "text": "The viewed thread exposes its original panels and rule settings; inherited previews remain grey until edited, reset restores signature defaults, and selecting a channel or file never shows stale agent data."
+    }
+  }
+}

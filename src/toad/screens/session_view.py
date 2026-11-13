@@ -6,7 +6,7 @@ from textual.containers import Center, Vertical
 from textual.view import FILL, WidgetView
 from textual.color import Color
 from textual.layout import Layout
-from toad.configured_view import ConfiguredView
+from toad.configured_view import ActionProperties, ConfiguredView
 from toad.settings_scope import ConversationSettingsScope
 from ui_theme.scheme import BackgroundColour
 from textual.reactive import reactive
@@ -211,6 +211,18 @@ class SidebarSessionView[SidebarT: ThreadSidebar](ConfiguredView, ConversationSe
 
     width = height = FILL
     layer_order = ("sidebar", "screen", "base")
+
+    async def configuration_action_panels(self):
+        def read():
+            entries = []
+            for context in self.navigation_target.configuration_contexts(self):
+                for action in context.available_actions():
+                    for configuration in action.declaration.configuration_actions(action):
+                        entries.append((context, configuration, configuration.editable_fields))
+            return entries
+        declarations = await self.app.preparation.run_thread(read)
+        return tuple(SideBar.Panel(action.label, ActionProperties(context, action, fields), flex=True)
+                     for context, action, fields in declarations)
 
     @property
     def paint_background(self) -> Color:

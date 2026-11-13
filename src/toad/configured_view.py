@@ -14,7 +14,9 @@ from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.forms.presentation import FormModal
 from toad.session_tracker import SidebarState
 from toad.settings_scope import ViewSettingsScope
+from toad.thread_actions import ThreadAction
 from toad.widgets.acting_button import DismissButton
+from toad.widgets.comms_command_dialog import CommandForm
 from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.model_switcher import SessionForm
 from toad.widgets.side_bar import (
@@ -86,10 +88,25 @@ class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
         self.form.finish()
 
 
+class ActionProperties(CommandForm, SidebarPanelWidget):
+    """The original backend operation form, using its original target writer."""
+
+    def __init__(self, context, definition, fields):
+        self.context = context
+        super().__init__(definition, context.title, fields, context.observed.core)
+
+    @property
+    def panel_identity(self):
+        return self.definition.declaration
+
+    async def submit(self, arguments):
+        await ThreadAction.submit(self.context, self.definition, arguments)
+
+
 class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
-    def __init__(self, panels):
+    def __init__(self, view):
         super().__init__()
-        self.form = PanelMenu(panels, SidebarState())
+        self.form = PanelMenu(view.configuration_panels, SidebarState(), view)
 
     def compose(self):
         with ModalPanel():
@@ -145,4 +162,4 @@ class ConfiguredView(ViewSettingsScope):
                         self.display_name, [(self.open_configuration, "Properties…")])
 
     def open_configuration(self):
-        self.app.push_screen(ObjectConfigurationDialog(self.configuration_panels))
+        self.app.push_screen(ObjectConfigurationDialog(self))

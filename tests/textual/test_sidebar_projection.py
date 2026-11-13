@@ -42,11 +42,22 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         await ui.until(lambda: menu.navigation.panel_identity == ui_entry.widget.panel_identity, why='returning to settings')
         app.saved_settings.set(SETTINGS.ui.column_width, 83)
         assert state.fields.ui.column_width == 83
+        width = next(part for part in menu.query(ObjectValueView)
+                     if part.field.path.value == 'ui.column_width')
+        await ui.until(lambda: width.editor.placeholder == '83', why='inherited width preview')
+        assert width.editor.value == '' and width.editor.previewing
+        width.editor.value = '83'
+        width.editor.finish()
+        assert state.parameters['ui.column_width'] == 83
+        assert not width.editor.previewing
         state.field('ui.column_width').edit(91)
         app.saved_settings.set(SETTINGS.ui.column_width, 85)
         assert state.fields.ui.column_width == 91
-        state.reset_parameter('ui.column_width')
+        await width.reset.act()
+        assert state.parameters['ui.column_width'] is None
         assert state.fields.ui.column_width == 85
+        await ui.until(lambda: width.editor.placeholder == '85', why='reset restores lazy preview')
+        assert width.editor.value == '' and width.editor.previewing
         file_mode = await ui.open_preview(preview)
         file_view = app.workspace_sessions.require(file_mode)
         file_bar = await ui.revealed(file_view.thread_sidebar)
@@ -74,7 +85,7 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         await ui.until(lambda: bool(notifications.widget.query(ObjectValueView)), why='global field controls')
         field_view = next(part for part in notifications.widget.query(ObjectValueView)
                           if part.field.path.value == 'notifications.enable_sounds')
-        assert not field_view.inherit.display
+        assert str(field_view.reset.label) == 'Reset'
         assert 'Global setting' in str(field_view.source.render())
         await ui.select_tab(channel)
         assert view.thread_sidebar is bar and bar.query_one(PanelMenu) is menu
@@ -88,7 +99,10 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         await ui.step()
         await ui.select_tab(original)
         native = app.workspace_sessions.require(original)
-        workspace.thread('panel-owner')
+        peer = workspace.thread('panel-owner')
+        from agent_comms.team.pi_rule_gate import PiRedeal
+        deal = PiRedeal.of(workspace.comms, peer)
+        deal.start()
         await workspace.bind(native, 'panel-owner')
         native_bar = await ui.revealed(native.thread_sidebar)
         native_menu = native_bar.query_one(PanelMenu)
@@ -122,6 +136,39 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         await ui.until(lambda: relationships.widget.is_mounted, why='the native relationship panel')
         assert relationships.widget.panel_visible
         relationships.widget._visible()
+        from toad.widgets.session_thread_panels import SessionPanel
+        assert set(SessionPanel.members_with(SessionPanel)) == {
+            type(owner) for owner in native_bar._panel_owners}
+        from agent_comms.cli_verbs.configure_rule_gate import ThreadRuleGateCliCommand
+        from toad.configured_view import ActionProperties
+        await ui.until(lambda: any(isinstance(entry.widget, ActionProperties)
+                                  and entry.widget.definition.declaration is ThreadRuleGateCliCommand
+                                  for entry in native_menu.entries), why='original rule-gate configuration')
+        gate_entry = next(entry for entry in native_menu.entries
+                          if isinstance(entry.widget, ActionProperties)
+                          and entry.widget.definition.declaration is ThreadRuleGateCliCommand)
+        native_menu.picker.value = gate_entry
+        await ui.until(lambda: gate_entry.widget.is_mounted and bool(gate_entry.widget.form.values),
+                       why='original backend rule-gate form')
+        from agent_comms.team.rule_deal import RuleGateSettings
+        from dataclasses import fields
+        assert set(gate_entry.widget.form.values) == {field.name for field in fields(RuleGateSettings)}
+        from toad.widgets.comms_command_dialog import CommandPreparation
+        await ui.until(lambda: not CommandPreparation.running_on(gate_entry.widget), why='gate choices loaded')
+        gate_entry.widget.form.values['read_batch'].editor.value = '7'
+        await gate_entry.widget.confirm()
+        await ui.until(lambda: deal.current().read_batch == 7, why='original gate writer saves settings')
+        dm = await ui.open_direct('panel-owner', actor=workspace.viewer)
+        dm_view = app.workspace_sessions.require(dm)
+        dm_bar = await ui.revealed(dm_view.thread_sidebar)
+        dm_menu = dm_bar.query_one(PanelMenu)
+        dm_relationships = next(entry for entry in dm_menu.entries
+                                if isinstance(entry.widget, ThreadCommsSidebar))
+        dm_menu.picker.value = dm_relationships
+        await ui.until(lambda: dm_relationships.widget.is_mounted, why='DM original relationship panel')
+        assert dm_relationships.widget.thread_identity.thread_incarnation() == peer.incarnation
+        assert dm_view.thread_identity.thread_name() == workspace.viewer
+        await ui.select_tab(original)
         settings_entry = next(entry for entry in native_menu.entries
                               if isinstance(entry.widget, ObjectProperties))
         native_menu.picker.value = settings_entry

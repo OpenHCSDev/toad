@@ -41,6 +41,7 @@ from toad.forms.presentation import (
     FramedControl,
 )
 from toad.tone_paint import UntintedTonePaint
+from ui_theme.scheme import MutedColour
 
 if TYPE_CHECKING:
     EditorWidget = Widget
@@ -72,8 +73,18 @@ class ValueEditor(DeclaredViews, EditorWidget):
         self.bind_control()
         self.listen(events.Mount, self.control_mounted)
 
+    @property
+    def previewing(self) -> bool:
+        """The raw field inherits; its resolved value is only a preview."""
+        return self.field.state.parameters[self.field.path.value] is None and self.field.value is not None
+
+    def paint_value(self) -> None:
+        self.paint()
+        self.styles.color = self.app.colours.colour(MutedColour) if self.previewing else None
+        self.styles.text_style = "dim" if self.previewing else ""
+
     def control_mounted(self, event: events.Mount) -> None:
-        self.call_after_refresh(self.paint)
+        self.call_after_refresh(self.paint_value)
 
     def control_arguments(self) -> dict[str, object]:
         """Arguments for the native control; containers need no initial value."""
@@ -139,9 +150,13 @@ class LineEditor(ValueEditor, FormInput):
 
     accepts: ClassVar[InputType]
 
+    def current_text(self) -> str:
+        return "" if self.previewing else self.value_text(self.field.value)
+
     def control_arguments(self) -> dict[str, object]:
         return {
-            "value": self.value_text(self.field.value),
+            "value": self.current_text(),
+            "placeholder": self.value_text(self.field.value) if self.previewing else self.field.placeholder,
             "type": self.accepts,
             "validators": [Function(self.acceptable)],
         }
@@ -167,7 +182,7 @@ class LineEditor(ValueEditor, FormInput):
         self.finish()
 
     def finish(self) -> None:
-        if self.value == self.value_text(self.field.value):
+        if self.value == self.current_text():
             return
         try:
             value = self.read(self.value)
@@ -177,7 +192,8 @@ class LineEditor(ValueEditor, FormInput):
             self.send(value)
 
     def paint(self) -> None:
-        self.value = self.value_text(self.field.value)
+        self.placeholder = self.value_text(self.field.value) if self.previewing else self.field.placeholder
+        self.value = self.current_text()
 
 
 class IntEditor(LineEditor, shows=(int,)):
@@ -241,12 +257,13 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
     def control_arguments(self) -> dict[str, object]:
         options = tuple(self.options())
         value = self.field.value
-        listed = any(value == choice for _, choice in options)
+        listed = not self.previewing and any(value == choice for _, choice in options)
         return {
             "options": options,
             "value": value if listed else Select.NULL,
-            "allow_blank": not listed,
-            "prompt": self.field.placeholder if value is None else str(value),
+            "allow_blank": True,
+            "prompt": next((label for label, choice in options if choice == value),
+                           self.field.placeholder if value is None else str(value)),
         }
 
     def bind_control(self) -> None:
@@ -274,7 +291,7 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
         value = self.field.value
         with self.prevent(Select.Changed):
             self.prompt = self.value_text(value)
-            self.value = value if self.lists(value) else Select.NULL
+            self.value = value if not self.previewing and self.lists(value) else Select.NULL
 
 
 class ChoicesEditor(SelectEditor, shows=(AnnotationChoices,)):

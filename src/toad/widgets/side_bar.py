@@ -3,6 +3,7 @@ from abc import abstractmethod
 
 from functools import cached_property
 
+from agent_comms.cli_support.cli_failures import CLI_FAILURES
 from textual._callback import invoke
 
 from metaclass_registry.mro_dispatch import handles
@@ -1308,10 +1309,11 @@ class PanelPicker(OneRow, FillWidth, widgets.Select):
 class PanelMenu(FillHeight, containers.Vertical):
     """Discover once from the owner; mount each original panel only when selected."""
 
-    def __init__(self, entries, navigation: SidebarState):
+    def __init__(self, entries, navigation: SidebarState, scope: ViewSettingsScope):
         super().__init__()
         self.entries = tuple(entries)
         self.navigation = navigation
+        self.scope = scope
         selected = next((entry for entry in self.entries
                          if entry.widget.panel_identity == navigation.panel_identity), self.entries[0])
         self.picker = PanelPicker(((entry.title, entry) for entry in self.entries),
@@ -1326,6 +1328,21 @@ class PanelMenu(FillHeight, containers.Vertical):
     @on(events.Mount)
     async def open_selection(self):
         await self.show_panel(self.picker.value)
+        self.run_worker(self.load_configuration(), group="configuration-panels", exclusive=True)
+
+    async def load_configuration(self):
+        try:
+            entries = await self.scope.configuration_action_panels()
+        except CLI_FAILURES as error:
+            self.app.show_error(error, "Object settings")
+            return
+        if not self.is_attached:
+            return
+        selected = self.picker.value
+        self.entries += tuple(entries)
+        with self.prevent(widgets.Select.Changed):
+            self.picker.set_options((entry.title, entry) for entry in self.entries)
+            self.picker.value = selected
 
     @on(widgets.Select.Changed)
     async def selection_changed(self, event):
@@ -1359,11 +1376,11 @@ class ThreadSidebar(SideBar):
     placement_type = ThreadSidebarPlacement
 
     def panel_entries(self):
-        yield from self.query_ancestor(ViewSettingsScope).configuration_panels
         yield from super().panel_entries()
+        yield from self.query_ancestor(ViewSettingsScope).configuration_panels
 
     def _compose_panels(self):
-        yield PanelMenu(self.panel_entries(), self.navigation)
+        yield PanelMenu(self.panel_entries(), self.navigation, self.query_ancestor(ViewSettingsScope))
 
     def focus_contents(self):
         self.query_one(PanelPicker).focus()

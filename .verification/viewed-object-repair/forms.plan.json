@@ -1,0 +1,120 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "share-the-original-command-editor-and-writer",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandForm.compose",
+          "replacements": [
+            {
+              "old_source": "        with CommandBox():\n            yield CommandTitle(f\"{self.definition.label} \u2014 {self.target}\", markup=False)\n            with CommandFormScroll():\n                yield CommandConfirmation('', markup=False)\n                yield self.form\n                yield CommandConfirmed('I confirm this operation')\n            with CommandButtons():\n                yield ApplyCommandButton('Apply', variant='primary')\n                yield CancelCommandButton('Cancel')",
+              "new_source": "        yield CommandTitle(f\"{self.definition.label} \u2014 {self.target}\", markup=False)\n        with CommandFormScroll():\n            yield CommandConfirmation('', markup=False)\n            yield self.form\n            yield CommandConfirmed('I confirm this operation')\n        with CommandButtons():\n            yield ApplyCommandButton('Apply', variant='primary')\n            yield CancelCommandButton('Cancel')"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandForm.confirm",
+          "replacements": [
+            {
+              "old_source": "self.dismiss(arguments)",
+              "new_source": "await self.submit(arguments)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandForm.confirm",
+          "source": "    @abstractmethod\n    async def submit(self, arguments: dict[str, str | None]) -> None: ...\n\n    def finish(self) -> None:\n        self.form.finish()\n\n    def dismiss_control(self) -> None:\n        \"\"\"An embedded form discards its draft without closing the containing view.\"\"\"\n        for path in self.state.parameters:\n            self.state.reset_parameter(path)\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CatalogFieldSelection.connect_provider",
+          "replacements": [
+            {
+              "old_source": "self.editor.query_ancestor(CommandDialog)",
+              "new_source": "self.editor.query_ancestor(CommandForm)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "ApplyCommandAction.apply",
+          "replacements": [
+            {
+              "old_source": "context: CommandDialog",
+              "new_source": "context: CommandForm"
+            }
+          ]
+        },
+        {
+          "operation": "insert_after_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandForm",
+          "source": "class CommandDialog(CommandForm, ShadedScreen, CenteredScreen, DismissibleScreen[dict[str, str | None]]):\n    \"\"\"The shared operation form in its modal presentation.\"\"\"\n\n    def compose(self) -> ComposeResult:\n        with CommandBox():\n            yield from super().compose()\n\n    async def submit(self, arguments: dict[str, str | None]) -> None:\n        self.dismiss(arguments)\n\n    def dismiss_control(self) -> None:\n        self.dismiss(None)\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_actions.py",
+          "import_source": "from toad.widgets.comms_command_dialog import CommandDialog"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_actions.py",
+          "target_qualname": "ThreadAction.collect",
+          "replacements": [
+            {
+              "old_source": "        from toad.widgets.comms_command_dialog import CommandDialog\n\n",
+              "new_source": ""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_actions.py",
+          "target_qualname": "ThreadAction.collect",
+          "replacements": [
+            {
+              "old_source": "            def prepare():\n                ctx.current()\n                return TargetEdit(declaration=definition.declaration,\n                    target=definition.declaration.selected_targets(ctx.selection),\n                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),\n                    channel=definition.channels, project=ctx.project)\n            request = await ctx.app.preparation.run_thread(prepare)\n            ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,\n                                         source_root=ctx.observed.root)",
+              "new_source": "            await cls.submit(ctx, definition, arguments)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_actions.py",
+          "target_qualname": "ThreadAction.collect",
+          "source": "    @classmethod\n    async def submit(cls, ctx, definition, arguments):\n        \"\"\"Both presentations execute through the original guarded target writer.\"\"\"\n        def prepare():\n            ctx.current()\n            return TargetEdit(declaration=definition.declaration,\n                target=definition.declaration.selected_targets(ctx.selection),\n                arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),\n                channel=definition.channels, project=ctx.project)\n        request = await ctx.app.preparation.run_thread(prepare)\n        ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,\n                                     source_root=ctx.observed.root)\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "SelectEditor.control_arguments",
+          "replacements": [
+            {
+              "old_source": "\"allow_blank\": not listed",
+              "new_source": "\"allow_blank\": True"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/object_configuration.py",
+          "target_qualname": "ResetSettingButton.act",
+          "replacements": [
+            {
+              "old_source": "self.field.reset()",
+              "new_source": "self.field.reset()\n        self.query_ancestor(ObjectValueView).editor.feedback = \"\""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

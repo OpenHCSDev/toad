@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from abc import abstractmethod
 from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated, get_args, get_origin
 
@@ -21,7 +22,7 @@ from python_introspect import AnnotationChoices, FieldLabel
 from python_introspect.choices import LabelledChoices
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Horizontal, VerticalScroll
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.css.scalar import Scalar
 from textual.document._editing import EditingMode
 from textual.events import Mount, Unmount
@@ -44,7 +45,7 @@ from toad.screens.modal import (
     ModalScreen,
     ShadedScreen,
 )
-from toad.widget_actions import WidgetAction
+from toad.widget_actions import DismissibleControl, WidgetAction
 from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
 from toad.widgets.checkbox import Checkbox
 from toad.widgets.model_selection import ModelSelection
@@ -130,7 +131,7 @@ class CatalogFieldSelection(ModelSelection):
 
     @work(exclusive=True)
     async def connect_provider(self):
-        command = self.editor.query_ancestor(CommandDialog)
+        command = self.editor.query_ancestor(CommandForm)
         with self.app.suspend():
             result = await asyncio.to_thread(run_login)
         if result == 0 and self.is_attached:
@@ -161,7 +162,7 @@ class ApplyCommandAction(ViewAction):
     keys = {EditingMode: ('ctrl+enter',)}
     show = True
 
-    async def apply(self, context: CommandDialog) -> None:
+    async def apply(self, context: CommandForm) -> None:
         await context.confirm()
 
 
@@ -217,7 +218,8 @@ class CommandPreparation(WorkerGroup):
     """One preparation follows the current draft without restarting on each edit."""
 
 
-class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[dict[str, str | None]], actions=(ApplyCommandAction,)):
+class CommandForm(Confirms, DismissibleControl, Vertical, actions=(ApplyCommandAction,)):
+    """One backend operation, embedded in a panel or presented as a dialog."""
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...],
                  core: CoreAccess):
         super().__init__()
@@ -239,15 +241,25 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
         self.form = InlineFormView.whole(self.state)
 
     def compose(self) -> ComposeResult:
-        with CommandBox():
-            yield CommandTitle(f"{self.definition.label} — {self.target}", markup=False)
-            with CommandFormScroll():
-                yield CommandConfirmation('', markup=False)
-                yield self.form
-                yield CommandConfirmed('I confirm this operation')
-            with CommandButtons():
-                yield ApplyCommandButton('Apply', variant='primary')
-                yield CancelCommandButton('Cancel')
+        yield CommandTitle(f"{self.definition.label} — {self.target}", markup=False)
+        with CommandFormScroll():
+            yield CommandConfirmation('', markup=False)
+            yield self.form
+            yield CommandConfirmed('I confirm this operation')
+        with CommandButtons():
+            yield ApplyCommandButton('Apply', variant='primary')
+            yield CancelCommandButton('Cancel')
+
+    @abstractmethod
+    async def submit(self, arguments: dict[str, str | None]) -> None: ...
+
+    def finish(self) -> None:
+        self.form.finish()
+
+    def dismiss_control(self) -> None:
+        """An embedded form discards its draft without closing the containing view."""
+        for path in self.state.parameters:
+            self.state.reset_parameter(path)
 
     async def confirm(self) -> None:
         button = self.query_one(ApplyCommandButton)
@@ -273,7 +285,7 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
                 self.update_confirmation()
                 return
             if self.is_attached and arguments == self.arguments():
-                self.dismiss(arguments)
+                await self.submit(arguments)
         finally:
             if self.is_attached:
                 button.disabled = False
@@ -358,3 +370,17 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
             self.query_one(CommandConfirmation).update(confirmation)
             confirmed.display = valid and bool(confirmation)
         self.run_worker(prepare, group='command-confirmation', exclusive=True)
+
+
+class CommandDialog(CommandForm, ShadedScreen, CenteredScreen, DismissibleScreen[dict[str, str | None]]):
+    """The shared operation form in its modal presentation."""
+
+    def compose(self) -> ComposeResult:
+        with CommandBox():
+            yield from super().compose()
+
+    async def submit(self, arguments: dict[str, str | None]) -> None:
+        self.dismiss(arguments)
+
+    def dismiss_control(self) -> None:
+        self.dismiss(None)

@@ -1,0 +1,175 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "discover-configuration-on-the-actual-viewed-target",
+      "operations": [
+        {
+          "operation": "insert_after_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/settings_scope.py",
+          "target_qualname": "ViewSettingsScope.configuration_panels",
+          "source": "    async def configuration_action_panels(self):\n        \"\"\"Backend configuration is absent unless the viewed object supplies targets.\"\"\"\n        return ()\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.widgets.comms_command_dialog import CommandForm"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.thread_actions import ThreadAction"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectConfigurationDialog",
+          "source": "class ActionProperties(CommandForm, SidebarPanelWidget):\n    \"\"\"The original backend operation form, using its original target writer.\"\"\"\n\n    def __init__(self, context, definition, fields):\n        self.context = context\n        super().__init__(definition, context.title, fields, context.observed.core)\n\n    @property\n    def panel_identity(self):\n        return self.definition.declaration\n\n    async def submit(self, arguments):\n        await ThreadAction.submit(self.context, self.definition, arguments)\n\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectConfigurationDialog.__init__",
+          "replacements": [
+            {
+              "old_source": "def __init__(self, panels):",
+              "new_source": "def __init__(self, view):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectConfigurationDialog.__init__",
+          "replacements": [
+            {
+              "old_source": "PanelMenu(panels, SidebarState())",
+              "new_source": "PanelMenu(view.configuration_panels, SidebarState(), view)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView.open_configuration",
+          "replacements": [
+            {
+              "old_source": "ObjectConfigurationDialog(self.configuration_panels)",
+              "new_source": "ObjectConfigurationDialog(self)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "NavigationTarget.matches",
+          "source": "    def configuration_contexts(self, view):\n        \"\"\"A destination without a configurable subject supplies no command context.\"\"\"\n        return ()\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "ThreadTarget",
+          "source": "class ConfigurationTarget:\n    \"\"\"Named thread and history destinations borrow Core's configuration membership.\"\"\"\n\n    def configuration_contexts(self, view):\n        navigation = view.navigation_context\n        observed = view.app.coordination_access.observing(view.coordination_root)\n        return (TargetContext(view.app, observed, CommandTarget.named(self.name),\n                              navigation.actor, navigation.project_path,\n                              navigation.owner_mode),)\n\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "ThreadTarget",
+          "replacements": [
+            {
+              "old_source": "class ThreadTarget(NavigationTarget):",
+              "new_source": "class ThreadTarget(ConfigurationTarget, NavigationTarget):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "HistoryTarget",
+          "replacements": [
+            {
+              "old_source": "class HistoryTarget(HistoryRoute, NavigationTarget):",
+              "new_source": "class HistoryTarget(ConfigurationTarget, HistoryRoute, NavigationTarget):"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/session_view.py",
+          "import_source": "from toad.configured_view import ActionProperties"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/session_view.py",
+          "target_qualname": "SidebarSessionView.paint_background",
+          "source": "    async def configuration_action_panels(self):\n        def read():\n            entries = []\n            for context in self.navigation_target.configuration_contexts(self):\n                for action in context.available_actions():\n                    for configuration in action.declaration.configuration_actions(action):\n                        entries.append((context, configuration, configuration.editable_fields))\n            return entries\n        declarations = await self.app.preparation.run_thread(read)\n        return tuple(SideBar.Panel(action.label, ActionProperties(context, action, fields), flex=True)\n                     for context, action, fields in declarations)\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "PanelMenu.__init__",
+          "replacements": [
+            {
+              "old_source": "def __init__(self, entries, navigation: SidebarState):",
+              "new_source": "def __init__(self, entries, navigation: SidebarState, scope: ViewSettingsScope):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "PanelMenu.__init__",
+          "replacements": [
+            {
+              "old_source": "self.navigation = navigation",
+              "new_source": "self.navigation = navigation\n        self.scope = scope"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "PanelMenu.open_selection",
+          "replacements": [
+            {
+              "old_source": "await self.show_panel(self.picker.value)",
+              "new_source": "await self.show_panel(self.picker.value)\n        self.run_worker(self.load_configuration(), group=\"configuration-panels\", exclusive=True)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "PanelMenu.selection_changed",
+          "source": "    async def load_configuration(self):\n        try:\n            entries = await self.scope.configuration_action_panels()\n        except CLI_FAILURES as error:\n            self.app.show_error(error, \"Object settings\")\n            return\n        if not self.is_attached:\n            return\n        selected = self.picker.value\n        self.entries += tuple(entries)\n        with self.prevent(widgets.Select.Changed):\n            self.picker.set_options((entry.title, entry) for entry in self.entries)\n            self.picker.value = selected\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "import_source": "from agent_comms.cli_support.cli_failures import CLI_FAILURES"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar.panel_entries",
+          "replacements": [
+            {
+              "old_source": "        yield from self.query_ancestor(ViewSettingsScope).configuration_panels\n        yield from super().panel_entries()",
+              "new_source": "        yield from super().panel_entries()\n        yield from self.query_ancestor(ViewSettingsScope).configuration_panels"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar._compose_panels",
+          "replacements": [
+            {
+              "old_source": "PanelMenu(self.panel_entries(), self.navigation)",
+              "new_source": "PanelMenu(self.panel_entries(), self.navigation, self.query_ancestor(ViewSettingsScope))"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

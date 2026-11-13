@@ -1,0 +1,16 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "remove-presentation-dependency-from-conversation-values",
+      "operations": [
+        {
+          "operation": "remove_import_bindings",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/conversation_kind.py",
+          "bound_names": [
+            "ThreadIdentity"
+          ]
+        }
+      ]
+    }
+  ]
+}
