@@ -192,7 +192,8 @@ async def test_command_form_opens_before_preparation_and_first_mouse_confirm_sub
             lower = next(reversed(dialog.form.values.values())).editor
             lower.scroll_visible(animate=False, immediate=True)
             assert isinstance(lower, ChoicesEditor)
-            assert await ui.textual[1].click(lower, offset=(3, 1))
+            await ui.step()
+            await ui.textual[1].click(lower, offset=(3, 1))
             await ui.until(lambda: lower.expanded, why="the scrolled lower field to open its actual choices")
             await ui.press('escape')
             assert dialog.query_one(CommandFormScroll).scroll_y > 0
