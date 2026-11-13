@@ -30,7 +30,13 @@ from textual.widgets import Button, Static
 from textual.worker import Worker, WorkerFailed
 from toad.forms.editors import MultilineEditor, ValueEditor
 from toad.forms.form_view import InlineFormView
-from toad.native_style import AutoWidth, EllipsisOverflow, SideMargin
+from toad.native_style import (
+    AutoWidth,
+    DockedBottom,
+    EllipsisOverflow,
+    FillHeight,
+    SideMargin,
+)
 from toad.screens.modal import (
     CenteredScreen,
     DismissibleScreen,
@@ -168,13 +174,17 @@ class CommandBox(ModalPanel):
         self.styles.padding = (1, 2)
 
 
+class CommandFormScroll(FillHeight, VerticalScroll):
+    """The form scrolls within the space left above its fixed command footer."""
+
+
 class CommandTitle(EllipsisOverflow, Static):
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.max_height = 3
 
 
-class CommandButtons(Horizontal):
+class CommandButtons(DockedBottom, Horizontal):
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.height = 3
@@ -231,10 +241,10 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
     def compose(self) -> ComposeResult:
         with CommandBox():
             yield CommandTitle(f"{self.definition.label} — {self.target}", markup=False)
-            with VerticalScroll():
+            with CommandFormScroll():
                 yield CommandConfirmation('', markup=False)
                 yield self.form
-            yield CommandConfirmed('I confirm this operation')
+                yield CommandConfirmed('I confirm this operation')
             with CommandButtons():
                 yield ApplyCommandButton('Apply', variant='primary')
                 yield CancelCommandButton('Cancel')
