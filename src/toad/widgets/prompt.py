@@ -446,6 +446,7 @@ See on-screen instructions for details.
         super().__init__()
         # The composer that built this editor owns its turns, popups and modes.
         self.prompt = prompt
+        self.editing_mode_label = EditingModeLabel("", markup=False)
         self.set_reactive(TextArea.editing_mode, prompt.initial_editing_mode)
         self.set_reactive(PromptTextArea.project_path, prompt.project_path)
 
@@ -494,9 +495,9 @@ See on-screen instructions for details.
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
     def show_editing_mode(self, mode: EditingMode) -> None:
-        """Away from the box the Standard keys are in force, so the label says STANDARD."""
+        """The editor owns its label before either widget is mounted."""
         if self.is_mounted:
-            self.prompt.editing_mode_label.update((mode if self.has_focus else Standard()).label)
+            self.editing_mode_label.update((mode if self.has_focus else Standard()).label)
 
     def watch_has_focus(self, focus: bool) -> None:
         self.show_editing_mode(self.editing_mode)
@@ -1082,15 +1083,16 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             yield PromptQuestion()
             with TextPrompt():
                 yield PromptLabel(markup=False)
-                yield self.TEXT_AREA_CLASS(prompt=self).data_bind(
+                editor = self.TEXT_AREA_CLASS(prompt=self).data_bind(
                     shell_mode=Prompt.shell_mode,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,
                     slash_commands=Prompt.slash_commands,
                 )
+                yield editor
         yield from self.compose_info_popups()
         with InfoBar():
-            yield EditingModeLabel("", markup=False)
+            yield editor.editing_mode_label
             yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
             yield from self.compose_mode_controls()
