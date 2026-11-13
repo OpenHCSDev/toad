@@ -11,6 +11,7 @@ from objectstate.lazy_factory import LazyDataclassFactory
 from pydantic import JsonValue
 
 from toad import atomic
+from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect, SettingsDeclaration
 from toad.settings_scope import SettingsScope
 from toad.tab_identity import TabIdentity
@@ -33,12 +34,25 @@ class ObjectSettingField(DeclaredField):
     def owner_type(self):
         return DeclaredField(self.state.defaults, self.path).owner_type
 
+    @property
+    def allows_override(self) -> bool:
+        return self.state.admits(self.path.value)
+
+    def edit(self, value):
+        if self.allows_override:
+            return super().edit(value)
+        result = DeclaredField(self.state.defaults, self.path).edit(value)
+        self.state.global_settings.save_sync()
+        return result
+
 
 class ObjectConfiguration(ObjectState):
     """One view's explicit values; unassigned fields follow its live defaults."""
 
-    def __init__(self, identity: TabIdentity, defaults: ObjectState,
+    def __init__(self, identity: TabIdentity, global_settings: SavedSettings,
                  directory: Path, owner: SettingsScope) -> None:
+        self.global_settings = global_settings
+        defaults = global_settings.state
         self.identity, self.defaults, self.owner = identity, defaults, owner
         self.path = directory / "objects" / f"{identity.mode_name}.json"
         scope = str(ScopeKey.of("view", identity.mode_name))
@@ -73,9 +87,6 @@ class ObjectConfiguration(ObjectState):
         owner = field.owner_type
         return (issubclass(owner, SettingsDeclaration)
                 and owner.admits_field(field.path.field_name, self.owner))
-
-    def shows(self, path: str) -> bool:
-        return any(name == path or name.startswith(path + ".") for name in self.editable_paths)
 
     def update_parameter(self, param_name: str, value: object) -> set[str]:
         if param_name not in self.editable_paths:

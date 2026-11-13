@@ -1,7 +1,11 @@
 """A viewed object's state and its two presentations, inherited by files and conversations."""
 from functools import cached_property
-from textual import events, on
+from formbridge.forms.parameter_form_service import ParameterFormService
+from metaclass_registry.mro_dispatch import handles
+from textual import events, on, work
 from textual.geometry import Region
+from toad.core.events import ConfigurationChanged
+from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.object_configuration import ObjectFieldView, ObjectFormView
 from toad.native_style import FillHeight
 from toad.object_configuration import ObjectConfiguration
@@ -11,6 +15,7 @@ from toad.session_tracker import SidebarState
 from toad.settings_scope import ViewSettingsScope
 from toad.widgets.acting_button import DismissButton
 from toad.widgets.comms_menu import ActionMenu
+from toad.widgets.model_switcher import SessionForm
 from toad.widgets.side_bar import (
     PanelMenu,
     SideBar,
@@ -41,6 +46,43 @@ class ObjectProperties(FillHeight, SidebarPanelWidget):
         self.form.finish()
 
 
+class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
+    """The selected native session's advertisements, using its original writer."""
+
+    def __init__(self, view):
+        super().__init__()
+        self.view = view
+        self.listen(events.Mount, self.follow_binding)
+
+    @classmethod
+    def panel(cls, view):
+        return SideBar.Panel("Agent settings", cls(view), id="agent-settings", flex=True)
+
+    def compose(self):
+        self.form = SessionForm.for_prompt(self.view.conversation.prompt)
+        yield self.form
+
+    def follow_binding(self):
+        self.watch(self.view.conversation, "agent_binding", self.binding_changed)
+
+    def binding_changed(self, old, new):
+        self.retire_core_observations(old.events)
+        self.observe_core(new.events)
+        self.configuration_changed()
+
+    @handles(ConfigurationChanged)
+    def configuration_changed(self):
+        if self.is_mounted:
+            self.rebuild_form()
+
+    @work(exclusive=True, group="agent-settings")
+    async def rebuild_form(self):
+        await self.recompose()
+
+    def finish(self):
+        self.form.finish()
+
+
 class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
     def __init__(self, panels):
         super().__init__()
@@ -60,17 +102,16 @@ class ConfiguredView(ViewSettingsScope):
     @cached_property
     def configuration_state(self) -> ObjectConfiguration:
         identity = self.app.session_navigation.get(self.id).identity
-        return ObjectConfiguration(identity, self.app.saved_settings.state,
+        return ObjectConfiguration(identity, self.app.saved_settings,
                                    self.app.saved_settings.path().parent, self)
 
     @property
     def configuration_panels(self):
         state = self.configuration_state
-        for path in state.direct_parameter_paths():
-            if state.shows(path.value):
-                field = state.field(path.value)
-                yield SideBar.Panel(field.label, ObjectProperties(field),
-                                    id=f"settings-{path.value}", flex=True)
+        for path, parameter in ParameterFormService().parameters_for_state(state):
+            field = state.field(path.value)
+            yield SideBar.Panel(field.label, ObjectProperties(field),
+                                id=f"settings-{path.value}", flex=True)
 
     @cached_property
     def _thread_sidebar_state(self):

@@ -1,0 +1,20 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "selected-session-advertisement-control",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        native_menu = native_bar.query_one(PanelMenu)\n        relationships =",
+              "new_source": "        native_menu = native_bar.query_one(PanelMenu)\n        from acp.schema import SetSessionConfigOptionResponse\n        from support.agents import AppAgents\n        from toad.configured_view import AgentProperties\n        from toad.widgets.model_switcher import SessionForm\n        agent = AppAgents(app).detached_agent('sidebar-settings')\n        native.conversation.bind_agent(agent)\n        agent.configuration.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [\n            {'id': 'sample-budget', 'name': 'Budget', 'type': 'boolean', 'currentValue': True},\n        ]}).config_options)\n        agent_entry = next(entry for entry in native_menu.entries if isinstance(entry.widget, AgentProperties))\n        native_menu.picker.value = agent_entry\n        await ui.until(lambda: agent_entry.widget.is_mounted and bool(agent_entry.widget.query(SessionForm)),\n                       why='the actual advertised session form')\n        await ui.until(lambda: agent_entry.widget.form.represents(agent.configuration),\n                       why='new advertisements replace the original fields')\n        assert agent_entry.widget.form.prompt is native.conversation.prompt\n        assert 'Budget' in {row.field.label for row in agent_entry.widget.form.values.values()}\n        agent.configuration.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [\n            {'id': 'sample-budget', 'name': 'Budget', 'type': 'boolean', 'currentValue': False},\n            {'id': 'new-setting', 'name': 'New setting', 'type': 'boolean', 'currentValue': True},\n        ]}).config_options)\n        await ui.until(lambda: agent_entry.widget.form.represents(agent.configuration),\n                       why='the sidebar follows the source update')\n        assert 'New setting' in {row.field.label for row in agent_entry.widget.form.values.values()}\n        relationships ="
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

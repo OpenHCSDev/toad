@@ -340,6 +340,11 @@ class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc
     busy_count = var(0)
     conversation = getters.query_one(Conversation)
 
+    @property
+    def configuration_panels(self):
+        yield from self.operational_sources.configuration_panels(self)
+        yield from super().configuration_panels
+
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         return self.content.keyboard_scopes(self)
 
