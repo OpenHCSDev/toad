@@ -1,0 +1,43 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "inherit-panel-focus-and-delete-old-intent-write",
+      "operations": [
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "SideBar.toggle",
+          "source": "    def focus_contents(self):\n        self.panels_viewport.focus()\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "SideBar.toggle",
+          "replacements": [
+            {
+              "old_source": "            if title := self.query_one_optional(\"SideBarCollapsible CollapsibleTitle\"):\n                title.focus()",
+              "new_source": "            if self.panels_loaded:\n                self.focus_contents()"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar.reveal_panel",
+          "source": "    def focus_contents(self):\n        self.query_one(PanelPicker).focus()\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_panels.py",
+          "target_qualname": "PlanSessionPanel.update",
+          "replacements": [
+            {
+              "old_source": "        title = self.declared_name.title()\n        if entries:\n            sidebar.navigation.panels_collapsed[title] = False\n",
+              "new_source": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

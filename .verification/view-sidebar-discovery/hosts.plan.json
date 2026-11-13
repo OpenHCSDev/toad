@@ -1,0 +1,174 @@
+{
+  "stages": [
+    {
+      "recipes": [
+        {
+          "recipe_id": "panel-hosts-own-visibility",
+          "operations": [
+            {
+              "operation": "insert_before_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+              "target_qualname": "SidebarPanelWidget",
+              "source": "class SidebarPanelHost(Widget):\n    \"\"\"A panel's actual host owns whether its content is presented.\"\"\"\n\n    @property\n    def panel_visible(self):\n        return self.is_attached and all(node.display for node in self.walk_ancestors(with_self=True)\n                                        if isinstance(node, Widget))\n\n    @abstractmethod\n    def reveal(self): ...\n\n\n"
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+              "target_qualname": "SideBarCollapsible",
+              "replacements": [
+                {
+                  "old_source": "class SideBarCollapsible(\n    FillWidth,",
+                  "new_source": "class SideBarCollapsible(\n    SidebarPanelHost,\n    FillWidth,"
+                }
+              ]
+            },
+            {
+              "operation": "insert_before_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+              "target_qualname": "SideBarCollapsible.__init__",
+              "source": "    @property\n    def panel_visible(self):\n        return super().panel_visible and not self.collapsed\n\n    def reveal(self):\n        self.collapsed = False\n"
+            },
+            {
+              "operation": "insert_before_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+              "target_qualname": "SidebarVisibilityObserver.scroll_container",
+              "source": "    @property\n    def panel_visible(self):\n        return self.query_ancestor(SidebarPanelHost).panel_visible\n"
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+              "target_qualname": "PanelPage",
+              "replacements": [
+                {
+                  "old_source": "class PanelPage(FillHeight, containers.Vertical):\n    \"\"\"The original panel and its controls, retained while another entry is selected.\"\"\"",
+                  "new_source": "class PanelBody(FillHeight, containers.Vertical):\n    \"\"\"The space left below the selected-view menu.\"\"\"\n\n\nclass PanelPage(SidebarPanelHost, PanelBody):\n    \"\"\"The original panel and its controls, retained while another entry is selected.\"\"\"\n\n    def reveal(self):\n        menu = self.query_ancestor(PanelMenu)\n        menu.picker.value = next(entry for entry, page in menu.pages.items() if page is self)"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+              "target_qualname": "PanelMenu.__init__",
+              "replacements": [
+                {
+                  "old_source": "self.body = PanelPage()",
+                  "new_source": "self.body = PanelBody()"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+              "target_qualname": "RelationshipSort.order_writer",
+              "replacements": [
+                {
+                  "old_source": "self.query_ancestor(SideBarCollapsible)",
+                  "new_source": "self.query_ancestor(SidebarPanelHost)"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+              "target_qualname": "ThreadCommsSidebar._refresh_owner",
+              "replacements": [
+                {
+                  "old_source": "self.query_ancestor(SideBarCollapsible)",
+                  "new_source": "self.query_ancestor(SidebarPanelHost)"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+              "target_qualname": "ThreadCommsSidebar._visible",
+              "replacements": [
+                {
+                  "old_source": "and not self.query_ancestor(SideBarCollapsible).collapsed",
+                  "new_source": "and self.panel_visible"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+              "target_qualname": "ThreadCommsSidebar._presentation_visible",
+              "replacements": [
+                {
+                  "old_source": "and self.query_ancestor(SideBar).presentation_visible",
+                  "new_source": "and self.query_ancestor(SideBar).presentation_visible\n            and self.panel_visible"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+              "target_qualname": "ThreadCommsSidebar.accepts_observation",
+              "replacements": [
+                {
+                  "old_source": "return self.model_state.serves(identity.root_path)",
+                  "new_source": "return self.panel_visible and self.model_state.serves(identity.root_path)"
+                }
+              ]
+            },
+            {
+              "operation": "ensure_import",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+              "import_source": "from toad.widgets.side_bar import SidebarPanelHost"
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/context_explorer.py",
+              "target_qualname": "ContextExplorer.presentation_visible",
+              "replacements": [
+                {
+                  "old_source": "and not self.query_ancestor(SideBarCollapsible).collapsed",
+                  "new_source": "and self.panel_visible"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/project_panel.py",
+              "target_qualname": "ProjectPanel._ensure_tree",
+              "replacements": [
+                {
+                  "old_source": "        from toad.widgets.side_bar import SideBar, SideBarCollapsible\n\n        if not self.is_attached:\n            return\n        sidebar = next((node for node in self.ancestors if isinstance(node, SideBar)), None)\n        panel = next((node for node in self.ancestors if isinstance(node, SideBarCollapsible)), None)\n        if sidebar is None or panel is None or sidebar.collapsed or panel.collapsed:\n            return",
+                  "new_source": "        if not self.is_attached or not self.query_ancestor(SidebarPanelHost).panel_visible:\n            return"
+                }
+              ]
+            },
+            {
+              "operation": "ensure_import",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/project_panel.py",
+              "import_source": "from toad.widgets.side_bar import SidebarPanelHost"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "recipes": [
+        {
+          "recipe_id": "drop-obsolete-frame-imports",
+          "operations": [
+            {
+              "operation": "remove_import_bindings",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+              "bound_names": [
+                "SideBarCollapsible"
+              ]
+            },
+            {
+              "operation": "remove_import_bindings",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/context_explorer.py",
+              "bound_names": [
+                "SideBarCollapsible"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

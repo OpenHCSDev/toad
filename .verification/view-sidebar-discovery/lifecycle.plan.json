@@ -1,0 +1,104 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "inherit-original-sidebar-lifecycle",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/session_view.py",
+          "target_qualname": "SidebarSessionView",
+          "replacements": [
+            {
+              "old_source": "    @cached_property\n    def _thread_sidebar_state(self) -> SidebarState:\n        return SidebarState()\n\n    @abstractmethod\n    def make_thread_sidebar(self) -> SidebarT: ...",
+              "new_source": ""
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView.make_thread_sidebar",
+          "source": "    @cached_property\n    def _thread_sidebar_state(self):\n        return SidebarState()\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView.make_thread_sidebar",
+          "replacements": [
+            {
+              "old_source": "return ThreadSidebar(state=SidebarState())",
+              "new_source": "return ThreadSidebar(state=self._thread_sidebar_state)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectProperties.compose",
+          "source": "    @property\n    def panel_identity(self):\n        return self.field.path\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "SidebarPanelWidget.finish",
+          "source": "    @property\n    def panel_identity(self):\n        \"\"\"The nominal widget role identifies a panel across its lazy realizations.\"\"\"\n        return type(self)\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "PanelMenu.__init__",
+          "replacements": [
+            {
+              "old_source": "if entry.title == navigation.panel_title",
+              "new_source": "if entry.widget.panel_identity == navigation.panel_identity"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "PanelMenu.show_panel",
+          "replacements": [
+            {
+              "old_source": "self.navigation.panel_title = entry.title",
+              "new_source": "self.navigation.panel_identity = entry.widget.panel_identity"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_tracker.py",
+          "target_qualname": "SidebarState",
+          "replacements": [
+            {
+              "old_source": "panel_title: str = \"\"",
+              "new_source": "panel_identity: object = None"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "menu.navigation.panel_title == other.title",
+              "new_source": "menu.navigation.panel_identity == other.widget.panel_identity"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "menu.navigation.panel_title == ui_entry.title",
+              "new_source": "menu.navigation.panel_identity == ui_entry.widget.panel_identity"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

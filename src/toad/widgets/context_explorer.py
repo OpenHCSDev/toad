@@ -35,7 +35,7 @@ from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widget_actions import Action, NativeMethodKeys
 from toad.widgets.acting_button import ActingButton
 from toad.widgets.process_text_area import ProcessTextArea
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
+from toad.widgets.side_bar import SideBar, SidebarVisibilityObserver
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.worker_group import WorkerGroup
 
@@ -483,7 +483,7 @@ class ContextExplorer(
             self.is_attached
             and self.query_ancestor(SessionScope).is_current
             and not self.query_ancestor(SideBar).collapsed
-            and not self.query_ancestor(SideBarCollapsible).collapsed
+            and self.panel_visible
         )
 
     @on(Show)

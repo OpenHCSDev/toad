@@ -2,7 +2,8 @@
 from functools import cached_property
 from textual import events, on
 from textual.geometry import Region
-from toad.forms.object_configuration import ObjectFormView
+from toad.forms.object_configuration import ObjectFieldView, ObjectFormView
+from toad.native_style import FillHeight
 from toad.object_configuration import ObjectConfiguration
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.forms.presentation import FormModal
@@ -11,6 +12,7 @@ from toad.settings_scope import ViewSettingsScope
 from toad.widgets.acting_button import DismissButton
 from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.side_bar import (
+    PanelMenu,
     SideBar,
     SidebarPanelWidget,
     ThreadSidebar,
@@ -20,14 +22,29 @@ from toad.widgets.side_bar import (
 
 
 
-class ObjectProperties(ObjectFormView, SidebarPanelWidget):
-    """The sidebar edits the view's original state directly."""
+class ObjectProperties(FillHeight, SidebarPanelWidget):
+    """One declared settings entry; its form is built when that entry is opened."""
+
+    def __init__(self, field):
+        super().__init__()
+        self.field = field
+
+    @property
+    def panel_identity(self):
+        return self.field.path
+
+    def compose(self):
+        self.form = ObjectFormView(self.field.state, [ObjectFieldView.from_field(self.field)])
+        yield self.form
+
+    def finish(self):
+        self.form.finish()
 
 
 class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
-    def __init__(self, state):
+    def __init__(self, panels):
         super().__init__()
-        self.form = ObjectFormView.whole(state)
+        self.form = PanelMenu(panels, SidebarState())
 
     def compose(self):
         with ModalPanel():
@@ -47,12 +64,20 @@ class ConfiguredView(ViewSettingsScope):
                                    self.app.saved_settings.path().parent, self)
 
     @property
-    def configuration_panel(self):
-        return SideBar.Panel("Properties", ObjectProperties.whole(self.configuration_state),
-                             flex=True, collapsed=True)
+    def configuration_panels(self):
+        state = self.configuration_state
+        for path in state.direct_parameter_paths():
+            if state.shows(path.value):
+                field = state.field(path.value)
+                yield SideBar.Panel(field.label, ObjectProperties(field),
+                                    id=f"settings-{path.value}", flex=True)
+
+    @cached_property
+    def _thread_sidebar_state(self):
+        return SidebarState()
 
     def make_thread_sidebar(self):
-        return ThreadSidebar(state=SidebarState())
+        return ThreadSidebar(state=self._thread_sidebar_state)
 
     @cached_property
     def thread_sidebar(self):
@@ -76,4 +101,4 @@ class ConfiguredView(ViewSettingsScope):
                         self.display_name, [(self.open_configuration, "Properties…")])
 
     def open_configuration(self):
-        self.app.push_screen(ObjectConfigurationDialog(self.configuration_state))
+        self.app.push_screen(ObjectConfigurationDialog(self.configuration_panels))

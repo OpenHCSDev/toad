@@ -8,7 +8,7 @@ from toad.plan import PlanItem
 from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
 from toad.widgets.project_tree_intent import NO_TREE_INTENT, TreeIntent
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget
+from toad.widgets.side_bar import SideBar, SidebarPanelWidget
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_comms import RelationshipSort, RelationshipTreeState, ThreadCommsSidebar
 
@@ -68,13 +68,12 @@ class PlanSessionPanel(SessionPanel[Plan]):
 
     def update(self, sidebar: SessionThreadSidebar, entries: list[PlanItem]) -> None:
         self.entries = entries
-        title = self.declared_name.title()
-        if entries:
-            sidebar.navigation.panels_collapsed[title] = False
-        if plan := sidebar.query_one_optional(Plan):
+        if sidebar.panels_loaded:
+            plan = next(panel.widget for owner, panel in zip(sidebar._panel_owners, sidebar.panels)
+                        if owner is self)
             plan.entries = entries
             if entries:
-                sidebar.query_one(f"#{self.declared_name}-panel", SideBarCollapsible).collapsed = False
+                sidebar.reveal_panel(plan)
 
 
 class ProjectSessionPanel(SessionPanel[ProjectPanel]):

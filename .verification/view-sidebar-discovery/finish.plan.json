@@ -1,0 +1,58 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "migrate-panel-consumers",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/form_view.py",
+          "target_qualname": "FieldView.of",
+          "replacements": [
+            {
+              "old_source": "return [cls.from_field(field)",
+              "new_source": "return [cls.showing(type(parameter).__mro__)(field)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/form_view.py",
+          "target_qualname": "FieldView.from_field",
+          "replacements": [
+            {
+              "old_source": "current_value=field.value, default_value=declaration.default_value,",
+              "new_source": "current_value=None, default_value=declaration.default_value,"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_panels.py",
+          "target_qualname": "PlanSessionPanel.update",
+          "replacements": [
+            {
+              "old_source": "        if plan := sidebar.query_one_optional(Plan):\n            plan.entries = entries\n            if entries:\n                sidebar.reveal_panel(plan)",
+              "new_source": "        if sidebar.panels_loaded:\n            plan = next(panel.widget for owner, panel in zip(sidebar._panel_owners, sidebar.panels)\n                        if owner is self)\n            plan.entries = entries\n            if entries:\n                sidebar.reveal_panel(plan)"
+            }
+          ]
+        },
+        {
+          "operation": "remove_import_bindings",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/comms.py",
+          "bound_names": [
+            "CoordinationStatus",
+            "RelationshipSort",
+            "ThreadCommsSidebar"
+          ]
+        },
+        {
+          "operation": "remove_import_bindings",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_panels.py",
+          "bound_names": [
+            "SideBarCollapsible"
+          ]
+        }
+      ]
+    }
+  ]
+}

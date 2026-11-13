@@ -7,7 +7,7 @@ from textual import work
 from textual.reactive import reactive
 from textual.app import ComposeResult
 from toad.widget_actions import ActivationKeys
-from toad.widgets.side_bar import SidebarPanelWidget
+from toad.widgets.side_bar import SidebarPanelHost, SidebarPanelWidget
 from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Static
@@ -117,13 +117,7 @@ class ProjectPanel(ProjectView, SidebarPanelWidget, Vertical):
         self.call_after_refresh(self._ensure_tree)
 
     def _ensure_tree(self) -> None:
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
-
-        if not self.is_attached:
-            return
-        sidebar = next((node for node in self.ancestors if isinstance(node, SideBar)), None)
-        panel = next((node for node in self.ancestors if isinstance(node, SideBarCollapsible)), None)
-        if sidebar is None or panel is None or sidebar.collapsed or panel.collapsed:
+        if not self.is_attached or not self.query_ancestor(SidebarPanelHost).panel_visible:
             return
         if self.screen.is_current and not self._tree_requested:
             self._tree_requested = True

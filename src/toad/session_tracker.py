@@ -113,6 +113,7 @@ class SidebarState:
     selected: SidebarSelection | None = None
     selected_targets: tuple[SidebarSelection, ...] = ()
     panel_scroll_y: float = 0
+    panel_identity: object = None
 
 
 @dataclass(frozen=True)

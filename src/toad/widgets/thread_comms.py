@@ -47,7 +47,11 @@ from toad.widgets.checkbox import Checkbox
 from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.comms_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import SortControl, ThreadSortForm
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
+from toad.widgets.side_bar import (
+    SideBar,
+    SidebarPanelHost,
+    SidebarVisibilityObserver,
+)
 from toad.widgets.sidebar_tree import (
     Disclosure,
     GroupTitle,
@@ -88,7 +92,7 @@ class RelationshipSort(SortControl[ThreadSort]):
         self.update_order(next(iter(orders)) if len(orders) == 1 else None)
 
     async def order_writer(self):
-        tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
+        tree = self.query_ancestor(SidebarPanelHost).query_one(ThreadCommsSidebar)
         identity, generation = tree.thread_view.thread_identity, tree._generation
         snapshot = tree._snapshot
         if snapshot is None:
@@ -371,7 +375,7 @@ class ThreadCommsSidebar(
 
     def accepts_observation(self) -> bool:
         identity = self.thread_view.thread_identity
-        return self.model_state.serves(identity.root_path)
+        return self.panel_visible and self.model_state.serves(identity.root_path)
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         change.apply_relationships(self.navigation_groups)
@@ -381,6 +385,7 @@ class ThreadCommsSidebar(
             self.is_attached
             and self.screen.is_current
             and self.query_ancestor(SideBar).presentation_visible
+            and self.panel_visible
         )
 
     @handles(core_events.OpenTabsChanged, core_events.SessionSelected)
@@ -427,7 +432,7 @@ class ThreadCommsSidebar(
             self.is_attached
             and self.screen.is_current
             and self in self.screen._compositor.visible_widgets
-            and not self.query_ancestor(SideBarCollapsible).collapsed
+            and self.panel_visible
         )
 
     def refresh_relationships(self, *, force=False):
@@ -485,7 +490,7 @@ class ThreadCommsSidebar(
                 snapshot.incoming_basis
                 + f"\nLatest {snapshot.history_messages} wire messages"
             )
-            control = self.query_ancestor(SideBarCollapsible).query_one_optional(
+            control = self.query_ancestor(SidebarPanelHost).query_one_optional(
                 RelationshipSort
             )
             if control is not None:
