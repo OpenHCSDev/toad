@@ -4,6 +4,7 @@ from formbridge.forms.parameter_form_service import ParameterFormService
 from metaclass_registry.mro_dispatch import handles
 from textual import events, on, work
 from textual.geometry import Region
+from textual.widgets import Static
 from toad.core.events import ConfigurationChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.object_configuration import ObjectFieldView, ObjectFormView
@@ -60,6 +61,8 @@ class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
 
     def compose(self):
         self.form = SessionForm.for_prompt(self.view.conversation.prompt)
+        if not self.form.values:
+            yield Static("This session has not advertised any settings.", markup=False)
         yield self.form
 
     def follow_binding(self):

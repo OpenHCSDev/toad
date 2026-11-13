@@ -239,9 +239,13 @@ class AgentConfiguration:
 
     def editing(self) -> ObjectState:
         """An editable projection; every field retains its exact advertisement and writer."""
+        return self.editing_settings(self.picker_settings)
+
+    def editing_settings(self, settings: tuple[ConfigurationSetting, ...]) -> ObjectState:
+        """Project original settings without adding fields the source did not advertise."""
         declarations = [
             (f"option_{index}", setting.annotation, field(default=setting.current))
-            for index, setting in enumerate(self.picker_settings)
+            for index, setting in enumerate(settings)
         ]
         return ObjectState(make_dataclass("SessionConfiguration", declarations)())
 

@@ -1,0 +1,81 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "retain-empty-advertisements-and-popup-setup-as-distinct-views",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/acp/agent_configuration.py",
+          "target_qualname": "AgentConfiguration.editing",
+          "replacements": [
+            {
+              "old_source": "        declarations = [\n            (f\"option_{index}\", setting.annotation, field(default=setting.current))\n            for index, setting in enumerate(self.picker_settings)\n        ]\n        return ObjectState(make_dataclass(\"SessionConfiguration\", declarations)())",
+              "new_source": "        return self.editing_settings(self.picker_settings)\n\n    def editing_settings(self, settings: tuple[ConfigurationSetting, ...]) -> ObjectState:\n        \"\"\"Project original settings without adding fields the source did not advertise.\"\"\"\n        declarations = [\n            (f\"option_{index}\", setting.annotation, field(default=setting.current))\n            for index, setting in enumerate(settings)\n        ]\n        return ObjectState(make_dataclass(\"SessionConfiguration\", declarations)())"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionForm.for_prompt",
+          "source": "    @classmethod\n    def settings(cls, configuration):\n        return tuple(configuration.selections.values())\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionForm.for_prompt",
+          "replacements": [
+            {
+              "old_source": "        state = prompt.agent_binding.configuration.editing()",
+              "new_source": "        configuration = prompt.agent_binding.configuration\n        state = configuration.editing_settings(cls.settings(configuration))"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "SessionForm.represents",
+          "replacements": [
+            {
+              "old_source": "for row in self.values.values()) == settings.picker_settings",
+              "new_source": "for row in self.values.values()) == self.settings(settings)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/model_switcher.py",
+          "target_qualname": "PopupSessionForm.open_model",
+          "source": "    @classmethod\n    def settings(cls, configuration):\n        return configuration.picker_settings\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from textual.widgets import Static"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "AgentProperties.compose",
+          "replacements": [
+            {
+              "old_source": "        yield self.form",
+              "new_source": "        if not self.form.values:\n            yield Static(\"This session has not advertised any settings.\", markup=False)\n        yield self.form"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/main.py",
+          "target_qualname": "MainScreen.configuration_panels",
+          "replacements": [
+            {
+              "old_source": "        yield from self.operational_sources.configuration_panels(self)\n        yield from super().configuration_panels",
+              "new_source": "        yield from super().configuration_panels\n        yield from self.operational_sources.configuration_panels(self)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
