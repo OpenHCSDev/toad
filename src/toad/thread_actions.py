@@ -137,16 +137,11 @@ class ThreadAction:
         async def prepare():
             if definition.editable_fields or definition.confirmation:
                 screen = ctx.app.screen
-                try:
-                    prepared = await ctx.app.preparation.run_thread(
-                        lambda: ctx.observed.core.call(CommsPrepareTargetActionTool(action=definition)))
-                    ctx.current()
-                except (NativePiUnavailable, RouteChangedError) as error:
-                    ctx.app.show_error(error, definition.label)
-                    return
+                fields = await ctx.app.preparation.run_thread(lambda: definition.editable_fields)
+                ctx.current()
                 if ctx.app.screen is screen:
                     ctx.app.push_screen(
-                        CommandDialog(prepared, ctx.title, prepared.fields, ctx.observed.core), accepted)
+                        CommandDialog(definition, ctx.title, fields, ctx.observed.core), accepted)
             else:
                 await accepted({})
         ctx.app.run_worker(prepare, name='command-fields')

@@ -1,0 +1,47 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "keep-preparation-errors-owned-by-the-worker",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "import_source": "from textual.worker import WorkerFailed"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.prepare_current",
+          "replacements": [
+            {
+              "old_source": "CommandPreparation.run_on(self, self.refresh_catalogs(self.arguments()))",
+              "new_source": "CommandPreparation.run_on(self, self.refresh_catalogs(self.arguments()), exit_on_error=False)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.preparation_changed",
+          "replacements": [
+            {
+              "old_source": "    def preparation_changed(self, event: Worker.StateChanged) -> None:\n        if (event.worker.node is self and event.worker.group == CommandPreparation.group\n                and event.worker.is_finished and self.is_attached):\n            self.update_confirmation()",
+              "new_source": "    async def preparation_changed(self, event: Worker.StateChanged) -> None:\n        if (event.worker.node is self and event.worker.group == CommandPreparation.group\n                and event.worker.is_finished and self.is_attached):\n            try:\n                await event.worker.wait()\n            except WorkerFailed as error:\n                self.query_one(CommandConfirmation).update(\"Could not load choices\")\n                self.app.show_error(error.error, self.definition.label)\n            else:\n                self.update_confirmation()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-parallel--P189--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandDialog.refresh_catalogs",
+          "replacements": [
+            {
+              "old_source": "        try:\n            while self.is_attached:\n                edited = self.definition.edited(arguments)\n                prepared = await self.app.preparation.run_thread(\n                    lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))\n                if not self.is_attached:\n                    return\n                current = self.arguments()\n                if arguments != current:\n                    arguments = current\n                    continue\n                self.definition = prepared\n                for parameter in prepared.fields:\n                    if parameter.name in self.choices:\n                        self.choices[parameter.name].parameter = parameter\n                        self.form.values[parameter.name].editor.paint()\n                break\n        except (NativePiUnavailable, RouteChangedError) as error:\n            self.app.show_error(error, self.definition.label)\n",
+              "new_source": "        while self.is_attached:\n            edited = self.definition.edited(arguments)\n            prepared = await self.app.preparation.run_thread(\n                lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))\n            if not self.is_attached:\n                return\n            current = self.arguments()\n            if arguments != current:\n                arguments = current\n                continue\n            self.definition = prepared\n            for parameter in prepared.fields:\n                if parameter.name in self.choices:\n                    self.choices[parameter.name].parameter = parameter\n                    self.form.values[parameter.name].editor.paint()\n            break\n"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

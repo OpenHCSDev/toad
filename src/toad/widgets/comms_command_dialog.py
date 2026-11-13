@@ -5,16 +5,20 @@ import asyncio
 from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated, get_args, get_origin
 
-from agent_comms.cli_verbs.cli_command import PreparedTargetAction
+from agent_comms.cli_support.cli_failures import CLI_FAILURES
+from agent_comms.cli_verbs.cli_command import PreparedTargetAction, TargetAction
 from agent_comms.cli_verbs.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
+from agent_comms.errors import RouteChangedError
 from agent_comms.execution.login import run_login
+from agent_comms.execution.native_failures import NativePiUnavailable
 from agent_comms.nominal.field_codec import compile_decoder
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool
 from formbridge.forms.declared_fields import DeclaredMetadata, Multiline
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
+from python_introspect.choices import LabelledChoices
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
@@ -23,6 +27,7 @@ from textual.document._editing import EditingMode
 from textual.events import Mount, Unmount
 from textual.widgets import Button, Static
 
+from textual.worker import Worker, WorkerFailed
 from toad.forms.editors import MultilineEditor, ValueEditor
 from toad.forms.form_view import InlineFormView
 from toad.native_style import AutoWidth, EllipsisOverflow, SideMargin
@@ -37,18 +42,16 @@ from toad.widget_actions import WidgetAction
 from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
 from toad.widgets.checkbox import Checkbox
 from toad.widgets.model_selection import ModelSelection
+from toad.worker_group import WorkerGroup
 
 
 @dataclass(eq=False)
-class PreparedChoices(AnnotationChoices, DeclaredMetadata):
+class PreparedChoices(LabelledChoices, DeclaredMetadata):
     """The catalog last prepared for a draft, not another copy of its value."""
     parameter: ChoiceTargetField
 
-    def choices(self):
-        return tuple(value for _, value in self.parameter.choices)
-
-    def label(self, choice):
-        return next((label for label, value in self.parameter.choices if value == choice), 'Choose…')
+    def labelled_choices(self):
+        return self.parameter.choices
 
     def declares(self):
         """The prepared parameter names its own editors first; any choices editor follows."""
@@ -151,15 +154,6 @@ class ApplyCommandAction(ViewAction):
 
     async def apply(self, context: CommandDialog) -> None:
         await context.confirm()
-        if context.query_one(ApplyCommandButton).disabled:
-            return
-        arguments = context.arguments()
-        confirmed = context.query_one(CommandConfirmed).value
-        context.query_one(ApplyCommandButton).disabled = True
-        await context.app.preparation.run_thread(
-            lambda: context.definition.edited(arguments).with_confirmation(confirmed))
-        if context.is_attached and arguments == context.arguments():
-            context.dismiss(arguments)
 
 
 class CommandBox(ModalPanel):
@@ -206,8 +200,12 @@ class CommandConfirmed(Checkbox):
     """The user's confirmation of that operation."""
 
 
+class CommandPreparation(WorkerGroup):
+    """One preparation follows the current draft without restarting on each edit."""
+
+
 class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[dict[str, str | None]], actions=(ApplyCommandAction,)):
-    def __init__(self, definition: PreparedTargetAction, target: str, fields: tuple[TargetField, ...],
+    def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...],
                  core: CoreAccess):
         super().__init__()
         self.definition, self.target, self.core = definition, target, core
@@ -239,11 +237,38 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
                 yield CancelCommandButton('Cancel')
 
     async def confirm(self) -> None:
+        button = self.query_one(ApplyCommandButton)
+        if button.disabled:
+            return
         self.form.finish()
+        button.disabled = True
+        try:
+            try:
+                await CommandPreparation.wait_on(self)
+            except WorkerFailed:
+                # Preparation reports its original error through its own handler.
+                return
+            if not self.is_attached or any(view.editor.feedback for view in self.form.values.values()):
+                return
+            arguments = self.arguments()
+            confirmed = self.query_one(CommandConfirmed).value
+            try:
+                await self.app.preparation.run_thread(
+                    lambda: self.validated_action(arguments).with_confirmation(confirmed))
+            except CLI_FAILURES as error:
+                self.app.show_error(error, self.definition.label)
+                self.update_confirmation()
+                return
+            if self.is_attached and arguments == self.arguments():
+                self.dismiss(arguments)
+        finally:
+            if self.is_attached:
+                button.disabled = False
 
     @on(Mount)
     def on_mount(self):
         self.state.on_resolved_changed(self.draft_changed)
+        self.prepare_current()
         self.update_confirmation()
 
     @on(Unmount)
@@ -251,45 +276,72 @@ class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[di
         self.state.off_resolved_changed(self.draft_changed)
 
     def draft_changed(self, paths):
+        self.prepare_current()
         self.update_confirmation()
-        if paths & self.choices.keys():
-            self.run_worker(self.refresh_catalogs(self.arguments()),
-                            group='command-catalogs', exclusive=True)
 
+
+    def prepare_current(self) -> None:
+        if not CommandPreparation.running_on(self):
+            CommandPreparation.run_on(self, self.refresh_catalogs(self.arguments()), exit_on_error=False)
+
+    @on(Worker.StateChanged)
+    async def preparation_changed(self, event: Worker.StateChanged) -> None:
+        if (event.worker.node is self and event.worker.group == CommandPreparation.group
+                and event.worker.is_finished and self.is_attached):
+            try:
+                await event.worker.wait()
+            except WorkerFailed as error:
+                self.query_one(CommandConfirmation).update("Could not load choices")
+                self.app.show_error(error.error, self.definition.label)
+            else:
+                self.update_confirmation()
+
+    def validated_action(self, arguments) -> TargetAction:
+        """The same declared catalog constraints guard the preview and submission."""
+        for name in self.choices:
+            self.form.values[name].field.validate(arguments[name])
+        return self.definition.edited(arguments)
 
     def arguments(self):
         return {name: self.state.get_resolved_value(name) for name in self.form.values}
 
     async def refresh_catalogs(self, arguments):
-        self.query_one(ApplyCommandButton).disabled = True
-        edited = self.definition.edited(arguments)
-        fields = (await self.app.preparation.run_thread(
-            lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))).fields
-        if not self.is_attached or arguments != self.arguments():
-            return
-        for parameter in fields:
-            if parameter.name in self.choices:
-                self.choices[parameter.name].parameter = parameter
-                self.form.values[parameter.name].editor.paint()
-        self.update_confirmation()
+        while self.is_attached:
+            edited = self.definition.edited(arguments)
+            prepared = await self.app.preparation.run_thread(
+                lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))
+            if not self.is_attached:
+                return
+            current = self.arguments()
+            if arguments != current:
+                arguments = current
+                continue
+            self.definition = prepared
+            for parameter in prepared.fields:
+                if parameter.name in self.choices:
+                    self.choices[parameter.name].parameter = parameter
+                    self.form.values[parameter.name].editor.paint()
+            break
+        if self.is_attached:
+            self.update_confirmation()
 
     def update_confirmation(self):
         confirmed = self.query_one(CommandConfirmed)
         confirmed.value = False
-        self.query_one(ApplyCommandButton).disabled = True
         arguments = self.arguments()
+        if CommandPreparation.running_on(self):
+            self.query_one(CommandConfirmation).update("Loading choices…")
+            confirmed.display = False
+            return
         async def prepare():
             def read():
-                for name, choices in self.choices.items():
-                    if arguments[name] not in choices.choices():
-                        return f'Choose {name.replace("_", " ")}', False
-                return self.definition.edited(arguments).confirmation, True
+                try:
+                    return self.validated_action(arguments).confirmation, True
+                except (TypeError, ValueError) as error:
+                    return str(error), False
             confirmation, valid = await self.app.preparation.run_thread(read)
-            if not self.is_attached or arguments != self.arguments():
+            if not self.is_attached or arguments != self.arguments() or CommandPreparation.running_on(self):
                 return
             self.query_one(CommandConfirmation).update(confirmation)
             confirmed.display = valid and bool(confirmation)
-            self.query_one(ApplyCommandButton).disabled = not valid or any(
-                arguments[name] != choices.parameter.editor_default
-                for name, choices in self.choices.items())
         self.run_worker(prepare, group='command-confirmation', exclusive=True)
