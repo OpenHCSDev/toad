@@ -1,4 +1,5 @@
 """Textual-facing: application actions (help, settings screen, command palette, sidebar buttons, tab close) run through Textual screens and keep the session, its draft and the saved settings."""
+from agent_comms.nominal.field_codec import FieldCodec
 from toad.forms.editors import ChoicesEditor
 from toad.launch_binding import AgentAttached
 
@@ -15,7 +16,7 @@ from toad.application_actions import ApplicationAction
 from toad.preferences import SETTINGS
 from toad.screens.keymap import KeymapScreen
 from toad.screens.settings import SettingsScreen
-from toad.widgets.comms_command_dialog import CatalogField
+from toad.widgets.comms_command_dialog import CatalogField, CatalogFieldSelection
 from toad.widgets.comms_sidebar import CommsSidebar, NewSessionButton
 from toad.widgets.footer import ToadFooter
 from toad.widgets.session_tabs import SessionTabClose
@@ -175,6 +176,10 @@ async def test_command_form_opens_before_preparation_and_first_mouse_confirm_sub
             assert isinstance(dialog.form.values["thinking_level"].editor, ChoicesEditor)
             released.set()
             await ui.until(lambda: not CommandPreparation.running_on(dialog), why="the real catalogs to arrive")
+            selection = CatalogFieldSelection(dialog.form.values['model'].editor)
+            parameter = dialog.choices['model'].parameter
+            assert selection.current == FieldCodec.encode(parameter.value)
+            assert selection.choices == tuple(choice for choice in parameter.options if choice.value is not None)
             button = dialog.query_one(ApplyCommandButton)
             await ui.until(lambda: not button.disabled, why="the command values to be accepted")
             editor = dialog.form.values["name"].editor

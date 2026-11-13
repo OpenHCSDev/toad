@@ -74,8 +74,10 @@ class CatalogField(ValueEditor, Button, shows=(ModelConfigOption,)):
         self.paint()
 
     def paint(self):
-        self.label = next((choice.name for choice in self.field.metadata(PreparedChoices).parameter.options
-                           if choice.value == self.field.value), 'Choose / connect a provider…')
+        parameter = self.field.metadata(PreparedChoices).parameter
+        current = parameter.choice_value(self.field.value)
+        self.label = next((choice.name for choice in parameter.options
+                           if choice.value == current), 'Choose / connect a provider…')
 
     @on(Button.Pressed)
     def on_button_pressed(self, event: Button.Pressed):
@@ -86,7 +88,7 @@ class CatalogField(ValueEditor, Button, shows=(ModelConfigOption,)):
     async def choose(self):
         value = await self.app.push_screen_wait(CatalogChoiceDialog(self))
         if value is not None and self.is_attached:
-            self.send(value)
+            self.send(self.field.metadata(PreparedChoices).parameter.editor_value(value))
 
 
 class CatalogFieldSelection(ModelSelection):
@@ -96,11 +98,12 @@ class CatalogFieldSelection(ModelSelection):
 
     @property
     def choices(self):
-        return self.editor.field.metadata(PreparedChoices).parameter.options
+        return tuple(choice for choice in self.editor.field.metadata(PreparedChoices).parameter.options
+                     if choice.value is not None)
 
     @property
     def current(self):
-        return self.editor.field.value
+        return self.editor.field.metadata(PreparedChoices).parameter.choice_value(self.editor.field.value)
 
     @property
     def selection_active(self):
