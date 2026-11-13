@@ -1,0 +1,59 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "retain-the-original-editor-label-through-mount-and-mode-updates",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "EditingModeLabel",
+          "replacements": [
+            {
+              "old_source": "    \"\"\"The label follows its own editor throughout this composition's lifetime.\"\"\"\n\n    def __init__(self, editor: PromptTextArea):\n        super().__init__(\"\", markup=False)\n        self.editor = editor\n\n    @on(events.Mount)\n    def follow_editor(self) -> None:\n        self.watch(self.editor, \"editing_mode\", self.update_mode)\n        self.watch(self.editor, \"has_focus\", self.update_mode)\n\n    def update_mode(self) -> None:\n        self.update((self.editor.editing_mode if self.editor.has_focus else Standard()).label)\n\n",
+              "new_source": ""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "PromptTextArea.__init__",
+          "replacements": [
+            {
+              "old_source": "        self.prompt = prompt\n",
+              "new_source": "        self.prompt = prompt\n        self.editing_mode_label = EditingModeLabel(\"\", markup=False)\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "PromptTextArea.on_mount",
+          "replacements": [
+            {
+              "old_source": "        self.apply_keyboard_profile()\n",
+              "new_source": "        self.apply_keyboard_profile()\n        self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))\n"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "PromptTextArea.apply_keyboard_profile",
+          "source": "    def show_editing_mode(self, mode: EditingMode) -> None:\n        \"\"\"The editor owns its label before either widget is mounted.\"\"\"\n        if self.is_mounted:\n            self.editing_mode_label.update((mode if self.has_focus else Standard()).label)\n\n    def watch_has_focus(self, focus: bool) -> None:\n        self.show_editing_mode(self.editing_mode)\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "Prompt.compose",
+          "replacements": [
+            {
+              "old_source": "            yield EditingModeLabel(editor)",
+              "new_source": "            yield editor.editing_mode_label"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -262,20 +262,6 @@ class DeliveryControls(ComposedWhenShown, StartsHidden, OneRow, containers.Horiz
 
 
 class EditingModeLabel(AutoWidth, OneRow, SidePadding, NoWrap, Label):
-    """The label follows its own editor throughout this composition's lifetime."""
-
-    def __init__(self, editor: PromptTextArea):
-        super().__init__("", markup=False)
-        self.editor = editor
-
-    @on(events.Mount)
-    def follow_editor(self) -> None:
-        self.watch(self.editor, "editing_mode", self.update_mode)
-        self.watch(self.editor, "has_focus", self.update_mode)
-
-    def update_mode(self) -> None:
-        self.update((self.editor.editing_mode if self.editor.has_focus else Standard()).label)
-
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.dock = "right"
@@ -460,6 +446,7 @@ See on-screen instructions for details.
         super().__init__()
         # The composer that built this editor owns its turns, popups and modes.
         self.prompt = prompt
+        self.editing_mode_label = EditingModeLabel("", markup=False)
         self.set_reactive(TextArea.editing_mode, prompt.initial_editing_mode)
         self.set_reactive(PromptTextArea.project_path, prompt.project_path)
 
@@ -505,6 +492,15 @@ See on-screen instructions for details.
         self.hide_suggestion_on_blur = False
         self.editing_mode.attach(self)
         self.apply_keyboard_profile()
+        self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
+
+    def show_editing_mode(self, mode: EditingMode) -> None:
+        """The editor owns its label before either widget is mounted."""
+        if self.is_mounted:
+            self.editing_mode_label.update((mode if self.has_focus else Standard()).label)
+
+    def watch_has_focus(self, focus: bool) -> None:
+        self.show_editing_mode(self.editing_mode)
 
     def apply_keyboard_profile(self) -> None:
         self.call_later(self._apply_keyboard_profile)
@@ -1096,7 +1092,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
                 yield editor
         yield from self.compose_info_popups()
         with InfoBar():
-            yield EditingModeLabel(editor)
+            yield editor.editing_mode_label
             yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
             yield from self.compose_mode_controls()
