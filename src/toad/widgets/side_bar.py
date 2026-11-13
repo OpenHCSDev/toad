@@ -7,6 +7,7 @@ from textual._callback import invoke
 
 from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
+from toad.settings_scope import ViewSettingsScope
 from toad.worker_group import WorkerGroup
 from toad.core import events as core_events
 from textual.content import Content
@@ -1078,9 +1079,12 @@ class SideBar(
             event.stop()
             self.search = event.value
 
+    def panel_entries(self):
+        return iter(self.panels)
+
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation
-        for panel in self.panels:
+        for panel in self.panel_entries():
             frame = FlexSideBarCollapsible if panel.flex else SideBarCollapsible
             yield frame(
                 panel.widget,
@@ -1252,6 +1256,10 @@ class SideBar(
 
 class ThreadSidebar(SideBar):
     placement_type = ThreadSidebarPlacement
+
+    def panel_entries(self):
+        yield from super().panel_entries()
+        yield self.query_ancestor(ViewSettingsScope).configuration_panel
 
     def __init__(self, *panels, state: SidebarState, **kwargs):
         self.state = state

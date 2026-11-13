@@ -338,13 +338,17 @@ class SidebarPlacement(DeclaredFamily, affix="SidebarPlacement"):
         return cls.scope
 
 
-class ChannelsSidebarPlacement(SidebarPlacement):
+class ActiveSidebarPlacement(SidebarPlacement, declared_name=None):
+    """The sidebar roles a current view can actually own."""
+
+
+class ChannelsSidebarPlacement(ActiveSidebarPlacement):
     default_side = LeftSidebarEdge
     default_extent_percent = 40
     scope = "all"
 
 
-class ThreadSidebarPlacement(SidebarPlacement):
+class ThreadSidebarPlacement(ActiveSidebarPlacement):
     default_side = RightSidebarEdge
     default_extent_percent = 34
     scope = "this"
@@ -356,12 +360,8 @@ class ThreadSidebarPlacement(SidebarPlacement):
         return next(iter(viewed), cls.scope)
 
 
-class ObjectSidebarPlacement(ThreadSidebarPlacement):
-    """Properties follow the viewed object, beside its other panels."""
-
-    @classmethod
-    def heading(cls, viewed: Iterable[str]) -> str:
-        return f"{super().heading(viewed)} properties"
+class ObjectSidebarPlacement(SidebarPlacement):
+    """Read already-saved third-bar positions; no current view owns this role."""
 
 
 @dataclass

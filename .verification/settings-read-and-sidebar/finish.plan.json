@@ -1,0 +1,122 @@
+{
+  "stages": [
+    {
+      "recipes": [
+        {
+          "recipe_id": "one-view-bar-and-preserved-stored-layouts",
+          "operations": [
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/settings_scope.py",
+              "target_qualname": "ObjectSidebarHost",
+              "replacements": [
+                {
+                  "old_source": "class ObjectSidebarHost(Widget):\n    \"\"\"The native body in which a viewed object's properties are placed.\"\"\"",
+                  "new_source": ""
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/session_view.py",
+              "target_qualname": "SidebarSessionView",
+              "replacements": [
+                {
+                  "old_source": "    @cached_property\n    def thread_sidebar(self) -> SidebarT:\n        return self.make_thread_sidebar()\n\n    def sidebars(self) -> tuple[SideBar, ...]:\n        return (self.thread_sidebar,)",
+                  "new_source": ""
+                }
+              ]
+            },
+            {
+              "operation": "insert_before_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/sidebar_placement.py",
+              "target_qualname": "ChannelsSidebarPlacement",
+              "source": "class ActiveSidebarPlacement(SidebarPlacement, declared_name=None):\n    \"\"\"The sidebar roles a current view can actually own.\"\"\""
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/sidebar_placement.py",
+              "target_qualname": "ChannelsSidebarPlacement",
+              "replacements": [
+                {
+                  "old_source": "class ChannelsSidebarPlacement(SidebarPlacement):",
+                  "new_source": "class ChannelsSidebarPlacement(ActiveSidebarPlacement):"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/sidebar_placement.py",
+              "target_qualname": "ThreadSidebarPlacement",
+              "replacements": [
+                {
+                  "old_source": "class ThreadSidebarPlacement(SidebarPlacement):",
+                  "new_source": "class ThreadSidebarPlacement(ActiveSidebarPlacement):"
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/sidebar_placement.py",
+              "target_qualname": "ObjectSidebarPlacement",
+              "replacements": [
+                {
+                  "old_source": "class ObjectSidebarPlacement(ThreadSidebarPlacement):\n    \"\"\"Properties follow the viewed object, beside its other panels.\"\"\"\n\n    @classmethod\n    def heading(cls, viewed: Iterable[str]) -> str:\n        return f\"{super().heading(viewed)} properties\"\n",
+                  "new_source": "class ObjectSidebarPlacement(SidebarPlacement):\n    \"\"\"Read already-saved third-bar positions; no current view owns this role.\"\"\""
+                }
+              ]
+            },
+            {
+              "operation": "patch_target",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/sidebar_layout.py",
+              "target_qualname": "SidebarLayout.placements",
+              "replacements": [
+                {
+                  "old_source": "SidebarPlacement.members_with(SidebarPlacement)",
+                  "new_source": "ActiveSidebarPlacement.members_with(ActiveSidebarPlacement)"
+                }
+              ]
+            },
+            {
+              "operation": "ensure_import",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/sidebar_layout.py",
+              "import_source": "from toad.sidebar_placement import ActiveSidebarPlacement"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "recipes": [
+        {
+          "recipe_id": "remove-third-bar-mount-imports",
+          "operations": [
+            {
+              "operation": "remove_import_bindings",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+              "bound_names": [
+                "ObjectSidebarHost",
+                "ObjectSidebarPlacement",
+                "LazyThreadSidebar"
+              ]
+            },
+            {
+              "operation": "remove_import_bindings",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/session_view.py",
+              "bound_names": [
+                "ObjectSidebarHost"
+              ]
+            },
+            {
+              "operation": "remove_import_bindings",
+              "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/settings_scope.py",
+              "bound_names": [
+                "Widget"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
