@@ -9,6 +9,7 @@ from functools import cached_property
 from pathlib import Path
 
 from agent_comms.errors import UnregisteredThreadError
+from agent_comms.messaging.channel_targets import IncarnationThreadTarget
 from agent_comms.registry.thread_identity import (
     ThreadIncarnation,
     UnrecordedThreadIncarnation,
@@ -102,6 +103,10 @@ class SessionIdentity(ABC):
         """An unbound view asks Core to discover its project's session."""
         return observed.session_thread(project, self.thread_name()).name_or(self.thread_name())
 
+    def configuration_targets(self):
+        """A local or absent session is configured by its own advertisements."""
+        return ()
+
     def command_target[T](self, target: Callable[[str], T]) -> T:
         """A named session addresses backend commands as its thread."""
         return target(self.thread_name())
@@ -146,6 +151,9 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def thread_name(self) -> str:
         return self.owner.name
+
+    def configuration_targets(self):
+        return (IncarnationThreadTarget(self.owner),)
 
     def thread_incarnation(self) -> ThreadIncarnation:
         return self.owner

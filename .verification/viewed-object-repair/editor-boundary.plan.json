@@ -1,0 +1,20 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "keep-native-value-constraints-on-the-original-command-decoder",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "target_qualname": "CommandForm.__init__",
+          "replacements": [
+            {
+              "old_source": "            if get_origin(parameter.annotation) is Annotated:\n                hints.extend(item for item in get_args(parameter.annotation)[1:]\n                             if not isinstance(item, AnnotationChoices))\n",
+              "new_source": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

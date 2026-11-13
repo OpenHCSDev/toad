@@ -1,0 +1,18 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "remove-obsolete-editor-value-metadata-imports",
+      "operations": [
+        {
+          "operation": "remove_import_bindings",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/comms_command_dialog.py",
+          "bound_names": [
+            "get_args",
+            "get_origin",
+            "AnnotationChoices"
+          ]
+        }
+      ]
+    }
+  ]
+}

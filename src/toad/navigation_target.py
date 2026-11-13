@@ -99,15 +99,24 @@ class SessionTarget(NavigationTarget):
 class ConfigurationTarget:
     """Named thread and history destinations borrow Core's configuration membership."""
 
+    @abstractmethod
+    def configuration_subjects(self, view): ...
+
     def configuration_contexts(self, view):
-        navigation = view.navigation_context
-        observed = view.app.coordination_access.observing(view.coordination_root)
-        return (TargetContext(view.app, observed, CommandTarget.named(self.name),
-                              navigation.actor, navigation.project_path,
-                              navigation.owner_mode),)
+        targets = self.configuration_subjects(view)
+        return tuple(TargetContext(view.app,
+                                   view.app.coordination_access.observing(view.coordination_root),
+                                   subject, view.navigation_context.actor,
+                                   view.navigation_context.project_path,
+                                   view.navigation_context.owner_mode)
+                     for subject in targets)
 
 
 class ThreadTarget(ConfigurationTarget, NavigationTarget):
+
+    def configuration_subjects(self, view):
+        return view.thread_identity.configuration_targets()
+
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path, target=self,
@@ -141,6 +150,10 @@ class HistoryRoute:
     def for_name(cls, name: str) -> HistoryTarget: ...
 
 class HistoryTarget(ConfigurationTarget, HistoryRoute, NavigationTarget):
+
+    def configuration_subjects(self, view):
+        return (view.conversation.retained_target(),)
+
     @classmethod
     def for_name(cls, name: str) -> HistoryTarget:
         return cls(name)

@@ -1,0 +1,88 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "preserve-subject-birth-and-local-session-ownership",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/editors.py",
+          "target_qualname": "ValueEditor.paint_value",
+          "replacements": [
+            {
+              "old_source": "self.styles.text_style = \"dim\" if self.previewing else \"\"",
+              "new_source": "self.styles.text_style = \"dim\" if self.previewing else None"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_identity.py",
+          "import_source": "from agent_comms.messaging.channel_targets import IncarnationThreadTarget"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_identity.py",
+          "target_qualname": "SessionIdentity.command_target",
+          "source": "    def configuration_targets(self):\n        \"\"\"A local or absent session is configured by its own advertisements.\"\"\"\n        return ()\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_identity.py",
+          "target_qualname": "ThreadIdentity.thread_incarnation",
+          "source": "    def configuration_targets(self):\n        return (IncarnationThreadTarget(self.owner),)\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "ConfigurationTarget.configuration_contexts",
+          "replacements": [
+            {
+              "old_source": "        navigation = view.navigation_context\n        observed = view.app.coordination_access.observing(view.coordination_root)\n        return (TargetContext(view.app, observed, CommandTarget.named(self.name),\n                              navigation.actor, navigation.project_path,\n                              navigation.owner_mode),)",
+              "new_source": "        targets = self.configuration_subjects(view)\n        return tuple(TargetContext(view.app,\n                                   view.app.coordination_access.observing(view.coordination_root),\n                                   subject, view.navigation_context.actor,\n                                   view.navigation_context.project_path,\n                                   view.navigation_context.owner_mode)\n                     for subject in targets)"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "ConfigurationTarget.configuration_contexts",
+          "source": "    @abstractmethod\n    def configuration_subjects(self, view): ...\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "ThreadTarget.open",
+          "source": "    def configuration_subjects(self, view):\n        return view.thread_identity.configuration_targets()\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/navigation_target.py",
+          "target_qualname": "HistoryTarget.for_name",
+          "source": "    def configuration_subjects(self, view):\n        return (view.conversation.retained_target(),)\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "    preview.write_text('A viewed file\\n')\n    async with",
+              "new_source": "    preview.write_text('A viewed file\\n')\n    peer = workspace.thread('panel-owner')\n    from agent_comms.team.pi_rule_gate import PiRedeal\n    deal = PiRedeal.of(workspace.comms, peer)\n    deal.start()\n    async with"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        peer = workspace.thread('panel-owner')\n        from agent_comms.team.pi_rule_gate import PiRedeal\n        deal = PiRedeal.of(workspace.comms, peer)\n        deal.start()\n",
+              "new_source": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

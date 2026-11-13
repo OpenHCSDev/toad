@@ -19,6 +19,10 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
     workspace.comms.channels.create_tag('settings')
     preview = workspace.project / 'example.txt'
     preview.write_text('A viewed file\n')
+    peer = workspace.thread('panel-owner')
+    from agent_comms.team.pi_rule_gate import PiRedeal
+    deal = PiRedeal.of(workspace.comms, peer)
+    deal.start()
     async with workspace.app(size=(140, 45)) as ui:
         app, pilot = ui.textual
         original = ui.selected_tab
@@ -99,10 +103,6 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         await ui.step()
         await ui.select_tab(original)
         native = app.workspace_sessions.require(original)
-        peer = workspace.thread('panel-owner')
-        from agent_comms.team.pi_rule_gate import PiRedeal
-        deal = PiRedeal.of(workspace.comms, peer)
-        deal.start()
         await workspace.bind(native, 'panel-owner')
         native_bar = await ui.revealed(native.thread_sidebar)
         native_menu = native_bar.query_one(PanelMenu)

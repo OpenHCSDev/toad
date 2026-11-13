@@ -81,7 +81,7 @@ class ValueEditor(DeclaredViews, EditorWidget):
     def paint_value(self) -> None:
         self.paint()
         self.styles.color = self.app.colours.colour(MutedColour) if self.previewing else None
-        self.styles.text_style = "dim" if self.previewing else ""
+        self.styles.text_style = "dim" if self.previewing else None
 
     def control_mounted(self, event: events.Mount) -> None:
         self.call_after_refresh(self.paint_value)

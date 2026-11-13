@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from dataclasses import dataclass, field, make_dataclass
-from typing import Annotated, get_args, get_origin
+from typing import Annotated
 
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
 from agent_comms.cli_verbs.cli_command import PreparedTargetAction, TargetAction
@@ -18,7 +18,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool
 from formbridge.forms.declared_fields import DeclaredMetadata, Multiline
 from objectstate import ObjectState
-from python_introspect import AnnotationChoices, FieldLabel
+from python_introspect import FieldLabel
 from python_introspect.choices import LabelledChoices
 from textual import on, work
 from textual.app import ComposeResult
@@ -228,9 +228,6 @@ class CommandForm(Confirms, DismissibleControl, Vertical, actions=(ApplyCommandA
         declarations = []
         for parameter in fields:
             hints = [FieldLabel(parameter.label), parameter.description]
-            if get_origin(parameter.annotation) is Annotated:
-                hints.extend(item for item in get_args(parameter.annotation)[1:]
-                             if not isinstance(item, AnnotationChoices))
             hints.extend(parameter.editor_hints(
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
