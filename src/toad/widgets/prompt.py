@@ -262,6 +262,20 @@ class DeliveryControls(ComposedWhenShown, StartsHidden, OneRow, containers.Horiz
 
 
 class EditingModeLabel(AutoWidth, OneRow, SidePadding, NoWrap, Label):
+    """The label follows its own editor throughout this composition's lifetime."""
+
+    def __init__(self, editor: PromptTextArea):
+        super().__init__("", markup=False)
+        self.editor = editor
+
+    @on(events.Mount)
+    def follow_editor(self) -> None:
+        self.watch(self.editor, "editing_mode", self.update_mode)
+        self.watch(self.editor, "has_focus", self.update_mode)
+
+    def update_mode(self) -> None:
+        self.update((self.editor.editing_mode if self.editor.has_focus else Standard()).label)
+
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.dock = "right"
@@ -491,15 +505,6 @@ See on-screen instructions for details.
         self.hide_suggestion_on_blur = False
         self.editing_mode.attach(self)
         self.apply_keyboard_profile()
-        self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
-
-    def show_editing_mode(self, mode: EditingMode) -> None:
-        """Away from the box the Standard keys are in force, so the label says STANDARD."""
-        if self.is_mounted:
-            self.prompt.editing_mode_label.update((mode if self.has_focus else Standard()).label)
-
-    def watch_has_focus(self, focus: bool) -> None:
-        self.show_editing_mode(self.editing_mode)
 
     def apply_keyboard_profile(self) -> None:
         self.call_later(self._apply_keyboard_profile)
@@ -1082,15 +1087,16 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             yield PromptQuestion()
             with TextPrompt():
                 yield PromptLabel(markup=False)
-                yield self.TEXT_AREA_CLASS(prompt=self).data_bind(
+                editor = self.TEXT_AREA_CLASS(prompt=self).data_bind(
                     shell_mode=Prompt.shell_mode,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,
                     slash_commands=Prompt.slash_commands,
                 )
+                yield editor
         yield from self.compose_info_popups()
         with InfoBar():
-            yield EditingModeLabel("", markup=False)
+            yield EditingModeLabel(editor)
             yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
             yield from self.compose_mode_controls()

@@ -1,0 +1,75 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "label-observes-original-editor-without-sibling-mount-queries",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "EditingModeLabel",
+          "replacements": [
+            {
+              "old_source": "class EditingModeLabel(AutoWidth, OneRow, SidePadding, NoWrap, Label):\n    def apply_native_layout",
+              "new_source": "class EditingModeLabel(AutoWidth, OneRow, SidePadding, NoWrap, Label):\n    \"\"\"The label follows its own editor throughout this composition's lifetime.\"\"\"\n\n    def __init__(self, editor: PromptTextArea):\n        super().__init__(\"\", markup=False)\n        self.editor = editor\n\n    @on(events.Mount)\n    def follow_editor(self) -> None:\n        self.watch(self.editor, \"editing_mode\", self.update_mode)\n        self.watch(self.editor, \"has_focus\", self.update_mode)\n\n    def update_mode(self) -> None:\n        self.update((self.editor.editing_mode if self.editor.has_focus else Standard()).label)\n\n    def apply_native_layout"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "PromptTextArea.on_mount",
+          "replacements": [
+            {
+              "old_source": "        self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))\n",
+              "new_source": ""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "PromptTextArea",
+          "replacements": [
+            {
+              "old_source": "    def show_editing_mode(self, mode: EditingMode) -> None:\n        \"\"\"Away from the box the Standard keys are in force, so the label says STANDARD.\"\"\"\n        if self.is_mounted:\n            self.prompt.editing_mode_label.update((mode if self.has_focus else Standard()).label)\n\n    def watch_has_focus(self, focus: bool) -> None:\n        self.show_editing_mode(self.editing_mode)\n\n",
+              "new_source": ""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "Prompt.compose",
+          "replacements": [
+            {
+              "old_source": "                yield self.TEXT_AREA_CLASS(prompt=self).data_bind(",
+              "new_source": "                editor = self.TEXT_AREA_CLASS(prompt=self).data_bind("
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "Prompt.compose",
+          "replacements": [
+            {
+              "old_source": "                    slash_commands=Prompt.slash_commands,\n                )\n        yield from self.compose_info_popups()",
+              "new_source": "                    slash_commands=Prompt.slash_commands,\n                )\n                yield editor\n        yield from self.compose_info_popups()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/prompt.py",
+          "target_qualname": "Prompt.compose",
+          "replacements": [
+            {
+              "old_source": "            yield EditingModeLabel(\"\", markup=False)",
+              "new_source": "            yield EditingModeLabel(editor)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
