@@ -16,7 +16,11 @@ from toad.application_actions import ApplicationAction
 from toad.preferences import SETTINGS
 from toad.screens.keymap import KeymapScreen
 from toad.screens.settings import SettingsScreen
-from toad.widgets.comms_command_dialog import CatalogField, CatalogFieldSelection
+from toad.widgets.comms_command_dialog import (
+    CatalogField,
+    CatalogFieldSelection,
+    CommandFormScroll,
+)
 from toad.widgets.comms_sidebar import CommsSidebar, NewSessionButton
 from toad.widgets.footer import ToadFooter
 from toad.widgets.session_tabs import SessionTabClose
@@ -180,8 +184,16 @@ async def test_command_form_opens_before_preparation_and_first_mouse_confirm_sub
             parameter = dialog.choices['model'].parameter
             assert selection.current == FieldCodec.encode(parameter.value)
             assert selection.choices == tuple(choice for choice in parameter.options if choice.value is not None)
+            await ui.textual[1].resize_terminal(80, 24)
+            await ui.step()
             button = dialog.query_one(ApplyCommandButton)
             await ui.until(lambda: not button.disabled, why="the command values to be accepted")
+            assert button.region.area and button.visible_region == button.region
+            service = dialog.form.values['service_tier'].editor
+            service.scroll_visible(animate=False, immediate=True)
+            await ui.until_clickable(service, why="the lower service-level field to scroll into view")
+            assert dialog.query_one(CommandFormScroll).scroll_y > 0
+            assert button.visible_region == button.region
             editor = dialog.form.values["name"].editor
             editor.scroll_visible(animate=False, immediate=True)
             await ui.until_clickable(editor, why="the name editor to be visible")
