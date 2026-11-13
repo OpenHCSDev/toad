@@ -12,6 +12,7 @@ from weakref import WeakSet, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._paint_state import PaintState
+from textual.geometry import Region
 from textual.app import ScreenStackError, UnknownModeError
 from textual import events
 from textual.strip import Strip
@@ -537,8 +538,21 @@ class AnimationEffects[FrameT: Frame](TonePaint):
 
     def redraw(self) -> None:
         """A frame paints over the lines (paint_effects in render_line); the content they
-        show is unchanged, so it is not rendered again."""
-        self.repaint_lines()
+        show is unchanged, so it is not rendered again. Invalidate only the lines the
+        running effects actually paint; a one-row throbber or a two-row sidebar name
+        should not flush the styles cache of a 200-line conversation widget."""
+        if not self.effects:
+            return
+        region = self._effect_region()
+        if region is not None:
+            self._invalidate_lines(region)
+            self._repaint_required = True
+        else:
+            self.repaint_lines()
+
+    def _effect_region(self) -> Region | None:
+        """The region the running effects paint, or None for the whole widget."""
+        return None
 
 
 class EffectInContent:

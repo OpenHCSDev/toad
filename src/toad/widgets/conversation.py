@@ -375,6 +375,13 @@ class CursorContainer(Animated[Mix], Static):
     def animation_visible(self) -> bool:
         return super().animation_visible and self.query_ancestor(Window).has_focus
 
+    def _effect_region(self) -> Region | None:
+        cursor = self.query_ancestor(Conversation).navigation.cursor
+        visible = cursor.visible_region
+        if visible.height == 0:
+            return Region(0, 0, 1, 0)
+        return Region(0, visible.y - self.region.y, 1, visible.height)
+
     def render_lines(self, crop: Region) -> list[Strip]:
         colours = self.app.colours
         strips = [colours.paint_mix(self.RAIL, Strip([Segment("▌")], cell_length=1))] * crop.height
