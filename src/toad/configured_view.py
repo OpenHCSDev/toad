@@ -57,7 +57,7 @@ class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
 
     @classmethod
     def panel(cls, view):
-        return SideBar.Panel("Agent settings", cls(view), id="agent-settings", flex=True)
+        return SideBar.Panel("Session settings", cls(view), id="agent-settings", flex=True)
 
     def compose(self):
         self.form = SessionForm.for_prompt(self.view.conversation.prompt)
