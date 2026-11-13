@@ -216,11 +216,6 @@ class SidebarSessionView[SidebarT: ThreadSidebar](ConfiguredView, ConversationSe
     def paint_background(self) -> Color:
         return self.app.color_system.color(BackgroundColour.name)
 
-    @cached_property
-    def _thread_sidebar_state(self) -> SidebarState:
-        return SidebarState()
 
-    @abstractmethod
-    def make_thread_sidebar(self) -> SidebarT: ...
 
 

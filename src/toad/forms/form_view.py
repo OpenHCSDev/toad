@@ -81,6 +81,16 @@ class FieldView(DeclaredViews, WidgetView, containers.VerticalGroup):
         return True
 
     @classmethod
+    def from_field(cls, field: DeclaredField):
+        """The field provider supplies the declaration used to select its presentation."""
+        declaration = field.declaration
+        parameter = ParameterInfo.create(
+            name=declaration.name, param_type=field.annotation,
+            current_value=None, default_value=declaration.default_value,
+            description=declaration.description, is_required=declaration.is_required)
+        return cls.showing(type(parameter).__mro__)(field)
+
+    @classmethod
     def of(cls, state: ObjectState, parent: str = "") -> list[FieldView]:
         """Show ObjectState's direct children; FormBridge supplies each field's kind.
 

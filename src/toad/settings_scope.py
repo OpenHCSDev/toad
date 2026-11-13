@@ -33,7 +33,7 @@ class ViewSettingsScope(SettingsScope):
 
     @property
     @abstractmethod
-    def configuration_panel(self): ...
+    def configuration_panels(self): ...
 
 
 class ConversationSettingsScope(ViewSettingsScope):

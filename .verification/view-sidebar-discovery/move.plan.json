@@ -1,0 +1,158 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "selected-object-panel-menu",
+      "operations": [
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar",
+          "source": "class PanelPage(FillHeight, containers.Vertical):\n    \"\"\"The original panel and its controls, retained while another entry is selected.\"\"\"\n\n\nclass PanelPicker(OneRow, FillWidth, widgets.Select):\n    \"\"\"One compact selector over the entries supplied by the viewed object.\"\"\"\n\n\nclass PanelMenu(FillHeight, containers.Vertical):\n    \"\"\"Discover once from the owner; mount each original panel only when selected.\"\"\"\n\n    def __init__(self, entries, navigation: SidebarState):\n        super().__init__()\n        self.entries = tuple(entries)\n        self.navigation = navigation\n        selected = next((entry for entry in self.entries\n                         if entry.title == navigation.panel_title), self.entries[0])\n        self.picker = PanelPicker(((entry.title, entry) for entry in self.entries),\n                                 value=selected, allow_blank=False, compact=True)\n        self.body = PanelPage()\n        self.pages: dict[SideBar.Panel, PanelPage] = {}\n\n    def compose(self):\n        yield self.picker\n        yield self.body\n\n    @on(events.Mount)\n    async def open_selection(self):\n        await self.show_panel(self.picker.value)\n\n    @on(widgets.Select.Changed)\n    async def selection_changed(self, event):\n        if event.select is self.picker and event.value is not widgets.Select.NULL:\n            event.stop()\n            await self.show_panel(event.value)\n\n    async def show_panel(self, entry):\n        for panel, page in self.pages.items():\n            if page.display and panel is not entry:\n                panel.widget.finish()\n            page.display = panel is entry\n            panel.widget.sidebar_visibility_changed()\n        if entry not in self.pages:\n            children = (() if entry.header_control is None else (entry.header_control,))\n            page = PanelPage(*children, entry.widget, id=entry.id)\n            self.pages[entry] = page\n            await self.body.mount(page)\n        self.navigation.panel_title = entry.title\n        entry.widget.sidebar_visibility_changed()\n\n    def activate(self, widget):\n        self.picker.value = next(entry for entry in self.entries if entry.widget is widget)\n\n    def finish(self):\n        for entry in self.pages:\n            entry.widget.finish()\n\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "SidebarPanelWidget.sidebar_visibility_changed",
+          "source": "    def finish(self) -> None:\n        \"\"\"Passive panels have no pending edit to submit.\"\"\"\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar.panel_entries",
+          "replacements": [
+            {
+              "old_source": "        yield self.query_ancestor(ViewSettingsScope).configuration_panel",
+              "new_source": "        yield from self.query_ancestor(ViewSettingsScope).configuration_panels"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar.__init__",
+          "source": "    def _compose_panels(self):\n        yield PanelMenu(self.panel_entries(), self.navigation)\n\n    def reveal_panel(self, widget):\n        self.query_one(PanelMenu).activate(widget)\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_tracker.py",
+          "target_qualname": "SidebarState",
+          "replacements": [
+            {
+              "old_source": "    panel_scroll_y: float = 0",
+              "new_source": "    panel_scroll_y: float = 0\n    panel_title: str = \"\""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/settings_scope.py",
+          "target_qualname": "ViewSettingsScope.configuration_panel",
+          "replacements": [
+            {
+              "old_source": "    def configuration_panel(self): ...",
+              "new_source": "    def configuration_panels(self): ..."
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/form_view.py",
+          "target_qualname": "FieldView.of",
+          "source": "    @classmethod\n    def from_field(cls, field: DeclaredField):\n        \"\"\"The field provider supplies the declaration used to select its presentation.\"\"\"\n        declaration = field.declaration\n        parameter = ParameterInfo.create(\n            name=declaration.name, param_type=field.annotation,\n            current_value=field.value, default_value=declaration.default_value,\n            description=declaration.description, is_required=declaration.is_required)\n        return cls.showing(type(parameter).__mro__)(field)\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/forms/form_view.py",
+          "target_qualname": "FieldView.of",
+          "replacements": [
+            {
+              "old_source": "return [cls.showing(type(parameter).__mro__)(field)",
+              "new_source": "return [cls.from_field(field)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectProperties",
+          "replacements": [
+            {
+              "old_source": "class ObjectProperties(ObjectFormView, SidebarPanelWidget):\n    \"\"\"The sidebar edits the view's original state directly.\"\"\"",
+              "new_source": "class ObjectProperties(FillHeight, SidebarPanelWidget):\n    \"\"\"One declared settings entry; its form is built when that entry is opened.\"\"\"\n\n    def __init__(self, field):\n        super().__init__()\n        self.field = field\n\n    def compose(self):\n        self.form = ObjectFormView(self.field.state, [ObjectFieldView.from_field(self.field)])\n        yield self.form\n\n    def finish(self):\n        self.form.finish()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectConfigurationDialog",
+          "replacements": [
+            {
+              "old_source": "    def __init__(self, state):\n        super().__init__()\n        self.form = ObjectFormView.whole(state)",
+              "new_source": "    def __init__(self, panels):\n        super().__init__()\n        self.form = PanelMenu(panels, SidebarState())"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView.configuration_panel",
+          "replacements": [
+            {
+              "old_source": "    def configuration_panel(self):\n        return SideBar.Panel(\"Properties\", ObjectProperties.whole(self.configuration_state),\n                             flex=True, collapsed=True)",
+              "new_source": "    def configuration_panels(self):\n        state = self.configuration_state\n        for path in state.direct_parameter_paths():\n            if state.shows(path.value):\n                field = state.field(path.value)\n                yield SideBar.Panel(field.label, ObjectProperties(field),\n                                    id=f\"settings-{path.value}\", flex=True)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView.open_configuration",
+          "replacements": [
+            {
+              "old_source": "ObjectConfigurationDialog(self.configuration_state)",
+              "new_source": "ObjectConfigurationDialog(self.configuration_panels)"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.native_style import FillHeight"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.forms.object_configuration import ObjectFieldView"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.widgets.side_bar import PanelMenu"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/comms.py",
+          "target_qualname": "CommsScreen.make_thread_sidebar",
+          "replacements": [
+            {
+              "old_source": "    def make_thread_sidebar(self) -> ThreadSidebar:\n        return ThreadSidebar(\n            SideBar.Panel(\n                \"Connection\",\n                CoordinationStatus(),\n                id=\"coordination-panel\",\n            ),\n            SideBar.Panel(\n                \"Comms\",\n                ThreadCommsSidebar(),\n                id=\"thread-comms-panel\",\n                header_control=RelationshipSort(),\n            ),\n            state=self._thread_sidebar_state,\n        )",
+              "new_source": ""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_panels.py",
+          "target_qualname": "PlanSessionPanel.update",
+          "replacements": [
+            {
+              "old_source": "                sidebar.query_one(f\"#{self.declared_name}-panel\", SideBarCollapsible).collapsed = False",
+              "new_source": "                sidebar.reveal_panel(plan)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

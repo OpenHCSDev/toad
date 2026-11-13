@@ -37,9 +37,7 @@ from toad.session_scope import NoSessionOrigin
 from toad.thread_identity import SessionIdentity
 from toad.widget_actions import CyclesSessions, TogglesIrc, WidgetAction
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.widgets.side_bar import SideBar, ThreadSidebar
-from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.worker_group import WorkerGroup
 
 
@@ -131,21 +129,7 @@ class CommsScreen(ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRo
             .sidebar.observation.thread_names(),
         )
 
-    def make_thread_sidebar(self) -> ThreadSidebar:
-        return ThreadSidebar(
-            SideBar.Panel(
-                "Connection",
-                CoordinationStatus(),
-                id="coordination-panel",
-            ),
-            SideBar.Panel(
-                "Comms",
-                ThreadCommsSidebar(),
-                id="thread-comms-panel",
-                header_control=RelationshipSort(),
-            ),
-            state=self._thread_sidebar_state,
-        )
+
 
     def compose(self) -> ComposeResult:
         content = (

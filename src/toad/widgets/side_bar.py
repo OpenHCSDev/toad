@@ -175,8 +175,28 @@ class PresentedBar(BarDisplay):
 
 
 
+class SidebarPanelHost(Widget):
+    """A panel's actual host owns whether its content is presented."""
+
+    @property
+    def panel_visible(self):
+        return self.is_attached and all(node.display for node in self.walk_ancestors(with_self=True)
+                                        if isinstance(node, Widget))
+
+    @abstractmethod
+    def reveal(self): ...
+
+
 class SidebarPanelWidget(Widget):
     """Every sidebar panel accepts visibility changes; passive panels do nothing."""
+
+    @property
+    def panel_identity(self):
+        """The nominal widget role identifies a panel across its lazy realizations."""
+        return type(self)
+
+    def finish(self) -> None:
+        """Passive panels have no pending edit to submit."""
 
     def sidebar_visibility_changed(self) -> None:
         pass
@@ -184,6 +204,10 @@ class SidebarPanelWidget(Widget):
 
 class SidebarVisibilityObserver(SidebarPanelWidget):
     """A panel whose viewport and active presentation belong to its enclosing sidebar."""
+
+    @property
+    def panel_visible(self):
+        return self.query_ancestor(SidebarPanelHost).panel_visible
 
     @property
     def scroll_container(self) -> SidebarViewport:
@@ -199,6 +223,7 @@ class SidebarPanelContents(AutoHeight, NoPadding, widgets.Collapsible.Contents):
 
 
 class SideBarCollapsible(
+    SidebarPanelHost,
     FillWidth,
     AutoHeight,
     NoPadding,
@@ -223,6 +248,13 @@ The Sidebar contains additonal information associated with the conversation.
     Contents = SidebarPanelContents
     expanded_min_height = 1
     """Rows an open panel keeps; a collapsed panel is its one title row."""
+
+    @property
+    def panel_visible(self):
+        return super().panel_visible and not self.collapsed
+
+    def reveal(self):
+        self.collapsed = False
 
     def __init__(
         self, *children: Widget, header_control: Widget | None = None, **kwargs
@@ -1226,6 +1258,9 @@ class SideBar(
         if self.presentation_visible:
             self.toggle_control.refresh_paint()
 
+    def focus_contents(self):
+        self.panels_viewport.focus()
+
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed
         return_focus = collapsed and (focus or self.has_focus_within)
@@ -1240,8 +1275,8 @@ class SideBar(
             # Panels are already displayed by the synchronous watcher. Queue
             # native focus now so its highlight can share the opening frame,
             # rather than waiting for a painted frame to request another one.
-            if title := self.query_one_optional("SideBarCollapsible CollapsibleTitle"):
-                title.focus()
+            if self.panels_loaded:
+                self.focus_contents()
             else:
                 self.schedule_hydration()
 
@@ -1254,12 +1289,87 @@ class SideBar(
         self.post_message(self.Dismiss())
 
 
+class PanelBody(FillHeight, containers.Vertical):
+    """The space left below the selected-view menu."""
+
+
+class PanelPage(SidebarPanelHost, PanelBody):
+    """The original panel and its controls, retained while another entry is selected."""
+
+    def reveal(self):
+        menu = self.query_ancestor(PanelMenu)
+        menu.picker.value = next(entry for entry, page in menu.pages.items() if page is self)
+
+
+class PanelPicker(OneRow, FillWidth, widgets.Select):
+    """One compact selector over the entries supplied by the viewed object."""
+
+
+class PanelMenu(FillHeight, containers.Vertical):
+    """Discover once from the owner; mount each original panel only when selected."""
+
+    def __init__(self, entries, navigation: SidebarState):
+        super().__init__()
+        self.entries = tuple(entries)
+        self.navigation = navigation
+        selected = next((entry for entry in self.entries
+                         if entry.widget.panel_identity == navigation.panel_identity), self.entries[0])
+        self.picker = PanelPicker(((entry.title, entry) for entry in self.entries),
+                                 value=selected, allow_blank=False, compact=True)
+        self.body = PanelBody()
+        self.pages: dict[SideBar.Panel, PanelPage] = {}
+
+    def compose(self):
+        yield self.picker
+        yield self.body
+
+    @on(events.Mount)
+    async def open_selection(self):
+        await self.show_panel(self.picker.value)
+
+    @on(widgets.Select.Changed)
+    async def selection_changed(self, event):
+        if event.select is self.picker and event.value is not widgets.Select.NULL:
+            event.stop()
+            await self.show_panel(event.value)
+
+    async def show_panel(self, entry):
+        for panel, page in self.pages.items():
+            if page.display and panel is not entry:
+                panel.widget.finish()
+            page.display = panel is entry
+            panel.widget.sidebar_visibility_changed()
+        if entry not in self.pages:
+            children = (() if entry.header_control is None else (entry.header_control,))
+            page = PanelPage(*children, entry.widget, id=entry.id)
+            self.pages[entry] = page
+            await self.body.mount(page)
+        self.navigation.panel_identity = entry.widget.panel_identity
+        entry.widget.sidebar_visibility_changed()
+
+    def activate(self, widget):
+        self.picker.value = next(entry for entry in self.entries if entry.widget is widget)
+
+    def finish(self):
+        for entry in self.pages:
+            entry.widget.finish()
+
+
 class ThreadSidebar(SideBar):
     placement_type = ThreadSidebarPlacement
 
     def panel_entries(self):
         yield from super().panel_entries()
-        yield self.query_ancestor(ViewSettingsScope).configuration_panel
+        yield from self.query_ancestor(ViewSettingsScope).configuration_panels
+
+    def _compose_panels(self):
+        yield PanelMenu(self.panel_entries(), self.navigation)
+
+    def focus_contents(self):
+        self.query_one(PanelPicker).focus()
+
+    def reveal_panel(self, widget):
+        self.query_one(PanelMenu).activate(widget)
 
     def __init__(self, *panels, state: SidebarState, **kwargs):
         self.state = state
