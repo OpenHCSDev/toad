@@ -239,7 +239,7 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
         for path in paths & self.values.keys():
             editor = self.values[path].editor
             if editor.is_mounted:
-                editor.paint()
+                editor.paint_value()
 
     def marks_changed(self, paths: set[str]) -> None:
         differ = self.state.dirty_fields

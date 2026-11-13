@@ -442,7 +442,7 @@ class ContextExplorer(
 
     @property
     def intent(self) -> ContextTreeIntent:
-        return self._intents.setdefault(self.thread_view.thread_identity, ContextTreeIntent())
+        return self._intents.setdefault(self.thread_identity, ContextTreeIntent())
 
     def compose(self):
         yield ContextStatus(
@@ -522,12 +522,12 @@ class ContextExplorer(
 
     def _reading(self, identity: SessionIdentity):
         return (
-            self.is_attached and not get_current_worker().is_cancelled and self.thread_view.thread_identity == identity
+            self.is_attached and not get_current_worker().is_cancelled and self.thread_identity == identity
         )
 
     @ContextReadWork.work
     async def read(self, *, force: bool = False) -> None:
-        await self.thread_view.thread_identity.inspect_owner(
+        await self.thread_identity.inspect_owner(
             lambda identity: self._read_owner(identity, force=force),
             self.query_one(ContextStatus).update,
         )
@@ -626,7 +626,7 @@ class ContextExplorer(
         # Destination selection ends the acquired page's lifetime now, not
         # when the replacement read finishes. Unacquired inspection states
         # cannot publish old groups, searches or native results.
-        self.state = self.thread_view.thread_identity.inspection_state()
+        self.state = self.thread_identity.inspection_state()
         ContextPresentationWork.cancel_all(self)
         ContextNativeWork.cancel_all(self)
         ContextSearchWork.cancel_all(self)

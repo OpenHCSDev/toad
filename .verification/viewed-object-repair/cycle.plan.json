@@ -1,0 +1,58 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "keep-conversation-subjects-below-panel-presentation",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/conversation_kind.py",
+          "target_qualname": "ConversationKind.sidebar_identities",
+          "replacements": [
+            {
+              "old_source": "def sidebar_identities(self, root: str):",
+              "new_source": "def sidebar_threads(self):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/conversation_kind.py",
+          "target_qualname": "DmConversation.sidebar_identities",
+          "replacements": [
+            {
+              "old_source": "    def sidebar_identities(self, root: str):\n        return (ThreadIdentity(self.peer, root),)",
+              "new_source": "    def sidebar_threads(self):\n        return (self.peer,)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/comms.py",
+          "target_qualname": "CommsScreen.make_thread_sidebar",
+          "replacements": [
+            {
+              "old_source": "self.conversation.sidebar_identities(self.wire_root)",
+              "new_source": "self.conversation.sidebar_threads()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "target_qualname": "ConversationThreadSidebar.__init__",
+          "replacements": [
+            {
+              "old_source": "    def __init__(self, screen, identities):\n        self.identities = identities",
+              "new_source": "    def __init__(self, screen, threads):\n        self.identities = tuple(ThreadIdentity(thread, screen.wire_root) for thread in threads)"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "import_source": "from toad.thread_identity import ThreadIdentity"
+        }
+      ]
+    }
+  ]
+}

@@ -18,6 +18,7 @@ from agent_comms.transport.tools.sidebar import (
 )
 
 from toad.core import events as core_events
+from toad.widgets.comms_command_dialog import CommandDialog
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -116,23 +117,26 @@ class ThreadAction:
         result.show(app, self.definition.label, self.context.title)
 
     @classmethod
-    def collect(cls, ctx, definition):
-        from toad.widgets.comms_command_dialog import CommandDialog
+    async def submit(cls, ctx, definition, arguments):
+        """Both presentations execute through the original guarded target writer."""
+        def prepare():
+            ctx.current()
+            return TargetEdit(declaration=definition.declaration,
+                target=definition.declaration.selected_targets(ctx.selection),
+                arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
+                channel=definition.channels, project=ctx.project)
+        request = await ctx.app.preparation.run_thread(prepare)
+        ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
+                                     source_root=ctx.observed.root)
 
+    @classmethod
+    def collect(cls, ctx, definition):
         ctx = replace(ctx, mode=ctx.mode or ctx.app.selected_mode)
 
         async def accepted(arguments):
             if arguments is None:
                 return
-            def prepare():
-                ctx.current()
-                return TargetEdit(declaration=definition.declaration,
-                    target=definition.declaration.selected_targets(ctx.selection),
-                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
-                    channel=definition.channels, project=ctx.project)
-            request = await ctx.app.preparation.run_thread(prepare)
-            ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
-                                         source_root=ctx.observed.root)
+            await cls.submit(ctx, definition, arguments)
 
         async def prepare():
             if definition.editable_fields or definition.confirmation:

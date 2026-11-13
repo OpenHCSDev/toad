@@ -1,0 +1,20 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "remove-test-line-whitespace",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "assert field_view.reset.label.plain == 'Reset' ",
+              "new_source": "assert str(field_view.reset.label) == 'Reset'"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

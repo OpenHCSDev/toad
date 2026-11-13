@@ -1,0 +1,58 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "retain-peer-birth-through-current-reference-resolution",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "import_source": "from agent_comms.messaging.display_references import ThreadReferenceReader"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "import_source": "from toad.thread_identity import LocalThreadIdentity, SessionIdentity"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "target_qualname": "ConversationThreadSidebar",
+          "source": "class SidebarThreadIdentity(ThreadReferenceReader[SessionIdentity]):\n    \"\"\"A retired peer's old name must never address a replacement thread.\"\"\"\n\n    def __init__(self, root):\n        self.root = root\n\n    def current(self, reference):\n        return ThreadIdentity(reference.incarnation, self.root)\n\n    def retired(self, reference):\n        return LocalThreadIdentity(f\"{reference.name} (gone)\")\n\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "target_qualname": "ConversationThreadSidebar.__init__",
+          "replacements": [
+            {
+              "old_source": "self.identities = tuple(ThreadIdentity(thread, screen.wire_root) for thread in threads)",
+              "new_source": "self.threads = threads"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "target_qualname": "ConversationThreadSidebar.sidebar_thread_identity",
+          "replacements": [
+            {
+              "old_source": "        return next(iter(self.identities), NoThreadIdentity())",
+              "new_source": "        screen = self._owner()\n        if screen is None:\n            raise ReferenceError(\"The conversation sidebar owner has retired\")\n        references = screen.app.coordination_access.observation.observed().sidebar.observation.thread_names()\n        return next((references.thread(thread).read(SidebarThreadIdentity(screen.wire_root))\n                     for thread in self.threads), NoThreadIdentity())"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "target_qualname": "ConversationThreadSidebar.make_panels",
+          "replacements": [
+            {
+              "old_source": "for identity in self.identities",
+              "new_source": "for thread in self.threads"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

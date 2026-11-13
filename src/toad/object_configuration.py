@@ -38,6 +38,13 @@ class ObjectSettingField(DeclaredField):
     def allows_override(self) -> bool:
         return self.state.admits(self.path.value)
 
+    def reset(self) -> None:
+        """The writer resets its actual parameter to that parameter's signature default."""
+        state = self.state if self.allows_override else self.state.defaults
+        state.reset_parameter(self.path.value)
+        if state is self.state.defaults:
+            self.state.global_settings.save_sync()
+
     def edit(self, value):
         if self.allows_override:
             return super().edit(value)

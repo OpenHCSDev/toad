@@ -9,11 +9,13 @@ from functools import cached_property
 from pathlib import Path
 
 from agent_comms.errors import UnregisteredThreadError
+from agent_comms.messaging.channel_targets import IncarnationThreadTarget
 from agent_comms.registry.thread_identity import (
     ThreadIncarnation,
     UnrecordedThreadIncarnation,
 )
 
+from textual.dom import DOMNode
 from toad.format_path import format_path
 from toad.transcript_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
@@ -21,6 +23,14 @@ from toad.comms_root import Observing
 from toad.session_tracker import SessionDetails
 from agent_comms.nominal.field_codec import AcpSessionId
 
+
+
+class ThreadIdentityScope(DOMNode):
+    """The thread described by a panel, independent of the composer sending identity."""
+
+    @property
+    @abstractmethod
+    def sidebar_thread_identity(self) -> SessionIdentity: ...
 
 
 class SessionIdentity(ABC):
@@ -93,6 +103,10 @@ class SessionIdentity(ABC):
         """An unbound view asks Core to discover its project's session."""
         return observed.session_thread(project, self.thread_name()).name_or(self.thread_name())
 
+    def configuration_targets(self):
+        """A local or absent session is configured by its own advertisements."""
+        return ()
+
     def command_target[T](self, target: Callable[[str], T]) -> T:
         """A named session addresses backend commands as its thread."""
         return target(self.thread_name())
@@ -137,6 +151,9 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def thread_name(self) -> str:
         return self.owner.name
+
+    def configuration_targets(self):
+        return (IncarnationThreadTarget(self.owner),)
 
     def thread_incarnation(self) -> ThreadIncarnation:
         return self.owner

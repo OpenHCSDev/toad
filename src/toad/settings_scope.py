@@ -35,6 +35,10 @@ class ViewSettingsScope(SettingsScope):
     @abstractmethod
     def configuration_panels(self): ...
 
+    async def configuration_action_panels(self):
+        """Backend configuration is absent unless the viewed object supplies targets."""
+        return ()
+
 
 class ConversationSettingsScope(ViewSettingsScope):
     """A thread or channel additionally owns conversation and composer settings."""

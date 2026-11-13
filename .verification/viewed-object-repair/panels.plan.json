@@ -1,0 +1,279 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "restore-original-panels-on-the-viewed-thread",
+      "operations": [
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_identity.py",
+          "import_source": "from textual.dom import DOMNode"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/thread_identity.py",
+          "target_qualname": "SessionIdentity",
+          "source": "class ThreadIdentityScope(DOMNode):\n    \"\"\"The thread described by a panel, independent of the composer sending identity.\"\"\"\n\n    @property\n    @abstractmethod\n    def sidebar_thread_identity(self) -> SessionIdentity: ...\n\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_scope.py",
+          "import_source": "from toad.thread_identity import ThreadIdentityScope"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_scope.py",
+          "target_qualname": "SessionScope",
+          "replacements": [
+            {
+              "old_source": "class SessionScope(ProjectPathOwner, NavigationScope, ToadNode):",
+              "new_source": "class SessionScope(ThreadIdentityScope, ProjectPathOwner, NavigationScope, ToadNode):"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/session_scope.py",
+          "target_qualname": "SessionScope.belongs_to_wire",
+          "source": "    @property\n    def sidebar_thread_identity(self) -> SessionIdentity:\n        return self.thread_identity\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_identity.py",
+          "import_source": "from toad.thread_identity import ThreadIdentityScope"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_identity.py",
+          "target_qualname": "ShowsThreadIdentity._on_mount",
+          "source": "    @property\n    def thread_identity(self) -> SessionIdentity:\n        return self.query_ancestor(ThreadIdentityScope).sidebar_thread_identity\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_identity.py",
+          "target_qualname": "ShowsThreadIdentity._on_mount",
+          "replacements": [
+            {
+              "old_source": "self.identity_changed(self.thread_view.thread_identity)",
+              "new_source": "self.identity_changed(self.thread_identity)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_identity.py",
+          "target_qualname": "ShowsThreadIdentity.thread_identity_changed",
+          "replacements": [
+            {
+              "old_source": "self.identity_changed(event.view.thread_identity)",
+              "new_source": "self.identity_changed(self.thread_identity)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "RelationshipSort.order_writer",
+          "replacements": [
+            {
+              "old_source": "    async def order_writer(self):\n        tree = self.query_ancestor(SidebarPanelHost).query_one(ThreadCommsSidebar)\n        identity, generation = tree.thread_view.thread_identity, tree._generation\n        snapshot = tree._snapshot\n        if snapshot is None:\n            raise ValueError(\"Relationship ordering is not available yet\")\n        groups = snapshot.sortable_groups\n\n        async def write(order: type[ThreadSort]):\n            service = await tree.relationship_source(identity)\n            if (\n                generation != tree._generation\n                or identity != tree.thread_view.thread_identity\n            ):\n                return\n            try:\n                for group in groups:\n                    await self.app.preparation.run_thread(\n                        service.set_relationship_order, identity.thread_name(), type(group), order\n                    )\n            finally:\n                if (\n                    generation == tree._generation\n                    and identity == tree.thread_view.thread_identity\n                ):\n                    tree.refresh_relationships(force=True)\n\n        return write\n",
+              "new_source": "    async def order_writer(self):\n        tree = self.query_ancestor(SidebarPanelHost).query_one(ThreadCommsSidebar)\n        identity, generation = tree.thread_identity, tree._generation\n        snapshot = tree._snapshot\n        if snapshot is None:\n            raise ValueError(\"Relationship ordering is not available yet\")\n        groups = snapshot.sortable_groups\n\n        async def write(order: type[ThreadSort]):\n            service = await tree.relationship_source(identity)\n            if (\n                generation != tree._generation\n                or identity != tree.thread_identity\n            ):\n                return\n            try:\n                for group in groups:\n                    await self.app.preparation.run_thread(\n                        service.set_relationship_order, identity.thread_name(), type(group), order\n                    )\n            finally:\n                if (\n                    generation == tree._generation\n                    and identity == tree.thread_identity\n                ):\n                    tree.refresh_relationships(force=True)\n\n        return write\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "ThreadCommsSidebar.view_state",
+          "replacements": [
+            {
+              "old_source": "    def view_state(self):\n        return self._states.setdefault(\n            self.thread_view.thread_identity, RelationshipTreeState()\n        )\n",
+              "new_source": "    def view_state(self):\n        return self._states.setdefault(\n            self.thread_identity, RelationshipTreeState()\n        )\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "ThreadCommsSidebar.compose",
+          "replacements": [
+            {
+              "old_source": "    def compose(self):\n        yield RelationshipContext(\n            self.thread_view.thread_identity.display_thread(),\n            markup=False,\n        )\n        self._filter_controls.clear()\n        for category in MessageCategory.members_with(MessageCategory):\n            checkbox = MessageFilter(\n                category.label,\n                id=f\"filter-{category.declared_name}\",\n                compact=True,\n            )\n            self._filter_controls[checkbox] = category\n            yield checkbox\n",
+              "new_source": "    def compose(self):\n        yield RelationshipContext(\n            self.thread_identity.display_thread(),\n            markup=False,\n        )\n        self._filter_controls.clear()\n        for category in MessageCategory.members_with(MessageCategory):\n            checkbox = MessageFilter(\n                category.label,\n                id=f\"filter-{category.declared_name}\",\n                compact=True,\n            )\n            self._filter_controls[checkbox] = category\n            yield checkbox\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "ThreadCommsSidebar.accepts_observation",
+          "replacements": [
+            {
+              "old_source": "    def accepts_observation(self) -> bool:\n        identity = self.thread_view.thread_identity\n        return self.panel_visible and self.model_state.serves(identity.root_path)\n",
+              "new_source": "    def accepts_observation(self) -> bool:\n        identity = self.thread_identity\n        return self.panel_visible and self.model_state.serves(identity.root_path)\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "ThreadCommsSidebar._refresh",
+          "replacements": [
+            {
+              "old_source": "    async def _refresh(self, generation):\n        await self.thread_view.thread_identity.inspect_owner(\n            lambda identity: self._refresh_owner(identity, generation),\n            lambda text: self.query_one(RelationshipContext).update(\n                Content(text), layout=False\n            ),\n        )\n",
+              "new_source": "    async def _refresh(self, generation):\n        await self.thread_identity.inspect_owner(\n            lambda identity: self._refresh_owner(identity, generation),\n            lambda text: self.query_one(RelationshipContext).update(\n                Content(text), layout=False\n            ),\n        )\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "ThreadCommsSidebar.navigation_root",
+          "replacements": [
+            {
+              "old_source": "    def navigation_root(self):\n        return self.thread_view.thread_identity.root_path\n",
+              "new_source": "    def navigation_root(self):\n        return self.thread_identity.root_path\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "ThreadCommsSidebar.open_target",
+          "replacements": [
+            {
+              "old_source": "    def open_target(self, target: NavigationTarget):\n        identity = self.thread_view.thread_identity\n        if (\n            identity.root_path\n            != self.app.coordination_access.observation.observed().root\n        ):\n            self.notify(\n                \"This view uses a different wire; open its matching connection to navigate.\",\n                title=\"Comms\",\n                severity=\"warning\",\n            )\n            return\n        self.publish_core(SelectTarget(target))\n",
+              "new_source": "    def open_target(self, target: NavigationTarget):\n        identity = self.thread_identity\n        if (\n            identity.root_path\n            != self.app.coordination_access.observation.observed().root\n        ):\n            self.notify(\n                \"This view uses a different wire; open its matching connection to navigate.\",\n                title=\"Comms\",\n                severity=\"warning\",\n            )\n            return\n        self.publish_core(SelectTarget(target))\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/thread_comms.py",
+          "target_qualname": "ThreadCommsSidebar._navigate_current",
+          "replacements": [
+            {
+              "old_source": "    async def _navigate_current(self, group_key, expected, generation):\n        if generation != self._generation or not expected.available:\n            return\n        identity = self.thread_view.thread_identity\n        service = await self.relationship_source(identity)\n        snapshot = await asyncio.to_thread(service.relationships, identity.thread_name())\n        if (\n            generation != self._generation\n            or not self.is_attached\n            or not self.screen.is_current\n        ):\n            return\n        current = snapshot.current_entry(group_key, expected)\n        if current is None:\n            self.notify(\n                \"This relationship changed; refresh the list before opening it.\",\n                title=\"Comms\",\n            )\n            self.refresh_relationships(force=True)\n            return\n        self.open_target(entry_target(current))\n",
+              "new_source": "    async def _navigate_current(self, group_key, expected, generation):\n        if generation != self._generation or not expected.available:\n            return\n        identity = self.thread_identity\n        service = await self.relationship_source(identity)\n        snapshot = await asyncio.to_thread(service.relationships, identity.thread_name())\n        if (\n            generation != self._generation\n            or not self.is_attached\n            or not self.screen.is_current\n        ):\n            return\n        current = snapshot.current_entry(group_key, expected)\n        if current is None:\n            self.notify(\n                \"This relationship changed; refresh the list before opening it.\",\n                title=\"Comms\",\n            )\n            self.refresh_relationships(force=True)\n            return\n        self.open_target(entry_target(current))\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/context_explorer.py",
+          "target_qualname": "ContextExplorer.intent",
+          "replacements": [
+            {
+              "old_source": "    def intent(self) -> ContextTreeIntent:\n        return self._intents.setdefault(self.thread_view.thread_identity, ContextTreeIntent())\n",
+              "new_source": "    def intent(self) -> ContextTreeIntent:\n        return self._intents.setdefault(self.thread_identity, ContextTreeIntent())\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/context_explorer.py",
+          "target_qualname": "ContextExplorer._reading",
+          "replacements": [
+            {
+              "old_source": "    def _reading(self, identity: SessionIdentity):\n        return (\n            self.is_attached and not get_current_worker().is_cancelled and self.thread_view.thread_identity == identity\n        )\n",
+              "new_source": "    def _reading(self, identity: SessionIdentity):\n        return (\n            self.is_attached and not get_current_worker().is_cancelled and self.thread_identity == identity\n        )\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/context_explorer.py",
+          "target_qualname": "ContextExplorer.read",
+          "replacements": [
+            {
+              "old_source": "    async def read(self, *, force: bool = False) -> None:\n        await self.thread_view.thread_identity.inspect_owner(\n            lambda identity: self._read_owner(identity, force=force),\n            self.query_one(ContextStatus).update,\n        )\n        # Once this read has stopped, observe again: the revision may have moved while it ran.\n        self.call_later(self._observed)\n",
+              "new_source": "    async def read(self, *, force: bool = False) -> None:\n        await self.thread_identity.inspect_owner(\n            lambda identity: self._read_owner(identity, force=force),\n            self.query_one(ContextStatus).update,\n        )\n        # Once this read has stopped, observe again: the revision may have moved while it ran.\n        self.call_later(self._observed)\n"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/context_explorer.py",
+          "target_qualname": "ContextExplorer._change_page",
+          "replacements": [
+            {
+              "old_source": "    def _change_page(self) -> None:\n        # Destination selection ends the acquired page's lifetime now, not\n        # when the replacement read finishes. Unacquired inspection states\n        # cannot publish old groups, searches or native results.\n        self.state = self.thread_view.thread_identity.inspection_state()\n        ContextPresentationWork.cancel_all(self)\n        ContextNativeWork.cancel_all(self)\n        ContextSearchWork.cancel_all(self)\n        ContextDetailWork.cancel_all(self)\n        self.query_one(ContextOlder).disabled = True\n        self.query_one(ContextNewer).disabled = True\n        self.query_one(ContextTree).clear()\n        self._show_placeholder(\"Loading recorded request page\u2026\")\n        self.read()\n",
+              "new_source": "    def _change_page(self) -> None:\n        # Destination selection ends the acquired page's lifetime now, not\n        # when the replacement read finishes. Unacquired inspection states\n        # cannot publish old groups, searches or native results.\n        self.state = self.thread_identity.inspection_state()\n        ContextPresentationWork.cancel_all(self)\n        ContextNativeWork.cancel_all(self)\n        ContextSearchWork.cancel_all(self)\n        ContextDetailWork.cancel_all(self)\n        self.query_one(ContextOlder).disabled = True\n        self.query_one(ContextNewer).disabled = True\n        self.query_one(ContextTree).clear()\n        self._show_placeholder(\"Loading recorded request page\u2026\")\n        self.read()\n"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_panels.py",
+          "target_qualname": "ThreadSessionPanel",
+          "source": "class ThreadDetailsPanel(SessionPanel, declared_name=None):\n    \"\"\"The original thread diagnostics shared by session and DM views.\"\"\"\n\n\n"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_panels.py",
+          "target_qualname": "ThreadSessionPanel",
+          "replacements": [
+            {
+              "old_source": "class ThreadSessionPanel(SessionPanel[CoordinationStatus]):",
+              "new_source": "class ThreadSessionPanel(ThreadDetailsPanel, SessionPanel[CoordinationStatus]):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_panels.py",
+          "target_qualname": "CommsSessionPanel",
+          "replacements": [
+            {
+              "old_source": "class CommsSessionPanel(SessionPanel[ThreadCommsSidebar]):",
+              "new_source": "class CommsSessionPanel(ThreadDetailsPanel, SessionPanel[ThreadCommsSidebar]):"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "import_source": "from toad.widgets.session_thread_panels import ThreadDetailsPanel"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "import_source": "from toad.thread_identity import ThreadIdentityScope, NoThreadIdentity"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/session_thread_sidebar.py",
+          "target_qualname": "SessionThreadSidebar",
+          "source": "class ConversationThreadSidebar(ThreadIdentityScope, LazyThreadSidebar):\n    \"\"\"A DM's original declared panels describe its peer; channels supply no thread.\"\"\"\n\n    def __init__(self, screen, identities):\n        self.identities = identities\n        self._owner = ref(screen)\n        super().__init__(state=screen._thread_sidebar_state)\n\n    @property\n    def sidebar_thread_identity(self):\n        return next(iter(self.identities), NoThreadIdentity())\n\n    def make_panels(self):\n        screen = self._owner()\n        if screen is None:\n            raise ReferenceError(\"The conversation sidebar owner has retired\")\n        return (member().compose_panel(screen) for identity in self.identities\n                for member in SessionPanel.members_with(ThreadDetailsPanel))\n\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/conversation_kind.py",
+          "import_source": "from toad.thread_identity import ThreadIdentity"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/conversation_kind.py",
+          "target_qualname": "ConversationKind.threads_needed",
+          "source": "    def sidebar_identities(self, root: str):\n        return ()\n\n"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/conversation_kind.py",
+          "target_qualname": "DmConversation.threads_needed",
+          "source": "    def sidebar_identities(self, root: str):\n        return (ThreadIdentity(self.peer, root),)\n\n"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/comms.py",
+          "import_source": "from toad.widgets.session_thread_sidebar import ConversationThreadSidebar"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/comms.py",
+          "target_qualname": "CommsScreen.compose",
+          "source": "    def make_thread_sidebar(self):\n        return ConversationThreadSidebar(self, self.conversation.sidebar_identities(self.wire_root))\n\n"
+        }
+      ]
+    }
+  ]
+}

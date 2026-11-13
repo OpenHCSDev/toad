@@ -93,7 +93,7 @@ class RelationshipSort(SortControl[ThreadSort]):
 
     async def order_writer(self):
         tree = self.query_ancestor(SidebarPanelHost).query_one(ThreadCommsSidebar)
-        identity, generation = tree.thread_view.thread_identity, tree._generation
+        identity, generation = tree.thread_identity, tree._generation
         snapshot = tree._snapshot
         if snapshot is None:
             raise ValueError("Relationship ordering is not available yet")
@@ -103,7 +103,7 @@ class RelationshipSort(SortControl[ThreadSort]):
             service = await tree.relationship_source(identity)
             if (
                 generation != tree._generation
-                or identity != tree.thread_view.thread_identity
+                or identity != tree.thread_identity
             ):
                 return
             try:
@@ -114,7 +114,7 @@ class RelationshipSort(SortControl[ThreadSort]):
             finally:
                 if (
                     generation == tree._generation
-                    and identity == tree.thread_view.thread_identity
+                    and identity == tree.thread_identity
                 ):
                     tree.refresh_relationships(force=True)
 
@@ -307,7 +307,7 @@ class ThreadCommsSidebar(
     @property
     def view_state(self):
         return self._states.setdefault(
-            self.thread_view.thread_identity, RelationshipTreeState()
+            self.thread_identity, RelationshipTreeState()
         )
 
     async def relationship_source(self, identity: ThreadIdentity) -> Observing:
@@ -317,7 +317,7 @@ class ThreadCommsSidebar(
 
     def compose(self):
         yield RelationshipContext(
-            self.thread_view.thread_identity.display_thread(),
+            self.thread_identity.display_thread(),
             markup=False,
         )
         self._filter_controls.clear()
@@ -374,7 +374,7 @@ class ThreadCommsSidebar(
             group.display = False
 
     def accepts_observation(self) -> bool:
-        identity = self.thread_view.thread_identity
+        identity = self.thread_identity
         return self.panel_visible and self.model_state.serves(identity.root_path)
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
@@ -447,7 +447,7 @@ class ThreadCommsSidebar(
         )
 
     async def _refresh(self, generation):
-        await self.thread_view.thread_identity.inspect_owner(
+        await self.thread_identity.inspect_owner(
             lambda identity: self._refresh_owner(identity, generation),
             lambda text: self.query_one(RelationshipContext).update(
                 Content(text), layout=False
@@ -550,10 +550,10 @@ class ThreadCommsSidebar(
 
     @property
     def navigation_root(self):
-        return self.thread_view.thread_identity.root_path
+        return self.thread_identity.root_path
 
     def open_target(self, target: NavigationTarget):
-        identity = self.thread_view.thread_identity
+        identity = self.thread_identity
         if (
             identity.root_path
             != self.app.coordination_access.observation.observed().root
@@ -577,7 +577,7 @@ class ThreadCommsSidebar(
     async def _navigate_current(self, group_key, expected, generation):
         if generation != self._generation or not expected.available:
             return
-        identity = self.thread_view.thread_identity
+        identity = self.thread_identity
         service = await self.relationship_source(identity)
         snapshot = await asyncio.to_thread(service.relationships, identity.thread_name())
         if (

@@ -39,14 +39,18 @@ class SessionPanel[W: SidebarPanelWidget](DeclaredFamily, affix="SessionPanel"):
         """Stateless projections have no independent state to retain."""
 
 
-class ThreadSessionPanel(SessionPanel[CoordinationStatus]):
+class ThreadDetailsPanel(SessionPanel, declared_name=None):
+    """The original thread diagnostics shared by session and DM views."""
+
+
+class ThreadSessionPanel(ThreadDetailsPanel, SessionPanel[CoordinationStatus]):
     panel_id = "coordination-panel"
 
     def make_widget(self, screen: MainScreen) -> CoordinationStatus:
         return CoordinationStatus()
 
 
-class CommsSessionPanel(SessionPanel[ThreadCommsSidebar]):
+class CommsSessionPanel(ThreadDetailsPanel, SessionPanel[ThreadCommsSidebar]):
     def __init__(self) -> None:
         self.states: dict[SessionIdentity, RelationshipTreeState] = {}
 

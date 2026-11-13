@@ -17,36 +17,35 @@ class ObjectFieldView(FieldView):
 
 
 
-class InheritSettingButton(ActingButton):
+class ResetSettingButton(ActingButton):
+    """Reset uses the parameter's own signature, including lazy None defaults."""
     def __init__(self, field):
-        super().__init__("Override here")
+        super().__init__("Reset")
         self.field = field
 
     async def act(self):
-        if self.field.state.parameters[self.field.path.value] is None:
-            self.field.edit(self.field.value)
-        else:
-            self.field.state.reset_parameter(self.field.path.value)
+        self.field.reset()
+        self.query_ancestor(ObjectValueView).editor.feedback = ""
 
 
 class ObjectValueView(ValueView, ObjectFieldView, shows=(ParameterInfo,)):
     def __init__(self, field):
         super().__init__(field)
         self.source = Static("", markup=False)
-        self.inherit = InheritSettingButton(field)
+        self.reset = ResetSettingButton(field)
         self.listen(events.Mount, lambda event: self.mark(False))
 
     def compose(self):
         yield from super().compose()
         yield self.source
-        yield self.inherit
+        yield self.reset
 
     def mark(self, changed):
         local = self.field.allows_override
         explicit = local and self.field.state.parameters[self.field.path.value] is not None
         super().mark(explicit)
-        self.inherit.display = local
-        self.inherit.label = "Use global default" if explicit else "Override here"
+        if self.editor.is_mounted:
+            self.editor.paint_value()
         if explicit:
             self.source.update("Override for this object")
         else:

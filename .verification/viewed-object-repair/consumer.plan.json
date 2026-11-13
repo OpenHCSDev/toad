@@ -1,0 +1,64 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "exercise-the-original-view-menu-and-original-writers",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        assert not field_view.inherit.display",
+              "new_source": "        assert field_view.reset.label.plain == 'Reset' "
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        assert state.fields.ui.column_width == 83\n        state.field('ui.column_width').edit(91)",
+              "new_source": "        assert state.fields.ui.column_width == 83\n        width = next(part for part in menu.query(ObjectValueView)\n                     if part.field.path.value == 'ui.column_width')\n        await ui.until(lambda: width.editor.placeholder == '83', why='inherited width preview')\n        assert width.editor.value == '' and width.editor.previewing\n        width.editor.value = '83'\n        width.editor.finish()\n        assert state.parameters['ui.column_width'] == 83\n        assert not width.editor.previewing\n        state.field('ui.column_width').edit(91)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        state.reset_parameter('ui.column_width')\n        assert state.fields.ui.column_width == 85",
+              "new_source": "        await width.reset.act()\n        assert state.parameters['ui.column_width'] is None\n        assert state.fields.ui.column_width == 85\n        await ui.until(lambda: width.editor.placeholder == '85', why='reset restores lazy preview')\n        assert width.editor.value == '' and width.editor.previewing"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        workspace.thread('panel-owner')\n        await workspace.bind(native, 'panel-owner')",
+              "new_source": "        peer = workspace.thread('panel-owner')\n        from agent_comms.team.pi_rule_gate import PiRedeal\n        deal = PiRedeal.of(workspace.comms, peer)\n        deal.start()\n        await workspace.bind(native, 'panel-owner')"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/tests/textual/test_sidebar_projection.py",
+          "target_qualname": "test_view_menu_discovers_settings_and_keeps_each_objects_state",
+          "replacements": [
+            {
+              "old_source": "        relationships.widget._visible()\n        settings_entry",
+              "new_source": "        relationships.widget._visible()\n        from toad.widgets.session_thread_panels import SessionPanel\n        assert set(SessionPanel.members_with(SessionPanel)) == {\n            type(owner) for owner in native_bar._panel_owners}\n        from agent_comms.cli_verbs.configure_rule_gate import ThreadRuleGateCliCommand\n        from toad.configured_view import ActionProperties\n        await ui.until(lambda: any(isinstance(entry.widget, ActionProperties)\n                                  and entry.widget.definition.declaration is ThreadRuleGateCliCommand\n                                  for entry in native_menu.entries), why='original rule-gate configuration')\n        gate_entry = next(entry for entry in native_menu.entries\n                          if isinstance(entry.widget, ActionProperties)\n                          and entry.widget.definition.declaration is ThreadRuleGateCliCommand)\n        native_menu.picker.value = gate_entry\n        await ui.until(lambda: gate_entry.widget.is_mounted and bool(gate_entry.widget.form.values),\n                       why='original backend rule-gate form')\n        from agent_comms.team.rule_deal import RuleGateSettings\n        from dataclasses import fields\n        assert set(gate_entry.widget.form.values) == {field.name for field in fields(RuleGateSettings)}\n        from toad.widgets.comms_command_dialog import CommandPreparation\n        await ui.until(lambda: not CommandPreparation.running_on(gate_entry.widget), why='gate choices loaded')\n        gate_entry.widget.form.values['read_batch'].editor.value = '7'\n        await gate_entry.widget.confirm()\n        await ui.until(lambda: deal.current().read_batch == 7, why='original gate writer saves settings')\n        dm = await ui.open_direct('panel-owner', actor=workspace.viewer)\n        dm_view = app.workspace_sessions.require(dm)\n        dm_bar = await ui.revealed(dm_view.thread_sidebar)\n        dm_menu = dm_bar.query_one(PanelMenu)\n        dm_relationships = next(entry for entry in dm_menu.entries\n                                if isinstance(entry.widget, ThreadCommsSidebar))\n        dm_menu.picker.value = dm_relationships\n        await ui.until(lambda: dm_relationships.widget.is_mounted, why='DM original relationship panel')\n        assert dm_relationships.widget.thread_identity.thread_incarnation() == peer.incarnation\n        assert dm_view.thread_identity.thread_name() == workspace.viewer\n        await ui.select_tab(original)\n        settings_entry"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

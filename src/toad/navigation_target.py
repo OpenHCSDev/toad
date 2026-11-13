@@ -53,6 +53,10 @@ class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
                              sidebar.app.workspace_sessions.navigation_owner().navigation_context.actor,
                              sidebar.app.project_dir, mode_name, channel)
 
+    def configuration_contexts(self, view):
+        """A destination without a configurable subject supplies no command context."""
+        return ()
+
     def matches(self, target: NavigationTarget) -> bool:
         """Different opening behaviors may display the same sidebar address."""
         return self.name == target.name
@@ -92,7 +96,27 @@ class SessionTarget(NavigationTarget):
         return app.selected_mode
 
 
-class ThreadTarget(NavigationTarget):
+class ConfigurationTarget:
+    """Named thread and history destinations borrow Core's configuration membership."""
+
+    @abstractmethod
+    def configuration_subjects(self, view): ...
+
+    def configuration_contexts(self, view):
+        targets = self.configuration_subjects(view)
+        return tuple(TargetContext(view.app,
+                                   view.app.coordination_access.observing(view.coordination_root),
+                                   subject, view.navigation_context.actor,
+                                   view.navigation_context.project_path,
+                                   view.navigation_context.owner_mode)
+                     for subject in targets)
+
+
+class ThreadTarget(ConfigurationTarget, NavigationTarget):
+
+    def configuration_subjects(self, view):
+        return view.thread_identity.configuration_targets()
+
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path, target=self,
@@ -125,7 +149,11 @@ class HistoryRoute:
     @abstractmethod
     def for_name(cls, name: str) -> HistoryTarget: ...
 
-class HistoryTarget(HistoryRoute, NavigationTarget):
+class HistoryTarget(ConfigurationTarget, HistoryRoute, NavigationTarget):
+
+    def configuration_subjects(self, view):
+        return (view.conversation.retained_target(),)
+
     @classmethod
     def for_name(cls, name: str) -> HistoryTarget:
         return cls(name)
