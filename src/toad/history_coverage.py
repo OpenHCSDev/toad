@@ -55,6 +55,10 @@ class HistoryCoverage(DeclaredFamily, affix="Coverage"):
 
     summary: ClassVar[str] = "Saved history not loaded"
 
+    def is_available(self) -> bool:
+        """Whether this source has published saved history, without reading its cursor."""
+        return False
+
     def outgoing(self, history: CoveredHistory) -> frozenset[OutgoingMessageReference]:
         return frozenset()
 
@@ -87,6 +91,9 @@ class PageCoverage(HistoryCoverage):
     """A published source covers its loaded pages and the filter's overlay."""
 
     summary = "Saved history available"
+
+    def is_available(self) -> bool:
+        return True
 
     def outgoing(self, history: CoveredHistory) -> frozenset[OutgoingMessageReference]:
         return history.covered_outgoing()

@@ -584,7 +584,7 @@ class ObserveOperation(PhysicalOperation):
         # The pager's original publication state also supplies the footer's
         # saved-history availability. Agent status is an independent fact.
         history_published = bool(histories) and all(
-            history.state.coverage.retained_through(history) for history in histories)
+            history.state.coverage.is_available() for history in histories)
         frontend = FrontendIdentity(
             self.identity, Path(toad.__file__).resolve(), Path(agent_comms.__file__).resolve(),
             Path(textual.__file__).resolve(),
