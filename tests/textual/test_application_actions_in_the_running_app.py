@@ -188,12 +188,15 @@ async def test_command_form_opens_before_preparation_and_first_mouse_confirm_sub
             await ui.step()
             button = dialog.query_one(ApplyCommandButton)
             await ui.until(lambda: not button.disabled, why="the command values to be accepted")
-            assert button.region.area and button.visible_region == button.region
-            service = dialog.form.values['service_tier'].editor
-            service.scroll_visible(animate=False, immediate=True)
-            await ui.until_clickable(service, why="the lower service-level field to scroll into view")
+            await ui.until_clickable(button, why="the fixed create control to remain visible before scrolling")
+            lower = next(reversed(dialog.form.values.values())).editor
+            lower.scroll_visible(animate=False, immediate=True)
+            assert isinstance(lower, ChoicesEditor)
+            assert await ui.textual[1].click(lower, offset=(3, 1))
+            await ui.until(lambda: lower.expanded, why="the scrolled lower field to open its actual choices")
+            await ui.press('escape')
             assert dialog.query_one(CommandFormScroll).scroll_y > 0
-            assert button.visible_region == button.region
+            await ui.until_clickable(button, why="the fixed create control to remain visible after scrolling")
             editor = dialog.form.values["name"].editor
             editor.scroll_visible(animate=False, immediate=True)
             await ui.until_clickable(editor, why="the name editor to be visible")
