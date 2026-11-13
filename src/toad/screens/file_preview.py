@@ -36,5 +36,6 @@ class FilePreviewScreen(ConfiguredView, SessionView, can_focus=False, actions=(R
 
     def compose(self) -> ComposeResult:
         with SessionBody():
+            yield self.thread_sidebar
             with FileContents():
                 yield self.preview

@@ -7,26 +7,17 @@ from toad.object_configuration import ObjectConfiguration
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.forms.presentation import FormModal
 from toad.session_tracker import SidebarState
-from toad.settings_scope import ObjectSidebarHost, ViewSettingsScope
-from toad.sidebar_placement import ObjectSidebarPlacement
+from toad.settings_scope import ViewSettingsScope
 from toad.widgets.acting_button import DismissButton
 from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.side_bar import (
-    LazyThreadSidebar,
     SideBar,
     SidebarPanelWidget,
+    ThreadSidebar,
 )
 
 
-class ObjectSidebar(LazyThreadSidebar):
-    placement_type = ObjectSidebarPlacement
 
-    def __init__(self, configuration):
-        self.configuration = configuration
-        super().__init__(state=SidebarState())
-
-    def make_panels(self):
-        return (SideBar.Panel("Properties", ObjectProperties.whole(self.configuration), flex=True),)
 
 
 class ObjectProperties(ObjectFormView, SidebarPanelWidget):
@@ -55,16 +46,20 @@ class ConfiguredView(ViewSettingsScope):
         return ObjectConfiguration(identity, self.app.saved_settings.state,
                                    self.app.saved_settings.path().parent, self)
 
+    @property
+    def configuration_panel(self):
+        return SideBar.Panel("Properties", ObjectProperties.whole(self.configuration_state),
+                             flex=True, collapsed=True)
+
+    def make_thread_sidebar(self):
+        return ThreadSidebar(state=SidebarState())
+
     @cached_property
-    def configuration_sidebar(self):
-        return ObjectSidebar(self.configuration_state)
+    def thread_sidebar(self):
+        return self.make_thread_sidebar()
 
     def sidebars(self):
-        return (*super().sidebars(), self.configuration_sidebar)
-
-    @on(events.Mount)
-    async def mount_configuration(self):
-        await self.query_one(ObjectSidebarHost).mount(self.configuration_sidebar)
+        return (self.thread_sidebar,)
 
     @on(events.Unmount)
     def close_configuration(self):

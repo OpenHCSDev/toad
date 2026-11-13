@@ -2,7 +2,6 @@
 from abc import abstractmethod
 from objectstate import ObjectState
 from textual.dom import DOMNode
-from textual.widget import Widget
 
 
 class SettingsReader(DOMNode):
@@ -17,7 +16,7 @@ class SettingsReader(DOMNode):
 
     @property
     def settings(self):
-        return self.configuration_state.to_resolved_object()
+        return self.configuration_state.fields
 
 
 class SettingsScope(SettingsReader):
@@ -32,10 +31,13 @@ class SettingsScope(SettingsReader):
 class ViewSettingsScope(SettingsScope):
     """A file, thread or channel owns its display overrides."""
 
+    @property
+    @abstractmethod
+    def configuration_panel(self): ...
+
 
 class ConversationSettingsScope(ViewSettingsScope):
     """A thread or channel additionally owns conversation and composer settings."""
 
 
-class ObjectSidebarHost(Widget):
-    """The native body in which a viewed object's properties are placed."""
+

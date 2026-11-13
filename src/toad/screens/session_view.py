@@ -7,7 +7,7 @@ from textual.view import FILL, WidgetView
 from textual.color import Color
 from textual.layout import Layout
 from toad.configured_view import ConfiguredView
-from toad.settings_scope import ConversationSettingsScope, ObjectSidebarHost
+from toad.settings_scope import ConversationSettingsScope
 from ui_theme.scheme import BackgroundColour
 from textual.reactive import reactive
 from contextlib import contextmanager
@@ -175,7 +175,7 @@ class SessionView(
         return ()
 
 
-class SessionBody(WidgetView, ToadNode, ObjectSidebarHost, Center):
+class SessionBody(WidgetView, ToadNode, Center):
     """The shared sidebar/content layout reads its owner directly."""
 
     width = height = FILL
@@ -223,9 +223,4 @@ class SidebarSessionView[SidebarT: ThreadSidebar](ConfiguredView, ConversationSe
     @abstractmethod
     def make_thread_sidebar(self) -> SidebarT: ...
 
-    @cached_property
-    def thread_sidebar(self) -> SidebarT:
-        return self.make_thread_sidebar()
 
-    def sidebars(self) -> tuple[SideBar, ...]:
-        return (self.thread_sidebar, self.configuration_sidebar)

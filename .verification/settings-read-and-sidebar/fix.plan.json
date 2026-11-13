@@ -1,0 +1,119 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "read-leaves-and-reuse-view-sidebar",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/settings_scope.py",
+          "target_qualname": "SettingsReader.settings",
+          "replacements": [
+            {
+              "old_source": "return self.configuration_state.to_resolved_object()",
+              "new_source": "return self.configuration_state.fields"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/settings_scope.py",
+          "target_qualname": "ViewSettingsScope",
+          "replacements": [
+            {
+              "old_source": "    \"\"\"A file, thread or channel owns its display overrides.\"\"\"",
+              "new_source": "    \"\"\"A file, thread or channel owns its display overrides.\"\"\"\n\n    @property\n    @abstractmethod\n    def configuration_panel(self): ..."
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ObjectSidebar",
+          "replacements": [
+            {
+              "old_source": "class ObjectSidebar(LazyThreadSidebar):\n    placement_type = ObjectSidebarPlacement\n\n    def __init__(self, configuration):\n        self.configuration = configuration\n        super().__init__(state=SidebarState())\n\n    def make_panels(self):\n        return (SideBar.Panel(\"Properties\", ObjectProperties.whole(self.configuration), flex=True),)",
+              "new_source": ""
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "target_qualname": "ConfiguredView",
+          "replacements": [
+            {
+              "old_source": "    @cached_property\n    def configuration_sidebar(self):\n        return ObjectSidebar(self.configuration_state)\n\n    def sidebars(self):\n        return (*super().sidebars(), self.configuration_sidebar)\n\n    @on(events.Mount)\n    async def mount_configuration(self):\n        await self.query_one(ObjectSidebarHost).mount(self.configuration_sidebar)",
+              "new_source": "    @property\n    def configuration_panel(self):\n        return SideBar.Panel(\"Properties\", ObjectProperties.whole(self.configuration_state),\n                             flex=True, collapsed=True)\n\n    def make_thread_sidebar(self):\n        return ThreadSidebar(state=SidebarState())\n\n    @cached_property\n    def thread_sidebar(self):\n        return self.make_thread_sidebar()\n\n    def sidebars(self):\n        return (self.thread_sidebar,)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "SideBar._compose_panels",
+          "replacements": [
+            {
+              "old_source": "for panel in self.panels:",
+              "new_source": "for panel in self.panel_entries():"
+            }
+          ]
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "SideBar._compose_panels",
+          "source": "    def panel_entries(self):\n        return iter(self.panels)"
+        },
+        {
+          "operation": "insert_before_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "target_qualname": "ThreadSidebar.__init__",
+          "source": "    def panel_entries(self):\n        yield from super().panel_entries()\n        yield self.query_ancestor(ViewSettingsScope).configuration_panel"
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/session_view.py",
+          "target_qualname": "SidebarSessionView.sidebars",
+          "replacements": [
+            {
+              "old_source": "return (self.thread_sidebar, self.configuration_sidebar)",
+              "new_source": "return (self.thread_sidebar,)"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/session_view.py",
+          "target_qualname": "SessionBody",
+          "replacements": [
+            {
+              "old_source": "class SessionBody(WidgetView, ToadNode, ObjectSidebarHost, Center):",
+              "new_source": "class SessionBody(WidgetView, ToadNode, Center):"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/screens/file_preview.py",
+          "target_qualname": "FilePreviewScreen.compose",
+          "replacements": [
+            {
+              "old_source": "with SessionBody():\n            with FileContents():",
+              "new_source": "with SessionBody():\n            yield self.thread_sidebar\n            with FileContents():"
+            }
+          ]
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/widgets/side_bar.py",
+          "import_source": "from toad.settings_scope import ViewSettingsScope"
+        },
+        {
+          "operation": "ensure_import",
+          "file_path": "/home/ts/wt/codex-live--P181--toad/src/toad/configured_view.py",
+          "import_source": "from toad.widgets.side_bar import ThreadSidebar"
+        }
+      ]
+    }
+  ]
+}

@@ -11,7 +11,14 @@ from textual.geometry import Region, Size, Spacing
 from textual.widgets import Static
 
 from toad.preferences import SETTINGS, SavedSettings
-from toad.sidebar_placement import BandSplit, SidebarEdge, SidebarFold, SidebarGeometry, SidebarPlacement
+from toad.sidebar_placement import (
+    ActiveSidebarPlacement,
+    BandSplit,
+    SidebarEdge,
+    SidebarFold,
+    SidebarGeometry,
+    SidebarPlacement,
+)
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
 
 
@@ -146,7 +153,7 @@ class SidebarLayout:
     @property
     def placements(self) -> dict[type[SidebarPlacement], SidebarPlacement]:
         saved = {type(placement): placement for placement in self.terminal.placements}
-        return {role: saved.get(role, role.initial()) for role in SidebarPlacement.members_with(SidebarPlacement)}
+        return {role: saved.get(role, role.initial()) for role in ActiveSidebarPlacement.members_with(ActiveSidebarPlacement)}
 
     def split(self, side: type[SidebarEdge]) -> int:
         """The first bar's share of the band on this edge."""
