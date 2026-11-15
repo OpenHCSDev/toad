@@ -1,36 +1,26 @@
-"""A kind of Textual worker: its group name and exclusivity are declared once, on the kind."""
+"""Textual operation owner: the native Worker/DOMNode operations for each kind.
+
+Identity and exclusivity are inherited from Formbridge's OperationKind.
+This module adds only the Textual-specific start/cancel/wait methods.
+"""
 
 from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from typing import ClassVar
 
+from formbridge.operations import ExclusiveKind, OperationKind
 from textual import work
 from textual.dom import DOMNode
 from textual.worker import Worker, WorkType
 
 
-class WorkerGroup:
-    """Textual groups a node's workers by name; each kind names its group once.
-
-    The kind is the identity: Textual's group name is derived from the class,
-    so no member writes one. Members declare `exclusive` where a newer start
-    cancels a running one. Callers start, cancel and ask about work through
-    the kind, never by the group's name.
-    """
-
-    group: ClassVar[str]
-    exclusive: ClassVar[bool] = False
-
-    def __init_subclass__(cls) -> None:
-        super().__init_subclass__()
-        # Textual names groups with a string; the class's own path is that name.
-        cls.group = f"{cls.__module__}.{cls.__qualname__}"
+class WorkerGroup(OperationKind):
+    """Textual operation owner: group name and exclusivity from OperationKind,
+    native Worker start/cancel/wait/running on DOMNode."""
 
     @classmethod
     def work[F: Callable](cls, method: F) -> F:
-        """Decorate a node method so each call runs as this kind's worker."""
         return work(group=cls.group, exclusive=cls.exclusive)(method)
 
     @classmethod
@@ -39,7 +29,6 @@ class WorkerGroup:
 
     @classmethod
     def cancel_all(cls, node: DOMNode) -> list[Worker]:
-        """Every worker of this kind on the node, including ones a newer start superseded."""
         return node.workers.cancel_group(node, cls.group)
 
     @classmethod
@@ -49,7 +38,6 @@ class WorkerGroup:
 
     @classmethod
     async def wait_on(cls, node: DOMNode) -> None:
-        """Wait for the node's actual work; its original error still refuses the caller."""
         await asyncio.gather(*(worker.wait() for worker in cls.workers_on(node)))
 
     @classmethod
