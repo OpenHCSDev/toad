@@ -1,31 +1,47 @@
 """A form over an ObjectState, laid out the way formbridge reads its declarations."""
 
 from __future__ import annotations
-from abc import abstractmethod
 
+from abc import abstractmethod
 from collections.abc import Iterator
 
+from formbridge.forms.declared_fields import (
+    DeclaredField,
+    DeclaredViews,
+    FormPage,
+    form_pages,
+)
+from formbridge.forms.form_following import (
+    FollowedFieldView,
+    FollowedValueView,
+    FollowingForm,
+)
 from formbridge.forms.parameter_form_service import ParameterFormService
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
+from formbridge.forms.value_editing import ValueEditing
 from objectstate import ObjectState
+from rich.style import Style
 from textual import containers, events, lazy, on
 from textual.app import ComposeResult
 from textual.content import Content
+from textual.css._style_properties import Edges
+from textual.geometry import Spacing
+from textual.layouts.stream import StreamLayout
 from textual.view import (
     AUTO,
     FocusWithinView,
     WidgetView,
 )
 from textual.widgets import Static
-from textual.css._style_properties import Edges
-from textual.geometry import Spacing
-from textual.layouts.stream import StreamLayout
-from rich.style import Style
-from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
+from ui_theme.scheme import (
+    BackgroundColour,
+    ErrorColour,
+    ForegroundColour,
+    MutedColour,
+    PrimaryColour,
+    SecondaryColour,
+)
 
-from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, form_pages
-from formbridge.forms.form_following import FollowedFieldView, FollowedValueView, FollowingForm
-from formbridge.forms.value_editing import ValueEditing
 from toad.forms.editors import ValueEditor
 
 

@@ -11,10 +11,8 @@ from typing import ClassVar, Optional
 from agent_comms.nominal.field_codec import FieldCodec
 from formbridge.forms.declared_fields import (
     DeclaredField,
-    DeclaredViews,
     Multiline,
 )
-from formbridge.forms.ui_utils import format_enum_display
 from formbridge.forms.value_editing import (
     ChoicesEditing,
     ControlConstruction,
@@ -23,14 +21,11 @@ from formbridge.forms.value_editing import (
     MultilineEditing,
     OptionalEditing,
     SelectEditing,
-    ValueEditing,
 )
 from python_introspect import (
     AnnotationChoices,
-    declared_annotation_choices,
     resolve_annotated,
 )
-from python_introspect.validation import validate_annotation_value
 from textual import containers, events
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar
@@ -42,6 +37,7 @@ from textual.view import WidgetView
 from textual.widget import Widget
 from textual.widgets import Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
+from ui_theme.scheme import MutedColour
 
 from toad.forms.presentation import (
     FormCheckbox,
@@ -50,7 +46,7 @@ from toad.forms.presentation import (
     FramedControl,
 )
 from toad.tone_paint import UntintedTonePaint
-from ui_theme.scheme import MutedColour
+
 
 class ValueEditor(ControlConstruction, Widget):
     """A control that shows one field's value and sends the user's edits to the state.
