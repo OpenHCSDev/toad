@@ -28,7 +28,7 @@ dependencies = [
     "typing-extensions>=4.15.0",
     "format-currency>=0.0.10",
     "agent-comms",
-    "metaclass-registry",
+    "metaclass-registry @ git+https://github.com/OpenHCSDev/metaclass-registry@main",
     "agent-client-protocol==0.12.1",
     "ui-theme",
     "formbridge",
@@ -42,7 +42,6 @@ members = ["toad"]
 [tool.uv.sources]
 ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", branch = "main" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", branch = "main" }
-metaclass-registry = { git = "https://github.com/OpenHCSDev/metaclass-registry", branch = "main" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", branch = "main" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", branch = "main" }
 textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", branch = "main" }
@@ -62,6 +61,11 @@ preferences = "toad.preferences"
 [build-system]
 requires = ["hatchling==1.28.0"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+# Permit direct git refs in project.dependencies (as agent-comms does), so the
+# OpenHCSDev forks are declared the one inline way the rest of the fleet uses.
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/toad"]

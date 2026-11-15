@@ -17,10 +17,11 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?branch=main#5228ef24c4ec870b506acb4a2fcae52fec949aa7" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?branch=main#5fb2e16b40c48dbf288af439fe0d7a86ea113619" }
 dependencies = [
     { name = "agent-client-protocol" },
     { name = "aiohttp" },
+    { name = "immutables" },
     { name = "metaclass-registry" },
     { name = "nominal-refactor-advisor" },
     { name = "packaging" },
@@ -282,10 +283,10 @@ requires-dist = [
     { name = "formbridge", git = "https://github.com/OpenHCSDev/formbridge.git?branch=main" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "jeepney", marker = "sys_platform == 'linux'", specifier = "==0.9.0" },
-    { name = "metaclass-registry", git = "https://github.com/OpenHCSDev/metaclass-registry?branch=main" },
+    { name = "metaclass-registry", git = "https://github.com/OpenHCSDev/metaclass-registry?rev=main" },
     { name = "msgpack", specifier = "==1.2.2" },
     { name = "notify-py", specifier = "==0.3.43" },
-    { name = "objectstate", git = "https://github.com/OpenHCSDev/objectstate.git?rev=226fcd8918e16f6d1b594cac0bdcf8057aab832a" },
+    { name = "objectstate", git = "https://github.com/OpenHCSDev/objectstate.git?rev=d34d75803d3b7e65128bf43ab867bb70f37cd013" },
     { name = "packaging", specifier = "==26.2" },
     { name = "pathspec", specifier = "==1.1.1" },
     { name = "platformdirs", specifier = "==4.9.6" },
@@ -422,7 +423,7 @@ wheels = [
 [[package]]
 name = "formbridge"
 version = "0.2.0"
-source = { git = "https://github.com/OpenHCSDev/formbridge.git?branch=main#0547625fd956077b3130fb1bad9e942f38783149" }
+source = { git = "https://github.com/OpenHCSDev/formbridge.git?branch=main#c1f3cb069f79f7be2f7618cd7e191c066f546db6" }
 dependencies = [
     { name = "annotated-types" },
     { name = "docutils" },
@@ -547,6 +548,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/f5/08/8eea9d4b8302028f3
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl", hash = "sha256:ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c", size = 69583, upload-time = "2026-09-17T14:11:03.168Z" },
 ]
+
+[[package]]
+name = "immutables"
+version = "0.21"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/41/0ccaa6ef9943c0609ec5aa663a3b3e681c1712c1007147b84590cec706a0/immutables-0.21.tar.gz", hash = "sha256:b55ffaf0449790242feb4c56ab799ea7af92801a0a43f9e2f4f8af2ab24dfc4a", size = 89008, upload-time = "2024-10-10T00:55:01.434Z" }
 
 [[package]]
 name = "iniconfig"
@@ -710,7 +717,7 @@ wheels = [
 [[package]]
 name = "metaclass-registry"
 version = "0.4.1"
-source = { git = "https://github.com/OpenHCSDev/metaclass-registry?rev=main#60138d533ef0758c5f093d9110ba9f5656f0934a" }
+source = { git = "https://github.com/OpenHCSDev/metaclass-registry?rev=main#1ad09c889f4c62f3ef97e0eff3e45cdde31e9dde" }
 
 [[package]]
 name = "msgpack"
@@ -835,7 +842,7 @@ wheels = [
 [[package]]
 name = "nominal-refactor-advisor"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor?rev=main#66f7dff445f0c73a11e7615c750210d2676a5f8b" }
+source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor?rev=main#1832c42657afa3a091c0c3835548149f06d56557" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "tree-sitter" },
@@ -888,7 +895,7 @@ wheels = [
 [[package]]
 name = "objectstate"
 version = "5.0.0"
-source = { git = "https://github.com/OpenHCSDev/objectstate.git?rev=226fcd8918e16f6d1b594cac0bdcf8057aab832a#226fcd8918e16f6d1b594cac0bdcf8057aab832a" }
+source = { git = "https://github.com/OpenHCSDev/objectstate.git?rev=d34d75803d3b7e65128bf43ab867bb70f37cd013#d34d75803d3b7e65128bf43ab867bb70f37cd013" }
 dependencies = [
     { name = "dill" },
     { name = "pycodify" },
@@ -1225,7 +1232,7 @@ wheels = [
 [[package]]
 name = "python-introspect"
 version = "0.3.0"
-source = { git = "https://github.com/OpenHCSDev/python-introspect?rev=main#f2876b9ee089c65789607284949e11a9f58283fe" }
+source = { git = "https://github.com/OpenHCSDev/python-introspect?rev=main#adc02dc63daa087de25847aa5a555d8d83369ffc" }
 dependencies = [
     { name = "annotated-types" },
     { name = "metaclass-registry" },
@@ -1339,7 +1346,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?branch=main#e54d6c4c6baef8568cde613e71c14c11507b9f0a" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?branch=main#6af9a9c52129b46f9e836eac7555735217c71f76" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
@@ -1740,7 +1747,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#458ba2588e1f002398374316b3d34033fc59f3b0" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#160d497a23b32c7e66197d6e7103435621bb0202" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },
