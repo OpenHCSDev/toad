@@ -296,6 +296,3 @@ class OptionalEditor(OptionalEditing, ValueEditor, WidgetView, containers.Vertic
         self.paint_held(held)
         self._member.display = held
         self._member.paint()
-            self.holds_value.value = held
-        self.member.display = held
-        self.member.paint()
