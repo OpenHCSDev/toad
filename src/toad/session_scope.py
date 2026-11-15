@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Awaitable
 from pathlib import Path
 from typing import ClassVar, Never
@@ -11,9 +11,9 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.errors import RelationViolationError
 
 from toad.app_node import ToadNode
+from toad.client.session_scope import SessionScope as SharedSessionScope
 from toad.navigation_context import NavigationOwner, NavigationScope, NoNavigationOwner
 from toad.transcript_scope import NoTranscript, TranscriptScope
-from textual.abstract_hooks import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.widget_actions import DeclaredWidgetActions
 from textual.command import Provider
@@ -24,7 +24,7 @@ from toad.navigation_target import NavigationTarget
 from toad.launch_binding import AgentBinding, AgentOrigin, NoAgent
 from toad.thread_identity import SessionIdentity, ThreadIdentityScope
 
-class SessionOrigin(metaclass=AbstractHooksMeta):
+class SessionOrigin(ABC):
     """An origin answers for itself, including when its view is unavailable."""
 
     @abstractmethod
@@ -51,7 +51,7 @@ class NoSessionOrigin(SessionOrigin):
         self.require()
 
 
-class SessionScope(ThreadIdentityScope, ProjectPathOwner, NavigationScope, ToadNode):
+class SessionScope(SharedSessionScope, ThreadIdentityScope, ProjectPathOwner, NavigationScope, ToadNode):
     """The session answers read by ancestors and workspace owners.
 
     A compositing layer: the compositor retains this subtree's geometry while
