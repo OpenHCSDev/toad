@@ -1,14 +1,17 @@
 """Callbacks implemented by native views that subscribe to Core observations."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Mapping
 
 from agent_comms.messaging.message_notification import MessageNotification
-from textual.abstract_hooks import AbstractHooksMeta
 
 
-class SidebarSubscriber[Source, Failure](metaclass=AbstractHooksMeta):
-    """A sidebar view accepts a source, its opening failure and later row changes."""
+class SidebarSubscriber[Source, Failure](ABC):
+    """A sidebar view accepts a source, its opening failure and later row changes.
+
+    Native widgets retain AbstractHooksMeta through their own widget bases;
+    this shared contract does not import it.
+    """
 
     @abstractmethod
     def bind_observation(self, observed: Source) -> None: ...
@@ -20,7 +23,7 @@ class SidebarSubscriber[Source, Failure](metaclass=AbstractHooksMeta):
     def present(self, **changes: object) -> None: ...
 
 
-class NotificationSubscriber(metaclass=AbstractHooksMeta):
+class NotificationSubscriber(ABC):
     """A message view receives notification outcomes for its current read scope."""
 
     @abstractmethod
