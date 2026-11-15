@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Iterable, Sequence
 
 from agent_comms.ui_model.sidebar import SidebarModel, ThreadRowModel
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
-from textual.content import Content
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from toad.tab_identity import SessionTabIdentity, TabIdentity
@@ -36,8 +35,8 @@ class OpenTab(ABC):
     def unread(self) -> UnreadPresentation:
         return ExactUnread()
 
-    def label(self) -> Content:
-        return Content(self.title)
+    def label(self) -> str:
+        return self.title
 
     def affected_by(self, names: frozenset[str]) -> bool:
         """Local names do not change when backend thread state changes."""
@@ -74,8 +73,8 @@ class ThreadTab(OpenTab):
     def title(self) -> str:
         return self.row.title
 
-    def label(self) -> Content:
-        return Content(self.row.label)
+    def label(self) -> str:
+        return self.row.label
 
     @property
     def unread(self) -> UnreadPresentation:
