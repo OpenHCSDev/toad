@@ -7,25 +7,31 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from textual.content import Content
-from textual.widget import Widget
-
-from toad import messages
 
 from toad.acp.agent_session import SessionDisposition
 
 
 class InputDecision(DeclaredFamily, ABC):
+    """Whether the user's input is accepted or refused, and why.
+
+    Native presentation (Content rendering, bell/flash feedback) stays
+    on native members. The shared contract owns allows, chaining and
+    the refusal message text.
+    """
+
     allows: ClassVar[bool]
 
     @abstractmethod
     def then(self, next: Callable[[], InputDecision]) -> InputDecision: ...
 
     @abstractmethod
-    def agent_info_text(self, agent_info: Content) -> Content: ...
+    def explanation(self) -> str:
+        """Plain text explaining this decision for the agent info line."""
 
     @abstractmethod
-    def announce(self, editor: Widget) -> None: ...
+    def announce_to(self, editor: object) -> None:
+        """Notify the native editor of this decision. The editor type
+        is the native widget; the shared contract does not import it."""
 
 
 class InputAccepted(InputDecision):
@@ -34,11 +40,11 @@ class InputAccepted(InputDecision):
     def then(self, next: Callable[[], InputDecision]) -> InputDecision:
         return next()
 
-    def agent_info_text(self, agent_info: Content) -> Content:
-        return agent_info
+    def explanation(self) -> str:
+        return ""
 
-    def announce(self, editor: Widget) -> None:
-        """Accepted input needs no refusal feedback."""
+    def announce_to(self, editor: object) -> None:
+        pass
 
 
 class InputRefused(InputDecision):
@@ -51,12 +57,11 @@ class InputRefused(InputDecision):
     def then(self, next: Callable[[], InputDecision]) -> InputDecision:
         return self
 
-    def agent_info_text(self, agent_info: Content) -> Content:
-        return Content(self.message)
+    def explanation(self) -> str:
+        return self.message
 
-    def announce(self, editor: Widget) -> None:
-        editor.app.bell()
-        editor.post_message(messages.Flash(self.message, "error"))
+    def announce_to(self, editor: object) -> None:
+        pass
 
 
 @dataclass(frozen=True)
