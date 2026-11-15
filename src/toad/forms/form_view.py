@@ -133,6 +133,8 @@ class ValueView(FollowedValueView, FieldView, shows=(ParameterInfo,)):
 
     CHANGED_MARK = " ●"
 
+    editor: ValueEditor
+
     def __init__(self, field: DeclaredField) -> None:
         super().__init__(field)
         self.editor = ValueEditor.declared_for(field)
@@ -217,6 +219,7 @@ class FormView(FollowingForm, WidgetView, containers.VerticalScroll, can_focus=F
     """
 
     field_family = FieldView
+    parts: list[FieldView]
     DEFAULT_LAYOUT = StreamLayout
     height = None
     overflow_y = "scroll"
