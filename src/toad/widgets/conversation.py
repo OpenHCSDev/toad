@@ -145,7 +145,7 @@ from toad.session_scope import SessionScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.submission_queue import QueueSource
-from toad.client.commands import CommandContextChanged, ConversationCommands
+from toad.client.commands import AgentConversationCommands, CommandContextChanged
 from toad.screens.team import TeamPage
 from toad.target_commands import TargetContext
 from toad.transcript_publication import (
@@ -1018,7 +1018,7 @@ class Conversation(ColumnLayout,
     ConversationSessionBinding,
     ToadNode,
     MenuConversation,
-    ConversationCommands,
+    AgentConversationCommands,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -1730,12 +1730,6 @@ class Conversation(ColumnLayout,
     def flash_error(self, text: str) -> None:
         self.feedback.flash(Content(text), style=ErrorFlash.declared_name)
 
-    def copy_to_clipboard(self, text: str) -> None:
-        self.app.copy_to_clipboard(text)
-
-    def open_url(self, url: str) -> None:
-        self.app.open_url(url)
-
     def open_team(self, teammate: str) -> None:
         self.app.push_screen(TeamPage(teammate))
 
@@ -1812,7 +1806,7 @@ class Conversation(ColumnLayout,
         agent = self.agent_binding
         context = self.command_target_context()
         catalog = await CommandCatalog.read(
-            self.app, agent.presentation.commands, context
+            self.app, agent.presentation.commands, context, self.local_commands
         )
         if (
             not self.is_attached

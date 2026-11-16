@@ -25,12 +25,14 @@ from PySide6.QtWidgets import QApplication, QWidget
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
+from objectstate import DottedFieldPath
 from toad.client.application_actions import ApplicationAction, QuitAction
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.main import current_scheme, open_app
 from toad.client.history import ChannelDestination, WirePageBuffer
+from toad.qt.command_form import QtCommandForm
 from toad.qt.window import ConversationRow, MessageSend, QtToadApp
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -74,6 +76,29 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
             item.setExpanded(item.key in keys or item.isExpanded())
         self.app.sidebar.present()
         await asyncio.sleep(0.3)
+
+    async def type(self, text: str) -> None:
+        """Type into the current conversation's composer as a person would."""
+        composer = self.page.composer
+        composer.editor.clear()
+        composer.editor.setFocus()
+        composer.editor.insertPlainText(text)
+        await asyncio.sleep(0.2)
+
+    async def open(self, row, label: str) -> None:
+        """Open a sidebar row and wait for its conversation to draw."""
+        before = self.page
+        self.app.open_row(row)
+        await until(lambda: self.page is not before and self.page is not self.app.workspace_sessions.home
+                    and self.page.messages.model_rows.rowCount(), label)
+        await asyncio.sleep(1.5)
+
+    def channel_row(self, name: str) -> ConversationRow:
+        return next(row for row in self.app.sidebar.items()
+                    if isinstance(row, ConversationRow) and row.target.name == name)
+
+    def offered(self, count: int) -> list[str]:
+        return [offer.layout.name.text for offer in self.page.composer.offers.offers[:count]]
 
     async def listed(self) -> None:
         """The bus has answered: the welcome lists at least one row."""
@@ -236,41 +261,25 @@ class ComposerScenario(Scenario):
                "#composer-drive-missing, which Core does not know, so it fails before it leaves: "
                "the drive puts nothing on the bus and writes to no teammate")
 
-    async def type(self, text: str) -> None:
-        composer = self.page.composer
-        composer.editor.clear()
-        composer.editor.setFocus()
-        composer.editor.insertPlainText(text)
-        await asyncio.sleep(0.2)
-
-    async def open(self, row, label: str) -> None:
-        before = self.page
-        self.app.open_row(row)
-        await until(lambda: self.page is not before and self.page is not self.app.workspace_sessions.home
-                    and self.page.messages.model_rows.rowCount(), label)
-        await asyncio.sleep(1.5)
-
     async def run(self) -> None:
         await self.listed()
         app = self.app
         await self.expand("Threads")
-        tops = list(app.sidebar.items())
-        everyone = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#any")
-        await self.open(everyone, "#any")
+        await self.open(self.channel_row("#any"), "#any")
         composer = self.page.composer
         self.report("1-any", placeholder=composer.editor.placeholderText(),
                     activity=[line.text() for line in self.page.activity])
         await self.type("@")
         await until(lambda: composer.offers.offers, "mention offers", tenths=100)
-        self.report("2-mentions", offers=[offer.label for offer in composer.offers.offers])
+        self.report("2-mentions", offers=self.offered(len(composer.offers.offers)))
         composer.offers.accept_current()
         self.report("3-mention-accepted", text=composer.text)
         await self.type("/")
         await until(lambda: composer.offers.offers, "command offers", tenths=300)
         self.report("4-commands", count=len(composer.offers.offers),
-                    offers=[offer.label for offer in composer.offers.offers[:8]])
+                    offers=self.offered(8))
         await self.type("/te")
-        self.report("5-commands-te", offers=[offer.label for offer in composer.offers.offers[:5]])
+        self.report("5-commands-te", offers=self.offered(5))
         await self.type("")
         view = self.page
         missing = ChannelConversation(ChannelTarget("#composer-drive-missing"))
@@ -281,6 +290,61 @@ class ComposerScenario(Scenario):
         await asyncio.sleep(0.5)
         self.report("6-failed", failure=composer.failure.text(), draft=composer.text,
                     notice=app.status_line.text() if app.status_line.isVisible() else "")
+
+
+class CommandScenario(Scenario):
+    summary = ("run /copy in #any through the shared command catalog, then a refused /copy, "
+               "then open #comms' /rename-tag form, fill it and cancel it: nothing is applied, "
+               "sent or marked read on the bus, and no teammate's DM is opened")
+
+    form_name: ClassVar[str] = "qt-drive-never-applied"
+
+    def forms(self) -> list[QtCommandForm]:
+        return [form for form in self.app.findChildren(QtCommandForm) if form.isVisible()]
+
+    async def send(self, text: str) -> None:
+        await self.type(text)
+        self.page.composer.send()
+        await asyncio.sleep(0.5)
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        await self.expand("Threads")
+        await self.open(self.channel_row("#any"), "#any")
+        composer = self.page.composer
+        await self.type("/")
+        await until(lambda: composer.offers.offers, "command offers", tenths=300)
+        self.report("1-offers", offers=self.offered(20))
+        QApplication.clipboard().clear()
+        await self.send("/copy")
+        await until(lambda: QApplication.clipboard().text() == "#any", "copied", tenths=100)
+        self.report("2-copied", clipboard=QApplication.clipboard().text(), draft=composer.text,
+                    sending=composer.submitting.text())
+        await self.send("/copy now")
+        await until(lambda: app.status_line.isVisible() and "current target" in app.status_line.text(),
+                    "refused", tenths=100)
+        self.report("3-refused", notice=app.status_line.text(), shown=app.status_line.isVisible())
+        await self.open(self.channel_row("#comms"), "#comms")
+        await self.send("/rename-tag")
+        await until(self.forms, "form", tenths=150)
+        form = self.forms()[0]
+        await until(lambda: not form.preparing(), "choices", tenths=150)
+        rows = [(row.label.text(), type(row.editor).__name__) for row in form.form.values.values()]
+        self.report("4-form", title=form.windowTitle(), rows=rows, confirmation=form.confirmation_text.text(),
+                    width=form.minimumSizeHint().width())
+        form.grab().save(str(self.out / f"{type(self).declared_name}-4-form.png"))
+        editor = form.form.editor(DottedFieldPath("new_name"))
+        editor.setText(self.form_name)
+        form.form.finish()
+        await asyncio.sleep(1.0)
+        self.report("5-filled", value=form.arguments(), confirmation=form.confirmation_text.text(),
+                    confirmable=form.confirmed.isVisible(), notice=app.status_line.text())
+        form.grab().save(str(self.out / f"{type(self).declared_name}-5-filled.png"))
+        form.reject()
+        answer = await form.answer
+        await asyncio.sleep(0.5)
+        self.report("6-cancelled", answer=answer, open_forms=len(self.forms()))
 
 
 class PhoneScenario(Scenario):
