@@ -32,13 +32,17 @@ from textual.app import ComposeResult
 
 from toad.client.submission import SubmissionOwner
 from toad.client.connection import CoordinationAccess
-from toad.client.conversation import ResolvedConversation, SharedConversationKind
+from toad.client.conversation import (
+    ChannelViewAddress,
+    CommsViewKey,
+    ResolvedConversation,
+    SharedConversationKind,
+)
 from toad.client.conversation_capabilities import (
     ConversationActivity,
     ConversationNavigation,
 )
 from toad.client.referenced_core import ReferencedCore
-from toad.client.session_tracker import ChannelViewAddress, CommsViewKey
 from toad.client.sidebar_models import UnpaintedChannel
 from toad.status_thread import StatusThread
 from toad.widgets.channel_prompt import ChannelPrompt

@@ -15,8 +15,8 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import ConversationPreparation, Thread
 from agent_comms.projects.checkouts import Checkout
 
+from toad.client.conversation import CommsViewKey
 from toad.owner_preparation import ExistingOwnerPlan
-from toad.client.session_tracker import CommsViewKey
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.connection import Observing
 

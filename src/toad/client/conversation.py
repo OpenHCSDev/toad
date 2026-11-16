@@ -24,7 +24,6 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from toad.client.submission import MessageDestination
 from toad.client.conversation_capabilities import ConversationActivity, ConversationSource
 from toad.client.referenced_core import ReferencedCore
-from toad.client.session_tracker import CommsViewKey
 from toad.status_thread import NoStatusThread, StatusThread
 
 
@@ -110,6 +109,20 @@ class SharedConversationKind(MessageDestination, DeclaredFamily, affix="Conversa
         page = seen[0].evidence
         marked = tuple(fragment for fragment in seen if fragment.evidence is page)
         return page.select(fragment.message.seq for fragment in marked), marked
+
+
+@dataclass(frozen=True)
+class CommsViewKey:
+    """A conversation on one bus: its tab is the owner's view of it, whichever tab opened it."""
+
+    root: str
+    conversation: SharedConversationKind
+
+
+@dataclass(frozen=True)
+class ChannelViewAddress:
+    root: str
+    conversation: SharedConversationKind
 
 
 @dataclass(frozen=True)

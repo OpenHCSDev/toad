@@ -22,6 +22,7 @@ from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.agent_log import AgentLog
 from toad.client.connection import Observing
+from toad.client.conversation import CommsViewKey
 from toad.core.projection import MroProjection
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.screens.comms import CommsScreen
@@ -31,7 +32,6 @@ from toad.session_host import SessionNavigator
 from toad.client.session_projection import SessionProjection
 from toad.session_scope import SessionScope
 from toad.client.session_tracker import (
-    CommsViewKey,
     ConversationTab,
     NamedTab,
     OpenTab,

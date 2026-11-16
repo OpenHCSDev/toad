@@ -27,6 +27,7 @@ from agent_comms.ui_model.sidebar import ThreadRowModel
 
 from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import AgentNotFound, read_agents
+from toad.client.conversation import CommsViewKey
 from toad.core import events as core_events
 from toad.core.events import CoreEventStream
 from toad.client.db import SessionMeta
@@ -47,7 +48,7 @@ from toad.session_entry import (
 )
 from toad.session_host import NavigationHost, SessionNavigator
 from toad.session_scope import SessionScope
-from toad.client.session_tracker import CommsViewKey, OpenTab, SessionDetails
+from toad.client.session_tracker import OpenTab, SessionDetails
 from toad.client.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.client.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
 from toad.target_commands import TargetContext

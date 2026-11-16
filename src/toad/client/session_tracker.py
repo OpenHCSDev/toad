@@ -84,20 +84,6 @@ class ThreadTab(OpenTab):
 
 
 @dataclass(frozen=True)
-class CommsViewKey:
-    """A conversation on one bus: its tab is the owner's view of it, whichever tab opened it."""
-
-    root: str
-    conversation: SharedConversationKind
-
-
-@dataclass(frozen=True)
-class ChannelViewAddress:
-    root: str
-    conversation: SharedConversationKind
-
-
-@dataclass(frozen=True)
 class SidebarSelection:
     channel: str
     target: str
