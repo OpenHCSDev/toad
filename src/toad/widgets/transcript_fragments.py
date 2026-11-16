@@ -47,7 +47,7 @@ from toad.client.line_blocks import (
     UserRole,
 )
 from toad.markdown_preparation import PreparedMarkdownPart
-from toad.menus import MenuCommand
+from toad.menus import MenuCommand, message_menu
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.client.notification_status import (
     MessageQueueEntry,
@@ -698,7 +698,7 @@ class BusMessageFragment(TranscriptFragment):
 
     @property
     def block_menu(self):
-        return self.row.menu
+        return message_menu(self.row)
 
     @property
     def clipboard_text(self):

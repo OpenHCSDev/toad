@@ -44,7 +44,6 @@ from toad.client.line_blocks import (
     Span,
     Spans,
 )
-from toad.menus import MenuCommand, OpenDestinationCommand, OpenSenderCommand
 
 
 class MessageClock:
@@ -136,12 +135,6 @@ class MessageRow(MroProjection[LineLink]):
     def sender(self) -> LineLink:
         """What opens the thread that sent the message."""
         return self.name(self.route.sender).link
-
-    @property
-    def menu(self) -> tuple[MenuCommand, ...]:
-        """What the cursor's menu offers on this message, wherever it is drawn."""
-        return (OpenSenderCommand(self.sender),
-                *(OpenDestinationCommand(self.name(target).link) for target in self.route.targets[:1]))
 
     @property
     def route_text(self) -> str:

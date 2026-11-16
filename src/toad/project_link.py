@@ -15,7 +15,6 @@ from agent_comms.nominal.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token
-from textual.geometry import Region
 from toad.client.line_blocks import NO_LINK, LineLink
 from toad.file_position import FilePosition
 
@@ -178,13 +177,7 @@ class ProjectFileLink(ProjectLink):
         widget.app.run_worker(partial(widget.app.session_navigation.preview, path, position=self.position))
 
     def copy_file(self, widget, event, path: Path) -> None:
-        from toad.widgets.comms_menu import ActionMenu
-
-        full_path = str(path)
-        event.prevent_default()
-        copy_path = partial(widget.app.copy_to_clipboard, full_path)
-        ActionMenu.show(widget.screen, Region.from_offset(event.screen_offset, (0, 0)), full_path,
-                        [(copy_path, "Copy full path")])
+        widget.offer_path(event, path)
 
 
 @dataclass(frozen=True)
