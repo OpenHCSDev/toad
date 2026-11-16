@@ -6,13 +6,11 @@ entry or a new session opens the first tab, which replaces it.
 """
 
 from __future__ import annotations
-from abc import abstractmethod
 
 
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.messaging.channel_targets import NoChannel
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
 from toad.widget_actions import NativeMethodKeys, TogglesIrc, WidgetAction
@@ -20,7 +18,7 @@ from textual.containers import VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.widgets import Static
 
-from toad.constants import ALL_COMMS_TARGET
+from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner, WelcomeListing
 from toad.core.events import SessionSelected
 from toad.format_path import format_path
 from toad.navigation_context import NavigationContext, NavigationOwner
@@ -58,20 +56,9 @@ from toad.sidebar_changes import SidebarChange
 from toad.widgets.sidebar_tree import CommsRow, ListedRow
 
 
-class WelcomeTitle(SplashText, MutedText, NoWrap):
+class WelcomeTitle(WelcomeBanner, SplashText, MutedText, NoWrap):
     """The app's name, swept into the theme's colours each time the view shows."""
 
-
-    TEXT = "\n".join(
-        (
-            " ██████╗ ██████╗ ███╗   ███╗███╗   ███╗███████╗",
-            "██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔════╝",
-            "██║     ██║   ██║██╔████╔██║██╔████╔██║███████╗",
-            "██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║╚════██║",
-            "╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████║",
-            " ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝",
-        )
-    )
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -108,25 +95,17 @@ class WelcomeSectionTitle(WelcomeHeading, GroupTitle):
     """A sidebar-group section's title line on the splash: the look, plus its group."""
 
 
-class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
+class WelcomeSection(WelcomeListing, SpacedAbove, SidebarGroup[ListedRow]):
     """Some of the sidebar model's rows under a title."""
-
-    TITLE = ""
-    LIMIT = 8
 
     def __init__(self) -> None:
         super().__init__(WelcomeSectionTitle(Content(self.TITLE)), expanded=True)
         # Shown once the model lists something for it.
         self.display = False
 
-    @abstractmethod
-    def keys(self, model: SidebarModel) -> tuple[str, ...]:
-        ...
-
     @property
     def member_keys(self):
-        model = self.query_ancestor(WelcomeEntries).model_state.shown
-        return self.keys(model)[: self.LIMIT]
+        return self.listed(self.query_ancestor(WelcomeEntries).model_state.shown)
 
     def sync_members(self, changed: frozenset[str]) -> None:
         if not self.member_container.is_attached:
@@ -135,14 +114,7 @@ class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
         self.reconcile_rows(changed=changed)
 
 
-class WelcomeChannels(WelcomeSection):
-    """The channels, in the order chosen for the sidebar."""
-
-    TITLE = "Channels"
-
-    def keys(self, model):
-        return tuple(model.channels.rows)
-
+class WelcomeChannels(ChannelListing, WelcomeSection):
     def new_row(self, key):
         return ChannelRow(channel_target(key), key)
 
@@ -156,19 +128,7 @@ class WelcomeChannels(WelcomeSection):
         row.refresh_paint()
 
 
-class WelcomeThreads(WelcomeSection):
-    """The threads of the all-comms channel, in the order chosen for it."""
-
-    TITLE = "Threads"
-
-    def keys(self, model):
-        listed = model.channels.rows.get(ALL_COMMS_TARGET)
-        return tuple(
-            name
-            for name in (listed.members if listed is not None else ())
-            if name in model.threads.rows
-        )
-
+class WelcomeThreads(ThreadListing, WelcomeSection):
     def new_row(self, key):
         return ThreadStatusRow(ThreadTarget(key), key)
 
