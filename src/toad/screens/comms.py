@@ -17,7 +17,7 @@ from textual.worker import WorkerCancelled
 
 from toad.app_node import ToadNode
 from toad.constants import WELCOME
-from toad.conversation_capabilities import ConversationNavigation
+from toad.client.conversation_capabilities import ConversationNavigation
 from toad.conversation_kind import ConversationKind
 from toad.core import session_requests
 from toad.core.input_events import SelectHistoricalIdentity

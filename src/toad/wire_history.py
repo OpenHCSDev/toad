@@ -56,7 +56,7 @@ from toad.client.submission import (
     SubmittedText,
 )
 from toad.client.connection import CoordinationAccess, Observation
-from toad.conversation_capabilities import ConversationSource
+from toad.client.conversation_capabilities import ConversationSource
 from toad.conversation_kind import ConversationKind
 from toad.core.projection import MroProjection
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary

@@ -5,7 +5,7 @@ from collections.abc import Iterator
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
-from toad.referenced_core import ReferencedCore
+from toad.client.referenced_core import ReferencedCore
 
 
 class ConversationSource(ReferencedCore):

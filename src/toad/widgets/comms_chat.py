@@ -26,7 +26,7 @@ from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage
 from toad.message_rows import IrcMessageStyle
-from toad.referenced_core import ReferencedCore
+from toad.client.referenced_core import ReferencedCore
 from toad.session_scope import SessionScope
 from toad.status_thread import StatusThread
 from toad.submission_queue import NoQueueSource, QueueSource
