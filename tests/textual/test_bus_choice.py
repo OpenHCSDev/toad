@@ -1,17 +1,12 @@
 """Textual-facing: picking a bus switches the running app onto it, in place."""
 
-import asyncio
-import json
-import sys
-import threading
 import time
-from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
 from agent_comms.execution.launch_runtime import LaunchRuntime
-from agent_comms.nominal.field_codec import FieldCodec, RootId
+from agent_comms.nominal.field_codec import RootId
 from agent_comms.transport.connector_profile import (
     BearerSecret,
     HttpsMcpEndpoint,
@@ -21,7 +16,6 @@ from agent_comms.transport.connector_profile import (
     UiGrantId,
 )
 from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
-from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tailnet_buses import (
     NamedHost,
     PeerHoldsBus,
@@ -33,74 +27,26 @@ from agent_comms.transport.tailnet_profiles import (
     PeerRefusedProfile,
     TailnetProfiles,
 )
-from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, TailnetBusesRead
-from textual.app import App
 from textual.css.scalar import Unit
 from yarl import URL
 
 from toad.app import ToadApp
 from toad.application_outcome import Ended, Succeeded
-from toad.client.application import BusSwitch
+from toad.client.application import BusDiscovery, BusSwitch
 from toad.client.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
 from toad.client.connection import FailedObservation, LocalObserving, RemoteCoreConnection
 from toad.client.db import TabScope
-from toad.client.application import ClientApplication
 from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows
 from toad.client.application_actions import ApplicationAction
+from support.roots import Roots
+from support.tailnet import FakeTailnet
 
 
-TAILSCALE = """\
-import json, sys
-peers = json.loads(open({state!r}).read())
-print(json.dumps({{"Peer": {{peer["name"]: {{
-    "HostName": peer["name"], "TailscaleIPs": [peer["address"]], "Online": True,
-}} for peer in peers}}}}))
-"""
-
-SSH = """\
-import json, sys
-peers = {{peer["address"]: peer for peer in json.loads(open({state!r}).read())}}
-peer = peers.get(sys.argv[-2])
-if peer is None:
-    sys.exit("ssh: connect to host " + sys.argv[-2] + ": No route to host")
-print(json.dumps({{"threads": [{{}}] * peer["threads"]}}))
-"""
-
-
-@dataclass(frozen=True)
-class FakeTailnet:
-    """The tailnet discovery probes, wherever the probe runs.
-
-    Discovery is a Core read the observer process serves, so a stub in the test's own
-    interpreter never reaches it, and the real tailscale and ssh would probe the owner's
-    machines. Fake tailscale and ssh executables first on PATH are the boundary both
-    processes share: TailnetBuses runs for real against the peers a test holds here.
-    """
-
-    state: Path
-
-    @classmethod
-    def installed(cls, directory: Path, monkeypatch: pytest.MonkeyPatch) -> "FakeTailnet":
-        directory.mkdir()
-        tailnet = cls(directory / "peers.json")
-        tailnet.state.write_text("[]")
-        for name, source in (("tailscale", TAILSCALE), ("ssh", SSH)):
-            program = directory / name
-            program.write_text(f"#!{sys.executable}\n" + source.format(state=str(tailnet.state)))
-            program.chmod(0o755)
-        monkeypatch.setenv("PATH", f"{directory}:{Path(sys.executable).parent}:/usr/bin:/bin")
-        return tailnet
-
-    def hold(self, peer: TailnetPeer, threads: int) -> None:
-        """``peer`` is on the tailnet and its CLI answers with ``threads`` threads."""
-        peers = json.loads(self.state.read_text())
-        peers.append({"name": peer.name, "address": peer.address, "threads": threads})
-        self.state.write_text(json.dumps(peers))
-
-
-@pytest.fixture(autouse=True)
-def tailnet(tmp_path, monkeypatch) -> FakeTailnet:
-    return FakeTailnet.installed(tmp_path / "tailnet", monkeypatch)
+@pytest.fixture
+def tailnet() -> FakeTailnet:
+    """The tailnet this test's processes see (Roots.tailnet), empty until a test holds a
+    peer on it."""
+    return Roots.of_this_process().tailnet
 
 
 def openable(path: Path) -> OpenableProfile:
@@ -200,7 +146,7 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
         connection = app.coordination_access.connection
-        app.push_screen(BusChoices.offered(), app.picked_bus)
+        app.push_screen(BusChoices(), app.picked_bus)
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         for _ in range(4):
             await ui.step()
@@ -211,23 +157,30 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
 async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch, tmp_path, tailnet):
     """Tristan: "it only detects this machine shohld detect gaming desktop".
 
-    The dialog opens on what this machine knows and asks the tailnet after, so the probe is
-    stubbed here: what matters is that a found peer becomes a row named by what it holds.
+    The dialog opens on what this machine knows with what the window's own ask found, and
+    asks the tailnet again: what matters is that a found peer becomes a row named by what it
+    holds.
     """
 
 
-    tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
-    tailnet.hold(TailnetPeer("desktop", "100.124.133.120", True), 247)
     # This machine's own held profiles are not this test's subject, and a real one in the
     # owner's home would be a row here.
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
-        app.push_screen(BusChoices.offered(), app.picked_bus)
+        # The window asked once when it opened and found nobody; the peers join after, so
+        # only the picker's own ask can find them.
+        await app.wait_operations(BusDiscovery)
+        tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
+        tailnet.hold(TailnetPeer("desktop", "100.124.133.120", True), 247)
+        tailnet.held.touch()
+        app.push_screen(BusChoices(), app.picked_bus)
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
+        await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")
         assert [type(row).__name__ for row in picker.rows] == ["LocalBus"], "instant rows first"
+        tailnet.held.unlink()
         await ui.until(lambda: len(picker.rows) == 3, why="the tailnet peers to arrive")
         # Tailscale's peers in the order discovery lists them: by name.
         assert [row.label() for row in picker.rows[1:]] == [
@@ -308,14 +261,18 @@ async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monk
                          BearerSecret("secret")),
             ReachedRoute(address),
         ).write_new(tmp_path / f"{name}.json")
-    tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
-        app.push_screen(BusChoices.offered(), app.picked_bus)
+        await app.wait_operations(BusDiscovery)
+        tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
+        tailnet.held.touch()
+        app.push_screen(BusChoices(), app.picked_bus)
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
+        await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")
         assert [type(row).__name__ for row in picker.rows] == ["LocalBus", "HeldBus", "HeldBus"]
+        tailnet.held.unlink()
         await ui.until(lambda: any(isinstance(row, DiscoveredPeer) for row in picker.rows),
                        why="the tailnet peer to arrive")
         kinds = [type(row).__name__ for row in picker.rows]
@@ -338,50 +295,30 @@ def test_a_dialog_fits_a_narrow_window():
     assert panel.styles.max_width.value == 72, "and it still stops growing on a wide one"
 
 
-async def test_discovery_uses_selected_core_and_never_holds_the_message_pump(monkeypatch):
-    """A terminal without tailscale still paints while its selected Core discovers peers."""
-
-    started, release = threading.Event(), threading.Event()
-    expected = TailnetBusesRead((PeerHoldsBus(TailnetPeer("discovered", "100.64.1.2", True), 9),))
-
-    class RemoteAnswer(CoreAccess):
-        def call(self, request):
-            assert isinstance(request, CommsTailnetBusesTool)
-            started.set()
-            assert release.wait(5), "the test releases the remote answer after checking paint"
-            return FieldCodec.decode(TailnetBusesRead, FieldCodec.encode(expected))
-
-    @dataclass
-    class SelectedCore:
-        core: CoreAccess
-
-        def open_current(self):
-            return self
-
-    class PickerHost(App):
-        coordination_access = SelectedCore(RemoteAnswer())
-        tailnet_buses = ClientApplication.tailnet_buses
+async def test_discovery_asks_the_observed_core_and_never_holds_the_message_pump(
+        workspace, monkeypatch, tmp_path, tailnet):
+    """A terminal without tailscale still paints while its observed Core discovers peers."""
 
     def no_terminal_cli(cls):
-        raise AssertionError("The terminal has no tailscale CLI; ask the selected Core")
+        raise AssertionError("The terminal has no tailscale CLI; ask the observed Core")
 
     monkeypatch.setattr(TailnetBuses, "seen", classmethod(no_terminal_cli))
-    app = PickerHost()
-    try:
-        async with app.run_test(size=(44, 28)) as pilot:
-            picker = BusChoices(())
-            app.push_screen(picker)
-            assert await asyncio.to_thread(started.wait, 3)
-            painted = asyncio.Event()
-            app.call_later(painted.set)
-            await asyncio.wait_for(painted.wait(), 1)
-            assert picker.is_mounted and not picker.rows
-            release.set()
-            await picker.workers.wait_for_complete()
-            await pilot.pause()
-            assert [row.label() for row in picker.rows] == ["discovered · 9 threads"]
-    finally:
-        release.set()
+    monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
+    tailnet.hold(TailnetPeer("discovered", "100.64.1.2", True), 9)
+    tailnet.held.touch()
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        app.push_screen(BusChoices(), app.picked_bus)
+        await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
+        picker = app.screen
+        for _ in range(4):
+            await ui.step()
+        assert [type(row).__name__ for row in picker.rows] == ["LocalBus"], (
+            "the picker paints and answers while the peer is still slow to say what it holds")
+        tailnet.held.unlink()
+        await ui.until(lambda: len(picker.rows) == 2, why="the slow peer to answer")
+        assert picker.rows[-1].label() == "discovered · 9 threads"
+        assert app.found_buses, "the answer is the application's, for every listing"
 
 
 async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspace, monkeypatch, tmp_path):
@@ -415,7 +352,7 @@ async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspac
 
     async with workspace.app(size=(140, 48)) as ui:
         app, pilot = ui.textual
-        app.push_screen(BusChoices.offered(), app.picked_bus)
+        app.push_screen(BusChoices(), app.picked_bus)
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
         await ui.until(lambda: bool(picker.query(BusAddress)), why="the picker to compose")
@@ -443,7 +380,7 @@ async def test_a_saved_bus_can_be_forgotten_and_its_profile_goes_with_it(workspa
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
-        app.push_screen(BusChoices.offered(), app.picked_bus)
+        app.push_screen(BusChoices(), app.picked_bus)
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
         await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")

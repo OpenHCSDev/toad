@@ -27,6 +27,7 @@ from textual.await_complete import AwaitComplete
 from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import Required, var
+from textual.signal import Signal
 from textual.widget import Widget
 from textual.widgets import LoadingIndicator
 from textual.widgets._footer import KeyGroup
@@ -34,7 +35,7 @@ from textual.widgets.markdown import Markdown
 
 from toad.application_actions import ApplicationCommands
 from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
-from toad.client.bus_selection import BusChoice, PickerRow
+from toad.client.bus_selection import BusChoice, PickerRow, TailnetAnswer
 from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
 from toad.core import events as core_events
@@ -172,6 +173,8 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
 
         FileKind.prepare_terminal()
         super().__init__()
+        # Each bus listing that is mounted hears the tailnet's answers (ListsBuses).
+        self.tailnet_answers: Signal[TailnetAnswer] = Signal(self, "tailnet-answers")
         # The themed app opened the settings that own this terminal's sidebar arrangement.
         self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of())
         self._return_value: ApplicationOutcome = Ended(self.application.version)
@@ -211,6 +214,9 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         match row:
             case PickerRow():
                 row.chosen(self)
+
+    def tailnet_answered(self, answer: TailnetAnswer) -> None:
+        self.tailnet_answers.publish(answer)
 
     def connection_for(self, choice: BusChoice) -> CoreConnection:
         """The connection the chosen bus's launch arguments name, read as a launch reads them."""

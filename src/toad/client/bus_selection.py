@@ -8,13 +8,16 @@ from abc import (
 )
 from collections.abc import Sequence
 from dataclasses import dataclass
+from functools import partial
 from typing import ClassVar
 
 from agent_comms.transport.connector_store import (
     HeldUiProfiles,
     OpenableProfile,
 )
-from agent_comms.transport.tailnet_buses import PeerBus, PeerHoldsBus
+from agent_comms.transport.tailnet_buses import NamedHost, PeerBus, PeerHoldsBus
+
+from toad.client.offered_action import OfferedAction
 
 
 class ProfileArgument:
@@ -24,16 +27,26 @@ class ProfileArgument:
 
 
 class BusPickerHost:
-    """The application opens a chosen bus or asks a discovered peer for its profile.
+    """The application opens a chosen bus or asks a peer for its profile, and holds what the
+    tailnet last said about its peers.
 
     A plain parent: the native app brings its toolkit metaclass.
     """
 
+    found_buses: tuple[PeerBus, ...] = ()
+    """The peers the tailnet last reported; nothing until it first answers."""
+
     def open_bus(self, choice: BusChoice) -> None:
         raise NotImplementedError
 
-    def ask_peer_for_profile(self, found: PeerHoldsBus) -> None:
+    def ask_peer_for_profile(self, found: PeerBus) -> None:
         raise NotImplementedError
+
+    def ask_typed_host(self, typed: str) -> None:
+        """A machine a reader typed is asked exactly as a discovered peer is asked, so there
+        is no second way into a bus; blank text names no machine and asks nobody."""
+        if address := typed.strip():
+            self.ask_peer_for_profile(NamedHost.typed(address))
 
 
 class PickerRow(ABC):
@@ -57,14 +70,15 @@ class PickerRow(ABC):
         it. Most rows are not any machine the tailnet reports; the ones that are say so."""
         return False
 
-    def removable(self) -> bool:
-        """Whether a reader can take this row off the list. Nothing is, by default: this
-        machine's own bus and a machine the tailnet reports are facts, not saved entries."""
-        return False
+    def held_actions(self, listing: BusListing) -> tuple[OfferedAction, ...]:
+        """What a listing offers on this row besides choosing it, where a finger is held on
+        it or a mouse right-clicks it. Nothing, by default: this machine's own bus and a
+        machine the tailnet reports are facts, not saved entries."""
+        return ()
 
     def remove(self) -> None:
-        """Take this row off the list for good. Only a row that says it is removable."""
-        raise TypeError(f"{type(self).__name__} is not a saved row")
+        """Take this row off the list for good. A row nobody saved has nothing to take
+        away, so forgetting it leaves it listed."""
 
     @staticmethod
     def with_found(rows: tuple[PickerRow, ...], found: tuple[PeerBus, ...]) -> tuple[PickerRow, ...]:
@@ -152,9 +166,10 @@ class HeldBus(BusChoice):
         return (*self.without_profile(argv),
                 ProfileArgument.argument, str(self.profile.path))
 
-    def removable(self) -> bool:
-        """A held profile is the saved entry, so this is the row that can be removed."""
-        return True
+    def held_actions(self, listing: BusListing) -> tuple[OfferedAction, ...]:
+        """A held profile is the saved entry, so this is the row a reader can forget, as
+        Delete forgets it in the Textual picker."""
+        return (OfferedAction("Forget this bus", partial(listing.forget, self)),)
 
     def remove(self) -> None:
         """Forget this bus: the profile file IS the saved entry, so deleting it is the
@@ -186,3 +201,78 @@ class DiscoveredPeer(PickerRow):
         when it is not (agent_comms.transport.served_endpoints.ProfileOffer).
         """
         app.ask_peer_for_profile(self.found)
+
+
+class BusListing:
+    """A list of the buses a reader can open: the Textual splash and Open-bus dialog, and the
+    Qt welcome.
+
+    Every listing shows the same rows: what this machine holds, with the peers the tailnet
+    last reported (BusPickerHost.found_buses) merged in by PickerRow.with_found. When to ask
+    the tailnet and what it last answered belong to the application, which asks once when
+    its window opens and again when a reader opens a picker to choose
+    (ClientApplication.discover_buses); a listing shows the last answer meanwhile and draws
+    each new one (TailnetAnswer). A member says which held rows it starts from, which host
+    it lists for, and where its rows go.
+
+    A plain parent: each frontend's widget brings its toolkit metaclass.
+    """
+
+    def picker_host(self) -> BusPickerHost:
+        """The application this listing opens buses in."""
+        raise NotImplementedError
+
+    def held_rows(self) -> tuple[PickerRow, ...]:
+        """What this machine knows without asking anyone: instant."""
+        raise NotImplementedError
+
+    def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
+        """Draw ``rows`` in place of the ones shown."""
+        raise NotImplementedError
+
+    def listed(self) -> tuple[PickerRow, ...]:
+        """The rows as they stand now."""
+        return PickerRow.with_found(self.held_rows(), self.picker_host().found_buses)
+
+    def relist(self) -> None:
+        self.show_rows(self.listed())
+
+    def forget(self, row: PickerRow) -> None:
+        """Take ``row`` off the list if a reader saved it; any other row stays listed."""
+        row.remove()
+        self.relist()
+
+    def say_discovery(self, found: int) -> None:
+        """Tell a reader how many buses the tailnet answered with. A listing with nowhere to
+        say it says nothing; the dialog puts it in its prompt."""
+
+    def say_failure(self, reason: str) -> None:
+        """Tell a reader the tailnet could not be asked."""
+
+
+class TailnetAnswer(ABC):
+    """What the tailnet said when the application asked it, shown in each open listing."""
+
+    @abstractmethod
+    def shown_in(self, listing: BusListing) -> None: ...
+
+
+@dataclass(frozen=True)
+class BusesFound(TailnetAnswer):
+    """The tailnet answered; its peers are now the application's found_buses."""
+
+    found: tuple[PeerBus, ...]
+
+    def shown_in(self, listing: BusListing) -> None:
+        listing.relist()
+        listing.say_discovery(sum(len(entry.openable()) for entry in self.found))
+
+
+@dataclass(frozen=True)
+class TailnetUnanswered(TailnetAnswer):
+    """The tailnet could not be asked; what was found before stays listed."""
+
+    reason: str
+
+    def shown_in(self, listing: BusListing) -> None:
+        listing.say_failure(self.reason)

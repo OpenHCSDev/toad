@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
+from support.tailnet import FakeTailnet
 from toad.paths import APP_NAME
 
 if TYPE_CHECKING:
@@ -59,6 +60,7 @@ class Roots:
         # tempfile owns the configured scratch location, including TMPDIR.
         roots = cls(Path(tempfile.mkdtemp(prefix="toad-test-")))
         roots.save_settings({})
+        roots.tailnet.install()
         return roots
 
     @property
@@ -84,6 +86,11 @@ class Roots:
         return cls(Path(os.environ[ATTEMPT]))
 
     @property
+    def tailnet(self) -> FakeTailnet:
+        """The tailnet this test's processes see, empty until a test holds a peer on it."""
+        return FakeTailnet.under(self.attempt)
+
+    @property
     def wire(self) -> Path:
         return self.attempt / "wire"
 
@@ -107,6 +114,7 @@ class Roots:
             "PYWAL_CACHE_DIR": str(self.attempt / "cache" / "wal"),
             "PI_CODING_AGENT_DIR": str(self.attempt / "pi"),
             "TMPDIR": str(self.attempt),
+            "PATH": self.tailnet.path(inherited["PATH"]),
             "TERM": "xterm-256color",
             "COLORTERM": "truecolor",
             "FORCE_COLOR": "1",

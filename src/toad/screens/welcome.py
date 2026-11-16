@@ -25,7 +25,7 @@ from toad.format_path import format_path
 from toad.navigation_context import NavigationContext, NavigationOwner
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
-from toad.screens.bus_choice import BusRows, ListsBuses
+from toad.screens.bus_choice import ListsBuses
 from toad.screens.session_view import SessionView
 from toad.client.session_scope import ProjectSessionOrigin
 from toad.thread_identity import ThreadIdentity
@@ -142,21 +142,20 @@ class WelcomeBuses(SpacedAbove, AutoHeight, ListsBuses, VerticalGroup):
     """The buses this machine can open, on the splash beside its channels and threads.
 
     Tristan: "I would like it to show the buses as well so that it would list out the buses
-    that are available". It inherits the Open-bus dialog's own listing (ListsBuses), so the
-    rows, the tailnet discovery and what choosing one does are the dialog's, not a second
-    set that can drift from it - and a bus did not have to become a comms target to get
-    keyboard navigation, because BusRows is an OptionList and already has it.
+    that are available", and then that it "didn't list the other buses on the tailnet". It
+    inherits the Open-bus dialog's own listing (ListsBuses), so the rows, the tailnet's
+    peers and what choosing one does are the dialog's, not a second set that can drift from
+    it - and a bus did not have to become a comms target to get keyboard navigation,
+    because BusRows is an OptionList and already has it. The application asks the tailnet
+    once per window, so showing the splash again lists its last answer without a sweep.
 
     Not a WelcomeSection: those read their keys from the sidebar model, and a bus is not in
-    it. The rows come from what this machine holds, and the tailnet's arrive after.
+    it.
     """
-
-    def __init__(self) -> None:
-        super().__init__(ListsBuses.offered_rows())
 
     def compose(self) -> ComposeResult:
         yield WelcomeHeading(Content("Buses"))
-        yield BusRows(*self.bus_options())
+        yield self.bus_rows()
 
 
 class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, TargetMenuTree):

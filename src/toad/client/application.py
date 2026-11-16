@@ -24,7 +24,14 @@ from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, CommsTail
 from formbridge.operations import ExclusiveKind, OperationKind
 
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
-from toad.client.bus_selection import BusChoice, BusPickerHost, HeldBus
+from toad.client.bus_selection import (
+    BusChoice,
+    BusesFound,
+    BusPickerHost,
+    HeldBus,
+    TailnetAnswer,
+    TailnetUnanswered,
+)
 from toad.client.connection import CoreConnection
 from toad.client.db import DB
 from toad.client.resource_release import AsyncResourceRelease
@@ -50,7 +57,8 @@ class PeerProfileRequest(OperationKind, ExclusiveKind):
 
 
 class BusDiscovery(OperationKind, ExclusiveKind):
-    """Asks the tailnet which peers hold a bus."""
+    """Asks the tailnet which peers hold a bus; a newer ask, a picker the reader just
+    opened, replaces the one running."""
 
 
 class ClientApplication(BusPickerHost, NavigationHost):
@@ -144,6 +152,30 @@ class ClientApplication(BusPickerHost, NavigationHost):
         called from a thread."""
         return self.coordination_access.open_current().core.call(CommsTailnetBusesTool()).peers
 
+    def discover_buses(self) -> None:
+        """Ask the tailnet which peers hold a bus, for every bus listing.
+
+        Every frontend asks once when its window opens, so the welcome lists the tailnet's
+        buses without sweeping it each time the welcome shows, and a picker the reader opens
+        to choose asks again. Until the answer, each listing shows the last one
+        (found_buses); the ssh sweep runs on the observed Core's machine, not this one.
+        """
+        self.run_operation(BusDiscovery, self.ask_tailnet)
+
+    async def ask_tailnet(self) -> None:
+        await self.wait_operations(ApplicationStart)
+        try:
+            found = await self.preparation.run_thread(self.tailnet_buses)
+        except (OSError, ValueError, RuntimeError) as error:
+            self.tailnet_answered(TailnetUnanswered(str(error)))
+            return
+        self.found_buses = found
+        self.tailnet_answered(BusesFound(found))
+
+    @abstractmethod
+    def tailnet_answered(self, answer: TailnetAnswer) -> None:
+        """Show ``answer`` in each bus listing this frontend has open."""
+
     async def close_client(self) -> None:
         """Release the launch's client owners in the order they depend on each other:
         running operations first, then thread work and navigation, the observation's
@@ -177,10 +209,11 @@ class ClientApplication(BusPickerHost, NavigationHost):
         """How every frontend starts: observe the connection's Core, checking its route
         once a second so a bus that drops (an install restarting Core, a network blip) or
         changes opens again on the next check and every subscribed view rebinds to it; then
-        this frontend's own start. Each frontend once wrote this sequence itself, and the Qt
+        this frontend's own start, and one ask of the tailnet for its bus listings. Each frontend once wrote this sequence itself, and the Qt
         copy left out the route check, so a dropped bus never came back on the phone."""
         self.coordination_access.start()
         self.begin_frontend()
+        self.discover_buses()
 
     @abstractmethod
     def begin_frontend(self) -> None:
