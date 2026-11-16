@@ -11,7 +11,8 @@ from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget
+from pyqt_reactive.widgets.elided_line import ElidedLine
 from ui_theme.effects import ACTIVITY_SWEEP
 
 from toad.client.application import ClientApplication
@@ -23,13 +24,13 @@ from toad.qt.lines import QtLineRenderer
 from toad.status_thread import ObservedActivity
 
 
-class ActivityLine(QLabel):
-    """One muted line of reference under the composer."""
+class ActivityLine(ElidedLine):
+    """One muted line of reference under the composer, cut to the width the page has."""
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
-        self.setStyleSheet(f"color: {renderer.colour(MutedRole)}; padding: 0 6px")
-        self.setWordWrap(False)
+        self.setStyleSheet(f"color: {renderer.colour(MutedRole)}")
+        self.setContentsMargins(6, 0, 6, 0)
 
     def close_activity(self) -> None:
         """Nothing observed; nothing to stop."""

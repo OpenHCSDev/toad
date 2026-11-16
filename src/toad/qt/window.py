@@ -44,6 +44,7 @@ from PySide6.QtWidgets import (
 )
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
+from pyqt_reactive.widgets.elided_line import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
@@ -666,8 +667,8 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, Conversa
         self.content_ready = asyncio.Event()
         label = entry.unobserved_tab().label()
         self.messages = MessageView(app.renderer)
-        self.label = QLabel(label)
-        self.status = QLabel()
+        self.label = ElidedLine(label)
+        self.status = ElidedLine()
         self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.status.setStyleSheet(f"color: {app.renderer.colour(MutedRole)}")
         self.directory = PathLabel(app.project_dir.path)
