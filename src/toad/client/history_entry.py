@@ -17,9 +17,11 @@ from metaclass_registry.mro_dispatch import handles
 
 from toad.client.connection import Observing
 from toad.client.conversation import CommsViewKey
+from toad.navigation_preparation import CommsNavigation
 from toad.client.session_entry import SharedSessionEntry
 from toad.client.session_tracker import ConversationTab, NamedTab, OpenTab
-from toad.client.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity, TabTargetGone
+from toad.client.tab_identity.kinds import CommsTab
 from toad.core.projection import MroProjection
 
 
@@ -37,6 +39,15 @@ class SharedHistorySessionEntry[Navigator](
         """The owner's tab for one conversation; no session owns it, so none closes or returns it."""
         super().__init__(identity)
         self.key, self.project, self.viewer, self.participants = key, project, viewer, participants
+
+    @staticmethod
+    def reopened(identity: CommsTab, observed: Observing, project: Checkout) -> CommsNavigation:
+        """A conversation tab read again on the bus that owns it, as its viewer."""
+        if not observed.observes(identity.root):
+            raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
+        viewer = observed.user_identity(project).name
+        return CommsNavigation(CommsViewKey(identity.root, identity.key), viewer,
+                               identity.key.threads_needed(observed, viewer))
 
     def original_threads(self, sessions):
         return tuple((self.key.root, participant) for participant in self.participants)

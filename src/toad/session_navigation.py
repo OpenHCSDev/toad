@@ -27,7 +27,6 @@ from agent_comms.ui_model.sidebar import ThreadRowModel
 
 from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import AgentNotFound, read_agents
-from toad.client.conversation import CommsViewKey
 from toad.core import events as core_events
 from toad.core.events import CoreEventStream
 from toad.client.db import SessionMeta
@@ -163,18 +162,9 @@ class SessionNavigation(StartsSessions, SessionNavigator):
 
     async def history_entry(self, identity: CommsTab) -> HistorySessionEntry:
         project = self.app.project_dir
-
-        def prepare():
-            observed = self.app.coordination_access.observation.observed()
-            if not observed.observes(identity.root):
-                raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
-            viewer = observed.user_identity(project).name
-            return viewer, identity.key.threads_needed(observed, viewer)
-
-        viewer, participants = await self.app.preparation.run_thread(prepare)
-        return HistorySessionEntry(
-            identity, CommsViewKey(identity.root, identity.key), project, viewer, participants,
-        )
+        opened = await self.app.preparation.run_thread(lambda: HistorySessionEntry.reopened(
+            identity, self.app.coordination_access.observation.observed(), project))
+        return HistorySessionEntry(identity, opened.key, project, opened.viewer, opened.participants)
 
     def thread_row(self, row: ThreadRowModel) -> ThreadRowModel:
         """A thread's row as this app shows it, with the state of each open session of it."""
