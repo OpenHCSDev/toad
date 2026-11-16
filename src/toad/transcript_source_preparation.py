@@ -30,11 +30,6 @@ class TranscriptSourcePreparation(HistoryPager, UnrisenRows, CoreEventReceiver):
     def window(self) -> HistoryWindow:
         return self.query_ancestor(HistoryWindow)
 
-    def rows_published(self) -> None:
-        """Admit source rows and withdraw their live predecessors before yielding."""
-        self._source_state.rows_published(self)
-        for page in self.pages:
-            page.display = True
 
     @property
     def can_draw_on_screen(self) -> bool:
@@ -46,9 +41,6 @@ class TranscriptSourcePreparation(HistoryPager, UnrisenRows, CoreEventReceiver):
         return HistorySourceSnapshot(self._generation, self.window, self.screen,
                                      self.source_identity)
 
-    def source_failed(self, error) -> None:
-        self.retire_source()
-        self.app.show_error(error, "History")
 
     def followed_here(self) -> None:
         """Register with the window drawing these pages, and keep it: it needs this pager in
@@ -79,13 +71,10 @@ class TranscriptSourcePreparation(HistoryPager, UnrisenRows, CoreEventReceiver):
         if self.can_draw_on_screen:
             self.screen.frame_presentation.defer(self, self.prepare_viewport)
 
-    def prepare_viewport(self) -> None:
-        """Consume committed geometry once, on this source's own pump."""
-        if self.can_draw_on_screen:
-            self.latest = self.latest.resume(self)
-            for page in self.visible_pages():
-                page.prepare_viewport(self.window)
-            self.state.check_edges(self)
+
+    def prepare_visible_pages(self) -> None:
+        for page in self.visible_pages():
+            page.prepare_viewport(self.window)
 
     def cancel_work(self) -> list:
         return self.workers.cancel_node(self)

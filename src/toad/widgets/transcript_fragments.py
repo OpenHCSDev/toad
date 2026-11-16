@@ -353,8 +353,8 @@ class TranscriptFragment(HistoryFragment, TextualCursorRest):
 
     @property
     def retained_bytes(self) -> int:
-        """Only this fragment's record and acquired rows; the page owns events."""
-        return 256 + self._lines.preparation.retained_bytes + self._plain.preparation.retained_bytes
+        """This fragment's record and its acquired rows; the page owns events."""
+        return super().retained_bytes + self._lines.preparation.retained_bytes + self._plain.preparation.retained_bytes
 
 
 @dataclass(kw_only=True)

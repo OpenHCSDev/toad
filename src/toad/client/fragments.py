@@ -275,6 +275,16 @@ class HistoryFragment(CursorRest):
         return ()
 
     @property
+    def sent_references(self) -> tuple[MessageReference, ...]:
+        """The notifications of a message the reader sent; a composer's receipt follows them."""
+        return ()
+
+    @property
+    def retained_bytes(self) -> int:
+        """Only this fragment's record; the page owns events, a frontend adds what it keeps."""
+        return 256
+
+    @property
     def notification_identity(self) -> DisplayIdentity | NoDisplaySelection:
         return NoDisplaySelection()
 
@@ -355,6 +365,10 @@ class BusMessageHistoryFragment(HistoryFragment):
     @property
     def notification_references(self) -> tuple[MessageReference, ...]:
         return self.part_position.notification_references(self.events[0])
+
+    @property
+    def sent_references(self) -> tuple[MessageReference, ...]:
+        return self.notification_references if self.row.outgoing else ()
 
     def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
         return tuple(MessageQueueEntry(reference, self.shown.status)

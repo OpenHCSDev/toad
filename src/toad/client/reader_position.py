@@ -3,14 +3,16 @@ moved and released. A frontend's history window supplies the geometry these posi
 measured in; positions never cross from one window to another."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections import deque
+from collections.abc import AsyncIterator, Callable, Iterator
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from typing import ClassVar
 
 from toad.client.fragments import FragmentKey
-from toad.client.history_preparation import NEWER_END, OLDER_END
+from toad.client.history_preparation import NEWER_END, OLDER_END, PageEnd
 from toad.client.history_state import LatestViewportRequest
-from toad.client.prepared_pages import DrawnPage, PageFragmentRange
+from toad.client.prepared_pages import DrawnPage, PageFragmentRange, PreparedTranscriptPage, _DrawingStopped
 
 
 class ReaderPage(DrawnPage):
@@ -23,6 +25,34 @@ class ReaderPage(DrawnPage):
 
     @abstractmethod
     def drawn_height(self, fragment) -> int: ...
+
+    @classmethod
+    @abstractmethod
+    def drawn_for(cls, owner, prepared) -> ReaderPage:
+        """A new, not yet shown page view of `prepared` in `owner`'s frontend."""
+
+    @classmethod
+    @asynccontextmanager
+    async def acquire(
+        cls, owner, prepared: PreparedTranscriptPage, *,
+        end: PageEnd, pages: deque, current: Callable[[], bool],
+    ) -> AsyncIterator[ReaderPage]:
+        """Acquire the original prepared range, without selecting it a second time."""
+        view = cls.drawn_for(owner, prepared)
+        # Styled before it is drawn: a page drawn plain first rewraps under
+        # the reader as each styled batch arrives.
+        await owner.prepare_fragments(prepared.fragments_in_range, current,
+                                      selected=owner.selected_categories, target=owner)
+        if not current():
+            raise _DrawingStopped
+        async with AsyncExitStack() as acquisition:
+            acquisition.push_async_callback(owner.remove_children, (view,))
+            await end.mount(owner, view, pages)
+            if not current():
+                raise _DrawingStopped
+            yield view
+            acquisition.pop_all()
+
 
 
 class ReaderWindow:
