@@ -12,6 +12,7 @@ import asyncio
 from time import time
 from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import dataclass
+from typing import ClassVar, Self
 from functools import partial
 from pathlib import Path
 
@@ -158,6 +159,15 @@ class SidebarItem(QTreeWidgetItem):
             multiline=True))
         self.setToolTip(0, tooltip)
 
+    def placed(self) -> None:
+        """A new line needs nothing once it is in the tree."""
+
+    def subtree(self) -> Iterator[SidebarItem]:
+        """This line and every line under it."""
+        yield self
+        for index in range(self.childCount()):
+            yield from self.child(index).subtree()
+
     def activate(self, window: QtToadApp) -> None:
         """A group line opens and closes its group."""
         self.setExpanded(not self.isExpanded())
@@ -174,6 +184,20 @@ class SidebarSection(SidebarItem):
     def __init__(self, title: str) -> None:
         super().__init__([title])
         self.key = title
+
+
+class OpenSection(SidebarSection):
+    """A section that starts open, as the welcome's do; a tap still closes it."""
+
+    def placed(self) -> None:
+        self.setExpanded(True)
+
+
+class UnavailableSection(SidebarSection):
+    """The line saying why the bus could not be read."""
+
+    def __init__(self, observed: FailedObservation) -> None:
+        super().__init__(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
 
 
 class ConversationRow(SidebarItem):
@@ -208,6 +232,7 @@ class BusRow(SidebarItem):
         super().__init__()
         self.key = choice.label()
         self.choice = choice
+        self.draw("", choice.label(), "", choice.label())
 
     def activate(self, window: QtToadApp) -> None:
         self.choice.chosen(window)
@@ -231,15 +256,45 @@ class Page:
 
 
 class QtChannelListing(ChannelListing):
-    def add(self, rows: ConversationRows, section: SidebarSection, model: SidebarModel) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel) -> None:
         for name in self.listed(model):
-            rows.add_channel(section, name, model.channels.rows[name])
+            lines.keep(ConversationRow.channel(name, model.channels.rows[name]))
 
 
 class QtThreadListing(ThreadListing):
-    def add(self, rows: ConversationRows, section: SidebarSection, model: SidebarModel) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel) -> None:
         for name in self.listed(model):
-            rows.add_thread(section, name, model.threads.rows[name])
+            lines.keep(ConversationRow.thread(name, model.threads.rows[name]))
+
+
+class WelcomeContent:
+    """What the welcome lists above its buses: nothing until the bus answers."""
+
+    def draw(self, top: KeptLines) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class ListedModel(WelcomeContent):
+    """The channels and threads the shared welcome lists."""
+
+    model: SidebarModel
+    listings: ClassVar[tuple[QtChannelListing | QtThreadListing, ...]] = (QtChannelListing(), QtThreadListing())
+
+    def draw(self, top: KeptLines) -> None:
+        for listing in self.listings:
+            with top.group(OpenSection(listing.TITLE)) as lines:
+                listing.keep(lines, self.model)
+
+
+@dataclass(frozen=True)
+class ListedFailure(WelcomeContent):
+    """The bus could not be read: say why."""
+
+    observed: FailedObservation
+
+    def draw(self, top: KeptLines) -> None:
+        top.keep(UnavailableSection(self.observed))
 
 
 class Banner(QWidget):
@@ -353,7 +408,6 @@ class Welcome(Page, BusListing, QWidget):
     bus is not listed."""
 
     mode = WELCOME
-    listings = (QtChannelListing(), QtThreadListing())
     BUSES = "Buses"
 
     def __init__(self, window: QtToadApp) -> None:
@@ -373,6 +427,7 @@ class Welcome(Page, BusListing, QWidget):
         layout.addSpacing(12)
         layout.addWidget(self.rows, 1)
         layout.addWidget(self.address)
+        self.content: WelcomeContent = WelcomeContent()
         self.relist()
 
     def picker_host(self) -> BusPickerHost:
@@ -385,28 +440,24 @@ class Welcome(Page, BusListing, QWidget):
         self.host.show_warning(reason, "Tailnet buses")
 
     def present(self, model: SidebarModel) -> None:
-        self.rows.clear()
-        for listing in self.listings:
-            section = self.rows.section(listing.TITLE)
-            listing.add(self.rows, section, model)
-            section.setExpanded(True)
+        self.content = ListedModel(model)
         self.relist()
 
     def present_failed(self, observed: FailedObservation) -> None:
         """The bus could not be read: say why, and keep the buses to switch to."""
-        self.rows.clear()
-        self.rows.section(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
+        self.content = ListedFailure(observed)
         self.relist()
 
     def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
-        """The Buses section, redrawn in place: a tailnet answer arrives between sidebar
-        updates, and each redraw replaces the section rather than adding another."""
-        for stale in [item for item in self.rows.items() if item.key == self.BUSES]:
-            self.rows.takeTopLevelItem(self.rows.indexOfTopLevelItem(stale))
-        section = self.rows.section(self.BUSES)
-        for choice in rows:
-            self.rows.add_row(section, BusRow(choice), "", choice.label(), "", choice.label())
-        section.setExpanded(True)
+        """What the welcome lists, then the Buses section with ``rows``: a tailnet answer
+        arrives between sidebar updates, and both redraw the same lines in place."""
+        self.rows.redraw(partial(self.draw_lines, rows))
+
+    def draw_lines(self, buses: tuple[PickerRow, ...], top: KeptLines) -> None:
+        self.content.draw(top)
+        with top.group(OpenSection(self.BUSES)) as section:
+            for choice in buses:
+                section.keep(BusRow(choice))
 
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
         window.hide_sidebar()
@@ -450,16 +501,33 @@ class KeptLines:
     def keep[Row: SidebarItem](self, line: Row) -> Row:
         kept = self.previous.pop((type(line), line.key), line)
         kept.draw(*line.drawn)
-        if self.parent.child(self.count) is not kept:
-            if kept is not line:
-                self.parent.takeChild(self.parent.indexOfChild(kept))
+        if kept is line:
+            self.parent.insertChild(self.count, line)
+            line.placed()
+        elif self.parent.child(self.count) is not kept:
+            # The view holds which groups are open; a taken item forgets, so a moved line
+            # opens its groups again where it lands.
+            opened = [group for group in kept.subtree() if group.isExpanded()]
+            self.parent.takeChild(self.parent.indexOfChild(kept))
             self.parent.insertChild(self.count, kept)
+            for group in opened:
+                group.setExpanded(True)
         self.count += 1
         return kept
+
+    def group(self, line: SidebarItem) -> KeptLines:
+        """``line`` kept, with its own children kept in turn until the group closes."""
+        return KeptLines(self.keep(line))
 
     def close(self) -> None:
         for _ in range(self.parent.childCount() - self.count):
             self.parent.takeChild(self.count)
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *raised: object) -> None:
+        self.close()
 
 
 class ConversationRows(TouchScrolled, QTreeWidget):
@@ -488,22 +556,12 @@ class ConversationRows(TouchScrolled, QTreeWidget):
     def items(self):
         return (self.topLevelItem(index) for index in range(self.topLevelItemCount()))
 
-    def section(self, title: str) -> SidebarSection:
-        section = SidebarSection(title)
-        self.addTopLevelItem(section)
-        return section
-
-    def add_channel(self, parent: QTreeWidgetItem, name: str, channel) -> None:
-        parent.addChild(ConversationRow.channel(name, channel))
-
-    def add_thread(self, parent: QTreeWidgetItem, name: str, thread) -> None:
-        parent.addChild(ConversationRow.thread(name, thread))
-
-    def add_row[Row: SidebarItem](self, parent: QTreeWidgetItem, row: Row, badge: str, label: str,
-                                  summary: str, tooltip: str) -> Row:
-        row.draw(badge, label, summary, tooltip)
-        parent.addChild(row)
-        return row
+    def redraw(self, draw: Callable[[KeptLines], object]) -> None:
+        """Draw every line again in place, by kind and key: a line still wanted keeps its
+        item, so a finger on it still lands and a group keeps its open or closed state; a
+        line no longer wanted goes. Rows change in place; nothing is cleared and rebuilt."""
+        with KeptLines(self.invisibleRootItem()) as top:
+            draw(top)
 
 
 class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation]):
@@ -527,31 +585,28 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
     def rows_changed(self, changes: object) -> None:
         self.present()
 
+    def draw_lines(self, model: SidebarModel, top: KeptLines) -> None:
+        threads = model.threads.rows
+        for name, channel in model.channels.rows.items():
+            with top.group(ConversationRow.channel(name, channel)) as group:
+                for member in channel.members:
+                    group.keep(ConversationRow.thread(member, threads[member]))
+        with top.group(SidebarSection("Threads")) as everyone:
+            for name, thread in threads.items():
+                everyone.keep(ConversationRow.thread(name, thread))
+
     def bind_failed_observation(self, observed: FailedObservation) -> None:
         self.observed = None
-        self.clear()
-        self.addTopLevelItem(SidebarSection(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}"))
+        self.redraw(lambda top: top.keep(UnavailableSection(observed)))
         self.window.workspace_sessions.home.present_failed(observed)
 
     def present(self, **changes: object) -> None:
         """Toad's sidebar rows: a badge and label, and the row's summary under it in
-        muted text, from the shared row models. Rows are updated in place by key, never
-        cleared, so a finger already on a row still lands on it."""
+        muted text, from the shared row models."""
         if self.observed is None:
             return
         model: SidebarModel = self.observed.sidebar
-        threads = model.threads.rows
-        top = KeptLines(self.invisibleRootItem())
-        for name, channel in model.channels.rows.items():
-            group = KeptLines(top.keep(ConversationRow.channel(name, channel)))
-            for member in channel.members:
-                group.keep(ConversationRow.thread(member, threads[member]))
-            group.close()
-        everyone = KeptLines(top.keep(SidebarSection("Threads")))
-        for name, thread in threads.items():
-            everyone.keep(ConversationRow.thread(name, thread))
-        everyone.close()
-        top.close()
+        self.redraw(partial(self.draw_lines, model))
         self.window.workspace_sessions.home.present(model)
         self.window.paint_tabs()
 
