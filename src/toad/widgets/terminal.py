@@ -17,7 +17,7 @@ from textual.selection import Selection
 from textual.style import Style
 from textual.visual import Visual
 from textual.geometry import Size
-from textual.document._editing import NativeTextKeys
+from formbridge.key_declarations import NativeTextKeys
 from textual.scroll_view import ScrollView
 from textual._paint_state import PaintState
 from textual.strip import Strip
