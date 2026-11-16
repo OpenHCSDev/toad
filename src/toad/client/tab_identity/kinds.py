@@ -10,7 +10,6 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.client.conversation import SharedConversationKind as ConversationKind
 from toad.client.agents import AgentNotFound
-from toad.session_entry import PreviewSessionEntry
 from toad.client.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.client.tab_identity.history_origin import HistoryOrigin
 
@@ -79,4 +78,4 @@ class PreviewTab(TabIdentity):
     async def entry(self, navigation):
         if not await navigation.app.preparation.run_thread(self.key.exists):
             raise TabTargetGone(self, f"Preview file no longer exists: {self.key}")
-        return PreviewSessionEntry.of(self, self.key)
+        return navigation.preview_entry(self)

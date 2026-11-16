@@ -158,6 +158,9 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             original=(prepared.root, prepared.thread.incarnation),
         )
 
+    def preview_entry(self, identity: PreviewTab) -> PreviewSessionEntry:
+        return PreviewSessionEntry.of(identity, identity.key)
+
     async def history_entry(self, identity: CommsTab) -> HistorySessionEntry:
         project = self.app.project_dir
 
@@ -445,7 +448,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         path = path.expanduser().resolve()
         entry = await self.show(
             path,
-            lambda: PreviewSessionEntry.of(PreviewTab(path), path),
+            lambda: self.preview_entry(PreviewTab(path)),
             partial(self.open, after=self.app.selected_mode),
         )
         if position is not None:
