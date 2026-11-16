@@ -37,7 +37,7 @@ from yarl import URL
 
 from toad.app import ToadApp
 from toad.application_outcome import Reconnected, Succeeded
-from toad.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
+from toad.client.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
 from toad.client.connection import LocalCoreConnection, RemoteCoreConnection
 from toad.launch_binding import NoAgent
 from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows

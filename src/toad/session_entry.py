@@ -28,7 +28,7 @@ from toad.screens.comms import CommsScreen
 from toad.screens.file_preview import FilePreviewScreen
 from toad.screens.main import MainScreen
 from toad.session_host import SessionNavigator
-from toad.session_projection import SessionProjection
+from toad.client.session_projection import SessionProjection
 from toad.session_scope import SessionScope
 from toad.session_tracker import (
     CommsViewKey,

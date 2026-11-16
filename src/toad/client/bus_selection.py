@@ -15,7 +15,7 @@ from agent_comms.transport.connector_store import (
     OpenableProfile,
 )
 from agent_comms.transport.tailnet_buses import PeerHoldsBus
-from textual.abstract_hooks import AbstractHooksMeta
+from abc import ABCMeta
 
 
 class ProfileArgument:
@@ -24,7 +24,7 @@ class ProfileArgument:
     argument: ClassVar[str] = "--comms-profile"
 
 
-class BusPickerHost(metaclass=AbstractHooksMeta):
+class BusPickerHost(metaclass=ABCMeta):
     """The application opens a chosen bus or asks a discovered peer for its profile."""
 
     @abstractmethod

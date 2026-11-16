@@ -12,11 +12,11 @@ from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.projects.checkouts import Checkout
 
 from toad.application_outcome import ApplicationOutcome
-from toad.bus_selection import BusPickerHost
+from toad.client.bus_selection import BusPickerHost
 from toad.client.host import CommsHost as SharedCommsHost
 from toad.core.events import CoreEventStream
 from toad.core_event_carrier import CoreEventReceiver
-from toad.session_projection import SessionCollection
+from toad.client.session_projection import SessionCollection
 from toad.tab_order import TabOrder
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime

@@ -6,7 +6,7 @@ from typing import Self
 
 from agent_comms.history_views import RetiredViews
 from agent_comms.registry.thread_identity import ThreadIncarnation
-from textual.abstract_hooks import AbstractHooksMeta
+from abc import ABCMeta
 
 from toad.session_tracker import OpenTab
 from toad.tab_identity import TabIdentity
@@ -29,7 +29,7 @@ class SessionProjection[Navigation, Source](ABC):
         return ()
 
 
-class SessionCollection[Source](metaclass=AbstractHooksMeta):
+class SessionCollection[Source](metaclass=ABCMeta):
     """The open logical sessions share one projection context and retirement owner."""
 
     @property

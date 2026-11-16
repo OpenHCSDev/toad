@@ -100,7 +100,7 @@ from agent_comms.ui_model.status import OpenThreadStatus
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.transcript_reader import CoordinationTranscriptReader
-from toad.bus_selection import ProfileArgument
+from toad.client.bus_selection import ProfileArgument
 from toad.client.host import CommsHost
 from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
 from toad.core.context_reads import ContextReads
@@ -126,7 +126,7 @@ from toad.notification_status import (
 )
 from toad.client.referenced_core import ReferencedCore
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
-from toad.session_projection import SessionCollection, SessionProjection
+from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.client.thread_comms_source import RelationshipReads
 
 T = TypeVar("T")

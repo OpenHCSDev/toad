@@ -45,7 +45,7 @@ from textual.widgets.markdown import Markdown
 from toad.application_actions import ApplicationCommands
 from toad.application_lifetime import ApplicationLifetime
 from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
-from toad.bus_selection import BusChoice, HeldBus, PickerRow
+from toad.client.bus_selection import BusChoice, HeldBus, PickerRow
 from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
 from toad.constants import WELCOME
