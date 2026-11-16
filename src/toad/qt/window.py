@@ -13,7 +13,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QColor, QKeySequence, QPalette, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScroller,
     QStackedWidget,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
@@ -36,6 +37,15 @@ from toad.client.conversation import (
 from toad.client.conversation_capabilities import ConversationSource
 from toad.client.subscribers import SidebarSubscriber
 from toad.core.events import CoordinationObserved
+from toad.message_rows import MarkdownMessageStyle, MessageRow
+from toad.qt.lines import QtLineRenderer
+from ui_theme.scheme import (
+    BackgroundColour,
+    ColourScheme,
+    ForegroundColour,
+    PrimaryColour,
+    ThemeColour,
+)
 
 
 class ConversationRead(OperationKind, ExclusiveKind):
@@ -77,15 +87,30 @@ class RowTarget:
     label: str
 
 
-class TouchList(QListWidget):
-    """A list a finger scrolls: kinetic, by pixel, wrapping long rows. Qt widgets on
-    Android scroll only by scroll bar unless a QScroller holds the viewport."""
+class TouchScrolled:
+    """A scroll area a finger scrolls, kinetically. Qt widgets on Android scroll only by
+    scroll bar unless a QScroller holds the viewport."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        QScroller.grabGesture(self.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+
+
+class TouchList(TouchScrolled, QListWidget):
+    """A list a finger scrolls, by pixel, wrapping long rows."""
 
     def __init__(self) -> None:
         super().__init__()
         self.setWordWrap(True)
         self.setVerticalScrollMode(QListWidget.ScrollMode.ScrollPerPixel)
-        QScroller.grabGesture(self.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+
+
+class MessageView(TouchScrolled, QTextBrowser):
+    """A conversation's messages as Toad draws them: each row's header and body blocks."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.setOpenLinks(False)
 
 
 class ThreadList(TouchList, SidebarSubscriber[Observing, FailedObservation]):
@@ -144,7 +169,8 @@ class ConversationView(QWidget):
         header = QHBoxLayout()
         header.addWidget(back)
         header.addWidget(self.title, 1)
-        self.messages = TouchList()
+        self.messages = MessageView()
+        self.reader = ""
         self.input = QLineEdit()
         self.input.setPlaceholderText("Message")
         self.input.returnPressed.connect(self.send)
@@ -158,8 +184,9 @@ class ConversationView(QWidget):
         layout.addWidget(self.messages, 1)
         layout.addLayout(footer)
 
-    def show_conversation(self, conversation: SharedConversationKind, label: str) -> None:
+    def show_conversation(self, conversation: SharedConversationKind, label: str, reader: str) -> None:
         self.conversation = conversation
+        self.reader = reader
         self.title.setText(label)
         self.input.setPlaceholderText(f"Message {label}")
         self.reload()
@@ -174,10 +201,12 @@ class ConversationView(QWidget):
             conversation.page, source, PageBounds(limit=self.page_size))
         if conversation is not self.conversation:
             return
-        self.messages.clear()
-        for message in reversed(page.messages):
-            self.messages.addItem(f"{message.sender}: {message.body}")
-        self.messages.scrollToBottom()
+        style = MarkdownMessageStyle()
+        rows = (MessageRow(message, self.reader) for message in page.messages)
+        self.messages.setHtml(self.window.renderer.html(tuple(
+            block for row in rows for block in (row.header, *style.body(row, row.text)))))
+        scroll = self.messages.verticalScrollBar()
+        scroll.setValue(scroll.maximum())
 
     def send(self) -> None:
         body = self.input.text().strip()
@@ -195,10 +224,12 @@ class ConversationView(QWidget):
 class CommsWindow(QStackedWidget):
     """Threads first; tapping one opens its conversation; Back returns."""
 
-    def __init__(self, access: CoordinationAccess) -> None:
+    def __init__(self, access: CoordinationAccess, scheme: ColourScheme) -> None:
         super().__init__()
         self.setWindowTitle("Toad")
         self.access = access
+        self.renderer = QtLineRenderer(scheme)
+        self.setPalette(self.palette_of(scheme))
         self.threads = ThreadList(self)
         self.conversation = ConversationView(self)
         self.addWidget(self.threads)
@@ -211,6 +242,25 @@ class CommsWindow(QStackedWidget):
         self.winId()
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
         self.fit_safe_area(self.windowHandle().safeAreaMargins())
+
+    @staticmethod
+    def palette_of(scheme: ColourScheme) -> QPalette:
+        """Qt's palette roles in the theme's stated colours; like Textual's colour system,
+        Qt lays out the layer shades a scheme leaves to the backend."""
+        def colour(member: type[ThemeColour]) -> QColor:
+            return QColor(member.rgb(scheme).hex)
+        palette = QPalette()
+        for role, member in ((QPalette.ColorRole.Window, BackgroundColour),
+                             (QPalette.ColorRole.Base, BackgroundColour),
+                             (QPalette.ColorRole.AlternateBase, BackgroundColour),
+                             (QPalette.ColorRole.Button, BackgroundColour),
+                             (QPalette.ColorRole.Highlight, PrimaryColour),
+                             (QPalette.ColorRole.WindowText, ForegroundColour),
+                             (QPalette.ColorRole.Text, ForegroundColour),
+                             (QPalette.ColorRole.ButtonText, ForegroundColour),
+                             (QPalette.ColorRole.HighlightedText, ForegroundColour)):
+            palette.setColor(role, colour(member))
+        return palette
 
     def fit_safe_area(self, margins: QMargins) -> None:
         """Keep every row clear of the status and navigation bars."""
@@ -231,7 +281,7 @@ class CommsWindow(QStackedWidget):
         me = await asyncio.to_thread(lambda: source.registry().user_thread().require(
             RuntimeError("This bus has no user thread")).name)
         resolved = await asyncio.to_thread(target.kind.resolve, source, me, target.name)
-        self.conversation.show_conversation(resolved.conversation, target.label)
+        self.conversation.show_conversation(resolved.conversation, target.label, me)
         self.setCurrentWidget(self.conversation)
 
     def show_threads(self) -> None:
