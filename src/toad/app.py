@@ -42,21 +42,15 @@ from textual.widgets._footer import KeyGroup
 from textual.widgets.markdown import Markdown
 
 from toad.application_actions import ApplicationCommands
-from toad.application_lifetime import ApplicationLifetime
 from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
 from toad.client.bus_selection import BusChoice, HeldBus, PickerRow
 from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
-from toad.constants import WELCOME
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
-from toad.client.db import DB
 from toad.file_kind import FileKind
 from toad.launch_binding import AgentBinding
 from toad.native_style import TransparentBackground
-from toad.navigation_preparation import (
-    NavigationReader,
-)
 from toad.neovim_editing import HostsNeovim
 from formbridge.forms.declared_fields import DeclaredField
 from toad.atomic import AtomicWriteError
@@ -64,24 +58,16 @@ from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect
 from toad.render_backend import PreparedRenderer, Renderer, RenderTask
 from toad.render_processes import RenderProcessPool
+from toad.client.application import ClientApplication
 from toad.client.resource_release import AsyncResourceRelease
 from toad.screens import comms, main  # noqa: F401 - register widget classes
 from toad.screens.workspace import WorkspaceScreen
-from toad.session_navigation import SessionNavigation
 from toad.session_scope import SessionScope
-from toad.client.session_tracker import (
-    OpenTab,
-    SessionTracker,
-    SidebarState,
-)
 from toad.sidebar_layout import SidebarLayout
 from toad.client.tab_identity import TabIdentity
-from toad.client.tab_order import TabOrder
 from toad.terminal_attention import TerminalAttention
 from toad.terminal_origin import TerminalOrigin
-from toad.thread_actions import ThreadActions
 from toad.widgets.comms_command_dialog import ScreenCommandOrigin
-from toad.thread_navigation import ThreadNavigator
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.widgets import tool_call  # noqa: F401 - register widget classes
 from toad.widgets.comms_transfer import Transfers
@@ -147,7 +133,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
+class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, ClientApplication, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
     COMMANDS = {ApplicationCommands}
@@ -179,31 +165,14 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
             connection: Core transport selected by the launch owner.
         """
         Renderer.prepare_spawn()
-        self.events = core_events.CoreEventStream(self)
         self.preparation = PreparationRuntime(RenderProcessPool(connection.helper_start))
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
-        self.navigation_reader = NavigationReader()
-        self.agent_binding = agent_binding
-
-        self.application = ApplicationLifetime(self, agent_session_id)
+        self.initialize_client(agent_binding, connection, agent_session_id)
         self.clipboard_transport = Clipboard.for_platform()
         self.terminal_attention = TerminalAttention(self)
-
-        self.session_navigation = SessionNavigation(self)
-        self.thread_navigation = ThreadNavigator(self)
-        self.thread_actions = ThreadActions(self)
-        self.sidebar_state = SidebarState()
         self._mode_switch_lock = asyncio.Lock()
-        self.tab_order = TabOrder(
-            lambda identity: self.show_history_step(identity.mode_name),
-            home=WELCOME,
-            db=DB(),
-            scopes=connection.tab_scopes(),
-        )
-        self._session_tracker = SessionTracker(self.tab_order)
-        self.coordination_access = connection.open_access(self)
 
         FileKind.prepare_terminal()
         super().__init__()
@@ -361,16 +330,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
             if path.is_file():
                 self.notify(f"Wrote default settings to {path}", title="Settings")
 
-    async def get_db(self) -> DB:
-        """Get an instance of the database."""
-        db = DB()
-        return db
-
-
-    @property
-    def session_tracker(self) -> SessionTracker:
-        return self._session_tracker
-
     def publish_clipboard(self, text: str) -> None:
         self.clipboard_transport = self.clipboard_transport.publish(self, text)
 
@@ -499,19 +458,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
     @property
     def sidebar_show_archived(self) -> bool:
         return self.saved_settings.current.sidebar.show_archived
-
-    def has_session(self, mode: str) -> bool:
-        return self.session_navigation.session_details(mode) is not None
-
-    def close_session(self, mode: str) -> None:
-        self.session_navigation.events.publish(session_requests.SessionClose(mode))
-
-    def open_direct_messages(self, target: str) -> None:
-        self.session_navigation.direct_messages(target)
-
-    @property
-    def open_tabs(self) -> tuple[OpenTab, ...]:
-        return self.session_navigation.tabs
 
     @cached_property
     def workspace_chrome(self):
