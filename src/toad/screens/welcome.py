@@ -218,7 +218,26 @@ class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, Targe
         return self.is_attached and self.query_ancestor(WelcomeScreen).is_current
 
     def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        row.target.menu_context(self, channel=NoChannel()).show_menu(self, offset)
+        from functools import partial
+
+        from textual.geometry import Region
+
+        from toad.widgets.comms_menu import ActionMenu
+
+        ctx = row.target.menu_context(self, channel=NoChannel())
+        selected_screen = self.app.screen
+        source = self.app.selected_session
+
+        async def read():
+            choices = await ctx.command_choices()
+            if (not self.is_attached or self.app.selected_session is not source
+                    or self.app.screen is not selected_screen):
+                return
+            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), ctx.title,
+                [(partial(ctx.execute_command, command), command.label(ctx))
+                 for command in choices])
+
+        self.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
 
     @RowReconciliation.sync
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:

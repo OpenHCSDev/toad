@@ -393,8 +393,28 @@ class CommsSidebar(
                 and self.app.is_running and self.screen.is_current)
 
     def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
+        from functools import partial
+
+        from textual.geometry import Region
+
+        from toad.widgets.comms_menu import ActionMenu
+
         self.pointer_select(row, menu=True)
-        self.navigation.menu_context(row).show_menu(self, offset)
+        ctx = self.navigation.menu_context(row)
+        selected_screen = self.app.screen
+        source = self.app.selected_session
+
+        async def read():
+            choices = await ctx.command_choices()
+            if (not self.is_attached or self.app.selected_session is not source
+                    or not self.model_state.serves(ctx.observed.root)
+                    or self.app.screen is not selected_screen):
+                return
+            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), ctx.title,
+                [(partial(ctx.execute_command, command), command.label(ctx))
+                 for command in choices])
+
+        self.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
 
     def accepts_observation(self) -> bool:
         return (self.enabled and self.accepts_publication()

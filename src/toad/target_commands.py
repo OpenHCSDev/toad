@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from asyncio import CancelledError
 from dataclasses import dataclass, field
-from functools import partial
 from typing import TYPE_CHECKING, Self
 
-from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.messaging.channel_targets import (
     ChannelSelection,
@@ -17,7 +14,6 @@ from agent_comms.messaging.channel_targets import (
 )
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
-from textual.geometry import Region
 
 from toad.client.commands import CommandContextChanged, SharedContextualCommand, SortCapable
 from toad.client.connection import Observing
@@ -65,21 +61,6 @@ class TargetContext:
         access.confirm(selected)
         return actions
 
-    def show_menu(self, sidebar, offset):
-        from toad.widgets.comms_menu import ActionMenu
-        selected_screen = sidebar.app.screen
-        source = sidebar.app.selected_session
-        async def read():
-            choices = await self.command_choices()
-            if (not sidebar.is_attached or sidebar.app.selected_session is not source
-                    or not sidebar.model_state.serves(self.observed.root)
-                    or sidebar.app.screen is not selected_screen):
-                return
-            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), self.title,
-                [(partial(self.execute_menu, sidebar, command), command.label(self))
-                 for command in choices])
-        sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
-
     async def command_choices(self):
         from toad.command_catalog import CommandCatalog
         return (await CommandCatalog.read(self.app, (), self.acquired())).target_choices
@@ -88,7 +69,7 @@ class TargetContext:
         """A captured context is already acquired when a catalog reads it."""
         return self
 
-    def execute_menu(self, sidebar, command):
+    def execute_command(self, command):
         self.current()
         command.execute(self)
 
