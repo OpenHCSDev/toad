@@ -22,7 +22,6 @@ from agent_comms.transport.tools.sidebar import (
 
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
-from toad.block_navigation import ConversationEntry
 from toad.client.bus_submission import SubmittingTexts
 from toad.client.connection import Observing
 from toad.client.line_blocks import MutedRole, Span
@@ -36,7 +35,7 @@ class QueueEvidence:
     presentation: AgentPresentation
     submitting: SubmittingTexts
     busy: bool
-    read_targets: Callable[[], tuple[ConversationEntry, ...]]
+    read_targets: Callable[[], tuple]
     observing: Callable[[], Observing]
 
     @cached_property

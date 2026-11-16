@@ -18,6 +18,26 @@ from agent_comms.ui_model.message_category import MessageCategory
 from toad.work_preparation import WorkRevision
 
 
+@dataclass(frozen=True)
+class HistorySourceSnapshot:
+    """One source/view identity for page and filter publication."""
+
+    generation: int
+    window: object
+    screen: object
+    source: object
+
+    def current(self, owner) -> bool:
+        """Whether the source this read started from is still the one the view holds.
+
+        Being on screen decides whether rows can be drawn, not whether the read may
+        finish: requiring it here discarded every read a tab started while it was
+        not visible, so the whole missed run loaded in one burst on return.
+        A history that has left its window holds no source, so no snapshot is current.
+        """
+        return owner.is_attached and self == owner.source_snapshot()
+
+
 class PageEnd(ABC):
     """One end owns page traversal, source reads and eviction at that edge."""
 

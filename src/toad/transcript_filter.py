@@ -4,14 +4,16 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from contextlib import ExitStack
-from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.ui_model.message_category import all_categories
-from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.client.history_preparation import OLDER_END, PageRequest
-from toad.transcript_preparation import NoProjection
+from toad.client.history_preparation import (
+    OLDER_END,
+    HistorySourceSnapshot,
+    PageRequest,
+)
+from toad.client.prepared_pages import NoProjection, _DrawingStopped
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -132,7 +134,6 @@ class FilterState(DeclaredFamily, affix="Filter"):
         return self.owner.filter is self and self.overlay is projection
 
     def require_projection(self, snapshot, projection) -> None:
-        from toad.widgets.transcript_history import _DrawingStopped
         if not snapshot.current(self.owner) or not self.owns_projection(projection):
             raise _DrawingStopped
 
@@ -191,7 +192,7 @@ class SeekingFilter(NoFilter):
                 owner.window.lookahead.ahead_rows(owner.window.outer_size.height))
 
     async def advance(self, snapshot):
-        from toad.widgets.transcript_history import ProjectedTranscriptHistory, _DrawingStopped
+        from toad.widgets.transcript_history import ProjectedTranscriptHistory
 
         owner = self.owner
         source = owner.projected_source(owner.selected_categories)

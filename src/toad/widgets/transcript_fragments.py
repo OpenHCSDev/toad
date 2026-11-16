@@ -2,13 +2,10 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Iterator, Mapping
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from functools import cached_property, partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
-from agent_comms.execution.turn_item import NativeItemId
-from agent_comms.messaging.message_reference import MessageReference
-from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.messaging.sent_message import PublishedSentMessage
 from agent_comms.nominal.field_codec import ToolCallId
 from agent_comms.storage.recorded_time import EventTime
@@ -24,7 +21,7 @@ from agent_comms.transcript.transcript_events import (
     TranscriptEvent,
     UserTranscript,
 )
-from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
+from agent_comms.ui_model.message_category import AgentActivityBoundary
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.status import ToolCallStatus
@@ -34,27 +31,16 @@ from toad.client.line_blocks import (
     AgentRole,
     Body,
     Divider,
-    Gap,
     LineBlock,
-    LineLink,
     LineRole,
     MarkdownMessageBody,
     MessageBody,
     MutedRole,
-    Span,
-    Summary,
-    ToggleDetails,
     UserRole,
 )
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand, message_menu
-from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
-from toad.client.notification_status import (
-    MessageQueueEntry,
-    NotificationStatus,
-    UncheckedNotifications,
-    ShownFragment,
-)
+from toad.message_rows import MessageRow
 from toad.render_backend import ReusableRenderTask
 from toad.tool_output import SentMessageToolOutputPart, ToolOutput, ToolOutputPart
 from toad.widgets.agent_activity import AgentActivityPresentation
@@ -69,6 +55,15 @@ from toad.widgets.transcript_lines import (
     TranscriptLinesRenderTask,
     link_place,
 )
+
+from toad.client.fragments import (
+    BusMessageHistoryFragment,
+    CursorRest,
+    HistoryFragment,
+    PartPosition,
+    Shown,
+)
+
 
 if TYPE_CHECKING:
 
@@ -215,182 +210,8 @@ class FragmentLineConsumer(MroProjection[None]):
             self.blocks += AgentActivityPresentation.thinking(event.text)
 
 
-class CopiedText(MroProjection[str]):
-    """What one event gives a copy of its fragment: its text, or nothing for an event without any."""
-
-    @handles(TranscriptEvent)
-    def nothing(self, event: TranscriptEvent) -> str:
-        return ""
-
-    @handles(TextTranscript)
-    def text(self, event: TextTranscript) -> str:
-        return event.text
-
-
-COPIED_TEXT = CopiedText()
-
-
-@dataclass(frozen=True, kw_only=True)
-class Shown(ShownFragment):
-    """What a reader chose about one drawn fragment."""
-
-    details_open: bool = False
-
-    def summary(self, title: str, role: type[LineRole], link: LineLink) -> Summary:
-        """One clipped row whatever the title: state that arrives after layout
-        (a notification answer) changes this text, never the fragment's height.
-        The full text is behind the disclosure, which only the reader opens."""
-        return Summary((Span(("▼ " if self.details_open else "▶ ") + title, role, link),))
-
-    def toggled(self) -> Shown:
-        return replace(self, details_open=not self.details_open)
-
-
-@dataclass(frozen=True, kw_only=True)
-class MessageShown(Shown):
-    """Style and Core's feedback for one bus message, in any conversation."""
-
-    style: WireMessageStyle = field(default_factory=MarkdownMessageStyle)
-    status: NotificationStatus = field(default_factory=UncheckedNotifications)
-
-
-@dataclass(frozen=True, slots=True)
-class PartPosition(ABC):
-    # Ordinal within the source event, not another source-position counter.
-    index: int = 0
-
-    @property
-    @abstractmethod
-    def has_details(self) -> bool: ...
-
-    @abstractmethod
-    def notification_references(self, event: TranscriptEvent) -> tuple[MessageReference, ...]: ...
-
-    @abstractmethod
-    def status_blocks(self, shown: MessageShown, link: LineLink) -> tuple[LineBlock, ...]: ...
-
-    @abstractmethod
-    def outgoing_sources(self, publication: PublishedSentMessage): ...
-
-    def draw_divider(self, consumer: FragmentLineConsumer, divider: Divider) -> None:
-        """A message's first part draws its header; later parts draw none."""
-        consumer.blocks.append(divider)
-        consumer.header_end = consumer.header_end or len(consumer.blocks)
-
-    def leading(self, header: Divider) -> tuple[LineBlock, ...]:
-        return (Gap(), header)
-
-    def starts_activity(self, observed: bool) -> bool:
-        """Only a message's first part opens the agent activity it starts."""
-        return observed
-
-    @staticmethod
-    def sequence(count: int) -> tuple[PartPosition, ...]:
-        """The positions of a source split into `count` parts, head first and status-bearing last.
-
-        An empty source has no parts and so no positions."""
-        if count < 2:
-            return (OnlyPart(index=0),)[:count]
-        return (HeadInnerPart(index=0), *(LaterInnerPart(index=index) for index in range(1, count - 1)),
-                LaterLastPart(index=count - 1))
-
-
-class LaterPart(PartPosition):
-    """A part after the first: the header was drawn above it, so it draws none and starts nothing."""
-
-    __slots__ = ()
-
-    def draw_divider(self, consumer: FragmentLineConsumer, divider: Divider) -> None:
-        pass
-
-    def leading(self, header: Divider) -> tuple[LineBlock, ...]:
-        return ()
-
-    def starts_activity(self, observed: bool) -> bool:
-        return False
-
-
-class LastPart(PartPosition):
-    __slots__ = ()
-    has_details = True
-
-    def notification_references(self, event):
-        return (event.source,)
-
-    def status_blocks(self, shown: MessageShown, link: LineLink):
-        return shown.status.blocks(shown, link)
-
-    def outgoing_sources(self, publication: PublishedSentMessage):
-        return (publication.reference,)
-
-
-class InnerPart(PartPosition):
-    __slots__ = ()
-    has_details = False
-
-    def notification_references(self, event: TranscriptEvent):
-        return ()
-
-    def status_blocks(self, shown: MessageShown, link: LineLink):
-        return ()
-
-    def outgoing_sources(self, publication: PublishedSentMessage):
-        return ()
-
-
-class OnlyPart(LastPart):
-    """A message in one part: it draws the header and carries the status."""
-
-    __slots__ = ()
-
-
-class HeadInnerPart(InnerPart):
-    __slots__ = ()
-
-
-class LaterInnerPart(LaterPart, InnerPart):
-    __slots__ = ()
-
-
-class LaterLastPart(LaterPart, LastPart):
-    __slots__ = ()
-
-
-@dataclass(frozen=True)
-class EventSourceKey:
-    """One kind of transcript event at its recorded source position and its ordinal in that record.
-
-    One record can hold several events of one kind at one position (a Pi reply's
-    thinking parts around a tool call); Core numbers a record's events, so the
-    ordinal tells them apart (TranscriptEvent.ordinal).
-    """
-
-    event_type: type[TranscriptEvent]
-    position: int | NativeItemId
-    ordinal: int
-
-
-@dataclass(frozen=True)
-class FragmentKey:
-    """A source occurrence and its text part, unchanged by page serialization."""
-
-    source: EventSourceKey | ToolCallId
-    part: int
-
-
-@dataclass(frozen=True)
-class FragmentDetails(ToggleDetails):
-    """A disclosure names its original source occurrence, never a pointer position."""
-
-    key: FragmentKey
-
-
-class CursorRest:
-    """Where a history's block cursor rests. This base is resting on no drawn message;
-    a TranscriptFragment is resting on that message."""
-
-    # The messages the cursor owns while the history draws them.
-    rested: tuple[TranscriptFragment, ...] = ()
+class TextualCursorRest(CursorRest):
+    """No rest in a Textual history: it draws nowhere, selects nothing and shows nothing."""
 
     def drawn_in(self, history: LineHistory) -> CursorRest:
         """This rest while `history` draws it; no rest once it does not."""
@@ -401,22 +222,12 @@ class CursorRest:
         return False
 
     @property
-    def clipboard_text(self) -> str:
-        return ""
-
-    @property
     def block_menu(self) -> tuple[MenuCommand, ...]:
         return ()
 
     def placement_in(self, history: LineHistory) -> Unplaced:
         """Where the screen shows the rest: nowhere, until a fragment is rested on."""
         return UNPLACED
-
-    def expandable(self) -> bool:
-        return False
-
-    def expanded(self) -> bool:
-        return False
 
     def show_in(self, history: LineHistory) -> None:
         """Scroll a keyboard move's rest into view; no rest has nothing to show."""
@@ -425,70 +236,20 @@ class CursorRest:
         """Scroll a clicked rest's message head into view."""
 
 
-NO_REST = CursorRest()
+NO_REST = TextualCursorRest()
 
 
 @dataclass
-class TranscriptFragment(CursorRest):
-    events: tuple[TranscriptEvent, ...]
-    part_position: PartPosition = field(default_factory=OnlyPart, kw_only=True)
-    starts_agent_activity: bool = False
-    shown: Shown = field(default_factory=Shown, kw_only=True)
-    # Whether the fragment has details a reader can show and hide.
-    has_details: ClassVar[bool] = False
-
-    @property
-    def source_identity(self) -> EventSourceKey | ToolCallId:
-        first = self.events[0]
-        return EventSourceKey(type(first), self.arrival_position, first.ordinal)
-
-    @cached_property
-    def key(self) -> FragmentKey:
-        return FragmentKey(self.source_identity, self.part_position.index)
-
-    @property
-    def details_link(self) -> FragmentDetails:
-        return FragmentDetails(self.key)
-
-    @property
-    def arrival_position(self) -> int | NativeItemId:
-        """The first event owns the fragment's stable source position."""
-        return self.events[0].position
-
-    def shown_live_by(self, claim: CommitClaim) -> bool:
-        """Whether the live block that claim retires already showed this saved row."""
-        return claim.repeats_native(self.events)
+class TranscriptFragment(HistoryFragment, TextualCursorRest):
+    """A history fragment drawn by Textual: its rows at a width, and the block cursor's effects."""
 
     _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
+
     _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
-
-    @property
-    def notification_references(self) -> tuple[MessageReference, ...]:
-        return ()
-
-    @property
-    def notification_identity(self) -> DisplayIdentity | NoDisplaySelection:
-        return NoDisplaySelection()
-
-    def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
-        return ()
-
-    def draws(self, reference: MessageReference) -> bool:
-        """Whether this fragment draws the bus message ``reference`` names; only bus-message
-        fragments do."""
-        return False
 
     @classmethod
     def text_parts(cls, source: PreparedMarkdownPart, budget: RenderBudget):
         return tuple(budget.split(source))
-
-    @property
-    def outgoing_sources(self):
-        return ()
-
-    @classmethod
-    def capture_part(cls, event, text: str, **kwargs):
-        return cls((replace(event, text=text),), **kwargs)
 
     def text_rows(self, lines: Lines) -> range:
         """The fragment's content occupies its drawn rows unless it owns a header."""
@@ -519,16 +280,10 @@ class TranscriptFragment(CursorRest):
         """
         return tuple(self.consumed.blocks)
 
-    @property
-    def line_blocks(self) -> tuple[LineBlock, ...]:
-        """What this fragment draws as shown now; `shown` is the one stored fact."""
-        return self.blocks(self.shown)
-
     def request_show(self, shown: Shown) -> bool:
         """Record intent and retire old acquisitions; the page retains its painted layout."""
-        if shown == self.shown:
+        if not super().request_show(shown):
             return False
-        self.shown = shown
         # The rows drawn now stand in until the new state's rows arrive: a
         # status change must not redraw the message as plain rows (another
         # wrap, another height) and then as styled rows again.
@@ -536,29 +291,10 @@ class TranscriptFragment(CursorRest):
         self.invalidate_lines()
         return True
 
-    @cached_property
-    def categories(self) -> frozenset[type[MessageCategory]]:
-        """The message categories of this fragment's events, derived once."""
-        return frozenset(event.category for event in self.events)
-
-    @property
-    def timestamp(self) -> float:
-        """When this fragment's first event happened."""
-        return self.events[0].timestamp
-
-    @property
-    def clipboard_text(self) -> str:
-        """What copying this fragment gives: its text as written."""
-        return "\n\n".join(text for event in self.events if (text := COPIED_TEXT.project_value(event)))
-
     @property
     def block_menu(self) -> tuple[MenuCommand, ...]:
         """What the cursor's menu offers on this fragment, besides copying."""
         return ()
-
-    @property
-    def rested(self) -> tuple[TranscriptFragment, ...]:
-        return (self,)
 
     def drawn_in(self, history: LineHistory) -> CursorRest:
         return self if history.draws_fragment(self) else NO_REST
@@ -569,21 +305,11 @@ class TranscriptFragment(CursorRest):
     def placement_in(self, history: LineHistory) -> Unplaced:
         return history.fragment_shown(self)
 
-    def expandable(self) -> bool:
-        return self.has_details and not self.shown.details_open
-
-    def expanded(self) -> bool:
-        return self.has_details and self.shown.details_open
-
     def show_in(self, history: LineHistory) -> None:
         history.show_fragment(self)
 
     def show_head(self, cursor: FragmentBlockCursor, window: HistoryWindow) -> None:
         cursor.block.run_worker(cursor.show_clicked_head(self, window), group="message-heading", exclusive=True)
-
-    def shown_in(self, selected: frozenset[type[MessageCategory]]) -> bool:
-        """A fragment shows when a filter selects any of its events' categories."""
-        return not self.categories.isdisjoint(selected)
 
     @cached_property
     def link_place(self) -> int:
@@ -626,8 +352,8 @@ class TranscriptFragment(CursorRest):
 
     @property
     def retained_bytes(self) -> int:
-        """Only this fragment's record and acquired rows; the page owns events."""
-        return 256 + self._lines.preparation.retained_bytes + self._plain.preparation.retained_bytes
+        """This fragment's record and its acquired rows; the page owns events."""
+        return super().retained_bytes + self._lines.preparation.retained_bytes + self._plain.preparation.retained_bytes
 
 
 @dataclass(kw_only=True)
@@ -660,18 +386,8 @@ class ToolTranscriptFragment(TranscriptFragment):
 
 
 @dataclass(kw_only=True)
-class BusMessageFragment(TranscriptFragment):
-    """One bus-message builder: header, styled body and Core notification feedback."""
-
-    shown: MessageShown = field(default_factory=MessageShown)
-    text_part: str
-    row: MessageRow
-    notification_identity: DisplayIdentity | NoDisplaySelection = field(
-        default=NoDisplaySelection(), repr=False, compare=False)
-
-    @classmethod
-    def capture_part(cls, event: TextTranscript, text: str, **kwargs):
-        return cls((event,), text_part=text, **kwargs)
+class BusMessageFragment(BusMessageHistoryFragment, TranscriptFragment):
+    """A bus message drawn by Textual: its menu, its pinned header and how its text splits."""
 
     @classmethod
     def text_parts(cls, source: PreparedMarkdownPart, budget: RenderBudget):
@@ -679,53 +395,14 @@ class BusMessageFragment(TranscriptFragment):
         return super().text_parts(source, budget) or (source,)
 
     @property
-    def has_details(self) -> bool:
-        return self.part_position.has_details
-
-    @property
-    def notification_references(self) -> tuple[MessageReference, ...]:
-        return self.part_position.notification_references(self.events[0])
-
-    def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
-        return tuple(MessageQueueEntry(reference, self.shown.status)
-                     for reference in self.notification_references)
-
-    def draws(self, reference: MessageReference) -> bool:
-        return self.events[0].source == reference
-
-    def shown_live_by(self, claim: CommitClaim) -> bool:
-        return claim.repeats_received(self.events)
-
-    @property
     def block_menu(self):
         return message_menu(self.row)
-
-    @property
-    def clipboard_text(self):
-        return self.shown.style.clipboard(self.row)
-
-    @property
-    def leading(self):
-        return self.part_position.leading(self.row.header)
 
     def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
         """Every part of a message pins its header once the header's first row is above the top
         row, which is `row` of block `block`; a later part draws no header, so it always
         pins it."""
         return (self.row.header,) if (block, row) > (len(self.leading) - 1, 0) else ()
-
-    @property
-    def body_text(self):
-        return self.text_part
-
-    def text(self, shown):
-        return shown.style.body(self.row, self.body_text)
-
-    def trailing(self, shown):
-        return self.part_position.status_blocks(shown, self.details_link)
-
-    def blocks(self, shown):
-        return (*self.leading, *self.text(shown), *self.trailing(shown))
 
 
 @dataclass(kw_only=True)

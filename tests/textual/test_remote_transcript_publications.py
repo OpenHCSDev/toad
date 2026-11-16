@@ -3,7 +3,7 @@
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.transcript.transcripts import TranscriptPage
 
-from toad.transcript_preparation import PreparedTranscriptPage
+from toad.transcript_preparation import TranscriptPageRenderTask
 
 
 def test_remote_page_renders_without_the_server_bus(workspace):
@@ -16,7 +16,7 @@ def test_remote_page_renders_without_the_server_bus(workspace):
     absent = database.with_suffix(".off-device")
     database.rename(absent)
     try:
-        prepared = PreparedTranscriptPage.prepare(remote)
+        prepared = TranscriptPageRenderTask(remote).execute()
     finally:
         absent.rename(database)
     assert len(prepared.outgoing_coverage) == 1

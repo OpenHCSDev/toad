@@ -15,7 +15,7 @@ from toad.markdown_links import LinkContext
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.notification_status import CheckedNotifications
 from toad.textual_colours import ThemedApp
-from toad.widgets.transcript_fragments import MessageShown
+from toad.client.fragments import MessageShown
 from toad.widgets.transcript_lines import (
     LinePreparation,
     NoRows,
@@ -23,7 +23,7 @@ from toad.widgets.transcript_lines import (
     RichLineRenderer,
     TranscriptLinesRenderTask,
 )
-from toad.wire_history import WireFragment
+from toad.widgets.wire_history import WireFragment
 
 
 class MessageApp(ThemedApp, App):

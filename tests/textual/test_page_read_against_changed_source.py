@@ -8,7 +8,7 @@ from agent_comms.execution.session_file import RegistrySessionLocation
 from support import journals
 from support.textual_steps import saved_history
 
-from toad.transcript_preparation import SavedHistory
+from toad.transcript_preparation import SavedTranscript
 from toad.client.history_preparation import OLDER_END
 
 
@@ -56,7 +56,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
                 async def replacement(**bounds):
                     return await loader(**bounds)
                 previous = history.page_source
-                history.page_source = SavedHistory(replacement, previous.through, ui.app.preparation)
+                history.page_source = SavedTranscript(replacement, previous.through, ui.app.preparation)
                 previous.close()
             release.set()
             result = (await asyncio.wait_for(asyncio.gather(task, return_exceptions=True), 10))[0]
