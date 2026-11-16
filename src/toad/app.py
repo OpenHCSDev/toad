@@ -449,6 +449,10 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def capture_command_origin(self) -> ScreenCommandOrigin:
         return ScreenCommandOrigin(self.screen)
 
+    def open_channel_sort(self, channel: str) -> None:
+        group = self.workspace_chrome.channels.roster.groups[channel]
+        self.run_worker(group.sort_choice.open_sort(), group="sort-order")
+
     async def reveal_sidebar(self) -> bool:
         sidebar = self.screen.query_one_optional(CommsSidebar)
         if sidebar is None:

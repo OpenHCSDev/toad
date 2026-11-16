@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from agent_comms.errors import UnregisteredThreadError
 
+from toad.client.commands import LocalCommand
 from toad.command_catalog import CommandCatalog
 
 
@@ -43,6 +44,6 @@ async def unbound_context():
 
 async def test_a_catalog_is_projected_off_the_event_loop():
     asked_on = []
-    catalog = await CommandCatalog.read(App(), [AskingCommand("/asks", asked_on)], unbound_context())
+    catalog = await CommandCatalog.read(App(), [AskingCommand("/asks", asked_on)], unbound_context(), LocalCommand)
     assert "/asks" in catalog.commands
     assert asked_on and threading.main_thread() not in asked_on

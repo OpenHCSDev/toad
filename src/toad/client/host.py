@@ -189,6 +189,14 @@ class CommsHost:
         """Request the session with this mode to close."""
         raise NotImplementedError
 
+    def open_channel_sort(self, channel: str) -> None:
+        """Open the choice of how this channel's members are ordered."""
+        raise NotImplementedError
+
+    def open_url(self, url: str) -> None:
+        """Open a web address in the platform's browser."""
+        raise NotImplementedError
+
 
 class NavigatingHost[Source](CommsHost):
     """A host with Toad's tabs and session navigation: which tabs are open, which threads
