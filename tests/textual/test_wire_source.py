@@ -17,8 +17,8 @@ from support.roots import installed_wire
 
 from toad.client.conversation import ChannelConversation
 from toad.message_rows import IrcMessageStyle
-from toad.transcript_preparation import PageRequest, Unchanged
-from toad.client.history_preparation import NEWER_END, OLDER_END
+from toad.client.prepared_pages import Unchanged
+from toad.client.history_preparation import NEWER_END, OLDER_END, PageRequest
 from toad.wire_history import (
     AfterSequence,
     GrowingWireObservation,

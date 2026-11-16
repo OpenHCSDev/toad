@@ -52,11 +52,11 @@ from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 from textual.worker import Worker, WorkerCancelled, get_current_worker
 
+from toad.client.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.commit_claims import CommitEvidence, NativeCommitEvidence
 from toad.core.events import CoreEventStream, ThreadRowsChanged
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
-from toad.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.live_output import LiveOutput
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.screens.session_view import SessionView
@@ -64,9 +64,13 @@ from toad.client.session_scope import SessionOrigin
 from toad.session_scope import SessionScope
 from toad.transcript_scope import NoTranscript, TranscriptScope
 from toad.entry_placement import ChronologicalEntry, EntryPlacement
-from toad.transcript_preparation import (
-    FrozenClosedHistory, FrozenSavedPrefix, PreparedPageSource, PreparedTranscriptPage,
-    SavedSuffix, UnreadTranscriptPage,
+from toad.transcript_preparation import SavedSuffix
+from toad.client.prepared_pages import (
+    FrozenClosedHistory,
+    FrozenSavedPrefix,
+    PreparedPageSource,
+    PreparedTranscriptPage,
+    UnreadTranscriptPage,
 )
 from toad.client.history_state import LiveTranscript, PreparedReplacementViewportRequest
 from toad.widgets.cli_draft import CliDraft
@@ -76,11 +80,8 @@ from toad.widgets.committed_presentation import (
     protected_blocks,
     retirement_candidates,
 )
-from toad.widgets.history_anchor import (
-    HistoryWindow,
-    LatestPosition,
-    TailPosition,
-)
+from toad.widgets.history_anchor import HistoryWindow
+from toad.client.reader_position import LatestPosition, TailPosition
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 from toad.worker_group import WorkerGroup

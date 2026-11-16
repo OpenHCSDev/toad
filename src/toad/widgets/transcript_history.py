@@ -44,10 +44,14 @@ from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
+from toad.client.history_coverage import (
+    CoveredHistory,
+    HistoryCoverage,
+    ReportsCoveredPages,
+)
 from toad.commit_claims import CommitClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.frame_presentation import ARRIVAL, ArrivalRun
-from toad.history_coverage import CoveredHistory, HistoryCoverage, ReportsCoveredPages
 from toad.entry_placement import EntryPlacement
 from toad.message_rows import RecordedMessageClock
 from toad.native_style import (
@@ -60,7 +64,8 @@ from toad.native_style import (
 from toad.no_worker import NoWorker
 from toad.session_scope import SessionScope
 from toad.transcript_filter import Filtered, FilterState
-from toad.transcript_preparation import (
+from toad.transcript_preparation import SavedTranscript
+from toad.client.prepared_pages import (
     ClosedHistory,
     PageFragmentRange,
     PreparedPageSource,
@@ -68,7 +73,6 @@ from toad.transcript_preparation import (
     ProjectedTranscriptSource,
     RangeCategoryProjection,
     ReplaceablePageSource,
-    SavedHistory,
     UnreadTranscriptPage,
 )
 from toad.transcript_source_preparation import (
@@ -83,12 +87,13 @@ from toad.client.history_state import (
 )
 from toad.widget_actions import Activates
 from toad.widgets.committed_presentation import SnapshotPresentation
-from toad.widgets.history_anchor import (
+from toad.widgets.history_anchor import HistoryWindow
+from toad.client.reader_position import (
     FragmentLocation,
     FragmentNotLoaded,
     FragmentPosition,
-    HistoryWindow,
     LatestPosition,
+    ReaderPage,
     ReaderPosition,
     UnloadedFragment,
 )
@@ -108,25 +113,22 @@ from toad.widgets.presentation_window import (
     arranged,
 )
 from toad.widgets.selection import HoverSelection
-from toad.widgets.transcript_fragments import (
-    FragmentDetails,
-    FragmentKey,
-    Shown,
-    TranscriptFragment,
-)
+from toad.widgets.transcript_fragments import TranscriptFragment
+from toad.client.fragments import FragmentDetails, FragmentKey, Shown
 from toad.widgets.transcript_lines import (
     BlockLines,
     BlockSpan,
     LinePreparation,
     Lines,
+    LineTarget,
     RowAcquisition,
     TranscriptLinesBatchRenderTask,
 )
 
+
 if TYPE_CHECKING:
 
     from toad.widgets.conversation import Contents, Conversation
-
 
 
 class HistoryEdge(MutedText, OneRow, PointerCursor, Activates, Static, can_focus=True):
@@ -339,6 +341,7 @@ class TranscriptPageView(
     ReferenceRendering,
     HorizontalRows,
     Widget,
+    ReaderPage,
 ):
     """One transcript page, drawn as its loaded fragments' prepared lines.
 
@@ -676,7 +679,7 @@ class DrawsBusMessages:
         return any(fragment.draws(reference) for fragment in reversed(self.fragments_in_range))
 
 
-class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
+class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptSourcePreparation, ConversationEntry, LineTarget, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the newest page and the reader's position.
@@ -1425,7 +1428,7 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
 
     @classmethod
     def empty_source(cls, view, through):
-        return SavedHistory(view.transcript.get_transcript_page, through, view.app.preparation)
+        return SavedTranscript(view.transcript.get_transcript_page, through, view.app.preparation)
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         self.coverage.page_added(self, page)

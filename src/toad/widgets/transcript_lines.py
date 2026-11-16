@@ -34,6 +34,7 @@ from rich.text import Text
 from textual.strip import Strip
 from ui_theme.scheme import MutedColour, ThemeColour
 
+from toad.client.prepared_pages import MeasuresFragments
 from toad.core.projection import MroProjection
 from toad.client.line_blocks import (
     Body,
@@ -965,3 +966,10 @@ class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, .
 
     def execute(self) -> tuple[LinePreparation, ...]:
         return tuple(item.execute() for item in self.items)
+
+
+class LineTarget(MeasuresFragments):
+    """A Textual destination fragments are measured for: their styled rows at its line width."""
+
+    def fragment_height(self, fragment) -> int:
+        return fragment.lines_for(self.line_width, self.app.colours.line_theme).height
