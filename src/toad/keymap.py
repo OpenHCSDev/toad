@@ -116,7 +116,7 @@ class KeymapCatalog:
         """The catalog of the classes declared now. Reading those declarations is a class walk;
         building their bindings is not, so it runs once per distinct set of declarations."""
         discover()
-        return cls.of(tuple(modes), DOMNode.contexts(), tuple(ApplicationAction.declarations()))
+        return cls.of(tuple(modes), DOMNode.descendants(), tuple(ApplicationAction.declarations()))
 
     @classmethod
     @cache
