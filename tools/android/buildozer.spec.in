@@ -1,0 +1,32 @@
+# The APK's buildozer.spec; assemble.py fills in the paths marked with a dollar sign.
+[app]
+title = toadcomms
+package.name = toadcomms
+package.domain = org.toadcomms
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,qml,js,json,toml,css,md,sha256,txt,tcss,pem
+version = 0.1
+requirements = python3,shiboken6,PySide6,pydantic-core==2.46.5,tree-sitter==0.26.0,tree-sitter-python==0.25.0
+orientation = portrait
+fullscreen = 0
+android.archs = arm64-v8a
+android.allow_backup = True
+android.ndk_path = ${ndk}
+android.sdk_path = ${sdk}
+android.api = 35
+android.minapi = 28
+android.ndk_api = 28
+android.no-byte-compile-python = True
+p4a.bootstrap = qt
+p4a.local_recipes = ${recipes}
+p4a.branch = master
+p4a.commit = 58d21141f17c889bf8585f5665921d72028f8831
+android.permissions = android.permission.WRITE_EXTERNAL_STORAGE, android.permission.INTERNET
+android.add_jars = ${jars}/Qt6Android.jar,${jars}/Qt6AndroidBindings.jar
+p4a.extra_args = --qt-libs=Widgets,Gui,Core --load-local-libs=plugins_platforms_qtforandroid --init-classes=
+icon.filename = ${icon}
+
+[buildozer]
+log_level = 2
+warn_on_root = 1
+bin_dir = ${app}
