@@ -63,7 +63,7 @@ class SharedSessionEntry[Navigator](DeclaredFamily, SessionProjection[Navigator,
     def original_threads(self, sessions: Navigator) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
-    def return_to(self, sessions: Navigator) -> None:
+    async def return_to(self, sessions: Navigator) -> None:
         raise NotImplementedError
 
     def forget(self, sessions: Navigator) -> None:
