@@ -102,8 +102,6 @@ class QtCommsHost(CommsHost):
             running.cancel()
 
     async def end_operations(self) -> None:
-        """Cancel every running operation and let each finish unwinding: a Qt operation,
-        unlike a Textual worker, does not die with its window."""
         running = tuple(task for tasks in self.operations.values() for task in tasks)
         for task in running:
             task.cancel()

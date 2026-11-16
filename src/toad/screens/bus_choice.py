@@ -137,7 +137,7 @@ class ListsBuses(Widget):
         """
         if not self.is_mounted:
             return
-        peers = tuple(DiscoveredPeer(entry) for entry in found if entry.openable)
+        peers = tuple(DiscoveredPeer(row) for entry in found for row in entry.openable())
         if not peers:
             return
         covered = tuple(row for row in self.rows

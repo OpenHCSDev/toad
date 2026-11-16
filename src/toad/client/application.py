@@ -91,8 +91,9 @@ class ClientApplication(BusPickerHost, NavigationHost):
 
     async def close_client(self) -> None:
         """Release the launch's client owners in the order they depend on each other:
-        thread work and navigation first, then the observation's updates, the native views,
-        the navigation reader, rendering, and the coordination access last. Accepted
+        running operations first, then thread work and navigation, the observation's
+        updates, the native views, the navigation reader, rendering, and the coordination
+        access last. Accepted
         preparation survives its UI waiter, so the observer stays available until those
         workers and their read replies finish."""
         async with AsyncResourceRelease() as release:
@@ -103,6 +104,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
             release.push_async_callback(self.coordination_access.stop_observing)
             release.push_async_callback(self.thread_actions.close)
             release.push_async_callback(self.thread_navigation.close)
+            release.push_async_callback(self.end_operations)
 
     @abstractmethod
     async def close_native_views(self) -> None:

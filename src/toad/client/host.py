@@ -80,6 +80,11 @@ class CommsHost:
         """Cancel every running operation of this kind."""
         raise NotImplementedError
 
+    async def end_operations(self) -> None:
+        """Cancel every running operation and wait for each to finish unwinding, so none
+        runs on while the application closes the views and readers it uses."""
+        raise NotImplementedError
+
     async def wait_operations(self, kind: type[OperationKind]) -> None:
         """Wait until every running operation of this kind has finished; an operation's
         failure is reported through the native failure owner, not raised here."""
