@@ -1,17 +1,21 @@
 """Callbacks implemented by native views that subscribe to Core observations."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 
 from agent_comms.messaging.message_notification import MessageNotification
+
+from toad.core.events import CoreEvent, CoreEventStream, Subscription
 
 
 class CoreObserver:
     """A native view that holds Core event subscriptions for as long as it is shown."""
 
-    def observe_core_callback(self, stream, event_type: type, callback, *, factory=None):
+    def observe_core_callback(self, stream: CoreEventStream, event_type: type[CoreEvent],
+                              callback: Callable[[CoreEvent], object], *,
+                              factory: Callable[..., Subscription] = Subscription) -> Subscription:
         raise NotImplementedError
 
-    def retire_core(self, subscription) -> None:
+    def retire_core(self, subscription: Subscription) -> None:
         raise NotImplementedError
 
 

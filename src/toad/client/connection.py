@@ -57,7 +57,6 @@ from agent_comms.registry.registry_document import (
     ProjectThreadSelection,
     RegistrySnapshot,
 )
-from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import Thread
 from agent_comms.transport.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess, ToolRequest

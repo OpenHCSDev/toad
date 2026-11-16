@@ -49,7 +49,7 @@ from toad.session_entry import (
 from toad.session_host import NavigationHost, SessionNavigator
 from toad.session_scope import SessionScope
 from toad.client.session_tracker import OpenTab, SessionDetails
-from toad.client.tab_identity import SessionTabIdentity, TabRegistry, TabTargetGone
+from toad.client.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.client.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
@@ -65,7 +65,7 @@ class Detached:
     returning_view: SessionScope | None
 
 
-class SessionNavigation(StartsSessions, SessionNavigator, TabRegistry[SessionEntry]):
+class SessionNavigation(StartsSessions, SessionNavigator):
     def __init__(self, app: NavigationHost) -> None:
         self.app = app
         self.events = CoreEventStream(self)
