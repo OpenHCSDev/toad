@@ -248,6 +248,13 @@ class HistoryFragment(CursorRest):
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
 
+    def request_show(self, shown: Shown) -> bool:
+        """Show the fragment so; whether that changed how it is shown."""
+        if shown == self.shown:
+            return False
+        self.shown = shown
+        return True
+
     @property
     def source_identity(self) -> EventSourceKey | ToolCallId:
         first = self.events[0]

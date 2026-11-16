@@ -97,7 +97,7 @@ from toad.widgets.linked_rows import (
     ReferenceRendering,
     selection_painted,
 )
-from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.client.history_notifications import HistoryNotifications, SourceNotifications
 from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.presentation_window import UNPLACED, PointerRows, Unplaced, arranged
 from toad.client.history_pager import PresentationBudget

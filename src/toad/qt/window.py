@@ -22,7 +22,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt
+from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import (
     QApplication,
@@ -70,6 +70,7 @@ from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
 from toad.client.history import ChannelDestination, WireSource, WireView
 from toad.client.history_entry import HistorySessionEntry
+from toad.client.history_notifications import HistoryNotifications
 from toad.application_lifetime import ApplicationStart
 from toad.client.condensed_path import condense_path, home_relative
 from toad.client.platform import host
@@ -90,7 +91,7 @@ from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.composer import ChannelComposer, Composer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost
-from toad.qt.history import QtConversationHistory, QtHistoryWindow, QtWireFragment
+from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.status_thread import StatusOwner
@@ -611,7 +612,8 @@ class PathLabel(QLabel):
         self.setText(condense_path(self.shown, max(1, cells)))
 
 
-class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, ComposerHost, QWidget):
+class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, HistoryNotifications,
+                       ComposerHost, QWidget):
     """One conversation tab: its history, paged lazily by the pager Textual's channels use
     and drawn as virtual rows, read again whenever Core's stores change; the info row over
     its thread's status; and the composer and activity its kind chooses, sending through
@@ -622,6 +624,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         self.app, self.entry = app, entry
         self.submissions = BusSubmissions(self)
         self.content_ready = asyncio.Event()
+        self.notification_work: asyncio.Task | NoTask = NoTask()
         label = entry.unobserved_tab().label()
         self.messages = QtHistoryWindow(app.renderer.scheme)
         self.message_history = QtConversationHistory(self.messages, self, app)
@@ -670,6 +673,37 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         return (self.app.workspace_sessions.views.get(self.mode) is self and conversation == self.conversation
                 and Path(root) == Path(self.app.source().root))
 
+    # Core's notification answers for the messages this tab shows
+
+    def notification_targets(self) -> tuple[QtConversationHistory, ...]:
+        return (self.message_history,)
+
+    @property
+    def can_draw_on_screen(self) -> bool:
+        return self.message_history.can_draw_on_screen
+
+    @property
+    def notification_root(self) -> str:
+        return str(self.app.source().root)
+
+    def report_queue_evidence(self) -> None:
+        """Qt shows no queue evidence beside the conversation."""
+
+    def run_notification_work(self, work: Awaitable[None]) -> None:
+        self.notification_work.cancel()
+        self.notification_work = asyncio.ensure_future(work)
+
+    def check_notifications_after_refresh(self) -> None:
+        QTimer.singleShot(0, self.check_notifications)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        QTimer.singleShot(0, self.check_notifications)
+
+    def hideEvent(self, event) -> None:  # type: ignore[override]
+        super().hideEvent(event)
+        self.app.coordination_access.stop_notifications(self)
+
     async def wait_content_ready(self) -> None:
         await self.content_ready.wait()
 
@@ -677,6 +711,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         for line in self.activity:
             line.close_activity()
         self.composer.receipt.stop()
+        self.app.coordination_access.stop_notifications(self)
         self.message_history.retire_source()
 
     async def retire_presentation(self) -> None:
