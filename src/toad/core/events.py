@@ -457,7 +457,6 @@ class RequestAgentFail(FailureLog, AgentFail):
         # Session inspection keeps ACP log access independent of delivery notices.
 
 
-@dataclass(eq=False)
 Subscription = _BaseSubscription
 
 
