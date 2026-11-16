@@ -45,12 +45,21 @@ class ObservedSource(ConversationSource):
 
 
 class ConversationRow(QListWidgetItem):
-    """One sidebar row: the conversation kind that opens it, and its name."""
+    """One sidebar row, drawing the conversation it opens."""
 
     def __init__(self, kind: type[SharedConversationKind], name: str, label: str) -> None:
         super().__init__(label)
-        self.kind = kind
-        self.name = name
+        self.target = RowTarget(kind, name, label)
+
+
+@dataclass(frozen=True)
+class RowTarget:
+    """What a tapped row opens, held apart from the row: a repaint deletes the row's Qt item
+    while its conversation is still resolving."""
+
+    kind: type[SharedConversationKind]
+    name: str
+    label: str
 
 
 class ThreadList(QListWidget, SidebarSubscriber[Observing, FailedObservation]):
@@ -179,14 +188,14 @@ class CommsWindow(QStackedWidget):
         return ObservedSource(observed.core, observed.root, self.access.app.project_dir)
 
     def open_conversation(self, row: ConversationRow) -> None:
-        asyncio.ensure_future(self.resolve(row))
+        asyncio.ensure_future(self.resolve(row.target))
 
-    async def resolve(self, row: ConversationRow) -> None:
+    async def resolve(self, target: RowTarget) -> None:
         source = self.source()
         me = await asyncio.to_thread(lambda: source.registry().user_thread().require(
             RuntimeError("This bus has no user thread")).name)
-        resolved = await asyncio.to_thread(row.kind.resolve, source, me, row.name)
-        self.conversation.show_conversation(resolved.conversation, row.text())
+        resolved = await asyncio.to_thread(target.kind.resolve, source, me, target.name)
+        self.conversation.show_conversation(resolved.conversation, target.label)
         self.setCurrentWidget(self.conversation)
 
     def show_threads(self) -> None:
