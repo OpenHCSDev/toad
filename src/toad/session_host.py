@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Awaitable
 from typing import Self
 
 from metaclass_registry import AbstractHooksMeta
-from textual.await_complete import AwaitComplete
 
 from toad.comms_host import CommsHost
 from toad.client.connection import CoordinationAccess, Observing
@@ -53,7 +53,7 @@ class NavigationHost(CommsHost[Observing]):
     async def get_db(self) -> DB: ...
 
     @abstractmethod
-    def select_session(self, mode: str) -> AwaitComplete: ...
+    def select_session(self, mode: str) -> Awaitable[object]: ...
 
     @abstractmethod
     def update_show_sessions(self) -> None: ...

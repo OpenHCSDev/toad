@@ -687,6 +687,10 @@ class ConversationSessionBinding(
     agent_info: var[Content] = var(Content())
     model_history_scope = var("")
 
+    def show_agent_info(self, text: str) -> None:
+        """The info bar's agent text, which shared owners answer as plain text."""
+        self.agent_info = Content(text)
+
     @property
     def mode_selection_available(self) -> bool:
         return bool(self.agent_binding.available_modes)
@@ -906,7 +910,7 @@ class ConversationSessionBinding(
         self.refresh_bindings()
 
     def _update_model_info(self) -> None:
-        self.agent_info = self.agent_binding.model_info(self.agent_title)
+        self.show_agent_info(self.agent_binding.model_info(self.agent_title))
 
     @handles(AgentReady)
     async def on_agent_ready(self, event: AgentReady) -> None:
@@ -1044,7 +1048,7 @@ class Conversation(ColumnLayout,
         self.screen.frame_presentation.defer(self, self._start_agent)
 
     def present_without_agent(self) -> None:
-        self.agent_info = Content(self.operational_sources.agent_info(self))
+        self.show_agent_info(self.operational_sources.agent_info(self))
         self.session_ready()
 
     def _start_agent(self) -> None:
