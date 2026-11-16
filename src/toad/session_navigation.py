@@ -497,8 +497,22 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             if detached.returning is not None:
                 await detached.returning.return_to(self)
         finally:
-            for view in detached.views:
-                await self.app.workspace_sessions.finish(view)
+            await self.finish_views(detached)
+
+    async def finish_views(self, detached: Detached) -> None:
+        for view in detached.views:
+            await self.app.workspace_sessions.finish(view)
+
+    async def leave_bus(self) -> None:
+        """Close every open view, keeping the tabs: they stay saved under the Core being
+        left, as an application exit leaves them, and the home view shows meanwhile."""
+        detached = self.detach(tuple(member.mode for member in self.members))
+        try:
+            if detached.returning_view is not None:
+                await detached.returning_view.retire_presentation()
+            await self.app.select_session(self.app.tab_order.home)
+        finally:
+            await self.finish_views(detached)
 
     def observed(self, event: core_events.CoordinationObserved) -> None:
         # Views on the observed root retire through the observation service

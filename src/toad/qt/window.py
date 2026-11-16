@@ -9,9 +9,9 @@ QtWorkspaceViews draws its view, a Qt ConversationView.
 from __future__ import annotations
 
 import asyncio
+from time import monotonic, time
 from collections.abc import Callable
 from dataclasses import dataclass
-from time import monotonic
 from functools import partial
 from pathlib import Path
 
@@ -54,8 +54,10 @@ from ui_theme.scheme import (
 
 from toad.client.application import ClientApplication
 from toad.client.application_actions import ApplicationAction
+from toad.client.bus_selection import BusChoice
 from toad.client.connection import (
     CoordinationAccess,
+    CoreConnection,
     FailedObservation,
     Observing,
     RemoteCoreConnection,
@@ -142,6 +144,19 @@ class ConversationRow(SidebarItem):
         window.open_row(self)
 
 
+class BusRow(SidebarItem):
+    """A bus the welcome lists; a tap switches the window onto it, as a row the Textual
+    picker lists does."""
+
+    def __init__(self, choice: BusChoice) -> None:
+        super().__init__()
+        self.key = choice.label()
+        self.choice = choice
+
+    def activate(self, window: QtToadApp) -> None:
+        self.choice.chosen(window)
+
+
 class TouchScrolled:
     """A scroll area a finger scrolls, kinetically. Qt widgets on Android scroll only by
     scroll bar unless a QScroller holds the viewport."""
@@ -178,8 +193,9 @@ class QtThreadListing(ThreadListing):
 
 class Welcome(Page, QWidget):
     """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
-    has not opened: the banner, the project, and the channels and threads the shared welcome
-    lists."""
+    has not opened: the banner, the project, the channels and threads the shared welcome
+    lists, and the remote buses this machine holds. A Qt client is always remote, so the
+    buses are BusChoice.held, the Textual welcome's own source without this machine's bus."""
 
     mode = WELCOME
     listings = (QtChannelListing(), QtThreadListing())
@@ -202,6 +218,7 @@ class Welcome(Page, QWidget):
         layout.addWidget(self.project)
         layout.addSpacing(12)
         layout.addWidget(self.rows, 1)
+        self.show_buses()
 
     def present(self, model: SidebarModel) -> None:
         self.rows.clear()
@@ -209,6 +226,19 @@ class Welcome(Page, QWidget):
             section = self.rows.section(listing.TITLE)
             listing.add(self.rows, section, model)
             section.setExpanded(True)
+        self.show_buses()
+
+    def present_failed(self, observed: FailedObservation) -> None:
+        """The bus could not be read: say why, and keep the buses to switch to."""
+        self.rows.clear()
+        self.rows.section(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
+        self.show_buses()
+
+    def show_buses(self) -> None:
+        section = self.rows.section("Buses")
+        for choice in BusChoice.held(time()):
+            self.rows.add_row(section, BusRow(choice), "", choice.label(), "", choice.label())
+        section.setExpanded(True)
 
     def resizeEvent(self, event) -> None:
         """The banner fills the width in whole characters, as the terminal draws it."""
@@ -284,8 +314,8 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         return self.add_row(parent, ConversationRow(DirectTarget(name)),
                             thread.unread.badge, thread.label, thread.summary, thread.title)
 
-    def add_row(self, parent: QTreeWidgetItem, row: ConversationRow, badge: str, label: str,
-                summary: str, tooltip: str) -> ConversationRow:
+    def add_row[Row: SidebarItem](self, parent: QTreeWidgetItem, row: Row, badge: str, label: str,
+                                  summary: str, tooltip: str) -> Row:
         renderer = self.window.renderer
         text = QLabel(renderer.styled(f"{badge} " if badge else "", TextRole)
                       + renderer.styled(label, TextRole)
@@ -332,6 +362,7 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
         self.observed = None
         self.clear()
         self.addTopLevelItem(SidebarSection(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}"))
+        self.window.workspace_sessions.home.present_failed(observed)
 
     def present(self, **changes: object) -> None:
         """Toad's sidebar rows: a badge and label, and the row's summary under it in
@@ -647,6 +678,17 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.winId()
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
         self.fit_safe_area(self.windowHandle().safeAreaMargins())
+
+    def connection_for(self, choice: BusChoice) -> CoreConnection:
+        """The profile a chosen bus names, read by the member this window launched with, so
+        desktop keeps decoding in a process and Android in place."""
+        return type(self.coordination_access.connection).startup(list(choice.arguments(())))
+
+    async def open_saved_tabs(self) -> None:
+        """The saved roster is read so tabs this app cannot draw yet stay saved; the sidebar
+        and welcome bind the observation the connection serves."""
+        await self.tab_order.load()
+        self.coordination_access.open_current().show_sidebar(self.sidebar)
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
         button = QToolButton()

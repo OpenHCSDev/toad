@@ -71,6 +71,9 @@ class QtCommsHost(CommsHost):
         self.project_dir = project
         self.preparation = preparation
         self.operations: defaultdict[type[OperationKind], set[asyncio.Future[None]]] = defaultdict(set)
+        # The loop qasync runs on Qt's thread. Asked from a worker thread (an observation
+        # adopted off the loop, as a bus switch adopts one), get_running_loop has none.
+        self._loop = asyncio.get_running_loop()
         super().__init__()
 
     def schedule_ui(self, callback: Callable[[], None]) -> None:
@@ -101,7 +104,7 @@ class QtCommsHost(CommsHost):
 
     @property
     def running_loop(self) -> asyncio.AbstractEventLoop:
-        return asyncio.get_running_loop()
+        return self._loop
 
     def report_fatal(self, error: Exception) -> None:
         traceback.print_exception(error)

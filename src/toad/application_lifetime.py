@@ -150,6 +150,21 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.schedule_ui(partial(self.usage.publish, "toad-install"))
         self.usage.publish("toad-run")
+        await self.resumed_session.selected(
+            await self.restored_tabs(),
+            lambda resumed: partial(self.open_resumed, resumed),
+        )()
+        await self.show_home_without_tabs()
+        app.terminal_attention.attach()
+        self.version = app.settings.updates.monitor()
+        app.delay_ui(1, partial(app.run_operation, VersionCheck, self.check_version))
+        app.run_operation(ProcessTitleUpdate,
+                          partial(app.preparation.run_thread, self.set_process_title, "toad"))
+        app.update_show_sessions()
+
+    async def restored_tabs(self) -> Callable[[], Awaitable[object]]:
+        """Restore the tabs the observed Core saved; the answer opens the last of them."""
+        app = self.app
         restored: Callable[[], Awaitable[object]] = self.restore_nothing
         for identity in await app.tab_order.load():
             try:
@@ -158,21 +173,19 @@ class ApplicationLifetime:
             except TabTargetGone as error:
                 await app.tab_order.close((identity,))
                 app.log_error(f"Removed stale tab {error.identity}: {error.reason}")
-        await self.resumed_session.selected(
-            restored,
-            lambda resumed: partial(self.open_resumed, resumed),
-        )()
-        if not app.tab_order.names:
-            await app.select_session(app.tab_order.home)
-        app.terminal_attention.attach()
-        self.version = app.settings.updates.monitor()
-        app.delay_ui(1, partial(app.run_operation, VersionCheck, self.check_version))
-        app.run_operation(ProcessTitleUpdate,
-                          partial(app.preparation.run_thread, self.set_process_title, "toad"))
-        app.update_show_sessions()
+        return restored
+
+    async def open_saved_tabs(self) -> None:
+        """A switched-to Core's saved tabs, opened as a start opens them."""
+        await (await self.restored_tabs())()
+        await self.show_home_without_tabs()
+
+    async def show_home_without_tabs(self) -> None:
+        if not self.app.tab_order.names:
+            await self.app.select_session(self.app.tab_order.home)
 
     async def restore_nothing(self) -> None:
-        """No saved tab came back; the home tab below is selected instead."""
+        """No saved tab came back; the home tab is selected instead."""
 
     async def open_resumed(self, resumed: AcpSessionId) -> None:
         """The thread's declaration decides how it opens, as from the sidebar."""

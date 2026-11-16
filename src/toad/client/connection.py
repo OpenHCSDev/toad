@@ -204,11 +204,18 @@ class CoreConnection(ABC):
     """How this launch starts its local route observer and its render workers."""
 
     @staticmethod
-    def select(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
-        """Select once at the process boundary; a UI profile selects the remote Core."""
+    def select(arguments: list[str]) -> CoreConnection:
+        """The connection launch ``arguments`` name: a UI profile selects the remote Core.
+
+        A launch reads its own arguments here, and a running app reads a chosen bus's here
+        too, so one parser decides which Core both open. A frontend-only install has no
+        published agent runtime yet: the route owner supplies its normal local default when
+        absent, while a broken route still refuses.
+        """
         if RemoteCoreConnection.argument in arguments:
             return ProcessRemoteCoreConnection.startup(arguments)
-        return LocalCoreConnection.from_launch(LaunchRoot.startup(arguments, published))
+        return LocalCoreConnection.from_launch(LaunchRoot.startup(
+            arguments, lambda: LaunchRoot.from_path(CommsRoute.current().root)))
 
     def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
@@ -1150,15 +1157,19 @@ class CoordinationAccess(MroDispatch):
         self.timer = self.app.repeat_ui(ROUTE_CHECK_SECONDS, self.check_route)
         self.check_route()
 
+    async def stop_route_check(self) -> None:
+        """Join the route check in flight, so nothing opens under the connection after it."""
+        if self.route_task is not None:
+            self.route_task.cancel()
+            await asyncio.gather(self.route_task, return_exceptions=True)
+            self.route_task = None
+
     async def stop_observing(self) -> None:
         """End view updates before teardown; outstanding read replies still complete."""
         if self.timer is not None:
             self.timer.stop()
             self.timer = None
-        if self.route_task is not None:
-            self.route_task.cancel()
-            await asyncio.gather(self.route_task, return_exceptions=True)
-            self.route_task = None
+        await self.stop_route_check()
         self.events.close_threads()
         self.app.cancel_operations(ThreadInterestUpdate)
         self.observation = self.observation.stop_updates()
@@ -1177,6 +1188,19 @@ class CoordinationAccess(MroDispatch):
                 self.observation = NotObserving(access=self)
                 for task in tuple(self.retiring):
                     release.push_async_callback(join_retirement, task)
+
+    async def switch_connection(self, connection: CoreConnection) -> None:
+        """Observe ``connection``'s Core in place of the current one's, the way a changed
+        route is observed: its current observation adopts the old one, which retires with
+        its subscriptions, and every view subscribed to this access rebinds on the
+        CoordinationObserved that follows. The old connection closes once that retirement
+        has joined, as close() orders it."""
+        await self.stop_route_check()
+        previous, self.connection = self.connection, connection
+        await self.observe_route()
+        for task in tuple(self.retiring):
+            await join_retirement(task)
+        await asyncio.to_thread(previous.close)
 
     async def route_changed(self) -> bool:
         previous = self.observation

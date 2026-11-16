@@ -51,7 +51,7 @@ class SessionChanges(list[SessionChangedEvent]):
 
 def test_session_tracker_publishes_only_changed_labels(tmp_path):
     order = TabOrder(lambda identity: None, home="home", db=DB(tmp_path / "toad.client.db"),
-                     scopes=(TabScope("test-core"),))
+                     scopes=lambda: (TabScope("test-core"),))
     tracker = SessionTracker(order)
     details = tracker.new_session(AcpTab(1), title="old")
     changes = SessionChanges()
