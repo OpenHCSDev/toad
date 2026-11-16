@@ -3,23 +3,14 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from dataclasses import dataclass, field, make_dataclass
-from typing import Annotated
 
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
-from agent_comms.cli_verbs.cli_command import PreparedTargetAction, TargetAction
-from agent_comms.cli_verbs.target_fields import ChoiceTargetField, TargetField
+from agent_comms.cli_verbs.cli_command import TargetAction
+from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.config_options import ModelConfigOption
-from agent_comms.errors import RouteChangedError
 from agent_comms.execution.login import run_login
-from agent_comms.execution.native_failures import NativePiUnavailable
-from agent_comms.nominal.field_codec import compile_decoder
 from agent_comms.transport.request import CoreAccess
-from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool
-from formbridge.forms.declared_fields import DeclaredMetadata, Multiline
-from objectstate import ObjectState
-from python_introspect import FieldLabel
-from python_introspect.choices import LabelledChoices
+from toad.client.command_draft import CommandDraft, CommandText, PreparedChoices
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
@@ -52,22 +43,6 @@ from toad.widgets.model_selection import ModelSelection
 from toad.worker_group import WorkerGroup
 
 
-@dataclass(eq=False)
-class PreparedChoices(LabelledChoices, DeclaredMetadata):
-    """The catalog last prepared for a draft, not another copy of its value."""
-    parameter: ChoiceTargetField
-
-    def labelled_choices(self):
-        return self.parameter.choices
-
-    def declares(self):
-        """The prepared parameter names its own editors first; any choices editor follows."""
-        yield from self.parameter.editor_declarations
-        yield from super().declares()
-
-
-class CommandText(Multiline):
-    """A command parameter of several lines; the command form shows it five rows tall."""
 
 
 class CommandTextEditor(MultilineEditor, shows=(CommandText,)):
@@ -218,23 +193,12 @@ class CommandPreparation(WorkerGroup):
     """One preparation follows the current draft without restarting on each edit."""
 
 
-class CommandForm(Confirms, DismissibleControl, Vertical, actions=(ApplyCommandAction,)):
+class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=(ApplyCommandAction,)):
     """One backend operation, embedded in a panel or presented as a dialog."""
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...],
                  core: CoreAccess):
         super().__init__()
-        self.definition, self.target, self.core = definition, target, core
-        self.choices = {}
-        declarations = []
-        for parameter in fields:
-            hints = [FieldLabel(parameter.label), parameter.description]
-            hints.extend(parameter.editor_hints(
-                lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
-            if parameter.multiline:
-                hints.append(CommandText())
-            declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
-                                 field(default=parameter.editor_default)))
-        self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
+        self.init_draft(definition, target, fields, core)
         self.form = InlineFormView.whole(self.state)
 
     def compose(self) -> ComposeResult:
@@ -318,14 +282,14 @@ class CommandForm(Confirms, DismissibleControl, Vertical, actions=(ApplyCommandA
             else:
                 self.update_confirmation()
 
-    def validated_action(self, arguments) -> TargetAction:
-        """The same declared catalog constraints guard the preview and submission."""
-        for name in self.choices:
-            self.form.values[name].field.validate(arguments[name])
-        return self.definition.edited(arguments)
+    def draft_value_names(self):
+        return self.form.values
 
-    def arguments(self):
-        return {name: self.state.get_resolved_value(name) for name in self.form.values}
+    def draft_validate_field(self, name, value):
+        self.form.values[name].field.validate(value)
+
+    def repaint_choice(self, name):
+        self.form.values[name].editor.paint()
 
     async def refresh_catalogs(self, arguments):
         while self.is_attached:

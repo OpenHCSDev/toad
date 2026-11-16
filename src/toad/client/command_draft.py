@@ -9,29 +9,33 @@ inherit this alongside their framework's modal/form capabilities.
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import field, make_dataclass
+from dataclasses import field as dc_field, make_dataclass
 from typing import Annotated
 
+from dataclasses import dataclass
+
 from agent_comms.cli_verbs.cli_command import TargetAction, TargetField
+from agent_comms.cli_verbs.target_fields import ChoiceTargetField
+from agent_comms.nominal.field_codec import compile_decoder
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool
-from formbridge.forms.declared_fields import DeclaredField, DeclaredMetadata, FieldLabel, Multiline
-from formbridge.forms.value_editing import ControlConstruction
+from formbridge.forms.declared_fields import DeclaredMetadata, Multiline
 from objectstate import ObjectState
-from python_introspect import AnnotationChoices, LabelledChoices
+from python_introspect import FieldLabel
+from python_introspect.choices import LabelledChoices
 
-from formbridge.forms.field_extraction import compile_decoder
 
-
+@dataclass(eq=False)
 class PreparedChoices(LabelledChoices, DeclaredMetadata):
-    def __init__(self, item):
-        self.parameter = item
+    """The catalog last prepared for a draft, not another copy of its value."""
+    parameter: ChoiceTargetField
 
     def labelled_choices(self):
-        return self.parameter.labelled_choices()
+        return self.parameter.choices
 
     def declares(self):
-        return self.parameter.declares()
+        yield from self.parameter.editor_declarations
+        yield from super().declares()
 
 
 class CommandText(Multiline):
@@ -63,7 +67,7 @@ class CommandDraft:
             if parameter.multiline:
                 hints.append(CommandText())
             declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
-                                 field(default=parameter.editor_default)))
+                                 dc_field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
 
     def arguments(self) -> dict[str, object]:
