@@ -96,6 +96,13 @@ class QtCommsHost(CommsHost):
         running = asyncio.ensure_future(task())
         self.operations[kind].add(running)
         running.add_done_callback(self.operations[kind].discard)
+        running.add_done_callback(self.operation_finished)
+
+    def operation_finished(self, running: asyncio.Future[None]) -> None:
+        """A failed operation reaches the failure owner, as a failed Textual worker does;
+        a cancelled one was stopped on purpose."""
+        if not running.cancelled() and (error := running.exception()) is not None:
+            self.report_fatal(error)
 
     def cancel_operations(self, kind: type[OperationKind]) -> None:
         for running in self.operations.pop(kind, set()):

@@ -4,10 +4,13 @@ import asyncio
 from pathlib import Path
 from types import SimpleNamespace
 
+from agent_comms.messaging.channel_targets import ChannelTarget
+
 from toad.client.conversation import ChannelConversation
 from formbridge.publications import Subscription
 from toad.client.resource_release import ResourceRelease
 from toad.transcript_publication import SourcePublicationRequests
+from toad.widgets.comms_chat import CommsChatView
 
 
 def test_channel_mentions_check_the_root_of_the_core_they_read() -> None:
@@ -18,14 +21,14 @@ def test_channel_mentions_check_the_root_of_the_core_they_read() -> None:
     async def current_sidebar():
         return SimpleNamespace(require_snapshot=lambda: snapshot)
 
-    async def run_thread(read, name):
-        return read(name)
+    async def run_thread(read, argument):
+        return read(argument)
 
     async def source_is_current(source):
         return source is shown
 
     snapshot = SimpleNamespace(references=object(), mention_candidates=lambda name: (name,))
-    conversation = SimpleNamespace(destination=lambda _references: SimpleNamespace(name="#comms"))
+    conversation = ChannelConversation(ChannelTarget("#comms"))
     view = SimpleNamespace(
         message_history=SimpleNamespace(source_snapshot=lambda: shown, source_is_current=source_is_current),
         conversation=conversation,
@@ -36,11 +39,11 @@ def test_channel_mentions_check_the_root_of_the_core_they_read() -> None:
             ),
             preparation=SimpleNamespace(run_thread=run_thread),
         ),
-        query_one=lambda _kind: SimpleNamespace(set_mention_candidates=offered.append),
+        query=lambda _kind: (SimpleNamespace(set_mention_candidates=offered.append),),
     )
     core = SimpleNamespace(root=Path("/core/root"))
 
-    asyncio.run(ChannelConversation.update_mentions(view, core))
+    asyncio.run(CommsChatView.update_channel_mentions(view, core))
 
     assert roots == [Path("/core/root")]
     assert offered == [("#comms",)]

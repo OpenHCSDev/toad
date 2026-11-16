@@ -154,7 +154,7 @@ async def test_wire_sends_queue_in_order_while_compose_stays_open(workspace):
 async def test_a_sent_message_scrolled_past_by_a_long_reply_still_retires_from_the_queue(workspace):
     """Drawn means in the history's drawn rows, not inside the viewport: a long reply
     landing in the same read pushes the sent message off screen, and its queue entry retires."""
-    from toad.conversation_submission import BusSubmissionExecution
+    from toad.client.bus_submission import BusSubmissionExecution
     from toad.widgets.comms_chat import CommsChatView
 
     comms = workspace.comms

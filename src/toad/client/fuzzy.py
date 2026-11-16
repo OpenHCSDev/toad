@@ -1,7 +1,8 @@
 """
 Fuzzy matcher.
 
-This class is used by the [command palette](/guide/command_palette) to match search terms.
+This class is used by the [command palette](/guide/command_palette) to match search terms,
+and ranks slash commands and paths for every frontend; it imports no toolkit.
 
 """
 
@@ -11,9 +12,6 @@ from functools import lru_cache
 from operator import itemgetter
 from re import finditer
 from typing import Iterable, Sequence
-
-
-from textual.cache import LRUCache
 
 
 class FuzzySearch:
@@ -33,12 +31,10 @@ class FuzzySearch:
         """
 
         self.case_sensitive = case_sensitive
-        self.cache: LRUCache[tuple[str, str], tuple[float, Sequence[int]]] = LRUCache(
-            cache_size
-        )
+        self.match = lru_cache(maxsize=cache_size)(self.best_match)
 
-    def match(self, query: str, candidate: str) -> tuple[float, Sequence[int]]:
-        """Match against a query.
+    def best_match(self, query: str, candidate: str) -> tuple[float, Sequence[int]]:
+        """Match against a query; `match` answers it through this search's cache.
 
         Args:
             query: The fuzzy query.
@@ -47,14 +43,8 @@ class FuzzySearch:
         Returns:
             A pair of (score, tuple of offsets). `(0, ())` for no result.
         """
-
-        cache_key = (query, candidate)
-        if cache_key in self.cache:
-            return self.cache[cache_key]
         default: tuple[float, Sequence[int]] = (0.0, [])
-        result = max(self._match(query, candidate), key=itemgetter(0), default=default)
-        self.cache[cache_key] = result
-        return result
+        return max(self._match(query, candidate), key=itemgetter(0), default=default)
 
     @classmethod
     @lru_cache(maxsize=1024)

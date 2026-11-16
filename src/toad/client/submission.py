@@ -6,6 +6,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from typing import ClassVar
 
 from agent_comms.messaging.channel_targets import NamedTarget
 from agent_comms.messaging.message_reference import MessageReference
@@ -33,6 +34,9 @@ class SubmittedText(ABC):
 
 class MessageDestination(ABC):
     """What a bus send asks of the conversation it writes to; every conversation kind is one."""
+
+    read_only_reason: ClassVar[str] = "Read-only saved view"
+    """Why compose is held when read_only answers True."""
 
     @abstractmethod
     def send_target(self) -> NamedTarget: ...

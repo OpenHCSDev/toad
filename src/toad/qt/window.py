@@ -9,24 +9,24 @@ QtWorkspaceViews draws its view, a Qt ConversationView.
 from __future__ import annotations
 
 import asyncio
-from time import monotonic, time
-from collections.abc import Callable
+from time import time
+from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 
 from agent_comms.messaging.message_page import MessagePage, PageBounds
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
-from agent_comms.ui_model.status import ThreadStatusModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QMargins, QPoint, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPainter, QPalette, QShortcut
+from PySide6.QtCore import QMargins, QPoint, Qt
+from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPalette, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMenu,
     QPushButton,
     QScroller,
@@ -40,7 +40,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from ui_theme.effects import ACTIVITY_SWEEP
 from ui_theme.scheme import (
     BackgroundColour,
     ColourScheme,
@@ -55,33 +54,38 @@ from ui_theme.scheme import (
 from toad.client.application import ClientApplication
 from toad.client.application_actions import ApplicationAction
 from toad.client.bus_selection import BusChoice
+from toad.client.bus_submission import BusSubmissions, SubmissionView, TypedText
 from toad.client.connection import (
-    CoordinationAccess,
     CoreConnection,
     FailedObservation,
     Observing,
     RemoteCoreConnection,
 )
 from toad.client.conversation import ConversationKind
-from toad.client.conversation_capabilities import ConversationSource
+from toad.client.conversation_capabilities import ConversationActivity, ConversationSource
 from toad.client.history_entry import HistorySessionEntry
 from toad.client.condensed_path import condense_path, home_relative
 from toad.client.line_blocks import LineBlock, MutedRole, TextRole
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
+from toad.client.referenced_core import ReferencedCore
+from toad.client.submission import BusDestination, MessageDestination
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
 from toad.client.tab_identity.kinds import CommsTab
+from toad.command_catalog import CommandCatalog
 from toad.constants import WELCOME
 from toad.core.events import CoordinationObserved, TabHistoryChanged
 from toad.message_rows import MarkdownMessageStyle, MessageRow
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
-from toad.qt.core_events import QtCoreObserver
+from toad.qt.activity import ChannelActivity, PeerActivity
+from toad.qt.composer import ChannelComposer, Composer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost
 from toad.qt.lines import QtLineRenderer
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
-from toad.status_thread import ObservedActivity, StatusOwner
+from toad.status_thread import StatusOwner
+from toad.target_commands import TargetContext
 from toad.work_preparation import PreparationRuntime
 
 
@@ -95,6 +99,10 @@ class ConversationOpen(OperationKind, ExclusiveKind):
 
 class MessageSend(OperationKind):
     """Sends one message; sends run side by side and are never superseded."""
+
+
+class CommandRead(OperationKind, ExclusiveKind):
+    """Reads the conversation's command catalog for its composer; a newer read supersedes it."""
 
 
 class MenuActionRun(OperationKind):
@@ -385,57 +393,6 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
         self.window.paint_tabs()
 
 
-class ActivityStrip(ObservedActivity, QtCoreObserver, QWidget):
-    """Toad's activity sweep while the conversation's thread is working: the shared
-    ACTIVITY_SWEEP ribbon sampled across the strip, each sample's two stops blended and
-    drawn as tall as the ribbon is thick there."""
-
-    def __init__(self, window: QtToadApp) -> None:
-        super().__init__()
-        self.window = window
-        self.row = ThreadStatusModel.pending("")
-        self.is_mounted = False
-        self.started = monotonic()
-        self.setFixedHeight(6)
-        self.timer = QTimer(self)
-        self.timer.setInterval(int(1000 / ACTIVITY_SWEEP.frames_per_second))
-        self.timer.timeout.connect(self.update)
-
-    @property
-    def coordination(self) -> CoordinationAccess:
-        return self.window.coordination_access
-
-    def showEvent(self, event) -> None:
-        super().showEvent(event)
-        if not self.is_mounted:
-            self.is_mounted = True
-            self.start_observing()
-
-    def show(self, row: ThreadStatusModel) -> None:
-        self.row = row
-        if self.working:
-            self.timer.start()
-        else:
-            self.timer.stop()
-        self.update()
-
-    def paintEvent(self, event) -> None:
-        if not self.working:
-            return
-        frame = ACTIVITY_SWEEP.frame(monotonic() - self.started)
-        scheme = self.window.renderer.scheme
-        width, height = self.width(), self.height()
-        painter = QPainter(self)
-        for x in range(width):
-            start, end, amount, thickness = frame.sample((x + 0.5) / width)
-            if thickness <= 0:
-                continue
-            ink = start.rgb(scheme).blend(end.rgb(scheme), amount)
-            bar = max(1, round(height * thickness))
-            painter.fillRect(x, (height - bar) // 2, 1, bar, QColor(ink.hex))
-        painter.end()
-
-
 class QtSessionEntry(SessionEntries):
     """The Qt window's entry family."""
 
@@ -463,44 +420,55 @@ class PathLabel(QLabel):
         self.setText(condense_path(self.shown, max(1, cells)))
 
 
-class ConversationView(Page, StatusOwner, SessionScope, QWidget):
+@dataclass(frozen=True)
+class ViewDestination(BusDestination):
+    """A conversation tab: shown while its view is open on this conversation of this bus."""
+
+    view: ConversationView
+
+    def shown(self) -> bool:
+        return self.view.shows(self.root, self.conversation)
+
+    async def presented(self, sent: MessageReference) -> None:
+        self.view.reload()
+
+
+class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, ConversationActivity, ComposerHost, QWidget):
     """One conversation tab: its newest page, read again whenever Core's stores change; the
-    activity sweep and info row over its thread's status; and a sender."""
+    info row over its thread's status; and the composer and activity its kind chooses,
+    sending through the shared submissions as Textual's conversation view does."""
 
     page_size = 50
 
-    def __init__(self, window: QtToadApp, entry: QtHistorySessionEntry) -> None:
+    def __init__(self, app: QtToadApp, entry: QtHistorySessionEntry) -> None:
         super().__init__()
-        self.window, self.entry = window, entry
+        self.app, self.entry = app, entry
+        self.submissions = BusSubmissions(self)
+        self.drawn: frozenset[MessageReference] = frozenset()
         self.content_ready = asyncio.Event()
         label = entry.unobserved_tab().label()
-        self.messages = MessageView(window.renderer)
-        self.thread_activity = ActivityStrip(window)
+        self.messages = MessageView(app.renderer)
         self.label = QLabel(label)
         self.status = QLabel()
         self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self.status.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
-        self.directory = PathLabel(window.project_dir.path)
-        self.directory.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
+        self.status.setStyleSheet(f"color: {app.renderer.colour(MutedRole)}")
+        self.directory = PathLabel(app.project_dir.path)
+        self.directory.setStyleSheet(f"color: {app.renderer.colour(MutedRole)}")
         info = QHBoxLayout()
         info.setContentsMargins(6, 0, 6, 0)
         info.addWidget(self.directory, 1)
         info.addWidget(self.label)
         info.addWidget(self.status, 2)
-        self.input = QLineEdit()
-        self.input.setPlaceholderText(f"Message {label}")
-        self.input.returnPressed.connect(self.send)
-        send = QPushButton("Send")
-        send.clicked.connect(self.send)
-        footer = QHBoxLayout()
-        footer.addWidget(self.input, 1)
-        footer.addWidget(send)
+        self.composer = self.conversation.prompt(self)
+        self.composer.labelled(label)
+        self.activity = tuple(self.conversation.compose_activity(self))
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.messages, 1)
-        layout.addWidget(self.thread_activity)
         layout.addLayout(info)
-        layout.addLayout(footer)
+        layout.addWidget(self.composer)
+        for line in self.activity:
+            layout.addWidget(line)
 
     @property
     def mode(self) -> str:
@@ -515,11 +483,18 @@ class ConversationView(Page, StatusOwner, SessionScope, QWidget):
         visited(self.entry.identity)
         self.reload()
 
+    def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
+        """Whether this tab is still open on this conversation, read from this root."""
+        return (self.app.workspace_sessions.views.get(self.mode) is self and conversation == self.conversation
+                and Path(root) == Path(self.app.source().root))
+
     async def wait_content_ready(self) -> None:
         await self.content_ready.wait()
 
     def close_core_events(self) -> None:
-        self.thread_activity.close_core_events()
+        for line in self.activity:
+            line.close_activity()
+        self.composer.receipt.stop()
 
     async def retire_presentation(self) -> None:
         """Qt keeps nothing drawn apart from the widgets, which go with the view."""
@@ -529,35 +504,105 @@ class ConversationView(Page, StatusOwner, SessionScope, QWidget):
         return self.entry.key.conversation
 
     def reload(self) -> None:
-        self.window.run_operation(ConversationRead, self.read_page)
+        self.app.run_operation(ConversationRead, self.read_page)
 
     async def read_page(self) -> None:
-        source = self.window.source()
+        source = self.app.source()
         try:
             page: MessagePage = await asyncio.to_thread(
                 self.conversation.page, source, PageBounds(limit=self.page_size))
             style = MarkdownMessageStyle()
-            rows = (MessageRow(message, self.entry.viewer) for message in page.messages)
+            rows = tuple(MessageRow(message, self.entry.viewer) for message in page.messages)
             self.messages.show_blocks(tuple(
                 block for row in rows for block in (row.header, *style.body(row, row.text))))
+            self.drawn = frozenset(message.reference for message in page.messages)
         finally:
             self.content_ready.set()
-        self.conversation.status_thread(source.root, self.window.coordination_access).refresh(self)
-        self.label.setText(self.conversation.label(source.references()))
+        self.submissions.settle()
+        self.composer.receipt.follow(str(source.root), next((
+            references for row in reversed(rows)
+            if row.outgoing and (references := row.message.role.notification_references(row.message))), ()),
+            page.selection.notification_identity)
+        self.conversation.status_thread(source.root, self.app.coordination_access).refresh(self)
+        label = self.conversation.label(source.references())
+        self.label.setText(label)
+        self.composer.labelled(label)
         read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
+        await self.refresh_composer(read_only)
         self.status.setText(await self.conversation.status_text(source, read_only=read_only))
+        await self.conversation.update_mentions(self, source)
 
-    def send(self) -> None:
-        body = self.input.text().strip()
-        if not body:
+    # The kind's composer and activity (ConversationActivity)
+
+    def channel_prompt(self, placeholder: str) -> ChannelComposer:
+        return ChannelComposer(self, self.app.renderer, placeholder)
+
+    def message_prompt(self) -> MessageComposer:
+        return MessageComposer(self, self.app.renderer)
+
+    def compose_channel_activity(self) -> Iterator[ChannelActivity]:
+        yield ChannelActivity(self.app, self.app.renderer, self.conversation)
+
+    def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator[PeerActivity]:
+        self.thread_activity = PeerActivity(self.app, self.app.renderer, peer)
+        yield self.thread_activity
+
+    async def update_channel_mentions(self, source: ReferencedCore) -> None:
+        answer = await self.app.coordination_access.current_sidebar()
+        self.composer.set_mention_candidates(
+            await self.app.preparation.run_thread(self.conversation.mention_candidates, answer))
+
+    # Commands the composer offers after a /
+
+    async def command_target_context(self) -> TargetContext:
+        source = self.app.source()
+        return TargetContext.in_conversation(
+            self.app, source.root, self.conversation, self.entry.viewer, source.project, self.mode)
+
+    async def read_command_catalog(self) -> CommandCatalog:
+        return await CommandCatalog.read(self.app, (), self.command_target_context())
+
+    def load_commands(self, composer: Composer) -> None:
+        self.app.run_operation(CommandRead, self.read_commands)
+
+    async def read_commands(self) -> None:
+        self.composer.set_commands((await self.read_command_catalog()).commands)
+
+    # Sending, through the shared submissions (SubmissionView)
+
+    def submit(self, text: TypedText) -> None:
+        self.app.run_operation(MessageSend, partial(self.start_send, text))
+
+    async def start_send(self, text: TypedText) -> None:
+        if text.text.startswith("/") and (await self.read_command_catalog()).recognizes(text.text):
+            self.delivery_refused(f"{text.text.partition(' ')[0]} is a command, and this client runs no commands",
+                                  text.source_text)
             return
-        self.input.clear()
-        self.window.run_operation(MessageSend, partial(self.deliver, body))
+        root = self.app.source().root
+        await self.submissions.start_bus(text, ViewDestination(root, self.conversation, self)).prepare()
 
-    async def deliver(self, body: str) -> None:
-        observed = self.window.coordination_access.observation.observed()
-        await asyncio.to_thread(observed.send_user_message, self.conversation.send_target(), body)
-        self.reload()
+    def delivery_refused(self, description: str, body: str) -> None:
+        self.composer.restore_draft(body)
+        self.composer.show_failure(self.refusal_notice(description))
+
+    def delivery_unknown(self, description: str, body: str) -> None:
+        self.composer.restore_draft(body)
+        self.composer.show_failure(self.unknown_notice(description))
+
+    async def refresh_composer(self, read_only: bool) -> None:
+        self.composer.hold(MessageDestination.read_only_reason if read_only else "")
+
+    def draws_user_message(self, reference: MessageReference) -> bool:
+        return reference in self.drawn
+
+    def record_input(self, text: str) -> None:
+        """The Qt composer recalls no earlier input, so there is no history to keep."""
+
+    def run_submission(self, send: Callable[[], Awaitable[None]]) -> None:
+        self.app.run_operation(MessageSend, send)
+
+    def submissions_changed(self) -> None:
+        self.composer.show_submitting()
 
 
 class QtWorkspaceViews(WorkspaceViews):

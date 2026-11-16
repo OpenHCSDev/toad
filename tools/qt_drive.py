@@ -20,14 +20,17 @@ from pathlib import Path
 from typing import ClassVar
 
 import qasync
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 
+from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
 from toad.client.application_actions import ApplicationAction, QuitAction
+from toad.client.bus_submission import TypedText
+from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.main import current_scheme, open_app
-from toad.qt.window import ConversationRow, QtToadApp
+from toad.qt.window import ConversationRow, MessageSend, QtToadApp, ViewDestination
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -165,6 +168,87 @@ class MenuScenario(Scenario):
             except Exception as error:
                 print(f"{label}: FAILED {type(error).__name__}: {error}", flush=True)
                 traceback.print_exc()
+
+
+class MissingChannelDestination(ViewDestination):
+    """A destination its view still shows whose channel Core does not know: its read-only
+    check fails before anything leaves, the way a refused send does."""
+
+    def shown(self) -> bool:
+        return True
+
+
+class ComposerScenario(Scenario):
+    summary = ("type @ and / in #any without sending; in the DM to claude-a (this drive's own "
+               "inbox), send one message, follow its receipt, then force a failed send")
+
+    inbox = "claude-a"
+
+    async def type(self, text: str) -> None:
+        composer = self.page.composer
+        composer.editor.clear()
+        composer.editor.setFocus()
+        composer.editor.insertPlainText(text)
+        await asyncio.sleep(0.2)
+
+    async def open(self, row, label: str) -> None:
+        before = self.page
+        self.app.open_row(row)
+        await until(lambda: self.page is not before and self.page is not self.app.workspace_sessions.home
+                    and self.page.messages.toPlainText(), label)
+        await asyncio.sleep(1.5)
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.sidebar.expanded.add("Threads")
+        app.sidebar.present()
+        await asyncio.sleep(0.3)
+        tops = list(app.sidebar.items())
+        everyone = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#any")
+        await self.open(everyone, "#any")
+        composer = self.page.composer
+        self.report("1-any", placeholder=composer.editor.placeholderText(),
+                    activity=[line.text() for line in self.page.activity])
+        await self.type("@")
+        await until(lambda: composer.offers.offers, "mention offers", tenths=100)
+        self.report("2-mentions", offers=[offer.label for offer in composer.offers.offers])
+        composer.offers.accept_current()
+        self.report("3-mention-accepted", text=composer.text)
+        await self.type("/")
+        await until(lambda: composer.offers.offers, "command offers", tenths=300)
+        self.report("4-commands", count=len(composer.offers.offers),
+                    offers=[offer.label for offer in composer.offers.offers[:8]])
+        await self.type("/te")
+        self.report("5-commands-te", offers=[offer.label for offer in composer.offers.offers[:5]])
+        await self.type("")
+        threads = list(app.sidebar.items())[-1]
+        inbox = next(threads.child(index) for index in range(threads.childCount())
+                     if threads.child(index).key == self.inbox)
+        await self.open(inbox, self.inbox)
+        composer = self.page.composer
+        self.report("6-inbox", placeholder=composer.editor.placeholderText(),
+                    activity=[line.summary.text() for line in self.page.activity])
+        await self.type("Qt composer drive check: this DM is sent through the shared submissions; no reply needed.")
+        composer.send()
+        await asyncio.sleep(0.05)
+        self.report("7-sending", submitting=composer.submitting.text())
+        seen: list[str] = []
+        for _ in range(250):
+            await asyncio.sleep(0.1)
+            shown = composer.receipt.text() if composer.receipt.isVisible() else ""
+            if shown and (not seen or seen[-1] != shown):
+                seen.append(shown)
+        self.report("8-receipt", receipts=seen, submitting=composer.submitting.text())
+        view = self.page
+        missing = ChannelConversation(ChannelTarget("#composer-drive-missing"))
+        destination = MissingChannelDestination(app.source().root, missing, view)
+        app.run_operation(MessageSend,
+                          lambda: view.submissions.start_bus(TypedText("this send must fail"), destination).prepare())
+        await until(lambda: composer.failure.isVisible(), "failure", tenths=100)
+        await asyncio.sleep(0.5)
+        self.report("9-failed", failure=composer.failure.text(), draft=composer.text,
+                    notices=[box.text() for box in app.findChildren(QMessageBox)])
 
 
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:

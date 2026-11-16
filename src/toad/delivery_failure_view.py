@@ -2,6 +2,8 @@
 
 
 from abc import abstractmethod
+from collections.abc import Awaitable, Callable
+from functools import partial
 
 from agent_comms.messaging.message_reference import MessageReference
 from rich.text import Text as RichText
@@ -10,12 +12,17 @@ from textual.content import Content
 from textual.reactive import var
 from textual.widget import Widget
 
+from textual.worker import Worker
+
 from toad.app_node import ToadNode
+from toad.client.bus_submission import SubmissionView
+from toad.client.submission import MessageDestination
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
+from toad.worker_group import InputHistoryRecord
 
 
-class DeliveryFailureView(ToadNode, Widget):
+class DeliveryFailureView(SubmissionView, ToadNode, Widget):
     """The composed input, status and delivery behavior shared by conversations.
 
     Sending never holds compose: a send waits in the view's submissions, shown above the
@@ -39,7 +46,7 @@ class DeliveryFailureView(ToadNode, Widget):
         """Draw compose from the caller's Core answer."""
         if not self.is_attached:
             return
-        reason = "Read-only saved view" if read_only else ""
+        reason = MessageDestination.read_only_reason if read_only else ""
         area = self.prompt.prompt_text_area
         area.disabled = bool(reason)
         area.tooltip = reason or None
@@ -51,10 +58,18 @@ class DeliveryFailureView(ToadNode, Widget):
         """The request may have reached Core. The owner sees whether it landed in this view,
         so the draft comes back instead of waiting on an answer it cannot get."""
         self.prompt.restore_draft(body)
-        self.feedback.flash(
-            f"Send outcome unknown: {description}. Check this conversation before resending.",
-            style="error")
+        self.feedback.flash(self.unknown_notice(description), style="error")
 
     def delivery_refused(self, description: str, body: str) -> None:
         self.prompt.restore_draft(body)
-        self.feedback.flash(f"Send failed: {description}", style="error")
+        self.feedback.flash(self.refusal_notice(description), style="error")
+
+    def record_input(self, text: str) -> None:
+        InputHistoryRecord.run_on(self, partial(self.input_histories.prompt.record, text))
+
+    def run_submission(self, send: Callable[[], Awaitable[None]]) -> Worker[None]:
+        return self.run_worker(send, group="conversation-submission")
+
+    def submissions_changed(self) -> None:
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_queue()
