@@ -1,4 +1,5 @@
-"""The Qt window: the bus's threads, and Toad's tabs over the conversations you open.
+"""The Qt window: Toad's tabs over the conversations you open, and its sidebar of channels
+and threads behind the bar above them.
 
 Tabs, their saved roster and back/forward history are Toad's own TabOrder over CommsTab
 identities; each tab is the shared conversation entry, drawn by a Qt ConversationView.
@@ -22,14 +23,16 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QListWidget,
-    QListWidgetItem,
+    QMenu,
     QPushButton,
     QScroller,
+    QSplitter,
     QStackedWidget,
     QTabBar,
     QTextBrowser,
     QToolButton,
+    QTreeWidget,
+    QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -82,12 +85,34 @@ class ObservedSource(ConversationSource):
     project: Checkout
 
 
-class ConversationRow(QListWidgetItem):
-    """One sidebar row: the conversation it opens; its row widget draws it."""
+class SidebarItem(QTreeWidgetItem):
+    """One line of the sidebar tree; its row widget draws it, a tap activates it."""
+
+    key: str
+
+    def activate(self, window: CommsWindow) -> None:
+        """A group line opens and closes its group."""
+        self.setExpanded(not self.isExpanded())
+
+
+class SidebarSection(SidebarItem):
+    """A group of rows with a title, such as Threads."""
+
+    def __init__(self, title: str) -> None:
+        super().__init__([title])
+        self.key = title
+
+
+class ConversationRow(SidebarItem):
+    """A row that opens its conversation."""
 
     def __init__(self, kind: type[ConversationKind], name: str, label: str) -> None:
         super().__init__()
+        self.key = name
         self.target = RowTarget(kind, name, label)
+
+    def activate(self, window: CommsWindow) -> None:
+        window.open_row(self)
 
 
 @dataclass(frozen=True)
@@ -116,13 +141,13 @@ class Page:
         """A page fed by its own subscription has nothing to read again."""
 
 
-class TouchList(TouchScrolled, QListWidget):
-    """A list a finger scrolls, by pixel, wrapping long rows."""
+class Home(Page, QLabel):
+    """What shows while no conversation tab is open."""
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__("Open a channel or thread from the sidebar")
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setWordWrap(True)
-        self.setVerticalScrollMode(QListWidget.ScrollMode.ScrollPerPixel)
 
 
 class MessageView(TouchScrolled, QTextBrowser):
@@ -149,15 +174,31 @@ class MessageView(TouchScrolled, QTextBrowser):
         self.paint_blocks()
 
 
-class ThreadList(Page, TouchList, SidebarSubscriber[Observing, FailedObservation]):
-    """The bus's channels and threads, from the shared sidebar model."""
+class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObservation]):
+    """The bus's channels, each opening to the threads in it, and every thread, from the
+    shared sidebar model; groups stay open or closed across updates."""
 
     def __init__(self, window: CommsWindow) -> None:
         super().__init__()
         self.window = window
         self.observed: Observing | None = None
-        self.itemActivated.connect(self.open_row)
-        self.itemClicked.connect(self.open_row)
+        self.expanded: set[str] = set()
+        self.setHeaderHidden(True)
+        self.setIndentation(22)
+        self.setExpandsOnDoubleClick(False)
+        self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
+        self.itemClicked.connect(self.activate)
+        self.itemExpanded.connect(self.opened)
+        self.itemCollapsed.connect(self.closed)
+
+    def activate(self, item: SidebarItem) -> None:
+        item.activate(self.window)
+
+    def opened(self, item: SidebarItem) -> None:
+        self.expanded.add(item.key)
+
+    def closed(self, item: SidebarItem) -> None:
+        self.expanded.discard(item.key)
 
     def bind_observation(self, observed: Observing) -> None:
         if self.observed is observed:
@@ -174,7 +215,7 @@ class ThreadList(Page, TouchList, SidebarSubscriber[Observing, FailedObservation
     def bind_failed_observation(self, observed: FailedObservation) -> None:
         self.observed = None
         self.clear()
-        self.section(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
+        self.addTopLevelItem(SidebarSection(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}"))
 
     def present(self, **changes: object) -> None:
         """Toad's sidebar rows: a badge and label, and the row's summary under it in
@@ -182,38 +223,42 @@ class ThreadList(Page, TouchList, SidebarSubscriber[Observing, FailedObservation
         if self.observed is None:
             return
         model: SidebarModel = self.observed.sidebar
+        threads = model.threads.rows
         self.clear()
-        self.section("Channels")
         for name, channel in model.channels.rows.items():
-            self.add_row(ConversationRow(ChannelConversation, name, channel.label()),
-                         channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
-        self.section("Threads")
-        for name, thread in model.threads.rows.items():
-            self.add_row(ConversationRow(DmConversation, name, f"@{name}"),
-                         thread.unread.badge, thread.label, thread.summary, thread.title)
+            group = self.add_row(self.invisibleRootItem(), ConversationRow(ChannelConversation, name, channel.label()),
+                                 channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+            for member in channel.members:
+                self.add_thread(group, member, threads[member])
+        everyone = SidebarSection("Threads")
+        everyone.setForeground(0, QColor(self.window.renderer.colour(MutedRole)))
+        self.addTopLevelItem(everyone)
+        for name, thread in threads.items():
+            self.add_thread(everyone, name, thread)
+        for item in self.items():
+            item.setExpanded(item.key in self.expanded)
         self.window.label_tabs(self.observed)
 
-    def section(self, title: str) -> None:
-        header = QListWidgetItem(title)
-        header.setFlags(Qt.ItemFlag.NoItemFlags)
-        header.setForeground(QColor(self.window.renderer.colour(MutedRole)))
-        self.addItem(header)
+    def items(self):
+        return (self.topLevelItem(index) for index in range(self.topLevelItemCount()))
 
-    def add_row(self, row: ConversationRow, badge: str, label: str, summary: str, tooltip: str) -> None:
+    def add_thread(self, parent: QTreeWidgetItem, name: str, thread) -> None:
+        self.add_row(parent, ConversationRow(DmConversation, name, f"@{name}"),
+                     thread.unread.badge, thread.label, thread.summary, thread.title)
+
+    def add_row(self, parent: QTreeWidgetItem, row: ConversationRow, badge: str, label: str,
+                summary: str, tooltip: str) -> ConversationRow:
         renderer = self.window.renderer
         text = QLabel(renderer.styled(f"{badge} " if badge else "", TextRole)
                       + renderer.styled(label, TextRole)
                       + (f"<br>{renderer.styled(summary, MutedRole)}" if summary else ""))
-        text.setWordWrap(True)
         text.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        text.setContentsMargins(6, 4, 6, 4)
-        row.setToolTip(tooltip)
-        self.addItem(row)
-        row.setSizeHint(text.sizeHint())
-        self.setItemWidget(row, text)
-
-    def open_row(self, row: ConversationRow) -> None:
-        self.window.open_row(row)
+        text.setContentsMargins(4, 4, 4, 4)
+        row.setToolTip(0, tooltip)
+        parent.addChild(row)
+        row.setSizeHint(0, text.sizeHint())
+        self.setItemWidget(row, 0, text)
+        return row
 
 
 class QtHistorySessionEntry(SharedHistorySessionEntry["CommsWindow"]):
@@ -294,13 +339,25 @@ class CommsWindow(QWidget):
         self.tab_order = TabOrder(self.show_tab, home=WELCOME, db=db,
                                   scopes=access.connection.tab_scopes())
         self.views: dict[TabIdentity, ConversationView] = {}
-        self.threads = ThreadList(self)
+        self.sidebar = Sidebar(self)
+        self.home = Home()
         self.pages = QStackedWidget()
-        self.pages.addWidget(self.threads)
-        self.menu = self.bar_button("☰", "Threads", self.show_threads)
+        self.pages.addWidget(self.home)
+        self.split = QSplitter(Qt.Orientation.Vertical)
+        self.split.setChildrenCollapsible(False)
+        self.split.setHandleWidth(10)
+        self.split.addWidget(self.pages)
+        self.split.addWidget(self.sidebar)
+        self.split.setStretchFactor(1, 2)
+        self.sidebar_bar = QPushButton()
+        self.sidebar_bar.setMinimumHeight(40)
+        self.sidebar_bar.setFlat(True)
+        self.sidebar_bar.clicked.connect(self.toggle_sidebar)
+        self.menu = self.bar_button("☰", "Menu", self.show_menu)
         self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
         self.forward = self.bar_button("→", "Forward", partial(self.tab_order.navigate, 1))
         self.tabs = QTabBar()
+        self.tabs.setStyleSheet("QTabBar::tab { min-height: 40px; padding: 0 14px; }")
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
         self.tabs.setUsesScrollButtons(True)
@@ -313,8 +370,11 @@ class CommsWindow(QWidget):
             bar.addWidget(widget)
         bar.addWidget(self.tabs, 1)
         layout = QVBoxLayout(self)
-        layout.addWidget(self.pages, 1)
+        layout.setSpacing(0)
+        layout.addWidget(self.split, 1)
+        layout.addWidget(self.sidebar_bar)
         layout.addLayout(bar)
+        self.show_sidebar()
         self.changes = access.events.subscribe(CoordinationObserved, self.stores_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
@@ -331,6 +391,10 @@ class CommsWindow(QWidget):
         button.setText(text)
         button.setToolTip(tip)
         button.setAutoRaise(True)
+        button.setMinimumSize(48, 44)
+        font = button.font()
+        font.setPointSizeF(font.pointSizeF() * 1.5)
+        button.setFont(font)
         button.clicked.connect(action)
         return button
 
@@ -394,6 +458,38 @@ class CommsWindow(QWidget):
     def mark_current(self) -> None:
         current = self.pages.currentWidget()
         self.tabs.setCurrentIndex(self.shown.index(current) if current in self.shown else -1)
+        self.paint_sidebar_bar()
+
+    # The sidebar sits behind a bar above the tabs, as on Toad's phone layout: ↑ brings it
+    # up over the conversation, ↓ puts it back.
+
+    def paint_sidebar_bar(self) -> None:
+        index = self.tabs.currentIndex()
+        title = self.tabs.tabText(index) if index >= 0 else "Channels"
+        arrow = "↓" if self.sidebar.isVisible() else "↑"
+        self.sidebar_bar.setText(f"{arrow}  {title}  {arrow}")
+
+    def show_sidebar(self) -> None:
+        self.sidebar.show()
+        height = max(self.split.height(), 600)
+        self.split.setSizes([height // 3, height - height // 3])
+        self.paint_sidebar_bar()
+
+    def hide_sidebar(self) -> None:
+        self.sidebar.hide()
+        self.paint_sidebar_bar()
+
+    def toggle_sidebar(self) -> None:
+        if self.sidebar.isVisible():
+            self.hide_sidebar()
+        else:
+            self.show_sidebar()
+
+    def show_menu(self) -> None:
+        menu = QMenu(self)
+        menu.addAction("Hide sidebar" if self.sidebar.isVisible() else "Show sidebar", self.toggle_sidebar)
+        menu.addAction("Quit", self.close)
+        menu.exec(self.menu.mapToGlobal(self.menu.rect().topLeft()))
 
     def open_row(self, row: ConversationRow) -> None:
         self.access.app.run_operation(ConversationOpen, partial(self.open_target, row.target))
@@ -412,6 +508,7 @@ class CommsWindow(QWidget):
             self.label_tabs(await asyncio.to_thread(self.access.observation.observed))
         self.tab_order.record_visit(identity)
         self.show_tab(identity)
+        self.hide_sidebar()
 
     async def history_entry(self, identity: CommsTab) -> QtHistorySessionEntry:
         """Toad's entry for a conversation tab, read again on the bus that owns it."""
@@ -440,7 +537,7 @@ class CommsWindow(QWidget):
         self.pages.removeWidget(view)
         view.deleteLater()
         self.paint_tabs()
-        if self.pages.currentWidget() is self.threads:
+        if self.pages.currentWidget() is self.home:
             return
         modes = {shown.mode_name: shown for shown in self.views}
         returned = self.tab_order.came_from(identity)
@@ -448,18 +545,19 @@ class CommsWindow(QWidget):
             self.tab_order.record_visit(modes[returned])
             self.show_tab(modes[returned])
         else:
-            self.show_threads()
-
-    def show_threads(self) -> None:
-        self.pages.setCurrentWidget(self.threads)
-        self.mark_current()
+            self.pages.setCurrentWidget(self.home)
+            self.mark_current()
+            self.show_sidebar()
 
     def go_back(self) -> None:
-        """Android back: the visit history's previous tab; with none, the threads; at the
-        threads, close the app, as back does at an app's first screen."""
-        if self.tab_order.history_target(-1) is not None:
+        """Android back: an open sidebar goes down first; then the visit history's previous
+        tab; with none, the sidebar comes up; with it up and nothing behind, the app closes,
+        as back does at an app's first screen."""
+        if self.sidebar.isVisible() and self.views:
+            self.hide_sidebar()
+        elif self.tab_order.history_target(-1) is not None:
             self.tab_order.navigate(-1)
-        elif self.pages.currentWidget() is not self.threads:
-            self.show_threads()
+        elif not self.sidebar.isVisible():
+            self.show_sidebar()
         else:
             self.close()

@@ -46,7 +46,7 @@ async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: Col
     await window.tab_order.load()
     window.resize(420, 820)
     window.show()
-    access.open_current().show_sidebar(window.threads)
+    access.open_current().show_sidebar(window.sidebar)
     closed = asyncio.get_running_loop().create_future()
     QApplication.instance().lastWindowClosed.connect(lambda: closed.done() or closed.set_result(None))
     await closed
