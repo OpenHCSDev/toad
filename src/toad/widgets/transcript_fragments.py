@@ -53,6 +53,7 @@ from toad.client.notification_status import (
     MessageQueueEntry,
     NotificationStatus,
     UncheckedNotifications,
+    ShownFragment,
 )
 from toad.render_backend import ReusableRenderTask
 from toad.tool_output import SentMessageToolOutputPart, ToolOutput, ToolOutputPart
@@ -230,7 +231,7 @@ COPIED_TEXT = CopiedText()
 
 
 @dataclass(frozen=True, kw_only=True)
-class Shown:
+class Shown(ShownFragment):
     """What a reader chose about one drawn fragment."""
 
     details_open: bool = False

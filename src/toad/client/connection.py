@@ -57,7 +57,6 @@ from agent_comms.registry.registry_document import (
     ProjectThreadSelection,
     RegistrySnapshot,
 )
-from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import Thread
 from agent_comms.transport.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess, ToolRequest
@@ -102,7 +101,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.client.bus_selection import ProfileArgument
 from toad.client.host import CommsHost
-from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
+from toad.client.subscribers import CoreObserver, NotificationSubscriber, SidebarSubscriber
 from toad.client.context_reads import ContextReads
 from toad.core.events import (
     CoordinationObserved,
@@ -1078,7 +1077,7 @@ class CoordinationAccess(MroDispatch):
 
     def observe_thread_changes(
         self,
-        view: object,
+        view: CoreObserver,
         scope: tuple[str, str],
         resume: Callable[[ThreadRowsChanged], None],
         subscription_factory: type | None = None,

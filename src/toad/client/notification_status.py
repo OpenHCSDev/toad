@@ -20,6 +20,7 @@ from toad.client.line_blocks import (
     OpenTarget,
     Span,
     SpanColumns,
+    Summary,
     WorkingRole,
 )
 
@@ -37,6 +38,15 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
     ``OpensLinks``).
     """
     return (Span(recipient, NameRole, OpenTarget(recipient)), Span(text, MutedRole))
+
+
+class ShownFragment:
+    """What a reader chose about one drawn fragment, as a notification status draws it."""
+
+    details_open: bool
+
+    def summary(self, title: str, role: type[LineRole], link: LineLink) -> Summary:
+        raise NotImplementedError
 
 
 class NotificationStatus:
@@ -81,7 +91,7 @@ class NotificationStatus:
         """The title's meaning and colour, wherever the title is drawn."""
         return NoticeRole if self.unavailable else WorkingRole if self.is_working() else MutedRole
 
-    def blocks(self, shown: object, link: LineLink) -> tuple[LineBlock, ...]:
+    def blocks(self, shown: ShownFragment, link: LineLink) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
         summary = shown.summary(self.title, self.role, link)
         return ((summary, self.disclosure)

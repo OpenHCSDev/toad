@@ -10,8 +10,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from pathlib import Path
+from typing import Never
+
+from agent_comms.execution.launch_runtime import LaunchRuntime
+from agent_comms.history_views import RetiredViews
+from agent_comms.projects.checkouts import Checkout
 
 from formbridge.publications import PublicationStream
+from toad.client.tab_identity import TabIdentity
 from toad.work_preparation import PreparationRuntime
 
 
@@ -20,7 +26,11 @@ class CommsHost:
 
     events: PublicationStream
     preparation: PreparationRuntime
-    project_dir: Path | None
+    project_dir: Checkout
+
+    def succeed_onto(self, runtime: LaunchRuntime) -> Never:
+        """Hand this process to another runtime; never returns."""
+        raise NotImplementedError
 
     def schedule_ui(self, callback: Callable[[], None]) -> None:
         """Deferred until after the current message; never inline."""
@@ -52,7 +62,7 @@ class CommsHost:
         raise NotImplementedError
 
     @property
-    def tab_names(self) -> tuple[str, ...]:
+    def tab_names(self) -> tuple[TabIdentity, ...]:
         """The current open tab mode names, for interest change detection."""
         raise NotImplementedError
 
@@ -64,7 +74,7 @@ class CommsHost:
         """Channel targets for sessions viewing this root."""
         raise NotImplementedError
 
-    def retire_views(self, root: Path, retired: object) -> None:
+    def retire_views(self, root: Path, retired: RetiredViews) -> None:
         """Notify the session navigation that views were retired for this root."""
         raise NotImplementedError
 
