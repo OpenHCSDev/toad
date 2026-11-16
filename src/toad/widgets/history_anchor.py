@@ -26,12 +26,11 @@ from toad.frame_presentation import FollowsUnrisenRows, UnrisenRows
 from toad.history_jump import JumpsToLatest
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
-from toad.transcript_state import LatestViewportRequest
+from toad.client.history_state import LatestViewportRequest
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.message_row_owner import MessageRowOwner
+from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.presentation_window import (
-    NEWER_END,
-    OLDER_END,
     DirectionalPreparation,
     NativePresentation,
     PresentationBudget,

@@ -22,7 +22,7 @@ def test_deleted_scan_flags_and_external_projection_probes():
     fields.update(node.name for node in overlay.body if isinstance(node, ast.FunctionDef)
                   and any(isinstance(marker, ast.Name) and marker.id == 'property'
                           for marker in node.decorator_list))
-    for path in (ROOT/'transcript_filter.py', ROOT/'transcript_state.py',
+    for path in (ROOT/'transcript_filter.py', ROOT/'client/history_state.py',
                  ROOT/'widgets/transcript_history.py'):
         tree = ast.parse(path.read_text())
         protocol_receivers = {node.func.value for node in ast.walk(tree)
@@ -74,7 +74,7 @@ def test_projected_pager_worker_receives_callable():
                    and node.name == '_request_page' for node in projection.body)
     # The projection inherits the pager's operation. Its
     # WorkingTranscript, not an override in a widget, owns worker scheduling.
-    states = ast.parse((ROOT/'transcript_state.py').read_text())
+    states = ast.parse((ROOT/'client/history_state.py').read_text())
     working = next(node for node in states.body if isinstance(node, ast.ClassDef)
                    and node.name == 'WorkingTranscript')
     schedule = next(node for node in working.body if isinstance(node, ast.FunctionDef)

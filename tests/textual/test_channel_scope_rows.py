@@ -3,7 +3,7 @@
 from agent_comms.projects.checkouts import Checkout
 from support.textual_steps import refresh_chat
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.presentation_window import OLDER_END
+from toad.client.history_preparation import OLDER_END
 
 
 async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(workspace):

@@ -13,6 +13,10 @@ from toad.core.events import CoreEvent, CoreEventStream, ThreadChangeSubscriptio
 class CoreObserver:
     """A native view that holds Core event subscriptions for as long as it is shown."""
 
+    # Whether the native view is still in its tree, and whether it is being removed from it.
+    is_attached: bool
+    is_leaving: bool
+
     def observe_core_callback(self, stream: CoreEventStream, event_type: type[CoreEvent],
                               callback: Callable[[CoreEvent], object], *,
                               factory: Callable[..., Subscription] = Subscription) -> Subscription:

@@ -74,10 +74,7 @@ from toad.transcript_preparation import (
     TranscriptPageWork,
     Unchanged,
 )
-from toad.transcript_state import (
-    LatestReplacementViewportRequest,
-    ReplacementViewportRequest,
-)
+from toad.client.history_state import LatestReplacementViewportRequest, ReplacementViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import (

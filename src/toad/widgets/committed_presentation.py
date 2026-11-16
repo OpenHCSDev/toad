@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable, Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Literal, Self
 
 from agent_comms.coordination.errors import TranscriptChanged
 from agent_comms.execution.transcript_sources import TranscriptCursor
@@ -15,6 +15,7 @@ from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.transcript.transcript_events import TranscriptCoverage
 from agent_comms.transcript.transcripts import TranscriptPage
 from metaclass_registry.mro_dispatch import handles
+from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 
 from toad.commit_claims import (
@@ -28,7 +29,8 @@ from toad.commit_claims import (
     RetainedBlockClaim,
 )
 from toad.core.projection import MroProjection
-from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
+from toad.client.history_preparation import NEWER_END
+from toad.client.history_state import PreparedReplacementViewportRequest, TranscriptState, WorkingTranscript
 from toad.widgets.history_anchor import HistoryWindow, LatestPosition
 from toad.widgets.presentation_window import protected_presentations
 
@@ -264,3 +266,39 @@ class RetainViewportCommit(CommitPlan):
 
 def commit_plan(window: HistoryWindow) -> CommitPlan:
     return FollowTailCommit(window) if window.follows_tail else RetainViewportCommit()
+
+
+class CommitTranscript(WorkingTranscript):
+    """A commit's advance: its saved rows replace the live blocks captured with its page.
+
+    The live blocks leave in the same tree change that draws the last saved
+    row, so no frame shows both copies of the turn, or neither.
+    """
+
+    def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...],
+                 claims: tuple[CommitClaim, ...]):
+        super().__init__(source, owner)
+        self.live_blocks = live_blocks
+        self.claims = claims
+        self.retirement = AwaitComplete.nothing()
+
+    async def execute[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Result | Literal[False]:
+        try:
+            return await super().execute(owner, work)
+        finally:
+            await self.retirement
+
+    def arriving(self, prepared: PreparedTranscriptPage, followed_end: bool):
+        # Rows its live blocks already showed have not arrived again; every other row has.
+        # The live blocks are the commit participants `retirement_candidates` chose.
+        return tuple(
+            fragment
+            for fragment in super().arriving(prepared, followed_end)
+            if not any(fragment.shown_live_by(claim) for claim in self.claims)
+        )
+
+    def rows_published(self, owner) -> None:
+        if self.live_blocks and not NEWER_END.visible_more(owner):
+            blocks, self.live_blocks = self.live_blocks, ()
+            view = owner.view
+            self.retirement = view.transcript.retire_presentations(view.contents, view.output, blocks)

@@ -35,7 +35,7 @@ def test_root_transcript_state_deleted():
 def test_source_operation_flags_deleted():
     root = Path(__file__).parents[2] / 'src/toad'
     for relative in ('widgets/transcript_history.py', 'transcript_source_preparation.py',
-                     'transcript_state.py'):
+                     'client/history_state.py'):
         tree = ast.parse((root / relative).read_text())
         assert not [node for node in ast.walk(tree) if isinstance(node, ast.Attribute)
                     and node.attr in {'_loading', '_advancing'}], relative

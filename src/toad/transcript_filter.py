@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.ui_model.message_category import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.widgets.presentation_window import OLDER_END, PageRequest
+from toad.client.history_preparation import OLDER_END, PageRequest
 from toad.transcript_preparation import NoProjection
 
 if TYPE_CHECKING:

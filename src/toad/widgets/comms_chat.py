@@ -32,7 +32,7 @@ from toad.status_thread import StatusThread
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.transcript_publication import ViewBinding
 from toad.transcript_scope import NoTranscript
-from toad.transcript_state import DEFERRED_WORK, SourceWork
+from toad.client.history_state import DEFERRED_WORK, SourceWork
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.conversation import (
@@ -44,7 +44,7 @@ from toad.widgets.conversation import (
     Window,
 )
 from toad.widgets.flash import Flash
-from toad.widgets.presentation_window import NEWER_END, OLDER_END
+from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.prompt import MessagePrompt, Prompt
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.wire_history import HistoryLoading, WireHistory

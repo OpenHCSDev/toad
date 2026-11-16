@@ -20,7 +20,13 @@ from toad.block_content import BlockContent
 from toad.entry_placement import PostedEntry
 from toad.frame_presentation import ARRIVAL, CascadingRows
 from toad.client.notification_status import MessageQueueEntry
-from toad.widgets.presentation_window import UNPLACED, NewerEnd, OlderEnd, PageEnd, Placed, Unplaced, arranged
+from toad.widgets.presentation_window import (
+    UNPLACED,
+    Placed,
+    Unplaced,
+    arranged,
+)
+from toad.client.history_preparation import NewerEnd, OlderEnd, PageEnd
 from toad.widgets.transcript_fragments import NO_REST, CursorRest
 from textual.events import Mount
 from textual import on

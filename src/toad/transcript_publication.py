@@ -68,7 +68,7 @@ from toad.transcript_preparation import (
     FrozenClosedHistory, FrozenSavedPrefix, PreparedPageSource, PreparedTranscriptPage,
     SavedSuffix, UnreadTranscriptPage,
 )
-from toad.transcript_state import LiveTranscript, PreparedReplacementViewportRequest
+from toad.client.history_state import LiveTranscript, PreparedReplacementViewportRequest
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.committed_presentation import (
     block_claim,
