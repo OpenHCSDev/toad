@@ -3,11 +3,17 @@
 The APK's `main.py` (tools/android/main.py) enters the APK's environment
 (toad.qt.android_app) and then runs `main` here.
 
+The APK's activity (tools/android/keepalive) holds the process in the foreground with an
+ongoing notification, so switching away leaves Toad running; once suspended, the app
+gives the memory it can rebuild back to Android (SuspendedMemory).
+
 A failure before the window opens is shown on screen, since a phone without adb has nowhere
 else to show it. So is a cold start's cause: SessionRecord notes each state Android moves the
 app through, and the next start says how the last session ended.
 """
 
+import ctypes
+import gc
 import os
 import sys
 import time
@@ -17,7 +23,7 @@ import qasync
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.connector import HoldUiVerb
 from agent_comms.transport.connector_store import ConnectorStore
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from toad.client.bus_selection import BusChoice
@@ -86,10 +92,34 @@ class SessionRecord:
                 f"Its last records:\n{lines}")
 
 
+class SuspendedMemory:
+    """What the suspended app gives back to Android. On the same suspend, pyqt-reactive's row
+    views let their laid-out documents go (RowDocumentDelegate.release_documents); the
+    allocator would keep that freed memory for reuse, so once every owner has dropped what
+    it can rebuild, bionic's M_PURGE returns it to the system."""
+
+    M_PURGE = -101
+    """bionic's malloc.h, Android 9 and later."""
+
+    def __init__(self) -> None:
+        self.libc = ctypes.CDLL("libc.so")
+
+    def changed(self, state: Qt.ApplicationState) -> None:
+        if state is Qt.ApplicationState.ApplicationSuspended:
+            # After every other owner's answer to this suspend: the views connect later.
+            QTimer.singleShot(0, self.release)
+
+    def release(self) -> None:
+        gc.collect()
+        self.libc.mallopt(self.M_PURGE, 0)
+
+
 def main() -> None:
     application = QApplication(sys.argv[:1])
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
+    memory = SuspendedMemory()
+    application.applicationStateChanged.connect(memory.changed)
     try:
         qasync.run(serve(held_connection(), Checkout(APP), current_scheme(os.environ)))
     except BaseException as failure:

@@ -23,6 +23,12 @@ p4a.branch = master
 p4a.commit = 58d21141f17c889bf8585f5665921d72028f8831
 android.permissions = android.permission.WRITE_EXTERNAL_STORAGE, android.permission.INTERNET
 android.add_jars = ${jars}/Qt6Android.jar,${jars}/Qt6AndroidBindings.jar
+# The activity starts the in-process keep-alive service; keepalive/ owns both, and its
+# manifest reaches the APK as an AAR from the app folder's libs (assemble.py).
+android.entrypoint = org.toadcomms.ToadActivity
+android.add_src = ${keepalive}/java
+android.add_aars = ${app}/keepalive.aar
+android.add_gradle_repositories = flatDir { dirs 'libs' }
 p4a.extra_args = --qt-libs=Widgets,Gui,Core --load-local-libs=plugins_platforms_qtforandroid --init-classes=
 icon.filename = ${icon}
 

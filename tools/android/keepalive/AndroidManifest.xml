@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The keep-alive service and the permissions it needs. assemble.py packs this file as
+     keepalive.aar, whose manifest gradle merges into the APK's: python-for-android's own
+     service declarations either run in a separate process or name no foregroundServiceType,
+     which Android 14 requires. The service's code is java/, compiled with the APK.
+     assemble.py fills the SDK levels from buildozer.spec; without them gradle reads the
+     library as targeting SDK 1 and adds READ_PHONE_STATE to the APK. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="org.toadcomms.keepalive">
+    <uses-sdk android:minSdkVersion="${minapi}" android:targetSdkVersion="${api}" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <application>
+        <service android:name="org.toadcomms.ConnectedService"
+                 android:exported="false"
+                 android:foregroundServiceType="remoteMessaging" />
+    </application>
+</manifest>
