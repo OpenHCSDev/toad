@@ -1,9 +1,10 @@
 """Textual-facing: a popup class declared by subclassing mounts in every full prompt, paints, takes focus,
 returns focus on Escape."""
 
+from formbridge.key_declarations import TextEntryMode
 from textual.app import ComposeResult
 from textual.widgets import Input
-from textual.widgets.text_area import EditingMode
+
 
 from support.textual_steps import painted_text
 from toad.widgets.prompt import Prompt
@@ -38,7 +39,7 @@ async def test_a_declared_popup_paints_and_returns_focus_to_the_draft(workspace)
         await ui.press("escape")
         await ui.until(lambda: not popup.is_open and prompt.prompt_text_area.has_focus, why="focus back in the draft")
         assert prompt.text == "Draft retained"
-        ui.app.set_keymap({DismissAction.binding_id(EditingMode): "f6"})
+        ui.app.set_keymap({DismissAction.binding_id(TextEntryMode): "f6"})
         popup.focus()
         await ui.until(lambda: popup.query_one(Input).has_focus, why="focus back in the popup")
         assert popup.check_consume_key("f6", None)

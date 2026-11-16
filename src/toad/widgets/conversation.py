@@ -40,6 +40,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich.console import Console
 from rich.segment import Segment
 from rich.style import Style
+from formbridge.key_declarations import TextEntryMode
 from textual import containers, events, getters, on, work
 from textual._files import generate_datetime_filename
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
@@ -413,7 +414,7 @@ class CursorContainer(Animated[Mix], Static):
 class FocusPromptAction(WindowAction):
     """Go to the latest content and focus its prompt."""
 
-    keys = {EditingMode: ("end",)}
+    keys = {TextEntryMode: ("end",)}
     show = True
 
     def apply(self, window: Window) -> None:

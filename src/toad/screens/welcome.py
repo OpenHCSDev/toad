@@ -11,8 +11,9 @@ from __future__ import annotations
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.messaging.channel_targets import NoChannel
 from agent_comms.projects.checkouts import Checkout
+from formbridge.key_declarations import TextEntryMode
 from textual.app import ComposeResult
-from textual.document._editing import EditingMode
+
 from toad.widget_actions import NativeMethodKeys, TogglesIrc, WidgetAction
 from textual.containers import VerticalGroup, VerticalScroll
 from textual.content import Content
@@ -208,7 +209,7 @@ class NewSessionAction(WelcomeAction):
     """Start this launch's session: its attached agent's, or a native thread."""
 
     title = "New session"
-    keys = {EditingMode: ("n",)}
+    keys = {TextEntryMode: ("n",)}
     show = True
 
     async def apply(self, context: WelcomeScreen) -> None:

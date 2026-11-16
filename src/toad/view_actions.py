@@ -13,7 +13,8 @@ it cannot import from here.
 
 from __future__ import annotations
 
-from textual.document._editing import EditingMode
+
+from formbridge.key_declarations import TextEntryMode
 from textual.widget import Widget
 
 from toad.app_node import ToadNode
@@ -27,7 +28,7 @@ class ViewAction(WidgetAction, affix="Action"):
 
 class ShowSidebarAction(ViewAction):
     title = 'Sidebar'
-    keys = {EditingMode: ('ctrl+b', 'f20')}
+    keys = {TextEntryMode: ('ctrl+b', 'f20')}
     show = True
 
     def available(self, context: ToadNode) -> bool:
@@ -45,7 +46,7 @@ class BackToBottomAction(ViewAction):
     """Jump the shown history back to its latest message."""
 
     title = "Back to bottom"
-    keys = {EditingMode: ("escape",)}
+    keys = {TextEntryMode: ("escape",)}
     key_display = "Esc"
     priority = True
 

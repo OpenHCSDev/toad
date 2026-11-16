@@ -8,9 +8,10 @@ from agent_comms.messaging.historical_views import (
 )
 from agent_comms.projects.checkouts import Checkout
 from metaclass_registry.mro_dispatch import handles
+from formbridge.key_declarations import TextEntryMode
 from textual import on
 from textual.app import ComposeResult
-from textual.document._editing import EditingMode
+
 from textual.events import Mount
 from textual.widgets import Static
 from textual.worker import WorkerCancelled
@@ -46,14 +47,13 @@ class CommsContentLoad(WorkerGroup):
     """Loads the conversation content once a route frame is written."""
 
 
-
 class ViewAction(WidgetAction, affix="Action"):
     pass
 
 
 class SavedSessionsAction(ViewAction):
     title = 'Saved sessions'
-    keys = {EditingMode: ('f8',)}
+    keys = {TextEntryMode: ('f8',)}
     priority = True
     show = True
 
@@ -74,7 +74,7 @@ class SavedSessionsAction(ViewAction):
 
 class MessageStyleAction(ViewAction):
     title = 'IRC / Markdown'
-    keys = {EditingMode: ('ctrl+t',)}
+    keys = {TextEntryMode: ('ctrl+t',)}
     show = True
 
     def apply(self, context: CommsScreen) -> None:

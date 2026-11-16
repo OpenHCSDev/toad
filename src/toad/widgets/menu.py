@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from formbridge.key_declarations import TextEntryMode
 from textual.binding import BindingsMap, KeymapClaim
-from textual.document._editing import EditingMode
+
 
 from textual import on
 from textual.app import ComposeResult
@@ -109,14 +110,14 @@ class Menu(
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def keymap_claims(cls, mode: type[EditingMode]) -> tuple[KeymapClaim, ...]:
+    def keymap_claims(cls, mode: type[TextEntryMode]) -> tuple[KeymapClaim, ...]:
         return (
             *super().keymap_claims(mode),
             *(KeymapClaim(declaration, declaration.default_keys())
               for declaration in MenuCommand.members_with(MenuCommand)),
         )
 
-    def binding_map(self, mode: type[EditingMode]) -> BindingsMap:
+    def binding_map(self, mode: type[TextEntryMode]) -> BindingsMap:
         return BindingsMap.merge((super().binding_map(mode), BindingsMap(
             binding for command in self._commands for binding in command.bindings(mode))))
 

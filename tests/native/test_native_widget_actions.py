@@ -7,9 +7,10 @@ from pathlib import Path
 from acp import schema
 
 from support.native import ControlledProvider, native_session
+from formbridge.key_declarations import TextEntryMode
 from toad.answer import Answer
 from toad.question_actions import QuestionAction, AllowOnceAction
-from textual.document._editing import EditingMode
+
 from toad.screens.permissions import PermissionsScreen
 from toad.widgets.flash import Flash
 from toad.widgets.question import Option, Question
@@ -47,7 +48,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
         await ui.press("escape")
         assert not native.executing
 
-        app.set_keymap({AllowOnceAction.binding_id(EditingMode): "f9"})
+        app.set_keymap({AllowOnceAction.binding_id(TextEntryMode): "f9"})
         selected = []
         view.ask([Answer("Allow native choice", "first-allow", kind="allow_once"),
                   Answer("Reject native choice", "first-reject", kind="reject_once")],
@@ -100,7 +101,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
 
         # A newly declared question action gets its key, availability and effect with no other edit.
         class ReviewAction(QuestionAction):
-            keys = {EditingMode: ("f8",)}
+            keys = {TextEntryMode: ("f8",)}
 
             def available(self, question):
                 return question.accepts_selection

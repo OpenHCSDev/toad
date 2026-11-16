@@ -1,7 +1,8 @@
 """Prompt bindings, eligibility and effects share the native action owners."""
 from __future__ import annotations
+from formbridge.key_declarations import TextEntryMode
 from textual.document._editing import VimMode
-from textual.widgets.text_area import EditingMode
+
 from toad.widget_actions import Action, EngineKey
 from toad.core.input_events import UserInputSubmitted
 from typing import TYPE_CHECKING
@@ -42,7 +43,7 @@ class StandardEditingAction(PromptAction):
 class EnterShellAction(PromptAction):
     """Run the prompt as a shell command."""
 
-    keys = {EditingMode: ("exclamation_mark",)}
+    keys = {TextEntryMode: ("exclamation_mark",)}
     priority = True
 
     def available(self, editor):
@@ -71,7 +72,7 @@ class SubmitInputAction(PromptAction, declared_name=None):
 
 class SubmitAction(SubmitInputAction):
     """Send the prompt to the agent."""
-    keys = {EditingMode: ("enter",)}
+    keys = {TextEntryMode: ("enter",)}
     title = "Send"
     key_display = "⏎"
 
@@ -79,7 +80,7 @@ class SubmitAction(SubmitInputAction):
 class SubmitNowAction(SubmitInputAction):
     """Send the prompt now, ahead of the queue."""
 
-    keys = {EditingMode: ("ctrl+enter", "ctrl+y")}
+    keys = {TextEntryMode: ("ctrl+enter", "ctrl+y")}
     title = "Send now"
 
     def available(self, editor):
@@ -95,7 +96,7 @@ class SubmitNowAction(SubmitInputAction):
 class CopyOrClearInputAction(PromptAction):
     """Copy selected text or clear the prompt."""
 
-    keys = {EditingMode: ("ctrl+c",)}
+    keys = {TextEntryMode: ("ctrl+c",)}
     priority = True
 
     def available(self, editor):
@@ -114,7 +115,7 @@ class CopyOrClearInputAction(PromptAction):
 class CompleteAction(PromptAction):
     """Complete what precedes the cursor: a shell path in a shell prompt, a member in a channel."""
 
-    keys = {EditingMode: ("tab",)}
+    keys = {TextEntryMode: ("tab",)}
     priority = True
 
     async def apply(self, editor: PromptTextArea) -> None:
@@ -124,7 +125,7 @@ class CompleteAction(PromptAction):
 class PasteClipboardAction(PromptAction):
     """Paste clipboard text, or attach a clipboard PNG image."""
 
-    keys = {EditingMode: ("ctrl+v",)}
+    keys = {TextEntryMode: ("ctrl+v",)}
     priority = True
 
     def apply(self, editor: PromptTextArea) -> None:
@@ -134,7 +135,7 @@ class PasteClipboardAction(PromptAction):
 class NewlineAction(PromptAction):
     """Insert a new line in the prompt."""
     title = "New line"
-    keys = {EditingMode: ("ctrl+j", "shift+enter")}
+    keys = {TextEntryMode: ("ctrl+j", "shift+enter")}
     priority = True
     show = True
 

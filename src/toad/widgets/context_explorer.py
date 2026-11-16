@@ -13,9 +13,10 @@ from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordination.coordinator import Coordination
 from agent_comms.coordination.errors import Refused
 from metaclass_registry.mro_dispatch import handles
+from formbridge.key_declarations import TextEntryMode
 from textual import on, work
 from textual.containers import Horizontal, Vertical
-from textual.document._editing import EditingMode
+
 from textual.events import Mount, Show, Unmount
 from textual.widget import Widget
 from textual.widgets import Input, Static, Tree
@@ -417,7 +418,7 @@ class ContextExplorerAction(Action, affix="Action"):
 class RefreshContextAction(ContextExplorerAction):
     """Read the context again from its source."""
 
-    keys = {EditingMode: ("r",)}
+    keys = {TextEntryMode: ("r",)}
 
     def apply(self, explorer: ContextExplorer) -> None:
         explorer.refresh_context()

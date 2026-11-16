@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from textual.widgets.text_area import EditingMode, VimMode
+from formbridge.key_declarations import TextEntryMode
+from textual.widgets.text_area import VimMode
 
 from functools import partial
 from collections.abc import Iterator
@@ -37,7 +38,7 @@ class OpenBusAction(ApplicationAction):
     # the key is the same declaration: a menu entry beside a widget action would be the same
     # command declared twice. Beside ctrl+b for the sidebar, and not a function key, because
     # f8 and f20 are claimed and the rest are what tests bind their own fixtures to.
-    keys = {EditingMode: ("ctrl+shift+b",)}
+    keys = {TextEntryMode: ("ctrl+shift+b",)}
 
     def apply(self, app: ToadApp) -> None:
         from toad.screens.bus_choice import BusChoices
@@ -48,7 +49,7 @@ class OpenBusAction(ApplicationAction):
 class SettingsAction(ApplicationAction):
     """Edit persistent application preferences."""
 
-    keys = {EditingMode: ("ctrl+comma",)}
+    keys = {TextEntryMode: ("ctrl+comma",)}
 
     async def apply(self, app: ToadApp) -> None:
         app.run_worker(partial(self.edit, app))
@@ -63,7 +64,7 @@ class SettingsAction(ApplicationAction):
 class TeamAction(ApplicationAction, declared_name="team"):
     """Open the live team board, including teammates' orders and original evidence."""
 
-    keys = {EditingMode: ("f2",)}
+    keys = {TextEntryMode: ("f2",)}
 
     async def apply(self, app: ToadApp) -> None:
         from toad.screens.team import TeamPage
@@ -150,7 +151,7 @@ class ToggleFooterAction(ApplicationAction):
 
 
 class HelpQuitAction(ReplacesFrameworkAction, System, YieldingKey, ApplicationAction):
-    keys = {EditingMode: ("ctrl+c",)}
+    keys = {TextEntryMode: ("ctrl+c",)}
 
     async def apply(self, app: ToadApp) -> None:
         app.application.confirm_quit()
@@ -159,7 +160,7 @@ class HelpQuitAction(ReplacesFrameworkAction, System, YieldingKey, ApplicationAc
 class KeymapAction(ApplicationAction):
     """Browse keyboard shortcuts and change their keys for each editing mode."""
 
-    keys = {EditingMode: ("f1",)}
+    keys = {TextEntryMode: ("f1",)}
 
     async def apply(self, app: ToadApp) -> None:
         focused = frozenset(KeyInvocationId(invocation.key_identity())

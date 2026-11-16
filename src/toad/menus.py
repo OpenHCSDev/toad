@@ -10,8 +10,8 @@ from typing import ClassVar
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._callback import invoke
 from textual.binding import ModeBinding
-from textual.document._editing import EditingMode
-from formbridge.key_declarations import KeyDeclarationType, KeyInvocation
+
+from formbridge.key_declarations import KeyDeclarationType, KeyInvocation, TextEntryMode
 from textual.widget import Widget
 
 from toad.client.line_blocks import LineLink
@@ -95,14 +95,14 @@ class MenuCommand(DeclaredFamily, metaclass=MenuDeclaration, affix="Command"):
     def default_keys(cls) -> tuple[str, ...]:
         return ()
 
-    def bindings(self, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
+    def bindings(self, mode: type[TextEntryMode]) -> tuple[ModeBinding, ...]:
         return tuple(
             binding
             for key in type(self).default_keys()
             for binding in MenuBinding(
                 key=key,
                 action=self,
-                mode=EditingMode,
+                mode=TextEntryMode,
                 description=self.description,
                 show=False,
             ).for_mode(mode)
