@@ -71,7 +71,8 @@ from toad.terminal_origin import TerminalOrigin
 from toad.widgets.comms_command_dialog import ScreenCommandOrigin
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
-from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
+from toad.client.application_actions import ApplicationAction
+from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets import tool_call  # noqa: F401 - register widget classes
 from toad.widgets.comms_transfer import Transfers
 from toad.work_preparation import PreparationRuntime

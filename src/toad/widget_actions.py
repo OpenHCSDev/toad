@@ -1,42 +1,34 @@
-"""The Action family and its Textual dispatch projection."""
+"""Textual's actions on widgets, and the Textual projection of every declared action's keys."""
 from __future__ import annotations
 
 import inspect
 from abc import abstractmethod
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Mapping
 from copy import replace
 from dataclasses import dataclass
 from functools import lru_cache, partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import ClassVar, Generic, Literal, Self, TypeVar, cast
+from typing import ClassVar, Literal, TypeVar
 
-from agent_comms.nominal.declared_family import (
-    DeclaredFamily,
-    FamilyMeta,
-    declared_words,
-)
 from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
-from agent_comms.planning.command import Command
+from metaclass_registry.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType
 from textual import events, on
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual.dom import DOMNode
 from textual.hint_labels import HintLabelStyle
-from textual.keys import DeclaredKey, KeyDeclaration, KeyDeclarationType, UndecodedKey
+from textual.keys import DeclaredKey, UndecodedKey
 from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
 from textual.widgets import TextArea
 from textual.widgets.text_area import EditingMode
 
 from toad.app_node import ToadNode
+from toad.client.application_actions import ApplicationAction, DeclaredAction, ReplacesFrameworkAction
 
 
 Context = TypeVar("Context", bound=DOMNode)
-
-
-class KeyFamilyMeta(FamilyMeta, KeyDeclarationType):
-    """A named command family whose classes declare native key overlap."""
 
 
 class EngineKey(DeclaredKey):
@@ -57,154 +49,15 @@ class ActionBinding(CommandBinding):
         return self.action.engine_boundary(editor)
 
 
-class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
-             metaclass=KeyFamilyMeta, affix="Action"):
-    """Only the Textual boundary decodes an external action name. A member declares its
-    keys, and its title and docstring are the only text any view shows for it."""
+class Action(DeclaredAction[Context], affix="Action"):
+    """An action on a Textual widget: its key may join a footer group and an engine's input."""
 
-    keys: ClassVar[Mapping[type[EditingMode], tuple[str, ...]]] = MappingProxyType({})
-    show: ClassVar[bool] = False
-    priority: ClassVar[bool] = False
     group: ClassVar[Binding.Group | None] = None
-    key_display: ClassVar[str | None] = None
-    binding_prefix: ClassVar[str] = ""
     declared_key: ClassVar[DeclaredKey] = UndecodedKey()
 
     @classmethod
-    def default_title(cls) -> str:
-        """The class's own derived name, never its declared_name: views show what a member does."""
-        return declared_words(cls.__name__.removesuffix(cls._family_affix)).replace("_", " ").capitalize()
-
-    @classmethod
-    def declarations(cls) -> Iterator[type[Self]]:
-        """The native registry filters by this class, so each member is one of its own."""
-        return cast("Iterator[type[Self]]", super().declarations())
-
-    @classmethod
-    def summary(cls) -> str:
-        """The nearest docstring a member declares; the family roots document code, not keys."""
-        root = cls.family_root
-        return next((inspect.cleandoc(base.__doc__) for base in cls.__mro__
-                     if issubclass(base, root) and base is not root and base.__doc__), "")
-
-    @classmethod
-    def binding_name(cls) -> str:
-        return cls.binding_prefix + cls.declared_name
-
-    @classmethod
-    def bindings(cls) -> tuple[Binding, ...]:
-        return tuple(cls.mode_binding(mode, key)
-                     for mode, keys in cls.keys.items() for key in keys)
-
-    @classmethod
-    def mode_binding(cls, mode: type[EditingMode], key: str) -> ModeBinding:
-        command = cls.command_for_key(mode, key)
-        return cls.command_binding(mode, key, command)
-
-    @classmethod
-    def command_binding(cls, capability: type[EditingMode], key: str, command: Self) -> ModeBinding:
-        return ActionBinding(
-            key=key, action=command, description=cls.title,
-            available=command.key_available, mode=capability,
-            tooltip=cls.summary(), show=cls.show, priority=cls.priority,
-            system=cls.system, group=cls.group, key_display=cls.key_display,
-            declared_key=cls.declared_key,
-        )
-
-    @classmethod
-    def bindings_for(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
-        """The nearest declared capability supplies defaults; identity follows active mode."""
-        for capability in mode.__mro__:
-            if capability in cls.keys:
-                return tuple(binding for _, binding in BindingsMap(
-                    cls.command_binding(capability, key,
-                                        cls.command_for_key(capability, key))
-                    for key in cls.keys[capability]
-                ).project(mode))
-        return ()
-
-    @classmethod
-    def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
-        return cls()
-
-    def __call__(self, context: Context) -> object:
-        return self.apply(context)
-
-    @classmethod
-    def configured_bindings(cls, context: Context) -> tuple[Binding, ...]:
-        """Declared keys after remapping, also when this control is not focused."""
-        mode = context.binding_mode
-        identities = {binding.id for binding in cls.bindings_for(mode)}
-        bindings = context.binding_map(mode)
-        bindings.apply_keymap(context.app._keymap)
-        return tuple(binding for _, binding in bindings if binding.id in identities
-                     and binding.state(context.app, context))
-
-    @classmethod
-    def active_bindings(cls, context: Context) -> tuple[Binding, ...]:
-        identities = {binding.id for binding in cls.bindings_for(context.binding_mode)}
-        return tuple(binding for node, bindings in context.screen._binding_chain if node is context
-                     for _, binding in bindings if binding.id in identities
-                     and binding.state(context.app, context))
-
-    @classmethod
-    def parse(cls, parameters: tuple[object, ...]):
-        if parameters:
-            raise ValueError(f"{cls.declared_name} takes no parameters")
-        return cls()
-
-    @classmethod
-    def require_unwritten(cls, name: str, writers: tuple[type, ...]) -> None:
-        """A generated dispatcher may not replace an action a class wrote: a member whose apply
-        calls that action would then call itself."""
-        if writers:
-            raise TypeError(f"{cls.__qualname__} would replace {writers[0].__qualname__}.{name}")
-
-    @classmethod
-    def offered(cls, context: Context) -> Iterator[Self]:
-        """What the menu and the palette offer for this member: itself, where it is available."""
-        command = cls()
-        if command.available(context):
-            yield command
-
-    def label(self, context: Context) -> str:
-        """A state-dependent title overrides this; every other member shows its title."""
-        return self.title
-
-    def available(self, context: Context) -> bool | None:
-        return True
-
-    def engine_boundary(self, editor: TextArea) -> bool:
-        """An external engine offers this action at its key; only an EngineKey member is asked."""
-        return False
-
-    def key_available(self, context: Context) -> bool | None:
-        """Keyboard scope may be narrower than menu/palette command availability."""
-        return self.available(context)
-
-    @abstractmethod
-    def apply(self, context: Context) -> object: ...
-
-
-class System:
-    """Only its key reaches the action: no menu, palette or key panel shows it."""
-
-    system: ClassVar[bool] = True
-
-    @classmethod
-    def offered(cls, context: DOMNode) -> Iterator[Self]:
-        return iter(())
-
-
-class YieldingKey:
-    """An application key that any binding closer to the focus replaces: it answers only
-    where nothing local claims the key, so the claim is no conflict."""
-
-    priority = False
-
-    @classmethod
-    def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
-        return ()
+    def refine_binding(cls, binding: ActionBinding) -> ActionBinding:
+        return replace(binding, group=cls.group, declared_key=cls.declared_key)
 
 
 class ExclusiveKeys:
@@ -214,23 +67,6 @@ class ExclusiveKeys:
     def permits_key_overlap(cls, other: KeyDeclarationType) -> bool:
         family = next(base for base in cls.__mro__ if ExclusiveKeys in base.__bases__)
         return issubclass(other, family)
-
-
-class ApplicationAction(Action, affix="Action"):
-    """Declared application shortcuts resolve before an editor takes the key."""
-
-    binding_prefix = "app."
-    priority = True
-
-    @classmethod
-    def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
-        return cls.bindings_for(mode)
-
-    @classmethod
-    def menu(cls, app) -> tuple[tuple[ApplicationAction, str], ...]:
-        """Every offered member under its label, in declaration order."""
-        return tuple((command, command.label(app))
-                     for member in cls.members_with(cls) for command in member.offered(app))
 
 
 class VimWorkspaceAction(ApplicationAction, declared_name=None):
@@ -246,10 +82,10 @@ class VimWorkspaceAction(ApplicationAction, declared_name=None):
 class DeclaredWidgetActions(ToadNode):
     """One family supplies both native dispatch and dynamic availability."""
 
-    own_actions: ClassVar[tuple[type[Action], ...]] = ()
+    own_actions: ClassVar[tuple[type[DeclaredAction], ...]] = ()
 
     @classmethod
-    def declared_actions(cls) -> tuple[type[Action], ...]:
+    def declared_actions(cls) -> tuple[type[DeclaredAction], ...]:
         """Capabilities and the widget's own family compose through its MRO."""
         return tuple(dict.fromkeys(
             member for base in cls.__mro__
@@ -257,9 +93,57 @@ class DeclaredWidgetActions(ToadNode):
             for member in family.members_with(family)
         ))
 
+    @staticmethod
+    def key_bindings(declaration: type[DeclaredAction]) -> tuple[Binding, ...]:
+        """A declaration's default bindings in every mode it declares keys for."""
+        return tuple(DeclaredWidgetActions.command_binding(
+                         declaration, mode, key, declaration.command_for_key(mode, key))
+                     for mode, keys in declaration.keys.items() for key in keys)
+
+    @staticmethod
+    def command_binding(declaration: type[DeclaredAction], capability: type[InputMode], key: str,
+                        command: DeclaredAction) -> ModeBinding:
+        return declaration.refine_binding(ActionBinding(
+            key=key, action=command, description=declaration.title,
+            available=command.key_available, mode=capability,
+            tooltip=declaration.summary(), show=declaration.show, priority=declaration.priority,
+            system=declaration.system, key_display=declaration.key_display,
+        ))
+
+    @staticmethod
+    def mode_bindings(declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
+        """The nearest declared capability supplies defaults; identity follows active mode."""
+        for capability in mode.__mro__:
+            if capability in declaration.keys:
+                return tuple(binding for _, binding in BindingsMap(
+                    DeclaredWidgetActions.command_binding(
+                        declaration, capability, key, declaration.command_for_key(capability, key))
+                    for key in declaration.keys[capability]
+                ).project(mode))
+        return ()
+
+    @staticmethod
+    def exclusive_bindings(declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
+        return declaration.exclusive_claims(DeclaredWidgetActions.mode_bindings(declaration, mode))
+
+    def configured_bindings(self, declaration: type[DeclaredAction]) -> tuple[Binding, ...]:
+        """Declared keys after remapping, also when this control is not focused."""
+        mode = self.binding_mode
+        identities = {binding.id for binding in self.mode_bindings(declaration, mode)}
+        bindings = self.binding_map(mode)
+        bindings.apply_keymap(self.app._keymap)
+        return tuple(binding for _, binding in bindings if binding.id in identities
+                     and binding.state(self.app, self))
+
+    def active_declared_bindings(self, declaration: type[DeclaredAction]) -> tuple[Binding, ...]:
+        identities = {binding.id for binding in self.mode_bindings(declaration, self.binding_mode)}
+        return tuple(binding for node, bindings in self.screen._binding_chain if node is self
+                     for _, binding in bindings if binding.id in identities
+                     and binding.state(self.app, self))
+
     @classmethod
-    def declaration_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
-        return declaration.bindings_for(mode)
+    def declaration_bindings(cls, declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
+        return cls.mode_bindings(declaration, mode)
 
     @classmethod
     def declared_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
@@ -278,7 +162,7 @@ class DeclaredWidgetActions(ToadNode):
         """A fresh map over this scope's frozen bindings for the current mode."""
         return BindingsMap(self._scope_bindings(self.binding_mode))
 
-    def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
+    def __init_subclass__(cls, actions: tuple[type[DeclaredAction], ...] = (), **kwargs):
         cls.own_actions = actions
         declarations = cls.declared_actions()
         for declaration in declarations:
@@ -297,13 +181,13 @@ class DeclaredWidgetActions(ToadNode):
                 return declaration.parse(parameters).key_available(self)
         return super().check_action(action, parameters)
 
-    def _run_declared_action(self, declaration: type[Action], *parameters: object) -> object:
+    def _run_declared_action(self, declaration: type[DeclaredAction], *parameters: object) -> object:
         command = declaration.parse(parameters)
         if command.available(self):
             return command.apply(self)
         return None
 
-    async def _run_declared_async_action(self, declaration: type[Action], *parameters: object) -> None:
+    async def _run_declared_async_action(self, declaration: type[DeclaredAction], *parameters: object) -> None:
         await invoke(self._run_declared_action, declaration, *parameters)
 
 
@@ -345,15 +229,6 @@ class WidgetAction(Action, affix="Action"):
 
 class VisibleAction(WidgetAction):
     show = True
-
-
-class ReplacesFrameworkAction:
-    """A member declared to stand in for one of Textual's own actions (Screen.action_dismiss,
-    App.action_quit): replacing that written action is its purpose."""
-
-    @classmethod
-    def require_unwritten(cls, name: str, writers: tuple[type, ...]) -> None:
-        pass
 
 
 class DismissAction(ReplacesFrameworkAction, VisibleAction):
@@ -573,7 +448,7 @@ class ActionPresentation(DeclaredWidgetActions):
     def __init_subclass__(
         cls, fields: tuple[FieldPlan, ...] = (), combine: Combiner = or_,
         scopes: PresentationScopes = MappingProxyType({}),
-        actions: tuple[type[Action], ...] = (), **kwargs: object,
+        actions: tuple[type[DeclaredAction], ...] = (), **kwargs: object,
     ) -> None:
         cls.binding_styles = tuple(BindingStyle(field, combine) for field in fields)
         cls.scopes = scopes
@@ -592,7 +467,7 @@ class ActionPresentation(DeclaredWidgetActions):
         return binding
 
     @classmethod
-    def declaration_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declaration_bindings(cls, declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
         return tuple(cls.present_binding(declaration, binding)
                      for binding in super().declaration_bindings(declaration, mode))
 

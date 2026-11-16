@@ -41,7 +41,7 @@ from toad.client.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalB
 from toad.client.connection import LocalCoreConnection, RemoteCoreConnection
 from toad.launch_binding import NoAgent
 from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows
-from toad.widget_actions import ApplicationAction
+from toad.client.application_actions import ApplicationAction
 
 
 def openable(path: Path) -> OpenableProfile:

@@ -101,7 +101,7 @@ class CancelAction(ConversationAction):
         return True if conversation.agent_binding.cancel_allowed(conversation.turns.owner) else None
 
     async def apply(self, conversation):
-        conversation.cancel_turn(conversation.app.get_key_display(*self.active_bindings(conversation)))
+        conversation.cancel_turn(conversation.app.get_key_display(*conversation.active_declared_bindings(type(self))))
 
 
 class PageFractionAction(ConversationAction):

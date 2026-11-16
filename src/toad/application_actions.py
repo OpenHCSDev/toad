@@ -1,4 +1,5 @@
-"""Textual actions, bindings and palette entries share their declarations."""
+"""The application actions whose bodies need Textual, declared after the shared ones in
+`toad.client.application_actions`, and the palette that offers the whole family."""
 
 from __future__ import annotations
 
@@ -12,28 +13,19 @@ from agent_comms.nominal.field_codec import FieldCodec
 from toad.preferences import SETTINGS
 from toad.screens.keymap import KeymapScreen
 from toad.keymap import KeyInvocationId
-from toad.widget_actions import (
+from toad.client.application_actions import (
     ApplicationAction,
     ReplacesFrameworkAction,
     System,
-    VimWorkspaceAction,
     YieldingKey,
 )
+from toad.widget_actions import VimWorkspaceAction
 from toad.widgets.comms_transfer import Transfer, Transfers
 from toad.core.session_requests import SessionNavigate
 from toad.sidebar_placement import LeftSidebarEdge, RightSidebarEdge, SidebarEdge
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-
-
-# Declaration order is the order of the menu and the palette.
-class NewThreadAction(ApplicationAction):
-    """Start a thread in the selected project."""
-
-    async def apply(self, app: ToadApp) -> None:
-        navigation = app.session_navigation
-        navigation.open_thread_form(navigation.selected_project())
 
 
 class OpenBusAction(ApplicationAction):
@@ -177,25 +169,6 @@ class KeymapAction(ApplicationAction):
         app.push_screen(KeymapScreen(focused))
 
 
-class ChannelsAction(ApplicationAction):
-    """Reveal channels and focus the selected session."""
-
-    keys = {EditingMode: ("ctrl+s",)}
-    show = True
-
-    async def apply(self, app: ToadApp) -> None:
-        app.run_worker(app.session_navigation.reveal)
-
-
-class DirectMessagesAction(ApplicationAction):
-    """Open the most recently selected direct conversation."""
-
-    keys = {EditingMode: ("ctrl+shift+d",)}
-
-    async def apply(self, app: ToadApp) -> None:
-        app.session_navigation.direct_messages()
-
-
 class VimCycleTabAction(VimWorkspaceAction, declared_name=None):
     direction: Literal[-1, 1]
 
@@ -274,15 +247,6 @@ class VimMoveTabRightAction(VimMoveTabAction):
     """Move the selected tab right without selecting another tab."""
     keys = {VimMode: ("ctrl+shift+k",)}
     direction = +1
-
-
-class QuitAction(ReplacesFrameworkAction, ApplicationAction):
-    """Save preferences and quit the application."""
-
-    keys = {EditingMode: ("ctrl+q",)}
-
-    async def apply(self, app: ToadApp) -> None:
-        app.application.quit()
 
 
 class ApplicationCommands(Provider):

@@ -12,7 +12,8 @@ from toad.settings_scope import ViewSettingsScope
 from toad.worker_group import WorkerGroup
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, StepsHorizontalCursor, StepsVerticalCursor, VisibleActions
+from toad.client.application_actions import ApplicationAction
+from toad.widget_actions import ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, StepsHorizontalCursor, StepsVerticalCursor, VisibleActions
 from textual.document._editing import EditingMode
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
@@ -65,7 +66,6 @@ from toad.sidebar_layout import (
 from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, SidebarPlacement, ThreadSidebarPlacement
 from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 from toad.app_node import ToadNode
-from textual import on
 
 if TYPE_CHECKING:
     from toad.client.tab_order import TabOrder

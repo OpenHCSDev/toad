@@ -33,7 +33,6 @@ from toad.tone_paint import UntintedTonePaint
 from toad.question_actions import QuestionAction, QuestionContext, SelectKindAction
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import StepsVerticalCursor, VisibleActions
-from textual import on
 
 type Options = list[Answer]
 
@@ -308,7 +307,7 @@ class Question(VisibleActions, StepsVerticalCursor, QuestionContext, containers.
         are never built, so a question with nothing to answer pays nothing on a binding change."""
         candidates = tuple((declaration.kind, binding.key)
                            for declaration in SelectKindAction.members_with(SelectKindAction)
-                           for binding in declaration.configured_bindings(self))
+                           for binding in self.configured_bindings(declaration))
         seen: set[str] = set()
         for answer in self.options:
             yield tuple(key for kind, key in candidates if kind == answer.kind and kind not in seen)
