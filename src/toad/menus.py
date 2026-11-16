@@ -15,6 +15,7 @@ from textual.keys import KeyDeclarationType, KeyInvocation
 from textual.widget import Widget
 
 from toad.client.line_blocks import LineLink
+from toad.message_rows import MessageRow
 from toad.widget_actions import KeyFamilyMeta
 
 
@@ -200,3 +201,9 @@ class OpenSenderCommand(OpenLinkCommand, KeyedMenuCommand):
 class OpenDestinationCommand(OpenLinkCommand, KeyedMenuCommand):
     key = "d"
     description = "Open [u]d[/u]estination"
+
+
+def message_menu(row: MessageRow) -> tuple[MenuCommand, ...]:
+    """What the cursor's menu offers on a bus message, wherever it is drawn."""
+    return (OpenSenderCommand(row.sender),
+            *(OpenDestinationCommand(row.name(target).link) for target in row.route.targets[:1]))

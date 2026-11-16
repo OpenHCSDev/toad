@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from functools import cached_property
+from functools import cached_property, partial
+from pathlib import Path
 from typing import cast
 
 from agent_comms.messaging.display_references import (
@@ -16,7 +17,7 @@ from rich.segment import Segment
 from textual import on
 from textual._paint_state import PaintState
 from textual.events import Mount, Unmount
-from textual.geometry import Size
+from textual.geometry import Region, Size
 from textual.scroll_view import ScrollView
 from textual.selection import Selection
 from textual.strip import Strip
@@ -31,11 +32,12 @@ from toad.core.input_events import SelectHistoricalIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import CascadingRows, RowRun
 from toad.client.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
-from toad.menus import MenuCommand
+from toad.menus import MenuCommand, message_menu
 from toad.message_rows import MessageRow
 from toad.navigation_target import NavigationTarget, SelectTarget
 from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
+from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.transcript_lines import Lines, link_place
 
 
@@ -109,6 +111,12 @@ class OpensLinks(OpensMarkdownLinks, CoreEventReceiver, MroDispatch):
     async def link_menu(self, href: str, event: object) -> bool:
         return await LineLink.from_href(href).copy_menu(self, event)
 
+    def offer_path(self, event, path: Path) -> None:
+        """A right-click on a file link: a menu at the click that copies its full path."""
+        event.prevent_default()
+        ActionMenu.show(self.screen, Region.from_offset(event.screen_offset, (0, 0)), str(path),
+                        [(partial(self.app.copy_to_clipboard, str(path)), "Copy full path")])
+
 
 class MessageRowBlock(OpensLinks):
     """A widget that is one bus message under the cursor: it offers the message's menu."""
@@ -116,7 +124,7 @@ class MessageRowBlock(OpensLinks):
     message_row: MessageRow
 
     def get_block_menu(self) -> tuple[MenuCommand, ...]:
-        return self.message_row.menu
+        return message_menu(self.message_row)
 
 
 def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
