@@ -12,9 +12,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Self, Sequence
 
 
+from formbridge.key_declarations import TextEntryMode
 from textual import on
 from textual.app import ComposeResult
-from textual.document._editing import EditingMode
+
 from textual.navigation import MovesCursor
 from toad.widget_actions import ForwardsCursor, WidgetAction, PriorityActions, HiddenActions, Submits, DismissAction, SubmitAction, VisibleActions
 from textual import work
@@ -257,10 +258,9 @@ class PathSearchMessage(MutedText, SideMargin, SidePadding, widgets.Static):
     native_theme = (NativeDeclaration.of(Styles.background, Variable(ForegroundColour.name), Percent(8)),)
 
 
-
 class SwitchPathPickerAction(WidgetAction):
     """Switch between path search and the project tree."""
-    keys = {EditingMode: ("tab",)}
+    keys = {TextEntryMode: ("tab",)}
     priority = True
 
     async def apply(self, context: PathSearch) -> None:

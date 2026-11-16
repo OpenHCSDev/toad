@@ -11,11 +11,12 @@ import time
 
 from agent_comms.transport.tailnet_buses import NamedHost, PeerBus
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
+from formbridge.key_declarations import TextEntryMode
 from textual import on, work
 from textual.app import ComposeResult
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
-from textual.document._editing import EditingMode
+
 from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import Input, OptionList, Static
@@ -183,7 +184,7 @@ class ForgetSavedBusAction(WidgetAction):
     """Forget the highlighted saved bus."""
 
     title = "Forget this bus"
-    keys = {EditingMode: ("delete",)}
+    keys = {TextEntryMode: ("delete",)}
     show = True
 
     def apply(self, context: ListsBuses) -> None:

@@ -1,7 +1,8 @@
 """Availability and effects use the conversation's existing resource owners."""
 from __future__ import annotations
 
-from textual.widgets.text_area import EditingMode, VimMode
+from formbridge.key_declarations import TextEntryMode
+from textual.widgets.text_area import VimMode
 from textual.binding import Binding
 from toad.widget_actions import Action, ExclusiveKeys
 from toad.block_navigation import CursorDirection, DownCursor, UpCursor
@@ -26,20 +27,20 @@ class BlockCursorAction(ConversationAction, declared_name=None):
 
 
 class BlockCursorUpAction(BlockCursorAction):
-    keys = {EditingMode: ("alt+up",)}
+    keys = {TextEntryMode: ("alt+up",)}
     direction = UpCursor
     priority = True
 
 
 class BlockCursorDownAction(BlockCursorAction):
-    keys = {EditingMode: ("alt+down",)}
+    keys = {TextEntryMode: ("alt+down",)}
     direction = DownCursor
 
 
 class SelectBlockAction(ConversationAction):
     """Open the menu for the block under the cursor."""
 
-    keys = {EditingMode: ("enter",)}
+    keys = {TextEntryMode: ("enter",)}
     show = True
 
     async def apply(self, conversation: Conversation) -> None:
@@ -49,7 +50,7 @@ class SelectBlockAction(ConversationAction):
 class InterruptAction(ConversationAction):
     """Interrupt the running shell command."""
 
-    keys = {EditingMode: ("ctrl+c",)}
+    keys = {TextEntryMode: ("ctrl+c",)}
     show = True
 
     def available(self, conversation: Conversation) -> bool:
@@ -68,7 +69,7 @@ class WindowAction(Action, affix="Action"):
 class FocusTerminalAction(ConversationAction):
     """Focus the active terminal."""
 
-    keys = {EditingMode: ("ctrl+f",)}
+    keys = {TextEntryMode: ("ctrl+f",)}
     priority = True
 
     def available(self, conversation):
@@ -81,7 +82,7 @@ class FocusTerminalAction(ConversationAction):
 class ModeSwitcherAction(ConversationAction):
     """Open the mode switcher."""
 
-    keys = {EditingMode: ("ctrl+o",)}
+    keys = {TextEntryMode: ("ctrl+o",)}
     show = True
 
     def available(self, conversation):
@@ -94,7 +95,7 @@ class ModeSwitcherAction(ConversationAction):
 class CancelAction(ConversationAction):
     """Cancel the agent's turn."""
 
-    keys = {EditingMode: ("escape",), VimMode: ("alt+ctrl+x",)}
+    keys = {TextEntryMode: ("escape",), VimMode: ("alt+ctrl+x",)}
     show = True
 
     def available(self, conversation):
@@ -118,33 +119,33 @@ class PageFractionAction(ConversationAction):
 class QuarterPageUpAction(PageFractionAction):
     """Scroll the conversation up a quarter page."""
 
-    keys = {EditingMode: ("pageup", "shift+pageup")}
+    keys = {TextEntryMode: ("pageup", "shift+pageup")}
 
 
 class QuarterPageDownAction(QuarterPageUpAction):
     """Scroll the conversation down a quarter page."""
 
-    keys = {EditingMode: ("pagedown", "shift+pagedown")}
+    keys = {TextEntryMode: ("pagedown", "shift+pagedown")}
     direction = 1
 
 
 class EighthPageUpAction(PageFractionAction):
     """Scroll the conversation up an eighth of a page."""
 
-    keys = {EditingMode: ("ctrl+pageup",)}
+    keys = {TextEntryMode: ("ctrl+pageup",)}
     page_divisor = 8
 
 
 class EighthPageDownAction(EighthPageUpAction):
     """Scroll the conversation down an eighth of a page."""
 
-    keys = {EditingMode: ("ctrl+pagedown",)}
+    keys = {TextEntryMode: ("ctrl+pagedown",)}
     direction = 1
 
 
 class BlockExpansionAction(ExclusiveKeys, ConversationAction, declared_name=None):
     """Expansion and collapse are alternatives selected by the cursor block's state."""
-    keys = {EditingMode: ("space",)}
+    keys = {TextEntryMode: ("space",)}
     key_display = "␣"
     show = True
 

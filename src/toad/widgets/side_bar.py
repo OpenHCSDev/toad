@@ -4,6 +4,7 @@ from abc import abstractmethod
 from functools import cached_property
 
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
+from formbridge.key_declarations import TextEntryMode
 from textual._callback import invoke
 
 from metaclass_registry.mro_dispatch import handles
@@ -14,7 +15,7 @@ from toad.core import events as core_events
 from textual.content import Content
 from toad.client.application_actions import ApplicationAction
 from toad.widget_actions import ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, StepsHorizontalCursor, StepsVerticalCursor, VisibleActions
-from textual.document._editing import EditingMode
+
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -98,7 +99,6 @@ class BarPresentation:
             tuple(type(action) for action in directions.values()),
             leads_band,
         )
-
 
 
 class PanelHydration(WorkerGroup):
@@ -299,7 +299,7 @@ class FlexSideBarCollapsible(SideBarCollapsible):
 
 class ToggleSidebarAction(WidgetAction):
     """Toggle the sidebar and focus its contents."""
-    keys = {EditingMode: ("enter", "space")}
+    keys = {TextEntryMode: ("enter", "space")}
 
     def apply(self, context: SideBarToggle) -> None:
         context.post_message(context.Pressed())
@@ -867,7 +867,7 @@ class BandSplitHandle(
 
 class ClearSidebarSearchAction(WidgetAction):
     """Clear the sidebar search text."""
-    keys = {EditingMode: ("escape",)}
+    keys = {TextEntryMode: ("escape",)}
 
     def apply(self, context: SidebarSearch) -> None:
         context.value = ""
@@ -880,7 +880,7 @@ class SidebarSearch(DeclaredWidgetActions, widgets.Input, actions=(ClearSidebarS
 class SearchSidebarAction(WidgetAction):
     """Focus search in the sidebar containing the current selection."""
 
-    keys = {EditingMode: ("slash",)}
+    keys = {TextEntryMode: ("slash",)}
 
     def available(self, sidebar: SideBar) -> bool:
         return sidebar.app.focused is not sidebar.search_input

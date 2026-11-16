@@ -12,7 +12,7 @@ from types import MappingProxyType
 from typing import ClassVar, Literal, TypeVar
 
 from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
-from formbridge.key_declarations import DeclaredKey, InputMode, KeyDeclaration, KeyDeclarationType, UndecodedKey
+from formbridge.key_declarations import DeclaredKey, InputMode, KeyDeclaration, KeyDeclarationType, TextEntryMode, UndecodedKey
 from textual import events, on
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
@@ -112,7 +112,7 @@ class DeclaredWidgetActions(ToadNode):
         ))
 
     @staticmethod
-    def mode_bindings(declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def mode_bindings(declaration: type[DeclaredAction], mode: type[TextEntryMode]) -> tuple[Binding, ...]:
         """The nearest declared capability supplies defaults; identity follows active mode."""
         for capability in mode.__mro__:
             if capability in declaration.keys:
@@ -124,7 +124,7 @@ class DeclaredWidgetActions(ToadNode):
         return ()
 
     @staticmethod
-    def exclusive_bindings(declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def exclusive_bindings(declaration: type[DeclaredAction], mode: type[TextEntryMode]) -> tuple[Binding, ...]:
         return declaration.exclusive_claims(DeclaredWidgetActions.mode_bindings(declaration, mode))
 
     def configured_bindings(self, declaration: type[DeclaredAction]) -> tuple[Binding, ...]:
@@ -143,18 +143,18 @@ class DeclaredWidgetActions(ToadNode):
                      and binding.state(self.app, self))
 
     @classmethod
-    def declaration_bindings(cls, declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declaration_bindings(cls, declaration: type[DeclaredAction], mode: type[TextEntryMode]) -> tuple[Binding, ...]:
         return cls.mode_bindings(declaration, mode)
 
     @classmethod
-    def declared_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declared_bindings(cls, mode: type[TextEntryMode]) -> tuple[Binding, ...]:
         return (*super().declared_bindings(mode),
                 *(binding for declaration in cls.declared_actions()
                   for binding in cls.declaration_bindings(declaration, mode)))
 
     @classmethod
     @lru_cache(maxsize=None)
-    def _scope_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def _scope_bindings(cls, mode: type[TextEntryMode]) -> tuple[Binding, ...]:
         """What this class answers as a keyboard scope outside the focus chain: each declared binding's
         fallbacks. Immutable and per (class, mode), like Textual's own `_binding_defaults`."""
         return tuple(scoped for binding in cls.declared_bindings(mode) for scoped in binding.fallback_bindings())
@@ -245,21 +245,21 @@ class VisibleAction(WidgetAction):
 
 class DismissAction(ReplacesFrameworkAction, VisibleAction):
     """Close the current control."""
-    keys = {EditingMode: ("escape",)}
+    keys = {TextEntryMode: ("escape",)}
 
     async def apply(self, context: DismissibleControl) -> None:
         context.dismiss_control()
 
 
 class SubmitAction(VisibleAction):
-    keys = {EditingMode: ("enter",)}
+    keys = {TextEntryMode: ("enter",)}
 
     async def apply(self, context: Submits) -> None:
         context.submit()
 
 
 class SelectAction(VisibleAction):
-    keys = {EditingMode: ("enter",)}
+    keys = {TextEntryMode: ("enter",)}
 
     async def apply(self, context: Selects) -> None:
         context.select()
@@ -267,7 +267,7 @@ class SelectAction(VisibleAction):
 
 class OpenSelectedAction(VisibleAction):
     title = "Open"
-    keys = {EditingMode: ("enter",)}
+    keys = {TextEntryMode: ("enter",)}
 
     @classmethod
     def permits_key_overlap(cls, other: KeyDeclarationType) -> bool:
@@ -279,7 +279,7 @@ class OpenSelectedAction(VisibleAction):
 
 
 class ActivateAction(WidgetAction):
-    keys = {EditingMode: ("enter", "space")}
+    keys = {TextEntryMode: ("enter", "space")}
 
     async def apply(self, context: ActivationKeys) -> None:
         await invoke(context.primary_activation)
@@ -287,7 +287,7 @@ class ActivateAction(WidgetAction):
 
 class ToggleIrcAction(VisibleAction):
     title = "IRC view"
-    keys = {EditingMode: ("ctrl+g",)}
+    keys = {TextEntryMode: ("ctrl+g",)}
 
     async def apply(self, context: TogglesIrc) -> None:
         await context.toggle_irc()
@@ -305,12 +305,12 @@ class SessionNavigationAction(VisibleAction, affix="Action"):
 
 
 class SessionPreviousAction(SessionNavigationAction):
-    keys = {EditingMode: ("ctrl+left_square_bracket",)}
+    keys = {TextEntryMode: ("ctrl+left_square_bracket",)}
     direction = -1
 
 
 class SessionNextAction(SessionNavigationAction):
-    keys = {EditingMode: ("ctrl+right_square_bracket",)}
+    keys = {TextEntryMode: ("ctrl+right_square_bracket",)}
     direction = +1
 
 
@@ -319,14 +319,14 @@ class FocusAction(VisibleAction, affix="Action"):
 
 
 class FocusNextAction(FocusAction):
-    keys = {EditingMode: ("tab",)}
+    keys = {TextEntryMode: ("tab",)}
 
     async def apply(self, context: CyclesFocus) -> None:
         context.app.action_focus_next()
 
 
 class FocusPreviousAction(FocusAction):
-    keys = {EditingMode: ("shift+tab",)}
+    keys = {TextEntryMode: ("shift+tab",)}
 
     async def apply(self, context: CyclesFocus) -> None:
         context.app.action_focus_previous()
@@ -480,7 +480,7 @@ class ActionPresentation(DeclaredWidgetActions):
         return binding
 
     @classmethod
-    def declaration_bindings(cls, declaration: type[DeclaredAction], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declaration_bindings(cls, declaration: type[DeclaredAction], mode: type[TextEntryMode]) -> tuple[Binding, ...]:
         return tuple(cls.present_binding(declaration, binding)
                      for binding in super().declaration_bindings(declaration, mode))
 

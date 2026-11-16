@@ -4,9 +4,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar, Literal
 from abc import abstractmethod
 
+from formbridge.key_declarations import TextEntryMode
 from textual.binding import Binding
 from textual.dom import DOMNode
-from textual.widgets.text_area import EditingMode
+
 from toad.widget_actions import Action
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ class SelectionAction(QuestionAction):
 class SelectAction(QuestionAction):
     """Answer with the selected option."""
 
-    keys = {EditingMode: ("enter",)}
+    keys = {TextEntryMode: ("enter",)}
     show = True
 
     def available(self, context):
@@ -73,28 +74,28 @@ class SelectKindAction(QuestionAction, declared_name=None):
 class AllowOnceAction(SelectKindAction):
     kind = "allow_once"
     title = "Allow once"
-    keys = {EditingMode: ("a",)}
+    keys = {TextEntryMode: ("a",)}
     group = Binding.Group("Allow once/always", compact=True)
 
 
 class AllowAlwaysAction(SelectKindAction):
     kind = "allow_always"
     title = "Allow always"
-    keys = {EditingMode: ("A",)}
+    keys = {TextEntryMode: ("A",)}
     group = AllowOnceAction.group
 
 
 class RejectOnceAction(SelectKindAction):
     kind = "reject_once"
     title = "Reject once"
-    keys = {EditingMode: ("r",)}
+    keys = {TextEntryMode: ("r",)}
     group = Binding.Group("Reject once/always", compact=True)
 
 
 class RejectAlwaysAction(SelectKindAction):
     kind = "reject_always"
     title = "Reject always"
-    keys = {EditingMode: ("R",)}
+    keys = {TextEntryMode: ("R",)}
     group = RejectOnceAction.group
 
 
@@ -104,14 +105,14 @@ class PermissionNavigationAction(Action, declared_name=None):
 
 
 class NextChangeAction(PermissionNavigationAction):
-    keys = {EditingMode: ("j",)}
+    keys = {TextEntryMode: ("j",)}
 
     async def apply(self, context):
         context.navigator.action_cursor_down()
 
 
 class PreviousChangeAction(PermissionNavigationAction):
-    keys = {EditingMode: ("k",)}
+    keys = {TextEntryMode: ("k",)}
 
     async def apply(self, context):
         context.navigator.action_cursor_up()

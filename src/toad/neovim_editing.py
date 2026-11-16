@@ -12,6 +12,7 @@ from itertools import count
 from typing import ClassVar, Self
 
 import msgpack
+from formbridge.key_declarations import TextEntryMode
 import toad
 from agent_comms.execution.child_process import (
     AttachedChild,
@@ -25,7 +26,7 @@ from textual.app import App
 from textual.binding import Binding
 from textual.cursor_shape import CursorShape, SteadyBlock, TextEntryCursor
 from textual.document._document import DocumentBase, Location, RangedEditResult, Selection
-from textual.document._editing import EditingFailure, EditingMode, VimMode
+from textual.document._editing import EditingFailure, VimMode
 from textual.document._edit import Edit, InsertionPoint
 from textual.events import Key
 from textual.keys import key_to_character
@@ -1223,8 +1224,8 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         return self.snapshot.state.cursor_shape
 
     @classmethod
-    def binding_mode(cls) -> type[EditingMode]:
-        """Neovim's bindings are declared under its own class (EditingMode's classmethod
+    def binding_mode(cls) -> type[TextEntryMode]:
+        """Neovim's bindings are declared under its own class (TextEntryMode's classmethod
         contract: DOMNode asks the mode class, never an instance)."""
         return cls
 

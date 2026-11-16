@@ -7,8 +7,9 @@ from contextlib import asynccontextmanager
 
 from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
 from support.agents import AppAgents, command
-from textual.document._editing import EditingMode
 
+
+from formbridge.key_declarations import TextEntryMode
 from toad.acp.agent import Agent
 from toad.acp.status import EndTurnStopReason
 from toad.command_catalog import CommandCatalog
@@ -154,7 +155,7 @@ async def test_hover_and_arrow_keys_move_the_highlight_without_taking_focus_from
 async def test_typing_filters_models_fuzzily_and_escape_closes_without_a_change(workspace):
     async with picker_session(workspace) as picker:
         widget, ui = picker.widget, picker.ui
-        ui.textual[0].set_keymap({ClearModelSearchAction.binding_id(EditingMode): "f9"})
+        ui.textual[0].set_keymap({ClearModelSearchAction.binding_id(TextEntryMode): "f9"})
         before = await open_by_clicking_the_model(picker)
         await ui.press(*"SONNET anthr")
         assert picker.ids() == [SONNET]

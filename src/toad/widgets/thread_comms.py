@@ -15,9 +15,10 @@ from agent_comms.ui_model.message_category import MessageCategory
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from agent_comms.ui_model.unread import UnobservedUnread
 from metaclass_registry.mro_dispatch import handles
+from formbridge.key_declarations import TextEntryMode
 from textual import on
 from textual.content import Content
-from textual.document._editing import EditingMode
+
 from textual.events import Mount, Show, Unmount
 from textual.geometry import Offset, Region
 from textual.widgets import Static
@@ -127,7 +128,7 @@ class ViewAction(WidgetAction, affix="Action"):
 
 class CopyIdentityAction(ViewAction):
     title = 'Copy name'
-    keys = {EditingMode: ('ctrl+c',)}
+    keys = {TextEntryMode: ('ctrl+c',)}
 
     def apply(self, context: RelationshipRow) -> None:
         context.app.copy_to_clipboard(context.target_name)
@@ -190,7 +191,6 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
 
 class RelationshipEmpty(MutedText, OneRow, Static):
     """An expanded group's explanation that it lists nobody."""
-
 
 
 class RelationshipContext(ClipOverflow, MutedText, NoWrap, Static):

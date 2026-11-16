@@ -10,13 +10,14 @@ from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.execution.login import run_login
 from agent_comms.transport.request import CoreAccess
+from formbridge.key_declarations import TextEntryMode
 from toad.client.command_draft import CommandDraft, CommandText, PreparedChoices
 from toad.client.host import CommandOrigin
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.css.scalar import Scalar
-from textual.document._editing import EditingMode
+
 from textual.events import Mount, Unmount
 from textual.screen import Screen
 from textual.widgets import Button, Static
@@ -43,7 +44,6 @@ from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
 from toad.widgets.checkbox import Checkbox
 from toad.widgets.model_selection import ModelSelection
 from toad.worker_group import WorkerGroup
-
 
 
 
@@ -136,7 +136,7 @@ class ViewAction(WidgetAction, affix="Action"):
 
 class ApplyCommandAction(ViewAction):
     title = 'Apply'
-    keys = {EditingMode: ('ctrl+enter',)}
+    keys = {TextEntryMode: ('ctrl+enter',)}
     show = True
 
     async def apply(self, context: CommandForm) -> None:

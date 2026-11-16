@@ -4,13 +4,14 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import Protocol
 
+from formbridge.key_declarations import TextEntryMode
 from textual import getters, on, work
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.content import Content
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
-from textual.document._editing import EditingMode
+
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option, OptionListComponent
@@ -102,7 +103,7 @@ class ModelChoice(Protocol):
 
 class ClearModelSearchAction(WidgetAction):
     """Clear the model search query."""
-    keys = {EditingMode: ("ctrl+u",)}
+    keys = {TextEntryMode: ("ctrl+u",)}
     priority = True
 
     async def apply(self, context: ModelSelection) -> None:
@@ -190,7 +191,6 @@ class ModelSelection(
         self.recent_ids: list[str] = []
         self._open_generation = 0
         self.refilter: HighlightPlacement = ResetsHighlight()
-
 
 
     @property

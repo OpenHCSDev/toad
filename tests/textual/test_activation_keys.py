@@ -1,8 +1,9 @@
 """Remapped keyboard and primary pointer input invoke the original callback once."""
 import asyncio
 
+from formbridge.key_declarations import TextEntryMode
 from textual.app import App, ComposeResult
-from textual.document._editing import EditingMode
+
 from textual.widgets import Static
 
 from toad.widget_actions import ActivationKeys, ActivateAction
@@ -38,7 +39,7 @@ async def test_remapped_activation_and_primary_click_await_sync_and_async_effect
     app = Controls()
     async with app.run_test() as pilot:
         sync_control, async_control = app.query(CallbackControl)
-        app.set_keymap({ActivateAction.binding_id(EditingMode): "f9"})
+        app.set_keymap({ActivateAction.binding_id(TextEntryMode): "f9"})
         sync_control.focus()
         await pilot.press("enter", "space")
         assert calls == []

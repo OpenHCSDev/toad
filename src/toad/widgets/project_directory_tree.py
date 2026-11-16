@@ -3,8 +3,9 @@ from typing import Iterable
 
 import asyncio
 
+from formbridge.key_declarations import TextEntryMode
 from textual import work
-from textual.document._editing import EditingMode
+
 from toad.widget_actions import Action, NativeMethodKeys
 from textual.message import Message
 from textual.widgets import DirectoryTree
@@ -23,7 +24,7 @@ class ProjectTreeAction(Action, affix="Action"):
 class RefreshAction(ProjectTreeAction):
     """Refresh file view."""
 
-    keys = {EditingMode: ("ctrl+r",)}
+    keys = {TextEntryMode: ("ctrl+r",)}
     show = True
 
     def apply(self, tree: ProjectDirectoryTree) -> None:
@@ -33,7 +34,7 @@ class RefreshAction(ProjectTreeAction):
 class InsertPathAction(ProjectTreeAction):
     """Insert selected path in prompt."""
 
-    keys = {EditingMode: ("shift+enter",)}
+    keys = {TextEntryMode: ("shift+enter",)}
 
     def apply(self, tree: ProjectDirectoryTree) -> None:
         tree.insert_selected()

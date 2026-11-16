@@ -15,6 +15,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.projects.checkouts import Checkout
 from metaclass_registry.mro_dispatch import handles
+from formbridge.key_declarations import TextEntryMode
 from textual import getters, on
 from textual.app import ComposeResult
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
@@ -308,7 +309,7 @@ class GoHomeAction(MainAction):
     """Open the Comms home: the workspace's welcome view."""
 
     title = "Home"
-    keys = {EditingMode: ("ctrl+h",)}
+    keys = {TextEntryMode: ("ctrl+h",)}
 
     async def apply(self, context: MainScreen) -> None:
         await context.app.select_session(context.app.tab_order.home)

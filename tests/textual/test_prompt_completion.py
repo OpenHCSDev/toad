@@ -1,7 +1,8 @@
 """Textual-facing: the prompt's popups (slash commands, file search, model picker), its cursor and selection
 in wrapped text, and the channel composer's mention list are Textual widgets that paint and take focus."""
+from formbridge.key_declarations import TextEntryMode
 from toad.widgets.path_search import FuzzyPane, SwitchPathPickerAction, TreePane
-from textual.document._editing import EditingMode
+
 from toad.launch_binding import AgentAttached
 
 import json
@@ -149,7 +150,7 @@ async def test_file_search_inserts_a_path_and_follows_picker_focus_resize_and_ca
         await pilot.hover(button, offset=(3, 0))
         await pilot.click(button, offset=(3, 0))
         paths = prompt.path_search
-        _app.set_keymap({SwitchPathPickerAction.binding_id(EditingMode): "f8"})
+        _app.set_keymap({SwitchPathPickerAction.binding_id(TextEntryMode): "f8"})
         await ui.until(lambda: paths.is_open and paths.input.has_focus and bool(paths.display_paths),
                        why="the file picker")
         await ui.until(lambda: not paths.option_list.loading, why="the picker's list")

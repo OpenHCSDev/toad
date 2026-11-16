@@ -7,6 +7,7 @@ import select
 import subprocess
 
 import pytest
+from formbridge.key_declarations import TextEntryMode
 from textual.widgets import Static
 
 from toad.link_click import OpenLineLink
@@ -14,7 +15,7 @@ from toad.block_content import BlockContent
 from toad.block_navigation import ConversationBlock
 from toad.widgets.conversation import FocusPromptAction
 from toad.conversation_actions import SelectBlockAction
-from textual.document._editing import EditingMode
+
 from dataclasses import dataclass
 
 from toad.menus import KeyedMenuCommand
@@ -140,8 +141,8 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
     async with workspace.app(size=(110, 38)) as ui:
         app, _ = ui.textual
         view = ui.conversation
-        app.set_keymap({SelectBlockAction.binding_id(EditingMode): "f9",
-                        FocusPromptAction.binding_id(EditingMode): "f8"})
+        app.set_keymap({SelectBlockAction.binding_id(TextEntryMode): "f9",
+                        FocusPromptAction.binding_id(TextEntryMode): "f8"})
         history = view.transcript.binding.history
         await view.contents.remove_children(
             tuple(child for child in view.contents.children if child is not history)

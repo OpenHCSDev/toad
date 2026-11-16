@@ -5,9 +5,10 @@ from __future__ import annotations
 from collections import ChainMap
 from collections.abc import Iterable
 
+from formbridge.key_declarations import TextEntryMode
 from textual import containers, events
 from textual.app import ComposeResult
-from textual.document._editing import EditingMode
+
 from textual.view import (
     FILL,
     WidgetView,
@@ -67,7 +68,7 @@ class FocusSearchAction(SettingsAction):
     """Move to the settings search; hidden while the search already has focus."""
 
     title = "Focus search"
-    keys = {EditingMode: ("ctrl+s",)}
+    keys = {TextEntryMode: ("ctrl+s",)}
     show = True
 
     def available(self, context: SettingsScreen) -> bool:
@@ -81,7 +82,7 @@ class DiscardAction(SettingsAction):
     """Throw away the edits not yet saved."""
 
     title = "Discard changes"
-    keys = {EditingMode: ("ctrl+r",)}
+    keys = {TextEntryMode: ("ctrl+r",)}
     show = True
 
     def apply(self, context: SettingsScreen) -> None:

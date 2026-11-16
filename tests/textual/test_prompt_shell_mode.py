@@ -3,7 +3,8 @@
 import shlex
 import sys
 
-from textual.document._editing import EditingMode
+
+from formbridge.key_declarations import TextEntryMode
 from toad.conversation_actions import InterruptAction
 from support.agents import peer
 from toad.launch_binding import AgentAttached
@@ -33,7 +34,7 @@ async def test_shell_path_completion_remaps_and_cursor_movement_clears_stale_sug
     (workspace.project / "alpine.txt").touch()
     async with workspace.app() as ui:
         app, _ = ui.textual
-        app.set_keymap({CompleteAction.binding_id(EditingMode): "f6"})
+        app.set_keymap({CompleteAction.binding_id(TextEntryMode): "f6"})
         await ui.press("exclamation_mark")
         await ui.type("cat alp")
         editor = ui.conversation.prompt.prompt_text_area
@@ -52,7 +53,7 @@ async def test_the_remapped_interrupt_stops_the_running_shell_without_quitting(w
         await ui.until_agent_ready()
         app, _ = ui.textual
         view = ui.conversation
-        app.set_keymap({InterruptAction.binding_id(EditingMode): "f7"})
+        app.set_keymap({InterruptAction.binding_id(TextEntryMode): "f7"})
         assert not view.check_action("interrupt", ())
         await ui.press("exclamation_mark")
         program = "import time; print(chr(10) + 'SHELL_INTERRUPT_READY', flush=True); time.sleep(30)"
