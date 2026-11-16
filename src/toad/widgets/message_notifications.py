@@ -34,7 +34,7 @@ from toad.native_style import (
     OneRow,
     TransparentBackground,
 )
-from toad.notification_status import (
+from toad.client.notification_status import (
     CheckedNotifications,
     MessageQueueEntry,
     NotificationStatus,

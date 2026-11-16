@@ -119,7 +119,7 @@ from toad.core.events import (
 )
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
 from toad.db import UNSCOPED_TABS, TabScope
-from toad.notification_status import (
+from toad.client.notification_status import (
     CheckedNotifications,
     NotificationStatus,
     UncheckedNotifications,

@@ -8,7 +8,7 @@ from textual.containers import VerticalGroup
 from toad.block_navigation import CategorizedBlock, SeparatedBlock
 from toad.commit_claims import CommitParticipant, OutgoingMessageClaim
 from toad.message_rows import LiveMessageClock, MessageRow
-from toad.notification_status import (
+from toad.client.notification_status import (
     CheckedNotifications,
     MessageQueueEntry,
     NotificationStatus,

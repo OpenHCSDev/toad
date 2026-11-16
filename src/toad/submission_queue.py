@@ -25,7 +25,7 @@ from toad.agent_presentation import AgentPresentation
 from toad.block_navigation import ConversationEntry
 from toad.client.connection import Observing
 from toad.line_blocks import MutedRole, Span
-from toad.notification_status import DetailLines, MessageQueueEntry
+from toad.client.notification_status import DetailLines, MessageQueueEntry
 
 
 @dataclass(frozen=True)

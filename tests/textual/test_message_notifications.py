@@ -24,7 +24,7 @@ from agent_comms.ui_model.observation import (
     UnreadableHistory,
 )
 
-from toad.notification_status import CheckedNotifications
+from toad.client.notification_status import CheckedNotifications
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.side_bar import SideBar, SideBarToggle
 
@@ -246,7 +246,7 @@ async def test_a_reread_or_resubscribed_message_starts_from_its_known_answer(wor
     from agent_comms.messaging.notification_reads import LiveNotificationRead
     from agent_comms.ui_model.observation import ReadNotifications
 
-    from toad.notification_status import UncheckedNotifications
+    from toad.client.notification_status import UncheckedNotifications
 
     CommsChatView = await open_comms_channel(workspace)
     notifications = Notifications()

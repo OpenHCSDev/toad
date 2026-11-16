@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from agent_comms.messaging.frozen_recipient import FrozenRecipient
 from agent_comms.messaging.message_notification import MessageNotification
@@ -23,8 +23,6 @@ from toad.line_blocks import (
     WorkingRole,
 )
 
-if TYPE_CHECKING:
-    from toad.widgets.transcript_fragments import Shown
 
 
 DetailLines = tuple[tuple[Span, ...], ...]
@@ -83,7 +81,7 @@ class NotificationStatus:
         """The title's meaning and colour, wherever the title is drawn."""
         return NoticeRole if self.unavailable else WorkingRole if self.is_working() else MutedRole
 
-    def blocks(self, shown: Shown, link: LineLink) -> tuple[LineBlock, ...]:
+    def blocks(self, shown: object, link: LineLink) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
         summary = shown.summary(self.title, self.role, link)
         return ((summary, self.disclosure)

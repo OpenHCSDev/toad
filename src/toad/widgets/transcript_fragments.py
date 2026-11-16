@@ -49,7 +49,7 @@ from toad.line_blocks import (
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
-from toad.notification_status import (
+from toad.client.notification_status import (
     MessageQueueEntry,
     NotificationStatus,
     UncheckedNotifications,

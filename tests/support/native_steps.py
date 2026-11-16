@@ -16,7 +16,7 @@ from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import DirectTarget, channel_target
-from toad.notification_status import CheckedNotifications, NotificationStatus
+from toad.client.notification_status import CheckedNotifications, NotificationStatus
 from toad.widgets.comms_chat import CommsChatView
 
 
