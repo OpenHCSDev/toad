@@ -8,7 +8,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from textual._time import after_input
+from toad.client.connection import Observing
+from toad.comms_host import CommsHost
 from toad.session_host import NavigationHost, WorkspaceViews
 
 from toad.constants import WELCOME
@@ -216,7 +217,7 @@ class VisiblePublication:
         )
 
 
-class WorkspaceHost(NavigationHost):
+class WorkspaceHost(CommsHost[Observing], NavigationHost):
     """What workspace sessions work through: an App (whose own _init_mode they call) that
     also provides these members. ToadApp inherits it, so this module never imports the app."""
 

@@ -18,7 +18,11 @@ from agent_comms.projects.checkouts import Checkout
 
 from formbridge.operations import OperationKind
 from formbridge.publications import PublicationStream
+from agent_comms.registry.thread_identity import ThreadIncarnation
+
+from toad.client.session_projection import SessionCollection
 from toad.client.tab_identity import TabIdentity
+from toad.client.tab_order import TabOrder
 from toad.work_preparation import PreparationRuntime
 
 
@@ -108,3 +112,27 @@ class CommsHost:
     def close_session(self, mode: str) -> None:
         """Request the session with this mode to close."""
         raise NotImplementedError
+
+
+class NavigatingHost[Source](CommsHost):
+    """A host with Toad's tabs and session navigation: which tabs are open, which threads
+    and channels their views were opened over, and retiring views a bus retired."""
+
+    tab_order: TabOrder
+    session_navigation: SessionCollection[Source]
+
+    @property
+    def tab_names(self) -> tuple[TabIdentity, ...]:
+        return self.tab_order.names
+
+    def open_thread_identities(self, root: str) -> set[ThreadIncarnation]:
+        return {identity for member in self.session_navigation.members
+                for owner, identity in member.original_threads(self.session_navigation)
+                if owner == root}
+
+    def open_channel_targets(self, root: str) -> set[str]:
+        return {target for member in self.session_navigation.members
+                for owner, target in member.original_channels() if owner == root}
+
+    def retire_views(self, root: Path, retired: RetiredViews) -> None:
+        self.session_navigation.views_retired(root, retired)
