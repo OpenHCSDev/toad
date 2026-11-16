@@ -23,7 +23,7 @@ from textual.widgets import Static
 from toad.app_node import ToadNode
 from toad.client.connection import FailedObservation, Observing
 from toad.client.subscribers import SidebarSubscriber
-from toad.core.events import CoordinationObserved, ThreadRowStateChanged
+from toad.core.events import ThreadRowStateChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.sidebar_changes import (
     AllSidebarRows,
@@ -68,14 +68,20 @@ class SidebarModelState(ABC):
     def current_for(self, view: SidebarModelView) -> SidebarModelState:
         return self
 
+    def shows_rows(self, view: SidebarModelView) -> bool:
+        return view.accepts_observation()
+
     def present(self, view: SidebarModelView) -> None:
-        view.app.coordination_access.show_sidebar(view, False)
+        view.app.coordination_access.update_sidebar_interest()
 
 
 class Detached(SidebarModelState):
     """No opened service or model belongs to this view."""
 
     def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
+        return False
+
+    def shows_rows(self, view: SidebarModelView) -> bool:
         return False
 
 
@@ -88,7 +94,7 @@ class FailedSidebarState(SidebarModelState):
 
     def present(self, view: SidebarModelView) -> None:
         view.unavailable.update(f"Comms unavailable\n{self.observed.error}")
-        view.app.coordination_access.show_sidebar(view, view.accepts_observation())
+        super().present(view)
 
 
 @dataclass(frozen=True)
@@ -118,7 +124,7 @@ class BoundSidebar(SidebarModelState):
 
     def present(self, view: SidebarModelView) -> None:
         view.unavailable.update(self.observed.sidebar.observation.status_text())
-        view.app.coordination_access.show_sidebar(view, view.accepts_observation())
+        super().present(view)
 
     def present_current(self):
         return self
@@ -162,10 +168,7 @@ class SidebarModelView(CoreEventReceiver, ToadNode, SidebarSubscriber[Observing,
         self.watch_model_state(self.model_state)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        observed = await self.app.preparation.run_thread(
-            self.app.coordination_access.observation.observed
-        )
-        observed.show_sidebar(self)
+        await self.app.coordination_access.follow_sidebar(self)
 
     @on(events.Unmount)
     def on_unmount(self) -> None:
@@ -196,6 +199,9 @@ class SidebarModelView(CoreEventReceiver, ToadNode, SidebarSubscriber[Observing,
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
 
+    def shows_sidebar(self) -> bool:
+        return self.model_state.shows_rows(self)
+
     def model_replaced(self) -> None:
         """Retire what showed the previous service's rows."""
 
@@ -209,7 +215,7 @@ class SidebarModelView(CoreEventReceiver, ToadNode, SidebarSubscriber[Observing,
         previous.unsubscribe(self)
 
     def stop_showing(self) -> None:
-        self.app.coordination_access.show_sidebar(self, False)
+        self.app.coordination_access.leave_sidebar(self)
         self.unsubscribe()
 
     def bind_failed_observation(self, observed: FailedObservation) -> None:
@@ -248,10 +254,6 @@ class SidebarModelView(CoreEventReceiver, ToadNode, SidebarSubscriber[Observing,
         self.model_state = previous.current_for(self)
         self.model_state.present(self)
         self.model_state.apply(self, previous.changes(changes))
-
-    @handles(CoordinationObserved)
-    async def coordination_observed(self, event: CoordinationObserved) -> None:
-        self.app.coordination_access.observation.observed().show_sidebar(self)
 
     @handles(ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: ThreadRowStateChanged) -> None:

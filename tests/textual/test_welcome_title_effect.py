@@ -11,11 +11,11 @@ async def test_title_effect_and_list_observation_stop_while_the_view_is_hidden(w
         await ui.until(lambda: title.played in title.effects, why="the title's effect to start")
         animation = title.effects[title.played].animation
         assert clock.running.get(animation) is title and animation.effect is title.played
-        assert entries in access.sidebar_views
+        assert entries in access.showing_sidebar()
 
         session = await ui.new_session()
         assert title.played not in title.effects and title not in clock.running.values()
-        assert entries not in access.sidebar_views
+        assert entries not in access.showing_sidebar()
         # The built frames stay; the hidden title shows the last one without a timer.
         assert title.render() == app.colours.paint_text(title.played.final, None)
 
@@ -23,7 +23,7 @@ async def test_title_effect_and_list_observation_stop_while_the_view_is_hidden(w
         await ui.close_tab(session)
         await ui.until(lambda: title.played in title.effects, why="the title's effect to play again")
         assert title.played is built, "the frames were built again for the same colour scheme"
-        assert entries in access.sidebar_views
+        assert entries in access.showing_sidebar()
 
         app.app_focus = False
         await ui.step()

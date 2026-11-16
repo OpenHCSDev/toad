@@ -10,18 +10,18 @@ from toad.sidebar_model_view import FailedSidebarState
 class FailNextInterest:
     """A real subscription callback can fail while the previous presentation is applying."""
 
-    def __init__(self, access):
-        self.access = access
-        self.original = access.show_sidebar
+    def __init__(self, access, view):
+        self.access, self.view = access, view
+        self.original = access.update_sidebar_interest
         self.pending = True
 
-    def show_sidebar(self, view, shown):
-        if self.pending and shown:
+    def update_sidebar_interest(self):
+        if self.pending:
             self.pending = False
             failed = self.access.observation.failed(
                 OSError("failed during sidebar interest"), UnselectedRoute())
-            view.bind_failed_observation(failed)
-        self.original(view, shown)
+            self.view.bind_failed_observation(failed)
+        self.original()
 
 
 @asynccontextmanager
@@ -53,9 +53,9 @@ async def test_failed_sidebar_interest_does_not_repeat_the_failure_transition(wo
 async def test_reentrant_sidebar_failure_cannot_restore_an_unsubscribed_state(workspace, monkeypatch):
     async with showing_sidebar(workspace) as (ui, sidebar):
         access = ui.app.coordination_access
-        registration = FailNextInterest(access)
+        registration = FailNextInterest(access, sidebar)
         with monkeypatch.context() as patch:
-            patch.setattr(access, "show_sidebar", registration.show_sidebar)
+            patch.setattr(access, "update_sidebar_interest", registration.update_sidebar_interest)
             sidebar.present()
             assert isinstance(sidebar.model_state, FailedSidebarState), (
                 "The old present() result overwrote a newer failure transition")
