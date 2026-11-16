@@ -30,7 +30,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.commit_claims import CommitClaim
 from toad.core.projection import MroProjection
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     AgentRole,
     Body,
     Divider,

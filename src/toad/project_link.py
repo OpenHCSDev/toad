@@ -16,7 +16,7 @@ from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token
 from textual.geometry import Region
-from toad.line_blocks import NO_LINK, LineLink
+from toad.client.line_blocks import NO_LINK, LineLink
 from toad.file_position import FilePosition
 
 

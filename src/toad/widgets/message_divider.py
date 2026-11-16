@@ -17,7 +17,7 @@ from ui_theme.effects import NEW_MESSAGE, Mix
 from toad.block_content import BlockContent
 from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.frame_presentation import Animated, EffectInContent
-from toad.line_blocks import Divider, Gap, LineBlock
+from toad.client.line_blocks import Divider, Gap, LineBlock
 from toad.native_style import (
     AutoHeight,
     FillWidth,

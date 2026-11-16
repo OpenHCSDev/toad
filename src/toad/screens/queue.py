@@ -16,7 +16,7 @@ from textual.widgets import Static
 from toad.widgets.acting_button import ActingButton, DismissButton
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.conversation_submission import ConversationSubmissions
-from toad.line_blocks import SpanColumns
+from toad.client.line_blocks import SpanColumns
 from toad.native_style import AutoHeight
 from toad.screens.modal import CenteredScreen, ShadedScreen, SurfacePanel
 from toad.screens.source_modal import SourceModal

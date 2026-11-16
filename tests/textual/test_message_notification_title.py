@@ -12,7 +12,7 @@ from agent_comms.messaging.notification_progress import (
     ShownToModelProgress,
 )
 
-from toad.line_blocks import MutedRole, NoticeRole, WorkingRole
+from toad.client.line_blocks import MutedRole, NoticeRole, WorkingRole
 from toad.client.notification_status import CheckedNotifications, UnavailableNotifications
 from toad.widgets.message_notifications import MessageNotifications
 

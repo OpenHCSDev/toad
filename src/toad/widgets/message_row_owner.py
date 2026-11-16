@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from textual.widget import Widget
 
-from toad.line_blocks import Divider
+from toad.client.line_blocks import Divider
 
 if TYPE_CHECKING:
     from toad.widgets.message_divider import MessageDivider

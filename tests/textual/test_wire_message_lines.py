@@ -9,7 +9,7 @@ from rich.style import Style
 from support.styling import awaits_styling
 from textual.app import App
 
-from toad.line_blocks import Divider, OpenTarget, Span, UserRole
+from toad.client.line_blocks import Divider, OpenTarget, Span, UserRole
 from toad.link_click import OpenLineLink
 from toad.markdown_links import LinkContext
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle

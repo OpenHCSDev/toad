@@ -14,7 +14,7 @@ from textual.document._editing import EditingMode
 from textual.keys import KeyDeclarationType, KeyInvocation
 from textual.widget import Widget
 
-from toad.line_blocks import LineLink
+from toad.client.line_blocks import LineLink
 from toad.widget_actions import KeyFamilyMeta
 
 

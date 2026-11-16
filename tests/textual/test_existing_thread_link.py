@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from toad.line_blocks import OpenTarget
+from toad.client.line_blocks import OpenTarget
 from toad.link_click import OpenLineLink
 from toad.message_rows import MessageRow
 from toad.widgets.comms_chat import CommsChatView

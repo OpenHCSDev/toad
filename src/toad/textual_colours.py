@@ -72,7 +72,7 @@ from watchdog.observers.api import BaseObserver
 
 from toad import paths
 from toad.colour_ink import ColourInk
-from toad.line_blocks import LineRole
+from toad.client.line_blocks import LineRole
 from toad.preferences import SavedSettings, ToadSettings
 from toad.render_tasks import TextEffectRenderTask
 from toad.widgets.transcript_lines import LineTheme, RichLineRenderer

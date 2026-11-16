@@ -10,7 +10,7 @@ from textual.actions import StyleAction
 from textual.app import App
 from textual.dom import DOMNode
 
-from toad.line_blocks import LineLink
+from toad.client.line_blocks import LineLink
 
 
 @dataclass(frozen=True)

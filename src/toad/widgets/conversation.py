@@ -105,7 +105,7 @@ from toad.input_history import InputHistories
 from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
 from toad.layout import trim_trailing_margin
 from toad.layout_preferences import FollowsLayoutPreferences
-from toad.line_blocks import LineLink
+from toad.client.line_blocks import LineLink
 from toad.live_output import LiveOutput
 from toad.menus import (
     CopyClipboardCommand,

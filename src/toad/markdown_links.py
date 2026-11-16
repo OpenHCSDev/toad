@@ -18,7 +18,7 @@ from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 
 from toad.file_position import FilePosition
-from toad.line_blocks import LineLink, LinkHref, OpenReference
+from toad.client.line_blocks import LineLink, LinkHref, OpenReference
 from toad.project_link import ProjectLink
 from toad.prompt.extract import extract_paths_from_prompt
 

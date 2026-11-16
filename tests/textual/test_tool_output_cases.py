@@ -3,7 +3,7 @@
 import asyncio
 
 from acp.schema import ToolCall as AcpToolCall
-from toad.line_blocks import Body
+from toad.client.line_blocks import Body
 
 from toad.acp.status import ToolCallStatus
 from toad.tool_output import SpecificTextToolOutputPart, ToolOutputPart

@@ -17,7 +17,7 @@ from ui_theme.scheme import PanelColour
 from toad.tool_output import ToolOutput, ToolOutputPart
 from metaclass_registry.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
-from toad.line_blocks import Body, ToggleDetails, ToolOutputRole
+from toad.client.line_blocks import Body, ToggleDetails, ToolOutputRole
 from toad.block_content import CollapseCommand, ExpandCommand
 from toad.menus import MenuCommand
 from agent_comms.ui_model.message_category import MessageCategory

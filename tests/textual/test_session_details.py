@@ -14,7 +14,7 @@ from textual.content import Content
 from textual.screen import Screen
 from textual.widgets import Input
 
-from toad.line_blocks import NoticeRole
+from toad.client.line_blocks import NoticeRole
 from toad.private_native_cursor import NoneCursorStatus
 from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory

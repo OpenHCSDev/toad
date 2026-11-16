@@ -6,18 +6,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.ui_model.status import ThreadStatusModel
 
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
-
-if TYPE_CHECKING:
-    from toad.widgets.observed_thread_activity import (
-        ObservedThreadActivity,
-        ThreadStatusOwner,
-    )
 
 
 class StatusThread(ABC):
@@ -40,12 +33,12 @@ class StatusThread(ABC):
         return cls.route(root, access).conversation(root, conversation, access)
 
     @abstractmethod
-    def bind(self, activity: ObservedThreadActivity) -> None: ...
+    def bind(self, activity: object) -> None: ...
 
-    def refresh(self, view: ThreadStatusOwner) -> None:
+    def refresh(self, view: object) -> None:
         view.thread_activity.bind(self)
 
-    def observe(self, activity: ObservedThreadActivity) -> None:
+    def observe(self, activity: object) -> None:
         """Only a local source acquires an observation subscription."""
 
 
@@ -53,10 +46,10 @@ class StatusThread(ABC):
 class NoStatusThread(StatusThread):
     name = ""
 
-    def bind(self, activity: ObservedThreadActivity) -> None:
+    def bind(self, activity: object) -> None:
         activity.show(ThreadStatusModel.pending(self.name))
 
-    def refresh(self, view: ThreadStatusOwner) -> None:
+    def refresh(self, view: object) -> None:
         """A conversation without a status source has no row to refresh."""
 
 
@@ -79,10 +72,10 @@ class LocalStatusThread(RoutedStatusThread):
         )
         return cls(root, conversation.destination(references).name)
 
-    def bind(self, activity: ObservedThreadActivity) -> None:
+    def bind(self, activity: object) -> None:
         activity.show(activity.app.coordination_access.thread_status.open(self.name))
 
-    def observe(self, activity: ObservedThreadActivity) -> None:
+    def observe(self, activity: object) -> None:
         access = activity.app.coordination_access
         activity.observe_core_callback(
             access.events,
@@ -99,5 +92,5 @@ class OtherRouteStatusThread(RoutedStatusThread):
     def conversation(cls, root: Path, conversation, access) -> OtherRouteStatusThread:
         return cls(root, conversation.initial_label)
 
-    def bind(self, activity: ObservedThreadActivity) -> None:
+    def bind(self, activity: object) -> None:
         activity.show(ThreadStatusModel.other_route(self.name))

@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual import containers
 from toad.widgets.line_markdown import LineMarkdown
 
-from toad.line_blocks import MessageBody, Divider, UserRole
+from toad.client.line_blocks import MessageBody, Divider, UserRole
 from toad.message_rows import MessageClock, LiveMessageClock
 from toad.widgets.message_divider import MessageDivider
 from agent_comms.ui_model.message_category import MessageCategory

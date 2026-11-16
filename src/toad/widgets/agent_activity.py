@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from toad.acp.status import ToolCallStatus
-from toad.line_blocks import NO_LINK, Body, MarkdownMessageBody, LineBlock, LineLink, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
+from toad.client.line_blocks import NO_LINK, Body, MarkdownMessageBody, LineBlock, LineLink, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
 
 
 class AgentActivityPresentation:

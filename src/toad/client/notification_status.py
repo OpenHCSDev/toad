@@ -10,7 +10,7 @@ from agent_comms.messaging.frozen_recipient import FrozenRecipient
 from agent_comms.messaging.message_notification import MessageNotification
 from agent_comms.messaging.message_reference import MessageReference
 
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     LineBlock,
     LineLink,
     LineRole,

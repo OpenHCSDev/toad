@@ -10,7 +10,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
 from toad.link_click import OpenLineLink
-from toad.line_blocks import LineLink, NoLink
+from toad.client.line_blocks import LineLink, NoLink
 
 if TYPE_CHECKING:
     from toad.textual_colours import TextualColours

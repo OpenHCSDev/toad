@@ -3,7 +3,7 @@
 from agent_comms.messaging.display_references import ProjectReferences
 
 from toad.inline_spans import inline_spans
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     NO_LINK,
     CodeRole,
     EmphasisRole,
