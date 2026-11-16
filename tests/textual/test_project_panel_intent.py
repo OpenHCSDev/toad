@@ -1,6 +1,6 @@
 """Textual-facing: a project panel retired during its restore keeps the tree's selection, scroll and expansion for the next panel.
 
-One Textual app hosts the panel; no wire, sessions or agent.
+One Textual app hosts the panel in the sidebar's own page; no wire, sessions or agent.
 """
 
 import asyncio
@@ -16,6 +16,7 @@ from toad.textual_colours import ThemedApp
 from toad.widgets.project_panel import RestorableProjectPanel
 from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.session_thread_panels import ProjectSessionPanel
+from toad.widgets.side_bar import PanelPage
 from textual.events import Mount
 
 
@@ -33,9 +34,11 @@ async def test_retirement_during_restore_keeps_the_project_reader(tmp_path: Path
     captured = []
     panel = RestorableProjectPanel(project, intent=owner.intent)
 
+    page = PanelPage(panel)
+
     class ProjectApp(ThemedApp, App):
         def compose(self):
-            yield panel
+            yield page
 
         @on(Mount)
         def on_mount(self):
@@ -66,7 +69,7 @@ async def test_retirement_during_restore_keeps_the_project_reader(tmp_path: Path
         assert app.mount_worker.is_finished
 
         restored = RestorableProjectPanel(project, intent=owner.intent)
-        await app.mount(restored)
+        await page.mount(restored)
         await restored._mount_tree().wait()
         tree = restored.directory_tree
         assert tree.cursor_node.data.path == selected
