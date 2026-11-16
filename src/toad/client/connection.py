@@ -117,7 +117,6 @@ from toad.core.events import (
     ThreadInterestUpdate,
     ThreadRowsChanged,
 )
-from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.db import UNSCOPED_TABS, TabScope
 from toad.client.notification_status import (
     CheckedNotifications,
@@ -1082,13 +1081,15 @@ class CoordinationAccess(MroDispatch):
         view: object,
         scope: tuple[str, str],
         resume: Callable[[ThreadRowsChanged], None],
+        subscription_factory: type | None = None,
     ) -> ResourceRelease:
         """Hold the shared model while this native read waits for its own thread."""
         release = ResourceRelease()
-
+        kwargs = {}
+        if subscription_factory is not None:
+            kwargs["factory"] = partial(subscription_factory, scope=scope)
         release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, resume,
-            factory=partial(ThreadCallbackSubscription, scope=scope)))
+            self.events, ThreadRowsChanged, resume, **kwargs))
         return release
 
     def update_sidebar_interest(self) -> None:
