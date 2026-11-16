@@ -8,13 +8,14 @@ from typing import Self
 
 from metaclass_registry import AbstractHooksMeta
 
-from toad.comms_host import CommsHost
+from toad.client.host import NavigatingHost
 from toad.client.connection import CoordinationAccess, Observing
 from toad.client.db import DB
 from toad.navigation_context import NavigationOwner
 from toad.navigation_preparation import NavigationReader
 from toad.client.session_projection import SessionCollection, SessionProjection
-from toad.session_scope import SessionOrigin, SessionScope
+from toad.client.session_scope import SessionScope
+from toad.session_scope import SessionOrigin
 from toad.client.session_tracker import SessionTracker
 
 
@@ -39,7 +40,7 @@ class WorkspaceViews(metaclass=AbstractHooksMeta):
     async def finish(self, view: SessionScope) -> None: ...
 
 
-class NavigationHost(CommsHost[Observing]):
+class NavigationHost(NavigatingHost[Observing]):
     """A native application selects sessions through its workspace and tab owners."""
 
     workspace_sessions: WorkspaceViews
