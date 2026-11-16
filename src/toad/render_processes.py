@@ -161,6 +161,10 @@ class RenderProcessPool(Renderer):
     async def _join(self) -> None:
         assert self._executor is not None
         await self._close_submissions()
+        if not self._pending:
+            # Idle workers owe nothing; joining them would wait out their start (spawn and
+            # _initialize_worker, about 1.7 s) only so they can exit.
+            self._executor.terminate_workers()
         await asyncio.to_thread(self._executor.shutdown, wait=True, cancel_futures=True)
         # Drain result callbacks before teardown is reported complete.
         if self._pending:
