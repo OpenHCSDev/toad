@@ -5,7 +5,9 @@ from dataclasses import InitVar, dataclass, field
 
 from agent_comms.messaging.message_notification import MessageNotification
 
-from toad.core.events import CoreEvent, CoreEventStream, Subscription, ThreadChangeSubscription
+from formbridge.publications import Subscription
+
+from toad.core.events import CoreEvent, CoreEventStream, ThreadChangeSubscription
 
 
 class CoreObserver:

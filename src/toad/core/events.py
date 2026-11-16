@@ -11,7 +11,7 @@ from weakref import WeakSet, WeakValueDictionary
 
 from formbridge.publications import (
     PublicationStream,
-    Subscription as _BaseSubscription,
+    Subscription,
 )
 
 from agent_comms.acp_extension import (
@@ -453,9 +453,6 @@ class RequestAgentFail(FailureLog, AgentFail):
         # resolves the saved row and its time; this event mounts no tail copy.
         view.transcript.require_commit()
         # Session inspection keeps ACP log access independent of delivery notices.
-
-
-Subscription = _BaseSubscription
 
 
 class Publication:

@@ -8,7 +8,9 @@ from textual.dom import DOMNode
 from functools import cache, cached_property, partial
 
 from toad.client.subscribers import CallbackSubscription, CoreObserver
-from toad.core.events import CoreEvent, CoreEventStream, Publication, Subscription
+from formbridge.publications import Subscription
+
+from toad.core.events import CoreEvent, CoreEventStream, Publication
 
 
 async def dispatch_publication(receiver, message) -> None:
