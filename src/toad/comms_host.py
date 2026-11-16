@@ -21,6 +21,7 @@ from toad.client.host import CommsHost as SharedCommsHost
 from toad.core.events import CoreEventStream
 from toad.core_event_carrier import CoreEventReceiver
 from toad.client.session_projection import SessionCollection
+from toad.client.tab_identity import TabIdentity
 from toad.client.tab_order import TabOrder
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime
@@ -57,7 +58,7 @@ class CommsHost[Source](CoreEventReceiver, BusPickerHost, ThemedApp[ApplicationO
         self.notify(text, title=title, severity="warning")
 
     @property
-    def tab_names(self) -> tuple[str, ...]:
+    def tab_names(self) -> tuple[TabIdentity, ...]:
         return self.tab_order.names
 
     def open_thread_identities(self, root: str) -> set[ThreadIncarnation]:

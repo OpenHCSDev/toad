@@ -8,6 +8,7 @@ from textual.dom import DOMNode
 from functools import cache, cached_property, partial
 from dataclasses import InitVar, dataclass, field
 
+from toad.client.subscribers import CoreObserver
 from toad.core.events import CoreEvent, CoreEventStream, Subscription, ThreadChangeSubscription
 
 
@@ -60,7 +61,7 @@ class ThreadCallbackSubscription(ThreadChangeSubscription, CallbackSubscription)
     """Compose thread indexing with callback delivery in the native pump."""
 
 
-class CoreEventReceiver(MroDispatch, DOMNode):
+class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
     """Consume declared events inside the native message-pump lifetime."""
 
     def __init__(self, *args, **kwargs) -> None:

@@ -5,6 +5,16 @@ from collections.abc import Mapping
 from agent_comms.messaging.message_notification import MessageNotification
 
 
+class CoreObserver:
+    """A native view that holds Core event subscriptions for as long as it is shown."""
+
+    def observe_core_callback(self, stream, event_type: type, callback, *, factory=None):
+        raise NotImplementedError
+
+    def retire_core(self, subscription) -> None:
+        raise NotImplementedError
+
+
 class SidebarSubscriber[Source, Failure]:
     """A sidebar view accepts a source, its opening failure and later row changes.
 

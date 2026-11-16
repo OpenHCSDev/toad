@@ -15,6 +15,7 @@ from toad.client.session_scope import SessionScope
 from toad.client.tab_identity import TabIdentity
 
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.registry.thread_identity import ThreadIncarnation
 
 
 class SessionNavigator:
@@ -65,7 +66,7 @@ class SharedSessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Obs
     def original_channels(self) -> tuple[tuple[str, str], ...]:
         return ()
 
-    def original_threads(self, sessions: SessionNavigator) -> tuple[tuple[str, object], ...]:
+    def original_threads(self, sessions: SessionNavigator) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
     def return_to(self, sessions: SessionNavigator) -> None:
