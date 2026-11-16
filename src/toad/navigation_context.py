@@ -68,8 +68,8 @@ class NavigationOwner:
 
     async def open_direct_messages(self) -> None:
         """Open this view's direct-message destination when it has one."""
-        self.navigation_app.notify(
-            "Direct messages are unavailable from this view", title="Direct messages"
+        self.navigation_app.show_info(
+            "Direct messages are unavailable from this view", "Direct messages"
         )
 
 
