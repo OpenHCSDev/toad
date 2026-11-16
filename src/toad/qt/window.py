@@ -43,7 +43,7 @@ from PySide6.QtWidgets import (
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.theming import StatusColorRole
 from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
-from pyqt_reactive.widgets.elided_line import ElidedLine
+from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
