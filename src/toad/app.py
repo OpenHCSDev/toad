@@ -68,6 +68,8 @@ from toad.client.tab_identity import TabIdentity
 from toad.terminal_attention import TerminalAttention
 from toad.terminal_origin import TerminalOrigin
 from toad.widgets.comms_command_dialog import ScreenCommandOrigin
+from toad.widgets.comms_sidebar import CommsSidebar
+from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.widgets import tool_call  # noqa: F401 - register widget classes
 from toad.widgets.comms_transfer import Transfers
@@ -475,9 +477,17 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def selected_session(self):
         return self.workspace_sessions.source.view
 
-    def command_origin(self) -> ScreenCommandOrigin:
-        """The screen a command starts on, captured before its fields are prepared off the loop."""
+    def capture_command_origin(self) -> ScreenCommandOrigin:
         return ScreenCommandOrigin(self.screen)
+
+    async def reveal_sidebar(self) -> bool:
+        sidebar = self.screen.query_one_optional(CommsSidebar)
+        if sidebar is None:
+            return False
+        sidebar.query_ancestor(SideBar).reveal()
+        sidebar.query_ancestor(SideBarCollapsible).collapsed = False
+        await sidebar.navigation.focus_current()
+        return True
 
     @property
     def selected_mode(self):

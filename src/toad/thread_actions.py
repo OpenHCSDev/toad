@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -12,10 +11,19 @@ from agent_comms.cli_verbs.cli_result import CliResult
 from agent_comms.transport.tools.sidebar import (
     CommsTargetEditTool,
 )
+from formbridge.operations import OperationKind
 
 from toad.client.commands import SharedTargetContext
 from toad.client.host import CommsHost
 from toad.core import events as core_events
+
+
+class ThreadActionRun(OperationKind):
+    """One accepted thread action writing its edit through Core."""
+
+
+class CommandFieldsPreparation(OperationKind):
+    """Prepares a command's editable fields off the loop, then opens its form."""
 
 
 class ThreadActions:
@@ -33,7 +41,7 @@ class ThreadActions:
         app = self.app
         selected = app.coordination_access.selected(source_root)
         if any(target in self.requests for target in action.resources):
-            app.notify(f"An action for {subject} is already in progress", title="Session action")
+            app.show_info(f"An action for {subject} is already in progress", "Session action")
             return
         execution = ThreadActionExecution(self, action, selected, subject)
         for target in action.resources:
@@ -49,9 +57,8 @@ class ThreadActions:
     async def close(self) -> None:
         # Domain writes already accepted at their sink must finish, not be
         # reported as absent because a UI task was cancelled during shutdown.
-        # A failed action was already reported or raised to the app by its worker.
-        await asyncio.gather(*(request.task.wait() for request in set(self.requests.values())),
-                             return_exceptions=True)
+        # A failed action was already reported or raised to the app by its operation.
+        await self.app.wait_operations(ThreadActionRun)
 
 
 class ThreadActionExecution:
@@ -59,7 +66,7 @@ class ThreadActionExecution:
     def __init__(self, owner, action, selected, subject):
         self.owner, self.action, self.selected = owner, action, selected
         self.subject = subject
-        self.task = owner.app.run_worker(self.run(), name="thread-action")
+        owner.app.run_operation(ThreadActionRun, self.run)
 
     def apply(self):
         return self.owner.app.coordination_access.write(
@@ -133,11 +140,11 @@ class ThreadAction:
 
         async def prepare():
             if definition.editable_fields or definition.confirmation:
-                origin = ctx.app.command_origin()
+                origin = ctx.app.capture_command_origin()
                 fields = await ctx.app.preparation.run_thread(lambda: definition.editable_fields)
                 ctx.current()
                 if origin.current():
                     await accepted(await origin.edit(definition, ctx.title, fields, ctx.observed.core))
             else:
                 await accepted({})
-        ctx.app.run_worker(prepare, name='command-fields')
+        ctx.app.run_operation(CommandFieldsPreparation, prepare)

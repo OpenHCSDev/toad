@@ -11,7 +11,7 @@ from agent_comms.config_options import ModelConfigOption
 from agent_comms.execution.login import run_login
 from agent_comms.transport.request import CoreAccess
 from toad.client.command_draft import CommandDraft, CommandText, PreparedChoices
-from toad.client.commands import CommandOrigin
+from toad.client.host import CommandOrigin
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
