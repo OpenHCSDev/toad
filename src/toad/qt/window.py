@@ -17,7 +17,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QMargins, Qt
+from PySide6.QtCore import QMargins, QPoint, Qt
 from PySide6.QtGui import QColor, QKeySequence, QPalette, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -507,10 +507,14 @@ class CommsWindow(QWidget):
             self.show_sidebar()
 
     def show_menu(self) -> None:
-        menu = QMenu(self)
-        menu.addAction("Hide sidebar" if self.sidebar.isVisible() else "Show sidebar", self.toggle_sidebar)
-        menu.addAction("Quit", self.close)
-        menu.exec(self.menu.mapToGlobal(self.menu.rect().topLeft()))
+        """popup(), not exec(): exec's nested event loop under qasync showed nothing on
+        Android."""
+        self.menu_popup = QMenu(self)
+        self.menu_popup.addAction("Hide sidebar" if self.sidebar.isVisible() else "Show sidebar",
+                                  self.toggle_sidebar)
+        self.menu_popup.addAction("Quit", self.close)
+        corner = self.menu.mapToGlobal(self.menu.rect().topLeft())
+        self.menu_popup.popup(corner - QPoint(0, self.menu_popup.sizeHint().height()))
 
     def open_row(self, row: ConversationRow) -> None:
         self.access.app.run_operation(ConversationOpen, partial(self.open_target, row.target))
