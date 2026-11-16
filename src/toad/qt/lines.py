@@ -55,10 +55,10 @@ class QtLineRenderer(MroProjection[str]):
     @handles(Divider)
     def divider(self, block: Divider) -> str:
         title = "".join(self.span(span, span.link.heading_role(span.role, block.role)) for span in block.spans)
-        rule = self.colour(block.role)
-        return (f'<table width="100%" cellspacing="0" cellpadding="4" style="margin-top:10px">'
-                f'<tr><td style="border-top:1px solid {rule}"><b>{title}</b>'
-                f'{self.styled(QT_DIVIDER_TIME.project_value(block.timestamp), block.role)}</td></tr></table>')
+        rule = f'<td width="49%" valign="middle"><hr style="background-color:{self.colour(block.role)}"></td>'
+        return (f'<table width="100%" cellspacing="0" cellpadding="2" style="margin-top:10px"><tr>{rule}'
+                f'<td width="1%" align="center" style="white-space:nowrap"><b>{title}</b>'
+                f'{self.styled(QT_DIVIDER_TIME.project_value(block.timestamp), block.role)}</td>{rule}</tr></table>')
 
     @handles(Spans)
     def spans(self, block: Spans) -> str:
