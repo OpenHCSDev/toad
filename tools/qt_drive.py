@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import qasync
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -160,8 +160,8 @@ class MenuScenario(Scenario):
         app = self.app
         app.menu.click()
         await asyncio.sleep(0.3)
-        self.report("1-menu", actions=[action.text() for action in app.menu_popup.actions()])
-        app.menu_popup.close()
+        self.report("1-menu", actions=[choice.text() for choice in app.menu_panel.findChildren(QPushButton)])
+        app.menu_panel.hide()
         for command, label in ApplicationAction.menu(app):
             if type(command) is QuitAction:
                 continue  # it would end the process this drive runs in
