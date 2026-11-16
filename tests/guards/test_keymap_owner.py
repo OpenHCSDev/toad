@@ -205,9 +205,10 @@ def keys(binding: Binding) -> list[str]:
 
 def test_no_app_key_is_claimed_twice_without_a_declaration():
     from toad.app import ToadApp
-    from toad.widget_actions import ApplicationAction, YieldingKey
+    from toad.client.application_actions import ApplicationAction, YieldingKey
+    from toad.widget_actions import DeclaredWidgetActions
     app = {key: action for action in ApplicationAction.members_with(ApplicationAction)
-           if not issubclass(action, YieldingKey) for binding in action.bindings() for key in keys(binding)}
+           if not issubclass(action, YieldingKey) for binding in DeclaredWidgetActions.key_bindings(action) for key in keys(binding)}
     conflicts = [(key, app[key].__name__, f'{owner.__module__}.{owner.__qualname__}', str(binding.action))
                  for owner in declared_nodes() if owner is not ToadApp and not issubclass(owner, ModalScreen)
                  for binding in Binding.make_bindings(owner.__dict__['BINDINGS'])

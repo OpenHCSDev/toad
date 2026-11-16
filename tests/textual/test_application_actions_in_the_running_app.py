@@ -13,7 +13,7 @@ from textual.widgets import Input, OptionList
 from support.applications import record_notifications
 from support.agents import peer
 from support.completion_record import completion_prompts
-from toad.application_actions import ApplicationAction
+from toad.client.application_actions import ApplicationAction
 from toad.preferences import SETTINGS
 from toad.screens.keymap import KeymapScreen
 from toad.screens.settings import SettingsScreen

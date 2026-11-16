@@ -54,6 +54,10 @@ class DirectMessagesOpen(OperationKind):
     """Opens a direct-message conversation through the navigating view."""
 
 
+class ChannelsReveal(OperationKind):
+    """Shows the channels sidebar, opening the newest session first when none is selected."""
+
+
 class NewThreadForm(OperationKind, ExclusiveKind):
     """Prepares and opens the new-thread form; a newer request supersedes one running."""
 

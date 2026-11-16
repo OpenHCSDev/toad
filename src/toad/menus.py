@@ -11,12 +11,12 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._callback import invoke
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
-from textual.keys import KeyDeclarationType, KeyInvocation
+from metaclass_registry.key_declarations import KeyDeclarationType, KeyInvocation
 from textual.widget import Widget
 
 from toad.client.line_blocks import LineLink
 from toad.message_rows import MessageRow
-from toad.widget_actions import KeyFamilyMeta
+from toad.client.application_actions import KeyFamilyMeta
 
 
 class MenuConversation:

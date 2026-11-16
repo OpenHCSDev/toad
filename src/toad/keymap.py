@@ -15,14 +15,15 @@ from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from objectstate import mark_ui_hidden_config
 from textual.binding import KeymapClaim
 from textual.dom import DOMNode
-from textual.keys import KeyInvocation
+from metaclass_registry.key_declarations import KeyInvocation
 from textual.screen import ModalScreen
 
 import toad
 from toad.key_modes import KeyMode
 from toad.menus import MenuCommand
 from toad.setting_declarations import Effect, FamilyChoices
-from toad.widget_actions import ApplicationAction
+from toad.client.application_actions import ApplicationAction
+from toad.widget_actions import DeclaredWidgetActions
 
 if TYPE_CHECKING:
     from formbridge.forms.declared_fields import DeclaredField
@@ -160,7 +161,7 @@ class KeymapCatalog:
         native_mode = mode.binding_mode()
         application = tuple(KeymapClaim.from_bindings(
             binding for declaration in actions
-            for binding in declaration.exclusive_bindings(native_mode)
+            for binding in DeclaredWidgetActions.exclusive_bindings(declaration, native_mode)
         ))
         owned = [application]
         for owner in contexts:
