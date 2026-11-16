@@ -2,28 +2,13 @@
 
 from collections.abc import Callable, Mapping
 from dataclasses import InitVar, dataclass, field
+from functools import cached_property, partial
 
 from agent_comms.messaging.message_notification import MessageNotification
 
 from formbridge.publications import Subscription
 
 from toad.core.events import CoreEvent, CoreEventStream, ThreadChangeSubscription
-
-
-class CoreObserver:
-    """A native view that holds Core event subscriptions for as long as it is shown."""
-
-    # Whether the native view is still in its tree, and whether it is being removed from it.
-    is_attached: bool
-    is_leaving: bool
-
-    def observe_core_callback(self, stream: CoreEventStream, event_type: type[CoreEvent],
-                              callback: Callable[[CoreEvent], object], *,
-                              factory: Callable[..., Subscription] = Subscription) -> Subscription:
-        raise NotImplementedError
-
-    def retire_core(self, subscription: Subscription) -> None:
-        raise NotImplementedError
 
 
 @dataclass(eq=False)
@@ -46,6 +31,66 @@ class CallbackSubscription(Subscription):
 @dataclass(eq=False)
 class ThreadCallbackSubscription(ThreadChangeSubscription, CallbackSubscription):
     """Compose thread indexing with callback delivery."""
+
+
+class CoreObserver:
+    """A native view that holds Core event subscriptions for as long as it is shown.
+
+    It keeps which subscriptions it holds and retires them; the native view delivers each
+    callback inside its own event loop (post_core_callback) and runs the handlers
+    (consume_handlers).
+    """
+
+    # Whether the native view is still in its tree, and whether it is being removed from it.
+    is_attached: bool
+    is_leaving: bool
+
+    @cached_property
+    def _core_subscriptions(self) -> set[Subscription]:
+        return set()
+
+    @cached_property
+    def _observations(self) -> dict[CoreEventStream, tuple[Subscription, ...]]:
+        """The streams this view observes, with the subscription per consumed event type."""
+        return {}
+
+    def observe_core_callback(self, stream: CoreEventStream,
+                              event_type: type[CoreEvent], callback: Callable[[CoreEvent], object], *,
+                              factory: Callable[..., Subscription] = CallbackSubscription) -> Subscription:
+        """An original deferred operation receives relief inside its native loop."""
+        subscription = stream.subscribe(
+            event_type, self.post_core_callback, factory=partial(factory, callback=callback))
+        self._core_subscriptions.add(subscription)
+        return subscription
+
+    def retire_core(self, subscription: Subscription) -> None:
+        subscription.close()
+        self._core_subscriptions.discard(subscription)
+
+    def retire_core_observations(self, stream: CoreEventStream) -> None:
+        for subscription in self._observations.pop(stream, ()):
+            subscription.close()
+        for subscription in tuple(self._core_subscriptions):
+            if subscription.stream is stream:
+                self.retire_core(subscription)
+
+    def close_core_events(self) -> None:
+        """End this view's subscriptions before its logical source disappears."""
+        for subscriptions in self._observations.values():
+            for subscription in subscriptions:
+                subscription.close()
+        self._observations.clear()
+        for subscription in self._core_subscriptions:
+            subscription.close()
+        self._core_subscriptions.clear()
+
+    def post_core_callback(self, event: CoreEvent, subscription: CallbackSubscription) -> bool:
+        """Deliver one callback event into the native loop."""
+        raise NotImplementedError
+
+    async def consume_handlers(self, event, handlers, *args, **kwargs):
+        """Run the handlers for one delivered event, in the native loop."""
+        raise NotImplementedError
 
 
 class SidebarSubscriber[Source, Failure]:

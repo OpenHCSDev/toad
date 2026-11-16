@@ -40,12 +40,6 @@ class CoreEventMessage(Publication, DeclaredMessage):
 class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
     """Consume declared events inside the native message-pump lifetime."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        self._core_subscriptions: set[Subscription] = set()
-        # The streams this receiver observes, with the subscription per consumed event type.
-        self._observations: dict[CoreEventStream, tuple[Subscription, ...]] = {}
-        super().__init__(*args, **kwargs)
-
     @classmethod
     @cache
     def consumed_core_events(cls) -> tuple[type[CoreEvent], ...]:
@@ -85,26 +79,6 @@ class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
         self._observations.setdefault(stream, tuple(
             stream.subscribe(event, self.post_core_observation) for event in self.consumed_core_events()))
 
-    def retire_core(self, subscription: Subscription) -> None:
-        subscription.close()
-        self._core_subscriptions.discard(subscription)
-
-    def retire_core_observations(self, stream: CoreEventStream) -> None:
-        for subscription in self._observations.pop(stream, ()):
-            subscription.close()
-        for subscription in tuple(self._core_subscriptions):
-            if subscription.stream is stream:
-                self.retire_core(subscription)
-
-    def observe_core_callback(self, stream: CoreEventStream,
-                              event_type: type[CoreEvent], callback, *,
-                              factory=CallbackSubscription) -> Subscription:
-        """An original deferred operation receives relief inside its native pump."""
-        subscription = stream.subscribe(
-            event_type, self.post_core_callback, factory=partial(factory, callback=callback))
-        self._core_subscriptions.add(subscription)
-        return subscription
-
     def post_core_callback(self, event: CoreEvent, subscription: CallbackSubscription) -> bool:
         message = CoreEventMessage(event, subscription, subscription.consume)
         message.bubble = False
@@ -133,14 +107,6 @@ class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
             message.stop()
             return
         await message.consume(self, message)
-
-    def close_core_events(self) -> None:
-        """End this receiver's subscriptions before its logical source disappears."""
-        while self._observations:
-            for subscription in self._observations.popitem()[1]:
-                subscription.close()
-        while self._core_subscriptions:
-            self._core_subscriptions.pop().close()
 
     def _message_pump_closing(self) -> None:
         # Native shutdown also releases receivers without a logical session.
