@@ -1310,7 +1310,7 @@ wheels = [
 [[package]]
 name = "pyqt-reactive"
 version = "0.9.0"
-source = { git = "https://github.com/OpenHCSDev/PyQT-reactive.git?branch=main#447a277cb58020cf626a1b3fb6d961a8eb7ad519" }
+source = { git = "https://github.com/OpenHCSDev/PyQT-reactive.git?branch=main#3f0e2c07b9e5bd0f768721f09c7318dfbc5cb6c8" }
 dependencies = [
     { name = "annotated-types" },
     { name = "formbridge" },
