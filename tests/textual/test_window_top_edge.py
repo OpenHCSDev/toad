@@ -15,7 +15,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.conversation import Conversation
 from toad.client.history_preparation import OLDER_END
-from toad.widgets.presentation_window import PresentationBudget
+from toad.client.history_pager import PresentationBudget
 
 THOUGHTS = ("Preparing branch notice tests", "Parametrizing rename routing tests",
             "Checking ThreadIncarnation lookup", "Checking self-delivery behavior",

@@ -27,19 +27,14 @@ from toad.no_worker import NO_TIMER, NoTimer
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.message_row_owner import MessageRowOwner
 from toad.client.history_preparation import NEWER_END
-from toad.widgets.presentation_window import (
-    DirectionalPreparation,
-    PresentationBudget,
-    Unplaced,
-)
+from toad.widgets.presentation_window import Unplaced, arranged
+from toad.client.history_pager import DirectionalPreparation, OffScreenRunway, PagingWindow, PresentationBudget, ReaderPlacement
 
 from toad.client.reader_position import (
     BlockPosition,
     FragmentPosition,
-    LatestPosition,
     ParkedPosition,
     ReaderPosition,
-    ReaderWindow,
     TailPosition,
     UNSHOWN_READER,
 )
@@ -247,7 +242,8 @@ class LatestAction(ReaderAction):
 
 
 class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
-                    JumpsToLatest, FollowsUnrisenRows, VerticalScroll, ReaderWindow, actions=(ReaderAction,)):
+                    ReaderPlacement, JumpsToLatest, FollowsUnrisenRows, VerticalScroll, PagingWindow,
+                    actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -315,14 +311,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
-
-    def jump_to_latest(self) -> None:
-        """Follow the source tail, including pages outside the mounted window."""
-        latest = LatestPosition.hold(self)
-        self.destination()
-        for history in tuple(self.histories):
-            if NEWER_END.visible_more(history):
-                history.request_latest(latest)
 
     def tail_follow_changed(self) -> None:
         """Project the canonical tail-follow state in a specialized window."""
@@ -483,11 +471,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         if self.follows_tail:
             self.lookahead.destination(self.outer_size.height, pages_read=len(history.pages))
 
-    def latest_limits(self, budget: PresentationBudget) -> tuple[int, int]:
-        """One native destination's row capacity and bounded fragment budget."""
-        return (self.presentation_budget.runway_rows(self.outer_size.height),
-                self.lookahead.destination_batch(budget, self.outer_size.height))
-
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         """The widgets the kept position is measured from: layout places them even off screen."""
         return self.reader_for_layout().bodies(self)
@@ -502,22 +485,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def place_layout_reader(self) -> bool:
         """After a layout: put the reader back on the kept position; True when that scrolled."""
         return self.reader_for_layout().placed_by_layout(self)
-
-    def place_reader(self) -> bool:
-        """Put the reader on the kept position in the layout just made; True when that scrolled the window.
-
-        A layout runs over loop turns and the reader can scroll meanwhile.
-        Their movement shifts the kept position, so the position kept now is
-        the one placed. One that names widgets this layout did not measure
-        (kept after the layout started) is placed by the layout that follows.
-        """
-        position = self.reader_position
-        if not position.laid_out(self):
-            return False
-        previous = self.scroll_y
-        with self.layout_scroll():
-            self.reader_position = position.placed(self, position.place(self))
-        return self.scroll_y != previous
 
     @contextmanager
     def layout_scroll(self):
@@ -543,11 +510,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
                     self.lookahead.relocated(rows)
             finally:
                 self._restoring = restoring
-
-    def follow_latest(self) -> None:
-        """Follow the latest message on a request the reader already made; not a new movement."""
-        with self.layout_scroll():
-            self.anchor()
 
     def retire_presentation_wait(self) -> None:
         """Release a change whose scene no longer promises another frame."""
@@ -576,6 +538,33 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """Measured scroll travel; it sizes how far ahead histories prepare."""
         return DirectionalPreparation(self)
 
+    def runway(self, history) -> OffScreenRunway:
+        return arranged(history).runway(arranged(self))
+
+    @property
+    def animated_travel(self) -> float:
+        return self.scroll_target_y - self.scroll_y if self.app.animator.is_being_animated(self, "scroll_y") else 0
+
+    @property
+    def viewport_rows(self) -> int:
+        return self.outer_size.height
+
+    @property
+    def content_rows(self) -> int:
+        return self.scrollable_content_region.height
+
+    @property
+    def unfilled_rows(self) -> int:
+        # Native virtual size includes the viewport's blank alignment space.
+        # Flowing placements retain the actual occupied extent, excluding
+        # overlays and docks.
+        viewport = self.scrollable_size
+        return viewport.height - self.arrange(viewport).flow_bounds.height
+
+    @property
+    def presenting(self) -> bool:
+        return self.screen.is_active
+
     @property
     def rows_per_fragment(self) -> float:
         """Average drawn rows per loaded fragment, for converting rows to fragments."""
@@ -594,22 +583,12 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
             history.request_preparation()
         self.screen.frame_presentation.defer(self, self.prepare_viewport)
 
-    def destination(self) -> None:
-        """End: prepare the destination in one burst, not every page between."""
-        self.lookahead.observe(self.scroll_y)
-        self.lookahead.destination(self.outer_size.height)
-        self.request_preparation()
-
     # Stopping a fired Textual timer does nothing, so the last one set is kept.
     _settle_timer: Timer | NoTimer = NO_TIMER
 
     def _schedule_settle(self) -> None:
         self._settle_timer.stop()
         self._settle_timer = self.set_timer(self.lookahead.idle_seconds, self._settle)
-
-    def _settle(self) -> None:
-        self.lookahead.settle()
-        self.request_preparation()
 
     def settle_preparation(self) -> None:
         """A hidden or closing window stops predicting travel."""
