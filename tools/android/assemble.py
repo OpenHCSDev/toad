@@ -14,6 +14,7 @@ import os
 import shutil
 import sys
 import zipfile
+from configparser import ConfigParser
 from pathlib import Path
 from string import Template
 
@@ -71,7 +72,17 @@ with zipfile.ZipFile(wheel) as archive:
     sdk=sdk,
     ndk=max((sdk / "ndk").iterdir()),
     recipes=HERE / "recipes",
+    keepalive=HERE / "keepalive",
     jars=app / "jar" / "PySide6" / "jar",
     icon=Path(PySide6.__file__).parent / "scripts" / "deploy_lib" / "pyside_icon.jpg",
 ))
-print(f"app folder {app}: main.py, profile.json, cacert.pem, buildozer.spec from {wheel.name}")
+spec = ConfigParser()
+spec.read(app / "buildozer.spec")
+# The keep-alive service's manifest, as the one-file library gradle merges (keepalive/),
+# at the SDK levels the spec builds for.
+with zipfile.ZipFile(app / "keepalive.aar", "w") as aar:
+    aar.writestr("AndroidManifest.xml", Template((HERE / "keepalive" / "AndroidManifest.xml").read_text())
+                 .substitute(minapi=spec["app"]["android.minapi"], api=spec["app"]["android.api"]))
+    aar.writestr("classes.jar", b"PK\x05\x06" + bytes(18))  # an empty jar: the code is java/
+    aar.writestr("R.txt", "")
+print(f"app folder {app}: main.py, profile.json, cacert.pem, keepalive.aar, buildozer.spec from {wheel.name}")
