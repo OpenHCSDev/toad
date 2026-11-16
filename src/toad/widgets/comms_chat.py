@@ -19,7 +19,7 @@ from metaclass_registry.mro_dispatch import handles
 from textual.app import ComposeResult
 from textual.content import Content
 
-from toad.bus_submission import SubmissionStart
+from toad.client.submission import SubmissionStart
 from toad.conversation_kind import ConversationKind
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.core import events as core_events

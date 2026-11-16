@@ -30,7 +30,7 @@ from agent_comms.transport.tools.sidebar import (
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from textual.app import ComposeResult
 
-from toad.bus_submission import SubmissionOwner
+from toad.client.submission import SubmissionOwner
 from toad.client.connection import CoordinationAccess
 from toad.client.conversation import ResolvedConversation, SharedConversationKind
 from toad.conversation_capabilities import (

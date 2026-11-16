@@ -77,7 +77,7 @@ from toad.block_navigation import (
     SeparatedBlock,
     require_blocks,
 )
-from toad.bus_submission import SubmissionStart
+from toad.client.submission import SubmissionStart
 from toad.category_filter import CategoryFilterView
 from toad.command_catalog import CommandCatalog
 from toad.command_target_scope import CommandTargetScope
@@ -100,7 +100,7 @@ from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
 from toad.goal_view import GoalView
-from toad.input_decision import InputDecision
+from toad.client.input_decision import InputDecision
 from toad.input_history import InputHistories
 from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
 from toad.layout import trim_trailing_margin

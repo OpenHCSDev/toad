@@ -11,7 +11,7 @@ from agent_comms.messaging.channel_targets import NamedTarget
 from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.transport.request import CoreAccess
 
-from toad.input_decision import InputDecision, InputRefused
+from toad.client.input_decision import InputDecision, InputRefused
 
 
 class SubmissionStart(ABC):

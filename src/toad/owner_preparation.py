@@ -12,7 +12,7 @@ from agent_comms.registry.thread_presentation import (
 )
 
 from toad.core.projection import MroProjection
-from toad.input_decision import InputAccepted, InputDecision, OwnerNotAttached
+from toad.client.input_decision import InputAccepted, InputDecision, OwnerNotAttached
 
 
 class OwnerPlan(ABC):

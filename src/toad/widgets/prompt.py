@@ -45,7 +45,7 @@ from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard
 from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
-from toad.input_decision import InputAccepted, InputDecision
+from toad.client.input_decision import InputAccepted, InputDecision
 from toad.key_modes import Standard
 from toad.native_style import (
     AutoHeight,

@@ -49,7 +49,7 @@ from agent_comms.transport.tools.sidebar import (
 from agent_comms.ui_model.observation import ReadNotifications
 from metaclass_registry.mro_dispatch import handles
 
-from toad.bus_submission import (
+from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
     SubmissionStart,

@@ -37,7 +37,7 @@ from rich.text import Text as RichText
 from textual.content import Content
 
 from toad.app_node import ToadNode
-from toad.bus_submission import (
+from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
     SubmissionStart,
@@ -47,7 +47,7 @@ from toad.client.connection import CoordinationAccess, Observing
 from toad.conversation_kind import DmConversation
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
-from toad.input_decision import InputAccepted, InputDecision, TranscriptNotReady
+from toad.client.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread

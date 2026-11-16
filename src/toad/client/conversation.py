@@ -21,7 +21,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import CommsConversationPageTool
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 
-from toad.bus_submission import MessageDestination
+from toad.client.submission import MessageDestination
 from toad.conversation_capabilities import ConversationActivity, ConversationSource
 from toad.referenced_core import ReferencedCore
 from toad.session_tracker import CommsViewKey
