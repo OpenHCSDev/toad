@@ -19,7 +19,6 @@ from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, Multili
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from PySide6.QtWidgets import (
     QHBoxLayout,
-    QLabel,
     QListWidget,
     QListWidgetItem,
     QPlainTextEdit,
@@ -27,6 +26,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from pyqt_reactive.widgets.fitted_text import WrappedText
 
 from toad.client.application import ClientApplication
 from toad.client.bus_submission import BusSubmissions, TypedText
@@ -207,10 +207,10 @@ class Composer(MentionEditor, QWidget):
             layout.addWidget(line)
         self.fit_height()
 
-    def line(self, role: type[LineRole]) -> QLabel:
-        label = QLabel()
-        label.setWordWrap(True)
-        label.setStyleSheet(f"color: {self.renderer.colour(role)}; padding: 0 8px")
+    def line(self, role: type[LineRole]) -> WrappedText:
+        label = WrappedText()
+        label.setStyleSheet(f"color: {self.renderer.colour(role)}")
+        label.setContentsMargins(8, 0, 8, 0)
         label.hide()
         return label
 
@@ -320,7 +320,7 @@ class MessageComposer(Composer):
         self.editor.setPlaceholderText(f"Message {label}")
 
 
-class Receipt(NotificationSubscriber, QLabel):
+class Receipt(NotificationSubscriber, WrappedText):
     """Where your last message in this view stands with its recipients, from the shared
     notification statuses: Checking, then what Core answers (sent, read, answered)."""
 
@@ -329,7 +329,6 @@ class Receipt(NotificationSubscriber, QLabel):
         self.app, self.renderer = app, renderer
         self.references: tuple[MessageReference, ...] = ()
         self.status: NotificationStatus = UncheckedNotifications()
-        self.setWordWrap(True)
         self.hide()
 
     def follow(self, root: str, references: tuple[MessageReference, ...],

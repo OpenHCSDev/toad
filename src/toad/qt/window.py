@@ -22,13 +22,12 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
+from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, QRect, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
     QHBoxLayout,
-    QLabel,
     QLineEdit,
     QPushButton,
     QSizePolicy,
@@ -92,7 +91,7 @@ from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
-from toad.qt.host import QtCommsHost
+from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
@@ -598,20 +597,17 @@ class QtHistorySessionEntry(QtSessionEntry, HistorySessionEntry, shows=(CommsTab
         return ConversationView(sessions.app, self)
 
 
-class PathLabel(QLabel):
+class PathLabel(ElidedLine):
     """A directory shown as Toad's info bar shows it: home-relative, then condensed from the
     middle out to the characters the label has room for. The full path is its tooltip."""
 
     def __init__(self, path: Path) -> None:
-        super().__init__()
-        self.shown = home_relative(str(path), directory=True)
+        super().__init__(home_relative(str(path), directory=True))
         self.setToolTip(str(path))
-        self.setMinimumWidth(QFontMetricsF(self.font()).horizontalAdvance("~/…/"))
 
-    def resizeEvent(self, event) -> None:
-        super().resizeEvent(event)
-        cells = int(self.width() / QFontMetricsF(self.font()).averageCharWidth())
-        self.setText(condense_path(self.shown, max(1, cells)))
+    def drawn(self, rect: QRect) -> tuple[int, str]:
+        cells = int(rect.width() / QFontMetricsF(self.font()).averageCharWidth())
+        return int(self.alignment()), condense_path(self.text(), max(1, cells))
 
 
 class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, HistoryNotifications,
@@ -893,7 +889,7 @@ class QtWorkspaceViews(WorkspaceViews):
         view.deleteLater()
 
 
-class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMeta):
+class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core a UI profile names: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
@@ -956,6 +952,7 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         layout.setSpacing(0)
         layout.addWidget(self.split, 1)
         layout.addWidget(chrome)
+        self.fit_screen()
         # The welcome lists the channels and threads, so it starts with the sidebar down.
         self.hide_sidebar()
         self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)

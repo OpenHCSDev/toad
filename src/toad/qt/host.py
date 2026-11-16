@@ -11,7 +11,7 @@ from agent_comms.projects.checkouts import Checkout
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QUrl, qCritical
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QLayout
 from pyqt_reactive.core.deferred_callback import DeferredCallback, RepeatingCallback
 from pyqt_reactive.services.ui_thread_dispatch import UiThreadDispatcher
 from pyqt_reactive.theming import ColorScheme, StatusColorRole, ThemeManager
@@ -21,6 +21,16 @@ from ui_theme.scheme import ColourScheme
 from toad.client.commands import CommandRefused
 from toad.client.host import CommsHost
 from toad.work_preparation import PreparationRuntime
+
+
+class ScreenWideWindow:
+    """A top-level window no wider than its screen's available width (the screen less its
+    system bars), whose root layout cannot raise its minimum past that: a page, row or label
+    given less than its text shows the overflow itself, through pyqt-reactive's FittedText."""
+
+    def fit_screen(self) -> None:
+        self.layout().setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
+        self.setMaximumWidth(self.screen().availableGeometry().width())
 
 
 class QtCommsHost(CommsHost, UiThreadDispatcher):

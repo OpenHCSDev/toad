@@ -19,12 +19,12 @@ from formbridge.operations import OperationKind
 from objectstate import DottedFieldPath
 from pyqt_reactive.forms.declared_form import DeclaredForm
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from pyqt_reactive.widgets.fitted_text import WrappedText
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QDialog,
     QDialogButtonBox,
-    QLabel,
     QScrollArea,
     QVBoxLayout,
     QWidget,
@@ -32,14 +32,14 @@ from PySide6.QtWidgets import (
 
 from toad.client.command_draft import CommandDraft
 from toad.client.host import CommandOrigin
-from toad.qt.host import QtCommsHost
+from toad.qt.host import QtCommsHost, ScreenWideWindow
 
 
 class CommandApply(OperationKind):
     """Apply on a command form: confirm its arguments with Core, then answer the form."""
 
 
-class QtCommandForm(CommandDraft, QDialog, metaclass=PyQtWidgetMeta):
+class QtCommandForm(CommandDraft, ScreenWideWindow, QDialog, metaclass=PyQtWidgetMeta):
     """One backend operation's form. It answers once: the arguments Apply submits, or None
     when it is cancelled or closed."""
 
@@ -55,14 +55,12 @@ class QtCommandForm(CommandDraft, QDialog, metaclass=PyQtWidgetMeta):
         self.confirmation: asyncio.Future[None] = loop.create_future()
         self.confirmation.set_result(None)
         self.setWindowTitle(definition.label)
-        title = QLabel(f"{definition.label} — {target}")
-        title.setWordWrap(True)
+        title = WrappedText(f"{definition.label} — {target}")
         self.form = DeclaredForm(self.state, host.theme.color_scheme)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setWidget(self.form)
-        self.confirmation_text = QLabel()
-        self.confirmation_text.setWordWrap(True)
+        self.confirmation_text = WrappedText()
         self.confirmed = QCheckBox("I confirm this operation")
         self.confirmed.hide()
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Apply | QDialogButtonBox.StandardButton.Cancel)
@@ -75,7 +73,7 @@ class QtCommandForm(CommandDraft, QDialog, metaclass=PyQtWidgetMeta):
         layout.addWidget(self.confirmation_text)
         layout.addWidget(self.confirmed)
         layout.addWidget(buttons)
-        self.setMaximumWidth(self.screen().availableGeometry().width())
+        self.fit_screen()
         self.finished.connect(self.closed)
 
     def apply(self) -> None:
