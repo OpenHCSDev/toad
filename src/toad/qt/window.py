@@ -82,6 +82,7 @@ class ThreadList(QListWidget, SidebarSubscriber[Observing, FailedObservation]):
         super().__init__()
         self.window = window
         self.observed: Observing | None = None
+        self.setWordWrap(True)
         self.itemActivated.connect(self.open_row)
         self.itemClicked.connect(self.open_row)
 
@@ -100,7 +101,7 @@ class ThreadList(QListWidget, SidebarSubscriber[Observing, FailedObservation]):
     def bind_failed_observation(self, observed: FailedObservation) -> None:
         self.observed = None
         self.clear()
-        self.addItem(f"Bus unavailable: {observed}")
+        self.addItem(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
 
     def present(self, **changes: object) -> None:
         if self.observed is None:
