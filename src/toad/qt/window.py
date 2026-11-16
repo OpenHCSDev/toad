@@ -22,7 +22,7 @@ from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QMargins, QPoint, Qt, QTimer
-from PySide6.QtGui import QColor, QKeySequence, QPainter, QPalette, QShortcut
+from PySide6.QtGui import QColor, QFontMetricsF, QKeySequence, QPainter, QPalette, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -62,6 +62,7 @@ from toad.client.connection import (
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
 from toad.client.history_entry import HistorySessionEntry
+from toad.client.condensed_path import condense_path, home_relative
 from toad.client.line_blocks import LineBlock, MutedRole, TextRole
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
@@ -349,6 +350,22 @@ class QtHistorySessionEntry(QtSessionEntry, HistorySessionEntry, shows=(CommsTab
         return ConversationView(sessions.app, self)
 
 
+class PathLabel(QLabel):
+    """A directory shown as Toad's info bar shows it: home-relative, then condensed from the
+    middle out to the characters the label has room for. The full path is its tooltip."""
+
+    def __init__(self, path: Path) -> None:
+        super().__init__()
+        self.shown = home_relative(str(path), directory=True)
+        self.setToolTip(str(path))
+        self.setMinimumWidth(QFontMetricsF(self.font()).horizontalAdvance("~/…/"))
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        cells = int(self.width() / QFontMetricsF(self.font()).averageCharWidth())
+        self.setText(condense_path(self.shown, max(1, cells)))
+
+
 class ConversationView(Page, StatusOwner, SessionScope, QWidget):
     """One conversation tab: its newest page, read again whenever Core's stores change; the
     activity sweep and info row over its thread's status; and a sender."""
@@ -366,10 +383,13 @@ class ConversationView(Page, StatusOwner, SessionScope, QWidget):
         self.status = QLabel()
         self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.status.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
+        self.directory = PathLabel(window.project_dir.path)
+        self.directory.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
         info = QHBoxLayout()
         info.setContentsMargins(6, 0, 6, 0)
+        info.addWidget(self.directory, 1)
         info.addWidget(self.label)
-        info.addWidget(self.status, 1)
+        info.addWidget(self.status, 2)
         self.input = QLineEdit()
         self.input.setPlaceholderText(f"Message {label}")
         self.input.returnPressed.connect(self.send)
