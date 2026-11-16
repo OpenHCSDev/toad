@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 from asyncio import CancelledError
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import ClassVar
 
 from agent_comms.messaging.channel_targets import (
     ChannelSelection,
@@ -71,20 +72,77 @@ class SortCapable(ABC):
     def execute_sort(self, channel: str, ctx: SharedTargetContext) -> None: ...
 
 
+class LocalCommand:
+    """A command the interface interprets before anything is submitted."""
+
+
+class ViewLocalCommand(LocalCommand):
+    """Runs in any conversation view: it acts on the view, its targets or the host."""
+
+
+class AgentLocalCommand(LocalCommand):
+    """Acts on the agent session behind a conversation; only an agent conversation runs it."""
+
+
+class CommandRefused(ValueError):
+    """A command, as typed, cannot run here; its text tells the user why.
+
+    The catalog shows it under the prompt and keeps the text from being sent."""
+
+
 class ConversationCommands(metaclass=AbstractHooksMeta):
     """What a command does to the conversation it runs in.
 
-    Commands call only these; each frontend's conversation inherits this and
-    owns how each one happens on screen.
+    Commands call only these and the conversation's host; each frontend's conversation
+    inherits this and owns how each one happens on screen. A conversation view runs
+    the view commands; an agent conversation adds the agent session's.
     """
 
-    project_path: Checkout
+    app: CommsHost
+    local_commands: ClassVar[type[LocalCommand]] = ViewLocalCommand
 
     @abstractmethod
     async def command_target_context(self) -> SharedTargetContext | None: ...
 
     @abstractmethod
+    async def read_command_catalog(self):
+        """The commands this conversation offers, read once for one completion or run."""
+
+    @abstractmethod
     def update_slash_commands(self) -> None: ...
+
+    @abstractmethod
+    def flash(self, text: str) -> None:
+        """Show a short notice under the prompt."""
+
+    @abstractmethod
+    def flash_success(self, text: str) -> None: ...
+
+    @abstractmethod
+    def flash_error(self, text: str) -> None: ...
+
+    @abstractmethod
+    def open_team(self, teammate: str) -> None:
+        """Open the live team view, on one teammate when named."""
+
+    @abstractmethod
+    def about_markdown(self) -> str:
+        """The /toad:about report for this installation and its Core."""
+
+    @abstractmethod
+    async def post_markdown(self, markdown: str) -> None:
+        """Add a Markdown note to the conversation."""
+
+    @abstractmethod
+    async def prune_window(self, low_mark: int, high_mark: int) -> None: ...
+
+
+class AgentConversationCommands(ConversationCommands):
+    """A conversation with an agent session behind it, which also runs the commands
+    that act on that agent and its session."""
+
+    project_path: Checkout
+    local_commands = LocalCommand
 
     @property
     @abstractmethod
@@ -100,30 +158,6 @@ class ConversationCommands(metaclass=AbstractHooksMeta):
     @abstractmethod
     def turn_busy(self) -> bool:
         """Whether an agent turn is running."""
-
-    @abstractmethod
-    def flash(self, text: str) -> None:
-        """Show a short notice under the prompt."""
-
-    @abstractmethod
-    def flash_success(self, text: str) -> None: ...
-
-    @abstractmethod
-    def flash_error(self, text: str) -> None: ...
-
-    @abstractmethod
-    def notify(self, message: str, *, title: str = "") -> None:
-        """Show a notification outside the conversation."""
-
-    @abstractmethod
-    def copy_to_clipboard(self, text: str) -> None: ...
-
-    @abstractmethod
-    def open_url(self, url: str) -> None: ...
-
-    @abstractmethod
-    def open_team(self, teammate: str) -> None:
-        """Open the live team view, on one teammate when named."""
 
     @abstractmethod
     def focus_model_choice(self) -> None:
@@ -144,17 +178,6 @@ class ConversationCommands(metaclass=AbstractHooksMeta):
 
     @abstractmethod
     def request_compaction(self, instructions: str | None) -> None: ...
-
-    @abstractmethod
-    def about_markdown(self) -> str:
-        """The /toad:about report for this installation and its Core."""
-
-    @abstractmethod
-    async def post_markdown(self, markdown: str) -> None:
-        """Add a Markdown note to the conversation."""
-
-    @abstractmethod
-    async def prune_window(self, low_mark: int, high_mark: int) -> None: ...
 
     @abstractmethod
     async def rename_session(self, name: str) -> None: ...
@@ -191,7 +214,7 @@ class SharedContextualCommand(ABC):
         if await conversation.command_target_context() != ctx:
             raise CommandContextChanged("Command target changed; refresh this view")
         if not self.available(ctx):
-            raise ValueError("Action is no longer available for this target")
+            raise CommandRefused("Action is no longer available for this target")
         self.execute(ctx)
         conversation.update_slash_commands()
         return True
