@@ -23,8 +23,8 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QMargins, QPoint, Qt
-from PySide6.QtGui import QFont, QFontMetricsF
+from PySide6.QtCore import QMargins, QPoint, QPointF, Qt
+from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -204,27 +204,45 @@ class QtThreadListing(ThreadListing):
             rows.add_thread(section, name, model.threads.rows[name])
 
 
-class Banner(QLabel):
+class Banner(QWidget):
     """Toad's banner, filling the width it is given in whole characters, as the terminal
-    draws it. It takes the width and never asks for one: a label wants its text's width, so
-    sizing the font to the page let each resize widen the page past the screen."""
+    draws it: each character in its own cell of the grid. Android's monospace font has no
+    box-drawing glyphs, and the fallback's glyphs are wider, so text drawn as a run slid
+    every row off the blocks above it. It takes the width and never asks for one."""
+
+    LINES = WelcomeBanner.TEXT.splitlines()
+    COLUMNS = max(map(len, LINES))
 
     def __init__(self, colour: str) -> None:
-        super().__init__(WelcomeBanner.TEXT)
+        super().__init__()
+        self.colour = QColor(colour)
         font = QFont("monospace")
         font.setStyleHint(QFont.StyleHint.TypeWriter)
         self.setFont(font)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setStyleSheet(f"color: {colour}")
-        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+
+    def cell(self) -> float:
+        return self.contentsRect().width() / self.COLUMNS
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         font = self.font()
-        widest = max(WelcomeBanner.TEXT.splitlines(), key=len)
-        advance = QFontMetricsF(font).horizontalAdvance(widest) / font.pointSizeF()
-        font.setPointSizeF(max(4.0, self.contentsRect().width() / advance))
+        advance = QFontMetricsF(font).horizontalAdvance("\u2588") / font.pointSizeF()
+        font.setPointSizeF(max(4.0, self.cell() / advance))
         self.setFont(font)
+        self.setFixedHeight(round(len(self.LINES) * QFontMetricsF(font).height()))
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        painter.setFont(self.font())
+        painter.setPen(self.colour)
+        metrics = QFontMetricsF(self.font())
+        cell, left, top = self.cell(), self.contentsRect().left(), self.contentsRect().top()
+        for row, line in enumerate(self.LINES):
+            baseline = top + row * metrics.height() + metrics.ascent()
+            for column, character in enumerate(line):
+                if not character.isspace():
+                    painter.drawText(QPointF(left + column * cell, baseline), character)
 
 
 class Welcome(Page, QWidget):
