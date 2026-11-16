@@ -4,7 +4,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from formbridge.key_declarations import TextEntryMode
-from textual.binding import BindingsMap, KeymapClaim
+from formbridge.key_declarations import KeymapClaim
+from textual.binding import BindingsMap
 
 
 from textual import on

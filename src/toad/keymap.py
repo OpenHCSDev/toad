@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Annotated
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from objectstate import mark_ui_hidden_config
-from textual.binding import KeymapClaim
+from textual.binding import BindingsMap
 from textual.dom import DOMNode
 from formbridge.key_declarations import KeyInvocation
 from textual.screen import ModalScreen
@@ -159,10 +159,10 @@ class KeymapCatalog:
         keymap_claims reads for itself (Menu reads MenuCommand's members) are settled by
         discover(), which capture runs first and which imports every toad module."""
         native_mode = mode.binding_mode()
-        application = tuple(KeymapClaim.from_bindings(
+        application = tuple(BindingsMap(
             binding for declaration in actions
             for binding in DeclaredWidgetActions.exclusive_bindings(declaration, native_mode)
-        ))
+        ).keymap_claims())
         owned = [application]
         for owner in contexts:
             defaults = owner.keymap_claims(native_mode)
