@@ -8,11 +8,11 @@ from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
-from toad.widgets.history_anchor import (
+from toad.widgets.history_anchor import HistoryWindow
+from toad.client.reader_position import (
     BlockPosition,
     FragmentNotLoaded,
     FragmentPosition,
-    HistoryWindow,
     ReaderPosition,
     RowPosition,
     TailPosition,

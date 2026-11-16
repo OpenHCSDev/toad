@@ -16,10 +16,10 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.lifecycle import LifecycleState
 from agent_comms.transcript.transcripts import TranscriptPage
 
+from toad.client.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.client.history_preparation import NEWER_END, OLDER_END, PageRequest
 from toad.client.resource_release import ResourceRelease
 from toad.client.subscribers import CoreObserver
-from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.transcript_scope import TranscriptView
 
 

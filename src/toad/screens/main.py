@@ -55,7 +55,6 @@ from toad.session_presentation import (
 )
 from toad.session_scope import ViewSessionOrigin
 from toad.client.session_tracker import SessionDetails
-from toad.settings_scope import SettingsReader
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widget_actions import (
     CyclesSessions,
@@ -68,7 +67,7 @@ from toad.widget_actions import (
 )
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation, SourcesScope
-from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
+from toad.client.history_reads import NothingToRead, PaintedRead, ReadWork
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import NO_PROJECT_VIEW, ProjectSearchButton, ProjectView
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
