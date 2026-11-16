@@ -17,7 +17,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.client.connection import Observing
 from toad.client.conversation import CommsViewKey
 from toad.navigation_preparation import CommsNavigation
-from toad.client.session_entry import SessionEntry, SharedSessionEntry
+from toad.client.session_entry import SessionEntry
 from toad.client.session_tracker import ConversationTab, NamedTab, OpenTab
 from toad.client.tab_identity import TabIdentity, TabTargetGone
 from toad.client.tab_identity.kinds import CommsTab
@@ -25,9 +25,9 @@ from toad.core.projection import MroProjection
 from toad.session_host import SessionNavigator
 
 
-class SharedHistorySessionEntry[Navigator](
-    SharedSessionEntry[Navigator], MroProjection[OpenTab], declared_name=None
-):
+class HistorySessionEntry(SessionEntry, MroProjection[OpenTab], declared_name=None):
+    """The shared conversation entry in Toad's workspace; a frontend's member builds its view."""
+
     def __init__(self, identity: TabIdentity, opened: CommsNavigation, project: Checkout) -> None:
         """The owner's tab for one conversation; no session owns it, so none closes or returns it."""
         super().__init__(identity)
@@ -56,7 +56,7 @@ class SharedHistorySessionEntry[Navigator](
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.identity, self.key.conversation.initial_label)
 
-    def tab(self, sessions: Navigator, observed: Observing) -> OpenTab:
+    def tab(self, sessions: SessionNavigator, observed: Observing) -> OpenTab:
         return self.project_value(observed.references_for(self.key.root), observed)
 
     @handles(ReferenceContext)
@@ -72,10 +72,6 @@ class SharedHistorySessionEntry[Navigator](
             conversation,
             observed.sidebar,
         )
-
-
-class HistorySessionEntry(SharedHistorySessionEntry[SessionNavigator], SessionEntry):
-    """The shared conversation entry in Toad's workspace; a frontend's member builds its view."""
 
     async def ready(self, sessions: SessionNavigator) -> None:
         await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()

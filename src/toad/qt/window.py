@@ -1,14 +1,15 @@
 """The Qt application: the shared client application drawn as Toad's tabs over the
 conversations you open, and its sidebar of channels and threads behind the bar above them.
 
-Tabs, their saved roster and back/forward history are the shared client's TabOrder over
-CommsTab identities; each tab is the shared conversation entry, drawn by a Qt
-ConversationView.
+Tabs open, switch and close through the shared SessionNavigation, as Textual's do: a
+sidebar row is the shared history route, each tab is the shared conversation entry, and
+QtWorkspaceViews draws its view, a Qt ConversationView.
 """
 
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 from time import monotonic
 from functools import partial
@@ -58,22 +59,23 @@ from toad.client.connection import (
     Observing,
     RemoteCoreConnection,
 )
-from toad.client.conversation import ChannelConversation, ConversationKind, DmConversation
+from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
-from toad.client.history_entry import SharedHistorySessionEntry
+from toad.client.history_entry import HistorySessionEntry
 from toad.client.line_blocks import LineBlock, MutedRole, TextRole
+from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
-from toad.client.tab_identity import TabIdentity
 from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core.events import CoordinationObserved, TabHistoryChanged
-from toad.navigation_preparation import CommsNavigation
 from toad.message_rows import MarkdownMessageStyle, MessageRow
 from toad.launch_binding import NoAgent
+from toad.navigation_context import NoNavigationOwner
+from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.host import QtCommsHost
 from toad.qt.lines import QtLineRenderer
-from toad.session_host import SessionEntries
+from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.status_thread import ObservedActivity, StatusOwner
 from toad.work_preparation import PreparationRuntime
 
@@ -122,25 +124,15 @@ class SidebarSection(SidebarItem):
 
 
 class ConversationRow(SidebarItem):
-    """A row that opens its conversation."""
+    """A row that opens its conversation through the shared history route it holds."""
 
-    def __init__(self, kind: type[ConversationKind], name: str, label: str) -> None:
+    def __init__(self, target: HistoryRouted) -> None:
         super().__init__()
-        self.key = name
-        self.target = RowTarget(kind, name, label)
+        self.key = target.name
+        self.target = target
 
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
-
-
-@dataclass(frozen=True)
-class RowTarget:
-    """What a tapped row opens, held apart from the row: a repaint deletes the row's Qt item
-    while its conversation is still resolving."""
-
-    kind: type[ConversationKind]
-    name: str
-    label: str
 
 
 class TouchScrolled:
@@ -160,9 +152,14 @@ class Page:
     def reload(self) -> None:
         """A page fed by its own subscription has nothing to read again."""
 
+    def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
+        """Selected: read again; a tab passes its identity to the visit history."""
+        self.reload()
+
 
 class Home(Page, QLabel):
-    """What shows while no conversation tab is open."""
+    """What shows while no conversation tab is open, and in place of a saved tab this app
+    has not opened; the sidebar comes up over it."""
 
     mode = WELCOME
 
@@ -170,6 +167,9 @@ class Home(Page, QLabel):
         super().__init__("Open a channel or thread from the sidebar")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setWordWrap(True)
+
+    def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
+        window.show_sidebar()
 
 
 class MessageView(TouchScrolled, QTextBrowser):
@@ -252,7 +252,7 @@ class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObs
         threads = model.threads.rows
         self.clear()
         for name, channel in model.channels.rows.items():
-            group = self.add_row(self.invisibleRootItem(), ConversationRow(ChannelConversation, name, channel.label()),
+            group = self.add_row(self.invisibleRootItem(), ConversationRow(channel_target(name)),
                                  channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
             for member in channel.members:
                 self.add_thread(group, member, threads[member])
@@ -263,13 +263,13 @@ class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObs
             self.add_thread(everyone, name, thread)
         for item in self.items():
             item.setExpanded(item.key in self.expanded)
-        self.window.label_tabs(self.observed)
+        self.window.paint_tabs()
 
     def items(self):
         return (self.topLevelItem(index) for index in range(self.topLevelItemCount()))
 
     def add_thread(self, parent: QTreeWidgetItem, name: str, thread) -> None:
-        self.add_row(parent, ConversationRow(DmConversation, name, f"@{name}"),
+        self.add_row(parent, ConversationRow(DirectTarget(name)),
                      thread.unread.badge, thread.label, thread.summary, thread.title)
 
     def add_row(self, parent: QTreeWidgetItem, row: ConversationRow, badge: str, label: str,
@@ -342,18 +342,14 @@ class QtSessionEntry(SessionEntries):
     """The Qt window's entry family."""
 
 
-class QtHistorySessionEntry(QtSessionEntry, SharedHistorySessionEntry["QtToadApp"], shows=(CommsTab,)):
+class QtHistorySessionEntry(QtSessionEntry, HistorySessionEntry, shows=(CommsTab,)):
     """The shared conversation entry, drawn in this window's ConversationView."""
 
-    def __init__(self, window: QtToadApp, identity: CommsTab, opened: CommsNavigation) -> None:
-        super().__init__(identity, opened, window.project_dir)
-        self.window = window
-
-    def __call__(self) -> ConversationView:
-        return ConversationView(self.window, self)
+    def __call__(self, sessions: SessionNavigator) -> ConversationView:
+        return ConversationView(sessions.app, self)
 
 
-class ConversationView(Page, StatusOwner, QWidget):
+class ConversationView(Page, StatusOwner, SessionScope, QWidget):
     """One conversation tab: its newest page, read again whenever Core's stores change; the
     activity sweep and info row over its thread's status; and a sender."""
 
@@ -362,10 +358,11 @@ class ConversationView(Page, StatusOwner, QWidget):
     def __init__(self, window: QtToadApp, entry: QtHistorySessionEntry) -> None:
         super().__init__()
         self.window, self.entry = window, entry
-        self.tab = entry.unobserved_tab()
+        self.content_ready = asyncio.Event()
+        label = entry.unobserved_tab().label()
         self.messages = MessageView(window.renderer)
         self.thread_activity = ActivityStrip(window)
-        self.label = QLabel(self.tab.label())
+        self.label = QLabel(label)
         self.status = QLabel()
         self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.status.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
@@ -374,7 +371,7 @@ class ConversationView(Page, StatusOwner, QWidget):
         info.addWidget(self.label)
         info.addWidget(self.status, 1)
         self.input = QLineEdit()
-        self.input.setPlaceholderText(f"Message {self.tab.label()}")
+        self.input.setPlaceholderText(f"Message {label}")
         self.input.returnPressed.connect(self.send)
         send = QPushButton("Send")
         send.clicked.connect(self.send)
@@ -393,6 +390,24 @@ class ConversationView(Page, StatusOwner, QWidget):
         return self.entry.mode
 
     @property
+    def origin(self) -> SessionOrigin:
+        """A conversation tab belongs to no session, so it has no session transcript."""
+        return NoSessionOrigin(self.mode)
+
+    def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
+        visited(self.entry.identity)
+        self.reload()
+
+    async def wait_content_ready(self) -> None:
+        await self.content_ready.wait()
+
+    def close_core_events(self) -> None:
+        self.thread_activity.close_core_events()
+
+    async def retire_presentation(self) -> None:
+        """Qt keeps nothing drawn apart from the widgets, which go with the view."""
+
+    @property
     def conversation(self) -> ConversationKind:
         return self.entry.key.conversation
 
@@ -401,12 +416,15 @@ class ConversationView(Page, StatusOwner, QWidget):
 
     async def read_page(self) -> None:
         source = self.window.source()
-        page: MessagePage = await asyncio.to_thread(
-            self.conversation.page, source, PageBounds(limit=self.page_size))
-        style = MarkdownMessageStyle()
-        rows = (MessageRow(message, self.entry.viewer) for message in page.messages)
-        self.messages.show_blocks(tuple(
-            block for row in rows for block in (row.header, *style.body(row, row.text))))
+        try:
+            page: MessagePage = await asyncio.to_thread(
+                self.conversation.page, source, PageBounds(limit=self.page_size))
+            style = MarkdownMessageStyle()
+            rows = (MessageRow(message, self.entry.viewer) for message in page.messages)
+            self.messages.show_blocks(tuple(
+                block for row in rows for block in (row.header, *style.body(row, row.text))))
+        finally:
+            self.content_ready.set()
         self.conversation.status_thread(source.root, self.window.coordination_access).refresh(self)
         self.label.setText(self.conversation.label(source.references()))
         read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
@@ -425,6 +443,58 @@ class ConversationView(Page, StatusOwner, QWidget):
         self.reload()
 
 
+class QtWorkspaceViews(WorkspaceViews):
+    """The Qt window's open views, stacked so the selected one shows; the home page stands
+    in for a mode with no view here: the welcome page, or a saved tab this app has not
+    opened."""
+
+    def __init__(self, app: QtToadApp) -> None:
+        self.app = app
+        self.home = Home()
+        self.pages = QStackedWidget()
+        self.pages.addWidget(self.home)
+        self.views: dict[str, ConversationView] = {}
+
+    @property
+    def selected(self) -> Page:
+        return self.pages.currentWidget()
+
+    def require(self, identity: str) -> ConversationView:
+        return self.views[identity]
+
+    def origin(self, identity: str) -> SessionOrigin:
+        if view := self.views.get(identity):
+            return view.origin
+        return NoSessionOrigin(identity)
+
+    def navigation_owner(self) -> NoNavigationOwner:
+        """Rows open from the sidebar through the shared history route; no view navigates."""
+        return NoNavigationOwner(self.app)
+
+    def prepare(self, mode: str) -> Page:
+        if view := self.views.get(mode):
+            return view
+        sessions = self.app.session_navigation
+        entry = sessions.get(mode)
+        if entry is None:
+            return self.home
+        view = self.views[mode] = entry(sessions)
+        self.pages.addWidget(view)
+        return view
+
+    def select(self, mode: str, visited: Callable[[CommsTab], object]) -> None:
+        page = self.prepare(mode)
+        self.pages.setCurrentWidget(page)
+        page.shown(self.app, visited)
+
+    def detach(self, identity: str) -> ConversationView | None:
+        return self.views.pop(identity, None)
+
+    async def finish(self, view: ConversationView) -> None:
+        self.pages.removeWidget(view)
+        view.deleteLater()
+
+
 class QtToadApp(ClientApplication, QtCommsHost, QWidget):
     """The shared client application on Qt, over the Core a UI profile names: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
@@ -439,15 +509,12 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.setWindowTitle("Toad")
         self.renderer = QtLineRenderer(scheme)
         self.setPalette(self.palette_of(scheme))
-        self.views: dict[TabIdentity, ConversationView] = {}
+        self.workspace_sessions = QtWorkspaceViews(self)
         self.sidebar = Sidebar(self)
-        self.home = Home()
-        self.pages = QStackedWidget()
-        self.pages.addWidget(self.home)
         self.split = QSplitter(Qt.Orientation.Vertical)
         self.split.setChildrenCollapsible(False)
         self.split.setHandleWidth(10)
-        self.split.addWidget(self.pages)
+        self.split.addWidget(self.workspace_sessions.pages)
         self.split.addWidget(self.sidebar)
         self.split.setStretchFactor(1, 2)
         self.sidebar_bar = QPushButton()
@@ -537,7 +604,7 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.setContentsMargins(margins)
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
-        self.pages.currentWidget().reload()
+        self.workspace_sessions.selected.reload()
 
     def history_changed(self, *event: object) -> None:
         """Back and forward are live exactly when the visit history has a step that way."""
@@ -548,31 +615,22 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         observed = self.coordination_access.observation.observed()
         return ObservedSource(observed.core, observed.root, self.project_dir)
 
-    # Tabs: TabOrder owns their order, the saved roster and the visit history.
-
-    @property
-    def shown(self) -> tuple[ConversationView, ...]:
-        """The open tabs this window draws, in TabOrder's order."""
-        return self.tab_order.project(self.views)
+    # Tabs: SessionNavigation owns the open entries, TabOrder their order, the saved roster
+    # and the visit history; the bar draws the shared tab projection.
 
     def paint_tabs(self) -> None:
         self.tabs.blockSignals(True)
         while self.tabs.count():
             self.tabs.removeTab(0)
-        for view in self.shown:
-            self.tabs.addTab(view.tab.label())
+        for tab in self.session_navigation.tabs:
+            self.tabs.addTab(tab.label())
         self.tabs.blockSignals(False)
         self.mark_current()
 
-    def label_tabs(self, observed: Observing) -> None:
-        """Each tab's label from the bus's current names, as Toad's tab bar labels it."""
-        for view in self.views.values():
-            view.tab = view.entry.tab(self, observed)
-        self.paint_tabs()
-
     def mark_current(self) -> None:
-        current = self.pages.currentWidget()
-        self.tabs.setCurrentIndex(self.shown.index(current) if current in self.shown else -1)
+        modes = [tab.mode_name for tab in self.session_navigation.tabs]
+        mode = self.selected_mode
+        self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
         self.paint_sidebar_bar()
 
     # The sidebar sits behind a bar above the tabs, as on Toad's phone layout: ↑ brings it
@@ -611,90 +669,48 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.menu_popup.popup(corner - QPoint(0, self.menu_popup.sizeHint().height()))
 
     def open_row(self, row: ConversationRow) -> None:
-        self.run_operation(ConversationOpen, partial(self.open_target, row.target))
+        self.run_operation(ConversationOpen, partial(self.open_route, row.target))
 
-    async def open_target(self, target: RowTarget) -> None:
-        source = self.source()
-        viewer = await asyncio.to_thread(
-            lambda: self.coordination_access.observation.observed().user_identity(self.project_dir).name)
-        resolved = await asyncio.to_thread(target.kind.resolve, source, viewer, target.name)
-        identity = CommsTab(resolved.conversation, str(source.root))
-        if identity not in self.views:
-            view = (await identity.entry(self))()
-            self.views[identity] = view
-            self.pages.addWidget(view)
-            await self.tab_order.open(identity)
-            self.label_tabs(await asyncio.to_thread(self.coordination_access.observation.observed))
-        self.visit(identity)
+    async def open_route(self, route: HistoryRouted) -> None:
+        await self.session_navigation.history(project_path=self.project_dir, route=route)
         self.hide_sidebar()
-
-    async def history_entry(self, identity: CommsTab) -> QtHistorySessionEntry:
-        """Toad's entry for a conversation tab, read again on the bus that owns it."""
-        opened = await asyncio.to_thread(lambda: SharedHistorySessionEntry.reopened(
-            identity, self.coordination_access.observation.observed(), self.project_dir))
-        return QtSessionEntry.declared_for(identity)(self, identity, opened)
-
-    def show_tab(self, identity: TabIdentity) -> None:
-        view = self.views[identity]
-        self.pages.setCurrentWidget(view)
-        self.mark_current()
-        view.reload()
-
-    def visit(self, identity: TabIdentity) -> None:
-        """A person's selection: its visit is recorded and its tab shown."""
-        self.tab_order.record_visit(identity)
-        self.show_tab(identity)
-
-    def drawn(self, mode: str) -> TabIdentity:
-        """The drawn tab with this mode."""
-        return next(identity for identity in self.views if identity.mode_name == mode)
 
     @property
     def selected_mode(self) -> str:
-        return self.pages.currentWidget().mode
+        return self.workspace_sessions.selected.mode
+
+    def switch(self, mode: str, visited: Callable[[CommsTab], object]) -> None:
+        self.workspace_sessions.select(mode, visited)
+        self.mark_current()
 
     async def select_session(self, mode: str) -> None:
-        self.visit(self.drawn(mode))
-
-    async def show_mode(self, mode: str) -> None:
-        self.show_tab(self.drawn(mode))
+        """A person's selection: its visit is recorded as its tab is shown."""
+        self.switch(mode, self.tab_order.record_visit)
 
     def show_history_step(self, mode: str) -> asyncio.Task[None]:
         """A history step, whose visit TabOrder recorded when it took the step. TabOrder
         does not wait on the switch, so it runs as its own task, as Textual's does."""
-        return asyncio.ensure_future(self.show_mode(mode))
+        return asyncio.ensure_future(self.step_to(mode))
+
+    async def step_to(self, mode: str) -> None:
+        self.switch(mode, lambda identity: None)
 
     def update_show_sessions(self) -> None:
-        """The tab bar is always shown."""
+        """The open tabs changed: the bar draws them again."""
+        self.paint_tabs()
 
     def visit_index(self, index: int) -> None:
-        self.visit(self.shown[index].entry.identity)
+        self.switch(self.session_navigation.tabs[index].mode_name, self.tab_order.record_visit)
 
     def close_index(self, index: int) -> None:
-        self.run_operation(TabClose, partial(self.close_tab, self.shown[index]))
-
-    async def close_tab(self, view: ConversationView) -> None:
-        identity = view.entry.identity
-        await self.tab_order.close({identity})
-        del self.views[identity]
-        self.pages.removeWidget(view)
-        view.deleteLater()
-        self.paint_tabs()
-        if self.pages.currentWidget() is self.home:
-            return
-        returned = self.tab_order.came_from(identity)
-        if any(shown.mode_name == returned for shown in self.views):
-            self.visit(self.drawn(returned))
-        else:
-            self.pages.setCurrentWidget(self.home)
-            self.mark_current()
-            self.show_sidebar()
+        self.run_operation(TabClose, partial(self.session_navigation.close,
+                                             self.session_navigation.tabs[index].mode_name))
 
     def go_back(self) -> None:
         """Android back: an open sidebar goes down first; then the visit history's previous
         tab; with none, the sidebar comes up; with it up and nothing behind, the app closes,
         as back does at an app's first screen."""
-        if self.sidebar.isVisible() and self.views:
+        if self.sidebar.isVisible() and self.workspace_sessions.views:
             self.hide_sidebar()
         elif self.tab_order.history_target(-1) is not None:
             self.tab_order.navigate(-1)
