@@ -2,7 +2,7 @@
 import json
 
 from textual.widgets import Static
-from textual.widgets._hints import HintSession
+from textual.widgets._hints import HintLabel, HintSession
 
 from toad.hint_labels import HintLabels
 from toad.preferences import SETTINGS, SavedSettings
@@ -39,7 +39,7 @@ async def test_hint_picker_saves_and_drives_both_native_presentations(workspace)
             assert session.label_style is choice
             label = next(label for label in session.labels if label.target.widget is body)
             assert len(label.text) == 2
-            assert label.render().plain == choice.caption(label.text, "")
+            assert label.render().plain == HintLabel.caption(choice, label.text, "").plain
             await pilot.press(*label.text)
             await ui.until_shows("Hint choice activated")
             assert ui.draft() == draft
