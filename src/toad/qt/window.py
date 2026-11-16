@@ -23,14 +23,13 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QMargins, QPoint, QPointF, Qt
+from PySide6.QtCore import QMargins, QPointF, Qt
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
-    QMenu,
     QPushButton,
     QSizePolicy,
     QSplitter,
@@ -752,6 +751,10 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
         chrome_layout.addWidget(self.status_line)
+        self.menu_panel = QWidget()
+        QVBoxLayout(self.menu_panel).setContentsMargins(8, 4, 8, 4)
+        self.menu_panel.hide()
+        chrome_layout.addWidget(self.menu_panel)
         chrome_layout.addWidget(self.sidebar_bar)
         chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
@@ -884,14 +887,27 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
             self.show_sidebar()
 
     def show_menu(self) -> None:
-        """Toad's application actions under their labels, as its menu lists them; a choice
-        runs as its own operation. popup(), not exec(): exec's nested event loop under qasync
-        showed nothing on Android."""
-        self.menu_popup = QMenu(self)
+        """Toad's application actions under their labels, as its menu lists them, in a panel
+        over the bar; a choice runs as its own operation and closes the panel. The panel
+        is part of this window: a QMenu is a second native window, and opening one killed
+        the app on Android with no Python error."""
+        if self.menu_panel.isVisible():
+            self.menu_panel.hide()
+            return
+        layout = self.menu_panel.layout()
+        while layout.count():
+            layout.takeAt(0).widget().deleteLater()
         for command, label in ApplicationAction.menu(self):
-            self.menu_popup.addAction(label, partial(self.run_operation, MenuActionRun, partial(command.apply, self)))
-        corner = self.menu.mapToGlobal(self.menu.rect().topLeft())
-        self.menu_popup.popup(corner - QPoint(0, self.menu_popup.sizeHint().height()))
+            choice = QPushButton(label)
+            choice.setFlat(True)
+            choice.setMinimumHeight(44)
+            choice.clicked.connect(partial(self.choose_menu, command))
+            layout.addWidget(choice)
+        self.menu_panel.show()
+
+    def choose_menu(self, command: ApplicationAction) -> None:
+        self.menu_panel.hide()
+        self.run_operation(MenuActionRun, partial(command.apply, self))
 
     def open_row(self, row: ConversationRow) -> None:
         self.run_operation(ConversationOpen, partial(self.open_route, row.target))
@@ -946,8 +962,10 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
     def go_back(self) -> None:
         """Android back: an open sidebar goes down first; then the visit history's previous
         tab; with none, the sidebar comes up; with it up and nothing behind, the app closes,
-        as back does at an app's first screen."""
-        if self.sidebar.isVisible() and self.workspace_sessions.views:
+        as back does at an app's first screen. An open menu closes before any of that."""
+        if self.menu_panel.isVisible():
+            self.menu_panel.hide()
+        elif self.sidebar.isVisible() and self.workspace_sessions.views:
             self.hide_sidebar()
         elif self.tab_order.history_target(-1) is not None:
             self.tab_order.navigate(-1)
