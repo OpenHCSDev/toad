@@ -32,6 +32,10 @@ class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.client.ta
     @abstractmethod
     async def entry(self, navigation: object) -> object: ...
 
+    def declarations(self) -> tuple[object, ...]:
+        """What this tab shows, most specific first: its kind and that kind's bases."""
+        return type(self).__mro__
+
 
 class SessionTabIdentity(TabIdentity):
     """An agent or mailbox tab: a session of its own."""
