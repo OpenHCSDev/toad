@@ -76,7 +76,8 @@ class CommandOffer(Offer):
 
     @property
     def layout(self) -> StyledTextLayout:
-        return StyledTextLayout(name=Segment(self.match.command.command), detail_line=self.match.command.help)
+        return StyledTextLayout(name=Segment(self.match.command.command), detail_line=self.match.command.help,
+                                multiline=True)
 
     def accept(self, composer: Composer) -> None:
         composer.editor.setPlainText(f"{self.match.command.command} ")
