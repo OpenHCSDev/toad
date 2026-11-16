@@ -227,7 +227,9 @@ class WorkspaceSessions(WorkspaceViews):
     def __init__(self, app: WorkspaceHost) -> None:
         self.app = app
         # Views the workspace always has; they are not tabs and never close.
-        self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: WelcomeScreen}
+        self.resident: dict[str, Callable[[SessionNavigation], SessionScope]] = {
+            WELCOME: lambda sessions: WelcomeScreen()
+        }
         self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 
@@ -248,7 +250,8 @@ class WorkspaceSessions(WorkspaceViews):
         if view := self.views.get(identity):
             return view
         await self.app._init_mode("workspace")
-        view = (self.app.session_navigation.get(identity) or self.resident[identity])()
+        sessions = self.app.session_navigation
+        view = (sessions.get(identity) or self.resident[identity])(sessions)
         view.id = identity
         view.display = False
         self.views[identity] = view

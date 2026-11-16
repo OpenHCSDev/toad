@@ -80,6 +80,18 @@ class SessionScope:
     def matches_launch(self, agent_identity: str, session_id: AcpSessionId) -> bool:
         return False
 
+    async def wait_content_ready(self) -> None:
+        """Opening a tab returns once its content has loaded."""
+        raise NotImplementedError
+
+    def close_core_events(self) -> None:
+        """End the view's Core subscriptions before its tab entry is forgotten."""
+        raise NotImplementedError
+
+    async def retire_presentation(self) -> None:
+        """Let go of what the view drew before the tab it returns to is shown."""
+        raise NotImplementedError
+
 
 class ProjectSessionOrigin(SessionOrigin, SessionScope, CheckoutRoot):
     """A project source may navigate without an ACP session."""

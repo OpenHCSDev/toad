@@ -21,7 +21,7 @@ from toad.launch_binding import AgentBinding
 from toad.screens.comms import CommsScreen
 from toad.screens.file_preview import FilePreviewScreen
 from toad.screens.main import MainScreen
-from toad.session_host import SessionEntries
+from toad.session_host import SessionEntries, SessionNavigator
 from toad.widgets.acp_log import AcpLogPreview
 from toad.widgets.project_panel import FilePreview
 
@@ -47,7 +47,7 @@ class TextualNativeSessionEntry(TextualSessionEntry, NativeSessionEntry, shows=(
 class TextualHistorySessionEntry(TextualSessionEntry, HistorySessionEntry, shows=(CommsTab,)):
     """The shared conversation entry, viewed in a Textual CommsScreen."""
 
-    def __call__(self):
+    def __call__(self, sessions: SessionNavigator):
 
         key = self.key
         return CommsScreen(
@@ -61,7 +61,7 @@ class TextualHistorySessionEntry(TextualSessionEntry, HistorySessionEntry, shows
 class TextualPreviewSessionEntry(TextualSessionEntry, PreviewSessionEntry, shows=(PreviewTab,)):
     """A read-only file, viewed in a Textual FilePreviewScreen."""
 
-    def __call__(self):
+    def __call__(self, sessions: SessionNavigator):
 
         return FilePreviewScreen(self.path, self.content)
 

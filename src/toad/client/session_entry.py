@@ -28,11 +28,9 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 
-class SharedSessionEntry[Navigator](DeclaredFamily, SessionProjection[Navigator, Observing], affix="Entry"):
-    """Logical session identity, ownership and dependencies.
-
-    Native entries add screen/view factories through DeclaredViews.
-    """
+class SessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Observing], affix="Entry"):
+    """Logical session identity, ownership, dependencies and Toad's tab history; a
+    frontend's member adds the view it builds through its DeclaredViews family."""
 
     def __init__(self, identity: TabIdentity) -> None:
         self.identity = identity
@@ -46,22 +44,23 @@ class SharedSessionEntry[Navigator](DeclaredFamily, SessionProjection[Navigator,
         return self.mode
 
     @abstractmethod
-    def __call__(self) -> SessionScope: ...
+    def __call__(self, sessions: SessionNavigator) -> SessionScope:
+        """The native view of this tab, built from the navigation that opened it."""
 
     @property
     @abstractmethod
     def address(self) -> object: ...
 
-    async def ready(self, sessions: Navigator) -> None:
+    async def ready(self, sessions: SessionNavigator) -> None:
         """Views with deferred loading own their loading completion."""
 
-    async def reconnect(self, sessions: Navigator, selected, snapshot, targets) -> None:
+    async def reconnect(self, sessions: SessionNavigator, selected, snapshot, targets) -> None:
         """Only a bound native entry can refresh its connection resource."""
 
-    def source(self, sessions: Navigator) -> object | None:
+    def source(self, sessions: SessionNavigator) -> SessionScope | None:
         return None
 
-    def thread_row(self, sessions: Navigator, row: ThreadRowModel) -> ThreadRowModel:
+    def thread_row(self, sessions: SessionNavigator, row: ThreadRowModel) -> ThreadRowModel:
         return row
 
     def depends_on(self, mode: str) -> bool:
@@ -70,21 +69,8 @@ class SharedSessionEntry[Navigator](DeclaredFamily, SessionProjection[Navigator,
     def original_channels(self) -> tuple[tuple[str, str], ...]:
         return ()
 
-    def original_threads(self, sessions: Navigator) -> tuple[tuple[str, ThreadIncarnation], ...]:
+    def original_threads(self, sessions: SessionNavigator) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
-
-    async def return_to(self, sessions: Navigator) -> None:
-        raise NotImplementedError
-
-    def forget(self, sessions: Navigator) -> None:
-        raise NotImplementedError
-
-
-class SessionEntry(SharedSessionEntry[SessionNavigator], declared_name=None):
-    """The shared entry with Toad's tab history and view lifetimes; a frontend adds its view."""
-
-    def source(self, sessions: SessionNavigator) -> SessionScope | None:
-        return None
 
     async def return_to(self, sessions: SessionNavigator) -> None:
         """Back to the tab selected before this one; the visit history owns that."""
@@ -125,7 +111,7 @@ class NativeSessionEntry(SessionEntry):
             return (self.original,) if self.original is not None else ()
         return source.thread_identity.transcript_scope().original_threads()
 
-    def __call__(self) -> SessionScope:
+    def __call__(self, sessions: SessionNavigator) -> SessionScope:
         source = self.factory()
         source.session_details = self.details
         source.thread_identity.bind_initial_identity(self.details)
