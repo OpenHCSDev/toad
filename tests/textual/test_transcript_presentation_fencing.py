@@ -374,9 +374,10 @@ async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
 async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage_read(workspace, empty):
     from dataclasses import replace
 
-    from toad.transcript_preparation import ClosedHistory, TranscriptPageRenderTask
+    from toad.transcript_preparation import TranscriptPageRenderTask
+    from toad.client.prepared_pages import ClosedHistory
     from toad.client.history_state import PreparedReplacementViewportRequest
-    from toad.widgets.history_anchor import LatestPosition
+    from toad.client.reader_position import LatestPosition
 
     old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_RETAINED_ROWS", id="old"))
     thread = workspace.thread("source")

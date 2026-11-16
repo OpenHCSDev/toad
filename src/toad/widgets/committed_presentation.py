@@ -31,11 +31,15 @@ from toad.commit_claims import (
 from toad.core.projection import MroProjection
 from toad.client.history_preparation import NEWER_END
 from toad.client.history_state import PreparedReplacementViewportRequest, TranscriptState, WorkingTranscript
-from toad.widgets.history_anchor import HistoryWindow, LatestPosition
+from toad.widgets.history_anchor import HistoryWindow
+from toad.client.reader_position import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
+from toad.transcript_preparation import TranscriptPageRenderTask
+from toad.client.prepared_pages import PreparedPageSource, SavedHistory
+from formbridge.forms.declared_fields import DeclaredViews
 
 if TYPE_CHECKING:
-    from toad.transcript_preparation import PreparedTranscriptPage
+    from toad.client.prepared_pages import PreparedTranscriptPage
     from toad.widgets.conversation import Conversation
     from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 
@@ -90,7 +94,7 @@ def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Wi
     return protected_presentations(candidates, (*view.screen._interaction_widgets(), *view.cursor_block.endpoints))
 
 @dataclass(frozen=True)
-class PreparedCommit:
+class PreparedCommit(DeclaredViews):
     history: CommittedHistory
     sequences: frozenset[int]
 
@@ -111,7 +115,7 @@ class PreparedCommit:
 
 
 @dataclass(frozen=True)
-class PreparedPageCommit(PreparedCommit):
+class PreparedPageCommit(PreparedCommit, shows=(PreparedPageSource,)):
     """Publish the acquired destination page through the live-block handoff."""
 
     history: TranscriptHistory
@@ -126,8 +130,6 @@ class PreparedPageCommit(PreparedCommit):
 
     @classmethod
     async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
-        from toad.transcript_preparation import TranscriptPageRenderTask
-
         prepared = await TranscriptPageRenderTask(page).prepared(view.app.preparation)
         return cls(history, sequences, prepared)
 
@@ -152,7 +154,7 @@ class PreparedPageCommit(PreparedCommit):
         )
 
 
-class PreparedAppendCommit(PreparedPageCommit):
+class PreparedAppendCommit(PreparedPageCommit, shows=(SavedHistory,)):
     """The saved source extends its original pages, retaining their rendered prefix."""
 
     @classmethod
@@ -178,7 +180,7 @@ class CommitPlan(ABC):
         self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
     ) -> Snapshot:
         """The source declares acquisition; its result fixes this read's publication."""
-        source = history.page_source.commit_preparation
+        source = PreparedPageCommit.showing(type(history.page_source).__mro__)
         self.preparation = self.preparation_for_source(source)
         try:
             return await source.read_snapshot(read, history)
