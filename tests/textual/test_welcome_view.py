@@ -8,10 +8,12 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_model import DeclaredModel
 from agent_comms.registry.threads import ExternalThread, NativeThread
 from agent_comms.transport.connector_store import HeldUiProfiles
-from agent_comms.transport.tailnet_buses import TailnetBuses
+from agent_comms.transport.tailnet_buses import TailnetPeer
 from support.agents import peer
+from support.roots import Roots
 from support.ui import TextualUi
 
+from toad.client.application import BusDiscovery
 from toad.client.bus_selection import LocalBus
 from toad.constants import ALL_COMMS_TARGET
 from toad.launch_binding import AgentAttached
@@ -173,24 +175,25 @@ async def test_a_thread_row_tooltip_names_its_model_by_text(workspace):
         assert "openai-codex/gpt-6.1-sol" in str(row.tooltip).splitlines()
 
 
-async def test_the_splash_lists_the_buses_this_machine_can_open(workspace, monkeypatch, tmp_path):
+async def test_the_splash_lists_the_tailnets_buses_and_asks_once_per_window(
+        workspace, monkeypatch, tmp_path):
     """Tristan: "I would like it to show the buses as well so that it would list out the
-    buses that are available".
+    buses that are available", then "It also didn't list the other buses on the tailnet".
 
-    The section inherits the Open-bus dialog's own listing, so what it shows and what
-    choosing a row does are the dialog's; this holds that the splash really lists them and
-    that a found peer arrives in the same row set.
+    The section inherits the Open-bus dialog's own listing: this machine's own bus at once,
+    then the peers the window's one ask of the tailnet found. The splash shows whenever no
+    tab is open, so showing it again lists that answer instead of sweeping again.
     """
 
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
-    def no_discovery_from_the_splash(cls):
-        raise AssertionError("the splash must not sweep the tailnet to list buses")
-
-    monkeypatch.setattr(TailnetBuses, "seen", classmethod(no_discovery_from_the_splash))
+    tailnet = Roots.of_this_process().tailnet
+    tailnet.hold(TailnetPeer("desktop", "100.124.133.120", True), 247)
+    tailnet.held.touch()
 
     # session=False, like every other splash case here: the splash is what shows when no
     # tab is open, and workspace.app() opens one.
     async with workspace.app(session=False) as ui:
+        app, _ = ui.textual
         entries = await welcome_entries(ui)
         buses = entries.query_one(WelcomeBuses)
         # This machine's own bus is listed without asking anyone, so the section is never
@@ -198,12 +201,19 @@ async def test_the_splash_lists_the_buses_this_machine_can_open(workspace, monke
         assert [type(row).__name__ for row in buses.rows] == ["LocalBus"]
         assert "Buses" in ui.painted(buses.query_one(WelcomeHeading))
         assert LocalBus().label() in ui.painted(buses.query_one(BusRows))
-        # And it does NOT sweep the tailnet to show this. The splash appears whenever
-        # there are no tabs open, so discovering here would be seconds of ssh to every
-        # peer on every launch, for a list nobody asked to see. The dialog asks; this
-        # lists what the machine already holds.
+
+        tailnet.held.unlink()
+        await ui.until(lambda: len(buses.rows) == 2, why="the window's ask to answer")
+        assert buses.rows[-1].label() == "desktop · 247 threads"
+        assert "desktop · 247 threads" in ui.painted(buses.query_one(BusRows))
+
+        # Shown again, the splash lists what the window found and asks nobody.
+        tailnet.hold(TailnetPeer("laptop", "100.64.0.7", True), 62)
+        again = WelcomeBuses()
+        await entries.mount(again)
+        assert [row.label() for row in again.rows] == ["This machine", "desktop · 247 threads"]
         for _ in range(6):
             await ui.step()
-        assert [type(row).__name__ for row in buses.rows] == ["LocalBus"], (
-            "the splash lists held buses and starts no discovery")
-        assert not any(worker.group == "bus-discovery" for worker in buses.workers)
+        assert not any(worker.group == BusDiscovery.group and not worker.is_finished
+                       for worker in app.workers), "showing the splash starts no sweep"
+        assert len(again.rows) == 2

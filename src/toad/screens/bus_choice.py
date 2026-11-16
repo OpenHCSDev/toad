@@ -1,17 +1,17 @@
 """Which bus this Toad opens: this machine's own, one it holds a profile for, or one it finds.
 
-The picker opens on what this machine already knows, which is instant, and asks the tailnet
-afterwards, which is seconds of ssh: probing in compose would hold the dialog closed for as
-long as the slowest peer takes to refuse.
+The picker opens on what this machine already knows, with the peers the tailnet last
+reported, which is instant, and asks the tailnet again afterwards, which is seconds of ssh:
+probing in compose would hold the dialog closed for as long as the slowest peer takes to
+refuse.
 """
 
 from __future__ import annotations
 
 import time
 
-from agent_comms.transport.tailnet_buses import NamedHost, PeerBus
 from formbridge.key_declarations import TextEntryMode
-from textual import on, work
+from textual import on
 from textual.app import ComposeResult
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
@@ -22,7 +22,7 @@ from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
-from toad.client.bus_selection import BusChoice, PickerRow
+from toad.client.bus_selection import BusChoice, BusListing, BusPickerHost, PickerRow, TailnetAnswer
 from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from toad.widget_actions import DismissAction, PriorityActions, WidgetAction
@@ -76,65 +76,44 @@ class BusRows(AutoHeight, OptionList):
         self.styles.max_height = self.ROWS
 
 
-class ListsBuses(Widget):
-    """The buses this machine can open, listed and kept current as the tailnet answers.
+class ListsBuses(BusListing, Widget):
+    """The buses this machine can open, as a Textual widget: the Open-bus dialog and the
+    splash's own section.
 
-    Two places list them: the Open-bus dialog and the splash's own section. The rows, the
-    discovery worker, which found peer replaces which held row, and what choosing one does
-    are declared here once, so a bus cannot appear on the splash with different behaviour
-    from the dialog (paper1 Thm 4.6: a copy of this in the second place would be paid again
-    on every change to any of it).
-
-    A member says where its rows go, how it tells a reader what discovery is doing, and
-    whether it asks the tailnet at all. Starting discovery is deliberately NOT here: it is
-    seconds of ssh to every peer, and the splash shows whenever there are no tabs open, so
-    a base that discovered on mount swept the tailnet on every launch for a list nobody had
-    asked to see. The dialog asks because the reader opened it to choose.
+    The rows, when the tailnet is asked, which found peer replaces which held row and what
+    choosing one does are the shared BusListing's and the application's, so a bus cannot
+    appear on the splash with different behaviour from the dialog or from the Qt welcome
+    (paper1 Thm 4.6: a copy of any of it in a second place would be paid again on every
+    change). This member draws them as BusRows and hears each answer the application gets.
     """
 
-    def __init__(self, rows: tuple[PickerRow, ...]) -> None:
-        self.rows = rows
-        super().__init__()
+    rows: tuple[PickerRow, ...] = ()
 
-    @staticmethod
-    def offered_rows() -> tuple[PickerRow, ...]:
-        """What this machine knows without asking anyone: instant."""
+    def picker_host(self) -> BusPickerHost:
+        return self.app
+
+    def held_rows(self) -> tuple[PickerRow, ...]:
         return BusChoice.offered(time.time())
+
+    def bus_rows(self) -> BusRows:
+        """The rows as they stand now, to compose."""
+        self.rows = self.listed()
+        return BusRows(*self.bus_options())
 
     def bus_options(self) -> list[Option]:
         return [Option(row.label()) for row in self.rows]
 
-    def say_discovery(self, found: int) -> None:
-        """Tell a reader what the tailnet answered. A listing with nowhere to say it is
-        free to say nothing; the dialog puts it in its prompt."""
-
-    def say_failure(self, reason: str) -> None:
-        """Tell a reader discovery could not run at all."""
-
-    @work(exclusive=True, group="bus-discovery", thread=True)
-    def discover(self) -> None:
-        """Ask the tailnet after the listing is up; each peer's own CLI owns its answer."""
-        try:
-            found = self.app.tailnet_buses()
-        except (OSError, ValueError, RuntimeError) as error:
-            self.app.call_from_thread(self.discovery_failed, str(error))
-            return
-        self.app.call_from_thread(self.discovered, found)
-
-    def discovery_failed(self, reason: str) -> None:
-        if self.is_mounted:
-            self.say_failure(reason)
-
-    def discovered(self, found: tuple[PeerBus, ...]) -> None:
-        """Add the peers holding a bus (PickerRow.with_found drops the rows already them)."""
-        if not self.is_mounted:
-            return
-        peers = sum(len(entry.openable()) for entry in found)
-        if not peers:
-            return
-        self.rows = PickerRow.with_found(self.rows, found)
+    def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
+        self.rows = rows
         self.query_one(BusRows).clear_options().add_options(self.bus_options())
-        self.say_discovery(peers)
+
+    @on(Mount)
+    def hear_the_tailnet(self) -> None:
+        self.app.tailnet_answers.subscribe(self, self.answered)
+
+    def answered(self, answer: TailnetAnswer) -> None:
+        if self.is_mounted:
+            answer.shown_in(self)
 
     @on(OptionList.OptionSelected)
     def picked(self, event: OptionList.OptionSelected) -> None:
@@ -147,26 +126,15 @@ class ListsBuses(Widget):
 
     @on(Input.Submitted)
     def typed_a_host(self, event: Input.Submitted) -> None:
-        """A typed address is asked exactly as a discovered peer is asked."""
         event.stop()
-        address = event.value.strip()
-        if not address:
-            return
+        self.app.ask_typed_host(event.value)
         event.input.value = ""
-        self.app.ask_peer_for_profile(NamedHost.typed(address))
 
     def forget_highlighted(self) -> None:
-        """Take the highlighted row off the list, if it is a row a reader saved."""
-        rows = self.query_one(BusRows)
-        highlighted = rows.highlighted
-        if highlighted is None:
-            return
-        row = self.rows[highlighted]
-        if not row.removable():
-            return
-        row.remove()
-        self.rows = (*self.rows[:highlighted], *self.rows[highlighted + 1:])
-        rows.clear_options().add_options(self.bus_options())
+        """Forget the highlighted row, if it is a row a reader saved."""
+        highlighted = self.query_one(BusRows).highlighted
+        if highlighted is not None:
+            self.forget(self.rows[highlighted])
 
 
 class ForgetSavedBusAction(WidgetAction):
@@ -190,20 +158,16 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
     the picker worked.
     """
 
-    @classmethod
-    def offered(cls) -> BusChoices:
-        return cls(cls.offered_rows())
-
     def compose(self) -> ComposeResult:
         with BusPanel():
             yield BusPrompt("Open a bus · Delete forgets a saved one · Esc returns")
-            yield BusRows(*self.bus_options())
+            yield self.bus_rows()
             yield BusAddress(placeholder="Add a machine by name or address")
 
     @on(Mount)
-    def on_mount(self) -> None:
-        """The reader opened this to choose a bus, so this is where asking belongs."""
-        self.discover()
+    def ask_again(self) -> None:
+        """The reader opened this to choose a bus, so the tailnet is asked again."""
+        self.app.discover_buses()
 
     def say_discovery(self, found: int) -> None:
         self.query_one(BusPrompt).update(

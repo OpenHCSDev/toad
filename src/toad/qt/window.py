@@ -20,16 +20,16 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
-from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QMargins, QPointF, Qt
+from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QPushButton,
     QSizePolicy,
     QSplitter,
@@ -49,9 +49,16 @@ from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from ui_theme.scheme import ColourScheme, PrimaryColour
 
-from toad.client.application import BusDiscovery, ClientApplication
+from toad.client.application import ClientApplication
 from toad.client.application_actions import ApplicationAction
-from toad.client.bus_selection import BusChoice, PickerRow
+from toad.client.bus_selection import (
+    BusChoice,
+    BusListing,
+    BusPickerHost,
+    PickerRow,
+    TailnetAnswer,
+)
+from toad.client.offered_action import OfferedAction
 from toad.client.bus_submission import BusSubmissions, SubmissionView, TypedText
 from toad.client.connection import (
     CoreConnection,
@@ -155,6 +162,11 @@ class SidebarItem(QTreeWidgetItem):
         """A group line opens and closes its group."""
         self.setExpanded(not self.isExpanded())
 
+    def held_actions(self, listing: Welcome) -> tuple[OfferedAction, ...]:
+        """What holding a finger on this line, or right-clicking it, offers: nothing, for
+        most lines."""
+        return ()
+
 
 class SidebarSection(SidebarItem):
     """A group of rows with a title, such as Threads."""
@@ -199,6 +211,10 @@ class BusRow(SidebarItem):
 
     def activate(self, window: QtToadApp) -> None:
         self.choice.chosen(window)
+
+    def held_actions(self, listing: Welcome) -> tuple[OfferedAction, ...]:
+        """The bus row's own (PickerRow.held_actions): forgetting a saved one."""
+        return self.choice.held_actions(listing)
 
 
 class Page:
@@ -267,12 +283,74 @@ class Banner(QWidget):
                     painter.drawText(QPointF(left + column * cell, baseline), character)
 
 
-class Welcome(Page, QWidget):
+class BusAddress(QLineEdit):
+    """Where a reader types a machine to add by hand, under the welcome's Buses: the Textual
+    picker's field, asked through the same BusPickerHost.ask_typed_host."""
+
+    def __init__(self, host: BusPickerHost) -> None:
+        super().__init__(placeholderText="Add a machine by name or address")
+        self.host = host
+        self.returnPressed.connect(self.ask)
+
+    def ask(self) -> None:
+        self.host.ask_typed_host(self.text())
+        self.clear()
+
+
+class SwallowsRelease(QObject):
+    """Eats the one release that ends a held finger, then goes: the finger was holding the
+    row for its actions, so letting go must not also tap it and open that bus."""
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.MouseButtonRelease:
+            watched.removeEventFilter(self)
+            self.deleteLater()
+            return True
+        return False
+
+
+class HeldRowMenu(QObject):
+    """A tree line's held actions (SidebarItem.held_actions), offered where a finger is held
+    on it or a mouse right-clicks it (a phone has no right button), in the window's own
+    panel, as its menu is (QtToadApp.offer)."""
+
+    def __init__(self, listing: Welcome) -> None:
+        super().__init__(listing)
+        self.listing = listing
+        rows = listing.rows
+        rows.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        rows.customContextMenuRequested.connect(self.offer)
+        rows.viewport().grabGesture(Qt.GestureType.TapAndHoldGesture)
+        rows.viewport().installEventFilter(self)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.Gesture:
+            held = event.gesture(Qt.GestureType.TapAndHoldGesture)
+            if held is not None and held.state() == Qt.GestureState.GestureFinished:
+                viewport = self.listing.rows.viewport()
+                viewport.installEventFilter(SwallowsRelease(viewport))
+                self.offer(viewport.mapFromGlobal(held.position().toPoint()))
+                return True
+        return False
+
+    def offer(self, point: QPoint) -> None:
+        """``point`` is in the tree's viewport, where QAbstractScrollArea reports it."""
+        rows = self.listing.rows
+        item: SidebarItem | None = rows.itemAt(point)
+        if item is None:
+            return
+        actions = item.held_actions(self.listing)
+        if actions:
+            self.listing.host.offer(actions)
+
+
+class Welcome(Page, BusListing, QWidget):
     """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
     has not opened: the banner, the project, the channels and threads the shared welcome
-    lists, and the buses: the remote ones this machine holds, then the peers the tailnet
-    reports holding one (PickerRow.with_found, the Textual picker's own merge). A Qt client
-    is always remote, so this machine's own bus is not listed."""
+    lists, and the buses (BusListing): the remote ones this machine holds, with the peers
+    the tailnet reports holding one, a field to add a machine by name or address, and a held
+    finger on a saved one to forget it. A Qt client is always remote, so this machine's own
+    bus is not listed."""
 
     mode = WELCOME
     listings = (QtChannelListing(), QtThreadListing())
@@ -280,24 +358,31 @@ class Welcome(Page, QWidget):
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__()
+        self.host = window
         self.banner = Banner(window.renderer.theme(PrimaryColour))
         self.project = PathLabel(window.project_dir.path)
         self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.project.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
         self.rows = ConversationRows(window)
+        self.held_menu = HeldRowMenu(self)
+        self.address = BusAddress(window)
         layout = QVBoxLayout(self)
         layout.addSpacing(24)
         layout.addWidget(self.banner)
         layout.addWidget(self.project)
         layout.addSpacing(12)
         layout.addWidget(self.rows, 1)
-        self.found: tuple[PeerBus, ...] = ()
-        self.show_buses()
+        layout.addWidget(self.address)
+        self.relist()
 
-    def discovered(self, found: tuple[PeerBus, ...]) -> None:
-        """The tailnet answered: list its peers with the held buses."""
-        self.found = found
-        self.show_buses()
+    def picker_host(self) -> BusPickerHost:
+        return self.host
+
+    def held_rows(self) -> tuple[PickerRow, ...]:
+        return BusChoice.held(time())
+
+    def say_failure(self, reason: str) -> None:
+        self.host.show_warning(reason, "Tailnet buses")
 
     def present(self, model: SidebarModel) -> None:
         self.rows.clear()
@@ -305,21 +390,21 @@ class Welcome(Page, QWidget):
             section = self.rows.section(listing.TITLE)
             listing.add(self.rows, section, model)
             section.setExpanded(True)
-        self.show_buses()
+        self.relist()
 
     def present_failed(self, observed: FailedObservation) -> None:
         """The bus could not be read: say why, and keep the buses to switch to."""
         self.rows.clear()
         self.rows.section(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
-        self.show_buses()
+        self.relist()
 
-    def show_buses(self) -> None:
+    def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
         """The Buses section, redrawn in place: a tailnet answer arrives between sidebar
         updates, and each redraw replaces the section rather than adding another."""
         for stale in [item for item in self.rows.items() if item.key == self.BUSES]:
             self.rows.takeTopLevelItem(self.rows.indexOfTopLevelItem(stale))
         section = self.rows.section(self.BUSES)
-        for choice in PickerRow.with_found(BusChoice.held(time()), self.found):
+        for choice in rows:
             self.rows.add_row(section, BusRow(choice), "", choice.label(), "", choice.label())
         section.setExpanded(True)
 
@@ -892,18 +977,10 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         a bus switch waits for."""
         host.open_window(self)
         self.run_operation(ApplicationStart, self.open_saved_tabs)
-        self.run_operation(BusDiscovery, self.discover_buses)
 
-    async def discover_buses(self) -> None:
-        """Ask the observed Core which tailnet peers hold a bus, once per window, for the
-        welcome's Buses. The ssh sweep runs on that Core's machine, not this one."""
-        await self.wait_operations(ApplicationStart)
-        try:
-            found = await self.preparation.run_thread(self.tailnet_buses)
-        except (OSError, ValueError, RuntimeError) as error:
-            self.show_warning(str(error), "Tailnet buses")
-            return
-        self.workspace_sessions.home.discovered(found)
+    def tailnet_answered(self, answer: TailnetAnswer) -> None:
+        """The welcome is this window's one bus listing."""
+        answer.shown_in(self.workspace_sessions.home)
 
     async def close_native_views(self) -> None:
         self.shortcuts.close()
@@ -931,20 +1008,27 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         if self.menu_panel.isVisible():
             self.menu_panel.hide()
             return
+        self.offer(tuple(
+            OfferedAction(label, partial(self.run_operation, MenuActionRun, partial(command.apply, self)))
+            for command, label in ApplicationAction.menu(self)))
+
+    def offer(self, actions: tuple[OfferedAction, ...]) -> None:
+        """``actions`` as buttons in the panel over the bar, in place of what it showed; a
+        choice closes the panel and runs. The menu and a held bus row both offer here."""
         layout = self.menu_panel.layout()
         while layout.count():
             layout.takeAt(0).widget().deleteLater()
-        for command, label in ApplicationAction.menu(self):
-            choice = QPushButton(label)
+        for action in actions:
+            choice = QPushButton(action.label)
             choice.setFlat(True)
             choice.setMinimumHeight(44)
-            choice.clicked.connect(partial(self.choose_menu, command))
+            choice.clicked.connect(partial(self.choose_offered, action))
             layout.addWidget(choice)
         self.menu_panel.show()
 
-    def choose_menu(self, command: ApplicationAction) -> None:
+    def choose_offered(self, action: OfferedAction) -> None:
         self.menu_panel.hide()
-        self.run_operation(MenuActionRun, partial(command.apply, self))
+        action.run()
 
     def open_row(self, row: ConversationRow) -> None:
         self.run_operation(ConversationOpen, partial(self.open_route, row.target))
