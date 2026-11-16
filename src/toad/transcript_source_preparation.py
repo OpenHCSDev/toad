@@ -13,13 +13,13 @@ from agent_comms.execution.transcript_sources import TranscriptCursor
 from textual import on
 from textual.await_complete import AwaitComplete
 from textual.events import Unmount
-from textual.worker import Worker, WorkerCancelled
+from textual.worker import WorkerCancelled
 
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import UnrisenRows
 from toad.client.resource_release import ResourceRelease
-from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
+from toad.client.prepared_pages import PreparedPageSource, PreparedTranscriptPage
 from toad.client.history_state import (
     LatestViewportRequest,
     LatestViewportState,
@@ -31,16 +31,18 @@ from toad.client.history_state import (
     TranscriptState,
     WorkingTranscript,
 )
-from toad.widgets.history_anchor import (
-    HistoryWindow,
-    LatestPosition,
+from toad.widgets.history_anchor import HistoryWindow
+from toad.client.reader_position import LatestPosition
+from toad.client.history_preparation import (
+    NEWER_END,
+    OLDER_END,
+    HistorySourceSnapshot,
+    PageEnd,
 )
-from toad.client.history_preparation import NEWER_END, OLDER_END, PageEnd
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from textual.screen import Screen
 
     from toad.transcript_filter import FilterState
     from toad.widgets.transcript_history import TranscriptPageView
@@ -80,26 +82,6 @@ class KeptDestination(NewDestination):
 
 class _DrawingStopped(Exception):
     """Unwind a source publication that no longer owns its drawing."""
-
-
-@dataclass(frozen=True)
-class HistorySourceSnapshot:
-    """One source/view identity for page and filter publication."""
-
-    generation: int
-    window: HistoryWindow
-    screen: Screen
-    source: object
-
-    def current(self, owner: TranscriptSourcePreparation) -> bool:
-        """Whether the source this read started from is still the one the view holds.
-
-        Being on screen decides whether rows can be drawn, not whether the read may
-        finish: requiring it here discarded every read a tab started while it was
-        not visible, so the whole missed run loaded in one burst on return.
-        A history that has left its window holds no source, so no snapshot is current.
-        """
-        return owner.is_attached and self == owner.source_snapshot()
 
 
 class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
@@ -202,7 +184,7 @@ class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
         await self.close_source_reader()
 
     def close(self) -> None:
-        from toad.transcript_preparation import ClosedHistory
+        from toad.client.prepared_pages import ClosedHistory
 
         source = self.page_source
         source.close()
@@ -288,6 +270,10 @@ class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
                 return True
         self.latest = request.defer(self)
         return False
+
+    async def publish_held_latest(self, publication_current: Callable[[], bool] = lambda: True) -> bool:
+        """Publish the newest rows, holding the reader on them until their source settles."""
+        return await self.jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)), publication_current)
 
     async def _publish_latest(self, current: Callable[[], bool],
                               source: PreparedPageSource, prepared: PreparedTranscriptPage,
@@ -376,9 +362,7 @@ class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
         if not publication_current():
             return False
         if self.drawn_end_more:
-            if not await self.jump_latest(
-                LatestViewportRequest(LatestPosition.hold(self.window)), publication_current,
-            ):
+            if not await self.publish_held_latest(publication_current):
                 return False
         return (publication_current() and not self.drawn_end_more
                 and self.pages[-1].prepared.page.after.same_position(through))
@@ -420,9 +404,7 @@ class TranscriptSourcePreparation(UnrisenRows, CoreEventReceiver):
                 tail.prepared.page = replace(tail.prepared.page, has_newer=True)
                 self._update_edges()
             if self.pages[-1].prepared.page.has_newer and self.window.follows_tail:
-                await self.jump_latest(
-                    LatestViewportRequest(LatestPosition.hold(self.window)), publication_current,
-                )
+                await self.publish_held_latest(publication_current)
         return True
 
     async def source_is_current(self, snapshot) -> bool:

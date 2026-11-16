@@ -23,11 +23,8 @@ from toad.navigation_target import NavigationTarget, NoTarget
 from toad.app_node import ToadNode
 from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.widget_actions import DeclaredWidgetActions
-from toad.widgets.message_notifications import (
-    NothingToRead,
-    PaintedRead,
-    VisibleReadMarking,
-)
+from toad.widgets.message_notifications import VisibleReadMarking
+from toad.client.history_reads import NothingToRead, PaintedRead
 from textual.events import Mount
 from textual import on
 

@@ -7,7 +7,7 @@ import pytest
 from agent_comms.storage.maintenance_barrier import MaintenanceOperator, NoMaintenanceHolder
 from agent_comms.messaging.read_ledger import ReadLedger
 
-from toad.widgets.message_notifications import ReadWork
+from toad.client.history_reads import ReadWork
 
 
 async def test_maintenance_keeps_read_marks_and_fresh_work_succeeds(workspace):

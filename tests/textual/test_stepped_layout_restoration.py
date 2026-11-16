@@ -15,7 +15,8 @@ from textual.screen import Screen
 from textual.widgets import Static
 from textual._compositor import StepDeadline
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.history_anchor import NO_HISTORY_CHANGE, BlockPosition, HistoryChange
+from toad.widgets.history_anchor import NO_HISTORY_CHANGE, HistoryChange
+from toad.client.reader_position import BlockPosition
 from toad.widgets.presentation_window import Placed
 
 
