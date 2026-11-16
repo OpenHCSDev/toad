@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from collections.abc import Awaitable
 from pathlib import Path
 from typing import ClassVar, Never
@@ -14,6 +14,7 @@ from toad.app_node import ToadNode
 from toad.client.session_scope import SessionScope as SharedSessionScope
 from toad.navigation_context import NavigationOwner, NavigationScope, NoNavigationOwner
 from toad.transcript_scope import NoTranscript, TranscriptScope
+from textual.abstract_hooks import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.widget_actions import DeclaredWidgetActions
 from textual.command import Provider
@@ -24,7 +25,7 @@ from toad.navigation_target import NavigationTarget
 from toad.launch_binding import AgentBinding, AgentOrigin, NoAgent
 from toad.thread_identity import SessionIdentity, ThreadIdentityScope
 
-class SessionOrigin(ABC):
+class SessionOrigin(metaclass=AbstractHooksMeta):
     """An origin answers for itself, including when its view is unavailable."""
 
     @abstractmethod

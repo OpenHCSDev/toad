@@ -55,7 +55,7 @@ toad = "toad.cli:main"
 neovim = "toad.neovim_runtime:Neovim"
 
 [project.entry-points."agent_comms.writer_owned_stores"]
-toad = "toad.db"
+toad = "toad.client.db"
 preferences = "toad.preferences"
 
 [build-system]

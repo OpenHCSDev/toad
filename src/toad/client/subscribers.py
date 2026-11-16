@@ -1,39 +1,38 @@
 """Callbacks implemented by native views that subscribe to Core observations."""
 
-from abc import ABC, abstractmethod
 from collections.abc import Mapping
 
 from agent_comms.messaging.message_notification import MessageNotification
 
 
-class SidebarSubscriber[Source, Failure](ABC):
+class SidebarSubscriber[Source, Failure]:
     """A sidebar view accepts a source, its opening failure and later row changes.
 
-    Native widgets retain AbstractHooksMeta through their own widget bases;
-    this shared contract does not import it.
+    A plain parent: native widgets bring their own toolkit metaclass, which ABCMeta
+    would conflict with.
     """
 
-    @abstractmethod
-    def bind_observation(self, observed: Source) -> None: ...
+    def bind_observation(self, observed: Source) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def bind_failed_observation(self, observed: Failure) -> None: ...
+    def bind_failed_observation(self, observed: Failure) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def present(self, **changes: object) -> None: ...
+    def present(self, **changes: object) -> None:
+        raise NotImplementedError
 
 
-class NotificationSubscriber(ABC):
+class NotificationSubscriber:
     """A message view receives notification outcomes for its current read scope."""
 
-    @abstractmethod
     def notifications_observed(
         self,
         outcomes: Mapping[tuple[int, str], tuple[MessageNotification, ...]],
-    ) -> None: ...
+    ) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def notifications_failed(self, error: Exception) -> None: ...
+    def notifications_failed(self, error: Exception) -> None:
+        raise NotImplementedError
 
-    @abstractmethod
-    def notifications_reload(self) -> None: ...
+    def notifications_reload(self) -> None:
+        raise NotImplementedError
