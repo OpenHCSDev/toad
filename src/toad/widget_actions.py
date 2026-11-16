@@ -12,14 +12,13 @@ from types import MappingProxyType
 from typing import ClassVar, Literal, TypeVar
 
 from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
-from metaclass_registry.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType
+from formbridge.key_declarations import DeclaredKey, InputMode, KeyDeclaration, KeyDeclarationType, UndecodedKey
 from textual import events, on
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual.dom import DOMNode
 from textual.hint_labels import HintLabelStyle
-from textual.keys import DeclaredKey, UndecodedKey
 from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
 from textual.widgets import TextArea
 from textual.widgets.text_area import EditingMode

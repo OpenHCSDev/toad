@@ -15,7 +15,7 @@ from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from objectstate import mark_ui_hidden_config
 from textual.binding import KeymapClaim
 from textual.dom import DOMNode
-from metaclass_registry.key_declarations import KeyInvocation
+from formbridge.key_declarations import KeyInvocation
 from textual.screen import ModalScreen
 
 import toad

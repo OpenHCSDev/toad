@@ -18,7 +18,7 @@ from agent_comms.nominal.declared_family import (
     declared_words,
 )
 from agent_comms.planning.command import Command
-from metaclass_registry.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType
+from formbridge.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType
 
 from toad.client.application import ClientApplication
 from toad.session_navigation import ChannelsReveal
