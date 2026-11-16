@@ -18,13 +18,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 
-class SessionNavigator:
-    """The navigation contract shared entries need. Native implementations
-    provide the full session navigation with view management."""
-    pass
-
-
-class SharedSessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Observing], affix="Entry"):
+class SharedSessionEntry[Navigator](DeclaredFamily, SessionProjection[Navigator, Observing], affix="Entry"):
     """Logical session identity, ownership and dependencies.
 
     Native entries add screen/view factories through DeclaredViews.
@@ -48,16 +42,16 @@ class SharedSessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Obs
     @abstractmethod
     def address(self) -> object: ...
 
-    async def ready(self, sessions: SessionNavigator) -> None:
+    async def ready(self, sessions: Navigator) -> None:
         """Views with deferred loading own their loading completion."""
 
-    async def reconnect(self, sessions: SessionNavigator, selected, snapshot, targets) -> None:
+    async def reconnect(self, sessions: Navigator, selected, snapshot, targets) -> None:
         """Only a bound native entry can refresh its connection resource."""
 
-    def source(self, sessions: SessionNavigator) -> object | None:
+    def source(self, sessions: Navigator) -> object | None:
         return None
 
-    def thread_row(self, sessions: SessionNavigator, row: ThreadRowModel) -> ThreadRowModel:
+    def thread_row(self, sessions: Navigator, row: ThreadRowModel) -> ThreadRowModel:
         return row
 
     def depends_on(self, mode: str) -> bool:
@@ -66,11 +60,11 @@ class SharedSessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Obs
     def original_channels(self) -> tuple[tuple[str, str], ...]:
         return ()
 
-    def original_threads(self, sessions: SessionNavigator) -> tuple[tuple[str, ThreadIncarnation], ...]:
+    def original_threads(self, sessions: Navigator) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
-    def return_to(self, sessions: SessionNavigator) -> None:
+    async def return_to(self, sessions: Navigator) -> None:
         raise NotImplementedError
 
-    def forget(self, sessions: SessionNavigator) -> None:
+    def forget(self, sessions: Navigator) -> None:
         raise NotImplementedError
