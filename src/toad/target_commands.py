@@ -21,7 +21,6 @@ from textual.geometry import Region
 
 from toad.client.commands import CommandContextChanged, SharedContextualCommand, SortCapable
 from toad.client.connection import Observing
-from toad.core import session_requests
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from toad.thread_actions import ThreadAction
 
@@ -147,7 +146,7 @@ class DirectMessagesCommand(ViewCommand, declared_name="dm"):
         return len(names) == 1 and names[0] in ctx.observed.registry_for(names[0])
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.session_navigation.direct_messages(ctx.selected_targets[0])
+        ctx.app.open_direct_messages(ctx.selected_targets[0])
 
 
 class CopyCommand(ViewCommand, declared_name="copy"):
@@ -185,11 +184,11 @@ class CloseViewCommand(ViewCommand, declared_name="close_view"):
         return (
             not ctx.targets
             and ctx.mode is not None
-            and ctx.app.session_navigation.session_details(ctx.mode) is not None
+            and ctx.app.has_session(ctx.mode)
         )
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.session_navigation.events.publish(session_requests.SessionClose(ctx.mode))
+        ctx.app.close_session(ctx.mode)
 
 
 @dataclass(frozen=True)

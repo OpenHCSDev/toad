@@ -85,6 +85,18 @@ class CommsHost(ABC):
     def sidebar_show_archived(self) -> bool:
         """Whether the sidebar shows archived sessions."""
 
+    @abstractmethod
+    def open_direct_messages(self, target: str) -> None:
+        """Navigate to a DM conversation with the named target."""
+
+    @abstractmethod
+    def has_session(self, mode: str) -> bool:
+        """Whether a session with this mode identifier exists."""
+
+    @abstractmethod
+    def close_session(self, mode: str) -> None:
+        """Request the session with this mode to close."""
+
     @property
     @abstractmethod
     def project_dir(self) -> Path | None:
