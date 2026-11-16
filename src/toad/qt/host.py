@@ -69,7 +69,8 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
     the clipboard), and its constructor continues to the widget's. Posting onto the UI thread
     is pyqt-reactive's dispatcher, which this host is; timers are its owned callbacks,
     parented to the application; the theme is the shared ui_theme scheme as pyqt-reactive's
-    ColorScheme, applied once to the whole QApplication; notices go to its status line.
+    ColorScheme, applied once to the whole QApplication; notices go to its status line, which
+    puts each away after the contract's notice_seconds.
     Dialogs open over whichever window is active.
     """
 
@@ -81,7 +82,7 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
         self.preparation = preparation
         self.theme = ThemeManager(ColorScheme.from_theme(scheme))
         self.theme.apply_color_scheme(self.theme.color_scheme)
-        self.status_line = StatusLine(self.theme.color_scheme)
+        self.status_line = StatusLine(self.theme.color_scheme, self.notice_seconds)
         self.operations: defaultdict[type[OperationKind], set[asyncio.Future[None]]] = defaultdict(set)
         # The loop qasync runs on Qt's thread. Asked from a worker thread (an observation
         # adopted off the loop, as a bus switch adopts one), get_running_loop has none.

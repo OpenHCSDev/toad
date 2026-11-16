@@ -11,7 +11,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Never
+from typing import ClassVar, Never
 
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
@@ -51,6 +51,11 @@ class CommandOrigin(ABC):
 
 class CommsHost:
     """The operations shared comms code needs from the native application."""
+
+    # How long a notice (show_info, show_warning, show_error, report_fatal) stays on screen
+    # before it puts itself away, in every frontend: Textual's notifications and Qt's status
+    # line both read this one number.
+    notice_seconds: ClassVar[float] = 5
 
     events: PublicationStream
     preparation: PreparationRuntime
