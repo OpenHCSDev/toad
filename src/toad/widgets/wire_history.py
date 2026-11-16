@@ -1,9 +1,10 @@
 """A channel or direct conversation drawn by the line history, with its read marks."""
 
+from abc import ABC
 from bisect import bisect_right
 from dataclasses import dataclass
 
-from agent_comms.messaging.historical_views import UnobservedConversation
+from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from textual._render_publication import SourcePublication
 from textual.geometry import Offset, Region
 from textual.reactive import var
@@ -11,20 +12,43 @@ from textual.strip import Strip
 from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
-from toad.client.history import ReadMarkedHistory
-from toad.client.history_preparation import HistorySourceSnapshot
+from toad.client.fragments import EvidencedFragment, MembershipText, WireMessage
+from toad.client.history import (
+    ReadMarkedHistory,
+    WirePageBuffer,
+)
 from toad.session_scope import SessionScope
 from toad.client.prepared_pages import ClosedHistory
 from toad.widgets.message_notifications import VisibleReadMarking
+from toad.widgets.transcript_fragments import BusMessageFragment, TranscriptFragment
 from toad.widgets.transcript_history import ConversationHistory, TranscriptPageView
+from toad.widgets.transcript_lines import Lines
 from toad.wire_conversation_view import WireConversationView
-from toad.wire_history import (
-    PreparedWirePage,
-    WireFragment,
-    WirePage,
-    WirePageBuffer,
-    WireSource,
-)
+
+
+@dataclass(kw_only=True)
+class WireFragment(EvidencedFragment, TranscriptFragment, ABC):
+    """A wire message drawn by Textual, and the root of Textual's wire fragments: a message's
+    role selects the member declared under it."""
+
+    def text_rows(self, lines: Lines) -> range:
+        """Read visibility uses the same block snapshots that draw this viewport."""
+        prepared = lines.prepared_blocks
+        trailing = len(self.trailing(self.shown))
+        return range(
+            sum(block.height for block in prepared[: len(self.leading)]),
+            lines.height - sum(block.height for block in prepared[-trailing:] if trailing),
+        )
+
+
+@dataclass(kw_only=True)
+class MembershipFragment(MembershipText, WireFragment, shows=(Membership,)):
+    """Someone joined or left, drawn by Textual."""
+
+
+@dataclass(kw_only=True)
+class MessageFragment(WireMessage, BusMessageFragment, WireFragment, shows=(ConversationRole, NoticeRole)):
+    """A sent message drawn by Textual."""
 
 
 @dataclass(frozen=True)
@@ -84,51 +108,10 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
     # Reading the bound source's first page: the view's activity bar shows it.
     reading = var(False)
 
-    @classmethod
-    def empty_page(cls):
-        return PreparedWirePage.empty(WirePage.unread())
-
-    def initialize_source(self, source: WireSource) -> None:
-        """Bind the conversation to read; the first refresh draws its newest page."""
-        self._painted_reads.clear()
-        self.page_source.close()
-        self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation,
-                                          revision=UnobservedConversation())
-
-    @property
-    def undrawn(self) -> bool:
-        """Nothing of the bound source has been drawn yet."""
-        return all(view.prepared.page.after.requires_read() for view in self.pages)
-
-    @property
-    def source_identity(self):
-        # Growth of the bus is not another source: reads ahead stay valid.
-        return self.page_source.reload_key(), self.selected_categories
-
     @property
     def can_draw_on_screen(self) -> bool:
         return (super().can_draw_on_screen
                 and self.view.query_ancestor(SessionScope).is_current)
-
-    async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
-        """Whether the route still selects this source's bus and nothing replaced the history."""
-        source = self.page_source
-        if not snapshot.current(self):
-            return False
-        return (await source.route_is_current()
-                and source is self.page_source and snapshot.current(self))
-
-    async def read_changes(self) -> bool:
-        """Draw what changed in the source; False when the stores are as last drawn."""
-        source = self.page_source
-        self.reading = self.undrawn
-        try:
-            observed = await source.observe_changes(source.revision)
-            if source is not self.page_source:
-                return False
-            return await observed.apply(self, source)
-        finally:
-            self.reading = False
 
     def mark_visible_after_paint(self) -> None:
         self.view.call_after_refresh(self.mark_visible)
@@ -146,10 +129,6 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
         super().rows_published()
         if not self.undrawn and (placeholder := self.view.query_one_optional(HistoryLoading)):
             placeholder.remove()
-
-    async def toggle_style(self) -> None:
-        """Draw every message in the other style, here and in pages read from now on."""
-        await self.page_source.change_style(self)
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()

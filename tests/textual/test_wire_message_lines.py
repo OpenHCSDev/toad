@@ -23,7 +23,7 @@ from toad.widgets.transcript_lines import (
     RichLineRenderer,
     TranscriptLinesRenderTask,
 )
-from toad.wire_history import WireFragment
+from toad.widgets.wire_history import WireFragment
 
 
 class MessageApp(ThemedApp, App):
