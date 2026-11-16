@@ -20,7 +20,7 @@ from textual.app import ComposeResult
 from textual.content import Content
 
 from toad.client.submission import SubmissionStart
-from toad.conversation_kind import ConversationKind
+from toad.client.conversation import ConversationKind
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
@@ -45,7 +45,7 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.presentation_window import NEWER_END, OLDER_END
-from toad.widgets.prompt import Prompt
+from toad.widgets.prompt import MessagePrompt, Prompt
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.wire_history import HistoryLoading, WireHistory
 from toad.wire_conversation_view import WireConversationView
@@ -100,7 +100,7 @@ class CommsChatView(WireConversationView):
         yield Flash()
         with PromptStack():
             yield self.throbber_above
-            yield self.conversation.prompt(self.project_path, submissions=self.submissions).data_bind(
+            yield self.conversation.prompt(self).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -313,6 +313,12 @@ class CommsChatView(WireConversationView):
             self.window.anchor()
         if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
             history.request_preparation()
+
+    def channel_prompt(self, placeholder: str) -> ChannelPrompt:
+        return ChannelPrompt(project=self.project_path, placeholder=placeholder, submissions=self.submissions)
+
+    def message_prompt(self) -> MessagePrompt:
+        return MessagePrompt(project=self.project_path, submissions=self.submissions)
 
     def compose_channel_activity(self) -> ComposeResult:
         yield ChannelActivity(self)

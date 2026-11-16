@@ -12,7 +12,7 @@ from agent_comms.projects.checkouts import Checkout
 
 from support.native import ControlledProvider, NativeSession, native_session
 from support.textual_steps import refresh_chat
-from toad.conversation_kind import ChannelConversation, DmConversation
+from toad.client.conversation import ChannelConversation, DmConversation
 from toad.core import input_events
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import DirectTarget, channel_target

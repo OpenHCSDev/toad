@@ -4,7 +4,7 @@ import asyncio
 from pathlib import Path
 from types import SimpleNamespace
 
-from toad.conversation_kind import ChannelConversation
+from toad.client.conversation import ChannelConversation
 from toad.core.events import Subscription
 from toad.client.resource_release import ResourceRelease
 from toad.transcript_publication import SourcePublicationRequests

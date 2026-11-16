@@ -18,7 +18,7 @@ from support.agents import AppAgents
 from support.roots import installed_wire
 
 from toad.constants import ALL_COMMS_TARGET
-from toad.conversation_kind import (
+from toad.client.conversation import (
     ChannelConversation,
     ConversationKind,
     IrcConversation,

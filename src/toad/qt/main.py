@@ -21,6 +21,7 @@ from toad.client.connection import (
     ProcessRemoteCoreConnection,
     RemoteCoreConnection,
 )
+from toad.client.db import DB
 from toad.qt.host import QtCommsHost
 from toad.qt.window import CommsWindow
 from toad.render_processes import RenderProcessPool
@@ -38,7 +39,11 @@ async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: Col
     Android the one decoding in place."""
     host = QtCommsHost(project, PreparationRuntime(RenderProcessPool(connection.helper_start)))
     access = CoordinationAccess(host, connection)
-    window = CommsWindow(access, scheme)
+    db = DB()
+    await db.create()
+    window = CommsWindow(access, scheme, db)
+    # The saved roster is read so tabs this window cannot draw yet stay saved.
+    await window.tab_order.load()
     window.resize(420, 820)
     window.show()
     access.open_current().show_sidebar(window.threads)

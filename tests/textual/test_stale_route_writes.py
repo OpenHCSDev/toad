@@ -3,7 +3,7 @@
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 
-from toad.conversation_kind import ChannelConversation
+from toad.client.conversation import ChannelConversation
 from toad.conversation_submission import OrdinaryInputSubmission
 from toad.widgets.comms_chat import CommsChatView
 from toad.wire_history import ChannelDestination

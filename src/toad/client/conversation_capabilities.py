@@ -42,5 +42,11 @@ class ConversationActivity:
     def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator:
         raise NotImplementedError
 
+    def channel_prompt(self, placeholder: str):
+        raise NotImplementedError
+
+    def message_prompt(self):
+        raise NotImplementedError
+
     async def update_channel_mentions(self, source: ReferencedCore) -> None:
         raise NotImplementedError
