@@ -60,16 +60,22 @@ class CommandCatalog:
             target,
         )
 
+    def recognizes(self, text: str) -> bool:
+        """Whether typed text starts with one of these commands."""
+        name = text.partition(" ")[0]
+        return any(command.command == name for command in self.commands)
+
+    def command_named(self, name: str) -> SlashCommand:
+        return next(command for command in self.commands if command.command == name)
+
     @classmethod
     async def execute(cls, text: str, conversation: Conversation) -> bool:
         try:
             catalog = await conversation.read_command_catalog()
-            name, _, arguments = text.partition(" ")
-            command = next((command for command in catalog.commands
-                            if command.command == name), None)
-            if command is None:
+            if not catalog.recognizes(text):
                 return False
-            return await command.parse_arguments(arguments).apply(conversation)
+            name, _, arguments = text.partition(" ")
+            return await catalog.command_named(name).parse_arguments(arguments).apply(conversation)
         except CommandContextChanged:
             # A recognized UI command must never fall through to agent input
             # because its original target disappeared during an awaited read.

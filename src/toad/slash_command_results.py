@@ -1,16 +1,11 @@
-"""Typed command candidates own one scoring and row-production lifetime."""
+"""Typed command candidates own one scoring lifetime: which commands a typed `/query`
+offers and in what order. No toolkit; each frontend draws the ranked matches."""
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Sequence
 
-from textual.content import Span
-from textual.widgets.option_list import Option
-
-from toad.fuzzy import FuzzySearch
+from toad.client.fuzzy import FuzzySearch
 from toad.slash_command import SlashCommand
-from toad.textual_colours import TextualColours
-from toad.visuals.columns import Columns
-from toad.widgets.inline_message import span_content
 
 
 @dataclass(frozen=True)
@@ -21,25 +16,16 @@ class CommandMatch:
 
 
 class SlashCommandResults(FuzzySearch):
-    """Inherit matching/cache behavior; produce the command catalog's display view."""
+    """Inherit matching/cache behavior; rank the command catalog for a typed query."""
 
-    def options(self, text: str, commands: Iterable[SlashCommand], colours: TextualColours) -> Iterable[Option]:
+    def ranked(self, text: str, commands: Iterable[SlashCommand]) -> list[CommandMatch]:
         query = text.lstrip("/").casefold().rstrip()
         ordered = sorted(commands, key=lambda command: command.command.casefold())
-        self.cache.grow(len(ordered))
-        if query:
-            scores = [CommandMatch(command, *self.match(query, command.command[1:])) for command in ordered]
-            ranked = sorted(
-                (match for match in scores if match.score),
-                key=lambda match: match.score * (2 if match.command.command.casefold().startswith(f"/{query}") else 1),
-                reverse=True,
-            )
-        else:
-            ranked = [CommandMatch(command, 1.0, ()) for command in ordered]
-        columns = Columns("auto", "flex")
-        for match in ranked:
-            command = match.command
-            name = span_content((command.name_span,), colours).add_spans(
-                Span(index + 1, index + 2, "underline not dim") for index in match.offsets
-            )
-            yield Option(columns.add_row(name, span_content((command.help_span,), colours)), id=command.command)
+        if not query:
+            return [CommandMatch(command, 1.0, ()) for command in ordered]
+        scores = [CommandMatch(command, *self.match(query, command.command[1:])) for command in ordered]
+        return sorted(
+            (match for match in scores if match.score),
+            key=lambda match: match.score * (2 if match.command.command.casefold().startswith(f"/{query}") else 1),
+            reverse=True,
+        )

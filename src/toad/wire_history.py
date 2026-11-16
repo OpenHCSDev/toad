@@ -497,17 +497,9 @@ class WirePageBuffer(SavedHistory):
         view.dispatch_sync(view.app.coordination_access.reference_context(str(self.loader.root)))
 
     def command_context(self, view):
-        references = (
-            view.app.coordination_access.observation.observed().sidebar.observation.thread_names()
-        )
-        return TargetContext(
-            view.app,
-            view.app.coordination_access.observing(self.loader.root),
-            self.loader.conversation.destination(references),
-            self.loader.me,
-            self.loader.project,
-            view.query_ancestor(SessionScope).id,
-        )
+        loader = self.loader
+        return TargetContext.in_conversation(view.app, loader.root, loader.conversation, loader.me,
+                                             loader.project, view.query_ancestor(SessionScope).id)
 
     def begin_submission(
         self, view: WireConversationView, owner: SubmissionOwner, submission: SubmittedText

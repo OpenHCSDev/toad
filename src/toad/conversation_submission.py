@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
 from functools import partial
 from typing import ClassVar
@@ -11,41 +11,23 @@ from typing import ClassVar
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     InputStartedUpdate,
-    PendingQueueProjection,
     QueuePromptRequest,
     QueueScope,
     SteerPromptRequest,
 )
-from agent_comms.errors import (
-    CommittedMessageError,
-    HumanSendError,
-    HumanSendRefusedError,
-    RelationViolationError,
-    RouteChangedError,
-)
-from agent_comms.messaging.delivery_failure import delivery_failure
-from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.nominal.declared_family import DeclaredFamily
 
-from toad import messages
 from toad.acp.agent import Agent
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.acp.status import StopReason, UnreportedStopReason
-from toad.client.submission import (
-    BusDestination,
-    SubmissionOwner,
-    SubmissionStart,
-    SubmittedText,
-)
+from toad.client.bus_submission import BusSubmissions, SubmissionExecution, SubmittingPhase
+from toad.client.submission import SubmittedText
 from toad.command_catalog import CommandCatalog
-from toad.client.connection import Observing
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
-from toad.delivery_failure_view import DeliveryFailureView
-from toad.client.input_decision import InputDecision, InputRefused
+from toad.client.input_decision import InputDecision
 from toad.submission_queue import QueueEvidence, QueueSource
-from toad.widgets.prompt import Prompt
 from toad.worker_group import InputHistoryRecord
 
 
@@ -114,19 +96,6 @@ class ShellInputSubmission(InputSubmission):
         view.jump_to_latest()
 
 
-class UnboundSubmissionStart(SubmissionStart):
-    def __init__(
-        self, owner: ConversationSubmissions, submission: SubmittedText, refusal: InputRefused
-    ):
-        self.owner, self.submission, self.refusal = owner, submission, refusal
-
-    async def prepare(self):
-        self.owner.view.delivery_refused(
-            self.refusal.message,
-            self.submission.source_text,
-        )
-
-
 class AgentInputSubmission(InputSubmission):
     @property
     @abstractmethod
@@ -146,7 +115,6 @@ class AgentInputSubmission(InputSubmission):
         await asyncio.sleep(0)
 
     async def execute(self, owner: ConversationSubmissions):
-        view = owner.view
         return await owner.begin(self).prepare()
 
 
@@ -195,67 +163,6 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
     @property
     def request(self):
         return SteerPromptRequest(self.text)
-
-
-class SubmissionExecution(SubmissionStart):
-    """One outstanding local request: shown above the composer until its destination has it,
-    while the composer stays open. Members differ only in where the text goes."""
-
-    def __init__(self, owner: ConversationSubmissions, submission: SubmittedText):
-        self.owner, self.submission = owner, submission
-
-    async def prepare(self):
-        owner, submission = self.owner, self.submission
-        view = owner.view
-        owner.publish_pending()
-        InputHistoryRecord.run_on(view, partial(view.input_histories.prompt.record, submission.source_text))
-        try:
-            await self.present()
-            if self.current:
-                return view.run_worker(partial(self.send), group="conversation-submission")
-            self.retire_unsent()
-        except BaseException:
-            owner.finish(self)
-            raise
-
-    async def present(self) -> None:
-        """What the view shows before the request leaves; nothing by default."""
-
-    def retire_unsent(self) -> None:
-        """The destination went away before the request left; an agent prompt just retires."""
-        self.owner.finish(self)
-
-    @property
-    @abstractmethod
-    def current(self) -> bool: ...
-
-    @property
-    def retired(self):
-        return not self.current
-
-    @abstractmethod
-    async def send(self) -> None: ...
-
-    @abstractmethod
-    def delivering(self) -> tuple[str, ...]:
-        """The text this request still shows as submitting, or nothing once its destination has it."""
-
-    def settle(self) -> None:
-        """A drawn message retires the requests it satisfies; an agent prompt is retired by its RPC."""
-
-    def input_presented(self, started: InputStartedUpdate) -> None:
-        """A native input start answers only the agent prompt that requested it."""
-
-
-class SubmittingPhase(ABC):
-    """Whether a submission still shows as submitting: its destination has not taken it yet.
-
-    Both kinds of destination answer this, so both kinds of execution read their own
-    phase for it instead of each deciding again from whatever is in reach.
-    """
-
-    @abstractmethod
-    def submitting(self, text: str) -> tuple[str, ...]: ...
 
 
 class PromptPhase(SubmittingPhase):
@@ -332,169 +239,14 @@ class AgentSubmissionExecution(SubmissionExecution):
             await self.owner.view.agent_turn_over(reason)
 
 
-class BusOutcome(SubmittingPhase):
-    """Where a bus send stands: only a sent message can be drawn by its view."""
-
-    def drawn_by(self, view: DeliveryFailureView) -> bool:
-        return False
-
-
-class NotYetSent(BusOutcome):
-    """Still queued or on its way to Core."""
-
-    def submitting(self, text: str) -> tuple[str, ...]:
-        return (text,)
-
-
-class DeliveryOutcome(BusOutcome):
-    """What Core's answer leaves the execution to do."""
-
-    def submitting(self, text: str) -> tuple[str, ...]:
-        """Core answered, so nothing is being submitted: the entry that stays is waiting
-        to be drawn, which is not the same thing as a message still on its way."""
-        return ()
-
-    @abstractmethod
-    async def settle_into(self, execution: BusSubmissionExecution) -> None: ...
-
-
-@dataclass(frozen=True)
-class SentMessage(DeliveryOutcome):
-    """Core has the message; the entry stays until the view draws it."""
-
-    reference: MessageReference
-
-    def drawn_by(self, view: DeliveryFailureView) -> bool:
-        return view.draws_user_message(self.reference)
-
-    async def settle_into(self, execution: BusSubmissionExecution) -> None:
-        execution.outcome = self
-        execution.owner.publish_pending()
-        await execution.destination.presented(self.reference)
-        execution.settle()
-
-
-class RefusedMessage(DeliveryOutcome):
-    """Refused, or its fate already answered to the user; the entry just goes."""
-
-    async def settle_into(self, execution: BusSubmissionExecution) -> None:
-        execution.owner.finish(execution)
-
-
-class BusSubmissionExecution(SubmissionExecution):
-    """A human message to the bus. It queues behind the view's earlier messages, so they reach
-    Core in the order they were typed, and shows as submitting until the view draws it."""
-
-    def __init__(self, owner: ConversationSubmissions, submission: SubmittedText,
-                 destination: BusDestination, after: asyncio.Event):
-        super().__init__(owner, submission)
-        self.destination, self.after = destination, after
-        self.accepted = asyncio.Event()
-        self.outcome: BusOutcome = NotYetSent()
-
-    @property
-    def current(self):
-        return self.destination.shown()
-
-    def delivering(self) -> tuple[str, ...]:
-        """The outcome owns whether this is still submitting; `current` only says the
-        destination is still shown, which is a different question."""
-        return self.outcome.submitting(self.submission.text) if self.current else ()
-
-    def retire_unsent(self) -> None:
-        """A message to a view that changed before it left comes back as the draft."""
-        self.owner.view.delivery_refused("Message route changed; reopen this view", self.submission.source_text)
-        self.owner.finish(self)
-
-    def settle(self) -> None:
-        if self.outcome.drawn_by(self.owner.view):
-            self.owner.finish(self)
-
-    async def send(self):
-        try:
-            outcome = await self.deliver()
-        except BaseException:
-            self.owner.finish(self)
-            raise
-        finally:
-            self.accepted.set()
-        await outcome.settle_into(self)
-
-    async def deliver(self) -> DeliveryOutcome:
-        """Send after the earlier messages; a refusal is answered here."""
-        view, body, destination = self.owner.view, self.submission.source_text, self.destination
-        access = view.app.coordination_access
-        try:
-            await self.after.wait()
-            observed = await view.app.preparation.run_thread(access.observing, destination.root)
-            read_only = await view.app.preparation.run_thread(destination.conversation.read_only, observed.core)
-            await view.refresh_composer(read_only)
-            if read_only:
-                view.delivery_refused(f"{view.status}", body)
-                return RefusedMessage()
-            route_current = await view.app.preparation.run_thread(lambda: access.current(destination.root))
-            if not route_current or not self.current:
-                raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
-        except asyncio.CancelledError:
-            view.delivery_refused("Cancelled before sending", body)
-            raise
-        except (HumanSendError, RouteChangedError) as error:
-            delivery_failure(error).present(view, body)
-            return RefusedMessage()
-        except Exception:
-            # Nothing left this machine: the draft comes back, and the failure stays loud.
-            view.delivery_refused("the send failed before it left this machine", body)
-            raise
-        try:
-            return await self.commit(observed, body)
-        except (HumanSendError, RouteChangedError) as error:
-            delivery_failure(error).present(view, body)
-            return RefusedMessage()
-
-    async def commit(self, observed: Observing, body: str) -> DeliveryOutcome:
-        view = self.owner.view
-        task = asyncio.create_task(asyncio.to_thread(
-            observed.send_user_message, self.destination.conversation.send_target(), body))
-        try:
-            return SentMessage(await asyncio.shield(task))
-        except asyncio.CancelledError:
-            view.delivery_unknown("the send was cancelled while it may still be writing", body)
-            task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-            return RefusedMessage()
-        except CommittedMessageError as error:
-            return SentMessage(error.record.reference)
-        except (HumanSendError, RouteChangedError):
-            raise
-        except Exception:
-            # The request left: Core may have published it. Raise for the log, never hold compose.
-            view.delivery_unknown("its reply could not be read", body)
-            raise
-
-
-class ConversationSubmissions(SubmissionOwner):
+class ConversationSubmissions(BusSubmissions):
     """Own pending local transactions; remote membership stays with QueueAttachment."""
-
-    def __init__(self, view):
-        self.view = view
-        self.active: list[SubmissionExecution] = []
-        self.bus_order = asyncio.Event()
-        self.bus_order.set()
 
     def begin(self, submission: AgentInputSubmission):
         return self.view.begin_submission(self, submission)
 
-    def unbound(self, submission: SubmittedText, refusal: InputRefused):
-        return UnboundSubmissionStart(self, submission, refusal)
-
     def start(self, submission: AgentInputSubmission, agent: Agent):
         execution = AgentSubmissionExecution(self, submission, agent)
-        self.active.append(execution)
-        return execution
-
-    def start_bus(self, submission: SubmittedText, destination: BusDestination):
-        """Queue a bus message behind this view's earlier ones; the composer stays open."""
-        execution = BusSubmissionExecution(self, submission, destination, self.bus_order)
-        self.bus_order = execution.accepted
         self.active.append(execution)
         return execution
 
@@ -514,7 +266,7 @@ class ConversationSubmissions(SubmissionOwner):
     @property
     def queue_evidence(self) -> QueueEvidence:
         return QueueEvidence(
-            self.view.agent_binding.presentation, self.delivering, self.view.turns.owner.busy,
+            self.view.agent_binding.presentation, self.submitting, self.view.turns.owner.busy,
             self.view.contents.notification_targets,
             self.view.queue_source.capture_queue_observing(
                 self.view.thread_scope.queue_observing,
@@ -537,33 +289,10 @@ class ConversationSubmissions(SubmissionOwner):
         """Accepted producer rows not yet handed to their original native body."""
         return self.queue_projection.items
 
-    @property
-    def delivering(self):
-        return tuple(text for execution in self.active for text in execution.delivering())
-
-    def settle(self) -> None:
-        """The view drew new messages: retire the bus sends they show."""
-        for execution in tuple(self.active):
-            execution.settle()
-
     def native_input_presented(self, started: InputStartedUpdate):
         """Retain this request's actual response while its RPC is outstanding."""
         for execution in self.active:
             execution.input_presented(started)
-
-    def publish_pending(self):
-        if (prompt := self.view.query_one_optional(Prompt)) is not None:
-            prompt.sync_queue()
-
-    def finish(self, execution: SubmissionExecution):
-        if execution in self.active:
-            self.active.remove(execution)
-        if execution.current:
-            self.publish_pending()
-
-    def reset(self):
-        self.active.clear()
-        self.publish_pending()
 
     def send_now(self):
         source = self.view.queue_source

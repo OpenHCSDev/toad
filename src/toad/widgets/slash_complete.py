@@ -9,8 +9,12 @@ from textual import getters
 from textual.message import Message
 from textual.reactive import var
 from textual import widgets
+from textual.content import Span
+from textual.widgets.option_list import Option
 
 from toad.slash_command_results import SlashCommandResults
+from toad.visuals.columns import Columns
+from toad.widgets.inline_message import span_content
 from toad.slash_command import SlashCommand
 from toad.widgets.prompt_popup import CompletionInput, CompletionOptionList, CompletionPopup
 
@@ -106,12 +110,24 @@ class SlashComplete(PriorityActions, VisibleActions, ForwardsCursor, Submits, Co
         """
         if not self.is_open:
             return
-        self.option_list.set_options(self.results.options(prompt, self.slash_commands, self.app.colours))
+        self.option_list.set_options(self.options(prompt))
         if self.display:
             self.option_list.highlighted = 0
         else:
             with self.option_list.prevent(widgets.OptionList.OptionHighlighted):
                 self.option_list.highlighted = 0
+
+    def options(self, text: str) -> list[Option]:
+        """The ranked commands as rows: the name, its matched letters underlined, and its help."""
+        colours, columns = self.app.colours, Columns("auto", "flex")
+        rows = []
+        for match in self.results.ranked(text, self.slash_commands):
+            command = match.command
+            name = span_content((command.name_span,), colours).add_spans(
+                Span(index + 1, index + 2, "underline not dim") for index in match.offsets
+            )
+            rows.append(Option(columns.add_row(name, span_content((command.help_span,), colours)), id=command.command))
+        return rows
 
     @property
     def cursor_owner(self) -> widgets.OptionList:

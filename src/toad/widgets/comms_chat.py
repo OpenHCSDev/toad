@@ -333,13 +333,9 @@ class CommsChatView(WireConversationView):
         conversation = self.conversation
         access = self.app.coordination_access
         answer = await access.current_sidebar()
-        snapshot = answer.require_snapshot()
         if not access.observation.observes(source.root):
             raise ValueError("Channel mentions belong to another Core root")
-        mentions = await self.app.preparation.run_thread(
-            snapshot.mention_candidates,
-            conversation.destination(snapshot.references).name,
-        )
+        mentions = await self.app.preparation.run_thread(conversation.mention_candidates, answer)
         if not await history.source_is_current(shown) or self.conversation != conversation:
             return
         # Mentions are read in the chat-labels worker, which runs after the drawing work

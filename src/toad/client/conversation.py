@@ -27,6 +27,7 @@ from agent_comms.messaging.display_references import (
     ThreadNames,
     ThreadReferenceReader,
 )
+from agent_comms.messaging.mentions import MentionCandidate
 from agent_comms.messaging.message_page import MessagePage, PageBounds
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.transport.request import CoreAccess
@@ -135,6 +136,14 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
             model.threads.rows[name] for name in self.activity_members(model) if model.threads.rows[name].active
         )
 
+    @staticmethod
+    def activity_title(members) -> str:
+        """The collapsed activity line under the composer: how many members are active and
+        the first two of them."""
+        names = ", ".join(row.name for row in members[:2])
+        remaining = f" +{len(members) - 2}" if len(members) > 2 else ""
+        return f"{len(members)} active · {names}{remaining}"
+
     @classmethod
     def seen_page(cls, seen):
         if not seen:
@@ -208,7 +217,7 @@ class ChannelConversation(ConversationKind):
         return ResolvedConversation(source.registry_for(me).canonical_name(me), cls(ChannelTarget(channel.name)))
 
     async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
-        return "Read-only saved view" if read_only else ""
+        return self.read_only_reason if read_only else ""
 
     @property
     def initial_placeholder(self) -> str:
@@ -220,6 +229,12 @@ class ChannelConversation(ConversationKind):
     @classmethod
     async def update_mentions(cls, view: ConversationActivity, source: ReferencedCore):
         await view.update_channel_mentions(source)
+
+    def mention_candidates(self, answer: SidebarObservation) -> tuple[MentionCandidate, ...]:
+        """The threads this channel's composer offers after an @, from the observer's
+        current sidebar answer; it reads Core, so it runs off the UI loop."""
+        snapshot = answer.require_snapshot()
+        return snapshot.mention_candidates(self.destination(snapshot.references).name)
 
 
 class PeerLabel(ThreadReferenceReader[str]):

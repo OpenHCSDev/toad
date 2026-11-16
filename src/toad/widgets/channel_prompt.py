@@ -1,12 +1,13 @@
 """Channel mention completion uses model-provided members and mention syntax."""
 
-from agent_comms.messaging.mentions import MentionCandidate, MentionQuery
+from agent_comms.messaging.mentions import MentionCandidate
 from textual import on
 from textual.app import ComposeResult
 from textual.widgets import OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 
+from toad.client.mention_completion import MentionCompletion, MentionEditor, NoMention
 from toad.native_style import AutoHeight, SpacedBelow
 from toad.widgets.prompt import MessagePrompt, MessageTextArea
 from toad.widgets.selection import SelectionOptionList
@@ -46,18 +47,17 @@ class ChannelTextArea(MessageTextArea):
             self.prompt.refresh_mentions()
 
 
-class ChannelPrompt(MessagePrompt):
+class ChannelPrompt(MentionEditor, MessagePrompt):
     TEXT_AREA_CLASS = ChannelTextArea
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.mention_list = MentionList()
-        self.mention_list.border_title = "Mention a thread · Tab to insert"
+        self.mention_list.border_title = MentionCompletion.title
         self.mention_list.display = False
         self._candidates: tuple[MentionCandidate, ...] = ()
         self._options: tuple[MentionCandidate, ...] = ()
-        self._query: MentionQuery | None = None
-        self._query_row = 0
+        self._mention: MentionCompletion = NoMention()
         self._dismissed_text: str | None = None
 
     def compose(self) -> ComposeResult:
@@ -80,34 +80,26 @@ class ChannelPrompt(MessagePrompt):
         if force:
             self._dismissed_text = None
         row, column = area.cursor_location
-        self._query_row = row
-        self._query = MentionQuery.at_cursor(area.document.get_line(row), column)
-        options = self._query.candidates(self._candidates) if self._query else ()
+        self._mention = MentionCompletion.at_cursor(area.document.get_line(row), row, column)
+        options = self._mention.options(self._candidates)
         if not area.selection.is_empty or area.text == self._dismissed_text:
             options = ()
         if options != self._options:
             self._options = options
-            self.mention_list.set_options([
-                Option(f"@{item.name}" + (f" — {item.title}" if item.title != item.name else ""), id=item.name)
-                for item in options
-            ])
+            self.mention_list.set_options([Option(MentionCompletion.label(item), id=item.name) for item in options])
             self.mention_list.highlighted = 0 if options else None
         self.mention_list.display = bool(options)
 
     def accept_mention(self) -> None:
         index = self.mention_list.highlighted
-        if not self.mention_list.display or self._query is None or index is None:
+        if not self.mention_list.display or index is None:
             return
-        name = self._options[index].name
-        area = self.prompt_text_area
-        following = area.document.get_line(self._query_row)[self._query.end:]
-        suffix = " " if not following or (not following[0].isspace() and following[0] not in ".,:;!?)]}") else ""
-        area.replace(
-            f"@{name}{suffix}", (self._query_row, self._query.start),
-            (self._query_row, self._query.end), maintain_selection_offset=False,
-        )
+        self._mention.accept(self, self._options[index].name)
         self.mention_list.display = False
-        area.focus()
+        self.prompt_text_area.focus()
+
+    def replace_span(self, row: int, start: int, end: int, text: str) -> None:
+        self.prompt_text_area.replace(text, (row, start), (row, end), maintain_selection_offset=False)
 
     @on(OptionList.OptionSelected, "MentionList")
     def mention_selected(self, event: OptionList.OptionSelected) -> None:

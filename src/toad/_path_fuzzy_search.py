@@ -3,7 +3,7 @@ from typing import Sequence
 import re
 
 
-from toad.fuzzy import FuzzySearch
+from toad.client.fuzzy import FuzzySearch
 
 
 class PathFuzzySearch(FuzzySearch):

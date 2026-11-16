@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Self
+
+from agent_comms.projects.checkouts import Checkout
 
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
@@ -15,11 +18,22 @@ from toad.client.commands import (
     SharedTargetContext,
     SortCapable,
 )
+from toad.client.conversation import ConversationKind
+from toad.client.host import CommsHost
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from toad.thread_actions import ThreadAction
 
 
 class TargetContext(SharedTargetContext):
+    @classmethod
+    def in_conversation(cls, app: CommsHost, root: str | Path, conversation: ConversationKind,
+                        me: str, project: Checkout, mode: str | None) -> TargetContext:
+        """The context a conversation's composer commands run in: its destination as the
+        sidebar currently names it, read by `me` on the root the conversation came from."""
+        access = app.coordination_access
+        references = access.observation.observed().sidebar.observation.thread_names()
+        return cls(app, access.observing(root), conversation.destination(references), me, project, mode)
+
     def current(self):
         self.app.coordination_access.selected(self.observed.root)
         return self
@@ -118,7 +132,9 @@ class SortMembersCommand(SortCapable, ViewCommand, declared_name="sort"):
         self.execute_sort(ctx.selected_targets[0], ctx)
 
     def available_for_channel(self, channel: str, ctx) -> bool:
-        return channel in ctx.app.workspace_chrome.channels.roster.groups
+        """A channel the observed sidebar lists can be sorted; the shared model answers it,
+        so every frontend's catalog reads it without the Textual sidebar."""
+        return channel in ctx.observed.sidebar.channels.rows
 
     def execute_sort(self, channel: str, ctx) -> None:
         group = ctx.app.workspace_chrome.channels.roster.groups[channel]
