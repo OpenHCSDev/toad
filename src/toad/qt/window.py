@@ -651,9 +651,11 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.messages, 1)
         layout.addLayout(info)
-        layout.addWidget(self.composer)
+        # The peer's or channel's activity sits on the input, as the TUI draws it: what is
+        # happening shows where the next message is typed.
         for line in self.activity:
             layout.addWidget(line)
+        layout.addWidget(self.composer)
 
     @property
     def mode(self) -> str:
