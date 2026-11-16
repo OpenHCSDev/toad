@@ -701,7 +701,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
     def receive_failed(self, error: Exception):
         if self.is_current():
             self.failed(error, self.opened_selection())
-            self.access.app._handle_exception(error)
+            self.access.app.report_fatal(error)
 
     def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.root)
@@ -851,7 +851,7 @@ class CoordinationAccess(MroDispatch):
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
         # One status row per open thread, whichever service it was read from.
-        self.thread_status = OpenThreadStatus(app.call_next)
+        self.thread_status = OpenThreadStatus(app.schedule_ui)
         # Views showing the sidebar model now, and consumers waiting for current rows.
         self.sidebar_views: WeakSet[SidebarSubscriber[Observing, FailedObservation]] = WeakSet()
         self.reference_views: WeakSet[CoreEventReceiver] = WeakSet()
@@ -911,7 +911,7 @@ class CoordinationAccess(MroDispatch):
                 raise RouteChangedError("Comms route changed while opening the service")
             self.confirm_route(selected)
             return previous.adopt(LocalObserving(
-                SidebarModel(self.app.call_next), ObservationProcess(self.connection.observation_source(service.route)),
+                SidebarModel(self.app.schedule_ui), ObservationProcess(self.connection.observation_source(service.route)),
                 selection=selected, service=service, access=self))
 
         return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(
@@ -923,7 +923,7 @@ class CoordinationAccess(MroDispatch):
         root it serves keys every root-scoped request."""
         with self.opening:
             return self.observation.adopt(RemoteObserving(
-                SidebarModel(self.app.call_next), ObservationProcess(connection),
+                SidebarModel(self.app.schedule_ui), ObservationProcess(connection),
                 connection=connection, served_root=root, access=self))
 
     @handles(RevisionObserved)
@@ -957,7 +957,7 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
         result.snapshot.read_marker_notice.notify_if_new(
-            notice, lambda text: app.notify(text, title="Read positions", severity="warning"))
+            notice, lambda text: app.show_warning(text, title="Read positions"))
         if app.tab_order.names != modes:
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
@@ -1159,7 +1159,7 @@ class CoordinationAccess(MroDispatch):
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""
-        self.timer = self.app.set_interval(ROUTE_CHECK_SECONDS, self.check_route)
+        self.timer = self.app.repeat_ui(ROUTE_CHECK_SECONDS, self.check_route)
         self.check_route()
 
     async def stop_observing(self) -> None:
