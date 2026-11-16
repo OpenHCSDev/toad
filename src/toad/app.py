@@ -4,7 +4,6 @@ import json
 import os
 import signal
 import sys
-import time
 from enum import IntEnum
 from functools import cached_property
 from inspect import isabstract
@@ -21,17 +20,9 @@ from agent_comms.nominal.field_codec import (
 )
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.storage.locked_store import RootFile
-from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
-from agent_comms.transport.tailnet_buses import PeerBus
-from agent_comms.transport.tailnet_profiles import (
-    AskedPeer,
-    HoldingPeerProfile,
-    TailnetProfiles,
-)
-from agent_comms.transport.tools.tailnet import CommsTailnetProfileTool
 from metaclass_registry.mro_dispatch import handles
 from rich.console import RenderableType
-from textual import events, on, work
+from textual import events, on
 from textual.await_complete import AwaitComplete
 from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
@@ -43,7 +34,7 @@ from textual.widgets.markdown import Markdown
 
 from toad.application_actions import ApplicationCommands
 from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
-from toad.client.bus_selection import BusChoice, HeldBus, PickerRow
+from toad.client.bus_selection import BusChoice, PickerRow
 from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
 from toad.core import events as core_events
@@ -224,41 +215,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def connection_for(self, choice: BusChoice) -> CoreConnection:
         """The connection the chosen bus's launch arguments name, read as a launch reads them."""
         return CoreConnection.select(list(choice.arguments(sys.argv[1:])))
-
-    @work(exclusive=True, group="peer-profile", thread=True)
-    def ask_peer_for_profile(self, found: PeerBus) -> None:
-        """Ask a discovered peer to hand over a profile, then open its bus.
-
-        In a thread because it is one ssh call to another machine: on the message pump it
-        would hold every frame for as long as that machine takes to answer.
-        """
-        try:
-            core = self.coordination_access.open_current().core
-            answer = core.call(CommsTailnetProfileTool(
-                found=found, previous=TailnetProfiles.held_grants(found)))
-            held = answer.hold()
-        except (OSError, ValueError, RuntimeError) as error:
-            self.call_from_thread(self.notify, str(error), severity="warning")
-            return
-        self.call_from_thread(self.asked_peer, held)
-
-    def asked_peer(self, asked: AskedPeer) -> None:
-        """What the peer answered: its bus, or the reason in the words it used.
-
-        The profile it handed over is read back through the held family rather than assumed
-        openable, because that family is what says whether a held file can open a bus; a
-        fresh one that reads back expired or unreadable is worth saying out loud.
-        """
-        match asked:
-            case HoldingPeerProfile(path=path):
-                match HeldUiProfiles.entry(path, time.time()):
-                    case OpenableProfile() as openable:
-                        self.open_bus(HeldBus(openable))
-                    case held:
-                        self.notify(f"{asked.found.peer.name} handed over a profile this "
-                                    f"machine cannot open: {held.label()}", severity="warning")
-            case _:
-                self.notify(asked.reason(), severity="warning")
 
     def relaunch(self) -> None:
         running = LaunchRuntime.running()
