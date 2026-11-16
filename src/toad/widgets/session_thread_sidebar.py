@@ -9,8 +9,8 @@ from toad.thread_identity import (
     NoThreadIdentity,
     SessionIdentity,
     ThreadIdentity,
-    ThreadIdentityScope,
 )
+from toad.session_scope import ThreadIdentityScope
 from toad.widgets.side_bar import (
     AbsentPanels,
     LazyThreadSidebar,

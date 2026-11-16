@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.errors import RelationViolationError
 from agent_comms.projects.checkouts import Checkout
 from toad.navigation_target import ThreadTarget
+from toad.client.session_scope import ProjectSessionOrigin
 from toad.client.tab_identity.kinds import MailboxTab
 from toad.navigation_preparation import (
     OpenThread,
@@ -19,8 +20,6 @@ from toad.navigation_preparation import (
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.screens.main import MainScreen
-    from toad.session_scope import ProjectSessionOrigin
     from toad.navigation_preparation import ThreadNavigation
 
 

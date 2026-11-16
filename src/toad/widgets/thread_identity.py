@@ -7,8 +7,8 @@ from textual.widget import Widget
 
 from toad.core.events import ThreadIdentityChanged
 from toad.core_event_carrier import CoreEventReceiver
-from toad.session_scope import SessionScope
-from toad.thread_identity import SessionIdentity, ThreadIdentityScope
+from toad.session_scope import SessionScope, ThreadIdentityScope
+from toad.thread_identity import SessionIdentity
 from textual.events import Mount
 from textual import on
 

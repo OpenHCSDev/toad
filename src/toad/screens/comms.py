@@ -33,7 +33,7 @@ from toad.project_path_owner import CheckoutRoot
 from toad.screens.historical_sessions import HistoricalSessions
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
 from toad.session_actions import CloseViewAction, ReturnToViewAction
-from toad.session_scope import NoSessionOrigin
+from toad.client.session_scope import NoSessionOrigin
 from toad.thread_identity import SessionIdentity
 from toad.widget_actions import CyclesSessions, TogglesIrc, WidgetAction
 from toad.widgets.comms_chat import CommsChatView

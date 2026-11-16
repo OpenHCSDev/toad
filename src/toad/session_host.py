@@ -14,8 +14,7 @@ from toad.client.db import DB
 from toad.navigation_context import NavigationOwner
 from toad.navigation_preparation import NavigationReader
 from toad.client.session_projection import SessionCollection, SessionProjection
-from toad.client.session_scope import SessionScope
-from toad.session_scope import SessionOrigin
+from toad.client.session_scope import SessionOrigin, SessionScope
 from toad.client.session_tracker import SessionTracker
 
 

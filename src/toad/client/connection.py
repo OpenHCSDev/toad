@@ -17,7 +17,6 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from concurrent.futures import Future
 from dataclasses import dataclass, field, fields, replace
-from functools import partial
 from pathlib import Path
 from typing import ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
@@ -102,7 +101,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.client.bus_selection import ProfileArgument
 from toad.client.host import CommsHost
-from toad.client.subscribers import CoreObserver, NotificationSubscriber, SidebarSubscriber
+from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
 from toad.client.context_reads import ContextReads
 from toad.core.events import (
     CoordinationObserved,
@@ -1083,22 +1082,6 @@ class CoordinationAccess(MroDispatch):
             self.app.sidebar_show_stopped,
             self.app.sidebar_show_archived,
         )
-
-    def observe_thread_changes(
-        self,
-        view: CoreObserver,
-        scope: tuple[str, str],
-        resume: Callable[[ThreadRowsChanged], None],
-        subscription_factory: type | None = None,
-    ) -> ResourceRelease:
-        """Hold the shared model while this native read waits for its own thread."""
-        release = ResourceRelease()
-        kwargs = {}
-        if subscription_factory is not None:
-            kwargs["factory"] = partial(subscription_factory, scope=scope)
-        release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, resume, **kwargs))
-        return release
 
     def update_sidebar_interest(self) -> None:
         wanted = self.sidebar_request() if self.sidebar_views or self.reference_views or self.sidebar_waiters else None

@@ -5,51 +5,31 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Awaitable
 from pathlib import Path
-from typing import ClassVar, Never
+from typing import ClassVar
 
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
-from agent_comms.errors import RelationViolationError
+
+from textual.command import Provider
+from textual.dom import DOMNode
 
 from toad.app_node import ToadNode
+from toad.client.session_scope import ProjectSessionOrigin, SessionOrigin
 from toad.client.session_scope import SessionScope as SharedSessionScope
+from toad.launch_binding import AgentBinding, AgentOrigin, NoAgent
 from toad.navigation_context import NavigationOwner, NavigationScope, NoNavigationOwner
-from toad.transcript_scope import NoTranscript, TranscriptScope
-from metaclass_registry import AbstractHooksMeta
-from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
+from toad.navigation_target import NavigationTarget
+from toad.project_path_owner import ProjectPathOwner
+from toad.thread_identity import SessionIdentity
 from toad.widget_actions import DeclaredWidgetActions
-from textual.command import Provider
 from toad.widgets.side_bar import SideBar
 
-from toad.navigation_target import NavigationTarget
 
-from toad.launch_binding import AgentBinding, AgentOrigin, NoAgent
-from toad.thread_identity import SessionIdentity, ThreadIdentityScope
+class ThreadIdentityScope(DOMNode):
+    """The thread described by a panel, independent of the composer sending identity."""
 
-class SessionOrigin(metaclass=AbstractHooksMeta):
-    """An origin answers for itself, including when its view is unavailable."""
-
+    @property
     @abstractmethod
-    def transcript_scope(self) -> TranscriptScope: ...
-
-    @abstractmethod
-    def resolve_thread(self) -> str: ...
-
-    @abstractmethod
-    def require(self) -> ProjectSessionOrigin: ...
-
-
-class NoSessionOrigin(SessionOrigin):
-    def __init__(self, view: str = "unavailable view") -> None:
-        self.view = view
-
-    def transcript_scope(self) -> NoTranscript:
-        return NoTranscript()
-
-    def require(self) -> Never:
-        raise RelationViolationError(f"View {self.view!r} has no session origin")
-
-    def resolve_thread(self) -> Never:
-        self.require()
+    def sidebar_thread_identity(self) -> SessionIdentity: ...
 
 
 class SessionScope(SharedSessionScope, ThreadIdentityScope, ProjectPathOwner, NavigationScope, ToadNode):
@@ -134,36 +114,13 @@ class SessionScope(SharedSessionScope, ThreadIdentityScope, ProjectPathOwner, Na
     def remove(self) -> Awaitable[None]: ...
 
 
-class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
-    """A project source may navigate and resolve threads without an ACP session."""
-
-    async def prepare_history_origin(self) -> None:
-        """An agent view already has its thread; resident views acquire theirs."""
-
-    @property
-    def origin(self) -> SessionOrigin:
-        return self
-
-    def transcript_scope(self) -> TranscriptScope:
-        return self.thread_identity.transcript_scope()
-
-    def require(self) -> ProjectSessionOrigin:
-        return self
-
-    def resolve_thread(self) -> str:
-        identity = self.thread_identity
-        observed = self.app.coordination_access.observing(identity.wire_root())
-        return identity.resolve_thread(observed, self.project_root)
+class ViewSessionOrigin(ProjectSessionOrigin, SessionScope, AgentOrigin):
+    """Only actual native-session views own agent/session launch matching."""
 
     _agent_binding: AgentBinding = NoAgent()
-    """A project origin with no launch of its own opens views with the app's binding."""
 
     def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
         return self._agent_binding.attached(default)
-
-
-class ViewSessionOrigin(ProjectSessionOrigin, AgentOrigin):
-    """Only actual native-session views own agent/session launch matching."""
 
     def attach_agent_definition(self) -> AgentBinding:
         self._agent_binding = self._agent_binding.attached(

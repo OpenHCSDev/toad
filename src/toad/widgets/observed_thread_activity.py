@@ -14,7 +14,8 @@ from textual.widget import Widget
 
 from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
-from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
+from toad.client.subscribers import ThreadCallbackSubscription
+from toad.core_event_carrier import CoreEventReceiver
 from toad.status_thread import ActivityView, NoStatusThread, StatusOwner, StatusThread
 from textual.events import Mount
 from textual import on

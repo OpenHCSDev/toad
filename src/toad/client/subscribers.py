@@ -1,10 +1,11 @@
 """Callbacks implemented by native views that subscribe to Core observations."""
 
 from collections.abc import Callable, Mapping
+from dataclasses import InitVar, dataclass, field
 
 from agent_comms.messaging.message_notification import MessageNotification
 
-from toad.core.events import CoreEvent, CoreEventStream, Subscription
+from toad.core.events import CoreEvent, CoreEventStream, Subscription, ThreadChangeSubscription
 
 
 class CoreObserver:
@@ -17,6 +18,28 @@ class CoreObserver:
 
     def retire_core(self, subscription: Subscription) -> None:
         raise NotImplementedError
+
+
+@dataclass(eq=False)
+class CallbackSubscription(Subscription):
+    """Delivers each event to one callback through the receiving view's own handler dispatch."""
+
+    callback: InitVar[object] = field(kw_only=True)
+    _callback: object = field(init=False, repr=False)
+
+    def __post_init__(self, listener, callback) -> None:
+        super().__post_init__(listener)
+        self._callback = self.weak_method(callback)
+
+    async def consume(self, receiver, message) -> None:
+        callback = self._callback()
+        if callback is not None:
+            await receiver.consume_handlers(message.event, (callback,))
+
+
+@dataclass(eq=False)
+class ThreadCallbackSubscription(ThreadChangeSubscription, CallbackSubscription):
+    """Compose thread indexing with callback delivery."""
 
 
 class SidebarSubscriber[Source, Failure]:

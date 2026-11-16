@@ -6,10 +6,9 @@ from textual import on
 from textual.message import DeclaredMessage, Message
 from textual.dom import DOMNode
 from functools import cache, cached_property, partial
-from dataclasses import InitVar, dataclass, field
 
-from toad.client.subscribers import CoreObserver
-from toad.core.events import CoreEvent, CoreEventStream, Subscription, ThreadChangeSubscription
+from toad.client.subscribers import CallbackSubscription, CoreObserver
+from toad.core.events import CoreEvent, CoreEventStream, Subscription
 
 
 async def dispatch_publication(receiver, message) -> None:
@@ -39,26 +38,6 @@ class CoreEventMessage(DeclaredMessage):
         return (isinstance(message, CoreEventMessage)
                 and self.subscription is message.subscription
                 and self.event.replaces(message.event))
-
-
-@dataclass(eq=False)
-class CallbackSubscription(Subscription):
-    callback: InitVar[object] = field(kw_only=True)
-    _callback: object = field(init=False, repr=False)
-
-    def __post_init__(self, listener, callback) -> None:
-        super().__post_init__(listener)
-        self._callback = self.weak_method(callback)
-
-    async def consume(self, receiver, message) -> None:
-        callback = self._callback()
-        if callback is not None:
-            await invoke(callback, message.event)
-
-
-@dataclass(eq=False)
-class ThreadCallbackSubscription(ThreadChangeSubscription, CallbackSubscription):
-    """Compose thread indexing with callback delivery in the native pump."""
 
 
 class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
