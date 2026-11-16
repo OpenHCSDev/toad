@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -131,9 +131,6 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         return next(
             (group[mode] for group in self.entries.values() if mode in group), None
         )
-
-    def find(self, address: object) -> SessionEntry | None:
-        return next((entry for entry in self.members if entry.address == address), None)
 
     def source(self, mode: str) -> MainScreen | None:
         entry = self.get(mode)
@@ -428,25 +425,28 @@ class SessionNavigation(StartsSessions, SessionNavigator):
                 prepared.viewer,
                 prepared.participants,
             ),
+            self.open,
         )
         return entry.mode
 
-    async def show(self, address: object, build: Callable[[], SessionEntry], *,
-                   after: str | None = None) -> SessionEntry:
-        """The entry at this address, selected and ready; built and opened when it has none."""
-        entry = self.find(address)
-        if entry is None:
-            entry = build()
-            await self.open(entry, after=after)
-        else:
-            await self.app.select_session(entry.mode)
-            await entry.ready(self)
+    async def show(self, address: object, build: Callable[[], SessionEntry],
+                   open_new: Callable[[SessionEntry], Awaitable[object]]) -> SessionEntry:
+        """The entry at this address, selected and ready; built and opened when none is."""
+        for entry in self.members:
+            if entry.address == address:
+                await self.app.select_session(entry.mode)
+                await entry.ready(self)
+                return entry
+        entry = build()
+        await open_new(entry)
         return entry
 
     async def preview(self, path: Path, *, position=None) -> str:
         path = path.expanduser().resolve()
         entry = await self.show(
-            path, lambda: PreviewSessionEntry.of(PreviewTab(path), path), after=self.app.selected_mode,
+            path,
+            lambda: PreviewSessionEntry.of(PreviewTab(path), path),
+            partial(self.open, after=self.app.selected_mode),
         )
         if position is not None:
             view = self.app.workspace_sessions.views[entry.mode]
