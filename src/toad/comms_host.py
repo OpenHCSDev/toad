@@ -55,6 +55,10 @@ class CommsHost[Source](CoreEventReceiver, BusPickerHost, ThemedApp[ApplicationO
     def cancel_operations(self, kind: type[OperationKind]) -> None:
         self.workers.cancel_group(self, kind.group)
 
+    async def end_operations(self) -> None:
+        await asyncio.gather(*(worker.wait() for worker in self.workers.cancel_node(self)),
+                             return_exceptions=True)
+
     async def wait_operations(self, kind: type[OperationKind]) -> None:
         await asyncio.gather(*(worker.wait() for worker in self.workers
                                if worker.node is self and worker.group == kind.group),

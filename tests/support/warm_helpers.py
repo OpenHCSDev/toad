@@ -6,8 +6,9 @@ interpreter that imports the observer's or the renderer's whole module graph aga
 two seconds a process. The template has already imported all of it, so beside each test it
 forks a HelperSpawner that has become that test's process. A helper keeps multiprocessing's
 spawn protocol whole (the same preparation data and pickled process object on the same
-pipe, its descriptors at the same numbers); only the new interpreter is replaced by a fork
-of the warm one.
+pipe, its descriptors at the same numbers, and the environment the spawning process holds at
+the spawn, which a test may have changed since its spawner forked); only the new
+interpreter is replaced by a fork of the warm one.
 
 This rides CPython's private multiprocessing internals: WarmPopen overrides
 ``popen_spawn_posix.Popen._launch`` and fills its ``_fds``, and each helper runs
@@ -48,7 +49,7 @@ class WarmHelpers(HelperStart):
     def request(cls, fds: list[int], status: int, *, pipe: int) -> None:
         """One helper whose descriptors are ``fds`` at these numbers; ``status`` hears its
         pid, then its exit code."""
-        message = pickle.dumps((fds, pipe))
+        message = pickle.dumps((fds, pipe, dict(os.environ)))
         socket.send_fds(cls.spawner, [message], [*fds, status])
 
 
@@ -119,26 +120,26 @@ class HelperSpawner:
 
     def serve(self) -> None:
         while request := self.receive():
-            (numbers, pipe), fds = request
+            (numbers, pipe, environment), fds = request
             if os.fork() == 0:
                 self.test.close()
-                self.watch(numbers, fds, pipe=pipe)
+                self.watch(numbers, fds, pipe=pipe, environment=environment)
             for fd in fds:
                 os.close(fd)
             self.reap(os.WNOHANG)
         self.reap(0)
 
-    def receive(self) -> tuple[tuple[list[int], int], list[int]] | None:
-        data, fds, _, _ = socket.recv_fds(self.test, 1 << 16, 64)
+    def receive(self) -> tuple[tuple[list[int], int, dict[str, str]], list[int]] | None:
+        data, fds, _, _ = socket.recv_fds(self.test, 1 << 20, 64)
         return (pickle.loads(data), fds) if data else None
 
     @staticmethod
-    def watch(numbers: list[int], fds: list[int], *, pipe: int) -> None:
+    def watch(numbers: list[int], fds: list[int], *, pipe: int, environment: dict[str, str]) -> None:
         """Fork the helper, report its pid and then its exit code, and never return."""
         *received, status = fds
         if (helper := os.fork()) == 0:
             os.close(status)
-            HelperSpawner.become_helper(numbers, received, pipe=pipe)
+            HelperSpawner.become_helper(numbers, received, pipe=pipe, environment=environment)
         for fd in received:
             os.close(fd)
         os.write(status, EXIT.pack(helper))
@@ -147,11 +148,14 @@ class HelperSpawner:
         os._exit(0)
 
     @staticmethod
-    def become_helper(numbers: list[int], received: list[int], *, pipe: int) -> None:
+    def become_helper(numbers: list[int], received: list[int], *, pipe: int,
+                      environment: dict[str, str]) -> None:
         """Put each descriptor at the number the pickled process names, then run spawn's
         child half (multiprocessing.spawn._main) in this warm interpreter. The resource
         tracker is the one thing spawn_main adds; a helper registers nothing its parent did not,
         and one that does starts its own tracker on demand."""
+        os.environ.clear()
+        os.environ.update(environment)
         moved = [fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 1024) for fd in received]
         for fd in received:
             os.close(fd)

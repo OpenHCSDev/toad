@@ -1,10 +1,14 @@
 """Textual-facing: picking a bus switches the running app onto it, in place."""
 
 import asyncio
+import json
+import sys
 import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
+
+import pytest
 
 from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.nominal.field_codec import FieldCodec, RootId
@@ -42,6 +46,60 @@ from toad.client.connection import FailedObservation, LocalObserving, RemoteCore
 from toad.client.db import TabScope
 from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows
 from toad.client.application_actions import ApplicationAction
+
+
+TAILSCALE = """\
+import json, sys
+peers = json.loads(open({state!r}).read())
+print(json.dumps({{"Peer": {{peer["name"]: {{
+    "HostName": peer["name"], "TailscaleIPs": [peer["address"]], "Online": True,
+}} for peer in peers}}}}))
+"""
+
+SSH = """\
+import json, sys
+peers = {{peer["address"]: peer for peer in json.loads(open({state!r}).read())}}
+peer = peers.get(sys.argv[-2])
+if peer is None:
+    sys.exit("ssh: connect to host " + sys.argv[-2] + ": No route to host")
+print(json.dumps({{"threads": [{{}}] * peer["threads"]}}))
+"""
+
+
+@dataclass(frozen=True)
+class FakeTailnet:
+    """The tailnet discovery probes, wherever the probe runs.
+
+    Discovery is a Core read the observer process serves, so a stub in the test's own
+    interpreter never reaches it, and the real tailscale and ssh would probe the owner's
+    machines. Fake tailscale and ssh executables first on PATH are the boundary both
+    processes share: TailnetBuses runs for real against the peers a test holds here.
+    """
+
+    state: Path
+
+    @classmethod
+    def installed(cls, directory: Path, monkeypatch: pytest.MonkeyPatch) -> "FakeTailnet":
+        directory.mkdir()
+        tailnet = cls(directory / "peers.json")
+        tailnet.state.write_text("[]")
+        for name, source in (("tailscale", TAILSCALE), ("ssh", SSH)):
+            program = directory / name
+            program.write_text(f"#!{sys.executable}\n" + source.format(state=str(tailnet.state)))
+            program.chmod(0o755)
+        monkeypatch.setenv("PATH", f"{directory}:{Path(sys.executable).parent}:/usr/bin:/bin")
+        return tailnet
+
+    def hold(self, peer: TailnetPeer, threads: int) -> None:
+        """``peer`` is on the tailnet and its CLI answers with ``threads`` threads."""
+        peers = json.loads(self.state.read_text())
+        peers.append({"name": peer.name, "address": peer.address, "threads": threads})
+        self.state.write_text(json.dumps(peers))
+
+
+@pytest.fixture(autouse=True)
+def tailnet(tmp_path, monkeypatch) -> FakeTailnet:
+    return FakeTailnet.installed(tmp_path / "tailnet", monkeypatch)
 
 
 def openable(path: Path) -> OpenableProfile:
@@ -149,7 +207,7 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
         assert app.coordination_access.connection is connection, "nothing is opened by showing a list"
 
 
-async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch, tmp_path):
+async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch, tmp_path, tailnet):
     """Tristan: "it only detects this machine shohld detect gaming desktop".
 
     The dialog opens on what this machine knows and asks the tailnet after, so the probe is
@@ -157,9 +215,8 @@ async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch
     """
 
 
-    found = (PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43),
-             PeerHoldsBus(TailnetPeer("desktop", "100.124.133.120", True), 247))
-    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: found))
+    tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
+    tailnet.hold(TailnetPeer("desktop", "100.124.133.120", True), 247)
     # This machine's own held profiles are not this test's subject, and a real one in the
     # owner's home would be a row here.
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
@@ -171,8 +228,9 @@ async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch
         picker = app.screen
         assert [type(row).__name__ for row in picker.rows] == ["LocalBus"], "instant rows first"
         await ui.until(lambda: len(picker.rows) == 3, why="the tailnet peers to arrive")
+        # Tailscale's peers in the order discovery lists them: by name.
         assert [row.label() for row in picker.rows[1:]] == [
-            "ts-gaming · 43 threads", "desktop · 247 threads"]
+            "desktop · 247 threads", "ts-gaming · 43 threads"]
         assert all(isinstance(row, DiscoveredPeer) for row in picker.rows[1:])
 
 
@@ -232,7 +290,7 @@ async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypat
         assert app.coordination_access.connection is connection
 
 
-async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monkeypatch, tmp_path):
+async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monkeypatch, tmp_path, tailnet):
     """Tristan: "histiry of last connected accunukates in the remote bus dialog".
 
     A held profile and a discovered peer were two rows for one machine: one named by its
@@ -249,8 +307,7 @@ async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monk
                          BearerSecret("secret")),
             ReachedRoute(address),
         ).write_new(tmp_path / f"{name}.json")
-    found = (PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43),)
-    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: found))
+    tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
@@ -351,7 +408,6 @@ async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspac
     # test_a_typed_address_must_name_a_peer_core_already_reports holds that half).
     typed = TailnetPeer("typed-host", "100.64.9.9", True)
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
-    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: ()))
     monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (typed,)))
     monkeypatch.setattr(TailnetProfiles, "ask", classmethod(offer))
 
@@ -380,7 +436,6 @@ async def test_a_saved_bus_can_be_forgotten_and_its_profile_goes_with_it(workspa
     exactly that directory, so there is no second record of what is saved."""
 
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
-    monkeypatch.setattr(TailnetBuses, "seen", classmethod(lambda cls: ()))
     held = tmp_path / "box-b.json"
     openable(held).profile.write_new(held)
 

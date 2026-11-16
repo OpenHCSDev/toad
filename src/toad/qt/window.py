@@ -782,7 +782,6 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.paint_sidebar_bar()
 
     async def close_native_views(self) -> None:
-        await self.end_operations()
         await self.session_navigation.close_views()
 
     async def close_rendering(self) -> None:
