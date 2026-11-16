@@ -97,4 +97,4 @@ class NoNavigationOwner(NavigationOwner):
 
     async def open_sidebar_target(self, target: NavigationDestination) -> None:
         """A target asked of no navigating view is refused with a notice, not a traceback."""
-        self.app.notify("Nothing opens from this view", title="Navigation")
+        self.app.show_info("Nothing opens from this view", "Navigation")
