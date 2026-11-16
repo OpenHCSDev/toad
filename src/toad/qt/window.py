@@ -35,6 +35,7 @@ from toad.client.conversation import (
     SharedDmConversation,
 )
 from toad.client.conversation_capabilities import ConversationSource
+from toad.client.line_blocks import LineBlock
 from toad.client.subscribers import SidebarSubscriber
 from toad.core.events import CoordinationObserved
 from toad.message_rows import MarkdownMessageStyle, MessageRow
@@ -106,11 +107,27 @@ class TouchList(TouchScrolled, QListWidget):
 
 
 class MessageView(TouchScrolled, QTextBrowser):
-    """A conversation's messages as Toad draws them: each row's header and body blocks."""
+    """A conversation's messages as Toad draws them: each row's header and body blocks,
+    drawn again at a new width, since dividers fill the width."""
 
-    def __init__(self) -> None:
+    def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
         self.setOpenLinks(False)
+        self.renderer = renderer
+        self.blocks: tuple[LineBlock, ...] = ()
+
+    def show_blocks(self, blocks: tuple[LineBlock, ...]) -> None:
+        self.blocks = blocks
+        self.paint_blocks()
+        scroll = self.verticalScrollBar()
+        scroll.setValue(scroll.maximum())
+
+    def paint_blocks(self) -> None:
+        self.setHtml(self.renderer.at_width(self.viewport().width() - 8, self.font()).html(self.blocks))
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        self.paint_blocks()
 
 
 class ThreadList(TouchList, SidebarSubscriber[Observing, FailedObservation]):
@@ -169,7 +186,7 @@ class ConversationView(QWidget):
         header = QHBoxLayout()
         header.addWidget(back)
         header.addWidget(self.title, 1)
-        self.messages = MessageView()
+        self.messages = MessageView(window.renderer)
         self.reader = ""
         self.input = QLineEdit()
         self.input.setPlaceholderText("Message")
@@ -203,10 +220,8 @@ class ConversationView(QWidget):
             return
         style = MarkdownMessageStyle()
         rows = (MessageRow(message, self.reader) for message in page.messages)
-        self.messages.setHtml(self.window.renderer.html(tuple(
-            block for row in rows for block in (row.header, *style.body(row, row.text)))))
-        scroll = self.messages.verticalScrollBar()
-        scroll.setValue(scroll.maximum())
+        self.messages.show_blocks(tuple(
+            block for row in rows for block in (row.header, *style.body(row, row.text))))
 
     def send(self) -> None:
         body = self.input.text().strip()
