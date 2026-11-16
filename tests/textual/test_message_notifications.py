@@ -107,7 +107,7 @@ async def test_visible_references_are_bounded_and_typed_outcomes_paint_their_det
         assert set(request.operation.references) <= on_screen
         await notifications.publish(ui, chat)
         await ui.until_shows(newest_status(chat).title)
-        assert newest_status(chat).working
+        assert newest_status(chat).is_working()
         # Held messages bring up the channel's queue line, as a DM's, so click the newest status drawn now.
         await ui.click("▶ Sent", occurrence=ui.visible_text().count("▶ Sent") - 1)
         await ui.until_shows("waiting-9: Sent")
@@ -151,11 +151,11 @@ async def test_the_line_follows_typed_state_and_read_errors_without_new_messages
         notifications.state = ConsumingProgress(0)
         await notifications.publish(ui, chat)
         await ui.until_shows(newest_status(chat).title)
-        assert newest_status(chat).working
+        assert newest_status(chat).is_working()
         notifications.state = IgnoredProgress(ShownToModelProgress(0))
         await notifications.publish(ui, chat)
         await ui.until_shows(newest_status(chat).title)
-        assert not newest_status(chat).working
+        assert not newest_status(chat).is_working()
         access = ui.app.coordination_access
         request = access.notification_views[chat.message_history.notification_view]
         error = UnreadableHistory.capture(OSError("fixture busy database"))

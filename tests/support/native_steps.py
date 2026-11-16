@@ -72,7 +72,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     assert len(sent_rows) == 1
     sent = sent_rows[0]
     assert sent.sender == user and sent.target == target
-    await ui.until(lambda: feedback_of(chat, sent).working, seconds=20,
+    await ui.until(lambda: feedback_of(chat, sent).is_working(), seconds=20,
                    why="active delivery feedback under the sent message")
     assert comms.registry.require(target).executing
 
