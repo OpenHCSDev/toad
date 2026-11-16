@@ -32,6 +32,9 @@ async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: 
     """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
     sidebar observing."""
     app = QtToadApp(connection, project, PreparationRuntime(RenderProcessPool(connection.helper_start)), scheme)
+    # The loop outlives the window: closing it starts the shared client shutdown, which
+    # runs on this loop, so Qt must not stop the loop when the last window closes.
+    QApplication.instance().setQuitOnLastWindowClosed(False)
     await (await app.get_db()).create()
     app.resize(420, 820)
     app.show()
@@ -42,10 +45,11 @@ async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: 
 async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> None:
     """Show the bus behind ``connection``: desktop passes the process-decoding member,
     Android the one decoding in place."""
-    await open_app(connection, project, scheme)
+    app = await open_app(connection, project, scheme)
     closed = asyncio.get_running_loop().create_future()
     QApplication.instance().lastWindowClosed.connect(lambda: closed.done() or closed.set_result(None))
     await closed
+    await app.close_client()
 
 
 def main(arguments: list[str] = sys.argv) -> None:

@@ -22,6 +22,7 @@ from toad.application_lifetime import ApplicationLifetime, ApplicationStart
 from toad.client.bus_selection import BusChoice, BusPickerHost
 from toad.client.connection import CoreConnection
 from toad.client.db import DB
+from toad.client.resource_release import AsyncResourceRelease
 from toad.client.session_tracker import OpenTab, SessionTracker, SidebarState
 from toad.client.tab_order import TabOrder
 from toad.constants import WELCOME
@@ -87,6 +88,29 @@ class ClientApplication(BusPickerHost, NavigationHost):
             await self.session_navigation.leave_bus()
             await self.coordination_access.switch_connection(connection)
             await self.open_saved_tabs()
+
+    async def close_client(self) -> None:
+        """Release the launch's client owners in the order they depend on each other:
+        thread work and navigation first, then the observation's updates, the native views,
+        the navigation reader, rendering, and the coordination access last. Accepted
+        preparation survives its UI waiter, so the observer stays available until those
+        workers and their read replies finish."""
+        async with AsyncResourceRelease() as release:
+            release.push_async_callback(self.coordination_access.close)
+            release.push_async_callback(self.close_rendering)
+            release.push_async_callback(self.navigation_reader.aclose)
+            release.push_async_callback(self.close_native_views)
+            release.push_async_callback(self.coordination_access.stop_observing)
+            release.push_async_callback(self.thread_actions.close)
+            release.push_async_callback(self.thread_navigation.close)
+
+    @abstractmethod
+    async def close_native_views(self) -> None:
+        """Close this frontend's views of the open tabs; the tabs stay saved."""
+
+    @abstractmethod
+    async def close_rendering(self) -> None:
+        """Join this frontend's render work and stop its render processes."""
 
     @abstractmethod
     def connection_for(self, choice: BusChoice) -> CoreConnection:
