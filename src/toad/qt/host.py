@@ -126,10 +126,6 @@ class QtCommsHost(CommsHost):
         if (focused := QApplication.focusWidget()) is not None:
             focused.clearFocus()
 
-    async def reveal_sidebar(self) -> bool:
-        """The window's thread list is always on screen."""
-        return True
-
     def capture_command_origin(self) -> WindowCommandOrigin:
         return WindowCommandOrigin(QApplication.activeWindow())
 

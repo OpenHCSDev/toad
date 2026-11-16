@@ -53,6 +53,7 @@ from ui_theme.scheme import (
 )
 
 from toad.client.application import ClientApplication
+from toad.client.application_actions import ApplicationAction
 from toad.client.connection import (
     CoordinationAccess,
     FailedObservation,
@@ -92,6 +93,10 @@ class ConversationOpen(OperationKind, ExclusiveKind):
 
 class MessageSend(OperationKind):
     """Sends one message; sends run side by side and are never superseded."""
+
+
+class MenuActionRun(OperationKind):
+    """One application action chosen from the menu."""
 
 
 class TabClose(OperationKind):
@@ -734,6 +739,11 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.sidebar.hide()
         self.paint_sidebar_bar()
 
+    async def reveal_sidebar(self) -> bool:
+        """The sidebar comes up over the conversation, as its bar would bring it."""
+        self.show_sidebar()
+        return True
+
     def toggle_sidebar(self) -> None:
         if self.sidebar.isVisible():
             self.hide_sidebar()
@@ -741,12 +751,12 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
             self.show_sidebar()
 
     def show_menu(self) -> None:
-        """popup(), not exec(): exec's nested event loop under qasync showed nothing on
-        Android."""
+        """Toad's application actions under their labels, as its menu lists them; a choice
+        runs as its own operation. popup(), not exec(): exec's nested event loop under qasync
+        showed nothing on Android."""
         self.menu_popup = QMenu(self)
-        self.menu_popup.addAction("Hide sidebar" if self.sidebar.isVisible() else "Show sidebar",
-                                  self.toggle_sidebar)
-        self.menu_popup.addAction("Quit", self.close)
+        for command, label in ApplicationAction.menu(self):
+            self.menu_popup.addAction(label, partial(self.run_operation, MenuActionRun, partial(command.apply, self)))
         corner = self.menu.mapToGlobal(self.menu.rect().topLeft())
         self.menu_popup.popup(corner - QPoint(0, self.menu_popup.sizeHint().height()))
 
