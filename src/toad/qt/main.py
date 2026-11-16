@@ -16,14 +16,8 @@ from ui_theme.catalog import SCHEMES
 from ui_theme.scheme import ColourScheme
 from ui_theme.wal import WalFile
 
-from toad.client.connection import (
-    CoordinationAccess,
-    ProcessRemoteCoreConnection,
-    RemoteCoreConnection,
-)
-from toad.client.db import DB
-from toad.qt.host import QtCommsHost
-from toad.qt.window import CommsWindow
+from toad.client.connection import ProcessRemoteCoreConnection, RemoteCoreConnection
+from toad.qt.window import QtToadApp
 from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
 
@@ -37,16 +31,13 @@ def current_scheme(environment: Mapping[str, str]) -> ColourScheme:
 async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> None:
     """Show the bus behind ``connection``: desktop passes the process-decoding member,
     Android the one decoding in place."""
-    host = QtCommsHost(project, PreparationRuntime(RenderProcessPool(connection.helper_start)))
-    access = CoordinationAccess(host, connection)
-    db = DB()
-    await db.create()
-    window = CommsWindow(access, scheme, db)
-    # The saved roster is read so tabs this window cannot draw yet stay saved.
-    await window.tab_order.load()
-    window.resize(420, 820)
-    window.show()
-    access.open_current().show_sidebar(window.sidebar)
+    app = QtToadApp(connection, project, PreparationRuntime(RenderProcessPool(connection.helper_start)), scheme)
+    await (await app.get_db()).create()
+    # The saved roster is read so tabs this app cannot draw yet stay saved.
+    await app.tab_order.load()
+    app.resize(420, 820)
+    app.show()
+    app.coordination_access.open_current().show_sidebar(app.sidebar)
     closed = asyncio.get_running_loop().create_future()
     QApplication.instance().lastWindowClosed.connect(lambda: closed.done() or closed.set_result(None))
     await closed

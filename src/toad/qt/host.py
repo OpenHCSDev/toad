@@ -6,15 +6,12 @@ import asyncio
 import traceback
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
-from pathlib import Path
 
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
-from agent_comms.history_views import RetiredViews
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.request import CoreAccess
 from formbridge.operations import OperationKind
-from formbridge.publications import PublicationStream
 from PySide6.QtCore import QTimer, qCritical
 from PySide6.QtWidgets import (
     QApplication,
@@ -27,7 +24,6 @@ from PySide6.QtWidgets import (
 )
 
 from toad.client.host import CommandOrigin, CommsHost
-from toad.client.tab_identity import TabIdentity
 from toad.work_preparation import PreparationRuntime
 
 
@@ -62,20 +58,20 @@ class WindowCommandOrigin(CommandOrigin):
 class QtCommsHost(CommsHost):
     """The shared host on Qt's event loop; asyncio runs on that loop through qasync.
 
-    The window owns what is drawn; this host owns what the shared client asks of the
-    application: deferred callbacks, timers, operations, errors and the open views.
-    Dialogs open over whichever window is active; a timer belongs to whoever holds it.
+    The Qt application inherits it beside the shared client and Qt's widget: this host owns
+    what the shared client asks of the toolkit (deferred callbacks, timers, operations, errors,
+    the clipboard), and its constructor continues to the widget's. Dialogs open over
+    whichever window is active; a timer belongs to whoever holds it.
     """
 
-    tab_names: tuple[TabIdentity, ...] = ()
     sidebar_show_stopped = False
     sidebar_show_archived = False
 
     def __init__(self, project: Checkout, preparation: PreparationRuntime) -> None:
         self.project_dir = project
         self.preparation = preparation
-        self.events = PublicationStream(self)
         self.operations: defaultdict[type[OperationKind], set[asyncio.Future[None]]] = defaultdict(set)
+        super().__init__()
 
     def schedule_ui(self, callback: Callable[[], None]) -> None:
         QTimer.singleShot(0, callback)
@@ -123,6 +119,9 @@ class QtCommsHost(CommsHost):
     def log_error(self, text: str) -> None:
         qCritical(text)
 
+    def copy_to_clipboard(self, text: str) -> None:
+        QApplication.clipboard().setText(text)
+
     def clear_focus(self) -> None:
         if (focused := QApplication.focusWidget()) is not None:
             focused.clearFocus()
@@ -145,12 +144,3 @@ class QtCommsHost(CommsHost):
 
     def end_application(self) -> None:
         QApplication.closeAllWindows()
-
-    def open_thread_identities(self, root: str) -> set:
-        return set()
-
-    def open_channel_targets(self, root: str) -> set[str]:
-        return set()
-
-    def retire_views(self, root: Path, retired: RetiredViews) -> None:
-        """No tab outlives its thread here: the conversation view rereads on every change."""
