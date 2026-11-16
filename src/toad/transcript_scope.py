@@ -51,7 +51,7 @@ from toad.client.input_decision import InputAccepted, InputDecision, TranscriptN
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.client.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
-from toad.transcript_requests import TranscriptRequests
+from toad.client.transcript_requests import TranscriptRequests
 
 
 class TranscriptView(CoreEventReceiver, ToadNode):

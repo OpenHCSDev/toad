@@ -31,7 +31,7 @@ from toad.acp.session_updates import SessionNotificationOwner
 from toad.acp.tool_calls import SessionToolCalls
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.agent_presentation import ACPAgentPresentation
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 from toad.core import events as core_events
 from toad.platform import host
 

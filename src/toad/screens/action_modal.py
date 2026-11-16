@@ -12,7 +12,7 @@ from toad.screens.modal import CenteredScreen, DismissibleScreen
 
 from toad.widgets.command_pane import CommandPane
 from toad.terminal_execution import Command, TerminalExecution
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction
 from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver

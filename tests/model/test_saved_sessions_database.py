@@ -12,7 +12,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.nominal.field_codec import AcpSessionId, RecordedTimestamp
 from agent_comms.errors import RelationViolationError
 
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 from toad.client.db import DB, Session, SessionMeta
 
 SAVED_AGENT = {"identity": "id", "name": "Agent", "run_command": {"*": "agent"}}

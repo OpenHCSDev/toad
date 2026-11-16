@@ -10,7 +10,7 @@ import sys
 
 def stdio_agent_definition():
     """The agent definition whose process runs Core's ACP client over stdio, on the root Toad hands it."""
-    from toad.agent_schema import AgentDefinition
+    from toad.client.agent_schema import AgentDefinition
 
     return AgentDefinition("real-attachments", "Real attachments", {"*": shlex.join([sys.executable, "-m", "agent_comms.execution.acp"])},
                            accepts_comms_root=True)

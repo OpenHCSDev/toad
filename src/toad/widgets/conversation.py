@@ -944,7 +944,7 @@ class ConversationSessionBinding(
 
 from textual import on
 
-from toad.agent_schema import Command
+from toad.client.agent_schema import Command
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.catalog_actions import CatalogCommandAction
 from toad.commit_claims import StartedInputClaim

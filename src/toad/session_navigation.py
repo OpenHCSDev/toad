@@ -25,7 +25,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 from toad.agents import AgentNotFound, read_agents
 from toad.core import events as core_events
 from toad.core.events import CoreEventStream

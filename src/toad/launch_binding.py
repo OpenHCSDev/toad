@@ -12,7 +12,7 @@ from agent_comms.projects.checkouts import Checkout
 from textual.abstract_hooks import AbstractHooksMeta
 
 from toad.agent_binding import AgentConnection
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 from toad.core import session_requests
 from toad.core.events import CoreEventStream
 from toad.app_node import ToadNode

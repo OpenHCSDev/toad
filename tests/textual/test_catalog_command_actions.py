@@ -8,7 +8,7 @@ WorkerFailed_2026-11-07T14_00_38, `provider_login`).
 
 import pytest
 
-from toad.agent_schema import Command
+from toad.client.agent_schema import Command
 from toad.catalog_actions import CatalogCommandAction, LoginAction, RunAction
 
 
