@@ -8,9 +8,7 @@ from toad.widget_actions import ForwardsCursor, PriorityActions, Submits, Visibl
 from textual import getters
 from textual.message import Message
 from textual.reactive import var
-from textual import containers
 from textual import widgets
-from textual.widgets.option_list import Option
 
 from toad.slash_command_results import SlashCommandResults
 from toad.slash_command import SlashCommand
@@ -108,7 +106,7 @@ class SlashComplete(PriorityActions, VisibleActions, ForwardsCursor, Submits, Co
         """
         if not self.is_open:
             return
-        self.option_list.set_options(self.results.options(prompt, self.slash_commands))
+        self.option_list.set_options(self.results.options(prompt, self.slash_commands, self.app.colours))
         if self.display:
             self.option_list.highlighted = 0
         else:

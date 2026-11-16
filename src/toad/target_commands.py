@@ -2,53 +2,24 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Self
+from abc import ABC
+from dataclasses import dataclass
+from typing import Self
 
 from agent_comms.cli_verbs.cli_command import TargetAction
-from agent_comms.messaging.channel_targets import (
-    ChannelSelection,
-    CommandTarget,
-    NoChannel,
-)
-from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 
-from toad.client.commands import CommandContextChanged, SharedContextualCommand, SortCapable
-from toad.client.connection import Observing
+from toad.client.commands import (
+    ConversationCommands,
+    SharedContextualCommand,
+    SharedTargetContext,
+    SortCapable,
+)
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from toad.thread_actions import ThreadAction
 
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-    from toad.widgets.conversation import Conversation
 
-
-@dataclass(frozen=True)
-class TargetContext:
-    app: ToadApp
-    observed: Observing
-    subject: CommandTarget
-    actor: str
-    project: Checkout
-    mode: str | None = None
-    channel: ChannelSelection = field(default_factory=NoChannel)
-    targets: tuple[CommandTarget, ...] = ()
-
-    @property
-    def selection(self) -> tuple[CommandTarget, ...]:
-        return self.targets or (self.subject,)
-
-    @property
-    def selected_targets(self) -> tuple[str, ...]:
-        return tuple(name for target in self.selection for name in target.destination_names)
-
-    @property
-    def title(self) -> str:
-        names = self.selected_targets
-        return ", ".join(names) if names else str(self.project)
-
+class TargetContext(SharedTargetContext):
     def current(self):
         self.app.coordination_access.selected(self.observed.root)
         return self
@@ -60,10 +31,6 @@ class TargetContext:
             project=self.project, targets=self.selection, channel=self.channel)).actions
         access.confirm(selected)
         return actions
-
-    async def command_choices(self):
-        from toad.command_catalog import CommandCatalog
-        return (await CommandCatalog.read(self.app, (), self.acquired())).target_choices
 
     async def acquired(self):
         """A captured context is already acquired when a catalog reads it."""
@@ -193,5 +160,5 @@ class TargetSuggestion(SlashCommand):
     def parse_arguments(self, arguments: str) -> Self:
         return type(self)(self.choice.parse_arguments(arguments), self.context)
 
-    async def apply(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: ConversationCommands) -> bool:
         return await self.choice.apply(conversation, self.context)

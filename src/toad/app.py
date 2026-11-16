@@ -81,6 +81,7 @@ from toad.client.tab_order import TabOrder
 from toad.terminal_attention import TerminalAttention
 from toad.terminal_origin import TerminalOrigin
 from toad.thread_actions import ThreadActions
+from toad.widgets.comms_command_dialog import ScreenCommandOrigin
 from toad.thread_navigation import ThreadNavigator
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.widgets import tool_call  # noqa: F401 - register widget classes
@@ -528,6 +529,10 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
     @property
     def selected_session(self):
         return self.workspace_sessions.source.view
+
+    def command_origin(self) -> ScreenCommandOrigin:
+        """The screen a command starts on, captured before its fields are prepared off the loop."""
+        return ScreenCommandOrigin(self.screen)
 
     @property
     def selected_mode(self):
