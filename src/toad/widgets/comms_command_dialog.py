@@ -342,7 +342,8 @@ class CommandForm(Confirms, DismissibleControl, Vertical, actions=(ApplyCommandA
             for parameter in prepared.fields:
                 if parameter.name in self.choices:
                     self.choices[parameter.name].parameter = parameter
-                    self.form.values[parameter.name].editor.paint()
+                    editor = self.form.values[parameter.name].editor
+                    editor.call_after_refresh(editor.paint_value)
             break
         if self.is_attached:
             self.update_confirmation()
