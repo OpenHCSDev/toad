@@ -89,8 +89,7 @@ class DeclaredWidgetActions(ToadNode):
     def declared_actions(cls) -> tuple[type[DeclaredAction], ...]:
         """Capabilities and the widget's own family compose through its MRO."""
         return tuple(dict.fromkeys(
-            member for base in cls.__mro__
-            for family in base.__dict__.get("own_actions", ())
+            member for family in cls.declared_items("own_actions")
             for member in family.members_with(family)
         ))
 
@@ -468,10 +467,11 @@ class ActionPresentation(DeclaredWidgetActions):
 
     @classmethod
     def present_binding(cls, declaration: type[KeyDeclaration], binding: Binding) -> Binding:
-        scopes = {family: members for base in reversed(cls.__mro__)
-                  for family, members in base.__dict__.get("scopes", {}).items()}
-        for base in reversed(cls.__mro__):
-            for style in base.__dict__.get("binding_styles", ()):
+        scopes = {family: members
+                  for _, declared in cls.own_declarations("scopes", reversed(cls.__mro__))
+                  for family, members in declared.items()}
+        for base, styles in cls.own_declarations("binding_styles", reversed(cls.__mro__)):
+            for style in styles:
                 selected = any(root in declaration.__mro__ for root in scopes.get(base, (KeyDeclaration,)))
                 binding = replace(binding, **{
                     style.field.name: style.combine(bool(style.field.current(binding)), selected)
