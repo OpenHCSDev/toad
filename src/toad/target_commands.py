@@ -19,7 +19,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 from textual.geometry import Region
 
-from toad.client.commands import CommandContextChanged
+from toad.client.commands import CommandContextChanged, SharedContextualCommand
 from toad.client.connection import Observing
 from toad.core import session_requests
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
@@ -94,8 +94,7 @@ class TargetContext:
         command.execute(self)
 
 
-class ContextualCommand(CommandPresentation, ABC):
-    command: str
+class ContextualCommand(SharedContextualCommand, CommandPresentation, ABC):
 
     def target_choices(self, context: TargetContext | None):
         return (self,) if context is not None and self.available(context) else ()
@@ -104,30 +103,12 @@ class ContextualCommand(CommandPresentation, ABC):
         return tuple(TargetSuggestion(command, context)
                      for command in self.target_choices(context))
 
-    @abstractmethod
-    def available(self, ctx: TargetContext) -> bool: ...
-
-    @abstractmethod
-    def label(self, ctx: TargetContext) -> str: ...
-
-    @abstractmethod
-    def execute(self, ctx: TargetContext) -> None: ...
-
     def parse_arguments(self, arguments: str) -> ContextualCommand:
         if arguments.strip():
             raise ValueError(
                 "Use the current target; parameters are collected in the operation form"
             )
         return self
-
-    async def apply(self, conversation: Conversation, ctx: TargetContext) -> bool:
-        if await conversation.command_target_context() != ctx:
-            raise CommandContextChanged("Command target changed; refresh this view")
-        if not self.available(ctx):
-            raise ValueError("Action is no longer available for this target")
-        self.execute(ctx)
-        conversation.update_slash_commands()
-        return True
 
 
 @dataclass(frozen=True)

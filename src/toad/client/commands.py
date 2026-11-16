@@ -57,6 +57,41 @@ class SharedTargetContext:
         return ", ".join(names) if names else str(self.project)
 
 
+class ConversationCommands(ABC):
+    """The conversation methods shared commands need — no Textual import."""
+
+    @abstractmethod
+    async def command_target_context(self) -> SharedTargetContext | None: ...
+
+    @abstractmethod
+    def update_slash_commands(self) -> None: ...
+
+
+class SharedContextualCommand(ABC):
+    """A command available for a target context. Native commands inherit this
+    alongside their framework's command registration (SlashCommand, etc.)."""
+
+    command: str
+
+    @abstractmethod
+    def available(self, ctx: SharedTargetContext) -> bool: ...
+
+    @abstractmethod
+    def label(self, ctx: SharedTargetContext) -> str: ...
+
+    @abstractmethod
+    def execute(self, ctx: SharedTargetContext) -> None: ...
+
+    async def apply(self, conversation: ConversationCommands, ctx: SharedTargetContext) -> bool:
+        if await conversation.command_target_context() != ctx:
+            raise CommandContextChanged("Command target changed; refresh this view")
+        if not self.available(ctx):
+            raise ValueError("Action is no longer available for this target")
+        self.execute(ctx)
+        conversation.update_slash_commands()
+        return True
+
+
 class TargetActionState(ABC):
     """Whether a thread has a pending target action. The family's absent
     member is NoTargetAction; the active member is ThreadActionExecution."""
