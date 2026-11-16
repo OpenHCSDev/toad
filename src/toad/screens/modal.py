@@ -6,11 +6,11 @@ from textual.screen import ModalScreen as NativeModalScreen
 from ui_theme.scheme import BackgroundColour, PrimaryColour
 
 from toad.native_style import AutoHeight, CenteredChildren, RightPadding, SurfaceBackground
-from toad.widget_actions import DismissibleControl, ProfileKeys
+from toad.widget_actions import DismissibleControl, HintKeys
 from textual.widget import Widget
 
 
-class ModalScreen[Result](ProfileKeys, NativeModalScreen[Result]):
+class ModalScreen[Result](HintKeys, NativeModalScreen[Result]):
     """Modal keyboard scope uses the same native declarations as the workspace."""
 
 

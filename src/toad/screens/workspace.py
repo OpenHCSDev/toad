@@ -17,7 +17,7 @@ from textual.screen import Screen
 from textual.view import WidgetView
 from textual.widget import Widget
 
-from toad.widget_actions import ProfileKeys
+from toad.widget_actions import HintKeys
 from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.view_actions import ViewAction
 from toad.workspace_chrome import WorkspaceBody
@@ -80,7 +80,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         )
 
 
-class WorkspaceFrame(ProfileKeys, JumpsHistory, WidgetView, Screen):
+class WorkspaceFrame(HintKeys, JumpsHistory, WidgetView, Screen):
     """Native frame and history layout shared by the workspace and saved-history modal."""
     layer_order = (DEFAULT_LAYER, "comms-sidebar", WireExportProgressView.layer_name,
                    "_tooltips", "_toastrack")
