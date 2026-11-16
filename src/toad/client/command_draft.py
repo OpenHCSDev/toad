@@ -101,7 +101,9 @@ class CommandDraft:
 
     async def refresh_catalogs(self, arguments) -> None:
         """Refresh choice projections from Core until the arguments they were asked for
-        are still the form's arguments."""
+        are still the form's arguments. Core's answer only updates the choices: the action
+        sent next is edited from the declared one again, never from the prepared answer,
+        whose offered choices are not part of a request."""
         while self.draft_alive():
             edited = self.definition.edited(arguments)
             prepared = await self.draft_run_thread(
@@ -112,7 +114,6 @@ class CommandDraft:
             if arguments != current:
                 arguments = current
                 continue
-            self.definition = prepared
             for parameter in prepared.fields:
                 if parameter.name in self.choices:
                     self.choices[parameter.name].parameter = parameter

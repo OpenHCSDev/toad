@@ -322,7 +322,8 @@ class CommandScenario(Scenario):
         self.report("2-copied", clipboard=QApplication.clipboard().text(), draft=composer.text,
                     sending=composer.submitting.text())
         await self.send("/copy now")
-        await until(lambda: "current view" in app.status_line.text(), "refused", tenths=100)
+        await until(lambda: app.status_line.isVisible() and "current target" in app.status_line.text(),
+                    "refused", tenths=100)
         self.report("3-refused", notice=app.status_line.text(), shown=app.status_line.isVisible())
         await self.open(self.channel_row("#comms"), "#comms")
         await self.send("/rename-tag")
@@ -338,7 +339,7 @@ class CommandScenario(Scenario):
         form.form.finish()
         await asyncio.sleep(1.0)
         self.report("5-filled", value=form.arguments(), confirmation=form.confirmation_text.text(),
-                    confirmable=form.confirmed.isVisible())
+                    confirmable=form.confirmed.isVisible(), notice=app.status_line.text())
         form.grab().save(str(self.out / f"{type(self).declared_name}-5-filled.png"))
         form.reject()
         answer = await form.answer
