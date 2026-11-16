@@ -455,11 +455,11 @@ See on-screen instructions for details.
         super().apply_native_layout()
         self.styles.max_height = "50vh"
 
-    @property
     def refuse_input(self, message: str) -> None:
         self.app.bell()
         self.post_message(messages.Flash(message, "error"))
 
+    @property
     def can_enter_shell(self) -> bool:
         return self.submission_allowed and not self.text and not self.shell_mode
 
