@@ -11,7 +11,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._callback import invoke
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
-from metaclass_registry.key_declarations import KeyDeclarationType, KeyInvocation
+from formbridge.key_declarations import KeyDeclarationType, KeyInvocation
 from textual.widget import Widget
 
 from toad.client.line_blocks import LineLink

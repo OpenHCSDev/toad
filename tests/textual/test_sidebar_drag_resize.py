@@ -5,7 +5,7 @@ import pytest
 from toad.key_modes import Standard
 from toad.keymap import KeymapRow
 from toad.preferences import SETTINGS
-from textual.keys import RightKey
+from formbridge.key_declarations import RightKey
 from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, WidthSidebarEdge
 from toad.widgets.side_bar import (
     SideBarToggle, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,

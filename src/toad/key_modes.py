@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from agent_comms.nominal.declared_choice import DeclaredChoice
-from textual.document._editing import EditingMode, VimMode
-from textual.keys import NavigationKey
+from formbridge.key_declarations import ModalInputMode, NavigationKey
+from textual.document._editing import EditingMode
 
 from toad.neovim_editing import NeovimEditing
 
@@ -26,8 +26,8 @@ class VimInsert(NeovimEditing, KeyMode):
 
     @classmethod
     def navigation_spellings(cls, key: type[NavigationKey]) -> tuple[str, ...]:
-        """Insert types its letters; only VimMode's modal spelling is an arrow there."""
-        return super(VimMode, cls).navigation_spellings(key)
+        """Insert types its letters; only a modal input mode's spelling is an arrow there."""
+        return super(ModalInputMode, cls).navigation_spellings(key)
 
 
 class VimNormal(NeovimEditing, KeyMode):
