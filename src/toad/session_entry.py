@@ -6,7 +6,6 @@ The mounted view remains the authority for source/presentation state.
 
 from __future__ import annotations
 
-from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
 
@@ -14,10 +13,8 @@ from agent_comms.messaging.display_references import (
     CurrentDisplayReferences,
     ReferenceContext,
 )
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.sidebar import ThreadRowModel
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.agent_log import AgentLog
@@ -29,8 +26,7 @@ from toad.screens.comms import CommsScreen
 from toad.screens.file_preview import FilePreviewScreen
 from toad.screens.main import MainScreen
 from toad.session_host import SessionNavigator
-from toad.client.session_projection import SessionProjection
-from toad.session_scope import SessionScope
+from toad.client.session_entry import SharedSessionEntry
 from toad.client.session_tracker import (
     ConversationTab,
     NamedTab,
@@ -43,47 +39,11 @@ from toad.widgets.acp_log import AcpLogPreview
 from toad.widgets.project_panel import FilePreview
 
 
-class SessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Observing], affix="Entry"):
-    def __init__(self, identity: TabIdentity) -> None:
-        self.identity = identity
-
-    @property
-    def mode(self) -> str:
-        return self.identity.mode_name
-
-    @property
-    def owner_mode(self) -> str:
-        return self.mode
-
-    @abstractmethod
-    def __call__(self) -> SessionScope: ...
-
-    @property
-    @abstractmethod
-    def address(self) -> object: ...
-
-    async def ready(self, sessions: SessionNavigator) -> None:
-        """Views with deferred loading own their loading completion."""
-
-    async def reconnect(
-        self, sessions: SessionNavigator, selected, snapshot, targets
-    ) -> None:
-        """Only a bound native entry can refresh its connection resource."""
+class SessionEntry(SharedSessionEntry[SessionNavigator], declared_name=None):
+    """The shared entry with the Textual app's screens, tab history and view lifetimes."""
 
     def source(self, sessions: SessionNavigator) -> MainScreen | None:
         return None
-
-    def thread_row(
-        self, sessions: SessionNavigator, row: ThreadRowModel
-    ) -> ThreadRowModel:
-        """How this entry's own session changes a thread's row; most entries hold none."""
-        return row
-
-    def depends_on(self, mode: str) -> bool:
-        return self.mode == mode
-
-    def original_channels(self) -> tuple[tuple[str, str], ...]:
-        return ()
 
     async def return_to(self, sessions: SessionNavigator) -> None:
         """Back to the tab selected before this one; the visit history owns that."""
