@@ -464,6 +464,7 @@ Subscription = _BaseSubscription
 class ThreadChangeSubscription(Subscription):
     """One live thread scope owns both delivery and observation interest."""
 
+    stream: CoreEventStream
     scope: tuple[str, str] = field(kw_only=True)
 
     @cached_property
@@ -494,7 +495,7 @@ class CoreEventStream(PublicationStream):
         return frozenset(thread for (source, thread), bucket in self.thread_subscriptions.items()
                          if source == root and bucket)
 
-    def publish(self, event: CoreEvent) -> None:
+    def publish(self, event: CoreEvent) -> None:  # type: ignore[override]
         subscriptions = tuple(event.subscribers(self))
         for subscription in subscriptions:
             for listener in subscription.listeners():
