@@ -29,7 +29,8 @@ from toad.navigation_target import DirectTarget, FeedTarget, HistoryTarget
 from toad.client.referenced_core import ReferencedCore
 from toad.client.conversation import CommsViewKey
 from toad.status_thread import NoStatusThread
-from toad.wire_history import WireSource
+from toad.client.history import WireSource
+from toad.widgets.wire_history import WireFragment
 
 
 class CoreAt(ReferencedCore):
@@ -71,7 +72,7 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     page = conversation.page(
         WireSource(comms.root, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
                    access=AppAgents.unrun(tmp_path, LaunchRoot.from_path(comms.root)).app.coordination_access,
-                      core=LocalCoreAccess(comms)),
+                      core=LocalCoreAccess(comms), fragments=WireFragment),
         PageBounds(limit=8),
     )
     assert body in [message.body for message in page.messages]

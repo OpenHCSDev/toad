@@ -6,7 +6,7 @@ from agent_comms.messaging.channel_targets import ChannelTarget
 from toad.client.conversation import ChannelConversation
 from toad.conversation_submission import OrdinaryInputSubmission
 from toad.widgets.comms_chat import CommsChatView
-from toad.wire_history import ChannelDestination
+from toad.client.history import ChannelDestination
 
 
 async def test_a_view_that_changed_before_its_send_left_keeps_the_draft_editable(workspace):
