@@ -11,15 +11,20 @@ from PySide6.QtWidgets import QApplication
 
 from agent_comms.projects.checkouts import Checkout
 
-from toad.client.connection import CoordinationAccess, RemoteCoreConnection
+from toad.client.connection import (
+    CoordinationAccess,
+    ProcessRemoteCoreConnection,
+    RemoteCoreConnection,
+)
 from toad.qt.host import QtCommsHost
 from toad.qt.window import CommsWindow
 from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
 
 
-async def serve(profile: Path, project: Checkout) -> None:
-    connection = RemoteCoreConnection.read(profile)
+async def serve(connection: RemoteCoreConnection, project: Checkout) -> None:
+    """Show the bus behind ``connection``: desktop passes the process-decoding member,
+    Android the one decoding in place."""
     host = QtCommsHost(project, PreparationRuntime(RenderProcessPool(connection.helper_start)))
     access = CoordinationAccess(host, connection)
     window = CommsWindow(access)
@@ -35,7 +40,7 @@ def main(arguments: list[str] = sys.argv) -> None:
     profile = Path(arguments[1])
     project = Checkout(Path(arguments[2]) if len(arguments) > 2 else Path.home())
     QApplication(arguments[:1])
-    qasync.run(serve(profile, project))
+    qasync.run(serve(ProcessRemoteCoreConnection.read(profile), project))
 
 
 if __name__ == "__main__":
