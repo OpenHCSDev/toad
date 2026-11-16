@@ -37,6 +37,7 @@ dependencies = [
     # The Qt backend (toad.qt) ships with every install: desktop and Android, one source.
     "pyside6-essentials==6.12.0",
     "qasync==0.28.0",
+    "pyqt-reactive",
 ]
 
 [tool.uv.workspace]
@@ -47,6 +48,7 @@ ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", branch = "main"
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", branch = "main" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", branch = "main" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", branch = "main" }
+pyqt-reactive = { git = "https://github.com/OpenHCSDev/PyQT-reactive.git", branch = "main" }
 textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", branch = "main" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", branch = "main" }
 objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "d34d75803d3b7e65128bf43ab867bb70f37cd013" }
