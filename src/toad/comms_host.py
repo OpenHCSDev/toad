@@ -5,6 +5,7 @@ capabilities (ThemedApp, CoreEventReceiver, BusPickerHost) and the fields the
 observation layer needs from the native app.
 """
 
+import asyncio
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from typing import Never
@@ -45,14 +46,42 @@ class CommsHost[Source](CoreEventReceiver, BusPickerHost, ThemedApp[ApplicationO
     def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> Timer:
         return self.set_interval(seconds, callback)
 
+    def delay_ui(self, seconds: float, callback: Callable[[], None]) -> None:
+        self.set_timer(seconds, callback)
+
     def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
         self.run_worker(task, group=kind.group, exclusive=kind.exclusive)
 
     def cancel_operations(self, kind: type[OperationKind]) -> None:
         self.workers.cancel_group(self, kind.group)
 
+    async def wait_operations(self, kind: type[OperationKind]) -> None:
+        await asyncio.gather(*(worker.wait() for worker in self.workers
+                               if worker.node is self and worker.group == kind.group),
+                             return_exceptions=True)
+
     def report_fatal(self, error: Exception) -> None:
         self._handle_exception(error)
 
+    def show_info(self, text: str, title: str) -> None:
+        self.notify(text, title=title)
+
     def show_warning(self, text: str, title: str) -> None:
-        self.notify(text, title=title, severity="warning")
+        self.notify(text, title=title, severity="warning", markup=False)
+
+    def log_error(self, text: str) -> None:
+        self.log.error(text)
+
+    def clear_focus(self) -> None:
+        self.screen.set_focus(None)
+
+    @property
+    def application_running(self) -> bool:
+        return self.is_running
+
+    @property
+    def display_size(self) -> tuple[int, int]:
+        return self.size
+
+    def end_application(self) -> None:
+        self.exit()

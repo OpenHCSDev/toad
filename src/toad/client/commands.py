@@ -12,8 +12,6 @@ from asyncio import CancelledError
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from agent_comms.cli_verbs.cli_command import TargetAction
-from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.messaging.channel_targets import (
     ChannelSelection,
     CommandTarget,
@@ -21,7 +19,6 @@ from agent_comms.messaging.channel_targets import (
 )
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transport.request import CoreAccess
 from metaclass_registry import AbstractHooksMeta
 
 from toad.client.connection import Observing
@@ -230,22 +227,3 @@ class NoTargetAction(TargetActionState):
 
     def busy(self, row: object) -> bool:
         return getattr(row, "working", False)
-
-
-class CommandOrigin(ABC):
-    """Captured native presentation owner for off-loop command preparation.
-
-    Captured before the preparation worker starts. current() answers
-    whether the view/screen is still selected and live when the reply
-    arrives. edit() runs the native dialog, returning the argument
-    mapping or None on cancellation.
-    """
-
-    @abstractmethod
-    def current(self) -> bool:
-        """Whether the captured view/screen is still selected and live."""
-
-    @abstractmethod
-    async def edit(self, definition: TargetAction, title: str, fields: tuple[TargetField, ...],
-                   core: CoreAccess) -> dict[str, str | None] | None:
-        """Run the native dialog. Returns arguments or None on cancel."""

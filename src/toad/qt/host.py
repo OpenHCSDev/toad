@@ -8,16 +8,55 @@ from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
+from agent_comms.cli_verbs.cli_command import TargetAction
+from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.history_views import RetiredViews
 from agent_comms.projects.checkouts import Checkout
+from agent_comms.transport.request import CoreAccess
 from formbridge.operations import OperationKind
 from formbridge.publications import PublicationStream
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtCore import QTimer, qCritical
+from PySide6.QtWidgets import (
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QLineEdit,
+    QMessageBox,
+    QWidget,
+)
 
-from toad.client.host import CommsHost
+from toad.client.host import CommandOrigin, CommsHost
 from toad.client.tab_identity import TabIdentity
 from toad.work_preparation import PreparationRuntime
+
+
+class WindowCommandOrigin(CommandOrigin):
+    """The window a command started on; its form opens only while that window is active."""
+
+    def __init__(self, window: QWidget | None) -> None:
+        self.window = window
+
+    def current(self) -> bool:
+        return QApplication.activeWindow() is self.window
+
+    async def edit(self, definition: TargetAction, title: str, fields: tuple[TargetField, ...],
+                   core: CoreAccess) -> dict[str, str | None] | None:
+        dialog = QDialog(self.window)
+        dialog.setWindowTitle(title)
+        form = QFormLayout(dialog)
+        editors = {field.name: QLineEdit(placeholderText=field.description) for field in fields}
+        for field in fields:
+            form.addRow(field.label, editors[field.name])
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+        answer: asyncio.Future[dict[str, str | None] | None] = asyncio.get_running_loop().create_future()
+        dialog.accepted.connect(lambda: answer.set_result({name: editor.text() for name, editor in editors.items()}))
+        dialog.rejected.connect(lambda: answer.set_result(None))
+        dialog.open()
+        return await answer
 
 
 class QtCommsHost(CommsHost):
@@ -47,6 +86,9 @@ class QtCommsHost(CommsHost):
         timer.start(int(seconds * 1000))
         return timer
 
+    def delay_ui(self, seconds: float, callback: Callable[[], None]) -> None:
+        QTimer.singleShot(int(seconds * 1000), callback)
+
     def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
         if kind.exclusive:
             self.cancel_operations(kind)
@@ -58,6 +100,9 @@ class QtCommsHost(CommsHost):
         for running in self.operations.pop(kind, set()):
             running.cancel()
 
+    async def wait_operations(self, kind: type[OperationKind]) -> None:
+        await asyncio.gather(*tuple(self.operations[kind]), return_exceptions=True)
+
     @property
     def running_loop(self) -> asyncio.AbstractEventLoop:
         return asyncio.get_running_loop()
@@ -66,11 +111,40 @@ class QtCommsHost(CommsHost):
         traceback.print_exception(error)
         QMessageBox.critical(QApplication.activeWindow(), "Toad", f"{type(error).__name__}: {error}")
 
+    def show_info(self, text: str, title: str) -> None:
+        QMessageBox.information(QApplication.activeWindow(), title, text)
+
     def show_warning(self, text: str, title: str) -> None:
         QMessageBox.warning(QApplication.activeWindow(), title, text)
 
     def show_error(self, error: Exception | str, title: str) -> None:
         QMessageBox.critical(QApplication.activeWindow(), title, str(error))
+
+    def log_error(self, text: str) -> None:
+        qCritical(text)
+
+    def clear_focus(self) -> None:
+        if (focused := QApplication.focusWidget()) is not None:
+            focused.clearFocus()
+
+    async def reveal_sidebar(self) -> bool:
+        """The window's thread list is always on screen."""
+        return True
+
+    def capture_command_origin(self) -> WindowCommandOrigin:
+        return WindowCommandOrigin(QApplication.activeWindow())
+
+    @property
+    def application_running(self) -> bool:
+        return not QApplication.closingDown()
+
+    @property
+    def display_size(self) -> tuple[int, int]:
+        size = QApplication.primaryScreen().size()
+        return size.width(), size.height()
+
+    def end_application(self) -> None:
+        QApplication.closeAllWindows()
 
     def open_thread_identities(self, root: str) -> set:
         return set()

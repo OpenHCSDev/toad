@@ -8,7 +8,6 @@ from functools import cached_property
 from pathlib import Path
 from typing import ClassVar
 
-from agent_comms.comms import Comms
 from agent_comms.execution.launch_root import LaunchRoot
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.projects.checkouts import Checkout
@@ -19,6 +18,7 @@ from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
 from toad.app import ToadApp
+from toad.application_lifetime import ApplicationStart
 from toad.client.connection import LocalCoreConnection
 from toad.launch_binding import AgentBinding, NoAgent
 from toad.screens.main import MainScreen
@@ -116,7 +116,7 @@ class Workspace:
                                       connection=(connect or self.local_connection.from_launch)(self.launch_root),
                                       agent_session_id=FieldCodec.decode(AcpSessionId | NoAcpSessionId, resume))
         async with app.run_test(size=size, notifications=notifications) as pilot:
-            await app.application.start_worker.wait()
+            await app.wait_operations(ApplicationStart)
             ui = TextualUi(app, pilot)
             if session:
                 if not app.session_navigation.members:

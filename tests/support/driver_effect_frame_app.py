@@ -14,7 +14,7 @@ from time import perf_counter, thread_time
 import traceback
 
 from textual.pilot import Pilot
-from toad.application_lifetime import ApplicationLifetime
+from toad.application_lifetime import ApplicationLifetime, ApplicationStart
 from toad.cli import main
 from toad.constants import WELCOME
 from toad.frame_presentation import AnimationEffects, EffectRunning
@@ -30,7 +30,7 @@ async def exercise(options, lifetime: ApplicationLifetime) -> None:
     code = 1
     try:
         async with asyncio.timeout(120):
-            await lifetime.start_worker.wait()
+            await app.wait_operations(ApplicationStart)
             await app.select_session(WELCOME)
             pilot = Pilot(app)
             entries = app.selected_session.query_one(WelcomeEntries)

@@ -8,11 +8,15 @@ and navigation code calls these without importing Textual or Qt.
 from __future__ import annotations
 
 import asyncio
+from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Never
 
+from agent_comms.cli_verbs.cli_command import TargetAction
+from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.execution.launch_runtime import LaunchRuntime
+from agent_comms.transport.request import CoreAccess
 from agent_comms.history_views import RetiredViews
 from agent_comms.projects.checkouts import Checkout
 
@@ -24,6 +28,25 @@ from toad.client.session_projection import SessionCollection
 from toad.client.tab_identity import TabIdentity
 from toad.client.tab_order import TabOrder
 from toad.work_preparation import PreparationRuntime
+
+
+class CommandOrigin(ABC):
+    """Captured native presentation owner for off-loop command preparation.
+
+    Captured before the preparation worker starts. current() answers
+    whether the view/screen is still selected and live when the reply
+    arrives. edit() runs the native dialog, returning the argument
+    mapping or None on cancellation.
+    """
+
+    @abstractmethod
+    def current(self) -> bool:
+        """Whether the captured view/screen is still selected and live."""
+
+    @abstractmethod
+    async def edit(self, definition: TargetAction, title: str, fields: tuple[TargetField, ...],
+                   core: CoreAccess) -> dict[str, str | None] | None:
+        """Run the native dialog. Returns arguments or None on cancel."""
 
 
 class CommsHost:
@@ -45,12 +68,21 @@ class CommsHost:
         """Periodic UI-thread callback; the returned handle's stop() ends it."""
         raise NotImplementedError
 
+    def delay_ui(self, seconds: float, callback: Callable[[], None]) -> None:
+        """One UI-thread callback after this many seconds."""
+        raise NotImplementedError
+
     def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
         """Start one operation of this kind; an exclusive kind's newer start cancels the running one."""
         raise NotImplementedError
 
     def cancel_operations(self, kind: type[OperationKind]) -> None:
         """Cancel every running operation of this kind."""
+        raise NotImplementedError
+
+    async def wait_operations(self, kind: type[OperationKind]) -> None:
+        """Wait until every running operation of this kind has finished; an operation's
+        failure is reported through the native failure owner, not raised here."""
         raise NotImplementedError
 
     @property
@@ -62,16 +94,50 @@ class CommsHost:
         """Record and report through the native failure owner."""
         raise NotImplementedError
 
+    def show_info(self, text: str, title: str) -> None:
+        """Native information notice; no Core state change."""
+        raise NotImplementedError
+
     def show_warning(self, text: str, title: str) -> None:
-        """Native warning notice; no Core state change."""
+        """Native warning notice of plain text; no Core state change."""
         raise NotImplementedError
 
     def show_error(self, error: Exception | str, title: str) -> None:
         """Native error notice with the original exception."""
         raise NotImplementedError
 
+    def log_error(self, text: str) -> None:
+        """Write to the native error log; the user is not interrupted."""
+        raise NotImplementedError
+
     def copy_to_clipboard(self, text: str) -> None:
         """Native clipboard effect."""
+        raise NotImplementedError
+
+    def clear_focus(self) -> None:
+        """Take keyboard focus off every control, so a focused editor sends its value."""
+        raise NotImplementedError
+
+    async def reveal_sidebar(self) -> bool:
+        """Show and focus the session sidebar of the current view; False when it has none."""
+        raise NotImplementedError
+
+    def capture_command_origin(self) -> CommandOrigin:
+        """The view a command starts on, captured before its fields are prepared off the loop."""
+        raise NotImplementedError
+
+    @property
+    def application_running(self) -> bool:
+        """Whether the native application is running and not yet closing."""
+        raise NotImplementedError
+
+    @property
+    def display_size(self) -> tuple[int, int]:
+        """The application's display width and height, as usage reports count them."""
+        raise NotImplementedError
+
+    def end_application(self) -> None:
+        """End the native application."""
         raise NotImplementedError
 
     @property

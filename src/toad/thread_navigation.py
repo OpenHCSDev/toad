@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.errors import RelationViolationError
 from agent_comms.projects.checkouts import Checkout
@@ -14,13 +13,11 @@ from toad.client.session_scope import ProjectSessionOrigin
 from toad.client.tab_identity.kinds import MailboxTab
 from toad.navigation_preparation import (
     OpenThread,
+    ThreadNavigation,
     ThreadNavigationRequest,
     ThreadOpening,
 )
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-    from toad.navigation_preparation import ThreadNavigation
+from toad.session_host import NavigationHost
 
 
 @dataclass(frozen=True)
@@ -31,7 +28,7 @@ class ThreadOrigin:
     identity: str
 
     @classmethod
-    def capture(cls, app: ToadApp, source: ProjectSessionOrigin) -> ThreadOrigin:
+    def capture(cls, app: NavigationHost, source: ProjectSessionOrigin) -> ThreadOrigin:
         return cls(
             source,
             app.selected_mode,
@@ -41,14 +38,14 @@ class ThreadOrigin:
 
     def current(self, navigator: ThreadNavigator, owner_mode: str) -> bool:
         app = navigator.app
-        if app.is_running and self.source.is_attached:
+        if app.application_running and self.source.is_attached:
             if app.workspace_sessions.origin(owner_mode) is self.source:
                 return self == self.capture(app, self.source)
         return False
 
 
 class ThreadNavigator:
-    def __init__(self, app: ToadApp) -> None:
+    def __init__(self, app: NavigationHost) -> None:
         self.app = app
         self.pending: dict[tuple[str, str, str], ThreadOpening] = {}
 

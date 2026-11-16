@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Awaitable, Callable, ClassVar
 
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
+from formbridge.operations import OperationKind
 
 from toad import get_version
 from toad.version import VersionMonitor
@@ -19,8 +20,27 @@ from toad.client.tab_identity import TabTargetGone
 if TYPE_CHECKING:
     from ssl import SSLContext
 
-    from textual.worker import Worker
     from toad.app import ToadApp
+
+
+class ApplicationStart(OperationKind):
+    """The application's startup: restoring tabs, then attaching its monitors."""
+
+
+class UsageReport(OperationKind):
+    """One opt-in usage event on its way to the external collector."""
+
+
+class VersionCheck(OperationKind):
+    """Asks whether a newer Toad has been released."""
+
+
+class ProcessTitleUpdate(OperationKind):
+    """Names the process off the UI thread."""
+
+
+class ApplicationExit(OperationKind):
+    """Saves the settings in use, then ends the application."""
 
 
 class UsageReports:
@@ -37,8 +57,8 @@ class UsageReports:
 
         return create_ssl_context()
 
-    def publish(self, event_name: str, **properties: object):
-        return self.app.run_worker(partial(self.send, event_name, properties))
+    def publish(self, event_name: str, **properties: object) -> None:
+        self.app.run_operation(UsageReport, partial(self.send, event_name, properties))
 
     async def send(self, event_name: str, properties: dict[str, object]) -> None:
         await self.app.settings.statistics.collect(partial(self.deliver, event_name, properties))
@@ -47,7 +67,7 @@ class UsageReports:
         app = self.app
         httpx = await app.preparation.run_thread(import_module, "httpx")
 
-        width, height = app.size
+        width, height = app.display_size
         body = {
             "api_key": "phc_mJWPV7GP3ar1i9vxBg2U8aiKsjNgVwum6F6ZggaD4ri",
             "event": event_name,
@@ -121,14 +141,14 @@ class ApplicationLifetime:
     def begin(self) -> None:
         """Run start as its own task: it awaits drawn frames, so neither Mount
         (drawn after its batch closes) nor the App's message queue (whose timers
-        end delayed updates) may wait on it. The worker records its completion and error."""
-        self.start_worker: Worker[None] = self.app.run_worker(self.start, name="application start")
+        end delayed updates) may wait on it. The operation records its completion and error."""
+        self.app.run_operation(ApplicationStart, self.start)
 
     async def start(self) -> None:
         type(self)._startup_hook = type(self)._startup_hook.notify(self)
         app = self.app
         if app.saved_settings.ensure_installation():
-            app.call_later(self.usage.publish, "toad-install")
+            app.schedule_ui(partial(self.usage.publish, "toad-install"))
         self.usage.publish("toad-run")
         restored: Callable[[], Awaitable[object]] = self.restore_nothing
         for identity in await app.tab_order.load():
@@ -137,7 +157,7 @@ class ApplicationLifetime:
                                    await identity.restore(app.session_navigation))
             except TabTargetGone as error:
                 await app.tab_order.close((identity,))
-                app.log.error(f"Removed stale tab {error.identity}: {error.reason}")
+                app.log_error(f"Removed stale tab {error.identity}: {error.reason}")
         await self.resumed_session.selected(
             restored,
             lambda resumed: partial(self.open_resumed, resumed),
@@ -146,8 +166,9 @@ class ApplicationLifetime:
             await app.select_session(app.tab_order.home)
         app.terminal_attention.attach()
         self.version = app.settings.updates.monitor()
-        app.set_timer(1, self.check_version)
-        app.run_worker(partial(self.set_process_title, "toad"), thread=True)
+        app.delay_ui(1, partial(app.run_operation, VersionCheck, self.check_version))
+        app.run_operation(ProcessTitleUpdate,
+                          partial(app.preparation.run_thread, self.set_process_title, "toad"))
         app.update_show_sessions()
 
     async def restore_nothing(self) -> None:
@@ -179,14 +200,14 @@ class ApplicationLifetime:
             self.quit()
         else:
             self.quit_warning_deadline = now + 5.0
-            self.app.notify("Press [b]ctrl+c[/b] again to quit the app", title="Do you want to quit?")
+            self.app.show_info("Press [b]ctrl+c[/b] again to quit the app", "Do you want to quit?")
 
     def quit(self) -> None:
         app = self.app
-        app.screen.set_focus(None)
+        app.clear_focus()
         # Saving first sends what the user has typed into an open settings form;
         # the app closes only once the file holds the settings in use.
-        app.call_later(self.save_and_exit)
+        app.schedule_ui(partial(app.run_operation, ApplicationExit, self.save_and_exit))
 
     async def save_and_exit(self) -> None:
-        await self.app.saved_settings.save_before_exit(self.app.exit)
+        await self.app.saved_settings.save_before_exit(self.app.end_application)

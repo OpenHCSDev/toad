@@ -24,6 +24,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
 from agent_comms.ui_model.sidebar import ThreadRowModel
+from formbridge.operations import ExclusiveKind, OperationKind
 
 from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import AgentNotFound, read_agents
@@ -52,8 +53,14 @@ from toad.client.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.client.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
-from toad.widgets.comms_sidebar import CommsSidebar
-from toad.widgets.side_bar import SideBar, SideBarCollapsible
+
+
+class DirectMessagesOpen(OperationKind):
+    """Opens a direct-message conversation through the navigating view."""
+
+
+class NewThreadForm(OperationKind, ExclusiveKind):
+    """Prepares and opens the new-thread form; a newer request supersedes one running."""
 
 
 @dataclass(frozen=True)
@@ -80,11 +87,11 @@ class SessionNavigation(StartsSessions, SessionNavigator):
 
         owner = self.app.workspace_sessions.navigation_owner()
         operation = (
-            owner.open_direct_messages()
+            owner.open_direct_messages
             if target is None
-            else owner.open_sidebar_target(DirectTarget(target))
+            else partial(owner.open_sidebar_target, DirectTarget(target))
         )
-        return self.app.run_worker(operation, group="direct-messages")
+        self.app.run_operation(DirectMessagesOpen, operation)
 
     def bind_events(self) -> None:
         self.app.subscribe_core(self.events)
@@ -97,18 +104,14 @@ class SessionNavigation(StartsSessions, SessionNavigator):
     async def reveal(self) -> None:
 
         app = self.app
-        sidebar = app.screen.query_one_optional(CommsSidebar)
-        if sidebar is None:
-            sessions = app.session_tracker.ordered_sessions
-            if not sessions:
-                app.notify("No sessions are open", title="Sessions")
-                return
-            await app.select_session(sessions[-1].mode_name)
-            sidebar = app.screen.query_one_optional(CommsSidebar)
-        if sidebar is not None:
-            sidebar.query_ancestor(SideBar).reveal()
-            sidebar.query_ancestor(SideBarCollapsible).collapsed = False
-            await sidebar.navigation.focus_current()
+        if await app.reveal_sidebar():
+            return
+        sessions = app.session_tracker.ordered_sessions
+        if not sessions:
+            app.show_info("No sessions are open", "Sessions")
+            return
+        await app.select_session(sessions[-1].mode_name)
+        await app.reveal_sidebar()
 
     @property
     def members(self) -> tuple[SessionEntry, ...]:
@@ -297,7 +300,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
                 session_pk=session_pk, project=project, initial_prompt=initial_prompt,
             )
         except AgentNotFound as error:
-            self.app.notify(str(error), title="Launch agent", severity="warning", markup=False)
+            self.app.show_warning(str(error), "Launch agent")
         else:
             await self.open(entry)
 
@@ -364,11 +367,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
 
     def open_thread_form(self, project: Checkout) -> None:
         app = self.app
-        app.run_worker(
-            self.collect_thread_form(app.selected_mode, project),
-            group="new-session",
-            exclusive=True,
-        )
+        app.run_operation(NewThreadForm, partial(self.collect_thread_form, app.selected_mode, project))
 
     async def collect_thread_form(self, mode: str, project: Checkout) -> None:
         """Prepare the new-thread form off the UI thread; open it if its tab is still selected."""
