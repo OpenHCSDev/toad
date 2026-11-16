@@ -12,7 +12,8 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QMargins, Qt
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -20,6 +21,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QPushButton,
+    QScroller,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -75,14 +77,24 @@ class RowTarget:
     label: str
 
 
-class ThreadList(QListWidget, SidebarSubscriber[Observing, FailedObservation]):
+class TouchList(QListWidget):
+    """A list a finger scrolls: kinetic, by pixel, wrapping long rows. Qt widgets on
+    Android scroll only by scroll bar unless a QScroller holds the viewport."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.setWordWrap(True)
+        self.setVerticalScrollMode(QListWidget.ScrollMode.ScrollPerPixel)
+        QScroller.grabGesture(self.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+
+
+class ThreadList(TouchList, SidebarSubscriber[Observing, FailedObservation]):
     """The bus's channels and threads, from the shared sidebar model."""
 
     def __init__(self, window: CommsWindow) -> None:
         super().__init__()
         self.window = window
         self.observed: Observing | None = None
-        self.setWordWrap(True)
         self.itemActivated.connect(self.open_row)
         self.itemClicked.connect(self.open_row)
 
@@ -132,8 +144,7 @@ class ConversationView(QWidget):
         header = QHBoxLayout()
         header.addWidget(back)
         header.addWidget(self.title, 1)
-        self.messages = QListWidget()
-        self.messages.setWordWrap(True)
+        self.messages = TouchList()
         self.input = QLineEdit()
         self.input.setPlaceholderText("Message")
         self.input.returnPressed.connect(self.send)
@@ -193,6 +204,17 @@ class CommsWindow(QStackedWidget):
         self.addWidget(self.threads)
         self.addWidget(self.conversation)
         self.changes = access.events.subscribe(CoordinationObserved, self.stores_changed)
+        self.back = QShortcut(QKeySequence(Qt.Key.Key_Back), self, self.go_back,
+                              context=Qt.ShortcutContext.ApplicationShortcut)
+        self.escape = QShortcut(QKeySequence(Qt.Key.Key_Escape), self, self.go_back,
+                                context=Qt.ShortcutContext.ApplicationShortcut)
+        self.winId()
+        self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
+        self.fit_safe_area(self.windowHandle().safeAreaMargins())
+
+    def fit_safe_area(self, margins: QMargins) -> None:
+        """Keep every row clear of the status and navigation bars."""
+        self.setContentsMargins(margins)
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
         self.conversation.reload()
@@ -216,8 +238,10 @@ class CommsWindow(QStackedWidget):
         self.conversation.conversation = None
         self.setCurrentWidget(self.threads)
 
-    def keyPressEvent(self, event) -> None:
-        if event.key() in (Qt.Key.Key_Back, Qt.Key.Key_Escape) and self.currentWidget() is self.conversation:
+    def go_back(self) -> None:
+        """Android back, from any focused widget: a conversation returns to the threads;
+        the threads close the app, as back does at an app's first screen."""
+        if self.currentWidget() is self.conversation:
             self.show_threads()
-            return
-        super().keyPressEvent(event)
+        else:
+            self.close()
