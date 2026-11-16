@@ -4,8 +4,6 @@ from __future__ import annotations
 from abc import abstractmethod
 
 
-from functools import partial
-from pathlib import Path
 
 from agent_comms.ui_model.status import ThreadStatusModel
 from textual.message import Message
@@ -14,14 +12,13 @@ from textual.widget import Widget
 
 from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
-from toad.client.subscribers import ThreadCallbackSubscription
 from toad.core_event_carrier import CoreEventReceiver
-from toad.status_thread import ActivityView, NoStatusThread, StatusOwner, StatusThread
+from toad.status_thread import ObservedActivity, StatusOwner, StatusThread
 from textual.events import Mount
 from textual import on
 
 
-class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
+class ObservedThreadActivity(ObservedActivity, CoreEventReceiver, ToadNode, Widget):
     """The composed status row; observation never starts or settles an ACP turn."""
 
     row: var[ThreadStatusModel] = var(lambda: ThreadStatusModel.pending(""), init=False)
@@ -29,36 +26,13 @@ class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
     class Changed(Message):
         """The observed row changed; the view repaints what derives from it."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        self.thread: StatusThread = NoStatusThread()
-        super().__init__(*args, **kwargs)
+    @property
+    def coordination(self):
+        return self.app.coordination_access
 
     @on(Mount)
     def on_mount(self) -> None:
-        self.thread.observe(self)
-        self.thread.bind(self)
-
-    def bind(self, thread: StatusThread) -> None:
-        if thread != self.thread:
-            self.thread = thread
-            if self.is_mounted:
-                self.retire_core_observations(self.app.coordination_access.events)
-                thread.observe(self)
-                thread.bind(self)
-
-    def status_changed(self, event: ThreadRowsChanged) -> None:
-        self.thread.bind(self)
-
-    def show_open_thread(self, name: str) -> None:
-        self.show(self.app.coordination_access.thread_status.open(name))
-
-    def observe_thread_rows(self, root: Path, name: str) -> None:
-        self.observe_core_callback(
-            self.app.coordination_access.events,
-            ThreadRowsChanged,
-            self.status_changed,
-            factory=partial(ThreadCallbackSubscription, scope=(str(root), name)),
-        )
+        self.start_observing()
 
     def show(self, row: ThreadStatusModel) -> None:
         self.row = row
@@ -68,11 +42,6 @@ class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
 
     def activity_changed(self) -> None:
         self.post_message(self.Changed())
-
-    @property
-    def working(self) -> bool:
-        return self.row.status.is_working()
-
 
 class ThreadStatusOwner(StatusOwner, ToadNode):
     """A view with a composed row and a declared status source."""

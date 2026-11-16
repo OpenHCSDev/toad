@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from time import monotonic
 from functools import partial
 from pathlib import Path
 
@@ -16,9 +17,10 @@ from agent_comms.messaging.message_page import MessagePage, PageBounds
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
+from agent_comms.ui_model.status import ThreadStatusModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QMargins, QPoint, Qt
-from PySide6.QtGui import QColor, QKeySequence, QPalette, QShortcut
+from PySide6.QtCore import QMargins, QPoint, Qt, QTimer
+from PySide6.QtGui import QColor, QKeySequence, QPainter, QPalette, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -36,6 +38,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from ui_theme.effects import ACTIVITY_SWEEP
 from ui_theme.scheme import (
     BackgroundColour,
     ColourScheme,
@@ -60,7 +63,9 @@ from toad.client.tab_order import TabOrder
 from toad.constants import WELCOME
 from toad.core.events import CoordinationObserved, TabHistoryChanged
 from toad.message_rows import MarkdownMessageStyle, MessageRow
+from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
+from toad.status_thread import ObservedActivity, StatusOwner
 
 
 class ConversationRead(OperationKind, ExclusiveKind):
@@ -268,6 +273,57 @@ class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObs
         return row
 
 
+class ActivityStrip(ObservedActivity, QtCoreObserver, QWidget):
+    """Toad's activity sweep while the conversation's thread is working: the shared
+    ACTIVITY_SWEEP ribbon sampled across the strip, each sample's two stops blended and
+    drawn as tall as the ribbon is thick there."""
+
+    def __init__(self, window: CommsWindow) -> None:
+        super().__init__()
+        self.window = window
+        self.row = ThreadStatusModel.pending("")
+        self.is_mounted = False
+        self.started = monotonic()
+        self.setFixedHeight(6)
+        self.timer = QTimer(self)
+        self.timer.setInterval(int(1000 / ACTIVITY_SWEEP.frames_per_second))
+        self.timer.timeout.connect(self.update)
+
+    @property
+    def coordination(self) -> CoordinationAccess:
+        return self.window.access
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        if not self.is_mounted:
+            self.is_mounted = True
+            self.start_observing()
+
+    def show(self, row: ThreadStatusModel) -> None:
+        self.row = row
+        if self.working:
+            self.timer.start()
+        else:
+            self.timer.stop()
+        self.update()
+
+    def paintEvent(self, event) -> None:
+        if not self.working:
+            return
+        frame = ACTIVITY_SWEEP.frame(monotonic() - self.started)
+        scheme = self.window.renderer.scheme
+        width, height = self.width(), self.height()
+        painter = QPainter(self)
+        for x in range(width):
+            start, end, amount, thickness = frame.sample((x + 0.5) / width)
+            if thickness <= 0:
+                continue
+            ink = start.rgb(scheme).blend(end.rgb(scheme), amount)
+            bar = max(1, round(height * thickness))
+            painter.fillRect(x, (height - bar) // 2, 1, bar, QColor(ink.hex))
+        painter.end()
+
+
 class QtHistorySessionEntry(SharedHistorySessionEntry["CommsWindow"]):
     """The shared conversation entry, drawn in this window's ConversationView."""
 
@@ -279,9 +335,9 @@ class QtHistorySessionEntry(SharedHistorySessionEntry["CommsWindow"]):
         return ConversationView(self.window, self)
 
 
-class ConversationView(Page, QWidget):
-    """One conversation tab: its newest page, read again whenever Core's stores change, and
-    a sender."""
+class ConversationView(Page, StatusOwner, QWidget):
+    """One conversation tab: its newest page, read again whenever Core's stores change; the
+    activity sweep and info row over its thread's status; and a sender."""
 
     page_size = 50
 
@@ -290,6 +346,15 @@ class ConversationView(Page, QWidget):
         self.window, self.entry = window, entry
         self.tab = entry.unobserved_tab()
         self.messages = MessageView(window.renderer)
+        self.thread_activity = ActivityStrip(window)
+        self.label = QLabel(self.tab.label())
+        self.status = QLabel()
+        self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.status.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
+        info = QHBoxLayout()
+        info.setContentsMargins(6, 0, 6, 0)
+        info.addWidget(self.label)
+        info.addWidget(self.status, 1)
         self.input = QLineEdit()
         self.input.setPlaceholderText(f"Message {self.tab.label()}")
         self.input.returnPressed.connect(self.send)
@@ -301,6 +366,8 @@ class ConversationView(Page, QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.messages, 1)
+        layout.addWidget(self.thread_activity)
+        layout.addLayout(info)
         layout.addLayout(footer)
 
     @property
@@ -318,6 +385,10 @@ class ConversationView(Page, QWidget):
         rows = (MessageRow(message, self.entry.viewer) for message in page.messages)
         self.messages.show_blocks(tuple(
             block for row in rows for block in (row.header, *style.body(row, row.text))))
+        self.conversation.status_thread(source.root, self.window.access).refresh(self)
+        self.label.setText(self.conversation.label(source.references()))
+        read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
+        self.status.setText(await self.conversation.status_text(source, read_only=read_only))
 
     def send(self) -> None:
         body = self.input.text().strip()
