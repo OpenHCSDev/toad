@@ -12,7 +12,7 @@ from toad.native_style import FillHeight
 from toad.object_configuration import ObjectConfiguration
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.forms.presentation import FormModal
-from toad.session_tracker import SidebarState
+from toad.client.session_tracker import SidebarState
 from toad.settings_scope import ViewSettingsScope
 from toad.thread_actions import ThreadAction
 from toad.widgets.acting_button import DismissButton

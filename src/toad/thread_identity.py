@@ -20,7 +20,7 @@ from toad.format_path import format_path
 from toad.transcript_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
 from toad.client.connection import Observing
-from toad.session_tracker import SessionDetails
+from toad.client.session_tracker import SessionDetails
 from agent_comms.nominal.field_codec import AcpSessionId
 
 

@@ -70,7 +70,7 @@ from toad.screens import comms, main  # noqa: F401 - register widget classes
 from toad.screens.workspace import WorkspaceScreen
 from toad.session_navigation import SessionNavigation
 from toad.session_scope import SessionScope
-from toad.session_tracker import (
+from toad.client.session_tracker import (
     OpenTab,
     SessionTracker,
     SidebarState,

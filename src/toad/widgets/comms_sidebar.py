@@ -38,7 +38,7 @@ from toad.navigation_target import (
     ThreadTarget,
     channel_target,
 )
-from toad.session_tracker import SidebarSelection
+from toad.client.session_tracker import SidebarSelection
 from toad.widgets.selection import HoverSelection
 from toad.application_actions import NewThreadAction
 from toad.widget_actions import OpensSelected

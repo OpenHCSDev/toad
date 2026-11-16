@@ -15,7 +15,7 @@ from toad.navigation_context import NavigationOwner
 from toad.navigation_preparation import NavigationReader
 from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.session_scope import SessionOrigin, SessionScope
-from toad.session_tracker import SessionTracker
+from toad.client.session_tracker import SessionTracker
 
 
 class WorkspaceViews(metaclass=AbstractHooksMeta):

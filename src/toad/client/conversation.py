@@ -24,7 +24,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from toad.client.submission import MessageDestination
 from toad.client.conversation_capabilities import ConversationActivity, ConversationSource
 from toad.client.referenced_core import ReferencedCore
-from toad.session_tracker import CommsViewKey
+from toad.client.session_tracker import CommsViewKey
 from toad.status_thread import NoStatusThread, StatusThread
 
 

@@ -47,7 +47,7 @@ from toad.session_entry import (
 )
 from toad.session_host import NavigationHost, SessionNavigator
 from toad.session_scope import SessionScope
-from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
+from toad.client.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
 from toad.target_commands import TargetContext

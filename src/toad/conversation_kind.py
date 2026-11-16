@@ -38,7 +38,7 @@ from toad.client.conversation_capabilities import (
     ConversationNavigation,
 )
 from toad.client.referenced_core import ReferencedCore
-from toad.session_tracker import ChannelViewAddress, CommsViewKey
+from toad.client.session_tracker import ChannelViewAddress, CommsViewKey
 from toad.client.sidebar_models import UnpaintedChannel
 from toad.status_thread import StatusThread
 from toad.widgets.channel_prompt import ChannelPrompt

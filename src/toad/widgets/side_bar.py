@@ -54,7 +54,7 @@ from toad.native_style import (
 from toad.widget_view import WorkspaceHosted
 from toad.tone_paint import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
-from toad.session_tracker import SidebarState
+from toad.client.session_tracker import SidebarState
 from toad.sidebar_layout import (
     DirectionalSidebarPlacementAction,
     FloatSidebarPlacementAction,

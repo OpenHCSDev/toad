@@ -3,17 +3,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
-from typing import TYPE_CHECKING, Iterable, Sequence
+from typing import Iterable, Sequence
 
 from agent_comms.ui_model.sidebar import SidebarModel, ThreadRowModel
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 
+from toad.client.conversation import SharedConversationKind
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from toad.tab_identity import SessionTabIdentity, TabIdentity
 from toad.tab_order import TabOrder
-
-if TYPE_CHECKING:
-    from toad.conversation_kind import ConversationKind
 
 
 @dataclass(frozen=True)
@@ -54,7 +52,7 @@ class NamedTab(OpenTab):
 
 @dataclass(frozen=True)
 class ConversationTab(NamedTab):
-    conversation: ConversationKind
+    conversation: SharedConversationKind
     sidebar: SidebarModel
 
     @property
@@ -90,13 +88,13 @@ class CommsViewKey:
     """A conversation on one bus: its tab is the owner's view of it, whichever tab opened it."""
 
     root: str
-    conversation: ConversationKind
+    conversation: SharedConversationKind
 
 
 @dataclass(frozen=True)
 class ChannelViewAddress:
     root: str
-    conversation: ConversationKind
+    conversation: SharedConversationKind
 
 
 @dataclass(frozen=True)

@@ -30,7 +30,7 @@ from toad.screens.main import MainScreen
 from toad.session_host import SessionNavigator
 from toad.client.session_projection import SessionProjection
 from toad.session_scope import SessionScope
-from toad.session_tracker import (
+from toad.client.session_tracker import (
     CommsViewKey,
     ConversationTab,
     NamedTab,

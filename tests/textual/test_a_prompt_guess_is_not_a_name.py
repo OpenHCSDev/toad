@@ -1,6 +1,6 @@
 """A title guessed from the first prompt stands in until the thread names itself."""
 
-from toad.session_tracker import AuthoredSessionName, SessionDetails, ThreadSessionName
+from toad.client.session_tracker import AuthoredSessionName, SessionDetails, ThreadSessionName
 
 
 def details() -> SessionDetails:

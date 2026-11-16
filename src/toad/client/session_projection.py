@@ -8,7 +8,7 @@ from agent_comms.history_views import RetiredViews
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from abc import ABCMeta
 
-from toad.session_tracker import OpenTab
+from toad.client.session_tracker import OpenTab
 from toad.tab_identity import TabIdentity
 
 
