@@ -1,6 +1,6 @@
 """Saved hint-label choices compose Textual's native presentation."""
 from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
-from textual.hint_labels import FullKeyHints, HintLabelStyle, NextLetterHints
+from formbridge.hint_keys import FullKeyHints, HintLabelStyle, NextLetterHints
 
 
 class HintLabels(DeclaredChoice, HintLabelStyle, affix="HintLabels"):

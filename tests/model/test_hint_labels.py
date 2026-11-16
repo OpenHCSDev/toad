@@ -7,9 +7,9 @@ from toad.setting_declarations import FamilyChoices
 def test_hint_labels_default_to_next_letter_and_save_the_full_key_choice():
     settings = SavedSettings({})
     assert settings.current.ui.hint_labels is NextLetterHintLabels
-    assert settings.current.ui.hint_labels.caption("as", "a") == "s"
+    assert settings.current.ui.hint_labels.shown("as", "a") == ("s", 0)
     settings.set(SETTINGS.ui.hint_labels, FullKeyHintLabels)
     reopened = SavedSettings(settings.document())
     assert reopened.current.ui.hint_labels is FullKeyHintLabels
-    assert reopened.current.ui.hint_labels.caption("as", "a") == "as"
+    assert reopened.current.ui.hint_labels.shown("as", "a") == ("as", 1)
     assert {FamilyChoices(HintLabels).label(choice) for choice in FamilyChoices(HintLabels).choices()} == {"Next letter", "Full key"}
