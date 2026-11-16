@@ -5,30 +5,23 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
 from agent_comms.cli_verbs.cli_command import TargetAction, TargetEdit
 from agent_comms.cli_verbs.cli_result import CliResult
-from agent_comms.errors import RouteChangedError
-from agent_comms.execution.native_failures import NativePiUnavailable
 from agent_comms.transport.tools.sidebar import (
-    CommsPrepareTargetActionTool,
     CommsTargetEditTool,
 )
 
+from toad.client.commands import SharedTargetContext
+from toad.client.host import CommsHost
 from toad.core import events as core_events
-from toad.widgets.comms_command_dialog import CommandDialog
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-    from toad.target_commands import TargetContext
 
 
 class ThreadActions:
     """One actual task per subject owns pending status and guarded completion."""
 
-    def __init__(self, app: ToadApp) -> None:
+    def __init__(self, app: CommsHost) -> None:
         self.app = app
         self.requests: dict[str | Path, ThreadActionExecution] = {}
 
@@ -94,7 +87,7 @@ class ThreadAction:
     """A native edit resource borrowing one backend-declared command projection."""
     definition: TargetAction
     request: TargetEdit
-    context: TargetContext
+    context: SharedTargetContext
 
     @property
     def resources(self):
@@ -140,12 +133,11 @@ class ThreadAction:
 
         async def prepare():
             if definition.editable_fields or definition.confirmation:
-                screen = ctx.app.screen
+                origin = ctx.app.command_origin()
                 fields = await ctx.app.preparation.run_thread(lambda: definition.editable_fields)
                 ctx.current()
-                if ctx.app.screen is screen:
-                    ctx.app.push_screen(
-                        CommandDialog(definition, ctx.title, fields, ctx.observed.core), accepted)
+                if origin.current():
+                    await accepted(await origin.edit(definition, ctx.title, fields, ctx.observed.core))
             else:
                 await accepted({})
         ctx.app.run_worker(prepare, name='command-fields')

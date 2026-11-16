@@ -22,6 +22,7 @@ from agent_comms.planning.goal_presentation import (
     GoalExecutionControls,
     IdleGoalExecution,
 )
+from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goals import NoGoal
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_presentation import (
@@ -61,7 +62,7 @@ from toad.column_layout import ColumnLayout
 from ui_theme.effects import CURSOR_BLINK, Mix
 from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
-from toad import messages, paths
+from toad import about, messages, paths
 from toad.acp.comms_updates import ThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
@@ -144,14 +145,17 @@ from toad.session_scope import SessionScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.submission_queue import QueueSource
-from toad.target_commands import CommandContextChanged, TargetContext
+from toad.client.commands import CommandContextChanged, ConversationCommands
+from toad.core import session_requests
+from toad.screens.team import TeamPage
+from toad.target_commands import TargetContext
 from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.view_actions import BackToBottomAction
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
-from toad.widgets.flash import Flash
+from toad.widgets.flash import ErrorFlash, Flash, SuccessFlash
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
@@ -1018,6 +1022,7 @@ class Conversation(ColumnLayout,
     ConversationSessionBinding,
     ToadNode,
     MenuConversation,
+    ConversationCommands,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -1719,6 +1724,63 @@ class Conversation(ColumnLayout,
         ask = Ask(title, options, get_content, callback)
         self.prompt.ask(ask)
         return ask
+
+    def flash(self, text: str) -> None:
+        self.feedback.flash(Content(text))
+
+    def flash_success(self, text: str) -> None:
+        self.feedback.flash(Content(text), style=SuccessFlash.declared_name)
+
+    def flash_error(self, text: str) -> None:
+        self.feedback.flash(Content(text), style=ErrorFlash.declared_name)
+
+    def copy_to_clipboard(self, text: str) -> None:
+        self.app.copy_to_clipboard(text)
+
+    def open_url(self, url: str) -> None:
+        self.app.open_url(url)
+
+    def open_team(self, teammate: str) -> None:
+        self.app.push_screen(TeamPage(teammate))
+
+    def focus_model_choice(self) -> None:
+        self.prompt.model_switcher.focus()
+
+    async def change_project(self, path: Path) -> None:
+        await self.agent_binding.change_project(self, path)
+
+    async def change_goal(self, action: type[GoalAction], text: str = "") -> None:
+        await self.goal_controls.change(action, text)
+
+    async def refresh_goal(self) -> None:
+        await self.goal_observation.refresh()
+
+    @property
+    def can_compact(self) -> bool:
+        return self.turns.owner.can_compact
+
+    @property
+    def turn_busy(self) -> bool:
+        return self.turns.owner.busy
+
+    def request_compaction(self, instructions: str | None) -> None:
+        self.agent_binding.request_compaction(self, instructions)
+
+    def about_markdown(self) -> str:
+        return about.render(self.app.coordination_access.connection.location)
+
+    async def post_markdown(self, markdown: str) -> None:
+        await self.post(MarkdownNote(markdown))
+
+    async def cancel_agent(self) -> None:
+        await self.agent_binding.cancel()
+
+    def close_session(self) -> None:
+        if self.screen.id is not None:
+            self.app.session_navigation.events.publish(session_requests.SessionClose(self.screen.id))
+
+    def request_new_session(self, prompt: str) -> None:
+        self.launch.request_new_session(self.app.session_navigation.events, self.working_directory, prompt)
 
     async def command_target_context(self) -> TargetContext:
         screen = self.query_ancestor(CommandTargetScope)

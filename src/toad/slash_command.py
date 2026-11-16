@@ -6,7 +6,7 @@ import shlex
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Self
+from typing import ClassVar, Self
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.planning.command import Command
@@ -18,14 +18,10 @@ from agent_comms.planning.goal_actions import (
     RetryGoalAction,
     SetGoalAction,
 )
-from textual.content import Content
 
-from toad.core import session_requests
-from toad.screens.team import TeamPage
-
-if TYPE_CHECKING:
-    from toad.target_commands import TargetContext
-    from toad.widgets.conversation import Conversation
+from toad.client.commands import ConversationCommands, SharedTargetContext
+from toad.client.line_blocks import CommandRole, MutedRole, Span
+from toad.twitter import tweet_intent_url
 
 
 class LocalCommand:
@@ -36,10 +32,12 @@ class CommandPresentation:
     """Completion text and argument decoding shared by command declarations."""
 
     @property
-    def content(self) -> Content:
-        return Content.assemble(
-            (self.command, "$text-success"), "\t", (self.help, "dim")
-        )
+    def name_span(self) -> Span:
+        return Span(self.command, CommandRole)
+
+    @property
+    def help_span(self) -> Span:
+        return Span(self.help, MutedRole)
 
     def __str__(self) -> str:
         return self.command
@@ -47,19 +45,19 @@ class CommandPresentation:
     def parse_arguments(self, arguments: str) -> SlashCommand:
         return type(self).parse(arguments)
 
-    def completion(self, context: TargetContext | None):
+    def completion(self, context: SharedTargetContext | None):
         return (self,)
 
-    def target_choices(self, context: TargetContext | None):
+    def target_choices(self, context: SharedTargetContext | None):
         return ()
 
-    def highlight_input(self, text: str, arguments_started: bool) -> Content:
-        content = Content(text)
-        if arguments_started:
-            content = content.stylize("$text-success", 0, len(self.command))
-            if text == self.command + " " and self.hint:
-                content += Content.styled(self.hint, "$text-secondary 70%")
-        return content
+    def highlight_input(self, text: str, arguments_started: bool) -> tuple[Span, ...]:
+        if not arguments_started:
+            return (Span(text),)
+        spans = (self.name_span, Span(text[len(self.command):]))
+        if text == self.command + " " and self.hint:
+            return (*spans, Span(self.hint, MutedRole))
+        return spans
 
 
 
@@ -107,7 +105,7 @@ class AgentAdvertisedCommand(SlashCommand):
         # The submission still owns the complete original text and arguments.
         return self
 
-    async def apply(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: ConversationCommands) -> bool:
         return False
 
 
@@ -130,15 +128,15 @@ class TeamCommand(SlashCommand, LocalCommand):
             raise ValueError("Use /team [teammate].")
         return cls(*names)
 
-    async def apply(self, conversation: Conversation) -> bool:
-        conversation.app.push_screen(TeamPage(self.teammate))
+    async def apply(self, conversation: ConversationCommands) -> bool:
+        conversation.open_team(self.teammate)
         return True
 
 
 class LoginCommand(NoArgumentsCommand):
     help = "Connect a provider using the agent's native login UI"
 
-    async def apply(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: ConversationCommands) -> bool:
         conversation.provider_login()
         return True
 
@@ -159,11 +157,11 @@ class ProjectCommand(SlashCommand, LocalCommand):
             path = values[0]
         return cls(Path(path) if path else None)
 
-    async def apply(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: ConversationCommands) -> bool:
         if self.path is None:
-            conversation.feedback.flash(Content(f"Project: {conversation.project_path}"))
+            conversation.flash(f"Project: {conversation.project_path}")
         else:
-            await conversation.agent_binding.change_project(conversation, self.path)
+            await conversation.change_project(self.path)
         return True
 
 
@@ -206,14 +204,14 @@ class GoalCommand(SlashCommand, LocalCommand):
             return cls(text)
         return cls(control=control)
 
-    async def apply(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: ConversationCommands) -> bool:
         if self.control is not None:
-            await conversation.goal_controls.change(self.control.action)
+            await conversation.change_goal(self.control.action)
         elif self.objective:
-            await conversation.goal_controls.change(SetGoalAction, self.objective)
+            await conversation.change_goal(SetGoalAction, self.objective)
         else:
-            await conversation.goal_observation.refresh()
-            conversation.feedback.flash(
+            await conversation.refresh_goal()
+            conversation.flash(
                 f"Use /goal {self.hint} to set, edit or manage this thread's goal."
             )
         return True
@@ -229,34 +227,29 @@ class CompactCommand(SlashCommand, LocalCommand):
     def parse(cls, arguments: str) -> Self:
         return cls(arguments.strip() or None)
 
-    async def apply(self, conversation: Conversation) -> bool:
-        if not conversation.turns.owner.can_compact:
-            conversation.feedback.flash(
-                "Wait for the current response before compacting", style="error"
-            )
+    async def apply(self, conversation: ConversationCommands) -> bool:
+        if not conversation.can_compact:
+            conversation.flash_error("Wait for the current response before compacting")
         else:
-            conversation.agent_binding.request_compaction(conversation, self.instructions)
+            conversation.request_compaction(self.instructions)
         return True
 
 
 class ModelCommand(NoArgumentsCommand):
     help = "Choose this thread's model"
 
-    async def apply(self, conversation: Conversation) -> bool:
-        conversation.prompt.model_switcher.focus()
+    async def apply(self, conversation: ConversationCommands) -> bool:
+        conversation.focus_model_choice()
         return True
 
 
 class AboutCommand(NoArgumentsCommand, declared_name="toad:about"):
     help = "About Toad"
 
-    async def apply(self, conversation: Conversation) -> bool:
-        from toad import about
-        from toad.widgets.markdown_note import MarkdownNote
-
-        markdown = about.render(conversation.app.coordination_access.connection.location)
-        await conversation.post(MarkdownNote(markdown))
-        conversation.app.copy_to_clipboard(markdown)
+    async def apply(self, conversation: ConversationCommands) -> bool:
+        markdown = conversation.about_markdown()
+        await conversation.post_markdown(markdown)
+        conversation.copy_to_clipboard(markdown)
         conversation.notify(
             "A copy of /toad:about has been placed in your clipboard",
             title=self.command,
@@ -277,7 +270,7 @@ class ClearCommand(SlashCommand, LocalCommand, declared_name="toad:clear"):
         except ValueError:
             raise ValueError("Unable to clear—a number was expected") from None
 
-    async def apply(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: ConversationCommands) -> bool:
         await conversation.prune_window(self.line_count, self.line_count)
         return True
 
@@ -297,20 +290,19 @@ class RenameCommand(SlashCommand, LocalCommand, declared_name="toad:rename"):
             )
         return cls(name)
 
-    async def apply(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: ConversationCommands) -> bool:
         await conversation.rename_session(self.name)
-        conversation.feedback.flash(f"Renamed session to [b]'{self.name}'", style="success")
+        conversation.flash_success(f"Renamed session to '{self.name}'")
         return True
 
 
 class SessionCloseCommand(NoArgumentsCommand, declared_name="toad:session-close"):
     help = "Close the current session"
 
-    async def apply(self, conversation: Conversation) -> bool:
-        if conversation.turns.owner.busy:
-            await conversation.agent_binding.cancel()
-        if conversation.screen.id is not None:
-            conversation.app.session_navigation.events.publish(session_requests.SessionClose(conversation.screen.id))
+    async def apply(self, conversation: ConversationCommands) -> bool:
+        if conversation.turn_busy:
+            await conversation.cancel_agent()
+        conversation.close_session()
         return True
 
 
@@ -324,12 +316,8 @@ class SessionNewCommand(SlashCommand, LocalCommand, declared_name="toad:session-
     def parse(cls, arguments: str) -> Self:
         return cls(arguments.strip())
 
-    async def apply(self, conversation: Conversation) -> bool:
-        conversation.launch.request_new_session(
-            conversation.app.session_navigation.events,
-            conversation.working_directory,
-            self.prompt,
-        )
+    async def apply(self, conversation: ConversationCommands) -> bool:
+        conversation.request_new_session(self.prompt)
         return True
 
 
@@ -343,15 +331,13 @@ class TestimonialCommand(SlashCommand, LocalCommand, declared_name="toad:testimo
     def parse(cls, arguments: str) -> Self:
         return cls(arguments)
 
-    async def apply(self, conversation: Conversation) -> bool:
-        from toad.twitter import tweet_intent_url
-
+    async def apply(self, conversation: ConversationCommands) -> bool:
         default = (
             f"I'm running {conversation.agent_title} in the terminal with Toad."
             if conversation.agent_title is not None
             else "Try Toad, the universal interface for AI in your terminal"
         )
-        conversation.app.open_url(tweet_intent_url(
+        conversation.open_url(tweet_intent_url(
             self.text or default,
             url="https://github.com/textualize/toad",
             via="willmcgugan",

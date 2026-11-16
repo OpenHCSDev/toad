@@ -1,7 +1,9 @@
 """Inline message formatting as Textual content, from the shared span parser."""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
+from collections.abc import Iterable
+
 from textual.content import Content
 from textual.style import Style
 
@@ -10,10 +12,8 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
 from toad.link_click import OpenLineLink
-from toad.client.line_blocks import LineLink, NoLink
-
-if TYPE_CHECKING:
-    from toad.textual_colours import TextualColours
+from toad.client.line_blocks import LineLink, NoLink, Span
+from toad.textual_colours import TextualColours
 
 
 class InlineLink(MroProjection[Content]):
@@ -31,8 +31,13 @@ class InlineLink(MroProjection[Content]):
 INLINE_LINK = InlineLink()
 
 
-def inline_message(body: str, colours: TextualColours, context) -> Content:
+def span_content(spans: Iterable[Span], colours: TextualColours) -> Content:
+    """Shared spans drawn as Textual content, each in its role's resolved style."""
     result = Content("")
-    for span in inline_spans(body, context):
+    for span in spans:
         result += INLINE_LINK.project_value(span.link, Content.styled(span.text, colours.style(span.role)))
     return result
+
+
+def inline_message(body: str, colours: TextualColours, context) -> Content:
+    return span_content(inline_spans(body, context), colours)

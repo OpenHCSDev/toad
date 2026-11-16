@@ -10,14 +10,19 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from asyncio import CancelledError
 from dataclasses import dataclass, field
+from pathlib import Path
 
+from agent_comms.cli_verbs.cli_command import TargetAction
+from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.messaging.channel_targets import (
     ChannelSelection,
     CommandTarget,
     NoChannel,
 )
+from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
+from agent_comms.transport.request import CoreAccess
+from metaclass_registry import AbstractHooksMeta
 
 from toad.client.connection import Observing
 from toad.client.host import CommsHost
@@ -69,14 +74,105 @@ class SortCapable(ABC):
     def execute_sort(self, channel: str, ctx: SharedTargetContext) -> None: ...
 
 
-class ConversationCommands(ABC):
-    """The conversation methods shared commands need — no Textual import."""
+class ConversationCommands(metaclass=AbstractHooksMeta):
+    """What a command does to the conversation it runs in.
+
+    Commands call only these; each frontend's conversation inherits this and
+    owns how each one happens on screen.
+    """
+
+    project_path: Checkout
 
     @abstractmethod
     async def command_target_context(self) -> SharedTargetContext | None: ...
 
     @abstractmethod
     def update_slash_commands(self) -> None: ...
+
+    @property
+    @abstractmethod
+    def agent_title(self) -> str | None:
+        """The connected agent's name, if one is connected."""
+
+    @property
+    @abstractmethod
+    def can_compact(self) -> bool:
+        """Whether the current turn allows compacting the model context now."""
+
+    @property
+    @abstractmethod
+    def turn_busy(self) -> bool:
+        """Whether an agent turn is running."""
+
+    @abstractmethod
+    def flash(self, text: str) -> None:
+        """Show a short notice under the prompt."""
+
+    @abstractmethod
+    def flash_success(self, text: str) -> None: ...
+
+    @abstractmethod
+    def flash_error(self, text: str) -> None: ...
+
+    @abstractmethod
+    def notify(self, message: str, *, title: str = "") -> None:
+        """Show a notification outside the conversation."""
+
+    @abstractmethod
+    def copy_to_clipboard(self, text: str) -> None: ...
+
+    @abstractmethod
+    def open_url(self, url: str) -> None: ...
+
+    @abstractmethod
+    def open_team(self, teammate: str) -> None:
+        """Open the live team view, on one teammate when named."""
+
+    @abstractmethod
+    def focus_model_choice(self) -> None:
+        """Move focus to this thread's model chooser."""
+
+    @abstractmethod
+    def provider_login(self) -> object:
+        """Start the agent's own provider login."""
+
+    @abstractmethod
+    async def change_project(self, path: Path) -> None: ...
+
+    @abstractmethod
+    async def change_goal(self, action: type[GoalAction], text: str = "") -> None: ...
+
+    @abstractmethod
+    async def refresh_goal(self) -> None: ...
+
+    @abstractmethod
+    def request_compaction(self, instructions: str | None) -> None: ...
+
+    @abstractmethod
+    def about_markdown(self) -> str:
+        """The /toad:about report for this installation and its Core."""
+
+    @abstractmethod
+    async def post_markdown(self, markdown: str) -> None:
+        """Add a Markdown note to the conversation."""
+
+    @abstractmethod
+    async def prune_window(self, low_mark: int, high_mark: int) -> None: ...
+
+    @abstractmethod
+    async def rename_session(self, name: str) -> None: ...
+
+    @abstractmethod
+    async def cancel_agent(self) -> None:
+        """Ask the agent to stop its running turn."""
+
+    @abstractmethod
+    def close_session(self) -> None:
+        """Close the session this conversation shows."""
+
+    @abstractmethod
+    def request_new_session(self, prompt: str) -> None:
+        """Open a new session in this conversation's working directory."""
 
 
 class SharedContextualCommand(ABC):
@@ -150,5 +246,6 @@ class CommandOrigin(ABC):
         """Whether the captured view/screen is still selected and live."""
 
     @abstractmethod
-    async def edit(self, prepared: object, title: str) -> dict[str, object] | None:
+    async def edit(self, definition: TargetAction, title: str, fields: tuple[TargetField, ...],
+                   core: CoreAccess) -> dict[str, str | None] | None:
         """Run the native dialog. Returns arguments or None on cancel."""

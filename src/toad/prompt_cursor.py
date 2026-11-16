@@ -8,15 +8,15 @@ from typing import TYPE_CHECKING, ClassVar
 from weakref import ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from textual.content import Content
 from textual.document._editing import EditingMode
 from textual.widgets import TextArea
 from textual.widgets.text_area import Selection
 
+from toad.client.line_blocks import Span
 from toad.core.input_events import HistoryMove
+from toad.slash_command import SlashCommand
 
 if TYPE_CHECKING:
-    from toad.slash_command import SlashCommand
     from toad.widgets.prompt import PromptTextArea
 
 
@@ -54,8 +54,8 @@ class CommandText(DeclaredFamily, affix="Text"):
         command = next((item for item in commands if item.command == name), None)
         return DeclaredCommandText(text, command, bool(separator)) if command is not None else PlainCommandText(text)
 
-    def highlight(self) -> Content:
-        return Content(self.text)
+    def highlight(self) -> tuple[Span, ...]:
+        return (Span(self.text),)
 
     def retreat(self, editor: PromptTextArea, movement: CursorMovement) -> None:
         pass
@@ -75,7 +75,7 @@ class DeclaredCommandText(CommandText):
     def requires_agent(self):
         return self.command.requires_agent
 
-    def highlight(self):
+    def highlight(self) -> tuple[Span, ...]:
         return self.command.highlight_input(self.text, self.arguments_started)
 
     def retreat(self, editor, movement):

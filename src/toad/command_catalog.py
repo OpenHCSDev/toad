@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.errors import UnregisteredThreadError
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
-from toad.target_commands import CommandContextChanged, TargetContext, ThreadCommand
+from toad.client.commands import CommandContextChanged
+from toad.target_commands import TargetContext, ThreadCommand
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation

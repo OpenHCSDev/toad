@@ -11,12 +11,14 @@ from agent_comms.config_options import ModelConfigOption
 from agent_comms.execution.login import run_login
 from agent_comms.transport.request import CoreAccess
 from toad.client.command_draft import CommandDraft, CommandText, PreparedChoices
+from toad.client.commands import CommandOrigin
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.css.scalar import Scalar
 from textual.document._editing import EditingMode
 from textual.events import Mount, Unmount
+from textual.screen import Screen
 from textual.widgets import Button, Static
 
 from textual.worker import Worker, WorkerFailed
@@ -335,3 +337,17 @@ class CommandDialog(CommandForm, ShadedScreen, CenteredScreen, DismissibleScreen
 
     def dismiss_control(self) -> None:
         self.dismiss(None)
+
+
+class ScreenCommandOrigin(CommandOrigin):
+    """The screen a command started on; its dialog opens only while that screen still shows."""
+
+    def __init__(self, screen: Screen) -> None:
+        self.screen = screen
+
+    def current(self) -> bool:
+        return self.screen.app.screen is self.screen
+
+    async def edit(self, definition: TargetAction, title: str, fields: tuple[TargetField, ...],
+                   core: CoreAccess) -> dict[str, str | None] | None:
+        return await self.screen.app.push_screen_wait(CommandDialog(definition, title, fields, core))

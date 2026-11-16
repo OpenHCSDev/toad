@@ -179,6 +179,12 @@ class CodeRole(LineRole):
     colour = AccentColour
 
 
+class CommandRole(LineRole):
+    """A slash command's name, as typed or offered."""
+
+    colour = SuccessColour
+
+
 class UrlRole(LineRole):
     colour = AccentColour
     underline = True

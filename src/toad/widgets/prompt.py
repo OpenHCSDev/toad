@@ -89,6 +89,7 @@ from toad.widget_actions import (
 )
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
+from toad.widgets.inline_message import span_content
 from toad.widgets.model_switcher import ModelSwitcher
 from toad.widgets.path_search import PathSearch
 from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PaddedOptionRows, PromptPopup
@@ -465,7 +466,7 @@ See on-screen instructions for details.
         self.refresh()
 
     def highlight_slash_command(self, text: str) -> Content:
-        return CommandText.decode_input(text, self.slash_commands).highlight()
+        return span_content(CommandText.decode_input(text, self.slash_commands).highlight(), self.app.colours)
 
     def highlight_shell(self, text: str) -> Content:
         """Override shell highlighting with additional danger detection."""

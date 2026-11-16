@@ -3,12 +3,14 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Sequence
 
-from textual.content import Content, Span
+from textual.content import Span
 from textual.widgets.option_list import Option
 
 from toad.fuzzy import FuzzySearch
 from toad.slash_command import SlashCommand
+from toad.textual_colours import TextualColours
 from toad.visuals.columns import Columns
+from toad.widgets.inline_message import span_content
 
 
 @dataclass(frozen=True)
@@ -21,7 +23,7 @@ class CommandMatch:
 class SlashCommandResults(FuzzySearch):
     """Inherit matching/cache behavior; produce the command catalog's display view."""
 
-    def options(self, text: str, commands: Iterable[SlashCommand]) -> Iterable[Option]:
+    def options(self, text: str, commands: Iterable[SlashCommand], colours: TextualColours) -> Iterable[Option]:
         query = text.lstrip("/").casefold().rstrip()
         ordered = sorted(commands, key=lambda command: command.command.casefold())
         self.cache.grow(len(ordered))
@@ -37,7 +39,7 @@ class SlashCommandResults(FuzzySearch):
         columns = Columns("auto", "flex")
         for match in ranked:
             command = match.command
-            name = Content.styled(command.command, "$text-success").add_spans(
+            name = span_content((command.name_span,), colours).add_spans(
                 Span(index + 1, index + 2, "underline not dim") for index in match.offsets
             )
-            yield Option(columns.add_row(name, Content.styled(command.help, "dim")), id=command.command)
+            yield Option(columns.add_row(name, span_content((command.help_span,), colours)), id=command.command)
