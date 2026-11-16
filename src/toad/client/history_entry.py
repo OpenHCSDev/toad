@@ -12,33 +12,27 @@ from agent_comms.messaging.display_references import (
     ReferenceContext,
 )
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.registry.thread_identity import ThreadIncarnation
 from metaclass_registry.mro_dispatch import handles
 
 from toad.client.connection import Observing
 from toad.client.conversation import CommsViewKey
 from toad.navigation_preparation import CommsNavigation
-from toad.client.session_entry import SharedSessionEntry
+from toad.client.session_entry import SessionEntry, SharedSessionEntry
 from toad.client.session_tracker import ConversationTab, NamedTab, OpenTab
 from toad.client.tab_identity import TabIdentity, TabTargetGone
 from toad.client.tab_identity.kinds import CommsTab
 from toad.core.projection import MroProjection
+from toad.session_host import SessionNavigator
 
 
 class SharedHistorySessionEntry[Navigator](
     SharedSessionEntry[Navigator], MroProjection[OpenTab], declared_name=None
 ):
-    def __init__(
-        self,
-        identity: TabIdentity,
-        key: CommsViewKey,
-        project: Checkout,
-        viewer: str,
-        participants: tuple[ThreadIncarnation, ...],
-    ) -> None:
+    def __init__(self, identity: TabIdentity, opened: CommsNavigation, project: Checkout) -> None:
         """The owner's tab for one conversation; no session owns it, so none closes or returns it."""
         super().__init__(identity)
-        self.key, self.project, self.viewer, self.participants = key, project, viewer, participants
+        self.key, self.viewer, self.participants = opened.key, opened.viewer, opened.participants
+        self.project = project
 
     @staticmethod
     def reopened(identity: CommsTab, observed: Observing, project: Checkout) -> CommsNavigation:
@@ -78,3 +72,10 @@ class SharedHistorySessionEntry[Navigator](
             conversation,
             observed.sidebar,
         )
+
+
+class HistorySessionEntry(SharedHistorySessionEntry[SessionNavigator], SessionEntry):
+    """The shared conversation entry in Toad's workspace; a frontend's member builds its view."""
+
+    async def ready(self, sessions: SessionNavigator) -> None:
+        await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()

@@ -39,15 +39,10 @@ from toad.launch_binding import (
 )
 from toad.navigation_preparation import CommsNavigationRequest, ThreadNavigationRequest
 from toad.navigation_target import DirectTarget, HistoryRouted
-from toad.screens.main import MainScreen
-from toad.session_entry import (
-    HistorySessionEntry,
-    NativeSessionEntry,
-    PreviewSessionEntry,
-    SessionEntry,
-)
+from toad.client.history_entry import HistorySessionEntry
+from toad.client.session_entry import NativeSessionEntry, PreviewSessionEntry, SessionEntry
+from toad.client.session_scope import SessionScope
 from toad.session_host import NavigationHost, SessionNavigator
-from toad.session_scope import SessionScope
 from toad.client.session_tracker import OpenTab, SessionDetails
 from toad.client.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.client.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
@@ -134,7 +129,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             (group[mode] for group in self.entries.values() if mode in group), None
         )
 
-    def source(self, mode: str) -> MainScreen | None:
+    def source(self, mode: str) -> SessionScope | None:
         entry = self.get(mode)
         return entry.source(self) if entry else None
 
@@ -161,13 +156,13 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         )
 
     def preview_entry(self, identity: PreviewTab) -> PreviewSessionEntry:
-        return PreviewSessionEntry.of(identity, identity.key)
+        return self.app.session_entries.declared_for(identity)(identity, identity.key)
 
     async def history_entry(self, identity: CommsTab) -> HistorySessionEntry:
         project = self.app.project_dir
         opened = await self.app.preparation.run_thread(lambda: HistorySessionEntry.reopened(
             identity, self.app.coordination_access.observation.observed(), project))
-        return HistorySessionEntry(identity, opened.key, project, opened.viewer, opened.participants)
+        return self.app.session_entries.declared_for(identity)(identity, opened, project)
 
     def thread_row(self, row: ThreadRowModel) -> ThreadRowModel:
         """A thread's row as this app shows it, with the state of each open session of it."""
@@ -187,7 +182,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
 
     def bind_opened(
         self,
-        view: MainScreen,
+        view: SessionScope,
         *,
         original: tuple[str, ThreadIncarnation],
         name: str,
@@ -251,7 +246,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
     async def new(
         self,
         identity: SessionTabIdentity,
-        factory: Callable[[], MainScreen],
+        factory: Callable[[], SessionScope],
         *,
         title: str = "New Session",
         original=None,
@@ -263,7 +258,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
     def native_entry(
         self,
         identity: SessionTabIdentity,
-        factory: Callable[[], MainScreen],
+        factory: Callable[[], SessionScope],
         *,
         title: str = "New Session",
         original=None,
@@ -272,7 +267,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         if existing is not None:
             return existing
         details = self.app.session_tracker.new_session(identity, title=title)
-        return NativeSessionEntry(details, factory, original)
+        return self.app.session_entries.declared_for(identity)(details, factory, original)
 
     async def saved(
         self, agent: AgentDefinition, project: Checkout, *,
@@ -348,7 +343,8 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         )
         return self.native_entry(
             tab,
-            lambda: MainScreen(
+            partial(
+                self.app.session_entries.declared_for(tab).session_view,
                 project,
                 make_binding(agent),
                 session_pk=tab.key,
@@ -386,7 +382,8 @@ class SessionNavigation(StartsSessions, SessionNavigator):
 
     async def start_agent_session(self, binding: AgentAttached, project: Checkout) -> None:
         tab = await self.saved(binding.agent, project)
-        await self.new(tab, lambda: MainScreen(project, binding, session_pk=tab.key))
+        await self.new(tab, partial(self.app.session_entries.declared_for(tab).session_view,
+                                    project, binding, session_pk=tab.key))
 
     async def history(self, *, project_path: Checkout, route: HistoryRouted) -> str:
         """Open, or select, the owner's one tab for a conversation on the app's bus."""
@@ -408,15 +405,10 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             return app.selected_mode
         # The history entry is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.
+        identity = CommsTab(prepared.key.conversation, prepared.key.root)
         entry = await self.show(
             prepared.key.conversation.view_identity(prepared.key),
-            lambda: HistorySessionEntry(
-                CommsTab(prepared.key.conversation, prepared.key.root),
-                prepared.key,
-                project_path,
-                prepared.viewer,
-                prepared.participants,
-            ),
+            lambda: self.app.session_entries.declared_for(identity)(identity, prepared, project_path),
             self.open,
         )
         return entry.mode

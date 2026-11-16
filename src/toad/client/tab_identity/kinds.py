@@ -8,6 +8,7 @@ from agent_comms.nominal.field_codec import PathText
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
+from toad.acp.agent_log import AgentLog
 from toad.client.conversation import ConversationKind
 from toad.client.agents import AgentNotFound
 from toad.client.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
@@ -79,3 +80,7 @@ class PreviewTab(TabIdentity):
         if not await navigation.app.preparation.run_thread(self.key.exists):
             raise TabTargetGone(self, f"Preview file no longer exists: {self.key}")
         return navigation.preview_entry(self)
+
+    def declarations(self) -> tuple[object, ...]:
+        """A file an agent's ACP log writes shows as that log before it shows as a file."""
+        return ((AgentLog,) if AgentLog.writes(self.key) else ()) + super().declarations()

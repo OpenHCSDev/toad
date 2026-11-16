@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from typing import Self
 
+from formbridge.forms.declared_fields import DeclaredViews
 from metaclass_registry import AbstractHooksMeta
 
 from toad.client.host import NavigatingHost
@@ -16,6 +17,19 @@ from toad.navigation_preparation import NavigationReader
 from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.client.session_scope import SessionOrigin, SessionScope
 from toad.client.session_tracker import SessionTracker
+from toad.client.tab_identity import TabIdentity
+
+
+class SessionEntries(DeclaredViews):
+    """A frontend's session entries, each building the view of the tab identities it shows.
+
+    A native application declares its frontend's root as `session_entries`; navigation asks
+    that root for an identity's member, so shared code never names a frontend's classes.
+    """
+
+    @classmethod
+    def declared_for(cls, identity: TabIdentity) -> Callable[..., Self]:
+        return cls.showing(identity.declarations())
 
 
 class WorkspaceViews(metaclass=AbstractHooksMeta):
@@ -48,6 +62,7 @@ class NavigationHost(NavigatingHost[Observing]):
     session_tracker: SessionTracker
     navigation_reader: NavigationReader
     selected_mode: str
+    session_entries: type[SessionEntries]
 
     @abstractmethod
     async def get_db(self) -> DB: ...

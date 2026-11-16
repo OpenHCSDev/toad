@@ -62,6 +62,7 @@ from toad.client.application import ClientApplication
 from toad.client.resource_release import AsyncResourceRelease
 from toad.screens import comms, main  # noqa: F401 - register widget classes
 from toad.screens.workspace import WorkspaceScreen
+from toad.session_entry import TextualSessionEntry
 from toad.session_scope import SessionScope
 from toad.sidebar_layout import SidebarLayout
 from toad.client.tab_identity import TabIdentity
@@ -140,6 +141,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
 
     COMMANDS = {ApplicationCommands}
     MODES = {"workspace": WorkspaceScreen}
+    session_entries = TextualSessionEntry
     BINDING_GROUP_TITLE = "System"
     ALLOW_IN_MAXIMIZED_VIEW = ""
 

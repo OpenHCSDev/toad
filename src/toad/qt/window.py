@@ -62,9 +62,11 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.client.tab_order import TabOrder
 from toad.constants import WELCOME
 from toad.core.events import CoordinationObserved, TabHistoryChanged
+from toad.navigation_preparation import CommsNavigation
 from toad.message_rows import MarkdownMessageStyle, MessageRow
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
+from toad.session_host import SessionEntries
 from toad.status_thread import ObservedActivity, StatusOwner
 
 
@@ -324,11 +326,15 @@ class ActivityStrip(ObservedActivity, QtCoreObserver, QWidget):
         painter.end()
 
 
-class QtHistorySessionEntry(SharedHistorySessionEntry["CommsWindow"]):
+class QtSessionEntry(SessionEntries):
+    """The Qt window's entry family."""
+
+
+class QtHistorySessionEntry(QtSessionEntry, SharedHistorySessionEntry["CommsWindow"], shows=(CommsTab,)):
     """The shared conversation entry, drawn in this window's ConversationView."""
 
-    def __init__(self, window: CommsWindow, identity: CommsTab, opened) -> None:
-        super().__init__(identity, opened.key, window.project, opened.viewer, opened.participants)
+    def __init__(self, window: CommsWindow, identity: CommsTab, opened: CommsNavigation) -> None:
+        super().__init__(identity, opened, window.project)
         self.window = window
 
     def __call__(self) -> ConversationView:
@@ -610,7 +616,7 @@ class CommsWindow(QWidget):
         """Toad's entry for a conversation tab, read again on the bus that owns it."""
         opened = await asyncio.to_thread(lambda: SharedHistorySessionEntry.reopened(
             identity, self.access.observation.observed(), self.project))
-        return QtHistorySessionEntry(self, identity, opened)
+        return QtSessionEntry.declared_for(identity)(self, identity, opened)
 
     def show_tab(self, identity: TabIdentity) -> None:
         view = self.views[identity]
