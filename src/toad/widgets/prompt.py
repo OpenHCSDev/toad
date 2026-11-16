@@ -45,7 +45,7 @@ from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard
 from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
-from toad.client.input_decision import InputAccepted, InputDecision
+from toad.client.input_decision import InputAccepted, InputDecision, RefusalFeedback
 from toad.key_modes import Standard
 from toad.native_style import (
     AutoHeight,
@@ -401,6 +401,7 @@ class PromptSubmission(HighlightedTextArea):
 
 
 class PromptTextArea(
+    RefusalFeedback,
     CompletingEditor,
     PastesClipboard,
     RightPadding,
@@ -455,6 +456,10 @@ See on-screen instructions for details.
         self.styles.max_height = "50vh"
 
     @property
+    def refuse_input(self, message: str) -> None:
+        self.app.bell()
+        self.post_message(messages.Flash(message, "error"))
+
     def can_enter_shell(self) -> bool:
         return self.submission_allowed and not self.text and not self.shell_mode
 
@@ -927,7 +932,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     def watch_agent_info(self, agent_info: Content) -> None:
         if not self.is_mounted:
             return
-        self.query_one(AgentInfo).update(self.input_decision.agent_info_text(agent_info))
+        self.query_one(AgentInfo).update(self.input_decision.agent_info(agent_info, Content))
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()

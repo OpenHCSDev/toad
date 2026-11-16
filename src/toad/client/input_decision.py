@@ -11,12 +11,18 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from toad.acp.agent_session import SessionDisposition
 
 
+class RefusalFeedback:
+    """A native editor tells the user their input was refused."""
+
+    def refuse_input(self, message: str) -> None:
+        raise NotImplementedError
+
+
 class InputDecision(DeclaredFamily, ABC):
     """Whether the user's input is accepted or refused, and why.
 
-    Native presentation (Content rendering, bell/flash feedback) stays
-    on native members. The shared contract owns allows, chaining and
-    the refusal message text.
+    The native editor supplies how a refusal is shown (RefusalFeedback) and
+    how the agent line is rendered (the refusal callable).
     """
 
     allows: ClassVar[bool]
@@ -25,13 +31,10 @@ class InputDecision(DeclaredFamily, ABC):
     def then(self, next: Callable[[], InputDecision]) -> InputDecision: ...
 
     @abstractmethod
-    def explanation(self) -> str:
-        """Plain text explaining this decision for the agent info line."""
+    def agent_info[T](self, agent_info: T, refusal: Callable[[str], T]) -> T: ...
 
     @abstractmethod
-    def announce_to(self, editor: object) -> None:
-        """Notify the native editor of this decision. The editor type
-        is the native widget; the shared contract does not import it."""
+    def announce(self, editor: RefusalFeedback) -> None: ...
 
 
 class InputAccepted(InputDecision):
@@ -40,11 +43,11 @@ class InputAccepted(InputDecision):
     def then(self, next: Callable[[], InputDecision]) -> InputDecision:
         return next()
 
-    def explanation(self) -> str:
-        return ""
+    def agent_info[T](self, agent_info: T, refusal: Callable[[str], T]) -> T:
+        return agent_info
 
-    def announce_to(self, editor: object) -> None:
-        pass
+    def announce(self, editor: RefusalFeedback) -> None:
+        """Accepted input needs no refusal feedback."""
 
 
 class InputRefused(InputDecision):
@@ -57,11 +60,11 @@ class InputRefused(InputDecision):
     def then(self, next: Callable[[], InputDecision]) -> InputDecision:
         return self
 
-    def explanation(self) -> str:
-        return self.message
+    def agent_info[T](self, agent_info: T, refusal: Callable[[str], T]) -> T:
+        return refusal(self.message)
 
-    def announce_to(self, editor: object) -> None:
-        pass
+    def announce(self, editor: RefusalFeedback) -> None:
+        editor.refuse_input(self.message)
 
 
 @dataclass(frozen=True)
