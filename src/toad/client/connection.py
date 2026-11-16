@@ -435,6 +435,13 @@ class Observation(ABC):
     def retire(self, access: CoordinationAccess) -> None:
         """An observation without a process has nothing to retire."""
 
+    def activate(self, access: CoordinationAccess):
+        """The new current observation shows itself in every view showing the sidebar: a
+        failure as the failure, a reopened service as its rows. Only the failure did this,
+        so a bus that came back after a drop stayed "unavailable" in every Qt view."""
+        for view in tuple(access.sidebar_views):
+            self.show_sidebar(view)
+
     def attach(self, access, previous):
         previous.subscriptions.close()
         if not self.is_current():
@@ -495,10 +502,6 @@ class FailedObservation(Observation):
 
     def show_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation]):
         view.bind_failed_observation(self)
-
-    def activate(self, access: CoordinationAccess):
-        for view in tuple(access.sidebar_views):
-            self.show_sidebar(view)
 
     def observe_sidebar(self, wanted):
         """Failure was published on activation; interest changes cannot rebind its views."""
@@ -682,6 +685,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
 
     def activate(self, access: CoordinationAccess):
         self.process.start_receiving(self.receive, self.receive_failed)
+        super().activate(access)
         access.update_sidebar_interest()
         access.update_team_interest()
         self.thread_interest(access)
