@@ -17,7 +17,6 @@ from textual.app import ComposeResult
 from textual.document._editing import EditingMode
 from toad.widget_actions import NativeMethodKeys, TogglesIrc, WidgetAction
 from textual.containers import VerticalGroup, VerticalScroll
-from textual.geometry import Offset
 from textual.content import Content
 from textual.widgets import Static
 
@@ -39,7 +38,7 @@ from toad.widgets.comms_sidebar import (
 from toad.widgets.sidebar_tree import (
     RowReconciliation,
     SidebarGroup,
-    TargetTree,
+    TargetMenuTree,
     GroupTitle,
 )
 from toad.widgets.splash_text import SplashText
@@ -56,7 +55,6 @@ from textual.events import Mount
 from textual import on
 
 from toad.sidebar_changes import SidebarChange
-from toad.sidebar_model_view import SidebarModelView
 from toad.widgets.sidebar_tree import CommsRow, ListedRow
 
 
@@ -200,7 +198,7 @@ class WelcomeBuses(SpacedAbove, AutoHeight, ListsBuses, VerticalGroup):
         yield BusRows(*self.bus_options())
 
 
-class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, TargetTree):
+class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, TargetMenuTree):
     """New session, channels, threads and buses: the rows the sidebar opens, plus the buses
     this machine can open."""
 
@@ -217,27 +215,8 @@ class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, Targe
     def accepts_observation(self) -> bool:
         return self.is_attached and self.query_ancestor(WelcomeScreen).is_current
 
-    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        from functools import partial
-
-        from textual.geometry import Region
-
-        from toad.widgets.comms_menu import ActionMenu
-
-        ctx = row.target.menu_context(self, channel=NoChannel())
-        selected_screen = self.app.screen
-        source = self.app.selected_session
-
-        async def read():
-            choices = await ctx.command_choices()
-            if (not self.is_attached or self.app.selected_session is not source
-                    or self.app.screen is not selected_screen):
-                return
-            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), ctx.title,
-                [(partial(ctx.execute_command, command), command.label(ctx))
-                 for command in choices])
-
-        self.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
+    def row_menu_context(self, row: CommsRow):
+        return row.target.menu_context(self, channel=NoChannel())
 
     @RowReconciliation.sync
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:

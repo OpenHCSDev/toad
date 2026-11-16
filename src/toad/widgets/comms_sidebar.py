@@ -17,12 +17,12 @@ import shlex
 from agent_comms.execution.native_arguments import ConfiguredBinary, InheritedArguments
 from pathlib import Path
 
-from agent_comms.ui_model.sidebar import ChannelRowModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
 from agent_comms.display_order import ThreadSort
 from agent_comms.transport.tools.sidebar import CommsSortChannelTool
-from textual.geometry import Offset, Region
+from textual.geometry import Region
 from textual.widget import Widget
 from textual.reactive import reactive
 from ui_theme.effects import NAME_WAVE, NEW_MESSAGE
@@ -49,6 +49,7 @@ from toad.widgets.sidebar_tree import (
     GroupHeaderLine,
     HeaderSegment,
     SelectsTargets,
+    TargetMenuTree,
     SidebarGroup,
     SearchFollower,
     TargetTreeMember,
@@ -72,7 +73,6 @@ from toad.sidebar_navigation import SidebarNavigation
 
 from toad.widgets.sidebar_tree import CommsRow, ListedRow
 from toad.sidebar_changes import SidebarChange
-from toad.sidebar_model_view import SidebarModelView
 from toad.client.sidebar_models import UnpaintedChannel
 
 
@@ -356,7 +356,7 @@ class CoordinationStatus(
 
 class CommsSidebar(
     AutoHeight,
-    SidebarModelView,
+    TargetMenuTree,
     SidebarVisibilityObserver,
     SearchFollower,
     SelectsTargets,
@@ -392,29 +392,8 @@ class CommsSidebar(
         return (self.is_attached and not self.is_leaving
                 and self.app.is_running and self.screen.is_current)
 
-    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        from functools import partial
-
-        from textual.geometry import Region
-
-        from toad.widgets.comms_menu import ActionMenu
-
-        self.pointer_select(row, menu=True)
-        ctx = self.navigation.menu_context(row)
-        selected_screen = self.app.screen
-        source = self.app.selected_session
-
-        async def read():
-            choices = await ctx.command_choices()
-            if (not self.is_attached or self.app.selected_session is not source
-                    or not self.model_state.serves(ctx.observed.root)
-                    or self.app.screen is not selected_screen):
-                return
-            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), ctx.title,
-                [(partial(ctx.execute_command, command), command.label(ctx))
-                 for command in choices])
-
-        self.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
+    def row_menu_context(self, row: CommsRow):
+        return self.navigation.menu_context(row)
 
     def accepts_observation(self) -> bool:
         return (self.enabled and self.accepts_publication()
