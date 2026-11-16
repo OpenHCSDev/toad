@@ -37,6 +37,10 @@ class CommsHost[Source](CoreEventReceiver, BusPickerHost, ThemedApp[ApplicationO
     events: CoreEventStream
     project_dir: Checkout
 
+    # Textual's App declares its own notification time ahead of the shared contract in the MRO;
+    # Toad's notices last as long as the contract says, on Qt and Textual alike.
+    NOTIFICATION_TIMEOUT = NavigatingHost.notice_seconds
+
     @abstractmethod
     def succeed_onto(self, runtime: LaunchRuntime) -> Never: ...
 
