@@ -1168,7 +1168,7 @@ class CoordinationAccess(MroDispatch):
             await asyncio.gather(self.route_task, return_exceptions=True)
             self.route_task = None
         self.events.close_threads()
-        ThreadInterestUpdate.cancel_all(self.app)
+        self.app.cancel_operations(ThreadInterestUpdate)
         self.observation = self.observation.stop_updates()
 
     async def close(self) -> None:

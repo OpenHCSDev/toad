@@ -7,24 +7,22 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agent_comms.ui_model.status import ThreadStatusModel
-from textual.abstract_hooks import AbstractHooksMeta
 
 
-class ActivityView(metaclass=AbstractHooksMeta):
-    """The status display a conversation kind supplies, mounted or absent."""
+class ActivityView:
+    """The status display a conversation kind supplies, mounted or absent.
 
-    @abstractmethod
+    A plain parent: the mounted view brings its toolkit's metaclass."""
+
     def bind(self, thread: StatusThread) -> None:
-        ...
+        raise NotImplementedError
 
-    @abstractmethod
     def show(self, row: ThreadStatusModel) -> None:
-        ...
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def working(self) -> bool:
-        ...
+        raise NotImplementedError
 
     def show_open_thread(self, name: str) -> None:
         """Show the row this process's own observation keeps for an open thread."""
