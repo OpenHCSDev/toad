@@ -3,6 +3,7 @@
 import pytest
 from toad.widgets.line_markdown import LineMarkdown
 from toad.session_actions import ReturnToViewAction
+from toad.session_navigation import DirectMessagesOpen
 from textual.document._editing import EditingMode
 from toad.widgets.project_panel import FilePreview, PreviewPath
 from toad.widgets.session_tabs import SessionTabClose
@@ -180,5 +181,6 @@ async def test_a_selected_preview_navigates_nowhere_and_direct_messages_say_so(w
 
         for target, notice in ((None, "Direct messages are unavailable from this view"),
                                ("peer", "Nothing opens from this view")):
-            await app.session_navigation.direct_messages(target).wait()
+            app.session_navigation.direct_messages(target)
+            await app.wait_operations(DirectMessagesOpen)
             await ui.until(lambda: latest_notice() == [notice], why=notice)

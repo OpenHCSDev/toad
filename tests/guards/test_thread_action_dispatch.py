@@ -56,7 +56,7 @@ def test_mixed_target_batch_shows_each_outcome_once() -> None:
 
 
 class RefusingApp(RecordingResultShower):
-    """Runs the action's worker inline, as Toad's preparation thread would."""
+    """Runs the action's operation inline, as Toad's preparation thread would."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -66,9 +66,8 @@ class RefusingApp(RecordingResultShower):
     async def run_thread(self, apply):
         return apply()
 
-    def run_worker(self, work, name: str) -> asyncio.Task:
-        self.tasks.append(asyncio.ensure_future(work))
-        return self.tasks[-1]
+    def run_operation(self, kind, task) -> None:
+        self.tasks.append(asyncio.ensure_future(task()))
 
 
 class RefusedExecution(ThreadActionExecution):
