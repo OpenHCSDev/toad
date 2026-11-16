@@ -47,8 +47,8 @@ from formbridge.forms.declared_fields import DeclaredField
 from toad.atomic import AtomicWriteError
 from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect
-from toad.render_backend import PreparedRenderer, Renderer, RenderTask
-from toad.render_processes import RenderProcessPool
+from toad.render_backend import Renderer, RenderTask
+from toad.textual_renderers import TextualPreparedRenderer, TextualRenderProcessPool
 from toad.client.application import ClientApplication
 from toad.client.resource_release import AsyncResourceRelease
 from toad.screens import comms, main  # noqa: F401 - register widget classes
@@ -161,8 +161,8 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
             connection: Core transport selected by the launch owner.
         """
         Renderer.prepare_spawn()
-        self.preparation = PreparationRuntime(RenderProcessPool(connection.helper_start))
-        self.render_processes: Renderer = PreparedRenderer(self.preparation)
+        self.preparation = PreparationRuntime(TextualRenderProcessPool(connection.helper_start))
+        self.render_processes: Renderer = TextualPreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.initialize_client(agent_binding, connection, agent_session_id)

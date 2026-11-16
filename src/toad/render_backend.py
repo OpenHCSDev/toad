@@ -6,7 +6,7 @@ import asyncio
 import os
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
-from contextvars import Context, copy_context
+from contextvars import Context, ContextVar, copy_context
 from hashlib import sha256
 from types import get_original_bases
 from typing import ClassVar, Generic, TypeVar, cast, get_args, get_origin
@@ -144,20 +144,22 @@ class Renderer(RendererSpawn):
         """Begin owned startup; remote clients retain on-demand connection."""
         self.prepare_spawn()
 
-    @staticmethod
-    def execution_context() -> Context:
+    def native_owners(self) -> tuple[ContextVar, ...]:
+        """The context variables naming the frontend's native owner of the waiting work.
+        Qt keeps none in context; TextualOwners names Textual's message pump and Worker."""
+        return ()
+
+    def execution_context(self) -> Context:
         """Detached work borrows ambient facts, never its waiter's native owner.
 
         Preparation can outlive an evicted widget. App/backend context remains
         available, but the consumer owns the native message pump and Worker,
         not to shared data preparation or its completion callbacks.
         """
-        from textual._context import active_message_pump
-        from textual.worker import active_worker
-
+        owners = self.native_owners()
         context = Context()
         for variable, value in copy_context().items():
-            if variable is not active_message_pump and variable is not active_worker:
+            if variable not in owners:
                 context.run(variable.set, value)
         return context
 
