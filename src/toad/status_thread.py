@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 
 from agent_comms.ui_model.status import ThreadStatusModel
+
+from toad.client.subscribers import CoreObserver, ThreadCallbackSubscription
+from toad.core.events import ThreadRowsChanged
 
 
 class ActivityView:
@@ -127,3 +131,50 @@ class OtherRouteStatusThread(RoutedStatusThread):
 
     def bind(self, activity: ActivityView) -> None:
         activity.show(ThreadStatusModel.other_route(self.name))
+
+
+class ObservedActivity(CoreObserver, ActivityView):
+    """An activity view that follows its status thread's row: binding another thread
+    observes it instead, every change to the row binds it again, and the thread is working
+    when its row says so. The native view stores the row it is shown and repaints."""
+
+    thread: StatusThread = NoStatusThread()
+    row: ThreadStatusModel
+    # Whether the native view has been shown; before that, start_observing is still to come.
+    is_mounted: bool
+
+    @property
+    def coordination(self):
+        """The coordination access whose events and open-thread rows this view reads."""
+        raise NotImplementedError
+
+    def start_observing(self) -> None:
+        """The view is shown: observe its thread and show its row."""
+        self.thread.observe(self)
+        self.thread.bind(self)
+
+    def bind(self, thread: StatusThread) -> None:
+        if thread != self.thread:
+            self.thread = thread
+            if self.is_mounted:
+                self.retire_core_observations(self.coordination.events)
+                thread.observe(self)
+                thread.bind(self)
+
+    def status_changed(self, event: ThreadRowsChanged) -> None:
+        self.thread.bind(self)
+
+    def show_open_thread(self, name: str) -> None:
+        self.show(self.coordination.thread_status.open(name))
+
+    def observe_thread_rows(self, root: Path, name: str) -> None:
+        self.observe_core_callback(
+            self.coordination.events,
+            ThreadRowsChanged,
+            self.status_changed,
+            factory=partial(ThreadCallbackSubscription, scope=(str(root), name)),
+        )
+
+    @property
+    def working(self) -> bool:
+        return self.row.status.is_working()
