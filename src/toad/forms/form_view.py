@@ -252,8 +252,9 @@ class FormView(FollowingForm, WidgetView, containers.VerticalScroll, can_focus=F
         self.leave_state()
 
     def repaint_editor(self, editor: ValueEditing) -> None:
-        if isinstance(editor, ValueEditor) and editor.is_mounted:
-            editor.paint_value()
+        ve: ValueEditor = editor  # type: ignore[assignment]
+        if ve.is_mounted:
+            ve.paint_value()
 
     def filter(self, term: str) -> None:
         self.filter_parts(term)
