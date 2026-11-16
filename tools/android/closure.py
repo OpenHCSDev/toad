@@ -2,7 +2,7 @@
 
 Run with the interpreter whose packages the APK bundles, from a Toad checkout:
     PYTHONPATH=src python tools/android/closure.py OUT.json
-Imports toad.qt.android, the module the APK's main.py runs, and writes
+Enters the APK's environment and imports toad.qt.android, as the APK's main.py does, and writes
 {top-level name: {"root": path}} for assemble.py.
 """
 import json
@@ -11,6 +11,9 @@ import sysconfig
 from pathlib import Path
 
 stdlib = Path(sysconfig.get_paths()["stdlib"]).resolve()
+from toad.qt.android_app import enter
+
+enter()
 before = set(sys.modules)
 import toad.qt.android  # noqa: F401 - the import is the measurement
 

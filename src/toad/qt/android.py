@@ -1,17 +1,7 @@
 """The APK's start: Toad's Qt client on this phone, on the first bus it holds.
 
-The APK's `main.py` is one import of this module (tools/android/main.py), and the app folder
-it ships is laid out by tools/android/assemble.py: this package at its root, beside the
-files read below. The environment is set before anything imports the libraries that read
-it, which is why it sits above the imports:
-
-- the compiled speedups of aiohttp, multidict, yarl, frozenlist and propcache are not
-  shipped, so each runs its pure-Python implementation;
-- Python's ssl looks for /etc/ssl/cert.pem, which Android lacks (and Android's own store is
-  named by OpenSSL's old subject hash), so the app carries certifi's CA bundle;
-- Toad's default theme is pywal's palette, and the app carries the desktop's colors.json;
-- Toad's database (saved tabs) and the held bus profiles, which agent-comms keeps under the
-  home directory, live in the app's own storage.
+The APK's `main.py` (tools/android/main.py) enters the APK's environment
+(toad.qt.android_app) and then runs `main` here.
 
 A failure before the window opens is shown on screen, since a phone without adb has nowhere
 else to show it. So is a cold start's cause: SessionRecord notes each state Android moves the
@@ -22,15 +12,6 @@ import os
 import sys
 import time
 import traceback
-from pathlib import Path
-
-APP = Path(__file__).resolve().parents[2]
-for speedup in ("AIOHTTP", "MULTIDICT", "YARL", "FROZENLIST", "PROPCACHE"):
-    os.environ[f"{speedup}_NO_EXTENSIONS"] = "1"
-os.environ["SSL_CERT_FILE"] = str(APP / "cacert.pem")
-os.environ["PYWAL_CACHE_DIR"] = str(APP / "wal")
-os.environ["XDG_STATE_HOME"] = str(APP / "state")
-os.environ["HOME"] = str(APP / "home")
 
 import qasync
 from agent_comms.projects.checkouts import Checkout
@@ -41,6 +22,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 
 from toad.client.bus_selection import BusChoice
 from toad.client.connection import RemoteCoreConnection
+from toad.qt.android_app import APP
 from toad.qt.main import current_scheme, serve
 
 BUNDLED_PROFILE = APP / "profile.json"
