@@ -8,17 +8,14 @@ Nothing here imports a terminal library.
 from __future__ import annotations
 
 import asyncio
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, field, replace
-from functools import singledispatch
 from pathlib import Path
 from typing import ClassVar
-from agent_comms.messaging.display_references import NoHistorySource
 
 from agent_comms.messaging.historical_views import (
     ConversationObservation,
     ConversationRevision,
-    HistorySource,
 )
 from agent_comms.messaging.message_page import (
     MessagePage,
@@ -39,7 +36,6 @@ from agent_comms.messaging.page_traversal import (
     PageCursor,
 )
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transcript.transcript_events import IncomingTranscript
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsConversationRevisionTool,
@@ -47,8 +43,8 @@ from agent_comms.transport.tools.sidebar import (
     CommsMarkPageReadTool,
 )
 from agent_comms.ui_model.observation import ReadNotifications
-from metaclass_registry.mro_dispatch import handles
 
+from toad.client.history import ReadMarkedHistory
 from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
@@ -58,30 +54,24 @@ from toad.client.submission import (
 from toad.client.connection import CoordinationAccess, Observation
 from toad.client.conversation_capabilities import ConversationSource
 from toad.client.conversation import ConversationKind
-from toad.core.projection import MroProjection
-from toad.client.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
-from toad.message_rows import MessageRow, WireMessageStyle
-from toad.read_marked_history import ReadMarkedHistory
+from toad.message_rows import WireMessageStyle
 from toad.session_scope import SessionScope
 from toad.submission_queue import BusQueueSource
 from toad.target_commands import TargetContext
-from toad.transcript_preparation import (
-    PageRequest,
+from toad.client.history_preparation import PageRequest
+from toad.client.prepared_pages import (
     PreparedTranscriptPage,
     ReplaceablePageSource,
     SavedHistory,
     SourceObservation,
-    TranscriptPageWork,
+    SourcePageWork,
     Unchanged,
 )
 from toad.client.history_state import LatestReplacementViewportRequest, ReplacementViewportRequest
-from toad.widgets.history_anchor import LatestPosition
-from toad.widgets.message_notifications import PaintedRead, ReadWork
-from toad.widgets.transcript_fragments import (
-    BusMessageFragment,
-    MessageShown,
-    TranscriptFragment,
-)
+from toad.client.reader_position import LatestPosition
+from toad.client.history_reads import PaintedRead, ReadWork
+from toad.widgets.transcript_fragments import BusMessageFragment, TranscriptFragment
+from toad.client.fragments import EvidencedFragment, MembershipText, MessageShown, WireMessage
 from toad.widgets.transcript_lines import Lines
 from toad.wire_conversation_view import WireConversationView
 
@@ -215,62 +205,9 @@ class PreparedWirePage(PreparedTranscriptPage):
 
 
 @dataclass(kw_only=True)
-class WireFragment(TranscriptFragment, ABC):
-    """One wire message drawn as lines.
-
-    `evidence` is Core's page whose display evidence can mark this message
-    read; it is None when the page carried none and once the mark is written.
-    """
-
-    shown: MessageShown
-    evidence: MessagePage | None
-    checks_notifications: ClassVar[bool] = False
-
-    def _unhandled_message(message, **fields):
-        raise TypeError(f"No fragment declared for {type(message.role).__name__}")
-
-    _roles = singledispatch(_unhandled_message)
-
-    def __init_subclass__(cls, *, roles=(), **kwargs):
-        super().__init_subclass__(**kwargs)
-        for role in roles:
-            WireFragment._roles.register(role, cls.from_message)
-
-    @classmethod
-    def of(cls, message: Message, *, reader: str, **fields) -> WireFragment:
-        return cls._roles.dispatch(type(message.role))(message, reader=reader, **fields)
-
-    @classmethod
-    def from_message(cls, message, *, reader, page: MessagePage, **fields):
-        return cls((IncomingTranscript.of(message, reader=reader),), **fields)
-
-    @property
-    def message(self) -> Message:
-        return self.events[0].message
-
-    @property
-    def timestamp(self) -> float:
-        return self.message.timestamp
-
-    @property
-    def clipboard_text(self) -> str:
-        return self.message.body
-
-    @property
-    def leading(self) -> tuple[LineBlock, ...]:
-        """Blocks above the message's own text."""
-        return ()
-
-    def trailing(self, shown: MessageShown) -> tuple[LineBlock, ...]:
-        """Blocks below the message's own text."""
-        return ()
-
-    @abstractmethod
-    def text(self, shown: MessageShown) -> tuple[LineBlock, ...]:
-        """The message's own text."""
-
-    def blocks(self, shown):
-        return (*self.leading, *self.text(shown), *self.trailing(shown))
+class WireFragment(EvidencedFragment, TranscriptFragment, ABC):
+    """A wire message drawn by Textual, and the root of Textual's wire fragments: a message's
+    role selects the member declared under it."""
 
     def text_rows(self, lines: Lines) -> range:
         """Read visibility uses the same block snapshots that draw this viewport."""
@@ -282,54 +219,14 @@ class WireFragment(TranscriptFragment, ABC):
         )
 
 
-class MembershipFragment(WireFragment, roles=(Membership,)):
-    """Someone joined or left: one muted line."""
-
-    def text(self, shown: MessageShown):
-        return (Body("— " + self.message.body, role=MutedRole),)
-
-
-class HistoryLeading(MroProjection[tuple[LineBlock, ...]]):
-    """A message an attached history recorded opens with where it came from; a live one with its header."""
-
-    @handles(NoHistorySource)
-    def live(self, source: NoHistorySource, fragment: MessageFragment, header: tuple[LineBlock, ...]):
-        return header
-
-    @handles(HistorySource)
-    def recorded(self, source: HistorySource, fragment: MessageFragment, header: tuple[LineBlock, ...]):
-        message = fragment.message
-        return (
-            Gap(),
-            Summary.titled(f"History · {source.original_root} · @{message.sender} created {message.sender_created_at}"),
-            fragment.row.header,
-        )
-
-
-HISTORY_LEADING = HistoryLeading()
+@dataclass(kw_only=True)
+class MembershipFragment(MembershipText, WireFragment, shows=(Membership,)):
+    """Someone joined or left, drawn by Textual."""
 
 
 @dataclass(kw_only=True)
-class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole, NoticeRole)):
-    """A sent message: its header, text and the state of its notifications."""
-
-    @classmethod
-    def from_message(cls, message, *, reader, page: MessagePage, **fields):
-        return cls(
-            (IncomingTranscript.of(message, reader=reader),),
-            text_part=message.body,
-            row=MessageRow(message, reader),
-            notification_identity=page.selection.notification_identity,
-            **fields,
-        )
-
-    @property
-    def notification_references(self):
-        return self.message.role.notification_references(self.message)
-
-    @property
-    def leading(self):
-        return HISTORY_LEADING.project_value(self.message.history_source, self, super().leading)
+class MessageFragment(WireMessage, BusMessageFragment, WireFragment, shows=(ConversationRole, NoticeRole)):
+    """A sent message drawn by Textual."""
 
 
 @dataclass(frozen=True, eq=False)
@@ -434,7 +331,7 @@ class GrowingWireObservation(WireObservation):
 
 
 @dataclass(frozen=True)
-class WirePageWork(TranscriptPageWork[WireCut]):
+class WirePageWork(SourcePageWork[WireCut]):
     """Read one wire page off the UI thread; `loader` is the WireSource."""
 
     @property

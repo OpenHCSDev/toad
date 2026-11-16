@@ -4,14 +4,16 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from contextlib import ExitStack
-from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.ui_model.message_category import all_categories
-from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.client.history_preparation import OLDER_END, PageRequest
-from toad.transcript_preparation import NoProjection
+from toad.client.history_preparation import (
+    OLDER_END,
+    HistorySourceSnapshot,
+    PageRequest,
+)
+from toad.client.prepared_pages import NoProjection
 
 if TYPE_CHECKING:
     from textual.worker import Worker

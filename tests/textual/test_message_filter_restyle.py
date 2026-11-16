@@ -18,7 +18,7 @@ from toad.client.history_state import PreparedReplacementViewportRequest
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.history_anchor import LatestPosition
+from toad.client.reader_position import LatestPosition
 from toad.widgets.transcript_history import ProjectedTranscriptHistory
 
 

@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Iterable
-from dataclasses import dataclass, replace
+from dataclasses import replace
 
 from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.notification_reads import LiveNotificationRead
@@ -44,6 +43,9 @@ from toad.client.notification_status import (
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.tool_content import ToolContent
 
+from toad.client.history_reads import ReadMarking
+from toad.no_worker import NoWorker
+
 
 class NotificationTitle(
     NoPadding,
@@ -59,7 +61,6 @@ class NotificationTitle(
         status = self.query_ancestor(MessageNotifications).status
         return (*super().native_declarations(),
                 NativeDeclaration.of(Styles.color, Variable(status.role.colour.name)))
-
 
 
 class MessageNotifications(
@@ -114,46 +115,22 @@ class MessageNotifications(
         self._title.update_node_styles()
 
 
-class PaintedRead(ABC):
-    """What a view can start after its current rows have been painted."""
-
-    @abstractmethod
-    def start(self, marker: VisibleReadMarking) -> Worker[None] | None:
-        pass
-
-
-class NothingToRead(PaintedRead):
-    def start(self, marker: VisibleReadMarking) -> None:
-        pass
-
-
-@dataclass(frozen=True)
-class ReadWork(PaintedRead):
-    work: Awaitable[None]
-
-    async def run(self, marker: VisibleReadMarking) -> None:
-        try:
-            await self.work
-        except MaintenanceHeldError as error:
-            # The refused evidence stays unread; a later paint supplies fresh work.
-            marker.log.debug("Read marking postponed during maintenance", error)
-
-    def start(self, marker: VisibleReadMarking) -> Worker[None]:
-        marker._read_worker = marker.run_worker(self.run(marker), group="painted-read")
-        return marker._read_worker
-
-
-class VisibleReadMarking(ToadNode):
-    """One painted-read operation at a time, for pagers and native/CLI sessions."""
+class VisibleReadMarking(ReadMarking, ToadNode):
+    """Textual runs a view's one painted read as a widget worker."""
 
     def __init__(self, *args, **kwargs):
-        self._read_worker: Worker[None] | None = None
+        self._read_worker: Worker[None] | NoWorker = NoWorker()
         super().__init__(*args, **kwargs)
 
-    def mark_visible(self) -> None:
-        if self._read_worker is not None and not self._read_worker.is_finished:
-            return
-        self.read_visible().start(self)
+    def read_running(self) -> bool:
+        return not self._read_worker.is_finished
+
+    def start_read(self, work: Awaitable[None]) -> Worker[None]:
+        self._read_worker = self.run_worker(work, group="painted-read")
+        return self._read_worker
+
+    def read_postponed(self, error: MaintenanceHeldError) -> None:
+        self.log.debug("Read marking postponed during maintenance", error)
 
 
 class HistoryNotifications(NotificationSubscriber):

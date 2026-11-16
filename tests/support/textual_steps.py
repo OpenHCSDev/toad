@@ -4,7 +4,11 @@ Each takes the ``TextualUi``. App-layer tests do not use these.
 """
 
 from __future__ import annotations
+from toad.client.history_state import LiveTranscript, ProvisionalTranscript
+from toad.transcript_preparation import SavedTranscript, TranscriptPageRenderTask
 from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.transcript_history import TranscriptHistory
+from toad.work_preparation import RenderPreparation
 
 import asyncio
 
@@ -134,12 +138,7 @@ def painted_text(widget, text) -> bool:
 
 async def saved_history(view, page, loader, *, committed=True):
     """A saved transcript history prepared and paged the way the application builds one."""
-    from toad.transcript_preparation import SavedHistory, TranscriptPageRenderTask
-    from toad.client.history_state import LiveTranscript, ProvisionalTranscript
-    from toad.widgets.transcript_history import TranscriptHistory
-    from toad.work_preparation import RenderPreparation
-
     prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
-    return TranscriptHistory(prepared, SavedHistory(loader, page.after, view.app.preparation),
+    return TranscriptHistory(prepared, SavedTranscript(loader, page.after, view.app.preparation),
                              view=view, notification_view=view.contents,
                              source_state=LiveTranscript() if committed else ProvisionalTranscript())
