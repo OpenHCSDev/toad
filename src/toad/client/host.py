@@ -13,10 +13,15 @@ from pathlib import Path
 
 from formbridge.publications import PublicationStream
 from toad.client.resource_release import ResourceRelease
+from toad.work_preparation import PreparationRuntime
 
 
 class CommsHost:
     """The operations shared comms code needs from the native application."""
+
+    events: PublicationStream
+    preparation: PreparationRuntime
+    project_dir: Path | None
 
     def schedule_ui(self, callback: Callable[[], None]) -> None:
         """Deferred until after the current message; never inline."""
@@ -48,11 +53,6 @@ class CommsHost:
         raise NotImplementedError
 
     @property
-    def events(self) -> PublicationStream:
-        """The application's event stream for subscribe/publish."""
-        raise NotImplementedError
-
-    @property
     def tab_names(self) -> tuple[str, ...]:
         """The current open tab mode names, for interest change detection."""
         raise NotImplementedError
@@ -67,11 +67,6 @@ class CommsHost:
 
     def retire_views(self, root: Path, retired: object) -> None:
         """Notify the session navigation that views were retired for this root."""
-        raise NotImplementedError
-
-    @property
-    def preparation(self) -> object:
-        """Work scheduler with run_thread for async preparation tasks."""
         raise NotImplementedError
 
     @property
@@ -94,9 +89,4 @@ class CommsHost:
 
     def close_session(self, mode: str) -> None:
         """Request the session with this mode to close."""
-        raise NotImplementedError
-
-    @property
-    def project_dir(self) -> Path | None:
-        """The project directory the application was opened on."""
         raise NotImplementedError
