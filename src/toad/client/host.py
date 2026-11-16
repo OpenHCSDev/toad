@@ -8,7 +8,7 @@ and navigation code calls these without importing Textual or Qt.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Never
 
@@ -16,6 +16,7 @@ from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.history_views import RetiredViews
 from agent_comms.projects.checkouts import Checkout
 
+from formbridge.operations import OperationKind
 from formbridge.publications import PublicationStream
 from toad.client.tab_identity import TabIdentity
 from toad.work_preparation import PreparationRuntime
@@ -38,6 +39,14 @@ class CommsHost:
 
     def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> object:
         """Periodic UI-thread callback; the returned handle's stop() ends it."""
+        raise NotImplementedError
+
+    def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
+        """Start one operation of this kind; an exclusive kind's newer start cancels the running one."""
+        raise NotImplementedError
+
+    def cancel_operations(self, kind: type[OperationKind]) -> None:
+        """Cancel every running operation of this kind."""
         raise NotImplementedError
 
     @property

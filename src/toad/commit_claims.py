@@ -17,16 +17,16 @@ from agent_comms.transcript.transcripts import (
     NativeCommittedPrefix,
     TranscriptReadIdentity,
 )
-from textual.abstract_hooks import AbstractHooksMeta
-from textual.widget import Widget
 
 
 @dataclass(frozen=True)
-class CommitEvidence:
-    captured: frozenset[Widget]
+class CommitEvidence[Block]:
+    """What one commit captured: the drawn blocks it holds, by identity, and the sources they cover."""
+
+    captured: frozenset[Block]
     sequences: frozenset[int] = frozenset()
-    retained: frozenset[Widget] = frozenset()
-    """Widgets this commit keeps whatever it covers: the history view it publishes into."""
+    retained: frozenset[Block] = frozenset()
+    """Blocks this commit keeps whatever it covers: the history view it publishes into."""
     native_inputs: frozenset[str] = frozenset()
     outgoing: frozenset[OutgoingMessageReference] = frozenset()
 
@@ -35,7 +35,7 @@ class CommitEvidence:
 
 
 @dataclass(frozen=True, kw_only=True)
-class NativeCommitEvidence(CommitEvidence):
+class NativeCommitEvidence[Block](CommitEvidence[Block]):
     identity: TranscriptReadIdentity
 
     def covers_native(self, source: NativeCommittedPrefix) -> bool:
@@ -82,7 +82,7 @@ class CommitClaim(ABC):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+    def accepts_native[Block](self, widget: Block, captured: frozenset[Block],
                        identity: TranscriptReadIdentity) -> bool:
         return True
 
@@ -91,7 +91,7 @@ class CommitClaim(ABC):
         return frozenset()
 
     @abstractmethod
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+    def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         pass
 
     # Whether the live block already showed a saved row its commit retires it for;
@@ -117,11 +117,11 @@ class CapturedClaim(CommitClaim):
     def capture(self, settled: bool) -> bool:
         return self.source.capture(settled)
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+    def accepts_native[Block](self, widget: Block, captured: frozenset[Block],
                        identity: TranscriptReadIdentity) -> bool:
         return widget in captured and self.source.accepts(identity)
 
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+    def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         return (widget in evidence.captured - evidence.retained
                 and self.source.covered(evidence))
 
@@ -135,7 +135,7 @@ class ToolOutputClaim(CapturedClaim):
 
     outgoing: frozenset[OutgoingMessageReference]
 
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+    def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         return super().covered(widget, evidence) and self.outgoing <= evidence.outgoing
 
     def repeats_sent(self, reference: OutgoingMessageReference) -> bool:
@@ -147,18 +147,18 @@ class RetainedSourceClaim(CapturedClaim):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+    def accepts_native[Block](self, widget: Block, captured: frozenset[Block],
                        identity: TranscriptReadIdentity) -> bool:
         return True
 
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+    def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         return widget not in evidence.retained
 
 @dataclass(frozen=True)
 class OutgoingMessageClaim(CommitClaim):
     message: PublishedSentMessage
 
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+    def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         return self.message.reference in evidence.outgoing
 
     def repeats_sent(self, reference: OutgoingMessageReference) -> bool:
@@ -170,19 +170,19 @@ class StartedInputClaim(CommitClaim):
 
     source: InputStartedUpdate
 
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+    def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         return self.source.native_id in evidence.native_inputs
 
     def repeats_native(self, events: tuple[TranscriptEvent, ...]) -> bool:
         return self.source.native_id in TranscriptCoverage(events).native_inputs
 
-class CommitParticipant(metaclass=AbstractHooksMeta):
-    """Nominal widget contract; unrelated/local widgets are retained by default."""
+class CommitParticipant:
+    """A drawn block that holds a claim on the source rows that retire it; a block without
+    this parent is retained by default. A plain parent: each toolkit's block brings its metaclass."""
 
     @property
-    @abstractmethod
     def commit_claim(self) -> CommitClaim:
-        ...
+        raise NotImplementedError
 
 
 class RetainedBlockClaim(CommitClaim):
@@ -190,7 +190,7 @@ class RetainedBlockClaim(CommitClaim):
 
     retires = False
 
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+    def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         return False
 
 

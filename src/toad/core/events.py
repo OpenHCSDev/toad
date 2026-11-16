@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Callable
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
 from typing import Annotated, ClassVar
@@ -33,11 +32,10 @@ from toad.acp.status import ToolCallStatus
 from toad.live_output import OutputStream, ThoughtStream
 from toad.plan import PlanItem
 from toad.client.tab_identity import TabIdentity
-from formbridge.operations import ExclusiveKind
-from toad.worker_group import WorkerGroup
+from formbridge.operations import ExclusiveKind, OperationKind
 
 
-class ThreadInterestUpdate(WorkerGroup, ExclusiveKind):
+class ThreadInterestUpdate(OperationKind, ExclusiveKind):
     """Tells Core which threads the open views are interested in; a newer update supersedes one running."""
 
 
@@ -473,7 +471,7 @@ class ThreadChangeSubscription(Subscription):
 
     def bucket_opened(self) -> None:
         publisher = self.stream.publisher
-        ThreadInterestUpdate.run_on(publisher.app, publisher.update_thread_interest)
+        publisher.app.run_operation(ThreadInterestUpdate, publisher.update_thread_interest)
 
     def bucket_emptied(self) -> None:
         self.bucket_opened()

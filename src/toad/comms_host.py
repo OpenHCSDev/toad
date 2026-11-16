@@ -6,9 +6,11 @@ observation layer needs from the native app.
 """
 
 from abc import abstractmethod
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Never
+
+from formbridge.operations import OperationKind
 
 from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.history_views import RetiredViews
@@ -50,6 +52,12 @@ class CommsHost[Source](CoreEventReceiver, BusPickerHost, ThemedApp[ApplicationO
 
     def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> Timer:
         return self.set_interval(seconds, callback)
+
+    def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
+        self.run_worker(task, group=kind.group, exclusive=kind.exclusive)
+
+    def cancel_operations(self, kind: type[OperationKind]) -> None:
+        self.workers.cancel_group(self, kind.group)
 
     def report_fatal(self, error: Exception) -> None:
         self._handle_exception(error)
