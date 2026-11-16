@@ -28,7 +28,8 @@ from metaclass_registry.mro_dispatch import handles
 from toad.widget_actions import Activates
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
-from textual.navigation import CursorCommand, MovesHorizontalCursor
+from formbridge.navigation_commands import CursorCommand
+from textual.navigation import MovesHorizontalCursor
 from toad.widget_actions import HiddenActions, StepsVerticalCursor, VisibleActions
 from textual.containers import Vertical, VerticalGroup
 from textual import events
