@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 
-from agent_comms.cli_support.cli_failures import CLI_FAILURES
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.config_options import ModelConfigOption
@@ -231,23 +230,8 @@ class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=
         self.form.finish()
         button.disabled = True
         try:
-            try:
-                await CommandPreparation.wait_on(self)
-            except WorkerFailed:
-                # Preparation reports its original error through its own handler.
-                return
-            if not self.is_attached or any(view.editor.feedback for view in self.form.values.values()):
-                return
-            arguments = self.arguments()
-            confirmed = self.query_one(CommandConfirmed).value
-            try:
-                await self.app.preparation.run_thread(
-                    lambda: self.validated_action(arguments).with_confirmation(confirmed))
-            except CLI_FAILURES as error:
-                self.app.show_error(error, self.definition.label)
-                self.update_confirmation()
-                return
-            if self.is_attached and arguments == self.arguments():
+            arguments = await self.confirm_arguments()
+            if arguments is not None:
                 await self.submit(arguments)
         finally:
             if self.is_attached:
@@ -255,22 +239,11 @@ class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=
 
     @on(Mount)
     def on_mount(self):
-        self.state.on_resolved_changed(self.draft_changed)
-        self.prepare_current()
-        self.update_confirmation()
+        self.open_draft()
 
     @on(Unmount)
     def on_unmount(self):
-        self.state.off_resolved_changed(self.draft_changed)
-
-    def draft_changed(self, paths):
-        self.prepare_current()
-        self.update_confirmation()
-
-
-    def prepare_current(self) -> None:
-        if not CommandPreparation.running_on(self):
-            CommandPreparation.run_on(self, self.refresh_catalogs(self.arguments()), exit_on_error=False)
+        self.close_draft()
 
     @on(Worker.StateChanged)
     async def preparation_changed(self, event: Worker.StateChanged) -> None:
@@ -279,16 +252,9 @@ class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=
             try:
                 await event.worker.wait()
             except WorkerFailed as error:
-                self.query_one(CommandConfirmation).update("Could not load choices")
-                self.app.show_error(error.error, self.definition.label)
+                self.preparation_failed(error.error)
             else:
                 self.update_confirmation()
-
-    def draft_value_names(self):
-        return self.form.values
-
-    def draft_validate_field(self, name, value):
-        self.form.values[name].field.validate(value)
 
     def repaint_choice(self, name):
         editor = self.form.values[name].editor
@@ -300,29 +266,38 @@ class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=
     async def draft_run_thread(self, work):
         return await self.app.preparation.run_thread(work)
 
-    def catalogs_refreshed(self) -> None:
-        self.update_confirmation()
+    def preparing(self) -> bool:
+        return CommandPreparation.running_on(self)
 
-    def update_confirmation(self):
-        confirmed = self.query_one(CommandConfirmed)
-        confirmed.value = False
-        arguments = self.arguments()
-        if CommandPreparation.running_on(self):
-            self.query_one(CommandConfirmation).update("Loading choices…")
-            confirmed.display = False
-            return
-        async def prepare():
-            def read():
-                try:
-                    return self.validated_action(arguments).confirmation, True
-                except (TypeError, ValueError) as error:
-                    return str(error), False
-            confirmation, valid = await self.app.preparation.run_thread(read)
-            if not self.is_attached or arguments != self.arguments() or CommandPreparation.running_on(self):
-                return
-            self.query_one(CommandConfirmation).update(confirmation)
-            confirmed.display = valid and bool(confirmation)
-        self.run_worker(prepare, group='command-confirmation', exclusive=True)
+    def start_preparation(self, preparation) -> None:
+        CommandPreparation.run_on(self, preparation, exit_on_error=False)
+
+    async def preparation_settled(self) -> bool:
+        try:
+            await CommandPreparation.wait_on(self)
+        except WorkerFailed:
+            # Preparation reports its original error through its own handler.
+            return False
+        return True
+
+    def start_confirmation(self, reading) -> None:
+        self.run_worker(reading, group='command-confirmation', exclusive=True)
+
+    def reset_confirmed(self) -> None:
+        self.query_one(CommandConfirmed).value = False
+
+    def show_confirmation(self, text: str, confirmable: bool) -> None:
+        self.query_one(CommandConfirmation).update(text)
+        self.query_one(CommandConfirmed).display = confirmable
+
+    def is_confirmed(self) -> bool:
+        return self.query_one(CommandConfirmed).value
+
+    def draft_refused(self) -> bool:
+        return any(view.editor.feedback for view in self.form.values.values())
+
+    def draft_failed(self, error: BaseException) -> None:
+        self.app.show_error(error, self.definition.label)
 
 
 class CommandDialog(CommandForm, ShadedScreen, CenteredScreen, DismissibleScreen[dict[str, str | None]]):

@@ -2,15 +2,11 @@
 
 from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
-from typing import TYPE_CHECKING
 
 from agent_comms.errors import UnregisteredThreadError
-from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
-from toad.client.commands import CommandContextChanged
+from toad.client.commands import CommandContextChanged, CommandRefused, ConversationCommands, LocalCommand
+from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, SlashCommand
 from toad.target_commands import TargetContext, ThreadCommand
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
 
 
 @dataclass(frozen=True)
@@ -25,9 +21,10 @@ class CommandCatalog:
 
     @classmethod
     async def read(cls, app, advertised: Sequence[AgentAdvertisedCommand],
-                   context: Awaitable[TargetContext]):
+                   context: Awaitable[TargetContext], local: type[LocalCommand]):
         """Acquire one operation's projection through the shared read worker.
 
+        `local` is the family of local commands the reading conversation runs.
         This value is consumed by a refresh or execution and then released;
         widgets retain completion display resources, never applicability.
         """
@@ -39,16 +36,17 @@ class CommandCatalog:
         except UnregisteredThreadError:
             # An unbound or shell-only view has no backend thread. The session
             # identity and the registry query, not a UI-side presence read, own that fact.
-            return await app.preparation.run_thread(cls.joined, commands)
+            return await app.preparation.run_thread(cls.joined, commands, local)
         for definition in definitions:
             command = ThreadCommand(definition)
             commands[command.command] = command
-        return await app.preparation.run_thread(cls.joined, commands, target)
+        return await app.preparation.run_thread(cls.joined, commands, local, target)
 
     @classmethod
-    def joined(cls, commands: dict[str, CommandPresentation], *context: TargetContext):
+    def joined(cls, commands: dict[str, CommandPresentation], local: type[LocalCommand],
+               *context: TargetContext):
         """Local declarations join last, so their spelling stays authoritative."""
-        for member in SlashCommand.members_with(LocalCommand):
+        for member in SlashCommand.members_with(local):
             command = member()
             commands[command.command] = command
         entries = tuple(sorted(commands.values(), key=lambda command: command.command))
@@ -69,7 +67,11 @@ class CommandCatalog:
         return next(command for command in self.commands if command.command == name)
 
     @classmethod
-    async def execute(cls, text: str, conversation: Conversation) -> bool:
+    async def execute(cls, text: str, conversation: ConversationCommands) -> bool:
+        """Run typed text as the conversation's command; False when it names none, so the
+        text goes on as a message. A recognized command never falls through as text."""
+        if not text.startswith("/"):
+            return False
         try:
             catalog = await conversation.read_command_catalog()
             if not catalog.recognizes(text):
@@ -77,9 +79,10 @@ class CommandCatalog:
             name, _, arguments = text.partition(" ")
             return await catalog.command_named(name).parse_arguments(arguments).apply(conversation)
         except CommandContextChanged:
-            # A recognized UI command must never fall through to agent input
-            # because its original target disappeared during an awaited read.
-            conversation.app.notify(
-                "View changed; command was not run. Submit it again.", severity="warning"
-            )
+            # Its original target disappeared during an awaited read.
+            conversation.app.show_warning("View changed; command was not run. Submit it again.",
+                                          text.partition(" ")[0])
+            return True
+        except CommandRefused as refusal:
+            conversation.flash_error(str(refusal))
             return True

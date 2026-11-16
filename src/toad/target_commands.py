@@ -13,14 +13,16 @@ from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 
 from toad.client.commands import (
+    CommandRefused,
     ConversationCommands,
     SharedContextualCommand,
     SharedTargetContext,
     SortCapable,
+    ViewLocalCommand,
 )
 from toad.client.conversation import ConversationKind
 from toad.client.host import CommsHost
-from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
+from toad.slash_command import CommandPresentation, SlashCommand
 from toad.thread_actions import ThreadAction
 
 
@@ -66,7 +68,7 @@ class ContextualCommand(SharedContextualCommand, CommandPresentation, ABC):
 
     def parse_arguments(self, arguments: str) -> ContextualCommand:
         if arguments.strip():
-            raise ValueError(
+            raise CommandRefused(
                 "Use the current target; parameters are collected in the operation form"
             )
         return self
@@ -89,11 +91,11 @@ class ThreadCommand(ContextualCommand):
     def execute(self, ctx):
         ThreadAction.collect(ctx, self.definition)
 
-class ViewCommand(ContextualCommand, SlashCommand, LocalCommand):
+class ViewCommand(ContextualCommand, SlashCommand, ViewLocalCommand):
     @classmethod
     def parse(cls, arguments: str) -> Self:
         if arguments.strip():
-            raise ValueError("This action takes its target from the current view")
+            raise CommandRefused("This action takes its target from the current view")
         return cls()
 
     def label(self, ctx: TargetContext) -> str:
@@ -137,8 +139,7 @@ class SortMembersCommand(SortCapable, ViewCommand, declared_name="sort"):
         return channel in ctx.observed.sidebar.channels.rows
 
     def execute_sort(self, channel: str, ctx) -> None:
-        group = ctx.app.workspace_chrome.channels.roster.groups[channel]
-        ctx.app.run_worker(group.sort_choice.open_sort(), group="sort-order")
+        ctx.app.open_channel_sort(channel)
 
 
 class CloseViewCommand(ViewCommand, declared_name="close_view"):

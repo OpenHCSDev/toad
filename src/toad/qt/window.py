@@ -41,6 +41,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from pyqt_reactive.theming import StatusColorRole
 from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
 from pyqt_reactive.widgets.elided_line import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
@@ -89,7 +90,8 @@ from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
 from toad.qt.activity import ChannelActivity, PeerActivity
-from toad.qt.composer import ChannelComposer, Composer, ComposerHost, MessageComposer
+from toad.qt.command_form import WindowCommandOrigin
+from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
@@ -613,11 +615,13 @@ class PathLabel(QLabel):
 
 
 class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, HistoryNotifications,
-                       ComposerHost, QWidget):
+                       ComposerHost, QWidget, metaclass=PyQtWidgetMeta):
     """One conversation tab: its history, paged lazily by the pager Textual's channels use
     and drawn as virtual rows, read again whenever Core's stores change; the info row over
     its thread's status; and the composer and activity its kind chooses, sending through
-    the shared submissions as Textual's conversation view does."""
+    the shared submissions and running slash commands through the shared catalog as
+    Textual's conversation view does. It is a conversation view, so it runs the view
+    commands (ComposerHost brings the contract)."""
 
     def __init__(self, app: QtToadApp, entry: QtHistorySessionEntry) -> None:
         super().__init__()
@@ -785,13 +789,22 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
             self.app, source.root, self.conversation, self.entry.viewer, source.project, self.mode)
 
     async def read_command_catalog(self) -> CommandCatalog:
-        return await CommandCatalog.read(self.app, (), self.command_target_context())
+        return await CommandCatalog.read(self.app, (), self.command_target_context(), self.local_commands)
 
-    def load_commands(self, composer: Composer) -> None:
+    def update_slash_commands(self) -> None:
         self.app.run_operation(CommandRead, self.read_commands)
 
     async def read_commands(self) -> None:
         self.composer.set_commands((await self.read_command_catalog()).commands)
+
+    def flash(self, text: str) -> None:
+        self.app.status_line.show_status(text, StatusColorRole.INFO)
+
+    def flash_success(self, text: str) -> None:
+        self.app.status_line.show_status(text, StatusColorRole.SUCCESS)
+
+    def flash_error(self, text: str) -> None:
+        self.app.status_line.show_status(text, StatusColorRole.ERROR)
 
     # Sending, through the shared submissions (SubmissionView)
 
@@ -799,9 +812,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         self.app.run_operation(MessageSend, partial(self.start_send, text))
 
     async def start_send(self, text: TypedText) -> None:
-        if text.text.startswith("/") and (await self.read_command_catalog()).recognizes(text.text):
-            self.delivery_refused(f"{text.text.partition(' ')[0]} is a command, and this client runs no commands",
-                                  text.source_text)
+        if await CommandCatalog.execute(text.text, self):
             return
         root = self.app.source().root
         await self.submissions.start_bus(text, ChannelDestination(root, self.conversation, self)).prepare()
@@ -980,6 +991,9 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         button.setFont(font)
         button.clicked.connect(action)
         return button
+
+    def capture_command_origin(self) -> WindowCommandOrigin:
+        return WindowCommandOrigin(self)
 
     def fit_safe_area(self, margins: QMargins) -> None:
         """Keep every row clear of the status and navigation bars."""

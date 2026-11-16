@@ -48,6 +48,7 @@ from textual.widget import Widget
 from textual.worker import Worker
 from textual.widgets import Static
 
+from toad.client.commands import ViewLocalCommand
 from toad.command_catalog import CommandCatalog
 from toad.core.events import SessionSelected
 from toad.native_style import EllipsisOverflow, NoWrap, PointerCursor, TwoRows
@@ -755,7 +756,7 @@ class TargetMenuTree(SidebarModelView, TargetTree):
         source = self.app.selected_session
 
         async def read():
-            choices = (await CommandCatalog.read(ctx.app, (), ctx.acquired())).target_choices
+            choices = (await CommandCatalog.read(ctx.app, (), ctx.acquired(), ViewLocalCommand)).target_choices
             if (not self.is_attached or self.app.selected_session is not source
                     or not self.model_state.serves(ctx.observed.root)
                     or self.app.screen is not selected_screen):
