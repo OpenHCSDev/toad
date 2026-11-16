@@ -24,15 +24,15 @@ from toad.agent_surface import AttachedSurfaceBinding
 from toad.configured_view import AgentProperties
 from toad.transcript_scope import MailboxSent, TranscriptView
 from toad.input_history import InputHistories
-from toad.input_decision import InputDecision
+from toad.client.input_decision import InputDecision
 from toad.native_style import StartsHidden
-from toad.resource_release import AsyncResourceRelease
+from toad.client.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation, ConversationSources
 from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.transcript_publication import CanonicalSourcePublication
 from toad.widgets.prompt import Prompt
 from toad.acp.agent import Agent

@@ -15,7 +15,6 @@ from agent_comms.transport.connector_store import (
     OpenableProfile,
 )
 from agent_comms.transport.tailnet_buses import PeerHoldsBus
-from textual.abstract_hooks import AbstractHooksMeta
 
 
 class ProfileArgument:
@@ -24,14 +23,17 @@ class ProfileArgument:
     argument: ClassVar[str] = "--comms-profile"
 
 
-class BusPickerHost(metaclass=AbstractHooksMeta):
-    """The application opens a chosen bus or asks a discovered peer for its profile."""
+class BusPickerHost:
+    """The application opens a chosen bus or asks a discovered peer for its profile.
 
-    @abstractmethod
-    def open_bus(self, choice: BusChoice) -> None: ...
+    A plain parent: the native app brings its toolkit metaclass.
+    """
 
-    @abstractmethod
-    def ask_peer_for_profile(self, found: PeerHoldsBus) -> None: ...
+    def open_bus(self, choice: BusChoice) -> None:
+        raise NotImplementedError
+
+    def ask_peer_for_profile(self, found: PeerHoldsBus) -> None:
+        raise NotImplementedError
 
 
 class PickerRow(ABC):

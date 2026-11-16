@@ -19,7 +19,7 @@ def test_no_source_file_sets_terminal_variables_or_indexes_a_session_row():
             if (isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name)
                     and node.value.id == "session"):
                 raise AssertionError(f"Untyped session row caller: {path}:{node.lineno}")
-    store = (SOURCE / "db.py").read_text()
+    store = (SOURCE / "client" / "db.py").read_text()
     assert "cast(Session" not in store
     assert "promot_count" not in store
     assert "CREATE TABLE IF NOT EXISTS sessions" not in store

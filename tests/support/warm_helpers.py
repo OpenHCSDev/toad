@@ -30,7 +30,7 @@ import struct
 from typing import ClassVar
 
 from agent_comms.execution.child_process import HelperStart
-from toad.comms_root import LocalCoreConnection
+from toad.client.connection import LocalCoreConnection
 
 EXIT = struct.Struct("i")
 

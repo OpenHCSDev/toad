@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from asyncio import CancelledError
 from dataclasses import dataclass, field
-from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.cli_verbs.cli_command import TargetAction
@@ -16,20 +14,15 @@ from agent_comms.messaging.channel_targets import (
 )
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
-from textual.geometry import Region
 
-from toad.comms_root import Observing
-from toad.core import session_requests
+from toad.client.commands import CommandContextChanged, SharedContextualCommand, SortCapable
+from toad.client.connection import Observing
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
-
-
-class CommandContextChanged(CancelledError):
-    """A command's captured target context is no longer current."""
 
 
 @dataclass(frozen=True)
@@ -68,21 +61,6 @@ class TargetContext:
         access.confirm(selected)
         return actions
 
-    def show_menu(self, sidebar, offset):
-        from toad.widgets.comms_menu import ActionMenu
-        selected_screen = sidebar.app.screen
-        source = sidebar.app.selected_session
-        async def read():
-            choices = await self.command_choices()
-            if (not sidebar.is_attached or sidebar.app.selected_session is not source
-                    or not sidebar.model_state.serves(self.observed.root)
-                    or sidebar.app.screen is not selected_screen):
-                return
-            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), self.title,
-                [(partial(self.execute_menu, sidebar, command), command.label(self))
-                 for command in choices])
-        sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
-
     async def command_choices(self):
         from toad.command_catalog import CommandCatalog
         return (await CommandCatalog.read(self.app, (), self.acquired())).target_choices
@@ -91,13 +69,12 @@ class TargetContext:
         """A captured context is already acquired when a catalog reads it."""
         return self
 
-    def execute_menu(self, sidebar, command):
+    def execute_command(self, command):
         self.current()
         command.execute(self)
 
 
-class ContextualCommand(CommandPresentation, ABC):
-    command: str
+class ContextualCommand(SharedContextualCommand, CommandPresentation, ABC):
 
     def target_choices(self, context: TargetContext | None):
         return (self,) if context is not None and self.available(context) else ()
@@ -106,30 +83,12 @@ class ContextualCommand(CommandPresentation, ABC):
         return tuple(TargetSuggestion(command, context)
                      for command in self.target_choices(context))
 
-    @abstractmethod
-    def available(self, ctx: TargetContext) -> bool: ...
-
-    @abstractmethod
-    def label(self, ctx: TargetContext) -> str: ...
-
-    @abstractmethod
-    def execute(self, ctx: TargetContext) -> None: ...
-
     def parse_arguments(self, arguments: str) -> ContextualCommand:
         if arguments.strip():
             raise ValueError(
                 "Use the current target; parameters are collected in the operation form"
             )
         return self
-
-    async def apply(self, conversation: Conversation, ctx: TargetContext) -> bool:
-        if await conversation.command_target_context() != ctx:
-            raise CommandContextChanged("Command target changed; refresh this view")
-        if not self.available(ctx):
-            raise ValueError("Action is no longer available for this target")
-        self.execute(ctx)
-        conversation.update_slash_commands()
-        return True
 
 
 @dataclass(frozen=True)
@@ -168,7 +127,7 @@ class DirectMessagesCommand(ViewCommand, declared_name="dm"):
         return len(names) == 1 and names[0] in ctx.observed.registry_for(names[0])
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.session_navigation.direct_messages(ctx.selected_targets[0])
+        ctx.app.open_direct_messages(ctx.selected_targets[0])
 
 
 class CopyCommand(ViewCommand, declared_name="copy"):
@@ -181,15 +140,21 @@ class CopyCommand(ViewCommand, declared_name="copy"):
         ctx.app.copy_to_clipboard("\n".join(ctx.selected_targets))
 
 
-class SortMembersCommand(ViewCommand, declared_name="sort"):
+class SortMembersCommand(SortCapable, ViewCommand, declared_name="sort"):
     help = "Sort members"
 
     def available(self, ctx: TargetContext) -> bool:
         names = ctx.selected_targets
-        return len(names) == 1 and names[0] in ctx.app.workspace_chrome.channels.roster.groups
+        return len(names) == 1 and self.available_for_channel(names[0], ctx)
 
     def execute(self, ctx: TargetContext) -> None:
-        group = ctx.app.workspace_chrome.channels.roster.groups[ctx.selected_targets[0]]
+        self.execute_sort(ctx.selected_targets[0], ctx)
+
+    def available_for_channel(self, channel: str, ctx) -> bool:
+        return channel in ctx.app.workspace_chrome.channels.roster.groups
+
+    def execute_sort(self, channel: str, ctx) -> None:
+        group = ctx.app.workspace_chrome.channels.roster.groups[channel]
         ctx.app.run_worker(group.sort_choice.open_sort(), group="sort-order")
 
 
@@ -200,11 +165,11 @@ class CloseViewCommand(ViewCommand, declared_name="close_view"):
         return (
             not ctx.targets
             and ctx.mode is not None
-            and ctx.app.session_navigation.session_details(ctx.mode) is not None
+            and ctx.app.has_session(ctx.mode)
         )
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.session_navigation.events.publish(session_requests.SessionClose(ctx.mode))
+        ctx.app.close_session(ctx.mode)
 
 
 @dataclass(frozen=True)

@@ -14,7 +14,7 @@ from textual.widget import Widget
 from textual.worker import Worker
 
 from toad.app_node import ToadNode
-from toad.line_blocks import LineBlock
+from toad.client.line_blocks import LineBlock
 from toad.markdown_links import LinkContext
 from toad.no_worker import NoWorker
 from toad.widgets.linked_rows import LinkedRows, RestylesOnTheme

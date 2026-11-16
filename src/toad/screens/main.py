@@ -53,7 +53,7 @@ from toad.session_presentation import (
     OperationalSessionSources,
 )
 from toad.session_scope import ViewSessionOrigin
-from toad.session_tracker import SessionDetails
+from toad.client.session_tracker import SessionDetails
 from toad.settings_scope import SettingsReader
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widget_actions import (

@@ -12,7 +12,7 @@ from textual.document._editing import EditingMode
 from toad.acp.agent import Agent
 from toad.acp.status import EndTurnStopReason
 from toad.command_catalog import CommandCatalog
-from toad.db import DB
+from toad.client.db import DB
 from toad.widgets.model_selection import ClearModelSearchAction
 from toad.widgets.model_switcher import SessionModelEditor
 from toad.widgets.prompt import AgentInfo
@@ -224,7 +224,7 @@ async def test_a_model_counts_as_used_when_a_turn_completes_not_when_it_is_recei
         await picker.ui.until(sonnet_first, why="the completed turn to record its model")
         history = json.loads(subprocess.check_output([
             sys.executable, "-c",
-            f"import asyncio,json; from toad.db import DB; print(json.dumps(asyncio.run(DB().recent_models({SCOPE!r}))))",
+            f"import asyncio,json; from toad.client.db import DB; print(json.dumps(asyncio.run(DB().recent_models({SCOPE!r}))))",
         ], text=True))
         assert history[0] == SONNET
         assert history.count(GPT) == 1

@@ -18,7 +18,7 @@ from textual import on, work
 from textual.app import ComposeResult
 from textual.widgets import Select, Static
 
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.messages import HoldsNoQueue
 from toad.project_path_owner import ProjectPathOwner

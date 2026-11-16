@@ -15,7 +15,7 @@ from agent_comms.registry.threads import NativeThread
 from support import agents, journals
 
 from toad.screens.main import MainScreen
-from toad.tab_identity.kinds import MailboxTab
+from toad.client.tab_identity.kinds import MailboxTab
 
 TOKEN = "SENT_MESSAGE_DRAWN_ONCE"
 INPUT = "48f2a16604c080283204f81ab5f151f4"

@@ -62,7 +62,7 @@ from ui_theme.effects import CURSOR_BLINK, Mix
 from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
 from toad import messages, paths
-from toad.acp.comms_updates import NoPendingThreadRead
+from toad.acp.comms_updates import ThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
@@ -77,7 +77,7 @@ from toad.block_navigation import (
     SeparatedBlock,
     require_blocks,
 )
-from toad.bus_submission import SubmissionStart
+from toad.client.submission import SubmissionStart
 from toad.category_filter import CategoryFilterView
 from toad.command_catalog import CommandCatalog
 from toad.command_target_scope import CommandTargetScope
@@ -100,12 +100,12 @@ from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
 from toad.goal_view import GoalView
-from toad.input_decision import InputDecision
+from toad.client.input_decision import InputDecision
 from toad.input_history import InputHistories
 from toad.launch_binding import AgentBinding, AgentConversation, NoAgent
 from toad.layout import trim_trailing_margin
 from toad.layout_preferences import FollowsLayoutPreferences
-from toad.line_blocks import LineLink
+from toad.client.line_blocks import LineLink
 from toad.live_output import LiveOutput
 from toad.menus import (
     CopyClipboardCommand,
@@ -132,7 +132,7 @@ from toad.native_style import (
 from toad.navigation_context import NavigationScope
 from toad.preferences import SETTINGS
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
-from toad.resource_release import AsyncResourceRelease
+from toad.client.resource_release import AsyncResourceRelease
 from toad.screens.queue import QueueInspection
 from toad.session_clock import NotStarted, SessionClock, StartedAt
 from toad.session_observation import (
@@ -567,7 +567,7 @@ class ConversationSessionBinding(
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
 
-    _thread_read = NoPendingThreadRead()
+    _thread_read = ThreadRead()
     """The source state the next observed presentation settles against."""
 
     _unpublished_presentation: ThreadPresentation = NoThreadPresentation()
@@ -944,11 +944,11 @@ class ConversationSessionBinding(
 
 from textual import on
 
-from toad.agent_schema import Command
+from toad.client.agent_schema import Command
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.catalog_actions import CatalogCommandAction
 from toad.commit_claims import StartedInputClaim
-from toad.db import DB
+from toad.client.db import DB
 from toad.screens.action_modal import ActionModal
 from toad.transcript_publication import ObservedSourcePublication
 from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys

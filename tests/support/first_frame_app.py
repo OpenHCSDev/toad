@@ -10,7 +10,7 @@ from time import monotonic_ns
 
 from textual.widgets import Input
 
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.launch_binding import AgentAttached
 from toad.screens.workspace import WorkspaceScreen
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     from agent_comms.execution.launch_root import LaunchRoot
     from agent_comms.projects.checkouts import Checkout
 
-    from toad.comms_root import LocalCoreConnection
+    from toad.client.connection import LocalCoreConnection
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()

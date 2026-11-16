@@ -25,7 +25,7 @@ from textual.selection import Selection
 from textual.visual import RenderOptions
 from textual.text_format import TextFormat, TextFormatSnapshot
 from toad.colour_ink import ColourInk
-from toad.line_blocks import LineBlock, LineRole, ToolOutputRole, MutedRole
+from toad.client.line_blocks import LineBlock, LineRole, ToolOutputRole, MutedRole
 
 if TYPE_CHECKING:
     from textual.app import App

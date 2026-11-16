@@ -7,25 +7,34 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from textual.content import Content
-from textual.widget import Widget
-
-from toad import messages
 
 from toad.acp.agent_session import SessionDisposition
 
 
+class RefusalFeedback:
+    """A native editor tells the user their input was refused."""
+
+    def refuse_input(self, message: str) -> None:
+        raise NotImplementedError
+
+
 class InputDecision(DeclaredFamily, ABC):
+    """Whether the user's input is accepted or refused, and why.
+
+    The native editor supplies how a refusal is shown (RefusalFeedback) and
+    how the agent line is rendered (the refusal callable).
+    """
+
     allows: ClassVar[bool]
 
     @abstractmethod
     def then(self, next: Callable[[], InputDecision]) -> InputDecision: ...
 
     @abstractmethod
-    def agent_info_text(self, agent_info: Content) -> Content: ...
+    def agent_info[T](self, agent_info: T, refusal: Callable[[str], T]) -> T: ...
 
     @abstractmethod
-    def announce(self, editor: Widget) -> None: ...
+    def announce(self, editor: RefusalFeedback) -> None: ...
 
 
 class InputAccepted(InputDecision):
@@ -34,10 +43,10 @@ class InputAccepted(InputDecision):
     def then(self, next: Callable[[], InputDecision]) -> InputDecision:
         return next()
 
-    def agent_info_text(self, agent_info: Content) -> Content:
+    def agent_info[T](self, agent_info: T, refusal: Callable[[str], T]) -> T:
         return agent_info
 
-    def announce(self, editor: Widget) -> None:
+    def announce(self, editor: RefusalFeedback) -> None:
         """Accepted input needs no refusal feedback."""
 
 
@@ -51,12 +60,11 @@ class InputRefused(InputDecision):
     def then(self, next: Callable[[], InputDecision]) -> InputDecision:
         return self
 
-    def agent_info_text(self, agent_info: Content) -> Content:
-        return Content(self.message)
+    def agent_info[T](self, agent_info: T, refusal: Callable[[str], T]) -> T:
+        return refusal(self.message)
 
-    def announce(self, editor: Widget) -> None:
-        editor.app.bell()
-        editor.post_message(messages.Flash(self.message, "error"))
+    def announce(self, editor: RefusalFeedback) -> None:
+        editor.refuse_input(self.message)
 
 
 @dataclass(frozen=True)

@@ -21,24 +21,24 @@ from agent_comms.ui_model.sidebar import ThreadRowModel
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.agent_log import AgentLog
-from toad.comms_root import Observing
+from toad.client.connection import Observing
+from toad.client.conversation import CommsViewKey
 from toad.core.projection import MroProjection
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.screens.comms import CommsScreen
 from toad.screens.file_preview import FilePreviewScreen
 from toad.screens.main import MainScreen
 from toad.session_host import SessionNavigator
-from toad.session_projection import SessionProjection
+from toad.client.session_projection import SessionProjection
 from toad.session_scope import SessionScope
-from toad.session_tracker import (
-    CommsViewKey,
+from toad.client.session_tracker import (
     ConversationTab,
     NamedTab,
     OpenTab,
     SessionDetails,
     ThreadTab,
 )
-from toad.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity
 from toad.widgets.acp_log import AcpLogPreview
 from toad.widgets.project_panel import FilePreview
 

@@ -3,7 +3,7 @@ import inspect
 from typing import get_args
 from acp import schema
 from toad.acp.status import StopReason, ToolCallStatus
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 from agent_comms.nominal.field_codec import FieldCodec
 
 def test_external_vocabulary_has_one_behavior_family():

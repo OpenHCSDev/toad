@@ -1,7 +1,7 @@
 from importlib.resources import files
 import asyncio
 
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 
 
 class AgentReadError(Exception):

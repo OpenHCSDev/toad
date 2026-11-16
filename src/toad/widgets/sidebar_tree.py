@@ -58,6 +58,8 @@ from toad.widgets.selection import HoverSelection, ViewLabel
 from toad.core_event_carrier import CoreEventReceiver
 from toad.keyed_rows import KeyedRows
 from toad.navigation_target import NavigationTarget
+from toad.sidebar_model_view import SidebarModelView
+from toad.widgets.comms_menu import ActionMenu
 from toad.tone_paint import AlternatingTone
 from toad.widget_actions import OpenSelectedAction, OpensSelected
 
@@ -735,6 +737,32 @@ class CommsRow(
 
 class ListedRow(CommsRow, AlternatingTone):
     """A row its list orders: it alternates on its family's tone pair."""
+
+
+class TargetMenuTree(SidebarModelView, TargetTree):
+    """A tree of one bus's targets whose row menu lists that target's commands; each tree
+    supplies only how a row becomes a menu context."""
+
+    def row_menu_context(self, row: CommsRow):
+        raise NotImplementedError
+
+    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
+        self.pointer_select(row, menu=True)
+        ctx = self.row_menu_context(row)
+        selected_screen = self.app.screen
+        source = self.app.selected_session
+
+        async def read():
+            choices = await ctx.command_choices()
+            if (not self.is_attached or self.app.selected_session is not source
+                    or not self.model_state.serves(ctx.observed.root)
+                    or self.app.screen is not selected_screen):
+                return
+            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), ctx.title,
+                [(partial(ctx.execute_command, command), command.label(ctx))
+                 for command in choices])
+
+        self.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
 
 
 class SelectsTargets(TargetTree):

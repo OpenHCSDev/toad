@@ -54,7 +54,7 @@ from toad.native_style import (
 from toad.widget_view import WorkspaceHosted
 from toad.tone_paint import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
-from toad.session_tracker import SidebarState
+from toad.client.session_tracker import SidebarState
 from toad.sidebar_layout import (
     DirectionalSidebarPlacementAction,
     FloatSidebarPlacementAction,
@@ -68,7 +68,7 @@ from toad.app_node import ToadNode
 from textual import on
 
 if TYPE_CHECKING:
-    from toad.tab_order import TabOrder
+    from toad.client.tab_order import TabOrder
 
 
 @dataclass(frozen=True)
@@ -156,10 +156,6 @@ class BarDisplay:
 
     def controls_changed(self, current: PresentedBar) -> bool:
         return True
-
-
-class UnpresentedBar(BarDisplay):
-    """No native projection has been applied, or its view was retired."""
 
 
 @dataclass(frozen=True)
@@ -981,10 +977,10 @@ class SideBar(
         )
         self.panel_state: SidebarPanels = AbsentPanels() if defer_mount else LoadedPanels()
         self._presented_collapsed: bool | None = None
-        self._presented_layout: BarDisplay = UnpresentedBar()
+        self._presented_layout: BarDisplay = BarDisplay()
 
     def invalidate_controls(self) -> None:
-        self._presented_layout = UnpresentedBar()
+        self._presented_layout = BarDisplay()
 
     def new_shell(self) -> None:
         """The search box, panel viewport and controls a loaded sidebar shows. A sidebar whose

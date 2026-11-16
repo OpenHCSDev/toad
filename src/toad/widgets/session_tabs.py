@@ -36,7 +36,7 @@ from toad.core import session_requests
 from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated, EffectInContent
-from toad.session_tracker import OpenTab
+from toad.client.session_tracker import OpenTab
 from toad.app_node import ToadNode
 from toad.widgets.selection import ChangingText, ViewLabel
 from textual import on

@@ -2,7 +2,7 @@
 
 from contextlib import asynccontextmanager
 
-from toad.comms_root import UnselectedRoute
+from toad.client.connection import UnselectedRoute
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.sidebar_model_view import FailedSidebarState
 

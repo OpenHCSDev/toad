@@ -29,7 +29,7 @@ from metaclass_registry.mro_dispatch import handles
 
 from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     Divider,
     IncomingRole,
     LineBlock,

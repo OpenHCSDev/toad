@@ -16,7 +16,7 @@ from toad.launch_binding import NoAgent
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
-    from toad.agent_schema import AgentDefinition
+    from toad.client.agent_schema import AgentDefinition
     from toad.app import ToadApp
 
 PEERS = Path(__file__).with_name("peers")
@@ -31,7 +31,7 @@ class RecordedEvents(list[CoreEvent]):
 
 def peer(script: str, *, name: str = "Test peer", identity: str = "test-peer"):
     """An agent definition that runs one of the scripted ACP peers in ``support/peers``."""
-    from toad.agent_schema import AgentDefinition
+    from toad.client.agent_schema import AgentDefinition
 
     return AgentDefinition.decode({
         "name": name, "identity": identity, "short_name": identity, "protocol": "acp",
@@ -41,7 +41,7 @@ def peer(script: str, *, name: str = "Test peer", identity: str = "test-peer"):
 
 def command(*argv: str, name: str = "Test command", identity: str = "test-command"):
     """An agent definition whose process is an arbitrary command (one that exits, hangs, ...)."""
-    from toad.agent_schema import AgentDefinition
+    from toad.client.agent_schema import AgentDefinition
 
     return AgentDefinition.decode({
         "name": name, "identity": identity, "short_name": identity, "protocol": "acp",
@@ -59,7 +59,7 @@ class AppAgents:
     def unrun(cls, project: Path, launch_root: LaunchRoot) -> AppAgents:
         """For a test with no app running: agents of an app built on ``project`` and never run."""
         from toad.app import ToadApp
-        from toad.comms_root import LocalCoreConnection
+        from toad.client.connection import LocalCoreConnection
 
         return cls(ToadApp(agent_binding=NoAgent(), project_dir=Checkout(project),
                            connection=LocalCoreConnection.from_launch(launch_root)))
@@ -74,7 +74,7 @@ class AppAgents:
     def detached_agent(self, session_id: str | None = None, *, identity: str = "test-agent") -> Agent:
         """A Toad agent object with no process behind it; the test delivers its updates by hand."""
         from toad.acp.agent import Agent
-        from toad.agent_schema import AgentDefinition
+        from toad.client.agent_schema import AgentDefinition
 
         return self.agent(Agent, AgentDefinition(identity, identity, {"*": "true"}), session_id)
 

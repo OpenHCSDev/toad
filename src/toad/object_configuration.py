@@ -14,7 +14,7 @@ from toad import atomic
 from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect, SettingsDeclaration
 from toad.settings_scope import SettingsScope
-from toad.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity
 
 
 @dataclass(frozen=True)

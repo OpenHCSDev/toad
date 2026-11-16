@@ -26,8 +26,8 @@ from toad.conversation_kind import (
 from toad.message_rows import IrcMessageStyle
 from toad.navigation_target import ChannelTarget as ChannelRoute
 from toad.navigation_target import DirectTarget, FeedTarget, HistoryTarget
-from toad.referenced_core import ReferencedCore
-from toad.session_tracker import CommsViewKey
+from toad.client.referenced_core import ReferencedCore
+from toad.client.conversation import CommsViewKey
 from toad.status_thread import NoStatusThread
 from toad.wire_history import WireSource
 

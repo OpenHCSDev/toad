@@ -45,7 +45,7 @@ from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard
 from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
-from toad.input_decision import InputAccepted, InputDecision
+from toad.client.input_decision import InputAccepted, InputDecision, RefusalFeedback
 from toad.key_modes import Standard
 from toad.native_style import (
     AutoHeight,
@@ -364,10 +364,6 @@ class PromptSubmissionState:
         pass
 
 
-class NoPromptSubmission(PromptSubmissionState):
-    pass
-
-
 @dataclass(frozen=True)
 class PendingPromptSubmission(PromptSubmissionState):
     action: SubmitInputAction
@@ -386,14 +382,14 @@ class PromptSubmission(HighlightedTextArea):
     """Admit model and local command submission through the current prompt."""
 
     def __init__(self) -> None:
-        self._submission: PromptSubmissionState = NoPromptSubmission()
+        self._submission: PromptSubmissionState = PromptSubmissionState()
         super().__init__()
 
     def schedule_submission(self, action: SubmitInputAction) -> None:
         self._submission = self._submission.request(self, action)
 
     async def submit_pending(self) -> None:
-        request, self._submission = self._submission, NoPromptSubmission()
+        request, self._submission = self._submission, PromptSubmissionState()
         await request.submit(self)
 
     @abstractmethod
@@ -401,6 +397,7 @@ class PromptSubmission(HighlightedTextArea):
 
 
 class PromptTextArea(
+    RefusalFeedback,
     CompletingEditor,
     PastesClipboard,
     RightPadding,
@@ -453,6 +450,10 @@ See on-screen instructions for details.
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.max_height = "50vh"
+
+    def refuse_input(self, message: str) -> None:
+        self.app.bell()
+        self.post_message(messages.Flash(message, "error"))
 
     @property
     def can_enter_shell(self) -> bool:
@@ -927,7 +928,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     def watch_agent_info(self, agent_info: Content) -> None:
         if not self.is_mounted:
             return
-        self.query_one(AgentInfo).update(self.input_decision.agent_info_text(agent_info))
+        self.query_one(AgentInfo).update(self.input_decision.agent_info(agent_info, Content))
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()

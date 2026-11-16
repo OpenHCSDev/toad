@@ -22,7 +22,7 @@ from textual.reactive import var
 from textual.widgets import Collapsible, Static
 from textual.widgets.collapsible import CollapsibleTitle
 
-from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
+from toad.client.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.native_style import (
     AutoHeight,
     Borderless,

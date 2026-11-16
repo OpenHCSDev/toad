@@ -64,7 +64,7 @@ from ui_theme.scheme import (
 
 from toad.app_node import ToadNode
 from toad.application_outcome import ApplicationOutcome
-from toad.comms_root import CapturedSource, CoordinationAccess
+from toad.client.connection import CapturedSource, CoordinationAccess
 from toad.core import events as core_events
 from toad.native_style import (
     CenteredChildren,

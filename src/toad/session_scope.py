@@ -11,6 +11,7 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.errors import RelationViolationError
 
 from toad.app_node import ToadNode
+from toad.client.session_scope import SessionScope as SharedSessionScope
 from toad.navigation_context import NavigationOwner, NavigationScope, NoNavigationOwner
 from toad.transcript_scope import NoTranscript, TranscriptScope
 from textual.abstract_hooks import AbstractHooksMeta
@@ -51,7 +52,7 @@ class NoSessionOrigin(SessionOrigin):
         self.require()
 
 
-class SessionScope(ThreadIdentityScope, ProjectPathOwner, NavigationScope, ToadNode):
+class SessionScope(SharedSessionScope, ThreadIdentityScope, ProjectPathOwner, NavigationScope, ToadNode):
     """The session answers read by ancestors and workspace owners.
 
     A compositing layer: the compositor retains this subtree's geometry while

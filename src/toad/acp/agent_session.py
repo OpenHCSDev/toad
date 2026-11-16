@@ -36,7 +36,7 @@ from toad.core.events import (
     LogAgentFail,
     UnsupportedResumeAgentFail,
 )
-from toad.db import DB, SessionMeta
+from toad.client.db import DB, SessionMeta
 
 PROTOCOL_VERSION = 1
 

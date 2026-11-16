@@ -49,17 +49,17 @@ from agent_comms.transport.tools.sidebar import (
 from agent_comms.ui_model.observation import ReadNotifications
 from metaclass_registry.mro_dispatch import handles
 
-from toad.bus_submission import (
+from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
     SubmissionStart,
     SubmittedText,
 )
-from toad.comms_root import CoordinationAccess, Observation
-from toad.conversation_capabilities import ConversationSource
+from toad.client.connection import CoordinationAccess, Observation
+from toad.client.conversation_capabilities import ConversationSource
 from toad.conversation_kind import ConversationKind
 from toad.core.projection import MroProjection
-from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
+from toad.client.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.read_marked_history import ReadMarkedHistory
 from toad.session_scope import SessionScope

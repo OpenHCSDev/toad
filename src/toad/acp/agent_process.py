@@ -26,7 +26,7 @@ from pydantic import JsonValue
 from toad.acp.agent_session import AgentSession
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
-from toad.resource_release import AsyncResourceRelease
+from toad.client.resource_release import AsyncResourceRelease
 
 
 class AgentProcess(Client):

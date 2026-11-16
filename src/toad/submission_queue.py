@@ -23,9 +23,9 @@ from agent_comms.transport.tools.sidebar import (
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
 from toad.block_navigation import ConversationEntry
-from toad.comms_root import Observing
-from toad.line_blocks import MutedRole, Span
-from toad.notification_status import DetailLines, MessageQueueEntry
+from toad.client.connection import Observing
+from toad.client.line_blocks import MutedRole, Span
+from toad.client.notification_status import DetailLines, MessageQueueEntry
 
 
 @dataclass(frozen=True)

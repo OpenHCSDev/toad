@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 
-from toad.tab_identity import SessionTabIdentity
+from toad.client.tab_identity import SessionTabIdentity
 
 
 class HistoryOrigin(DeclaredFamily, affix="HistoryOrigin"):

@@ -3,11 +3,11 @@
 import pytest
 
 from toad.core.events import SessionChangedEvent
-from toad.db import DB, TabScope
-from toad.tab_order import TabOrder
-from toad.tab_identity.kinds import AcpTab
-from toad.session_tracker import (
-    AuthoredSessionName,
+from toad.client.db import DB, TabScope
+from toad.client.tab_order import TabOrder
+from toad.client.tab_identity.kinds import AcpTab
+from toad.client.session_tracker import (
+    SessionName,
     SessionDetails,
     SessionTracker,
     ThreadSessionName,
@@ -17,8 +17,8 @@ from toad.session_tracker import (
 @pytest.mark.parametrize(
     "name,expected",
     [
-        (AuthoredSessionName("Chosen"), "Chosen"),
-        (AuthoredSessionName("New Session"), "New Session"),
+        (SessionName("Chosen"), "Chosen"),
+        (SessionName("New Session"), "New Session"),
         (ThreadSessionName("New Session"), "Presented title"),
         (ThreadSessionName("Old title"), "Presented title"),
         (ThreadSessionName("Presented title"), "Presented title"),
@@ -33,8 +33,8 @@ def test_session_label_owns_presented_title(name, expected):
 @pytest.mark.parametrize(
     "name,expected",
     [
-        (AuthoredSessionName("old"), "old"),
-        (AuthoredSessionName("New Session"), "New Session"),
+        (SessionName("old"), "old"),
+        (SessionName("New Session"), "New Session"),
         (ThreadSessionName("New Session"), "new"),
         (ThreadSessionName("old"), "new"),
         (ThreadSessionName("Unrelated title"), "Unrelated title"),
@@ -50,7 +50,7 @@ class SessionChanges(list[SessionChangedEvent]):
 
 
 def test_session_tracker_publishes_only_changed_labels(tmp_path):
-    order = TabOrder(lambda identity: None, home="home", db=DB(tmp_path / "toad.db"),
+    order = TabOrder(lambda identity: None, home="home", db=DB(tmp_path / "toad.client.db"),
                      scopes=(TabScope("test-core"),))
     tracker = SessionTracker(order)
     details = tracker.new_session(AcpTab(1), title="old")

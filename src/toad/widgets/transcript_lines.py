@@ -1,6 +1,6 @@
 """The shared line renderer: workers style source; native views wrap it at their width.
 
-`toad.line_blocks` owns content. Prepared source survives resizing, while each
+`toad.client.line_blocks` owns content. Prepared source survives resizing, while each
 viewport owns its measured rows. Unprepared source retains its initial preview.
 """
 
@@ -35,7 +35,7 @@ from textual.strip import Strip
 from ui_theme.scheme import MutedColour, ThemeColour
 
 from toad.core.projection import MroProjection
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     Body,
     Divider,
     Gap,

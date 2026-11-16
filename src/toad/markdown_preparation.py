@@ -10,7 +10,7 @@ from rich.markdown import BlockQuote, CodeBlock, Markdown
 from rich.padding import Padding
 from rich.segment import Segment
 from rich.syntax import Syntax
-from toad.line_blocks import GreenTextRole
+from toad.client.line_blocks import GreenTextRole
 from toad.markdown_links import MessageMarkdownParser, parse_markdown_syntax
 from textual.events import Enter
 from textual import on

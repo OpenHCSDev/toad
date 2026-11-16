@@ -21,8 +21,8 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from toad.app_node import ToadNode
-from toad.comms_root import FailedObservation, Observing
-from toad.comms_subscribers import SidebarSubscriber
+from toad.client.connection import FailedObservation, Observing
+from toad.client.subscribers import SidebarSubscriber
 from toad.core.events import CoordinationObserved, ThreadRowStateChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.sidebar_changes import (

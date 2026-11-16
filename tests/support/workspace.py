@@ -19,7 +19,7 @@ from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
 from toad.app import ToadApp
-from toad.comms_root import LocalCoreConnection
+from toad.client.connection import LocalCoreConnection
 from toad.launch_binding import AgentBinding, NoAgent
 from toad.screens.main import MainScreen
 

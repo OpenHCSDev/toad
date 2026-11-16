@@ -1,6 +1,6 @@
 """A title guessed from the first prompt stands in until the thread names itself."""
 
-from toad.session_tracker import AuthoredSessionName, SessionDetails, ThreadSessionName
+from toad.client.session_tracker import SessionDetails, SessionName, ThreadSessionName
 
 
 def details() -> SessionDetails:
@@ -21,6 +21,6 @@ def test_a_presented_title_replaces_an_earlier_guess():
 
 
 def test_a_name_the_user_gave_is_never_replaced():
-    session = SessionDetails(identity=object(), name=AuthoredSessionName("My label"))
+    session = SessionDetails(identity=object(), name=SessionName("My label"))
     assert session.update_thread_title("Updating Claude Code on Arch") is False
     assert session.name.display == "My label"

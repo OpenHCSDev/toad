@@ -11,7 +11,7 @@ from agent_comms.transcript.transcript_events import (
 )
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     FailureRole,
     Span,
     SuccessRole,

@@ -30,7 +30,7 @@ from agent_comms.transport.connector_store import (
 from aiohttp import web
 from yarl import URL
 
-from toad.comms_root import RemoteCoreConnection, RemoteObserving
+from toad.client.connection import RemoteCoreConnection, RemoteObserving
 from toad.render_processes import RenderProcessPool, capture_submitted
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask
@@ -150,7 +150,7 @@ async def test_a_remote_core_lists_a_target_menu_and_keeps_its_root_spelling(
         workspace, tmp_path, monkeypatch):
     """The menu captures its source through the connector's observation, not a local route
     selection; and Core's served root is compared as Core spells it, never resolved here."""
-    from toad.comms_root import CurrentObservation
+    from toad.client.connection import CurrentObservation
     from toad.target_commands import TargetContext
 
     workspace.thread("remote-peer", "team")
@@ -184,7 +184,7 @@ async def test_a_remote_target_menu_and_reconnect_read_registry_slices_not_the_w
     """Over the connector the whole registry is megabytes; a menu render and a reconnect name
     their targets, so they read those rows. A full read here once kept 3-7 whole-registry
     transfers in flight and froze a remote Toad."""
-    from toad.comms_root import CurrentObservation
+    from toad.client.connection import CurrentObservation
     from toad.target_commands import TargetContext
 
     workspace.thread("remote-peer", "team")

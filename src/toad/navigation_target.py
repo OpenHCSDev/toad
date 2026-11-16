@@ -13,7 +13,7 @@ from agent_comms.messaging.display_references import ThreadNames
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import (
     ChannelConversation,

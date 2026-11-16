@@ -41,7 +41,7 @@ from textual import on
 
 if TYPE_CHECKING:
     from toad.block_navigation import FragmentBlockCursor
-    from toad.line_blocks import Divider
+    from toad.client.line_blocks import Divider
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
@@ -515,11 +515,7 @@ class Settlement:
 class Unsettled(Settlement):
     def settled(self, hold: HeldReaderDestination, window: HistoryWindow) -> Settlement:
         window.call_after_refresh(hold.source_geometry_ready, window)
-        return Scheduled()
-
-
-class Scheduled(Settlement):
-    """A refresh is pending; settling again waits for it."""
+        return Settlement()
 
 
 class Ready(Settlement):

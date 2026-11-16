@@ -2,7 +2,7 @@
 
 
 from toad.link_click import OpenLineLink
-from toad.line_blocks import OpenTarget
+from toad.client.line_blocks import OpenTarget
 from toad.message_rows import MessageRow
 
 async def test_the_pointer_over_one_sender_highlights_that_one_and_leaves_equal_names_as_drawn(workspace):

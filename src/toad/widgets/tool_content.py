@@ -3,7 +3,7 @@ from textual.strip import Strip
 from textual.widget import Widget
 from toad.block_content import SelectsSource
 from toad.native_style import AutoHeight
-from toad.line_blocks import LineBlock
+from toad.client.line_blocks import LineBlock
 from toad.widgets.linked_rows import HorizontalRows, ReferenceRendering, selection_painted
 from toad.widgets.styled_rows import StyledRows
 

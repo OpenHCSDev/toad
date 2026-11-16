@@ -27,12 +27,12 @@ from agent_comms.transcript.transcripts import TranscriptPage
 from agent_comms.ui_model.message_category import MessageCategory
 
 from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim, RetainedBlockClaim
-from toad.bus_submission import (
+from toad.client.submission import (
     SubmissionOwner,
     SubmissionStart,
     SubmittedText,
 )
-from toad.input_decision import TranscriptNotReady
+from toad.client.input_decision import TranscriptNotReady
 from toad.render_backend import ContentAddressedRenderTask
 from toad.transcript_state import DEFERRED_WORK, LatestViewportRequest, SourceWork
 from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
@@ -58,7 +58,7 @@ from toad.work_preparation import (
 if TYPE_CHECKING:
     from agent_comms.messaging.message_page import MessagePage
 
-    from toad.comms_root import CoordinationAccess, Observation
+    from toad.client.connection import CoordinationAccess, Observation
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.conversation import Contents

@@ -36,7 +36,7 @@ from agent_comms.ui_model.observation import (
     UnreadableHistory,
 )
 
-from toad.transcript_requests import TranscriptRequests
+from toad.client.transcript_requests import TranscriptRequests
 
 
 class CoordinationTranscriptReader:

@@ -9,11 +9,11 @@ from rich.style import Style
 from support.styling import awaits_styling
 from textual.app import App
 
-from toad.line_blocks import Divider, OpenTarget, Span, UserRole
+from toad.client.line_blocks import Divider, OpenTarget, Span, UserRole
 from toad.link_click import OpenLineLink
 from toad.markdown_links import LinkContext
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
-from toad.notification_status import CheckedNotifications
+from toad.client.notification_status import CheckedNotifications
 from toad.textual_colours import ThemedApp
 from toad.widgets.transcript_fragments import MessageShown
 from toad.widgets.transcript_lines import (
@@ -130,7 +130,7 @@ def test_every_notification_answer_keeps_a_narrow_message_at_one_height():
     """Status arrives after layout, only for messages in view: its answer may
     change the receipt's text but never the message's height, or the rows
     below jump while the reader scrolls."""
-    from toad.notification_status import (
+    from toad.client.notification_status import (
         UnavailableNotifications,
         UncheckedNotifications,
     )

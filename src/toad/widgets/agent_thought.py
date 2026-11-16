@@ -4,7 +4,7 @@ from toad.setting_widget import SettingVisibility
 from agent_comms.ui_model.message_category import ThinkingCategory
 from typing import Iterable
 
-from toad.line_blocks import LineBlock
+from toad.client.line_blocks import LineBlock
 from toad.menus import CopyThinkingCommand, MenuCommand
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.committed_presentation import SnapshotPresentation

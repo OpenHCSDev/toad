@@ -8,7 +8,7 @@ from agent_comms.messaging.channel_targets import (
     OneChannel,
     PerTargetChannels,
 )
-from toad.session_tracker import SidebarSelection, SidebarState
+from toad.client.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
 
 from toad.widgets.sidebar_tree import CommsRow

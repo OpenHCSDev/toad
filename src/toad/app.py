@@ -45,13 +45,13 @@ from textual.widgets.markdown import Markdown
 from toad.application_actions import ApplicationCommands
 from toad.application_lifetime import ApplicationLifetime
 from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
-from toad.bus_selection import BusChoice, HeldBus, PickerRow
+from toad.client.bus_selection import BusChoice, HeldBus, PickerRow
 from toad.clipboard import Clipboard
-from toad.comms_root import CoreConnection
+from toad.client.connection import CoreConnection
 from toad.constants import WELCOME
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
-from toad.db import DB
+from toad.client.db import DB
 from toad.file_kind import FileKind
 from toad.launch_binding import AgentBinding
 from toad.native_style import TransparentBackground
@@ -65,19 +65,19 @@ from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect
 from toad.render_backend import PreparedRenderer, Renderer, RenderTask
 from toad.render_processes import RenderProcessPool
-from toad.resource_release import AsyncResourceRelease
+from toad.client.resource_release import AsyncResourceRelease
 from toad.screens import comms, main  # noqa: F401 - register widget classes
 from toad.screens.workspace import WorkspaceScreen
 from toad.session_navigation import SessionNavigation
 from toad.session_scope import SessionScope
-from toad.session_tracker import (
+from toad.client.session_tracker import (
     OpenTab,
     SessionTracker,
     SidebarState,
 )
 from toad.sidebar_layout import SidebarLayout
-from toad.tab_identity import TabIdentity
-from toad.tab_order import TabOrder
+from toad.client.tab_identity import TabIdentity
+from toad.client.tab_order import TabOrder
 from toad.terminal_attention import TerminalAttention
 from toad.terminal_origin import TerminalOrigin
 from toad.thread_actions import ThreadActions
@@ -491,6 +491,23 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
                     visited(entry.identity)
                 self.events.publish(core_events.SessionSelected(mode, previous))
 
+
+    @property
+    def sidebar_show_stopped(self) -> bool:
+        return self.saved_settings.current.sidebar.show_stopped
+
+    @property
+    def sidebar_show_archived(self) -> bool:
+        return self.saved_settings.current.sidebar.show_archived
+
+    def has_session(self, mode: str) -> bool:
+        return self.session_navigation.session_details(mode) is not None
+
+    def close_session(self, mode: str) -> None:
+        self.session_navigation.events.publish(session_requests.SessionClose(mode))
+
+    def open_direct_messages(self, target: str) -> None:
+        self.session_navigation.direct_messages(target)
 
     @property
     def open_tabs(self) -> tuple[OpenTab, ...]:

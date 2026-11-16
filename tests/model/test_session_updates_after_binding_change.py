@@ -11,7 +11,7 @@ from toad.acp.sdk_boundary import (
     RejectedSessionUpdateValidation,
     ValidateSessionUpdateTask,
 )
-from toad.comms_root import CoreConnection
+from toad.client.connection import CoreConnection
 from toad.core.events import CoreEvent, Update
 from toad.render_processes import RenderProcessPool
 

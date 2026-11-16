@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from agent_comms.execution.launch_runtime import LaunchRuntime
 
-from toad.bus_selection import BusChoice
+from toad.client.bus_selection import BusChoice
 from toad.version import VersionMonitor
 
 

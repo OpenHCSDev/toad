@@ -48,7 +48,7 @@ from ui_theme.wal import WalFile
 from toad.acp.agent import Agent
 from toad.agent_binding import NoAgentConnection
 from toad.core.projection import MroProjection
-from toad.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity
 
 
 class PendingRun(RuntimeError):

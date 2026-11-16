@@ -58,7 +58,7 @@ from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.live_output import LiveOutput
-from toad.resource_release import AsyncResourceRelease, ResourceRelease
+from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.screens.session_view import SessionView
 from toad.session_scope import (
     NoTranscript,
@@ -672,10 +672,6 @@ class ViewBinding:
         pass
 
 
-class NoView(ViewBinding):
-    """An unbound document has no native work to perform."""
-
-
 class BoundView(ViewBinding):
     @dataclass(frozen=True)
     class Moment(BoundFrame):
@@ -942,10 +938,6 @@ class PublicationDemand:
         return False
 
 
-class CleanPublication(PublicationDemand):
-    """The view shows everything the transcript holds."""
-
-
 class RefreshDemand(PublicationDemand):
     """Changed rows await publication; a commit waits for the live-block limit."""
 
@@ -967,7 +959,7 @@ class CommitDemand(PublicationDemand):
         return True
 
 
-CLEAN_PUBLICATION = CleanPublication()
+CLEAN_PUBLICATION = PublicationDemand()
 REFRESH_DEMAND = RefreshDemand()
 COMMIT_DEMAND = CommitDemand()
 
@@ -976,7 +968,7 @@ class TranscriptPresentation(EntryPlacement):
     """Owns the transcript document; attached native publishers can be replaced."""
 
     def __init__(self) -> None:
-        self.binding: ViewBinding = NoView()
+        self.binding: ViewBinding = ViewBinding()
         self.documents: tuple[PreparedPageSource, ...] = ()
         self.closed = False
         self.generation = 0
@@ -1018,7 +1010,7 @@ class TranscriptPresentation(EntryPlacement):
 
     def _unbind_view(self) -> None:
         self._thread_observation.close()
-        self.binding = NoView()
+        self.binding = ViewBinding()
 
     @property
     def readable(self) -> bool:

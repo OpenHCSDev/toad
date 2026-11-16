@@ -17,7 +17,7 @@ from agent_comms.registry.threads import Thread
 from toad.acp.agent import Agent
 from support.agents import AppAgents
 from toad.app import ToadApp
-from toad.agent_schema import AgentDefinition
+from toad.client.agent_schema import AgentDefinition
 
 
 def published_goal(text: str, goal_id: str, **fields) -> Goal:

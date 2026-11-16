@@ -17,12 +17,12 @@ import shlex
 from agent_comms.execution.native_arguments import ConfiguredBinary, InheritedArguments
 from pathlib import Path
 
-from agent_comms.ui_model.sidebar import ChannelRowModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
 from agent_comms.display_order import ThreadSort
 from agent_comms.transport.tools.sidebar import CommsSortChannelTool
-from textual.geometry import Offset, Region
+from textual.geometry import Region
 from textual.widget import Widget
 from textual.reactive import reactive
 from ui_theme.effects import NAME_WAVE, NEW_MESSAGE
@@ -38,7 +38,7 @@ from toad.navigation_target import (
     ThreadTarget,
     channel_target,
 )
-from toad.session_tracker import SidebarSelection
+from toad.client.session_tracker import SidebarSelection
 from toad.widgets.selection import HoverSelection
 from toad.application_actions import NewThreadAction
 from toad.widget_actions import OpensSelected
@@ -49,6 +49,7 @@ from toad.widgets.sidebar_tree import (
     GroupHeaderLine,
     HeaderSegment,
     SelectsTargets,
+    TargetMenuTree,
     SidebarGroup,
     SearchFollower,
     TargetTreeMember,
@@ -72,8 +73,7 @@ from toad.sidebar_navigation import SidebarNavigation
 
 from toad.widgets.sidebar_tree import CommsRow, ListedRow
 from toad.sidebar_changes import SidebarChange
-from toad.sidebar_model_view import SidebarModelView
-from toad.sidebar_models import UnpaintedChannel
+from toad.client.sidebar_models import UnpaintedChannel
 
 
 class ChannelUnreadSegment(HeaderSegment):
@@ -356,7 +356,7 @@ class CoordinationStatus(
 
 class CommsSidebar(
     AutoHeight,
-    SidebarModelView,
+    TargetMenuTree,
     SidebarVisibilityObserver,
     SearchFollower,
     SelectsTargets,
@@ -392,9 +392,8 @@ class CommsSidebar(
         return (self.is_attached and not self.is_leaving
                 and self.app.is_running and self.screen.is_current)
 
-    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        self.pointer_select(row, menu=True)
-        self.navigation.menu_context(row).show_menu(self, offset)
+    def row_menu_context(self, row: CommsRow):
+        return self.navigation.menu_context(row)
 
     def accepts_observation(self) -> bool:
         return (self.enabled and self.accepts_publication()

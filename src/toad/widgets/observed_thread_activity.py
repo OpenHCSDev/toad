@@ -3,9 +3,9 @@
 from __future__ import annotations
 from abc import abstractmethod
 
-from textual.abstract_hooks import AbstractHooksMeta
 
-from dataclasses import dataclass
+from functools import partial
+from pathlib import Path
 
 from agent_comms.ui_model.status import ThreadStatusModel
 from textual.message import Message
@@ -14,42 +14,10 @@ from textual.widget import Widget
 
 from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
-from toad.core_event_carrier import CoreEventReceiver
-from toad.status_thread import NoStatusThread, StatusThread
+from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
+from toad.status_thread import ActivityView, NoStatusThread, StatusOwner, StatusThread
 from textual.events import Mount
 from textual import on
-
-
-class ActivityView(metaclass=AbstractHooksMeta):
-    """The status display a conversation kind supplies, mounted or absent."""
-
-    @abstractmethod
-    def bind(self, thread: StatusThread) -> None:
-        ...
-
-    @abstractmethod
-    def show(self, row: ThreadStatusModel) -> None:
-        ...
-
-    @property
-    @abstractmethod
-    def working(self) -> bool:
-        ...
-
-
-@dataclass(frozen=True)
-class NoActivityView(ActivityView):
-    """No status row, widget lifetime, subscription or paint work."""
-
-    def bind(self, thread: StatusThread) -> None:
-        pass
-
-    def show(self, row: ThreadStatusModel) -> None:
-        pass
-
-    @property
-    def working(self) -> bool:
-        return False
 
 
 class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
@@ -80,6 +48,17 @@ class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
     def status_changed(self, event: ThreadRowsChanged) -> None:
         self.thread.bind(self)
 
+    def show_open_thread(self, name: str) -> None:
+        self.show(self.app.coordination_access.thread_status.open(name))
+
+    def observe_thread_rows(self, root: Path, name: str) -> None:
+        self.observe_core_callback(
+            self.app.coordination_access.events,
+            ThreadRowsChanged,
+            self.status_changed,
+            factory=partial(ThreadCallbackSubscription, scope=(str(root), name)),
+        )
+
     def show(self, row: ThreadStatusModel) -> None:
         self.row = row
 
@@ -94,11 +73,8 @@ class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
         return self.row.status.is_working()
 
 
-class ThreadStatusOwner(ToadNode):
+class ThreadStatusOwner(StatusOwner, ToadNode):
     """A view with a composed row and a declared status source."""
-
-    # Before compose there is no status view yet; the kind supplies its view.
-    thread_activity: ActivityView = NoActivityView()
 
     @property
     def _observed_working(self) -> bool:

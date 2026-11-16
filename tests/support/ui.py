@@ -32,8 +32,8 @@ if TYPE_CHECKING:
     from textual.pilot import Pilot
 
     from toad.app import ToadApp
-    from toad.line_blocks import Divider, LineLink
-    from toad.tab_identity.kinds import AcpTab
+    from toad.client.line_blocks import Divider, LineLink
+    from toad.client.tab_identity.kinds import AcpTab
 
 
 async def saved_tab(app: ToadApp) -> AcpTab:

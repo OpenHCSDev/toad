@@ -15,7 +15,7 @@ from toad.core.events import CoordinationObserved
 from toad.screens.main import MainScreen
 from toad.target_commands import TargetContext
 from toad.widgets.conversation import Conversation
-from toad.tab_identity.kinds import MailboxTab
+from toad.client.tab_identity.kinds import MailboxTab
 
 
 def declare_owners(workspace):

@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 from toad.clipboard import TerminalClipboard
-from toad.line_blocks import LineLink
+from toad.client.line_blocks import LineLink
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.project_panel import FilePreview

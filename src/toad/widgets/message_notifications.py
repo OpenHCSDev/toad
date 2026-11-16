@@ -22,7 +22,7 @@ from textual.widgets._collapsible import CollapsibleTitle
 from textual.worker import Worker
 
 from toad.app_node import ToadNode
-from toad.comms_subscribers import NotificationSubscriber
+from toad.client.subscribers import NotificationSubscriber
 from toad.messages import QueueEvidenceOwner
 from toad.native_style import (
     Borderless,
@@ -34,7 +34,7 @@ from toad.native_style import (
     OneRow,
     TransparentBackground,
 )
-from toad.notification_status import (
+from toad.client.notification_status import (
     CheckedNotifications,
     MessageQueueEntry,
     NotificationStatus,

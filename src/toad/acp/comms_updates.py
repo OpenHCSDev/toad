@@ -308,14 +308,6 @@ class ThreadReadOutcome:
         """Expired observations leave the newer session's presentation alone."""
 
 
-class EndedSessionRead(ThreadReadOutcome):
-    """The read's client session ended before its result arrived."""
-
-
-class ChangedAttachmentRead(ThreadReadOutcome):
-    """The read's original thread is no longer attached to this client."""
-
-
 @dataclass(frozen=True)
 class SettledThreadRead(ThreadReadOutcome):
     presentation: ThreadPresentation
@@ -337,10 +329,6 @@ class ThreadRead:
         """An uncaptured read has no owner snapshot to reconcile."""
 
 
-class NoPendingThreadRead(ThreadRead):
-    """No captured client authority; present the current observation directly."""
-
-
 class PendingThreadRead(OwnerSnapshotConsumer, ThreadRead):
     """One presentation read of an agent's thread, captured before the read.
 
@@ -360,9 +348,9 @@ class PendingThreadRead(OwnerSnapshotConsumer, ThreadRead):
 
     def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         if not self.owner.source_current:
-            return ChangedAttachmentRead()
+            return ThreadReadOutcome()
         if self.owner.authority.retired:
-            return EndedSessionRead()
+            return ThreadReadOutcome()
         self.dispatch_sync(presentation)
         return SettledThreadRead(presentation)
 

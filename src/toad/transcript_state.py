@@ -12,8 +12,9 @@ from agent_comms.nominal.lifecycle import LifecycleState
 from textual.widget import Widget
 
 from toad.commit_claims import CommitClaim
+from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
-from toad.resource_release import ResourceRelease
+from toad.client.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
 
 if TYPE_CHECKING:
@@ -340,7 +341,8 @@ class WaitingSourceWork[Result]:
         from toad.widgets.conversation import Conversation
 
         scope = self.owner.query_ancestor(Conversation).thread_scope
-        with self.owner.app.coordination_access.observe_thread_changes(self.owner, scope, self.resume):
+        with self.owner.app.coordination_access.observe_thread_changes(
+                self.owner, scope, self.resume, subscription_factory=ThreadCallbackSubscription):
             yield self
 
     def resume(self, _event: object) -> None:

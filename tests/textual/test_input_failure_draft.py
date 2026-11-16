@@ -115,7 +115,7 @@ async def test_wire_sends_queue_in_order_while_compose_stays_open(workspace):
     keeps typing and sending while Core is slow, and the messages land in the order typed."""
     import threading
 
-    from toad.comms_root import Observing
+    from toad.client.connection import Observing
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.prompt import DeliveryControls
 
@@ -185,7 +185,7 @@ async def test_a_send_whose_reply_cannot_be_read_returns_the_draft(workspace):
     from agent_comms.nominal.field_codec import UnsupportedFieldType
     from textual.worker import WorkerFailed
 
-    from toad.comms_root import Observing
+    from toad.client.connection import Observing
     from toad.widgets.comms_chat import CommsChatView
 
     workspace.thread("peer")

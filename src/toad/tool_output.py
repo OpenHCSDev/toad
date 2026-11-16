@@ -25,7 +25,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich.text import Text
 from textual.await_complete import AwaitComplete
 
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     Body,
     CodeBody,
     LineBlock,

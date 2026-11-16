@@ -30,7 +30,7 @@ from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import CascadingRows, RowRun
-from toad.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
+from toad.client.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
 from toad.menus import MenuCommand
 from toad.message_rows import MessageRow
 from toad.navigation_target import NavigationTarget, SelectTarget

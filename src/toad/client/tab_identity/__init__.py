@@ -4,14 +4,9 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
-
-if TYPE_CHECKING:
-    from toad.session_entry import SessionEntry
-    from toad.session_navigation import SessionNavigation
 
 
 class TabTargetGone(Exception):
@@ -21,12 +16,12 @@ class TabTargetGone(Exception):
         super().__init__(f"{identity}: {reason}")
 
 
-class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.tab_identity"):
+class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.client.tab_identity"):
     @cached_property
     def mode_name(self) -> str:
         return f"{self.declared_name}-{FieldCodec.digest(self)}"
 
-    async def restore(self, navigation: SessionNavigation) -> SessionEntry:
+    async def restore(self, navigation: object) -> object:
         """Restore logical membership, not a succession of visible conversations."""
         entry = navigation.get(self.mode_name)
         if entry is None:
@@ -35,7 +30,7 @@ class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.tab_ident
         return entry
 
     @abstractmethod
-    async def entry(self, navigation: SessionNavigation) -> SessionEntry: ...
+    async def entry(self, navigation: object) -> object: ...
 
 
 class SessionTabIdentity(TabIdentity):

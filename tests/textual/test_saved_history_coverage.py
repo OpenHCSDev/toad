@@ -12,7 +12,7 @@ from agent_comms.registry.threads import NativeThread
 from support import journals
 
 from toad.screens.main import MainScreen
-from toad.tab_identity.kinds import MailboxTab
+from toad.client.tab_identity.kinds import MailboxTab
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import TranscriptHistory

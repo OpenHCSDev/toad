@@ -11,7 +11,7 @@ from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from rich.text import Text
 
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     AddedCodeRole,
     LineBlock,
     LineRole,

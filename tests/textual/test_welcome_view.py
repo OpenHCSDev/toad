@@ -12,7 +12,7 @@ from agent_comms.transport.tailnet_buses import TailnetBuses
 from support.agents import peer
 from support.ui import TextualUi
 
-from toad.bus_selection import LocalBus
+from toad.client.bus_selection import LocalBus
 from toad.constants import ALL_COMMS_TARGET
 from toad.launch_binding import AgentAttached
 from toad.screens.bus_choice import BusRows

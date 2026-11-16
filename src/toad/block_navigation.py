@@ -19,7 +19,7 @@ from ui_theme.effects import TextFade  # type: ignore[import-untyped]
 from toad.block_content import BlockContent
 from toad.entry_placement import PostedEntry
 from toad.frame_presentation import ARRIVAL, CascadingRows
-from toad.notification_status import MessageQueueEntry
+from toad.client.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import UNPLACED, NewerEnd, OlderEnd, PageEnd, Placed, Unplaced, arranged
 from toad.widgets.transcript_fragments import NO_REST, CursorRest
 from textual.events import Mount

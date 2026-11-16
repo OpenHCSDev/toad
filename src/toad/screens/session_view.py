@@ -22,7 +22,7 @@ from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.navigation_context import NavigationOwner
 from toad.navigation_target import NavigationTarget, NoTarget
 from toad.app_node import ToadNode
-from toad.session_tracker import SidebarState
+from toad.client.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.message_notifications import (

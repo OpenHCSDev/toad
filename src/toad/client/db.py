@@ -21,8 +21,8 @@ from agent_comms.storage.typed_table import (
 )
 
 from toad import paths
-from toad.agent_schema import AgentDefinition
-from toad.tab_identity import TabIdentity
+from toad.client.agent_schema import AgentDefinition
+from toad.client.tab_identity import TabIdentity
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 SessionTimestamp = Annotated[RecordedTimestamp, TimestampText, Column(storage=TextStorage)]
@@ -42,7 +42,7 @@ class ToadDatabase(WriterOwnedStore):
 
     @classmethod
     def path(cls) -> Path:
-        return paths.get_state() / "toad.db"
+        return paths.get_state() / "toad.client.db"
 
     @classmethod
     def table_schema(cls) -> type[TableSchema]:

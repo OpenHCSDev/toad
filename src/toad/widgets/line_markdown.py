@@ -8,7 +8,7 @@ from __future__ import annotations
 from textual.widget import Widget
 
 from toad.block_content import SelectsSource
-from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, NoBar, TextRole
+from toad.client.line_blocks import Body, MarkdownBody, LineBlock, LineRole, NoBar, TextRole
 from toad.native_style import AutoHeight
 from toad.widgets.linked_rows import ReferenceRendering
 from toad.widgets.styled_rows import StyledRows

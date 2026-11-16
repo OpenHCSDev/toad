@@ -16,11 +16,11 @@ from agent_comms.projects.checkouts import Checkout
 
 import __main__
 from toad import about, get_version, paths
-from toad.agent_schema import AgentDefinition
-from toad.agents import read_agents
+from toad.client.agent_schema import AgentDefinition
+from toad.client.agents import read_agents
 from toad.app import ToadApp
 from toad.application_lifetime import ApplicationLifetime
-from toad.comms_root import CoreConnection
+from toad.client.connection import CoreConnection
 from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer

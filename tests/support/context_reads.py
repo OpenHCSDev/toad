@@ -8,7 +8,7 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.transport.core_access import LocalCoreAccess
 
-from toad.core.context_reads import ContextReads
+from toad.client.context_reads import ContextReads
 
 
 @dataclass(frozen=True)

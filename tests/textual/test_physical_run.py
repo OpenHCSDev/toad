@@ -54,7 +54,7 @@ def physical_observation(physical_target: RunTarget) -> RunObservation:
         ),
         started_ns=1, finished_ns=2, runtime=target.runtime, home=target.home,
         config=target.config, state=target.state, data=target.data,
-        database=target.state / "toad.db", palette_directory=target.palette,
+        database=target.state / "toad.client.db", palette_directory=target.palette,
         root=target.root, opened=True, storage_rule=StorageRule().within(target.root),
         saved_roots=(target.root,),
         acp_roots=(target.root,), history_regions=(), history_published=False, modules_checked=3,

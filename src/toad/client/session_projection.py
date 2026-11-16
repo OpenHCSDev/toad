@@ -6,10 +6,9 @@ from typing import Self
 
 from agent_comms.history_views import RetiredViews
 from agent_comms.registry.thread_identity import ThreadIncarnation
-from textual.abstract_hooks import AbstractHooksMeta
 
-from toad.session_tracker import OpenTab
-from toad.tab_identity import TabIdentity
+from toad.client.session_tracker import OpenTab
+from toad.client.tab_identity import TabIdentity
 
 
 class SessionProjection[Navigation, Source](ABC):
@@ -29,12 +28,12 @@ class SessionProjection[Navigation, Source](ABC):
         return ()
 
 
-class SessionCollection[Source](metaclass=AbstractHooksMeta):
+class SessionCollection[Source]:
     """The open logical sessions share one projection context and retirement owner."""
 
     @property
-    @abstractmethod
-    def members(self) -> tuple[SessionProjection[Self, Source], ...]: ...
+    def members(self) -> tuple[SessionProjection[Self, Source], ...]:
+        raise NotImplementedError
 
-    @abstractmethod
-    def views_retired(self, root: Path, retired: RetiredViews) -> None: ...
+    def views_retired(self, root: Path, retired: RetiredViews) -> None:
+        raise NotImplementedError

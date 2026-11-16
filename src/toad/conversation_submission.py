@@ -32,18 +32,18 @@ from toad.acp.agent import Agent
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.acp.status import StopReason, UnreportedStopReason
-from toad.bus_submission import (
+from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
     SubmissionStart,
     SubmittedText,
 )
 from toad.command_catalog import CommandCatalog
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.delivery_failure_view import DeliveryFailureView
-from toad.input_decision import InputDecision, InputRefused
+from toad.client.input_decision import InputDecision, InputRefused
 from toad.submission_queue import QueueEvidence, QueueSource
 from toad.widgets.prompt import Prompt
 from toad.worker_group import InputHistoryRecord

@@ -30,7 +30,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.commit_claims import CommitClaim
 from toad.core.projection import MroProjection
-from toad.line_blocks import (
+from toad.client.line_blocks import (
     AgentRole,
     Body,
     Divider,
@@ -49,7 +49,7 @@ from toad.line_blocks import (
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
-from toad.notification_status import (
+from toad.client.notification_status import (
     MessageQueueEntry,
     NotificationStatus,
     UncheckedNotifications,

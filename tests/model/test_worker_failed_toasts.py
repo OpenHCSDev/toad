@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 from toad.conversation_kind import ChannelConversation
 from toad.core.events import Subscription
-from toad.resource_release import ResourceRelease
+from toad.client.resource_release import ResourceRelease
 from toad.transcript_publication import SourcePublicationRequests
 
 

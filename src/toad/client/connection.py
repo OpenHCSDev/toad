@@ -99,11 +99,11 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
-from toad.acp.transcript_reader import CoordinationTranscriptReader
-from toad.bus_selection import ProfileArgument
-from toad.comms_host import CommsHost
-from toad.comms_subscribers import NotificationSubscriber, SidebarSubscriber
-from toad.core.context_reads import ContextReads
+from toad.client.transcript_reader import CoordinationTranscriptReader
+from toad.client.bus_selection import ProfileArgument
+from toad.client.host import CommsHost
+from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
+from toad.client.context_reads import ContextReads
 from toad.core.events import (
     CoordinationObserved,
     CoreEventStream,
@@ -117,17 +117,16 @@ from toad.core.events import (
     ThreadInterestUpdate,
     ThreadRowsChanged,
 )
-from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
-from toad.db import UNSCOPED_TABS, TabScope
-from toad.notification_status import (
+from toad.client.db import UNSCOPED_TABS, TabScope
+from toad.client.notification_status import (
     CheckedNotifications,
     NotificationStatus,
     UncheckedNotifications,
 )
-from toad.referenced_core import ReferencedCore
-from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from toad.session_projection import SessionCollection, SessionProjection
-from toad.widgets.thread_comms_source import RelationshipReads
+from toad.client.referenced_core import ReferencedCore
+from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
+from toad.client.session_projection import SessionCollection, SessionProjection
+from toad.client.thread_comms_source import RelationshipReads
 
 T = TypeVar("T")
 
@@ -212,7 +211,7 @@ class CoreConnection(ABC):
             return RemoteCoreConnection.startup(arguments)
         return LocalCoreConnection.from_launch(LaunchRoot.startup(arguments, published))
 
-    def open_access(self, app: CommsHost[Observing]) -> CoordinationAccess:
+    def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
     def close(self) -> None:
@@ -701,15 +700,12 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
     def receive_failed(self, error: Exception):
         if self.is_current():
             self.failed(error, self.opened_selection())
-            self.access.app._handle_exception(error)
+            self.access.app.report_fatal(error)
 
     def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.root)
-        threads: set[ThreadIncarnation] = set()
-        channels: set[str] = set()
-        for member in access.app.session_navigation.members:
-            threads.update(identity for owner, identity in member.original_threads(access.app.session_navigation) if owner == root)
-            channels.update(target for owner, target in member.original_channels() if owner == root)
+        threads = access.app.open_thread_identities(root)
+        channels = access.app.open_channel_targets(root)
         request = ObserveViews(frozenset(threads), frozenset(channels))
         if request != access.views_interest:
             access.views_interest = request
@@ -837,7 +833,7 @@ class RemoteAnsweringReads(AnsweringReads, RemoteObserving, answers_for=RemoteOb
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
-    def __init__(self, app: CommsHost[Observing], connection: CoreConnection) -> None:
+    def __init__(self, app: CommsHost, connection: CoreConnection) -> None:
         self.app = app
         self.connection = connection
 
@@ -851,10 +847,10 @@ class CoordinationAccess(MroDispatch):
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
         # One status row per open thread, whichever service it was read from.
-        self.thread_status = OpenThreadStatus(app.call_next)
+        self.thread_status = OpenThreadStatus(app.schedule_ui)
         # Views showing the sidebar model now, and consumers waiting for current rows.
         self.sidebar_views: WeakSet[SidebarSubscriber[Observing, FailedObservation]] = WeakSet()
-        self.reference_views: WeakSet[CoreEventReceiver] = WeakSet()
+        self.reference_views: WeakSet = WeakSet()
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
         self.sidebar_current: ObserveSidebar | None = None
@@ -865,7 +861,7 @@ class CoordinationAccess(MroDispatch):
         self.notification_known: dict[tuple[ReadNotifications, tuple[int, str]], tuple[MessageNotification, ...]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
         # Open team pages; the heartbeat's frames are observed only while one is shown.
-        self.team_pages: WeakSet[CoreEventReceiver] = WeakSet()
+        self.team_pages: WeakSet = WeakSet()
         self.team_interest: ObserveTeamHud | StopTeamHud = StopTeamHud()
 
     @property
@@ -911,7 +907,7 @@ class CoordinationAccess(MroDispatch):
                 raise RouteChangedError("Comms route changed while opening the service")
             self.confirm_route(selected)
             return previous.adopt(LocalObserving(
-                SidebarModel(self.app.call_next), ObservationProcess(self.connection.observation_source(service.route)),
+                SidebarModel(self.app.schedule_ui), ObservationProcess(self.connection.observation_source(service.route)),
                 selection=selected, service=service, access=self))
 
         return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(
@@ -923,7 +919,7 @@ class CoordinationAccess(MroDispatch):
         root it serves keys every root-scoped request."""
         with self.opening:
             return self.observation.adopt(RemoteObserving(
-                SidebarModel(self.app.call_next), ObservationProcess(connection),
+                SidebarModel(self.app.schedule_ui), ObservationProcess(connection),
                 connection=connection, served_root=root, access=self))
 
     @handles(RevisionObserved)
@@ -949,7 +945,7 @@ class CoordinationAccess(MroDispatch):
             return  # Read for an interest the views have since changed.
         app = self.app
         notice = observed.sidebar.observation.read_marker_notice()
-        modes = app.tab_order.names
+        modes = app.tab_names
         previous_references = self.reference_context(str(observed.root))
         observed.sidebar.apply(result.snapshot, result.derived)
         self.present_sidebar()
@@ -957,8 +953,8 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
         result.snapshot.read_marker_notice.notify_if_new(
-            notice, lambda text: app.notify(text, title="Read positions", severity="warning"))
-        if app.tab_order.names != modes:
+            notice, lambda text: app.show_warning(text, title="Read positions"))
+        if app.tab_names != modes:
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
@@ -1007,7 +1003,7 @@ class CoordinationAccess(MroDispatch):
 
     @handles(ViewsRetired)
     def views_retired(self, result: ViewsRetired, observed: Observing) -> None:
-        self.app.session_navigation.views_retired(observed.root, result.retired)
+        self.app.retire_views(observed.root, result.retired)
 
     def show_notifications(self, view: NotificationSubscriber, read: ReadNotifications) -> bool:
         """Show `read` in `view`; asking again for the read it already shows changes nothing."""
@@ -1074,25 +1070,26 @@ class CoordinationAccess(MroDispatch):
                 view.notifications_reload()
 
     def sidebar_request(self) -> ObserveSidebar:
-        sidebar = self.app.saved_settings.current.sidebar
         return ObserveSidebar(
             self.app.project_dir,
-            sidebar.show_stopped,
-            sidebar.show_archived,
+            self.app.sidebar_show_stopped,
+            self.app.sidebar_show_archived,
         )
 
     def observe_thread_changes(
         self,
-        view: CoreEventReceiver,
+        view: object,
         scope: tuple[str, str],
         resume: Callable[[ThreadRowsChanged], None],
+        subscription_factory: type | None = None,
     ) -> ResourceRelease:
         """Hold the shared model while this native read waits for its own thread."""
         release = ResourceRelease()
-
+        kwargs = {}
+        if subscription_factory is not None:
+            kwargs["factory"] = partial(subscription_factory, scope=scope)
         release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, resume,
-            factory=partial(ThreadCallbackSubscription, scope=scope)))
+            self.events, ThreadRowsChanged, resume, **kwargs))
         return release
 
     def update_sidebar_interest(self) -> None:
@@ -1108,7 +1105,7 @@ class CoordinationAccess(MroDispatch):
             self.team_interest = wanted
             self.observation.observed().observe_team(wanted)
 
-    def show_team(self, page: CoreEventReceiver, shown: bool) -> None:
+    def show_team(self, page: object, shown: bool) -> None:
         """A team page started or stopped showing the heartbeat's frames."""
         if shown:
             self.team_pages.add(page)
@@ -1124,7 +1121,7 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_views.discard(view)
         self.update_sidebar_interest()
 
-    def show_references(self, view: CoreEventReceiver, shown: bool):
+    def show_references(self, view: object, shown: bool):
         if shown:
             self.reference_views.add(view)
         else:
@@ -1159,7 +1156,7 @@ class CoordinationAccess(MroDispatch):
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""
-        self.timer = self.app.set_interval(ROUTE_CHECK_SECONDS, self.check_route)
+        self.timer = self.app.repeat_ui(ROUTE_CHECK_SECONDS, self.check_route)
         self.check_route()
 
     async def stop_observing(self) -> None:

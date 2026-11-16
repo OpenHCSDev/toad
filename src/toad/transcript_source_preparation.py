@@ -18,7 +18,7 @@ from textual.worker import Worker, WorkerCancelled
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import UnrisenRows
-from toad.resource_release import ResourceRelease
+from toad.client.resource_release import ResourceRelease
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_state import (
     LatestViewportRequest,

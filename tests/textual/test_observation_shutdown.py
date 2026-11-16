@@ -18,7 +18,7 @@ from agent_comms.ui_model.observation import (
     StopSidebar,
 )
 
-from toad.comms_root import LocalAnsweringReads
+from toad.client.connection import LocalAnsweringReads
 
 
 async def stopped(pid: int) -> None:

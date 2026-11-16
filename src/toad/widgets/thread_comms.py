@@ -23,7 +23,7 @@ from textual.geometry import Offset, Region
 from textual.widgets import Static
 
 from toad.category_filter import CategoryFilterView
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.core import events as core_events
 from toad.native_style import (
     AutoHeight,
