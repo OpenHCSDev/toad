@@ -15,7 +15,6 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 
-from agent_comms.messaging.message_page import MessagePage, PageBounds
 from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
@@ -34,7 +33,6 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QSplitter,
     QStackedWidget,
-    QTextBrowser,
     QToolButton,
     QTreeWidget,
     QTreeWidgetItem,
@@ -67,37 +65,35 @@ from toad.client.connection import (
     RemoteCoreConnection,
 )
 from toad.client.conversation import ConversationKind
-from toad.client.conversation_capabilities import ConversationActivity, ConversationSource
+from toad.client.conversation_capabilities import ConversationSource
+from toad.client.history import ChannelDestination, WireSource, WireView
 from toad.client.history_entry import HistorySessionEntry
 from toad.application_lifetime import ApplicationStart
 from toad.client.condensed_path import condense_path, home_relative
 from toad.client.platform import host
-from toad.client.line_blocks import LineBlock, MutedRole
+from toad.client.line_blocks import MutedRole
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
 from toad.client.referenced_core import ReferencedCore
-from toad.client.submission import BusDestination, MessageDestination
+from toad.client.submission import MessageDestination
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
 from toad.client.tab_identity.kinds import CommsTab
 from toad.command_catalog import CommandCatalog
 from toad.constants import WELCOME
 from toad.core.events import CoordinationObserved, TabHistoryChanged
-from toad.message_rows import MarkdownMessageStyle, MessageRow
+from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.composer import ChannelComposer, Composer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost
+from toad.qt.history import QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.status_thread import StatusOwner
 from toad.target_commands import TargetContext
 from toad.work_preparation import PreparationRuntime
-
-
-class ConversationRead(OperationKind, ExclusiveKind):
-    """Reads the shown conversation's newest page; a newer read supersedes the running one."""
 
 
 class ConversationOpen(OperationKind, ExclusiveKind):
@@ -412,30 +408,6 @@ class Welcome(Page, BusListing, QWidget):
         window.hide_sidebar()
 
 
-class MessageView(TouchScrolled, QTextBrowser):
-    """A conversation's messages as Toad draws them: each row's header and body blocks,
-    drawn again at a new width, since dividers fill the width."""
-
-    def __init__(self, renderer: QtLineRenderer) -> None:
-        super().__init__()
-        self.setOpenLinks(False)
-        self.renderer = renderer
-        self.blocks: tuple[LineBlock, ...] = ()
-
-    def show_blocks(self, blocks: tuple[LineBlock, ...]) -> None:
-        self.blocks = blocks
-        self.paint_blocks()
-        scroll = self.verticalScrollBar()
-        scroll.setValue(scroll.maximum())
-
-    def paint_blocks(self) -> None:
-        self.setHtml(self.renderer.at_width(self.viewport().width() - 8, self.font()).html(self.blocks))
-
-    def resizeEvent(self, event) -> None:
-        super().resizeEvent(event)
-        self.paint_blocks()
-
-
 class KeptLines:
     """One tree line's children through one redraw, by kind and key. A line still wanted
     keeps its item, so a press on it and its open or closed group survive the update; the
@@ -583,34 +555,25 @@ class PathLabel(QLabel):
         self.setText(condense_path(self.shown, max(1, cells)))
 
 
-@dataclass(frozen=True)
-class ViewDestination(BusDestination):
-    """A conversation tab: shown while its view is open on this conversation of this bus."""
-
-    view: ConversationView
-
-    def shown(self) -> bool:
-        return self.view.shows(self.root, self.conversation)
-
-    async def presented(self, sent: MessageReference) -> None:
-        self.view.reload()
-
-
-class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, ConversationActivity, ComposerHost, QWidget):
-    """One conversation tab: its newest page, read again whenever Core's stores change; the
-    info row over its thread's status; and the composer and activity its kind chooses,
-    sending through the shared submissions as Textual's conversation view does."""
-
-    page_size = 50
+class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, ComposerHost, QWidget):
+    """One conversation tab: its history, paged lazily by the pager Textual's channels use
+    and drawn as virtual rows, read again whenever Core's stores change; the info row over
+    its thread's status; and the composer and activity its kind chooses, sending through
+    the shared submissions as Textual's conversation view does."""
 
     def __init__(self, app: QtToadApp, entry: QtHistorySessionEntry) -> None:
         super().__init__()
         self.app, self.entry = app, entry
         self.submissions = BusSubmissions(self)
-        self.drawn: frozenset[MessageReference] = frozenset()
         self.content_ready = asyncio.Event()
         label = entry.unobserved_tab().label()
-        self.messages = MessageView(app.renderer)
+        self.messages = QtHistoryWindow(app.renderer.scheme)
+        self.message_history = QtConversationHistory(self.messages, self, app)
+        source = app.source()
+        self.message_history.initialize_source(WireSource(
+            source.root, self.conversation, source.project, entry.viewer, MarkdownMessageStyle(),
+            access=app.coordination_access, core=source.core, fragments=QtWireFragment))
+        self.message_history.observe_source()
         self.label = QLabel(label)
         self.status = QLabel()
         self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -658,34 +621,42 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, Conversa
         for line in self.activity:
             line.close_activity()
         self.composer.receipt.stop()
+        self.message_history.retire_source()
 
     async def retire_presentation(self) -> None:
-        """Qt keeps nothing drawn apart from the widgets, which go with the view."""
+        """The history lets go of its page reader; its rows go with the widgets."""
+        self.message_history.close()
 
     @property
     def conversation(self) -> ConversationKind:
         return self.entry.key.conversation
 
     def reload(self) -> None:
-        self.app.run_operation(ConversationRead, self.read_page)
+        self.message_history.page_source.schedule_refresh(self)
 
-    async def read_page(self) -> None:
+    async def _refresh(self):
+        return self.message_history.page_source.schedule_refresh(self)
+
+    async def show_sent(self, sent: MessageReference) -> None:
+        """Follow the conversation's end and read it now; the queue entry retires once `sent` is drawn."""
+        self.messages.jump_to_latest()
+        await self._refresh()
+
+    def dispatch_sync(self, event: object) -> None:
+        """Qt reads its label from the source's references on every refresh."""
+
+    async def _refresh_source(self) -> None:
+        """Read what changed in the conversation and draw it, then the status beside it."""
+        history = self.message_history
         source = self.app.source()
         try:
-            page: MessagePage = await asyncio.to_thread(
-                self.conversation.page, source, PageBounds(limit=self.page_size))
-            style = MarkdownMessageStyle()
-            rows = tuple(MessageRow(message, self.entry.viewer) for message in page.messages)
-            self.messages.show_blocks(tuple(
-                block for row in rows for block in (row.header, *style.body(row, row.text))))
-            self.drawn = frozenset(message.reference for message in page.messages)
+            await history.read_changes()
         finally:
             self.content_ready.set()
         self.submissions.settle()
         self.composer.receipt.follow(str(source.root), next((
-            references for row in reversed(rows)
-            if row.outgoing and (references := row.message.role.notification_references(row.message))), ()),
-            page.selection.notification_identity)
+            references for fragment in reversed(history.fragments) if (references := fragment.sent_references)), ()),
+            history.pages[-1].prepared.page.source.selection.notification_identity)
         self.conversation.status_thread(source.root, self.app.coordination_access).refresh(self)
         label = self.conversation.label(source.references())
         self.label.setText(label)
@@ -742,7 +713,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, Conversa
                                   text.source_text)
             return
         root = self.app.source().root
-        await self.submissions.start_bus(text, ViewDestination(root, self.conversation, self)).prepare()
+        await self.submissions.start_bus(text, ChannelDestination(root, self.conversation, self)).prepare()
 
     def delivery_refused(self, description: str, body: str) -> None:
         self.composer.restore_draft(body)
@@ -756,7 +727,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, Conversa
         self.composer.hold(MessageDestination.read_only_reason if read_only else "")
 
     def draws_user_message(self, reference: MessageReference) -> bool:
-        return reference in self.drawn
+        return self.message_history.draws(reference)
 
     def record_input(self, text: str) -> None:
         """The Qt composer recalls no earlier input, so there is no history to keep."""

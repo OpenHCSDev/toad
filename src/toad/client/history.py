@@ -120,6 +120,14 @@ class ReadMarkedHistory(ReadMarking):
         finally:
             self.reading = False
 
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        if self.can_draw_on_screen:
+            self.mark_visible()
+
+    def source_resumed(self) -> None:
+        self.mark_visible()
+
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
         await self.page_source.change_style(self)

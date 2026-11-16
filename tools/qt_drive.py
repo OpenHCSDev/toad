@@ -30,7 +30,8 @@ from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.main import current_scheme, open_app
-from toad.qt.window import ConversationRow, MessageSend, QtToadApp, ViewDestination
+from toad.client.history import ChannelDestination, WirePageBuffer
+from toad.qt.window import ConversationRow, MessageSend, QtToadApp
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -94,7 +95,7 @@ class TabsScenario(Scenario):
         comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
         peer = tops[-1].child(0)
         app.open_row(comms)
-        await until(lambda: self.page is not app.workspace_sessions.home and self.page.messages.toPlainText(), "#comms")
+        await until(lambda: self.page is not app.workspace_sessions.home and self.page.messages.model_rows.rowCount(), "#comms")
         self.report("1-comms")
         app.open_row(peer)
         await until(lambda: app.tabs.count() == 2, "peer")
@@ -134,7 +135,52 @@ class ActivityScenario(Scenario):
         activity = view.thread_activity
         self.report("1-opened", peer=peer.key, directory=view.directory.text(), label=view.label.text(),
                     status=view.status.text(), working=activity.working, sweeping=activity.timer.isActive(),
-                    message_chars=len(view.messages.toPlainText()))
+                    rows=view.messages.model_rows.rowCount())
+
+
+class HistoryScenario(Scenario):
+    summary = ("open #comms; report the rows loaded; scroll to the top until no older page "
+               "arrives, reporting each; then return to the end and report that it follows the newest")
+
+    def rows(self) -> dict[str, object]:
+        window = self.page.messages
+        fragments = window.model_rows.fragments
+        history = self.page.message_history
+        return dict(rows=len(fragments), pages=len(history.pages),
+                    oldest=fragments[0].timestamp if fragments else None,
+                    newest=fragments[-1].timestamp if fragments else None,
+                    scroll=window.scroll_y, end=window.max_scroll_y, following=window.follows_tail,
+                    marked=len(MARKED))
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        await self.expand("#comms")
+        comms = next(row for row in app.sidebar.items()
+                     if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        app.open_row(comms)
+        await until(lambda: self.page is not app.workspace_sessions.home
+                    and self.page.messages.model_rows.rowCount(), "#comms rows")
+        await asyncio.sleep(1.5)
+        self.report("1-opened", **self.rows())
+        window = self.page.messages
+        for step in range(2, 12):
+            before = window.model_rows.fragments[0].key
+            window.scroll_y = 0
+            try:
+                await until(lambda: window.model_rows.fragments[0].key != before, "older page", tenths=40)
+            except TimeoutError:
+                self.report(f"{step}-top-no-older", **self.rows())
+                break
+            await asyncio.sleep(0.5)
+            self.report(f"{step}-older", **self.rows())
+        window.scroll_y = window.max_scroll_y
+        await asyncio.sleep(1.0)
+        window.jump_to_latest()
+        await until(lambda: window.follows_tail and window.scroll_y >= window.max_scroll_y - window.END_SLACK,
+                    "end", tenths=100)
+        await asyncio.sleep(1.0)
+        self.report("20-end", **self.rows())
 
 
 class WelcomeScenario(Scenario):
@@ -177,7 +223,7 @@ class MenuScenario(Scenario):
         self.report("3-notice", notice=app.status_line.text(), shown=app.status_line.isVisible())
 
 
-class MissingChannelDestination(ViewDestination):
+class MissingChannelDestination(ChannelDestination):
     """A destination its view still shows whose channel Core does not know: its read-only
     check fails before anything leaves, the way a refused send does."""
 
@@ -201,7 +247,7 @@ class ComposerScenario(Scenario):
         before = self.page
         self.app.open_row(row)
         await until(lambda: self.page is not before and self.page is not self.app.workspace_sessions.home
-                    and self.page.messages.toPlainText(), label)
+                    and self.page.messages.model_rows.rowCount(), label)
         await asyncio.sleep(1.5)
 
     async def run(self) -> None:
@@ -269,8 +315,18 @@ class PhoneScenario(Scenario):
         self.report("2-sidebar", window=self.app.width(), too_wide=self.too_wide())
 
 
+MARKED: list = []
+
+
+async def record_mark(buffer: WirePageBuffer, page) -> None:
+    """The drive's reader is not the profile's owner: what the shared read marking would
+    acknowledge is recorded, and nothing is marked read on the bus."""
+    MARKED.append(page)
+
+
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
+    WirePageBuffer.mark_page = record_mark
     app = await open_app(RemoteCoreConnection.read(profile), Checkout(PROJECT), current_scheme(os.environ))
     try:
         await scenario(app, out).run()
