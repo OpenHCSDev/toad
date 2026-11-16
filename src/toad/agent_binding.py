@@ -10,7 +10,6 @@ from typing import ClassVar, TYPE_CHECKING
 from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.errors import GoalRefused
 from agent_comms.planning.goal_history import RecordedGoalHistory
-from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
@@ -79,12 +78,13 @@ class AgentConnection(ABC):
 
         return ThreadRead()
 
-    def model_info(self, session_name: str) -> Content:
+    def model_info(self, session_name: str) -> str:
+        """The info bar's agent text: the selected model and thinking level, else the session."""
         model = self.configuration.model.selected
         if model is None:
-            return Content(session_name)
+            return session_name
         level = self.configuration.thinking.current
-        return Content(model.name + (f" · {level}" if level else ""))
+        return model.name + (f" · {level}" if level else "")
 
     @abstractmethod
     def attach_view(self, view: ConversationSessionBinding) -> None: ...
@@ -167,7 +167,7 @@ class NoAgentConnection(AgentConnection):
         sources.create_agent(view)
 
     def update_view(self, view: ConversationSessionBinding) -> None:
-        view.agent_info = Content.styled("shell")
+        view.show_agent_info("shell")
 
     def connected(self, view: ConversationSessionBinding) -> None:
         """There is no connected-agent notification."""

@@ -8,7 +8,6 @@ from agent_comms.messaging.display_references import ReferenceContext
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ChannelRowModel
 from metaclass_registry import AbstractHooksMeta
-from textual.dom import DOMNode
 
 
 class TargetRows[Row](metaclass=AbstractHooksMeta):
@@ -67,7 +66,7 @@ class GroupedSidebar(metaclass=AbstractHooksMeta):
     def reconcile_members(self) -> AbstractContextManager[None]: ...
 
 
-class ActivityRows(MemberRows[ThreadIncarnation], DOMNode):
+class ActivityRows(MemberRows[ThreadIncarnation]):
     """Live channel activity supplies its own destination and changed thread rows."""
 
     @property
