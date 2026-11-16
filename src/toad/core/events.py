@@ -458,6 +458,18 @@ class RequestAgentFail(FailureLog, AgentFail):
 Subscription = _BaseSubscription
 
 
+class Publication:
+    """One delivered Core event and the subscription it arrived on. Each frontend's carrier
+    is one; who published it follows from the subscription's stream."""
+
+    event: CoreEvent
+    subscription: Subscription
+
+    @property
+    def publisher(self) -> object:
+        return self.subscription.stream.publisher
+
+
 @dataclass(eq=False)
 class ThreadChangeSubscription(Subscription):
     """One live thread scope owns both delivery and observation interest."""

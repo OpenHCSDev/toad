@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from types import FunctionType
 from agent_comms.projects.checkouts import Checkout
-from typing import ClassVar, Literal, Self
+from typing import ClassVar, Self
 
 
 from rich.text import Text as RichText
@@ -246,7 +246,6 @@ class QueueSummary(
         self.styles.max_height = 3
 
     def activate(self) -> None:
-        from toad.widgets.conversation import Conversation
 
         self.query_ancestor(Prompt).conversation.open_queue_menu()
 
@@ -528,7 +527,6 @@ See on-screen instructions for details.
         )
 
     def leave_modal_editor(self) -> None:
-        from toad.widgets.conversation import Conversation
 
         self.prompt.conversation.window.focus(scroll_visible=False)
 
@@ -672,7 +670,6 @@ See on-screen instructions for details.
         if location == self.cursor_location:
             # If the cursor is already at the end, then we assume the user wants to
             # scroll the conversation to the end
-            from toad.widgets.conversation import Conversation
 
             self.prompt.conversation.jump_to_latest()
         else:
@@ -759,7 +756,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         return self.submissions
 
     @property
-    def conversation(self) -> Conversation:
+    def conversation(self):
         """The view this prompt submits to; its submission owner holds it, so the prompt
         answers the same whether it is mounted inside that view or beside it."""
         return self.operational_submissions.view
@@ -889,7 +886,6 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         editor = self.prompt_text_area
         self.query_one(DeliveryControls).show(SubmitNowAction().available(editor))
         editor.refresh_bindings()
-        from toad.widgets.conversation import Conversation
 
         self.conversation.queue_controls_changed()
 

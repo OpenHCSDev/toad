@@ -32,7 +32,6 @@ from agent_comms.transport.tools.tailnet import CommsTailnetProfileTool
 from metaclass_registry.mro_dispatch import handles
 from rich.console import RenderableType
 from textual import events, on, work
-from textual._time import after_input
 from textual.await_complete import AwaitComplete
 from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify

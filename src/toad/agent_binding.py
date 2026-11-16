@@ -18,7 +18,7 @@ from toad.core.events import CoreEventStream
 from toad.client.input_decision import InputAccepted, InputDecision, NoLiveAgent
 from toad.commit_claims import CommitSource
 from toad.conversation_turn import TurnOwner
-from toad.core_event_carrier import CoreEventMessage
+from toad.core.events import Publication
 from toad.acp.comms_updates import ThreadRead
 from agent_comms.nominal.field_codec import AcpSessionId
 
@@ -105,13 +105,13 @@ class AgentConnection(ABC):
     def connected(self, view: ConversationSessionBinding) -> None: ...
 
     @abstractmethod
-    def accepts_message(self, message: CoreEventMessage) -> bool: ...
+    def accepts_message(self, message: Publication) -> bool: ...
 
     @abstractmethod
     def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart: ...
 
     @abstractmethod
-    def accepts_failed_input(self, message: CoreEventMessage) -> bool: ...
+    def accepts_failed_input(self, message: Publication) -> bool: ...
 
     @abstractmethod
     def matches_agent(self, agent) -> bool: ...
@@ -181,7 +181,7 @@ class NoAgentConnection(AgentConnection):
     def detach_surface(self, view: Conversation) -> None:
         """There is no agent subscription to detach."""
 
-    def accepts_message(self, message: CoreEventMessage) -> bool:
+    def accepts_message(self, message: Publication) -> bool:
         return False
 
     def matches_agent(self, agent) -> bool:
@@ -208,7 +208,7 @@ class NoAgentConnection(AgentConnection):
     def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
         return owner.unbound(submission, self.readiness_refusal)
 
-    def accepts_failed_input(self, message: CoreEventMessage) -> bool:
+    def accepts_failed_input(self, message: Publication) -> bool:
         return False
 
     def cancel_allowed(self, turn: TurnOwner) -> bool:
