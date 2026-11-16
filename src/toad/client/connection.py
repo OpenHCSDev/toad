@@ -127,7 +127,7 @@ from toad.notification_status import (
 from toad.client.referenced_core import ReferencedCore
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.session_projection import SessionCollection, SessionProjection
-from toad.widgets.thread_comms_source import RelationshipReads
+from toad.client.thread_comms_source import RelationshipReads
 
 T = TypeVar("T")
 
