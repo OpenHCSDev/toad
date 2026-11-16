@@ -39,8 +39,11 @@ from PySide6.QtWidgets import (
 from ui_theme.scheme import (
     BackgroundColour,
     ColourScheme,
+    AlternateRowToneColour,
     ForegroundColour,
+    HeaderToneColour,
     PrimaryColour,
+    SidebarToneColour,
     ThemeColour,
 )
 
@@ -184,7 +187,11 @@ class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObs
         self.observed: Observing | None = None
         self.expanded: set[str] = set()
         self.setHeaderHidden(True)
-        self.setIndentation(22)
+        self.setIndentation(10)
+        # Toad's sidebar tones: the sidebar's own, every other row one step off it.
+        window.tone(self, QPalette.ColorRole.Base, SidebarToneColour)
+        window.tone(self, QPalette.ColorRole.AlternateBase, AlternateRowToneColour)
+        self.setAlternatingRowColors(True)
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)
@@ -369,11 +376,18 @@ class CommsWindow(QWidget):
         for widget in (self.menu, self.back, self.forward):
             bar.addWidget(widget)
         bar.addWidget(self.tabs, 1)
+        # The bar row is Toad's header band, in its header tone.
+        chrome = QWidget()
+        self.tone(chrome, QPalette.ColorRole.Window, HeaderToneColour)
+        chrome_layout = QVBoxLayout(chrome)
+        chrome_layout.setContentsMargins(0, 0, 0, 0)
+        chrome_layout.setSpacing(0)
+        chrome_layout.addWidget(self.sidebar_bar)
+        chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
         layout.addWidget(self.split, 1)
-        layout.addWidget(self.sidebar_bar)
-        layout.addLayout(bar)
+        layout.addWidget(chrome)
         self.show_sidebar()
         self.changes = access.events.subscribe(CoordinationObserved, self.stores_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
@@ -416,6 +430,13 @@ class CommsWindow(QWidget):
                              (QPalette.ColorRole.HighlightedText, ForegroundColour)):
             palette.setColor(role, colour(member))
         return palette
+
+    def tone(self, widget: QWidget, role: QPalette.ColorRole, member: type[ThemeColour]) -> None:
+        """Paint a widget's palette role in one of Toad's theme tones."""
+        palette = widget.palette()
+        palette.setColor(role, QColor(self.renderer.theme(member)))
+        widget.setPalette(palette)
+        widget.setAutoFillBackground(True)
 
     def fit_safe_area(self, margins: QMargins) -> None:
         """Keep every row clear of the status and navigation bars."""

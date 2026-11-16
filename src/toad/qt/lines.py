@@ -16,7 +16,7 @@ from ui_theme.colour import require_terminal_palette
 from agent_comms.storage.recorded_time import RecordedEventTime, UnrecordedEventTime
 from markdown_it import MarkdownIt
 from metaclass_registry.mro_dispatch import handles
-from ui_theme.scheme import ColourScheme
+from ui_theme.scheme import ColourScheme, ThemeColour
 
 from toad.client.line_blocks import Body, Divider, LineBlock, LineRole, NoBar, Span, Spans
 from toad.core.projection import MroProjection
@@ -78,7 +78,11 @@ class QtLineRenderer(MroProjection[str]):
         return f"<pre>{spans}</pre>"
 
     def colour(self, role: type[LineRole]) -> str:
-        return role.colour.rgb(self.scheme).hex
+        return self.theme(role.colour)
+
+    def theme(self, member: type[ThemeColour]) -> str:
+        """A theme colour under this scheme, as Toad resolves it."""
+        return member.rgb(self.scheme).hex
 
     def styled(self, text: str, role: type[LineRole]) -> str:
         css = [f"color:{self.colour(role)}"]
