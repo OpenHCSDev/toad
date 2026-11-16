@@ -9,7 +9,7 @@ from collections.abc import Callable
 from functools import partial
 
 from agent_comms.projects.checkouts import Checkout
-from textual.abstract_hooks import AbstractHooksMeta
+from metaclass_registry import AbstractHooksMeta
 
 from toad.agent_binding import AgentConnection
 from toad.client.agent_schema import AgentDefinition

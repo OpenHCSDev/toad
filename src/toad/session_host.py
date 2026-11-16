@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Self
 
-from textual.abstract_hooks import AbstractHooksMeta
+from metaclass_registry import AbstractHooksMeta
 from textual.await_complete import AwaitComplete
 
 from toad.comms_host import CommsHost
