@@ -14,7 +14,7 @@ from toad.app_node import ToadNode
 from toad.client.session_scope import SessionScope as SharedSessionScope
 from toad.navigation_context import NavigationOwner, NavigationScope, NoNavigationOwner
 from toad.transcript_scope import NoTranscript, TranscriptScope
-from textual.abstract_hooks import AbstractHooksMeta
+from metaclass_registry import AbstractHooksMeta
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.widget_actions import DeclaredWidgetActions
 from textual.command import Provider

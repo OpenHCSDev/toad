@@ -12,7 +12,7 @@ from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.transcript.transcript_events import TranscriptCoverage, TranscriptEvent
 from agent_comms.transcript.transcripts import TranscriptPage
-from textual.abstract_hooks import AbstractHooksMeta
+from metaclass_registry import AbstractHooksMeta
 
 
 class CoveredHistory[Document](metaclass=AbstractHooksMeta):
