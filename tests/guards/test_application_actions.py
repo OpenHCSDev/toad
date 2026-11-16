@@ -28,9 +28,9 @@ def test_application_action_caller_deletion():
                    for t in n.targets) for n in app.body)
     for path in ('application_actions.py','application_lifetime.py'):
         for node in ast.walk(ast.parse((ROOT/path).read_text())):
-            if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr=='run_worker':
-                if node.args and isinstance(node.args[0],ast.Call):
-                    assert isinstance(node.args[0].func,ast.Name) and node.args[0].func.id=='partial',(path,node.lineno)
+            if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr in ('run_worker','run_operation'):
+                if node.args and isinstance(node.args[-1],ast.Call):
+                    assert isinstance(node.args[-1].func,ast.Name) and node.args[-1].func.id=='partial',(path,node.lineno)
     for node in ast.walk(ast.parse((ROOT/'screens/settings.py').read_text())):
         match node:
             case ast.Call(func=ast.Attribute(attr='call_after_refresh'),

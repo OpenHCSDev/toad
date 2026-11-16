@@ -16,7 +16,7 @@ async def test_the_tls_context_is_built_once(monkeypatch):
         return function(*args)
 
     app = SimpleNamespace(
-        preparation=SimpleNamespace(run_thread=run_thread), size=(80, 24),
+        preparation=SimpleNamespace(run_thread=run_thread), display_size=(80, 24),
         settings=SimpleNamespace(anon_id="anon"), terminal_attention=TerminalAttention,
     )
     reports = UsageReports(app)
