@@ -2,7 +2,7 @@
 delivered in clumps (several wheel reports in one read, as over SSH) measures the same
 speed as the same rows delivered steadily."""
 
-from toad.widgets.presentation_window import StationaryPreparation
+from toad.client.history_pager import StationaryPreparation
 
 IDLE = 0.25  # the first report after a pause is capped at the idle interval
 
