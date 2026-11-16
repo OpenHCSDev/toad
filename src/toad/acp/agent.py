@@ -33,7 +33,7 @@ from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.agent_presentation import ACPAgentPresentation
 from toad.client.agent_schema import AgentDefinition
 from toad.core import events as core_events
-from toad.platform import host
+from toad.client.platform import host
 
 
 def generate_datetime_filename(

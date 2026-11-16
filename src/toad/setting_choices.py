@@ -18,7 +18,7 @@ from textual.geometry import Spacing
 from textual.widget import Widget
 
 from toad.acp.status import ToolCallStatus
-from toad.platform import DesktopService, host
+from toad.client.platform import DesktopService, host
 from toad.widgets.future_text import FutureText
 
 

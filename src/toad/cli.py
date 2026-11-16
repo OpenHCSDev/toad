@@ -17,7 +17,7 @@ from agent_comms.projects.checkouts import Checkout
 import __main__
 from toad import about, get_version, paths
 from toad.client.agent_schema import AgentDefinition
-from toad.agents import read_agents
+from toad.client.agents import read_agents
 from toad.app import ToadApp
 from toad.application_lifetime import ApplicationLifetime
 from toad.client.connection import CoreConnection

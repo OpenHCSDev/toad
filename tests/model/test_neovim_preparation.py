@@ -8,7 +8,7 @@ import pytest
 from toad.neovim_runtime import (
     Neovim, NeovimUnavailable, ReleaseArchive, X64Architecture,
 )
-from toad.platform import WindowsPlatform
+from toad.client.platform import WindowsPlatform
 
 
 @pytest.mark.parametrize("archive", Neovim.archives)
@@ -95,7 +95,7 @@ def test_runtime_does_not_prepare_or_search_path(tmp_path: Path):
 
 
 def test_android_uses_the_native_package_without_an_archive(tmp_path: Path):
-    from toad.platform import Platform
+    from toad.client.platform import Platform
 
     executable = tmp_path / "bin" / "nvim"
     executable.parent.mkdir()
@@ -108,7 +108,7 @@ def test_android_uses_the_native_package_without_an_archive(tmp_path: Path):
 
 
 def test_android_missing_package_names_its_install_command(tmp_path: Path):
-    from toad.platform import Platform
+    from toad.client.platform import Platform
 
     requirement = Neovim(tmp_path, Platform.decode("Android"))
     with pytest.raises(NeovimUnavailable, match="pkg install neovim"):
