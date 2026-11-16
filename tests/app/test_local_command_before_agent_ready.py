@@ -2,10 +2,11 @@
 from toad.launch_binding import AgentAttached
 
 from support.agents import peer
+from toad.client.commands import LocalCommand
 from toad.slash_command import NoArgumentsCommand
 
 
-class CursorProofCommand(NoArgumentsCommand):
+class CursorProofCommand(NoArgumentsCommand, LocalCommand):
     help = "Declaration-only cursor acceptance"
     hint = "DECLARED_CURSOR_HINT"
 

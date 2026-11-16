@@ -15,6 +15,8 @@ from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent, QTextCursor
+from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
+from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -28,6 +30,7 @@ from PySide6.QtWidgets import (
 
 from toad.client.application import ClientApplication
 from toad.client.bus_submission import BusSubmissions, TypedText
+from toad.client.commands import ConversationCommands
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
 from toad.client.notification_status import (
@@ -42,17 +45,14 @@ from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
 
 
-class ComposerHost:
-    """What a composer asks of the conversation view it sits in."""
+class ComposerHost(ConversationCommands):
+    """What a composer asks of the conversation view it sits in: the commands it offers
+    after a /, and where a typed message goes."""
 
     app: ClientApplication
     submissions: BusSubmissions
 
     def submit(self, text: TypedText) -> None:
-        raise NotImplementedError
-
-    def load_commands(self, composer: Composer) -> None:
-        """Read the conversation's command catalog for the composer's / offers."""
         raise NotImplementedError
 
 
@@ -61,7 +61,7 @@ class Offer(ABC):
 
     @property
     @abstractmethod
-    def label(self) -> str: ...
+    def layout(self) -> StyledTextLayout: ...
 
     @abstractmethod
     def accept(self, composer: Composer) -> None: ...
@@ -75,8 +75,8 @@ class CommandOffer(Offer):
     match: CommandMatch
 
     @property
-    def label(self) -> str:
-        return f"{self.match.command.command}  —  {self.match.command.help}"
+    def layout(self) -> StyledTextLayout:
+        return StyledTextLayout(name=Segment(self.match.command.command), detail_line=self.match.command.help)
 
     def accept(self, composer: Composer) -> None:
         composer.editor.setPlainText(f"{self.match.command.command} ")
@@ -91,8 +91,8 @@ class MentionOffer(Offer):
     candidate: MentionCandidate
 
     @property
-    def label(self) -> str:
-        return MentionCompletion.label(self.candidate)
+    def layout(self) -> StyledTextLayout:
+        return StyledTextLayout(name=Segment(MentionCompletion.label(self.candidate)))
 
     def accept(self, composer: Composer) -> None:
         self.completion.accept(composer, self.candidate.name)
@@ -107,6 +107,10 @@ class OfferList(QListWidget):
         super().__init__()
         self.composer = composer
         self.offers: tuple[Offer, ...] = ()
+        scheme = composer.host.app.theme.color_scheme
+        self.setItemDelegate(MultilinePreviewItemDelegate(
+            scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
+            scheme.to_qcolor(scheme.selection_text), self))
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.itemClicked.connect(self.take_item)
         self.hide()
@@ -117,7 +121,9 @@ class OfferList(QListWidget):
         self.offers = offers
         self.clear()
         for offer in offers:
-            self.addItem(QListWidgetItem(offer.label))
+            item = QListWidgetItem()
+            item.setData(LAYOUT_ROLE, offer.layout)
+            self.addItem(item)
         self.setToolTip(title)
         self.setCurrentRow(0)
         self.setFixedHeight(self.sizeHintForRow(0) * min(self.rows, len(offers)) + 4 if offers else 0)
@@ -242,7 +248,7 @@ class Composer(MentionEditor, QWidget):
             self.offers.show_offers("", ())
         elif self.typing_command():
             if not self.commands:
-                self.host.load_commands(self)
+                self.host.update_slash_commands()
             self.offers.show_offers("Slash commands", tuple(
                 CommandOffer(match) for match in self.ranking.ranked(self.text, self.commands)))
         else:

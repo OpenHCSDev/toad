@@ -73,15 +73,21 @@ class SortCapable(ABC):
 
 
 class LocalCommand:
-    """A command the interface interprets before anything is submitted."""
+    """A command the interface interprets before anything is submitted.
+
+    A command declared on this class itself acts on the agent session behind its
+    conversation, so only an agent conversation runs it. The members below need less,
+    so more conversations run them: each capability is the family of commands one
+    conversation contract runs.
+    """
 
 
-class ViewLocalCommand(LocalCommand):
-    """Runs in any conversation view: it acts on the view, its targets or the host."""
+class TranscriptLocalCommand(LocalCommand):
+    """Needs only a conversation that draws its own transcript and team view."""
 
 
-class AgentLocalCommand(LocalCommand):
-    """Acts on the agent session behind a conversation; only an agent conversation runs it."""
+class ViewLocalCommand(TranscriptLocalCommand):
+    """Needs only a conversation view: it acts on the view's targets or the host."""
 
 
 class CommandRefused(ValueError):
@@ -94,8 +100,9 @@ class ConversationCommands(metaclass=AbstractHooksMeta):
     """What a command does to the conversation it runs in.
 
     Commands call only these and the conversation's host; each frontend's conversation
-    inherits this and owns how each one happens on screen. A conversation view runs
-    the view commands; an agent conversation adds the agent session's.
+    inherits the contract it implements and owns how each hook happens on screen. A
+    conversation view runs the view commands; a transcript conversation and an agent
+    conversation each run more.
     """
 
     app: CommsHost
@@ -121,6 +128,13 @@ class ConversationCommands(metaclass=AbstractHooksMeta):
     @abstractmethod
     def flash_error(self, text: str) -> None: ...
 
+
+class TranscriptConversationCommands(ConversationCommands):
+    """A conversation that draws its own transcript, so it can add notes to it and clear
+    it, and that can open the team view."""
+
+    local_commands = TranscriptLocalCommand
+
     @abstractmethod
     def open_team(self, teammate: str) -> None:
         """Open the live team view, on one teammate when named."""
@@ -137,7 +151,7 @@ class ConversationCommands(metaclass=AbstractHooksMeta):
     async def prune_window(self, low_mark: int, high_mark: int) -> None: ...
 
 
-class AgentConversationCommands(ConversationCommands):
+class AgentConversationCommands(TranscriptConversationCommands):
     """A conversation with an agent session behind it, which also runs the commands
     that act on that agent and its session."""
 

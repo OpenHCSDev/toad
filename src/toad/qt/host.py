@@ -7,58 +7,20 @@ import traceback
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
 
-from agent_comms.cli_verbs.cli_command import TargetAction
-from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transport.request import CoreAccess
 from formbridge.operations import OperationKind
-from PySide6.QtCore import qCritical
-from PySide6.QtWidgets import (
-    QApplication,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QLineEdit,
-    QWidget,
-)
+from PySide6.QtCore import QUrl, qCritical
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtWidgets import QApplication
 from pyqt_reactive.core.deferred_callback import DeferredCallback, RepeatingCallback
 from pyqt_reactive.services.ui_thread_dispatch import UiThreadDispatcher
 from pyqt_reactive.theming import ColorScheme, StatusColorRole, ThemeManager
 from pyqt_reactive.widgets.status_line import StatusLine
 from ui_theme.scheme import ColourScheme
 
-from toad.client.host import CommandOrigin, CommsHost
+from toad.client.commands import CommandRefused
+from toad.client.host import CommsHost
 from toad.work_preparation import PreparationRuntime
-
-
-class WindowCommandOrigin(CommandOrigin):
-    """The window a command started on; its form opens only while that window is active."""
-
-    def __init__(self, window: QWidget | None) -> None:
-        self.window = window
-
-    def current(self) -> bool:
-        return QApplication.activeWindow() is self.window
-
-    async def edit(self, definition: TargetAction, title: str, fields: tuple[TargetField, ...],
-                   core: CoreAccess) -> dict[str, str | None] | None:
-        dialog = QDialog(self.window)
-        dialog.setWindowTitle(title)
-        form = QFormLayout(dialog)
-        editors = {field.name: QLineEdit(placeholderText=field.description) for field in fields}
-        for field in fields:
-            form.addRow(field.label, editors[field.name])
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        buttons.accepted.connect(dialog.accept)
-        buttons.rejected.connect(dialog.reject)
-        form.addRow(buttons)
-        answer: asyncio.Future[dict[str, str | None] | None] = asyncio.get_running_loop().create_future()
-        # A cancelled operation stops waiting; the dialog closing after it answers nobody.
-        dialog.accepted.connect(lambda: answer.done() or answer.set_result(
-            {name: editor.text() for name, editor in editors.items()}))
-        dialog.rejected.connect(lambda: answer.done() or answer.set_result(None))
-        dialog.open()
-        return await answer
 
 
 class QtCommsHost(CommsHost, UiThreadDispatcher):
@@ -148,12 +110,15 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
     def copy_to_clipboard(self, text: str) -> None:
         QApplication.clipboard().setText(text)
 
+    def open_url(self, url: str) -> None:
+        QDesktopServices.openUrl(QUrl(url))
+
+    def open_channel_sort(self, channel: str) -> None:
+        raise CommandRefused("Sorting a channel's members isn't in this client yet")
+
     def clear_focus(self) -> None:
         if (focused := QApplication.focusWidget()) is not None:
             focused.clearFocus()
-
-    def capture_command_origin(self) -> WindowCommandOrigin:
-        return WindowCommandOrigin(QApplication.activeWindow())
 
     @property
     def application_running(self) -> bool:
