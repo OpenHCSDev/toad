@@ -118,6 +118,19 @@ class ClientApplication(BusPickerHost, NavigationHost):
     def connection_for(self, choice: BusChoice) -> CoreConnection:
         """The connection ``choice`` names, read by the parser this frontend launches with."""
 
+    def start_client(self) -> None:
+        """How every frontend starts: observe the connection's Core, checking its route
+        once a second so a bus that drops (an install restarting Core, a network blip) or
+        changes opens again on the next check and every subscribed view rebinds to it; then
+        this frontend's own start. Each frontend once wrote this sequence itself, and the Qt
+        copy left out the route check, so a dropped bus never came back on the phone."""
+        self.coordination_access.start()
+        self.begin_frontend()
+
+    @abstractmethod
+    def begin_frontend(self) -> None:
+        """This frontend's own start, after observation begins: its window and saved tabs."""
+
     async def open_saved_tabs(self) -> None:
         """Open the tabs the observed Core saved, as this frontend's start opens them."""
         await self.application.open_saved_tabs()

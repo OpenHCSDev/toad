@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import qasync
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -235,6 +235,38 @@ class ComposerScenario(Scenario):
         await asyncio.sleep(0.5)
         self.report("6-failed", failure=composer.failure.text(), draft=composer.text,
                     notice=app.status_line.text() if app.status_line.isVisible() else "")
+
+
+class PhoneScenario(Scenario):
+    summary = "list every widget too wide for a Pixel 8a, on the welcome and with the sidebar up"
+
+    width: ClassVar[int] = 412  # the Pixel 8a's 1080 px at its 2.625 device pixel ratio
+
+    def too_wide(self) -> list[str]:
+        """Each visible widget whose layout cannot go narrower than the phone, widest first."""
+        widgets = [self.app, *self.app.findChildren(QWidget)]
+        wide = [(widget.minimumSizeHint().width(), widget) for widget in widgets
+                if widget.isVisible() and widget.minimumSizeHint().width() > self.width]
+        return [f"{width} {type(widget).__name__} {widget.objectName() or widget.parent().__class__.__name__}"
+                for width, widget in sorted(wide, key=lambda pair: -pair[0])]
+
+    async def run(self) -> None:
+        await self.listed()
+        self.app.resize(self.width, 915)
+        await asyncio.sleep(0.5)
+        self.report("1-welcome", window=self.app.width(), too_wide=self.too_wide())
+        # Android's style lays pages out with wider margins than desktop; a widget sized
+        # from its page's width grows the page by the difference on every resize.
+        self.app.workspace_sessions.home.layout().setContentsMargins(20, 20, 20, 20)
+        widths = []
+        for _ in range(4):
+            self.app.resize(self.width, 915)
+            await asyncio.sleep(0.3)
+            widths.append(self.app.width())
+        self.report("1b-android-margins", widths=widths, too_wide=self.too_wide())
+        await self.app.reveal_sidebar()
+        await asyncio.sleep(0.5)
+        self.report("2-sidebar", window=self.app.width(), too_wide=self.too_wide())
 
 
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:

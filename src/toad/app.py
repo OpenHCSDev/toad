@@ -276,6 +276,11 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
             release.callback(self.colours.stop)
             release.push_async_callback(self.close_client)
 
+    def begin_frontend(self) -> None:
+        # Mount runs inside Textual's batch, which draws no frame, and restored
+        # tabs wait for drawn frames, so start runs beside mount, never inside it.
+        self.application.begin()
+
     async def close_native_views(self) -> None:
         """Textual closes its screens and widgets, which release their views."""
         await super()._close_all()
@@ -517,10 +522,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     async def on_mount(self) -> None:
         # The terminal driver is running now, so ANSI themes can query its colours.
         await self.colours.mount()
-        self.coordination_access.start()
-        # Mount runs inside Textual's batch, which draws no frame, and restored
-        # tabs wait for drawn frames, so start runs beside mount, never inside it.
-        self.application.begin()
+        self.start_client()
         # Background threads (Core reads, preparation) give the GIL back to
         # the UI thread within 1 ms instead of the default 5 ms.
         sys.setswitchinterval(0.001)
