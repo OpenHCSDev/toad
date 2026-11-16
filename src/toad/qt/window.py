@@ -47,7 +47,6 @@ from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, Multili
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
-from pyqt_reactive.widgets.shared.tree_state_adapter import TreeItemKeyBuilderABC, TreeStateAdapter
 from ui_theme.scheme import ColourScheme, PrimaryColour
 
 from toad.client.application import BusDiscovery, ClientApplication
@@ -139,6 +138,18 @@ class SidebarItem(QTreeWidgetItem):
     """One line of the sidebar tree; its row widget draws it, a tap activates it."""
 
     key: str
+    drawn: tuple[str, str, str, str] = ("", "", "", "")
+
+    def draw(self, badge: str, label: str, summary: str, tooltip: str) -> None:
+        """Draw this line's text; a line whose text is unchanged is left alone."""
+        text = (badge, label, summary, tooltip)
+        if text == self.drawn:
+            return
+        self.drawn = text
+        self.setData(0, LAYOUT_ROLE, StyledTextLayout(
+            name=Segment(label), status_prefix=f"{badge} " if badge else "", detail_line=summary,
+            multiline=True))
+        self.setToolTip(0, tooltip)
 
     def activate(self, window: QtToadApp) -> None:
         """A group line opens and closes its group."""
@@ -160,6 +171,18 @@ class ConversationRow(SidebarItem):
         super().__init__()
         self.key = target.name
         self.target = target
+
+    @classmethod
+    def channel(cls, name: str, channel) -> ConversationRow:
+        row = cls(channel_target(name))
+        row.draw(channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+        return row
+
+    @classmethod
+    def thread(cls, name: str, thread) -> ConversationRow:
+        row = cls(DirectTarget(name))
+        row.draw(thread.unread.badge, thread.label, thread.summary, thread.title)
+        return row
 
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
@@ -328,11 +351,30 @@ class MessageView(TouchScrolled, QTextBrowser):
         self.paint_blocks()
 
 
-class SidebarKeys(TreeItemKeyBuilderABC):
-    """A sidebar line's key in the tree's saved expansion: its channel, thread or title."""
+class KeptLines:
+    """One tree line's children through one redraw, by kind and key. A line still wanted
+    keeps its item, so a press on it and its open or closed group survive the update; the
+    lines no longer wanted go at the end. One redraw visits each line once."""
 
-    def item_segment_key(self, item: SidebarItem) -> str:
-        return item.key
+    def __init__(self, parent: QTreeWidgetItem) -> None:
+        self.parent = parent
+        self.previous = {(type(line), line.key): line
+                         for line in (parent.child(index) for index in range(parent.childCount()))}
+        self.count = 0
+
+    def keep[Row: SidebarItem](self, line: Row) -> Row:
+        kept = self.previous.pop((type(line), line.key), line)
+        kept.draw(*line.drawn)
+        if self.parent.child(self.count) is not kept:
+            if kept is not line:
+                self.parent.takeChild(self.parent.indexOfChild(kept))
+            self.parent.insertChild(self.count, kept)
+        self.count += 1
+        return kept
+
+    def close(self) -> None:
+        for _ in range(self.parent.childCount() - self.count):
+            self.parent.takeChild(self.count)
 
 
 class ConversationRows(TouchScrolled, QTreeWidget):
@@ -366,30 +408,24 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         self.addTopLevelItem(section)
         return section
 
-    def add_channel(self, parent: QTreeWidgetItem, name: str, channel) -> ConversationRow:
-        return self.add_row(parent, ConversationRow(channel_target(name)),
-                            channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+    def add_channel(self, parent: QTreeWidgetItem, name: str, channel) -> None:
+        parent.addChild(ConversationRow.channel(name, channel))
 
-    def add_thread(self, parent: QTreeWidgetItem, name: str, thread) -> ConversationRow:
-        return self.add_row(parent, ConversationRow(DirectTarget(name)),
-                            thread.unread.badge, thread.label, thread.summary, thread.title)
+    def add_thread(self, parent: QTreeWidgetItem, name: str, thread) -> None:
+        parent.addChild(ConversationRow.thread(name, thread))
 
     def add_row[Row: SidebarItem](self, parent: QTreeWidgetItem, row: Row, badge: str, label: str,
                                   summary: str, tooltip: str) -> Row:
-        row.setData(0, LAYOUT_ROLE, StyledTextLayout(
-            name=Segment(label), status_prefix=f"{badge} " if badge else "", detail_line=summary,
-            multiline=True))
-        row.setToolTip(0, tooltip)
+        row.draw(badge, label, summary, tooltip)
         parent.addChild(row)
         return row
 
 
 class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation]):
     """The bus's channels, each opening to the threads in it, and every thread, from the
-    shared sidebar model; groups stay open or closed across updates, read from the tree
-    itself before it is redrawn."""
-
-    expansion = TreeStateAdapter(SidebarKeys())
+    shared sidebar model. It only draws: the coordination access binds it to each current
+    observation, and its lines are kept in place across updates, so groups stay open or
+    closed and a press stays on its row."""
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__(window)
@@ -401,7 +437,6 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
         self.observed = observed
         observed.sidebar.channels.subscribe(self.rows_changed)
         observed.sidebar.threads.subscribe(self.rows_changed)
-        self.window.coordination_access.show_sidebar(self, True)
         self.present()
 
     def rows_changed(self, changes: object) -> None:
@@ -415,21 +450,23 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
 
     def present(self, **changes: object) -> None:
         """Toad's sidebar rows: a badge and label, and the row's summary under it in
-        muted text, from the shared row models."""
+        muted text, from the shared row models. Rows are updated in place by key, never
+        cleared, so a finger already on a row still lands on it."""
         if self.observed is None:
             return
         model: SidebarModel = self.observed.sidebar
         threads = model.threads.rows
-        expanded = self.expansion.capture_expansion_state(self)
-        self.clear()
+        top = KeptLines(self.invisibleRootItem())
         for name, channel in model.channels.rows.items():
-            group = self.add_channel(self.invisibleRootItem(), name, channel)
+            group = KeptLines(top.keep(ConversationRow.channel(name, channel)))
             for member in channel.members:
-                self.add_thread(group, member, threads[member])
-        everyone = self.section("Threads")
+                group.keep(ConversationRow.thread(member, threads[member]))
+            group.close()
+        everyone = KeptLines(top.keep(SidebarSection("Threads")))
         for name, thread in threads.items():
-            self.add_thread(everyone, name, thread)
-        self.expansion.restore_expansion_state(self, expanded)
+            everyone.keep(ConversationRow.thread(name, thread))
+        everyone.close()
+        top.close()
         self.window.workspace_sessions.home.present(model)
         self.window.paint_tabs()
 
@@ -783,7 +820,7 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         """The saved roster is read so tabs this app cannot draw yet stay saved; the sidebar
         and welcome bind the observation the connection serves."""
         await self.tab_order.load()
-        self.coordination_access.open_current().show_sidebar(self.sidebar)
+        await self.coordination_access.follow_sidebar(self.sidebar)
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
         button = QToolButton()

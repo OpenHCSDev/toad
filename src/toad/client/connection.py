@@ -436,9 +436,9 @@ class Observation(ABC):
         """An observation without a process has nothing to retire."""
 
     def activate(self, access: CoordinationAccess):
-        """The new current observation shows itself in every view showing the sidebar: a
-        failure as the failure, a reopened service as its rows. Only the failure did this,
-        so a bus that came back after a drop stayed "unavailable" in every Qt view."""
+        """The new current observation shows itself in every view following the sidebar,
+        hidden or shown: a failure as the failure, a reopened service as its rows. This is
+        the only place a view rebinds to a new observation."""
         for view in tuple(access.sidebar_views):
             self.show_sidebar(view)
 
@@ -866,7 +866,8 @@ class CoordinationAccess(MroDispatch):
         self.retiring: set[asyncio.Task[None]] = set()
         # One status row per open thread, whichever service it was read from.
         self.thread_status = OpenThreadStatus(app.schedule_ui)
-        # Views showing the sidebar model now, and consumers waiting for current rows.
+        # Views following the current observation's sidebar, hidden or shown, and consumers
+        # waiting for current rows. Core's rows are observed while one view shows them.
         self.sidebar_views: WeakSet[SidebarSubscriber[Observing, FailedObservation]] = WeakSet()
         self.reference_views: WeakSet = WeakSet()
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
@@ -998,7 +999,7 @@ class CoordinationAccess(MroDispatch):
 
     def present_sidebar(self) -> None:
         """Present the same backend answer to the sidebar and its other views."""
-        for view in tuple(self.sidebar_views):
+        for view in self.showing_sidebar():
             view.present()
         self.events.publish(SidebarPresented())
 
@@ -1095,7 +1096,7 @@ class CoordinationAccess(MroDispatch):
         )
 
     def update_sidebar_interest(self) -> None:
-        wanted = self.sidebar_request() if self.sidebar_views or self.reference_views or self.sidebar_waiters else None
+        wanted = self.sidebar_request() if self.showing_sidebar() or self.reference_views or self.sidebar_waiters else None
         if wanted != self.sidebar_interest:
             observed = self.observation.observed()
             self.sidebar_interest = wanted
@@ -1115,13 +1116,20 @@ class CoordinationAccess(MroDispatch):
             self.team_pages.discard(page)
         self.update_team_interest()
 
-    def show_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation], shown: bool) -> None:
-        """A view started or stopped showing the sidebar model."""
-        if shown:
-            self.sidebar_views.add(view)
-        else:
-            self.sidebar_views.discard(view)
+    async def follow_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation]) -> None:
+        """``view`` follows the current observation until it leaves: bound now, and by every
+        later activation whether it is hidden or shown, so no view keeps a retired one."""
+        self.sidebar_views.add(view)
+        observed = await self.preparation.run_thread(self.observation.observed)
+        observed.show_sidebar(view)
+
+    def leave_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation]) -> None:
+        self.sidebar_views.discard(view)
         self.update_sidebar_interest()
+
+    def showing_sidebar(self) -> tuple[SidebarSubscriber[Observing, FailedObservation], ...]:
+        """The following views that show the sidebar's rows now."""
+        return tuple(view for view in self.sidebar_views if view.shows_sidebar())
 
     def show_references(self, view: object, shown: bool):
         if shown:

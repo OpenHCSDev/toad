@@ -109,6 +109,11 @@ class SidebarSubscriber[Source, Failure]:
     def present(self, **changes: object) -> None:
         raise NotImplementedError
 
+    def shows_sidebar(self) -> bool:
+        """Whether this view shows the sidebar's rows now; a view that is always on screen
+        always does."""
+        return True
+
 
 class NotificationSubscriber:
     """A message view receives notification outcomes for its current read scope."""
