@@ -12,7 +12,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 from formbridge.publications import PublicationStream
-from toad.client.resource_release import ResourceRelease
 from toad.work_preparation import PreparationRuntime
 
 
@@ -27,8 +26,8 @@ class CommsHost:
         """Deferred until after the current message; never inline."""
         raise NotImplementedError
 
-    def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> ResourceRelease:
-        """Periodic UI-thread callback; release stops it."""
+    def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> object:
+        """Periodic UI-thread callback; the returned handle's stop() ends it."""
         raise NotImplementedError
 
     @property

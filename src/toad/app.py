@@ -493,6 +493,23 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Tr
 
 
     @property
+    def sidebar_show_stopped(self) -> bool:
+        return self.saved_settings.current.sidebar.show_stopped
+
+    @property
+    def sidebar_show_archived(self) -> bool:
+        return self.saved_settings.current.sidebar.show_archived
+
+    def has_session(self, mode: str) -> bool:
+        return self.session_navigation.session_details(mode) is not None
+
+    def close_session(self, mode: str) -> None:
+        self.session_navigation.events.publish(session_requests.SessionClose(mode))
+
+    def open_direct_messages(self, target: str) -> None:
+        self.session_navigation.direct_messages(target)
+
+    @property
     def open_tabs(self) -> tuple[OpenTab, ...]:
         return self.session_navigation.tabs
 
