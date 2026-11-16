@@ -17,10 +17,12 @@ from textual import events, on
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
+from textual.document._editing import VimMode
 from textual.dom import DOMNode
 from textual.hint_labels import HintLabelStyle
 from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
 from textual.widgets import TextArea
+from textual.widgets._hints import HintClick, HintHost
 from textual.widgets.text_area import EditingMode
 
 from toad.app_node import ToadNode
@@ -220,6 +222,17 @@ class ProfileKeys(NativeMethodKeys):
     @property
     def hint_label_style(self) -> type[HintLabelStyle]:
         return self.app.settings.ui.hint_labels
+
+
+class HintKeys(ProfileKeys):
+    """In a Vim profile, f and ctrl+f show the screen's left- and right-click hints."""
+
+    MODE_BINDINGS: ClassVar[tuple[ModeBinding, ...]] = (
+        ModeBinding("f", HintHost.action_show_hints, HintClick.LEFT.description,
+                    mode=VimMode, show=False),
+        ModeBinding("ctrl+f", HintHost.action_show_context_hints, HintClick.RIGHT.description,
+                    mode=VimMode, show=False),
+    )
 
 
 class WidgetAction(Action, affix="Action"):
