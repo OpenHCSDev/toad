@@ -12,7 +12,7 @@ from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.request import CoreAccess
 from formbridge.operations import OperationKind
-from PySide6.QtCore import QTimer, qCritical
+from PySide6.QtCore import Qt, QTimer, qCritical
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -105,16 +105,24 @@ class QtCommsHost(CommsHost):
 
     def report_fatal(self, error: Exception) -> None:
         traceback.print_exception(error)
-        QMessageBox.critical(QApplication.activeWindow(), "Toad", f"{type(error).__name__}: {error}")
+        self.notice(QMessageBox.Icon.Critical, "Toad", f"{type(error).__name__}: {error}")
 
     def show_info(self, text: str, title: str) -> None:
-        QMessageBox.information(QApplication.activeWindow(), title, text)
+        self.notice(QMessageBox.Icon.Information, title, text)
 
     def show_warning(self, text: str, title: str) -> None:
-        QMessageBox.warning(QApplication.activeWindow(), title, text)
+        self.notice(QMessageBox.Icon.Warning, title, text)
 
     def show_error(self, error: Exception | str, title: str) -> None:
-        QMessageBox.critical(QApplication.activeWindow(), title, str(error))
+        self.notice(QMessageBox.Icon.Critical, title, str(error))
+
+    def notice(self, icon: QMessageBox.Icon, title: str, text: str) -> None:
+        """A notice over the active window that returns at once. QMessageBox's static
+        helpers run a nested event loop, which under qasync wedges every asyncio task
+        for as long as the box is open (the same trap as QMenu.exec on Android)."""
+        box = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, QApplication.activeWindow())
+        box.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        box.open()
 
     def log_error(self, text: str) -> None:
         qCritical(text)

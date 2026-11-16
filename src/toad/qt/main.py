@@ -28,9 +28,9 @@ def current_scheme(environment: Mapping[str, str]) -> ColourScheme:
     return WalFile.read(wal).scheme if wal.is_file() else SCHEMES[0]
 
 
-async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> None:
-    """Show the bus behind ``connection``: desktop passes the process-decoding member,
-    Android the one decoding in place."""
+async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> QtToadApp:
+    """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
+    sidebar observing."""
     app = QtToadApp(connection, project, PreparationRuntime(RenderProcessPool(connection.helper_start)), scheme)
     await (await app.get_db()).create()
     # The saved roster is read so tabs this app cannot draw yet stay saved.
@@ -38,6 +38,13 @@ async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: Col
     app.resize(420, 820)
     app.show()
     app.coordination_access.open_current().show_sidebar(app.sidebar)
+    return app
+
+
+async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> None:
+    """Show the bus behind ``connection``: desktop passes the process-decoding member,
+    Android the one decoding in place."""
+    await open_app(connection, project, scheme)
     closed = asyncio.get_running_loop().create_future()
     QApplication.instance().lastWindowClosed.connect(lambda: closed.done() or closed.set_result(None))
     await closed
