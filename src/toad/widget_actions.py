@@ -20,7 +20,8 @@ from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual.document._editing import VimMode
 from textual.dom import DOMNode
 from textual.hint_labels import HintLabelStyle
-from textual.navigation import MovesCursor, MovesHorizontalCursor, SelectCursor
+from formbridge.navigation_commands import SelectCursor
+from textual.navigation import MovesCursor, MovesHorizontalCursor
 from textual.widgets import TextArea
 from textual.widgets._hints import HintClick, HintHost
 from textual.widgets.text_area import EditingMode
