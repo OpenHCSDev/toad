@@ -246,6 +246,8 @@ dependencies = [
     { name = "platformdirs" },
     { name = "psutil" },
     { name = "pyperclip" },
+    { name = "pyside6-essentials" },
+    { name = "qasync" },
     { name = "rich" },
     { name = "setproctitle" },
     { name = "textual", extra = ["syntax"] },
@@ -258,12 +260,6 @@ dependencies = [
     { name = "ui-theme" },
     { name = "watchdog" },
     { name = "xdg-base-dirs" },
-]
-
-[package.optional-dependencies]
-qt = [
-    { name = "pyside6-essentials" },
-    { name = "qasync" },
 ]
 
 [package.dev-dependencies]
@@ -298,8 +294,8 @@ requires-dist = [
     { name = "platformdirs", specifier = "==4.9.6" },
     { name = "psutil", specifier = "==7.2.2" },
     { name = "pyperclip", specifier = "==1.11.0" },
-    { name = "pyside6-essentials", marker = "extra == 'qt'", specifier = "==6.12.0" },
-    { name = "qasync", marker = "extra == 'qt'", specifier = "==0.28.0" },
+    { name = "pyside6-essentials", specifier = "==6.12.0" },
+    { name = "qasync", specifier = "==0.28.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
     { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?branch=main" },
@@ -313,7 +309,6 @@ requires-dist = [
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.2" },
 ]
-provides-extras = ["qt"]
 
 [package.metadata.requires-dev]
 dev = [

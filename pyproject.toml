@@ -34,11 +34,7 @@ dependencies = [
     "formbridge",
     "objectstate==5.0.0",
     "msgpack==1.2.2",
-]
-
-[project.optional-dependencies]
-# The Qt backend (toad.qt): desktop and Android, from the same source.
-qt = [
+    # The Qt backend (toad.qt) ships with every install: desktop and Android, one source.
     "pyside6-essentials==6.12.0",
     "qasync==0.28.0",
 ]
