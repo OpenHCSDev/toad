@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import qasync
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -66,6 +66,14 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
               flush=True)
         self.app.grab().save(str(self.out / f"{type(self).declared_name}-{step}.png"))
 
+    async def expand(self, *keys: str) -> None:
+        """Open these sidebar groups as a tap would, then redraw the sidebar: the groups
+        stay open across the redraw."""
+        for item in self.app.sidebar.items():
+            item.setExpanded(item.key in keys or item.isExpanded())
+        self.app.sidebar.present()
+        await asyncio.sleep(0.3)
+
     async def listed(self) -> None:
         """The bus has answered: the welcome lists at least one row."""
         await until(lambda: sum(section.childCount() for section in self.app.workspace_sessions.home.rows.items()) > 0,
@@ -81,9 +89,7 @@ class TabsScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
-        app.sidebar.expanded.update({"#comms", "Threads"})
-        app.sidebar.present()
-        await asyncio.sleep(0.3)
+        await self.expand("#comms", "Threads")
         tops = list(app.sidebar.items())
         comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
         peer = tops[-1].child(0)
@@ -115,9 +121,7 @@ class ActivityScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
-        app.sidebar.expanded.add("Threads")
-        app.sidebar.present()
-        await asyncio.sleep(0.3)
+        await self.expand("Threads")
         everyone = list(app.sidebar.items())[-1]
         rows = app.sidebar.observed.sidebar.threads.rows
         children = [everyone.child(index) for index in range(everyone.childCount())]
@@ -168,6 +172,9 @@ class MenuScenario(Scenario):
             except Exception as error:
                 print(f"{label}: FAILED {type(error).__name__}: {error}", flush=True)
                 traceback.print_exc()
+        app.show_warning("this drive's own notice; nothing failed", "Drive")
+        await asyncio.sleep(0.3)
+        self.report("3-notice", notice=app.status_line.text(), shown=app.status_line.isVisible())
 
 
 class MissingChannelDestination(ViewDestination):
@@ -179,10 +186,9 @@ class MissingChannelDestination(ViewDestination):
 
 
 class ComposerScenario(Scenario):
-    summary = ("type @ and / in #any without sending; in the DM to claude-a (this drive's own "
-               "inbox), send one message, follow its receipt, then force a failed send")
-
-    inbox = "claude-a"
+    summary = ("type @ and / in #any without sending, then force a send to the scratch channel "
+               "#composer-drive-missing, which Core does not know, so it fails before it leaves: "
+               "the drive puts nothing on the bus and writes to no teammate")
 
     async def type(self, text: str) -> None:
         composer = self.page.composer
@@ -201,9 +207,7 @@ class ComposerScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
-        app.sidebar.expanded.add("Threads")
-        app.sidebar.present()
-        await asyncio.sleep(0.3)
+        await self.expand("Threads")
         tops = list(app.sidebar.items())
         everyone = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#any")
         await self.open(everyone, "#any")
@@ -222,24 +226,6 @@ class ComposerScenario(Scenario):
         await self.type("/te")
         self.report("5-commands-te", offers=[offer.label for offer in composer.offers.offers[:5]])
         await self.type("")
-        threads = list(app.sidebar.items())[-1]
-        inbox = next(threads.child(index) for index in range(threads.childCount())
-                     if threads.child(index).key == self.inbox)
-        await self.open(inbox, self.inbox)
-        composer = self.page.composer
-        self.report("6-inbox", placeholder=composer.editor.placeholderText(),
-                    activity=[line.summary.text() for line in self.page.activity])
-        await self.type("Qt composer drive check: this DM is sent through the shared submissions; no reply needed.")
-        composer.send()
-        await asyncio.sleep(0.05)
-        self.report("7-sending", submitting=composer.submitting.text())
-        seen: list[str] = []
-        for _ in range(250):
-            await asyncio.sleep(0.1)
-            shown = composer.receipt.text() if composer.receipt.isVisible() else ""
-            if shown and (not seen or seen[-1] != shown):
-                seen.append(shown)
-        self.report("8-receipt", receipts=seen, submitting=composer.submitting.text())
         view = self.page
         missing = ChannelConversation(ChannelTarget("#composer-drive-missing"))
         destination = MissingChannelDestination(app.source().root, missing, view)
@@ -247,8 +233,8 @@ class ComposerScenario(Scenario):
                           lambda: view.submissions.start_bus(TypedText("this send must fail"), destination).prepare())
         await until(lambda: composer.failure.isVisible(), "failure", tenths=100)
         await asyncio.sleep(0.5)
-        self.report("9-failed", failure=composer.failure.text(), draft=composer.text,
-                    notices=[box.text() for box in app.findChildren(QMessageBox)])
+        self.report("6-failed", failure=composer.failure.text(), draft=composer.text,
+                    notice=app.status_line.text() if app.status_line.isVisible() else "")
 
 
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:

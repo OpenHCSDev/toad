@@ -500,7 +500,7 @@ wheels = [
 [[package]]
 name = "formbridge"
 version = "0.2.0"
-source = { git = "https://github.com/OpenHCSDev/formbridge.git?branch=main#c1f3cb069f79f7be2f7618cd7e191c066f546db6" }
+source = { git = "https://github.com/OpenHCSDev/formbridge.git?branch=main#c7f1835779b8be0a61a2c4c5af5a21088734e0af" }
 dependencies = [
     { name = "annotated-types" },
     { name = "docutils" },
@@ -1310,7 +1310,7 @@ wheels = [
 [[package]]
 name = "pyqt-reactive"
 version = "0.9.0"
-source = { git = "https://github.com/OpenHCSDev/PyQT-reactive.git?branch=main#63cec4214acb36a4dfd8fffca61131d49e14574b" }
+source = { git = "https://github.com/OpenHCSDev/PyQT-reactive.git?branch=main#447a277cb58020cf626a1b3fb6d961a8eb7ad519" }
 dependencies = [
     { name = "annotated-types" },
     { name = "formbridge" },
@@ -1321,6 +1321,7 @@ dependencies = [
     { name = "pygments" },
     { name = "pyside6-essentials" },
     { name = "python-introspect" },
+    { name = "ui-theme" },
     { name = "zmqruntime" },
 ]
 

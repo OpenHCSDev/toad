@@ -12,16 +12,20 @@ from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.request import CoreAccess
 from formbridge.operations import OperationKind
-from PySide6.QtCore import Qt, QTimer, qCritical
+from PySide6.QtCore import qCritical
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QLineEdit,
-    QMessageBox,
     QWidget,
 )
+from pyqt_reactive.core.deferred_callback import DeferredCallback, RepeatingCallback
+from pyqt_reactive.services.ui_thread_dispatch import UiThreadDispatcher
+from pyqt_reactive.theming import ColorScheme, StatusColorRole, ThemeManager
+from pyqt_reactive.widgets.status_line import StatusLine
+from ui_theme.scheme import ColourScheme
 
 from toad.client.host import CommandOrigin, CommsHost
 from toad.work_preparation import PreparationRuntime
@@ -57,38 +61,41 @@ class WindowCommandOrigin(CommandOrigin):
         return await answer
 
 
-class QtCommsHost(CommsHost):
+class QtCommsHost(CommsHost, UiThreadDispatcher):
     """The shared host on Qt's event loop; asyncio runs on that loop through qasync.
 
     The Qt application inherits it beside the shared client and Qt's widget: this host owns
     what the shared client asks of the toolkit (deferred callbacks, timers, operations, errors,
-    the clipboard), and its constructor continues to the widget's. Dialogs open over
-    whichever window is active; a timer belongs to whoever holds it.
+    the clipboard), and its constructor continues to the widget's. Posting onto the UI thread
+    is pyqt-reactive's dispatcher, which this host is; timers are its owned callbacks,
+    parented to the application; the theme is the shared ui_theme scheme as pyqt-reactive's
+    ColorScheme, applied once to the whole QApplication; notices go to its status line.
+    Dialogs open over whichever window is active.
     """
 
     sidebar_show_stopped = False
     sidebar_show_archived = False
 
-    def __init__(self, project: Checkout, preparation: PreparationRuntime) -> None:
+    def __init__(self, project: Checkout, preparation: PreparationRuntime, scheme: ColourScheme) -> None:
         self.project_dir = project
         self.preparation = preparation
+        self.theme = ThemeManager(ColorScheme.from_theme(scheme))
+        self.theme.apply_color_scheme(self.theme.color_scheme)
+        self.status_line = StatusLine(self.theme.color_scheme)
         self.operations: defaultdict[type[OperationKind], set[asyncio.Future[None]]] = defaultdict(set)
         # The loop qasync runs on Qt's thread. Asked from a worker thread (an observation
         # adopted off the loop, as a bus switch adopts one), get_running_loop has none.
         self._loop = asyncio.get_running_loop()
         super().__init__()
 
-    def schedule_ui(self, callback: Callable[[], None]) -> None:
-        QTimer.singleShot(0, callback)
+    # Deferred until after the current message, from any thread: the dispatcher's queued post.
+    schedule_ui = UiThreadDispatcher.post
 
-    def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> QTimer:
-        timer = QTimer()
-        timer.timeout.connect(callback)
-        timer.start(int(seconds * 1000))
-        return timer
+    def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> RepeatingCallback:
+        return RepeatingCallback(self, int(seconds * 1000), callback)
 
     def delay_ui(self, seconds: float, callback: Callable[[], None]) -> None:
-        QTimer.singleShot(int(seconds * 1000), callback)
+        DeferredCallback(self, int(seconds * 1000), callback)
 
     def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
         if kind.exclusive:
@@ -123,24 +130,16 @@ class QtCommsHost(CommsHost):
 
     def report_fatal(self, error: Exception) -> None:
         traceback.print_exception(error)
-        self.notice(QMessageBox.Icon.Critical, "Toad", f"{type(error).__name__}: {error}")
+        self.status_line.show_status(f"Toad: {type(error).__name__}: {error}", StatusColorRole.ERROR)
 
     def show_info(self, text: str, title: str) -> None:
-        self.notice(QMessageBox.Icon.Information, title, text)
+        self.status_line.show_status(f"{title}: {text}", StatusColorRole.INFO)
 
     def show_warning(self, text: str, title: str) -> None:
-        self.notice(QMessageBox.Icon.Warning, title, text)
+        self.status_line.show_status(f"{title}: {text}", StatusColorRole.WARNING)
 
     def show_error(self, error: Exception | str, title: str) -> None:
-        self.notice(QMessageBox.Icon.Critical, title, str(error))
-
-    def notice(self, icon: QMessageBox.Icon, title: str, text: str) -> None:
-        """A notice over the active window that returns at once. QMessageBox's static
-        helpers run a nested event loop, which under qasync wedges every asyncio task
-        for as long as the box is open (the same trap as QMenu.exec on Android)."""
-        box = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, QApplication.activeWindow())
-        box.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-        box.open()
+        self.status_line.show_status(f"{title}: {error}", StatusColorRole.ERROR)
 
     def log_error(self, text: str) -> None:
         qCritical(text)

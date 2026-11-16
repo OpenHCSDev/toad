@@ -163,7 +163,8 @@ class Composer(MentionEditor, QWidget):
     """A conversation's composer: the offer list, the editor and its send button, then
     what is still submitting, the last send's failure and the delivery of your last message.
 
-    It sets no colours of its own: the application theme styles it."""
+    It sets no colours of its own: the application's pyqt-reactive theme styles its button,
+    and the theme's input and list styles frame the editor and the offers."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
@@ -180,6 +181,9 @@ class Composer(MentionEditor, QWidget):
         self.editor.textChanged.connect(self.fit_height)
         self.send_button = QPushButton("Send")
         self.send_button.clicked.connect(self.send)
+        styles = host.app.theme.color_scheme.styles
+        self.editor.setStyleSheet(styles.generate_text_input_style())
+        self.offers.setStyleSheet(styles.generate_list_widget_style())
         self.submitting = self.line(MutedRole)
         self.failure = self.line(FailureRole)
         self.receipt = Receipt(host.app, renderer)
