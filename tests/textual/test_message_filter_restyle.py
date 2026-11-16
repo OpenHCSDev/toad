@@ -14,7 +14,7 @@ from support.journals import assistant_entry, user_entry, write_journal
 
 from toad.message_rows import MarkdownMessageStyle
 from toad.transcript_preparation import TranscriptPageRenderTask
-from toad.transcript_state import PreparedReplacementViewportRequest
+from toad.client.history_state import PreparedReplacementViewportRequest
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import CommsChatView

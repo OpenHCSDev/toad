@@ -9,7 +9,7 @@ from support import journals
 from support.textual_steps import saved_history
 
 from toad.transcript_preparation import SavedHistory
-from toad.widgets.presentation_window import OLDER_END
+from toad.client.history_preparation import OLDER_END
 
 
 @pytest.mark.parametrize("cause", ("current", "revision", "edge", "parked", "loader"))

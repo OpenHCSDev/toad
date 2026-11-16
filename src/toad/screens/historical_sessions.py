@@ -24,7 +24,7 @@ from toad.messages import HoldsNoQueue
 from toad.project_path_owner import ProjectPathOwner
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.screens.workspace import WorkspaceFrame
-from toad.transcript_state import LiveTranscript
+from toad.client.history_state import LiveTranscript
 from toad.widget_view import CenteredView
 from toad.widgets.conversation import Contents
 from toad.widgets.history_anchor import HistoryWindow

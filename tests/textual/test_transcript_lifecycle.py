@@ -13,11 +13,7 @@ from textual.worker import DeadlockError, get_current_worker
 
 from toad.core.source_events import TranscriptCoverage
 from toad.paths import get_errors
-from toad.transcript_state import (
-    DetachedTranscript,
-    LiveTranscript,
-    ProvisionalTranscript,
-)
+from toad.client.history_state import DetachedTranscript, LiveTranscript, ProvisionalTranscript
 
 
 async def test_source_state_follows_mount_commit_worker_retirement_and_removal(workspace):

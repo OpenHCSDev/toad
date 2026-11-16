@@ -55,7 +55,6 @@ class TranscriptView(CoreObserver):
     gives its thread status to it. Native views bring their own framework base."""
 
     thread_status: str
-    is_attached: bool
 
     @property
     @abstractmethod

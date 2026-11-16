@@ -20,7 +20,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import UnrisenRows
 from toad.client.resource_release import ResourceRelease
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
-from toad.transcript_state import (
+from toad.client.history_state import (
     LatestViewportRequest,
     LatestViewportState,
     LiveTranscript,
@@ -35,7 +35,7 @@ from toad.widgets.history_anchor import (
     HistoryWindow,
     LatestPosition,
 )
-from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageEnd, PageRequest
+from toad.client.history_preparation import NEWER_END, OLDER_END, PageEnd
 
 if TYPE_CHECKING:
     from collections.abc import Callable

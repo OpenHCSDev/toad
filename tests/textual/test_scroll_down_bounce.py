@@ -18,7 +18,7 @@ from toad.screens.main import MainScreen
 from toad.screens.workspace import WorkspaceScreen
 from toad.client.tab_identity.kinds import MailboxTab
 from toad.widgets.conversation import Conversation
-from toad.widgets.presentation_window import NEWER_END
+from toad.client.history_preparation import NEWER_END
 from toad.widgets.transcript_history import TranscriptHistory
 
 

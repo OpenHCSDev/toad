@@ -9,7 +9,7 @@ from agent_comms.ui_model.observation import CoreReadAnswered
 
 from support.textual_steps import painted_text, refresh_chat
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.presentation_window import NEWER_END, OLDER_END
+from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.transcript_history import LineHistory
 
 

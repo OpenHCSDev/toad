@@ -375,7 +375,7 @@ async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage
     from dataclasses import replace
 
     from toad.transcript_preparation import ClosedHistory, TranscriptPageRenderTask
-    from toad.transcript_state import PreparedReplacementViewportRequest
+    from toad.client.history_state import PreparedReplacementViewportRequest
     from toad.widgets.history_anchor import LatestPosition
 
     old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_RETAINED_ROWS", id="old"))

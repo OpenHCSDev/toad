@@ -34,11 +34,16 @@ from toad.client.submission import (
 )
 from toad.client.input_decision import TranscriptNotReady
 from toad.render_backend import ContentAddressedRenderTask
-from toad.transcript_state import DEFERRED_WORK, LatestViewportRequest, SourceWork
+from toad.client.history_state import DEFERRED_WORK, LatestViewportRequest, SourceWork
 from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
-from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageEnd, PageRequest
+from toad.client.history_preparation import (
+    NEWER_END,
+    OLDER_END,
+    PageEnd,
+    PageRequest,
+)
 from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
 from toad.work_preparation import (
     PreparationRuntime,

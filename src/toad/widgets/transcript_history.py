@@ -75,7 +75,7 @@ from toad.transcript_source_preparation import (
     TranscriptSourcePreparation,
     _DrawingStopped,
 )
-from toad.transcript_state import (
+from toad.client.history_state import (
     LiveTranscript,
     ParkedSourceTranscript,
     ReplacementViewportRequest,
@@ -99,11 +99,9 @@ from toad.widgets.linked_rows import (
     selection_painted,
 )
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.client.history_preparation import NEWER_END, OLDER_END, PageEnd
 from toad.widgets.presentation_window import (
-    NEWER_END,
-    OLDER_END,
     UNPLACED,
-    PageEnd,
     PointerRows,
     PresentationBudget,
     Unplaced,
