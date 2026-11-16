@@ -4,7 +4,7 @@ write once deleted every row, so opening a tab in one wiped the other's saved ta
 
 import sqlite3
 
-from toad.comms_root import LocalCoreConnection
+from toad.client.connection import LocalCoreConnection
 from toad.db import DB, TabScope, UNSCOPED_TABS
 from toad.tab_identity.kinds import PreviewTab
 

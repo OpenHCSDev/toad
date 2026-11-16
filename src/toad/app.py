@@ -47,7 +47,7 @@ from toad.application_lifetime import ApplicationLifetime
 from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
 from toad.bus_selection import BusChoice, HeldBus, PickerRow
 from toad.clipboard import Clipboard
-from toad.comms_root import CoreConnection
+from toad.client.connection import CoreConnection
 from toad.constants import WELCOME
 from toad.core import events as core_events
 from toad.core import input_events, session_requests

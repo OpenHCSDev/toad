@@ -14,7 +14,7 @@ from textual import widgets
 from textual.containers import VerticalGroup
 from textual.content import Content
 
-from toad.comms_root import CoordinationAccess
+from toad.client.connection import CoordinationAccess
 from toad.keyed_rows import KeyedRows
 from toad.sidebar_changes import SidebarChange
 from toad.sidebar_contracts import ActivityRows

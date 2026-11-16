@@ -29,7 +29,7 @@ from support.workspace import Workspace
 from textual.widgets import Button, Static
 from textual.worker import Worker, WorkerState
 
-from toad.comms_root import FailedObservation, UnselectedRoute
+from toad.client.connection import FailedObservation, UnselectedRoute
 from toad.core.events import TeamHudChanged
 from toad.screens.team import (
     HudError,

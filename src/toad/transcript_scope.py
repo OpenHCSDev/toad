@@ -43,7 +43,7 @@ from toad.bus_submission import (
     SubmissionStart,
     SubmittedText,
 )
-from toad.comms_root import CoordinationAccess, Observing
+from toad.client.connection import CoordinationAccess, Observing
 from toad.conversation_kind import DmConversation
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription

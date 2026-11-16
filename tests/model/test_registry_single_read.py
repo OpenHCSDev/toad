@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 import pytest
 
 from agent_comms.presentation import NoRevision
-from toad.comms_root import RegistryReads
+from toad.client.connection import RegistryReads
 
 
 @dataclass

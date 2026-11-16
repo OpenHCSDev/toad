@@ -20,7 +20,7 @@ from toad.agent_schema import AgentDefinition
 from toad.agents import read_agents
 from toad.app import ToadApp
 from toad.application_lifetime import ApplicationLifetime
-from toad.comms_root import CoreConnection
+from toad.client.connection import CoreConnection
 from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer

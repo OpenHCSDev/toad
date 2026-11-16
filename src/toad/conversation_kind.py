@@ -38,7 +38,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from textual.app import ComposeResult
 
 from toad.bus_submission import MessageDestination, SubmissionOwner
-from toad.comms_root import CoordinationAccess
+from toad.client.connection import CoordinationAccess
 from toad.conversation_capabilities import (
     ConversationActivity,
     ConversationNavigation,

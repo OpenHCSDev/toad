@@ -26,7 +26,7 @@ from textual.pilot import Pilot
 from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
-from toad.comms_root import LocalCoreConnection
+from toad.client.connection import LocalCoreConnection
 from toad.launch_binding import AgentAttached, NoAgent
 from toad.screens.main import MainScreen
 from toad.widgets.acp_content import ACPToolCallContent

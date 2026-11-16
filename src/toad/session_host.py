@@ -9,7 +9,7 @@ from textual.abstract_hooks import AbstractHooksMeta
 from textual.await_complete import AwaitComplete
 
 from toad.comms_host import CommsHost
-from toad.comms_root import CoordinationAccess, Observing
+from toad.client.connection import CoordinationAccess, Observing
 from toad.db import DB
 from toad.navigation_context import NavigationOwner
 from toad.navigation_preparation import NavigationReader

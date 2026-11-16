@@ -26,7 +26,7 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
-from toad.comms_root import LocalCoreConnection
+from toad.client.connection import LocalCoreConnection
 from toad.launch_binding import AgentAttached
 
 

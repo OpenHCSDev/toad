@@ -18,7 +18,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 from textual.geometry import Region
 
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.core import session_requests
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from toad.thread_actions import ThreadAction

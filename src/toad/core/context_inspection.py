@@ -52,7 +52,7 @@ from agent_comms.working_memory.working_memory_labels import ModelLabel
 from agent_comms.working_memory.working_memory_questions import SpanAnswer
 from metaclass_registry.mro_dispatch import handles
 
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
 

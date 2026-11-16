@@ -39,7 +39,7 @@ from toad.bus_submission import (
     SubmittedText,
 )
 from toad.command_catalog import CommandCatalog
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.delivery_failure_view import DeliveryFailureView

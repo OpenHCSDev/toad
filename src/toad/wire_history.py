@@ -55,7 +55,7 @@ from toad.bus_submission import (
     SubmissionStart,
     SubmittedText,
 )
-from toad.comms_root import CoordinationAccess, Observation
+from toad.client.connection import CoordinationAccess, Observation
 from toad.conversation_capabilities import ConversationSource
 from toad.conversation_kind import ConversationKind
 from toad.core.projection import MroProjection

@@ -21,7 +21,7 @@ from agent_comms.ui_model.sidebar import ThreadRowModel
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.agent_log import AgentLog
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.core.projection import MroProjection
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.screens.comms import CommsScreen

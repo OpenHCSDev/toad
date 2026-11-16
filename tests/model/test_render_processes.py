@@ -13,7 +13,7 @@ import pytest
 from agent_comms.execution.launch_runtime import ThreadLaunch
 from agent_comms.projects.checkouts import Checkout
 
-from toad.comms_root import CoreConnection
+from toad.client.connection import CoreConnection
 from toad.render_processes import RenderProcessPool
 
 # Construction at import time is intentional: spawn reimports this file.

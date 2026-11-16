@@ -32,7 +32,7 @@ from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
-from toad.comms_root import Observing
+from toad.client.connection import Observing
 from toad.transcript_publication import CanonicalSourcePublication
 from toad.widgets.prompt import Prompt
 from toad.acp.agent import Agent
