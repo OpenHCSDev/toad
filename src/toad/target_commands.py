@@ -9,6 +9,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.cli_verbs.cli_command import TargetAction
+from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.messaging.channel_targets import (
     ChannelSelection,
     CommandTarget,
@@ -18,6 +19,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 from textual.geometry import Region
 
+from toad.client.commands import CommandContextChanged
 from toad.client.connection import Observing
 from toad.core import session_requests
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
@@ -26,10 +28,6 @@ from toad.thread_actions import ThreadAction
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
-
-
-class CommandContextChanged(CancelledError):
-    """A command's captured target context is no longer current."""
 
 
 @dataclass(frozen=True)

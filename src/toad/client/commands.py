@@ -8,6 +8,53 @@ action state and the absent/held execution family.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from asyncio import CancelledError
+from dataclasses import dataclass, field
+
+from agent_comms.messaging.channel_targets import (
+    ChannelSelection,
+    CommandTarget,
+    NoChannel,
+)
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
+
+from toad.client.connection import Observing
+from toad.client.host import CommsHost
+
+
+class CommandContextChanged(CancelledError):
+    """A command's captured target context is no longer current."""
+
+
+@dataclass(frozen=True)
+class SharedTargetContext:
+    """The target a command operates on, typed against the shared host contract.
+
+    Native TargetContext inherits this and adds menu/widget methods.
+    """
+
+    app: CommsHost
+    observed: Observing
+    subject: CommandTarget
+    actor: str
+    project: Checkout
+    mode: str | None = None
+    channel: ChannelSelection = field(default_factory=NoChannel)
+    targets: tuple[CommandTarget, ...] = ()
+
+    @property
+    def selection(self) -> tuple[CommandTarget, ...]:
+        return self.targets or (self.subject,)
+
+    @property
+    def selected_targets(self) -> tuple[str, ...]:
+        return tuple(name for target in self.selection for name in target.destination_names)
+
+    @property
+    def title(self) -> str:
+        names = self.selected_targets
+        return ", ".join(names) if names else str(self.project)
 
 
 class TargetActionState(ABC):
