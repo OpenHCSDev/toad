@@ -23,16 +23,16 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QMargins, QPoint, Qt
-from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPalette, QShortcut
+from PySide6.QtGui import QFont, QFontMetricsF
 from PySide6.QtWidgets import (
+    QApplication,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QMenu,
     QPushButton,
-    QScroller,
     QSplitter,
     QStackedWidget,
-    QTabBar,
     QTextBrowser,
     QToolButton,
     QTreeWidget,
@@ -40,16 +40,14 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from ui_theme.scheme import (
-    BackgroundColour,
-    ColourScheme,
-    AlternateRowToneColour,
-    ForegroundColour,
-    HeaderToneColour,
-    PrimaryColour,
-    SidebarToneColour,
-    ThemeColour,
-)
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
+from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
+from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
+from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
+from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
+from pyqt_reactive.widgets.shared.tree_state_adapter import TreeItemKeyBuilderABC, TreeStateAdapter
+from ui_theme.scheme import ColourScheme, PrimaryColour
 
 from toad.client.application import ClientApplication
 from toad.client.application_actions import ApplicationAction
@@ -65,7 +63,7 @@ from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationActivity, ConversationSource
 from toad.client.history_entry import HistorySessionEntry
 from toad.client.condensed_path import condense_path, home_relative
-from toad.client.line_blocks import LineBlock, MutedRole, TextRole
+from toad.client.line_blocks import LineBlock, MutedRole
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
 from toad.client.referenced_core import ReferencedCore
 from toad.client.submission import BusDestination, MessageDestination
@@ -111,6 +109,18 @@ class MenuActionRun(OperationKind):
 
 class TabClose(OperationKind):
     """Closes one tab; closes run side by side."""
+
+
+class TabMove(OperationKind):
+    """Moves one dragged tab in the shared tab order; moves run in the order dragged."""
+
+
+@dataclass(frozen=True)
+class ApplicationKeys:
+    """The keys the Qt window answers anywhere: Android's back key and Escape both go back."""
+
+    android_back: str = "Back"
+    escape: str = "Esc"
 
 
 @dataclass(frozen=True)
@@ -163,15 +173,6 @@ class BusRow(SidebarItem):
 
     def activate(self, window: QtToadApp) -> None:
         self.choice.chosen(window)
-
-
-class TouchScrolled:
-    """A scroll area a finger scrolls, kinetically. Qt widgets on Android scroll only by
-    scroll bar unless a QScroller holds the viewport."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        QScroller.grabGesture(self.viewport(), QScroller.ScrollerGestureType.LeftMouseButtonGesture)
 
 
 class Page:
@@ -285,18 +286,28 @@ class MessageView(TouchScrolled, QTextBrowser):
         self.paint_blocks()
 
 
+class SidebarKeys(TreeItemKeyBuilderABC):
+    """A sidebar line's key in the tree's saved expansion: its channel, thread or title."""
+
+    def item_segment_key(self, item: SidebarItem) -> str:
+        return item.key
+
+
 class ConversationRows(TouchScrolled, QTreeWidget):
-    """A tree of Toad's conversation rows in its sidebar tones: each row's unread badge and
-    label with its summary under it in muted text; a tap activates the line."""
+    """A tree of Toad's conversation rows in the theme's sidebar tones, every other row a
+    step off: pyqt-reactive's preview delegate paints each row's unread badge and label with
+    its summary under it in muted text; a tap activates the line."""
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__()
         self.window = window
+        scheme = window.theme.color_scheme
         self.setHeaderHidden(True)
         self.setIndentation(10)
-        # Toad's sidebar tones: the sidebar's own, every other row one step off it.
-        window.tone(self, QPalette.ColorRole.Base, SidebarToneColour)
-        window.tone(self, QPalette.ColorRole.AlternateBase, AlternateRowToneColour)
+        self.setStyleSheet(scheme.styles.generate_tree_widget_style())
+        self.setItemDelegate(MultilinePreviewItemDelegate(
+            scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
+            scheme.to_qcolor(scheme.selection_text), self))
         self.setAlternatingRowColors(True)
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
@@ -310,7 +321,6 @@ class ConversationRows(TouchScrolled, QTreeWidget):
 
     def section(self, title: str) -> SidebarSection:
         section = SidebarSection(title)
-        section.setForeground(0, QColor(self.window.renderer.colour(MutedRole)))
         self.addTopLevelItem(section)
         return section
 
@@ -324,35 +334,24 @@ class ConversationRows(TouchScrolled, QTreeWidget):
 
     def add_row[Row: SidebarItem](self, parent: QTreeWidgetItem, row: Row, badge: str, label: str,
                                   summary: str, tooltip: str) -> Row:
-        renderer = self.window.renderer
-        text = QLabel(renderer.styled(f"{badge} " if badge else "", TextRole)
-                      + renderer.styled(label, TextRole)
-                      + (f"<br>{renderer.styled(summary, MutedRole)}" if summary else ""))
-        text.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        text.setContentsMargins(4, 4, 4, 4)
+        row.setData(0, LAYOUT_ROLE, StyledTextLayout(
+            name=Segment(label), status_prefix=f"{badge} " if badge else "", detail_line=summary,
+            multiline=True))
         row.setToolTip(0, tooltip)
         parent.addChild(row)
-        row.setSizeHint(0, text.sizeHint())
-        self.setItemWidget(row, 0, text)
         return row
 
 
 class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation]):
     """The bus's channels, each opening to the threads in it, and every thread, from the
-    shared sidebar model; groups stay open or closed across updates."""
+    shared sidebar model; groups stay open or closed across updates, read from the tree
+    itself before it is redrawn."""
+
+    expansion = TreeStateAdapter(SidebarKeys())
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__(window)
         self.observed: Observing | None = None
-        self.expanded: set[str] = set()
-        self.itemExpanded.connect(self.opened)
-        self.itemCollapsed.connect(self.closed)
-
-    def opened(self, item: SidebarItem) -> None:
-        self.expanded.add(item.key)
-
-    def closed(self, item: SidebarItem) -> None:
-        self.expanded.discard(item.key)
 
     def bind_observation(self, observed: Observing) -> None:
         if self.observed is observed:
@@ -379,6 +378,7 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
             return
         model: SidebarModel = self.observed.sidebar
         threads = model.threads.rows
+        expanded = self.expansion.capture_expansion_state(self)
         self.clear()
         for name, channel in model.channels.rows.items():
             group = self.add_channel(self.invisibleRootItem(), name, channel)
@@ -387,8 +387,7 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
         everyone = self.section("Threads")
         for name, thread in threads.items():
             self.add_thread(everyone, name, thread)
-        for item in self.items():
-            item.setExpanded(item.key in self.expanded)
+        self.expansion.restore_expansion_state(self, expanded)
         self.window.workspace_sessions.home.present(model)
         self.window.paint_tabs()
 
@@ -657,7 +656,7 @@ class QtWorkspaceViews(WorkspaceViews):
         view.deleteLater()
 
 
-class QtToadApp(ClientApplication, QtCommsHost, QWidget):
+class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core a UI profile names: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
@@ -666,11 +665,10 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
 
     def __init__(self, connection: RemoteCoreConnection, project: Checkout,
                  preparation: PreparationRuntime, scheme: ColourScheme) -> None:
-        super().__init__(project, preparation)
+        super().__init__(project, preparation, scheme)
         self.initialize_client(NoAgent(), connection)
         self.setWindowTitle("Toad")
         self.renderer = QtLineRenderer(scheme)
-        self.setPalette(self.palette_of(scheme))
         self.workspace_sessions = QtWorkspaceViews(self)
         self.sidebar = Sidebar(self)
         self.split = QSplitter(Qt.Orientation.Vertical)
@@ -686,25 +684,30 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.menu = self.bar_button("☰", "Menu", self.show_menu)
         self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
         self.forward = self.bar_button("→", "Forward", partial(self.tab_order.navigate, 1))
-        self.tabs = QTabBar()
-        self.tabs.setStyleSheet("QTabBar::tab { min-height: 40px; padding: 0 14px; }")
+        # pyqt-reactive's tab bar in the theme's tab style; a dragged tab moves in the
+        # shared tab order, which the bar then draws again.
+        self.tabs = TearOffTabBar()
+        self.tabs.setStyleSheet(self.theme.color_scheme.styles.generate_tab_widget_style())
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
         self.tabs.setUsesScrollButtons(True)
         self.tabs.setElideMode(Qt.TextElideMode.ElideRight)
         self.tabs.tabBarClicked.connect(self.visit_index)
         self.tabs.tabCloseRequested.connect(self.close_index)
+        self.tabs.tabMoved.connect(self.move_index)
         bar = QHBoxLayout()
         bar.setSpacing(2)
         for widget in (self.menu, self.back, self.forward):
             bar.addWidget(widget)
         bar.addWidget(self.tabs, 1)
-        # The bar row is Toad's header band, in its header tone.
-        chrome = QWidget()
-        self.tone(chrome, QPalette.ColorRole.Window, HeaderToneColour)
+        # The bar row is Toad's header band: a frame in the theme's header tone, with the
+        # latest notice over it.
+        chrome = QFrame()
+        chrome.setStyleSheet(self.theme.color_scheme.styles.generate_frame_style())
         chrome_layout = QVBoxLayout(chrome)
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
+        chrome_layout.addWidget(self.status_line)
         chrome_layout.addWidget(self.sidebar_bar)
         chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
@@ -716,10 +719,10 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
-        self.android_back = QShortcut(QKeySequence(Qt.Key.Key_Back), self, self.go_back,
-                                      context=Qt.ShortcutContext.ApplicationShortcut)
-        self.escape = QShortcut(QKeySequence(Qt.Key.Key_Escape), self, self.go_back,
-                                context=Qt.ShortcutContext.ApplicationShortcut)
+        self.shortcuts = ShortcutLifecycle[ApplicationKeys](QApplication.instance())
+        self.shortcuts.bind_command(lambda keys: keys.android_back, "Back", self.go_back)
+        self.shortcuts.bind_command(lambda keys: keys.escape, "Back", self.go_back)
+        self.shortcuts.apply(ApplicationKeys())
         self.winId()
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
         self.fit_safe_area(self.windowHandle().safeAreaMargins())
@@ -746,32 +749,6 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         button.setFont(font)
         button.clicked.connect(action)
         return button
-
-    @staticmethod
-    def palette_of(scheme: ColourScheme) -> QPalette:
-        """Qt's palette roles in the theme's stated colours; like Textual's colour system,
-        Qt lays out the layer shades a scheme leaves to the backend."""
-        def colour(member: type[ThemeColour]) -> QColor:
-            return QColor(member.rgb(scheme).hex)
-        palette = QPalette()
-        for role, member in ((QPalette.ColorRole.Window, BackgroundColour),
-                             (QPalette.ColorRole.Base, BackgroundColour),
-                             (QPalette.ColorRole.AlternateBase, BackgroundColour),
-                             (QPalette.ColorRole.Button, BackgroundColour),
-                             (QPalette.ColorRole.Highlight, PrimaryColour),
-                             (QPalette.ColorRole.WindowText, ForegroundColour),
-                             (QPalette.ColorRole.Text, ForegroundColour),
-                             (QPalette.ColorRole.ButtonText, ForegroundColour),
-                             (QPalette.ColorRole.HighlightedText, ForegroundColour)):
-            palette.setColor(role, colour(member))
-        return palette
-
-    def tone(self, widget: QWidget, role: QPalette.ColorRole, member: type[ThemeColour]) -> None:
-        """Paint a widget's palette role in one of Toad's theme tones."""
-        palette = widget.palette()
-        palette.setColor(role, QColor(self.renderer.theme(member)))
-        widget.setPalette(palette)
-        widget.setAutoFillBackground(True)
 
     def fit_safe_area(self, margins: QMargins) -> None:
         """Keep every row clear of the status and navigation bars."""
@@ -827,6 +804,7 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.paint_sidebar_bar()
 
     async def close_native_views(self) -> None:
+        self.shortcuts.close()
         await self.session_navigation.close_views()
 
     async def close_rendering(self) -> None:
@@ -890,6 +868,18 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
     def close_index(self, index: int) -> None:
         self.run_operation(TabClose, partial(self.session_navigation.close,
                                              self.session_navigation.tabs[index].mode_name))
+
+    def move_index(self, start: int, end: int) -> None:
+        """A tab dragged from one place in the bar to another: it moves past the tab it
+        displaced in the shared order, which also holds saved tabs this window has not
+        opened, and the bar draws that order again."""
+        tabs, order = self.session_navigation.tabs, self.tab_order.names
+        moved, displaced = tabs[start].identity, tabs[end].identity
+        self.run_operation(TabMove, partial(self.move_tab, moved, order.index(displaced) - order.index(moved)))
+
+    async def move_tab(self, identity: CommsTab, steps: int) -> None:
+        await self.tab_order.move(identity, steps)
+        self.paint_tabs()
 
     def go_back(self) -> None:
         """Android back: an open sidebar goes down first; then the visit history's previous
