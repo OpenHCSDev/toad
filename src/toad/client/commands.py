@@ -57,6 +57,18 @@ class SharedTargetContext:
         return ", ".join(names) if names else str(self.project)
 
 
+class SortCapable(ABC):
+    """Capability mixin for commands that can sort channel members.
+    The shared command checks availability; the native member implements
+    the sort dialog through its framework's widgets."""
+
+    @abstractmethod
+    def available_for_channel(self, channel: str, ctx: SharedTargetContext) -> bool: ...
+
+    @abstractmethod
+    def execute_sort(self, channel: str, ctx: SharedTargetContext) -> None: ...
+
+
 class ConversationCommands(ABC):
     """The conversation methods shared commands need — no Textual import."""
 
