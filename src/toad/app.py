@@ -274,15 +274,14 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
             release.push_async_callback(self.close_background_render_tasks)
             release.callback(self.terminal_attention.close)
             release.callback(self.colours.stop)
-            release.push_async_callback(self.coordination_access.close)
-            # Accepted preparation survives its UI waiter. Keep the observer
-            # available until those workers and their read replies finish.
-            release.push_async_callback(self.render_processes.aclose)
-            release.push_async_callback(self.navigation_reader.aclose)
-            release.push_async_callback(super()._close_all)
-            release.push_async_callback(self.coordination_access.stop_observing)
-            release.push_async_callback(self.thread_actions.close)
-            release.push_async_callback(self.thread_navigation.close)
+            release.push_async_callback(self.close_client)
+
+    async def close_native_views(self) -> None:
+        """Textual closes its screens and widgets, which release their views."""
+        await super()._close_all()
+
+    async def close_rendering(self) -> None:
+        await self.render_processes.aclose()
 
     async def close_background_render_tasks(self) -> None:
         """Join accepted render work even when an earlier release failed."""

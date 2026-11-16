@@ -781,6 +781,13 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         self.sidebar.hide()
         self.paint_sidebar_bar()
 
+    async def close_native_views(self) -> None:
+        await self.end_operations()
+        await self.session_navigation.close_views()
+
+    async def close_rendering(self) -> None:
+        await self.preparation.aclose()
+
     async def reveal_sidebar(self) -> bool:
         """The sidebar comes up over the conversation, as its bar would bring it."""
         self.show_sidebar()

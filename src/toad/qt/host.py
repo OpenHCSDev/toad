@@ -49,8 +49,10 @@ class WindowCommandOrigin(CommandOrigin):
         buttons.rejected.connect(dialog.reject)
         form.addRow(buttons)
         answer: asyncio.Future[dict[str, str | None] | None] = asyncio.get_running_loop().create_future()
-        dialog.accepted.connect(lambda: answer.set_result({name: editor.text() for name, editor in editors.items()}))
-        dialog.rejected.connect(lambda: answer.set_result(None))
+        # A cancelled operation stops waiting; the dialog closing after it answers nobody.
+        dialog.accepted.connect(lambda: answer.done() or answer.set_result(
+            {name: editor.text() for name, editor in editors.items()}))
+        dialog.rejected.connect(lambda: answer.done() or answer.set_result(None))
         dialog.open()
         return await answer
 
@@ -98,6 +100,14 @@ class QtCommsHost(CommsHost):
     def cancel_operations(self, kind: type[OperationKind]) -> None:
         for running in self.operations.pop(kind, set()):
             running.cancel()
+
+    async def end_operations(self) -> None:
+        """Cancel every running operation and let each finish unwinding: a Qt operation,
+        unlike a Textual worker, does not die with its window."""
+        running = tuple(task for tasks in self.operations.values() for task in tasks)
+        for task in running:
+            task.cancel()
+        await asyncio.gather(*running, return_exceptions=True)
 
     async def wait_operations(self, kind: type[OperationKind]) -> None:
         await asyncio.gather(*tuple(self.operations[kind]), return_exceptions=True)

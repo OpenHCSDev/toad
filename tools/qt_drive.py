@@ -173,6 +173,9 @@ async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
     try:
         await scenario(app, out).run()
     finally:
+        # Close as the real app does: the window, then the shared client shutdown.
+        app.close()
+        await app.close_client()
         QApplication.quit()
 
 
