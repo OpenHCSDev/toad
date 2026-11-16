@@ -11,7 +11,6 @@ from pathlib import Path
 from agent_comms.messaging.channel_targets import (
     ChannelTarget,
     IncarnationThreadTarget,
-    NamedTarget,
     ThreadTarget,
 )
 from agent_comms.messaging.channels import AllChannel
@@ -21,84 +20,34 @@ from agent_comms.messaging.display_references import (
     ThreadNames,
     ThreadReferenceReader,
 )
-from agent_comms.messaging.message_page import (
-    MessagePage,
-    PageBounds,
-)
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsChannelTool,
-    CommsConversationPageTool,
     CommsThreadConfigurationTool,
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from textual.app import ComposeResult
 
-from toad.bus_submission import MessageDestination, SubmissionOwner
+from toad.bus_submission import SubmissionOwner
 from toad.client.connection import CoordinationAccess
+from toad.client.conversation import ResolvedConversation, SharedConversationKind
 from toad.conversation_capabilities import (
     ConversationActivity,
     ConversationNavigation,
-    ConversationSource,
 )
 from toad.referenced_core import ReferencedCore
 from toad.session_tracker import ChannelViewAddress, CommsViewKey
 from toad.sidebar_models import UnpaintedChannel
-from toad.status_thread import NoStatusThread, StatusThread
+from toad.status_thread import StatusThread
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
 
 
 @dataclass(frozen=True)
-class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation"):
-    @property
-    @abstractmethod
-    def initial_label(self) -> str: ...
-
-    @property
-    @abstractmethod
-    def input_scope(self) -> str: ...
-
-    @abstractmethod
-    def destination(self, references: ThreadNames) -> NamedTarget: ...
-
-    @abstractmethod
-    def retained_target(self) -> NamedTarget: ...
-
-    def sidebar_threads(self):
-        return ()
-
-    def threads_needed(self, source: ReferencedCore, me: str):
-        return ()
-
-    def channels_needed(self, root: str):
-        return ()
-
-    @classmethod
-    def view_identity(cls, key: CommsViewKey):
-        return key
-
-    def page(self, source: ConversationSource, bounds: PageBounds) -> MessagePage:
-        """Every conversation reads its page through the request a remote UI sends too."""
-        return source.core.call(CommsConversationPageTool(
-            conversation=self.retained_target(), project=source.project, bounds=bounds))
-
-    @classmethod
-    @abstractmethod
-    def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:
-        """Resolve `name` against the source's registry, the read every opening shares."""
-
-    def label(self, references: ThreadNames) -> str:
-        return self.destination(references).name
-
-    def status_thread(self, root: Path, access: CoordinationAccess) -> StatusThread:
-        return NoStatusThread()
-
-    def historical_sessions[View](self, create_view: partial[View], references: ThreadNames) -> View:
-        return create_view()
+class ConversationKind(SharedConversationKind):
+    """Native conversation with Textual-specific compose/prompt/toggle methods."""
 
     @classmethod
     async def toggle_irc(cls, screen: ConversationNavigation) -> None:
@@ -108,51 +57,11 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     async def toggle_dm(cls, screen: ConversationNavigation) -> None:
         await screen.show_direct_messages()
 
-    def unread(self, observation: SidebarObservation):
-        return observation.channel_unread(self.retained_target().name)
-
-    def send_target(self) -> NamedTarget:
-        return self.retained_target()
-
-    def read_only(self, core: CoreAccess) -> bool:
-        """A conversation takes the owner's input unless its Core says otherwise."""
-        return False
-
-    @classmethod
-    @abstractmethod
-    async def update_mentions(cls, view: ConversationActivity, source: ReferencedCore) -> None: ...
-
-    @abstractmethod
-    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str: ...
-
-    def activity_members(self, model: SidebarModel):
-        return (self.destination(model.observation.thread_names()).name,)
-
-    def active_members(self, model: SidebarModel):
-        return tuple(
-            model.threads.rows[name] for name in self.activity_members(model) if model.threads.rows[name].active
-        )
-
     @abstractmethod
     def compose_activity(self, view: ConversationActivity) -> ComposeResult: ...
 
     @abstractmethod
     def prompt(self, project: Checkout, *, submissions: SubmissionOwner): ...
-
-    @classmethod
-    def seen_page(cls, seen):
-        """Acknowledge visible fragments using their original page's proof."""
-        if not seen:
-            return None
-        page = seen[0].evidence
-        marked = tuple(fragment for fragment in seen if fragment.evidence is page)
-        return page.select(fragment.message.seq for fragment in marked), marked
-
-
-@dataclass(frozen=True)
-class ResolvedConversation:
-    viewer: str
-    conversation: ConversationKind
 
 
 @dataclass(frozen=True)
