@@ -205,6 +205,10 @@ class LineLink(DeclaredFamily, affix="Link"):
         """Text that leads somewhere is drawn in its role's linked form."""
         return role.linked()
 
+    def heading_role(self, role: type[LineRole], rule: type[LineRole]) -> type[LineRole]:
+        """In a divider's title, text that leads somewhere keeps its own role."""
+        return role
+
     def otherwise(self, fallback: Callable[[], LineLink]) -> LineLink:
         """A link found stands; text that leads nowhere takes the fallback."""
         return self
@@ -237,6 +241,10 @@ class NoLink(LineLink):
 
     def text_role(self, role: type[LineRole]) -> type[LineRole]:
         return role
+
+    def heading_role(self, role: type[LineRole], rule: type[LineRole]) -> type[LineRole]:
+        """Plain title text is drawn in the divider's own role."""
+        return rule
 
     def otherwise(self, fallback: Callable[[], LineLink]) -> LineLink:
         return fallback()

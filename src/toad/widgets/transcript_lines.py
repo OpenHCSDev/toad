@@ -142,21 +142,6 @@ class LinkStyle(MroProjection[Style]):
 LINK_STYLE = LinkStyle()
 
 
-class HeadingStyle(MroProjection[Style]):
-    """A heading span keeps its role's style when it leads somewhere; plain text takes the rule's."""
-
-    @handles(LineLink)
-    def linked(self, link: LineLink, rule: Style, role: Style) -> Style:
-        return role
-
-    @handles(NoLink)
-    def plain(self, link: NoLink, rule: Style, role: Style) -> Style:
-        return rule
-
-
-HEADING_STYLE = HeadingStyle()
-
-
 class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):
     """A recorded divider shows its time beside the title, or below it when they do not fit."""
 
@@ -521,7 +506,7 @@ class RichLineRenderer(MroProjection[None]):
         inset = min(1, (self.width - 1) // 2)
         for spans in groups:
             content = Text.assemble(*(
-                (span.text, HEADING_STYLE.project_value(span.link, rule, self.theme.style(span.role))
+                (span.text, self.theme.style(span.link.heading_role(span.role, block.role))
                  + bold + LINK_STYLE.project_value(span.link))
                 for span in spans
             ))
