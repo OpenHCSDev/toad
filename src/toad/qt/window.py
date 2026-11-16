@@ -20,6 +20,7 @@ from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QColor, QKeySequence, QPalette, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QListWidget,
     QListWidgetItem,
@@ -45,7 +46,7 @@ from toad.client.conversation import ChannelConversation, ConversationKind, DmCo
 from toad.client.conversation_capabilities import ConversationSource
 from toad.client.db import DB
 from toad.client.history_entry import SharedHistorySessionEntry
-from toad.client.line_blocks import LineBlock
+from toad.client.line_blocks import LineBlock, MutedRole, TextRole
 from toad.client.subscribers import SidebarSubscriber
 from toad.client.tab_identity import TabIdentity
 from toad.client.tab_identity.kinds import CommsTab
@@ -82,10 +83,10 @@ class ObservedSource(ConversationSource):
 
 
 class ConversationRow(QListWidgetItem):
-    """One sidebar row, drawing the conversation it opens."""
+    """One sidebar row: the conversation it opens; its row widget draws it."""
 
     def __init__(self, kind: type[ConversationKind], name: str, label: str) -> None:
-        super().__init__(label)
+        super().__init__()
         self.target = RowTarget(kind, name, label)
 
 
@@ -173,18 +174,43 @@ class ThreadList(Page, TouchList, SidebarSubscriber[Observing, FailedObservation
     def bind_failed_observation(self, observed: FailedObservation) -> None:
         self.observed = None
         self.clear()
-        self.addItem(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
+        self.section(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
 
     def present(self, **changes: object) -> None:
+        """Toad's sidebar rows: a badge and label, and the row's summary under it in
+        muted text, from the shared row models."""
         if self.observed is None:
             return
         model: SidebarModel = self.observed.sidebar
         self.clear()
-        for name in model.channels.rows:
-            self.addItem(ConversationRow(ChannelConversation, name, str(name)))
-        for name in model.threads.rows:
-            self.addItem(ConversationRow(DmConversation, name, f"@{name}"))
+        self.section("Channels")
+        for name, channel in model.channels.rows.items():
+            self.add_row(ConversationRow(ChannelConversation, name, channel.label()),
+                         channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+        self.section("Threads")
+        for name, thread in model.threads.rows.items():
+            self.add_row(ConversationRow(DmConversation, name, f"@{name}"),
+                         thread.unread.badge, thread.label, thread.summary, thread.title)
         self.window.label_tabs(self.observed)
+
+    def section(self, title: str) -> None:
+        header = QListWidgetItem(title)
+        header.setFlags(Qt.ItemFlag.NoItemFlags)
+        header.setForeground(QColor(self.window.renderer.colour(MutedRole)))
+        self.addItem(header)
+
+    def add_row(self, row: ConversationRow, badge: str, label: str, summary: str, tooltip: str) -> None:
+        renderer = self.window.renderer
+        text = QLabel(renderer.styled(f"{badge} " if badge else "", TextRole)
+                      + renderer.styled(label, TextRole)
+                      + (f"<br>{renderer.styled(summary, MutedRole)}" if summary else ""))
+        text.setWordWrap(True)
+        text.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        text.setContentsMargins(6, 4, 6, 4)
+        row.setToolTip(tooltip)
+        self.addItem(row)
+        row.setSizeHint(text.sizeHint())
+        self.setItemWidget(row, text)
 
     def open_row(self, row: ConversationRow) -> None:
         self.window.open_row(row)
