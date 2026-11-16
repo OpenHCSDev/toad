@@ -32,6 +32,7 @@ from agent_comms.execution.child_process import (
 from agent_comms.execution.launch_root import LaunchRoot
 from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.execution.remote_core_process import ProcessRemoteCoreAccess
+from agent_comms.transport.remote_core import RemoteCoreAccess
 from agent_comms.execution.root_runtime import RootRuntime
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.installer.active_route import CommsRoute
@@ -207,7 +208,7 @@ class CoreConnection(ABC):
     def select(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
         """Select once at the process boundary; a UI profile selects the remote Core."""
         if RemoteCoreConnection.argument in arguments:
-            return RemoteCoreConnection.startup(arguments)
+            return ProcessRemoteCoreConnection.startup(arguments)
         return LocalCoreConnection.from_launch(LaunchRoot.startup(arguments, published))
 
     def open_access(self, app: CommsHost) -> CoordinationAccess:
@@ -302,8 +303,10 @@ class RemoteRouteNotSelectable(RuntimeError):
 
 
 @dataclass(frozen=True)
-class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnection):
-    """The owner's UI profile is the remote connection: Core answers through the connector."""
+class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
+    """The owner's UI profile is the remote connection: Core answers through the connector.
+
+    Read replies decode where they arrive, as on Android, which has no interpreter to spawn."""
 
     @classmethod
     def startup(cls, arguments: list[str]) -> RemoteCoreConnection:
@@ -349,6 +352,12 @@ class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnect
         except (OSError, ValueError, RuntimeError) as error:
             return access.observation.failed(error, UnselectedRoute())
         return access.observe_remote(self, Path(served.root))
+
+
+@dataclass(frozen=True)
+class ProcessRemoteCoreConnection(ProcessRemoteCoreAccess, RemoteCoreConnection):
+    """Decodes Core's read replies in a spawned child, so the desktop UI's interpreter stays
+    free for frames."""
 
 
 @dataclass(frozen=True)
