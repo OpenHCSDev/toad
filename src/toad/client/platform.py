@@ -94,6 +94,12 @@ class Platform:
         return DesktopService()
 
     @classmethod
+    def open_window(cls, window) -> None:
+        """A desktop opens Toad's window phone-shaped; the user resizes it from there."""
+        window.resize(420, 820)
+        window.show()
+
+    @classmethod
     def decode(cls, system: str) -> type[Platform]:
         """`platform.system()` names the member; anything undeclared is unknown."""
         return cls.members.get(system, UnknownPlatform)
@@ -111,6 +117,12 @@ class LinuxPlatform(Platform):
 class AndroidPlatform(Platform):
     system = "Android"
     key = "android"
+
+    @classmethod
+    def open_window(cls, window) -> None:
+        """A phone's window is the screen, minus the system bars, at whatever size and
+        orientation the phone has."""
+        window.showMaximized()
 
 
 class MacPlatform(Platform):
