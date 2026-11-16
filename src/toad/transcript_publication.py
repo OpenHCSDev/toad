@@ -622,6 +622,12 @@ class ViewBinding:
         return False
 
     def covers_input(self, started: InputStartedUpdate) -> bool:
+        """Whether saved history already draws the input Core started under this identity.
+
+        A page read can reach the saved input before its start notice reaches
+        the conversation. Retirement only removes live blocks that exist when
+        a page is accepted, so a start arriving afterwards asks here first.
+        """
         return False
 
     def close_source(self) -> None:
@@ -1040,18 +1046,6 @@ class TranscriptPresentation(EntryPlacement):
     @property
     def coverage(self) -> HistoryCoverage:
         return self.binding.coverage
-
-    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
-        return self.binding.covers_outgoing(message)
-
-    def covers_input(self, started: InputStartedUpdate) -> bool:
-        """Whether saved history already draws the input Core started under this identity.
-
-        A page read can reach the saved input before its start notice reaches
-        the conversation. Retirement only removes live blocks that exist when
-        a page is accepted, so a start arriving afterwards asks here first.
-        """
-        return self.binding.covers_input(started)
 
     def invalidate_publications(self) -> None:
         """Revoke in-flight view work without forgetting its published source."""
