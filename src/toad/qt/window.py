@@ -22,7 +22,7 @@ from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QMargins, QPoint, Qt, QTimer
-from PySide6.QtGui import QColor, QFontMetricsF, QKeySequence, QPainter, QPalette, QShortcut
+from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPainter, QPalette, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -64,6 +64,7 @@ from toad.client.conversation_capabilities import ConversationSource
 from toad.client.history_entry import HistorySessionEntry
 from toad.client.condensed_path import condense_path, home_relative
 from toad.client.line_blocks import LineBlock, MutedRole, TextRole
+from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
 from toad.client.tab_identity.kinds import CommsTab
@@ -158,19 +159,63 @@ class Page:
         self.reload()
 
 
-class Home(Page, QLabel):
-    """What shows while no conversation tab is open, and in place of a saved tab this app
-    has not opened; the sidebar comes up over it."""
+class QtChannelListing(ChannelListing):
+    def add(self, rows: ConversationRows, section: SidebarSection, model: SidebarModel) -> None:
+        for name in self.listed(model):
+            rows.add_channel(section, name, model.channels.rows[name])
+
+
+class QtThreadListing(ThreadListing):
+    def add(self, rows: ConversationRows, section: SidebarSection, model: SidebarModel) -> None:
+        for name in self.listed(model):
+            rows.add_thread(section, name, model.threads.rows[name])
+
+
+class Welcome(Page, QWidget):
+    """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
+    has not opened: the banner, the project, and the channels and threads the shared welcome
+    lists."""
 
     mode = WELCOME
+    listings = (QtChannelListing(), QtThreadListing())
 
-    def __init__(self) -> None:
-        super().__init__("Open a channel or thread from the sidebar")
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setWordWrap(True)
+    def __init__(self, window: QtToadApp) -> None:
+        super().__init__()
+        self.banner = QLabel(WelcomeBanner.TEXT)
+        font = QFont("monospace")
+        font.setStyleHint(QFont.StyleHint.TypeWriter)
+        self.banner.setFont(font)
+        self.banner.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.banner.setStyleSheet(f"color: {window.renderer.theme(PrimaryColour)}")
+        self.project = PathLabel(window.project_dir.path)
+        self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.project.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
+        self.rows = ConversationRows(window)
+        layout = QVBoxLayout(self)
+        layout.addSpacing(24)
+        layout.addWidget(self.banner)
+        layout.addWidget(self.project)
+        layout.addSpacing(12)
+        layout.addWidget(self.rows, 1)
+
+    def present(self, model: SidebarModel) -> None:
+        self.rows.clear()
+        for listing in self.listings:
+            section = self.rows.section(listing.TITLE)
+            listing.add(self.rows, section, model)
+            section.setExpanded(True)
+
+    def resizeEvent(self, event) -> None:
+        """The banner fills the width in whole characters, as the terminal draws it."""
+        super().resizeEvent(event)
+        font = self.banner.font()
+        widest = max(WelcomeBanner.TEXT.splitlines(), key=len)
+        advance = QFontMetricsF(font).horizontalAdvance(widest) / font.pointSizeF()
+        font.setPointSizeF(max(4.0, (self.width() - 24) / advance))
+        self.banner.setFont(font)
 
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
-        window.show_sidebar()
+        window.hide_sidebar()
 
 
 class MessageView(TouchScrolled, QTextBrowser):
@@ -197,15 +242,13 @@ class MessageView(TouchScrolled, QTextBrowser):
         self.paint_blocks()
 
 
-class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObservation]):
-    """The bus's channels, each opening to the threads in it, and every thread, from the
-    shared sidebar model; groups stay open or closed across updates."""
+class ConversationRows(TouchScrolled, QTreeWidget):
+    """A tree of Toad's conversation rows in its sidebar tones: each row's unread badge and
+    label with its summary under it in muted text; a tap activates the line."""
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__()
         self.window = window
-        self.observed: Observing | None = None
-        self.expanded: set[str] = set()
         self.setHeaderHidden(True)
         self.setIndentation(10)
         # Toad's sidebar tones: the sidebar's own, every other row one step off it.
@@ -215,11 +258,52 @@ class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObs
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)
-        self.itemExpanded.connect(self.opened)
-        self.itemCollapsed.connect(self.closed)
 
     def activate(self, item: SidebarItem) -> None:
         item.activate(self.window)
+
+    def items(self):
+        return (self.topLevelItem(index) for index in range(self.topLevelItemCount()))
+
+    def section(self, title: str) -> SidebarSection:
+        section = SidebarSection(title)
+        section.setForeground(0, QColor(self.window.renderer.colour(MutedRole)))
+        self.addTopLevelItem(section)
+        return section
+
+    def add_channel(self, parent: QTreeWidgetItem, name: str, channel) -> ConversationRow:
+        return self.add_row(parent, ConversationRow(channel_target(name)),
+                            channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+
+    def add_thread(self, parent: QTreeWidgetItem, name: str, thread) -> ConversationRow:
+        return self.add_row(parent, ConversationRow(DirectTarget(name)),
+                            thread.unread.badge, thread.label, thread.summary, thread.title)
+
+    def add_row(self, parent: QTreeWidgetItem, row: ConversationRow, badge: str, label: str,
+                summary: str, tooltip: str) -> ConversationRow:
+        renderer = self.window.renderer
+        text = QLabel(renderer.styled(f"{badge} " if badge else "", TextRole)
+                      + renderer.styled(label, TextRole)
+                      + (f"<br>{renderer.styled(summary, MutedRole)}" if summary else ""))
+        text.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        text.setContentsMargins(4, 4, 4, 4)
+        row.setToolTip(0, tooltip)
+        parent.addChild(row)
+        row.setSizeHint(0, text.sizeHint())
+        self.setItemWidget(row, 0, text)
+        return row
+
+
+class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation]):
+    """The bus's channels, each opening to the threads in it, and every thread, from the
+    shared sidebar model; groups stay open or closed across updates."""
+
+    def __init__(self, window: QtToadApp) -> None:
+        super().__init__(window)
+        self.observed: Observing | None = None
+        self.expanded: set[str] = set()
+        self.itemExpanded.connect(self.opened)
+        self.itemCollapsed.connect(self.closed)
 
     def opened(self, item: SidebarItem) -> None:
         self.expanded.add(item.key)
@@ -253,39 +337,16 @@ class Sidebar(TouchScrolled, QTreeWidget, SidebarSubscriber[Observing, FailedObs
         threads = model.threads.rows
         self.clear()
         for name, channel in model.channels.rows.items():
-            group = self.add_row(self.invisibleRootItem(), ConversationRow(channel_target(name)),
-                                 channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+            group = self.add_channel(self.invisibleRootItem(), name, channel)
             for member in channel.members:
                 self.add_thread(group, member, threads[member])
-        everyone = SidebarSection("Threads")
-        everyone.setForeground(0, QColor(self.window.renderer.colour(MutedRole)))
-        self.addTopLevelItem(everyone)
+        everyone = self.section("Threads")
         for name, thread in threads.items():
             self.add_thread(everyone, name, thread)
         for item in self.items():
             item.setExpanded(item.key in self.expanded)
+        self.window.workspace_sessions.home.present(model)
         self.window.paint_tabs()
-
-    def items(self):
-        return (self.topLevelItem(index) for index in range(self.topLevelItemCount()))
-
-    def add_thread(self, parent: QTreeWidgetItem, name: str, thread) -> None:
-        self.add_row(parent, ConversationRow(DirectTarget(name)),
-                     thread.unread.badge, thread.label, thread.summary, thread.title)
-
-    def add_row(self, parent: QTreeWidgetItem, row: ConversationRow, badge: str, label: str,
-                summary: str, tooltip: str) -> ConversationRow:
-        renderer = self.window.renderer
-        text = QLabel(renderer.styled(f"{badge} " if badge else "", TextRole)
-                      + renderer.styled(label, TextRole)
-                      + (f"<br>{renderer.styled(summary, MutedRole)}" if summary else ""))
-        text.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        text.setContentsMargins(4, 4, 4, 4)
-        row.setToolTip(0, tooltip)
-        parent.addChild(row)
-        row.setSizeHint(0, text.sizeHint())
-        self.setItemWidget(row, 0, text)
-        return row
 
 
 class ActivityStrip(ObservedActivity, QtCoreObserver, QWidget):
@@ -470,7 +531,7 @@ class QtWorkspaceViews(WorkspaceViews):
 
     def __init__(self, app: QtToadApp) -> None:
         self.app = app
-        self.home = Home()
+        self.home = Welcome(app)
         self.pages = QStackedWidget()
         self.pages.addWidget(self.home)
         self.views: dict[str, ConversationView] = {}
@@ -569,7 +630,8 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget):
         layout.setSpacing(0)
         layout.addWidget(self.split, 1)
         layout.addWidget(chrome)
-        self.show_sidebar()
+        # The welcome lists the channels and threads, so it starts with the sidebar down.
+        self.hide_sidebar()
         self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
