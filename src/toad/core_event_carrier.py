@@ -8,7 +8,7 @@ from textual.dom import DOMNode
 from functools import cache, cached_property, partial
 
 from toad.client.subscribers import CallbackSubscription, CoreObserver
-from toad.core.events import CoreEvent, CoreEventStream, Subscription
+from toad.core.events import CoreEvent, CoreEventStream, Publication, Subscription
 
 
 async def dispatch_publication(receiver, message) -> None:
@@ -18,7 +18,7 @@ async def dispatch_publication(receiver, message) -> None:
     await receiver.consume_handlers(event, receiver.handlers_for(event), message)
 
 
-class CoreEventMessage(DeclaredMessage):
+class CoreEventMessage(Publication, DeclaredMessage):
     """One frontend carrier, independent of the event's nominal case."""
 
     def __init__(self, event: CoreEvent, subscription: Subscription,
@@ -26,13 +26,8 @@ class CoreEventMessage(DeclaredMessage):
         super().__init__()
         self.event = event
         self.subscription = subscription
-        self._publisher = subscription.stream.publisher
         # The native pump owns this delivery callback, never the wire event.
         self.consume = consume
-
-    @property
-    def publisher(self) -> object:
-        return self._publisher
 
     def can_replace(self, message: Message) -> bool:
         return (isinstance(message, CoreEventMessage)

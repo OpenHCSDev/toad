@@ -15,13 +15,12 @@ from toad.agent_binding import AgentConnection
 from toad.client.agent_schema import AgentDefinition
 from toad.core import session_requests
 from toad.core.events import CoreEventStream
-from toad.app_node import ToadNode
 from toad.thread_identity import SessionIdentity
 from toad.transcript_scope import TranscriptScope
 from agent_comms.nominal.field_codec import AcpSessionId
 
 
-class AgentConversation(ToadNode):
+class AgentConversation(metaclass=AbstractHooksMeta):
     """What a launch's agent binding does to the conversation it builds: hand it the launch,
     resume a named session, and start its session."""
 
@@ -43,7 +42,7 @@ class AgentConversation(ToadNode):
     def start_native_session(self) -> None: ...
 
 
-class AgentOrigin(ToadNode):
+class AgentOrigin(metaclass=AbstractHooksMeta):
     """What a binding reads of the view session it attaches to: whether it is current, its
     transcript scope, and its live agent connection."""
 
