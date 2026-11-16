@@ -4,8 +4,14 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 
+from agent_comms.messaging.message_page import MessagePage, PageBounds
+from agent_comms.projects.checkouts import Checkout
+from agent_comms.transport.request import CoreAccess
+from agent_comms.ui_model.sidebar import SidebarModel
+from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -19,11 +25,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from agent_comms.messaging.message_page import MessagePage, PageBounds
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.transport.request import CoreAccess
-from agent_comms.ui_model.sidebar import SidebarModel
-
 from toad.client.connection import CoordinationAccess, FailedObservation, Observing
 from toad.client.conversation import (
     SharedChannelConversation,
@@ -33,6 +34,18 @@ from toad.client.conversation import (
 from toad.client.conversation_capabilities import ConversationSource
 from toad.client.subscribers import SidebarSubscriber
 from toad.core.events import CoordinationObserved
+
+
+class ConversationRead(OperationKind, ExclusiveKind):
+    """Reads the open conversation's newest page; a newer read supersedes the running one."""
+
+
+class ConversationOpen(OperationKind, ExclusiveKind):
+    """Resolves a tapped row into its conversation; a newer tap supersedes the running one."""
+
+
+class MessageSend(OperationKind):
+    """Sends one message; sends run side by side and are never superseded."""
 
 
 @dataclass(frozen=True)
@@ -141,7 +154,7 @@ class ConversationView(QWidget):
 
     def reload(self) -> None:
         if self.conversation is not None:
-            asyncio.ensure_future(self.read_page(self.conversation))
+            self.window.access.app.run_operation(ConversationRead, partial(self.read_page, self.conversation))
 
     async def read_page(self, conversation: SharedConversationKind) -> None:
         source = self.window.source()
@@ -159,7 +172,7 @@ class ConversationView(QWidget):
         if not body or self.conversation is None:
             return
         self.input.clear()
-        asyncio.ensure_future(self.deliver(self.conversation, body))
+        self.window.access.app.run_operation(MessageSend, partial(self.deliver, self.conversation, body))
 
     async def deliver(self, conversation: SharedConversationKind, body: str) -> None:
         observed = self.window.access.observation.observed()
@@ -188,7 +201,7 @@ class CommsWindow(QStackedWidget):
         return ObservedSource(observed.core, observed.root, self.access.app.project_dir)
 
     def open_conversation(self, row: ConversationRow) -> None:
-        asyncio.ensure_future(self.resolve(row.target))
+        self.access.app.run_operation(ConversationOpen, partial(self.resolve, row.target))
 
     async def resolve(self, target: RowTarget) -> None:
         source = self.source()

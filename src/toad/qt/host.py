@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import traceback
+from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication, QMessageBox
 
 from agent_comms.history_views import RetiredViews
 from agent_comms.projects.checkouts import Checkout
 from formbridge.operations import OperationKind
 from formbridge.publications import PublicationStream
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 from toad.client.host import CommsHost
 from toad.client.tab_identity import TabIdentity
@@ -36,7 +36,7 @@ class QtCommsHost(CommsHost):
         self.project_dir = project
         self.preparation = preparation
         self.events = PublicationStream(self)
-        self.operations: dict[type[OperationKind], asyncio.Task[None]] = {}
+        self.operations: defaultdict[type[OperationKind], set[asyncio.Future[None]]] = defaultdict(set)
 
     def schedule_ui(self, callback: Callable[[], None]) -> None:
         QTimer.singleShot(0, callback)
@@ -50,10 +50,12 @@ class QtCommsHost(CommsHost):
     def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
         if kind.exclusive:
             self.cancel_operations(kind)
-        self.operations[kind] = asyncio.ensure_future(task())
+        running = asyncio.ensure_future(task())
+        self.operations[kind].add(running)
+        running.add_done_callback(self.operations[kind].discard)
 
     def cancel_operations(self, kind: type[OperationKind]) -> None:
-        if running := self.operations.pop(kind, None):
+        for running in self.operations.pop(kind, set()):
             running.cancel()
 
     @property
