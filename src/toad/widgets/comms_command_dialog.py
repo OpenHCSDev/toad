@@ -289,28 +289,17 @@ class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=
         self.form.values[name].field.validate(value)
 
     def repaint_choice(self, name):
-        self.form.values[name].editor.paint()
+        editor = self.form.values[name].editor
+        editor.call_after_refresh(editor.paint_value)
 
-    async def refresh_catalogs(self, arguments):
-        while self.is_attached:
-            edited = self.definition.edited(arguments)
-            prepared = await self.app.preparation.run_thread(
-                lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))
-            if not self.is_attached:
-                return
-            current = self.arguments()
-            if arguments != current:
-                arguments = current
-                continue
-            self.definition = prepared
-            for parameter in prepared.fields:
-                if parameter.name in self.choices:
-                    self.choices[parameter.name].parameter = parameter
-                    editor = self.form.values[parameter.name].editor
-                    editor.call_after_refresh(editor.paint_value)
-            break
-        if self.is_attached:
-            self.update_confirmation()
+    def draft_alive(self) -> bool:
+        return self.is_attached
+
+    async def draft_run_thread(self, work):
+        return await self.app.preparation.run_thread(work)
+
+    def catalogs_refreshed(self) -> None:
+        self.update_confirmation()
 
     def update_confirmation(self):
         confirmed = self.query_one(CommandConfirmed)

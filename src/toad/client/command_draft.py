@@ -78,14 +78,14 @@ class CommandDraft:
             self.draft_validate_field(name, arguments[name])
         return self.definition.edited(arguments)
 
-    async def refresh_catalogs(self, arguments, run_thread, is_alive):
-        """Refresh choice projections from Core. run_thread runs a callable
-        off the UI loop; is_alive returns False when the form is gone."""
-        while is_alive():
+    async def refresh_catalogs(self, arguments) -> None:
+        """Refresh choice projections from Core until the arguments they were asked for
+        are still the form's arguments."""
+        while self.draft_alive():
             edited = self.definition.edited(arguments)
-            prepared = await run_thread(
+            prepared = await self.draft_run_thread(
                 lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))
-            if not is_alive():
+            if not self.draft_alive():
                 return
             current = self.arguments()
             if arguments != current:
@@ -97,6 +97,20 @@ class CommandDraft:
                     self.choices[parameter.name].parameter = parameter
                     self.repaint_choice(parameter.name)
             break
+        if self.draft_alive():
+            self.catalogs_refreshed()
+
+    def draft_alive(self) -> bool:
+        """Whether the native form is still shown."""
+        raise NotImplementedError
+
+    async def draft_run_thread(self, work):
+        """Run Core work off the native UI loop."""
+        raise NotImplementedError
+
+    def catalogs_refreshed(self) -> None:
+        """The choices now match the form's arguments."""
+        raise NotImplementedError
 
     @abstractmethod
     def draft_value_names(self) -> dict[str, object]:
