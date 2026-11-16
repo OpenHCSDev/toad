@@ -70,6 +70,8 @@ class CommandCatalog:
     async def execute(cls, text: str, conversation: ConversationCommands) -> bool:
         """Run typed text as the conversation's command; False when it names none, so the
         text goes on as a message. A recognized command never falls through as text."""
+        if not text.startswith("/"):
+            return False
         try:
             catalog = await conversation.read_command_catalog()
             if not catalog.recognizes(text):

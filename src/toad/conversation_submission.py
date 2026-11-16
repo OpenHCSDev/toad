@@ -256,7 +256,7 @@ class ConversationSubmissions(BusSubmissions):
 
     async def submit(self, event: UserInputSubmitted):
         text = event.body.strip()
-        if not event.shell and text.startswith("/") and await CommandCatalog.execute(text, self.view):
+        if not event.shell and await CommandCatalog.execute(text, self.view):
             return
         return await InputSubmission.from_event(event, self).execute(self)
 
