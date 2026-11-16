@@ -705,11 +705,8 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
 
     def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.root)
-        threads: set[ThreadIncarnation] = set()
-        channels: set[str] = set()
-        for member in access.app.session_navigation.members:
-            threads.update(identity for owner, identity in member.original_threads(access.app.session_navigation) if owner == root)
-            channels.update(target for owner, target in member.original_channels() if owner == root)
+        threads = access.app.open_thread_identities(root)
+        channels = access.app.open_channel_targets(root)
         request = ObserveViews(frozenset(threads), frozenset(channels))
         if request != access.views_interest:
             access.views_interest = request
@@ -949,7 +946,7 @@ class CoordinationAccess(MroDispatch):
             return  # Read for an interest the views have since changed.
         app = self.app
         notice = observed.sidebar.observation.read_marker_notice()
-        modes = app.tab_order.names
+        modes = app.tab_names
         previous_references = self.reference_context(str(observed.root))
         observed.sidebar.apply(result.snapshot, result.derived)
         self.present_sidebar()
@@ -958,7 +955,7 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_current = result.request
         result.snapshot.read_marker_notice.notify_if_new(
             notice, lambda text: app.show_warning(text, title="Read positions"))
-        if app.tab_order.names != modes:
+        if app.tab_names != modes:
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
@@ -1007,7 +1004,7 @@ class CoordinationAccess(MroDispatch):
 
     @handles(ViewsRetired)
     def views_retired(self, result: ViewsRetired, observed: Observing) -> None:
-        self.app.session_navigation.views_retired(observed.root, result.retired)
+        self.app.retire_views(observed.root, result.retired)
 
     def show_notifications(self, view: NotificationSubscriber, read: ReadNotifications) -> bool:
         """Show `read` in `view`; asking again for the read it already shows changes nothing."""
@@ -1074,11 +1071,10 @@ class CoordinationAccess(MroDispatch):
                 view.notifications_reload()
 
     def sidebar_request(self) -> ObserveSidebar:
-        sidebar = self.app.saved_settings.current.sidebar
         return ObserveSidebar(
             self.app.project_dir,
-            sidebar.show_stopped,
-            sidebar.show_archived,
+            self.app.sidebar_show_stopped,
+            self.app.sidebar_show_archived,
         )
 
     def observe_thread_changes(

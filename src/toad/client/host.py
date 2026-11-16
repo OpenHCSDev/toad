@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from pathlib import Path
 
+from formbridge.publications import PublicationStream
 from toad.resource_release import ResourceRelease
 
 
@@ -46,6 +47,43 @@ class CommsHost(ABC):
     @abstractmethod
     def copy_to_clipboard(self, text: str) -> None:
         """Native clipboard effect."""
+
+    @property
+    @abstractmethod
+    def events(self) -> PublicationStream:
+        """The application's event stream for subscribe/publish."""
+
+    @property
+    @abstractmethod
+    def tab_names(self) -> tuple[str, ...]:
+        """The current open tab mode names, for interest change detection."""
+
+    @abstractmethod
+    def open_thread_identities(self, root: str) -> set:
+        """ThreadIncarnation set for sessions viewing this root."""
+
+    @abstractmethod
+    def open_channel_targets(self, root: str) -> set[str]:
+        """Channel targets for sessions viewing this root."""
+
+    @abstractmethod
+    def retire_views(self, root: Path, retired: object) -> None:
+        """Notify the session navigation that views were retired for this root."""
+
+    @property
+    @abstractmethod
+    def preparation(self) -> object:
+        """Work scheduler with run_thread for async preparation tasks."""
+
+    @property
+    @abstractmethod
+    def sidebar_show_stopped(self) -> bool:
+        """Whether the sidebar shows stopped sessions."""
+
+    @property
+    @abstractmethod
+    def sidebar_show_archived(self) -> bool:
+        """Whether the sidebar shows archived sessions."""
 
     @property
     @abstractmethod
