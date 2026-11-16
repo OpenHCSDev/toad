@@ -4,13 +4,56 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
 
 from agent_comms.ui_model.status import ThreadStatusModel
+from textual.abstract_hooks import AbstractHooksMeta
 
-from toad.core.events import ThreadRowsChanged
-from toad.core_event_carrier import ThreadCallbackSubscription
+
+class ActivityView(metaclass=AbstractHooksMeta):
+    """The status display a conversation kind supplies, mounted or absent."""
+
+    @abstractmethod
+    def bind(self, thread: StatusThread) -> None:
+        ...
+
+    @abstractmethod
+    def show(self, row: ThreadStatusModel) -> None:
+        ...
+
+    @property
+    @abstractmethod
+    def working(self) -> bool:
+        ...
+
+    def show_open_thread(self, name: str) -> None:
+        """Show the row this process's own observation keeps for an open thread."""
+        raise NotImplementedError
+
+    def observe_thread_rows(self, root: Path, name: str) -> None:
+        """Repaint whenever this root's row for the thread changes."""
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class NoActivityView(ActivityView):
+    """No status row, widget lifetime, subscription or paint work."""
+
+    def bind(self, thread: StatusThread) -> None:
+        pass
+
+    def show(self, row: ThreadStatusModel) -> None:
+        pass
+
+    @property
+    def working(self) -> bool:
+        return False
+
+
+class StatusOwner:
+    """A view with a status row: the activity a status thread binds into."""
+
+    thread_activity: ActivityView = NoActivityView()
 
 
 class StatusThread(ABC):
@@ -33,12 +76,12 @@ class StatusThread(ABC):
         return cls.route(root, access).conversation(root, conversation, access)
 
     @abstractmethod
-    def bind(self, activity: object) -> None: ...
+    def bind(self, activity: ActivityView) -> None: ...
 
-    def refresh(self, view: object) -> None:
+    def refresh(self, view: StatusOwner) -> None:
         view.thread_activity.bind(self)
 
-    def observe(self, activity: object) -> None:
+    def observe(self, activity: ActivityView) -> None:
         """Only a local source acquires an observation subscription."""
 
 
@@ -46,10 +89,10 @@ class StatusThread(ABC):
 class NoStatusThread(StatusThread):
     name = ""
 
-    def bind(self, activity: object) -> None:
+    def bind(self, activity: ActivityView) -> None:
         activity.show(ThreadStatusModel.pending(self.name))
 
-    def refresh(self, view: object) -> None:
+    def refresh(self, view: StatusOwner) -> None:
         """A conversation without a status source has no row to refresh."""
 
 
@@ -72,19 +115,11 @@ class LocalStatusThread(RoutedStatusThread):
         )
         return cls(root, conversation.destination(references).name)
 
-    def bind(self, activity: object) -> None:
-        activity.show(activity.app.coordination_access.thread_status.open(self.name))
+    def bind(self, activity: ActivityView) -> None:
+        activity.show_open_thread(self.name)
 
-    def observe(self, activity: object) -> None:
-        access = activity.app.coordination_access
-        activity.observe_core_callback(
-            access.events,
-            ThreadRowsChanged,
-            activity.status_changed,
-            factory=partial(
-                ThreadCallbackSubscription, scope=(str(self.root), self.name)
-            ),
-        )
+    def observe(self, activity: ActivityView) -> None:
+        activity.observe_thread_rows(self.root, self.name)
 
 
 class OtherRouteStatusThread(RoutedStatusThread):
@@ -92,5 +127,5 @@ class OtherRouteStatusThread(RoutedStatusThread):
     def conversation(cls, root: Path, conversation, access) -> OtherRouteStatusThread:
         return cls(root, conversation.initial_label)
 
-    def bind(self, activity: object) -> None:
+    def bind(self, activity: ActivityView) -> None:
         activity.show(ThreadStatusModel.other_route(self.name))
