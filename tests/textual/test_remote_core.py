@@ -219,7 +219,7 @@ async def test_opening_a_remote_channel_reads_its_declaration_not_the_whole_regi
         workspace, tmp_path, monkeypatch):
     """A channel opening once resolved every member through the whole registry, about 6 s over
     the Funnel, and kept only the channel's name and the viewer's."""
-    from toad.conversation_kind import ChannelConversation
+    from toad.client.conversation import ChannelConversation
 
     workspace.thread("remote-peer", "team")
     with remote_core(workspace, tmp_path, monkeypatch) as connection:

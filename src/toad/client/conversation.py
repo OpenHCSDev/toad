@@ -1,14 +1,15 @@
 """Shared conversation identity and Core-read behavior.
 
 The channel, direct-message and #all kinds own stable destinations, page reads,
-sidebar interest, member resolution, status and the feed toggles here. Each toolkit's
-member adds only how it draws: compose_activity and prompt.
+sidebar interest, member resolution, status and the feed toggles here, and pick which
+activity strip and prompt their view draws; each toolkit's view draws them.
 """
 
 from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
+from collections.abc import Iterator
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -48,12 +49,15 @@ from toad.client.sidebar_models import UnpaintedChannel
 from toad.status_thread import NoStatusThread, StatusThread
 
 
-class SharedConversationKind(MessageDestination, DeclaredFamily, affix="Conversation"):
-    """Cross-framework conversation behavior — identity, routing, Core reads.
+class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation"):
+    """A conversation on the bus: identity, routing, Core reads, and which activity strip
+    and prompt its view draws. Nothing here imports a toolkit."""
 
-    Native frameworks add compose_activity, prompt and toggle methods
-    on their own subclasses. This class has NO Textual or Qt imports.
-    """
+    @abstractmethod
+    def compose_activity(self, view: ConversationActivity) -> Iterator: ...
+
+    @abstractmethod
+    def prompt(self, view: ConversationActivity): ...
 
     @property
     @abstractmethod
@@ -145,24 +149,30 @@ class CommsViewKey:
     """A conversation on one bus: its tab is the owner's view of it, whichever tab opened it."""
 
     root: str
-    conversation: SharedConversationKind
+    conversation: ConversationKind
 
 
 @dataclass(frozen=True)
 class ChannelViewAddress:
     root: str
-    conversation: SharedConversationKind
+    conversation: ConversationKind
 
 
 @dataclass(frozen=True)
 class ResolvedConversation:
     viewer: str
-    conversation: SharedConversationKind
+    conversation: ConversationKind
 
 
 @dataclass(frozen=True)
-class SharedChannelConversation(SharedConversationKind, declared_name=None):
+class ChannelConversation(ConversationKind):
     target: ChannelTarget
+
+    def compose_activity(self, view: ConversationActivity) -> Iterator:
+        return view.compose_channel_activity()
+
+    def prompt(self, view: ConversationActivity):
+        return view.channel_prompt(self.initial_placeholder)
 
     @property
     def initial_label(self) -> str:
@@ -226,9 +236,15 @@ PEER_LABEL = PeerLabel()
 
 
 @dataclass(frozen=True)
-class SharedDmConversation(SharedConversationKind, declared_name=None):
+class DmConversation(ConversationKind):
     peer: ThreadIncarnation
     initial_label = "Direct messages"
+
+    def compose_activity(self, view: ConversationActivity) -> Iterator:
+        return view.compose_peer_activity(self.peer)
+
+    def prompt(self, view: ConversationActivity):
+        return view.message_prompt()
 
     @property
     def input_scope(self) -> str:
@@ -284,7 +300,9 @@ class SharedDmConversation(SharedConversationKind, declared_name=None):
         return await asyncio.to_thread(read)
 
 
-class SharedIrcConversation(SharedChannelConversation, declared_name=None):
+class IrcConversation(ChannelConversation):
+    """The #all feed, drawn as a channel."""
+
     @classmethod
     async def toggle_irc(cls, screen: ConversationNavigation) -> None:
         await screen.return_to_view()

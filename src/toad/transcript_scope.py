@@ -44,7 +44,7 @@ from toad.client.submission import (
     SubmittedText,
 )
 from toad.client.connection import CoordinationAccess, Observing
-from toad.conversation_kind import DmConversation
+from toad.client.conversation import DmConversation
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
 from toad.client.input_decision import InputAccepted, InputDecision, TranscriptNotReady

@@ -8,7 +8,7 @@ from typing import Iterable, Sequence
 from agent_comms.ui_model.sidebar import SidebarModel, ThreadRowModel
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 
-from toad.client.conversation import SharedConversationKind
+from toad.client.conversation import ConversationKind
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from toad.client.tab_identity import SessionTabIdentity, TabIdentity
 from toad.client.tab_order import TabOrder
@@ -52,7 +52,7 @@ class NamedTab(OpenTab):
 
 @dataclass(frozen=True)
 class ConversationTab(NamedTab):
-    conversation: SharedConversationKind
+    conversation: ConversationKind
     sidebar: SidebarModel
 
     @property

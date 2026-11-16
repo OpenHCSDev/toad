@@ -6,7 +6,7 @@ from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.messaging.channels import AllChannel
 from agent_comms.registry.threads import NativeThread
 from toad.constants import ALL_COMMS_TARGET
-from toad.conversation_kind import ChannelConversation, DmConversation, IrcConversation
+from toad.client.conversation import ChannelConversation, DmConversation, IrcConversation
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import DirectTarget, FeedTarget, channel_target
 from toad.widgets.comms_chat import CommsChatView

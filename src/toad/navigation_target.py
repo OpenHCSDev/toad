@@ -15,7 +15,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.client.connection import Observing
 from toad.constants import ALL_COMMS_TARGET
-from toad.conversation_kind import (
+from toad.client.conversation import (
     ChannelConversation,
     ConversationKind,
     DmConversation,

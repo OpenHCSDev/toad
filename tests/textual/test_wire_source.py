@@ -15,7 +15,7 @@ from agent_comms.transport.core_access import LocalCoreAccess
 from support.agents import AppAgents
 from support.roots import installed_wire
 
-from toad.conversation_kind import ChannelConversation
+from toad.client.conversation import ChannelConversation
 from toad.message_rows import IrcMessageStyle
 from toad.transcript_preparation import PageRequest, Unchanged
 from toad.widgets.presentation_window import NEWER_END, OLDER_END
