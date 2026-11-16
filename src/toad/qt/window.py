@@ -20,6 +20,7 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
+from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QMargins, QPoint, Qt
@@ -50,9 +51,9 @@ from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.shared.tree_state_adapter import TreeItemKeyBuilderABC, TreeStateAdapter
 from ui_theme.scheme import ColourScheme, PrimaryColour
 
-from toad.client.application import ClientApplication
+from toad.client.application import BusDiscovery, ClientApplication
 from toad.client.application_actions import ApplicationAction
-from toad.client.bus_selection import BusChoice
+from toad.client.bus_selection import BusChoice, PickerRow
 from toad.client.bus_submission import BusSubmissions, SubmissionView, TypedText
 from toad.client.connection import (
     CoreConnection,
@@ -166,10 +167,10 @@ class ConversationRow(SidebarItem):
 
 
 class BusRow(SidebarItem):
-    """A bus the welcome lists; a tap switches the window onto it, as a row the Textual
-    picker lists does."""
+    """A bus the welcome lists; a tap does what picking that row in the Textual picker does:
+    switch onto a held bus, or ask a tailnet peer for a profile to its bus."""
 
-    def __init__(self, choice: BusChoice) -> None:
+    def __init__(self, choice: PickerRow) -> None:
         super().__init__()
         self.key = choice.label()
         self.choice = choice
@@ -229,11 +230,13 @@ class Banner(QLabel):
 class Welcome(Page, QWidget):
     """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
     has not opened: the banner, the project, the channels and threads the shared welcome
-    lists, and the remote buses this machine holds. A Qt client is always remote, so the
-    buses are BusChoice.held, the Textual welcome's own source without this machine's bus."""
+    lists, and the buses: the remote ones this machine holds, then the peers the tailnet
+    reports holding one (PickerRow.with_found, the Textual picker's own merge). A Qt client
+    is always remote, so this machine's own bus is not listed."""
 
     mode = WELCOME
     listings = (QtChannelListing(), QtThreadListing())
+    BUSES = "Buses"
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__()
@@ -248,6 +251,12 @@ class Welcome(Page, QWidget):
         layout.addWidget(self.project)
         layout.addSpacing(12)
         layout.addWidget(self.rows, 1)
+        self.found: tuple[PeerBus, ...] = ()
+        self.show_buses()
+
+    def discovered(self, found: tuple[PeerBus, ...]) -> None:
+        """The tailnet answered: list its peers with the held buses."""
+        self.found = found
         self.show_buses()
 
     def present(self, model: SidebarModel) -> None:
@@ -265,8 +274,12 @@ class Welcome(Page, QWidget):
         self.show_buses()
 
     def show_buses(self) -> None:
-        section = self.rows.section("Buses")
-        for choice in BusChoice.held(time()):
+        """The Buses section, redrawn in place: a tailnet answer arrives between sidebar
+        updates, and each redraw replaces the section rather than adding another."""
+        for stale in [item for item in self.rows.items() if item.key == self.BUSES]:
+            self.rows.takeTopLevelItem(self.rows.indexOfTopLevelItem(stale))
+        section = self.rows.section(self.BUSES)
+        for choice in PickerRow.with_found(BusChoice.held(time()), self.found):
             self.rows.add_row(section, BusRow(choice), "", choice.label(), "", choice.label())
         section.setExpanded(True)
 
@@ -821,6 +834,18 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         a bus switch waits for."""
         host.open_window(self)
         self.run_operation(ApplicationStart, self.open_saved_tabs)
+        self.run_operation(BusDiscovery, self.discover_buses)
+
+    async def discover_buses(self) -> None:
+        """Ask the observed Core which tailnet peers hold a bus, once per window, for the
+        welcome's Buses. The ssh sweep runs on that Core's machine, not this one."""
+        await self.wait_operations(ApplicationStart)
+        try:
+            found = await self.preparation.run_thread(self.tailnet_buses)
+        except (OSError, ValueError, RuntimeError) as error:
+            self.show_warning(str(error), "Tailnet buses")
+            return
+        self.workspace_sessions.home.discovered(found)
 
     async def close_native_views(self) -> None:
         self.shortcuts.close()

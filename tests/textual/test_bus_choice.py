@@ -44,6 +44,7 @@ from toad.client.application import BusSwitch
 from toad.client.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
 from toad.client.connection import FailedObservation, LocalObserving, RemoteCoreConnection
 from toad.client.db import TabScope
+from toad.client.application import ClientApplication
 from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows
 from toad.client.application_actions import ApplicationAction
 
@@ -359,6 +360,7 @@ async def test_discovery_uses_selected_core_and_never_holds_the_message_pump(mon
 
     class PickerHost(App):
         coordination_access = SelectedCore(RemoteAnswer())
+        tailnet_buses = ClientApplication.tailnet_buses
 
     def no_terminal_cli(cls):
         raise AssertionError("The terminal has no tailscale CLI; ask the selected Core")

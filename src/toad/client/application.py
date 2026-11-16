@@ -11,15 +11,20 @@ built again (switch_bus).
 from __future__ import annotations
 
 import asyncio
+import time
 from abc import abstractmethod
 from collections.abc import Awaitable
 from functools import partial
 
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
-from formbridge.operations import OperationKind
+from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
+from agent_comms.transport.tailnet_buses import PeerBus
+from agent_comms.transport.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
+from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, CommsTailnetProfileTool
+from formbridge.operations import ExclusiveKind, OperationKind
 
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
-from toad.client.bus_selection import BusChoice, BusPickerHost
+from toad.client.bus_selection import BusChoice, BusPickerHost, HeldBus
 from toad.client.connection import CoreConnection
 from toad.client.db import DB
 from toad.client.resource_release import AsyncResourceRelease
@@ -38,6 +43,14 @@ from toad.thread_navigation import ThreadNavigator
 
 class BusSwitch(OperationKind):
     """Switches the application onto a bus the reader chose."""
+
+
+class PeerProfileRequest(OperationKind, ExclusiveKind):
+    """Asks a tailnet peer for a profile to its bus; a newer ask replaces it."""
+
+
+class BusDiscovery(OperationKind, ExclusiveKind):
+    """Asks the tailnet which peers hold a bus."""
 
 
 class ClientApplication(BusPickerHost, NavigationHost):
@@ -88,6 +101,48 @@ class ClientApplication(BusPickerHost, NavigationHost):
             await self.session_navigation.leave_bus()
             await self.coordination_access.switch_connection(connection)
             await self.open_saved_tabs()
+
+    def ask_peer_for_profile(self, found: PeerBus) -> None:
+        """Ask a discovered peer to hand over a profile, then open its bus."""
+        self.run_operation(PeerProfileRequest, partial(self.asked_for_profile, found))
+
+    async def asked_for_profile(self, found: PeerBus) -> None:
+        """The ask runs in a thread: it is one ssh call to another machine, which on the UI
+        loop would hold every frame for as long as that machine takes to answer."""
+        try:
+            asked = await self.preparation.run_thread(self.hold_peer_profile, found)
+        except (OSError, ValueError, RuntimeError) as error:
+            self.show_warning(str(error), "Bus")
+            return
+        self.asked_peer(asked)
+
+    def hold_peer_profile(self, found: PeerBus) -> AskedPeer:
+        core = self.coordination_access.open_current().core
+        answer = core.call(CommsTailnetProfileTool(found=found, previous=TailnetProfiles.held_grants(found)))
+        return answer.hold()
+
+    def asked_peer(self, asked: AskedPeer) -> None:
+        """What the peer answered: its bus, or the reason in the words it used.
+
+        The profile it handed over is read back through the held family rather than assumed
+        openable, because that family is what says whether a held file can open a bus; a
+        fresh one that reads back expired or unreadable is worth saying out loud.
+        """
+        match asked:
+            case HoldingPeerProfile(path=path):
+                match HeldUiProfiles.entry(path, time.time()):
+                    case OpenableProfile() as openable:
+                        self.open_bus(HeldBus(openable))
+                    case held:
+                        self.show_warning(f"{asked.found.peer.name} handed over a profile this "
+                                          f"machine cannot open: {held.label()}", "Bus")
+            case _:
+                self.show_warning(asked.reason(), "Bus")
+
+    def tailnet_buses(self) -> tuple[PeerBus, ...]:
+        """What the observed Core's tailnet reports on every peer: seconds of ssh, so it is
+        called from a thread."""
+        return self.coordination_access.open_current().core.call(CommsTailnetBusesTool()).peers
 
     async def close_client(self) -> None:
         """Release the launch's client owners in the order they depend on each other:

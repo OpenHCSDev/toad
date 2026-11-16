@@ -14,7 +14,7 @@ from agent_comms.transport.connector_store import (
     HeldUiProfiles,
     OpenableProfile,
 )
-from agent_comms.transport.tailnet_buses import PeerHoldsBus
+from agent_comms.transport.tailnet_buses import PeerBus, PeerHoldsBus
 
 
 class ProfileArgument:
@@ -65,6 +65,21 @@ class PickerRow(ABC):
     def remove(self) -> None:
         """Take this row off the list for good. Only a row that says it is removable."""
         raise TypeError(f"{type(self).__name__} is not a saved row")
+
+    @staticmethod
+    def with_found(rows: tuple[PickerRow, ...], found: tuple[PeerBus, ...]) -> tuple[PickerRow, ...]:
+        """``rows`` with the peers the tailnet reports holding a bus, each replacing the row
+        that was already it.
+
+        A machine this one holds a profile for is also a machine the tailnet reports, so it
+        was two rows: one named by its certificate and grant id, one by its hostname and
+        thread count (Tristan: "histiry of last connected accunukates in the remote bus
+        dialog"). The found row wins, because it says which machine and how much is on it,
+        and picking it asks for a profile that replaces the one being dropped.
+        """
+        peers = tuple(DiscoveredPeer(row) for entry in found for row in entry.openable())
+        covered = tuple(row for row in rows if not any(row.same_bus(peer.found) for peer in peers))
+        return (*covered, *peers)
 
 
 class BusChoice(PickerRow):

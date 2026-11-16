@@ -10,7 +10,6 @@ from __future__ import annotations
 import time
 
 from agent_comms.transport.tailnet_buses import NamedHost, PeerBus
-from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool
 from formbridge.key_declarations import TextEntryMode
 from textual import on, work
 from textual.app import ComposeResult
@@ -23,7 +22,7 @@ from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
-from toad.client.bus_selection import BusChoice, DiscoveredPeer, PickerRow
+from toad.client.bus_selection import BusChoice, PickerRow
 from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from toad.widget_actions import DismissAction, PriorityActions, WidgetAction
@@ -116,36 +115,26 @@ class ListsBuses(Widget):
     def discover(self) -> None:
         """Ask the tailnet after the listing is up; each peer's own CLI owns its answer."""
         try:
-            core = self.app.coordination_access.open_current().core
-            found = core.call(CommsTailnetBusesTool())
+            found = self.app.tailnet_buses()
         except (OSError, ValueError, RuntimeError) as error:
             self.app.call_from_thread(self.discovery_failed, str(error))
             return
-        self.app.call_from_thread(self.discovered, found.peers)
+        self.app.call_from_thread(self.discovered, found)
 
     def discovery_failed(self, reason: str) -> None:
         if self.is_mounted:
             self.say_failure(reason)
 
     def discovered(self, found: tuple[PeerBus, ...]) -> None:
-        """Add the peers holding a bus, and drop the rows that were already them.
-
-        A machine this one holds a profile for is also a machine the tailnet reports, so it
-        was two rows: one named by its certificate and grant id, one by its hostname and
-        thread count (Tristan: "histiry of last connected accunukates in the remote bus
-        dialog"). The found row wins, because it says which machine and how much is on it,
-        and picking it asks for a profile that replaces the one being dropped.
-        """
+        """Add the peers holding a bus (PickerRow.with_found drops the rows already them)."""
         if not self.is_mounted:
             return
-        peers = tuple(DiscoveredPeer(row) for entry in found for row in entry.openable())
+        peers = sum(len(entry.openable()) for entry in found)
         if not peers:
             return
-        covered = tuple(row for row in self.rows
-                        if not any(row.same_bus(peer.found) for peer in peers))
-        self.rows = (*covered, *peers)
+        self.rows = PickerRow.with_found(self.rows, found)
         self.query_one(BusRows).clear_options().add_options(self.bus_options())
-        self.say_discovery(len(peers))
+        self.say_discovery(peers)
 
     @on(OptionList.OptionSelected)
     def picked(self, event: OptionList.OptionSelected) -> None:
