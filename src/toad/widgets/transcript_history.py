@@ -5,8 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from bisect import bisect_right
 from collections import deque
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
-from contextlib import AsyncExitStack, asynccontextmanager
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import accumulate, chain, islice
@@ -15,7 +14,6 @@ from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.execution.transcript_sources import TranscriptCursor
-from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.sent_message import (
     OutgoingMessageReference,
     PublishedSentMessage,
@@ -49,7 +47,7 @@ from toad.client.history_coverage import (
     HistoryCoverage,
     ReportsCoveredPages,
 )
-from toad.client.history_pager import ConversationPager, NativePager, _DrawingStopped
+from toad.client.history_pager import ConversationPager, DrawsBusMessages, HistoryPager, NativePager
 from toad.commit_claims import CommitClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.frame_presentation import ARRIVAL, ArrivalRun
@@ -100,7 +98,7 @@ from toad.widgets.linked_rows import (
     selection_painted,
 )
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
-from toad.client.history_preparation import NEWER_END, OLDER_END, PageEnd
+from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.presentation_window import UNPLACED, PointerRows, Unplaced, arranged
 from toad.client.history_pager import PresentationBudget
 from toad.widgets.selection import HoverSelection
@@ -616,29 +614,13 @@ class TranscriptPageView(
         """The fragments this page draws inside the window's viewport."""
         return tuple(fragment for fragment, _rows, _lines in self.visible_rows(window))
 
+
     @classmethod
-    @asynccontextmanager
-    async def acquire(
-        cls, owner: LineHistory, prepared: PreparedTranscriptPage, *,
-        end: PageEnd, pages: deque[TranscriptPageView], current: Callable[[], bool],
-    ) -> AsyncIterator[TranscriptPageView]:
-        """Acquire the original prepared range, without selecting it a second time."""
+    def drawn_for(cls, owner: LineHistory, prepared: PreparedTranscriptPage) -> TranscriptPageView:
         view = cls(prepared)
         view.visible_categories = owner.selected_categories
         view.display = False
-        # Styled before it is drawn: a page drawn plain first rewraps under
-        # the reader as each styled batch arrives.
-        await owner.prepare_fragments(prepared.fragments_in_range, current,
-                                      selected=owner.selected_categories, target=owner)
-        if not current():
-            raise _DrawingStopped
-        async with AsyncExitStack() as acquisition:
-            acquisition.push_async_callback(owner.remove_children, (view,))
-            await end.mount(owner, view, pages)
-            if not current():
-                raise _DrawingStopped
-            yield view
-            acquisition.pop_all()
+        return view
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected
@@ -656,18 +638,6 @@ class TranscriptPageView(
             async with window.preserve_history():
                 return self.prepared.replace_range(self, selected, current)
 
-class DrawsBusMessages:
-    """The fragments the loaded pages draw, and whether they include a bus message, scrolled into view or not."""
-
-    pages: deque[TranscriptPageView]
-
-    @property
-    def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
-
-    def draws(self, reference: MessageReference) -> bool:
-        return any(fragment.draws(reference) for fragment in reversed(self.fragments_in_range))
-
 
 class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptSourcePreparation, ConversationEntry, LineTarget, VerticalGroup, NativePager):
     """History drawn as lines, a bounded range of pages at a time.
@@ -679,7 +649,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     page_view_type = TranscriptPageView
     CACHE_SUBTREE_GEOMETRY = True
-    DEFAULT_BUDGET = PresentationBudget(max_items=240)
 
     def subtree_geometry_resource(self, *, visible_only: bool):
         """Prepared pages retain their content layout independently of scrolling."""
@@ -702,7 +671,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         return FragmentBlockCursor(self)
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
-                  *, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
+                  *, notification_view: HistoryNotifications, budget: PresentationBudget = HistoryPager.DEFAULT_BUDGET,
                   source_state: TranscriptState) -> None:
         self.notification_view = notification_view
         super().__init__(source_state=source_state, page_source=page_source)
@@ -986,9 +955,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         self.window.prepare_history(self)
         self.request_preparation()
 
-    def invalidate_projection(self) -> None:
-        self._generation += 1
-
     def projected_source(self, selected) -> ProjectedTranscriptSource:
         page = self.pages[0]
         return ProjectedTranscriptSource(
@@ -1091,7 +1057,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     def on_hide(self) -> None:
         for page in self.pages:
             page.arrivals.clear()
-
 
 
 class CommittedHistory(LineHistory, SnapshotPresentation, CoveredHistory[PreparedPageSource]):

@@ -18,7 +18,18 @@ from markdown_it import MarkdownIt
 from metaclass_registry.mro_dispatch import handles
 from ui_theme.scheme import ColourScheme, ThemeColour
 
-from toad.client.line_blocks import Body, Divider, LineBlock, LineRole, NoBar, Span, Spans
+from toad.client.line_blocks import (
+    Body,
+    Divider,
+    Gap,
+    LineBlock,
+    LineRole,
+    NoBar,
+    Span,
+    SpanColumns,
+    Spans,
+    Summary,
+)
 from toad.core.projection import MroProjection
 from toad.message_rows import RecordedMessageClock, WireBody
 
@@ -108,6 +119,24 @@ class QtLineRenderer(MroProjection[str]):
         rule = self.styled("─" * side, block.role)
         return (f'<p align="center" style="margin-top:10px;white-space:pre">{rule} <b>{title}</b>'
                 f'{self.styled(time, block.role)} {rule}</p>')
+
+    @handles(Gap)
+    def gap(self, block: Gap) -> str:
+        return "<p>&nbsp;</p>"
+
+    @handles(Summary)
+    def summary(self, block: Summary) -> str:
+        """One row: the kept spans' room is reserved and the rest elides at the row's end."""
+        return ('<p style="white-space:pre">' + "".join(self.span(span, span.role) for span in block.spans)
+                + "".join(self.span(span, span.role) for span in block.kept) + "</p>")
+
+    @handles(SpanColumns)
+    def span_columns(self, block: SpanColumns) -> str:
+        """Cells flow into columns at the drawing width, as Qt rich text wraps inline cells."""
+        cells = "&nbsp;&nbsp;".join(
+            '<span style="white-space:pre">' + "".join(self.span(span, span.role) for span in cell) + "</span>"
+            for cell in block.cells)
+        return f'<p style="margin-left:{block.indent}ch">{cells}</p>'
 
     @handles(Spans)
     def spans(self, block: Spans) -> str:

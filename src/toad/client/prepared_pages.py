@@ -729,3 +729,7 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
         self._raw.close()
         self._raw = ClosedHistory(self.through, self.runtime)
         self._projected_boundary = None
+
+
+class _DrawingStopped(Exception):
+    """Unwind a source publication that no longer owns its drawing."""

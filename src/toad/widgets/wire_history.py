@@ -130,10 +130,4 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
         if not self.undrawn and (placeholder := self.view.query_one_optional(HistoryLoading)):
             placeholder.remove()
 
-    def prepare_viewport(self) -> None:
-        super().prepare_viewport()
-        if self.can_draw_on_screen:
-            self.mark_visible()
 
-    def source_resumed(self) -> None:
-        self.mark_visible()

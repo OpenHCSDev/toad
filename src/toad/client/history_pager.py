@@ -22,6 +22,7 @@ from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.transcript.transcripts import TranscriptPage
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 
+from agent_comms.messaging.message_reference import MessageReference
 from toad.client.fragments import FragmentKey, HistoryFragment
 from toad.client.history_preparation import (
     NEWER_END,
@@ -46,11 +47,87 @@ from toad.client.prepared_pages import (
     MeasuresFragments,
     PreparedPageSource,
     PreparedTranscriptPage,
+    _DrawingStopped,
 )
 from toad.client.reader_position import LatestPosition, ReaderWindow
 from toad.client.resource_release import ResourceRelease
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.transcript_filter import FilterState
+
+
+@dataclass(frozen=True)
+class PresentationBudget:
+    """Tunable working-set policy, not transport-page or source-size limits.
+
+    Visible and explicitly protected items may exceed the nominal item budget.
+    Loading stays bounded by separate limits; source data is never discarded to
+    satisfy a widget budget.
+    """
+
+    max_items: Annotated[int, gt] = 24
+    batch_items: Annotated[int, gt] = 4
+    reserve_batches: Annotated[int, ge] = 4
+    minimum_widgets: Annotated[int, gt] = 300
+    widgets_per_row: Annotated[int, ge] = 10
+    buffer_viewports: Annotated[int, gt] = 3
+    destination_pages: Annotated[int, gt] = 2
+    lookahead_seconds: Annotated[float, gt] = 1.0
+    delivery_safety_factor: Annotated[float, gt] = 2.0
+    scroll_idle_seconds: Annotated[float, gt] = 0.2
+
+    def __post_init__(self) -> None:
+        for declaration in fields(self):
+            value = getattr(self, declaration.name)
+            numeric_type, bound = get_args(declaration.type)
+            # Python permits an integer wherever a float is declared, but a
+            # bool is not a numeric budget. The declaration supplies the bound.
+            if type(value) not in (numeric_type, int) or not bound(value, 0):
+                raise ValueError(f"{declaration.name} violates its declared {bound.__name__} zero bound")
+
+    def item_limit(self, protected_items: int) -> int:
+        return max(self.max_items, protected_items + self.reserve_batches * self.batch_items)
+
+    def widget_limit(self, viewport_rows: int) -> int:
+        return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)
+
+    def can_read_destination(self, pages: int) -> bool:
+        """A bottom destination has bounded source reads, even for sparse rows."""
+        return pages < self.destination_pages
+
+    def runway_rows(self, viewport_rows: int) -> int:
+        return max(1, viewport_rows) * self.buffer_viewports
+
+    def fit(self, candidates: Iterable[NativePresentation], required: tuple[NativePresentation, ...],
+            viewport_rows: int, max_bytes: int) -> set[NativePresentation]:
+        """Visible/protected native bodies first, then ordered bounded resources."""
+        kept = set(required)
+        widgets = source_bytes = 0
+        for owner in candidates:
+            count = owner.retained_widget_count
+            size = owner.retained_source_bytes + owner.retained_paint_bytes
+            if owner not in kept:
+                if (widgets + count > self.widget_limit(viewport_rows)
+                        or source_bytes + size > max_bytes):
+                    continue
+                kept.add(owner)
+            widgets += count
+            source_bytes += size
+        return kept
+
+    def runway(self, sequence, first: int, last: int, viewport_rows: int):
+        """Native measured bodies on both sides, including stationary reversal."""
+        before, after = [], []
+        for candidates, selected in ((reversed(sequence[:first]), before),
+                                     (iter(sequence[last:]), after)):
+            rows = 0
+            for owner in candidates:
+                selected.append(owner)
+                rows += max(1, owner.measured_rows)
+                if rows >= self.runway_rows(viewport_rows):
+                    break
+        # Nearest first on both sides; a side that has run out contributes nothing.
+        return [owner for index in range(max(len(before), len(after)))
+                for owner in (*before[index:index + 1], *after[index:index + 1])]
 
 
 @dataclass(frozen=True)
@@ -83,10 +160,6 @@ class KeptDestination(NewDestination):
         ):
             raise _DrawingStopped
         self.view.prepared.page = self.prepared.page
-
-
-class _DrawingStopped(Exception):
-    """Unwind a source publication that no longer owns its drawing."""
 
 
 class PagingWindow(ReaderWindow):
@@ -206,6 +279,8 @@ class HistoryPager:
     metaclass; NativePager declares what the toolkit's own base answers.
     """
 
+    DEFAULT_BUDGET = PresentationBudget(max_items=240)
+
     pages: deque[DrawnPage]
     _source_state: TranscriptState
     filter: FilterState
@@ -230,10 +305,6 @@ class HistoryPager:
     def source_snapshot(self) -> HistorySourceSnapshot: ...
 
     @abstractmethod
-    def rows_published(self) -> None:
-        """Admit source rows and show the pages that draw them."""
-
-    @abstractmethod
     def followed_here(self) -> None:
         """Register with the window drawing these pages."""
 
@@ -243,6 +314,10 @@ class HistoryPager:
 
     @abstractmethod
     def visible_fragments(self) -> tuple[HistoryFragment, ...]: ...
+
+    @abstractmethod
+    def prepare_visible_pages(self) -> None:
+        """Let the pages on screen consume the geometry just committed."""
 
     @abstractmethod
     async def prepare_fragments(self, fragments: tuple[HistoryFragment, ...], current: Callable[[], bool], *,
@@ -260,9 +335,6 @@ class HistoryPager:
     @abstractmethod
     def read_ahead(self, work: Callable[[], Awaitable[object]]) -> None:
         """Run one read-ahead of the next page, replacing a running one."""
-
-    @abstractmethod
-    def source_failed(self, error: Exception) -> None: ...
 
     @abstractmethod
     def cancel_work(self) -> list:
@@ -537,6 +609,26 @@ class HistoryPager:
         return self.page_source.through, self.filter, tuple(
             (page.prepared.page.before, page.prepared.page.after, page.prepared.capture_range()) for page in self.pages)
 
+    def rows_published(self) -> None:
+        """Admit source rows and withdraw their live predecessors before yielding."""
+        self._source_state.rows_published(self)
+        for page in self.pages:
+            page.display = True
+
+    def source_failed(self, error) -> None:
+        self.retire_source()
+        self.app.show_error(error, "History")
+
+    def prepare_viewport(self) -> None:
+        """Consume committed geometry once, on this source's own pump."""
+        if self.can_draw_on_screen:
+            self.latest = self.latest.resume(self)
+            self.prepare_visible_pages()
+            self.state.check_edges(self)
+
+    def invalidate_projection(self) -> None:
+        self._generation += 1
+
     def supersede_source_work(
         self, operation: WorkingTranscript, request: LatestViewportRequest,
     ) -> None:
@@ -786,79 +878,6 @@ class HistoryPager:
             self._update_edges()
 
 
-@dataclass(frozen=True)
-class PresentationBudget:
-    """Tunable working-set policy, not transport-page or source-size limits.
-
-    Visible and explicitly protected items may exceed the nominal item budget.
-    Loading stays bounded by separate limits; source data is never discarded to
-    satisfy a widget budget.
-    """
-
-    max_items: Annotated[int, gt] = 24
-    batch_items: Annotated[int, gt] = 4
-    reserve_batches: Annotated[int, ge] = 4
-    minimum_widgets: Annotated[int, gt] = 300
-    widgets_per_row: Annotated[int, ge] = 10
-    buffer_viewports: Annotated[int, gt] = 3
-    destination_pages: Annotated[int, gt] = 2
-    lookahead_seconds: Annotated[float, gt] = 1.0
-    delivery_safety_factor: Annotated[float, gt] = 2.0
-    scroll_idle_seconds: Annotated[float, gt] = 0.2
-
-    def __post_init__(self) -> None:
-        for declaration in fields(self):
-            value = getattr(self, declaration.name)
-            numeric_type, bound = get_args(declaration.type)
-            # Python permits an integer wherever a float is declared, but a
-            # bool is not a numeric budget. The declaration supplies the bound.
-            if type(value) not in (numeric_type, int) or not bound(value, 0):
-                raise ValueError(f"{declaration.name} violates its declared {bound.__name__} zero bound")
-
-    def item_limit(self, protected_items: int) -> int:
-        return max(self.max_items, protected_items + self.reserve_batches * self.batch_items)
-
-    def widget_limit(self, viewport_rows: int) -> int:
-        return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)
-
-    def can_read_destination(self, pages: int) -> bool:
-        """A bottom destination has bounded source reads, even for sparse rows."""
-        return pages < self.destination_pages
-
-    def runway_rows(self, viewport_rows: int) -> int:
-        return max(1, viewport_rows) * self.buffer_viewports
-
-    def fit(self, candidates: Iterable[NativePresentation], required: tuple[NativePresentation, ...],
-            viewport_rows: int, max_bytes: int) -> set[NativePresentation]:
-        """Visible/protected native bodies first, then ordered bounded resources."""
-        kept = set(required)
-        widgets = source_bytes = 0
-        for owner in candidates:
-            count = owner.retained_widget_count
-            size = owner.retained_source_bytes + owner.retained_paint_bytes
-            if owner not in kept:
-                if (widgets + count > self.widget_limit(viewport_rows)
-                        or source_bytes + size > max_bytes):
-                    continue
-                kept.add(owner)
-            widgets += count
-            source_bytes += size
-        return kept
-
-    def runway(self, sequence, first: int, last: int, viewport_rows: int):
-        """Native measured bodies on both sides, including stationary reversal."""
-        before, after = [], []
-        for candidates, selected in ((reversed(sequence[:first]), before),
-                                     (iter(sequence[last:]), after)):
-            rows = 0
-            for owner in candidates:
-                selected.append(owner)
-                rows += max(1, owner.measured_rows)
-                if rows >= self.runway_rows(viewport_rows):
-                    break
-        # Nearest first on both sides; a side that has run out contributes nothing.
-        return [owner for index in range(max(len(before), len(after)))
-                for owner in (*before[index:index + 1], *after[index:index + 1])]
 
 
 class OffScreenRunway:
@@ -1182,6 +1201,15 @@ class NativePager:
     @abstractmethod
     def is_attached(self) -> bool: ...
 
+    @property
+    @abstractmethod
+    def is_leaving(self) -> bool:
+        """Whether the history is being taken down: its source states stop drawing."""
+
+    @abstractmethod
+    def run_worker(self, work: Callable[[], Awaitable[object]], **options: object) -> object:
+        """Run source work off the caller; the handle's wait() joins it."""
+
     @abstractmethod
     def call_after_refresh(self, callback: Callable, *arguments: object) -> object:
         """Call back once the next frame is drawn."""
@@ -1193,3 +1221,16 @@ class NativePager:
     @abstractmethod
     def publish_core(self, event: object) -> None:
         """Tell the history's listeners its source work finished."""
+
+
+class DrawsBusMessages:
+    """The fragments the loaded pages draw, and whether they include a bus message, scrolled into view or not."""
+
+    pages: deque[DrawnPage]
+
+    @property
+    def fragments_in_range(self) -> tuple[HistoryFragment, ...]:
+        return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
+
+    def draws(self, reference: MessageReference) -> bool:
+        return any(fragment.draws(reference) for fragment in reversed(self.fragments_in_range))
