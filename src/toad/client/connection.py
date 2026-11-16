@@ -117,7 +117,7 @@ from toad.core.events import (
     ThreadInterestUpdate,
     ThreadRowsChanged,
 )
-from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
+from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.db import UNSCOPED_TABS, TabScope
 from toad.client.notification_status import (
     CheckedNotifications,
@@ -851,7 +851,7 @@ class CoordinationAccess(MroDispatch):
         self.thread_status = OpenThreadStatus(app.schedule_ui)
         # Views showing the sidebar model now, and consumers waiting for current rows.
         self.sidebar_views: WeakSet[SidebarSubscriber[Observing, FailedObservation]] = WeakSet()
-        self.reference_views: WeakSet[CoreEventReceiver] = WeakSet()
+        self.reference_views: WeakSet = WeakSet()
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
         self.sidebar_current: ObserveSidebar | None = None
@@ -862,7 +862,7 @@ class CoordinationAccess(MroDispatch):
         self.notification_known: dict[tuple[ReadNotifications, tuple[int, str]], tuple[MessageNotification, ...]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
         # Open team pages; the heartbeat's frames are observed only while one is shown.
-        self.team_pages: WeakSet[CoreEventReceiver] = WeakSet()
+        self.team_pages: WeakSet = WeakSet()
         self.team_interest: ObserveTeamHud | StopTeamHud = StopTeamHud()
 
     @property
@@ -1079,7 +1079,7 @@ class CoordinationAccess(MroDispatch):
 
     def observe_thread_changes(
         self,
-        view: CoreEventReceiver,
+        view: object,
         scope: tuple[str, str],
         resume: Callable[[ThreadRowsChanged], None],
     ) -> ResourceRelease:
@@ -1104,7 +1104,7 @@ class CoordinationAccess(MroDispatch):
             self.team_interest = wanted
             self.observation.observed().observe_team(wanted)
 
-    def show_team(self, page: CoreEventReceiver, shown: bool) -> None:
+    def show_team(self, page: object, shown: bool) -> None:
         """A team page started or stopped showing the heartbeat's frames."""
         if shown:
             self.team_pages.add(page)
@@ -1120,7 +1120,7 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_views.discard(view)
         self.update_sidebar_interest()
 
-    def show_references(self, view: CoreEventReceiver, shown: bool):
+    def show_references(self, view: object, shown: bool):
         if shown:
             self.reference_views.add(view)
         else:
