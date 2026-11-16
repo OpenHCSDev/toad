@@ -158,10 +158,6 @@ class BarDisplay:
         return True
 
 
-class UnpresentedBar(BarDisplay):
-    """No native projection has been applied, or its view was retired."""
-
-
 @dataclass(frozen=True)
 class PresentedBar(BarDisplay):
     presentation: BarPresentation
@@ -981,10 +977,10 @@ class SideBar(
         )
         self.panel_state: SidebarPanels = AbsentPanels() if defer_mount else LoadedPanels()
         self._presented_collapsed: bool | None = None
-        self._presented_layout: BarDisplay = UnpresentedBar()
+        self._presented_layout: BarDisplay = BarDisplay()
 
     def invalidate_controls(self) -> None:
-        self._presented_layout = UnpresentedBar()
+        self._presented_layout = BarDisplay()
 
     def new_shell(self) -> None:
         """The search box, panel viewport and controls a loaded sidebar shows. A sidebar whose

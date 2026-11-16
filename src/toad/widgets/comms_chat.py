@@ -30,7 +30,7 @@ from toad.client.referenced_core import ReferencedCore
 from toad.session_scope import SessionScope
 from toad.status_thread import StatusThread
 from toad.submission_queue import NoQueueSource, QueueSource
-from toad.transcript_publication import NoView, ViewBinding
+from toad.transcript_publication import ViewBinding
 from toad.transcript_scope import NoTranscript
 from toad.transcript_state import DEFERRED_WORK, SourceWork
 from toad.widgets.channel_activity import ChannelActivity
@@ -88,7 +88,7 @@ class CommsChatView(WireConversationView):
 
     def transcript_binding(self) -> ViewBinding:
         """A wire conversation has no native transcript to publish."""
-        return NoView()
+        return ViewBinding()
 
     def compose(self) -> ComposeResult:
         with Window():

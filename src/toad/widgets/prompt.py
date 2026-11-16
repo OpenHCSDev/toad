@@ -364,10 +364,6 @@ class PromptSubmissionState:
         pass
 
 
-class NoPromptSubmission(PromptSubmissionState):
-    pass
-
-
 @dataclass(frozen=True)
 class PendingPromptSubmission(PromptSubmissionState):
     action: SubmitInputAction
@@ -386,14 +382,14 @@ class PromptSubmission(HighlightedTextArea):
     """Admit model and local command submission through the current prompt."""
 
     def __init__(self) -> None:
-        self._submission: PromptSubmissionState = NoPromptSubmission()
+        self._submission: PromptSubmissionState = PromptSubmissionState()
         super().__init__()
 
     def schedule_submission(self, action: SubmitInputAction) -> None:
         self._submission = self._submission.request(self, action)
 
     async def submit_pending(self) -> None:
-        request, self._submission = self._submission, NoPromptSubmission()
+        request, self._submission = self._submission, PromptSubmissionState()
         await request.submit(self)
 
     @abstractmethod

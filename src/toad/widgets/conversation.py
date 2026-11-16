@@ -62,7 +62,7 @@ from ui_theme.effects import CURSOR_BLINK, Mix
 from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
 from toad import messages, paths
-from toad.acp.comms_updates import NoPendingThreadRead
+from toad.acp.comms_updates import ThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
@@ -567,7 +567,7 @@ class ConversationSessionBinding(
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
 
-    _thread_read = NoPendingThreadRead()
+    _thread_read = ThreadRead()
     """The source state the next observed presentation settles against."""
 
     _unpublished_presentation: ThreadPresentation = NoThreadPresentation()

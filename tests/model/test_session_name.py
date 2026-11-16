@@ -7,7 +7,7 @@ from toad.client.db import DB, TabScope
 from toad.client.tab_order import TabOrder
 from toad.client.tab_identity.kinds import AcpTab
 from toad.client.session_tracker import (
-    AuthoredSessionName,
+    SessionName,
     SessionDetails,
     SessionTracker,
     ThreadSessionName,
@@ -17,8 +17,8 @@ from toad.client.session_tracker import (
 @pytest.mark.parametrize(
     "name,expected",
     [
-        (AuthoredSessionName("Chosen"), "Chosen"),
-        (AuthoredSessionName("New Session"), "New Session"),
+        (SessionName("Chosen"), "Chosen"),
+        (SessionName("New Session"), "New Session"),
         (ThreadSessionName("New Session"), "Presented title"),
         (ThreadSessionName("Old title"), "Presented title"),
         (ThreadSessionName("Presented title"), "Presented title"),
@@ -33,8 +33,8 @@ def test_session_label_owns_presented_title(name, expected):
 @pytest.mark.parametrize(
     "name,expected",
     [
-        (AuthoredSessionName("old"), "old"),
-        (AuthoredSessionName("New Session"), "New Session"),
+        (SessionName("old"), "old"),
+        (SessionName("New Session"), "New Session"),
         (ThreadSessionName("New Session"), "new"),
         (ThreadSessionName("old"), "new"),
         (ThreadSessionName("Unrelated title"), "Unrelated title"),

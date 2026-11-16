@@ -20,14 +20,6 @@ class ResourceError(Exception):
     """An error occurred reading a resource."""
 
 
-class ResourceNotRelative(ResourceError):
-    """Attempted to read a resource, not in the project directory."""
-
-
-class ResourceReadError(ResourceError):
-    """Failed to read the resource."""
-
-
 def load_resource(root: Path, path: Path, *, attachment_root: Path | None = None) -> Resource:
     """Load a resource from the project directory.
 
@@ -44,7 +36,7 @@ def load_resource(root: Path, path: Path, *, attachment_root: Path | None = None
     if not resource_path.is_relative_to(root) and not (
         attachment_root is not None and resource_path.is_relative_to(attachment_root.resolve())
     ):
-        raise ResourceNotRelative("Resource path is not relative to project root.")
+        raise ResourceError("Resource path is not relative to project root.")
 
     mime_type, encoding = mimetypes.guess_file_type(resource_path)
     mime_type = FileKind.for_path(resource_path).mime_type or mime_type
@@ -59,7 +51,7 @@ def load_resource(root: Path, path: Path, *, attachment_root: Path | None = None
             with resource_path.open("rb") as source:
                 data = source.read(MAX_IMAGE_BYTES + 1)
             if len(data) > MAX_IMAGE_BYTES:
-                raise ResourceReadError("Image exceeds the 4 MiB attachment limit.")
+                raise ResourceError("Image exceeds the 4 MiB attachment limit.")
             text = None
         elif encoding is not None:
             data = resource_path.read_bytes()
@@ -68,9 +60,9 @@ def load_resource(root: Path, path: Path, *, attachment_root: Path | None = None
             data = None
             text = resource_path.read_text(encoding, errors="replace")
     except FileNotFoundError:
-        raise ResourceReadError(f"File not found {str(path)!r}")
+        raise ResourceError(f"File not found {str(path)!r}")
     except Exception as error:
-        raise ResourceReadError(f"Failed to read {str(path)!r}; {error}")
+        raise ResourceError(f"Failed to read {str(path)!r}; {error}")
 
     resource = Resource(
         root,

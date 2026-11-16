@@ -515,11 +515,7 @@ class Settlement:
 class Unsettled(Settlement):
     def settled(self, hold: HeldReaderDestination, window: HistoryWindow) -> Settlement:
         window.call_after_refresh(hold.source_geometry_ready, window)
-        return Scheduled()
-
-
-class Scheduled(Settlement):
-    """A refresh is pending; settling again waits for it."""
+        return Settlement()
 
 
 class Ready(Settlement):

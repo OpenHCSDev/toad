@@ -116,10 +116,6 @@ class SessionName:
         return self
 
 
-class AuthoredSessionName(SessionName):
-    """The user's label stays when the thread presents a title or changes name."""
-
-
 class ThreadSessionName(SessionName):
     """An unlabelled session follows its thread's presented title and identity."""
 
@@ -172,7 +168,7 @@ class SessionDetails:
 
     def name_session(self, name: str) -> None:
         """The user named this session; no presented title replaces it."""
-        self.name = AuthoredSessionName(name)
+        self.name = SessionName(name)
 
     def update_thread_title(self, thread_title: str) -> bool:
         """Adopt the thread's title where the user has not named the session."""

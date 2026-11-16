@@ -20,7 +20,7 @@ from toad.client.input_decision import InputAccepted, InputDecision, NoLiveAgent
 from toad.commit_claims import CommitSource
 from toad.conversation_turn import TurnOwner
 from toad.core_event_carrier import CoreEventMessage
-from toad.acp.comms_updates import NoPendingThreadRead
+from toad.acp.comms_updates import ThreadRead
 from agent_comms.nominal.field_codec import AcpSessionId
 
 if TYPE_CHECKING:
@@ -77,7 +77,7 @@ class AgentConnection(ABC):
 
     def thread_read(self):
 
-        return NoPendingThreadRead()
+        return ThreadRead()
 
     def model_info(self, session_name: str) -> Content:
         model = self.configuration.model.selected
