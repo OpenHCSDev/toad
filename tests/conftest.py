@@ -132,9 +132,15 @@ def pytest_runtest_logreport(report):
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_pyfunc_call(pyfuncitem):
-    """Coroutine tests run on their own event loop."""
+    """Coroutine tests run on their own event loop, under the same wall limit as app tests:
+    an await that never resolves fails there instead of stalling its worker."""
     if not inspect.iscoroutinefunction(pyfuncitem.obj):
         return None
     arguments = {name: pyfuncitem.funcargs[name] for name in pyfuncitem._fixtureinfo.argnames}
-    asyncio.run(pyfuncitem.obj(**arguments))
+
+    async def bounded():
+        async with asyncio.timeout(pyfuncitem.config.getoption("--test-timeout")):
+            await pyfuncitem.obj(**arguments)
+
+    asyncio.run(bounded())
     return True
