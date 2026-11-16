@@ -15,11 +15,8 @@ from toad.session_host import NavigationHost, WorkspaceViews
 from toad.constants import WELCOME
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
 from toad.navigation_target import NavigationTarget, NoTarget
-from toad.session_scope import (
-    NoSessionOrigin,
-    SessionOrigin,
-    SessionScope,
-)
+from toad.client.session_scope import NoSessionOrigin, SessionOrigin
+from toad.session_scope import SessionScope
 from toad.session_navigation import SessionNavigation
 from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.side_bar import SideBar

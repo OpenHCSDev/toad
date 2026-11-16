@@ -6,7 +6,8 @@ from agent_comms.execution.launch_root import LaunchRoot
 from support.agents import peer
 
 from toad.launch_binding import AgentAttached
-from toad.session_scope import NoSessionOrigin, SessionScope
+from toad.client.session_scope import NoSessionOrigin
+from toad.session_scope import SessionScope
 from toad.transcript_scope import NoTranscript
 
 
@@ -14,7 +15,7 @@ async def test_real_conversation_discovers_screen_free_scope(workspace):
     unavailable = NoSessionOrigin("closed-test-view")
     assert unavailable.transcript_scope() == NoTranscript()
     with pytest.raises(RelationViolationError, match="closed-test-view"):
-        unavailable.resolve_thread()
+        unavailable.require()
     LaunchRoot.from_path(workspace.roots.wire).install()
     definition = peer("echo")
     async with workspace.app(binding=AgentAttached(definition)) as ui:
@@ -49,4 +50,4 @@ async def test_real_conversation_discovers_screen_free_scope(workspace):
         await ui.close_tab(second)
         assert second not in app.workspace_sessions.views
         with pytest.raises(RelationViolationError):
-            app.workspace_sessions.origin(second).resolve_thread()
+            app.workspace_sessions.origin(second).require()

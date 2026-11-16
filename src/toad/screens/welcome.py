@@ -26,7 +26,7 @@ from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.bus_choice import BusRows, ListsBuses
 from toad.screens.session_view import SessionView
-from toad.session_scope import ProjectSessionOrigin
+from toad.client.session_scope import ProjectSessionOrigin
 from toad.thread_identity import ThreadIdentity
 from toad.widgets.comms_sidebar import (
     ChannelRow,

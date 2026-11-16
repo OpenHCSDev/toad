@@ -15,22 +15,12 @@ from agent_comms.registry.thread_identity import (
     UnrecordedThreadIncarnation,
 )
 
-from textual.dom import DOMNode
 from toad.format_path import format_path
 from toad.transcript_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
 from toad.client.connection import Observing
 from toad.client.session_tracker import SessionDetails
 from agent_comms.nominal.field_codec import AcpSessionId
-
-
-
-class ThreadIdentityScope(DOMNode):
-    """The thread described by a panel, independent of the composer sending identity."""
-
-    @property
-    @abstractmethod
-    def sidebar_thread_identity(self) -> SessionIdentity: ...
 
 
 class SessionIdentity(ABC):

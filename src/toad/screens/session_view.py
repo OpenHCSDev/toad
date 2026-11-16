@@ -1,7 +1,5 @@
 """Logical session surfaces hosted by the one native WorkspaceScreen."""
 
-from abc import abstractmethod
-from functools import cached_property
 from textual.containers import Center, Vertical
 from textual.view import FILL, WidgetView
 from textual.color import Color
@@ -18,11 +16,11 @@ from toad.layout_preferences import FollowsLayoutPreferences
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
-from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.client.session_scope import NoSessionOrigin, SessionOrigin
+from toad.session_scope import SessionScope
 from toad.navigation_context import NavigationOwner
 from toad.navigation_target import NavigationTarget, NoTarget
 from toad.app_node import ToadNode
-from toad.client.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.message_notifications import (

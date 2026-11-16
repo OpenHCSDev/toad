@@ -60,12 +60,9 @@ from toad.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.live_output import LiveOutput
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.screens.session_view import SessionView
-from toad.session_scope import (
-    NoTranscript,
-    SessionOrigin,
-    SessionScope,
-    TranscriptScope,
-)
+from toad.client.session_scope import SessionOrigin
+from toad.session_scope import SessionScope
+from toad.transcript_scope import NoTranscript, TranscriptScope
 from toad.entry_placement import ChronologicalEntry, EntryPlacement
 from toad.transcript_preparation import (
     FrozenClosedHistory, FrozenSavedPrefix, PreparedPageSource, PreparedTranscriptPage,

@@ -33,10 +33,6 @@ from agent_comms.ui_model.observation import (
     ReadTranscriptUpdate,
     TranscriptPublicationState,
 )
-from rich.text import Text as RichText
-from textual.content import Content
-
-from toad.app_node import ToadNode
 from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
@@ -46,7 +42,7 @@ from toad.client.submission import (
 from toad.client.connection import CoordinationAccess, Observing
 from toad.client.conversation import DmConversation
 from toad.core.events import ThreadRowsChanged
-from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
+from toad.client.subscribers import CoreObserver, ThreadCallbackSubscription
 from toad.client.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.client.resource_release import ResourceRelease
@@ -54,11 +50,12 @@ from toad.status_thread import NoStatusThread, StatusThread
 from toad.client.transcript_requests import TranscriptRequests
 
 
-class TranscriptView(CoreEventReceiver, ToadNode):
+class TranscriptView(CoreObserver):
     """A view that shows one transcript scope: its scope observes core events through it and
-    gives its thread status to it."""
+    gives its thread status to it. Native views bring their own framework base."""
 
-    thread_status: str | Content | RichText
+    thread_status: str
+    is_attached: bool
 
     @property
     @abstractmethod
@@ -118,7 +115,7 @@ class TranscriptScope(TranscriptRequests):
     @abstractmethod
     def observe(
         self,
-        view: TranscriptView,
+        view: CoreObserver,
         access: CoordinationAccess,
         resume: Callable[[ThreadRowsChanged], object],
     ) -> ResourceRelease: ...
@@ -140,7 +137,7 @@ class TranscriptScope(TranscriptRequests):
 
     @abstractmethod
     async def show_mailbox_status(
-        self, view: TranscriptView
+        self, view: TranscriptView, access: CoordinationAccess
     ) -> None: ...
 
 
@@ -178,7 +175,7 @@ class KnownTranscript(TranscriptScope):
 
     def observe(
         self,
-        view: TranscriptView,
+        view: CoreObserver,
         access: CoordinationAccess,
         resume: Callable[[ThreadRowsChanged], object],
     ) -> ResourceRelease:
@@ -234,11 +231,11 @@ class KnownTranscript(TranscriptScope):
             self.root, self.mailbox_conversation(), self, view, sources))
 
     async def show_mailbox_status(
-        self, view: TranscriptView
+        self, view: TranscriptView, access: CoordinationAccess
     ) -> None:
         """A CLI thread shows the same Core configuration answer a DM shows."""
         try:
-            observed = await view.app.preparation.run_thread(view.app.coordination_access.observing, self.root)
+            observed = await access.preparation.run_thread(access.observing, self.root)
             status = await self.mailbox_conversation().status_text(
                 observed, read_only=False
             )
@@ -274,7 +271,7 @@ class NoTranscript(TranscriptScope):
 
     def observe(
         self,
-        view: TranscriptView,
+        view: CoreObserver,
         access: CoordinationAccess,
         resume: Callable[[ThreadRowsChanged], object],
     ) -> ResourceRelease:
@@ -313,6 +310,6 @@ class NoTranscript(TranscriptScope):
         return owner.unbound(submission, TranscriptNotReady())
 
     async def show_mailbox_status(
-        self, view: TranscriptView
+        self, view: TranscriptView, access: CoordinationAccess
     ) -> None:
         """No bound thread has no configuration to show."""

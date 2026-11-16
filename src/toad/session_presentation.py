@@ -286,7 +286,8 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
 
     def thread_presented(self, conversation: Conversation) -> None:
         conversation.run_worker(
-            conversation.thread_scope.show_mailbox_status(conversation),
+            conversation.thread_scope.show_mailbox_status(
+                conversation, conversation.app.coordination_access),
             group="mailbox-status",
             exclusive=True,
         )
