@@ -1,29 +1,47 @@
 """A form over an ObjectState, laid out the way formbridge reads its declarations."""
 
 from __future__ import annotations
-from abc import abstractmethod
 
+from abc import abstractmethod
 from collections.abc import Iterator
 
+from formbridge.forms.declared_fields import (
+    DeclaredField,
+    DeclaredViews,
+    FormPage,
+    form_pages,
+)
+from formbridge.forms.form_following import (
+    FollowedFieldView,
+    FollowedValueView,
+    FollowingForm,
+)
 from formbridge.forms.parameter_form_service import ParameterFormService
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
+from formbridge.forms.value_editing import ValueEditing
 from objectstate import ObjectState
+from rich.style import Style
 from textual import containers, events, lazy, on
 from textual.app import ComposeResult
 from textual.content import Content
+from textual.css._style_properties import Edges
+from textual.geometry import Spacing
+from textual.layouts.stream import StreamLayout
 from textual.view import (
     AUTO,
     FocusWithinView,
     WidgetView,
 )
 from textual.widgets import Static
-from textual.css._style_properties import Edges
-from textual.geometry import Spacing
-from textual.layouts.stream import StreamLayout
-from rich.style import Style
-from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
+from ui_theme.scheme import (
+    BackgroundColour,
+    ErrorColour,
+    ForegroundColour,
+    MutedColour,
+    PrimaryColour,
+    SecondaryColour,
+)
 
-from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, form_pages
 from toad.forms.editors import ValueEditor
 
 
@@ -55,7 +73,7 @@ class GroupTitle(WidgetView, Static):
         return self.app.colours.colour(PrimaryColour)
 
 
-class FieldView(DeclaredViews, WidgetView, containers.VerticalGroup):
+class FieldView(FollowedFieldView, DeclaredViews, WidgetView, containers.VerticalGroup):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
     def __init__(self, field: DeclaredField) -> None:
@@ -110,10 +128,12 @@ class FieldView(DeclaredViews, WidgetView, containers.VerticalGroup):
         """Show this view only if it matches a search; say whether it is shown."""
 
 
-class ValueView(FieldView, shows=(ParameterInfo,)):
+class ValueView(FollowedValueView, FieldView, shows=(ParameterInfo,)):
     """A field with one value: its label, its help and the editor for its kind."""
 
     CHANGED_MARK = " ●"
+
+    editor: ValueEditor
 
     def __init__(self, field: DeclaredField) -> None:
         super().__init__(field)
@@ -189,16 +209,17 @@ class GroupView(FocusWithinView, FieldView, shows=(DirectDataclassInfo,)):
         return bool(self.display)
 
 
-class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
+class FormView(FollowingForm, WidgetView, containers.VerticalScroll, can_focus=False):
     """Every field of the object an ObjectState holds, edited in place.
 
     The form holds no values. An edit goes to the state; the state says which
     fields changed and the form repaints those, and marks the ones that differ
-    from what was last saved. The fields are mounted over several frames, so a
-    long form does not hold up the frame it opens in.
+    from what was last saved. Subscription and change algorithms are inherited
+    from FollowingForm; native mounting and painting stay here.
     """
 
     field_family = FieldView
+    parts: list[FieldView]
     DEFAULT_LAYOUT = StreamLayout
     height = None
     overflow_y = "scroll"
@@ -207,11 +228,9 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
         super().__init__()
         self.state = state
         self.parts = parts
-        self.values = {
-            view.field.path.value: view for part in self.parts for view in part.values()
-        }
-        self.listen(events.Mount, self.follow_state)
-        self.listen(events.Unmount, self.leave_state)
+        self.build_index()
+        self.listen(events.Mount, self._mount_follow)
+        self.listen(events.Unmount, self._unmount_follow)
 
     @classmethod
     def whole(cls, state: ObjectState) -> FormView:
@@ -225,36 +244,20 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
         return {page: cls(state, [parts[path] for path in paths])
                 for page, paths in form_pages(state, parts).items()}
 
-    def follow_state(self, event: events.Mount) -> None:
+    def _mount_follow(self, event: events.Mount) -> None:
         lazy.Reveal.reveal(self, list(self.parts))
-        self.state.on_resolved_changed(self.values_changed)
-        self.state.on_state_changed(self.marks_changed)
-        self.marks_changed(self.state.dirty_fields)
+        self.follow_state()
 
-    def leave_state(self, event: events.Unmount) -> None:
-        self.state.off_resolved_changed(self.values_changed)
-        self.state.off_state_changed(self.marks_changed)
+    def _unmount_follow(self, event: events.Unmount) -> None:
+        self.leave_state()
 
-    def values_changed(self, paths: set[str]) -> None:
-        for path in paths & self.values.keys():
-            editor = self.values[path].editor
-            if editor.is_mounted:
-                editor.paint_value()
-
-    def marks_changed(self, paths: set[str]) -> None:
-        differ = self.state.dirty_fields
-        for path in paths & self.values.keys():
-            self.values[path].mark(path in differ)
-
-    def finish(self) -> None:
-        """Send every edit the user has typed but not left yet."""
-        for view in self.values.values():
-            view.editor.finish()
+    def repaint_editor(self, editor: ValueEditing) -> None:
+        ve: ValueEditor = editor  # type: ignore[assignment]
+        if ve.is_mounted:
+            ve.paint_value()
 
     def filter(self, term: str) -> None:
-        """Show only the fields whose labels contain the term."""
-        for part in self.parts:
-            part.filter(term.lower())
+        self.filter_parts(term)
 
 
 class InlineFormView(FormView):
