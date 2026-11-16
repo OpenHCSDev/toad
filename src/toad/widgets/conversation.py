@@ -166,7 +166,8 @@ from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.widgets.menu import Menu
 from toad.widgets.message_divider import AgentActivityDivider, StickyHeader
-from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.client.history_notifications import SourceNotifications
+from toad.widgets.message_notifications import VisibleHistoryNotifications
 from toad.client.history_reads import NothingToRead, PaintedRead
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import ErrorNote, Note
@@ -261,7 +262,7 @@ class CategorizedMount:
         return mounted
 
 
-class Contents(HistoryNotifications, LineTarget, containers.VerticalGroup, can_focus=False):
+class Contents(VisibleHistoryNotifications, LineTarget, containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
 
