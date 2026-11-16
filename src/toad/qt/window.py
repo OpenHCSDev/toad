@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QMenu,
     QPushButton,
+    QSizePolicy,
     QSplitter,
     QStackedWidget,
     QTextBrowser,
@@ -62,7 +63,9 @@ from toad.client.connection import (
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationActivity, ConversationSource
 from toad.client.history_entry import HistorySessionEntry
+from toad.application_lifetime import ApplicationStart
 from toad.client.condensed_path import condense_path, home_relative
+from toad.client.platform import host
 from toad.client.line_blocks import LineBlock, MutedRole
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
 from toad.client.referenced_core import ReferencedCore
@@ -200,6 +203,29 @@ class QtThreadListing(ThreadListing):
             rows.add_thread(section, name, model.threads.rows[name])
 
 
+class Banner(QLabel):
+    """Toad's banner, filling the width it is given in whole characters, as the terminal
+    draws it. It takes the width and never asks for one: a label wants its text's width, so
+    sizing the font to the page let each resize widen the page past the screen."""
+
+    def __init__(self, colour: str) -> None:
+        super().__init__(WelcomeBanner.TEXT)
+        font = QFont("monospace")
+        font.setStyleHint(QFont.StyleHint.TypeWriter)
+        self.setFont(font)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setStyleSheet(f"color: {colour}")
+        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        font = self.font()
+        widest = max(WelcomeBanner.TEXT.splitlines(), key=len)
+        advance = QFontMetricsF(font).horizontalAdvance(widest) / font.pointSizeF()
+        font.setPointSizeF(max(4.0, self.contentsRect().width() / advance))
+        self.setFont(font)
+
+
 class Welcome(Page, QWidget):
     """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
     has not opened: the banner, the project, the channels and threads the shared welcome
@@ -211,12 +237,7 @@ class Welcome(Page, QWidget):
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__()
-        self.banner = QLabel(WelcomeBanner.TEXT)
-        font = QFont("monospace")
-        font.setStyleHint(QFont.StyleHint.TypeWriter)
-        self.banner.setFont(font)
-        self.banner.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.banner.setStyleSheet(f"color: {window.renderer.theme(PrimaryColour)}")
+        self.banner = Banner(window.renderer.theme(PrimaryColour))
         self.project = PathLabel(window.project_dir.path)
         self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.project.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
@@ -248,15 +269,6 @@ class Welcome(Page, QWidget):
         for choice in BusChoice.held(time()):
             self.rows.add_row(section, BusRow(choice), "", choice.label(), "", choice.label())
         section.setExpanded(True)
-
-    def resizeEvent(self, event) -> None:
-        """The banner fills the width in whole characters, as the terminal draws it."""
-        super().resizeEvent(event)
-        font = self.banner.font()
-        widest = max(WelcomeBanner.TEXT.splitlines(), key=len)
-        advance = QFontMetricsF(font).horizontalAdvance(widest) / font.pointSizeF()
-        font.setPointSizeF(max(4.0, (self.width() - 24) / advance))
-        self.banner.setFont(font)
 
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
         window.hide_sidebar()
@@ -681,7 +693,8 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
         self.sidebar_bar.setMinimumHeight(40)
         self.sidebar_bar.setFlat(True)
         self.sidebar_bar.clicked.connect(self.toggle_sidebar)
-        self.menu = self.bar_button("☰", "Menu", self.show_menu)
+        # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
+        self.menu = self.bar_button("≡", "Menu", self.show_menu)
         self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
         self.forward = self.bar_button("→", "Forward", partial(self.tab_order.navigate, 1))
         # pyqt-reactive's tab bar in the theme's tab style; a dragged tab moves in the
@@ -802,6 +815,12 @@ class QtToadApp(ClientApplication, QtCommsHost, QWidget, metaclass=PyQtWidgetMet
     def hide_sidebar(self) -> None:
         self.sidebar.hide()
         self.paint_sidebar_bar()
+
+    def begin_frontend(self) -> None:
+        """The window opens as the platform opens windows, then the saved tabs, as the start
+        a bus switch waits for."""
+        host.open_window(self)
+        self.run_operation(ApplicationStart, self.open_saved_tabs)
 
     async def close_native_views(self) -> None:
         self.shortcuts.close()

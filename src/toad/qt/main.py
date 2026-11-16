@@ -17,7 +17,7 @@ from ui_theme.scheme import ColourScheme
 from ui_theme.wal import WalFile
 
 from toad.client.connection import ProcessRemoteCoreConnection, RemoteCoreConnection
-from toad.client.platform import host
+from toad.application_lifetime import ApplicationStart
 from toad.qt.window import QtToadApp
 from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
@@ -37,8 +37,8 @@ async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: 
     # runs on this loop, so Qt must not stop the loop when the last window closes.
     QApplication.instance().setQuitOnLastWindowClosed(False)
     await (await app.get_db()).create()
-    host.open_window(app)
-    await app.open_saved_tabs()
+    app.start_client()
+    await app.wait_operations(ApplicationStart)
     return app
 
 
