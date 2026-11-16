@@ -419,29 +419,35 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             return app.selected_mode
         # The history entry is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.
-        entry = self.find(prepared.key.conversation.view_identity(prepared.key))
-        if entry is None:
-            entry = HistorySessionEntry(
+        entry = await self.show(
+            prepared.key.conversation.view_identity(prepared.key),
+            lambda: HistorySessionEntry(
                 CommsTab(prepared.key.conversation, prepared.key.root),
                 prepared.key,
                 project_path,
                 prepared.viewer,
                 prepared.participants,
-            )
-            await self.open(entry)
-        else:
-            await app.select_session(entry.mode)
-            await entry.ready(self)
+            ),
+        )
         return entry.mode
+
+    async def show(self, address: object, build: Callable[[], SessionEntry], *,
+                   after: str | None = None) -> SessionEntry:
+        """The entry at this address, selected and ready; built and opened when it has none."""
+        entry = self.find(address)
+        if entry is None:
+            entry = build()
+            await self.open(entry, after=after)
+        else:
+            await self.app.select_session(entry.mode)
+            await entry.ready(self)
+        return entry
 
     async def preview(self, path: Path, *, position=None) -> str:
         path = path.expanduser().resolve()
-        entry = self.find(path)
-        if entry is None:
-            entry = PreviewSessionEntry.of(PreviewTab(path), path)
-            await self.open(entry, after=self.app.selected_mode)
-        else:
-            await self.app.select_session(entry.mode)
+        entry = await self.show(
+            path, lambda: PreviewSessionEntry.of(PreviewTab(path), path), after=self.app.selected_mode,
+        )
         if position is not None:
             view = self.app.workspace_sessions.views[entry.mode]
             await view.preview.reveal(position)
