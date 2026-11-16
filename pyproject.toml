@@ -36,6 +36,13 @@ dependencies = [
     "msgpack==1.2.2",
 ]
 
+[project.optional-dependencies]
+# The Qt backend (toad.qt): desktop and Android, from the same source.
+qt = [
+    "pyside6-essentials==6.12.0",
+    "qasync==0.28.0",
+]
+
 [tool.uv.workspace]
 members = ["toad"]
 
