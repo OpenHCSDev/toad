@@ -18,6 +18,7 @@ from pyqt_reactive.theming import ColorScheme, StatusColorRole, ThemeManager
 from pyqt_reactive.widgets.status_line import StatusLine
 from ui_theme.scheme import ColourScheme
 
+from toad import paths
 from toad.client.commands import CommandRefused
 from toad.client.host import CommsHost
 from toad.work_preparation import PreparationRuntime
@@ -42,7 +43,7 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
     is pyqt-reactive's dispatcher, which this host is; timers are its owned callbacks,
     parented to the application; the theme is the shared ui_theme scheme as pyqt-reactive's
     ColorScheme, applied once to the whole QApplication; notices go to its status line, which
-    puts each away after the contract's notice_seconds.
+    puts each away after the contract's notice_seconds, and an error notice is saved first.
     Dialogs open over whichever window is active.
     """
 
@@ -103,7 +104,7 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
 
     def report_fatal(self, error: Exception) -> None:
         traceback.print_exception(error)
-        self.status_line.show_status(f"Toad: {type(error).__name__}: {error}", StatusColorRole.ERROR)
+        self.show_error_notice(f"Toad: {type(error).__name__}: {error}", error, "Toad")
 
     def show_info(self, text: str, title: str) -> None:
         self.status_line.show_status(f"{title}: {text}", StatusColorRole.INFO)
@@ -112,7 +113,14 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
         self.status_line.show_status(f"{title}: {text}", StatusColorRole.WARNING)
 
     def show_error(self, error: Exception | str, title: str) -> None:
-        self.status_line.show_status(f"{title}: {error}", StatusColorRole.ERROR)
+        self.show_error_notice(f"{title}: {error}", error, title)
+
+    def show_error_notice(self, text: str, error: Exception | str, prefix: str) -> None:
+        """Every error the status line shows is saved first, with its traceback, under a
+        timestamped name in Toad's state folder (paths.save_error), since the notice puts
+        itself away after notice_seconds."""
+        paths.save_error(error, prefix)
+        self.status_line.show_status(text, StatusColorRole.ERROR)
 
     def log_error(self, text: str) -> None:
         qCritical(text)
