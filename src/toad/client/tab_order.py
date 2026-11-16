@@ -14,12 +14,13 @@ from toad.client.tab_identity import TabIdentity
 class TabOrder:
     def __init__(
         self, focus: Callable[[TabIdentity], object], home: str, db: DB,
-        scopes: tuple[TabScope, ...],
+        scopes: Callable[[], tuple[TabScope, ...]],
     ) -> None:
         # What is shown while no tab is open.
         self.home = home
         self._db = db
         # The Core this app is connected to owns these tabs; others' rows stay untouched.
+        # Read from the connection each time, so a bus switch moves the roster with it.
         self._scopes = scopes
         self._open: list[TabIdentity] = []
         self._write_lock = asyncio.Lock()
@@ -29,8 +30,11 @@ class TabOrder:
         self.events = CoreEventStream(self)
 
     async def load(self) -> tuple[TabIdentity, ...]:
+        """The roster the connected Core saved; visits of any earlier roster are dropped."""
         async with self._write_lock:
-            self._open = [row.identity for row in await self._db.tab_list(self._scopes)]
+            self._open = [row.identity for row in await self._db.tab_list(self.scopes)]
+            self._visits, self._cursor = [], -1
+            self.events.publish(TabHistoryChanged())
             return self.names
 
     @asynccontextmanager
@@ -40,7 +44,7 @@ class TabOrder:
             yield
             if self.names != before:
                 # A cancelled caller must join its SQLite writer before releasing the lock.
-                await join_retirement(asyncio.create_task(self._db.tab_roster(self._scopes, self.names)))
+                await join_retirement(asyncio.create_task(self._db.tab_roster(self.scopes, self.names)))
 
     def __contains__(self, mode: TabIdentity | None) -> bool:
         return mode in self._open
@@ -48,7 +52,7 @@ class TabOrder:
     @property
     def scopes(self) -> tuple[TabScope, ...]:
         """The saved tabs this app's Core owns."""
-        return self._scopes
+        return self._scopes()
 
     @property
     def names(self) -> tuple[TabIdentity, ...]:

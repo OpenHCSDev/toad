@@ -14,7 +14,7 @@ async def test_history_branches_closing_prunes_it_and_a_new_kind_of_tab_needs_no
     await database.create()
     order = TabOrder(
         focused.append,
-        home="home", db=database, scopes=(TabScope("test-core"),),
+        home="home", db=database, scopes=lambda: (TabScope("test-core"),),
     )
     await order.load()
     for mode in (first, second, third):
@@ -38,7 +38,7 @@ async def test_home_is_shown_only_while_no_tab_is_open(tmp_path):
     only, closed = PreviewTab(tmp_path / "only"), PreviewTab(tmp_path / "closed")
     database = DB(tmp_path / "toad.client.db")
     await database.create()
-    order = TabOrder(lambda mode: None, home="home", db=database, scopes=(TabScope("test-core"),))
+    order = TabOrder(lambda mode: None, home="home", db=database, scopes=lambda: (TabScope("test-core"),))
     await order.load()
     assert order.previous(closed) == "home"
     await order.open(only)

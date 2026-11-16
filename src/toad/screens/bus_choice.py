@@ -194,10 +194,10 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
                  actions=(ForgetSavedBusAction,), scopes={PriorityActions: (DismissAction,)}):
     """The buses this machine can open, dismissed with the row the reader picked.
 
-    The picker does not relaunch: `CoreConnection.select` chooses at the process boundary,
-    so its caller ends the application onto the choice. A machine holding no remote profile
-    still sees its own bus named, because an empty list would leave the reader guessing
-    whether the picker worked.
+    The picker only answers which row: its caller (app.picked_bus) lets the row act, and a
+    chosen bus switches the running app onto it. A machine holding no remote profile still
+    sees its own bus named, because an empty list would leave the reader guessing whether
+    the picker worked.
     """
 
     @classmethod

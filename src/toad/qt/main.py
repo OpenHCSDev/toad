@@ -33,11 +33,9 @@ async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: 
     sidebar observing."""
     app = QtToadApp(connection, project, PreparationRuntime(RenderProcessPool(connection.helper_start)), scheme)
     await (await app.get_db()).create()
-    # The saved roster is read so tabs this app cannot draw yet stay saved.
-    await app.tab_order.load()
     app.resize(420, 820)
     app.show()
-    app.coordination_access.open_current().show_sidebar(app.sidebar)
+    await app.open_saved_tabs()
     return app
 
 

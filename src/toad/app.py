@@ -42,7 +42,7 @@ from textual.widgets._footer import KeyGroup
 from textual.widgets.markdown import Markdown
 
 from toad.application_actions import ApplicationCommands
-from toad.application_outcome import ApplicationOutcome, Ended, Reconnected, Succeeded
+from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
 from toad.client.bus_selection import BusChoice, HeldBus, PickerRow
 from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
@@ -221,9 +221,9 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
             case PickerRow():
                 row.chosen(self)
 
-    def open_bus(self, choice: BusChoice) -> None:
-        """End this session onto a bus the reader picked."""
-        self.exit(Reconnected(LaunchRuntime.running(), choice))
+    def connection_for(self, choice: BusChoice) -> CoreConnection:
+        """The connection the chosen bus's launch arguments name, read as a launch reads them."""
+        return CoreConnection.select(list(choice.arguments(sys.argv[1:])))
 
     @work(exclusive=True, group="peer-profile", thread=True)
     def ask_peer_for_profile(self, found: PeerBus) -> None:

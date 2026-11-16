@@ -68,16 +68,17 @@ class PickerRow(ABC):
 
 
 class BusChoice(PickerRow):
-    """A bus the next launch of this Toad selects.
+    """A bus this Toad can switch onto.
 
-    `CoreConnection.select` chooses once at the process boundary and tab scopes are
-    written under that connection's location, so a reader changing bus relaunches onto
-    their choice rather than re-parenting every observation in place. The choice owns
-    how it writes itself into the next launch's arguments; nothing else spells them.
+    Switching swaps the connection, not the app: the running application reads the
+    choice's launch arguments with the parser a launch uses, observes the new Core through
+    its one coordination access and opens the tabs saved under that Core's location
+    (ClientApplication.switch_bus). The choice owns how it writes itself into launch
+    arguments; nothing else spells them.
     """
 
     def chosen(self, app: BusPickerHost) -> None:
-        """A bus is opened by ending this session onto it."""
+        """A bus is opened by switching this session onto it."""
         app.open_bus(self)
 
     @abstractmethod
@@ -94,12 +95,17 @@ class BusChoice(PickerRow):
         return tuple(remaining)
 
     @staticmethod
-    def offered(now: float) -> tuple[BusChoice, ...]:
-        """This machine's own bus, then every remote one it holds an open profile for."""
-        return (LocalBus(), *(
+    def held(now: float) -> tuple[HeldBus, ...]:
+        """Every remote bus this machine holds an open profile for."""
+        return tuple(
             HeldBus(entry) for entry in HeldUiProfiles.held(now)
             if isinstance(entry, OpenableProfile)
-        ))
+        )
+
+    @staticmethod
+    def offered(now: float) -> tuple[BusChoice, ...]:
+        """This machine's own bus, then the remote ones it holds."""
+        return (LocalBus(), *BusChoice.held(now))
 
 
 @dataclass(frozen=True)

@@ -1,4 +1,4 @@
-"""Textual-facing: picking a bus ends the app onto the launch that opens that bus."""
+"""Textual-facing: picking a bus switches the running app onto it, in place."""
 
 import asyncio
 import threading
@@ -8,7 +8,6 @@ from pathlib import Path
 
 from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.nominal.field_codec import FieldCodec, RootId
-from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.connector_profile import (
     BearerSecret,
     HttpsMcpEndpoint,
@@ -36,10 +35,11 @@ from textual.css.scalar import Unit
 from yarl import URL
 
 from toad.app import ToadApp
-from toad.application_outcome import Reconnected, Succeeded
+from toad.application_outcome import Ended, Succeeded
+from toad.client.application import BusSwitch
 from toad.client.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
-from toad.client.connection import LocalCoreConnection, RemoteCoreConnection
-from toad.launch_binding import NoAgent
+from toad.client.connection import FailedObservation, LocalObserving, RemoteCoreConnection
+from toad.client.db import TabScope
 from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows
 from toad.client.application_actions import ApplicationAction
 
@@ -70,40 +70,56 @@ def test_a_profile_names_its_host_and_namespace_in_the_picker(tmp_path):
     assert BusChoice.offered(0.0)[0] == LocalBus(), "this machine's own bus is always offered first"
 
 
-async def test_picking_a_bus_ends_the_app_onto_it(workspace, tmp_path):
-    app = ToadApp(agent_binding=NoAgent(), project_dir=Checkout(workspace.project),
-                  connection=LocalCoreConnection.from_launch(workspace.launch_root))
-    choice = HeldBus(openable(tmp_path / "box-b.json"))
-    async with app.run_test(size=(140, 48)):
-        app.picked_bus(choice)
+async def test_picking_a_bus_switches_the_running_app_onto_it(workspace, monkeypatch, tmp_path):
+    """Tristan: "we should factor that shit out properly so we don't reload the whole app for
+    a simple bus change". The same app and the same coordination access observe the chosen
+    Core; the tab roster moves to its location; nothing exits. Choosing this machine again
+    comes back the same way, read by the launch parser from the launch's own arguments."""
+    held = tmp_path / "box-b.json"
+    openable(held).profile.write_new(held)
+    monkeypatch.setattr("sys.argv", ["toad", "--comms-root", str(workspace.launch_root.path)])
+    async with workspace.app(size=(140, 48)) as ui:
+        app, _ = ui.textual
+        access, local = app.coordination_access, app.coordination_access.connection
+        saved = app.tab_order.names
+        assert saved, "the fixture's session is a tab saved under this machine's bus"
+        app.picked_bus(HeldBus(openable(held)))
+        await app.wait_operations(BusSwitch)
+        assert isinstance(access.observation, FailedObservation), (
+            "the unreachable bus is observed, and refused, in place")
+        assert app.coordination_access is access, "one access; its views stay subscribed"
+        assert access.connection.location == "https://box-b.example/mcp"
+        assert app.tab_order.scopes == (TabScope("https://box-b.example/mcp"),)
+        assert app.tab_order.names == () and not app.session_navigation.members, (
+            "the views of the bus left behind are closed")
+        assert isinstance(app.return_value, Ended), "the app is still running"
 
-        async def ended() -> None:
-            while not isinstance(app.return_value, Reconnected):
-                await asyncio.sleep(0.01)
-
-        await asyncio.wait_for(ended(), 30)
-    assert app.return_value == Reconnected(LaunchRuntime.running(), choice)
+        app.picked_bus(LocalBus())
+        await app.wait_operations(BusSwitch)
+        assert isinstance(access.observation, LocalObserving), "this machine's bus, observed again"
+        assert access.connection.location == local.location
+        assert access.connection is not local, "read again by the launch parser"
+        assert app.tab_order.scopes == local.tab_scopes()
+        assert app.tab_order.names == saved, "its saved tabs stayed saved and open again"
+        assert isinstance(app.return_value, Ended)
 
 
 async def test_a_dismissed_picker_changes_nothing(workspace):
     """Through the fixture that owns a running app: the earlier hand-built ToadApp here was
     the only test that let one close on its own, and it died in application start."""
     async with workspace.app(size=(140, 48)) as ui:
+        connection = ui.app.coordination_access.connection
         ui.app.picked_bus(None)
         await ui.step()
         # Esc out of the picker leaves this session on its own bus.
-        assert not isinstance(ui.app.return_value, Reconnected)
+        assert ui.app.coordination_access.connection is connection
 
 
-def test_both_exec_outcomes_share_one_exec_and_differ_only_in_arguments(monkeypatch, tmp_path):
-    """Succeeded keeps this launch's arguments; Reconnected rewrites them for its choice."""
+def test_an_upgrade_reopens_this_launchs_own_arguments(monkeypatch):
+    """Succeeded execs the runtime it switched to with this launch's arguments, bus and all."""
     monkeypatch.setattr("sys.argv", ["toad", "--comms-profile", "/held/old.json", "--theme", "dark"])
-    runtime = LaunchRuntime.running()
-    assert Succeeded(runtime).arguments() == ("--comms-profile", "/held/old.json", "--theme", "dark")
-    assert Reconnected(runtime, LocalBus()).arguments() == ("--theme", "dark")
-    chosen = openable(tmp_path / "box-b.json")
-    assert Reconnected(runtime, HeldBus(chosen)).arguments() == (
-        "--theme", "dark", "--comms-profile", str(tmp_path / "box-b.json"))
+    assert Succeeded(LaunchRuntime.running()).arguments() == (
+        "--comms-profile", "/held/old.json", "--theme", "dark")
 
 
 async def test_the_hamburger_offers_the_picker_under_its_own_name(workspace):
@@ -124,12 +140,13 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
+        connection = app.coordination_access.connection
         app.push_screen(BusChoices.offered(), app.picked_bus)
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         for _ in range(4):
             await ui.step()
         assert isinstance(app.screen, BusChoices), "the picker stays up until a row is chosen"
-        assert not isinstance(app.return_value, Reconnected), "nothing is opened by showing a list"
+        assert app.coordination_access.connection is connection, "nothing is opened by showing a list"
 
 
 async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch, tmp_path):
@@ -163,8 +180,9 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
     """Tristan: "it's a bus on my private tailnet why would want to have to jupm throuhg hoops".
 
     The ask is one ssh call to that machine's own connector, stubbed here; what matters is
-    that picking the row ends this session onto the bus the peer handed over, with no errand
-    in between.
+    that picking the row opens the bus the peer handed over, with no errand in between. The
+    switch itself is test_picking_a_bus_switches_the_running_app_onto_it's; opening here is
+    recorded, so the test never dials the real machine the profile names.
     """
 
     found = PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
@@ -179,16 +197,18 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
     monkeypatch.setattr(TailnetProfiles, "ask",
                         classmethod(lambda cls, peer, previous: OfferedPeerProfile(peer, profile)))
 
+    opened: list[BusChoice] = []
+    monkeypatch.setattr(ToadApp, "open_bus", lambda self, choice: opened.append(choice))
+
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
         DiscoveredPeer(found).chosen(app)
-        await ui.until(lambda: isinstance(app.return_value, Reconnected),
-                       why="the session to end onto the peer's bus")
-        opened = app.return_value.choice
-        assert isinstance(opened, HeldBus)
-        assert str(opened.profile.profile.endpoint.url).endswith(":8443/mcp")
-        assert opened.arguments(("toad",))[-2:] == (RemoteCoreConnection.argument, str(held)), (
-            "the next launch names the profile the peer handed over")
+        await ui.until(lambda: opened, why="the peer's bus to be opened")
+        [choice] = opened
+        assert isinstance(choice, HeldBus)
+        assert str(choice.profile.profile.endpoint.url).endswith(":8443/mcp")
+        assert choice.arguments(())[-2:] == (RemoteCoreConnection.argument, str(held)), (
+            "the switch reads the profile the peer handed over")
 
 
 async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypatch):
@@ -201,6 +221,7 @@ async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypat
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
+        connection = app.coordination_access.connection
         said: list[str] = []
         monkeypatch.setattr(type(app), "notify",
                             lambda self, message, **options: said.append(message))
@@ -208,7 +229,7 @@ async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypat
         await ui.until(lambda: said, why="the peer's refusal on screen")
         assert "would not hand out a profile" in said[0]
         assert "No tailnet-only endpoint" in said[0], "the peer's own sentence, not a summary"
-        assert not isinstance(app.return_value, Reconnected)
+        assert app.coordination_access.connection is connection
 
 
 async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monkeypatch, tmp_path):

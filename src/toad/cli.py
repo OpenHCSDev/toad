@@ -9,8 +9,6 @@ import time
 import click
 import rich
 from agent_comms.execution import launch_root
-from agent_comms.execution.launch_root import LaunchRoot
-from agent_comms.installer.active_route import CommsRoute
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.projects.checkouts import Checkout
 
@@ -86,12 +84,8 @@ class DefaultCommandGroup(click.Group):
         if "--version" in args or "-v" in args:
             return super().parse_args(ctx, args)
 
-        # Select once at the process boundary; apps receive this captured value.
-        # A frontend-only install has no published agent runtime yet. The route owner
-        # supplies its normal local default when absent, while a broken route still refuses.
-        ctx.obj = CoreConnection.select(
-            args, lambda: LaunchRoot.from_path(CommsRoute.current().root)
-        )
+        # The launch's connection; apps receive this captured value.
+        ctx.obj = CoreConnection.select(args)
         # Check if first arg is a known subcommand
         if not args or args[0] not in self.commands:
             # If not a subcommand, prepend the default command name
