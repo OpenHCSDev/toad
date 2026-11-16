@@ -10,7 +10,7 @@ keyboard. Nothing here imports a terminal library.
 from __future__ import annotations
 
 import time
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 
@@ -24,7 +24,7 @@ from agent_comms.messaging.historical_views import HistorySource
 from agent_comms.messaging.messages import Message
 from agent_comms.messaging.routing import MessageRoute
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.storage.recorded_time import EventTime
+from agent_comms.storage.recorded_time import EventTime, RecordedEventTime, UnrecordedEventTime
 from metaclass_registry.mro_dispatch import handles
 
 from toad.core.projection import MroProjection
@@ -74,6 +74,32 @@ class LiveMessageClock(MessageClock):
 @dataclass(frozen=True)
 class RecordedMessageClock(MessageClock):
     timestamp: float
+
+
+class LineRoom(ABC):
+    """How much of a divider's title one line holds, in its frontend's own measure: terminal
+    cells for Textual, pixels for Qt."""
+
+    @abstractmethod
+    def fits(self, spans: tuple[Span, ...]) -> bool: ...
+
+
+class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):
+    """A recorded divider shows its time beside the title, or below it when they do not fit
+    on one line; an unrecorded one shows none. Each group is one line of the divider."""
+
+    @handles(RecordedEventTime)
+    def recorded(self, time: RecordedEventTime, spans: tuple[Span, ...], room: LineRoom):
+        shown = RecordedMessageClock(time.at).display()[0]
+        timed = (*spans, Span(f" · {shown}"))
+        return (timed,) if room.fits(timed) else (spans, (Span(shown),))
+
+    @handles(UnrecordedEventTime)
+    def unrecorded(self, time: UnrecordedEventTime, spans: tuple[Span, ...], room: LineRoom):
+        return (spans,)
+
+
+DIVIDER_TIME = DividerTime()
 
 
 class ThreadLink(MroProjection[LineLink]):

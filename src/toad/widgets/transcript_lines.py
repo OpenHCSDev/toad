@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import TranscriptFragment
     from toad.widgets.transcript_history import LaidOut, RowChange
 
-from agent_comms.storage.recorded_time import RecordedEventTime, UnrecordedEventTime
 from metaclass_registry.mro_dispatch import handles
 from rich._wrap import divide_line
 from rich.cells import cell_len, set_cell_size
@@ -54,7 +53,7 @@ from toad.client.line_blocks import (
 from toad.link_click import OpenLineLink
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
-from toad.message_rows import RecordedMessageClock, WireBody
+from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
 from toad.patch import (
     DiffSettings,
     NoPatchCell,
@@ -142,22 +141,14 @@ class LinkStyle(MroProjection[Style]):
 LINK_STYLE = LinkStyle()
 
 
-class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):
-    """A recorded divider shows its time beside the title, or below it when they do not fit."""
+@dataclass(frozen=True)
+class CellRoom(LineRoom):
+    """A divider line in a terminal: its width in cells, less the rule's ends."""
 
-    @handles(RecordedEventTime)
-    def recorded(self, time: RecordedEventTime, spans: tuple[Span, ...], width: int):
-        shown = RecordedMessageClock(time.at).display()[0]
-        timed = (*spans, Span(f" · {shown}"))
-        return ((spans, (Span(shown),)) if sum(cell_len(span.text) for span in timed) > max(1, width - 8)
-                else (timed,))
+    width: int
 
-    @handles(UnrecordedEventTime)
-    def unrecorded(self, time: UnrecordedEventTime, spans: tuple[Span, ...], width: int):
-        return (spans,)
-
-
-DIVIDER_TIME = DividerTime()
+    def fits(self, spans: tuple[Span, ...]) -> bool:
+        return sum(cell_len(span.text) for span in spans) <= max(1, self.width - 8)
 
 
 def _fit(text: str, width: int) -> str:
@@ -499,7 +490,7 @@ class RichLineRenderer(MroProjection[None]):
 
     @handles(Divider)
     def divider(self, block: Divider) -> None:
-        groups = DIVIDER_TIME.project_value(block.timestamp, block.spans, self.width)
+        groups = DIVIDER_TIME.project_value(block.timestamp, block.spans, CellRoom(self.width))
         rule, bold = self.theme.style(block.role), Style(bold=True)
         # Fit actual content, not a guessed phone width. Each semantic span and
         # the complete recorded time survive wrapping, including long names.

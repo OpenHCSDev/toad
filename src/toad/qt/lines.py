@@ -3,6 +3,7 @@ in the same roles and the same theme colours."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from html import escape
 
 from pygments.lexers import get_lexer_by_name
@@ -13,29 +14,32 @@ from rich.style import Style
 from rich.syntax import ANSI_DARK, ANSI_LIGHT
 from ui_theme.colour import require_terminal_palette
 
-from agent_comms.storage.recorded_time import RecordedEventTime, UnrecordedEventTime
 from markdown_it import MarkdownIt
 from metaclass_registry.mro_dispatch import handles
 from ui_theme.scheme import ColourScheme, ThemeColour
 
 from toad.client.line_blocks import Body, Divider, LineBlock, LineRole, NoBar, Span, Spans
 from toad.core.projection import MroProjection
-from toad.message_rows import RecordedMessageClock, WireBody
+from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
 
 
-class QtDividerTime(MroProjection[str]):
-    """A recorded divider shows its time after the title; an unrecorded one shows none."""
+@dataclass(frozen=True)
+class PixelRoom(LineRoom):
+    """A divider line in a Qt view: its width in pixels of the divider's bold font, keeping room
+    for a short rule on each side."""
 
-    @handles(RecordedEventTime)
-    def recorded(self, time: RecordedEventTime) -> str:
-        return f" · {RecordedMessageClock(time.at).display()[0]}"
+    metrics: QFontMetricsF
+    width: float
 
-    @handles(UnrecordedEventTime)
-    def unrecorded(self, time: UnrecordedEventTime) -> str:
-        return ""
+    def advance(self, spans: tuple[Span, ...]) -> float:
+        return self.metrics.horizontalAdvance("  " + "".join(span.text for span in spans) + "  ")
 
+    def rule(self, spans: tuple[Span, ...]) -> int:
+        """Rule characters for each side of these spans; under two, the line has no room for rules."""
+        return int((self.width - self.advance(spans)) / 2 / self.metrics.horizontalAdvance("─"))
 
-QT_DIVIDER_TIME = QtDividerTime()
+    def fits(self, spans: tuple[Span, ...]) -> bool:
+        return self.rule(spans) >= 2
 
 
 class QtLineRenderer(MroProjection[str]):
@@ -98,16 +102,22 @@ class QtLineRenderer(MroProjection[str]):
 
     @handles(Divider)
     def divider(self, block: Divider) -> str:
-        title = "".join(self.span(span, span.link.heading_role(span.role, block.role)) for span in block.spans)
-        time = QT_DIVIDER_TIME.project_value(block.timestamp)
+        """The title between two rules filling the width; the time goes on its own line when
+        both do not fit, and a title too long for any rule wraps, as Textual's divider does."""
         bold = QFont(self.font)
         bold.setBold(True)
-        measure = QFontMetricsF(bold)
-        label = f"  {block.label}{time}  "
-        side = max(2, int((self.width - measure.horizontalAdvance(label)) / 2 / measure.horizontalAdvance("─")))
-        rule = self.styled("─" * side, block.role)
-        return (f'<p align="center" style="margin-top:10px;white-space:pre">{rule} <b>{title}</b>'
-                f'{self.styled(time, block.role)} {rule}</p>')
+        room = PixelRoom(QFontMetricsF(bold), self.width)
+        first, *rest = DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
+        if room.fits(first):
+            rule = self.styled("─" * room.rule(first), block.role)
+            head = (f'<p align="center" style="margin-top:10px;white-space:pre">{rule} '
+                    f'<b>{self.title(first, block)}</b> {rule}</p>')
+        else:
+            head = f'<p align="center" style="margin-top:10px"><b>{self.title(first, block)}</b></p>'
+        return head + "".join(f'<p align="center"><b>{self.title(group, block)}</b></p>' for group in rest)
+
+    def title(self, spans: tuple[Span, ...], block: Divider) -> str:
+        return "".join(self.span(span, span.link.heading_role(span.role, block.role)) for span in spans)
 
     @handles(Spans)
     def spans(self, block: Spans) -> str:
