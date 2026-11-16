@@ -82,7 +82,7 @@ class AgentBase(AgentConnection):
         observation.schedule(self)
 
     async def project_changed(self, path: Path) -> None:
-        from toad.db import DB
+        from toad.client.db import DB
 
         self.project_root_path = path
         if (session_pk := self.session.pk) is not None:

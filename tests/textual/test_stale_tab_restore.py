@@ -1,5 +1,5 @@
 """Textual-facing: a saved tab whose target is gone is dropped at startup, not a crash."""
-from toad.db import DB, UNSCOPED_TABS
+from toad.client.db import DB, UNSCOPED_TABS
 from toad.tab_identity.kinds import AcpTab
 
 

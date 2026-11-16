@@ -948,7 +948,7 @@ from toad.agent_schema import Command
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.catalog_actions import CatalogCommandAction
 from toad.commit_claims import StartedInputClaim
-from toad.db import DB
+from toad.client.db import DB
 from toad.screens.action_modal import ActionModal
 from toad.transcript_publication import ObservedSourcePublication
 from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys

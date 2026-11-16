@@ -13,13 +13,13 @@ from agent_comms.nominal.field_codec import AcpSessionId, RecordedTimestamp
 from agent_comms.errors import RelationViolationError
 
 from toad.agent_schema import AgentDefinition
-from toad.db import DB, Session, SessionMeta
+from toad.client.db import DB, Session, SessionMeta
 
 SAVED_AGENT = {"identity": "id", "name": "Agent", "run_command": {"*": "agent"}}
 
 
 async def test_saved_row_reads_as_typed_session_and_updates_keep_its_agent(tmp_path):
-    with patch("toad.db.paths.get_state", return_value=tmp_path):
+    with patch("toad.client.db.paths.get_state", return_value=tmp_path):
         store = DB()
         await store.create()
         # A row as Toad saves it, in the STRICT schema DB.create declares.
@@ -60,7 +60,7 @@ async def test_saved_row_reads_as_typed_session_and_updates_keep_its_agent(tmp_p
 
 
 async def test_fresh_schema_stores_metadata_and_a_busy_writer_does_not_block_the_event_loop(tmp_path):
-    with patch("toad.db.paths.get_state", return_value=tmp_path):
+    with patch("toad.client.db.paths.get_state", return_value=tmp_path):
         store = DB()
         await store.create()
         pk = await store.session_new("New", "Agent", "id", AcpSessionId("session"), meta=SessionMeta(Checkout(Path("/project"))))
@@ -80,7 +80,7 @@ async def test_fresh_schema_stores_metadata_and_a_busy_writer_does_not_block_the
 
 
 async def test_incompatible_durable_schema_is_refused_with_its_rows_untouched(tmp_path):
-    with patch("toad.db.paths.get_state", return_value=tmp_path):
+    with patch("toad.client.db.paths.get_state", return_value=tmp_path):
         store = DB()
         with sqlite3.connect(store.path) as db:
             db.execute("CREATE TABLE sessions (id INTEGER, title TEXT NOT NULL)")
@@ -95,7 +95,7 @@ async def test_incompatible_durable_schema_is_refused_with_its_rows_untouched(tm
 
 
 async def test_sqlite_failure_is_not_reported_as_an_absent_session(tmp_path):
-    with patch("toad.db.paths.get_state", return_value=tmp_path):
+    with patch("toad.client.db.paths.get_state", return_value=tmp_path):
         store = DB()
         await store.create()
         assert await store.session_get(1234) is None
@@ -112,7 +112,7 @@ async def test_sqlite_failure_is_not_reported_as_an_absent_session(tmp_path):
 
 
 async def test_model_history_keeps_newest_use_per_agent_and_model_after_reopening(tmp_path):
-    with patch("toad.db.paths.get_state", return_value=tmp_path):
+    with patch("toad.client.db.paths.get_state", return_value=tmp_path):
         store = DB()
         await store.create()
         await asyncio.gather(*(

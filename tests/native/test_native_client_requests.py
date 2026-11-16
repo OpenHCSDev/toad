@@ -7,7 +7,7 @@ from acp import schema
 
 from support.agents import deliver
 from support.native import native_session
-from toad.db import DB
+from toad.client.db import DB
 from toad.navigation_target import channel_target
 from toad.navigation_context import NavigationContext
 from toad.screens.permissions import PermissionReview

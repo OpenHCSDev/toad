@@ -42,7 +42,7 @@ class ToadDatabase(WriterOwnedStore):
 
     @classmethod
     def path(cls) -> Path:
-        return paths.get_state() / "toad.db"
+        return paths.get_state() / "toad.client.db"
 
     @classmethod
     def table_schema(cls) -> type[TableSchema]:

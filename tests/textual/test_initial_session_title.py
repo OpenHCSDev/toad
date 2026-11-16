@@ -11,7 +11,7 @@ from support.agents import command
 from support.coordination import coordination_fact
 from toad.acp.agent import Agent
 from toad.core.events import CoreEvent, SessionInfoUpdate
-from toad.db import DB
+from toad.client.db import DB
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 THREAD = "existing-worker"

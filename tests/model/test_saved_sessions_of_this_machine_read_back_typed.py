@@ -7,11 +7,11 @@ import sqlite3
 import pytest
 from agent_comms.nominal.field_codec import FieldCodec
 
-from toad.db import Session
+from toad.client.db import Session
 
 
 def test_saved_sessions_keep_identity_agent_definition_and_directory(tmp_path):
-    original = Path.home() / ".local/state/toad/toad.db"
+    original = Path.home() / ".local/state/toad/toad.client.db"
     if not original.exists():
         pytest.skip("this machine has no saved Toad sessions")
     # Read only; the comparison runs on a SQLite backup owned by this test.

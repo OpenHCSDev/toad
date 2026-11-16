@@ -30,7 +30,7 @@ from toad.acp.queue_attachment import QueueActionRefused
 from toad.acp.session_output import SessionOutput
 from toad.acp.status import StopReason
 from toad.acp.terminal_owner import OperationalTerminalOwner
-from toad.acp.transcript_reader import CoordinationTranscriptReader
+from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.core import events as core_events
 from toad.core.events import LogAgentFail
 from toad.plan import PlanItem

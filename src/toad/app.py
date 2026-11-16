@@ -51,7 +51,7 @@ from toad.client.connection import CoreConnection
 from toad.constants import WELCOME
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
-from toad.db import DB
+from toad.client.db import DB
 from toad.file_kind import FileKind
 from toad.launch_binding import AgentBinding
 from toad.native_style import TransparentBackground

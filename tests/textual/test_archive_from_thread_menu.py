@@ -23,7 +23,7 @@ from agent_comms.registry.thread_status import (
 from agent_comms.registry.threads import NativeThread
 from textual.geometry import Offset
 
-from toad.db import DB
+from toad.client.db import DB
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.sidebar_tree import CommsRow
 

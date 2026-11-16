@@ -29,7 +29,7 @@ from toad.agent_schema import AgentDefinition
 from toad.agents import AgentNotFound, read_agents
 from toad.core import events as core_events
 from toad.core.events import CoreEventStream
-from toad.db import SessionMeta
+from toad.client.db import SessionMeta
 from toad.launch_binding import (
     AgentAttached,
     AgentBinding,

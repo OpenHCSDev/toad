@@ -22,7 +22,7 @@ from python_introspect.choices import LabelledChoices
 from toad.acp.client_session import ClientSessionRequest
 from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import ConfigurationChanged
-from toad.db import DB
+from toad.client.db import DB
 from toad.client.input_decision import InputAccepted, InputDecision, ModelSelectionRequired
 
 

@@ -99,11 +99,11 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
-from toad.acp.transcript_reader import CoordinationTranscriptReader
+from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.client.bus_selection import ProfileArgument
 from toad.client.host import CommsHost
 from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
-from toad.core.context_reads import ContextReads
+from toad.client.context_reads import ContextReads
 from toad.core.events import (
     CoordinationObserved,
     CoreEventStream,
@@ -117,7 +117,7 @@ from toad.core.events import (
     ThreadInterestUpdate,
     ThreadRowsChanged,
 )
-from toad.db import UNSCOPED_TABS, TabScope
+from toad.client.db import UNSCOPED_TABS, TabScope
 from toad.client.notification_status import (
     CheckedNotifications,
     NotificationStatus,
