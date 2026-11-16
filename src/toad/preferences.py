@@ -59,7 +59,7 @@ from toad.setting_widget import PromptSettingEffects
 from toad.settings_scope import ConversationSettingsScope, ViewSettingsScope
 from toad.terminal_origin import TerminalLayout
 from toad.version import CheckedVersionMonitor, VersionMonitor
-from toad.widgets.presentation_window import PresentationBudget
+from toad.client.history_pager import PresentationBudget
 
 
 @dataclass(frozen=True)

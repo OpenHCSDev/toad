@@ -21,7 +21,7 @@ from toad.widgets.session_thread_panels import (
     SessionPanel,
     ThreadDetailsPanel,
 )
-from toad.widgets.presentation_window import NativePresentation
+from toad.client.history_pager import NativePresentation
 from toad.widgets.project_panel import NO_PROJECT_VIEW
 
 if TYPE_CHECKING:
