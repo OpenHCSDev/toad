@@ -101,7 +101,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.bus_selection import ProfileArgument
-from toad.comms_host import CommsHost
+from toad.client.host import CommsHost
 from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
 from toad.core.context_reads import ContextReads
 from toad.core.events import (
@@ -212,7 +212,7 @@ class CoreConnection(ABC):
             return RemoteCoreConnection.startup(arguments)
         return LocalCoreConnection.from_launch(LaunchRoot.startup(arguments, published))
 
-    def open_access(self, app: CommsHost[Observing]) -> CoordinationAccess:
+    def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
     def close(self) -> None:
@@ -834,7 +834,7 @@ class RemoteAnsweringReads(AnsweringReads, RemoteObserving, answers_for=RemoteOb
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
-    def __init__(self, app: CommsHost[Observing], connection: CoreConnection) -> None:
+    def __init__(self, app: CommsHost, connection: CoreConnection) -> None:
         self.app = app
         self.connection = connection
 
