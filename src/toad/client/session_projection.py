@@ -9,7 +9,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from abc import ABCMeta
 
 from toad.client.session_tracker import OpenTab
-from toad.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity
 
 
 class SessionProjection[Navigation, Source](ABC):

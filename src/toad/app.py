@@ -76,8 +76,8 @@ from toad.client.session_tracker import (
     SidebarState,
 )
 from toad.sidebar_layout import SidebarLayout
-from toad.tab_identity import TabIdentity
-from toad.tab_order import TabOrder
+from toad.client.tab_identity import TabIdentity
+from toad.client.tab_order import TabOrder
 from toad.terminal_attention import TerminalAttention
 from toad.terminal_origin import TerminalOrigin
 from toad.thread_actions import ThreadActions

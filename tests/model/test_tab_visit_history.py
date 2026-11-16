@@ -1,8 +1,8 @@
 """Tab order keeps one opening order and a branching visit history."""
 
-from toad.tab_order import TabOrder
+from toad.client.tab_order import TabOrder
 from toad.client.db import DB, TabScope
-from toad.tab_identity.kinds import PreviewTab
+from toad.client.tab_identity.kinds import PreviewTab
 
 
 async def test_history_branches_closing_prunes_it_and_a_new_kind_of_tab_needs_no_new_code(tmp_path):

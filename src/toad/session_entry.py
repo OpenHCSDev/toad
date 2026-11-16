@@ -38,7 +38,7 @@ from toad.client.session_tracker import (
     SessionDetails,
     ThreadTab,
 )
-from toad.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity
 from toad.widgets.acp_log import AcpLogPreview
 from toad.widgets.project_panel import FilePreview
 

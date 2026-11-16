@@ -22,7 +22,7 @@ from agent_comms.storage.typed_table import (
 
 from toad import paths
 from toad.client.agent_schema import AgentDefinition
-from toad.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 SessionTimestamp = Annotated[RecordedTimestamp, TimestampText, Column(storage=TextStorage)]

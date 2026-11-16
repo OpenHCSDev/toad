@@ -7,7 +7,7 @@ from toad.app import ToadApp
 from toad.screens.main import MainScreen
 from toad.client.session_tracker import SidebarSelection
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
-from toad.tab_identity.kinds import MailboxTab
+from toad.client.tab_identity.kinds import MailboxTab
 
 
 class FrameApp(ToadApp):

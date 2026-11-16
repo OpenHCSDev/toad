@@ -16,7 +16,7 @@ from toad.link_click import OpenLineLink
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
 from toad.screens.workspace import WorkspaceScreen
-from toad.tab_identity.kinds import MailboxTab
+from toad.client.tab_identity.kinds import MailboxTab
 from toad.widgets.conversation import Conversation
 from toad.widgets.presentation_window import NEWER_END
 from toad.widgets.transcript_history import TranscriptHistory

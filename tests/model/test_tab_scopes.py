@@ -6,7 +6,7 @@ import sqlite3
 
 from toad.client.connection import LocalCoreConnection
 from toad.client.db import DB, TabScope, UNSCOPED_TABS
-from toad.tab_identity.kinds import PreviewTab
+from toad.client.tab_identity.kinds import PreviewTab
 
 
 # Both machines' roots have the same path; which machine's home it sits in is not the point.

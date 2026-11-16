@@ -68,7 +68,7 @@ from toad.app_node import ToadNode
 from textual import on
 
 if TYPE_CHECKING:
-    from toad.tab_order import TabOrder
+    from toad.client.tab_order import TabOrder
 
 
 @dataclass(frozen=True)

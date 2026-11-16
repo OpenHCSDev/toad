@@ -1,6 +1,6 @@
 """Textual-facing: a saved tab whose target is gone is dropped at startup, not a crash."""
 from toad.client.db import DB, UNSCOPED_TABS
-from toad.tab_identity.kinds import AcpTab
+from toad.client.tab_identity.kinds import AcpTab
 
 
 async def test_a_saved_tab_without_its_session_is_removed_at_startup(workspace):

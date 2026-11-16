@@ -13,8 +13,8 @@ from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 from toad import get_version
 from toad.version import VersionMonitor
-from toad.tab_identity.kinds import MailboxTab
-from toad.tab_identity import TabTargetGone
+from toad.client.tab_identity.kinds import MailboxTab
+from toad.client.tab_identity import TabTargetGone
 
 if TYPE_CHECKING:
     from ssl import SSLContext

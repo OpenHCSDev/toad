@@ -4,8 +4,8 @@ import pytest
 
 from toad.core.events import SessionChangedEvent
 from toad.client.db import DB, TabScope
-from toad.tab_order import TabOrder
-from toad.tab_identity.kinds import AcpTab
+from toad.client.tab_order import TabOrder
+from toad.client.tab_identity.kinds import AcpTab
 from toad.client.session_tracker import (
     AuthoredSessionName,
     SessionDetails,

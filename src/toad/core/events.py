@@ -32,7 +32,7 @@ from toad.acp.sdk_boundary import ToolCallWire
 from toad.acp.status import ToolCallStatus
 from toad.live_output import OutputStream, ThoughtStream
 from toad.plan import PlanItem
-from toad.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity
 from formbridge.operations import ExclusiveKind
 from toad.worker_group import WorkerGroup
 

@@ -48,8 +48,8 @@ from toad.session_entry import (
 from toad.session_host import NavigationHost, SessionNavigator
 from toad.session_scope import SessionScope
 from toad.client.session_tracker import CommsViewKey, OpenTab, SessionDetails
-from toad.tab_identity import SessionTabIdentity, TabTargetGone
-from toad.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
+from toad.client.tab_identity import SessionTabIdentity, TabTargetGone
+from toad.client.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from toad.widgets.comms_sidebar import CommsSidebar

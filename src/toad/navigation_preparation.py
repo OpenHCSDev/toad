@@ -17,7 +17,7 @@ from agent_comms.projects.checkouts import Checkout
 
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.client.session_tracker import CommsViewKey
-from toad.tab_identity import SessionTabIdentity
+from toad.client.tab_identity import SessionTabIdentity
 from toad.client.connection import Observing
 
 ResultT = TypeVar("ResultT")

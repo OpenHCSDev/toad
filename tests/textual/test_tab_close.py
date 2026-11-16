@@ -7,7 +7,7 @@ from support.applications import record_notifications
 from toad.client.connection import FailedObservation, LocalCoreConnection, UnselectedRoute
 from toad.core.events import ObservedServiceChanged
 from toad.preferences import SETTINGS
-from toad.tab_identity.kinds import MailboxTab
+from toad.client.tab_identity.kinds import MailboxTab
 from toad.widgets.session_tabs import SessionTabClose
 
 

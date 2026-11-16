@@ -17,7 +17,7 @@ from toad.client.host import CommsHost as SharedCommsHost
 from toad.core.events import CoreEventStream
 from toad.core_event_carrier import CoreEventReceiver
 from toad.client.session_projection import SessionCollection
-from toad.tab_order import TabOrder
+from toad.client.tab_order import TabOrder
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime
 

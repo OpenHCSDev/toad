@@ -10,8 +10,8 @@ from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 
 from toad.client.conversation import SharedConversationKind
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
-from toad.tab_identity import SessionTabIdentity, TabIdentity
-from toad.tab_order import TabOrder
+from toad.client.tab_identity import SessionTabIdentity, TabIdentity
+from toad.client.tab_order import TabOrder
 
 
 @dataclass(frozen=True)

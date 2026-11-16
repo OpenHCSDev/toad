@@ -11,8 +11,8 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from toad.conversation_kind import ConversationKind
 from toad.agents import AgentNotFound
 from toad.session_entry import PreviewSessionEntry
-from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
-from toad.tab_identity.history_origin import HistoryOrigin
+from toad.client.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
+from toad.client.tab_identity.history_origin import HistoryOrigin
 
 
 @dataclass(frozen=True)
