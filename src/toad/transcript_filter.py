@@ -13,7 +13,7 @@ from toad.client.history_preparation import (
     HistorySourceSnapshot,
     PageRequest,
 )
-from toad.client.prepared_pages import NoProjection
+from toad.client.prepared_pages import NoProjection, _DrawingStopped
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -134,7 +134,6 @@ class FilterState(DeclaredFamily, affix="Filter"):
         return self.owner.filter is self and self.overlay is projection
 
     def require_projection(self, snapshot, projection) -> None:
-        from toad.widgets.transcript_history import _DrawingStopped
         if not snapshot.current(self.owner) or not self.owns_projection(projection):
             raise _DrawingStopped
 
@@ -193,7 +192,7 @@ class SeekingFilter(NoFilter):
                 owner.window.lookahead.ahead_rows(owner.window.outer_size.height))
 
     async def advance(self, snapshot):
-        from toad.widgets.transcript_history import ProjectedTranscriptHistory, _DrawingStopped
+        from toad.widgets.transcript_history import ProjectedTranscriptHistory
 
         owner = self.owner
         source = owner.projected_source(owner.selected_categories)
