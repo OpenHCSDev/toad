@@ -711,6 +711,11 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         for line in self.activity:
             line.close_activity()
         self.composer.receipt.stop()
+        # A command read in flight would hand its catalog to this composer after the tab's
+        # widgets are deleted (ComposerEditor, build26). Reads are exclusive across views, so
+        # the one running may be another tab's; that composer asks again on its next
+        # keystroke while it has no commands (Composer.refresh_offers).
+        self.app.cancel_operations(CommandRead)
         self.app.coordination_access.stop_notifications(self)
         self.message_history.retire_source()
 
@@ -800,7 +805,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         self.app.status_line.show_status(text, StatusColorRole.SUCCESS)
 
     def flash_error(self, text: str) -> None:
-        self.app.status_line.show_status(text, StatusColorRole.ERROR)
+        self.app.show_error_notice(text, text, "Conversation")
 
     # Sending, through the shared submissions (SubmissionView)
 

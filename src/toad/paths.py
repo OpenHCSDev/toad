@@ -1,5 +1,7 @@
 import os
+import traceback
 from contextlib import suppress
+from datetime import datetime
 from pathlib import Path
 from agent_comms.projects.checkouts import Checkout
 from typing import Final
@@ -60,15 +62,26 @@ def get_project_data(project_path: Checkout) -> Path:
     return project_data_path
 
 
-def save_error(error: BaseException, prefix: str) -> Path:
-    """Persist the exception's traceback and chained causes."""
-    import traceback
-    from toad.acp.agent import generate_datetime_filename
+def generate_datetime_filename(prefix: str, suffix: str) -> str:
+    """A file name holding the current date and time after ``prefix``, made safe for every
+    filesystem; ``suffix`` includes the extension."""
+    file_name_stem = f"{prefix} {datetime.now().isoformat()}"
+    for reserved in ' <>:"/\\|?*.':
+        file_name_stem = file_name_stem.replace(reserved, "_")
+    return file_name_stem + suffix
 
+
+def save_error(error: BaseException | str, prefix: str) -> Path:
+    """Persist an error under a timestamped name: an exception's traceback and chained causes,
+    or an error given as text with the stack that reported it."""
+    if isinstance(error, BaseException):
+        report = traceback.format_exception(error)
+    else:
+        report = [f"{error}\n\nReported from:\n", *traceback.format_stack()[:-1]]
     path = get_errors() / generate_datetime_filename(prefix, ".txt")
     descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-        traceback.print_exception(error, file=stream)
+        stream.writelines(report)
     return path
 
 
