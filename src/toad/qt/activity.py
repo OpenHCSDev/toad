@@ -12,7 +12,7 @@ from agent_comms.ui_model.status import ThreadStatusModel
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QVBoxLayout, QWidget
-from pyqt_reactive.widgets.elided_line import ElidedLine
+from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.effects import ACTIVITY_SWEEP
 
 from toad.client.application import ClientApplication
