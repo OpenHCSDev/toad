@@ -393,7 +393,7 @@ def _metadata_boundary():
 
     from toad.core.projection import MroProjection
     from toad.client.prepared_pages import PreparedTranscriptPage
-    from toad.wire_history import WireCut, WirePage
+    from toad.client.history import WireCut, WirePage
 
     class ValueMetadata(MroProjection[dict]):
         @handles(object)

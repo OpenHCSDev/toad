@@ -4,7 +4,7 @@ import asyncio
 
 from agent_comms.messaging.read_basis import ChannelConversation
 from toad.widgets.comms_chat import CommsChatView
-from toad.wire_history import WirePageBuffer
+from toad.client.history import WirePageBuffer
 
 
 async def test_painted_read_recovers_when_scope_changes_before_ack(workspace, monkeypatch):

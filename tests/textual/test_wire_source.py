@@ -19,16 +19,16 @@ from toad.client.conversation import ChannelConversation
 from toad.message_rows import IrcMessageStyle
 from toad.client.prepared_pages import Unchanged
 from toad.client.history_preparation import NEWER_END, OLDER_END, PageRequest
-from toad.wire_history import (
+from toad.client.history import (
     AfterSequence,
     GrowingWireObservation,
-    MessageFragment,
     NothingRead,
     PreparedWirePage,
     ReplacedWireObservation,
     WirePage,
     WireSource,
 )
+from toad.widgets.wire_history import MessageFragment, WireFragment
 
 
 def channel_source(comms, target, project):
@@ -36,7 +36,7 @@ def channel_source(comms, target, project):
     viewer = comms.messaging.user_identity(project).name
     return WireSource(comms, ChannelConversation(ChannelTarget(target)), project, viewer, IrcMessageStyle(),
                       access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access,
-                      core=LocalCoreAccess(comms))
+                      core=LocalCoreAccess(comms), fragments=WireFragment)
 
 
 def observed(source):
