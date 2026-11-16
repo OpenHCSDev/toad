@@ -73,7 +73,7 @@ from toad.sidebar_navigation import SidebarNavigation
 from toad.widgets.sidebar_tree import CommsRow, ListedRow
 from toad.sidebar_changes import SidebarChange
 from toad.sidebar_model_view import SidebarModelView
-from toad.sidebar_models import UnpaintedChannel
+from toad.client.sidebar_models import UnpaintedChannel
 
 
 class ChannelUnreadSegment(HeaderSegment):

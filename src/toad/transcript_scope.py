@@ -49,7 +49,7 @@ from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
 from toad.client.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.owner_preparation import ExistingOwnerPlan
-from toad.resource_release import ResourceRelease
+from toad.client.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.transcript_requests import TranscriptRequests
 

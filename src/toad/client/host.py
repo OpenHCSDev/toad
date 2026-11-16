@@ -12,7 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from formbridge.publications import PublicationStream
-from toad.resource_release import ResourceRelease
+from toad.client.resource_release import ResourceRelease
 
 
 class CommsHost:

@@ -102,7 +102,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.bus_selection import ProfileArgument
 from toad.comms_host import CommsHost
-from toad.comms_subscribers import NotificationSubscriber, SidebarSubscriber
+from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
 from toad.core.context_reads import ContextReads
 from toad.core.events import (
     CoordinationObserved,
@@ -125,7 +125,7 @@ from toad.notification_status import (
     UncheckedNotifications,
 )
 from toad.referenced_core import ReferencedCore
-from toad.resource_release import AsyncResourceRelease, ResourceRelease
+from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.session_projection import SessionCollection, SessionProjection
 from toad.widgets.thread_comms_source import RelationshipReads
 

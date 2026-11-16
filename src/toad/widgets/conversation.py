@@ -132,7 +132,7 @@ from toad.native_style import (
 from toad.navigation_context import NavigationScope
 from toad.preferences import SETTINGS
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
-from toad.resource_release import AsyncResourceRelease
+from toad.client.resource_release import AsyncResourceRelease
 from toad.screens.queue import QueueInspection
 from toad.session_clock import NotStarted, SessionClock, StartedAt
 from toad.session_observation import (

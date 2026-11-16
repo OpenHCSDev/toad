@@ -26,7 +26,7 @@ from toad.transcript_scope import MailboxSent, TranscriptView
 from toad.input_history import InputHistories
 from toad.client.input_decision import InputDecision
 from toad.native_style import StartsHidden
-from toad.resource_release import AsyncResourceRelease
+from toad.client.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation, ConversationSources
 from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.presentation_window import NativePresentation

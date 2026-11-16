@@ -13,7 +13,7 @@ from textual.widget import Widget
 
 from toad.commit_claims import CommitClaim
 from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
-from toad.resource_release import ResourceRelease
+from toad.client.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
 
 if TYPE_CHECKING:

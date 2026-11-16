@@ -58,7 +58,7 @@ from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.live_output import LiveOutput
-from toad.resource_release import AsyncResourceRelease, ResourceRelease
+from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.screens.session_view import SessionView
 from toad.session_scope import (
     NoTranscript,

@@ -65,7 +65,7 @@ from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect
 from toad.render_backend import PreparedRenderer, Renderer, RenderTask
 from toad.render_processes import RenderProcessPool
-from toad.resource_release import AsyncResourceRelease
+from toad.client.resource_release import AsyncResourceRelease
 from toad.screens import comms, main  # noqa: F401 - register widget classes
 from toad.screens.workspace import WorkspaceScreen
 from toad.session_navigation import SessionNavigation
