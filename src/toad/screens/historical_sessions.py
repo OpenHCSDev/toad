@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from functools import partial
 from pathlib import Path
 
@@ -13,13 +12,12 @@ from agent_comms.messaging.page_traversal import HistorySourceKey
 from agent_comms.transcript.transcripts import RecordedPageSource
 from agent_comms.transport.tools.reads import TranscriptPageRead
 from agent_comms.ui_model.observation import ReadTranscript
-from metaclass_registry.mro_dispatch import handles
 from textual import on, work
 from textual.app import ComposeResult
 from textual.widgets import Select, Static
 
 from toad.client.connection import Observing
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.core_event_carrier import CoreEventReceiver
 from toad.messages import HoldsNoQueue
 from toad.project_path_owner import ProjectPathOwner
 from toad.screens.modal import DismissibleScreen, ModalPanel
@@ -29,6 +27,7 @@ from toad.widget_view import CenteredView
 from toad.widgets.conversation import Contents
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.transcript_history import LineHistory
+from toad.transcript_preparation import SavedTranscript, TranscriptPageRenderTask
 
 
 class RecordedContents(Contents):
@@ -148,14 +147,10 @@ class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectP
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            from toad.transcript_preparation import (
-                SavedHistory,
-                TranscriptPageRenderTask,
-            )
             prepared = await TranscriptPageRenderTask(page).prepared(self.app.preparation)
             if generation != self._selection_generation or not self.is_attached:
                 return
-            history = LineHistory(prepared, SavedHistory(load, page.after, self.app.preparation),
+            history = LineHistory(prepared, SavedTranscript(load, page.after, self.app.preparation),
                                   notification_view=content, source_state=LiveTranscript())
             window = self.query_one(HistoryWindow)
             window.anchor()

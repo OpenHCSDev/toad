@@ -87,8 +87,7 @@ from toad.conversation_actions import ConversationAction, WindowAction
 from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.conversation_turn import ConversationTurn, TurnOwner
-from toad.core import events as core_events
-from toad.core import input_events
+from toad.core import events as core_events, input_events, session_requests
 from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import AgentFail, AgentReady
 from toad.core.preference_events import PreferenceChanged
@@ -147,10 +146,14 @@ from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.submission_queue import QueueSource
 from toad.client.commands import CommandContextChanged, ConversationCommands
-from toad.core import session_requests
 from toad.screens.team import TeamPage
 from toad.target_commands import TargetContext
-from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
+from toad.transcript_publication import (
+    BoundView,
+    ObservedSourcePublication,
+    TranscriptPresentation,
+    ViewBinding,
+)
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.view_actions import BackToBottomAction
 from toad.widget_view import WorkspaceHosted
@@ -162,13 +165,10 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.widgets.menu import Menu
-from toad.widgets.message_divider import StickyHeader
-from toad.widgets.message_notifications import (
-    HistoryNotifications,
-    NothingToRead,
-    PaintedRead,
-    SourceNotifications,
-)
+from toad.widgets.message_divider import AgentActivityDivider, StickyHeader
+from toad.client.history_notifications import SourceNotifications
+from toad.widgets.message_notifications import VisibleHistoryNotifications
+from toad.client.history_reads import NothingToRead, PaintedRead
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import ErrorNote, Note
 from toad.widgets.observed_thread_activity import (
@@ -182,8 +182,11 @@ from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
 from toad.widgets.terminal_tool import TerminalTool
 from toad.widgets.throbber import AboveThrobber
-from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
+from toad.widgets.transcript_history import JumpToLatest, LineHistory, TranscriptHistory
 from toad.widgets.user_input import UserInput
+
+from toad.widgets.transcript_lines import LineTarget
+
 
 AUTO_SESSION_TITLE_MAX_LENGTH = 50
 
@@ -199,7 +202,6 @@ def make_session_title(prompt: str) -> str:
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 from toad.widgets.question import Ask
-from toad.widgets.transcript_history import LineHistory
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
 
@@ -224,7 +226,6 @@ Ask on {HELP_URL} if you need assistance.
 
 class Loading(PrimaryText, SeparatedBlock, Static):
     """A transient notice inherits native outside-border separation."""
-
 
 
 class CategorizedMount:
@@ -261,7 +262,7 @@ class CategorizedMount:
         return mounted
 
 
-class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
+class Contents(VisibleHistoryNotifications, LineTarget, containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
 
@@ -546,7 +547,6 @@ This is a view of your conversation with the agent.
     def on_back_to_bottom(self, event: JumpToLatest.Requested) -> None:
         event.stop()
         self.query_ancestor(Conversation).jump_to_latest()
-
 
 
 class AgentWindow(Window):
@@ -951,23 +951,18 @@ class ConversationSessionBinding(
             self.update_slash_commands()
 
 
-from textual import on
-
 from toad.client.agent_schema import Command
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.catalog_actions import CatalogCommandAction
 from toad.commit_claims import StartedInputClaim
 from toad.client.db import DB
 from toad.screens.action_modal import ActionModal
-from toad.transcript_publication import ObservedSourcePublication
 from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
-from toad.widgets.message_divider import AgentActivityDivider
 from toad.widgets.plan import ConversationPlan
 
 
 class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
     """The controls docked under the window: activity, goal and prompt."""
-
 
 
 class ConversationSources(QueueSource):
@@ -2140,7 +2135,6 @@ class Conversation(ColumnLayout,
     def move_cursor(self, direction: CursorDirection) -> None:
         self.navigation.move(direction)
         self.refresh_block_cursor(lambda cursor: cursor.show_moved_to(self.window))
-
 
 
     @work

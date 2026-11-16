@@ -1,36 +1,21 @@
-"""A channel or direct conversation's wire messages as pages of line-drawn fragments.
-
-Core answers each page (`MessagePage`). This module turns one into what the
-line history draws and pages by: fragments, and the cuts a page lies between.
-Nothing here imports a terminal library.
-"""
-
-from __future__ import annotations
-
+"""A channel or direct conversation's history as every frontend reads it: which painted messages
+wait to be marked read, and the acknowledgement that marks them."""
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
-from functools import singledispatch
 from pathlib import Path
 from typing import ClassVar
-from agent_comms.messaging.display_references import NoHistorySource
 
+from agent_comms.coordination.errors import ReadAgain
 from agent_comms.messaging.historical_views import (
     ConversationObservation,
     ConversationRevision,
-    HistorySource,
+    UnobservedConversation,
 )
-from agent_comms.messaging.message_page import (
-    MessagePage,
-    MessagePageRequest,
-)
+from agent_comms.messaging.message_page import MessagePage, MessagePageRequest
 from agent_comms.messaging.message_reference import MessageReference
-from agent_comms.messaging.messages import (
-    ConversationRole,
-    Membership,
-    Message,
-    NoticeRole,
-)
+
+from agent_comms.messaging.messages import Message
 from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.page_traversal import (
     LiveCursor,
@@ -39,7 +24,6 @@ from agent_comms.messaging.page_traversal import (
     PageCursor,
 )
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transcript.transcript_events import IncomingTranscript
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsConversationRevisionTool,
@@ -47,43 +31,213 @@ from agent_comms.transport.tools.sidebar import (
     CommsMarkPageReadTool,
 )
 from agent_comms.ui_model.observation import ReadNotifications
-from metaclass_registry.mro_dispatch import handles
+from toad.client.connection import CoordinationAccess, Observation
+from toad.client.conversation import ConversationKind
+from toad.client.conversation_capabilities import (
+    ConversationActivity,
+    ConversationSource,
+)
 
+from toad.client.fragments import EvidencedFragment, FragmentKey, MessageShown
+from toad.client.history_preparation import HistorySourceSnapshot, PageRequest
+from toad.client.history_reads import NothingToRead, PaintedRead, ReadMarking, ReadWork
+from toad.client.history_state import (
+    LatestReplacementViewportRequest,
+    ReplacementViewportRequest,
+)
+from toad.client.prepared_pages import (
+    PreparedTranscriptPage,
+    ReplaceablePageSource,
+    SavedHistory,
+    SourceObservation,
+    SourcePageWork,
+    Unchanged,
+)
+from toad.client.reader_position import LatestPosition
 from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
     SubmissionStart,
     SubmittedText,
 )
-from toad.client.connection import CoordinationAccess, Observation
-from toad.client.conversation_capabilities import ConversationSource
-from toad.client.conversation import ConversationKind
-from toad.core.projection import MroProjection
-from toad.client.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
-from toad.message_rows import MessageRow, WireMessageStyle
-from toad.read_marked_history import ReadMarkedHistory
-from toad.session_scope import SessionScope
+from toad.message_rows import WireMessageStyle
 from toad.submission_queue import BusQueueSource
 from toad.target_commands import TargetContext
-from toad.transcript_preparation import (
-    PageRequest,
-    PreparedTranscriptPage,
-    ReplaceablePageSource,
-    SavedHistory,
-    SourceObservation,
-    TranscriptPageWork,
-    Unchanged,
-)
-from toad.client.history_state import LatestReplacementViewportRequest, ReplacementViewportRequest
-from toad.widgets.history_anchor import LatestPosition
-from toad.widgets.message_notifications import PaintedRead, ReadWork
-from toad.widgets.transcript_fragments import (
-    BusMessageFragment,
-    MessageShown,
-    TranscriptFragment,
-)
-from toad.widgets.transcript_lines import Lines
-from toad.wire_conversation_view import WireConversationView
+
+
+class ReadMarkedHistory(ReadMarking):
+    """A history whose painted messages are acknowledged: the one map of painted evidence
+    waiting for Core, and the acknowledgement that retires it. A mixin beside the native
+    history, so its hooks are declared without ABC's metaclass."""
+
+    page_source: ReplaceablePageSource
+
+    def __init__(self, *args, **kwargs) -> None:
+        self._painted_reads: dict[FragmentKey, EvidencedFragment] = {}
+        super().__init__(*args, **kwargs)
+
+    # Reading the bound source's first page; a frontend may show it.
+    reading = False
+
+    @classmethod
+    def empty_page(cls):
+        return PreparedWirePage.empty(WirePage.unread())
+
+    def initialize_source(self, source: WireSource) -> None:
+        """Bind the conversation to read; the first refresh draws its newest page."""
+        self._painted_reads.clear()
+        self.page_source.close()
+        self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation,
+                                          revision=UnobservedConversation())
+
+    @property
+    def undrawn(self) -> bool:
+        """Nothing of the bound source has been drawn yet."""
+        return all(view.prepared.page.after.requires_read() for view in self.pages)
+
+    @property
+    def source_identity(self):
+        # Growth of the bus is not another source: reads ahead stay valid.
+        return self.page_source.reload_key(), self.selected_categories
+
+    async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
+        """Whether the route still selects this source's bus and nothing replaced the history."""
+        source = self.page_source
+        if not snapshot.current(self):
+            return False
+        return (await source.route_is_current()
+                and source is self.page_source and snapshot.current(self))
+
+    async def read_changes(self) -> bool:
+        """Draw what changed in the source; False when the stores are as last drawn."""
+        source = self.page_source
+        self.reading = self.undrawn
+        try:
+            observed = await source.observe_changes(source.revision)
+            if source is not self.page_source:
+                return False
+            return await observed.apply(self, source)
+        finally:
+            self.reading = False
+
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        if self.can_draw_on_screen:
+            self.mark_visible()
+
+    def source_resumed(self) -> None:
+        self.mark_visible()
+
+    async def toggle_style(self) -> None:
+        """Draw every message in the other style, here and in pages read from now on."""
+        await self.page_source.change_style(self)
+
+    @abstractmethod
+    def mark_visible_after_paint(self) -> None:
+        """Try marking read again once the frontend has painted its next frame."""
+
+    @abstractmethod
+    def withdraw_view(self) -> None:
+        """The route no longer reads this conversation: stop showing it."""
+
+    @abstractmethod
+    async def refresh_source(self) -> None:
+        """Read the conversation again, as the view reads it now."""
+
+    def retain_painted(self, fragment: EvidencedFragment) -> None:
+        """Keep actual painted evidence until its original page is acknowledged."""
+        if fragment.evidence is not None and self._painted_reads.get(fragment.key) is not fragment:
+            self._painted_reads[fragment.key] = fragment
+            self.mark_visible_after_paint()
+
+    def retire_painted(self, fragments: tuple[EvidencedFragment, ...], proof: MessagePage) -> None:
+        """Release only these receipts, never a newer paint of the same message."""
+        for fragment in fragments:
+            if fragment.evidence is proof:
+                fragment.evidence = None
+                if self._painted_reads.get(fragment.key) is fragment:
+                    del self._painted_reads[fragment.key]
+
+    def read_fragments(self) -> tuple[EvidencedFragment, ...]:
+        if not self.is_attached or not self.can_draw_on_screen:
+            return ()
+        return tuple(self._painted_reads.values())
+
+    def read_visible(self) -> PaintedRead:
+        if not self.is_attached:
+            return NothingToRead()
+        if not any(fragment.evidence is not None for fragment in self.read_fragments()):
+            return NothingToRead()
+        return self.page_source.painted_read(self)
+
+    async def _mark_read(self, snapshot: HistorySourceSnapshot) -> None:
+        if not await self.source_is_current(snapshot):
+            if snapshot.current(self):
+                self.withdraw_view()
+            elif self.is_attached:
+                self.mark_visible_after_paint()
+            return
+        seen = tuple(fragment for fragment in self.read_fragments() if fragment.evidence is not None)
+        if (selected := self.page_source.seen_page(self, seen)) is not None:
+            await self._mark_page(*selected, snapshot)
+
+    async def _mark_page(
+        self, page: MessagePage, marked: tuple[EvidencedFragment, ...], snapshot: HistorySourceSnapshot
+    ) -> None:
+        source = self.page_source
+        proof = marked[0].evidence
+        try:
+            await source.mark_page(page)
+            self.retire_painted(marked, proof)
+        except ReadAgain:
+            # Every queued fragment carrying that same refused proof must
+            # release it before reloading can paint a replacement. Keep
+            # unrelated proofs and any newer paint already queued meanwhile.
+            refused = tuple(fragment for fragment in self._painted_reads.values()
+                            if fragment.evidence is proof)
+            self.retire_painted((*marked, *refused), proof)
+            # The viewer, peer, channel scope or bus changed after the page
+            # was read: draw the conversation as it is read now.
+            if snapshot.current(self):
+                await self.reload_notification_source()
+        finally:
+            if self.is_attached:
+                self.mark_visible_after_paint()
+
+    async def reload_notification_source(self) -> None:
+        """Forget what was observed, so the next refresh reads the page and its cut afresh."""
+        self.page_source.revision = UnobservedConversation()
+        await self.refresh_source()
+
+
+class WireView(ConversationActivity):
+    """A frontend's view of one wire conversation, as its page source, its sends and its
+    commands address it. A plain parent: each toolkit's widget metaclass would conflict
+    with ABCMeta."""
+
+    conversation: ConversationKind
+    message_history: ReadMarkedHistory
+
+    @property
+    @abstractmethod
+    def mode(self) -> str:
+        """The session this view belongs to, as commands target it."""
+
+    @abstractmethod
+    def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
+        """Whether this view is still open on this conversation, read from this root."""
+
+    @abstractmethod
+    async def show_sent(self, sent: MessageReference) -> None:
+        """A message this view sent was accepted: draw it."""
+
+    @abstractmethod
+    async def _refresh_source(self) -> None:
+        """Read what changed in the conversation and the view's status beside it."""
+
+    @abstractmethod
+    def dispatch_sync(self, event: object) -> None:
+        """Hand the view the references its label and commands are read from."""
 
 
 @dataclass(frozen=True)
@@ -214,124 +368,6 @@ class PreparedWirePage(PreparedTranscriptPage):
         self.page = self.page.advanced(prepared.page, older=older)
 
 
-@dataclass(kw_only=True)
-class WireFragment(TranscriptFragment, ABC):
-    """One wire message drawn as lines.
-
-    `evidence` is Core's page whose display evidence can mark this message
-    read; it is None when the page carried none and once the mark is written.
-    """
-
-    shown: MessageShown
-    evidence: MessagePage | None
-    checks_notifications: ClassVar[bool] = False
-
-    def _unhandled_message(message, **fields):
-        raise TypeError(f"No fragment declared for {type(message.role).__name__}")
-
-    _roles = singledispatch(_unhandled_message)
-
-    def __init_subclass__(cls, *, roles=(), **kwargs):
-        super().__init_subclass__(**kwargs)
-        for role in roles:
-            WireFragment._roles.register(role, cls.from_message)
-
-    @classmethod
-    def of(cls, message: Message, *, reader: str, **fields) -> WireFragment:
-        return cls._roles.dispatch(type(message.role))(message, reader=reader, **fields)
-
-    @classmethod
-    def from_message(cls, message, *, reader, page: MessagePage, **fields):
-        return cls((IncomingTranscript.of(message, reader=reader),), **fields)
-
-    @property
-    def message(self) -> Message:
-        return self.events[0].message
-
-    @property
-    def timestamp(self) -> float:
-        return self.message.timestamp
-
-    @property
-    def clipboard_text(self) -> str:
-        return self.message.body
-
-    @property
-    def leading(self) -> tuple[LineBlock, ...]:
-        """Blocks above the message's own text."""
-        return ()
-
-    def trailing(self, shown: MessageShown) -> tuple[LineBlock, ...]:
-        """Blocks below the message's own text."""
-        return ()
-
-    @abstractmethod
-    def text(self, shown: MessageShown) -> tuple[LineBlock, ...]:
-        """The message's own text."""
-
-    def blocks(self, shown):
-        return (*self.leading, *self.text(shown), *self.trailing(shown))
-
-    def text_rows(self, lines: Lines) -> range:
-        """Read visibility uses the same block snapshots that draw this viewport."""
-        prepared = lines.prepared_blocks
-        trailing = len(self.trailing(self.shown))
-        return range(
-            sum(block.height for block in prepared[: len(self.leading)]),
-            lines.height - sum(block.height for block in prepared[-trailing:] if trailing),
-        )
-
-
-class MembershipFragment(WireFragment, roles=(Membership,)):
-    """Someone joined or left: one muted line."""
-
-    def text(self, shown: MessageShown):
-        return (Body("— " + self.message.body, role=MutedRole),)
-
-
-class HistoryLeading(MroProjection[tuple[LineBlock, ...]]):
-    """A message an attached history recorded opens with where it came from; a live one with its header."""
-
-    @handles(NoHistorySource)
-    def live(self, source: NoHistorySource, fragment: MessageFragment, header: tuple[LineBlock, ...]):
-        return header
-
-    @handles(HistorySource)
-    def recorded(self, source: HistorySource, fragment: MessageFragment, header: tuple[LineBlock, ...]):
-        message = fragment.message
-        return (
-            Gap(),
-            Summary.titled(f"History · {source.original_root} · @{message.sender} created {message.sender_created_at}"),
-            fragment.row.header,
-        )
-
-
-HISTORY_LEADING = HistoryLeading()
-
-
-@dataclass(kw_only=True)
-class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole, NoticeRole)):
-    """A sent message: its header, text and the state of its notifications."""
-
-    @classmethod
-    def from_message(cls, message, *, reader, page: MessagePage, **fields):
-        return cls(
-            (IncomingTranscript.of(message, reader=reader),),
-            text_part=message.body,
-            row=MessageRow(message, reader),
-            notification_identity=page.selection.notification_identity,
-            **fields,
-        )
-
-    @property
-    def notification_references(self):
-        return self.message.role.notification_references(self.message)
-
-    @property
-    def leading(self):
-        return HISTORY_LEADING.project_value(self.message.history_source, self, super().leading)
-
-
 @dataclass(frozen=True, eq=False)
 class WireSource(BusQueueSource, ConversationSource):
     """One conversation as one viewer reads it from Core, and how its messages are styled.
@@ -347,6 +383,7 @@ class WireSource(BusQueueSource, ConversationSource):
     style: WireMessageStyle
     access: CoordinationAccess = field(kw_only=True)
     core: CoreAccess = field(kw_only=True)
+    fragments: type[EvidencedFragment] = field(kw_only=True)
     tail_limit: int = 8
     page_limit: int = 40
 
@@ -370,7 +407,7 @@ class WireSource(BusQueueSource, ConversationSource):
         scope = ReadNotifications(str(self.root), LiveNotificationRead(()),
                                   display=page.selection.notification_identity)
         fragments = tuple(
-            WireFragment.of(message, shown=MessageShown(
+            self.fragments.of(message, shown=MessageShown(
                 style=self.style,
                 status=self.access.notification_status(scope, message.role.notification_references(message))),
                 evidence=evidence, reader=self.me, page=page)
@@ -434,7 +471,7 @@ class GrowingWireObservation(WireObservation):
 
 
 @dataclass(frozen=True)
-class WirePageWork(TranscriptPageWork[WireCut]):
+class WirePageWork(SourcePageWork[WireCut]):
     """Read one wire page off the UI thread; `loader` is the WireSource."""
 
     @property
@@ -453,12 +490,10 @@ class ChannelDestination(BusDestination):
     """A channel or inbox page: shown while its view still reads this conversation from this
     root. A page reader the view replaces (a refresh, the next page) still shows it."""
 
-    view: WireConversationView
+    view: WireView
 
     def shown(self) -> bool:
-        view = self.view
-        return view.is_attached and self.conversation == view.conversation and (
-            view.message_history.page_source.reads_from(self.root))
+        return self.view.shows(self.root, self.conversation)
 
     async def presented(self, sent: MessageReference) -> None:
         await self.view.show_sent(sent)
@@ -492,22 +527,22 @@ class WirePageBuffer(SavedHistory):
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.root, access)
 
-    def refresh_identity(self, view: WireConversationView) -> None:
+    def refresh_identity(self, view: WireView) -> None:
         """Dispatch the references of this source's own root: the source the view was opened on."""
         view.dispatch_sync(view.app.coordination_access.reference_context(str(self.loader.root)))
 
     def command_context(self, view):
         loader = self.loader
         return TargetContext.in_conversation(view.app, loader.root, loader.conversation, loader.me,
-                                             loader.project, view.query_ancestor(SessionScope).id)
+                                             loader.project, view.mode)
 
     def begin_submission(
-        self, view: WireConversationView, owner: SubmissionOwner, submission: SubmittedText
+        self, view: WireView, owner: SubmissionOwner, submission: SubmittedText
     ) -> SubmissionStart:
         """A channel or inbox message queues behind the view's earlier ones; compose stays open."""
         return owner.start_bus(submission, ChannelDestination(self.loader.root, self.loader.conversation, view))
 
-    def schedule_refresh(self, view: WireConversationView):
+    def schedule_refresh(self, view: WireView):
         history = view.message_history
         return history.schedule_source_work(view._refresh_source)
 
@@ -547,7 +582,7 @@ class WirePageBuffer(SavedHistory):
     async def read_only(self) -> bool:
         return await self.runtime.run_thread(self.loader.conversation.read_only, self.loader.core)
 
-    async def update_mentions(self, view: WireConversationView) -> None:
+    async def update_mentions(self, view: WireView) -> None:
         await self.loader.conversation.update_mentions(view, self.loader)
 
     async def status_text(self, *, read_only):

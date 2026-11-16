@@ -19,6 +19,7 @@ from metaclass_registry.mro_dispatch import handles
 from textual.app import ComposeResult
 from textual.content import Content
 
+from toad.client.history import WireSource
 from toad.client.submission import SubmissionStart
 from toad.client.conversation import ConversationKind
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
@@ -47,9 +48,8 @@ from toad.widgets.flash import Flash
 from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.prompt import MessagePrompt, Prompt
 from toad.widgets.session_details import ConversationSessionDetails
-from toad.widgets.wire_history import HistoryLoading, WireHistory
+from toad.widgets.wire_history import HistoryLoading, WireFragment, WireHistory
 from toad.wire_conversation_view import WireConversationView
-from toad.wire_history import WireSource
 
 
 def session_thread_name(project_path) -> str:
@@ -124,6 +124,7 @@ class CommsChatView(WireConversationView):
         source = WireSource(
             observed.root, self.conversation, self.project_path, self._me,
             IrcMessageStyle(), access=self.app.coordination_access, core=observed.core,
+            fragments=WireFragment,
         )
         self.queue_source = source
         self.message_history.initialize_source(source)

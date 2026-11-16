@@ -1,22 +1,19 @@
-"""A conversation with a wire-backed, read-marked history."""
-from abc import abstractmethod
+"""A conversation with a wire-backed, read-marked history, drawn by Textual."""
+from pathlib import Path
 
-from agent_comms.messaging.message_reference import MessageReference
-
-from toad.client.conversation_capabilities import ConversationActivity
 from toad.client.conversation import ConversationKind
-from toad.read_marked_history import ReadMarkedHistory
+from toad.client.history import WireView
+from toad.session_scope import SessionScope
 from toad.widgets.conversation import Conversation
 
 
-class WireConversationView(Conversation, ConversationActivity):
+class WireConversationView(Conversation, WireView):
     """The existing conversation widget supplies the native view behavior."""
 
-    conversation: ConversationKind
-    message_history: ReadMarkedHistory
+    @property
+    def mode(self) -> str:
+        return self.query_ancestor(SessionScope).id
 
-    @abstractmethod
-    async def show_sent(self, sent: MessageReference) -> None: ...
-
-    @abstractmethod
-    async def _refresh_source(self) -> None: ...
+    def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
+        return self.is_attached and conversation == self.conversation and (
+            self.message_history.page_source.reads_from(root))

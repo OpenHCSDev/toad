@@ -392,8 +392,8 @@ def _metadata_boundary():
     from metaclass_registry.mro_dispatch import handles
 
     from toad.core.projection import MroProjection
-    from toad.transcript_preparation import PreparedTranscriptPage
-    from toad.wire_history import WireCut, WirePage
+    from toad.client.prepared_pages import PreparedTranscriptPage
+    from toad.client.history import WireCut, WirePage
 
     class ValueMetadata(MroProjection[dict]):
         @handles(object)

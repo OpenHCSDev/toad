@@ -28,8 +28,8 @@ from toad.client.input_decision import InputDecision
 from toad.native_style import StartsHidden
 from toad.client.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation, ConversationSources
-from toad.widgets.history_anchor import ParkedPosition
-from toad.widgets.presentation_window import NativePresentation
+from toad.client.reader_position import ParkedPosition
+from toad.client.history_pager import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
 from toad.client.connection import Observing
