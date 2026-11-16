@@ -3,9 +3,7 @@
 from bisect import bisect_right
 from dataclasses import dataclass
 
-from agent_comms.coordination.errors import ReadAgain
 from agent_comms.messaging.historical_views import UnobservedConversation
-from agent_comms.messaging.message_page import MessagePage
 from textual._render_publication import SourcePublication
 from textual.geometry import Offset, Region
 from textual.reactive import var
@@ -13,16 +11,11 @@ from textual.strip import Strip
 from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
-from toad.read_marked_history import ReadMarkedHistory
+from toad.client.history import ReadMarkedHistory
+from toad.client.history_preparation import HistorySourceSnapshot
 from toad.session_scope import SessionScope
-from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
-from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.widgets.message_notifications import (
-    NothingToRead,
-    PaintedRead,
-    VisibleReadMarking,
-)
-from toad.widgets.transcript_fragments import FragmentKey
+from toad.client.prepared_pages import ClosedHistory
+from toad.widgets.message_notifications import VisibleReadMarking
 from toad.widgets.transcript_history import ConversationHistory, TranscriptPageView
 from toad.wire_conversation_view import WireConversationView
 from toad.wire_history import (
@@ -85,21 +78,15 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
     """
 
     page_view_type = ReadTranscriptPage
+
     page_source: WirePageBuffer | ClosedHistory
+
     # Reading the bound source's first page: the view's activity bar shows it.
     reading = var(False)
-
-    def __init__(self, prepared: PreparedTranscriptPage, page_source: WirePageBuffer | ClosedHistory,
-                 *, view: ViewT, notification_view, **kwargs) -> None:
-        self._painted_reads: dict[FragmentKey, WireFragment] = {}
-        super().__init__(prepared, page_source, view=view,
-                         notification_view=notification_view, **kwargs)
 
     @classmethod
     def empty_page(cls):
         return PreparedWirePage.empty(WirePage.unread())
-
-    # The source
 
     def initialize_source(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
@@ -131,8 +118,6 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
         return (await source.route_is_current()
                 and source is self.page_source and snapshot.current(self))
 
-    # Reading the source
-
     async def read_changes(self) -> bool:
         """Draw what changed in the source; False when the stores are as last drawn."""
         source = self.page_source
@@ -145,10 +130,17 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
         finally:
             self.reading = False
 
+    def mark_visible_after_paint(self) -> None:
+        self.view.call_after_refresh(self.mark_visible)
+
+    def withdraw_view(self) -> None:
+        self.view.display = False
+
+    async def refresh_source(self) -> None:
+        await self.view._refresh()
+
     def watch_reading(self, _reading: bool) -> None:
         self.view.sync_working()
-
-    # What is drawn
 
     def rows_published(self) -> None:
         super().rows_published()
@@ -159,8 +151,6 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
         """Draw every message in the other style, here and in pages read from now on."""
         await self.page_source.change_style(self)
 
-    # Read marks
-
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
         if self.can_draw_on_screen:
@@ -168,68 +158,3 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
 
     def source_resumed(self) -> None:
         self.mark_visible()
-
-    def retain_painted(self, fragment: WireFragment) -> None:
-        """Keep actual painted evidence until its original page is acknowledged."""
-        if fragment.evidence is not None and self._painted_reads.get(fragment.key) is not fragment:
-            self._painted_reads[fragment.key] = fragment
-            self.view.call_after_refresh(self.mark_visible)
-
-    def retire_painted(self, fragments: tuple[WireFragment, ...], proof: MessagePage) -> None:
-        """Release only these receipts, never a newer paint of the same message."""
-        for fragment in fragments:
-            if fragment.evidence is proof:
-                fragment.evidence = None
-                if self._painted_reads.get(fragment.key) is fragment:
-                    del self._painted_reads[fragment.key]
-
-    def read_fragments(self) -> tuple[WireFragment, ...]:
-        if not self.is_attached or not self.can_draw_on_screen:
-            return ()
-        return tuple(self._painted_reads.values())
-
-    def read_visible(self) -> PaintedRead:
-        if not self.is_attached:
-            return NothingToRead()
-        if not any(fragment.evidence is not None for fragment in self.read_fragments()):
-            return NothingToRead()
-        return self.page_source.painted_read(self)
-
-    async def _mark_read(self, snapshot: HistorySourceSnapshot) -> None:
-        if not await self.source_is_current(snapshot):
-            if snapshot.current(self):
-                self.view.display = False
-            elif self.is_attached:
-                self.view.call_after_refresh(self.mark_visible)
-            return
-        seen = tuple(fragment for fragment in self.read_fragments() if fragment.evidence is not None)
-        if (selected := self.page_source.seen_page(self, seen)) is not None:
-            await self._mark_page(*selected, snapshot)
-
-    async def _mark_page(
-        self, page: MessagePage, marked: tuple[WireFragment, ...], snapshot: HistorySourceSnapshot
-    ) -> None:
-        source = self.page_source
-        proof = marked[0].evidence
-        try:
-            await source.mark_page(page)
-            self.retire_painted(marked, proof)
-        except ReadAgain:
-            # Every queued fragment carrying that same refused proof must
-            # release it before reloading can paint a replacement. Keep
-            # unrelated proofs and any newer paint already queued meanwhile.
-            refused = tuple(fragment for fragment in self._painted_reads.values()
-                            if fragment.evidence is proof)
-            self.retire_painted((*marked, *refused), proof)
-            # The viewer, peer, channel scope or bus changed after the page
-            # was read: draw the conversation as it is read now.
-            if snapshot.current(self):
-                await self.reload_notification_source()
-        finally:
-            if self.is_attached:
-                self.view.call_after_refresh(self.mark_visible)
-
-    async def reload_notification_source(self) -> None:
-        """Forget what was observed, so the next refresh reads the page and its cut afresh."""
-        self.page_source.revision = UnobservedConversation()
-        await self.view._refresh()
