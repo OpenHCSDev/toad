@@ -27,8 +27,9 @@ from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from ui_theme.scheme import ColourScheme
 
-from toad.client.fragments import EvidencedFragment, HistoryFragment, MembershipText, WireMessage
+from toad.client.fragments import EvidencedFragment, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.client.history import ReadMarkedHistory
+from toad.client.history_notifications import SourceNotifications
 from toad.client.history_pager import (
     ConversationPager,
     DirectionalPreparation,
@@ -186,9 +187,10 @@ class SourceTask(asyncio.Task):
         await asyncio.gather(self, return_exceptions=True)
 
 
-class QtConversationHistory(ReadMarkedHistory, ConversationPager, NativePager):
-    """A wire conversation's pages and read marks in a Qt window: the shared pager and read
-    marking, answering their hooks with the window's rows and the Qt event loop."""
+class QtConversationHistory(SourceNotifications, ReadMarkedHistory, ConversationPager, NativePager):
+    """A wire conversation's pages, read marks and message statuses in a Qt window: the
+    shared pager, read marking and notifications, answering their hooks with the window's
+    rows and the Qt event loop."""
 
     page_view_type = QtPage
     newer = None
@@ -197,6 +199,7 @@ class QtConversationHistory(ReadMarkedHistory, ConversationPager, NativePager):
     def __init__(self, window: QtHistoryWindow, view, app) -> None:
         self._window = window
         self.view = view
+        self.notification_view = view
         self.app = app
         self.attached = True
         self.lock = asyncio.Lock()
@@ -253,6 +256,13 @@ class QtConversationHistory(ReadMarkedHistory, ConversationPager, NativePager):
 
     def hold_arrival(self, arrivals: tuple[HistoryFragment, ...]) -> None:
         """Qt draws arrivals at once: no rows are held below a following reader."""
+
+    async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
+        """A status change lays the rows out again: a row's cache key carries how its fragment
+        is shown, so the changed rows render anew."""
+        changed = [fragment for fragment, shown in changes if fragment.request_show(shown)]
+        if changed:
+            self.window.rows_changed()
 
     def repaint(self, fragments: tuple[HistoryFragment, ...] = (), *, continuing=()) -> None:
         self.window.viewport().update()

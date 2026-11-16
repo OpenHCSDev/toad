@@ -282,9 +282,8 @@ class TranscriptFragment(HistoryFragment, TextualCursorRest):
 
     def request_show(self, shown: Shown) -> bool:
         """Record intent and retire old acquisitions; the page retains its painted layout."""
-        if shown == self.shown:
+        if not super().request_show(shown):
             return False
-        self.shown = shown
         # The rows drawn now stand in until the new state's rows arrive: a
         # status change must not redraw the message as plain rows (another
         # wrap, another height) and then as styled rows again.
