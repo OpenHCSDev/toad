@@ -13,6 +13,7 @@ from typing import ClassVar, Generic, Self, TypeVar, cast
 
 from agent_comms.nominal.declared_family import (
     DeclaredFamily,
+    DeclaredOrder,
     FamilyMeta,
     declared_words,
 )
@@ -148,7 +149,19 @@ class ReplacesFrameworkAction:
         pass
 
 
-class ApplicationAction(DeclaredAction[ClientApplication], affix="Action"):
+class MenuPlace(DeclaredOrder):
+    """Where a member sits in the menu and the palette; within a place, declaration order."""
+
+
+class InMenu(MenuPlace):
+    """The menu's body."""
+
+
+class LastInMenu(MenuPlace):
+    """After every other member, wherever it is declared."""
+
+
+class ApplicationAction(DeclaredAction[ClientApplication], InMenu, affix="Action"):
     """Declared application shortcuts resolve before an editor takes the key."""
 
     binding_prefix = "app."
@@ -160,9 +173,10 @@ class ApplicationAction(DeclaredAction[ClientApplication], affix="Action"):
 
     @classmethod
     def menu(cls, app: ClientApplication) -> tuple[tuple[ApplicationAction, str], ...]:
-        """Every offered member under its label, in declaration order."""
+        """Every offered member under its label, by menu place, then in declaration order."""
         return tuple((command, command.label(app))
-                     for member in cls.members_with(cls) for command in member.offered(app))
+                     for member in sorted(cls.members_with(cls), key=MenuPlace.position_of)
+                     for command in member.offered(app))
 
 
 # Declaration order is the order of the menu and the palette.
@@ -193,7 +207,7 @@ class DirectMessagesAction(ApplicationAction):
         app.session_navigation.direct_messages()
 
 
-class QuitAction(ReplacesFrameworkAction, ApplicationAction):
+class QuitAction(LastInMenu, ReplacesFrameworkAction, ApplicationAction):
     """Save preferences and quit the application."""
 
     keys = {InputMode: ("ctrl+q",)}
