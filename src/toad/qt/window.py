@@ -2194,6 +2194,14 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         dialog = QtKeymapScreen(self, focused)
         dialog.show()
 
+    async def edit_settings(self) -> None:
+        """Qt override of `ClientApplication.edit_settings`. Opens the shared-UX
+        `QtSettingsScreen` modal; both frontends read/write the same
+        `SavedSettings`, and Qt walks it through `toad.client.settings_schema`."""
+        from toad.qt.settings_screen import QtSettingsScreen
+        dialog = QtSettingsScreen(self, self)
+        dialog.show()
+
     async def reveal_sidebar(self) -> bool:
         """The sidebar comes up over the conversation, as its bar would bring it."""
         self.show_sidebar()
