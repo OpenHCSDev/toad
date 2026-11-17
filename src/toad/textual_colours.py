@@ -64,9 +64,30 @@ from ui_theme.scheme import (
 )
 from ui_theme.splash import TextEffect
 from ui_theme.wal import WalFile
-from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHandler
-from watchdog.observers import Observer
-from watchdog.observers.api import BaseObserver
+try:
+    from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHandler
+    from watchdog.observers import Observer
+    from watchdog.observers.api import BaseObserver
+except ModuleNotFoundError:
+    # Python-for-Android doesn't ship `watchdog`; the pywal file-watcher
+    # (`_WalFileClosed` + `TextualColours.start`) is Textual-only and never
+    # fires on a Qt frontend. Stubbed bases keep module import from failing on
+    # hosts without watchdog. Same shape as the `curses` defense in
+    # `ui_theme.depth`.
+    class FileSystemEventHandler:  # type: ignore[no-redef]
+        pass
+    class FileSystemEvent:  # type: ignore[no-redef]
+        src_path: str = ""
+    class FileClosedEvent(FileSystemEvent):  # type: ignore[no-redef]
+        pass
+    class _NoWatchdogObserver:
+        def __init__(self) -> None:
+            raise RuntimeError(
+                "watchdog is not installed; pywal file-watcher is Textual-only "
+                "and should not be started from this frontend"
+            )
+    Observer = _NoWatchdogObserver  # type: ignore[assignment,misc]
+    BaseObserver = _NoWatchdogObserver  # type: ignore[assignment,misc]
 
 from toad.colour_ink import ColourInk
 from toad.client.line_blocks import LineRole

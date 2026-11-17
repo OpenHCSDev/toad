@@ -187,3 +187,32 @@ for chain in lazy:
 packages = Counter(chain[-1].top for chain in lazy)
 print(f"{len(lazy)} function-local imports reach a package the APK does not ship:",
       ", ".join(f"{name} {count}" for name, count in packages.most_common()))
+# Fail loud, not warn-and-ship. A lazy import that reaches an unshipped package
+# is a runtime `ModuleNotFoundError` waiting to fire the moment that code path
+# runs. Shipping anyway hides it until a user taps the wrong row, at which point
+# every symptom looks like a new bug. Expected lazy-unshipped imports belong in
+# a per-package allowlist, which a maintainer updates deliberately.
+# Each of these is a ticking time bomb: a function-local import that reaches an
+# unshipped package. If the function fires on Qt-for-Android, the APK crashes
+# with `ModuleNotFoundError`. They're allowlisted only because they haven't
+# fired YET in practice. Remove a name here when the lazy import is either made
+# defensive (pattern: `try: import X; except ModuleNotFoundError: ...`) or the
+# function is unreachable from the Qt frontend. Adding a new name requires a
+# rationale.
+ALLOWED_UNSHIPPED: set[str] = {
+    "zmqruntime",      # zmq surface — Textual command-palette path, not Qt-reached today
+    "httpx",           # HTTP client — Textual notification/preview path
+    "notifypy",        # desktop notifications — Textual only
+    "dill",            # pickle extension — repl/debug helpers
+    "textual_dev",     # Textual dev tooling
+    "jeepney",         # DBus — Textual notification backend
+    "pathspec",        # gitignore parsing — Textual file browser
+    "magicgui",        # Textual form editor fallback
+    "format_currency", # Textual locale formatting
+    "setproctitle",    # process-title decoration
+}
+unexpected = {chain[-1].top for chain in lazy} - ALLOWED_UNSHIPPED
+if unexpected:
+    print(f"error: {len(unexpected)} unexpected unshipped package(s) reached by lazy imports: {', '.join(sorted(unexpected))}",
+          file=sys.stderr)
+    sys.exit(1)
