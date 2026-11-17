@@ -31,10 +31,14 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from pyqt_reactive.theming import StatusColorRole
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
+from toad.agent_binding import AgentConnection, NoAgentConnection
+from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.bus_submission import BusSubmissions, TypedText
+from toad.client.observed_field import ObservedField
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin
 from toad.client.tab_identity import SessionTabIdentity
@@ -54,6 +58,7 @@ from toad.thread_identity import NoThreadIdentity
 if TYPE_CHECKING:
     from agent_comms.projects.checkouts import Checkout
 
+    from toad.agent import AgentBase
     from toad.client.session_tracker import SessionDetails
     from toad.qt.window import QtToadApp
 
@@ -72,7 +77,15 @@ def _toad_app() -> QtToadApp:
     raise RuntimeError("No QtToadApp window is running")
 
 
-class QtAcpSessionView(ConversationThreadReadMixin, ComposerHost, Page, WorkspaceHosted, QWidget, metaclass=PyQtWidgetMeta):
+class QtAcpSessionView(
+    ObservedAgentBinding,
+    ConversationThreadReadMixin,
+    ComposerHost,
+    Page,
+    WorkspaceHosted,
+    QWidget,
+    metaclass=PyQtWidgetMeta,
+):
     """A Qt Claude-CLI session tab.
 
     What this renders today: the bound session's identity line, the transcript through Qt's
@@ -104,6 +117,14 @@ class QtAcpSessionView(ConversationThreadReadMixin, ComposerHost, Page, Workspac
     # pattern ``ConversationView`` and Textual's ``CommsChatView`` use
     # (``src/toad/qt/window.py:749``, ``src/toad/widgets/comms_chat.py:68``).
     queue_source: QueueSource = NoQueueSource()
+
+    # The one shared contract point for live reconnect: an ``AgentConnection`` that this
+    # view is bound to. Writing fires every watcher registered via
+    # ``on_agent_binding_change`` — the ACP tab re-projects the agent's model/context on
+    # every change, so the composer, identity line and status mirror a reconnect without
+    # a full teardown. ``bind_agent`` on the shared ``AgentBoundConversation`` base writes
+    # here and calls ``agent.attach_view(self)``; projection + flash are the hooks below.
+    agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
 
     @property
     def screen(self) -> WorkspaceFrame:
@@ -152,6 +173,37 @@ class QtAcpSessionView(ConversationThreadReadMixin, ComposerHost, Page, Workspac
         layout.addLayout(info)
         layout.addWidget(self.messages, 1)
         layout.addWidget(self.composer)
+        # Live reconnect hook: when the agent-binding changes (first attach or a real
+        # reconnect), re-project state via ``apply_bound_agent`` and show the connected
+        # notice once the new agent is ready. Textual's ``watch_agent_binding`` does the
+        # same work through its reactive system; here it's an ``ObservedField`` watcher.
+        self.on_agent_binding_change(self._on_agent_binding_change)
+
+    # ---- AgentBoundConversation hooks ----
+
+    def _on_agent_binding_change(
+        self, _before: "AgentConnection", after: "AgentConnection"
+    ) -> None:
+        if after.ready:
+            self.apply_bound_agent(after)  # type: ignore[arg-type]
+            self.agent_connected(after)  # type: ignore[arg-type]
+
+    def apply_bound_agent(self, agent: AgentBase) -> None:
+        """Mirror the agent's current identity on the composer and the identity line.
+
+        Textual's ``Conversation.apply_bound_agent`` also updates its thread-status pill
+        and re-arms the goal + delivery observations; those run through
+        ``QtGoalBar``/``observed thread status`` on Qt, which are driven by Core events
+        and don't need a direct call from here.
+        """
+        info = agent.get_info()
+        self.identity_line.setText(f"ACP session #{self._session_pk} · {info}")
+        self.composer.labelled(f"Send to {info}")
+
+    def agent_connected(self, agent: AgentBase) -> None:
+        """Flash the connected notice on the status line; usage milestone through the app."""
+        self.app.status_line.show_status(f"{agent.get_info()} connected", StatusColorRole.INFO)
+        self.app.usage.publish("agent-session-begin")
 
     # ---- ComposerHost contract ----
     #
