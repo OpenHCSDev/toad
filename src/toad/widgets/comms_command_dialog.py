@@ -10,7 +10,7 @@ from agent_comms.config_options import ModelConfigOption
 from agent_comms.execution.login import run_login
 from agent_comms.transport.request import CoreAccess
 from formbridge.key_declarations import TextEntryMode
-from toad.client.command_draft import CommandDraft, CommandText, PreparedChoices
+from toad.client.command_draft import CommandFormCore, CommandText, PreparedChoices
 from toad.client.host import CommandOrigin
 from textual import on, work
 from textual.app import ComposeResult
@@ -194,7 +194,7 @@ class CommandPreparation(WorkerGroup):
     """One preparation follows the current draft without restarting on each edit."""
 
 
-class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=(ApplyCommandAction,)):
+class CommandForm(CommandFormCore, Confirms, DismissibleControl, Vertical, actions=(ApplyCommandAction,)):
     """One backend operation, embedded in a panel or presented as a dialog."""
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...],
                  core: CoreAccess):
@@ -213,29 +213,18 @@ class CommandForm(CommandDraft, Confirms, DismissibleControl, Vertical, actions=
             yield CancelCommandButton('Cancel')
 
     @abstractmethod
-    async def submit(self, arguments: dict[str, str | None]) -> None: ...
-
-    def finish(self) -> None:
-        self.form.finish()
+    async def handle_submission(self, arguments: dict[str, str | None]) -> None: ...
 
     def dismiss_control(self) -> None:
         """An embedded form discards its draft without closing the containing view."""
         for path in self.state.parameters:
             self.state.reset_parameter(path)
 
-    async def confirm(self) -> None:
-        button = self.query_one(ApplyCommandButton)
-        if button.disabled:
-            return
-        self.form.finish()
-        button.disabled = True
-        try:
-            arguments = await self.confirm_arguments()
-            if arguments is not None:
-                await self.submit(arguments)
-        finally:
-            if self.is_attached:
-                button.disabled = False
+    def apply_enabled(self) -> bool:
+        return not self.query_one(ApplyCommandButton).disabled
+
+    def set_apply_enabled(self, enabled: bool) -> None:
+        self.query_one(ApplyCommandButton).disabled = not enabled
 
     @on(Mount)
     def on_mount(self):
@@ -307,7 +296,7 @@ class CommandDialog(CommandForm, ShadedScreen, CenteredScreen, DismissibleScreen
         with CommandBox():
             yield from super().compose()
 
-    async def submit(self, arguments: dict[str, str | None]) -> None:
+    async def handle_submission(self, arguments: dict[str, str | None]) -> None:
         self.dismiss(arguments)
 
     def dismiss_control(self) -> None:
