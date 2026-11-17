@@ -79,6 +79,7 @@ from toad.block_navigation import (
     SeparatedBlock,
     require_blocks,
 )
+from toad.client.conversation_sources import ConversationSources
 from toad.client.submission import SubmissionStart
 from toad.category_filter import CategoryFilterView
 from toad.command_catalog import CommandCatalog
@@ -963,36 +964,6 @@ from toad.widgets.plan import ConversationPlan
 
 class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
     """The controls docked under the window: activity, goal and prompt."""
-
-
-class ConversationSources(QueueSource):
-    """What a conversation asks of the sources its session presents: its status row, agent
-    label, prompt, input decision and submissions, and the hooks for a presented thread and a
-    started agent."""
-
-    @abstractmethod
-    def status_row(self, conversation: Conversation): ...
-
-    @abstractmethod
-    def agent_info(self, conversation: Conversation) -> str: ...
-
-    @abstractmethod
-    def thread_presented(self, conversation: Conversation) -> None: ...
-
-    @abstractmethod
-    def prompt(self, conversation: Conversation): ...
-
-    @abstractmethod
-    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart: ...
-
-    @abstractmethod
-    def input_decision(self, conversation: Conversation) -> InputDecision: ...
-
-    @abstractmethod
-    def start_agent(self, conversation: Conversation) -> None: ...
-
-    @abstractmethod
-    def external_transcript_changed(self, conversation: Conversation) -> None: ...
 
 
 class SourcesScope(DOMNode):
