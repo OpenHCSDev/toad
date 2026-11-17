@@ -49,7 +49,8 @@ from toad.core import input_events
 from toad.launch_binding import AgentBinding
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
-from toad.qt.history import QT_FRAGMENT_CLASSES, QtConversationHistory, QtHistoryWindow
+from toad.qt.history import QT_FRAGMENT_CLASSES, QtHistoryWindow
+from toad.qt.transcript_history import QtTranscriptHistory
 from toad.transcript_publication import BoundView, TranscriptPresentation
 from toad.qt.window import Page, QtSessionEntry
 from toad.widget_view import WorkspaceHosted
@@ -155,9 +156,10 @@ class QtAcpSessionView(
     @property
     def transcript_history(self) -> TranscriptHistoryContract:
         """`BoundViewHost.transcript_history`: the single transcript-page-producing child
-        `BoundView` drives. `QtConversationHistory` satisfies `TranscriptHistoryContract`
-        structurally the way Textual's `TranscriptHistory` does — same event-coverage +
-        close + restore_source shape, different paint path."""
+        `BoundView` drives. `QtTranscriptHistory` satisfies `TranscriptHistoryContract`
+        through the shared `CommittedHistoryBase` + `ReportsCoveredPages` bases Textual's
+        `TranscriptHistory` uses — same event-coverage + close + restore_source + park
+        shape, different paint path."""
         return self.message_history
 
     def transcript_binding(self) -> BoundView:
@@ -192,14 +194,21 @@ class QtAcpSessionView(
         # it, and on each send ``self`` publishes the event the backend converts into a
         # real submission. A queue-renderer hook will plug into this later.
         self.submissions = BusSubmissions(self)
-        # Transcript window + history reader; same classes as ConversationView uses.
+        # Transcript window + history reader. `QtTranscriptHistory` is the Qt sibling of
+        # Textual's `TranscriptHistory` — same `CommittedHistoryBase` + `ReportsCoveredPages`
+        # bases, same `SavedTranscript` source over `view.transcript.get_transcript_page`,
+        # same page type (`PreparedTranscriptPage`). Tool calls, sent messages, Claude
+        # chunks and context events all feed in through this one source — no parallel
+        # Qt-only wiring, no wire-only limitation.
         self.messages = QtHistoryWindow(app.renderer.scheme)
-        self.message_history = QtConversationHistory(self.messages, self, app)
-        # One `TranscriptPresentation` per session view, exactly as Textual does at
-        # `widgets/conversation.py:759`. `transcript.bind(self)` below produces a
-        # `BoundView` that reads tool-call / context / sent / bus fragments through the
-        # same presentation pipeline both backends use — no parallel Qt-only wiring.
+        # `TranscriptPresentation` first: `QtTranscriptHistory._initial_page_source` reads
+        # `self.view.transcript.get_transcript_page` during construction to build its
+        # `SavedTranscript`, so the attribute has to exist before the history does.
+        # Textual's `TranscriptHistory.empty_source` reads the same accessor on the view
+        # (`widgets/transcript_history.py:962`), only there the ordering is handled by
+        # Textual's `compose` + mount lifecycle.
         self.transcript = TranscriptPresentation()
+        self.message_history = QtTranscriptHistory(self.messages, self, app)
         # Layout: an identity line on top, the history below, the composer at the bottom.
         self.identity_line = ElidedLine(f"ACP session #{session_pk}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
