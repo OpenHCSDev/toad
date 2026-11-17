@@ -68,7 +68,13 @@ class SessionScope:
 
     @property
     def thread_identity(self) -> object:
-        raise NotImplementedError
+        """Default for a view that has no thread (welcome, home). A view with a
+        thread (ACP, conversation) overrides this to return its SessionIdentity.
+        Returning a NoThreadIdentity instead of raising keeps generic sidebar /
+        notification code — e.g. ThreadSettingsPane.bind — from having to guard
+        every read with try/NotImplementedError, mirroring Textual's NoThreadIdentity default."""
+        from toad.thread_identity import NoThreadIdentity
+        return NoThreadIdentity()
 
     @property
     def sidebar_thread_identity(self) -> object:
