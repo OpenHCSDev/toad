@@ -467,9 +467,11 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         self._settle_timer.setSingleShot(True)
         self._settle_timer.timeout.connect(self._settle)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
-        # The floating "jump to latest" button: child of the viewport so it floats over the
-        # scrolled rows; show/hide is driven by `tail_follow_changed` from `scrolled`.
-        self.jump_bar = QtJumpBar(self.viewport(), scheme)
+        # The floating "jump to latest" button: child of the window (not the viewport), so
+        # QScroller's gesture grab on the viewport (from TouchScrolled) can't swallow the
+        # tap and prevent `clicked` from firing on Android. Positioned over the viewport
+        # by `_place_jump_bar`. Show/hide is driven by `tail_follow_changed` from `scrolled`.
+        self.jump_bar = QtJumpBar(self, scheme)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.viewport().installEventFilter(self)
         # Block menu: right-click (desktop) and long-press (Android) on a message row
@@ -512,10 +514,14 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
             self._place_jump_bar()
 
     def _place_jump_bar(self) -> None:
+        """Position the floating bar over the viewport's bottom-center. The bar is a child
+        of the window, not the viewport, so coordinates map through `viewport().mapTo(self)`
+        — that way QScroller's gesture grab on the viewport can't swallow a tap on the bar."""
         vp = self.viewport()
         hint = self.jump_bar.sizeHint()
         self.jump_bar.resize(hint)
-        self.jump_bar.move((vp.width() - hint.width()) // 2, vp.height() - hint.height() - 12)
+        point_in_vp = QPoint((vp.width() - hint.width()) // 2, vp.height() - hint.height() - 12)
+        self.jump_bar.move(vp.mapTo(self, point_in_vp))
         self.jump_bar.raise_()
 
     def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
@@ -700,11 +706,6 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
         self.tail_follow_changed()
-        if self.jump_bar.isVisible():
-            # Re-anchor the floating button every scroll: Qt's QAbstractItemView lets
-            # viewport children track the scroll offset, so without this the button
-            # scrolls down with the content and ends up offscreen.
-            self._place_jump_bar()
         self._schedule_settle()
         self.request_preparation()
 
