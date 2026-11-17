@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QHeaderView,
     QLineEdit,
     QPushButton,
     QSizePolicy,
@@ -699,10 +700,24 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         scheme = window.theme.color_scheme
         self.setHeaderHidden(True)
         self.setIndentation(10)
+        # Two columns: 0 for the row's text layout (through the multiline delegate),
+        # 1 for inline widgets like the per-channel sort control that `QtChannelGroup`
+        # pins via `tree.setItemWidget(row, 1, sort_choice)`. Column 1 stays unused on
+        # rows that don't need it (thread rows, status rows) — Qt renders it as empty
+        # space. `setItemDelegateForColumn(0, delegate)` keeps the multiline delegate
+        # off column 1, so cells there use the default delegate and don't reach into
+        # LAYOUT_ROLE/SCOPE_SCHEME_ROLE data that only column 0 carries.
+        self.setColumnCount(2)
         self.setStyleSheet(scheme.styles.generate_tree_widget_style())
-        self.setItemDelegate(MultilinePreviewItemDelegate(
+        self.setItemDelegateForColumn(0, MultilinePreviewItemDelegate(
             scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text), self))
+        # Column 1 fits the inline widget (sort toolbutton) with no extra space; column 0
+        # takes the remainder so row text keeps its full width when no widget is pinned.
+        header = self.header()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(False)
         # Alternating row backgrounds come from the shared `generate_tree_widget_style`
         # stylesheet, which already declares `alternate-background-color:
         # {cs.alternate_row_bg}` from the scheme. The sidebar tree enables Qt's
@@ -755,9 +770,17 @@ class QtChannelGroup(ChannelGroupRows):
         # `SortControlBase`. The Qt widget owns its own menu + write path; Textual
         # renders the same state through a header-row segment. `present` pushes
         # `channel.order` into it so `sort_label` / `sort_tooltip` stay in sync.
-        # Scope-tight follow-up: embed the button on the row itself (needs a Qt
-        # tree column-count change); the state owner + write path land here.
         self.sort_choice = QtChannelSortControl(sidebar.window, ThreadSortForm, name)
+        # Pin the sort toolbutton on column 1 of the channel header row so the user
+        # sees + taps it. `ConversationRows` runs with `setColumnCount(2)` and a
+        # ResizeToContents section for column 1; the button appears to the right of
+        # the channel label. `setItemWidget` requires the item to already be in the
+        # tree — on the construction paths used today (`top.group(...)` places the
+        # row before this init runs; `_rebind_groups_from_tree` iterates existing
+        # tree children) that is always true, so a guard here would only mask a
+        # construction-order bug. Let Qt's own assertion fire if someone adds an
+        # out-of-order path.
+        sidebar.setItemWidget(row, 1, self.sort_choice)
 
     @property
     def member_keys(self):
