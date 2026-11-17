@@ -1587,23 +1587,29 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
             return self._float_layout
         return self._docks[placement.side.dock].layout()
 
-    @staticmethod
-    def _empty(layout) -> None:
+    def _empty(self, layout) -> None:
+        # Park widgets on self (QtToadApp) rather than orphaning them. Qt-for-Android gives
+        # any parent-less QWidget its own top-level QWindow + EGL surface, and the second
+        # EGL allocation races QtAndroidAccessibility::runInObjectContext() for the
+        # eglSurface() mutex and trips the deadlock protector (SIGABRT a second after
+        # ApplicationActive). Parenting them to self keeps them as child widgets.
         while layout.count():
             widget = layout.takeAt(0).widget()
             if widget is not None:
-                widget.setParent(None)
+                widget.setParent(self)
 
     def _layout_panes(self) -> None:
         for dock in self._docks.values():
             self._empty(dock.layout())
         self._empty(self._float_layout)
+        # Reparent bars to self before _target_layout.addWidget rehomes them atomically on
+        # the next pass — keeps them children of QtToadApp throughout, never top-level.
         for identity, bar in self._bars.items():
-            bar.setParent(None)
+            bar.setParent(self)
         for identity, pane in self._panes.items():
             bar = self._bars[identity]
             if not self._pane_available(identity):
-                pane.setParent(None)
+                pane.setParent(self)
                 pane.hide()
                 bar.hide()
                 continue
@@ -1623,7 +1629,7 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
                     target.addWidget(bar)
                 pane.show()
             else:
-                pane.setParent(None)
+                pane.setParent(self)
                 pane.hide()
                 target.addWidget(bar)
         for dock in self._docks.values():
