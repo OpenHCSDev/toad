@@ -14,7 +14,7 @@ from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
 from formbridge.key_declarations import TextEntryMode
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QGuiApplication, QKeyEvent, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
@@ -229,11 +229,20 @@ class ComposerEditor(QPlainTextEdit):
     def mousePressEvent(self, event) -> None:
         super().mousePressEvent(event)
         self.setFocus(Qt.FocusReason.MouseFocusReason)
-        QGuiApplication.inputMethod().show()
+        # Defer the IME show() to the next event-loop tick. Firing inline inside
+        # mousePressEvent reaches into Android's native IME path which recurses
+        # into QAndroidPlatformOpenGLWindow::eglSurface() while the Qt event
+        # dispatch still owns the surface — the platform plugin's deadlock
+        # protector then SIGABRTs the app. Same class as #1885, #1901, #1911,
+        # #1939 EGL fixes. QTimer.singleShot(0) runs after the current event
+        # unwinds, breaking the recursion.
+        QTimer.singleShot(0, QGuiApplication.inputMethod().show)
 
     def focusInEvent(self, event) -> None:
         super().focusInEvent(event)
-        QGuiApplication.inputMethod().show()
+        # Same defer as mousePressEvent — focusInEvent also runs inside Qt's
+        # event-dispatch path on Android.
+        QTimer.singleShot(0, QGuiApplication.inputMethod().show)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         # Vim NORMAL mode intercepts navigation/edit commands before the standard
