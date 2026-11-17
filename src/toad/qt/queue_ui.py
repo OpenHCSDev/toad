@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 from pyqt_reactive.widgets.fitted_text import WrappedText
 
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.client.line_blocks import MutedRole, SpanColumns
+from toad.client.line_blocks import FailureRole, MutedRole, SpanColumns
 from toad.submission_queue import QueueEvidence, QueueSource
 from toad.widget_contracts import ActivatesContract
 
@@ -130,7 +130,10 @@ class QtQueueInspection(QDialog):
 
         self.error = QLabel("", self)
         self.error.setWordWrap(True)
-        self.error.setStyleSheet("color: #c0392b;")
+        # FailureRole owns the error colour + weight in the shared line-blocks family
+        # (`toad.client.line_blocks`), pulling from `ui_theme.scheme.ErrorColour`.
+        # No Qt-local hex — the shared scheme is the single owner.
+        self.error.setStyleSheet(self.renderer.color_style(FailureRole))
         self.error.hide()
         layout.addWidget(self.error)
 
