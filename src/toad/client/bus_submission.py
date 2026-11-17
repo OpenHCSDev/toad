@@ -299,7 +299,19 @@ class BusSubmissionExecution(SubmissionExecution):
             return SentMessage(await asyncio.shield(task))
         except asyncio.CancelledError:
             view.delivery_unknown("the send was cancelled while it may still be writing", body)
-            task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+            def _surface_late_exc(done: asyncio.Future) -> None:
+                if done.cancelled():
+                    return
+                exc = done.exception()
+                if exc is None:
+                    return
+                # The outer await was cancelled; the inner task kept running and raised.
+                # Nothing is listening for this exception any more, but it is real and the
+                # silent-swallow pattern (PR #2013 ModuleNotFoundError) is what we're
+                # ruling out: traceback to stderr so logcat / dev tooling sees it.
+                import traceback
+                traceback.print_exception(type(exc), exc, exc.__traceback__)
+            task.add_done_callback(_surface_late_exc)
             return RefusedMessage()
         except CommittedMessageError as error:
             return SentMessage(error.record.reference)

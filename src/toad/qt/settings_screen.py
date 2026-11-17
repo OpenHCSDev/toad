@@ -93,6 +93,30 @@ class QtSettingsEditor(QWidget):
     def paint(self) -> None:  # pragma: no cover - overridden
         raise NotImplementedError
 
+    def _write_or_surface(self, value: object) -> None:
+        """Shared write path: on failure, surface to the screen's status line and
+        traceback to stderr, then repaint so the editor shows the committed value.
+
+        Every per-type editor used to `except Exception: self.paint()` which silently
+        rolled back the row — the user saw the field snap back with no explanation.
+        This hoist means a validation / write failure reaches the screen's status
+        line (visible) and logcat / stderr (debuggable) via one call-site."""
+        try:
+            self.row.write(value)
+        except Exception as error:
+            self._surface_error(error)
+
+    def _surface_error(self, error: BaseException) -> None:
+        """Push an editor error (parse failure or write failure) to the screen's
+        status line + stderr, then repaint the row from committed state."""
+        import sys, traceback
+        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+        screen = self.window()
+        surface = getattr(screen, "surface_write_error", None)
+        if surface is not None:
+            surface(self.row.label, error)
+        self.paint()
+
 
 def shows(*kinds: type[SettingsRowKind]):
     """Decorator: register a `QtSettingsEditor` subclass for these kind classes."""
@@ -151,9 +175,11 @@ class QtIntEditor(QtSettingsEditor):
         if not text:
             return
         try:
-            self.row.write(int(text))
-        except (ValueError, Exception):
-            self.paint()
+            value = int(text)
+        except ValueError as error:
+            self._surface_error(error)
+            return
+        self._write_or_surface(value)
 
 
 @shows(FloatRowKind)
@@ -181,9 +207,11 @@ class QtFloatEditor(QtSettingsEditor):
         if not text:
             return
         try:
-            self.row.write(float(text))
-        except (ValueError, Exception):
-            self.paint()
+            value = float(text)
+        except ValueError as error:
+            self._surface_error(error)
+            return
+        self._write_or_surface(value)
 
 
 @shows(StrRowKind)
@@ -203,10 +231,7 @@ class QtStrEditor(QtSettingsEditor):
             self.field.blockSignals(False)
 
     def _on_finished(self) -> None:
-        try:
-            self.row.write(self.field.text())
-        except Exception:
-            self.paint()
+        self._write_or_surface(self.field.text())
 
 
 @shows(ChoicesRowKind)
@@ -237,10 +262,7 @@ class QtChoicesEditor(QtSettingsEditor):
     def _on_changed(self, index: int) -> None:
         if index < 0:
             return
-        try:
-            self.row.write(self.combo.itemData(index))
-        except Exception:
-            self.paint()
+        self._write_or_surface(self.combo.itemData(index))
 
 
 @shows(SchemeChoiceRowKind)
@@ -267,10 +289,7 @@ class QtSchemeChoiceEditor(QtSettingsEditor):
             self.combo.blockSignals(False)
 
     def _on_changed(self, text: str) -> None:
-        try:
-            self.row.write(text)
-        except Exception:
-            self.paint()
+        self._write_or_surface(text)
 
 
 class QtSettingsPage(QWidget):
@@ -356,6 +375,14 @@ class QtSettingsScreen(QDialog):
             self._pages.append(widget)
         layout.addWidget(self.tabs, stretch=1)
 
+        # Status line for write / validation failures surfaced by QtSettingsEditor.
+        # Loud-fail replacement for the previous `except Exception: self.paint()`
+        # silent-rollback pattern: the user sees why the field snapped back.
+        self.status = QLabel("", self)
+        self.status.setWordWrap(True)
+        self.status.setVisible(False)
+        layout.addWidget(self.status)
+
         buttons = QDialogButtonBox(self)
         discard_btn = buttons.addButton(
             "Discard changes", QDialogButtonBox.ButtonRole.ResetRole
@@ -364,6 +391,13 @@ class QtSettingsScreen(QDialog):
         discard_btn.clicked.connect(self._on_discard)
         close_btn.clicked.connect(self._on_close)
         layout.addWidget(buttons)
+
+    def surface_write_error(self, row_label: str, error: BaseException) -> None:
+        """Called by QtSettingsEditor._surface_error when a per-row write or parse
+        fails. Shows the message in the dialog's status line; stderr log is handled
+        by the editor so logcat / dev tooling also sees the traceback."""
+        self.status.setText(f"{row_label}: {type(error).__name__}: {error}")
+        self.status.setVisible(True)
 
     def _on_search_changed(self, text: str) -> None:
         for page in self._pages:
