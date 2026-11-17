@@ -239,7 +239,7 @@ class OpenBusAction(ApplicationAction):
     keys = {TextEntryMode: ("ctrl+shift+b",)}
     show = True
 
-    def apply(self, app: ClientApplication) -> None:
+    async def apply(self, app: ClientApplication) -> None:
         app.open_bus_switcher()
 
 
