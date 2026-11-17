@@ -119,6 +119,7 @@ from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMe
 from toad.menus import MenuCommand, MenuConversation, message_menu, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.qt.menu import QtMenu
+from toad.qt.project_panel import QtProjectPanel
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
 from toad.qt.paste_profile import QtProfilePastePanel
 from toad.qt.lines import QtLineRenderer
@@ -1506,6 +1507,16 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # content so the input is visible at the top of the pane, mirroring Textual's
         # `SideBar._compose_shell` which also stacks `SidebarSearch` over its panels.
         self.sidebar_search = QtSidebarSearch(self.sidebar, parent=self)
+        # Project files live in their own sibling collapsible panel in the shell —
+        # one `QtSidebarPanelFrame` per content, keyed to the shared
+        # `SidebarState.panels_collapsed` owner, same pattern Textual uses with
+        # `SideBarCollapsible` siblings in `SideBar._compose_shell`. Starts
+        # collapsed so phones that don't need the project tree aren't crowded.
+        self._sidebar_project_panel = QtProjectPanel(self.project_dir.path, parent=self.sidebar_search)
+        self.sidebar_search.add_panel(
+            PanelSpec(title="Project", flex=True, collapsed=True, id="sidebar-project"),
+            self._sidebar_project_panel,
+        )
         self.thread_pane = ThreadSettingsPane(parent=self,
                                               project_path=self.project_dir.path)
         self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
