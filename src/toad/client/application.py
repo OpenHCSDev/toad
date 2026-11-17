@@ -22,6 +22,7 @@ from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.transport.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, CommsTailnetProfileTool
 from formbridge.operations import ExclusiveKind, OperationKind
+from objectstate import ObjectState, ObjectStateRegistry
 
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
 from toad.client import bus_connect

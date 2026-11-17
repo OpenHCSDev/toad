@@ -19,6 +19,7 @@ from textual.containers import VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.widgets import Static
 
+from toad.client.application_actions import NewSessionAction as _SharedNewSession
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner, WelcomeListing
 from toad.core.events import SessionSelected
 from toad.format_path import format_path
@@ -204,17 +205,18 @@ class WelcomeAction(WidgetAction, affix="Action"):
     """What the welcome view does on its own keys."""
 
 
-class NewSessionAction(WelcomeAction):
-    """Start this launch's session: its attached agent's, or a native thread."""
+class WelcomeStartSession(WelcomeAction):
+    """Textual's welcome binds `n` to a WelcomeAction so the screen's own key system
+    picks it up; the body lives on the shared `NewSessionAction` in
+    `toad.client.application_actions`, so Qt's Welcome button and this `n` key fire
+    the same ClientApplication-owned action."""
 
     title = "New session"
     keys = {TextEntryMode: ("n",)}
     show = True
 
     async def apply(self, context: WelcomeScreen) -> None:
-        app = context.app
-        navigation = app.session_navigation
-        await app.agent_binding.start_session(navigation, navigation.selected_project())
+        await _SharedNewSession().apply(context.app)
 
 
 class StartSessionButton(NewSessionButton):
@@ -222,7 +224,8 @@ class StartSessionButton(NewSessionButton):
     makes another native thread."""
 
     async def create(self) -> None:
-        await NewSessionAction().apply(self.query_ancestor(WelcomeScreen))
+        screen = self.query_ancestor(WelcomeScreen)
+        await _SharedNewSession().apply(screen.app)
 
 
 class WelcomeScreen(
