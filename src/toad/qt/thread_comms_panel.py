@@ -204,12 +204,12 @@ class QtThreadCommsPanel(QWidget):
 
     def _item_expanded(self, item: QTreeWidgetItem) -> None:
         group_type = item.data(0, Qt.ItemDataRole.UserRole)
-        if isinstance(group_type, type) and issubclass(group_type, RelationshipGroup):
+        if RelationshipGroup.is_group_type(group_type):
             self._state.expanded[group_type] = True
 
     def _item_collapsed(self, item: QTreeWidgetItem) -> None:
         group_type = item.data(0, Qt.ItemDataRole.UserRole)
-        if isinstance(group_type, type) and issubclass(group_type, RelationshipGroup):
+        if RelationshipGroup.is_group_type(group_type):
             self._state.expanded[group_type] = False
 
     async def write_order(self, groups: tuple[SortableRelationshipGroup, ...],
