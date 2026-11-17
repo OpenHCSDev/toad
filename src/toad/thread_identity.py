@@ -83,6 +83,13 @@ class SessionIdentity(ABC):
     def thread_incarnation(self) -> ThreadIncarnation:
         raise ValueError("Session has no managed thread incarnation")
 
+    def optional_thread_incarnation(self) -> ThreadIncarnation | None:
+        """The incarnation if this identity owns one, else None. Lets callers that need
+        a `ThreadIncarnation` for a feature that is meaningless without a bound thread
+        (e.g. `QtGoalBar` watching a peer's goal) skip construction through a method
+        override, not an `isinstance` guard or a try/except on `thread_incarnation()`."""
+        return None
+
     def bind_history(self, histories) -> None:
         """An unbound session keeps its native input-history scope."""
 
@@ -146,6 +153,9 @@ class ThreadIdentity(NamedThreadIdentity):
         return (IncarnationThreadTarget(self.owner),)
 
     def thread_incarnation(self) -> ThreadIncarnation:
+        return self.owner
+
+    def optional_thread_incarnation(self) -> ThreadIncarnation:
         return self.owner
 
     def resolve_thread(self, observed: Observing, project: Path) -> str:
