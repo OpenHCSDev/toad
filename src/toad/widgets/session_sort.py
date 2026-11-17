@@ -22,6 +22,7 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
+from toad.client.sort_control import SortControlBase
 from agent_comms.transport.tools.sidebar import CommsSortChannelsTool
 from python_introspect import FieldLabel
 from textual.geometry import Region
@@ -57,39 +58,13 @@ class ChannelSortForm:
     ]
 
 
-class SortChoice[Order: DisplayOrder]:
-    """One ordering choice and its anchored menu. A widget or a header segment presents it."""
+class SortChoice[Order: DisplayOrder](SortControlBase[Order]):
+    """One ordering choice and its anchored Textual menu.
 
-    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str, **kwargs):
-        super().__init__(**kwargs)
-        self.scope = scope
-        self.form_type = form_type
-        self.form: ThreadSortForm | ChannelSortForm | None = None
-
-    @property
-    def order(self) -> type[Order] | None:
-        return self.form.order if self.form is not None else None
-
-    def update_order(self, order: type[Order] | None) -> None:
-        if self.form is None or order is not self.order:
-            self.form = self.form_type(order)
-            self.sort_changed()
-
-    def sort_changed(self) -> None:
-        """The presenter repaints what sort_label and sort_tooltip now answer."""
-
-    @property
-    def sort_label(self) -> str:
-        order = self.order
-        text = (order.label() if order is not None else
-                self.form.placeholder.text if self.form is not None else "Sort")
-        return f"{text} ▾"
-
-    @property
-    def sort_tooltip(self) -> str:
-        order = self.order
-        return (f"Sort {self.scope} by {order.label().lower()}" if order is not None
-                else f"Choose how to sort {self.scope}")
+    `SortControlBase` owns the toolkit-neutral form + order + label/tooltip state;
+    this subclass adds the Textual-specific menu (`open_sort`), writer glue and
+    the `sort_host`/`sort_anchor` hooks a Textual presenter supplies. Qt renders
+    the same state through its own subclass (`QtChannelSortControl`)."""
 
     @property
     @abstractmethod
