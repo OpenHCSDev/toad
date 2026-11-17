@@ -20,7 +20,7 @@ from agent_comms.registry.relationships import (
     RelationshipGroup,
     ThreadCommsSnapshot,
 )
-from agent_comms.registry.relationship_store import SortableRelationshipGroup
+from agent_comms.registry.relationships import SortableRelationshipGroup
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
