@@ -56,6 +56,9 @@ if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
+_CONTRACT_MISSING = object()
+
+
 class QtThreadView(
     ObservedAgentBinding,
     ConversationThreadReadMixin,
@@ -108,6 +111,79 @@ class QtThreadView(
     # ``CommsChatView`` all used the same default; hoisted here so both thread
     # views inherit it. Subclasses with a live queue binding override.
     queue_source: QueueSource = NoQueueSource()
+
+    # ---- Shared contract: fields every concrete thread view must have populated ----
+    #
+    # Textual's `Conversation` always mounts: transcript, composer (prompt), agent
+    # activity ribbon, goal bar, identity line, flash / notice surface, bus submissions.
+    # A Qt subclass that omits any of these silently paints a broken screen — the
+    # mailbox-composer-missing bug (Nov 17 2026) was exactly that: no error, no log,
+    # just no input box, caught only by Tristan looking at a screencap.
+    #
+    # Each name here must be an instance attribute (or inherited descriptor) set to
+    # a non-None value by the time the post-init contract check fires. A missing or
+    # None field prints a loud diagnostic to stderr naming the subclass and the field,
+    # so the next thing a developer sees is the map — not a silent wrong screen.
+    #
+    # Fields `_setup_transcript` populates (messages, transcript, message_history,
+    # agent_activity) are not listed because the base owns them. The list is the
+    # SUBCLASS'S promise to the user, not to the base.
+    _REQUIRED_POST_INIT_FIELDS: tuple[str, ...] = (
+        "identity_line",   # the banner / title row every thread view shows
+        "composer",        # the input box (ACP had it, mailbox silently omitted it pre-#2041)
+        "submissions",     # BusSubmissions — bus layer the composer sends through
+    )
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        """Wrap every concrete subclass's ``__init__`` so the shared contract check
+        fires after the subclass has built its own state. The check is scheduled on
+        the Qt event loop (``QTimer.singleShot(500, ...)``) so a composer mounted
+        lazily on the next tick — the pattern on Android to avoid the
+        ComposerEditor / a11y race — satisfies the check when it lands, not before.
+        """
+        super().__init_subclass__(**kwargs)
+        original_init = cls.__init__
+
+        def wrapped_init(self, *args, **kw):
+            original_init(self, *args, **kw)
+            # Defer long enough for lazy composer mounts (QTimer.singleShot(0)) to land.
+            # 500 ms gives the first Android paint plenty of room.
+            QTimer.singleShot(500, lambda: self._verify_shared_contract())
+
+        wrapped_init.__wrapped__ = original_init  # type: ignore[attr-defined]
+        cls.__init__ = wrapped_init
+
+    def _verify_shared_contract(self) -> None:
+        """Loud-log every ``_REQUIRED_POST_INIT_FIELDS`` entry this view has not
+        populated. Does not raise — the diagnostic is the point; the UI stays up
+        so the viewer sees the specific partial state and the logcat names the
+        gap. Each missing field prints one line, so a cascade of missing fields
+        prints a cascade of lines (what Tristan wanted: ``error changes = here,
+        here, here, here — tells you the map``).
+        """
+        import sys as _sys
+        try:
+            attached = self.is_attached
+        except Exception:
+            attached = False
+        if not attached:
+            return
+        for field in self._REQUIRED_POST_INIT_FIELDS:
+            value = getattr(self, field, _CONTRACT_MISSING)
+            if value is _CONTRACT_MISSING:
+                print(
+                    f"QtThreadView contract violation: {type(self).__name__} "
+                    f"never declared '{field}' — see QtThreadView._REQUIRED_POST_INIT_FIELDS",
+                    file=_sys.stderr,
+                    flush=True,
+                )
+            elif value is None:
+                print(
+                    f"QtThreadView contract violation: {type(self).__name__}.{field} "
+                    f"is None 500ms after __init__ — expected a concrete widget / owner",
+                    file=_sys.stderr,
+                    flush=True,
+                )
 
     def apply_bound_agent(self, agent: "AgentBase") -> None:
         """Default no-op: `ObservedAgentBinding.bind_agent` calls this after storing.
@@ -278,6 +354,57 @@ class QtThreadView(
         if self.composer is None:
             return
         self.composer.set_commands([])
+
+    async def command_target_context(self):
+        """Shared `ConversationCommands` contract: the target context a slash
+        command runs against. Both frontends route through
+        `page_source.command_context(view)`; Textual's `comms_chat.MessageView`
+        at line 349 is the mirror. The page source owns per-thread targeting
+        semantics; this base just delegates.
+
+        Returns None if the transcript stack hasn't been wired yet — a slash
+        command typed before mount simply has no context to publish against.
+        """
+        source = getattr(self.message_history, "page_source", None)
+        if source is None:
+            return None
+        return source.command_context(self)
+
+    async def read_command_catalog(self):
+        """Shared `ConversationCommands` contract: the slash-command catalog
+        this conversation offers, read fresh on each completion. Textual's
+        implementation lives on `Conversation.read_command_catalog`
+        (`src/toad/widgets/conversation.py:1746`); same shape here. The agent
+        binding carries the advertised commands; `command_target_context` is
+        awaited inside `CommandCatalog.read` to project applicability."""
+        from toad.command_catalog import CommandCatalog
+
+        agent = self.agent_binding
+        context = self.command_target_context()
+        return await CommandCatalog.read(
+            self.app, agent.presentation.commands, context, self.local_commands
+        )
+
+    def flash(self, text: str) -> None:
+        """Shared `ConversationCommands` contract: a short notice under the
+        prompt. Textual routes through its `FlashHost` feedback widget; Qt
+        does not have one yet, so the base prints LOUDLY to stderr so the
+        notice is never swallowed. A future `QtFlashHost` would replace the
+        print without changing the call sites."""
+        print(f"[flash] {type(self).__name__}: {text}", flush=True)
+
+    def flash_success(self, text: str) -> None:
+        """Shared contract: successful-action feedback. See `flash`."""
+        print(f"[flash success] {type(self).__name__}: {text}", flush=True)
+
+    def flash_error(self, text: str) -> None:
+        """Shared contract: error feedback. In addition to the stderr line
+        (so logcat captures it), surface via the composer's own failure strip
+        when available — that matches where the user is looking after a bad
+        send."""
+        print(f"[flash error] {type(self).__name__}: {text}", flush=True)
+        if self.composer is not None:
+            self.composer.show_failure(text)
 
     def notification_targets(self):
         """The Composer's ``Receipt`` subscribes against the view's notification
