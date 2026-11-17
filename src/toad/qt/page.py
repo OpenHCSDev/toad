@@ -1,0 +1,32 @@
+"""The Qt `Page` base: a page of the window shown when selected, read again when
+Core's stores change.
+
+Lives in its own module (rather than `toad.qt.window`) because `QtThreadView`
+inherits it, and `toad.qt.acp_tab` inherits `QtThreadView`. If `Page` lived in
+window.py, then `thread_view → window → acp_tab (via window.py's tail import) →
+thread_view` would cycle — the partial module would raise on the inner
+`from toad.qt.thread_view import QtThreadView`. Splitting `Page` out breaks the
+chain so both views can inherit it without the cycle.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from toad.client.tab_identity.kinds import CommsTab
+    from toad.qt.window import QtToadApp
+
+
+class Page:
+    """A page of the window: shown when selected, read again when Core's stores change."""
+
+    mode: str
+
+    def reload(self) -> None:
+        """A page fed by its own subscription has nothing to read again."""
+
+    def shown(self, window: "QtToadApp", visited: "Callable[[CommsTab], object]") -> None:
+        """Selected: read again; a tab passes its identity to the visit history."""
+        self.reload()

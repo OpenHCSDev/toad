@@ -67,8 +67,16 @@ class QtPlan(SessionPanel, QWidget):
             if callable(method):
                 try:
                     method()
-                except Exception:
-                    pass
+                except Exception as error:
+                    # Cleanup failed — can't cancel from here (self._subscription
+                    # must still be cleared so next bind doesn't leak), but a
+                    # silent-swallow hides a real subscription-lifecycle bug.
+                    # Surface to stderr so a repeat leak leaves a trail.
+                    import sys
+                    print(
+                        f"plan_panel: subscription.{name}() failed: {error!r}",
+                        file=sys.stderr,
+                    )
                 break
         self._subscription = None
 

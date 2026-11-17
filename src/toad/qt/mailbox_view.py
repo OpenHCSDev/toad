@@ -68,11 +68,10 @@ class QtMailboxView(QtThreadView, SessionScope):
     Shares the transcript stack with `QtAcpSessionView` through `QtThreadView`.
     """
 
-    # `ConversationThreadReadMixin.arm_thread_read` reads `self.agent_binding`.
-    # Mailbox view has no live agent binding; the `NoAgentConnection` default
-    # satisfies the mixin without a real agent. Mirrors
-    # `QtAcpSessionView.agent_binding` default at `qt/acp_tab.py:141`.
-    agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
+    # `agent_binding` lives on `QtThreadView` (shared owner, PR #...) — a NoAgentConnection
+    # ObservedField by default. Mailbox view inherits it without re-declaring; the
+    # field exists if a later PR wires a real binding here (e.g. an opened mailbox
+    # that upgrades to a live session).
 
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()
