@@ -38,6 +38,7 @@ from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
+from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
 from toad.thread_identity import NoThreadIdentity, SessionIdentity
@@ -143,6 +144,7 @@ class ThreadSettingsPane(QWidget):
         column.setSpacing(4)
         self._category_filter = _CategoryFilter(self._content)
         self._coordination_status = QtCoordinationStatus(self._content)
+        self._comms_panel = QtThreadCommsPanel(self._content)
         self._plan_panel = QtPlan(self._content)
         self._project_panel: QtProjectPanel | None = (
             QtProjectPanel(project_path, parent=self._content)
