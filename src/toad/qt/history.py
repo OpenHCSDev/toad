@@ -46,6 +46,8 @@ from toad.client.reader_position import FragmentLocation, ReaderPage, RowPositio
 from toad.client.transcript_fragments import (
     BusMessageFragment,
     ContextTranscriptFragment,
+    FragmentClasses,
+    SentMessageFragment,
     ToolTranscriptFragment,
     TranscriptFragment,
 )
@@ -81,6 +83,19 @@ class QtToolTranscriptFragment(ToolTranscriptFragment):
 
 class QtContextTranscriptFragment(ContextTranscriptFragment):
     """The coordination context an agent was given, drawn by Qt."""
+
+
+QT_FRAGMENT_CLASSES = FragmentClasses(
+    transcript=TranscriptFragment,
+    context=QtContextTranscriptFragment,
+    bus_message=QtMessageFragment,
+    sent_message=SentMessageFragment,
+    tool=QtToolTranscriptFragment,
+)
+"""The Qt flavor of the shared fragment family. A render pipeline that reaches Qt (a future
+Qt entry for `AcpTab`/`MailboxTab`) passes this to `transcript_fragments(..., classes=...)`;
+the current CommsTab path still goes through `WireSource` with the Qt wire fragments, since
+bus messages have no transcript builder in the loop."""
 
 
 class QtPage(ReaderPage):
