@@ -15,7 +15,8 @@ from toad.core.projection import MroProjection
 from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
-from toad.widgets.transcript_fragments import DraftBlocksRenderTask, FragmentPlan
+from toad.client.transcript_fragments import FragmentPlan
+from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES, DraftBlocksRenderTask
 from toad.widgets.transcript_lines import (
     AcquiredRows,
     BlockLines,
@@ -78,7 +79,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
     def show(self, draft: DraftRow, *, resolve_sent) -> None:
         if draft == self.draft:
             return
-        self._plan = FragmentPlan.read(draft.events, resolve_sent=resolve_sent)
+        self._plan = FragmentPlan.read(draft.events, resolve_sent=resolve_sent, classes=TEXTUAL_FRAGMENT_CLASSES)
         self.draft = draft
         self._request_render()
 

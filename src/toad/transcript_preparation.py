@@ -26,8 +26,9 @@ from toad.client.prepared_pages import (
     SourcePageWork,
     TranscriptNoProgress,
 )
+from toad.client.transcript_fragments import transcript_fragments
 from toad.render_backend import ContentAddressedRenderTask
-from toad.widgets.transcript_fragments import transcript_fragments
+from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 from toad.work_preparation import (
     PreparationRuntime,
     PreparedResult,
@@ -50,7 +51,11 @@ class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentA
 
     def execute(self) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
-        fragments = transcript_fragments(self.page.events, resolve_sent=self.page.resolve_sent_messages)
+        fragments = transcript_fragments(
+            self.page.events,
+            resolve_sent=self.page.resolve_sent_messages,
+            classes=TEXTUAL_FRAGMENT_CLASSES,
+        )
         return PreparedTranscriptPage.measured(self.page, fragments)
 
     async def prepared(self, runtime: PreparationRuntime) -> PreparedTranscriptPage:
