@@ -71,11 +71,8 @@ class CommsHost[Source](CoreEventReceiver, BusPickerHost, ThemedApp[ApplicationO
     def report_fatal(self, error: Exception) -> None:
         self._handle_exception(error)
 
-    def show_info(self, text: str, title: str) -> None:
-        self.notify(text, title=title)
-
-    def show_warning(self, text: str, title: str) -> None:
-        self.notify(text, title=title, severity="warning", markup=False)
+    # show_info, show_warning, show_error live on CommsHost base; they dispatch to notify().
+    # Textual's App.notify matches the shared signature, so no override needed here.
 
     def log_error(self, text: str) -> None:
         self.log.error(text)

@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.cli_verbs.cli_result import ResultShower
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms_hooks import ToolRefusedError
 from objectstate import ObjectState, ObjectStateRegistry
 from rich.color import Color as RichColor
 from rich.console import RenderableType
@@ -34,7 +33,6 @@ from textual.content import Content
 from textual.design import ColorSystem
 from textual.driver import TerminalGaveNoPalette
 from textual.message_pump import _MessagePumpMeta
-from textual.notifications import SeverityLevel
 from textual.screen import Screen
 from textual.strip import Strip
 from textual.style import Style as VisualStyle
@@ -70,7 +68,6 @@ from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHan
 from watchdog.observers import Observer
 from watchdog.observers.api import BaseObserver
 
-from toad import paths
 from toad.colour_ink import ColourInk
 from toad.client.line_blocks import LineRole
 from toad.preferences import SavedSettings, ToadSettings
@@ -562,17 +559,9 @@ class ThemedApp(SettingsScope, App[ReturnType], ResultShower, metaclass=_ThemedA
     def show_done(self, text: str, title: str) -> None:
         self.notify(text, title=title)
 
-    def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
-        """Persist real exceptions. A refusal is transient: ResultShower's text, or a Core
-        refusal (ToolRefusedError: an unknown channel, a refused goal action): an intentional
-        answer, not a failure. A bare Refused also carries real backend failures, so it is
-        saved."""
-        if isinstance(error, (str, ToolRefusedError)):
-            self.notify(str(error), title=title, severity=severity, markup=False)
-            return
-        path = paths.save_error(error, title)
-        text = str(error).partition("\n")[0]
-        self.notify(f"{text}\nLog: {path}", title=title, severity=severity, markup=False)
+    # show_error lives on CommsHost (client/host.py): it dispatches to self.notify(...),
+    # which Textual's App already provides with a matching signature. The ToolRefusedError
+    # transient branch + paths.save_error + crash-sink POST all moved to the shared method.
 
     def get_color_system(self) -> str:
         return self.colours.depth.name

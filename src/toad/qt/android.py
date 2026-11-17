@@ -32,7 +32,7 @@ from toad import paths
 from toad.client.bus_selection import BusChoice
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.android_app import APP
-from toad.qt.host import post_crash_to_sink
+from toad.client.host import post_crash_to_sink
 from toad.qt.main import current_scheme, serve
 
 BUNDLED_PROFILE = APP / "profile.json"

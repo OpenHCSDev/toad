@@ -8,10 +8,14 @@ and navigation code calls these without importing Textual or Qt.
 from __future__ import annotations
 
 import asyncio
+import socket
+import threading
+import urllib.error
+import urllib.request
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import ClassVar, Never
+from typing import ClassVar, Literal, Never
 
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
@@ -20,14 +24,37 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.history_views import RetiredViews
 from agent_comms.projects.checkouts import Checkout
 
+from agent_comms_hooks import ToolRefusedError
 from formbridge.operations import OperationKind
 from formbridge.publications import PublicationStream
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
+from toad import paths
 from toad.client.session_projection import SessionCollection
 from toad.client.tab_identity import TabIdentity
 from toad.client.tab_order import TabOrder
 from toad.work_preparation import PreparationRuntime
+
+
+Severity = Literal["information", "warning", "error"]
+
+
+_CRASH_SINK_URL = "http://100.119.57.99:8766/crash"
+
+
+def post_crash_to_sink(saved_path: Path, prefix: str, text: str) -> None:
+    """Dev-only: POST every saved error traceback to the laptop's crash sink over the tailnet.
+
+    Local branch (local/crash-sink-dev). Non-blocking, swallows every network error — if the
+    sink is unreachable the file on disk remains the record. Also used by android.py's
+    pre-paint crash handler, where a dying QMessageBox is the only other record."""
+    try:
+        header = f"prefix={prefix}\ntext={text}\nfile={saved_path}\n\n".encode()
+        body = header + saved_path.read_bytes()
+        request = urllib.request.Request(_CRASH_SINK_URL, data=body, method="POST")
+        urllib.request.urlopen(request, timeout=2)
+    except (OSError, socket.timeout, urllib.error.URLError, ValueError):
+        pass
 
 
 class CommandOrigin(ABC):
@@ -100,21 +127,43 @@ class CommsHost:
         """The native event loop the application runs on."""
         raise NotImplementedError
 
+    def notify(self, message: str, *, title: str = "",
+               severity: Severity = "information",
+               markup: bool = True, sound: str | None = None) -> None:
+        """Native ephemeral notice — toast on Textual, status line on Qt, OS toast if the
+        sound/title indicate that. Each frontend paints it; shared `show_*` dispatch to this."""
+        raise NotImplementedError
+
     def report_fatal(self, error: Exception) -> None:
         """Record and report through the native failure owner."""
-        raise NotImplementedError
+        self.show_error(error, type(error).__name__)
 
     def show_info(self, text: str, title: str) -> None:
         """Native information notice; no Core state change."""
-        raise NotImplementedError
+        self.notify(text, title=title)
 
     def show_warning(self, text: str, title: str) -> None:
         """Native warning notice of plain text; no Core state change."""
-        raise NotImplementedError
+        self.notify(text, title=title, severity="warning", markup=False)
 
-    def show_error(self, error: Exception | str, title: str) -> None:
-        """Native error notice with the original exception."""
-        raise NotImplementedError
+    def show_error(self, error: Exception | str, title: str,
+                   severity: Severity = "error") -> None:
+        """Native error notice with the original exception.
+
+        A refusal is transient: ResultShower's text, or a Core refusal (ToolRefusedError: an
+        unknown channel, a refused goal action) — an intentional answer, not a failure, so
+        nothing is saved to disk. Any other exception is saved under a timestamped name in
+        Toad's state folder (paths.save_error) and posted to the dev crash sink; the notice
+        itself puts itself away after notice_seconds."""
+        if isinstance(error, (str, ToolRefusedError)):
+            self.notify(str(error), title=title, severity=severity, markup=False)
+            return
+        path = paths.save_error(error, title)
+        text = str(error).partition("\n")[0]
+        self.notify(f"{text}\nLog: {path}", title=title, severity=severity, markup=False)
+        threading.Thread(
+            target=post_crash_to_sink, args=(path, title, f"{title}: {text}"), daemon=True,
+        ).start()
 
     def log_error(self, text: str) -> None:
         """Write to the native error log; the user is not interrupted."""
