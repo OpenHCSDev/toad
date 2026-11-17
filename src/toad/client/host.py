@@ -47,7 +47,9 @@ def post_crash_to_sink(saved_path: Path, prefix: str, text: str) -> None:
 
     Local branch (local/crash-sink-dev). Non-blocking, swallows every network error — if the
     sink is unreachable the file on disk remains the record. Also used by android.py's
-    pre-paint crash handler, where a dying QMessageBox is the only other record."""
+    pre-paint crash handler: on Qt-for-Android a top-level QMessageBox deadlocks with the
+    EGL compositor (QAndroidPlatformOpenGLWindow::eglSurface deadlock protector SIGABRT),
+    so the sink POST plus the saved file are the only record of a crash before first paint."""
     try:
         header = f"prefix={prefix}\ntext={text}\nfile={saved_path}\n\n".encode()
         body = header + saved_path.read_bytes()
