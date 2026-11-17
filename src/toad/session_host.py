@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from formbridge.forms.declared_fields import DeclaredViews
 from metaclass_registry import AbstractHooksMeta
@@ -18,6 +18,11 @@ from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.client.session_scope import SessionOrigin, SessionScope
 from toad.client.session_tracker import SessionTracker
 from toad.client.tab_identity import TabIdentity
+
+if TYPE_CHECKING:
+    from toad.navigation_preparation import ThreadNavigationRequest
+    from toad.thread_navigation import ThreadOrigin
+    from toad.client.tab_identity import SessionTabIdentity
 
 
 class SessionEntries(DeclaredViews):
@@ -72,6 +77,20 @@ class NavigationHost(NavigatingHost[Observing]):
 
     @abstractmethod
     def update_show_sessions(self) -> None: ...
+
+    @abstractmethod
+    def make_opening_view(
+        self,
+        request: ThreadNavigationRequest,
+        origin: ThreadOrigin,
+        identity: SessionTabIdentity,
+    ) -> SessionScope:
+        """The loading placeholder a thread-navigation opening mounts while its async
+        read resolves, then rebinds with the real content. Textual returns
+        `MainScreen.opening(...)`; Qt returns a `QtOpeningSessionView`. Each frontend
+        owns its placeholder so this shared layer (and `ThreadOpening`) does not have to
+        import the Textual-widget pyramid just to reach `MainScreen`."""
+        ...
 
 
 class SessionNavigator(SessionCollection[Observing]):
