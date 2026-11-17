@@ -1,23 +1,24 @@
 """Toad's native views: their geometry is declared, never written to styles."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from textual.view import WidgetView
 
-if TYPE_CHECKING:
-    from toad.screens.workspace import WorkspaceFrame
-
+from toad.workspace_frame import WorkspaceFrame
 
 
 class WorkspaceHosted:
-    """A widget whose native screen supplies the workspace frame and histories."""
+    """A widget whose native screen satisfies the shared workspace-frame contract."""
 
     @property
     def screen(self) -> WorkspaceFrame:
-        from toad.screens.workspace import WorkspaceFrame
-
-        return WorkspaceFrame.require(super().screen)
+        """The containing workspace frame as the toolkit-neutral contract. Textual
+        widgets inherit this alongside `Widget`, so `super().screen` yields the Textual
+        `Screen`; the concrete Textual `WorkspaceFrame` structurally satisfies the
+        protocol. Qt widgets override this to return their own `QtWorkspaceFrame`."""
+        got = super().screen
+        if not isinstance(got, WorkspaceFrame):
+            raise TypeError(f"{type(got).__name__} does not satisfy WorkspaceFrame")
+        return got
 
 
 class CenteredView(WidgetView):
