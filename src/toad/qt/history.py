@@ -671,8 +671,14 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         self._anchored = anchor
         if anchor:
             self.reader_position = self.reader_position.joined_tail()
-            with self.layout_scroll():
-                self.follow_end()
+            try:
+                with self.layout_scroll():
+                    self.follow_end()
+            except RuntimeError:
+                # View torn down between scheduling and anchor() running —
+                # scrollToBottom() inside follow_end hits the dead C++ widget.
+                # Nothing to scroll; the user already closed the view.
+                return
         else:
             self.reader_position = RowPosition(self.scroll_y)
 
@@ -713,10 +719,16 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
     @asynccontextmanager
     async def preserve_history(self):
         """Pages change inside; then the rows are read again from the pages, and the reader
-        stays on the row it was reading, or at the end when following it."""
-        top = self.indexAt(self.viewport().rect().topLeft())
-        key = top.data(HistoryRows.FRAGMENT).key if top.isValid() else None
-        offset = self.visualRect(top).top() if top.isValid() else 0
+        stays on the row it was reading, or at the end when following it. If the widget
+        has been torn down, the Qt reads raise RuntimeError; yield as a no-op so the
+        page-change work still runs but the reader-restore is skipped on a dead view."""
+        try:
+            top = self.indexAt(self.viewport().rect().topLeft())
+            key = top.data(HistoryRows.FRAGMENT).key if top.isValid() else None
+            offset = self.visualRect(top).top() if top.isValid() else 0
+        except RuntimeError:
+            yield
+            return
         try:
             yield
         finally:
@@ -731,13 +743,18 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         self.doItemsLayout()
 
     def rows_changed(self) -> None:
-        """Prepared rows changed height: lay them out again, keeping the reader's row."""
-        top = self.indexAt(self.viewport().rect().topLeft())
-        key = top.data(HistoryRows.FRAGMENT).key if top.isValid() else None
-        offset = self.visualRect(top).top() if top.isValid() else 0
-        self.doItemsLayout()
-        self.keep_reader(key, offset)
-        self.viewport().update()
+        """Prepared rows changed height: lay them out again, keeping the reader's row.
+        If the widget has been torn down, Qt reads raise RuntimeError; skip the
+        reader-restore and the viewport update — there is no viewer to serve."""
+        try:
+            top = self.indexAt(self.viewport().rect().topLeft())
+            key = top.data(HistoryRows.FRAGMENT).key if top.isValid() else None
+            offset = self.visualRect(top).top() if top.isValid() else 0
+            self.doItemsLayout()
+            self.keep_reader(key, offset)
+            self.viewport().update()
+        except RuntimeError:
+            return
 
     def keep_reader(self, key, offset: int) -> None:
         """After a layout: at the end when following it, else the row `key` back at `offset`."""
