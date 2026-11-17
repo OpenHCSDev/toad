@@ -48,18 +48,14 @@ class QtPlan(QWidget):
         Plan updates on that agent's event bus. A `None` view clears to empty."""
         self._drop_subscription()
         self._view = view
-        agent = getattr(view, "bound_agent", None) if view is not None else None
+        agent = view.bound_agent if view is not None else None
         entries: list[PlanItem] = []
-        if agent is not None:
-            controller = getattr(agent, "controller", None)
-            plan_entries = getattr(controller, "plan_entries", None) if controller else None
-            entries = list(plan_entries or ())
+        if agent is not None and agent.controller is not None:
+            entries = list(agent.controller.plan_entries or ())
         self._state.update(entries)
         self._render()
         if agent is not None:
-            events = getattr(agent, "events", None)
-            if events is not None:
-                self._subscription = events.subscribe(core_events.Plan, self._on_plan)
+            self._subscription = agent.events.subscribe(core_events.Plan, self._on_plan)
 
     def _on_plan(self, event: core_events.Plan, subscription: object) -> None:
         self._state.update(list(event.entries))
