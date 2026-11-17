@@ -86,12 +86,7 @@ from toad.client.referenced_core import ReferencedCore
 from toad.client.submission import MessageDestination
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
-from toad.sidebar_changes import (
-    AllSidebarRows,
-    ChangedChannels,
-    ChangedThreads,
-    SidebarChange,
-)
+from toad.sidebar_changes import SidebarChange
 from toad.sidebar_contracts import (
     ChannelGroupRows,
     GroupedSidebar,
@@ -759,7 +754,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         change = changes.get("change")
         super().present(**changes)
         model = self.model_state.shown if self.model_state.shows_model() else None
-        if model is not None and isinstance(change, (ChangedChannels, ChangedThreads)):
+        if model is not None and change is not None and change.partial_update:
             # The `sync` dispatch handled the typed partial update. Keep the status row
             # fresh in place without rebuilding the rest of the tree.
             self._refresh_status_only()
@@ -782,16 +777,11 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         """Dispatch a typed row change through `GroupedSidebar.apply_comms` so only the
-        affected header + member rows touch Qt. Full tree rebuilds happen only when the
-        state machine escalates to `AllSidebarRows` or when the model is replaced."""
-        if not self.model_state.shows_model():
+        affected header + member rows touch Qt. Wholesale changes (partial_update=False)
+        are left to the caller's follow-up `present()` to rebuild the tree."""
+        if not self.model_state.shows_model() or not change.partial_update:
             return
-        model = self.model_state.shown
-        if isinstance(change, (ChangedChannels, ChangedThreads)):
-            change.apply_comms(self, model.channels.rows)
-        elif isinstance(change, AllSidebarRows):
-            # The caller will follow up with a wholesale redraw via `present()`.
-            return
+        change.apply_comms(self, self.model_state.shown.channels.rows)
 
     def model_replaced(self) -> None:
         """Clear rows before the new observation's redraw lands; the next `present` will

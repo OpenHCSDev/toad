@@ -11,6 +11,7 @@ from collections.abc import (
     Mapping,
 )
 from dataclasses import dataclass
+from typing import ClassVar
 
 from agent_comms.ui_model.sidebar import ChannelRowModel
 
@@ -19,6 +20,12 @@ from toad.sidebar_contracts import ActivityRows, GroupedSidebar, MemberRows, Rel
 
 class SidebarChange(ABC):
     """The changed model rows choose which native rows need work."""
+
+    partial_update: ClassVar[bool]
+    """Whether this change only touches a subset of the sidebar's rows (True), or
+    requires rebinding the whole tree against the model (False). Callers read this
+    to decide between a status-only refresh and a wholesale redraw, instead of
+    `isinstance`-ing every subclass to recover the same fact."""
 
     @abstractmethod
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
@@ -41,6 +48,8 @@ class SidebarChange(ABC):
 
 
 class AllSidebarRows(SidebarChange):
+    partial_update: ClassVar[bool] = False
+
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
         sidebar.open_views = sidebar.find_open_views()
         with sidebar.reconcile_members():
@@ -62,6 +71,8 @@ class AllSidebarRows(SidebarChange):
 
 @dataclass(frozen=True)
 class ChangedChannels(SidebarChange):
+    partial_update: ClassVar[bool] = True
+
     names: frozenset[str]
 
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
@@ -86,6 +97,8 @@ class ChangedChannels(SidebarChange):
 
 @dataclass(frozen=True)
 class ChangedThreads(SidebarChange):
+    partial_update: ClassVar[bool] = True
+
     names: frozenset[str]
 
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
