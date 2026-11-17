@@ -9,7 +9,6 @@ QtWorkspaceViews draws its view, a Qt ConversationView.
 from __future__ import annotations
 
 import asyncio
-import re
 from time import time
 from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import dataclass
@@ -32,7 +31,6 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLineEdit,
-    QPushButton,
     QSizePolicy,
     QStackedWidget,
     QToolButton,
@@ -116,6 +114,8 @@ from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMessageFragment, QtWireFragment
 from toad.menus import MenuCommand, MenuConversation, message_menu, standard_commands
+from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
+from toad.qt.menu import QtMenu
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
@@ -144,17 +144,6 @@ class CommandRead(OperationKind, ExclusiveKind):
 
 class MenuActionRun(OperationKind):
     """One application action chosen from the menu."""
-
-
-# `[u]C[/u]opy to clipboard` / `Co[u]p[/u]y to prompt`: Textual renders the markup as
-# underlined accelerators in the Menu widget. Qt's offer panel is plain text, so we strip
-# the markup off here and keep the raw word. If the family ever adds another markup
-# convention, add it to this strip; never restate labels alongside.
-_MENU_MARKUP = re.compile(r"\[/?[^\[\]]*\]")
-
-
-def _strip_menu_markup(description: str) -> str:
-    return _MENU_MARKUP.sub("", description)
 
 
 def _fragment_text(fragment: object) -> str:
@@ -1209,13 +1198,16 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
 
     def open_block_menu(self, fragment: QtWireFragment) -> None:
         self.held_fragment = fragment
-        actions = tuple(
-            OfferedAction(_strip_menu_markup(command.description),
-                          partial(self._run_block_menu_command, command))
+        entries = tuple(
+            MenuEntry(
+                label=_strip_menu_markup_shared(command.description),
+                run=partial(self._run_block_menu_command, command),
+                key_display=", ".join(type(command).default_keys()),
+            )
             for command in _block_menu_commands(fragment)
         )
-        if actions:
-            self.app.offer(actions)
+        if entries:
+            self.app.offer_entries(entries)
 
     def _run_block_menu_command(self, command: MenuCommand) -> None:
         result = command.apply(self)
@@ -1442,9 +1434,12 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
         chrome_layout.addWidget(self.status_line)
-        self.menu_panel = QWidget(self)
-        QVBoxLayout(self.menu_panel).setContentsMargins(8, 4, 8, 4)
-        self.menu_panel.hide()
+        # QtMenu is the shared rendering for both the hamburger (application) menu and
+        # the row-context (message) menu. Its rows render MenuEntry data (bold key
+        # shortcut + label), matching Textual's MenuKey/MenuDescription widgets. Parent
+        # is QtToadApp so the menu is a child QWidget, not a top-level QWindow — the
+        # EGL-deadlock hazard that killed off QMessageBox applies to any popup window.
+        self.menu_panel = QtMenu(self)
         chrome_layout.addWidget(self.menu_panel)
         chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
@@ -1698,34 +1693,45 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
             self.show_sidebar()
 
     def show_menu(self) -> None:
-        """Toad's application actions under their labels, as its menu lists them, in a panel
-        over the bar; a choice runs as its own operation and closes the panel. The panel
-        is part of this window: a QMenu is a second native window, and opening one killed
-        the app on Android with no Python error."""
+        """Toad's application actions under their labels and default keybindings, in the
+        shared `QtMenu` panel over the bar; a choice runs as its own operation and closes
+        the panel. The panel is part of this window: a QMenu or any other top-level
+        window needs its own EGL surface and deadlocks the compositor on Android (same
+        hazard as the deleted top-level QMessageBox calls)."""
         if self.menu_panel.isVisible():
             self.menu_panel.hide()
             return
-        self.offer(tuple(
-            OfferedAction(label, partial(self.run_operation, MenuActionRun, partial(command.apply, self)))
-            for command, label in ApplicationAction.menu(self)))
+        self.menu_panel.show_entries(self._application_menu_entries())
+
+    def _application_menu_entries(self) -> tuple[MenuEntry, ...]:
+        """Project ApplicationAction.menu(self) into MenuEntry rows. The key_display
+        comes from the action's default InputMode binding; the description is the
+        action's own docstring summary, and the run schedules MenuActionRun as before."""
+        from formbridge.key_declarations import InputMode  # local: keeps the import graph light
+        entries: list[MenuEntry] = []
+        for command, label in ApplicationAction.menu(self):
+            declaration = type(command)
+            keys = declaration.keys.get(InputMode, ())
+            entries.append(MenuEntry(
+                label=_strip_menu_markup_shared(label),
+                run=partial(self.run_operation, MenuActionRun,
+                            partial(command.apply, self)),
+                key_display=", ".join(keys),
+                description=declaration.summary(),
+            ))
+        return tuple(entries)
 
     def offer(self, actions: tuple[OfferedAction, ...]) -> None:
-        """``actions`` as buttons in the panel over the bar, in place of what it showed; a
-        choice closes the panel and runs. The menu and a held bus row both offer here."""
-        layout = self.menu_panel.layout()
-        while layout.count():
-            layout.takeAt(0).widget().deleteLater()
-        for action in actions:
-            choice = QPushButton(action.label)
-            choice.setFlat(True)
-            choice.setMinimumHeight(44)
-            choice.clicked.connect(partial(self.choose_offered, action))
-            layout.addWidget(choice)
-        self.menu_panel.show()
+        """Legacy label-only API: bus listings' held-finger menu builds `OfferedAction`
+        tuples and calls here. Each OfferedAction becomes a MenuEntry with no keyboard
+        shortcut and no description, so the shared `QtMenu` renders a plain label column
+        — the same widget the hamburger and the message-row menus use."""
+        self.offer_entries(tuple(MenuEntry.from_offered(action) for action in actions))
 
-    def choose_offered(self, action: OfferedAction) -> None:
-        self.menu_panel.hide()
-        action.run()
+    def offer_entries(self, entries: tuple[MenuEntry, ...]) -> None:
+        """Rich-row API: callers that have `MenuEntry` with keybindings and descriptions
+        (the hamburger menu, the row-context menu) populate the shared QtMenu directly."""
+        self.menu_panel.show_entries(entries)
 
     def open_row(self, row: ConversationRow) -> None:
         self.run_operation(ConversationOpen, partial(self.open_route, row.target))
