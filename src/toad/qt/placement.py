@@ -166,16 +166,20 @@ class ThreadSettingsPane(QWidget):
         unported ones fall through to `_placeholder_body`."""
         if spec.key == "coordination":
             return self._coordination_status
+        if spec.key == "comms":
+            return self._comms_panel
         return _placeholder_body(spec, parent)
 
     def bind(self, view) -> None:
         """Follow the conversation the tab now shows; the welcome has none, so the toggles
         go quiet. Panels that read / write the view receive it here; today the category
-        filter and the coordination status do so, future ports (Plan / Project / Context)
-        will receive it through the same hook."""
+        filter, the coordination status and the comms tree do so, future ports (Plan /
+        Project / Context) will receive it through the same hook."""
         self._category_filter.bind(view)
         identity = getattr(view, "thread_identity", None) or NoThreadIdentity()
         self._coordination_status.apply(identity)
+        self._comms_panel.bind(view)
 
     def present(self) -> None:
         self._category_filter.present()
+        self._comms_panel.present()
