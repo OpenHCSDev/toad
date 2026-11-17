@@ -12,8 +12,8 @@ from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
 from textual import events, on
-from textual.widgets.text_area import VimMode
-from toad.widget_actions import Action, NativeMethodKeys
+from toad.reader_actions import LatestAction, PageDownAction, PageUpAction, ReaderAction
+from toad.widget_actions import NativeMethodKeys
 from textual.containers import VerticalScroll
 from textual.geometry import Size
 from textual.timer import Timer
@@ -208,37 +208,6 @@ class HistoryChange:
     async def opened(self, window: HistoryWindow):
         """A change inside another joins it."""
         yield
-
-
-class ReaderAction(Action, affix="Action"):
-    """Vim reader keys every history window answers."""
-
-
-class PageDownAction(ReaderAction, declared_name="reader_page_down"):
-    """Move the reader one page toward the latest message."""
-
-    keys = {VimMode: ("ctrl+d",)}
-
-    def apply(self, window: HistoryWindow) -> None:
-        window.action_page_down()
-
-
-class PageUpAction(ReaderAction, declared_name="reader_page_up"):
-    """Move the reader one page toward older history."""
-
-    keys = {VimMode: ("ctrl+u",)}
-
-    def apply(self, window: HistoryWindow) -> None:
-        window.action_page_up()
-
-
-class LatestAction(ReaderAction):
-    """Follow the source tail, including pages outside the mounted window."""
-
-    keys = {VimMode: ("G",)}
-
-    def apply(self, window: HistoryWindow) -> None:
-        window.jump_to_latest()
 
 
 class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],

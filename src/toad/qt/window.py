@@ -26,7 +26,7 @@ from agent_comms.ui_model.message_category import all_categories
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
+from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPainter, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -91,6 +91,7 @@ from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
+from toad.qt.action_shortcuts import flatten_keys
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
@@ -101,6 +102,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
 from toad.qt.question import QtQuestion
+from toad.view_actions import BackToBottomAction
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import SidebarControlsOwner, SidebarLayout
 from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
@@ -673,6 +675,25 @@ class BusLabel(ElidedLine):
         self.setToolTip(location)
 
 
+def _back_to_bottom_shortcut(view: QWidget, key: str) -> QShortcut:
+    """Install a single QShortcut binding `BackToBottomAction`'s declared key on `view` to
+    `view.messages.jump_to_latest()`. Kept beside ConversationView rather than in the
+    generic `action_shortcuts` helper because this action's apply reaches through the
+    screen's `back_to_bottom_windows` roster on Textual; Qt resolves it directly to the
+    conversation's own history window. Every new Qt consumer of a `ViewAction` member
+    with its own apply gets its own helper until `ConversationView` grows the
+    `JumpsHistory` contract that Textual's screen implements."""
+    spelling = key.strip()
+    if len(spelling) == 1 and spelling.isalpha() and spelling.isupper():
+        sequence = QKeySequence(f"Shift+{spelling}")
+    else:
+        sequence = QKeySequence(spelling)
+    shortcut = QShortcut(sequence, view)
+    shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+    shortcut.activated.connect(view.messages.jump_to_latest)
+    return shortcut
+
+
 class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
                        HistoryNotifications, ComposerHost, QWidget, metaclass=PyQtWidgetMeta):
     """One conversation tab: its history, paged lazily by the pager Textual's channels use
@@ -743,6 +764,15 @@ class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, Submis
             layout.addWidget(line)
         layout.addWidget(self.composer)
         layout.addWidget(self.question)
+        # BackToBottomAction's declared keys (Esc) from `toad.view_actions` — Textual binds
+        # them through its ViewAction/BindingsMap path; Qt installs a QShortcut per key
+        # firing `self.messages.jump_to_latest()`. Siblings in the ViewAction family
+        # (ShowSidebarAction…) still need their Textual-named chrome calls; they'll bind
+        # here once ConversationView exposes the Qt counterparts.
+        self._view_shortcuts = [
+            _back_to_bottom_shortcut(self, key)
+            for key in flatten_keys(BackToBottomAction)
+        ]
 
     @property
     def mode(self) -> str:
