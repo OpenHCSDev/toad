@@ -111,7 +111,17 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     def opposite(cls) -> type[SidebarEdge]:
-        return next(edge for edge in SidebarEdge.members_with(cls.axis()) if edge is not cls)
+        """The other concrete edge on the same axis (left<->right, top<->bottom).
+
+        Answered by the axis class itself (``cls.axis()._edge_by_sign``), not the
+        DeclaredFamily registry. On Android we saw ``members_with(cls.axis())``
+        occasionally return only ``cls`` — the registry's membership derivation
+        can race with module import under python-for-android — and the resulting
+        ``StopIteration`` aborts the first sidebar paint (``RuntimeError:
+        coroutine raised StopIteration``). The axis's own sign table is
+        populated at module end and never recomputed, so it is deterministic
+        regardless of import order."""
+        return cls.axis()._edge_by_sign[-cls.sign]
 
     @classmethod
     def content_padding(cls) -> Spacing:
@@ -146,6 +156,9 @@ class WidthSidebarEdge(SidebarEdge):
     minimum = 18
     conversation_minimum = 24
     collapsed_extent = 3
+    # Populated at module end once LeftSidebarEdge and RightSidebarEdge exist;
+    # read by SidebarEdge.opposite() without going through the DeclaredFamily registry.
+    _edge_by_sign: ClassVar[dict[int, type[SidebarEdge]]] = {}
 
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
@@ -223,6 +236,9 @@ class HeightSidebarEdge(SidebarEdge):
     minimum = 9
     conversation_minimum = 8
     collapsed_extent = 2
+    # Populated at module end once TopSidebarEdge and BottomSidebarEdge exist;
+    # read by SidebarEdge.opposite() without going through the DeclaredFamily registry.
+    _edge_by_sign: ClassVar[dict[int, type[SidebarEdge]]] = {}
 
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
@@ -356,6 +372,15 @@ class BottomSidebarEdge(TrailingSidebarEdge, HeightSidebarEdge):
     @classmethod
     def gutter(cls, extent: int) -> Spacing:
         return Spacing(0, 0, extent, 0)
+
+
+# Each axis owns its leading/trailing concrete edge pair here, so `opposite()` resolves
+# without walking the DeclaredFamily registry (whose members_with caching we saw race with
+# module import under python-for-android — see opposite()'s docstring).
+WidthSidebarEdge._edge_by_sign = {LeftSidebarEdge.sign: LeftSidebarEdge,
+                                  RightSidebarEdge.sign: RightSidebarEdge}
+HeightSidebarEdge._edge_by_sign = {TopSidebarEdge.sign: TopSidebarEdge,
+                                   BottomSidebarEdge.sign: BottomSidebarEdge}
 
 
 @dataclass(frozen=True, slots=True)
