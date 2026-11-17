@@ -21,7 +21,7 @@ from weakref import WeakSet
 
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QRect, Qt, QTimer
-from PySide6.QtGui import QFont, QFontMetrics
+from PySide6.QtGui import QFont, QFontMetrics, QKeySequence, QShortcut
 from PySide6.QtWidgets import QPushButton, QWidget
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
@@ -433,6 +433,33 @@ class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacem
         self.jump_bar = QtJumpBar(self.viewport(), scheme)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.viewport().installEventFilter(self)
+        # Vim reader keys: Textual's `ReaderAction` family in `widgets/history_anchor.py`
+        # binds ctrl+d/ctrl+u/G through the Action framework. The Action family is
+        # Textual-coupled (keys = {VimMode: ...}, Textual's `action_page_down` etc.), so
+        # we bind the same keys through Qt's own shortcut mechanism here. The methods
+        # beside this (`action_page_down`, `action_page_up`, `jump_to_latest` from the
+        # inherited `ReaderPlacement`) carry the toolkit-neutral intent.
+        for sequence, slot in (
+            (QKeySequence("Ctrl+D"), self.action_page_down),
+            (QKeySequence("Ctrl+U"), self.action_page_up),
+            (QKeySequence(Qt.Key.Key_G | Qt.KeyboardModifier.ShiftModifier), self.jump_to_latest),
+        ):
+            shortcut = QShortcut(sequence, self)
+            shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+            shortcut.activated.connect(slot)
+
+    def action_page_down(self) -> None:
+        """Move the reader one page toward the latest message (Textual's `ReaderAction`
+        family calls the Textual-named `action_page_down` on the window; Qt exposes the
+        same method here and drives the scroll bar by one viewport."""
+        bar = self.verticalScrollBar()
+        bar.setValue(min(bar.maximum(), bar.value() + self.viewport().height()))
+
+    def action_page_up(self) -> None:
+        """One viewport-height's scroll toward older history, the Qt mirror of
+        Textual's `PageUpAction`."""
+        bar = self.verticalScrollBar()
+        bar.setValue(max(bar.minimum(), bar.value() - self.viewport().height()))
 
     @property
     def can_jump_to_latest(self) -> bool:
