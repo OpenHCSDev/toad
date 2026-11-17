@@ -572,11 +572,11 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
 
     @property
     def scroll_y(self) -> float:
-        return self.verticalScrollBar().value()
+        return self._safe_qt_read(lambda: self.verticalScrollBar().value(), 0.0)
 
     @scroll_y.setter
     def scroll_y(self, value: float) -> None:
-        self.verticalScrollBar().setValue(int(value))
+        self._safe_qt_read(lambda: self.verticalScrollBar().setValue(int(value)), None)
 
     @property
     def scroll_target_y(self) -> float:
@@ -585,23 +585,27 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
 
     @property
     def max_scroll_y(self) -> float:
-        return self.verticalScrollBar().maximum()
+        return self._safe_qt_read(lambda: self.verticalScrollBar().maximum(), 0.0)
 
     @property
     def tail_scroll_y(self) -> float:
         return self.max_scroll_y
 
-    def _viewport_height_safe(self) -> int:
-        """`self.viewport().height()` raises RuntimeError once the underlying
-        Qt widget has been torn down (shiboken: "Internal C++ object already
-        deleted"). The pager's late async tasks can still ask us for row
-        budgets after the view closed; those should answer 0 so the publish
-        short-circuits instead of flooding logcat. A live viewport returns
-        its real height — same code path as before for all other callers."""
+    def _safe_qt_read(self, read, default):
+        """Any attribute read that ultimately touches the shiboken-backed Qt
+        widget raises RuntimeError ("Internal C++ object (...) already
+        deleted") once the view has been torn down. Late pager tasks still
+        ask us for geometry, visibility and fragment heights after the view
+        closes; those should answer a benign default so the publish
+        short-circuits instead of flooding logcat. A live widget returns its
+        real value — same code path as before for all other callers."""
         try:
-            return self.viewport().height()
+            return read()
         except RuntimeError:
-            return 0
+            return default
+
+    def _viewport_height_safe(self) -> int:
+        return self._safe_qt_read(lambda: self.viewport().height(), 0)
 
     @property
     def viewport_rows(self) -> int:
@@ -627,7 +631,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
 
     @property
     def presenting(self) -> bool:
-        return self.isVisible()
+        return self._safe_qt_read(lambda: self.isVisible(), False)
 
     def runway(self, history) -> OffScreenRunway:
         if not self.presenting:
@@ -635,11 +639,17 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         return Runway(int(self.scroll_y), int(self.max_scroll_y - self.scroll_y))
 
     def fragment_height(self, fragment: HistoryFragment) -> int:
-        return self.rows.fragment_height(fragment, self.font(), self.viewport_width())
+        return self._safe_qt_read(
+            lambda: self.rows.fragment_height(fragment, self.font(), self.viewport_width()),
+            0,
+        )
 
     def visible_fragments(self) -> tuple[HistoryFragment, ...]:
-        area = self.viewport().rect()
-        top, bottom = self.indexAt(area.topLeft()), self.indexAt(area.bottomLeft())
+        try:
+            area = self.viewport().rect()
+            top, bottom = self.indexAt(area.topLeft()), self.indexAt(area.bottomLeft())
+        except RuntimeError:
+            return ()
         if not top.isValid():
             return ()
         last = bottom.row() if bottom.isValid() else self.model_rows.rowCount() - 1
