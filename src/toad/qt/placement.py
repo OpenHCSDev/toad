@@ -32,8 +32,11 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea,
                                QVBoxLayout, QWidget)
 
+from toad.qt.coordination_panel import QtCoordinationStatus
+from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
+from toad.thread_identity import NoThreadIdentity
 from toad.thread_sidebar_declarations import (
     THREAD_SIDEBAR_PANELS, ThreadSidebarPanelSpec, panel_specs_for_view,
 )
@@ -134,6 +137,8 @@ class ThreadSettingsPane(QWidget):
         column.setContentsMargins(0, 0, 0, 0)
         column.setSpacing(4)
         self._category_filter = _CategoryFilter(self._content)
+        self._coordination_status = QtCoordinationStatus(self._content)
+        self._comms_panel = QtThreadCommsPanel(self._content)
         self._section_bodies: dict[str, QWidget] = {}
         # The session view is the default; a conversation / DM tab trims the roster via
         # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
@@ -143,7 +148,7 @@ class ThreadSettingsPane(QWidget):
             section_layout = QVBoxLayout(section)
             section_layout.setContentsMargins(0, 2, 0, 0)
             section_layout.setSpacing(0)
-            body = _placeholder_body(spec, section)
+            body = self._panel_body(spec, section)
             section_layout.addWidget(body)
             self._section_bodies[spec.key] = body
             column.addWidget(section)
@@ -156,12 +161,21 @@ class ThreadSettingsPane(QWidget):
         column.addStretch(1)
         scroll.setWidget(self._content)
 
+    def _panel_body(self, spec: ThreadSidebarPanelSpec, parent: QWidget) -> QWidget:
+        """The body for a given panel key; ported Qt panels return their real widget,
+        unported ones fall through to `_placeholder_body`."""
+        if spec.key == "coordination":
+            return self._coordination_status
+        return _placeholder_body(spec, parent)
+
     def bind(self, view) -> None:
         """Follow the conversation the tab now shows; the welcome has none, so the toggles
-        go quiet. Panels that read / write the view receive it here; today only the
-        category filter does so, future ports (Plan / Project / Context) will receive it
-        through the same hook."""
+        go quiet. Panels that read / write the view receive it here; today the category
+        filter and the coordination status do so, future ports (Plan / Project / Context)
+        will receive it through the same hook."""
         self._category_filter.bind(view)
+        identity = getattr(view, "thread_identity", None) or NoThreadIdentity()
+        self._coordination_status.apply(identity)
 
     def present(self) -> None:
         self._category_filter.present()

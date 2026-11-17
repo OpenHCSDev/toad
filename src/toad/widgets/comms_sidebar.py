@@ -13,11 +13,8 @@ View, not authority: renders Core's sidebar presentation model
 
 from __future__ import annotations
 
-import shlex
-from agent_comms.execution.native_arguments import ConfiguredBinary, InheritedArguments
-from pathlib import Path
-
 from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
+from toad.client.coordination_panel import read_coordination_state
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
 from agent_comms.display_order import ThreadSort
@@ -325,28 +322,19 @@ class CoordinationStatus(
 
 
     def identity_changed(self, identity: SessionIdentity) -> None:
-        root = identity.display_root()
-        backend = ConfiguredBinary().configured()
+        report = read_coordination_state(identity)
+        # Textual adds colour to the wire root and the persistence label; both renderers
+        # assemble from the same report so the facts are owned once, in one place.
         self.update(
             Content.assemble(
                 "Wire: ",
-                (root, "$text"),
+                (report.wire_root, "$text"),
                 (" · persistent", "$success"),
-                f"\nThread: {identity.display_thread()}",
-                f"\nACP/session · {Path(backend).name}",
+                f"\nThread: {report.thread_name}",
+                f"\nACP/session · {report.backend_name}",
             )
         )
-        args = shlex.join(InheritedArguments().configured().argv)
-        self.tooltip = (
-            # Plain words: it read "Coordination state persists in the shared wire; the
-            # stdio ACP transport is scoped to this Toad session", which is four internal
-            # nouns for one fact a reader can act on.
-            "Messages and threads live on the bus and outlast this window. This agent "
-            "runs inside this Toad and stops when it closes.\n\n"
-            f"AGENT_COMMS_ROOT={identity.root_path}\n"
-            f"AGENT_COMMS_AGENT_BIN={backend}\n"
-            f"AGENT_COMMS_AGENT_ARGS={args}"
-        )
+        self.tooltip = report.tooltip_text()
 
 
 
