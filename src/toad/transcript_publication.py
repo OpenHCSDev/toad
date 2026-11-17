@@ -721,7 +721,11 @@ class BoundView(ViewBinding):
         # structurally via DOMNode; Qt's ACP view implements the protocol explicitly on
         # its own host so the same BoundView drives both transcript pipelines.
         self.view, self.window, self.contents = view, view.window, view.contents
-        self._history, = self.contents.query_children(TranscriptHistory)
+        # The view owns which child is its transcript history (TranscriptHistoryContract).
+        # Textual's Conversation returns its single TranscriptHistory child; Qt's ACP
+        # view returns its QtConversationHistory. BoundView stops reaching into the widget
+        # tree so Qt doesn't have to shadow Textual's query_children semantics.
+        self._history = view.transcript_history
 
     def matches(self, view: ConversationSessionBinding) -> TypeGuard[Conversation]:
         return self.view is view
