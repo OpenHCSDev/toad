@@ -60,6 +60,8 @@ from toad.client.session_tracker import SidebarState
 from toad.sidebar_layout import (
     DirectionalSidebarPlacementAction,
     FloatSidebarPlacementAction,
+    PlacementControl,
+    SidebarControlsOwner,
     SidebarLayout,
     SidebarPlacementAction,
     SidebarShift,
@@ -713,10 +715,12 @@ class SidebarAction(
     MroProjection[None],
     Activates,
     HoverSelection,
+    PlacementControl,
     widgets.Static,
     can_focus=True,
 ):
-    """One spatial arrow or float/push action; the action's kind owns its cell."""
+    """One spatial arrow or float/push action; the action's kind owns its cell. It is the
+    Textual PlacementControl the SidebarPlacementAction family presents."""
 
     @dataclass
     class Pressed(Message):
@@ -725,6 +729,15 @@ class SidebarAction(
     def __init__(self, action: SidebarPlacementAction) -> None:
         super().__init__(action.label, id=f"sidebar-{action.name}")
         self.action = action
+
+    def set_shown(self, shown: bool) -> None:
+        self.display = shown
+
+    def set_label(self, label: str) -> None:
+        self.update(label, layout=False)
+
+    def set_tooltip(self, tooltip: str) -> None:
+        self.tooltip = tooltip
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -915,6 +928,7 @@ class SidebarLayoutActions(AutoHeight, FillWidth, HiddenOverflow, containers.Gri
 
 
 class SideBar(
+    SidebarControlsOwner,
     HiddenOverflow,
     FillHeight,
     AutoWidth,
@@ -1125,13 +1139,7 @@ class SideBar(
 
     def _compose_controls(self) -> ComposeResult:
         yield self.extent_slider
-        yield SidebarLayoutActions(
-            *(
-                SidebarAction(action)
-                for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)
-                for action in kind.offered()
-            ),
-        )
+        yield SidebarLayoutActions(*(SidebarAction(action) for action in self.placement_actions()))
 
     @on(events.Show)
     def on_show(self) -> None:
@@ -1170,8 +1178,8 @@ class SideBar(
                 slider.reversed = edge.sign < 0
                 slider.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
                                  placement.extent_percent)
-                for button in self.layout_controls.query(SidebarAction):
-                    button.action.present(button, placement, directions)
+                self.present_placement_controls(self.layout_controls.query(SidebarAction),
+                                                self.app.sidebar_layout, self.placement_identity)
         if slider.value != placement.extent_percent:
             slider.value = placement.extent_percent
             slider.refresh()

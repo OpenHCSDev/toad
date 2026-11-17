@@ -28,6 +28,7 @@ from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
+    QGridLayout,
     QHBoxLayout,
     QLineEdit,
     QPushButton,
@@ -93,7 +94,7 @@ from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
-from toad.qt.placement import PlacementBar, SessionArrangementStore, ThreadSettingsPane
+from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import SidebarLayout
 from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
@@ -928,47 +929,57 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         # session store, where the Textual workspace hands it the saved settings. Same policy,
         # same placement model, a store each frontend owns.
         self.sidebar_layout = SidebarLayout(SessionArrangementStore(), TerminalOrigin.of())
-        # The two panes the phone shows and whether each is open. The channels-and-threads
-        # sidebar is always available; the thread's view settings only while a tab is open.
+        # Each sidebar is a toggle bar and the pane it opens. The channels-and-threads list and
+        # the open thread's view settings are the two panes' content; the move and float
+        # controls live inside the pane, from the shared family. The channels sidebar is always
+        # available; the thread's settings only while a tab is open.
         self.sidebar = Sidebar(self)
         self.thread_pane = ThreadSettingsPane()
-        self._panes: dict[type[SidebarPlacement], QWidget] = {
-            ChannelsSidebarPlacement: self.sidebar,
-            ThreadSidebarPlacement: self.thread_pane,
+        self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
+                                         self.sidebar, applied=self.rearrange_sidebars)
+        self.thread_settings = SidebarPane(self.sidebar_layout, ThreadSidebarPlacement,
+                                           self.thread_pane, applied=self.rearrange_sidebars)
+        self._panes: dict[type[SidebarPlacement], SidebarPane] = {
+            ChannelsSidebarPlacement: self.channels_pane,
+            ThreadSidebarPlacement: self.thread_settings,
         }
         self._pane_open: dict[type[SidebarPlacement], bool] = {
             ChannelsSidebarPlacement: False,
             ThreadSidebarPlacement: False,
         }
-        # A pane docks above the conversation, below it, or floats over it. The float layer
-        # is a child of the centre, raised over the pages when a pane floats.
-        self.top_dock = self._dock()
-        self.bottom_dock = self._dock()
+        # A pane docks on any edge the family offers, or floats over the conversation. The
+        # float layer is a child of the centre, raised over the pages when a pane floats.
+        self.top_dock, self.bottom_dock = self._dock(), self._dock()
+        self.left_dock, self.right_dock = self._dock(), self._dock()
+        self._docks = {"top": self.top_dock, "bottom": self.bottom_dock,
+                       "left": self.left_dock, "right": self.right_dock}
         self.center = QWidget()
-        center_layout = QVBoxLayout(self.center)
-        center_layout.setContentsMargins(0, 0, 0, 0)
-        center_layout.setSpacing(0)
-        center_layout.addWidget(self.top_dock)
-        center_layout.addWidget(self.workspace_sessions.pages, 1)
-        center_layout.addWidget(self.bottom_dock)
+        grid = QGridLayout(self.center)
+        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setSpacing(0)
+        grid.addWidget(self.top_dock, 0, 1)
+        grid.addWidget(self.left_dock, 1, 0)
+        grid.addWidget(self.workspace_sessions.pages, 1, 1)
+        grid.addWidget(self.right_dock, 1, 2)
+        grid.addWidget(self.bottom_dock, 2, 1)
+        grid.setRowStretch(1, 1)
+        grid.setColumnStretch(1, 1)
         self.float_layer = QWidget(self.center)
         self._float_layout = QVBoxLayout(self.float_layer)
         self._float_layout.setContentsMargins(0, 0, 0, 0)
         self.float_layer.hide()
-        # One bar per pane, side by side above the tabs: its toggle, its move arrows and its
-        # float control, over the shared layout. Toad draws these two bars on the phone.
-        self.channels_bar = PlacementBar(
+        # Two toggle bars side by side above the tabs: an arrow and the heading, as Toad draws
+        # them. The move arrows and Float live in the panes, not on these bars.
+        self.channels_bar = SidebarToggle(
             self.sidebar_layout, ChannelsSidebarPlacement,
             heading=partial(self._pane_heading, ChannelsSidebarPlacement),
             shown=partial(self.pane_open, ChannelsSidebarPlacement),
-            toggled=partial(self.toggle_pane, ChannelsSidebarPlacement),
-            rearranged=self.rearrange_sidebars)
-        self.thread_bar = PlacementBar(
+            toggled=partial(self.toggle_pane, ChannelsSidebarPlacement))
+        self.thread_bar = SidebarToggle(
             self.sidebar_layout, ThreadSidebarPlacement,
             heading=partial(self._pane_heading, ThreadSidebarPlacement),
             shown=partial(self.pane_open, ThreadSidebarPlacement),
-            toggled=partial(self.toggle_pane, ThreadSidebarPlacement),
-            rearranged=self.rearrange_sidebars)
+            toggled=partial(self.toggle_pane, ThreadSidebarPlacement))
         bars_row = QHBoxLayout()
         bars_row.setContentsMargins(0, 0, 0, 0)
         bars_row.setSpacing(2)
@@ -1127,14 +1138,12 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         self.thread_pane.bind(selected if self._conversation_open() else None)
 
     def _target_layout(self, placement: SidebarPlacement) -> QVBoxLayout:
-        """Where a pane goes for its placement: above the conversation, below it, or the
-        float layer. A phone draws no left or right column, so every docked side but the top
-        reads as the bottom."""
+        """Where a pane goes for its placement: the float layer, or the dock on its edge. The
+        family's four edges each have their own dock, so a move the arrows allow lands where it
+        says."""
         if placement.floating:
             return self._float_layout
-        if placement.side.dock == "top":
-            return self.top_dock.layout()
-        return self.bottom_dock.layout()
+        return self._docks[placement.side.dock].layout()
 
     @staticmethod
     def _empty(layout) -> None:
@@ -1144,8 +1153,9 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
                 widget.setParent(None)
 
     def _layout_panes(self) -> None:
-        for layout in (self.top_dock.layout(), self.bottom_dock.layout(), self._float_layout):
-            self._empty(layout)
+        for dock in self._docks.values():
+            self._empty(dock.layout())
+        self._empty(self._float_layout)
         for identity, pane in self._panes.items():
             if not (self.pane_open(identity) and self._pane_available(identity)):
                 pane.setParent(None)
@@ -1153,8 +1163,8 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
                 continue
             self._target_layout(self.sidebar_layout.get(identity)).addWidget(pane)
             pane.show()
-        self.top_dock.setVisible(self.top_dock.layout().count() > 0)
-        self.bottom_dock.setVisible(self.bottom_dock.layout().count() > 0)
+        for dock in self._docks.values():
+            dock.setVisible(dock.layout().count() > 0)
         self.reposition_float()
 
     def reposition_float(self) -> None:
@@ -1174,13 +1184,15 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         self.reposition_float()
 
     def present_panes(self) -> None:
-        """Lay the panes out for their placements and draw both bars; the thread's bar shows
-        only while a conversation is open."""
+        """Lay the panes out for their placements and draw both bars and their controls; the
+        thread's bar shows only while a conversation is open."""
         self._layout_panes()
         self._bind_thread_pane()
         self.thread_bar.setVisible(self._conversation_open())
         self.channels_bar.present()
         self.thread_bar.present()
+        for pane in self._panes.values():
+            pane.present()
 
     def rearrange_sidebars(self) -> None:
         """A move, float or toggle: lay the panes out again. SidebarLayout has already written
