@@ -96,6 +96,7 @@ from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWi
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
+from toad.qt.question import QtQuestion
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import SidebarControlsOwner, SidebarLayout
 from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
@@ -653,6 +654,10 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         self.composer = self.conversation.prompt(self)
         self.composer.labelled(label)
         self.activity = tuple(self.conversation.compose_activity(self))
+        # The inline consent prompt ("did you mean it?", edit/clear confirmations) — hidden
+        # until the conversation asks, mounted below the composer so the picks sit where
+        # the next message would be typed, mirroring Textual's Prompt.ask.
+        self.question = QtQuestion(self)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.messages, 1)
@@ -662,6 +667,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         for line in self.activity:
             layout.addWidget(line)
         layout.addWidget(self.composer)
+        layout.addWidget(self.question)
 
     @property
     def mode(self) -> str:
@@ -817,6 +823,17 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
 
     def flash_error(self, text: str) -> None:
         self.app.show_error_notice(text, text, "Conversation")
+
+    def ask(self, options, title: str = "", get_content=None, callback=None):
+        """Show an inline question with these options, mirroring Textual's Conversation.ask.
+
+        A `toad.widgets.question.Ask` is passed to the mounted `QtQuestion`, which pops up
+        under the composer with an option button per answer and fires `callback(answer)`
+        when the user picks. Returns the Ask for the backend to track."""
+        from toad.widgets.question import Ask
+        ask = Ask(title, options, get_content, callback)
+        self.question.update(ask)
+        return ask
 
     # Sending, through the shared submissions (SubmissionView)
 
