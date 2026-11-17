@@ -98,6 +98,24 @@ class SidebarState:
     panel_scroll_y: float = 0
     panel_identity: object = None
 
+    def is_panel_collapsed(self, title: str, default: bool = False) -> bool:
+        """Current collapsed state for a panel keyed by title; `default` is the
+        panel spec's initial collapsed value, used when the user has not touched
+        this panel yet."""
+        return self.panels_collapsed.get(title, default)
+
+    def set_panel_collapsed(self, title: str, value: bool) -> None:
+        """Record a user's collapse choice. Both frontends write through this
+        single accessor so the panel's state is the one authority — a direct
+        `panels_collapsed[title] = v` write would be a parallel path."""
+        self.panels_collapsed[title] = value
+
+    def toggle_panel_collapsed(self, title: str, default: bool = False) -> bool:
+        """Flip and return the new collapsed state."""
+        new_value = not self.is_panel_collapsed(title, default)
+        self.set_panel_collapsed(title, new_value)
+        return new_value
+
 
 @dataclass(frozen=True)
 class SessionName:

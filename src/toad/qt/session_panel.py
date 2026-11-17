@@ -1,0 +1,35 @@
+"""Shared mixin for Qt sidebar panels that follow the active conversation view.
+
+Every panel that renders per-view state (category filter, context explorer, plan,
+thread-comms panel) carried the same three lines independently: `self._view = None`,
+`def bind(view): self._view = view; self.present()`. Factored here once so the
+bind/present contract has one owner. Mixed into each panel's bases alongside its
+QWidget-derived base (not inheriting QWidget itself so each concrete panel keeps
+its existing metaclass without conflict, matching how `SessionScope` in
+`toad.client.session_scope` is also a plain mixin for the same reason).
+"""
+from __future__ import annotations
+
+
+class SessionPanel:
+    """Qt sidebar panel bound to the active conversation view.
+
+    `_view` is the one owner of "which view this panel follows." `bind(view)`
+    updates it and triggers a `present()`. Concrete panels override `present()`
+    to read from `self._view` and repaint. Panels that need additional bind-time
+    work (subscriptions, refetches) extend `bind` with `super().bind(view)` then
+    their own logic.
+    """
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        self._view: object | None = None
+
+    def bind(self, view: object | None) -> None:
+        """Attach this panel to a view (or detach with `None`). The subclass's
+        `present()` is called so the new view's state paints immediately."""
+        self._view = view
+        self.present()
+
+    def present(self) -> None:
+        """Repaint from `self._view`. Concrete panels override."""

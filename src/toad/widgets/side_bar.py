@@ -19,6 +19,7 @@ from toad.widget_actions import ActivationKeys, Activates, DismissibleControl, W
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.client.sidebar_filter import SidebarFilter
+from toad.client.sidebar_panels import PanelSpec
 from toad.preferences import SETTINGS
 from dataclasses import dataclass
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -958,12 +959,14 @@ class SideBar(
         pass
 
     @dataclass(frozen=True)
-    class Panel:
-        title: str
-        widget: SidebarPanelWidget
-        flex: bool = False
-        collapsed: bool = False
-        id: str | None = None
+    class Panel(PanelSpec):
+        """Textual's panel: the toolkit-neutral `PanelSpec` fields plus the
+        Textual-widget references each panel composes. The spec fields
+        (`title`, `flex`, `collapsed`, `id`) come from the shared base so
+        Qt's panel spec addresses the same panel by the same key when both
+        read/write the one `SidebarState.panels_collapsed` owner."""
+
+        widget: SidebarPanelWidget = None  # type: ignore[assignment]
         header_control: Widget | None = None
 
     @property
