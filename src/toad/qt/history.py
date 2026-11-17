@@ -20,13 +20,11 @@ from functools import partial
 from weakref import WeakSet
 
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
-from PySide6.QtCore import QAbstractListModel, QModelIndex, QRect, Qt, QTimer
+from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QRect, Qt, QTimer
 from PySide6.QtGui import QFont, QFontMetrics
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QPushButton, QWidget
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
-from ui_theme.scheme import ColourScheme
-
 from toad.client.fragments import EvidencedFragment, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.client.history import ReadMarkedHistory
 from toad.client.history_notifications import SourceNotifications
@@ -45,8 +43,10 @@ from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
+from toad.history_jump import JumpsToLatest
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
+from ui_theme.scheme import ColourScheme, ForegroundColour, SurfaceHoverColour
 
 
 class QtWireFragment(EvidencedFragment, ABC):
@@ -357,7 +357,31 @@ class QtTopRow:
         return RowPosition(window.scroll_y)
 
 
-class QtHistoryWindow(TouchScrolled, VirtualRowView, ReaderPlacement, PagingWindow):
+class QtJumpBar(QPushButton):
+    """A floating "back to bottom" button over the history's viewport: shown while the reader
+    has scrolled off the tail, hidden once the end is in view. Clicking it jumps the window
+    back to the latest row. The Textual sibling is `JumpBar`/`BackToBottom` in
+    `src/toad/widgets/conversation.py`; both backends drive the same visibility contract
+    (`JumpsToLatest.can_jump_to_latest`)."""
+
+    def __init__(self, parent: QWidget, scheme: ColourScheme) -> None:
+        super().__init__("Jump to latest  ↓", parent)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setStyleSheet(
+            "QPushButton {"
+            f"  background: {SurfaceHoverColour.rgb(scheme).hex};"
+            f"  color: {ForegroundColour.rgb(scheme).hex};"
+            f"  border: 1px solid {ForegroundColour.rgb(scheme).hex};"
+            "  border-radius: 14px;"
+            "  padding: 6px 14px;"
+            "  font-weight: bold;"
+            "}"
+        )
+        self.hide()
+
+
+class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacement, PagingWindow):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
     contract: reaching the top reads older pages, the bottom newer ones, End and the
@@ -383,6 +407,37 @@ class QtHistoryWindow(TouchScrolled, VirtualRowView, ReaderPlacement, PagingWind
         self._settle_timer.setSingleShot(True)
         self._settle_timer.timeout.connect(self._settle)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
+        # The floating "jump to latest" button: child of the viewport so it floats over the
+        # scrolled rows; show/hide is driven by `tail_follow_changed` from `scrolled`.
+        self.jump_bar = QtJumpBar(self.viewport(), scheme)
+        self.jump_bar.clicked.connect(self.jump_to_latest)
+        self.viewport().installEventFilter(self)
+
+    @property
+    def can_jump_to_latest(self) -> bool:
+        return not self.follows_tail
+
+    def tail_follow_changed(self) -> None:
+        """Show the jump bar while the reader is off the tail; the Textual sibling in
+        `widgets/conversation.py:Window.tail_follow_changed` drives the same contract."""
+        showing = self.can_jump_to_latest
+        if self.jump_bar.isVisible() == showing:
+            return
+        self.jump_bar.setVisible(showing)
+        if showing:
+            self._place_jump_bar()
+
+    def _place_jump_bar(self) -> None:
+        vp = self.viewport()
+        hint = self.jump_bar.sizeHint()
+        self.jump_bar.resize(hint)
+        self.jump_bar.move((vp.width() - hint.width()) // 2, vp.height() - hint.height() - 12)
+        self.jump_bar.raise_()
+
+    def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
+        if obj is self.viewport() and event.type() == QEvent.Type.Resize and self.jump_bar.isVisible():
+            self._place_jump_bar()
+        return super().eventFilter(obj, event)
 
     # Geometry, in pixels
 
@@ -543,6 +598,7 @@ class QtHistoryWindow(TouchScrolled, VirtualRowView, ReaderPlacement, PagingWind
             self.release_anchor()
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
+        self.tail_follow_changed()
         self._schedule_settle()
         self.request_preparation()
 
