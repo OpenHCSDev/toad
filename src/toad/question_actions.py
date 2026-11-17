@@ -6,7 +6,6 @@ from abc import abstractmethod
 
 from formbridge.key_declarations import TextEntryMode
 from textual.binding import Binding
-from textual.dom import DOMNode
 
 from toad.widget_actions import Action
 
@@ -14,8 +13,14 @@ if TYPE_CHECKING:
     from toad.widgets.question import Question
 
 
-class QuestionContext(DOMNode):
-    """Inline questions and their review screen select the same question owner."""
+class QuestionContext:
+    """Inline questions and their review screen select the same question owner.
+
+    Plain mixin, no toolkit base: Textual's `Question` already inherits DOMNode
+    via `containers.VerticalGroup`, and `PermissionsScreen` via `Screen[Answer]`.
+    A Qt Question widget lists this mixin beside `QWidget` without dragging
+    Textual's metaclass into its MRO.
+    """
     @property
     @abstractmethod
     def question(self) -> Question: ...
