@@ -12,21 +12,23 @@ from agent_comms.acp_extension import (
     CursorAdvancedUpdate,
     GoalChangedUpdate,
     InputDeliveryChangedUpdate,
-    InputFailedUpdate,
     InputStartedUpdate,
     McpClientAcknowledgementUpdate,
     NativeOutputCommittedUpdate,
     NativeRoundCommittedUpdate,
     PromptCancelledUpdate,
     QueueChangedUpdate,
-    RequestFailedUpdate,
     SelectedWriteAcceptedUpdate,
     TextNoticeUpdate,
-    TextRouteUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
+from agent_comms.execution.acp_failure import (
+    InputFailedUpdate,
+    RequestFailedUpdate,
+)
+from agent_comms.text_route_update import TextRouteUpdate
 from agent_comms.execution.context_reading import UnmeasuredContext
 from agent_comms.execution.native_output import AssistantOutput, ToolOutput
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId

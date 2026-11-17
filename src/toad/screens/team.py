@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from dataclasses import replace
 
 from agent_comms.coordination.errors import DeferredRead, ReadAgain
 from agent_comms.errors import RelationViolationError, RouteChangedError
@@ -50,6 +49,7 @@ from ui_theme.scheme import (
 )
 
 from toad.app_node import ToadNode
+from toad.client.team_board import TeamBoardState
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.core_event_carrier import CoreEventReceiver
 from toad.keyed_rows import KeyedRows
@@ -352,9 +352,14 @@ class TeamFilter(FillWidth, Input):
 
 
 class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
-    """Keep native groups, filters, selection and original details across frame replacement."""
+    """Keep native groups, filters, selection and original details across frame replacement.
 
-    def __init__(self, hud: TeamHud) -> None:
+    `state` is the shared `TeamBoardState` owned by the parent `TeamPage`; its
+    `filter_hud_sections` method applies the per-member text + needs-hand
+    filter identically for both frontends."""
+
+    def __init__(self, state: TeamBoardState, hud: TeamHud) -> None:
+        self.state = state
         self.hud = hud
         self.selected: TableSelection[HudRecord] = EmptyTableSelection()
         self.shown: dict[type[HudGroup], HudSection] = {}
@@ -379,17 +384,8 @@ class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         yield self.details
 
     def filtered_sections(self) -> dict[type[HudGroup], HudSection]:
-        text = self.filter.value.casefold()
-        shown: dict[type[HudGroup], HudSection] = {}
-        for section in self.hud.groups:
-            tables: list[ViewTable[HudRecord]] = []
-            for table in section.tables:
-                records = tuple(record for record, cells in zip(table.records, table.texts)
-                                if (not self.needs_hand.value or record.needs_hand())
-                                and text in "\n".join(cells).casefold())
-                tables.append(table if records == table.records else replace(table, records=records))
-            shown[section.group] = HudSection(section.group, tuple(tables))
-        return shown
+        """Delegates to the shared `TeamBoardState.filter_hud_sections`."""
+        return self.state.filter_hud_sections(self.hud, self.filter.value, self.needs_hand.value)
 
     @property
     def member_container(self) -> VerticalGroup:
@@ -469,12 +465,19 @@ class TeamClose(DockedBottom, NoMargin, DismissButton):
 
 
 class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
-    """Current Core frames preserve table selection, focus and the conversation below."""
+    """Current Core frames preserve table selection, focus and the conversation below.
+
+    Owns a `TeamBoardState` — the toolkit-neutral owner shared with Qt's
+    `QtTeamBoardScreen` — so both frontends apply the same team-name filter
+    and route `TeamHudChanged` / `TeamHudFailed` through one place."""
 
     def __init__(self, teammate: str = "") -> None:
-        self.team_name = teammate
-        self.huds: tuple[TeamHud, ...] = ()
+        self.state = TeamBoardState(team_name_filter=teammate)
         super().__init__()
+
+    @property
+    def huds(self) -> tuple[TeamHud, ...]:
+        return self.state.huds
 
     @property
     def member_container(self) -> HudRows:
@@ -486,10 +489,10 @@ class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreE
 
     @property
     def frames(self) -> dict[ThreadIncarnation, TeamHud]:
-        return {hud.teammate: hud for hud in self.huds}
+        return {hud.teammate: hud for hud in self.state.huds}
 
     def create_row(self, key: ThreadIncarnation) -> TeamFrameView:
-        return TeamFrameView(self.frames[key])
+        return TeamFrameView(self.state, self.frames[key])
 
     def update_row(self, key: ThreadIncarnation, row: TeamFrameView) -> None:
         row.present(self.frames[key])
@@ -517,14 +520,14 @@ class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreE
         error = self.query_one(HudError)
         error.update("")
         error.display = False
-        self.huds = tuple(hud for hud in event.huds
-                          if not self.team_name or hud.teammate.name == self.team_name)
-        keys = tuple(hud.teammate for hud in self.huds)
+        self.state.apply_hud_change(event.huds)
+        keys = tuple(hud.teammate for hud in self.state.huds)
         self.reconcile_keys(keys, changed=frozenset(keys))
-        self.query_one(HudEmpty).display = not self.huds
+        self.query_one(HudEmpty).display = not self.state.huds
 
     @handles(TeamHudFailed)
     def hud_failed(self, event: TeamHudFailed) -> None:
+        self.state.apply_hud_failure(event.error)
         notice = self.query_one(HudError)
         notice.update(f"Team rows unavailable: {' '.join(str(event.error).splitlines())}")
         notice.display = True

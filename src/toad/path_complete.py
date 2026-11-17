@@ -50,7 +50,15 @@ class DirectoryReadTask:
         try:
             for path in islice(self.path.iterdir(), None, 10_000):
                 self.directory_listing.append(path)
-        except OSError:
+        except OSError as error:
+            # Surface the unreadable directory so stalls / permission problems are not
+            # silent — the completer will just return no results otherwise and the user
+            # can't tell the difference between "empty directory" and "cannot read".
+            import sys
+            print(
+                f"path_complete: cannot list {self.path!s}: {type(error).__name__}: {error}",
+                file=sys.stderr,
+            )
             return
 
     def start(self) -> None:

@@ -19,8 +19,8 @@ from agent_comms.execution.acp import CommsAgent
 from agent_comms.acp_extension import (
     McpClientAcknowledgementUpdate,
     TurnChangedUpdate,
-    encode_updates,
 )
+from agent_comms.text_route_update import encode_updates
 from agent_comms.comms import wire
 from agent_comms.coordination.coordinator import Coordination
 from agent_comms.execution.launch_runtime import ThreadLaunch

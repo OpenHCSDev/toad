@@ -6,8 +6,12 @@ import asyncio
 import pytest
 from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
-    AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, encode_updates,
+    AvailableQueueProjection,
+    QueueChangedUpdate,
+    QueueItem,
+    LiveQueueScope,
 )
+from agent_comms.text_route_update import encode_updates
 from agent_comms.nominal.field_codec import AcpSessionId, InputId
 from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.registry.thread_identity import (

@@ -117,8 +117,9 @@ from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
-from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMessageFragment, QtWireFragment
-from toad.menus import MenuCommand, MenuConversation, message_menu, standard_commands
+from toad.client.transcript_fragments import TranscriptFragment
+from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
+from toad.menus import MenuCommand, MenuConversation, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
@@ -158,15 +159,14 @@ class MenuActionRun(OperationKind):
     """One application action chosen from the menu."""
 
 
-def _block_menu_commands(fragment: object) -> Iterator[MenuCommand]:
-    """The shared family-derived command list for ``fragment``, plus the bus-specific
-    commands `message_menu` adds for a message row. Owner is `toad.menus.standard_commands`;
-    both frontends consume it so a new command declared in `src/toad/menus.py` reaches the
-    Qt phone without any edit at this site."""
+def _block_menu_commands(fragment: TranscriptFragment) -> Iterator[MenuCommand]:
+    """The shared family-derived command list for ``fragment``, plus the per-fragment
+    menu entries each fragment answers via `block_menu`. Owner is
+    `toad.menus.standard_commands` for the family-wide list; `TranscriptFragment.block_menu`
+    (default `()`) and `BusMessageFragment.block_menu → message_menu(self.row)` decide
+    the per-fragment addition without the consumer having to ask what subclass it has."""
     yield from standard_commands(fragment)
-    row = getattr(fragment, "row", None)
-    if isinstance(fragment, QtMessageFragment) and row is not None:
-        yield from message_menu(row)
+    yield from fragment.block_menu
 
 
 class TabClose(OperationKind):
@@ -2204,6 +2204,15 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         `SavedSettings`, and Qt walks it through `toad.client.settings_schema`."""
         from toad.qt.settings_screen import QtSettingsScreen
         dialog = QtSettingsScreen(self, self)
+        dialog.show()
+
+    async def open_team_board(self) -> None:
+        """Qt override of `ClientApplication.open_team_board`. Opens the
+        shared-UX `QtTeamBoardScreen`; both frontends subscribe to the same
+        `TeamHudChanged` / `TeamHudFailed` Core events and route them through
+        `toad.client.team_board.TeamBoardState` for identical filtering."""
+        from toad.qt.team_board_screen import QtTeamBoardScreen
+        dialog = QtTeamBoardScreen(self)
         dialog.show()
 
     def open_transfer(self, kind) -> None:

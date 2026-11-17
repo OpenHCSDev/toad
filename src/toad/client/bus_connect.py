@@ -25,7 +25,9 @@ from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from agent_comms.transport.connector import HoldUiVerb
-from agent_comms.transport.connector_store import ConnectorStore, HeldUiProfiles, OpenableProfile
+from agent_comms.transport.connector_store import ConnectorStore
+
+from toad.client.bus_selection import openable_held
 from agent_comms.transport.tailnet_profiles import AskedPeer, PeerAnsweredNothing, PeerRefusedProfile
 
 
@@ -98,8 +100,7 @@ def _hold_pasted_profile(text: str, host: BusConnectHost, peer_name: str) -> Non
         return
     # Find the just-held entry: the newest `OpenableProfile` whose grant matches
     # (hold_ui writes it with the grant id in the filename). Scan the held directory.
-    held = tuple(entry for entry in HeldUiProfiles.held(time.time())
-                 if isinstance(entry, OpenableProfile))
+    held = openable_held(time.time())
     if not held:
         host.show_warning("Profile held, but no openable entry was recorded.", "Bus")
         return
