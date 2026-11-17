@@ -24,6 +24,7 @@ from textual.widgets import Static
 
 from toad.category_filter import CategoryFilterView
 from toad.client.connection import Observing
+from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.core import events as core_events
 from toad.native_style import (
     AutoHeight,
@@ -601,6 +602,10 @@ class ThreadCommsSidebar(
             if generation == self._generation and row.is_attached and row.available:
                 self.request_navigation(row, entry=entry, generation=generation)
 
-        items = [(open_selected, "Open")] if row.available else []
-        items.append((lambda: self.app.copy_to_clipboard(target), "Copy name"))
+        entries = menu_entries_for_row(
+            target_name=target,
+            copy=self.app.copy_to_clipboard,
+            open_callback=open_selected if row.available else None,
+        )
+        items = [(e.run, e.label) for e in entries]
         ActionMenu.show(self.screen, Region.from_offset(offset, (0, 0)), target, items)
