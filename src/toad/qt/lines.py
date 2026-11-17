@@ -113,19 +113,17 @@ class QtLineRenderer(MroProjection[str]):
 
     @handles(Divider)
     def divider(self, block: Divider) -> str:
-        """The title between two rules filling the width; the time goes on its own line when
-        both do not fit, and a title too long for any rule wraps, as Textual's divider does."""
+        """Every row of the title flanked by rules filling the width, as Textual's divider does.
+        One paragraph so Qt adds no extra block gap between wrapped rows."""
         bold = QFont(self.font)
         bold.setBold(True)
         room = PixelRoom(QFontMetricsF(bold), self.width)
-        first, *rest = DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
-        if room.fits(first):
-            rule = self.styled("─" * room.rule(first), block.role)
-            head = (f'<p align="center" style="margin-top:10px;white-space:pre">{rule} '
-                    f'<b>{self.title(first, block)}</b> {rule}</p>')
-        else:
-            head = f'<p align="center" style="margin-top:10px"><b>{self.title(first, block)}</b></p>'
-        return head + "".join(f'<p align="center"><b>{self.title(group, block)}</b></p>' for group in rest)
+        groups = DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
+        rows = "<br>".join(f'{self.styled("─" * max(room.rule(group), 0), block.role)} '
+                           f'<b>{self.title(group, block)}</b> '
+                           f'{self.styled("─" * max(room.rule(group), 0), block.role)}'
+                           for group in groups)
+        return f'<p align="center" style="white-space:pre">{rows}</p>'
 
     def title(self, spans: tuple[Span, ...], block: Divider) -> str:
         return "".join(self.span(span, span.link.heading_role(span.role, block.role)) for span in spans)
