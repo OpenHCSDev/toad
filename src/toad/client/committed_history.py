@@ -106,3 +106,21 @@ class CommittedHistoryBase(SnapshotPresentation, CoveredHistory[PreparedPageSour
         if not self.accepts_commit(through):
             raise ValueError("Commit replaces or rewinds the retained source")
         self.extend_source(through)
+
+    async def park_document(self) -> PreparedPageSource:
+        """Stop reading and hand the drawn pages to their reader, to be rebuilt on return.
+
+        Satisfies the `CoveredHistory.park_document` abstract. All primitives are
+        toolkit-neutral (`retire_source` on `HistoryPager`, `filter.overlay.park_document`
+        on `FilterState`, `page_source` on `HistoryPager`, `page.prepared` on `ReaderPage`),
+        so both Textual's `CommittedHistory` and Qt's `QtTranscriptHistory` share one
+        implementation. Hoisted out of `widgets/transcript_history.py:LineHistory` for
+        PR #1945 so Qt is not re-stating the same body.
+        """
+        await self.retire_source(parked=True)
+        source = self.page_source
+        projected = await self.filter.overlay.park_document()
+        pages = tuple(page.prepared for page in self.pages)
+        await source.runtime.run_thread(source.measure_held, pages, projected)
+        source.park(pages, projected)
+        return source
