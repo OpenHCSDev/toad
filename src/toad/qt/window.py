@@ -121,7 +121,9 @@ from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_m
 from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
 from toad.qt.project_panel import QtProjectPanel
+from toad.qt.channel_sort import QtChannelSortControl
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
+from toad.widgets.session_sort import ThreadSortForm
 from toad.qt.paste_profile import QtProfilePastePanel
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
@@ -759,6 +761,13 @@ class QtChannelGroup(ChannelGroupRows):
         self.channel: ChannelRowModel | None = None
         # Per-member thread rows this group currently shows, by thread key.
         self.member_rows: dict[str, ConversationRow] = {}
+        # Per-channel sort state, shared with Textual's `ChannelSortChoice` via
+        # `SortControlBase`. The Qt widget owns its own menu + write path; Textual
+        # renders the same state through a header-row segment. `present` pushes
+        # `channel.order` into it so `sort_label` / `sort_tooltip` stay in sync.
+        # Scope-tight follow-up: embed the button on the row itself (needs a Qt
+        # tree column-count change); the state owner + write path land here.
+        self.sort_choice = QtChannelSortControl(sidebar.window, ThreadSortForm, name)
 
     @property
     def member_keys(self):
@@ -775,6 +784,9 @@ class QtChannelGroup(ChannelGroupRows):
         self.channel = channel
         badge = self.sidebar.window.settings.sidebar.unread_counts.badge(channel.unread)
         self.row.draw(badge, channel.label(), channel.summary(), channel.tooltip())
+        # Keep the per-channel sort-control state in sync with the observed order,
+        # matching Textual `ChannelGroup.present` (widgets/comms_sidebar.py:141).
+        self.sort_choice.update_order(channel.order)
         if previous is None:
             return frozenset()
         return previous.pinned_members ^ channel.pinned_members
