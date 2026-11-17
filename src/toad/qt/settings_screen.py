@@ -281,8 +281,11 @@ class QtSchemeChoiceEditor(QtSettingsEditor):
         self.combo.blockSignals(True)
         try:
             self.combo.clear()
-            schemes = list(getattr(self.app.colours, "schemes", ()))
-            self.combo.addItems(schemes)
+            # Qt reads scheme names directly from the ui-theme catalog — Textual's
+            # `app.colours.schemes` is a Textual-specific registry that Qt doesn't
+            # carry. SCHEMES is the shared source both frontends ultimately read.
+            from ui_theme.catalog import SCHEMES
+            self.combo.addItems([s.name for s in SCHEMES])
             current = str(self.row.value or "")
             self.combo.setEditText(current)
         finally:

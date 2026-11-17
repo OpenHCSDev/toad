@@ -591,20 +591,35 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
     def tail_scroll_y(self) -> float:
         return self.max_scroll_y
 
+    def _viewport_height_safe(self) -> int:
+        """`self.viewport().height()` raises RuntimeError once the underlying
+        Qt widget has been torn down (shiboken: "Internal C++ object already
+        deleted"). The pager's late async tasks can still ask us for row
+        budgets after the view closed; those should answer 0 so the publish
+        short-circuits instead of flooding logcat. A live viewport returns
+        its real height — same code path as before for all other callers."""
+        try:
+            return self.viewport().height()
+        except RuntimeError:
+            return 0
+
     @property
     def viewport_rows(self) -> int:
-        return self.viewport().height()
+        return self._viewport_height_safe()
 
     @property
     def content_rows(self) -> int:
-        return self.viewport().height()
+        return self._viewport_height_safe()
 
     @property
     def unfilled_rows(self) -> int:
+        height = self._viewport_height_safe()
+        if height == 0:
+            return 0
         rows = self.model_rows.rowCount()
         if not rows:
-            return self.viewport().height()
-        return max(0, self.viewport().height() - self.visualRect(self.model_rows.index(rows - 1, 0)).bottom())
+            return height
+        return max(0, height - self.visualRect(self.model_rows.index(rows - 1, 0)).bottom())
 
     @property
     def animated_travel(self) -> float:

@@ -164,7 +164,7 @@ class ActivityScenario(Scenario):
         app = self.app
         # Flat thread list moved to QtThreadPanel sibling panel (see window.py).
         everyone = app._sidebar_thread_panel.invisibleRootItem()
-        rows = app.sidebar.observed.sidebar.threads.rows
+        rows = app.coordination_access.observation.observed().sidebar.threads.rows
         children = [everyone.child(index) for index in range(everyone.childCount())]
         working = [row for row in children if rows[row.key].status.is_working()]
         peer = (working or children)[0]
@@ -492,20 +492,24 @@ class PlacementScenario(Scenario):
         app.toggle_pane(ThreadSidebarPlacement)
         await self.settle()
         before = len(set(comms_view.visible_categories))
-        app.thread_pane._checks[category].click()
+        app.thread_pane._category_filter._checks[category].click()
         await self.settle()
         comms_after = set(comms_view.visible_categories)
         self.report("6-comms-settings", toggled=category.label, where=self.where(app.thread_settings),
-                    categories=[control.text() for control in app.thread_pane._checks.values()],
+                    categories=[control.text() for control in app.thread_pane._category_filter._checks.values()],
                     before_shown=before, after_shown=len(comms_after),
                     category_shown=(category in comms_after), too_wide=self.too_wide())
-        # A DM: its own bar heading and its own, independent view settings.
+        # A DM: its own bar heading and its own, independent view settings. The
+        # sidebar may have re-rendered after the pane toggles, so re-fetch the
+        # peer row from the current tree instead of reusing the stale handle.
+        tops = list(app.sidebar.items())
+        peer = tops[-1].child(0)
         app.open_row(peer)
         await self.opened(comms_view)
         dm_view = app.workspace_sessions.selected
         self.report("7-dm-open", thread_heading=app.thread_bar._title.text(),
                     dm_shown=len(set(dm_view.visible_categories)))
-        app.thread_pane._checks[category].click()
+        app.thread_pane._category_filter._checks[category].click()
         await self.settle()
         self.report("8-dm-settings", toggled=category.label,
                     dm_category_shown=(category in dm_view.visible_categories),
