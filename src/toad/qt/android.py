@@ -159,10 +159,13 @@ def main() -> None:
     # The env vars alone don't stop Qt's Java-side accessibility bridge — the
     # protector still trips with runInObjectContext as the lock holder. Shut the
     # API-side framework off too: setActive(False) tells Qt to answer "no
-    # accessibility" to Android's probes, and a no-op factory means a stray
-    # factory lookup can't bring the bridge back up.
-    QAccessible.setActive(False)
-    QAccessible.installFactory(lambda obj: None)
+    # accessibility" to Android's probes. A Python lambda can't substitute for
+    # the C function pointer installFactory expects — Shiboken NULL-derefs when
+    # it tries to introspect one, so don't install a factory at all.
+    try:
+        QAccessible.setActive(False)
+    except Exception:
+        pass
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()
