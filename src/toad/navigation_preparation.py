@@ -92,10 +92,8 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
 
 class ExternalThreadNavigation(ThreadNavigation):
     def bind(self, screen) -> None:
-        from toad.session_presentation import MailboxSessionSources
-
         super().bind(screen)
-        screen.presentation.sources = MailboxSessionSources()
+        screen.apply_external_mailbox_sources()
 
 
 @dataclass(frozen=True)
@@ -103,7 +101,7 @@ class NativeThreadNavigation(ThreadNavigation):
     plan: ExistingSessionLoadPlan
 
     def bind(self, screen) -> None:
-        screen.presentation.sources.load_plan = self.plan
+        screen.apply_native_load_plan(self.plan)
 
 
 @dataclass(frozen=True)
