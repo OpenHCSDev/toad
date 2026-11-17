@@ -362,7 +362,16 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         app = self.app
         try:
             return app.workspace_sessions.origin(app.selected_mode).require().project_path
-        except RelationViolationError:
+        except RelationViolationError as error:
+            # The selected tab's origin can't resolve — same silent-fallback shape
+            # thread_navigation.open had before PR #1977. Surface it so the user
+            # sees "this is using the launch's project because X" instead of
+            # silently falling back and getting unexpected project-scoped results.
+            app.show_warning(
+                f"Selected session's origin unavailable ({error}); using launch project "
+                f"{app.project_dir!s}.",
+                "Session project",
+            )
             return app.project_dir
 
     def open_thread_form(self, project: Checkout) -> None:

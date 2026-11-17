@@ -30,6 +30,8 @@ from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QHeaderView,
+    QLabel,
     QLineEdit,
     QPushButton,
     QSizePolicy,
@@ -121,7 +123,9 @@ from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_m
 from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
 from toad.qt.project_panel import QtProjectPanel
+from toad.qt.channel_sort import QtChannelSortControl
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
+from toad.widgets.session_sort import ThreadSortForm
 from toad.qt.paste_profile import QtProfilePastePanel
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
@@ -279,14 +283,14 @@ class ConversationRow(SidebarItem):
         self.target = target
 
     @classmethod
-    def channel(cls, name: str, channel) -> ConversationRow:
+    def channel(cls, name: str, channel, *, badge: str) -> ConversationRow:
         row = cls(channel_target(name))
-        row.draw(channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+        row.draw(badge, channel.label(), channel.summary(), channel.tooltip())
         return row
 
     @classmethod
     def thread(cls, name: str, thread, *, pinned: bool = False,
-               pending_detail: str | None = None) -> ConversationRow:
+               pending_detail: str | None = None, badge: str) -> ConversationRow:
         """Thread rows (CLI inbox, mailbox) open as `KnownThreadTarget` so the tap
         routes through `thread_navigation.open` → `MailboxTab` → agent-bound view,
         mirroring Textual's `comms_sidebar.ThreadRow` at `widgets/comms_sidebar.py:242`
@@ -300,19 +304,22 @@ class ConversationRow(SidebarItem):
         flow into the hover text; the label gets a `"* "` prefix when pinned,
         matching `ChannelRowModel.label` which also prefixes its own name."""
         row = cls(KnownThreadTarget(name, thread.incarnation))
-        row.draw_thread(thread, pinned=pinned, pending_detail=pending_detail)
+        row.draw_thread(thread, pinned=pinned, pending_detail=pending_detail, badge=badge)
         return row
 
     def draw_thread(self, thread, *, pinned: bool = False,
-                    pending_detail: str | None = None) -> None:
+                    pending_detail: str | None = None, badge: str) -> None:
         """Repaint this row from a `ThreadRowModel`, honoring pin and pending-action.
         Shared with the initial construction path above so every thread-row draw —
         first paint, `sync_members` reconcile, `repaint_members` refresh — goes
-        through the same pin/pending-aware assembly."""
+        through the same pin/pending-aware assembly. `badge` comes from the caller
+        (`app.settings.sidebar.unread_counts.badge(thread.unread)`) so this view
+        honors the user's shown-unread-count preference, the same way Textual
+        does at `widgets/comms_sidebar.py:244`."""
         label = f"{'* ' if pinned else ''}{thread.label}"
         summary = pending_detail if pending_detail is not None else thread.summary
         self.draw(
-            thread.unread.badge, label, summary,
+            badge, label, summary,
             thread.tooltip(pinned=pinned, pending_detail=pending_detail),
         )
 
@@ -353,21 +360,25 @@ from toad.qt.page import Page  # re-export: callers already import Page from her
 
 
 class QtChannelListing(ChannelListing):
-    def keep(self, lines: KeptLines, model: SidebarModel) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel,
+             badge_of: Callable[[object], str]) -> None:
         for name in self.listed(model):
-            lines.keep(ConversationRow.channel(name, model.channels.rows[name]))
+            channel = model.channels.rows[name]
+            lines.keep(ConversationRow.channel(name, channel, badge=badge_of(channel.unread)))
 
 
 class QtThreadListing(ThreadListing):
-    def keep(self, lines: KeptLines, model: SidebarModel) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel,
+             badge_of: Callable[[object], str]) -> None:
         for name in self.listed(model):
-            lines.keep(ConversationRow.thread(name, model.threads.rows[name]))
+            thread = model.threads.rows[name]
+            lines.keep(ConversationRow.thread(name, thread, badge=badge_of(thread.unread)))
 
 
 class WelcomeContent:
     """What the welcome lists above its buses: nothing until the bus answers."""
 
-    def draw(self, top: KeptLines) -> None:
+    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
         pass
 
 
@@ -389,10 +400,14 @@ class ListedModel(WelcomeContent):
         default_factory=lambda: (QtChannelListing(), QtThreadListing())
     )
 
-    def draw(self, top: KeptLines) -> None:
+    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
+        """`badge_of` is the caller's resolved `settings.sidebar.unread_counts.badge`
+        classmethod; the listing passes each row's `unread` through it so the welcome
+        honors the shown-unread-count preference the same way Textual does at
+        `widgets/comms_sidebar.py:80`."""
         for listing in self.listings:
             with top.group(OpenSection(listing.TITLE)) as lines:
-                listing.keep(lines, self.model)
+                listing.keep(lines, self.model, badge_of)
 
 
 @dataclass(frozen=True)
@@ -401,7 +416,7 @@ class ListedFailure(WelcomeContent):
 
     observed: FailedObservation
 
-    def draw(self, top: KeptLines) -> None:
+    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
         top.keep(UnavailableSection(self.observed))
 
 
@@ -582,6 +597,15 @@ class Welcome(Page, BusListing, QWidget):
         self.rows = ConversationRows(window)
         self.held_menu = HeldRowMenu(self)
         self.address = BusAddress(window)
+        # Gesture hint line below the rows, mirroring Textual's WelcomeNote(HINTS)
+        # at the tail of `WelcomeScreen.compose`. The content is owned per-frontend
+        # via `self.app.welcome_hints` — Textual carries keyboard shortcuts, Qt
+        # carries touch gestures. Strip Textual's `[b]...[/b]` markup for Qt since
+        # QLabel doesn't render it natively; the gestures text is plain already.
+        self.hints = QLabel(_strip_menu_markup_shared(window.welcome_hints), self)
+        self.hints.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hints.setWordWrap(True)
+        self.hints.setStyleSheet(window.renderer.color_style(MutedRole))
         layout = QVBoxLayout(self)
         layout.addSpacing(24)
         layout.addWidget(self.banner)
@@ -590,6 +614,8 @@ class Welcome(Page, BusListing, QWidget):
         layout.addWidget(self.new_session_button)
         layout.addSpacing(12)
         layout.addWidget(self.rows, 1)
+        layout.addWidget(self.hints)
+        layout.addSpacing(4)
         layout.addWidget(self.address)
         self.content: WelcomeContent = WelcomeContent()
         self.relist()
@@ -618,7 +644,12 @@ class Welcome(Page, BusListing, QWidget):
         self.rows.redraw(partial(self.draw_lines, rows))
 
     def draw_lines(self, buses: tuple[PickerRow, ...], top: KeptLines) -> None:
-        self.content.draw(top)
+        # `settings.sidebar.unread_counts` is a `ShownUnreadCount` family member whose
+        # `.badge(unread)` classmethod honors the user's preference (always show, hide
+        # counts, hide badges). The welcome content and bus rows pass each row's
+        # `unread` through this so Qt matches Textual's behavior (`widgets/comms_sidebar.py:80`).
+        badge_of = self.host.settings.sidebar.unread_counts.badge
+        self.content.draw(top, badge_of)
         with top.group(OpenSection(self.BUSES)) as section:
             for choice in buses:
                 section.keep(BusRow(choice))
@@ -681,10 +712,24 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         scheme = window.theme.color_scheme
         self.setHeaderHidden(True)
         self.setIndentation(10)
+        # Two columns: 0 for the row's text layout (through the multiline delegate),
+        # 1 for inline widgets like the per-channel sort control that `QtChannelGroup`
+        # pins via `tree.setItemWidget(row, 1, sort_choice)`. Column 1 stays unused on
+        # rows that don't need it (thread rows, status rows) — Qt renders it as empty
+        # space. `setItemDelegateForColumn(0, delegate)` keeps the multiline delegate
+        # off column 1, so cells there use the default delegate and don't reach into
+        # LAYOUT_ROLE/SCOPE_SCHEME_ROLE data that only column 0 carries.
+        self.setColumnCount(2)
         self.setStyleSheet(scheme.styles.generate_tree_widget_style())
-        self.setItemDelegate(MultilinePreviewItemDelegate(
+        self.setItemDelegateForColumn(0, MultilinePreviewItemDelegate(
             scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text), self))
+        # Column 1 fits the inline widget (sort toolbutton) with no extra space; column 0
+        # takes the remainder so row text keeps its full width when no widget is pinned.
+        header = self.header()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(False)
         # Alternating row backgrounds come from the shared `generate_tree_widget_style`
         # stylesheet, which already declares `alternate-background-color:
         # {cs.alternate_row_bg}` from the scheme. The sidebar tree enables Qt's
@@ -733,6 +778,21 @@ class QtChannelGroup(ChannelGroupRows):
         self.channel: ChannelRowModel | None = None
         # Per-member thread rows this group currently shows, by thread key.
         self.member_rows: dict[str, ConversationRow] = {}
+        # Per-channel sort state, shared with Textual's `ChannelSortChoice` via
+        # `SortControlBase`. The Qt widget owns its own menu + write path; Textual
+        # renders the same state through a header-row segment. `present` pushes
+        # `channel.order` into it so `sort_label` / `sort_tooltip` stay in sync.
+        self.sort_choice = QtChannelSortControl(sidebar.window, ThreadSortForm, name)
+        # Pin the sort toolbutton on column 1 of the channel header row so the user
+        # sees + taps it. `ConversationRows` runs with `setColumnCount(2)` and a
+        # ResizeToContents section for column 1; the button appears to the right of
+        # the channel label. `setItemWidget` requires the item to already be in the
+        # tree — on the construction paths used today (`top.group(...)` places the
+        # row before this init runs; `_rebind_groups_from_tree` iterates existing
+        # tree children) that is always true, so a guard here would only mask a
+        # construction-order bug. Let Qt's own assertion fire if someone adds an
+        # out-of-order path.
+        sidebar.setItemWidget(row, 1, self.sort_choice)
 
     @property
     def member_keys(self):
@@ -747,7 +807,11 @@ class QtChannelGroup(ChannelGroupRows):
         channel-change path can sync them without touching unrelated threads."""
         previous = self.channel
         self.channel = channel
-        self.row.draw(channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+        badge = self.sidebar.window.settings.sidebar.unread_counts.badge(channel.unread)
+        self.row.draw(badge, channel.label(), channel.summary(), channel.tooltip())
+        # Keep the per-channel sort-control state in sync with the observed order,
+        # matching Textual `ChannelGroup.present` (widgets/comms_sidebar.py:141).
+        self.sort_choice.update_order(channel.order)
         if previous is None:
             return frozenset()
         return previous.pinned_members ^ channel.pinned_members
@@ -774,6 +838,7 @@ class QtChannelGroup(ChannelGroupRows):
         # Add/update in the model's order. A row whose name is in ``changed`` repaints;
         # a row at the wrong position moves without a rebuild.
         pending = self.sidebar.window.thread_actions.pending
+        badge_of = self.sidebar.window.settings.sidebar.unread_counts.badge
         for index, name in enumerate(wanted):
             thread = threads.get(name)
             if thread is None:
@@ -783,12 +848,14 @@ class QtChannelGroup(ChannelGroupRows):
             existing = self.member_rows.get(name)
             if existing is None:
                 item = ConversationRow.thread(name, thread, pinned=pinned,
-                                              pending_detail=pending_detail)
+                                              pending_detail=pending_detail,
+                                              badge=badge_of(thread.unread))
                 self.row.insertChild(index, item)
                 self.member_rows[name] = item
             else:
                 if name in changed:
-                    existing.draw_thread(thread, pinned=pinned, pending_detail=pending_detail)
+                    existing.draw_thread(thread, pinned=pinned, pending_detail=pending_detail,
+                                         badge=badge_of(thread.unread))
                 current_index = self.row.indexOfChild(existing)
                 if current_index != index:
                     self.row.takeChild(current_index)
@@ -804,12 +871,14 @@ class QtChannelGroup(ChannelGroupRows):
         channel_row = model_state.shown.channels.rows.get(self.name)
         pinned_members = channel_row.pinned_members if channel_row is not None else frozenset()
         pending = self.sidebar.window.thread_actions.pending
+        badge_of = self.sidebar.window.settings.sidebar.unread_counts.badge
         for name in self.member_rows.keys() & names:
             thread = threads.get(name)
             if thread is None:
                 continue
             self.member_rows[name].draw_thread(
                 thread, pinned=name in pinned_members, pending_detail=pending.get(name),
+                badge=badge_of(thread.unread),
             )
 
 
@@ -866,6 +935,42 @@ class QtSidebarSearch(QWidget):
 
     def _on_text_changed(self, value: str) -> None:
         self.sidebar.filter.text = value
+
+
+class QtThreadPanel(ConversationRows):
+    """The flat thread listing shown as a sibling panel to the channels tree in the
+    multi-panel sidebar shell. The channels panel (`Sidebar` / `draw_lines`) renders
+    channel groups + their member threads; this panel renders the FLAT list of every
+    thread the observation knows about — matches Textual's `SideBarCollapsible` siblings
+    where channels and threads live in different collapsible panels. Both panels read
+    the same `SidebarModel` + shared `SidebarFilter`, and `Sidebar.present` triggers
+    this panel's redraw on the same tick so the two trees stay in step."""
+
+    THREADS_PANEL: ClassVar[PanelSpec] = PanelSpec(title="Threads", flex=True, id="sidebar-threads")
+
+    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__(window)
+        if parent is not None:
+            self.setParent(parent)
+
+    def present(self, model: SidebarModel) -> None:
+        """Redraw the flat thread list from `model.threads.rows`. Filter + pending-detail
+        + unread-badge formatting come from the same owners `Sidebar.draw_lines` reads,
+        so the two panels can't disagree on which thread rows show."""
+        sidebar = self.window.sidebar
+        matches = sidebar.filter.matches
+        pending = self.window.thread_actions.pending
+        badge_of = self.window.settings.sidebar.unread_counts.badge
+        threads = model.threads.rows
+        def draw(top: KeptLines) -> None:
+            for name, thread in threads.items():
+                if not matches(name):
+                    continue
+                top.keep(ConversationRow.thread(
+                    name, thread, pending_detail=pending.get(name),
+                    badge=badge_of(thread.unread),
+                ))
+        self.redraw(draw)
 
 
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
@@ -953,6 +1058,13 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             else:
                 self.groups = {}
         if model is not None:
+            # Refresh the flat threads sibling panel on the same tick as the channels
+            # tree, so the two panels can't show stale rows relative to each other.
+            # Partial updates (ChangedChannels/ChangedThreads) touch channel members
+            # in place and leave the flat list unchanged — those cases skip the panel
+            # refresh too.
+            if change is None or not change.partial_update:
+                self.window._sidebar_thread_panel.present(model)
             self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
 
@@ -985,6 +1097,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         threads = model.threads.rows
         matches = self.filter.matches
         pending = self.window.thread_actions.pending
+        badge_of = self.window.settings.sidebar.unread_counts.badge
         for name, channel in model.channels.rows.items():
             # A channel stays visible if its name matches OR any of its member thread
             # names do; hiding a channel whose only match is a buried thread would also
@@ -993,20 +1106,18 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             if not matches(name) and not members_shown:
                 continue
             pinned_members = channel.pinned_members
-            with top.group(ConversationRow.channel(name, channel)) as group:
+            with top.group(ConversationRow.channel(name, channel, badge=badge_of(channel.unread))) as group:
                 for member in members_shown:
+                    thread = threads[member]
                     group.keep(ConversationRow.thread(
-                        member, threads[member],
+                        member, thread,
                         pinned=member in pinned_members,
                         pending_detail=pending.get(member),
+                        badge=badge_of(thread.unread),
                     ))
-        with top.group(SidebarSection("Threads")) as everyone:
-            for name, thread in threads.items():
-                if not matches(name):
-                    continue
-                everyone.keep(ConversationRow.thread(
-                    name, thread, pending_detail=pending.get(name),
-                ))
+        # The flat thread listing moved to `QtThreadPanel` as a sibling panel in the
+        # multi-panel shell (`QtSidebarSearch`). `Sidebar.present` triggers that panel's
+        # redraw on the same tick so both trees refresh together.
 
     def _refresh_status_only(self) -> None:
         """Update just the status row at the top of the tree in place, without touching
@@ -1070,14 +1181,20 @@ class QtHistorySessionEntry(QtSessionEntry, HistorySessionEntry, shows=(CommsTab
 
 
 class BusLabel(ElidedLine):
-    """Where the bus this window reads lives, as its connection names it. A Qt client is
-    always remote, so its own launch directory (on the phone, /data/data/…/app) says nothing
-    about the Core it shows; the connection's location does."""
+    """Where the bus this window reads lives, as its connection names it, prefixed with
+    the agent binding's `welcome_prefix` so the line reads the same way Textual's does
+    at `screens/welcome.py:256` — `f"{agent_binding.welcome_prefix}{location}"`. A Qt
+    client is always remote, so its own launch directory (on the phone, /data/data/…/app)
+    says nothing about the Core it shows; the connection's location does.
+
+    `welcome_prefix` is empty for `NoAgent` so a connection without an attached agent
+    reads as before. With `AgentAttached`, the line reads e.g. `claude · <location>`."""
 
     def __init__(self, window: QtToadApp) -> None:
         location = window.coordination_access.connection.location
-        super().__init__(location)
-        self.setToolTip(location)
+        prefix = window.agent_binding.welcome_prefix
+        super().__init__(f"{prefix}{location}")
+        self.setToolTip(f"{prefix}{location}")
 
 
 class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
@@ -1570,6 +1687,14 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
             PanelSpec(title="Project", flex=True, collapsed=True, id="sidebar-project"),
             self._sidebar_project_panel,
         )
+        # The flat thread listing lives in its own sibling panel next to the channels
+        # tree — mirrors Textual's `SideBarCollapsible` pair where channels and threads
+        # are separate panels users can collapse independently. `Sidebar.present`
+        # pushes updates into this panel on every wholesale redraw.
+        self._sidebar_thread_panel = QtThreadPanel(self, parent=self.sidebar_search)
+        self.sidebar_search.add_panel(
+            QtThreadPanel.THREADS_PANEL, self._sidebar_thread_panel,
+        )
         self.thread_pane = ThreadSettingsPane(parent=self,
                                               project_path=self.project_dir.path)
         self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
@@ -1690,6 +1815,15 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # EGL-deadlock hazard that killed off QMessageBox applies to any popup window.
         self.menu_panel = QtMenu(self)
         chrome_layout.addWidget(self.menu_panel)
+        # Bus switcher: inline overlay panel for the hamburger "Switch bus" entry.
+        # Registered as a `BusListing` so `tailnet_answered` routes answers to it
+        # while shown (same shape as Welcome, which is always registered).
+        from toad.qt.bus_switcher import QtBusSwitcher
+        # Welcome is always a BusListing; the switcher registers/deregisters
+        # itself while shown so answers reach both.
+        self._bus_listings: list[BusListing] = [self.workspace_sessions.home]
+        self.bus_switcher = QtBusSwitcher(self)
+        chrome_layout.addWidget(self.bus_switcher)
         # Paste surface for the bus-connect remediation ("Paste a profile" option on the
         # BusConnectDecision menu). Inline QFrame child of the window, not a QDialog —
         # same EGL rationale as QtMenu: a top-level popup needs its own surface and
@@ -1988,8 +2122,28 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.run_operation(ApplicationStart, self.open_saved_tabs)
 
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
-        """The welcome is this window's one bus listing."""
-        answer.shown_in(self.workspace_sessions.home)
+        """Route the answer to every registered `BusListing`. The welcome is always
+        registered; the bus switcher registers itself while shown. Shared
+        `BusListing.shown_in` dispatch means Qt needs no per-listing branch."""
+        for listing in tuple(self._bus_listings):
+            answer.shown_in(listing)
+
+    def register_bus_listing(self, listing: BusListing) -> None:
+        """Called by `QtBusSwitcher.show_switcher` so tailnet answers reach it while
+        shown. Welcome is registered at construction; the switcher comes and goes."""
+        if listing not in self._bus_listings:
+            self._bus_listings.append(listing)
+
+    def deregister_bus_listing(self, listing: BusListing) -> None:
+        if listing in self._bus_listings:
+            self._bus_listings.remove(listing)
+
+    def open_bus_switcher(self) -> None:
+        """Hamburger `OpenBusAction` hook: show the inline Qt switcher instead of
+        Textual's `BusChoices` modal. The shared `BusListing` contract gives the
+        switcher the same rows, prompt text (`BusSwitcherPrompt`) and ask-tailnet
+        behavior Textual has; the Qt layer is just rendering + input wiring."""
+        self.bus_switcher.show_switcher()
 
     async def close_native_views(self) -> None:
         self.shortcuts.close()
@@ -1997,6 +2151,17 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
 
     async def close_rendering(self) -> None:
         await self.preparation.aclose()
+
+    async def open_keymap_browser(self) -> None:
+        """Qt override of `ClientApplication.open_keymap_browser`. Opens the
+        shared-UX `QtKeymapScreen` modal; both frontends consume the same
+        `KeymapBrowserState` so the browser logic lives once in
+        `toad.client.keymap_browser`."""
+        from toad.keymap import KeyInvocationId
+        from toad.qt.keymap_screen import QtKeymapScreen
+        focused: frozenset[KeyInvocationId] = frozenset()
+        dialog = QtKeymapScreen(self, focused)
+        dialog.show()
 
     async def reveal_sidebar(self) -> bool:
         """The sidebar comes up over the conversation, as its bar would bring it."""
@@ -2097,6 +2262,17 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
     @property
     def selected_mode(self) -> str:
         return self.workspace_sessions.selected.mode
+
+    @property
+    def welcome_hints(self) -> str:
+        """Qt (touch) override of the gesture hint line shown under the welcome
+        rows. Textual's version carries keyboard shortcuts; Qt's carries touch
+        gestures since Qt-on-Android has no keyboard. Called by both Welcome
+        implementations through `self.app.welcome_hints`."""
+        return (
+            "Tap thread to open · long-press for menu · swipe > for sidebar\n"
+            "≡ for menu · ← → navigate history"
+        )
 
     def switch(self, mode: str, visited: Callable[[CommsTab], object]) -> None:
         self.workspace_sessions.select(mode, visited)

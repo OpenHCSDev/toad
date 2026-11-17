@@ -310,6 +310,52 @@ class ClientApplication(BusPickerHost, NavigationHost):
     def open_direct_messages(self, target: str) -> None:
         self.session_navigation.direct_messages(target)
 
+    # Hamburger-menu capabilities: a frontend with a real screen for each overrides
+    # these to push its screen; frontends without one inherit the default notice so
+    # the menu entry still appears and tells the user it's not yet available on this
+    # toolkit. Keeping the capability on ClientApplication (not on the Action class)
+    # lets `ApplicationAction.menu(app)` list the same items on every frontend; the
+    # per-frontend screen is behind one polymorphic call, not a parallel class tree.
+
+    def open_bus_switcher(self) -> None:
+        """Open the bus picker (local or remote). Textual's `ToadApp` pushes
+        `BusChoices`; Qt will get its own picker — stub notice meanwhile."""
+        self.show_info("Bus picker is not yet available on this frontend.",
+                       "Switch bus")
+
+    async def edit_settings(self) -> None:
+        """Edit persistent application preferences. Textual pushes `SettingsScreen`
+        and saves on close; Qt will get its own editor — stub notice meanwhile."""
+        self.show_info("Settings editor is not yet available on this frontend.",
+                       "Settings")
+
+    async def open_team_board(self) -> None:
+        """Open the live team board. Textual pushes `TeamPage`; Qt stub notice."""
+        self.show_info("Team board is not yet available on this frontend.",
+                       "Team")
+
+    async def open_keymap_browser(self) -> None:
+        """Browse and change keybindings. Textual pushes `KeymapScreen`; Qt stub notice."""
+        self.show_info("Keymap browser is not yet available on this frontend.",
+                       "Keymap")
+
+    @property
+    def welcome_hints(self) -> str:
+        """The gesture/shortcut hint line rendered below the welcome's row list.
+        Textual overrides with its keyboard shortcuts; Qt overrides with touch
+        gestures. Default raises so a frontend that forgets to override is loud,
+        not silently blank.
+
+        Mirrors the shape `WelcomeScreen.HINTS` carries on Textual at
+        `src/toad/screens/welcome.py:242`; keeping it on the app (rather than
+        on each Welcome screen class) means the content is owned per-frontend
+        but called once from both Welcome implementations via `self.app.welcome_hints`."""
+        raise NotImplementedError(
+            f"{type(self).__name__} must override welcome_hints — the welcome's "
+            f"hint line is frontend-specific (keyboard vs touch) and the default "
+            f"raises rather than silently hiding the line."
+        )
+
     @property
     def open_tabs(self) -> tuple[OpenTab, ...]:
         return self.session_navigation.tabs

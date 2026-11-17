@@ -293,6 +293,48 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
 
         return SavedSettings(raw, applied=applied, report_error=report)
 
+    # Textual overrides of the hamburger capabilities declared on ClientApplication.
+    # The default notice stays on the base so a Qt frontend still gets the menu item.
+
+    def open_bus_switcher(self) -> None:
+        from toad.screens.bus_choice import BusChoices
+        self.push_screen(BusChoices(), self.picked_bus)
+
+    async def edit_settings(self) -> None:
+        self.run_worker(self._edit_settings_worker)
+
+    async def _edit_settings_worker(self) -> None:
+        from toad.screens.settings import SettingsScreen
+        await self.push_screen_wait(SettingsScreen())
+        await self.saved_settings.save()
+
+    async def open_team_board(self) -> None:
+        from toad.screens.team import TeamPage
+        self.push_screen(TeamPage())
+
+    async def open_keymap_browser(self) -> None:
+        from toad.keymap import KeyInvocationId
+        from toad.screens.keymap import KeymapScreen
+        focused = frozenset(
+            KeyInvocationId(invocation.key_identity())
+            for node, bindings in self.screen._binding_chain
+            for _key, binding in bindings if binding.state(self, node)
+            for invocation in binding.invocations()
+        )
+        self.push_screen(KeymapScreen(focused))
+
+    @property
+    def welcome_hints(self) -> str:
+        """Textual welcome hint line: keyboard shortcuts.
+        Content preserved from `WelcomeScreen.HINTS` at
+        `src/toad/screens/welcome.py:242`; moved onto the app so Qt's
+        welcome can read the same contract via `self.app.welcome_hints`
+        and supply its own gesture string."""
+        return (
+            "[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
+            "[b]↑ ↓[/b] choose   [b]enter[/b] open"
+        )
+
     def ensure_settings_file(self) -> None:
         settings = self.saved_settings
         path = settings.path()

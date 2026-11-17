@@ -22,7 +22,9 @@ from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
-from toad.client.bus_selection import BusChoice, BusListing, BusPickerHost, PickerRow, TailnetAnswer
+from toad.client.bus_selection import (
+    BusChoice, BusListing, BusPickerHost, BusSwitcherPrompt, PickerRow, TailnetAnswer,
+)
 from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
 from toad.widget_actions import DismissAction, PriorityActions, WidgetAction
@@ -160,7 +162,7 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
 
     def compose(self) -> ComposeResult:
         with BusPanel():
-            yield BusPrompt("Open a bus · Delete forgets a saved one · Esc returns")
+            yield BusPrompt(BusSwitcherPrompt.initial())
             yield self.bus_rows()
             yield BusAddress(placeholder="Add a machine by name or address")
 
@@ -170,11 +172,10 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
         self.app.discover_buses()
 
     def say_discovery(self, found: int) -> None:
-        self.query_one(BusPrompt).update(
-            f"Open a bus · {found} found on your tailnet · Esc returns")
+        self.query_one(BusPrompt).update(BusSwitcherPrompt.discovery(found))
 
     def say_failure(self, reason: str) -> None:
-        self.query_one(BusPrompt).update(f"Discovery: {reason} · Esc returns")
+        self.query_one(BusPrompt).update(BusSwitcherPrompt.failure(reason))
 
     def chose(self, row: PickerRow) -> None:
         """The dialog answers its caller rather than acting itself, so one place decides
