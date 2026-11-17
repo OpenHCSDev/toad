@@ -21,6 +21,7 @@ from agent_comms.planning.command import Command
 from formbridge.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType, TextEntryMode
 
 from toad.client.application import ClientApplication
+from toad.client.transfers import Transfer
 from toad.session_navigation import ChannelsReveal
 
 
@@ -270,6 +271,32 @@ class KeymapAction(ApplicationAction):
 
     async def apply(self, app: ClientApplication) -> None:
         await app.open_keymap_browser()
+
+
+class TransferMenuAction(ApplicationAction):
+    """Export wire history or import a thread through Core."""
+
+    show = True
+
+    def __init__(self, kind: type[Transfer]) -> None:
+        self.kind = kind
+
+    @classmethod
+    def offered(cls, app: ClientApplication) -> Iterator[Self]:
+        yield from (cls(kind) for kind in Transfer.members_with(Transfer))
+
+    def label(self, app: ClientApplication) -> str:
+        return self.kind.title
+
+    @classmethod
+    def parse(cls, parameters: tuple[object, ...]) -> Self:
+        from agent_comms.nominal.field_codec import FieldCodec
+        if len(parameters) != 1:
+            raise ValueError("transfer_menu requires one declared transfer kind")
+        return cls(FieldCodec.decode(type[Transfer], parameters[0]))
+
+    async def apply(self, app: ClientApplication) -> None:
+        app.open_transfer(self.kind)
 
 
 class QuitAction(LastInMenu, ReplacesFrameworkAction, ApplicationAction):

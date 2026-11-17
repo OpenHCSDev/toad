@@ -1693,6 +1693,10 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # redraw; the animator's one timer drives the pulse for every registered
         # row so the sine phase stays shared across the sidebar.
         self.thinking_animator = QtThinkingAnimator(scheme, parent=self)
+        # One background task per transfer kind, cancelled + replaced when the same
+        # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
+        # Populated by `start_transfer_task`; the dict is the live registry.
+        self._transfer_tasks: dict[str, "asyncio.Task[None]"] = {}
         self.workspace_sessions = QtWorkspaceViews(self)
         # SidebarLayout is the one owner of the move and float policy; the phone hands it a
         # session store, where the Textual workspace hands it the saved settings. Same policy,
@@ -2210,6 +2214,30 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         from toad.qt.team_board_screen import QtTeamBoardScreen
         dialog = QtTeamBoardScreen(self)
         dialog.show()
+
+    def open_transfer(self, kind) -> None:
+        """Qt override of `ClientApplication.open_transfer`. Opens the shared-UX
+        Qt dialog registered for `kind` in `toad.qt.transfer._QT_DIALOGS`; the
+        dialog's submit path calls `start_transfer_task(request, selected)` so
+        one running task per kind supersedes repeat submissions."""
+        from toad.qt.transfer import qt_dialog_for
+        access = self.coordination_access
+        selected = access.selected(access.observation.observed().root)
+        dialog = qt_dialog_for(kind, self, selected, parent=self)
+        dialog.show()
+
+    def start_transfer_task(self, request, selected) -> None:
+        """Qt analog of Textual's `run_worker(..., exclusive=True)`: cancel any
+        running task tagged with this kind's declared name, then schedule the
+        new one on the running loop. Keeps the shared `TransferRequest.execute`
+        on the UI thread's event loop (its internal `preparation.run_thread`
+        hop keeps the CPU work off the GIL)."""
+        import asyncio
+        existing = self._transfer_tasks.get(type(request).declared_name)
+        if existing is not None and not existing.done():
+            existing.cancel()
+        task = asyncio.ensure_future(request.execute(self, selected))
+        self._transfer_tasks[type(request).declared_name] = task
 
     async def reveal_sidebar(self) -> bool:
         """The sidebar comes up over the conversation, as its bar would bring it."""

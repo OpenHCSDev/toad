@@ -65,6 +65,12 @@ from ui_theme.scheme import (
 from toad.app_node import ToadNode
 from toad.application_outcome import ApplicationOutcome
 from toad.client.connection import CapturedSource, CoordinationAccess
+from toad.client.transfers import (
+    Transfer,
+    TransferHost,
+    TransferProgress,
+    TransferRequest,
+)
 from toad.core import events as core_events
 from toad.native_style import (
     CenteredChildren,
@@ -83,63 +89,10 @@ from toad.widgets.acting_button import (
 from toad.work_preparation import PreparationRuntime
 
 
-class TransferProgress(WireExportObserver):
-    """The shared progress capability does not make an operation cancellable."""
-
-    def cancel(self) -> None:
-        pass
-
-
-class Transfer(DeclaredFamily, affix="Request"):
-    """The menu consumes a transfer, without interpreting its result type."""
-
-    title: ClassVar[str]
-
-    @classmethod
-    @abstractmethod
-    def dialog(cls, selected: CapturedSource) -> TransferDialog: ...
-
-    @abstractmethod
-    async def execute(self, app: Transfers, selected: CapturedSource) -> None: ...
-
-
-class TransferRequest[Result: CliResult](Transfer):
-    """One preparation lifetime carries each operation's own typed result."""
-
-    failure_title: ClassVar[str]
-    cancelled_by: ClassVar[tuple[type[BaseException], ...]] = ()
-
-    @abstractmethod
-    def perform(self, access: CoordinationAccess, selected: CapturedSource,
-                observer: TransferProgress) -> Result:
-        """Run this transfer against the selected route's Core, reporting progress to observer."""
-
-    async def execute(self, app: Transfers, selected: CapturedSource) -> None:
-        try:
-            async with self.progress(app) as observer:
-                try:
-                    result = await app.preparation.run_thread(
-                        self.perform, app.coordination_access, selected, observer)
-                except asyncio.CancelledError:
-                    observer.cancel()
-                    raise
-        except self.cancelled_by:
-            self.cancelled(app)
-            return
-        except (OSError, ValueError) as error:
-            app.show_error(error, self.failure_title)
-            return
-        self.completed(app, result)
-
-    @asynccontextmanager
-    async def progress(self, app: App[ApplicationOutcome]) -> AsyncIterator[TransferProgress]:
-        yield TransferProgress()
-
-    def cancelled(self, app: App[ApplicationOutcome]) -> None:
-        pass
-
-    @abstractmethod
-    def completed(self, app: Transfers, result: Result) -> None: ...
+# `Transfer`, `TransferRequest`, `TransferProgress` and `TransferHost` are declared in
+# `toad.client.transfers` so Qt can share the family without pulling Textual. Members
+# below still live here because their `dialog()` factories return Textual `TransferDialog`s
+# — Qt's per-kind dialogs live in `toad.qt.transfer`.
 
 
 @dataclass(frozen=True)
@@ -208,24 +161,25 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
                    title="Thread Import")
 
 
-class Transfers(ThemedApp[ApplicationOutcome]):
-    """The application supplies transfers through its existing native lifetime."""
-
-    coordination_access: CoordinationAccess
-    preparation: PreparationRuntime
-    events: core_events.CoreEventStream
+class Transfers(TransferHost, ThemedApp[ApplicationOutcome]):
+    """Textual's `TransferHost`: a pushed `TransferDialog` returns the composed request
+    through dismiss, and `run_worker(..., exclusive=True)` tags the task by the kind's
+    declared name so re-opening the same kind supersedes the previous run."""
 
     def open_transfer(self, kind: type[Transfer]) -> None:
         access = self.coordination_access
         selected = access.selected(access.observation.observed().root)
         self.push_screen(kind.dialog(selected), callback=partial(self.transfer_submitted, selected))
 
+    def start_transfer_task(self, request: Transfer, selected: CapturedSource) -> None:
+        self.run_worker(request.execute(self, selected),
+                        group=type(request).declared_name, exclusive=True)
+
     @boundary_decoder
     def transfer_submitted(self, selected: CapturedSource, request: Transfer | None) -> None:
         """Native Screen.dismiss supplies None on cancel; that absence stops here."""
         if request is not None:
-            self.run_worker(request.execute(self, selected),
-                            group=type(request).declared_name, exclusive=True)
+            self.start_transfer_task(request, selected)
 
 
 class TransferPanel(SurfaceBackground, Vertical):

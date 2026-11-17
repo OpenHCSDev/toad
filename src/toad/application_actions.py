@@ -36,31 +36,6 @@ if TYPE_CHECKING:
 # mode / url driver.
 
 
-class TransferMenuAction(ApplicationAction):
-    """Export wire history or import a thread through Core."""
-
-    show = True
-
-    def __init__(self, kind: type[Transfer]) -> None:
-        self.kind = kind
-
-    @classmethod
-    def offered(cls, app: Transfers) -> Iterator[Self]:
-        yield from (cls(kind) for kind in Transfer.members_with(Transfer))
-
-    def label(self, app: Transfers) -> str:
-        return self.kind.title
-
-    @classmethod
-    def parse(cls, parameters: tuple[object, ...]) -> Self:
-        if len(parameters) != 1:
-            raise ValueError("transfer_menu requires one declared transfer kind")
-        return cls(FieldCodec.decode(type[Transfer], parameters[0]))
-
-    async def apply(self, app: Transfers) -> None:
-        app.open_transfer(self.kind)
-
-
 class OpenUrlAction(System, ApplicationAction):
     """Open a link in the user's browser, through the terminal driver like every other link."""
 
