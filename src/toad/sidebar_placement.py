@@ -89,6 +89,12 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     @abstractmethod
+    def title_rotation_degrees(cls) -> int:
+        """How far to rotate the bar's heading so it reads along the bar's long axis:
+        zero for a horizontal (top/bottom) strip, a right angle for a vertical column."""
+
+    @classmethod
+    @abstractmethod
     def control_offset(cls, distance: int) -> Offset: ...
 
     @classmethod
@@ -132,6 +138,12 @@ class WidthSidebarEdge(SidebarEdge):
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
         return WidthSidebarEdge
+
+    @classmethod
+    def title_rotation_degrees(cls) -> int:
+        """A left or right bar is a vertical column, so its heading is rotated to read
+        along the column — book-spine orientation, bottom-to-top."""
+        return -90
 
     @classmethod
     def extent(cls, size: Size) -> int:
@@ -196,6 +208,12 @@ class HeightSidebarEdge(SidebarEdge):
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
         return HeightSidebarEdge
+
+    @classmethod
+    def title_rotation_degrees(cls) -> int:
+        """A top or bottom bar is a horizontal strip, so its heading reads along the
+        strip as-is, no rotation."""
+        return 0
 
     @classmethod
     def extent(cls, size: Size) -> int:
