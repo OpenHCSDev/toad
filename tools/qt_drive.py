@@ -25,12 +25,19 @@ from PySide6.QtWidgets import QApplication, QPushButton, QWidget
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
+from agent_comms.ui_model.message_category import MessageCategory
 from objectstate import DottedFieldPath
 from toad.client.application_actions import ApplicationAction, QuitAction
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.main import current_scheme, open_app
+from toad.sidebar_placement import (
+    BottomSidebarEdge,
+    ChannelsSidebarPlacement,
+    ThreadSidebarPlacement,
+    TopSidebarEdge,
+)
 from toad.client.history import ChannelDestination, WirePageBuffer
 from toad.qt.command_form import QtCommandForm
 from toad.qt.window import ConversationRow, MessageSend, QtToadApp
@@ -386,6 +393,101 @@ async def record_mark(buffer: WirePageBuffer, page) -> None:
     """The drive's reader is not the profile's owner: what the shared read marking would
     acknowledge is recorded, and nothing is marked read on the bus."""
     MARKED.append(page)
+
+
+class PlacementScenario(Scenario):
+    summary = ("move and float the channels bar, then change the view settings for #comms and "
+               "a DM through the thread bar; list anything too wide for a Pixel 8a")
+
+    width: ClassVar[int] = 412
+
+    def too_wide(self) -> list[str]:
+        widgets = [self.app, *self.app.findChildren(QWidget)]
+        wide = [(widget.minimumSizeHint().width(), widget) for widget in widgets
+                if widget.isVisible() and widget.minimumSizeHint().width() > self.width]
+        return [f"{width} {type(widget).__name__}" for width, widget in sorted(wide, key=lambda pair: -pair[0])]
+
+    def where(self, pane) -> str:
+        parent = pane.parentWidget()
+        for name, container in (("top", self.app.top_dock), ("bottom", self.app.bottom_dock),
+                                ("float", self.app.float_layer)):
+            if parent is container:
+                return name
+        return "down"
+
+    def placement(self, identity) -> str:
+        placed = self.app.sidebar_layout.get(identity)
+        return placed.side.declared_name + ("/float" if placed.floating else "")
+
+    async def settle(self) -> None:
+        await asyncio.sleep(0.5)
+
+    async def opened(self, before) -> None:
+        home = self.app.workspace_sessions.home
+        await until(lambda: self.page is not before and self.page is not home, "conversation")
+        await until(self.page.content_ready.is_set, "content")
+        await self.settle()
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(self.width, 915)
+        await self.settle()
+        await self.expand("#comms", "Threads")
+        tops = list(app.sidebar.items())
+        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        peer = tops[-1].child(0)
+        home = app.workspace_sessions.home
+        app.open_row(comms)
+        await self.opened(home)
+        self.report("1-comms-open", channels_bar=app.channels_bar.isVisible(),
+                    thread_bar=app.thread_bar.isVisible(), thread_heading=app.thread_bar._title.text(),
+                    too_wide=self.too_wide())
+        # Open the channels pane, then move it to the top, to the bottom and float it: each
+        # control relocates the one pane over the shared SidebarLayout.
+        app.toggle_pane(ChannelsSidebarPlacement)
+        await self.settle()
+        self.report("2-channels-shown", placement=self.placement(ChannelsSidebarPlacement),
+                    at=self.where(app.sidebar))
+        app.channels_bar._moves[TopSidebarEdge].click()
+        await self.settle()
+        self.report("3-move-top", placement=self.placement(ChannelsSidebarPlacement), at=self.where(app.sidebar))
+        app.channels_bar._moves[BottomSidebarEdge].click()
+        await self.settle()
+        self.report("4-move-bottom", placement=self.placement(ChannelsSidebarPlacement), at=self.where(app.sidebar))
+        app.channels_bar._float.click()
+        await self.settle()
+        self.report("5-float", placement=self.placement(ChannelsSidebarPlacement),
+                    at=self.where(app.sidebar), too_wide=self.too_wide())
+        app.channels_bar._float.click()
+        app.toggle_pane(ChannelsSidebarPlacement)
+        await self.settle()
+        # The thread bar opens the open conversation's view settings. Toggle one category and
+        # read it back off the view: the pane writes the view's own selection, no second copy.
+        comms_view = app.workspace_sessions.selected
+        category = next(iter(MessageCategory.members_with(MessageCategory)))
+        app.toggle_pane(ThreadSidebarPlacement)
+        await self.settle()
+        before = len(set(comms_view.visible_categories))
+        app.thread_pane._checks[category].click()
+        await self.settle()
+        comms_after = set(comms_view.visible_categories)
+        self.report("6-comms-settings", toggled=category.label, where=self.where(app.thread_pane),
+                    categories=[control.text() for control in app.thread_pane._checks.values()],
+                    before_shown=before, after_shown=len(comms_after),
+                    category_shown=(category in comms_after), too_wide=self.too_wide())
+        # A DM: its own bar heading and its own, independent view settings.
+        app.open_row(peer)
+        await self.opened(comms_view)
+        dm_view = app.workspace_sessions.selected
+        self.report("7-dm-open", thread_heading=app.thread_bar._title.text(),
+                    dm_shown=len(set(dm_view.visible_categories)))
+        app.thread_pane._checks[category].click()
+        await self.settle()
+        self.report("8-dm-settings", toggled=category.label,
+                    dm_category_shown=(category in dm_view.visible_categories),
+                    comms_still=(category in comms_after), where=self.where(app.thread_pane),
+                    too_wide=self.too_wide())
 
 
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:

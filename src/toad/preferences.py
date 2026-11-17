@@ -461,6 +461,15 @@ class SavedSettings(ExternalStore):
         setting = path.bind(self.state)
         setting.edit(not setting.value)
 
+    # The sidebar arrangement store (ArrangementStore): one setting owns every terminal's
+    # saved sidebar placements, and SidebarLayout reads and writes it only through these.
+
+    def current_terminals(self):
+        return self.current.layout.terminals
+
+    def store_terminals(self, terminals) -> None:
+        self.set(SETTINGS.layout.terminals, terminals)
+
     def changed(self, changed: builtins.set[str]) -> None:
         from toad.core.preference_events import PreferenceChanged
 

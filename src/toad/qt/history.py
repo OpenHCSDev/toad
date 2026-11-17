@@ -231,6 +231,16 @@ class QtConversationHistory(SourceNotifications, ReadMarkedHistory, Conversation
         return not self.attached
 
     @property
+    def selected_categories(self):
+        """The view owns which message categories show; the pager reads them here, as the
+        Textual history reads its view's reactive. There is no second copy of the selection."""
+        return self.view.visible_categories
+
+    def apply_filter(self) -> None:
+        """A category toggle changed the view's selection: draw the shown rows again."""
+        self.window.show_pages()
+
+    @property
     def can_draw_on_screen(self) -> bool:
         return self.state.can_draw and self.window.presenting
 
