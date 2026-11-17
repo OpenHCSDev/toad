@@ -35,33 +35,18 @@ from pyqt_reactive.theming import StatusColorRole
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
-from toad.agent_binding import AgentConnection, NoAgentConnection
-from agent_comms.registry.thread_presentation import NoThreadPresentation, ThreadPresentation
-from metaclass_registry.mro_dispatch import MroDispatch
-
-from toad.client.agent_bound import ObservedAgentBinding
+from toad.agent_binding import AgentConnection
 from toad.client.bus_submission import BusSubmissions, TypedText
-from toad.client.observed_field import ObservedField
-from toad.client.resource_release import ResourceRelease
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin
 from toad.client.tab_identity import SessionTabIdentity
-from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.tab_identity.kinds import CommsTab
-from toad.client.thread_binding_dispatch import ThreadBindingDispatch
-from toad.client.transcript_history_contract import TranscriptHistoryContract
 from toad.transcript_scope import TranscriptScope
 from toad.core import input_events
 from toad.launch_binding import AgentBinding
-from toad.qt.agent_activity import QtAgentActivity
-from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
-from toad.qt.history import QT_FRAGMENT_CLASSES, QtHistoryWindow
-from toad.qt.transcript_history import QtTranscriptHistory
-from toad.transcript_publication import BoundView, TranscriptPresentation
-from toad.qt.window import Page, QtSessionEntry
-from toad.widget_view import WorkspaceHosted
-from toad.workspace_frame import WorkspaceFrame
+from toad.qt.thread_view import QtThreadView
+from toad.qt.window import QtSessionEntry
 from toad.slash_command import SlashCommand
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.thread_identity import NoThreadIdentity
@@ -89,15 +74,8 @@ def _toad_app() -> QtToadApp:
 
 
 class QtAcpSessionView(
-    ObservedAgentBinding,
-    ConversationThreadReadMixin,
-    ThreadBindingDispatch,
-    MroDispatch,
-    QtBoundViewHost,
+    QtThreadView,
     ComposerHost,
-    Page,
-    WorkspaceHosted,
-    QWidget,
     metaclass=PyQtWidgetMeta,
 ):
     """A Qt Claude-CLI session tab.
@@ -132,51 +110,9 @@ class QtAcpSessionView(
     # (``src/toad/qt/window.py:749``, ``src/toad/widgets/comms_chat.py:68``).
     queue_source: QueueSource = NoQueueSource()
 
-    # The one shared contract point for live reconnect: an ``AgentConnection`` that this
-    # view is bound to. Writing fires every watcher registered via
-    # ``on_agent_binding_change`` — the ACP tab re-projects the agent's model/context on
-    # every change, so the composer, identity line and status mirror a reconnect without
-    # a full teardown. ``bind_agent`` on the shared ``AgentBoundConversation`` base writes
-    # here and calls ``agent.attach_view(self)``; projection + flash are the hooks below.
-    agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
-
-    @property
-    def screen(self) -> WorkspaceFrame:
-        return QWidget.window(self)
-
-    @property
-    def window(self) -> QtHistoryWindow:
-        """`BoundViewHost.window`: the scroll surface. `BoundView` reads
-        `window.scroll_revision` + `window.is_attached` to tell when a paint happened.
-        `QtHistoryWindow` carries both (`scroll_revision` from `JumpsToLatest`, shared
-        with Textual's `Window` base per PR #1922). Shadows the inherited `QWidget.window`
-        callable — screen access routes through `QWidget.window(self)` in `self.screen`.
-        """
-        return self.messages
-
-    @property
-    def contents(self) -> "QtBoundViewHost":
-        """`BoundViewHost.contents`: a `ChildrenOwner`. Self is the ACP tab widget
-        inheriting `QtChildrenOwner` through `QtBoundViewHost`; its `findChildren` sees
-        the whole tab including `message_history`, matching Textual's `Conversation.contents`
-        shape."""
-        return self
-
-    @property
-    def transcript_history(self) -> TranscriptHistoryContract:
-        """`BoundViewHost.transcript_history`: the single transcript-page-producing child
-        `BoundView` drives. `QtTranscriptHistory` satisfies `TranscriptHistoryContract`
-        through the shared `CommittedHistoryBase` + `ReportsCoveredPages` bases Textual's
-        `TranscriptHistory` uses — same event-coverage + close + restore_source + park
-        shape, different paint path."""
-        return self.message_history
-
-    def transcript_binding(self) -> BoundView:
-        """Called by `ViewBinding.bound_to(view)` on `TranscriptPresentation.bind`.
-        Returns a `BoundView` that routes transcript events into this view through the
-        `BoundViewHost` surface above — same contract Textual's `Conversation.transcript_binding`
-        at `widgets/conversation.py:1761` provides."""
-        return BoundView(self)
+    # `agent_binding` lives on `QtThreadView` now — the same descriptor QtMailboxView
+    # also inherits, so there's one owner for the field both Qt views write to. See
+    # `QtThreadView.agent_binding`.
 
     def __init__(
         self,
@@ -195,44 +131,15 @@ class QtAcpSessionView(
         self._agent_binding = binding
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
-        # ThreadBindingDispatch state: the current observed presentation + the one that
-        # arrived while this view was not the selected session. Textual's `Conversation`
-        # declares these as class attributes; Qt's instance init keeps the same shape.
-        self.thread_presentation: ThreadPresentation = NoThreadPresentation()
-        self._unpublished_presentation: ThreadPresentation = NoThreadPresentation()
-        # `TranscriptPresentation.bind_thread_observation` puts the Core subscription
-        # that routes thread_rows_changed → thread_observed → consume_thread_presentation
-        # into this context. Replacing the context on view re-bind closes the previous
-        # subscription cleanly; mirrors `Conversation._thread_observation` in
-        # `widgets/conversation.py`.
-        self._thread_observation = ResourceRelease()
-        # ``NativeSessionEntry.__call__`` writes these before mount.
-        self.session_details: SessionDetails | None = None
+        # Shared transcript stack: QtHistoryWindow + TranscriptPresentation +
+        # QtTranscriptHistory + QtAgentActivity, plus the ThreadBindingDispatch state
+        # and session_details slot. Lives on `QtThreadView`; same base `QtMailboxView`
+        # uses, so neither view carries a parallel copy. See `QtThreadView._setup_transcript`.
+        self._setup_transcript(app)
         # Bus-submissions owner: the Composer reads ``queue_summary`` + ``delivering`` off
         # it, and on each send ``self`` publishes the event the backend converts into a
         # real submission. A queue-renderer hook will plug into this later.
         self.submissions = BusSubmissions(self)
-        # Transcript window + history reader. `QtTranscriptHistory` is the Qt sibling of
-        # Textual's `TranscriptHistory` — same `CommittedHistoryBase` + `ReportsCoveredPages`
-        # bases, same `SavedTranscript` source over `view.transcript.get_transcript_page`,
-        # same page type (`PreparedTranscriptPage`). Tool calls, sent messages, Claude
-        # chunks and context events all feed in through this one source — no parallel
-        # Qt-only wiring, no wire-only limitation.
-        self.messages = QtHistoryWindow(app.renderer.scheme)
-        # `TranscriptPresentation` first: `QtTranscriptHistory._initial_page_source` reads
-        # `self.view.transcript.get_transcript_page` during construction to build its
-        # `SavedTranscript`, so the attribute has to exist before the history does.
-        # Textual's `TranscriptHistory.empty_source` reads the same accessor on the view
-        # (`widgets/transcript_history.py:962`), only there the ordering is handled by
-        # Textual's `compose` + mount lifecycle.
-        self.transcript = TranscriptPresentation()
-        self.message_history = QtTranscriptHistory(self.messages, self, app)
-        # Activity sweep above the transcript — Qt sibling of Textual's
-        # `Conversation.throbber_above = AboveThrobber(self.working)` at
-        # `widgets/conversation.py:690`. Reads the same shared `TurnOwner.busy` via a
-        # `ConversationTurn` and animates the shared `ACTIVITY_SWEEP` ribbon. One owner
-        # (`agent_binding.presentation.turns`), two renderers.
-        self.agent_activity = QtAgentActivity(self, app.renderer)
         # Layout: an identity line on top, the history below, the composer at the bottom.
         self.identity_line = ElidedLine(f"ACP session #{session_pk}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -390,32 +297,7 @@ class QtAcpSessionView(
         straight delegation."""
         return self.thread_identity.transcript_scope()
 
-    @property
-    def is_attached(self) -> bool:
-        """True until the Qt widget tears down. `BoundView.thread_scope` gates its
-        subscription on this flag; Textual's `Widget.is_attached` fills the same role."""
-        try:
-            return self.isVisible() or self.parent() is not None
-        except RuntimeError:
-            return False
-
-    @property
-    def is_leaving(self) -> bool:
-        return not self.is_attached
-
-    @property
-    def is_current_session(self) -> bool:
-        """Whether this ACP tab is the one on screen. `_publish_thread_source` gates its
-        request on this so hidden tabs stash the presentation for next show."""
-        selected = self.app.workspace_sessions.selected
-        return selected is self
-
-    def thread_presented(self, presentation: ThreadPresentation) -> None:
-        """A settled member owns whether this view has source work to publish. Mirrors
-        `Conversation.thread_presented` at `widgets/conversation.py:972` — same shape,
-        skipping the Textual `operational_sources` leg that hasn't been ported yet."""
-        self.thread_presentation = presentation
-        self.dispatch_sync(presentation)
+    # is_attached, is_leaving, is_current_session, thread_presented live on `QtThreadView`.
 
     def shown(self, window, visited) -> None:  # type: ignore[override]
         """Selected: record the visit, let the history reload."""

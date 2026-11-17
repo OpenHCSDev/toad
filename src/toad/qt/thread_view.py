@@ -20,7 +20,10 @@ from metaclass_registry.mro_dispatch import MroDispatch
 from PySide6.QtWidgets import QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
+from toad.agent_binding import AgentConnection, NoAgentConnection
+from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
+from toad.client.observed_field import ObservedField
 from toad.client.resource_release import ResourceRelease
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.transcript_history_contract import TranscriptHistoryContract
@@ -28,7 +31,7 @@ from toad.qt.agent_activity import QtAgentActivity
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.history import QtHistoryWindow
 from toad.qt.transcript_history import QtTranscriptHistory
-from toad.qt.window import Page
+from toad.qt.page import Page
 from toad.status_thread import StatusThread
 from toad.transcript_publication import BoundView, TranscriptPresentation
 from toad.transcript_scope import TranscriptScope
@@ -36,11 +39,13 @@ from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 
 if TYPE_CHECKING:
+    from toad.agent_base import AgentBase
     from toad.client.session_tracker import SessionDetails
     from toad.qt.window import QtToadApp
 
 
 class QtThreadView(
+    ObservedAgentBinding,
     ConversationThreadReadMixin,
     ThreadBindingDispatch,
     MroDispatch,
@@ -61,7 +66,30 @@ class QtThreadView(
     `self.message_history`, `self.agent_activity`) and the `BoundViewHost`
     contract (`window`, `contents`, `transcript_history`, `transcript_binding`)
     are owned here so there is one source for the Qt transcript rendering.
+
+    Also provides the `ObservedAgentBinding` wiring (`agent_binding`
+    ObservedField + change watchers) so both views share the shape Textual's
+    `Conversation.watch_agent_binding` plays. ACP views (live session) will
+    write a real `AgentConnection` into `self.agent_binding`; mailbox views
+    (saved history) leave it as `NoAgentConnection()` and still render from
+    the transcript scope.
     """
+
+    # Shared `ObservedAgentBinding` storage: the `ObservedField` descriptor on
+    # `AgentBoundConversation` requires each concrete class to provide one. Previously
+    # `QtAcpSessionView` and `QtMailboxView` each declared their own identical
+    # `agent_binding = ObservedField(NoAgentConnection())`. Hoisted here so there is
+    # one owner — subclasses stop duplicating it.
+    agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
+
+    def apply_bound_agent(self, agent: "AgentBase") -> None:
+        """Default no-op: `ObservedAgentBinding.bind_agent` calls this after storing.
+        ACP views override to update their composer / identity line / status;
+        mailbox views have no bound agent and inherit the no-op."""
+
+    def agent_connected(self, agent: "AgentBase") -> None:
+        """Default no-op: flash notice on connect. ACP views override; mailbox
+        views have no connect event and inherit the no-op."""
 
     def _setup_transcript(self, app: "QtToadApp") -> None:
         """Build the transcript stack. Call from the subclass `__init__` after
