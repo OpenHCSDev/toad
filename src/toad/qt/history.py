@@ -43,6 +43,10 @@ from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
+from toad.client.transcript_fragments import (
+    ContextTranscriptFragment,
+    ToolTranscriptFragment,
+)
 from toad.history_jump import JumpsToLatest
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
@@ -60,6 +64,16 @@ class QtMembershipFragment(MembershipText, QtWireFragment, shows=(Membership,)):
 
 class QtMessageFragment(WireMessage, QtWireFragment, shows=(ConversationRole, NoticeRole)):
     """A bus message drawn by Qt."""
+
+
+class QtToolTranscriptFragment(ToolTranscriptFragment):
+    """A tool call drawn by Qt: the canonical blocks derivation is enough; the row delegate
+    paints through `line_blocks`, so Qt adds no row acquisition. Textual's sibling in
+    `toad.widgets.transcript_fragments.ToolTranscriptFragment` layers on row acquisition."""
+
+
+class QtContextTranscriptFragment(ContextTranscriptFragment):
+    """The coordination context an agent was given, drawn by Qt."""
 
 
 class QtPage(ReaderPage):
