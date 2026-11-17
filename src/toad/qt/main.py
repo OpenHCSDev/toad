@@ -21,8 +21,17 @@ from ui_theme.wal import WalFile
 from toad.client.connection import ProcessRemoteCoreConnection, RemoteCoreConnection
 from toad.application_lifetime import ApplicationStart
 from toad.qt.window import QtToadApp
+from toad.render_backend import Renderer
+from toad.render_in_thread import InThreadRenderer
 from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
+
+
+def _renderer_for_platform(connection: RemoteCoreConnection) -> Renderer:
+    """A ProcessPool on hosts that fork, an in-thread renderer on Android's Python."""
+    if hasattr(sys, "getandroidapilevel"):
+        return InThreadRenderer()
+    return RenderProcessPool(connection.helper_start)
 
 
 @dataclass(frozen=True)
@@ -42,7 +51,7 @@ async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: 
     """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
     sidebar observing."""
     set_base_config_type(QtClientSettings)
-    app = QtToadApp(connection, project, PreparationRuntime(RenderProcessPool(connection.helper_start)), scheme)
+    app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme)
     # The loop outlives the window: closing it starts the shared client shutdown, which
     # runs on this loop, so Qt must not stop the loop when the last window closes.
     QApplication.instance().setQuitOnLastWindowClosed(False)

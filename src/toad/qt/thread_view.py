@@ -186,8 +186,8 @@ class QtThreadView(
         task.add_done_callback(self._initial_load_done)
 
     def _initial_load_done(self, task: asyncio.Task) -> None:
-        """Log any exception from the initial page load so a failed first fetch
-        is visible instead of silently leaving the transcript empty."""
+        """Report any exception from the initial page load so a failed first
+        fetch is visible instead of silently leaving the transcript blank."""
         if task.cancelled():
             return
         exc = task.exception()
