@@ -54,6 +54,8 @@ from ui_theme.scheme import ColourScheme, PrimaryColour
 
 from toad.client.application import ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame
+from toad.widget_view import WorkspaceHosted
+from toad.workspace_frame import WorkspaceFrame
 from toad.client.application_actions import ApplicationAction
 from toad.client.bus_selection import (
     BusChoice,
@@ -624,7 +626,12 @@ class ConversationRows(TouchScrolled, QTreeWidget):
             draw(top)
 
 
-class Sidebar(SidebarStateMachine, ConversationRows):
+class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
+
+    @property
+    def screen(self) -> WorkspaceFrame:
+        return self.window()
+
     """The bus's channels, each opening to the threads in it, and every thread, from the
     shared sidebar model. State comes from the shared `SidebarStateMachine`: a
     `Detached`/`FailedSidebarState`/`Behind`/`Current` transition drives both the status
@@ -733,7 +740,13 @@ def _back_to_bottom_shortcut(view: QWidget, key: str) -> QShortcut:
 
 
 class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
-                       HistoryNotifications, ComposerHost, QWidget, metaclass=PyQtWidgetMeta):
+                       HistoryNotifications, ComposerHost, WorkspaceHosted, QWidget,
+                       metaclass=PyQtWidgetMeta):
+
+    @property
+    def screen(self) -> WorkspaceFrame:
+        return self.window()
+
     """One conversation tab: its history, paged lazily by the pager Textual's channels use
     and drawn as virtual rows, read again whenever Core's stores change; the info row over
     its thread's status; and the composer and activity its kind chooses, sending through
