@@ -14,8 +14,8 @@ class ChannelsSidebar(SideBar):
         self.roster = CommsSidebar(observe=observe)
         super().__init__(
             SideBar.Panel(
-                "Channels",
-                self.roster,
+                title="Channels",
+                widget=self.roster,
                 flex=True,
                 header_control=ChannelListSort(),
             ),

@@ -216,7 +216,11 @@ class SidebarSessionView[SidebarT: ThreadSidebar](ConfiguredView, ConversationSe
                         entries.append((context, configuration, configuration.editable_fields))
             return entries
         declarations = await self.app.preparation.run_thread(read)
-        return tuple(SideBar.Panel(action.label, ActionProperties(context, action, fields), flex=True)
+        return tuple(SideBar.Panel(
+                         title=action.label,
+                         widget=ActionProperties(context, action, fields),
+                         flex=True,
+                     )
                      for context, action, fields in declarations)
 
     @property
