@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, replace
 from typing import Protocol
 
 from agent_comms.nominal.declared_family import DeclaredFamily
+from metaclass_registry import AbstractHooksMeta
 from textual.geometry import Region, Size, Spacing
 
 from toad.sidebar_placement import (
@@ -21,7 +22,7 @@ from toad.sidebar_placement import (
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
 
 
-class PlacementControl(ABC):
+class PlacementControl(metaclass=AbstractHooksMeta):
     """One sidebar placement control as a frontend draws it — a Textual Static, a Qt button.
     It holds the action it stands for, and the SidebarPlacementAction family presents it
     through these three calls, so an arrow or Float reads the same whichever toolkit holds it."""
