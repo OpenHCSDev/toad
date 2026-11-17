@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (
 
 from toad.client.relationship_tree_state import RelationshipTreeState
 from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.qt.metrics import UiGap
 
 
 class QtRelationshipSort(QToolButton):
@@ -103,8 +104,8 @@ class QtThreadCommsPanel(QWidget):
         self._snapshot: ThreadCommsSnapshot | None = None
         self._refresh_task: asyncio.Task | None = None
         column = QVBoxLayout(self)
-        column.setContentsMargins(8, 4, 8, 4)
-        column.setSpacing(4)
+        column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
+        column.setSpacing(UiGap.normal)
         header = QHBoxLayout()
         header.setContentsMargins(0, 0, 0, 0)
         self._context = QLabel("", self)

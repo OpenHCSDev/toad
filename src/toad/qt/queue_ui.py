@@ -29,6 +29,7 @@ from toad.acp.queue_attachment import QueueActionRefused
 from toad.client.line_blocks import FailureRole, MutedRole, SpanColumns
 from toad.submission_queue import QueueEvidence, QueueSource
 from toad.widget_contracts import ActivatesContract
+from toad.qt.metrics import UiGap
 
 if TYPE_CHECKING:
     from toad.conversation_submission import ConversationSubmissions
@@ -44,7 +45,7 @@ class QtQueueSummary(ActivatesContract, WrappedText):
         super().__init__()
         self.composer = composer
         self.setStyleSheet(composer.renderer.color_style(MutedRole))
-        self.setContentsMargins(8, 0, 8, 0)
+        self.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         self.setToolTip("Show queued messages and delivery status.")
         self.hide()
 
@@ -74,8 +75,8 @@ class QtDeliveryControls(QWidget):
         self.setWindowFlags(Qt.WindowType.Widget)
         self.composer = composer
         row = QHBoxLayout(self)
-        row.setContentsMargins(8, 2, 8, 2)
-        row.setSpacing(6)
+        row.setContentsMargins(UiGap.frame, UiGap.tight, UiGap.frame, UiGap.tight)
+        row.setSpacing(UiGap.loose)
         self.notice = QLabel("Enter queues · ", self)
         self.send_now_button = QPushButton("Send now (Ctrl+Y)", self)
         self.send_now_button.setToolTip("Send the queued inputs now (Ctrl+Y / Ctrl+Enter).")
@@ -109,8 +110,8 @@ class QtQueueInspection(QDialog):
             if self.source is not None and self.evidence is not None else None)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
+        layout.setSpacing(UiGap.frame)
 
         heading = QLabel("Queue and delivery", self)
         heading.setStyleSheet("font-weight: bold;")

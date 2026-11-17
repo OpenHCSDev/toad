@@ -358,6 +358,7 @@ class BusRow(SidebarItem):
 
 
 from toad.qt.page import Page  # re-export: callers already import Page from here
+from toad.qt.metrics import UiGap
 
 
 class QtChannelListing(ChannelListing):
@@ -917,8 +918,8 @@ class QtSidebarSearch(QWidget):
         )
         self.panels: list[QtSidebarPanelFrame] = [self.conversations_panel]
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 0)
-        layout.setSpacing(4)
+        layout.setContentsMargins(UiGap.normal, UiGap.normal, UiGap.normal, 0)
+        layout.setSpacing(UiGap.normal)
         layout.addWidget(self.search_input)
         for panel in self.panels:
             layout.addWidget(panel, 1 if panel.spec.flex else 0)
@@ -1275,7 +1276,7 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
         self.directory = BusLabel(app)
         self.directory.setStyleSheet(app.renderer.color_style(MutedRole))
         info = QHBoxLayout()
-        info.setContentsMargins(6, 0, 6, 0)
+        info.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
         info.addWidget(self.directory, 1)
         info.addWidget(self.label)
         info.addWidget(self.status, 2)
@@ -1826,7 +1827,7 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.tabs.tabCloseRequested.connect(self.close_index)
         self.tabs.tabMoved.connect(self.move_index)
         bar = QHBoxLayout()
-        bar.setSpacing(2)
+        bar.setSpacing(UiGap.tight)
         for widget in (self.menu, self.back, self.forward):
             bar.addWidget(widget)
         bar.addWidget(self.tabs, 1)

@@ -46,6 +46,7 @@ from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.thread_sidebar_declarations import (
     THREAD_SIDEBAR_PANELS, ThreadSidebarPanelSpec, panel_specs_for_view,
 )
+from toad.qt.metrics import UiGap
 
 __all__ = ["QtPlacementControl", "SessionArrangementStore", "SidebarPane", "SidebarToggle",
            "ThreadSettingsPane"]
@@ -76,8 +77,8 @@ class _CategoryFilter(SessionPanel, QWidget):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         column = QVBoxLayout(self)
-        column.setContentsMargins(8, 4, 8, 4)
-        column.setSpacing(2)
+        column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
+        column.setSpacing(UiGap.tight)
         self._checks: dict[type[MessageCategory], QCheckBox] = {}
         for category in MessageCategory.members_with(MessageCategory):
             check = QCheckBox(category.label, self)
@@ -106,7 +107,7 @@ def _placeholder_body(spec: ThreadSidebarPanelSpec, parent: QWidget) -> QWidget:
                   parent)
     body.setWordWrap(True)
     body.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-    body.setContentsMargins(8, 4, 8, 8)
+    body.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.frame)
     return body
 
 
@@ -138,7 +139,7 @@ class ThreadSettingsPane(QWidget):
         self._content.setWindowFlags(Qt.WindowType.Widget)
         column = QVBoxLayout(self._content)
         column.setContentsMargins(0, 0, 0, 0)
-        column.setSpacing(4)
+        column.setSpacing(UiGap.normal)
         self._category_filter = _CategoryFilter(self._content)
         self._coordination_status = QtCoordinationStatus(self._content)
         self._comms_panel = QtThreadCommsPanel(self._content)
@@ -172,7 +173,7 @@ class ThreadSettingsPane(QWidget):
         for spec in panel_specs_for_view(is_session=True):
             section = QGroupBox(spec.heading, self._content)
             section_layout = QVBoxLayout(section)
-            section_layout.setContentsMargins(0, 2, 0, 0)
+            section_layout.setContentsMargins(0, UiGap.tight, 0, 0)
             section_layout.setSpacing(0)
             body = self._panel_body(spec, section)
             section_layout.addWidget(body)
@@ -183,7 +184,7 @@ class ThreadSettingsPane(QWidget):
             column.addWidget(section, 1 if spec.flex else 0)
         self._categories_section = QGroupBox("Message categories", self._content)
         categories_layout = QVBoxLayout(self._categories_section)
-        categories_layout.setContentsMargins(0, 2, 0, 2)
+        categories_layout.setContentsMargins(0, UiGap.tight, 0, UiGap.tight)
         categories_layout.setSpacing(0)
         categories_layout.addWidget(self._category_filter)
         column.addWidget(self._categories_section)

@@ -22,6 +22,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.qt.metrics import UiGap
+
 
 class QtProfilePastePanel(QFrame):
     """A labelled multi-line text input with submit and cancel buttons. `open_for(submit)`
@@ -33,8 +35,8 @@ class QtProfilePastePanel(QFrame):
         self.setWindowFlags(Qt.WindowType.Widget)
         self._submit: Callable[[str], object] | None = None
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(4)
+        layout.setContentsMargins(UiGap.frame, UiGap.frame, UiGap.frame, UiGap.frame)
+        layout.setSpacing(UiGap.normal)
         self._prompt = QLabel(
             "Paste the profile JSON the bus owner handed over "
             "(agent-comms-connector grant-ui output)",
@@ -48,7 +50,7 @@ class QtProfilePastePanel(QFrame):
         layout.addWidget(self._editor, 1)
         buttons = QHBoxLayout()
         buttons.setContentsMargins(0, 0, 0, 0)
-        buttons.setSpacing(8)
+        buttons.setSpacing(UiGap.frame)
         cancel = QPushButton("Cancel", self)
         cancel.setFlat(True)
         cancel.setMinimumHeight(40)

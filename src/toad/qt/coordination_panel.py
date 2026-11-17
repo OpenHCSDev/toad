@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from toad.client.coordination_panel import read_coordination_state
 from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.qt.metrics import UiGap
 
 
 class QtCoordinationStatus(QWidget):
@@ -26,7 +27,7 @@ class QtCoordinationStatus(QWidget):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 4, 8, 8)
+        layout.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.frame)
         layout.setSpacing(0)
         self._label = QLabel("", self)
         self._label.setWordWrap(True)

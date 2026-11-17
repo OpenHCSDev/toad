@@ -28,6 +28,7 @@ from ui_theme.scheme import ErrorColour, MutedColour
 
 from toad.client.keymap_browser import KeymapBrowserState, KeymapSelection
 from toad.keymap import KeyInvocationId
+from toad.qt.metrics import UiGap
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
@@ -55,8 +56,8 @@ class QtKeymapScreen(QDialog):
         self._selection: KeymapSelection | None = None
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(6)
+        layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
+        layout.setSpacing(UiGap.loose)
 
         layout.addWidget(QLabel("Keyboard shortcuts — tap a mode cell to change its keys"))
 

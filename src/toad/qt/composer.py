@@ -55,6 +55,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
+from toad.qt.metrics import UiGap
 
 
 # The declared TextEntryMode key spellings each prompt action exposes drive the Qt
@@ -287,7 +288,7 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         # INSERT reads as "no indicator" (standard editing); NORMAL reads as "-- NORMAL --".
         self.mode_indicator = self.line(MutedRole)
         row = QHBoxLayout()
-        row.setContentsMargins(6, 4, 6, 4)
+        row.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
         row.addWidget(self.editor, 1)
         row.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignBottom)
         layout = QVBoxLayout(self)
@@ -309,7 +310,7 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
     def line(self, role: type[LineRole]) -> WrappedText:
         label = WrappedText()
         label.setStyleSheet(self.renderer.color_style(role))
-        label.setContentsMargins(8, 0, 8, 0)
+        label.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         label.hide()
         return label
 

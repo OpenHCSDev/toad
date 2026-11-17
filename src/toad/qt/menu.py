@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from toad.client.menu_entry import MenuEntry
+from toad.qt.metrics import UiGap
 
 
 class QtMenuRow(QWidget):
@@ -48,8 +49,8 @@ class QtMenuRow(QWidget):
         # inner layout so the row reads as [bold key] [label] without the button's
         # own text getting in the way.
         inner = QHBoxLayout(self._button)
-        inner.setContentsMargins(12, 2, 12, 2)
-        inner.setSpacing(12)
+        inner.setContentsMargins(UiGap.dialog, UiGap.tight, UiGap.dialog, UiGap.tight)
+        inner.setSpacing(UiGap.dialog)
         key = QLabel(entry.key_display, self._button)
         key.setStyleSheet("font-weight: bold;")
         key.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
@@ -74,8 +75,8 @@ class QtMenu(QFrame):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self._layout = QVBoxLayout(self)
-        self._layout.setContentsMargins(8, 4, 8, 4)
-        self._layout.setSpacing(2)
+        self._layout.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
+        self._layout.setSpacing(UiGap.tight)
         self.hide()
 
     def show_entries(self, entries: Iterable[MenuEntry]) -> None:
