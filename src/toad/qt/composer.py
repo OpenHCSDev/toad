@@ -294,9 +294,16 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.offers)
+        # QueueSummary + DeliveryControls go ABOVE the editor row — mirrors
+        # Textual's compose() order (`compose_delivery_controls` yields before
+        # PromptContainer at `widgets/prompt.py:1077-1090`), so the queue strip
+        # lands in the same slot on both frontends. The post-editor lines
+        # (mode indicator, failure, receipt) are Textual's InfoBar equivalents
+        # and stay below.
+        layout.addWidget(self.submitting)
+        layout.addWidget(self.delivery_controls)
         layout.addLayout(row)
-        for line in (self.mode_indicator, self.submitting, self.delivery_controls,
-                     self.failure, self.receipt):
+        for line in (self.mode_indicator, self.failure, self.receipt):
             layout.addWidget(line)
         # Bind the declared prompt-action keys as QShortcuts on the editor. The
         # callbacks target `self` (the composer) so `SubmitAction`/`DismissAction`
@@ -305,6 +312,12 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         self._shortcuts = _bind_composer_shortcuts(self)
         self.fit_height()
         self.refresh_mode_indicator()
+        # Reflect whatever's already queued the moment the composer mounts, so
+        # a view that carries queued input into first paint shows the strip
+        # without waiting for the next `submissions_changed` tick. Matches
+        # Textual's `call_after_refresh(self.sync_queue)` in Prompt.on_mount
+        # at `widgets/prompt.py:900-902`.
+        self.show_submitting()
 
     def line(self, role: type[LineRole]) -> WrappedText:
         label = WrappedText()
