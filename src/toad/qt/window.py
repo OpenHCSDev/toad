@@ -1323,10 +1323,10 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
             ChannelsSidebarPlacement: self.channels_pane,
             ThreadSidebarPlacement: self.thread_settings,
         }
-        self._pane_open: dict[type[SidebarPlacement], bool] = {
-            ChannelsSidebarPlacement: False,
-            ThreadSidebarPlacement: False,
-        }
+        # Pane open/closed state lives on `self.sidebar_layout` — the single owner both
+        # frontends consult via `is_collapsed` / `set_collapsed`. Before this landed, Qt
+        # held its own `_pane_open: dict` that drifted from SidebarLayout's view, which
+        # produced the "weird square of nothing" and "wrong bar expands vertically" bugs.
         # A pane docks on any edge the family offers, or floats over the conversation. The
         # float layer is a child of the centre, raised over the pages when a pane floats.
         # Each dock owns the toggle bar and the pane for its edge: a single stack of toggle
@@ -1527,10 +1527,12 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         return dock
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:
-        return self._pane_open.get(identity, False)
+        """Read through SidebarLayout — the single collapsed-state owner. A collapsed
+        bar means the pane is NOT open, so pane_open is `not is_collapsed`."""
+        return not self.sidebar_layout.is_collapsed(identity)
 
     def toggle_pane(self, identity: type[SidebarPlacement]) -> None:
-        self._pane_open[identity] = not self.pane_open(identity)
+        self.sidebar_layout.toggle_collapsed(identity)
         self.rearrange_sidebars()
 
     def _conversation_open(self) -> bool:
@@ -1631,19 +1633,39 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         answers the pane/bar axis polymorphically — 'row' means the pair joins the line
         directly (adjacent columns within the dock), 'column' means wrap in a QVBoxLayout
         first (pair stacks vertically inside a cell). A FloatingPlacementArrangement
-        answers 'column' regardless of the side it normally occupies."""
+        answers 'column' regardless of the side it normally occupies.
+
+        The pane gets stretch=1 so it absorbs growth when its sidebar group shares the
+        dock with a collapsed sibling; the bar gets stretch=0 so a bar-only group does
+        not vertically expand to match the sibling's open pane (the bug Tristan reported
+        as "the other bar vertically expands rather than the pane growing above it").
+        A bar-only group pads itself with a stretch on the wall-facing end so the bar
+        stays pinned to the wall and the group's excess space is empty, not bar."""
         widgets = (bar,) if pane is None else ((bar, pane) if bar_first else (pane, bar))
         axis = placement.arrangement.pane_bar_axis(placement.side)
         if axis == "row":
             for widget in widgets:
-                target.addWidget(widget)
+                target.addWidget(widget, 1 if widget is pane else 0)
             return
         group = QVBoxLayout()
         group.setContentsMargins(0, 0, 0, 0)
         group.setSpacing(0)
-        for widget in widgets:
-            group.addWidget(widget)
-        target.addLayout(group)
+        if pane is None:
+            # Bar-only group: add a stretch on the wall-facing end so the bar stays pinned
+            # to its wall and the excess space is empty, not bar. `bar_first=True` means
+            # the bar's wall is the LEADING end (top for TopSidebarEdge), so the empty
+            # space goes AFTER the bar; otherwise the bar's wall is the TRAILING end
+            # (bottom for BottomSidebarEdge) and the empty space goes BEFORE it.
+            if bar_first:
+                group.addWidget(bar, 0)
+                group.addStretch(1)
+            else:
+                group.addStretch(1)
+                group.addWidget(bar, 0)
+        else:
+            for widget in widgets:
+                group.addWidget(widget, 1 if widget is pane else 0)
+        target.addLayout(group, 1 if pane is not None else 0)
         self.reposition_float()
 
     def reposition_float(self) -> None:
@@ -1684,11 +1706,11 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.present_panes()
 
     def show_sidebar(self) -> None:
-        self._pane_open[ChannelsSidebarPlacement] = True
+        self.sidebar_layout.set_collapsed(ChannelsSidebarPlacement, False)
         self.present_panes()
 
     def hide_sidebar(self) -> None:
-        self._pane_open[ChannelsSidebarPlacement] = False
+        self.sidebar_layout.set_collapsed(ChannelsSidebarPlacement, True)
         self.present_panes()
 
     def begin_frontend(self) -> None:
@@ -1714,7 +1736,7 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         return True
 
     def toggle_sidebar(self) -> None:
-        if self.sidebar.isVisible():
+        if self.pane_open(ChannelsSidebarPlacement):
             self.hide_sidebar()
         else:
             self.show_sidebar()
@@ -1836,11 +1858,11 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         as back does at an app's first screen. An open menu closes before any of that."""
         if self.menu_panel.isVisible():
             self.menu_panel.hide()
-        elif self.sidebar.isVisible() and self.workspace_sessions.views:
+        elif self.pane_open(ChannelsSidebarPlacement) and self.workspace_sessions.views:
             self.hide_sidebar()
         elif self.tab_order.history_target(-1) is not None:
             self.tab_order.navigate(-1)
-        elif not self.sidebar.isVisible():
+        elif not self.pane_open(ChannelsSidebarPlacement):
             self.show_sidebar()
         else:
             self.close()

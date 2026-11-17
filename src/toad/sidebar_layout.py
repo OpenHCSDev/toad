@@ -192,6 +192,15 @@ class SidebarLayout:
 
     The settings own the placements: each role's saved record, or the role's
     own initial placement until the user moves or resizes it.
+
+    Owns per-identity collapsed state too: each SidebarPlacement is either
+    collapsed (bar visible, pane hidden) or open (bar visible, pane expanded).
+    Frontends read `is_collapsed` / write `set_collapsed` / `toggle_collapsed`
+    through this one owner — no parallel ``_pane_open`` dict on Qt or
+    ``SideBar.collapsed`` reactive on Textual answering the same question twice.
+    Default is collapsed (True) until something opens the pane; a pane that is
+    not currently available (e.g. the thread settings on the welcome tab) is
+    always treated collapsed regardless of its stored state.
     """
 
     minimum_percent = 15
@@ -199,6 +208,32 @@ class SidebarLayout:
 
     def __init__(self, settings: ArrangementStore, origin: type[TerminalOrigin]) -> None:
         self.settings, self.origin = settings, origin
+        self._collapsed: dict[type[SidebarPlacement], bool] = {}
+
+    def is_collapsed(self, identity: type[SidebarPlacement]) -> bool:
+        """Whether the bar for ``identity`` shows only its toggle (True) or its
+        expanded pane too (False). Defaults to True — a role starts collapsed
+        until something opens it."""
+        return self._collapsed.get(identity, True)
+
+    def set_collapsed(self, identity: type[SidebarPlacement], value: bool) -> bool:
+        """Set ``identity``'s collapsed state; returns whether the state changed."""
+        if self.is_collapsed(identity) == value:
+            return False
+        self._collapsed[identity] = value
+        return True
+
+    def toggle_collapsed(self, identity: type[SidebarPlacement]) -> bool:
+        """Flip ``identity``'s collapsed state; returns the new value."""
+        new_value = not self.is_collapsed(identity)
+        self._collapsed[identity] = new_value
+        return new_value
+
+    def collapsed_map(self) -> dict[type[SidebarPlacement], bool]:
+        """Every placement's collapsed state in one dict, as `resolve` reads it. A role
+        the layout has never seen is collapsed (its default). Includes every active role,
+        so pack/share logic can iterate the whole set in one pass."""
+        return {role: self.is_collapsed(role) for role in self.placements}
 
     @property
     def terminal(self) -> TerminalLayout:
