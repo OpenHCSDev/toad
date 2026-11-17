@@ -32,6 +32,20 @@ def _qt_sequence(key: str) -> QKeySequence:
     return QKeySequence(spelling)
 
 
+def _fire(action: Any, context: Any) -> None:
+    """Run ``action.apply(context)``, swallowing the AttributeError or NotImplementedError
+    a Textual-only action raises when its context (a Qt widget) doesn't carry the Textual
+    chrome it reaches for. Silent-skip keeps the family loop intact: every new Qt-targeted
+    subclass binds automatically, and Textual-only siblings stay quiet instead of blowing
+    up the key press. Any other exception reaches Qt's logger as a real fault."""
+    try:
+        if not getattr(action, "available", lambda _c: True)(context):
+            return
+        action.apply(context)
+    except (AttributeError, NotImplementedError):
+        return
+
+
 def bind_action_shortcuts(widget: QWidget, family: type, context: Any,
                           scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut,
                           ) -> list[QShortcut]:
@@ -39,6 +53,11 @@ def bind_action_shortcuts(widget: QWidget, family: type, context: Any,
 
     Each shortcut fires the member's ``.apply(context)``. Returns the shortcut list so
     the caller can keep a reference (Qt disconnects shortcuts whose owner goes).
+
+    Actions whose ``available(context)`` or ``apply(context)`` raises AttributeError or
+    NotImplementedError are silently skipped — a Textual-only sibling (`ShowSidebarAction`
+    reaching into `context.app.workspace_chrome.channels`) can coexist in the family
+    loop with a Qt-usable one (`BackToBottomAction` reading `context.back_to_bottom_windows`).
     """
     shortcuts: list[QShortcut] = []
     for action_cls in family.members_with(family):
@@ -47,7 +66,7 @@ def bind_action_shortcuts(widget: QWidget, family: type, context: Any,
             for key in keys:
                 shortcut = QShortcut(_qt_sequence(key), widget)
                 shortcut.setContext(scope)
-                shortcut.activated.connect(lambda _a=action, _c=context: _a.apply(_c))
+                shortcut.activated.connect(lambda _a=action, _c=context: _fire(_a, _c))
                 shortcuts.append(shortcut)
     return shortcuts
 

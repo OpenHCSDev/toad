@@ -101,7 +101,8 @@ from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
-from toad.qt.action_shortcuts import flatten_keys
+from toad.history_jump import JumpsHistory, JumpsToLatest
+from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
@@ -112,7 +113,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
 from toad.qt.question import QtQuestion
-from toad.view_actions import BackToBottomAction
+from toad.view_actions import ViewAction
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import SidebarControlsOwner, SidebarLayout
 from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
@@ -720,26 +721,7 @@ class BusLabel(ElidedLine):
         self.setToolTip(location)
 
 
-def _back_to_bottom_shortcut(view: QWidget, key: str) -> QShortcut:
-    """Install a single QShortcut binding `BackToBottomAction`'s declared key on `view` to
-    `view.messages.jump_to_latest()`. Kept beside ConversationView rather than in the
-    generic `action_shortcuts` helper because this action's apply reaches through the
-    screen's `back_to_bottom_windows` roster on Textual; Qt resolves it directly to the
-    conversation's own history window. Every new Qt consumer of a `ViewAction` member
-    with its own apply gets its own helper until `ConversationView` grows the
-    `JumpsHistory` contract that Textual's screen implements."""
-    spelling = key.strip()
-    if len(spelling) == 1 and spelling.isalpha() and spelling.isupper():
-        sequence = QKeySequence(f"Shift+{spelling}")
-    else:
-        sequence = QKeySequence(spelling)
-    shortcut = QShortcut(sequence, view)
-    shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-    shortcut.activated.connect(view.messages.jump_to_latest)
-    return shortcut
-
-
-class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
+class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
                        HistoryNotifications, ComposerHost, WorkspaceHosted, QWidget,
                        metaclass=PyQtWidgetMeta):
 
@@ -815,15 +797,21 @@ class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, Submis
             layout.addWidget(line)
         layout.addWidget(self.composer)
         layout.addWidget(self.question)
-        # BackToBottomAction's declared keys (Esc) from `toad.view_actions` — Textual binds
-        # them through its ViewAction/BindingsMap path; Qt installs a QShortcut per key
-        # firing `self.messages.jump_to_latest()`. Siblings in the ViewAction family
-        # (ShowSidebarAction…) still need their Textual-named chrome calls; they'll bind
-        # here once ConversationView exposes the Qt counterparts.
-        self._view_shortcuts = [
-            _back_to_bottom_shortcut(self, key)
-            for key in flatten_keys(BackToBottomAction)
-        ]
+        # Every `ViewAction` subclass binds through the shared family loop. A new
+        # subclass adds a key automatically — no edit here — and Textual-only siblings
+        # whose `apply()` reaches chrome Qt doesn't carry stay silent via the
+        # AttributeError guard in `bind_action_shortcuts`. This view implements
+        # `JumpsHistory.back_to_bottom_windows`, so `BackToBottomAction.apply(self)`
+        # jumps the right window. Other ViewActions (`ShowSidebarAction`, …) will
+        # start firing on Qt the day ConversationView carries their contracts.
+        self._view_shortcuts = bind_action_shortcuts(self, ViewAction, self)
+
+    @property
+    def back_to_bottom_windows(self) -> tuple[JumpsToLatest, ...]:
+        """The conversation's one history window, if it has scrolled off the tail.
+        Satisfies `JumpsHistory`; `BackToBottomAction.apply(self)` reads this to jump
+        the right window back to its latest row."""
+        return (self.messages,) if self.messages.can_jump_to_latest else ()
 
     @property
     def mode(self) -> str:
