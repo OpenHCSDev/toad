@@ -21,7 +21,7 @@ from weakref import WeakSet
 
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QRect, Qt, QTimer, Signal
-from PySide6.QtGui import QFont, QFontMetrics, QKeySequence, QShortcut
+from PySide6.QtGui import QFont, QFontMetrics
 from PySide6.QtWidgets import QPushButton, QWidget
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
@@ -43,6 +43,8 @@ from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
+from toad.qt.action_shortcuts import bind_action_shortcuts
+from toad.reader_actions import ReaderAction
 from toad.client.transcript_fragments import (
     BusMessageFragment,
     ContextTranscriptFragment,
@@ -459,20 +461,13 @@ class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacem
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._emit_block_menu_at)
         self.viewport().grabGesture(Qt.GestureType.TapAndHoldGesture)
-        # Vim reader keys: Textual's `ReaderAction` family in `widgets/history_anchor.py`
-        # binds ctrl+d/ctrl+u/G through the Action framework. The Action family is
-        # Textual-coupled (keys = {VimMode: ...}, Textual's `action_page_down` etc.), so
-        # we bind the same keys through Qt's own shortcut mechanism here. The methods
-        # beside this (`action_page_down`, `action_page_up`, `jump_to_latest` from the
-        # inherited `ReaderPlacement`) carry the toolkit-neutral intent.
-        for sequence, slot in (
-            (QKeySequence("Ctrl+D"), self.action_page_down),
-            (QKeySequence("Ctrl+U"), self.action_page_up),
-            (QKeySequence(Qt.Key.Key_G | Qt.KeyboardModifier.ShiftModifier), self.jump_to_latest),
-        ):
-            shortcut = QShortcut(sequence, self)
-            shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-            shortcut.activated.connect(slot)
+        # Reader keys (ctrl+d / ctrl+u / shift+g) come from the `ReaderAction` family
+        # declared in `src/toad/reader_actions.py`. Both backends drive from that one
+        # declaration: Textual through the Action/BindingsMap path, Qt through
+        # `bind_action_shortcuts` which iterates members and installs a QShortcut per
+        # declared key firing `apply(self)` (which calls `action_page_down` /
+        # `action_page_up` / `jump_to_latest` on this window).
+        self._reader_shortcuts = bind_action_shortcuts(self, ReaderAction, self)
 
     def action_page_down(self) -> None:
         """Move the reader one page toward the latest message (Textual's `ReaderAction`
