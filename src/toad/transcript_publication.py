@@ -86,6 +86,8 @@ from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 from toad.worker_group import WorkerGroup
 
+from toad.client.view_binding_protocols import BoundViewHost
+
 if TYPE_CHECKING:
     from toad.widgets.conversation import (
         Contents,
@@ -713,7 +715,11 @@ class BoundView(ViewBinding):
                 return
             publication.restored(self.owner, self.binding.window)
 
-    def __init__(self, view: Conversation) -> None:
+    def __init__(self, view: BoundViewHost) -> None:
+        # `view` is typed to the toolkit-neutral host protocol (see
+        # client/view_binding_protocols.py). Textual's Conversation satisfies this
+        # structurally via DOMNode; Qt's ACP view implements the protocol explicitly on
+        # its own host so the same BoundView drives both transcript pipelines.
         self.view, self.window, self.contents = view, view.window, view.contents
         self._history, = self.contents.query_children(TranscriptHistory)
 
