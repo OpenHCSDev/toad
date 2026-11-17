@@ -516,16 +516,13 @@ This is a view of your conversation with the agent.
                 )
             yield scrollbar, scrollbar_region
 
-    def tail_follow_changed(self) -> None:
-        """Show the jump bar while the reader is off the tail; bindings follow only its changes.
+    def _jump_bar_shown(self) -> bool:
+        return bool(self.jump_bar.display)
 
-        Every scroll offset reaches here, so an unchanged state is no change:
-        the footer would otherwise re-project the screen's bindings per frame.
-        """
-        jump = self.can_jump_to_latest
-        if self.jump_bar.display == jump:
-            return
-        self.jump_bar.display = jump
+    def _set_jump_bar_shown(self, shown: bool) -> None:
+        self.jump_bar.display = shown
+
+    def _after_jump_bar_change(self, shown: bool) -> None:
         if self.is_attached:
             self.query_ancestor(Conversation).refresh_bindings()
 
