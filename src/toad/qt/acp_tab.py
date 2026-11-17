@@ -103,6 +103,12 @@ class QtAcpSessionView(
     already shared with every tab.
     """
 
+    # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
+    # class is instantiable; `__init__` + `_setup_composer` assign the real widgets.
+    identity_line: ElidedLine = None  # type: ignore[assignment]
+    composer: "Composer | None" = None
+    submissions: "BusSubmissions" = None  # type: ignore[assignment]
+
     # `agent_binding`, `queue_source`, `submissions`, composer wiring (`submit`,
     # `submissions_changed`, `update_slash_commands`, `notification_targets`)
     # all live on `QtThreadView`. See that base class — the two Qt thread-bound
