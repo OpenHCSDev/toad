@@ -33,7 +33,7 @@ from toad.acp.terminal_owner import OperationalTerminalOwner
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.core import events as core_events
 from toad.core.events import LogAgentFail
-from toad.plan import PlanItem
+from toad.plan import PlanDisplayState, PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
 
 if TYPE_CHECKING:
@@ -104,7 +104,7 @@ class AgentController(OperationalTerminalOwner):
         self.transcripts = transcripts
         self.session = SessionBinding(NoAcpSessionId())
         self.commands: list[AvailableCommand] = []
-        self.plan_entries: list[PlanItem] | None = None
+        self.plan_display = PlanDisplayState()
 
     def bind_session(self, session_id) -> None:
         if session_id != self.session.session_id:
@@ -147,10 +147,10 @@ class AgentController(OperationalTerminalOwner):
         agent.configuration.publish()
         agent.update_status_line()
         agent.events.publish(AvailableCommandsUpdate())
-        if self.plan_entries is not None:
+        if self.plan_display.entries:
             from toad.core.events import Plan
 
-            agent.events.publish(Plan(self.plan_entries))
+            agent.events.publish(Plan(self.plan_display.entries))
         agent._post_queue_view()
         agent._post_private_cursor()
         agent.publish_coordination(agent.session_id)
@@ -185,10 +185,15 @@ class AgentController(OperationalTerminalOwner):
         self.agent.configuration.publish()
 
     def publish_plan(self, entries: list[PlanItem]) -> None:
-        """Keep the latest typed source value while its optional view is absent."""
+        """Keep the latest typed source value while its optional view is absent.
+
+        `plan_display` captures the per-entry status from the previous publish before
+        replacing the entries, so any frontend can ask `plan_display.newly_complete(entry)`
+        to drive the same completion-transition decision — one owner, both frontends
+        agree on which rows just transitioned."""
         from toad.core.events import Plan
 
-        self.plan_entries = entries
+        self.plan_display.update(entries)
         self.agent.events.publish(Plan(entries))
 
     def publish_commands(self, commands: list[AvailableCommand]) -> None:
