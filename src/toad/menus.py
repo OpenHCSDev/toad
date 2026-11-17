@@ -95,6 +95,13 @@ class MenuCommand(DeclaredFamily, metaclass=MenuDeclaration, affix="Command"):
     def default_keys(cls) -> tuple[str, ...]:
         return ()
 
+    @classmethod
+    def offered_for(cls, target: object) -> bool:
+        """Whether this command belongs in a block menu for ``target``. Subclasses whose
+        applicability depends on target state override this; the default makes a no-arg
+        command apply to any target."""
+        return True
+
     def bindings(self, mode: type[TextEntryMode]) -> tuple[ModeBinding, ...]:
         return tuple(
             binding
@@ -158,6 +165,10 @@ class MaximizeBlockCommand(KeyedMenuCommand):
     key = "m"
     description = "[u]M[/u]aximize"
 
+    @classmethod
+    def offered_for(cls, target: object) -> bool:
+        return bool(getattr(target, "allow_maximize", False))
+
     def apply(self, conversation: MenuConversation) -> None:
         conversation.maximize_block()
 
@@ -207,3 +218,31 @@ def message_menu(row: MessageRow) -> tuple[MenuCommand, ...]:
     """What the cursor's menu offers on a bus message, wherever it is drawn."""
     return (OpenSenderCommand(row.sender),
             *(OpenDestinationCommand(row.name(target).link) for target in row.route.targets[:1]))
+
+
+def standard_commands(target: object) -> tuple[MenuCommand, ...]:
+    """The no-arg MenuCommand subclasses from the family that apply to ``target``,
+    instantiated once each. Keeps the menu derived from the family: a new command
+    declared in this module reaches every frontend without edits at a call site."""
+    offered: list[MenuCommand] = []
+    for cls in MenuCommand.members_with(MenuCommand):
+        try:
+            sig = inspect.signature(cls)
+        except (TypeError, ValueError):
+            continue
+        required = tuple(
+            parameter for parameter in sig.parameters.values()
+            if parameter.default is inspect.Parameter.empty
+            and parameter.kind in (inspect.Parameter.POSITIONAL_ONLY,
+                                   inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                                   inspect.Parameter.KEYWORD_ONLY)
+        )
+        if required:
+            continue
+        if not cls.offered_for(target):
+            continue
+        try:
+            offered.append(cls())
+        except TypeError:
+            continue
+    return tuple(offered)

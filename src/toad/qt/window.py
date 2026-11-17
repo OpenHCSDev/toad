@@ -9,7 +9,6 @@ QtWorkspaceViews draws its view, a Qt ConversationView.
 from __future__ import annotations
 
 import asyncio
-import inspect
 import re
 from time import time
 from collections.abc import Awaitable, Callable, Iterator
@@ -114,7 +113,7 @@ from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMessageFragment, QtWireFragment
-from toad.menus import MenuCommand, MenuConversation, message_menu
+from toad.menus import MenuCommand, MenuConversation, message_menu, standard_commands
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
@@ -173,28 +172,11 @@ def _fragment_text(fragment: object) -> str:
 
 
 def _block_menu_commands(fragment: object) -> Iterator[MenuCommand]:
-    """Every `MenuCommand` subclass whose constructor is no-arg, instantiated once, plus
-    the bus-specific commands `message_menu` adds for a message row. Keeps the offer
-    derived from the family — a new command declared in `src/toad/menus.py` reaches the
+    """The shared family-derived command list for ``fragment``, plus the bus-specific
+    commands `message_menu` adds for a message row. Owner is `toad.menus.standard_commands`;
+    both frontends consume it so a new command declared in `src/toad/menus.py` reaches the
     Qt phone without any edit at this site."""
-    for cls in MenuCommand.members_with(MenuCommand):
-        try:
-            sig = inspect.signature(cls)
-        except (TypeError, ValueError):
-            continue
-        required = tuple(
-            parameter for parameter in sig.parameters.values()
-            if parameter.default is inspect.Parameter.empty
-            and parameter.kind in (inspect.Parameter.POSITIONAL_ONLY,
-                                   inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                                   inspect.Parameter.KEYWORD_ONLY)
-        )
-        if required:
-            continue
-        try:
-            yield cls()
-        except TypeError:
-            continue
+    yield from standard_commands(fragment)
     row = getattr(fragment, "row", None)
     if isinstance(fragment, QtMessageFragment) and row is not None:
         yield from message_menu(row)
