@@ -15,7 +15,10 @@ import urllib.request
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import ClassVar, Literal, Never
+from typing import TYPE_CHECKING, ClassVar, Literal, Never
+
+if TYPE_CHECKING:
+    from toad.client.bus_connect import BusConnectDecision
 
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
@@ -174,6 +177,24 @@ class CommsHost:
     def copy_to_clipboard(self, text: str) -> None:
         """Native clipboard effect."""
         raise NotImplementedError
+
+    def offer_bus_connect(self, decision: "BusConnectDecision") -> None:
+        """Present a structured bus-connect remediation. The default collapses the decision
+        into the existing warning banner so a frontend that has not overridden this still
+        says something; a native frontend (QtToadApp, Textual's splash) renders the summary
+        and the tappable options instead so the user has something to do about it."""
+        if decision.options:
+            labels = " / ".join(option.label for option in decision.options)
+            self.show_warning(f"{decision.summary}  [Options: {labels}]", "Bus")
+        else:
+            self.show_warning(decision.summary, "Bus")
+
+    def paste_profile(self, submit: Callable[[str], object]) -> None:
+        """Open a paste surface for a profile JSON; call ``submit`` with the pasted text.
+        The default has no surface and refuses — a frontend that supports paste overrides.
+        Reached only when a BusConnectDecision option invokes it, so a refusal here is
+        reported through the normal warning channel rather than raised."""
+        self.show_warning("This frontend cannot paste a profile.", "Bus")
 
     def clear_focus(self) -> None:
         """Take keyboard focus off every control, so a focused editor sends its value."""

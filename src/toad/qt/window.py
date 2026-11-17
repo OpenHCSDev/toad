@@ -56,6 +56,7 @@ from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.application_actions import ApplicationAction
+from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
     BusChoice,
     BusListing,
@@ -116,6 +117,7 @@ from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMe
 from toad.menus import MenuCommand, MenuConversation, message_menu, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.qt.menu import QtMenu
+from toad.qt.paste_profile import QtProfilePastePanel
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
@@ -1446,6 +1448,12 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # EGL-deadlock hazard that killed off QMessageBox applies to any popup window.
         self.menu_panel = QtMenu(self)
         chrome_layout.addWidget(self.menu_panel)
+        # Paste surface for the bus-connect remediation ("Paste a profile" option on the
+        # BusConnectDecision menu). Inline QFrame child of the window, not a QDialog —
+        # same EGL rationale as QtMenu: a top-level popup needs its own surface and
+        # deadlocks the compositor on Pixel 8a.
+        self.profile_paste_panel = QtProfilePastePanel(self)
+        chrome_layout.addWidget(self.profile_paste_panel)
         chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
@@ -1777,6 +1785,26 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         """Rich-row API: callers that have `MenuEntry` with keybindings and descriptions
         (the hamburger menu, the row-context menu) populate the shared QtMenu directly."""
         self.menu_panel.show_entries(entries)
+
+    def offer_bus_connect(self, decision: BusConnectDecision) -> None:
+        """Render the shared bus-connect decision through the same menu panel the hamburger
+        and row-context menus use: the summary goes to the status line so the reader sees
+        what happened, and each `RemediationOption` becomes a `MenuEntry` the panel draws.
+        Qt owns only the paint; the decision's options own the actions."""
+        self.show_warning(decision.summary, "Bus")
+        if not decision.options:
+            return
+        entries = tuple(
+            MenuEntry(label=option.label, run=option.invoke, description=option.description)
+            for option in decision.options
+        )
+        self.offer_entries(entries)
+
+    def paste_profile(self, submit: Callable[[str], object]) -> None:
+        """Open the inline paste panel for a bus-connect profile. Bound to the
+        `BusConnectDecision` "Paste a profile" option; a submit holds the pasted JSON
+        through `agent_comms-connector hold-ui` and opens its bus."""
+        self.profile_paste_panel.open_for(submit)
 
     def open_row(self, row: ConversationRow) -> None:
         self.run_operation(ConversationOpen, partial(self.open_route, row.target))
