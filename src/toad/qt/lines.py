@@ -66,9 +66,18 @@ class QtLineRenderer(MroProjection[str]):
         self.font = QFont()
 
     def at_width(self, width: float, font: QFont) -> QtLineRenderer:
-        """Dividers fill this many pixels of this font, as RichLineRenderer fills its cells."""
-        self.width, self.font = width, font
-        return self
+        """Dividers fill this many pixels of this font, as RichLineRenderer fills its cells.
+
+        Returns a shallow-copied binding, not `self`, so that concurrent callers
+        at different widths (e.g. row preparations racing across a sidebar bar
+        toggle changing viewport width) don't clobber each other's divider
+        width/font while `divider()` reads them. The copy shares scheme, markdown,
+        terminal, syntax references (immutable); only width/font differ."""
+        import copy
+        bound = copy.copy(self)
+        bound.width = width
+        bound.font = font
+        return bound
 
     def token_style(self, token: _TokenType) -> Style:
         """The nearest declared ancestor's style: Rich's theme names token families."""
