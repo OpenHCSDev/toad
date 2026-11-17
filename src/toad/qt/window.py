@@ -922,7 +922,8 @@ class QtSidebarSearch(QWidget):
         layout.setSpacing(UiGap.normal)
         layout.addWidget(self.search_input)
         for panel in self.panels:
-            layout.addWidget(panel, 1 if panel.spec.flex else 0)
+            layout.addWidget(panel, self._panel_stretch(panel))
+            panel.collapse_changed.connect(lambda _, p=panel: self._restretch_panel(p))
 
     def add_panel(self, spec: PanelSpec, body: QWidget) -> QtSidebarPanelFrame:
         """Append a sibling panel to the shell. Follow-up PRs call this to lift the
@@ -932,8 +933,25 @@ class QtSidebarSearch(QWidget):
         self.panels.append(panel)
         layout = self.layout()
         if isinstance(layout, QVBoxLayout):
-            layout.addWidget(panel, 1 if spec.flex else 0)
+            layout.addWidget(panel, self._panel_stretch(panel))
+            panel.collapse_changed.connect(lambda _, p=panel: self._restretch_panel(p))
         return panel
+
+    def _panel_stretch(self, panel: QtSidebarPanelFrame) -> int:
+        """A flex panel only owns a stretch slot while its body is visible. When it
+        collapses, the slot drops to 0 so the frame shrinks to its header row instead
+        of pinning the full sidebar height with an empty column — the "can't bring
+        the bars down" behaviour this fixes."""
+        return 1 if panel.spec.flex and not panel.is_collapsed() else 0
+
+    def _restretch_panel(self, panel: QtSidebarPanelFrame) -> None:
+        layout = self.layout()
+        if not isinstance(layout, QVBoxLayout):
+            return
+        index = layout.indexOf(panel)
+        if index < 0:
+            return
+        layout.setStretch(index, self._panel_stretch(panel))
 
     def _on_text_changed(self, value: str) -> None:
         self.sidebar.filter.text = value

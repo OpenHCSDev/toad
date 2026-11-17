@@ -742,15 +742,29 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
 
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         """A wheel at an edge with nowhere left to scroll still asks for the next page."""
-        rows = -event.angleDelta().y() / 120 * QFontMetrics(self.font()).lineSpacing() * 3
+        rows = -event.angleDelta().y() / 120 * self._font_line_spacing() * 3
         if not self.lookahead.request_boundary(rows):
             super().wheelEvent(event)
 
     def row_painted(self, fragment: HistoryFragment, rect: QRect) -> None:
-        """A row whose text is on screen, beyond its header line, was seen."""
+        """A row whose text is on screen, beyond its header line, was seen.
+
+        Reads a cached `lineSpacing` so the delegate's per-row `paint` doesn't allocate
+        a fresh `QFontMetrics` on every visible row during scroll — on a long transcript
+        this was hundreds of allocations per frame."""
         shown = rect.intersected(self.viewport().rect())
-        if shown == rect or shown.height() > 2 * QFontMetrics(self.font()).lineSpacing():
+        if shown == rect or shown.height() > 2 * self._font_line_spacing():
             self.history.retain_painted(fragment)
+
+    def _font_line_spacing(self) -> int:
+        """Cached `QFontMetrics(self.font()).lineSpacing()`; refreshed on a font change."""
+        font = self.font()
+        cached = getattr(self, "_cached_font_line_spacing", None)
+        if cached is None or cached[0] != font:
+            spacing = QFontMetrics(font).lineSpacing()
+            self._cached_font_line_spacing = (QFont(font), spacing)
+            return spacing
+        return cached[1]
 
     # Frames
 
