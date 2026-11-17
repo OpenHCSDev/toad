@@ -178,3 +178,27 @@ class ObservedActivity(CoreObserver, ActivityView):
     @property
     def working(self) -> bool:
         return self.row.status.is_working()
+
+
+class ThreadStatusOwner(StatusOwner):
+    """A view with a composed row and a declared status source.
+
+    Toolkit-neutral: both the Textual conversation widget and the Qt session view inherit
+    this beside their own frontend base. The inherited `StatusOwner` is already neutral;
+    the Textual-only `ToadNode` mixin stays on the widget subclass that needs DOMNode.
+    """
+
+    @property
+    def _observed_working(self) -> bool:
+        """Observed work cannot settle an independently owned ACP request."""
+        return self.thread_activity.working
+
+    @abstractmethod
+    def status_thread(self) -> StatusThread:
+        ...
+
+    def thread_observed(self, event: ThreadRowsChanged) -> None:
+        """Consume the observed thread's presentation once per store change."""
+
+    def refresh_thread_status(self) -> None:
+        self.status_thread().refresh(self)
