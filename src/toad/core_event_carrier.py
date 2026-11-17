@@ -1,13 +1,12 @@
 """The Textual message pump carries application publications unchanged."""
 
-from metaclass_registry.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual import on
 from textual.message import DeclaredMessage, Message
 from textual.dom import DOMNode
-from functools import cache, cached_property, partial
+from functools import cached_property, partial
 
-from toad.client.subscribers import CallbackSubscription, CoreObserver
+from toad.client.subscribers import CallbackSubscription, CoreObserverDispatch
 from formbridge.publications import Subscription
 
 from toad.core.events import CoreEvent, CoreEventStream, Publication
@@ -37,16 +36,8 @@ class CoreEventMessage(Publication, DeclaredMessage):
                 and self.event.replaces(message.event))
 
 
-class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
+class CoreEventReceiver(CoreObserverDispatch, DOMNode):
     """Consume declared events inside the native message-pump lifetime."""
-
-    @classmethod
-    @cache
-    def consumed_core_events(cls) -> tuple[type[CoreEvent], ...]:
-        """The Core events this receiver declares a handler for: an observed stream sends it only these.
-        The declarations are decoded once per class (a handler may also name a non-Core value)."""
-        return tuple(dict.fromkeys(event for _name, classes in cls._handler_declarations
-                                   for event in classes if issubclass(event, CoreEvent)))
 
     def subscribe_core(self, stream: CoreEventStream) -> Subscription:
         subscription = stream.subscribe(CoreEvent, self.post_core_event)
