@@ -1774,6 +1774,15 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # EGL-deadlock hazard that killed off QMessageBox applies to any popup window.
         self.menu_panel = QtMenu(self)
         chrome_layout.addWidget(self.menu_panel)
+        # Bus switcher: inline overlay panel for the hamburger "Switch bus" entry.
+        # Registered as a `BusListing` so `tailnet_answered` routes answers to it
+        # while shown (same shape as Welcome, which is always registered).
+        from toad.qt.bus_switcher import QtBusSwitcher
+        # Welcome is always a BusListing; the switcher registers/deregisters
+        # itself while shown so answers reach both.
+        self._bus_listings: list[BusListing] = [self.workspace_sessions.home]
+        self.bus_switcher = QtBusSwitcher(self)
+        chrome_layout.addWidget(self.bus_switcher)
         # Paste surface for the bus-connect remediation ("Paste a profile" option on the
         # BusConnectDecision menu). Inline QFrame child of the window, not a QDialog —
         # same EGL rationale as QtMenu: a top-level popup needs its own surface and
@@ -2072,8 +2081,28 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.run_operation(ApplicationStart, self.open_saved_tabs)
 
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
-        """The welcome is this window's one bus listing."""
-        answer.shown_in(self.workspace_sessions.home)
+        """Route the answer to every registered `BusListing`. The welcome is always
+        registered; the bus switcher registers itself while shown. Shared
+        `BusListing.shown_in` dispatch means Qt needs no per-listing branch."""
+        for listing in tuple(self._bus_listings):
+            answer.shown_in(listing)
+
+    def register_bus_listing(self, listing: BusListing) -> None:
+        """Called by `QtBusSwitcher.show_switcher` so tailnet answers reach it while
+        shown. Welcome is registered at construction; the switcher comes and goes."""
+        if listing not in self._bus_listings:
+            self._bus_listings.append(listing)
+
+    def deregister_bus_listing(self, listing: BusListing) -> None:
+        if listing in self._bus_listings:
+            self._bus_listings.remove(listing)
+
+    def open_bus_switcher(self) -> None:
+        """Hamburger `OpenBusAction` hook: show the inline Qt switcher instead of
+        Textual's `BusChoices` modal. The shared `BusListing` contract gives the
+        switcher the same rows, prompt text (`BusSwitcherPrompt`) and ask-tailnet
+        behavior Textual has; the Qt layer is just rendering + input wiring."""
+        self.bus_switcher.show_switcher()
 
     async def close_native_views(self) -> None:
         self.shortcuts.close()
