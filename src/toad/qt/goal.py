@@ -138,7 +138,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
         self._goal_execution: GoalExecutionControls = IdleGoalExecution()
         self.collapsed = False
         self.is_attached = False
-        muted = f"color: {renderer.colour(MutedRole)}"
+        muted = renderer.color_style(MutedRole)
         self.header = ElidedLine()
         self.standby = ElidedLine()
         self.standby.setStyleSheet(muted)

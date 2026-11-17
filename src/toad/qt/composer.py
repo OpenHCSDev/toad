@@ -209,7 +209,7 @@ class Composer(MentionEditor, QWidget):
 
     def line(self, role: type[LineRole]) -> WrappedText:
         label = WrappedText()
-        label.setStyleSheet(f"color: {self.renderer.colour(role)}")
+        label.setStyleSheet(self.renderer.color_style(role))
         label.setContentsMargins(8, 0, 8, 0)
         label.hide()
         return label
@@ -351,7 +351,7 @@ class Receipt(NotificationSubscriber, WrappedText):
     def paint(self, status: NotificationStatus) -> None:
         self.status = status
         self.setText(f"Your last message: {status.title}")
-        self.setStyleSheet(f"color: {self.renderer.colour(status.role)}; padding: 0 8px 4px 8px")
+        self.setStyleSheet(f"{self.renderer.color_style(status.role)}; padding: 0 8px 4px 8px")
         self.show()
 
     def notifications_observed(self, results) -> None:

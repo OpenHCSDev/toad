@@ -95,6 +95,10 @@ class QtLineRenderer(MroProjection[str]):
     def colour(self, role: type[LineRole]) -> str:
         return self.theme(role.colour)
 
+    def color_style(self, role: type[LineRole]) -> str:
+        """The QSS color declaration for a role, as Qt consumers set it on a widget."""
+        return f"color: {self.colour(role)}"
+
     def theme(self, member: type[ThemeColour]) -> str:
         """A theme colour under this scheme, as Toad resolves it."""
         return member.rgb(self.scheme).hex
