@@ -45,6 +45,7 @@ from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
 from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.reader_actions import ReaderAction
+from toad.view_actions import BackToBottomAction
 from toad.client.transcript_fragments import (
     BusMessageFragment,
     ContextTranscriptFragment,
@@ -58,7 +59,7 @@ from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
-from ui_theme.scheme import ColourScheme, ForegroundColour, SurfaceHoverColour
+from ui_theme.scheme import ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 
 class QtWireFragment(EvidencedFragment, TranscriptFragment, ABC):
@@ -405,14 +406,19 @@ class QtJumpBar(QPushButton):
     (`JumpsToLatest.can_jump_to_latest`)."""
 
     def __init__(self, parent: QWidget, scheme: ColourScheme) -> None:
-        super().__init__("Jump to latest  ↓", parent)
+        # Label mirrors the Textual sibling: single source is the BackToBottomAction
+        # declaration (title + key_display). Textual uses the same two attributes in
+        # widgets/conversation.py's Window.__init__. Text and border take PrimaryColour
+        # to match Textual's PrimaryText mixin on BackToBottom.
+        super().__init__(f"{BackToBottomAction.title}  ↓ {BackToBottomAction.key_display}", parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        primary = PrimaryColour.rgb(scheme).hex
         self.setStyleSheet(
             "QPushButton {"
             f"  background: {SurfaceHoverColour.rgb(scheme).hex};"
-            f"  color: {ForegroundColour.rgb(scheme).hex};"
-            f"  border: 1px solid {ForegroundColour.rgb(scheme).hex};"
+            f"  color: {primary};"
+            f"  border: 1px solid {primary};"
             "  border-radius: 14px;"
             "  padding: 6px 14px;"
             "  font-weight: bold;"
@@ -497,14 +503,14 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
     def can_jump_to_latest(self) -> bool:
         return not self.follows_tail
 
-    def tail_follow_changed(self) -> None:
-        """Show the jump bar while the reader is off the tail; the Textual sibling in
-        `widgets/conversation.py:Window.tail_follow_changed` drives the same contract."""
-        showing = self.can_jump_to_latest
-        if self.jump_bar.isVisible() == showing:
-            return
-        self.jump_bar.setVisible(showing)
-        if showing:
+    def _jump_bar_shown(self) -> bool:
+        return self.jump_bar.isVisible()
+
+    def _set_jump_bar_shown(self, shown: bool) -> None:
+        self.jump_bar.setVisible(shown)
+
+    def _after_jump_bar_change(self, shown: bool) -> None:
+        if shown:
             self._place_jump_bar()
 
     def _place_jump_bar(self) -> None:
@@ -696,6 +702,11 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
         self.tail_follow_changed()
+        if self.jump_bar.isVisible():
+            # Re-anchor the floating button every scroll: Qt's QAbstractItemView lets
+            # viewport children track the scroll offset, so without this the button
+            # scrolls down with the content and ends up offscreen.
+            self._place_jump_bar()
         self._schedule_settle()
         self.request_preparation()
 
