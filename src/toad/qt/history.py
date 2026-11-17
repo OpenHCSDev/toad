@@ -277,7 +277,15 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
             self.window.rows_changed()
 
     def repaint(self, fragments: tuple[HistoryFragment, ...] = (), *, continuing=()) -> None:
-        self.window.viewport().update()
+        """Repaint only the rows the pager named. The shared contract already says which
+        fragments changed; dropping that and calling viewport().update() repaints every
+        visible row on every clock tick, so the message header flickered under scroll."""
+        window = self.window
+        model_rows = window.model_rows
+        for fragment in (*fragments, *continuing):
+            row = model_rows.row_of(fragment.key)
+            if row >= 0:
+                window.update(model_rows.index(row, 0))
 
     def _update_edges(self) -> None:
         """Older and newer rows load as the reader nears an edge: Qt shows no edge controls."""
