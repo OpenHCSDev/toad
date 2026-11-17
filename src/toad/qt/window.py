@@ -2202,6 +2202,15 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         dialog = QtSettingsScreen(self, self)
         dialog.show()
 
+    async def open_team_board(self) -> None:
+        """Qt override of `ClientApplication.open_team_board`. Opens the
+        shared-UX `QtTeamBoardScreen`; both frontends subscribe to the same
+        `TeamHudChanged` / `TeamHudFailed` Core events and route them through
+        `toad.client.team_board.TeamBoardState` for identical filtering."""
+        from toad.qt.team_board_screen import QtTeamBoardScreen
+        dialog = QtTeamBoardScreen(self)
+        dialog.show()
+
     async def reveal_sidebar(self) -> bool:
         """The sidebar comes up over the conversation, as its bar would bring it."""
         self.show_sidebar()
