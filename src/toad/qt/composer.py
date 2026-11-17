@@ -13,6 +13,7 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
+from formbridge.key_declarations import TextEntryMode
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
@@ -40,11 +41,58 @@ from toad.client.notification_status import (
     UncheckedNotifications,
 )
 from toad.client.subscribers import NotificationSubscriber
-from toad.widget_contracts import OpensSelectedContract, SelectsContract
+from toad.prompt_actions import NewlineAction, SubmitAction, SubmitNowAction
+from toad.widget_actions import DismissAction
+from toad.widget_contracts import (
+    DismissibleContract,
+    OpensSelectedContract,
+    SelectsContract,
+    SubmitsContract,
+)
+from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.qt.composer_vim import ComposerVimMode, VimState, apply_normal_key
 from toad.qt.lines import QtLineRenderer
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
+
+
+# The declared TextEntryMode key spellings each prompt action exposes drive the Qt
+# composer's QShortcuts. Keeping the composer method as the callback (not the action's
+# own .apply, which expects a Textual `PromptTextArea`) lets both backends consume the
+# same key declarations without Qt dragging Textual's PromptSubmission chassis.
+_COMPOSER_ACTION_METHODS = (
+    (SubmitAction, "submit"),
+    (SubmitNowAction, "submit_now"),
+    (DismissAction, "dismiss_control"),
+    (NewlineAction, "_insert_newline"),
+)
+
+
+def _qt_sequence(spelling: str):
+    from PySide6.QtGui import QKeySequence
+    text = spelling.strip()
+    if len(text) == 1 and text.isalpha() and text.isupper():
+        return QKeySequence(f"Shift+{text}")
+    return QKeySequence(text)
+
+
+def _bind_composer_shortcuts(composer: Composer):
+    """Install one `QShortcut` per declared TextEntryMode key on each composer-action.
+
+    Qt has no Mode/InputDispatch chain like Textual's; every declared key for
+    the relevant action fires the composer's own method when the editor (or any
+    child) has focus. Textual still reaches these methods through its own
+    PromptTextArea action system — the keys live in one place."""
+    from PySide6.QtGui import QShortcut
+    shortcuts = []
+    for action_cls, method_name in _COMPOSER_ACTION_METHODS:
+        callback = getattr(composer, method_name)
+        for spelling in action_cls.keys.get(TextEntryMode, ()):
+            shortcut = QShortcut(_qt_sequence(spelling), composer.editor)
+            shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+            shortcut.activated.connect(callback)
+            shortcuts.append(shortcut)
+    return shortcuts
 
 
 class ComposerHost(ConversationCommands):
@@ -168,47 +216,42 @@ class ComposerEditor(QPlainTextEdit):
         self.vim = ComposerVimMode()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
+        # Vim NORMAL mode intercepts navigation/edit commands before the standard
+        # composer bindings; Enter + Ctrl+Enter are owned by SubmitAction/SubmitNowAction
+        # on the composer and fire through QShortcut regardless.
         offers = self.composer.offers
         key = event.key()
-        modifiers = event.modifiers()
-        shifted = bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
-        with_control = bool(modifiers & Qt.KeyboardModifier.ControlModifier)
-        entered = key in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
-        # Vim NORMAL mode intercepts navigation/edit commands before any of the standard
-        # composer bindings; Enter + Ctrl+Enter still submit from NORMAL (sending a message
-        # is the composer's job, not the mode's).
         if (self.vim_enabled and self.vim.state is VimState.NORMAL
-                and not offers.isVisible() and not entered and key != Qt.Key.Key_Escape):
+                and not offers.isVisible() and key != Qt.Key.Key_Escape):
             apply_normal_key(self, self.vim, event)
             self.composer.refresh_mode_indicator()
             return
+        # Offer navigation stays local — it's widget-scoped, not a declared action family.
         if offers.isVisible() and key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
             offers.step(-1 if key == Qt.Key.Key_Up else 1)
-        elif offers.isVisible() and (key == Qt.Key.Key_Tab or (entered and not shifted)):
+            return
+        if offers.isVisible() and key == Qt.Key.Key_Tab:
             offers.accept_current()
-        elif offers.isVisible() and key == Qt.Key.Key_Escape:
-            self.composer.dismiss()
-        elif entered and with_control:
-            self.composer.submit()
-        elif entered and not shifted:
-            self.composer.submit()
-        elif key == Qt.Key.Key_Escape:
-            # In vim INSERT mode, Esc enters NORMAL instead of dismissing.
-            if self.vim_enabled and self.vim.state is VimState.INSERT:
-                self.vim.state = VimState.NORMAL
-                self.composer.refresh_mode_indicator()
-            else:
-                self.composer.dismiss_control()
-        else:
-            super().keyPressEvent(event)
+            return
+        # Enter / Ctrl+Enter / Shift+Enter / Escape are all bound as QShortcuts on
+        # Composer via `bind_action_shortcuts`; they read the declared keys off
+        # `SubmitAction`/`SubmitNowAction`/`NewlineAction`/`DismissAction` so the
+        # Qt editor and Textual's PromptTextArea share a single source of truth.
+        super().keyPressEvent(event)
 
 
-class Composer(MentionEditor, QWidget):
+class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
     """A conversation's composer: the offer list, the editor and its send button, then
     what is still submitting, the last send's failure and the delivery of your last message.
 
     It sets no colours of its own: the application's pyqt-reactive theme styles its button,
-    and the theme's input and list styles frame the editor and the offers."""
+    and the theme's input and list styles frame the editor and the offers.
+
+    Inherits `SubmitsContract` + `DismissibleContract` so the shared action families
+    (`SubmitAction`, `SubmitNowAction`, `DismissAction`, `NewlineAction` in
+    `toad.prompt_actions` / `toad.widget_actions`) bind to this widget without Qt
+    restating any key spelling — one declaration in those modules drives both Textual's
+    PromptTextArea and the Qt editor."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
@@ -245,6 +288,11 @@ class Composer(MentionEditor, QWidget):
         layout.addLayout(row)
         for line in (self.mode_indicator, self.submitting, self.failure, self.receipt):
             layout.addWidget(line)
+        # Bind the declared prompt-action keys as QShortcuts on the editor. The
+        # callbacks target `self` (the composer) so `SubmitAction`/`DismissAction`
+        # /`SubmitNowAction`/`NewlineAction` on Qt fire the same contract Textual's
+        # Prompt uses — no hand-rolled Enter/Ctrl+Enter/Escape in `keyPressEvent`.
+        self._shortcuts = _bind_composer_shortcuts(self)
         self.fit_height()
         self.refresh_mode_indicator()
 
@@ -347,12 +395,33 @@ class Composer(MentionEditor, QWidget):
         """What `SubmitAction` calls — the action-family alias for `send`."""
         self.send()
 
+    def submit_now(self) -> None:
+        """What `SubmitNowAction` (Ctrl+Enter, Ctrl+Y) calls; same path as send today —
+        the queue-bypass distinction belongs to `BusSubmissions`, not the widget."""
+        self.send()
+
+    def _insert_newline(self) -> None:
+        """What `NewlineAction` (Shift+Enter, Ctrl+J) calls — a real `\\n`, not a submit."""
+        self.editor.insertPlainText("\n")
+
     def dismiss_control(self) -> None:
         """What `DismissAction` calls — close the composer without sending.
 
-        Clears the draft, hides the offers list and relinquishes focus. The same
-        semantics as Textual's `DismissAction.apply` on a `Prompt`: the key clears
-        what is being composed, it doesn't leave half a message in place."""
+        Owns the composer's Escape state machine so a single `DismissAction` binding
+        does the right thing regardless of offer visibility or vim mode:
+          * offers visible → hide them, keep the draft (same as Textual's SlashComplete
+            dismiss);
+          * vim INSERT with no offers → enter NORMAL instead of blurring;
+          * else → clear the draft, hide offers, drop focus (Textual's `DismissAction`
+            on a `Prompt`).
+        """
+        if self.offers.isVisible():
+            self.dismiss()
+            return
+        if self.editor.vim_enabled and self.editor.vim.state is VimState.INSERT:
+            self.editor.vim.state = VimState.NORMAL
+            self.refresh_mode_indicator()
+            return
         self.editor.clear()
         self.dismissed_text = ""
         self.offers.show_offers("", ())
