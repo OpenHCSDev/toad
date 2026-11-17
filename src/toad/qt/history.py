@@ -20,7 +20,7 @@ from functools import partial
 from weakref import WeakSet
 
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
-from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QRect, Qt, QTimer
+from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QRect, Qt, QTimer, Signal
 from PySide6.QtGui import QFont, QFontMetrics, QKeySequence, QShortcut
 from PySide6.QtWidgets import QPushButton, QWidget
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
@@ -409,6 +409,11 @@ class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacem
     reader at the end follow the newest row, and rows that arrive or are evicted above the
     reader leave the row they are reading where it was."""
 
+    # Emitted when the viewer right-clicks or long-presses a message row; carries the
+    # fragment under that point. Consumers (ConversationView) build a block menu from
+    # the shared `MenuCommand` family and offer it through the host's offer panel.
+    block_menu_requested = Signal(object, name="blockMenuRequested")
+
     history: QtConversationHistory
     scroll_revision = 0
 
@@ -433,6 +438,12 @@ class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacem
         self.jump_bar = QtJumpBar(self.viewport(), scheme)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.viewport().installEventFilter(self)
+        # Block menu: right-click (desktop) and long-press (Android) on a message row
+        # emit `block_menu_requested` with the row's fragment. ConversationView mounts
+        # the handler and runs the resulting commands.
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._emit_block_menu_at)
+        self.viewport().grabGesture(Qt.GestureType.TapAndHoldGesture)
         # Vim reader keys: Textual's `ReaderAction` family in `widgets/history_anchor.py`
         # binds ctrl+d/ctrl+u/G through the Action framework. The Action family is
         # Textual-coupled (keys = {VimMode: ...}, Textual's `action_page_down` etc.), so
@@ -483,9 +494,26 @@ class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacem
         self.jump_bar.raise_()
 
     def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
-        if obj is self.viewport() and event.type() == QEvent.Type.Resize and self.jump_bar.isVisible():
-            self._place_jump_bar()
+        if obj is self.viewport():
+            if event.type() == QEvent.Type.Resize and self.jump_bar.isVisible():
+                self._place_jump_bar()
+            elif event.type() == QEvent.Type.Gesture:
+                held = event.gesture(Qt.GestureType.TapAndHoldGesture)
+                if held is not None and held.state() == Qt.GestureState.GestureFinished:
+                    self._emit_block_menu_at(self.viewport().mapFromGlobal(held.position().toPoint()))
+                    return True
         return super().eventFilter(obj, event)
+
+    def _emit_block_menu_at(self, point: QPoint) -> None:
+        """Right-click or long-press at ``point`` (viewport coordinates): emit the
+        fragment under that row so ConversationView can open the block menu."""
+        index = self.indexAt(point)
+        if not index.isValid():
+            return
+        fragment = self.model_rows.data(index, HistoryRows.FRAGMENT)
+        if fragment is None:
+            return
+        self.block_menu_requested.emit(fragment)
 
     # Geometry, in pixels
 

@@ -9,6 +9,8 @@ QtWorkspaceViews draws its view, a Qt ConversationView.
 from __future__ import annotations
 
 import asyncio
+import inspect
+import re
 from time import time
 from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import dataclass
@@ -74,7 +76,7 @@ from toad.client.history_entry import HistorySessionEntry
 from toad.client.history_notifications import HistoryNotifications
 from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
-from toad.client.line_blocks import MutedRole
+from toad.client.line_blocks import LineLink, MutedRole
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
 from toad.client.referenced_core import ReferencedCore
 from toad.client.submission import MessageDestination
@@ -92,7 +94,8 @@ from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
-from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
+from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMessageFragment, QtWireFragment
+from toad.menus import MenuCommand, MenuConversation, message_menu
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
@@ -119,6 +122,61 @@ class CommandRead(OperationKind, ExclusiveKind):
 
 class MenuActionRun(OperationKind):
     """One application action chosen from the menu."""
+
+
+# `[u]C[/u]opy to clipboard` / `Co[u]p[/u]y to prompt`: Textual renders the markup as
+# underlined accelerators in the Menu widget. Qt's offer panel is plain text, so we strip
+# the markup off here and keep the raw word. If the family ever adds another markup
+# convention, add it to this strip; never restate labels alongside.
+_MENU_MARKUP = re.compile(r"\[/?[^\[\]]*\]")
+
+
+def _strip_menu_markup(description: str) -> str:
+    return _MENU_MARKUP.sub("", description)
+
+
+def _fragment_text(fragment: object) -> str:
+    """The plain text of a row the viewer long-pressed, for copy commands. Both the
+    canonical `WireMessage` (bus messages — carries `.message.body`) and the generic
+    `TranscriptFragment` subclasses (which keep `.text_part`) are covered; any other
+    fragment returns empty, and the copy command no-ops."""
+    if fragment is None:
+        return ""
+    message = getattr(fragment, "message", None)
+    if message is not None and getattr(message, "body", None):
+        return str(message.body)
+    text_part = getattr(fragment, "text_part", None)
+    if text_part:
+        return str(text_part)
+    return ""
+
+
+def _block_menu_commands(fragment: object) -> Iterator[MenuCommand]:
+    """Every `MenuCommand` subclass whose constructor is no-arg, instantiated once, plus
+    the bus-specific commands `message_menu` adds for a message row. Keeps the offer
+    derived from the family — a new command declared in `src/toad/menus.py` reaches the
+    Qt phone without any edit at this site."""
+    for cls in MenuCommand.members_with(MenuCommand):
+        try:
+            sig = inspect.signature(cls)
+        except (TypeError, ValueError):
+            continue
+        required = tuple(
+            parameter for parameter in sig.parameters.values()
+            if parameter.default is inspect.Parameter.empty
+            and parameter.kind in (inspect.Parameter.POSITIONAL_ONLY,
+                                   inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                                   inspect.Parameter.KEYWORD_ONLY)
+        )
+        if required:
+            continue
+        try:
+            yield cls()
+        except TypeError:
+            continue
+    row = getattr(fragment, "row", None)
+    if isinstance(fragment, QtMessageFragment) and row is not None:
+        yield from message_menu(row)
 
 
 class TabClose(OperationKind):
@@ -613,14 +671,16 @@ class BusLabel(ElidedLine):
         self.setToolTip(location)
 
 
-class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, HistoryNotifications,
-                       ComposerHost, QWidget, metaclass=PyQtWidgetMeta):
+class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
+                       HistoryNotifications, ComposerHost, QWidget, metaclass=PyQtWidgetMeta):
     """One conversation tab: its history, paged lazily by the pager Textual's channels use
     and drawn as virtual rows, read again whenever Core's stores change; the info row over
     its thread's status; and the composer and activity its kind chooses, sending through
     the shared submissions and running slash commands through the shared catalog as
     Textual's conversation view does. It is a conversation view, so it runs the view
-    commands (ComposerHost brings the contract)."""
+    commands (ComposerHost brings the contract). Also a `MenuConversation`: a long-press
+    or right-click on a message row opens the shared block menu through the host's
+    `offer` panel, iterating the `MenuCommand` family on the fly."""
 
     def __init__(self, app: QtToadApp, entry: QtHistorySessionEntry) -> None:
         super().__init__()
@@ -631,8 +691,12 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         # This view owns which message categories its transcript shows; the history reads the
         # selection through `selected_categories` and the thread settings pane writes it.
         self.visible_categories = all_categories()
+        # The fragment the viewer most recently long-pressed, if any; menu commands read
+        # it to know which block they act on.
+        self.held_fragment: QtWireFragment | None = None
         label = entry.unobserved_tab().label()
         self.messages = QtHistoryWindow(app.renderer.scheme)
+        self.messages.block_menu_requested.connect(self.open_block_menu)
         self.message_history = QtConversationHistory(self.messages, self, app)
         source = app.source()
         self.message_history.initialize_source(WireSource(
@@ -861,6 +925,64 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
 
     def submissions_changed(self) -> None:
         self.composer.show_submitting()
+
+    # Block menu — MenuConversation implementation
+    #
+    # Right-click or long-press on a message row emits `block_menu_requested` from
+    # `QtHistoryWindow`, which `open_block_menu` picks up here. The commands are the
+    # shared `MenuCommand` family iterated once; the Textual sibling does the same
+    # through `widgets/menu.Menu`. Keeping the action list derived means a new menu
+    # command declared in `src/toad/menus.py` reaches Qt without any edit here.
+
+    def open_block_menu(self, fragment: QtWireFragment) -> None:
+        self.held_fragment = fragment
+        actions = tuple(
+            OfferedAction(_strip_menu_markup(command.description),
+                          partial(self._run_block_menu_command, command))
+            for command in _block_menu_commands(fragment)
+        )
+        if actions:
+            self.app.offer(actions)
+
+    def _run_block_menu_command(self, command: MenuCommand) -> None:
+        result = command.apply(self)
+        if asyncio.iscoroutine(result):
+            self.app.run_operation(MenuActionRun, lambda: result)
+
+    # The MenuCommand contract (src/toad/menus.py:MenuConversation):
+
+    def accepts_menu_owner(self, owner: QWidget) -> bool:
+        return self.held_fragment is not None
+
+    def copy_block_to_clipboard(self) -> None:
+        text = _fragment_text(self.held_fragment)
+        if text:
+            self.app.copy_to_clipboard(text)
+            self.app.show_info("Copied to clipboard", "Block")
+
+    def copy_block_to_prompt(self) -> None:
+        text = _fragment_text(self.held_fragment)
+        if text and hasattr(self, "composer") and hasattr(self.composer, "editor"):
+            cursor = self.composer.editor.textCursor()
+            cursor.insertText(text)
+            self.composer.editor.setFocus()
+            self.app.show_info("Copied to prompt", "Block")
+
+    def maximize_block(self) -> None:
+        """Qt has no maximize mode yet; the command is offered but logs a notice."""
+        self.app.show_info("Maximize is Textual-only for now", "Block")
+
+    def export_block_to_svg(self) -> None:
+        """Qt has no SVG export yet; the command is offered but logs a notice."""
+        self.app.show_info("SVG export is Textual-only for now", "Block")
+
+    async def interrupt_shell(self) -> None:
+        """No shell blocks render on Qt yet, so interrupt is a no-op here."""
+
+    def open_line_link(self, link: LineLink) -> None:
+        url = getattr(link, "url", None) or getattr(link, "href", None)
+        if url:
+            self.app.open_url(str(url))
 
 
 class QtWorkspaceViews(WorkspaceViews):
