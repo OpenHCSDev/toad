@@ -143,22 +143,6 @@ class MenuActionRun(OperationKind):
     """One application action chosen from the menu."""
 
 
-def _fragment_text(fragment: object) -> str:
-    """The plain text of a row the viewer long-pressed, for copy commands. Both the
-    canonical `WireMessage` (bus messages — carries `.message.body`) and the generic
-    `TranscriptFragment` subclasses (which keep `.text_part`) are covered; any other
-    fragment returns empty, and the copy command no-ops."""
-    if fragment is None:
-        return ""
-    message = getattr(fragment, "message", None)
-    if message is not None and getattr(message, "body", None):
-        return str(message.body)
-    text_part = getattr(fragment, "text_part", None)
-    if text_part:
-        return str(text_part)
-    return ""
-
-
 def _block_menu_commands(fragment: object) -> Iterator[MenuCommand]:
     """The shared family-derived command list for ``fragment``, plus the bus-specific
     commands `message_menu` adds for a message row. Owner is `toad.menus.standard_commands`;
@@ -1216,13 +1200,13 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
         return self.held_fragment is not None
 
     def copy_block_to_clipboard(self) -> None:
-        text = _fragment_text(self.held_fragment)
+        text = self.held_fragment.body_text if self.held_fragment is not None else ""
         if text:
             self.app.copy_to_clipboard(text)
             self.app.show_info("Copied to clipboard", "Block")
 
     def copy_block_to_prompt(self) -> None:
-        text = _fragment_text(self.held_fragment)
+        text = self.held_fragment.body_text if self.held_fragment is not None else ""
         if text and hasattr(self, "composer") and hasattr(self.composer, "editor"):
             cursor = self.composer.editor.textCursor()
             cursor.insertText(text)
