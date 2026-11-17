@@ -27,6 +27,7 @@ from toad.commit_claims import (
     CommitParticipant,
     CommitSource,
     RetainedBlockClaim,
+    SnapshotPresentation,
 )
 from toad.core.projection import MroProjection
 from toad.client.history_preparation import NEWER_END
@@ -45,17 +46,6 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 
 
-
-class SnapshotPresentation(CommitParticipant):
-    source_claim: CapturedClaim = CAPTURED_CLAIM
-
-    @property
-    def committed_source(self) -> CommitSource:
-        return self.source_claim.source
-
-    @property
-    def commit_claim(self) -> CommitClaim:
-        return self.source_claim
 
 class CommitBarrier:
     """A local interactive session whose ordering cannot be replaced by a snapshot."""
