@@ -1482,6 +1482,14 @@ class QtWorkspaceViews(WorkspaceViews):
         if entry is None:
             return self.home
         view = self.views[mode] = entry(sessions)
+        # Textual's `WorkspaceViews.prepare` sets `view.id = identity` before mount;
+        # Qt was missing this, so `view.id` stayed as the opening view's `""` default
+        # and `workspace_sessions.views.get(view.id)` resolved to `None`, which made
+        # `ThreadOpening.run` short-circuit "view not in workspace" BEFORE calling
+        # `prepared.open` / `mount`. That kept the opening placeholder mounted
+        # forever (no `prepared.bind` or lifecycle swap ever ran). Assign the mode
+        # here so lookups by id round-trip through `.views`.
+        view.id = mode
         self.pages.addWidget(view)
         return view
 
@@ -1496,6 +1504,27 @@ class QtWorkspaceViews(WorkspaceViews):
     async def finish(self, view: ConversationView) -> None:
         self.pages.removeWidget(view)
         view.deleteLater()
+
+    def swap_page(self, old: SessionScope, new: SessionScope) -> None:
+        """Replace `old` with `new` in the pages stack and the views dict,
+        preserving the mode slot. Called by `QtToadApp.replace_opening_view`
+        when the opening placeholder transitions into the real bound view
+        (Qt analogue of Textual's MainScreen handling both phases on one
+        instance). The caller is responsible for setting `new.id = old.id`
+        before this runs."""
+        mode = old.mode
+        index = self.pages.indexOf(old)
+        was_current = self.pages.currentWidget() is old
+        if index >= 0:
+            self.pages.removeWidget(old)
+            self.pages.insertWidget(index, new)
+        else:
+            self.pages.addWidget(new)
+        if mode in self.views:
+            self.views[mode] = new
+        if was_current:
+            self.pages.setCurrentWidget(new)
+        old.deleteLater()
 
 
 class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
@@ -2095,6 +2124,23 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         `src/toad/app.ToadApp.make_opening_view`."""
         from toad.qt.opening_view import QtOpeningSessionView
         return QtOpeningSessionView(request.target)
+
+    def replace_opening_view(self, opening_view, prepared, identity):
+        """Qt's opening→bound lifecycle swap. Constructs a `QtMailboxView` from
+        `prepared` (thread incarnation + root + project), swaps it into
+        `QtWorkspaceViews.pages` + `.views` at the opening view's mode slot, and
+        returns the new instance so `ThreadOpening.mount` runs `prepared.bind`,
+        `bind_opened`, `_prepare_content` and `wait_content_ready` against the
+        bound-state view — the Qt analogue of Textual's MainScreen handling both
+        phases on one widget.
+
+        Lazy-imports `QtMailboxView` to keep `toad.qt.window` import-light at
+        module load, same pattern as `make_opening_view` above."""
+        from toad.qt.mailbox_view import QtMailboxView
+        bound = QtMailboxView(self, prepared.project, prepared.thread.incarnation, prepared.root)
+        bound.id = opening_view.id
+        self.workspace_sessions.swap_page(opening_view, bound)
+        return bound
 
     def visit_index(self, index: int) -> None:
         self.switch(self.session_navigation.tabs[index].mode_name, self.tab_order.record_visit)

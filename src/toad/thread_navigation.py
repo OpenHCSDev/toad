@@ -109,7 +109,15 @@ class ThreadNavigator:
         )
 
     async def mount(self, prepared: ThreadNavigation, opening: ThreadOpening) -> str:
-        view = opening.view
+        # Polymorphic opening→bound lifecycle swap. Textual's MainScreen handles
+        # both phases on the same instance so this is a no-op (returns opening.view).
+        # Qt constructs a `QtMailboxView` from the prepared tuple and swaps it into
+        # `QtWorkspaceViews.pages`+`.views` at the opening view's mode slot, so the
+        # remaining `prepared.bind(view)` + `bind_opened` + `_prepare_content` +
+        # `wait_content_ready` calls drive the bound-state view rather than the
+        # opening placeholder. Before this hook Qt left the placeholder mounted
+        # forever ("Opening …" visible until the tab was closed).
+        view = self.app.replace_opening_view(opening.view, prepared, opening.identity)
         prepared.bind(view)
         self.app.session_navigation.bind_opened(
             view,
