@@ -89,7 +89,7 @@ class ReadMarkedHistory(ReadMarking):
         self.page_source.close()
         self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation,
                                           revision=UnobservedConversation(),
-                                          fragments=self.page_source.fragments)
+                                          fragments=source.fragments)
 
     @property
     def undrawn(self) -> bool:
@@ -506,7 +506,9 @@ class WirePageBuffer(SavedHistory):
 
     loader: WireSource
 
-    work = WirePageWork
+    def read_task(self, request: PageRequest) -> WirePageWork:
+        """WireSource prepares its fragments; wire work needs no transcript renderer."""
+        return WirePageWork(self.scope, self.loader, self.through, request)
 
     def __init__(self, *args, revision: ConversationObservation, **kwargs):
         super().__init__(*args, **kwargs)
