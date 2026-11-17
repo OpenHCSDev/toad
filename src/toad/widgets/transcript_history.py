@@ -12,12 +12,7 @@ from itertools import accumulate, chain, islice
 from typing import TYPE_CHECKING, ClassVar, Final
 from weakref import ref
 
-from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.execution.transcript_sources import TranscriptCursor
-from agent_comms.messaging.sent_message import (
-    OutgoingMessageReference,
-    PublishedSentMessage,
-)
 from agent_comms.nominal.fold import Absorbs, Accumulates, Fold
 from agent_comms.transcript.transcript_events import TranscriptEvent
 from agent_comms.transcript.transcripts import TranscriptPage
@@ -42,13 +37,9 @@ from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
-from toad.client.history_coverage import (
-    CoveredHistory,
-    HistoryCoverage,
-    ReportsCoveredPages,
-)
+from toad.client.history_coverage import ReportsCoveredPages
+from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_pager import ConversationPager, DrawsBusMessages, HistoryPager, NativePager
-from toad.commit_claims import CommitClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.frame_presentation import ARRIVAL, ArrivalRun
 from toad.entry_placement import EntryPlacement
@@ -81,7 +72,6 @@ from toad.client.history_state import (
     TranscriptState,
 )
 from toad.widget_actions import Activates
-from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.history_anchor import HistoryWindow
 from toad.client.reader_position import (
     FragmentLocation,
@@ -920,78 +910,11 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             page.arrivals.clear()
 
 
-class CommittedHistory(LineHistory, SnapshotPresentation, CoveredHistory[PreparedPageSource]):
-    """A saved source block that precedes the conversation's live tail."""
-
-    conversation_order = 0
-
-    def prepare_post(self, placement: EntryPlacement) -> None:
-        self.conversation_order = placement.live_order - 1
-
-    @property
-    def commit_claim(self) -> CommitClaim:
-        return self.page_source.commit_claim
-
-    def accepts_commit(self, cursor: TranscriptCursor) -> bool:
-        return self.page_source.accepts_commit(cursor)
-
-    def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
-        return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
-
-    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
-        return message.reference in self.outgoing_coverage
-
-    @property
-    def coverage(self) -> HistoryCoverage:
-        return self._source_state.coverage
-
-    def source_resumed(self) -> None:
-        self.coverage.publish(self)
-
-    def publish_committed(self) -> None:
-        """Acquire source ownership now; report coverage after its first painted frame."""
-        self._source_state = self._source_state.publish()
-        self.call_after_refresh(self.publish_coverage)
-        self.request_preparation()
-
-    def publish_coverage(self) -> None:
-        self.coverage.publish(self)
-
-    @property
-    def coverage_events(self) -> Iterator[TranscriptEvent]:
-        return (event for page in self.pages for event in page.prepared.page.events)
-
-    @property
-    def source_through(self) -> TranscriptCursor:
-        return self.page_source.through
-
-    def covered_outgoing(self) -> frozenset[OutgoingMessageReference]:
-        return frozenset(reference for page in self.pages
-                         for reference in page.prepared.outgoing_coverage
-                         ) | self.filter.overlay.outgoing_coverage
-
-    def overlay_covers_incoming(self, sequence: int) -> bool:
-        return self.filter.overlay.covers_incoming(sequence)
-
-    def publish_covered(self) -> None:
-        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
-
-    @property
-    def outgoing_coverage(self):
-        return self.coverage.outgoing(self)
-
-    def covers_incoming(self, sequence: int) -> bool:
-        return self.coverage.covers_incoming(self, sequence)
-
-    def covers_input(self, started: InputStartedUpdate) -> bool:
-        """Whether the loaded saved pages hold the input Core started under this identity."""
-        return self.coverage.covers_input(self, started)
-
-    def retain_committed(self, through: TranscriptCursor) -> None:
-        """Extend access to saved source without moving the displayed page window."""
-        if not self.accepts_commit(through):
-            raise ValueError("Commit replaces or rewinds the retained source")
-        self.extend_source(through)
+class CommittedHistory(LineHistory, CommittedHistoryBase):
+    """A saved source block that precedes the conversation's live tail. The behaviour body
+    is on `client/committed_history.py:CommittedHistoryBase`; this class pairs it with
+    Textual's `LineHistory` so TUI gets Textual-widget bases alongside the shared body.
+    Qt's `qt/history.py:QtTranscriptHistory` is the parallel pairing on the Qt side."""
 
 class ConversationHistory[ViewT: "Conversation"](LineHistory, ConversationPager):
     """A conversation owns its source binding and initial history state."""

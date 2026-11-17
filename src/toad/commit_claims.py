@@ -201,3 +201,20 @@ class CommitBarrierClaim(RetainedBlockClaim):
 
 CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
+
+
+class SnapshotPresentation(CommitParticipant):
+    """A presentation whose claim is a capturable source. Toolkit-neutral: the Textual
+    `widgets.committed_presentation.SnapshotPresentation` re-exports this so existing
+    callers keep their import path, and the shared `client.committed_history.CommittedHistoryBase`
+    inherits it without pulling Textual into the client layer."""
+
+    source_claim: CapturedClaim = CAPTURED_CLAIM
+
+    @property
+    def committed_source(self) -> CommitSource:
+        return self.source_claim.source
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return self.source_claim
