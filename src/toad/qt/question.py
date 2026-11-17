@@ -6,9 +6,10 @@ and option rows, and the user's pick fires the `Answer` back. The Qt backend han
 Ask to this widget, mounted as the conversation view's bottom-dock over the composer.
 
 `QuestionContext` is the toolkit-neutral owner (plain mixin in `toad/question_actions.py`);
-`QuestionAction` and its `SelectKindAction` family define the keys, groups and `apply()`
-bodies both backends share. Qt binds the option-kind keys (``a``/``A``/``r``/``R``) through
-``QShortcut`` so the action family's selected-option-by-kind flow works here too.
+`QuestionAction` and its `SelectKindAction` family declare the keys and `apply()` bodies both
+backends share. Qt iterates the family through `bind_action_shortcuts(SelectKindAction)` —
+every `AllowOnceAction` / `AllowAlwaysAction` / `RejectOnceAction` / `RejectAlwaysAction`
+member fires on its own declared key, same as Textual, with no hand-rolled roster here.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QShortcut
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -27,7 +28,8 @@ from PySide6.QtWidgets import (
 )
 
 from toad.answer import Answer
-from toad.question_actions import QuestionContext
+from toad.qt.action_shortcuts import bind_action_shortcuts
+from toad.question_actions import QuestionContext, SelectKindAction
 from toad.widget_contracts import DismissibleContract
 
 if TYPE_CHECKING:
@@ -67,6 +69,31 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
         """The `QuestionContext` contract. The Qt widget is its own question owner."""
         return self
 
+    @property
+    def options(self) -> tuple[Answer, ...]:
+        """`QuestionContext` contract — the Ask's options or an empty tuple when retracted.
+        `SelectKindAction.available` reads this through `context.question.options`."""
+        return tuple(self._ask.options) if self._ask is not None else ()
+
+    @property
+    def accepts_selection(self) -> bool:
+        """`QuestionContext` contract — true while an Ask is unresolved."""
+        return self._ask is not None
+
+    @property
+    def selection(self) -> int:
+        """The currently-focused option's index. `SelectAction` (Enter) commits this one."""
+        for index, button in enumerate(self._buttons):
+            if button.hasFocus():
+                return index
+        return 0
+
+    def select_answer(self, index: int) -> None:
+        """`QuestionContext` contract — commit the option at `index`. Qt's commit path is
+        just `_pick`: fire the Ask's callback and retract. `SelectKindAction.apply` reaches
+        here through the declared-key family, same as Textual's post_message path."""
+        self._pick(index)
+
     def update(self, ask: Ask) -> None:
         """Fill in a new question. Called by ConversationView.ask when the conversation asks."""
         self._clear_options()
@@ -80,7 +107,13 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
             button.clicked.connect(lambda _checked=False, idx=index: self._pick(idx))
             self._buttons.append(button)
             self._options_row.addWidget(button)
-        self._bind_kind_shortcuts()
+        # Declared-key family: every SelectKindAction member (AllowOnceAction / AllowAlwaysAction
+        # / RejectOnceAction / RejectAlwaysAction) binds its own TextEntryMode keys; `available`
+        # silently skips the kinds this Ask doesn't offer. Same source of truth as Textual.
+        self._shortcuts = bind_action_shortcuts(
+            self, SelectKindAction, self,
+            scope=Qt.ShortcutContext.WindowShortcut,
+        )
         self.show()
         if self._buttons:
             self._buttons[0].setFocus()
@@ -106,26 +139,6 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
             shortcut.setEnabled(False)
             shortcut.deleteLater()
         self._shortcuts.clear()
-
-    def _bind_kind_shortcuts(self) -> None:
-        """AllowOnce/AllowAlways/RejectOnce/RejectAlways keys. Matches the `SelectKindAction`
-        family's declared TextEntryMode keys (a/A/r/R) in `toad/question_actions.py`."""
-        if self._ask is None:
-            return
-        for key_text, kind in (("A", "allow_once"),
-                               ("Shift+A", "allow_always"),
-                               ("R", "reject_once"),
-                               ("Shift+R", "reject_always")):
-            match = next(
-                (index for index, answer in enumerate(self._ask.options) if answer.kind == kind),
-                None,
-            )
-            if match is None:
-                continue
-            shortcut = QShortcut(QKeySequence(key_text), self)
-            shortcut.setContext(Qt.ShortcutContext.WindowShortcut)
-            shortcut.activated.connect(lambda idx=match: self._pick(idx))
-            self._shortcuts.append(shortcut)
 
     def _pick(self, index: int) -> None:
         if self._ask is None or index < 0 or index >= len(self._ask.options):
