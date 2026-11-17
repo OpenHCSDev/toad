@@ -141,17 +141,20 @@ def _install_excepthook() -> None:
 
 def main() -> None:
     _install_excepthook()
-    # Diagnostic: Qt-for-Android's eglSurface() deadlock protector trips when
-    # Python re-enters widget show/move/update inside a paint. Ask Qt to log its
-    # backing-store + GL + window setup so logcat records the sequence that
-    # leads to the fatal, and patch QWidget methods with a reentry guard.
+    # Qt-for-Android's accessibility bridge (QtAndroidAccessibility::runInObjectContext)
+    # holds the EGL deadlock-protector mutex at the same time the main loop tries to
+    # acquire it for QAndroidPlatformOpenGLWindow::eglSurface() during first paint
+    # flush, so the protector aborts (SIGABRT). Pixel 8a's accessibility service
+    # probes the window on launcher-tap even with TalkBack off — enough to engage
+    # the bridge in the critical window. Toad has no accessibility consumers; drop
+    # the bridge before QApplication binds it.
+    os.environ.setdefault("QT_ANDROID_DISABLE_ACCESSIBILITY", "1")
+    os.environ.setdefault("QT_ACCESSIBILITY", "0")
     os.environ.setdefault(
         "QT_LOGGING_RULES",
         "qt.qpa.*=true;qt.qpa.backingstore=true;qt.qpa.gl=true;qt.qpa.androidsurface=true",
     )
     application = QApplication(sys.argv[:1])
-    from toad.qt.paint_reentry_guard import install as _install_paint_reentry_guard
-    _install_paint_reentry_guard()
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()
