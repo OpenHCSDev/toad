@@ -25,6 +25,7 @@ overflow rather than widening the window.
 from __future__ import annotations
 
 from functools import partial
+from pathlib import Path
 
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from formbridge.widgets.sidebar import QtPlacementControl, SidebarPane, SidebarToggle
@@ -33,6 +34,7 @@ from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea
                                QVBoxLayout, QWidget)
 
 from toad.qt.coordination_panel import QtCoordinationStatus
+from toad.qt.project_panel import QtProjectPanel
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
@@ -121,7 +123,8 @@ class ThreadSettingsPane(QWidget):
     receive the same view and present its own content.
     """
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None, *,
+                 project_path: Path | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         outer = QVBoxLayout(self)
@@ -139,6 +142,10 @@ class ThreadSettingsPane(QWidget):
         self._category_filter = _CategoryFilter(self._content)
         self._coordination_status = QtCoordinationStatus(self._content)
         self._comms_panel = QtThreadCommsPanel(self._content)
+        self._project_panel: QtProjectPanel | None = (
+            QtProjectPanel(project_path, parent=self._content)
+            if project_path is not None else None
+        )
         self._section_bodies: dict[str, QWidget] = {}
         # The session view is the default; a conversation / DM tab trims the roster via
         # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
@@ -151,14 +158,21 @@ class ThreadSettingsPane(QWidget):
             body = self._panel_body(spec, section)
             section_layout.addWidget(body)
             self._section_bodies[spec.key] = body
-            column.addWidget(section)
+            # A spec that declares flex=True fills the remaining vertical space
+            # (Textual reads the same flag from the shared roster); without a
+            # stretch factor QVBoxLayout would hand it only its sizeHint.
+            column.addWidget(section, 1 if spec.flex else 0)
         self._categories_section = QGroupBox("Message categories", self._content)
         categories_layout = QVBoxLayout(self._categories_section)
         categories_layout.setContentsMargins(0, 2, 0, 2)
         categories_layout.setSpacing(0)
         categories_layout.addWidget(self._category_filter)
         column.addWidget(self._categories_section)
-        column.addStretch(1)
+        # Add a terminal stretch only when nothing above already stretches, so a
+        # flex=True section (Project) can fill the pane without a competing
+        # empty stretch below taking half the space.
+        if not any(spec.flex for spec in panel_specs_for_view(is_session=True)):
+            column.addStretch(1)
         scroll.setWidget(self._content)
 
     def _panel_body(self, spec: ThreadSidebarPanelSpec, parent: QWidget) -> QWidget:
@@ -166,6 +180,8 @@ class ThreadSettingsPane(QWidget):
         unported ones fall through to `_placeholder_body`."""
         if spec.key == "coordination":
             return self._coordination_status
+        if spec.key == "project" and self._project_panel is not None:
+            return self._project_panel
         return _placeholder_body(spec, parent)
 
     def bind(self, view) -> None:
