@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
+from toad.client.context_intent import ContextTreeIntent
 from agent_comms.coordination.coordinator import Coordination
 from agent_comms.coordination.errors import Refused
 from metaclass_registry.mro_dispatch import handles
@@ -44,38 +43,9 @@ if TYPE_CHECKING:
     from agent_comms.working_memory.working_memory_questions import SpanAnswer
 
 
-@dataclass
-class ContextTreeIntent:
-    """Detail selection and initial disclosures survive widget retirement.
-
-    The mounted Tree owns navigation; selected is the detail source, not its cursor.
-    """
-
-    expanded: set[str] = field(default_factory=set)
-    selected: ContextNode | None = None
-    query: str = ""
-    cursor: ContextManifestCursor = LATEST_CONTEXT
-
-    def select_page(self, cursor: ContextManifestCursor) -> None:
-        self.cursor = cursor
-        self.selected = None
-
-    def search_current(self, query: str, selected):
-        return self.query == query and self.selected is selected
-
-    def rebind(self, original: ContextNode, model: ContextNode) -> None:
-        if self.selected is original:
-            self.selected = model
-
-    def restore_detail(self, resolve, show_detail: Callable[[ContextNode], Worker[None]]) -> bool:
-        if self.selected is None:
-            return False
-        node = resolve(self.selected.key)
-        if node is None:
-            return False
-        self.selected = node.data
-        show_detail(self.selected)
-        return True
+# `ContextTreeIntent` is defined in `toad.client.context_intent` so Qt's
+# `QtContextExplorer` and this Textual widget share the per-thread intent store
+# instead of each owning a copy.
 
 
 class ContextReadWork(WorkerGroup):

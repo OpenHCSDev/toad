@@ -32,11 +32,13 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea,
                                QVBoxLayout, QWidget)
 
+from toad.client.context_intent import ContextTreeIntent
+from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
-from toad.thread_identity import NoThreadIdentity
+from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.thread_sidebar_declarations import (
     THREAD_SIDEBAR_PANELS, ThreadSidebarPanelSpec, panel_specs_for_view,
 )
@@ -143,6 +145,10 @@ class ThreadSettingsPane(QWidget):
         # The session view is the default; a conversation / DM tab trims the roster via
         # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
         # Comms; session view adds Plan, Project, Context.
+        # Shared per-thread context intents — survives widget retirement, matches
+        # Textual's `ContextSessionPanel.intents`.
+        self._context_intents: dict[SessionIdentity, ContextTreeIntent] = {}
+        self._context_panel = QtContextExplorer(self._context_intents, self._content)
         for spec in panel_specs_for_view(is_session=True):
             section = QGroupBox(spec.heading, self._content)
             section_layout = QVBoxLayout(section)
@@ -170,19 +176,23 @@ class ThreadSettingsPane(QWidget):
             return self._comms_panel
         if spec.key == "plan":
             return self._plan_panel
+        if spec.key == "context":
+            return self._context_panel
         return _placeholder_body(spec, parent)
 
     def bind(self, view) -> None:
         """Follow the conversation the tab now shows; the welcome has none, so the toggles
         go quiet. Panels that read / write the view receive it here; today the category
-        filter, coordination status, comms panel and plan panel do so; future ports
-        (Project / Context) will receive it through the same hook."""
+        filter, coordination status, comms panel, plan panel and context explorer do so;
+        the Project panel port is the only one still pending this hook."""
         self._category_filter.bind(view)
         identity = getattr(view, "thread_identity", None) or NoThreadIdentity()
         self._coordination_status.apply(identity)
         self._comms_panel.bind(view)
         self._plan_panel.bind(view)
+        self._context_panel.bind(view)
 
     def present(self) -> None:
         self._category_filter.present()
         self._comms_panel.present()
+        self._context_panel.present()
