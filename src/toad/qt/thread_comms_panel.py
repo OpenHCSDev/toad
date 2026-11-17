@@ -140,8 +140,7 @@ class QtThreadCommsPanel(QWidget):
     def _thread_identity(self) -> SessionIdentity:
         if self._view is None:
             return NoThreadIdentity()
-        identity = getattr(self._view, "thread_identity", None)
-        return identity if identity is not None else NoThreadIdentity()
+        return self._view.thread_identity
 
     @property
     def _state(self) -> RelationshipTreeState:
