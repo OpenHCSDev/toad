@@ -1574,12 +1574,11 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.thread_pane.bind(selected if self._conversation_open() else None)
 
     def _target_layout(self, placement: SidebarPlacement):
-        """Where a pane goes for its placement: the float layer (QVBoxLayout), or the dock on
-        its edge (QHBoxLayout). The family's four edges each have their own dock, so a move
-        the arrows allow lands where it says."""
-        if placement.floating:
-            return self._float_layout
-        return self._docks[placement.side.dock].layout()
+        """Where a pane goes for its placement: the arrangement names its dock by key, or
+        None for a floating pane that joins the float layer. No branch on `floating` /
+        `side.dock` here — the PlacementArrangement family answers directly."""
+        key = placement.arrangement.dock_key(placement.side)
+        return self._float_layout if key is None else self._docks[key].layout()
 
     def _empty(self, layout) -> None:
         # Park widgets on self (QtToadApp) rather than orphaning them. Qt-for-Android gives
@@ -1619,10 +1618,12 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
                 bar.hide()
                 continue
             placement = self.sidebar_layout.get(identity)
-            # Toggle bar and pane go in the same container; the bar sits on the workspace-wall
-            # side of the pane. Leading edges (left, top) → bar first; trailing edges (right,
-            # bottom) → bar after. The float layer always puts the bar at the top.
-            bar_first = placement.floating or placement.side.sign == 1
+            # The PlacementArrangement family (DockedPlacementArrangement for docked,
+            # FloatingPlacementArrangement for floating) answers bar-first and axis
+            # polymorphically — no `placement.floating or placement.side.sign == 1`
+            # branch in window code.
+            arrangement = placement.arrangement
+            bar_first = arrangement.bar_first(placement.side)
             target = self._target_layout(placement)
             bar.show()
             if self.pane_open(identity):
@@ -1642,15 +1643,15 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # so the inter-widget spacing between center and docks goes stale until the next
         # resize event. Textual does not share this quirk — it uses TCSS, not a Qt grid.
         self.center.layout().invalidate()
-        """Add this sidebar's (bar, pane) pair to its dock's horizontal sidebar line. On a
-        'row' edge (left/right) the pair joins the line directly so the bar and pane become
-        adjacent columns within the dock. On a 'column' edge (top/bottom) the pair is
-        wrapped in a QVBoxLayout first so the pair stacks vertically inside a cell of the
-        dock's horizontal line of sidebars."""
+
+    def _arrange_sidebar(self, target, placement, bar, pane, *, bar_first: bool) -> None:
+        """Add this sidebar's (bar, pane) pair to its target container. The arrangement
+        answers the pane/bar axis polymorphically — 'row' means the pair joins the line
+        directly (adjacent columns within the dock), 'column' means wrap in a QVBoxLayout
+        first (pair stacks vertically inside a cell). A FloatingPlacementArrangement
+        answers 'column' regardless of the side it normally occupies."""
         widgets = (bar,) if pane is None else ((bar, pane) if bar_first else (pane, bar))
-        # A floating pane sits on the float_layer's own vertical overlay — always a column
-        # of bar above pane regardless of which edge the pane normally occupies.
-        axis = "column" if placement.floating else placement.side.pane_bar_axis()
+        axis = placement.arrangement.pane_bar_axis(placement.side)
         if axis == "row":
             for widget in widgets:
                 target.addWidget(widget)

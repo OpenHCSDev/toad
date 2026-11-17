@@ -138,6 +138,9 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
 class LeadingSidebarEdge:
     sign = 1
+    bar_leading: ClassVar[bool] = True
+    """Leading edges (left, top) put the bar on the workspace-wall side of the pane: the
+    bar is placed FIRST in the dock's sidebar line so it ends up against the wall."""
 
     @classmethod
     def origin(cls, viewport: int, offset: int, extent: int) -> int:
@@ -146,6 +149,9 @@ class LeadingSidebarEdge:
 
 class TrailingSidebarEdge:
     sign = -1
+    bar_leading: ClassVar[bool] = False
+    """Trailing edges (right, bottom) put the bar on the workspace-wall side of the pane:
+    the bar is placed AFTER the pane so it ends up against the wall."""
 
     @classmethod
     def origin(cls, viewport: int, offset: int, extent: int) -> int:
@@ -406,6 +412,15 @@ class SidebarPlacement(DeclaredFamily, affix="SidebarPlacement"):
         """What the bar's toggle names, given the titles of the tabs being viewed: its scope."""
         return cls.scope
 
+    @property
+    def arrangement(self) -> type[PlacementArrangement]:
+        """Which PlacementArrangement family member answers layout questions for this
+        placement — a DockedPlacementArrangement when docked, FloatingPlacementArrangement
+        when floating. Callers delegate every layout branch (which dock to join, whether
+        the bar leads the pane, what axis the pane/bar pair takes) through the arrangement
+        instead of inspecting ``floating`` / ``side.sign`` / ``side.dock`` directly."""
+        return FloatingPlacementArrangement if self.floating else DockedPlacementArrangement
+
 
 class ActiveSidebarPlacement(SidebarPlacement, declared_name=None):
     """The sidebar roles a current view can actually own."""
@@ -431,6 +446,66 @@ class ThreadSidebarPlacement(ActiveSidebarPlacement):
 
 class ObjectSidebarPlacement(SidebarPlacement):
     """Read already-saved third-bar positions; no current view owns this role."""
+
+
+class PlacementArrangement(DeclaredFamily, affix="PlacementArrangement"):
+    """How a sidebar's pane and its toggle bar arrange themselves in the window chrome: a
+    pane either docks into one of the edge-named docks (DockedPlacementArrangement) or
+    floats over the conversation on the float layer (FloatingPlacementArrangement). Both
+    frontends read these answers through the same family, so no window code branches on
+    ``placement.floating`` or ``placement.side.sign`` — the arrangement answers directly."""
+
+    @classmethod
+    @abstractmethod
+    def dock_key(cls, side: type[SidebarEdge]) -> str | None:
+        """The host key naming the dock this arrangement puts the pane into, or ``None``
+        for a floating arrangement that joins the float layer instead."""
+
+    @classmethod
+    @abstractmethod
+    def bar_first(cls, side: type[SidebarEdge]) -> bool:
+        """Whether the toggle bar leads the pane along its container (``[bar, pane]``
+        rather than ``[pane, bar]``)."""
+
+    @classmethod
+    @abstractmethod
+    def pane_bar_axis(cls, side: type[SidebarEdge]) -> str:
+        """How pane and bar stack inside their sidebar group: ``'row'`` (side-by-side) or
+        ``'column'`` (stacked vertically)."""
+
+
+class DockedPlacementArrangement(PlacementArrangement):
+    """A pane docked on its edge's dock, next to the other sidebars sharing that edge."""
+
+    @classmethod
+    def dock_key(cls, side: type[SidebarEdge]) -> str | None:
+        return side.dock
+
+    @classmethod
+    def bar_first(cls, side: type[SidebarEdge]) -> bool:
+        return side.bar_leading
+
+    @classmethod
+    def pane_bar_axis(cls, side: type[SidebarEdge]) -> str:
+        return side.pane_bar_axis()
+
+
+class FloatingPlacementArrangement(PlacementArrangement):
+    """A pane floating over the conversation on the float layer: the pair is always a
+    vertical column (bar above pane) regardless of the side the placement normally occupies,
+    because the float overlay is itself a single column at the bottom of the conversation."""
+
+    @classmethod
+    def dock_key(cls, side: type[SidebarEdge]) -> str | None:
+        return None
+
+    @classmethod
+    def bar_first(cls, side: type[SidebarEdge]) -> bool:
+        return True
+
+    @classmethod
+    def pane_bar_axis(cls, side: type[SidebarEdge]) -> str:
+        return "column"
 
 
 @dataclass
