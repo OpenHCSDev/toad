@@ -150,8 +150,14 @@ def main() -> None:
     # it tries to introspect one, so don't install a factory at all.
     try:
         QAccessible.setActive(False)
-    except Exception:
-        pass
+    except Exception as error:
+        # Keep launch alive — the env vars above are the primary disable path —
+        # but surface the setActive failure to logcat so a future
+        # accessibility-bridge deadlock has a breadcrumb instead of a silent
+        # no-op. `print(..., file=sys.stderr)` reaches Android's logcat via
+        # python-for-android's stdio redirector.
+        print(f"QAccessible.setActive(False) failed; env vars handle fallback: {error}",
+              file=sys.stderr)
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()
