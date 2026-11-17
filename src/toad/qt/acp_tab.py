@@ -47,6 +47,7 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.client.transcript_history_contract import TranscriptHistoryContract
 from toad.core import input_events
 from toad.launch_binding import AgentBinding
+from toad.qt.agent_activity import QtAgentActivity
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.history import QT_FRAGMENT_CLASSES, QtHistoryWindow
@@ -209,6 +210,12 @@ class QtAcpSessionView(
         # Textual's `compose` + mount lifecycle.
         self.transcript = TranscriptPresentation()
         self.message_history = QtTranscriptHistory(self.messages, self, app)
+        # Activity sweep above the transcript — Qt sibling of Textual's
+        # `Conversation.throbber_above = AboveThrobber(self.working)` at
+        # `widgets/conversation.py:690`. Reads the same shared `TurnOwner.busy` via a
+        # `ConversationTurn` and animates the shared `ACTIVITY_SWEEP` ribbon. One owner
+        # (`agent_binding.presentation.turns`), two renderers.
+        self.agent_activity = QtAgentActivity(self, app.renderer)
         # Layout: an identity line on top, the history below, the composer at the bottom.
         self.identity_line = ElidedLine(f"ACP session #{session_pk}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -228,6 +235,7 @@ class QtAcpSessionView(
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(info)
+        layout.addWidget(self.agent_activity)
         layout.addWidget(self.messages, 1)
         self._composer_layout = layout
         QTimer.singleShot(0, lambda: self._mount_composer(app))
