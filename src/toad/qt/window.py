@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLineEdit,
+    QPushButton,
     QSizePolicy,
     QStackedWidget,
     QToolButton,
@@ -55,7 +56,7 @@ from toad.qt.workspace_frame import QtWorkspaceFrame
 from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
-from toad.client.application_actions import ApplicationAction
+from toad.client.application_actions import ApplicationAction, NewSessionAction
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
     BusChoice,
@@ -512,6 +513,26 @@ class QtWelcomeOrigin(ProjectSessionOrigin):
         )
 
 
+class QtNewSessionButton(QPushButton):
+    """Qt's New Session button on the welcome: fires the shared
+    `NewSessionAction` so this frontend starts a session the same way Textual's
+    `StartSessionButton` and the welcome's `n` key do. The action owner lives on
+    `toad.client.application_actions.NewSessionAction`; the button holds no
+    policy of its own."""
+
+    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__("New session", parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
+        self.setMinimumHeight(40)
+        self._host = window
+        self.clicked.connect(self._fire)
+
+    def _fire(self) -> None:
+        self._host.run_operation(
+            MenuActionRun, partial(NewSessionAction().apply, self._host)
+        )
+
+
 class Welcome(Page, BusListing, QWidget):
     """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
     has not opened: the banner, the project, the channels and threads the shared welcome
@@ -530,6 +551,7 @@ class Welcome(Page, BusListing, QWidget):
         self.project = BusLabel(window)
         self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.project.setStyleSheet(window.renderer.color_style(MutedRole))
+        self.new_session_button = QtNewSessionButton(window, parent=self)
         self.rows = ConversationRows(window)
         self.held_menu = HeldRowMenu(self)
         self.address = BusAddress(window)
@@ -537,6 +559,8 @@ class Welcome(Page, BusListing, QWidget):
         layout.addSpacing(24)
         layout.addWidget(self.banner)
         layout.addWidget(self.project)
+        layout.addSpacing(8)
+        layout.addWidget(self.new_session_button)
         layout.addSpacing(12)
         layout.addWidget(self.rows, 1)
         layout.addWidget(self.address)
