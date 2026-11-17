@@ -536,16 +536,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         self.filter = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
-    async def park_document(self) -> PreparedPageSource:
-        """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
-        await self.retire_source(parked=True)
-        source = self.page_source
-        projected = await self.filter.overlay.park_document()
-        pages = tuple(page.prepared for page in self.pages)
-        await source.runtime.run_thread(source.measure_held, pages, projected)
-        source.park(pages, projected)
-        return source
-
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
         self.page_source.release_held()

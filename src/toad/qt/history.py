@@ -251,12 +251,20 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self._read_ahead: asyncio.Task | NoTask = NoTask()
         prepared = self.empty_page()
         super().__init__(source_state=LiveTranscript(),
-                         page_source=ClosedHistory(prepared.page.after, app.preparation))
+                         page_source=self._initial_page_source(prepared, app))
         self.budget = self.DEFAULT_BUDGET
         self._fragment_budget = self.budget.max_items
         self.pages = deque([QtPage(prepared, self)])
         self.filter = FilterState.for_selection(self)
         window.history = self
+
+    def _initial_page_source(self, prepared, app):
+        """The page source this history binds at construction. `QtConversationHistory`
+        starts closed — the shared pager replaces this through `initialize_source` when a
+        wire source lands. Overridden by `QtTranscriptHistory` to bind a `SavedTranscript`
+        over the view's `TranscriptPresentation`, so tool-call/sent/chunk events feed the
+        history without waiting for a wire bind that never arrives on the ACP tab."""
+        return ClosedHistory(prepared.page.after, app.preparation)
 
     # Where the pager draws
 
