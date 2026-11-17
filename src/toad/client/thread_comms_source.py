@@ -2,7 +2,7 @@
 
 from agent_comms.display_order import ThreadSort
 from agent_comms.registry.relationships import ThreadCommsSnapshot
-from agent_comms.registry.relationship_store import SortableRelationshipGroup
+from agent_comms.registry.relationships import SortableRelationshipGroup
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsSetRelationshipOrderTool,
