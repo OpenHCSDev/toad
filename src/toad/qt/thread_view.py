@@ -35,6 +35,7 @@ from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.transcript_history_contract import TranscriptHistoryContract
 from toad.qt.agent_activity import QtAgentActivity
 from toad.qt.bound_view import QtBoundViewHost
+from toad.qt.goal import QtGoalBar
 from toad.qt.history import QtHistoryWindow
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.qt.page import Page
@@ -166,6 +167,29 @@ class QtThreadView(
         # even when `transcript.binding.thread_scope` resolved to the real
         # `KnownTranscript`.
         QTimer.singleShot(0, self._start_transcript_source)
+
+    def _mount_goal_bar(self, app: "QtToadApp", incarnation) -> QtGoalBar | None:
+        """Construct the goal strip that sits above the chat on the TUI.
+
+        The subclass passes the `ThreadIncarnation` the view is bound to (mailbox
+        carries one as an `__init__` arg; ACP reads
+        `self._agent_binding.initial_identity(...).optional_thread_incarnation()`).
+        `None` means this view has no managed-thread goal to show, and the goal
+        bar is skipped — a polymorphic branch through
+        `SessionIdentity.optional_thread_incarnation`, not an `isinstance` guard.
+
+        Returns the widget for the subclass to place in its own layout slot
+        (ACP: above the composer; mailbox: above `self.agent_activity`).
+
+        The bar drives its own visibility through `present_state → setVisible`
+        off the thread's `GoalDisplay`: when the goal is unset it takes no
+        layout space, matching Textual's `ComposedWhenShown` goal bar.
+        """
+        if incarnation is None:
+            self.goal_bar = None
+            return None
+        self.goal_bar = QtGoalBar(app, app.renderer, incarnation)
+        return self.goal_bar
 
     def _start_transcript_source(self) -> None:
         """Deferred transcript source start: fires on the next Qt event-loop tick,
