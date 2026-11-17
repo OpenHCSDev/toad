@@ -48,6 +48,7 @@ from toad.qt.host import ScreenWideWindow
 from toad.qt.lines import QtLineRenderer
 from toad.session_observation import GoalObservation
 from toad.core.events import ThreadRowsChanged
+from toad.widget_contracts import DismissibleContract, SubmitsContract
 
 
 class GoalPress(OperationKind):
@@ -238,8 +239,10 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
         self.standby.setText(text)
 
 
-class QtGoalHistory(ScreenWideWindow, QDialog):
+class QtGoalHistory(ScreenWideWindow, QDialog, DismissibleContract):
     """The goal's revisions and failed attempts, listed as the TUI's GoalDetails lists them."""
+
+    dismiss_control = QDialog.reject
 
     def __init__(self, bar: QtGoalBar, page: GoalHistoryPage) -> None:
         super().__init__(bar.window())
@@ -268,8 +271,13 @@ class QtGoalHistory(ScreenWideWindow, QDialog):
         self.fit_screen()
 
 
-class QtGoalEdit(ScreenWideWindow, QDialog):
+class QtGoalEdit(ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract):
     """The goal's objective in an editor; Save writes it through the session's settle-by-read."""
+
+    dismiss_control = QDialog.reject
+
+    def submit(self) -> None:
+        self.save()
 
     def __init__(self, bar: QtGoalBar, session: QtGoalSession, goal) -> None:
         super().__init__(bar.window())

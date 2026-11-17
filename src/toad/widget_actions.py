@@ -28,6 +28,13 @@ from textual.widgets.text_area import EditingMode
 
 from toad.app_node import ToadNode
 from toad.client.application_actions import ApplicationAction, DeclaredAction, ReplacesFrameworkAction
+from toad.widget_contracts import (
+    ActivatesContract,
+    DismissibleContract,
+    OpensSelectedContract,
+    SelectsContract,
+    SubmitsContract,
+)
 
 
 Context = TypeVar("Context", bound=DOMNode)
@@ -336,10 +343,8 @@ class Dismisses(DeclaredWidgetActions, actions=(DismissAction,)):
     """The shared Escape binding."""
 
 
-class DismissibleControl(Dismisses):
-    @abstractmethod
-    def dismiss_control(self) -> None:
-        """Close this control without imposing a native screen result contract."""
+class DismissibleControl(DismissibleContract, Dismisses):
+    """Textual control inheriting the dismiss contract and Textual's Escape binding."""
 
 
 class StepsHorizontalCursor(MovesHorizontalCursor):
@@ -382,22 +387,16 @@ class ForwardsCursor(MovesCursor):
         self.cursor_owner.action_cursor_down()
 
 
-class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):
-
-    @abstractmethod
-    def submit(self) -> None: ...
+class Submits(SubmitsContract, DeclaredWidgetActions, actions=(SubmitAction,)):
+    """Textual control inheriting the submit contract and the submit binding."""
 
 
-class Selects(DeclaredWidgetActions, actions=(SelectAction,)):
-
-    @abstractmethod
-    def select(self) -> None: ...
+class Selects(SelectsContract, DeclaredWidgetActions, actions=(SelectAction,)):
+    """Textual control inheriting the select contract and the select binding."""
 
 
-class OpensSelected(DeclaredWidgetActions, actions=(OpenSelectedAction,)):
-
-    @abstractmethod
-    def open_selected(self) -> None: ...
+class OpensSelected(OpensSelectedContract, DeclaredWidgetActions, actions=(OpenSelectedAction,)):
+    """Textual control inheriting the open-selected contract and its binding."""
 
 
 class ActivationKeys(PrimaryActivation, DeclaredWidgetActions, actions=(ActivateAction,)):
@@ -412,7 +411,7 @@ class ActivationKeys(PrimaryActivation, DeclaredWidgetActions, actions=(Activate
             await invoke(self.primary_activation)
 
 
-class Activates(ActivationKeys):
+class Activates(ActivatesContract, ActivationKeys):
     """A control whose primary effect is its own activate method."""
 
     @property
