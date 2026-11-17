@@ -146,7 +146,9 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
         self.objective = WrappedText()
         self.progress = WrappedText()
         self.progress.setStyleSheet(muted)
-        self.document = QWidget()
+        # Parent self so the document stays a child from creation, not a top-level QWindow
+        # on Qt-for-Android (prevents the EGL deadlock protector shape PR #1885 fixed).
+        self.document = QWidget(self)
         document = QVBoxLayout(self.document)
         document.setContentsMargins(0, 0, 0, 0)
         document.addWidget(self.objective)
@@ -247,7 +249,7 @@ class QtGoalHistory(ScreenWideWindow, QDialog, DismissibleContract):
     def __init__(self, bar: QtGoalBar, page: GoalHistoryPage) -> None:
         super().__init__(bar.window())
         self.setWindowTitle("Goal history")
-        body = QWidget()
+        body = QWidget(self)
         lines = QVBoxLayout(body)
         lines.addWidget(WrappedText("Revision history"))
         for revision in page.revisions():
@@ -260,10 +262,10 @@ class QtGoalHistory(ScreenWideWindow, QDialog, DismissibleContract):
             for failure in failures:
                 lines.addWidget(WrappedText(failure))
         lines.addStretch(1)
-        scroll = QScrollArea()
+        scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
         scroll.setWidget(body)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close, parent=self)
         buttons.rejected.connect(self.reject)
         layout = QVBoxLayout(self)
         layout.addWidget(scroll, 1)

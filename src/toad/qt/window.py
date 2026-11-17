@@ -1180,7 +1180,12 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
         self.left_dock, self.right_dock = self._dock(), self._dock()
         self._docks = {"top": self.top_dock, "bottom": self.bottom_dock,
                        "left": self.left_dock, "right": self.right_dock}
-        self.center = QWidget()
+        # Parent arg is load-bearing on Qt-for-Android: a parentless QWidget created during
+        # QtToadApp.__init__ becomes its own top-level window with its own EGL surface, and
+        # the pending surface acquisition recurses into the deadlock protector during the
+        # first-paint flush (SIGABRT, matching PR #1885's root cause). Every QWidget created
+        # here is a child of self; naming self as parent keeps them off the top-level list.
+        self.center = QWidget(self)
         grid = QGridLayout(self.center)
         grid.setContentsMargins(0, 0, 0, 0)
         grid.setSpacing(0)
@@ -1246,13 +1251,13 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
         bar.addWidget(self.tabs, 1)
         # The bar row is Toad's header band: a frame in the theme's header tone, with the
         # latest notice over it.
-        chrome = QFrame()
+        chrome = QFrame(self)
         chrome.setStyleSheet(self.theme.color_scheme.styles.generate_frame_style())
         chrome_layout = QVBoxLayout(chrome)
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
         chrome_layout.addWidget(self.status_line)
-        self.menu_panel = QWidget()
+        self.menu_panel = QWidget(self)
         QVBoxLayout(self.menu_panel).setContentsMargins(8, 4, 8, 4)
         self.menu_panel.hide()
         chrome_layout.addWidget(self.menu_panel)
@@ -1339,7 +1344,9 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
     # shows or hides its pane and moves or floats it, over the shared SidebarLayout.
 
     def _dock(self) -> QWidget:
-        dock = QWidget()
+        # Parent self so the dock is a child of QtToadApp from creation, not a top-level
+        # QWindow on Android — see the EGL deadlock note on `self.center` above.
+        dock = QWidget(self)
         inner = QVBoxLayout(dock)
         inner.setContentsMargins(0, 0, 0, 0)
         inner.setSpacing(0)
