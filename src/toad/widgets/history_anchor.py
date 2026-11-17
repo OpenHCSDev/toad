@@ -696,8 +696,24 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
             if self.lookahead.observe(new_value):
                 self._schedule_settle()
             self.request_preparation()
+            self._invalidate_tooltip_on_scroll()
         self.rejoin_reached_tail()
         self.tail_follow_changed()
+
+    def _invalidate_tooltip_on_scroll(self) -> None:
+        """Scrolling moves the row under the mouse without a mouse event. Textual pins the
+        tooltip at the mouse position it saw when the hover timer fired (screen.py:2016),
+        so after a scroll the shown tooltip belongs to a row that has moved on. Clear it
+        when the tooltip is showing a descendant of this viewport; the next hover re-draws
+        fresh content for the row now under the mouse."""
+        screen = self.screen
+        tip_widget = screen._tooltip_widget
+        if tip_widget is None:
+            return
+        for ancestor in tip_widget.walk_ancestors():
+            if ancestor is self:
+                screen._clear_tooltip()
+                return
 
     def rejoin_reached_tail(self) -> None:
         """A reader at the end of the source tail follows it again, through the same owner as
