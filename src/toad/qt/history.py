@@ -695,19 +695,19 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
             self.reader_position = RowPosition(self.scroll_y)
 
     def scrolled(self, value: int) -> None:
-        """The reader moved: measure the travel, join or leave the end, read toward it."""
+        """The reader moved: join or leave the end, then delegate the post-anchor response
+        (lookahead, settle timer, preparation, tail-follow) to the shared template on
+        `JumpsToLatest.respond_to_scroll` — same gate Textual uses, so no-travel ticks
+        from QScroller don't restart the settle timer during Android touch scrolls."""
         if self._restoring:
             return
-        self.lookahead.observe(value)
         if self.at_end and not self.follows_tail:
             self.anchor()
         elif not self.at_end and self.follows_tail:
             self.release_anchor()
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
-        self.tail_follow_changed()
-        self._schedule_settle()
-        self.request_preparation()
+        self.respond_to_scroll(value)
 
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         """A wheel at an edge with nowhere left to scroll still asks for the next page."""
