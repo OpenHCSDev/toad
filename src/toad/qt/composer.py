@@ -223,7 +223,7 @@ class Composer(MentionEditor, QWidget):
         self.editor.textChanged.connect(self.refresh_offers)
         self.editor.cursorPositionChanged.connect(self.refresh_offers)
         self.editor.textChanged.connect(self.fit_height)
-        self.send_button = QPushButton("Send")
+        self.send_button = QPushButton("Send", self)
         self.send_button.clicked.connect(self.send)
         styles = host.app.theme.color_scheme.styles
         self.editor.setStyleSheet(styles.generate_text_input_style())

@@ -287,7 +287,10 @@ class QtGoalEdit(ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract
         self.setWindowTitle("Edit objective")
         self.editor = QPlainTextEdit(goal.text)
         self.error = WrappedText()
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel,
+            self,
+        )
         buttons.accepted.connect(self.save)
         buttons.rejected.connect(self.reject)
         layout = QVBoxLayout(self)

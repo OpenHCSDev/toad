@@ -64,13 +64,16 @@ class QtCommandForm(CommandDraft, ScreenWideWindow, QDialog, DismissibleContract
         self.setWindowTitle(definition.label)
         title = WrappedText(f"{definition.label} — {target}")
         self.form = DeclaredForm(self.state, host.theme.color_scheme)
-        scroll = QScrollArea()
+        scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
         scroll.setWidget(self.form)
         self.confirmation_text = WrappedText()
-        self.confirmed = QCheckBox("I confirm this operation")
+        self.confirmed = QCheckBox("I confirm this operation", self)
         self.confirmed.hide()
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Apply | QDialogButtonBox.StandardButton.Cancel)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Apply | QDialogButtonBox.StandardButton.Cancel,
+            self,
+        )
         self.apply_button = buttons.button(QDialogButtonBox.StandardButton.Apply)
         self.apply_button.clicked.connect(self.apply)
         buttons.rejected.connect(self.reject)

@@ -1282,7 +1282,7 @@ class QtWorkspaceViews(WorkspaceViews):
     def __init__(self, app: QtToadApp) -> None:
         self.app = app
         self.home = Welcome(app)
-        self.pages = QStackedWidget()
+        self.pages = QStackedWidget(app)
         self.pages.addWidget(self.home)
         self.views: dict[str, ConversationView] = {}
 
@@ -1485,7 +1485,7 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
         await self.coordination_access.follow_sidebar(self.sidebar)
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
-        button = QToolButton()
+        button = QToolButton(self)
         button.setText(text)
         button.setToolTip(tip)
         button.setAutoRaise(True)
