@@ -433,13 +433,15 @@ class QtThreadView(
             traceback.print_exception(exc)
             return
         rows = self.messages.model().rowCount() if hasattr(self.messages, "model") and self.messages.model() is not None else -1
-        source = getattr(self.message_history, "page_source", None)
-        pages = len(getattr(source, "pages", ())) if source is not None else -1
-        print(
-            f"QtThreadView {type(self).__name__} initial load done: "
-            f"rows={rows} pages={pages} source={type(source).__name__ if source else None}",
-            flush=True,
-        )
+        if rows <= 0:
+            # Loud only when the load produced nothing — a view that paints a
+            # black body with no rows is the failure case the diagnostic targets.
+            source = getattr(self.message_history, "page_source", None)
+            print(
+                f"QtThreadView {type(self).__name__} initial load empty: "
+                f"rows={rows} source={type(source).__name__ if source else None}",
+                flush=True,
+            )
 
     # ---- BoundViewHost contract ----
 
