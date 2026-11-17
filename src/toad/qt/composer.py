@@ -52,6 +52,7 @@ from toad.widget_contracts import (
 from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.qt.composer_vim import ComposerVimMode, VimState, apply_normal_key
 from toad.qt.lines import QtLineRenderer
+from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
 
@@ -233,10 +234,13 @@ class ComposerEditor(QPlainTextEdit):
         if offers.isVisible() and key == Qt.Key.Key_Tab:
             offers.accept_current()
             return
-        # Enter / Ctrl+Enter / Shift+Enter / Escape are all bound as QShortcuts on
-        # Composer via `bind_action_shortcuts`; they read the declared keys off
-        # `SubmitAction`/`SubmitNowAction`/`NewlineAction`/`DismissAction` so the
-        # Qt editor and Textual's PromptTextArea share a single source of truth.
+        # Enter / Ctrl+Enter / Ctrl+Y / Shift+Enter / Escape are all bound as
+        # QShortcuts on Composer via `bind_action_shortcuts`; they read the declared
+        # keys off `SubmitAction`/`SubmitNowAction`/`NewlineAction`/`DismissAction`
+        # so the Qt editor and Textual's PromptTextArea share a single source of
+        # truth. SubmitNowAction already declares `ctrl+enter` + `ctrl+y`; the
+        # composer routes it through `submit_now` which flushes the queue when input
+        # is held.
         super().keyPressEvent(event)
 
 
@@ -271,7 +275,12 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         styles = host.app.theme.color_scheme.styles
         self.editor.setStyleSheet(styles.generate_text_input_style())
         self.offers.setStyleSheet(styles.generate_list_widget_style())
-        self.submitting = self.line(MutedRole)
+        # Clickable queue summary + delivery controls: Textual's QueueSummary +
+        # DeliveryControls land here via their shared contracts. Reading the queue
+        # state through host.submissions.queue_summary + .holds_input keeps Qt from
+        # keeping its own copy of what's in flight.
+        self.submitting = QtQueueSummary(self)
+        self.delivery_controls = QtDeliveryControls(self)
         self.failure = self.line(FailureRole)
         self.receipt = Receipt(host.app, renderer)
         # Vim mode indicator — only shown when vim is enabled AND the editor is in NORMAL.
@@ -286,7 +295,8 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         layout.setSpacing(0)
         layout.addWidget(self.offers)
         layout.addLayout(row)
-        for line in (self.mode_indicator, self.submitting, self.failure, self.receipt):
+        for line in (self.mode_indicator, self.submitting, self.delivery_controls,
+                     self.failure, self.receipt):
             layout.addWidget(line)
         # Bind the declared prompt-action keys as QShortcuts on the editor. The
         # callbacks target `self` (the composer) so `SubmitAction`/`DismissAction`
@@ -396,9 +406,13 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         self.send()
 
     def submit_now(self) -> None:
-        """What `SubmitNowAction` (Ctrl+Enter, Ctrl+Y) calls; same path as send today —
-        the queue-bypass distinction belongs to `BusSubmissions`, not the widget."""
-        self.send()
+        """What `SubmitNowAction` (Ctrl+Enter, Ctrl+Y) calls. When input is held in
+        the queue, routes through `BusSubmissions.send_now` so the pending inputs
+        flush immediately (same semantics as Textual's `SendPromptNow`). Otherwise
+        a plain send of what's typed."""
+        if self.text.strip():
+            self.send()
+        self.send_now()
 
     def _insert_newline(self) -> None:
         """What `NewlineAction` (Shift+Enter, Ctrl+J) calls — a real `\\n`, not a submit."""
@@ -438,9 +452,39 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         self.failure.show()
 
     def show_submitting(self) -> None:
-        summary = self.host.submissions.queue_summary
-        self.submitting.setText(summary)
-        self.submitting.setVisible(bool(summary))
+        """Push queue-summary text and delivery-controls visibility from the shared
+        ``view.submissions`` state. Mirrors Textual's ``_update_queue_summary`` +
+        ``DeliveryControls.ComposedWhenShown`` flip on ``holds_input``."""
+        submissions = self.host.submissions
+        self.submitting.refresh(submissions.queue_summary)
+        self.delivery_controls.setVisible(bool(submissions.holds_input))
+
+    def send_now(self) -> None:
+        """What ``QueueSummary.activate`` triggers (and Ctrl+Y when input is held):
+        asks the shared ``ConversationSubmissions.send_now`` worker to flush the queue.
+        No-op when nothing is held, matching Textual's ``SendPromptNow`` gate.
+
+        Base ``BusSubmissions`` doesn't own the ``send_now`` worker (it's on the
+        ``ConversationSubmissions`` subclass that wires ``view.queue_source``); until
+        the Qt views switch to that subclass, this is a safe no-op so the button and
+        shortcut still bind without crashing."""
+        submissions = self.host.submissions
+        if not submissions.holds_input:
+            return
+        send_now = getattr(submissions, "send_now", None)
+        if send_now is None:
+            return
+        send_now()
+
+    def open_queue_menu(self) -> None:
+        """Textual's ``Conversation.open_queue_menu`` pushes the ``QueueInspection``
+        screen; Qt opens the same shape as a modal dialog over the composer. The
+        inspection reads ``queue_evidence`` from the shared submissions owner — if
+        that isn't wired yet (Qt still on base ``BusSubmissions``), the dialog says
+        so instead of crashing."""
+        submissions = self.host.submissions
+        dialog = QtQueueInspection(submissions, self.renderer, parent=self)
+        dialog.open()
 
     def hold(self, reason: str) -> None:
         """A read-only view holds compose and says why; an empty reason opens it."""
