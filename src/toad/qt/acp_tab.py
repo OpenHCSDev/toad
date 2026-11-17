@@ -36,15 +36,21 @@ from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
 from toad.agent_binding import AgentConnection, NoAgentConnection
+from agent_comms.registry.thread_presentation import NoThreadPresentation, ThreadPresentation
+from metaclass_registry.mro_dispatch import MroDispatch
+
 from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.observed_field import ObservedField
+from toad.client.resource_release import ResourceRelease
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.tab_identity.kinds import CommsTab
+from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.transcript_history_contract import TranscriptHistoryContract
+from toad.transcript_scope import TranscriptScope
 from toad.core import input_events
 from toad.launch_binding import AgentBinding
 from toad.qt.bound_view import QtBoundViewHost
@@ -84,6 +90,8 @@ def _toad_app() -> QtToadApp:
 class QtAcpSessionView(
     ObservedAgentBinding,
     ConversationThreadReadMixin,
+    ThreadBindingDispatch,
+    MroDispatch,
     QtBoundViewHost,
     ComposerHost,
     Page,
@@ -187,6 +195,17 @@ class QtAcpSessionView(
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
         self._identity = binding.initial_identity(NoThreadIdentity())
+        # ThreadBindingDispatch state: the current observed presentation + the one that
+        # arrived while this view was not the selected session. Textual's `Conversation`
+        # declares these as class attributes; Qt's instance init keeps the same shape.
+        self.thread_presentation: ThreadPresentation = NoThreadPresentation()
+        self._unpublished_presentation: ThreadPresentation = NoThreadPresentation()
+        # `TranscriptPresentation.bind_thread_observation` puts the Core subscription
+        # that routes thread_rows_changed → thread_observed → consume_thread_presentation
+        # into this context. Replacing the context on view re-bind closes the previous
+        # subscription cleanly; mirrors `Conversation._thread_observation` in
+        # `widgets/conversation.py`.
+        self._thread_observation = ResourceRelease()
         # ``NativeSessionEntry.__call__`` writes these before mount.
         self.session_details: SessionDetails | None = None
         self._mode: str = f"acp:{session_pk}"
@@ -350,6 +369,41 @@ class QtAcpSessionView(
         # The real origin wires the agent binding and view; until that lands, the no-op
         # origin reports mode-only, which the sidebar + tab-order already handle.
         return NoSessionOrigin(self.mode)
+
+    def transcript_scope(self) -> TranscriptScope:
+        """The transcript scope this view is bound to — the one `BoundView.thread_scope`
+        reads on bind to wire `thread_observed` into Core's observation. Textual's
+        `Conversation.transcript_scope` goes through `query_ancestor(SessionScope).origin.
+        transcript_scope()`; on Qt the identity owns the scope directly, so this is a
+        straight delegation."""
+        return self._identity.transcript_scope()
+
+    @property
+    def is_attached(self) -> bool:
+        """True until the Qt widget tears down. `BoundView.thread_scope` gates its
+        subscription on this flag; Textual's `Widget.is_attached` fills the same role."""
+        try:
+            return self.isVisible() or self.parent() is not None
+        except RuntimeError:
+            return False
+
+    @property
+    def is_leaving(self) -> bool:
+        return not self.is_attached
+
+    @property
+    def is_current_session(self) -> bool:
+        """Whether this ACP tab is the one on screen. `_publish_thread_source` gates its
+        request on this so hidden tabs stash the presentation for next show."""
+        selected = self.app.workspace_sessions.selected
+        return selected is self
+
+    def thread_presented(self, presentation: ThreadPresentation) -> None:
+        """A settled member owns whether this view has source work to publish. Mirrors
+        `Conversation.thread_presented` at `widgets/conversation.py:972` — same shape,
+        skipping the Textual `operational_sources` leg that hasn't been ported yet."""
+        self.thread_presentation = presentation
+        self.dispatch_sync(presentation)
 
     def shown(self, window, visited) -> None:  # type: ignore[override]
         """Selected: record the visit, let the history reload."""
