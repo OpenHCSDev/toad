@@ -101,7 +101,10 @@ from toad.core.events import CoordinationObserved, TabHistoryChanged
 from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
-from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import (
+    HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
+)
 from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.qt.activity import ChannelActivity, PeerActivity
@@ -248,9 +251,15 @@ class StatusSection(SidebarSection):
 
 
 class ConversationRow(SidebarItem):
-    """A row that opens its conversation through the shared history route it holds."""
+    """A row that opens its target through the target's own polymorphic `open(context)`.
 
-    def __init__(self, target: HistoryRouted) -> None:
+    `target` is a `NavigationTarget` (not specifically a `HistoryRouted`) because threads
+    open via `KnownThreadTarget` → `thread_navigation.open` → `MailboxTab` → agent-bound
+    view, while channels open via `channel_target()` → `session_navigation.history` →
+    `CommsTab` → wire view. One row class, two destinations; the target picks.
+    """
+
+    def __init__(self, target: NavigationTarget) -> None:
         super().__init__()
         self.key = target.name
         self.target = target
@@ -263,7 +272,12 @@ class ConversationRow(SidebarItem):
 
     @classmethod
     def thread(cls, name: str, thread) -> ConversationRow:
-        row = cls(DirectTarget(name))
+        """Thread rows (CLI inbox, mailbox) open as `KnownThreadTarget` so the tap
+        routes through `thread_navigation.open` → `MailboxTab` → agent-bound view,
+        mirroring Textual's `comms_sidebar.ThreadRow` at `widgets/comms_sidebar.py:242`
+        which also carries the incarnation so no round-trip to Core is needed before
+        the tab mounts."""
+        row = cls(KnownThreadTarget(name, thread.incarnation))
         row.draw(thread.unread.badge, thread.label, thread.summary, thread.tooltip())
         return row
 
@@ -1807,10 +1821,22 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.profile_paste_panel.open_for(submit)
 
     def open_row(self, row: ConversationRow) -> None:
-        self.run_operation(ConversationOpen, partial(self.open_route, row.target))
+        """Open the row's target through the target's own `open(context)` — polymorphic
+        so a `KnownThreadTarget` (thread row) routes through `thread_navigation.open`
+        → `MailboxTab` → agent-bound view, while a `HistoryRouted` channel row routes
+        through `session_navigation.history` → `CommsTab` → wire view. Previously
+        this hardcoded `session_navigation.history`, which forced EVERY row (including
+        CLI-inbox threads) into the wire view and made them appear bus-only."""
+        context = NavigationContext(
+            app=self,
+            owner_mode=self.selected_mode,
+            project_path=self.project_dir,
+            actor="",
+        )
+        self.run_operation(ConversationOpen, partial(self._open_target, row.target, context))
 
-    async def open_route(self, route: HistoryRouted) -> None:
-        await self.session_navigation.history(project_path=self.project_dir, route=route)
+    async def _open_target(self, target: NavigationTarget, context: NavigationContext) -> None:
+        await target.open(context)
         self.hide_sidebar()
 
     @property
