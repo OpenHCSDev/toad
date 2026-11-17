@@ -387,6 +387,17 @@ class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc
         with self.changing_identity():
             self._identity = ThreadIdentity(owner, root)
 
+    def apply_external_mailbox_sources(self) -> None:
+        """Textual override of the polymorphic hook on SessionScope. Imports the
+        Textual-widget pyramid locally so a Qt frontend's call to the default
+        (no-op) implementation doesn't drag it in."""
+        from toad.session_presentation import MailboxSessionSources
+        self.presentation.sources = MailboxSessionSources()
+
+    def apply_native_load_plan(self, plan) -> None:
+        """Textual override: assign the load plan onto the Textual sources."""
+        self.presentation.sources.load_plan = plan
+
     def identity_changed(self, previous) -> None:
         if self.id is not None:
             self.app.session_tracker.bind_identity(

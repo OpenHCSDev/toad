@@ -96,6 +96,20 @@ class SessionScope:
     def matches_launch(self, agent_identity: str, session_id: AcpSessionId) -> bool:
         return False
 
+    def apply_external_mailbox_sources(self) -> None:
+        """`ExternalThreadNavigation.bind(screen)` calls this; Textual's MainScreen
+        overrides to assign `self.presentation.sources = MailboxSessionSources()`
+        (which drags in the whole Textual-widget pyramid: session_presentation →
+        widgets.conversation → widgets.prompt → path_filter → pathspec). Qt views
+        have no `presentation.sources` contract today, so the default is a no-op.
+        Pushing the assignment into a polymorphic method keeps the import chain
+        out of the Qt bind path — same pattern as `make_opening_view`."""
+
+    def apply_native_load_plan(self, plan) -> None:
+        """`NativeThreadNavigation.bind(screen)` calls this; Textual's MainScreen
+        overrides to assign `self.presentation.sources.load_plan = plan`. Qt views
+        have no sources container today, so the default is a no-op."""
+
     async def wait_content_ready(self) -> None:
         """Opening a tab returns once its content has loaded."""
         raise NotImplementedError
