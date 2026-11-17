@@ -88,7 +88,8 @@ class ReadMarkedHistory(ReadMarking):
         self._painted_reads.clear()
         self.page_source.close()
         self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation,
-                                          revision=UnobservedConversation())
+                                          revision=UnobservedConversation(),
+                                          fragments=self.page_source.fragments)
 
     @property
     def undrawn(self) -> bool:
@@ -433,7 +434,8 @@ class RestyledViewportRequest(ReplacementViewportRequest):
 
     def source(self, owner):
         return WirePageBuffer(
-            self.loader, owner.page_source.through, owner.page_source.runtime, revision=owner.page_source.revision
+            self.loader, owner.page_source.through, owner.page_source.runtime,
+            revision=owner.page_source.revision, fragments=owner.page_source.fragments,
         )
 
 
@@ -511,7 +513,8 @@ class WirePageBuffer(SavedHistory):
         self.revision = revision
 
     def replacement(self, through) -> WirePageBuffer:
-        return type(self)(self.loader, through, self.runtime, revision=self.revision)
+        return type(self)(self.loader, through, self.runtime,
+                          revision=self.revision, fragments=self.fragments)
 
     def reads_from(self, root: str | Path) -> bool:
         return self.loader.root == root
