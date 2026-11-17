@@ -102,6 +102,7 @@ from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
+from toad.client.sidebar_filter import SidebarFilter
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
@@ -272,14 +273,27 @@ class ConversationRow(SidebarItem):
         return row
 
     @classmethod
-    def thread(cls, name: str, thread) -> ConversationRow:
+    def thread(cls, name: str, thread, *, pinned: bool = False,
+               pending_detail: str | None = None) -> ConversationRow:
         """Thread rows (CLI inbox, mailbox) open as `KnownThreadTarget` so the tap
         routes through `thread_navigation.open` → `MailboxTab` → agent-bound view,
         mirroring Textual's `comms_sidebar.ThreadRow` at `widgets/comms_sidebar.py:242`
         which also carries the incarnation so no round-trip to Core is needed before
-        the tab mounts."""
+        the tab mounts.
+
+        `pinned` and `pending_detail` match the arguments Textual passes at
+        `comms_sidebar.py:165` (pinned from `channel.pinned_members`) and
+        `comms_sidebar.py:243` (pending_detail from `app.thread_actions.pending`).
+        The shared `ThreadRowModel.tooltip(pinned, pending_detail)` owns how both
+        flow into the hover text; the label gets a `"* "` prefix when pinned,
+        matching `ChannelRowModel.label` which also prefixes its own name."""
         row = cls(KnownThreadTarget(name, thread.incarnation))
-        row.draw(thread.unread.badge, thread.label, thread.summary, thread.tooltip())
+        label = f"{'* ' if pinned else ''}{thread.label}"
+        summary = pending_detail if pending_detail is not None else thread.summary
+        row.draw(
+            thread.unread.badge, label, summary,
+            thread.tooltip(pinned=pinned, pending_detail=pending_detail),
+        )
         return row
 
     def activate(self, window: QtToadApp) -> None:
@@ -762,6 +776,20 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         self._status_text: str | None = None
         self.groups = {}
         self.open_views = {}
+        # The shared owner of the sidebar's search text and row-match decision. The
+        # QLineEdit hosted by `QtSidebarSearch` writes the user's text into this
+        # instance; `draw_lines` / `QtChannelListing.keep` / `QtThreadListing.keep`
+        # ask the filter's `matches(name)` when deciding whether a row joins the
+        # tree. Textual's `SideBar` also owns one (same class, same match rule).
+        self.filter: SidebarFilter = SidebarFilter()
+        self.filter.subscribe(self._on_filter_changed)
+
+    def _on_filter_changed(self, _value: str) -> None:
+        """Re-present the whole tree so rows whose names newly stop (or newly start)
+        matching the filter appear / disappear. `present` is already the one wholesale
+        redraw, so routing the refresh through it keeps the filter path identical to
+        every other model-change path."""
+        self.present()
 
     def accepts_observation(self) -> bool:
         """The sidebar always shows while it exists: the window hides it through
@@ -834,12 +862,21 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     def draw_lines(self, model: SidebarModel, top: KeptLines) -> None:
         threads = model.threads.rows
+        matches = self.filter.matches
         for name, channel in model.channels.rows.items():
+            # A channel stays visible if its name matches OR any of its member thread
+            # names do; hiding a channel whose only match is a buried thread would also
+            # hide the thread. The group opens whichever path kept it.
+            members_shown = [m for m in channel.members if matches(m)]
+            if not matches(name) and not members_shown:
+                continue
             with top.group(ConversationRow.channel(name, channel)) as group:
-                for member in channel.members:
+                for member in members_shown:
                     group.keep(ConversationRow.thread(member, threads[member]))
         with top.group(SidebarSection("Threads")) as everyone:
             for name, thread in threads.items():
+                if not matches(name):
+                    continue
                 everyone.keep(ConversationRow.thread(name, thread))
 
     def _refresh_status_only(self) -> None:
