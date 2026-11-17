@@ -12,9 +12,10 @@ than restating the family under each toolkit.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
-from functools import cached_property
+from functools import cached_property, partial
 from typing import ClassVar
 
 from agent_comms.messaging.sent_message import PublishedSentMessage
@@ -22,12 +23,17 @@ from agent_comms.nominal.field_codec import ToolCallId
 from agent_comms.storage.recorded_time import EventTime
 from agent_comms.transcript.transcript_events import (
     AgentTextTranscript,
+    ContextTranscript,
+    IncomingTranscript,
+    MarkdownTranscript,
     SentTranscript,
+    TextTranscript,
     ThinkingTranscript,
     ToolTranscript,
     TranscriptEvent,
     UserTranscript,
 )
+from agent_comms.ui_model.message_category import AgentActivityBoundary
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.status import ToolCallStatus
@@ -37,6 +43,7 @@ from toad.client.fragments import (
     PartPosition,
     Shown,
 )
+from toad.message_rows import MessageRow
 from toad.client.line_blocks import (
     AgentRole,
     Body,
@@ -289,3 +296,200 @@ class ContextTranscriptFragment(TranscriptFragment):
         if not shown.details_open:
             return (summary,)
         return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole) for event in self.events))
+
+
+type ResolvedSent = Mapping[SentTranscript, SentTranscript | PublishedSentMessage]
+
+
+@dataclass(frozen=True)
+class FragmentClasses:
+    """The subclass flavors each backend builds. Both frontends share the consumer, builder
+    and slot family here; what differs is the concrete subclasses they want constructed
+    (Textual's draw-path layer, or Qt's row-paint layer). The consumer reads these refs
+    rather than naming the subclasses directly, so no draw-path shim is sneaked into the
+    shared layer."""
+
+    transcript: type[TranscriptFragment]
+    context: type[ContextTranscriptFragment]
+    bus_message: type[BusMessageFragment]
+    sent_message: type[SentMessageFragment]
+    tool: type[ToolTranscriptFragment]
+
+
+class FragmentSlot(ABC):
+    """One place in a page's fragment order, and what it holds once sent reports are resolved."""
+
+    def sent_reports(self) -> tuple[SentTranscript, ...]:
+        """The sent rows whose publication evidence this slot needs."""
+        return ()
+
+    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
+        return self.unresolved()
+
+    @abstractmethod
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        """The fragments as read, before any publication evidence."""
+
+
+@dataclass(frozen=True)
+class BuiltSlot(FragmentSlot):
+    """A fragment built as its event was read."""
+
+    fragment: TranscriptFragment
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        return (self.fragment,)
+
+
+@dataclass(frozen=True)
+class SentSlot(BuiltSlot):
+    """A sent wire row: resolved, it is what its publication evidence builds."""
+
+    report: SentTranscript
+    classes: FragmentClasses
+
+    def sent_reports(self) -> tuple[SentTranscript, ...]:
+        return (self.report,)
+
+    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
+        builder = TranscriptFragmentConsumer(self.classes)
+        builder.project_value(resolved[self.report])
+        return builder.unresolved()
+
+
+@dataclass(frozen=True)
+class TextSlot(FragmentSlot):
+    """A text event, parsed and split only when its fragments are asked for."""
+
+    event: TextTranscript
+    kind: type[TranscriptFragment]
+    budget: RenderBudget
+    starts_activity: bool
+    options: Mapping[str, object]
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        parts = self.kind.text_parts(PreparedMarkdownPart.capture(self.event.text), self.budget)
+        return tuple(
+            self.kind.capture_part(
+                self.event,
+                part.text,
+                part_position=position,
+                starts_agent_activity=position.starts_activity(self.starts_activity),
+                **self.options,
+            )
+            for part, position in zip(parts, PartPosition.sequence(len(parts)), strict=True)
+        )
+
+
+@dataclass(eq=False)
+class ToolSlot(FragmentSlot):
+    """One tool call's events, gathered in the place of its first event."""
+
+    starts_activity: bool
+    classes: FragmentClasses
+    events: list[ToolTranscript] = field(default_factory=list)
+
+    @cached_property
+    def call(self) -> ToolCallStatus:
+        return ToolCallStatus.from_transcript(tuple(self.events))
+
+    @cached_property
+    def parts(self) -> tuple[ToolOutputPart, ...]:
+        return ToolOutput.capture_recorded(self.call, tuple(self.events))
+
+    def sent_reports(self) -> tuple[SentTranscript, ...]:
+        return tuple(message for part in self.parts for message in part.sent_reports)
+
+    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
+        parts = self.call.project_output(self.parts, partial(ToolOutput.apply_sent, resolved=resolved))
+        return (self.classes.tool(tuple(self.events), starts_agent_activity=self.starts_activity,
+                                  tool_call=self.call, output_parts=parts),)
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        return self.fragments({})
+
+
+class TranscriptFragmentConsumer(MroProjection[None]):
+    """Build a frontend's fragment family from a stream of transcript events. The frontend
+    picks which subclasses to construct by passing its `FragmentClasses`; Textual passes
+    `TEXTUAL_FRAGMENT_CLASSES` from `widgets/transcript_fragments.py`, Qt passes its own."""
+
+    def __init__(self, classes: FragmentClasses) -> None:
+        self.classes = classes
+        self.slots: list[FragmentSlot] = []
+        self.tools: dict[str, ToolSlot] = {}
+        self.budget = RenderBudget()
+        self.boundary = AgentActivityBoundary()
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for slot in self.slots for fragment in slot.unresolved())
+
+    @handles(ContextTranscript)
+    def context(self, event: ContextTranscript) -> None:
+        # One lazy disclosure owns the full metadata source.
+        self.slots.append(BuiltSlot(self.classes.context((event,))))
+
+    @handles(IncomingTranscript)
+    def incoming(self, event: IncomingTranscript) -> None:
+        self.text(event, self.classes.bus_message, row=MessageRow(event.message, event.reader))
+
+    @handles(SentTranscript)
+    def sent(self, event: SentTranscript) -> None:
+        self.slots.append(SentSlot(self.classes.transcript((event,)), event, self.classes))
+
+    @handles(PublishedSentMessage)
+    def published(self, message: PublishedSentMessage) -> None:
+        original = message.original
+        self.text(
+            message.message,
+            self.classes.sent_message,
+            publication=message,
+            row=MessageRow(original, message.scope.recipient.name),
+        )
+
+    @handles(UserTranscript, MarkdownTranscript)
+    def text(self, event: TextTranscript, kind: type[TranscriptFragment] | None = None, **kwargs) -> None:
+        starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
+        self.slots.append(TextSlot(event, kind or self.classes.transcript, self.budget, starts_activity, kwargs))
+
+    @handles(ToolTranscript)
+    def tool(self, event: ToolTranscript) -> None:
+        if event.tool_call_id not in self.tools:
+            # The call keeps the place of its first event.
+            self.tools[event.tool_call_id] = slot = ToolSlot(self.boundary.observe(event.category), self.classes)
+            self.slots.append(slot)
+        self.tools[event.tool_call_id].events.append(event)
+
+
+@dataclass(frozen=True)
+class FragmentPlan:
+    """Events read into their slots with their sent reports resolved, before any markdown parse."""
+
+    slots: tuple[FragmentSlot, ...] = ()
+    resolved: ResolvedSent = field(default_factory=dict)
+
+    @classmethod
+    def read(
+        cls,
+        events: tuple[TranscriptEvent, ...],
+        *,
+        resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
+        classes: FragmentClasses,
+    ) -> FragmentPlan:
+        consumer = TranscriptFragmentConsumer(classes)
+        for event in events:
+            consumer.project_value(event)
+        resolved = resolve_sent(report for slot in consumer.slots for report in slot.sent_reports())
+        return cls(tuple(consumer.slots), resolved)
+
+    def fragments(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for slot in self.slots for fragment in slot.fragments(self.resolved))
+
+
+def transcript_fragments(
+    events: tuple[TranscriptEvent, ...],
+    *,
+    resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
+    classes: FragmentClasses,
+) -> tuple[TranscriptFragment, ...]:
+    return FragmentPlan.read(events, resolve_sent=resolve_sent, classes=classes).fragments()

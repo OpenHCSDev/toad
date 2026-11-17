@@ -1,54 +1,34 @@
 """Textual-flavored transcript fragments: the canonical neutral family in
-`toad.client.transcript_fragments` plus Textual's row acquisition, cursor-rest behavior,
-and the Consumer that builds Textual subclasses from a transcript event stream. Qt siblings
-of the same canonical family live in `toad.qt.history`; both backends import the authority
-from `client/`, this module adds only what Textual needs on top.
+`toad.client.transcript_fragments` plus Textual's row acquisition and cursor-rest behavior.
+Qt siblings of the same canonical family live in `toad.qt.history`; the consumer, slots,
+builder and `FragmentPlan` live in `toad.client.transcript_fragments` so both frontends
+share one event-stream reader, parameterized by the `FragmentClasses` each backend passes.
 """
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
-from functools import cached_property, partial
+from functools import cached_property
 from typing import TYPE_CHECKING
 
-from agent_comms.messaging.sent_message import PublishedSentMessage
-from agent_comms.transcript.transcript_events import (
-    ContextTranscript,
-    IncomingTranscript,
-    MarkdownTranscript,
-    SentTranscript,
-    TextTranscript,
-    ToolTranscript,
-    TranscriptEvent,
-    UserTranscript,
-)
-from agent_comms.ui_model.message_category import AgentActivityBoundary
-from metaclass_registry.mro_dispatch import handles
-
-from toad.acp.status import ToolCallStatus
 from toad.client.fragments import (
     CursorRest,
-    PartPosition,
     Shown,
 )
 from toad.client.line_blocks import LineBlock
 from toad.client.transcript_fragments import (
     BusMessageFragment as _BusMessageFragment,
     ContextTranscriptFragment as _ContextTranscriptFragment,
+    FragmentClasses,
     FragmentLineConsumer,
+    FragmentPlan,
     RenderBudget,
     SentMessageFragment as _SentMessageFragment,
     ToolTranscriptFragment as _ToolTranscriptFragment,
     TranscriptFragment as _TranscriptFragment,
 )
-from toad.core.projection import MroProjection
-from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand
-from toad.message_rows import MessageRow
 from toad.render_backend import ReusableRenderTask
-from toad.tool_output import ToolOutput, ToolOutputPart
 from toad.widgets.presentation_window import UNPLACED, Unplaced
 from toad.widgets.transcript_lines import (
     AcquiredRows,
@@ -195,180 +175,13 @@ class ContextTranscriptFragment(_ContextTranscriptFragment, TranscriptFragment):
     """The coordination context an agent was given, drawn by Textual."""
 
 
-type ResolvedSent = Mapping[SentTranscript, SentTranscript | PublishedSentMessage]
-
-
-class FragmentSlot(ABC):
-    """One place in a page's fragment order, and what it holds once sent reports are resolved."""
-
-    def sent_reports(self) -> tuple[SentTranscript, ...]:
-        """The sent rows whose publication evidence this slot needs."""
-        return ()
-
-    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
-        return self.unresolved()
-
-    @abstractmethod
-    def unresolved(self) -> tuple[TranscriptFragment, ...]:
-        """The fragments as read, before any publication evidence."""
-
-
-@dataclass(frozen=True)
-class BuiltSlot(FragmentSlot):
-    """A fragment built as its event was read."""
-
-    fragment: TranscriptFragment
-
-    def unresolved(self) -> tuple[TranscriptFragment, ...]:
-        return (self.fragment,)
-
-
-@dataclass(frozen=True)
-class SentSlot(BuiltSlot):
-    """A sent wire row: resolved, it is what its publication evidence builds."""
-
-    report: SentTranscript
-
-    def sent_reports(self) -> tuple[SentTranscript, ...]:
-        return (self.report,)
-
-    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
-        builder = TranscriptFragmentConsumer()
-        builder.project_value(resolved[self.report])
-        return builder.unresolved()
-
-
-@dataclass(frozen=True)
-class TextSlot(FragmentSlot):
-    """A text event, parsed and split only when its fragments are asked for."""
-
-    event: TextTranscript
-    kind: type[TranscriptFragment]
-    budget: RenderBudget
-    starts_activity: bool
-    options: Mapping[str, object]
-
-    def unresolved(self) -> tuple[TranscriptFragment, ...]:
-        parts = self.kind.text_parts(PreparedMarkdownPart.capture(self.event.text), self.budget)
-        return tuple(
-            self.kind.capture_part(
-                self.event,
-                part.text,
-                part_position=position,
-                starts_agent_activity=position.starts_activity(self.starts_activity),
-                **self.options,
-            )
-            for part, position in zip(parts, PartPosition.sequence(len(parts)), strict=True)
-        )
-
-
-@dataclass(eq=False)
-class ToolSlot(FragmentSlot):
-    """One tool call's events, gathered in the place of its first event."""
-
-    starts_activity: bool
-    events: list[ToolTranscript] = field(default_factory=list)
-
-    @cached_property
-    def call(self) -> ToolCallStatus:
-        return ToolCallStatus.from_transcript(tuple(self.events))
-
-    @cached_property
-    def parts(self) -> tuple[ToolOutputPart, ...]:
-        return ToolOutput.capture_recorded(self.call, tuple(self.events))
-
-    def sent_reports(self) -> tuple[SentTranscript, ...]:
-        return tuple(message for part in self.parts for message in part.sent_reports)
-
-    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
-        parts = self.call.project_output(self.parts, partial(ToolOutput.apply_sent, resolved=resolved))
-        return (ToolTranscriptFragment(tuple(self.events), starts_agent_activity=self.starts_activity,
-                                       tool_call=self.call, output_parts=parts),)
-
-    def unresolved(self) -> tuple[TranscriptFragment, ...]:
-        return self.fragments({})
-
-
-class TranscriptFragmentConsumer(MroProjection[None]):
-    """Build the Textual-flavored family from a stream of transcript events. Qt builds its own
-    siblings from `toad.client.transcript_fragments` through a sibling consumer."""
-
-    def __init__(self) -> None:
-        self.slots: list[FragmentSlot] = []
-        self.tools: dict[str, ToolSlot] = {}
-        self.budget = RenderBudget()
-        self.boundary = AgentActivityBoundary()
-
-    def unresolved(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for slot in self.slots for fragment in slot.unresolved())
-
-    @handles(ContextTranscript)
-    def context(self, event: ContextTranscript) -> None:
-        # One lazy disclosure owns the full metadata source.
-        self.slots.append(BuiltSlot(ContextTranscriptFragment((event,))))
-
-    @handles(IncomingTranscript)
-    def incoming(self, event: IncomingTranscript) -> None:
-        self.text(event, BusMessageFragment, row=MessageRow(event.message, event.reader))
-
-    @handles(SentTranscript)
-    def sent(self, event: SentTranscript) -> None:
-        self.slots.append(SentSlot(TranscriptFragment((event,)), event))
-
-    @handles(PublishedSentMessage)
-    def published(self, message: PublishedSentMessage) -> None:
-        original = message.original
-        self.text(
-            message.message,
-            SentMessageFragment,
-            publication=message,
-            row=MessageRow(original, message.scope.recipient.name),
-        )
-
-    @handles(UserTranscript, MarkdownTranscript)
-    def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs) -> None:
-        starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
-        self.slots.append(TextSlot(event, kind, self.budget, starts_activity, kwargs))
-
-    @handles(ToolTranscript)
-    def tool(self, event: ToolTranscript) -> None:
-        if event.tool_call_id not in self.tools:
-            # The call keeps the place of its first event.
-            self.tools[event.tool_call_id] = slot = ToolSlot(self.boundary.observe(event.category))
-            self.slots.append(slot)
-        self.tools[event.tool_call_id].events.append(event)
-
-
-def transcript_fragments(
-    events: tuple[TranscriptEvent, ...],
-    *,
-    resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
-) -> tuple[TranscriptFragment, ...]:
-    return FragmentPlan.read(events, resolve_sent=resolve_sent).fragments()
-
-
-@dataclass(frozen=True)
-class FragmentPlan:
-    """Events read into their slots with their sent reports resolved, before any markdown parse."""
-
-    slots: tuple[FragmentSlot, ...] = ()
-    resolved: ResolvedSent = field(default_factory=dict)
-
-    @classmethod
-    def read(
-        cls,
-        events: tuple[TranscriptEvent, ...],
-        *,
-        resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
-    ) -> FragmentPlan:
-        consumer = TranscriptFragmentConsumer()
-        for event in events:
-            consumer.project_value(event)
-        resolved = resolve_sent(report for slot in consumer.slots for report in slot.sent_reports())
-        return cls(tuple(consumer.slots), resolved)
-
-    def fragments(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for slot in self.slots for fragment in slot.fragments(self.resolved))
+TEXTUAL_FRAGMENT_CLASSES = FragmentClasses(
+    transcript=TranscriptFragment,
+    context=ContextTranscriptFragment,
+    bus_message=BusMessageFragment,
+    sent_message=SentMessageFragment,
+    tool=ToolTranscriptFragment,
+)
 
 
 @dataclass(frozen=True)
