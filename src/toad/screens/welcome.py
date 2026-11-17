@@ -242,11 +242,6 @@ class WelcomeScreen(
     AUTO_FOCUS = "WelcomeEntries StartSessionButton"
 
 
-    HINTS = (
-        "[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
-        "[b]↑ ↓[/b] choose   [b]enter[/b] open"
-    )
-
     def __init__(self) -> None:
         super().__init__()
         app = self.app
@@ -258,7 +253,9 @@ class WelcomeScreen(
             yield WelcomeTitle()
             yield WelcomeNote(f"{agent}{format_path(self.project_path.path)}", markup=False)
             yield WelcomeEntries()
-            yield WelcomeNote(self.HINTS)
+            # Hints come from the app so Qt can supply its own gesture string;
+            # see `ToadApp.welcome_hints` / `QtToadApp.welcome_hints`.
+            yield WelcomeNote(self.app.welcome_hints)
 
     @property
     def navigation_context(self) -> NavigationContext:
