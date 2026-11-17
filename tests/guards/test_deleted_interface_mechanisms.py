@@ -40,6 +40,12 @@ def test_channel_messages_are_drawn_by_the_line_history_alone():
             assert issubclass(history, HistoryPager) and name not in vars(history), (history, name)
     for name in ('covers_incoming', 'covers_input', 'coverage_events'):
         assert not hasattr(WireHistory, name), name
+    # Whether a view draws a reader's own sent message (so its submission settles and its
+    # receipt follows) is the shared DrawsBusMessages owner's answer, for every frontend's
+    # history: none keeps a `draws` of its own.
+    from toad.client.history_pager import DrawsBusMessages
+    for history in (LineHistory, WireHistory, TranscriptHistory, QtConversationHistory):
+        assert issubclass(history, DrawsBusMessages) and 'draws' not in vars(history), history
 
 
 def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():

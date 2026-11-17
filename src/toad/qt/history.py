@@ -33,6 +33,7 @@ from toad.client.history_notifications import SourceNotifications
 from toad.client.history_pager import (
     ConversationPager,
     DirectionalPreparation,
+    DrawsBusMessages,
     NativePager,
     OffScreenRunway,
     PagingWindow,
@@ -187,7 +188,7 @@ class SourceTask(asyncio.Task):
         await asyncio.gather(self, return_exceptions=True)
 
 
-class QtConversationHistory(SourceNotifications, ReadMarkedHistory, ConversationPager, NativePager):
+class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHistory, ConversationPager, NativePager):
     """A wire conversation's pages, read marks and message statuses in a Qt window: the
     shared pager, read marking and notifications, answering their hooks with the window's
     rows and the Qt event loop."""
