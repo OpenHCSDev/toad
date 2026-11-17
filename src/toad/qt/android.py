@@ -25,6 +25,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.connector import HoldUiVerb
 from agent_comms.transport.connector_store import ConnectorStore
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QAccessible
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from toad import paths
@@ -155,6 +156,13 @@ def main() -> None:
         "qt.qpa.*=true;qt.qpa.backingstore=true;qt.qpa.gl=true;qt.qpa.androidsurface=true",
     )
     application = QApplication(sys.argv[:1])
+    # The env vars alone don't stop Qt's Java-side accessibility bridge — the
+    # protector still trips with runInObjectContext as the lock holder. Shut the
+    # API-side framework off too: setActive(False) tells Qt to answer "no
+    # accessibility" to Android's probes, and a no-op factory means a stray
+    # factory lookup can't bring the bridge back up.
+    QAccessible.setActive(False)
+    QAccessible.installFactory(lambda obj: None)
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()
