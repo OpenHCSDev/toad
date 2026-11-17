@@ -37,6 +37,8 @@ from agent_comms.ui_model.message_category import (
     all_categories,
 )
 from metaclass_registry.mro_dispatch import MroDispatch, handles
+
+from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from rich.console import Console
 from rich.segment import Segment
 from rich.style import Style
@@ -562,6 +564,7 @@ class AgentWindow(Window):
 class ConversationSessionBinding(
     ConversationThreadReadMixin,
     MroDispatch,
+    ThreadBindingDispatch,
     WorkspaceHosted,
     ThreadStatusOwner,
     DeliveryFailureView,
@@ -604,9 +607,6 @@ class ConversationSessionBinding(
     @abstractmethod
     def status_thread(self) -> StatusThread: ...
 
-    def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
-        self.consume_thread_presentation()
-
     @abstractmethod
     def thread_presented(self, presentation: ThreadPresentation) -> None: ...
 
@@ -614,30 +614,6 @@ class ConversationSessionBinding(
     def _no_thread_source(self, presentation: NoThreadPresentation) -> object:
         self._unpublished_presentation = presentation
         return self.DISCARD
-
-    @handles(ThreadPresentation)
-    def _publish_thread_source(self, presentation: ThreadPresentation) -> None:
-        if not self.transcript.readable:
-            return
-        if self.is_current_session:
-
-            self._unpublished_presentation = NoThreadPresentation()
-            self.transcript.source_requests.request(
-                ObservedSourcePublication, presentation
-            )
-        else:
-            self._unpublished_presentation = presentation
-
-    @handles(core_events.SessionSelected)
-    async def _thread_view_selected(self, event: core_events.SessionSelected) -> None:
-        if not self.is_current_session:
-            return
-        self.refresh_thread_status()
-        self.dispatch_sync(self._unpublished_presentation)
-
-    @handles(core_events.ObservedServiceChanged)
-    async def _thread_route_observed(self, event: core_events.ObservedServiceChanged) -> None:
-        self.refresh_thread_status()
 
     def bind_agent(self, agent: AgentConnection) -> None:
         self.agent_binding = agent
