@@ -355,6 +355,57 @@ class QtThreadView(
             return
         self.composer.set_commands([])
 
+    async def command_target_context(self):
+        """Shared `ConversationCommands` contract: the target context a slash
+        command runs against. Both frontends route through
+        `page_source.command_context(view)`; Textual's `comms_chat.MessageView`
+        at line 349 is the mirror. The page source owns per-thread targeting
+        semantics; this base just delegates.
+
+        Returns None if the transcript stack hasn't been wired yet — a slash
+        command typed before mount simply has no context to publish against.
+        """
+        source = getattr(self.message_history, "page_source", None)
+        if source is None:
+            return None
+        return source.command_context(self)
+
+    async def read_command_catalog(self):
+        """Shared `ConversationCommands` contract: the slash-command catalog
+        this conversation offers, read fresh on each completion. Textual's
+        implementation lives on `Conversation.read_command_catalog`
+        (`src/toad/widgets/conversation.py:1746`); same shape here. The agent
+        binding carries the advertised commands; `command_target_context` is
+        awaited inside `CommandCatalog.read` to project applicability."""
+        from toad.command_catalog import CommandCatalog
+
+        agent = self.agent_binding
+        context = self.command_target_context()
+        return await CommandCatalog.read(
+            self.app, agent.presentation.commands, context, self.local_commands
+        )
+
+    def flash(self, text: str) -> None:
+        """Shared `ConversationCommands` contract: a short notice under the
+        prompt. Textual routes through its `FlashHost` feedback widget; Qt
+        does not have one yet, so the base prints LOUDLY to stderr so the
+        notice is never swallowed. A future `QtFlashHost` would replace the
+        print without changing the call sites."""
+        print(f"[flash] {type(self).__name__}: {text}", flush=True)
+
+    def flash_success(self, text: str) -> None:
+        """Shared contract: successful-action feedback. See `flash`."""
+        print(f"[flash success] {type(self).__name__}: {text}", flush=True)
+
+    def flash_error(self, text: str) -> None:
+        """Shared contract: error feedback. In addition to the stderr line
+        (so logcat captures it), surface via the composer's own failure strip
+        when available — that matches where the user is looking after a bad
+        send."""
+        print(f"[flash error] {type(self).__name__}: {text}", flush=True)
+        if self.composer is not None:
+            self.composer.show_failure(text)
+
     def notification_targets(self):
         """The Composer's ``Receipt`` subscribes against the view's notification
         targets. Nothing to subscribe on until the backend receipt plumbing
