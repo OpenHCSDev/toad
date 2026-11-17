@@ -7,19 +7,19 @@ import typing
 from pathlib import Path
 
 import toad
-from toad.core.events import CoreEvent
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.client.subscribers import CoreReceiver
+from toad.core.events import CoreEvent, Publication
 
 PACKAGE = Path(toad.__file__).parent
 
 
-def receivers() -> set[type[CoreEventReceiver]]:
+def receivers() -> set[type[CoreReceiver]]:
     # screens/ and widgets/ are namespace packages, which pkgutil skips.
     for path in sorted(PACKAGE.rglob("*.py")):
         if path.stem != "__main__":
             parts = path.relative_to(PACKAGE).with_suffix("").parts
             importlib.import_module(".".join(("toad", *parts)).removesuffix(".__init__"))
-    found, pending = set(), [CoreEventReceiver]
+    found, pending = set(), [CoreReceiver]
     while pending:
         for subclass in pending.pop().__subclasses__():
             if subclass not in found:
@@ -34,7 +34,7 @@ def accepted(annotation: object) -> tuple[type, ...]:
     return (annotation,)
 
 
-def handler_defects(receiver: type[CoreEventReceiver]) -> typing.Iterator[str]:
+def handler_defects(receiver: type[CoreReceiver]) -> typing.Iterator[str]:
     # Core's dispatcher reads exactly these declarations (MroDispatch.__init_subclass__).
     for name, cases in receiver._handler_declarations:
         events = tuple(case for case in cases if issubclass(case, CoreEvent))
@@ -49,8 +49,9 @@ def handler_defects(receiver: type[CoreEventReceiver]) -> typing.Iterator[str]:
             for event in events:
                 if not any(isinstance(kind, type) and issubclass(event, kind) for kind in declared):
                     yield f"{where}: first parameter {hints.get(parameters[0])} does not accept {event.__name__}"
-        if len(parameters) > 1 and hints.get(parameters[1]) is not CoreEventMessage:
-            yield f"{where}: second parameter must be CoreEventMessage, not {hints.get(parameters[1])}"
+        carrier = hints.get(parameters[1]) if len(parameters) > 1 else Publication
+        if not (isinstance(carrier, type) and issubclass(carrier, Publication)):
+            yield f"{where}: second parameter must be the frontend's Publication carrier, not {carrier}"
         if len(parameters) > 2:
             yield f"{where}: Core delivers an event and its carrier, not {len(parameters)} values"
 

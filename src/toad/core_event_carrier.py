@@ -1,16 +1,15 @@
 """The Textual message pump carries application publications unchanged."""
 
-from metaclass_registry.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual import on
 from textual.message import DeclaredMessage, Message
 from textual.dom import DOMNode
-from functools import cache, cached_property, partial
+from functools import partial
 
-from toad.client.subscribers import CallbackSubscription, CoreObserver
+from toad.client.subscribers import CallbackSubscription, CoreReceiver
 from formbridge.publications import Subscription
 
-from toad.core.events import CoreEvent, CoreEventStream, Publication
+from toad.core.events import CoreEvent, Publication
 
 
 async def dispatch_publication(receiver, message) -> None:
@@ -37,31 +36,8 @@ class CoreEventMessage(Publication, DeclaredMessage):
                 and self.event.replaces(message.event))
 
 
-class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
+class CoreEventReceiver(CoreReceiver, DOMNode):
     """Consume declared events inside the native message-pump lifetime."""
-
-    @classmethod
-    @cache
-    def consumed_core_events(cls) -> tuple[type[CoreEvent], ...]:
-        """The Core events this receiver declares a handler for: an observed stream sends it only these.
-        The declarations are decoded once per class (a handler may also name a non-Core value)."""
-        return tuple(dict.fromkeys(event for _name, classes in cls._handler_declarations
-                                   for event in classes if issubclass(event, CoreEvent)))
-
-    def subscribe_core(self, stream: CoreEventStream) -> Subscription:
-        subscription = stream.subscribe(CoreEvent, self.post_core_event)
-        self._core_subscriptions.add(subscription)
-        return subscription
-
-    @cached_property
-    def core_publications(self) -> CoreEventStream:
-        """Acquire this native source's publication resource on first use."""
-        stream = CoreEventStream(self)
-        self.subscribe_core(stream)
-        return stream
-
-    def publish_core(self, event: CoreEvent) -> None:
-        self.core_publications.publish(event)
 
     def accepts(self, message: CoreEventMessage) -> bool:
         return True
@@ -72,12 +48,6 @@ class CoreEventReceiver(CoreObserver, MroDispatch, DOMNode):
         for handler in handlers:
             await invoke(partial(handler, **kwargs), event, *args)
         return event
-
-    def observe_core(self, stream: CoreEventStream) -> None:
-        """Observe the events this receiver handles; observing a stream again keeps its subscriptions.
-        Broadcast observations terminate at their original native recipient."""
-        self._observations.setdefault(stream, tuple(
-            stream.subscribe(event, self.post_core_observation) for event in self.consumed_core_events()))
 
     def post_core_callback(self, event: CoreEvent, subscription: CallbackSubscription) -> bool:
         message = CoreEventMessage(event, subscription, subscription.consume)

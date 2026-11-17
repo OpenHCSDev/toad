@@ -2,11 +2,12 @@
 
 from collections.abc import Callable, Mapping
 from dataclasses import InitVar, dataclass, field
-from functools import cached_property, partial
+from functools import cache, cached_property, partial
 
 from agent_comms.messaging.message_notification import MessageNotification
 
 from formbridge.publications import Subscription
+from metaclass_registry.mro_dispatch import MroDispatch
 
 from toad.core.events import CoreEvent, CoreEventStream, ThreadChangeSubscription
 
@@ -90,6 +91,50 @@ class CoreObserver:
 
     async def consume_handlers(self, event, handlers, *args, **kwargs):
         """Run the handlers for one delivered event, in the native loop."""
+        raise NotImplementedError
+
+
+class CoreReceiver(CoreObserver, MroDispatch):
+    """A view whose declared handlers receive Core events: it subscribes to exactly the events
+    it declares a handler for, publishes its own on a stream it observes, and each toolkit
+    says only how one event is carried into its loop (post_core_event, post_core_observation).
+    Textual carries them as messages, Qt as queued deliveries."""
+
+    @classmethod
+    @cache
+    def consumed_core_events(cls) -> tuple[type[CoreEvent], ...]:
+        """The Core events this receiver declares a handler for: an observed stream sends it only these.
+        The declarations are decoded once per class (a handler may also name a non-Core value)."""
+        return tuple(dict.fromkeys(event for _name, classes in cls._handler_declarations
+                                   for event in classes if issubclass(event, CoreEvent)))
+
+    def subscribe_core(self, stream: CoreEventStream) -> Subscription:
+        subscription = stream.subscribe(CoreEvent, self.post_core_event)
+        self._core_subscriptions.add(subscription)
+        return subscription
+
+    @cached_property
+    def core_publications(self) -> CoreEventStream:
+        """Acquire this view's publication stream on first use."""
+        stream = CoreEventStream(self)
+        self.subscribe_core(stream)
+        return stream
+
+    def publish_core(self, event: CoreEvent) -> None:
+        self.core_publications.publish(event)
+
+    def observe_core(self, stream: CoreEventStream) -> None:
+        """Observe the events this receiver handles; observing a stream again keeps its subscriptions.
+        Broadcast observations terminate at their original native recipient."""
+        self._observations.setdefault(stream, tuple(
+            stream.subscribe(event, self.post_core_observation) for event in self.consumed_core_events()))
+
+    def post_core_event(self, event: CoreEvent, subscription: Subscription) -> bool:
+        """Carry one event this view published into the native loop."""
+        raise NotImplementedError
+
+    def post_core_observation(self, event: CoreEvent, subscription: Subscription) -> bool:
+        """Carry one observed event into the native loop, for this view only."""
         raise NotImplementedError
 
 

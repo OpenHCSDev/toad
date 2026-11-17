@@ -24,8 +24,7 @@ from toad.client.submission import SubmissionStart
 from toad.client.conversation import ConversationKind
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.core import events as core_events
-from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.core_event_carrier import CoreEventMessage
+from toad.core.events import Publication
 from toad.message_rows import IrcMessageStyle
 from toad.client.referenced_core import ReferencedCore
 from toad.session_scope import SessionScope
@@ -80,7 +79,6 @@ class CommsChatView(WireConversationView):
         self.conversation = conversation
         self._me = me
         # The observer's announcement the last refresh began from.
-        self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.input_scope}")
         self.message_contents = Contents()
@@ -146,10 +144,10 @@ class CommsChatView(WireConversationView):
         self.prepare_prompt()
 
     @handles(core_events.CoordinationObserved)
-    async def _coordination_observed(self, event: core_events.CoordinationObserved) -> None:
+    async def stores_observed(self, event: core_events.CoordinationObserved, publication: Publication) -> None:
         """One canonical observation invalidates commands and the mounted source."""
         self.prompt.slash_complete.refresh_commands()
-        await self._refresh()
+        await super().stores_observed(event, publication)
 
     @handles(core_events.SessionSelected)
     async def _selected_source_changed(self, event: core_events.SessionSelected) -> None:
@@ -162,40 +160,6 @@ class CommsChatView(WireConversationView):
         """The sidebar's references changed: the label and commands follow them."""
         await super()._command_source_changed(event)
         self.refresh_identity()
-
-    @handles(TranscriptSourceWorkFinished)
-    async def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
-        """Reconcile an observation which arrived during this source's work."""
-        super().on_transcript_source_work_finished(event, message)
-        history = self.message_history
-        source = history.page_source
-        access = self.app.coordination_access
-        if message.publisher is not history:
-            return
-        self.submissions.settle()
-        if (not history.state.accepts_source_work
-                or not source.uses_observation(access.observation.observed())):
-            return
-        if self._refreshed_from != access.revision:
-            # The observer announced a change while this work ran. The history
-            # may have read it from the stores already; mention completion
-            # reads the observer's snapshot, which only now shows it.
-            await self._refresh()
-            return
-        if source.revision.matches_stores(access.revision):
-            return
-        snapshot = history.source_snapshot()
-        if not snapshot.current(history):
-            return
-        # A read can also be newer than the observer's last announcement. Their
-        # file revisions are identities, not an ordering: ask the service
-        # itself before reading again, rather than rereading an already
-        # current page until the observer's next tick.
-        revision = await source.read_revision()
-        if (source is history.page_source and snapshot.current(history)
-                and source.uses_observation(access.observation.observed())
-                and not source.revision.matches_stores(revision)):
-            await self._refresh()
 
     def prepare_prompt(self) -> None:
         """Apply comms prompt state after a mode becomes active."""
@@ -256,9 +220,8 @@ class CommsChatView(WireConversationView):
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
         history = self.message_history
-        announced = self.app.coordination_access.revision
-        newly_announced = announced != self._refreshed_from
-        changed = await history.read_changes()
+        newly_announced = self.app.coordination_access.revision != self.refreshed_from
+        changed = await self.read_announced_changes()
         # Source observation and its pending first page belong to the
         # history, even before this tab is drawable. Composer work follows.
         source = history.page_source
@@ -269,7 +232,6 @@ class CommsChatView(WireConversationView):
         if not await history.source_is_current(snapshot):
             return
         await self.refresh_composer(read_only)
-        self._refreshed_from = announced
         # A sent message may now be drawn: its queue entry retires before mentions are read.
         self.submissions.settle()
         # Composer mentions and DM status read the observer's snapshot

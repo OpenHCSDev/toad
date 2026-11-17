@@ -9,9 +9,10 @@ keyboard. Nothing here imports a terminal library.
 
 from __future__ import annotations
 
+import re
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import ClassVar
 
 from agent_comms.messaging.display_references import NoHistorySource
@@ -78,10 +79,66 @@ class RecordedMessageClock(MessageClock):
 
 class LineRoom(ABC):
     """How much of a divider's title one line holds, in its frontend's own measure: terminal
-    cells for Textual, pixels for Qt."""
+    cells for Textual, pixels for Qt. The frontend measures; this owner decides how a title
+    wraps and how much rule each line carries, so every frontend draws the same lines."""
 
     @abstractmethod
-    def fits(self, spans: tuple[Span, ...]) -> bool: ...
+    def measure(self, text: str) -> float:
+        """The width this text takes in the frontend's measure."""
+
+    @property
+    @abstractmethod
+    def capacity(self) -> float:
+        """The widest title one divider line may carry."""
+
+    @abstractmethod
+    def fits(self, spans: tuple[Span, ...]) -> bool:
+        """Whether a title and its time share one line."""
+
+    @abstractmethod
+    def rules(self, spans: tuple[Span, ...]) -> tuple[int, int]:
+        """Rule characters before and after one line's title."""
+
+    def wrap(self, spans: tuple[Span, ...]) -> tuple[tuple[Span, ...], ...]:
+        """The lines a title wraps into at this room's capacity, word by word, each span
+        keeping its role and link; a word wider than a line breaks between characters."""
+        lines: list[tuple[Span, ...]] = []
+        line: list[Span] = []
+        used = 0.0
+        for span in spans:
+            for word in _words(span.text):
+                for piece in self._pieces(word):
+                    if line and used + self.measure(piece.rstrip()) > self.capacity:
+                        lines.append(_trimmed(line))
+                        line, used, piece = [], 0.0, piece.lstrip()
+                    if piece:
+                        line.append(replace(span, text=piece))
+                        used += self.measure(piece)
+        if line or not lines:
+            lines.append(_trimmed(line))
+        return tuple(lines)
+
+    def _pieces(self, word: str) -> tuple[str, ...]:
+        if self.measure(word.rstrip()) <= self.capacity:
+            return (word,)
+        pieces, current = [], ""
+        for character in word:
+            if current and self.measure(current + character) > self.capacity:
+                pieces.append(current)
+                current = ""
+            current += character
+        return (*pieces, current)
+
+
+def _words(text: str) -> tuple[str, ...]:
+    """Each word with the spaces that follow it, so joining them gives the text back."""
+    return tuple(re.findall(r"\S+\s*|\s+", text))
+
+
+def _trimmed(line: list[Span]) -> tuple[Span, ...]:
+    if line:
+        line[-1] = replace(line[-1], text=line[-1].text.rstrip())
+    return tuple(line)
 
 
 class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):
@@ -100,6 +157,38 @@ class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):
 
 
 DIVIDER_TIME = DividerTime()
+
+
+@dataclass(frozen=True)
+class DividerLine:
+    """One drawn line of a divider: its title and the rule on each side of it."""
+
+    spans: tuple[Span, ...]
+    before: int
+    after: int
+
+
+class DrawsDividers(ABC):
+    """Draws a divider the one way every frontend does: the title and time grouped by
+    DIVIDER_TIME, each group wrapped to the room, and every line ruled on both sides. A
+    frontend says only how a ruled line looks and how its lines join."""
+
+    @abstractmethod
+    def divider_room(self) -> LineRoom: ...
+
+    @abstractmethod
+    def ruled_line(self, line: DividerLine, block: Divider): ...
+
+    @abstractmethod
+    def joined_divider(self, lines: tuple): ...
+
+    @handles(Divider)
+    def divider(self, block: Divider):
+        room = self.divider_room()
+        return self.joined_divider(tuple(
+            self.ruled_line(DividerLine(line, *room.rules(line)), block)
+            for group in DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
+            for line in room.wrap(group)))
 
 
 class ThreadLink(MroProjection[LineLink]):

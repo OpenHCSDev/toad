@@ -61,6 +61,7 @@ from toad.client.bus_selection import (
 from toad.client.offered_action import OfferedAction
 from toad.client.bus_submission import BusSubmissions, SubmissionView, TypedText
 from toad.client.connection import (
+    CoordinationAccess,
     CoreConnection,
     FailedObservation,
     Observing,
@@ -68,9 +69,10 @@ from toad.client.connection import (
 )
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
-from toad.client.history import ChannelDestination, WireSource, WireView
+from toad.client.history import ChannelDestination, ObservedWireView, WireSource
 from toad.client.history_entry import HistorySessionEntry
 from toad.client.history_notifications import HistoryNotifications
+from toad.client.history_state import DEFERRED_WORK, SourceWork
 from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
 from toad.client.line_blocks import MutedRole
@@ -82,7 +84,7 @@ from toad.client.subscribers import SidebarSubscriber
 from toad.client.tab_identity.kinds import CommsTab
 from toad.command_catalog import CommandCatalog
 from toad.constants import WELCOME
-from toad.core.events import CoordinationObserved, TabHistoryChanged
+from toad.core.events import TabHistoryChanged
 from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
@@ -90,6 +92,7 @@ from toad.navigation_target import DirectTarget, HistoryRouted, channel_target
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
+from toad.qt.core_events import QtCoreObserver
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
@@ -245,7 +248,7 @@ class BusRow(SidebarItem):
 
 
 class Page:
-    """A page of the window: shown when selected, read again when Core's stores change."""
+    """A page of the window, read again when it is selected."""
 
     mode: str
 
@@ -611,8 +614,8 @@ class BusLabel(ElidedLine):
         self.setToolTip(location)
 
 
-class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, HistoryNotifications,
-                       ComposerHost, QWidget, metaclass=PyQtWidgetMeta):
+class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, ObservedWireView, HistoryNotifications,
+                       ComposerHost, QtCoreObserver, QWidget, metaclass=PyQtWidgetMeta):
     """One conversation tab: its history, paged lazily by the pager Textual's channels use
     and drawn as virtual rows, read again whenever Core's stores change; the info row over
     its thread's status; and the composer and activity its kind chooses, sending through
@@ -637,6 +640,10 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
             source.root, self.conversation, source.project, entry.viewer, MarkdownMessageStyle(),
             access=app.coordination_access, core=source.core, fragments=QtWireFragment))
         self.message_history.observe_source()
+        # Core's store changes and this history's finished work reach the shared handlers
+        # (ObservedWireView), as the TUI's conversation view hears them.
+        self.observe_core(app.coordination_access.events)
+        self.observe_core(self.message_history.core_publications)
         self.label = ElidedLine(label)
         self.status = ElidedLine()
         self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -713,7 +720,12 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
     async def wait_content_ready(self) -> None:
         await self.content_ready.wait()
 
+    @property
+    def coordination(self) -> CoordinationAccess:
+        return self.app.coordination_access
+
     def close_core_events(self) -> None:
+        super().close_core_events()
         for line in self.activity:
             line.close_activity()
         self.composer.receipt.stop()
@@ -736,7 +748,10 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
     def reload(self) -> None:
         self.message_history.page_source.schedule_refresh(self)
 
-    async def _refresh(self):
+    async def _refresh(self) -> SourceWork:
+        """A hidden tab reads when it is shown again (shown), as a detached TUI view does."""
+        if not self.isVisible():
+            return DEFERRED_WORK
         return self.message_history.page_source.schedule_refresh(self)
 
     async def show_sent(self, sent: MessageReference) -> None:
@@ -752,7 +767,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         history = self.message_history
         source = self.app.source()
         try:
-            await history.read_changes()
+            await self.read_announced_changes()
         finally:
             self.content_ready.set()
         self.submissions.settle()
@@ -1015,7 +1030,6 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         self.fit_screen()
         # The welcome lists the channels and threads, so both panes start down.
         self.rearrange_sidebars()
-        self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
         self.shortcuts = ShortcutLifecycle[ApplicationKeys](QApplication.instance())
@@ -1055,9 +1069,6 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
     def fit_safe_area(self, margins: QMargins) -> None:
         """Keep every row clear of the status and navigation bars."""
         self.setContentsMargins(margins)
-
-    def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
-        self.workspace_sessions.selected.reload()
 
     def history_changed(self, *event: object) -> None:
         """Back and forward are live exactly when the visit history has a step that way."""

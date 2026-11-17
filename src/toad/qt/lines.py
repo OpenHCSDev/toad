@@ -31,29 +31,40 @@ from toad.client.line_blocks import (
     Summary,
 )
 from toad.core.projection import MroProjection
-from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
+from toad.message_rows import DividerLine, DrawsDividers, LineRoom, WireBody
 
 
 @dataclass(frozen=True)
 class PixelRoom(LineRoom):
     """A divider line in a Qt view: its width in pixels of the divider's bold font, keeping room
-    for a short rule on each side."""
+    for a short rule on each side of every line."""
 
     metrics: QFontMetricsF
     width: float
 
-    def advance(self, spans: tuple[Span, ...]) -> float:
-        return self.metrics.horizontalAdvance("  " + "".join(span.text for span in spans) + "  ")
+    MIN_RULE = 2
 
-    def rule(self, spans: tuple[Span, ...]) -> int:
-        """Rule characters for each side of these spans; under two, the line has no room for rules."""
-        return int((self.width - self.advance(spans)) / 2 / self.metrics.horizontalAdvance("─"))
+    def measure(self, text: str) -> float:
+        return self.metrics.horizontalAdvance(text)
+
+    @property
+    def rule_width(self) -> float:
+        return self.metrics.horizontalAdvance("─")
+
+    @property
+    def capacity(self) -> float:
+        return max(1.0, self.width - self.measure("    ") - 2 * self.MIN_RULE * self.rule_width)
 
     def fits(self, spans: tuple[Span, ...]) -> bool:
-        return self.rule(spans) >= 2
+        return self.measure("".join(span.text for span in spans)) <= self.capacity
+
+    def rules(self, spans: tuple[Span, ...]) -> tuple[int, int]:
+        title = self.measure("  " + "".join(span.text for span in spans) + "  ")
+        side = max(0, int((self.width - title) / 2 / self.rule_width))
+        return side, side
 
 
-class QtLineRenderer(MroProjection[str]):
+class QtLineRenderer(DrawsDividers, MroProjection[str]):
     """Each block through its most specific declared painter, as a fragment of Qt rich text."""
 
     def __init__(self, scheme: ColourScheme) -> None:
@@ -111,28 +122,31 @@ class QtLineRenderer(MroProjection[str]):
     def html(self, blocks: tuple[LineBlock, ...]) -> str:
         return "".join(self.project_value(block) for block in blocks)
 
-    @handles(Divider)
-    def divider(self, block: Divider) -> str:
-        """The title between two rules filling the width; the time goes on its own line when
-        both do not fit, and a title too long for any rule wraps, as Textual's divider does."""
+    # The divider is drawn by DrawsDividers; these say how rich text draws one line. Its
+    # lines are one paragraph with no margins, so no space opens between title and time,
+    # and the Gap before every header is its only space above, one row as Textual draws.
+
+    def divider_room(self) -> PixelRoom:
         bold = QFont(self.font)
         bold.setBold(True)
-        room = PixelRoom(QFontMetricsF(bold), self.width)
-        first, *rest = DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
-        if room.fits(first):
-            rule = self.styled("─" * room.rule(first), block.role)
-            head = (f'<p align="center" style="margin-top:10px;white-space:pre">{rule} '
-                    f'<b>{self.title(first, block)}</b> {rule}</p>')
-        else:
-            head = f'<p align="center" style="margin-top:10px"><b>{self.title(first, block)}</b></p>'
-        return head + "".join(f'<p align="center"><b>{self.title(group, block)}</b></p>' for group in rest)
+        return PixelRoom(QFontMetricsF(bold), self.width)
+
+    def ruled_line(self, line: DividerLine, block: Divider) -> str:
+        before = self.styled("─" * line.before, block.role)
+        after = self.styled("─" * line.after, block.role)
+        return f"{before} <b>{self.title(line.spans, block)}</b> {after}"
+
+    def joined_divider(self, lines: tuple[str, ...]) -> str:
+        return ('<p align="center" style="margin:0;white-space:pre">'
+                + "<br/>".join(lines) + "</p>")
 
     def title(self, spans: tuple[Span, ...], block: Divider) -> str:
         return "".join(self.span(span, span.link.heading_role(span.role, block.role)) for span in spans)
 
     @handles(Gap)
     def gap(self, block: Gap) -> str:
-        return "<p>&nbsp;</p>"
+        """One empty row, as Textual's gap is: no paragraph margins added to it."""
+        return '<p style="margin:0">&nbsp;</p>'
 
     @handles(Summary)
     def summary(self, block: Summary) -> str:

@@ -54,7 +54,7 @@ from toad.client.line_blocks import (
 from toad.link_click import OpenLineLink
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
-from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
+from toad.message_rows import DividerLine, DrawsDividers, LineRoom, WireBody
 from toad.patch import (
     DiffSettings,
     NoPatchCell,
@@ -144,12 +144,29 @@ LINK_STYLE = LinkStyle()
 
 @dataclass(frozen=True)
 class CellRoom(LineRoom):
-    """A divider line in a terminal: its width in cells, less the rule's ends."""
+    """A divider line in a terminal: its width in cells, with a one-cell inset each side of
+    the title."""
 
     width: int
 
+    @property
+    def inset(self) -> int:
+        return min(1, (self.width - 1) // 2)
+
+    def measure(self, text: str) -> float:
+        return cell_len(text)
+
+    @property
+    def capacity(self) -> float:
+        return max(1, self.width - 2 * self.inset)
+
     def fits(self, spans: tuple[Span, ...]) -> bool:
         return sum(cell_len(span.text) for span in spans) <= max(1, self.width - 8)
+
+    def rules(self, spans: tuple[Span, ...]) -> tuple[int, int]:
+        length = sum(cell_len(span.text) for span in spans) + 2 * self.inset
+        before = max(0, (self.width - length) // 2)
+        return before, max(0, self.width - before - length)
 
 
 def _fit(text: str, width: int) -> str:
@@ -430,7 +447,7 @@ class StyledPatch(Patch, PreparedBlock):
     after_text: dict[int, Text] = field()
 
 
-class RichLineRenderer(MroProjection[None]):
+class RichLineRenderer(DrawsDividers, MroProjection[None]):
     """Paint each primitive through its most-specific declared renderer."""
 
     def __init__(self, theme: LineTheme, width: int = 1) -> None:
@@ -489,27 +506,26 @@ class RichLineRenderer(MroProjection[None]):
         ]
         self._body_rows(block, rows)
 
-    @handles(Divider)
-    def divider(self, block: Divider) -> None:
-        groups = DIVIDER_TIME.project_value(block.timestamp, block.spans, CellRoom(self.width))
+    # The divider is drawn by DrawsDividers; these say how a terminal draws one line.
+
+    def divider_room(self) -> CellRoom:
+        return CellRoom(self.width)
+
+    def ruled_line(self, line: DividerLine, block: Divider) -> tuple[Segment, ...]:
         rule, bold = self.theme.style(block.role), Style(bold=True)
-        # Fit actual content, not a guessed phone width. Each semantic span and
-        # the complete recorded time survive wrapping, including long names.
-        inset = min(1, (self.width - 1) // 2)
-        for spans in groups:
-            content = Text.assemble(*(
-                (span.text, self.theme.style(span.link.heading_role(span.role, block.role))
-                 + bold + LINK_STYLE.project_value(span.link))
-                for span in spans
-            ))
-            for row in self.console.render_lines(
-                content, self.console.options.update(width=self.width - 2 * inset), pad=False
-            ):
-                title = (Segment(" " * inset, rule), *row, Segment(" " * inset, rule))
-                length = sum(segment.cell_length for segment in title)
-                left = max(0, (self.width - length) // 2)
-                self.output.append((Segment("─" * left, rule), *title,
-                                    Segment("─" * max(0, self.width - left - length), rule)))
+        room = self.divider_room()
+        content = Text.assemble(*(
+            (span.text, self.theme.style(span.link.heading_role(span.role, block.role))
+             + bold + LINK_STYLE.project_value(span.link))
+            for span in line.spans
+        ))
+        rows = self.console.render_lines(content, self.console.options.update(width=int(room.capacity)), pad=False)
+        return (Segment("─" * line.before, rule), Segment(" " * room.inset, rule),
+                *(segment for row in rows for segment in row),
+                Segment(" " * room.inset, rule), Segment("─" * line.after, rule))
+
+    def joined_divider(self, lines: tuple[tuple[Segment, ...], ...]) -> None:
+        self.output.extend(lines)
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:

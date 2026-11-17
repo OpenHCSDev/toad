@@ -2,12 +2,12 @@
 from pathlib import Path
 
 from toad.client.conversation import ConversationKind
-from toad.client.history import WireView
+from toad.client.history import ObservedWireView
 from toad.session_scope import SessionScope
 from toad.widgets.conversation import Conversation
 
 
-class WireConversationView(Conversation, WireView):
+class WireConversationView(Conversation, ObservedWireView):
     """The existing conversation widget supplies the native view behavior."""
 
     @property

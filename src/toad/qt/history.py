@@ -43,8 +43,9 @@ from toad.client.history_pager import (
 )
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
-from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
+from toad.client.prepared_pages import ClosedHistory, MeasuresFragments, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
+from toad.client.subscribers import CoreReceiver
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
 
@@ -189,7 +190,8 @@ class SourceTask(asyncio.Task):
         await asyncio.gather(self, return_exceptions=True)
 
 
-class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHistory, ConversationPager, NativePager):
+class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHistory, ConversationPager, CoreReceiver,
+                            MeasuresFragments, NativePager):
     """A wire conversation's pages, read marks and message statuses in a Qt window: the
     shared pager, read marking and notifications, answering their hooks with the window's
     rows and the Qt event loop."""
@@ -291,8 +293,10 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     def call_after_refresh(self, callback: Callable, *arguments: object) -> None:
         QTimer.singleShot(0, partial(callback, *arguments))
 
-    def publish_core(self, event: object) -> None:
-        """No Qt listener waits on a history's source work."""
+    def post_core_event(self, event: object, subscription: object) -> bool:
+        """What this history publishes reaches its view, which observes the stream: a Qt
+        history has no parent widget for it to bubble to, as Textual's does."""
+        return False
 
     # Running source work on the Qt event loop
 

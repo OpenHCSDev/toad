@@ -31,6 +31,8 @@ from agent_comms.transport.tools.sidebar import (
     CommsMarkPageReadTool,
 )
 from agent_comms.ui_model.observation import ReadNotifications
+from metaclass_registry.mro_dispatch import handles
+
 from toad.client.connection import CoordinationAccess, Observation
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import (
@@ -54,6 +56,8 @@ from toad.client.prepared_pages import (
     Unchanged,
 )
 from toad.client.reader_position import LatestPosition
+from toad.core.events import CoordinationObserved, Publication
+from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
@@ -238,6 +242,56 @@ class WireView(ConversationActivity):
     @abstractmethod
     def dispatch_sync(self, event: object) -> None:
         """Hand the view the references its label and commands are read from."""
+
+
+class ObservedWireView(WireView):
+    """A wire view that reads its conversation again whenever Core's stores change, and once
+    more when they changed while a read ran: the pager defers a read asked for mid-read, so
+    without the second read that change waits for the next announcement. Each frontend's
+    conversation view inherits it and observes Core's stores and its own history's work."""
+
+    refreshed_from: object = None
+    """The store revision Core had announced when this view last read its conversation."""
+
+    @handles(CoordinationObserved)
+    async def stores_observed(self, event: CoordinationObserved, publication: Publication) -> None:
+        await self._refresh()
+
+    @handles(TranscriptSourceWorkFinished)
+    async def history_work_finished(self, event: TranscriptSourceWorkFinished, publication: Publication) -> None:
+        """Read again when Core announced a change while this history's work ran."""
+        history = self.message_history
+        source = history.page_source
+        access = self.app.coordination_access
+        if publication.publisher is not history:
+            return
+        self.submissions.settle()
+        if (not history.state.accepts_source_work
+                or not source.uses_observation(access.observation.observed())):
+            return
+        if self.refreshed_from != access.revision:
+            await self._refresh()
+            return
+        if source.revision.matches_stores(access.revision):
+            return
+        snapshot = history.source_snapshot()
+        if not snapshot.current(history):
+            return
+        # A read can also be newer than the observer's last announcement. Their file
+        # revisions are identities, not an ordering: ask the service itself before reading
+        # again, rather than rereading an already current page until the next announcement.
+        revision = await source.read_revision()
+        if (source is history.page_source and snapshot.current(history)
+                and source.uses_observation(access.observation.observed())
+                and not source.revision.matches_stores(revision)):
+            await self._refresh()
+
+    async def read_announced_changes(self) -> bool:
+        """Read what changed in the conversation, recording which announcement it answers."""
+        announced = self.app.coordination_access.revision
+        changed = await self.message_history.read_changes()
+        self.refreshed_from = announced
+        return changed
 
 
 @dataclass(frozen=True)
