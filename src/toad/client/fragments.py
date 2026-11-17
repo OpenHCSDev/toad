@@ -248,6 +248,15 @@ class HistoryFragment(CursorRest):
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
 
+    @property
+    def body_text(self) -> str:
+        """Plain-text body for copy / menu / long-press, empty for fragments that have no
+        copyable body (tool-call title lines, context summaries). Overridden by
+        `BusMessageHistoryFragment` to return its stored `text_part`; a future fragment
+        kind with its own copy text overrides here instead of growing a getattr chain
+        at the call site."""
+        return ""
+
     def request_show(self, shown: Shown) -> bool:
         """Show the fragment so; whether that changed how it is shown."""
         if shown == self.shown:
