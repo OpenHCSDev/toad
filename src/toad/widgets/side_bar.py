@@ -279,9 +279,9 @@ The Sidebar contains additonal information associated with the conversation.
 
     def watch_collapsed(self, collapsed: bool) -> None:
         if self.is_attached:
-            self.query_ancestor(SideBar).navigation.panels_collapsed[
-                str(self.title)
-            ] = collapsed
+            self.query_ancestor(SideBar).navigation.set_panel_collapsed(
+                str(self.title), collapsed,
+            )
 
     def compose(self) -> ComposeResult:
         if self.header_control is None:
@@ -1145,7 +1145,7 @@ class SideBar(
             yield frame(
                 panel.widget,
                 title=panel.title,
-                collapsed=navigation.panels_collapsed.get(panel.title, panel.collapsed),
+                collapsed=navigation.is_panel_collapsed(panel.title, panel.collapsed),
                 id=panel.id,
                 header_control=panel.header_control,
             )
@@ -1228,8 +1228,9 @@ class SideBar(
             self.app.workspace_chrome.refresh_layout()
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
-            if str(panel.title) in navigation.panels_collapsed:
-                panel.collapsed = navigation.panels_collapsed[str(panel.title)]
+            title = str(panel.title)
+            if title in navigation.panels_collapsed:
+                panel.collapsed = navigation.is_panel_collapsed(title)
         return changed
 
     def watch_collapsed(self, collapsed: bool) -> None:
