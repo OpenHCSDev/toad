@@ -33,7 +33,7 @@ from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea
                                QVBoxLayout, QWidget)
 
 from toad.qt.coordination_panel import QtCoordinationStatus
-from toad.qt.thread_comms_panel import QtThreadCommsPanel
+from toad.qt.plan_panel import QtPlan
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
 from toad.thread_identity import NoThreadIdentity
@@ -138,7 +138,7 @@ class ThreadSettingsPane(QWidget):
         column.setSpacing(4)
         self._category_filter = _CategoryFilter(self._content)
         self._coordination_status = QtCoordinationStatus(self._content)
-        self._comms_panel = QtThreadCommsPanel(self._content)
+        self._plan_panel = QtPlan(self._content)
         self._section_bodies: dict[str, QWidget] = {}
         # The session view is the default; a conversation / DM tab trims the roster via
         # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
@@ -168,17 +168,20 @@ class ThreadSettingsPane(QWidget):
             return self._coordination_status
         if spec.key == "comms":
             return self._comms_panel
+        if spec.key == "plan":
+            return self._plan_panel
         return _placeholder_body(spec, parent)
 
     def bind(self, view) -> None:
         """Follow the conversation the tab now shows; the welcome has none, so the toggles
         go quiet. Panels that read / write the view receive it here; today the category
-        filter, the coordination status and the comms tree do so, future ports (Plan /
-        Project / Context) will receive it through the same hook."""
+        filter, coordination status, comms panel and plan panel do so; future ports
+        (Project / Context) will receive it through the same hook."""
         self._category_filter.bind(view)
         identity = getattr(view, "thread_identity", None) or NoThreadIdentity()
         self._coordination_status.apply(identity)
         self._comms_panel.bind(view)
+        self._plan_panel.bind(view)
 
     def present(self) -> None:
         self._category_filter.present()

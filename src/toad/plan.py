@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -59,3 +59,32 @@ class PlanItem:
 def decode_plan(entries: list[PlanEntry]) -> list[PlanItem]:
     """Consume SDK-validated ACP entries; subsequent consumers trust these items."""
     return [PlanItem.from_acp(entry.content, entry.priority, entry.status) for entry in entries]
+
+
+@dataclass
+class PlanDisplayState:
+    """Toolkit-neutral render state for a plan panel: the currently-displayed entries
+    and the per-entry status from the previous render, so a frontend can animate the
+    transition when an entry first reaches a completed status.
+
+    Both Textual's `widgets/plan.Plan` and Qt's `qt/plan_panel.QtPlan` route their
+    entries updates through `update(...)` and ask `newly_complete(entry)` to drive
+    the same completion animation decision — one fact (did this item just complete?),
+    one owner, both frontends in agreement."""
+
+    entries: list[PlanItem] = field(default_factory=list)
+    previous_statuses: dict[str, type[PlanStatus]] = field(default_factory=dict)
+
+    def update(self, new_entries: list[PlanItem]) -> None:
+        """Capture the current statuses as `previous_statuses` before replacing entries, so
+        the next `newly_complete(entry)` call can tell which rows just transitioned."""
+        self.previous_statuses = {entry.content: entry.status for entry in self.entries}
+        self.entries = list(new_entries)
+
+    def newly_complete(self, entry: PlanItem) -> bool:
+        """Whether this entry's status is complete AND was not complete at the previous
+        update — the condition both frontends use to animate the completion."""
+        if not entry.status.complete:
+            return False
+        prior = self.previous_statuses.get(entry.content)
+        return prior is not None and not prior.complete

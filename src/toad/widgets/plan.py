@@ -14,7 +14,7 @@ from ui_theme.scheme import PrimaryColour
 
 from toad.block_navigation import ConversationBlock
 from toad.native_style import AutoHeight, PrimaryText, RightPadding
-from toad.plan import PlanItem, PlanStatus
+from toad.plan import PlanDisplayState, PlanItem, PlanStatus
 from toad.widgets.strike_text import StrikeText
 from textual.widget import Widget
 
@@ -64,7 +64,7 @@ class Plan(
     entries: reactive[list[PlanItem]] = reactive(list, recompose=True)
 
     def __init__(self, entries: list[PlanItem]):
-        self.previous_statuses: dict[str, type[PlanStatus]] = {}
+        self._state = PlanDisplayState(entries=list(entries))
         super().__init__()
         self.set_reactive(Plan.entries, entries)
 
@@ -76,7 +76,7 @@ class Plan(
         self.styles.border_title_align = "center"
 
     def watch_entries(self, old_entries: list[PlanItem], new_entries: list[PlanItem]) -> None:
-        self.previous_statuses = {entry.content: entry.status for entry in old_entries}
+        self._state.update(new_entries)
 
     def compose(self) -> ComposeResult:
         if not self.entries:
@@ -87,8 +87,7 @@ class Plan(
             yield PlanMarker(status)
             yield (text := PlanText(entry))
             if status.complete:
-                previous = self.previous_statuses.get(entry.content)
-                text.complete(animated=previous is not None and not previous.complete)
+                text.complete(animated=self._state.newly_complete(entry))
 
 
 class ConversationPlan(Plan):
