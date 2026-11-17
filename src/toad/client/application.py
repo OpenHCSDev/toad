@@ -15,6 +15,7 @@ import time
 from abc import abstractmethod
 from collections.abc import Awaitable
 from functools import partial
+from typing import TYPE_CHECKING
 
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
@@ -49,6 +50,9 @@ from toad.session_navigation import SessionNavigation
 from toad.thread_actions import ThreadActions
 from toad.thread_navigation import ThreadNavigator
 
+if TYPE_CHECKING:
+    from toad.preferences import SavedSettings, ToadSettings
+
 
 class BusSwitch(OperationKind):
     """Switches the application onto a bus the reader chose."""
@@ -64,7 +68,50 @@ class BusDiscovery(OperationKind, ExclusiveKind):
 
 
 class ClientApplication(BusPickerHost, NavigationHost):
-    """One launch's client state and its session operations, shared by every frontend."""
+    """One launch's client state and its session operations, shared by every frontend.
+
+    Owns toolkit-neutral access to `ToadSettings` via `settings` / `saved_settings` /
+    `configuration_state`. Every frontend inherits the same accessor; `QtToadApp` gets
+    `app.settings.sidebar.unread_counts.badge(...)` for free, the same way Textual's
+    `ThemedApp` already did. On the Textual app, `ThemedApp.__init__` still assigns
+    `saved_settings` eagerly before `TextualColours` reads diff settings during
+    colour-system construction; that assignment flows through the setter here.
+    """
+
+    @property
+    def saved_settings(self) -> "SavedSettings":
+        """The settings holder this launch reads and writes. Lazily opened on first
+        access so Qt (which has no pre-constructor settings hook) doesn't need to
+        know to allocate it; Textual's `ThemedApp.__init__` sets it eagerly for the
+        colour-system construction order."""
+        if not hasattr(self, '_saved_settings'):
+            self._saved_settings = self.open_settings()
+            ObjectStateRegistry.register(self._saved_settings.state)
+        return self._saved_settings
+
+    @saved_settings.setter
+    def saved_settings(self, value: "SavedSettings") -> None:
+        if getattr(self, '_saved_settings', None) is value:
+            return
+        self._saved_settings = value
+        ObjectStateRegistry.register(value.state)
+
+    def open_settings(self) -> "SavedSettings":
+        """Settings held by this app alone; a frontend with a settings file opens it
+        instead by overriding this method."""
+        from toad.preferences import SavedSettings
+        return SavedSettings()
+
+    @property
+    def settings(self) -> "ToadSettings":
+        """The settings in use, to read from; `saved_settings` changes and saves them."""
+        return self.saved_settings.current
+
+    @property
+    def configuration_state(self) -> ObjectState:
+        """The ObjectState backing `settings`; on the app the nearest `SettingsScope`
+        resolves to this, so `SettingsReader`-based widgets reach the same object."""
+        return self.saved_settings.state
 
     def initialize_client(
         self,
