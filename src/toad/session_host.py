@@ -92,6 +92,28 @@ class NavigationHost(NavigatingHost[Observing]):
         import the Textual-widget pyramid just to reach `MainScreen`."""
         ...
 
+    @abstractmethod
+    def replace_opening_view(
+        self,
+        opening_view: SessionScope,
+        prepared,
+        identity: SessionTabIdentity,
+    ) -> SessionScope:
+        """The real bound view the opening placeholder becomes once
+        `ThreadNavigation` has resolved. Called by `ThreadNavigator.mount` BEFORE
+        `prepared.bind(view)` + `session_navigation.bind_opened(view, ...)` +
+        `view._prepare_content()`, so each runs against the bound-state view
+        (which has the full SessionScope / Qt-page surface) rather than against
+        the opening placeholder (which was deliberately kept minimal).
+
+        Textual returns `opening_view` unchanged — `MainScreen` is one class for
+        both the opening and bound lifecycle phases, same instance updated
+        in-place. Qt constructs a fresh `QtMailboxView`, swaps it into
+        `QtWorkspaceViews.pages` + `.views` at the opening view's mode slot,
+        and returns the new instance so the rest of `mount` drives it. This is
+        the Qt analogue of Textual's "one widget handles both phases"."""
+        ...
+
 
 class SessionNavigator(SessionCollection[Observing]):
     """The session factory's context supplies its application and current membership."""

@@ -320,6 +320,14 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         from toad.screens.main import MainScreen
         return MainScreen.opening(request, origin, self)
 
+    def replace_opening_view(self, opening_view, prepared, identity):
+        """Textual's `MainScreen` handles both opening and bound lifecycle phases on
+        the same instance — `prepared.bind(view)` updates state in place, no swap
+        needed. Return the opening_view unchanged so `ThreadOpening.mount` keeps
+        driving the same widget. Qt's override is the one that does the real
+        swap: see `QtToadApp.replace_opening_view`."""
+        return opening_view
+
     def _handle_exception(self, error: Exception) -> bool:
         """The mounted application owns escaped handler and worker errors."""
         if not self.screen_stack or not self.screen.is_mounted:
