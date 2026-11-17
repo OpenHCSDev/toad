@@ -42,8 +42,15 @@ def _fire(action: Any, context: Any) -> None:
         if not getattr(action, "available", lambda _c: True)(context):
             return
         action.apply(context)
-    except (AttributeError, NotImplementedError):
+    except AttributeError:
+        # A Textual-only action whose `.apply` references a Qt-missing surface
+        # silently skips — the docstring's family-loop-intact promise holds for
+        # the cross-frontend case the family dispatch naturally hits.
         return
+    # NOTE: NotImplementedError is no longer swallowed — a Qt subclass that
+    # raises `NotImplementedError` from `.apply` is a real missing implementation
+    # the action family contract demands, and silent-skip would hide it.
+    # Let it reach Qt's logger alongside every other real fault.
 
 
 def bind_action_shortcuts(widget: QWidget, family: type, context: Any,
