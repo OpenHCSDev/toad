@@ -17,8 +17,14 @@ from typing import TYPE_CHECKING
 
 from agent_comms.registry.thread_presentation import NoThreadPresentation, ThreadPresentation
 from metaclass_registry.mro_dispatch import MroDispatch
+import asyncio
+
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+
+from toad.client.history_state import LatestViewportRequest
+from toad.client.reader_position import LatestPosition
 
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.agent_bound import ObservedAgentBinding
@@ -91,6 +97,22 @@ class QtThreadView(
         """Default no-op: flash notice on connect. ACP views override; mailbox
         views have no connect event and inherit the no-op."""
 
+    # ---- HistoryNotifications hooks ----
+    # `QtTranscriptHistory` calls `self.notification_view.check_notifications()` via
+    # `prepare_viewport`. ConversationView mixes in `HistoryNotifications` which
+    # supplies the method chain; QtAcpSessionView / QtMailboxView don't carry that
+    # mixin and would AttributeError on page prep. Default no-ops here keep the
+    # transcript pipeline running; a future PR can hoist the real HistoryNotifications
+    # mixin onto QtThreadView if mailbox / ACP views ever need live notification
+    # tracking of the transcript pages they render.
+
+    def check_notifications(self) -> None:
+        """Default no-op; see class docstring. Transcript-rendering Qt views have no
+        bus notification surface yet (the notifications are Core-side)."""
+
+    def check_notifications_after_refresh(self) -> None:
+        """Default no-op; see `check_notifications`."""
+
     def _setup_transcript(self, app: "QtToadApp") -> None:
         """Build the transcript stack. Call from the subclass `__init__` after
         `super().__init__()` and after assigning `self.app`.
@@ -131,6 +153,48 @@ class QtThreadView(
         # Bind once message_history exists: `BoundView` reads
         # `self.transcript_history` immediately.
         self.transcript.bind(self)
+        # Trigger the initial page load. Textual's `TranscriptHistory.on_mount`
+        # does `_finish_mount()` (which calls `observe_source`) + `state.mounted(self)`
+        # (which schedules `load_initial_page` via `call_after_refresh`). Qt has no
+        # mount event — the view is constructed-and-shown synchronously — so we
+        # defer with QTimer.singleShot(0, ...) to let the view mount into the
+        # workspace first; then observe_source() + state.mounted() kick off the
+        # SavedTranscript read via the shared pager, which populates `self.messages`
+        # with the real transcript pages. Without this call, `self.message_history`
+        # would sit with its empty_page and never request pages from the bound
+        # transcript scope, which is why mailbox views used to render a black body
+        # even when `transcript.binding.thread_scope` resolved to the real
+        # `KnownTranscript`.
+        QTimer.singleShot(0, self._start_transcript_source)
+
+    def _start_transcript_source(self) -> None:
+        """Deferred transcript source start: fires on the next Qt event-loop tick,
+        after the view has mounted into the workspace stack.
+
+        Direct `await jump_latest(...)` here — not `load_initial_page` →
+        `request_latest` → `state.schedule_source_work` — because the scheduled
+        work path does not populate rows during the initial swap-in on Qt
+        (the RunningSourceWork task either doesn't get pumped before the first
+        viewport read or its paint result is dropped). Direct await drives the
+        same jump_latest body we probed working with 9+ rows on a mailbox tap.
+        `observe_source` still runs so the pager tracks the history on its
+        window for subsequent revision ticks.
+        """
+        self.message_history.observe_source()
+        request = LatestViewportRequest(LatestPosition.hold(self.message_history.window))
+        task = asyncio.ensure_future(self.message_history.jump_latest(request))
+        task.add_done_callback(self._initial_load_done)
+
+    def _initial_load_done(self, task: asyncio.Task) -> None:
+        """Log any exception from the initial page load so a failed first fetch
+        is visible instead of silently leaving the transcript empty."""
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is not None:
+            import traceback
+            print(f"QtThreadView initial transcript load failed: {exc!r}", flush=True)
+            traceback.print_exception(exc)
 
     # ---- BoundViewHost contract ----
 
