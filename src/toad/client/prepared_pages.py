@@ -498,6 +498,10 @@ class SavedHistory(ReplaceablePageSource):
     I/O. CPU preparation uses the application's existing renderer. Foreground
     consumers share in-flight requests; cancelling one waiter cannot release a
     still-running read's slot or publish it into a closed view.
+
+    `fragments` carries the frontend's fragment-flavor choice (Textual's draw-path
+    subclasses or Qt's row-paint subclasses) through to the render task without
+    forwarders restating it.
     """
 
     # The work that reads and prepares one page of this kind of source.
@@ -505,20 +509,21 @@ class SavedHistory(ReplaceablePageSource):
 
     def __init__(
         self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,
-        runtime: PreparationRuntime,
+        runtime: PreparationRuntime, *, fragments,
     ) -> None:
         super().__init__()
         self.loader, self.through, self.runtime = loader, through, runtime
+        self.fragments = fragments
         self.scope = PreparationScope()
 
     def prefix(self, through) -> PreparedPageSource:
-        return SavedPrefix(self, self.loader, through, self.runtime)
+        return SavedPrefix(self, self.loader, through, self.runtime, fragments=self.fragments)
 
     def replacement(self, through) -> SavedHistory:
-        return type(self)(self.loader, through, self.runtime)
+        return type(self)(self.loader, through, self.runtime, fragments=self.fragments)
 
     def read_task(self, request: PageRequest) -> SourcePageWork:
-        return self.work(self.scope, self.loader, self.through, request)
+        return self.work(self.scope, self.loader, self.through, request, self.fragments)
 
     async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
         result = await self.runtime.submit(self.read_task(request))
@@ -529,8 +534,8 @@ class SavedHistory(ReplaceablePageSource):
 
 
 class SavedPrefix(SavedHistory):
-    def __init__(self, earlier: SavedHistory, loader: Callable[..., Awaitable[TranscriptPage]], through, runtime: PreparationRuntime) -> None:
-        super().__init__(loader, through, runtime)
+    def __init__(self, earlier: SavedHistory, loader: Callable[..., Awaitable[TranscriptPage]], through, runtime: PreparationRuntime, *, fragments) -> None:
+        super().__init__(loader, through, runtime, fragments=fragments)
         self.earlier = earlier
 
     def replacement(self, through) -> SavedHistory:

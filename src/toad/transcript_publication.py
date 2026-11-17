@@ -757,7 +757,7 @@ class BoundView(ViewBinding):
         await history.retire_source(parked=True)
         source = history.page_source
         prefix = cursor.painted_read(
-            lambda at: FrozenSavedPrefix(source, owner.get_transcript_page, at, self.view.app.preparation),
+            lambda at: FrozenSavedPrefix(source, owner.get_transcript_page, at, self.view.app.preparation, fragments=source.fragments),
             FrozenClosedHistory(cursor, self.view.app.preparation),
         )
         prepared = await prefix.latest(history.pages[-1].prepared)
@@ -773,7 +773,7 @@ class BoundView(ViewBinding):
                 ))
             later = TranscriptHistory(
                 PreparedTranscriptPage.empty(UnreadTranscriptPage(before=cursor, after=cursor)),
-                SavedSuffix(owner.get_transcript_page, cursor, self.view.app.preparation, after=cursor),
+                SavedSuffix(owner.get_transcript_page, cursor, self.view.app.preparation, after=cursor, fragments=source.fragments),
                 view=self.view, notification_view=self.contents, source_state=LiveTranscript(),
             )
             later.conversation_order = entry.conversation_order + 1

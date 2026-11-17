@@ -26,6 +26,7 @@ from toad.client.history_state import LiveTranscript
 from toad.widget_view import CenteredView
 from toad.widgets.conversation import Contents
 from toad.widgets.history_anchor import HistoryWindow
+from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 from toad.widgets.transcript_history import LineHistory
 from toad.transcript_preparation import SavedTranscript, TranscriptPageRenderTask
 
@@ -147,10 +148,11 @@ class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectP
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            prepared = await TranscriptPageRenderTask(page).prepared(self.app.preparation)
+            prepared = await TranscriptPageRenderTask(page, TEXTUAL_FRAGMENT_CLASSES).prepared(self.app.preparation)
             if generation != self._selection_generation or not self.is_attached:
                 return
-            history = LineHistory(prepared, SavedTranscript(load, page.after, self.app.preparation),
+            history = LineHistory(prepared, SavedTranscript(load, page.after, self.app.preparation,
+                                                             fragments=TEXTUAL_FRAGMENT_CLASSES),
                                   notification_view=content, source_state=LiveTranscript())
             window = self.query_one(HistoryWindow)
             window.anchor()

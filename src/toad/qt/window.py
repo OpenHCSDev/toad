@@ -1511,3 +1511,10 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
             self.show_sidebar()
         else:
             self.close()
+
+
+# Register Qt's ACP/Mailbox session tab as a sibling entry. Loaded at module tail so
+# `toad.qt.acp_tab` can read `Page` and `QtSessionEntry` from here; module-level import
+# (rather than `from … import …`) so a partially initialised acp_tab in the same thread
+# of entry still resolves on the second half of its own file after window.py returns.
+import toad.qt.acp_tab  # noqa: E402, F401

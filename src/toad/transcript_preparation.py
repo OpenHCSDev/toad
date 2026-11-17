@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import pickle
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from hashlib import sha256
 
 from agent_comms.execution.transcript_sources import (
@@ -26,9 +26,8 @@ from toad.client.prepared_pages import (
     SourcePageWork,
     TranscriptNoProgress,
 )
-from toad.client.transcript_fragments import transcript_fragments
+from toad.client.transcript_fragments import FragmentClasses, transcript_fragments
 from toad.render_backend import ContentAddressedRenderTask
-from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 from toad.work_preparation import (
     PreparationRuntime,
     PreparedResult,
@@ -41,6 +40,7 @@ from toad.work_preparation import (
 @dataclass(frozen=True)
 class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentAddressedRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
+    classes: FragmentClasses
 
     def preparation_digest(self, work: RenderPreparation[PreparedTranscriptPage]) -> bytes:
         """Read marks and coordination activity cannot change prepared content."""
@@ -54,7 +54,7 @@ class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentA
         fragments = transcript_fragments(
             self.page.events,
             resolve_sent=self.page.resolve_sent_messages,
-            classes=TEXTUAL_FRAGMENT_CLASSES,
+            classes=self.classes,
         )
         return PreparedTranscriptPage.measured(self.page, fragments)
 
@@ -68,6 +68,8 @@ class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentA
 class TranscriptPageWork(SourcePageWork[TranscriptCursor]):
     """Read one saved transcript page and prepare its fragments in the render workers."""
 
+    classes: FragmentClasses
+
     async def execute(self, runtime: PreparationRuntime, key: WorkKey) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
         page = await request.end.load_page(self.loader, request.cursor, self.through)
@@ -75,7 +77,7 @@ class TranscriptPageWork(SourcePageWork[TranscriptCursor]):
             raise TranscriptNoProgress(request, self.through, page)
         if self.scope.closed:
             raise asyncio.CancelledError
-        prepared = await TranscriptPageRenderTask(page).prepared(runtime)
+        prepared = await TranscriptPageRenderTask(page, self.classes).prepared(runtime)
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
@@ -88,8 +90,8 @@ class SavedTranscript(SavedHistory):
 class SavedSuffix(SavedTranscript):
     """The same saved pager, starting after a local entry's source boundary."""
 
-    def __init__(self, loader, through, runtime, *, after: TranscriptCursor) -> None:
-        super().__init__(loader, through, runtime)
+    def __init__(self, loader, through, runtime, *, after: TranscriptCursor, fragments: FragmentClasses) -> None:
+        super().__init__(loader, through, runtime, fragments=fragments)
         self.after = after
 
     async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
@@ -101,11 +103,11 @@ class SavedSuffix(SavedTranscript):
         return prepared
 
     def replacement(self, through) -> SavedSuffix:
-        return type(self)(self.loader, through, self.runtime, after=self.after)
+        return type(self)(self.loader, through, self.runtime, after=self.after, fragments=self.fragments)
 
     async def for_rebuild(self) -> PreparedPageSource:
         """Local widgets end with their view; the next view reads the whole saved source."""
-        source = SavedTranscript(self.loader, self.through, self.runtime)
+        source = SavedTranscript(self.loader, self.through, self.runtime, fragments=self.fragments)
         prepared = await source.get(PageRequest(OLDER_END, self.through))
         source.park((prepared,))
         return source
