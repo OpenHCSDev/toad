@@ -641,6 +641,15 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         if self.follows_tail:
             self.anchor(False)
 
+    def jump_to_latest(self) -> None:
+        """`JumpsToLatest.jump_to_latest` is abstract; the QtJumpBar click is wired to this
+        at `__init__` (`self.jump_bar.clicked.connect(self.jump_to_latest)`). Without the
+        override, clicking the Back-to-Bottom button ran the abstract docstring-only body
+        and did nothing. Snapping back to the tail via `anchor(True)` runs `follow_end`
+        which scrolls the viewport to the latest row, mirroring Textual's
+        `WindowAction.scroll_end` path."""
+        self.anchor(True)
+
     def check_follow(self) -> bool:
         if not self.follows_tail:
             return False
