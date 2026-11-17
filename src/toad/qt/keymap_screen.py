@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
+from ui_theme.scheme import ErrorColour, MutedColour
 
 from toad.client.keymap_browser import KeymapBrowserState, KeymapSelection
 from toad.keymap import KeyInvocationId
@@ -108,19 +109,26 @@ class QtKeymapScreen(QDialog):
     # ---- state → table ----
 
     def _populate(self) -> None:
+        # Pull the two dimmed/warning foreground colors from the shared scheme
+        # (MutedColour for the "dim" row, ErrorColour for a key-conflict cell)
+        # rather than hand-rolled greys. Same ColourScheme that drives
+        # `QtJumpBar`'s styling and `activity.py`'s sweep gradient.
+        scheme = self.app.renderer.scheme
+        dim_brush = QBrush(QColor(MutedColour.rgb(scheme).hex))
+        conflict_brush = QBrush(QColor(ErrorColour.rgb(scheme).hex))
         rows = self.state.rows()
         self.table.setRowCount(len(rows))
         for row_index, row in enumerate(rows):
             title_item = QTableWidgetItem(row.title)
             title_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             if row.dim:
-                title_item.setForeground(QBrush(QColor(128, 128, 128)))
+                title_item.setForeground(dim_brush)
             self.table.setItem(row_index, 0, title_item)
             for column_index, cell in enumerate(row.cells, start=1):
                 item = QTableWidgetItem(cell.keys)
                 item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
                 if cell.conflict:
-                    item.setForeground(QBrush(QColor(220, 60, 60)))
+                    item.setForeground(conflict_brush)
                 self.table.setItem(row_index, column_index, item)
 
     # ---- event handlers ----
