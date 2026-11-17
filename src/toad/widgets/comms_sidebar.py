@@ -243,10 +243,7 @@ class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRo
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         # The drawn row knows the thread's birth: opening it asks Core nothing first.
         self.target = KnownThreadTarget(row.name, row.incarnation)
-        self.tooltip = Content("\n".join(value for value in (
-            row.name, self.detail(), row.unread.detail,
-            "Pinned in this channel" if pinned else None, *row.model.texts(),
-        ) if value))
+        self.tooltip = Content(row.tooltip(pinned=pinned, pending_detail=action_status))
         shown = self.app.settings.sidebar.unread_counts.badge(row.unread)
         badge = f"{shown} " if shown else ""
         title = self.activity_content(Content(row.label), self.busy,
