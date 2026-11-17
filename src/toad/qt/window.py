@@ -97,7 +97,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
-from toad.sidebar_layout import SidebarLayout
+from toad.sidebar_layout import SidebarControlsOwner, SidebarLayout
 from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
 from toad.status_thread import StatusOwner
 from toad.target_commands import TargetContext
@@ -940,9 +940,11 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         self.sidebar = Sidebar(self)
         self.thread_pane = ThreadSettingsPane()
         self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
-                                         self.sidebar, applied=self.rearrange_sidebars)
+                                         self.sidebar, SidebarControlsOwner,
+                                         applied=self.rearrange_sidebars)
         self.thread_settings = SidebarPane(self.sidebar_layout, ThreadSidebarPlacement,
-                                           self.thread_pane, applied=self.rearrange_sidebars)
+                                           self.thread_pane, SidebarControlsOwner,
+                                           applied=self.rearrange_sidebars)
         self._panes: dict[type[SidebarPlacement], SidebarPane] = {
             ChannelsSidebarPlacement: self.channels_pane,
             ThreadSidebarPlacement: self.thread_settings,
@@ -953,6 +955,9 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         }
         # A pane docks on any edge the family offers, or floats over the conversation. The
         # float layer is a child of the centre, raised over the pages when a pane floats.
+        # Each dock owns the toggle bar and the pane for its edge: a single stack of toggle
+        # then pane (leading edges) or pane then toggle (trailing edges), so the bar ends up
+        # on the wall wherever the user moves the sidebar.
         self.top_dock, self.bottom_dock = self._dock(), self._dock()
         self.left_dock, self.right_dock = self._dock(), self._dock()
         self._docks = {"top": self.top_dock, "bottom": self.bottom_dock,
@@ -968,7 +973,14 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         grid.addWidget(self.bottom_dock, 2, 1)
         grid.setRowStretch(1, 1)
         grid.setColumnStretch(1, 1)
+        # The float layer sits over the pages. Without an opaque background it leaks the
+        # conversation's pixels through gaps between the pane's own widgets, which is what
+        # made the history look garbled when a sidebar was lifted off a dock onto the float.
+        # autoFillBackground + the theme's surface colour paints a clean plate under the pane
+        # and the pages repaint themselves once reposition_float() asks the center to update.
         self.float_layer = QWidget(self.center)
+        self.float_layer.setAutoFillBackground(True)
+        self.float_layer.setStyleSheet(self.theme.color_scheme.styles.generate_frame_style())
         self._float_layout = QVBoxLayout(self.float_layer)
         self._float_layout.setContentsMargins(0, 0, 0, 0)
         self.float_layer.hide()
@@ -984,11 +996,13 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
             heading=partial(self._pane_heading, ThreadSidebarPlacement),
             shown=partial(self.pane_open, ThreadSidebarPlacement),
             toggled=partial(self.toggle_pane, ThreadSidebarPlacement))
-        bars_row = QHBoxLayout()
-        bars_row.setContentsMargins(0, 0, 0, 0)
-        bars_row.setSpacing(2)
-        bars_row.addWidget(self.channels_bar, 1)
-        bars_row.addWidget(self.thread_bar, 1)
+        # The toggle bars live wherever their sidebar is placed, not in the bottom chrome:
+        # _layout_panes re-parents each bar into its pane's dock, before or after the pane
+        # depending on whether the edge is leading (left, top) or trailing (right, bottom).
+        self._bars: dict[type[SidebarPlacement], SidebarToggle] = {
+            ChannelsSidebarPlacement: self.channels_bar,
+            ThreadSidebarPlacement: self.thread_bar,
+        }
         # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
         self.menu = self.bar_button("≡", "Menu", self.show_menu)
         self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
@@ -1021,7 +1035,6 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         QVBoxLayout(self.menu_panel).setContentsMargins(8, 4, 8, 4)
         self.menu_panel.hide()
         chrome_layout.addWidget(self.menu_panel)
-        chrome_layout.addLayout(bars_row)
         chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
@@ -1160,28 +1173,54 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         for dock in self._docks.values():
             self._empty(dock.layout())
         self._empty(self._float_layout)
+        for identity, bar in self._bars.items():
+            bar.setParent(None)
         for identity, pane in self._panes.items():
-            if not (self.pane_open(identity) and self._pane_available(identity)):
+            bar = self._bars[identity]
+            if not self._pane_available(identity):
                 pane.setParent(None)
                 pane.hide()
+                bar.hide()
                 continue
-            self._target_layout(self.sidebar_layout.get(identity)).addWidget(pane)
-            pane.show()
+            placement = self.sidebar_layout.get(identity)
+            # Toggle bar and pane go in the same container; the bar sits on the workspace-wall
+            # side of the pane. Leading edges (left, top) → bar first; trailing edges (right,
+            # bottom) → bar after. The float layer always puts the bar at the top.
+            bar_first = placement.floating or placement.side.sign == 1
+            target = self._target_layout(placement)
+            bar.show()
+            if self.pane_open(identity):
+                if bar_first:
+                    target.addWidget(bar)
+                    target.addWidget(pane)
+                else:
+                    target.addWidget(pane)
+                    target.addWidget(bar)
+                pane.show()
+            else:
+                pane.setParent(None)
+                pane.hide()
+                target.addWidget(bar)
         for dock in self._docks.values():
             dock.setVisible(dock.layout().count() > 0)
         self.reposition_float()
 
     def reposition_float(self) -> None:
         """The float layer holds whatever pane floats, raised over the lower part of the
-        conversation. An empty layer stays hidden."""
-        if self._float_layout.count() == 0:
+        conversation. An empty layer stays hidden. Either way, the workspace repaints so a
+        reflow does not leave stale pixels from the layer's previous rectangle on the
+        conversation under it."""
+        empty = self._float_layout.count() == 0
+        if empty:
             self.float_layer.hide()
-            return
-        rect = self.center.rect()
-        height = max(1, int(rect.height() * 0.45))
-        self.float_layer.setGeometry(0, rect.height() - height, rect.width(), height)
-        self.float_layer.raise_()
-        self.float_layer.show()
+        else:
+            rect = self.center.rect()
+            height = max(1, int(rect.height() * 0.45))
+            self.float_layer.setGeometry(0, rect.height() - height, rect.width(), height)
+            self.float_layer.raise_()
+            self.float_layer.show()
+        self.workspace_sessions.pages.update()
+        self.center.update()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         super().resizeEvent(event)
