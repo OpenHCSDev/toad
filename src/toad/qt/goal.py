@@ -1,0 +1,303 @@
+"""A direct message's goal on Qt: the TUI's goal bar, drawn with Qt widgets.
+
+GoalBarOwner decides what the bar shows (state line, objective and progress, standby row,
+and which GoalInteraction buttons are shown, enabled and captioned), and GoalControlsSession
+owns how a press activates, how a write settles by reading the owner and how a refusal is
+reported. Both are the Textual GoalBar's and GoalSession's parents. This module only draws
+their answers; the TUI's GoalObservation reads the peer's goal into it over CommsGoalSource,
+the owner path a viewer with no ACP session uses.
+"""
+
+from __future__ import annotations
+
+from functools import partial
+
+from agent_comms.coordination.errors import Refused
+from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
+from agent_comms.planning.goals import NoGoal
+from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.ui_model.goal import GoalDisplay
+from formbridge.operations import OperationKind
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
+from PySide6.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QPlainTextEdit,
+    QScrollArea,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from toad.client.application import ClientApplication
+from toad.client.connection import CoordinationAccess
+from toad.client.goal_source import CommsGoalSource
+from toad.client.line_blocks import MutedRole
+from toad.client.subscribers import ThreadCallbackSubscription
+from toad.goal_controls import (
+    GoalBarOwner,
+    GoalControlsSession,
+    GoalHistoryPage,
+    GoalInteraction,
+    GoalInteractionControl,
+)
+from toad.qt.core_events import QtCoreObserver
+from toad.qt.host import ScreenWideWindow
+from toad.qt.lines import QtLineRenderer
+from toad.session_observation import GoalObservation
+from toad.core.events import ThreadRowsChanged
+
+
+class GoalPress(OperationKind):
+    """One goal button press: read the owner, then apply the button."""
+
+
+class QtGoalControl(QToolButton, GoalInteractionControl, metaclass=PyQtWidgetMeta):
+    """One GoalInteraction as a Qt button; the family owns its label, state and press."""
+
+    def __init__(self, interaction: type[GoalInteraction], bar: QtGoalBar) -> None:
+        super().__init__()
+        self.interaction = interaction
+        self.setText(interaction.label)
+        self.setAutoRaise(True)
+        self.setMinimumHeight(36)
+        self.clicked.connect(partial(bar.press, interaction))
+
+    def set_shown(self, shown: bool) -> None:
+        self.setVisible(shown)
+
+    def set_label(self, label: str) -> None:
+        self.setText(label)
+
+    def set_enabled(self, enabled: bool) -> None:
+        self.setEnabled(enabled)
+
+
+class QtGoalSession(GoalControlsSession[CommsGoalSource]):
+    """The Qt goal controls, bound to the peer's comms goal source."""
+
+    def __init__(self, bar: QtGoalBar) -> None:
+        self.bar = bar
+
+    @property
+    def display(self) -> GoalDisplay:
+        return self.bar.goal_display
+
+    @property
+    def execution(self) -> GoalExecutionControls:
+        return self.bar.goal_execution
+
+    @property
+    def host(self) -> ClientApplication:
+        return self.bar.app
+
+    @property
+    def binding(self) -> CommsGoalSource:
+        return self.bar.agent_binding
+
+    def owns(self, binding: CommsGoalSource) -> bool:
+        return self.bar.is_attached and self.bar.session is self and self.bar.agent_binding is binding
+
+    async def refresh(self, binding: CommsGoalSource) -> None:
+        await self.bar.goal_observation.refresh()
+
+    async def change(self, action, text: str = "") -> None:
+        source, goal = self.binding, self.display.snapshot.require()
+        with self.reporting_refusals(source):
+            await self.write(source, source.act(action, goal))
+
+    def unavailable(self) -> None:
+        self.host.show_info(self.display.heading(self.execution), "Goal")
+
+    async def open_history(self) -> None:
+        source, goal = self.binding, self.display.snapshot.require()
+        history = await source.history(goal)
+        if self.owns(source):
+            QtGoalHistory(self.bar, GoalHistoryPage(history)).open()
+
+    async def open_edit(self) -> None:
+        QtGoalEdit(self.bar, self, self.display.snapshot.require()).open()
+
+    def toggle_collapsed(self) -> None:
+        self.bar.collapsed = not self.bar.collapsed
+        self.bar.present_state()
+
+
+class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta):
+    """The peer's goal over the composer, as the TUI's goal bar sits over its prompt."""
+
+    def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation) -> None:
+        super().__init__()
+        self.app, self.peer = app, peer
+        self.agent_binding = CommsGoalSource(app, peer)
+        self.session = QtGoalSession(self)
+        self.goal_observation = GoalObservation(self)
+        self._goal_display: GoalDisplay = NoGoal()
+        self._goal_execution: GoalExecutionControls = IdleGoalExecution()
+        self.collapsed = False
+        self.is_attached = False
+        muted = f"color: {renderer.colour(MutedRole)}"
+        self.header = ElidedLine()
+        self.standby = ElidedLine()
+        self.standby.setStyleSheet(muted)
+        self.objective = WrappedText()
+        self.progress = WrappedText()
+        self.progress.setStyleSheet(muted)
+        self.document = QWidget()
+        document = QVBoxLayout(self.document)
+        document.setContentsMargins(0, 0, 0, 0)
+        document.addWidget(self.objective)
+        document.addWidget(self.progress)
+        self.actions = tuple(QtGoalControl(interaction, self) for interaction in self.goal_interactions())
+        controls = QHBoxLayout()
+        controls.setContentsMargins(0, 0, 0, 0)
+        for control in self.actions:
+            controls.addWidget(control)
+        controls.addStretch(1)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(6, 2, 6, 2)
+        layout.setSpacing(0)
+        layout.addWidget(self.header)
+        layout.addWidget(self.standby)
+        layout.addWidget(self.document)
+        layout.addLayout(controls)
+        self.present_goal_document(self._goal_display)
+        self.present_state()
+
+    @property
+    def coordination(self) -> CoordinationAccess:
+        return self.app.coordination_access
+
+    # What GoalObservation reads into and publishes, as it does for the TUI's conversation
+
+    @property
+    def goal_display(self) -> GoalDisplay:
+        return self._goal_display
+
+    @goal_display.setter
+    def goal_display(self, display: GoalDisplay) -> None:
+        if display != self._goal_display:
+            self._goal_display = display
+            self.present_goal_document(display)
+        self.present_state()
+
+    @property
+    def goal_execution(self) -> GoalExecutionControls:
+        return self._goal_execution
+
+    @goal_execution.setter
+    def goal_execution(self, execution: GoalExecutionControls) -> None:
+        self._goal_execution = execution
+        self.present_state()
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        if not self.is_attached:
+            self.is_attached = True
+            self.observe_core_callback(
+                self.coordination.events, ThreadRowsChanged, self.rows_changed,
+                factory=partial(ThreadCallbackSubscription, scope=(str(self.app.source().root), self.peer.name)))
+            self.goal_observation.invalidate()
+
+    def rows_changed(self, event: ThreadRowsChanged) -> None:
+        self.goal_observation.invalidate()
+
+    def present_state(self) -> None:
+        self.present_goal_state(self.session, self.collapsed)
+
+    def press(self, interaction: type[GoalInteraction]) -> None:
+        self.app.run_operation(GoalPress, partial(self.session.activate, interaction))
+
+    def close_activity(self) -> None:
+        self.is_attached = False
+        self.close_core_events()
+        self.app.run_operation(GoalPress, self.goal_observation.close)
+
+    # GoalBarOwner's drawing hooks
+
+    def show_goal(self, visible: bool) -> None:
+        self.setVisible(visible)
+
+    def show_goal_text(self, objective: str, progress: str, shows_progress: bool) -> None:
+        self.objective.setText(objective)
+        self.progress.setText(progress)
+        self.progress.setVisible(shows_progress)
+
+    def show_heading(self, heading: str) -> None:
+        self.header.setText(heading)
+
+    def show_document(self, shown: bool) -> None:
+        self.document.setVisible(shown)
+
+    def show_standby(self, shown: bool) -> None:
+        self.standby.setVisible(shown)
+
+    def show_execution_text(self, text: str) -> None:
+        self.standby.setText(text)
+
+
+class QtGoalHistory(ScreenWideWindow, QDialog):
+    """The goal's revisions and failed attempts, listed as the TUI's GoalDetails lists them."""
+
+    def __init__(self, bar: QtGoalBar, page: GoalHistoryPage) -> None:
+        super().__init__(bar.window())
+        self.setWindowTitle("Goal history")
+        body = QWidget()
+        lines = QVBoxLayout(body)
+        lines.addWidget(WrappedText("Revision history"))
+        for revision in page.revisions():
+            lines.addWidget(WrappedText(revision.heading))
+            for text in revision.texts:
+                lines.addWidget(WrappedText(text))
+        failures = tuple(page.failures())
+        if failures:
+            lines.addWidget(WrappedText("Failed attempts"))
+            for failure in failures:
+                lines.addWidget(WrappedText(failure))
+        lines.addStretch(1)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(body)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(self.reject)
+        layout = QVBoxLayout(self)
+        layout.addWidget(scroll, 1)
+        layout.addWidget(buttons)
+        self.fit_screen()
+
+
+class QtGoalEdit(ScreenWideWindow, QDialog):
+    """The goal's objective in an editor; Save writes it through the session's settle-by-read."""
+
+    def __init__(self, bar: QtGoalBar, session: QtGoalSession, goal) -> None:
+        super().__init__(bar.window())
+        self.bar, self.session, self.goal = bar, session, goal
+        self.setWindowTitle("Edit objective")
+        self.editor = QPlainTextEdit(goal.text)
+        self.error = WrappedText()
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(self.save)
+        buttons.rejected.connect(self.reject)
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.editor, 1)
+        if goal.progress:
+            layout.addWidget(WrappedText(f"Progress (read-only): {goal.progress}"))
+        layout.addWidget(self.error)
+        layout.addWidget(buttons)
+        self.fit_screen()
+
+    def save(self) -> None:
+        text = self.editor.toPlainText().strip()
+        if text:
+            self.bar.app.run_operation(GoalPress, partial(self.write, text))
+
+    async def write(self, text: str) -> None:
+        source = self.session.binding
+        try:
+            await self.session.write(source, source.edit(self.goal, text))
+        except Refused as error:
+            self.error.setText(str(error))
+            return
+        self.accept()

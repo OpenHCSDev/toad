@@ -1,47 +1,25 @@
 """Goal controls, dialogs and writes stay bound to their source."""
 from __future__ import annotations
 
-from abc import abstractmethod
-from collections.abc import Awaitable, Iterator
-from contextlib import contextmanager
-from typing import ClassVar
 from weakref import ReferenceType, ref
 
-from agent_comms.coordination.errors import Refused
 from agent_comms.errors import GoalRefused
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_presentation import GoalExecutionControls
 from toad.agent_binding import AgentConnection
+from toad.goal_controls import GoalControlsSession
 
+from toad.screens.goal_details import GoalDetails
+from toad.screens.goal_edit import GoalEdit
 from toad.screens.modal import ModalScreen
 from toad.goal_view import GoalView
+from toad.widgets.goal_text import goal_mention_candidates
 
 
-class GoalInteraction(
-    DeclaredFamily, affix="Interaction", discovery_package="toad.goal_interactions",
-):
-    label: ClassVar[str]
-
-    @classmethod
-    def enabled(cls, session: GoalSession) -> bool:
-        return session.display.can_control
-
-    @classmethod
-    def visible(cls, session: GoalSession) -> bool:
-        return True
-
-    @classmethod
-    def caption(cls, session: GoalSession, collapsed: bool) -> str:
-        return cls.label
-
-    @classmethod
-    @abstractmethod
-    async def apply(cls, session: GoalSession) -> None: ...
-
-
-class GoalSession:
-    """Owns the optional dialog and goal controls for this source binding."""
+class GoalSession(GoalControlsSession[AgentConnection]):
+    """The Textual goal controls: the optional modal and the writes for this source binding.
+    It is the GoalControlsSession the GoalInteraction family acts on; its history, editor and
+    collapse are Textual, drawn as modals and the goal document's own state."""
 
     def __init__(self, view: GoalView[GoalSession]):
         self.view = view
@@ -69,32 +47,19 @@ class GoalSession:
         self._modal = ref(modal)
         self.view.app.push_screen(modal)
 
-    async def activate(self, action: type[GoalInteraction]) -> None:
-        view = self.view
-        if not self.owns(view.agent_binding):
-            return
-        agent = view.agent_binding
-        await view.goal_observation.refresh()
-        if not self.owns(agent):
-            return
-        if not action.enabled(self):
-            self.unavailable()
-            return
-        with self.reporting_refusals(agent):
-            await action.apply(self)
+    @property
+    def host(self):
+        return self.view.app
+
+    @property
+    def binding(self) -> AgentConnection:
+        return self.view.agent_binding
+
+    async def refresh(self, binding: AgentConnection) -> None:
+        await self.view.goal_observation.refresh()
 
     def unavailable(self) -> None:
         self.view.feedback.flash(self.display.heading(self.execution))
-
-    @contextmanager
-    def reporting_refusals(self, agent: AgentConnection) -> Iterator[None]:
-        """Buttons and slash controls report once, only to their original source."""
-        try:
-            yield
-        except Refused as error:
-            if not self.owns(agent):
-                raise
-            self.view.app.show_error(error, "Goal action failed")
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
@@ -108,13 +73,33 @@ class GoalSession:
             if self.owns(agent):
                 view.prompt.focus()
 
-    async def write[Result](self, agent: AgentConnection, operation: Awaitable[Result]) -> Result:
-        """Every write settles by reading the owner, including rejected writes."""
-        try:
-            return await operation
-        finally:
-            if self.owns(agent):
-                await self.view.goal_observation.refresh()
+    async def open_history(self) -> None:
+        """Read the goal's history from its owner and show it in a modal."""
+        view = self.view
+        goal, agent = view.goal_display.snapshot.require(), view.agent_binding
+        history = await agent.get_goal_history(goal.id)
+        if not self.owns(agent):
+            return
+        self.present(GoalDetails(view, history=history))
+
+    async def open_edit(self) -> None:
+        """Open the goal's editor over its owner's mention candidates."""
+        view = self.view
+        goal = view.goal_display.snapshot.require()
+        agent = view.agent_binding
+
+        async def save(text: str) -> None:
+            if not self.owns(agent):
+                raise GoalRefused("The goal presentation changed; reopen its editor.")
+            await self.write(agent, agent.edit_goal(goal, text))
+
+        observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
+        self.present(GoalEdit(
+            goal, goal_mention_candidates(observed), project=view.project_path, on_save=save))
+
+    def toggle_collapsed(self) -> None:
+        bar = self.view.goal_bar
+        bar.collapsed = not bar.collapsed
 
     def close(self) -> None:
         modal = self.modal

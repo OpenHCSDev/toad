@@ -1,5 +1,4 @@
 """A full-height, scrollable projection of a persistent goal."""
-from datetime import datetime
 
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from textual.app import ComposeResult
@@ -17,7 +16,8 @@ from toad.screens.source_modal import SourceModal
 
 from textual.widgets import Static
 
-from toad.goal_interaction import GoalSession
+from toad.goal_controls import GoalHistoryPage
+from toad.goal_view import GoalView
 from toad.widgets.goal_text import GoalText
 from textual.events import Mount
 from textual import on
@@ -56,23 +56,22 @@ class GoalDetailsClose(SpacedAbove, DockedBottom, DismissButton):
 class GoalDetails(ShadedScreen, CenteredScreen, SourceModal):
     AUTO_FOCUS = "GoalDocument"
 
-    def __init__(self, source: GoalSession, *, history: RecordedGoalHistory):
+    def __init__(self, view: GoalView, *, history: RecordedGoalHistory):
         super().__init__()
-        self.source = source
-        self.history = history.history
-        self.failures = history.failures
+        self.view = view
+        self.history = GoalHistoryPage(history)
 
     @property
     def source_view(self):
-        return self.source.view
+        return self.view
 
     @property
     def goal_display(self):
-        return self.source.display
+        return self.view.goal_display
 
     @property
     def execution(self):
-        return self.source.execution
+        return self.view.goal_execution
 
     def compose(self) -> ComposeResult:
         with GoalDetailsPanel():
@@ -80,37 +79,24 @@ class GoalDetails(ShadedScreen, CenteredScreen, SourceModal):
                 yield CurrentHeading("", markup=False)
                 yield CurrentObjective()
                 yield CurrentProgress()
-                if self.history:
+                revisions = tuple(self.history.revisions())
+                if revisions:
                     yield Static("Revision history", markup=False)
-                    for entry in reversed(self.history):
-                        revision_goal = (entry.after if entry.after.shows_document else entry.before).require()
-                        when = (
-                            datetime.fromtimestamp(entry.observed_at)
-                            .astimezone()
-                            .strftime("%Y-%m-%d %H:%M:%S")
-                        )
-                        kind = entry.kind.declared_name.replace("_", " ")
-                        yield Static(
-                            f"Revision {revision_goal.revision} · {kind} · observed {when}",
-                            markup=False,
-                        )
-                        yield GoalDetailText(revision_goal.summary)
-                        if revision_goal.progress:
-                            yield GoalDetailText(revision_goal.progress)
-                if self.failures:
+                    for revision in revisions:
+                        yield Static(revision.heading, markup=False)
+                        for text in revision.texts:
+                            yield GoalDetailText(text)
+                failures = tuple(self.history.failures())
+                if failures:
                     yield Static("Failed attempts", markup=False)
-                    for evidence in reversed(self.failures):
-                        failure = evidence.failure.declared_name.replace("_", " ")
-                        yield Static(
-                            f"Attempt {evidence.generation} · revision {evidence.goal_revision} · {failure}",
-                            markup=False,
-                        )
+                    for failure in failures:
+                        yield Static(failure, markup=False)
             yield GoalDetailsClose("Close")
 
     @on(Mount)
     def on_mount(self) -> None:
-        self.watch(self.source.view, "goal_display", self._update_current)
-        self.watch(self.source.view, "goal_execution", self._update_current)
+        self.watch(self.view, "goal_display", self._update_current)
+        self.watch(self.view, "goal_execution", self._update_current)
 
     def _update_current(self) -> None:
         if not self.is_attached:

@@ -32,6 +32,9 @@ from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.main import current_scheme, open_app
+from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
+from pyqt_reactive.widgets.fitted_text import WrappedText
+from toad.qt.goal import QtGoalBar, QtGoalHistory
 from toad.qt.placement import QtPlacementControl
 from toad.sidebar_layout import DirectionalSidebarPlacementAction, FloatSidebarPlacementAction
 from toad.sidebar_placement import (
@@ -506,6 +509,56 @@ class PlacementScenario(Scenario):
                     dm_category_shown=(category in dm_view.visible_categories),
                     comms_still=(category in comms_after), where=self.where(app.thread_settings),
                     too_wide=self.too_wide())
+
+
+class GoalScenario(Scenario):
+    summary = ("open the claude-a DM on a Pixel 8a and read its goal bar: the state line, the "
+               "document, the GoalInteraction buttons; collapse and expand it; open its history")
+
+    width: ClassVar[int] = 412
+    peer: ClassVar[str] = "claude-a"
+
+    def rows(self, items):
+        for item in items:
+            yield item
+            yield from self.rows(item.child(index) for index in range(item.childCount()))
+
+    def bar(self) -> QtGoalBar:
+        return self.page.findChild(QtGoalBar)
+
+    def buttons(self) -> list[str]:
+        return [f"{control.text()}{'' if control.isEnabled() else ' (off)'}"
+                for control in self.bar().actions if control.isVisible()]
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(self.width, 915)
+        await self.expand("Threads")
+        row = next(row for row in self.rows(app.sidebar.items())
+                   if isinstance(row, ConversationRow) and row.target.name == self.peer)
+        home = app.workspace_sessions.home
+        app.open_row(row)
+        await until(lambda: self.page is not home and self.bar() is not None, "dm")
+        await until(lambda: self.bar().goal_display.visible, "goal")
+        await asyncio.sleep(0.5)
+        bar = self.bar()
+        self.report("1-goal", heading=bar.header.text(), objective=bar.objective.text()[:80],
+                    document=bar.document.isVisible(), buttons=self.buttons(),
+                    too_wide=PlacementScenario.too_wide(self))
+        next(control for control in bar.actions if control.interaction is CollapseInteraction).click()
+        await asyncio.sleep(0.5)
+        self.report("2-collapsed", document=bar.document.isVisible(), buttons=self.buttons())
+        next(control for control in bar.actions if control.interaction is CollapseInteraction).click()
+        await asyncio.sleep(0.5)
+        self.report("3-expanded", document=bar.document.isVisible(), buttons=self.buttons())
+        next(control for control in bar.actions if control.interaction is HistoryInteraction).click()
+        await until(lambda: app.findChild(QtGoalHistory) is not None, "history")
+        await asyncio.sleep(0.5)
+        history = app.findChild(QtGoalHistory)
+        self.report("4-history", lines=len(history.findChildren(WrappedText)))
+        history.grab().save(str(self.out / "goal-4-history-dialog.png"))
+        history.reject()
 
 
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:

@@ -7,6 +7,7 @@ from agent_comms.planning.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.planning.goals import GoalUnavailable
 from toad.agent_binding import AgentConnection, NoAgentConnection
+from toad.goal_controls import GoalSource
 
 
 class SessionObservation(ABC):
@@ -107,7 +108,10 @@ class SessionObservation(ABC):
 
 
 class GoalObservation(SessionObservation):
-    async def read(self, agent) -> GoalSnapshot:
+    """The goal a view shows, read from its GoalSource: a TUI session's agent, or the phone's
+    comms goal source. A failed read keeps the last goal, marked unavailable."""
+
+    async def read(self, agent: GoalSource) -> GoalSnapshot:
         return await agent.get_goal_snapshot()
 
     def publish(self, view, result: GoalSnapshot):

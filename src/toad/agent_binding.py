@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from functools import cached_property
 from pathlib import Path
 from typing import ClassVar, TYPE_CHECKING
@@ -10,9 +10,12 @@ from typing import ClassVar, TYPE_CHECKING
 from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.errors import GoalRefused
 from agent_comms.planning.goal_history import RecordedGoalHistory
+from agent_comms.planning.goal_presentation import GoalSnapshot, IdleGoalExecution
+from agent_comms.planning.goals import NoGoal
 
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
+from toad.goal_controls import GoalSource
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.core.events import CoreEventStream
 from toad.client.input_decision import InputAccepted, InputDecision, NoLiveAgent
@@ -42,7 +45,7 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, ConversationSessionBinding
 
 
-class AgentConnection(ABC):
+class AgentConnection(GoalSource):
     events: CoreEventStream
     configuration: AgentConfiguration
     presentation: AgentPresentation
@@ -112,9 +115,6 @@ class AgentConnection(ABC):
 
     @abstractmethod
     def accepts_failed_input(self, message: Publication) -> bool: ...
-
-    @abstractmethod
-    def matches_agent(self, agent) -> bool: ...
 
     goal_control_refusal: ClassVar[str] = "Persistent goals require an agent-comms session"
 
@@ -186,6 +186,9 @@ class NoAgentConnection(AgentConnection):
 
     def matches_agent(self, agent) -> bool:
         return False
+
+    async def get_goal_snapshot(self) -> GoalSnapshot:
+        return GoalSnapshot(NoGoal(), IdleGoalExecution())
 
     async def project_changed(self, path: Path) -> None:
         """There is no native session project to persist."""
