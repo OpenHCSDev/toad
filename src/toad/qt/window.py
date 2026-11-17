@@ -1329,7 +1329,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # controls live inside the pane, from the shared family. The channels sidebar is always
         # available; the thread's settings only while a tab is open.
         self.sidebar = Sidebar(self)
-        self.thread_pane = ThreadSettingsPane(parent=self)
+        self.thread_pane = ThreadSettingsPane(parent=self,
+                                              project_path=self.project_dir.path)
         self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
                                          self.sidebar, SidebarControlsOwner,
                                          applied=self.rearrange_sidebars,
@@ -1582,10 +1583,21 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # EGL allocation races QtAndroidAccessibility::runInObjectContext() for the
         # eglSurface() mutex and trips the deadlock protector (SIGABRT a second after
         # ApplicationActive). Parenting them to self keeps them as child widgets.
+        #
+        # Nested layouts (the QVBoxLayout groups `_arrange_sidebar` builds for top/bottom
+        # edges) need recursive draining: `takeAt(0).widget()` returns None for a layout
+        # item, so without this recursion the widgets inside those groups are left
+        # managed by the stale group until the next `addWidget` reparents them — which
+        # leaked the group's cached sizeHint into the dock across tab switches.
         while layout.count():
-            widget = layout.takeAt(0).widget()
+            item = layout.takeAt(0)
+            widget = item.widget()
             if widget is not None:
                 widget.setParent(self)
+                continue
+            sub = item.layout()
+            if sub is not None:
+                self._empty(sub)
 
     def _layout_panes(self) -> None:
         for dock in self._docks.values():
@@ -1618,8 +1630,14 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
                 self._arrange_sidebar(target, placement, bar, pane=None, bar_first=bar_first)
         for dock in self._docks.values():
             dock.setVisible(dock.layout().count() > 0)
-
-    def _arrange_sidebar(self, target, placement, bar, pane, *, bar_first: bool) -> None:
+        # QGridLayout on `self.center` caches column/row sizeHints, and a dock's own
+        # resize (when its own layout shrinks after a pane became unavailable, or grew
+        # when it became available again) does not always propagate up to the grid's
+        # cached cell sizes in Qt-for-Android. Without this invalidate, closing a
+        # conversation tab leaves the center column still sized for the old dock extents,
+        # so the inter-widget spacing between center and docks goes stale until the next
+        # resize event. Textual does not share this quirk — it uses TCSS, not a Qt grid.
+        self.center.layout().invalidate()
         """Add this sidebar's (bar, pane) pair to its dock's horizontal sidebar line. On a
         'row' edge (left/right) the pair joins the line directly so the bar and pane become
         adjacent columns within the dock. On a 'column' edge (top/bottom) the pair is
