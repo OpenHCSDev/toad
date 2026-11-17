@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea
 from toad.client.context_intent import ContextTreeIntent
 from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
+from toad.qt.session_panel import SessionPanel
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
@@ -66,9 +67,10 @@ class SessionArrangementStore(ArrangementStore):
         self._terminals = terminals
 
 
-class _CategoryFilter(QWidget):
+class _CategoryFilter(SessionPanel, QWidget):
     """The message-category toggle list. Lives in its own widget so `ThreadSettingsPane`
-    can compose it as one section among the sidebar panels declared in the shared roster."""
+    can compose it as one section among the sidebar panels declared in the shared roster.
+    `_view` and `bind()` come from `SessionPanel`; `present()` is the per-panel override."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -76,17 +78,12 @@ class _CategoryFilter(QWidget):
         column = QVBoxLayout(self)
         column.setContentsMargins(8, 4, 8, 4)
         column.setSpacing(2)
-        self._view = None
         self._checks: dict[type[MessageCategory], QCheckBox] = {}
         for category in MessageCategory.members_with(MessageCategory):
             check = QCheckBox(category.label, self)
             check.toggled.connect(partial(self._toggled, category))
             self._checks[category] = check
             column.addWidget(check)
-
-    def bind(self, view) -> None:
-        self._view = view
-        self.present()
 
     def present(self) -> None:
         view = self._view
