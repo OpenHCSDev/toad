@@ -44,10 +44,13 @@ from toad.client.session_scope import NoSessionOrigin, SessionOrigin
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.tab_identity.kinds import CommsTab
+from toad.client.transcript_history_contract import TranscriptHistoryContract
 from toad.core import input_events
 from toad.launch_binding import AgentBinding
+from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.history import QT_FRAGMENT_CLASSES, QtConversationHistory, QtHistoryWindow
+from toad.transcript_publication import BoundView, TranscriptPresentation
 from toad.qt.window import Page, QtSessionEntry
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
@@ -80,6 +83,7 @@ def _toad_app() -> QtToadApp:
 class QtAcpSessionView(
     ObservedAgentBinding,
     ConversationThreadReadMixin,
+    QtBoundViewHost,
     ComposerHost,
     Page,
     WorkspaceHosted,
@@ -128,7 +132,40 @@ class QtAcpSessionView(
 
     @property
     def screen(self) -> WorkspaceFrame:
-        return self.window()
+        return QWidget.window(self)
+
+    @property
+    def window(self) -> QtHistoryWindow:
+        """`BoundViewHost.window`: the scroll surface. `BoundView` reads
+        `window.scroll_revision` + `window.is_attached` to tell when a paint happened.
+        `QtHistoryWindow` carries both (`scroll_revision` from `JumpsToLatest`, shared
+        with Textual's `Window` base per PR #1922). Shadows the inherited `QWidget.window`
+        callable — screen access routes through `QWidget.window(self)` in `self.screen`.
+        """
+        return self.messages
+
+    @property
+    def contents(self) -> "QtBoundViewHost":
+        """`BoundViewHost.contents`: a `ChildrenOwner`. Self is the ACP tab widget
+        inheriting `QtChildrenOwner` through `QtBoundViewHost`; its `findChildren` sees
+        the whole tab including `message_history`, matching Textual's `Conversation.contents`
+        shape."""
+        return self
+
+    @property
+    def transcript_history(self) -> TranscriptHistoryContract:
+        """`BoundViewHost.transcript_history`: the single transcript-page-producing child
+        `BoundView` drives. `QtConversationHistory` satisfies `TranscriptHistoryContract`
+        structurally the way Textual's `TranscriptHistory` does — same event-coverage +
+        close + restore_source shape, different paint path."""
+        return self.message_history
+
+    def transcript_binding(self) -> BoundView:
+        """Called by `ViewBinding.bound_to(view)` on `TranscriptPresentation.bind`.
+        Returns a `BoundView` that routes transcript events into this view through the
+        `BoundViewHost` surface above — same contract Textual's `Conversation.transcript_binding`
+        at `widgets/conversation.py:1761` provides."""
+        return BoundView(self)
 
     def __init__(
         self,
@@ -158,6 +195,11 @@ class QtAcpSessionView(
         # Transcript window + history reader; same classes as ConversationView uses.
         self.messages = QtHistoryWindow(app.renderer.scheme)
         self.message_history = QtConversationHistory(self.messages, self, app)
+        # One `TranscriptPresentation` per session view, exactly as Textual does at
+        # `widgets/conversation.py:759`. `transcript.bind(self)` below produces a
+        # `BoundView` that reads tool-call / context / sent / bus fragments through the
+        # same presentation pipeline both backends use — no parallel Qt-only wiring.
+        self.transcript = TranscriptPresentation()
         # Layout: an identity line on top, the history below, the composer at the bottom.
         self.identity_line = ElidedLine(f"ACP session #{session_pk}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -180,6 +222,11 @@ class QtAcpSessionView(
         layout.addWidget(self.messages, 1)
         self._composer_layout = layout
         QTimer.singleShot(0, lambda: self._mount_composer(app))
+        # Bind the transcript once the message_history child exists: `BoundView` reads
+        # `self.transcript_history` immediately. Textual binds in its `on_mount`
+        # (`widgets/conversation.py:1766`); on Qt the equivalent moment is right after
+        # the `message_history` attribute is assigned, before any agent attaches.
+        self.transcript.bind(self)
         # Live reconnect hook: when the agent-binding changes (first attach or a real
         # reconnect), re-project state via ``apply_bound_agent`` and show the connected
         # notice once the new agent is ready. Textual's ``watch_agent_binding`` does the
