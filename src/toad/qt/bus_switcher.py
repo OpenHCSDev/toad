@@ -39,6 +39,7 @@ from toad.client.bus_selection import (
     BusSwitcherPrompt,
     PickerRow,
 )
+from toad.qt.metrics import UiGap
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
@@ -68,8 +69,8 @@ class QtBusSwitcher(BusListing, QFrame):
         self._OpenSection = OpenSection
 
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(8, 6, 8, 6)
-        outer.setSpacing(6)
+        outer.setContentsMargins(UiGap.frame, UiGap.loose, UiGap.frame, UiGap.loose)
+        outer.setSpacing(UiGap.loose)
 
         self._prompt = QLabel(BusSwitcherPrompt.initial(), self)
         self._prompt.setWordWrap(True)

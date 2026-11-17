@@ -50,6 +50,7 @@ from toad.qt.window import QtSessionEntry
 from toad.slash_command import SlashCommand
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.thread_identity import NoThreadIdentity
+from toad.qt.metrics import UiGap
 
 if TYPE_CHECKING:
     from agent_comms.projects.checkouts import Checkout
@@ -145,7 +146,7 @@ class QtAcpSessionView(
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.identity_line.setStyleSheet(f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};")
         info = QHBoxLayout()
-        info.setContentsMargins(6, 4, 6, 4)
+        info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
         info.addWidget(self.identity_line, 1)
         # Composer: the same shape ``ConversationView`` uses for bus DMs, pointed at this
         # host so ``submit`` ends up calling ``self.submit`` with the typed text. On

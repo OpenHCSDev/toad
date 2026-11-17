@@ -39,6 +39,7 @@ from toad.core.context_inspection import (
     InspectionState,
 )
 from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.qt.metrics import UiGap
 
 
 class QtContextExplorer(QWidget):
@@ -67,8 +68,8 @@ class QtContextExplorer(QWidget):
         self._refresh_task: asyncio.Task | None = None
 
         column = QVBoxLayout(self)
-        column.setContentsMargins(8, 4, 8, 4)
-        column.setSpacing(4)
+        column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
+        column.setSpacing(UiGap.normal)
 
         self._status = QLabel("Context · select a segment to inspect", self)
         self._status.setWordWrap(True)

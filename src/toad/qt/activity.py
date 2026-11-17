@@ -22,6 +22,7 @@ from toad.client.line_blocks import MutedRole
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.status_thread import ObservedActivity
+from toad.qt.metrics import UiGap
 
 
 class ActivityLine(ElidedLine):
@@ -30,7 +31,7 @@ class ActivityLine(ElidedLine):
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
         self.setStyleSheet(renderer.color_style(MutedRole))
-        self.setContentsMargins(6, 0, 6, 0)
+        self.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
 
     def close_activity(self) -> None:
         """Nothing observed; nothing to stop."""

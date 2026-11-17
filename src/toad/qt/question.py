@@ -31,6 +31,7 @@ from toad.answer import Answer
 from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.question_actions import QuestionContext, SelectKindAction
 from toad.widget_contracts import DismissibleContract
+from toad.qt.metrics import UiGap
 
 if TYPE_CHECKING:
     from toad.widgets.question import Ask
@@ -53,11 +54,11 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
         self._title.setWordWrap(True)
         self._title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self._options_row = QHBoxLayout()
-        self._options_row.setContentsMargins(0, 4, 0, 0)
-        self._options_row.setSpacing(6)
+        self._options_row.setContentsMargins(0, UiGap.normal, 0, 0)
+        self._options_row.setSpacing(UiGap.loose)
         column = QVBoxLayout(self)
-        column.setContentsMargins(10, 8, 10, 8)
-        column.setSpacing(4)
+        column.setContentsMargins(UiGap.wide, UiGap.frame, UiGap.wide, UiGap.frame)
+        column.setSpacing(UiGap.normal)
         column.addWidget(self._title)
         column.addLayout(self._options_row)
         self._buttons: list[QPushButton] = []

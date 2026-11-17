@@ -32,6 +32,7 @@ from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionSco
 from toad.qt.thread_view import QtThreadView
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.transcript_scope import TranscriptScope
+from toad.qt.metrics import UiGap
 
 
 class _MailboxPresentation:
@@ -102,7 +103,7 @@ class QtMailboxView(QtThreadView, SessionScope):
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.identity_line.setStyleSheet(f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};")
         info = QHBoxLayout()
-        info.setContentsMargins(6, 4, 6, 4)
+        info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
         info.addWidget(self.identity_line, 1)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)

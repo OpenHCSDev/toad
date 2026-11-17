@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
 
 from toad.client.session_tracker import SidebarState
 from toad.client.sidebar_panels import PanelSpec
+from toad.qt.metrics import UiGap
 
 
 class QtSidebarPanelFrame(QFrame):
@@ -60,8 +61,8 @@ class QtSidebarPanelFrame(QFrame):
         self._title.setObjectName("QtSidebarPanelTitle")
         self._title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         header_row = QHBoxLayout(self._header)
-        header_row.setContentsMargins(4, 2, 4, 2)
-        header_row.setSpacing(4)
+        header_row.setContentsMargins(UiGap.normal, UiGap.tight, UiGap.normal, UiGap.tight)
+        header_row.setSpacing(UiGap.normal)
         header_row.addWidget(self._chevron)
         header_row.addWidget(self._title, 1)
         self._body.setParent(self)

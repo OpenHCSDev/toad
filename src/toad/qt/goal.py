@@ -54,6 +54,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.session_observation import GoalObservation
 from toad.core.events import ThreadRowsChanged
 from toad.widget_contracts import DismissibleContract, SubmitsContract
+from toad.qt.metrics import UiGap
 
 
 class GoalPress(OperationKind):
@@ -181,7 +182,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
             controls.addWidget(control)
         controls.addStretch(1)
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(6, 2, 6, 2)
+        layout.setContentsMargins(UiGap.loose, UiGap.tight, UiGap.loose, UiGap.tight)
         layout.setSpacing(0)
         layout.addWidget(self.header)
         layout.addWidget(self.standby)

@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (QGraphicsOpacityEffect, QHBoxLayout, QLabel,
 from toad.core import events as core_events
 from toad.plan import PlanItem
 from toad.qt.session_panel import SessionPanel
+from toad.qt.metrics import UiGap
 
 
 class QtPlan(SessionPanel, QWidget):
@@ -33,8 +34,8 @@ class QtPlan(SessionPanel, QWidget):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self._column = QVBoxLayout(self)
-        self._column.setContentsMargins(8, 4, 8, 8)
-        self._column.setSpacing(2)
+        self._column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.frame)
+        self._column.setSpacing(UiGap.tight)
         self._column.addStretch(1)
         self._subscription = None
         self._render()
@@ -109,7 +110,7 @@ class QtPlan(SessionPanel, QWidget):
         row.setWindowFlags(Qt.WindowType.Widget)
         layout = QHBoxLayout(row)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(4)
+        layout.setSpacing(UiGap.normal)
         marker = QLabel(entry.status.marker(), row)
         text = QLabel(entry.content, row)
         text.setWordWrap(True)

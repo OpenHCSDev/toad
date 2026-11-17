@@ -18,6 +18,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from toad.client.session_scope import SessionScope
+from toad.qt.metrics import UiGap
 
 
 class QtOpeningSessionView(SessionScope, QWidget):
@@ -41,7 +42,7 @@ class QtOpeningSessionView(SessionScope, QWidget):
         # swaps it in. `ConversationView.__init__` sets the same field at window.py:1061.
         self.visible_categories = all_categories()
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setContentsMargins(UiGap.page, UiGap.page, UiGap.page, UiGap.page)
         self._label = QLabel(f"Opening {title}…", self)
         self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addStretch(1)
