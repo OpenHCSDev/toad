@@ -63,6 +63,7 @@ from toad.client.bus_selection import (
 )
 from toad.client.offered_action import OfferedAction
 from toad.client.bus_submission import BusSubmissions, SubmissionView, TypedText
+from toad.submission_queue import NoQueueSource, QueueSource
 from toad.client.connection import (
     CoreConnection,
     FailedObservation,
@@ -683,6 +684,11 @@ class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, Submis
     or right-click on a message row opens the shared block menu through the host's
     `offer` panel, iterating the `MenuCommand` family on the fly."""
 
+    # Default until the live WireSource is wired in __init__: `BusSubmissions.queue_evidence`
+    # reads `self.view.queue_source`, so an unset attribute AttributeErrors the first paint.
+    # The Textual sibling (CommsChatView, widgets/comms_chat.py) carries the same default.
+    queue_source: QueueSource = NoQueueSource()
+
     def __init__(self, app: QtToadApp, entry: QtHistorySessionEntry) -> None:
         super().__init__()
         self.app, self.entry = app, entry
@@ -700,9 +706,14 @@ class ConversationView(MenuConversation, Page, StatusOwner, SessionScope, Submis
         self.messages.block_menu_requested.connect(self.open_block_menu)
         self.message_history = QtConversationHistory(self.messages, self, app)
         source = app.source()
-        self.message_history.initialize_source(WireSource(
+        # WireSource IS a BusQueueSource (client/history.py:372); storing it on
+        # self.queue_source lets BusSubmissions.queue_evidence read pending/queued/held
+        # state the same way CommsChatView does (widgets/comms_chat.py:124-129).
+        wire = WireSource(
             source.root, self.conversation, source.project, entry.viewer, MarkdownMessageStyle(),
-            access=app.coordination_access, core=source.core, fragments=QtWireFragment))
+            access=app.coordination_access, core=source.core, fragments=QtWireFragment)
+        self.queue_source = wire
+        self.message_history.initialize_source(wire)
         self.message_history.observe_source()
         self.label = ElidedLine(label)
         self.status = ElidedLine()
