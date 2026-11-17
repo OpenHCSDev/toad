@@ -1,8 +1,15 @@
-"""Thread panels own construction and reader state at their declarations."""
+"""Thread panels own construction and reader state at their declarations.
+
+Each concrete `SessionPanel` binds to a toolkit-neutral `ThreadSidebarPanelSpec` via
+`spec_key`. The spec (declared in `toad.thread_sidebar_declarations`) owns the panel's
+identity — heading, panel id, collapsed and flex defaults, DM / session visibility — so
+Qt's `ThreadSettingsPane` can iterate the same roster without pulling Textual in.
+"""
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.widget import Widget
+from toad.thread_sidebar_declarations import spec_for
 from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.plan import PlanItem
 from toad.widgets.plan import Plan
@@ -18,10 +25,23 @@ if TYPE_CHECKING:
 
 
 class SessionPanel[W: SidebarPanelWidget](DeclaredFamily, affix="SessionPanel"):
-    """Only small reader intent survives; the panel is a view of Core state."""
-    collapsed: ClassVar[bool] = False
-    flex: ClassVar[bool] = False
-    panel_id: ClassVar[str | None] = None
+    """Only small reader intent survives; the panel is a view of Core state. Identity
+    (heading / panel_id / collapsed / flex) comes from the panel's `spec_key` lookup in
+    `toad.thread_sidebar_declarations`; concrete subclasses set `spec_key` and the spec
+    there owns the shared metadata."""
+    spec_key: ClassVar[str] = ""
+
+    @property
+    def collapsed(self) -> bool:
+        return spec_for(self.spec_key).collapsed if self.spec_key else False
+
+    @property
+    def flex(self) -> bool:
+        return spec_for(self.spec_key).flex if self.spec_key else False
+
+    @property
+    def panel_id(self) -> str | None:
+        return spec_for(self.spec_key).panel_id if self.spec_key else None
 
     @abstractmethod
     def make_widget(self, screen: MainScreen) -> W: ...
@@ -30,7 +50,9 @@ class SessionPanel[W: SidebarPanelWidget](DeclaredFamily, affix="SessionPanel"):
         return None
 
     def compose_panel(self, screen: MainScreen) -> SideBar.Panel:
-        return SideBar.Panel(self.declared_name.title(), self.make_widget(screen),
+        heading = (spec_for(self.spec_key).heading if self.spec_key
+                   else self.declared_name.title())
+        return SideBar.Panel(heading, self.make_widget(screen),
                              flex=self.flex, collapsed=self.collapsed,
                              id=self.panel_id or f"{self.declared_name}-panel",
                              header_control=self.make_header())
@@ -44,13 +66,15 @@ class ThreadDetailsPanel(SessionPanel, declared_name=None):
 
 
 class ThreadSessionPanel(ThreadDetailsPanel, SessionPanel[CoordinationStatus]):
-    panel_id = "coordination-panel"
+    spec_key = "coordination"
 
     def make_widget(self, screen: MainScreen) -> CoordinationStatus:
         return CoordinationStatus()
 
 
 class CommsSessionPanel(ThreadDetailsPanel, SessionPanel[ThreadCommsSidebar]):
+    spec_key = "comms"
+
     def __init__(self) -> None:
         self.states: dict[SessionIdentity, RelationshipTreeState] = {}
 
@@ -62,7 +86,7 @@ class CommsSessionPanel(ThreadDetailsPanel, SessionPanel[ThreadCommsSidebar]):
 
 
 class PlanSessionPanel(SessionPanel[Plan]):
-    collapsed = True
+    spec_key = "plan"
 
     def __init__(self) -> None:
         self.entries: list[PlanItem] = []
@@ -81,8 +105,7 @@ class PlanSessionPanel(SessionPanel[Plan]):
 
 
 class ProjectSessionPanel(SessionPanel[ProjectPanel]):
-    collapsed = True
-    flex = True
+    spec_key = "project"
 
     def __init__(self) -> None:
         self.intent: TreeIntent = NO_TREE_INTENT
@@ -97,6 +120,8 @@ class ProjectSessionPanel(SessionPanel[ProjectPanel]):
 
 class ContextSessionPanel(SessionPanel):
     """The last right-sidebar panel; only reader intent survives retirement."""
+    spec_key = "context"
+
     def __init__(self):
         self.intents = {}
 

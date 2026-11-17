@@ -7,7 +7,11 @@ Toad-specific:
 
   - `SessionArrangementStore`: the phone's per-run arrangement store (the desktop uses the
     Toad settings file; Android has no settings file in its import reach).
-  - `ThreadSettingsPane`: the thread sidebar's content, a per-category toggle list.
+  - `ThreadSettingsPane`: the thread sidebar's content. Iterates the shared panel roster
+    declared in `toad.thread_sidebar_declarations` so the sections Qt draws match the panels
+    Textual composes — a new panel added to the roster shows up on both frontends. Only the
+    message-category filter has a real Qt body today; the other sections carry a placeholder
+    until each per-panel Qt port lands.
 
 The sidebar widgets accept a `SidebarControlsOwner` to build and present their controls; the
 Toad family in `toad.sidebar_layout.SidebarControlsOwner` already satisfies the formbridge
@@ -24,10 +28,15 @@ from functools import partial
 
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from formbridge.widgets.sidebar import QtPlacementControl, SidebarPane, SidebarToggle
-from PySide6.QtWidgets import QCheckBox, QVBoxLayout, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea,
+                               QVBoxLayout, QWidget)
 
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
+from toad.thread_sidebar_declarations import (
+    THREAD_SIDEBAR_PANELS, ThreadSidebarPanelSpec, panel_specs_for_view,
+)
 
 __all__ = ["QtPlacementControl", "SessionArrangementStore", "SidebarPane", "SidebarToggle",
            "ThreadSettingsPane"]
@@ -49,14 +58,13 @@ class SessionArrangementStore(ArrangementStore):
         self._terminals = terminals
 
 
-class ThreadSettingsPane(QWidget):
-    """The open thread's view settings: which message categories its transcript shows. One
-    toggle per category, drawn from the shared `MessageCategory` family and bound to the
-    conversation the tab shows, so the pane reads and writes that view's own selection and
-    holds no copy of it. It stands in for the Textual thread sidebar's message filter."""
+class _CategoryFilter(QWidget):
+    """The message-category toggle list. Lives in its own widget so `ThreadSettingsPane`
+    can compose it as one section among the sidebar panels declared in the shared roster."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
         column = QVBoxLayout(self)
         column.setContentsMargins(8, 4, 8, 4)
         column.setSpacing(2)
@@ -69,8 +77,6 @@ class ThreadSettingsPane(QWidget):
             column.addWidget(check)
 
     def bind(self, view) -> None:
-        """Follow the conversation the tab now shows; the welcome has none, so the toggles go
-        quiet. A bound pane reads the view's selection and reflects it in the checks."""
         self._view = view
         self.present()
 
@@ -86,3 +92,76 @@ class ThreadSettingsPane(QWidget):
     def _toggled(self, category: type[MessageCategory], on: bool) -> None:
         if self._view is not None:
             self._view.set_category(category, on)
+
+
+def _placeholder_body(spec: ThreadSidebarPanelSpec, parent: QWidget) -> QWidget:
+    """The body a sidebar panel shows on Qt until its widget port lands. Carries the shared
+    spec's heading in context so a reader knows what the section will become."""
+    body = QLabel(f"{spec.heading} — port to Qt pending (view on desktop Toad for now)",
+                  parent)
+    body.setWordWrap(True)
+    body.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+    body.setContentsMargins(8, 4, 8, 8)
+    return body
+
+
+class ThreadSettingsPane(QWidget):
+    """The open thread's sidebar content. Composes one section per panel in the shared
+    roster (`toad.thread_sidebar_declarations.THREAD_SIDEBAR_PANELS`) so the Qt sidebar
+    reflects the same structure Textual's `SessionThreadSidebar` composes — no hand-rolled
+    mirror of the panel list, one source of truth. Only the message-category filter has a
+    real Qt body yet; the other sections carry a placeholder until each per-panel port
+    lands as its own follow-up PR.
+
+    `bind(view)` routes the conversation's view at the sections that read / write it —
+    today that is the category filter; a future Plan / Project / Context panel port will
+    receive the same view and present its own content.
+    """
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        outer.addWidget(scroll, 1)
+        self._content = QWidget(scroll)
+        self._content.setWindowFlags(Qt.WindowType.Widget)
+        column = QVBoxLayout(self._content)
+        column.setContentsMargins(0, 0, 0, 0)
+        column.setSpacing(4)
+        self._category_filter = _CategoryFilter(self._content)
+        self._section_bodies: dict[str, QWidget] = {}
+        # The session view is the default; a conversation / DM tab trims the roster via
+        # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
+        # Comms; session view adds Plan, Project, Context.
+        for spec in panel_specs_for_view(is_session=True):
+            section = QGroupBox(spec.heading, self._content)
+            section_layout = QVBoxLayout(section)
+            section_layout.setContentsMargins(0, 2, 0, 0)
+            section_layout.setSpacing(0)
+            body = _placeholder_body(spec, section)
+            section_layout.addWidget(body)
+            self._section_bodies[spec.key] = body
+            column.addWidget(section)
+        self._categories_section = QGroupBox("Message categories", self._content)
+        categories_layout = QVBoxLayout(self._categories_section)
+        categories_layout.setContentsMargins(0, 2, 0, 2)
+        categories_layout.setSpacing(0)
+        categories_layout.addWidget(self._category_filter)
+        column.addWidget(self._categories_section)
+        column.addStretch(1)
+        scroll.setWidget(self._content)
+
+    def bind(self, view) -> None:
+        """Follow the conversation the tab now shows; the welcome has none, so the toggles
+        go quiet. Panels that read / write the view receive it here; today only the
+        category filter does so, future ports (Plan / Project / Context) will receive it
+        through the same hook."""
+        self._category_filter.bind(view)
+
+    def present(self) -> None:
+        self._category_filter.present()
