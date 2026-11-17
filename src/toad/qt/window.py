@@ -124,6 +124,7 @@ from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.channel_sort import QtChannelSortControl
+from toad.qt.thinking_animator import QtThinkingAnimator
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
 from toad.widgets.session_sort import ThreadSortForm
 from toad.qt.paste_profile import QtProfilePastePanel
@@ -1067,6 +1068,28 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
                 self.window._sidebar_thread_panel.present(model)
             self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
+            # Register every working thread row with the shared pulse animator
+            # so its text foreground sine-waves while the agent is busy — Qt's
+            # port of Textual's NAME_WAVE effect
+            # (ui_theme.effects.NAME_WAVE wired into comms_sidebar.ThreadRow).
+            # Walks both trees because the flat-threads panel renders the same
+            # threads a second time; a stale working row in either place would
+            # look unresponsive.
+            working_names = {name for name, thread in model.threads.rows.items()
+                             if thread.status.is_working()}
+            working_items: list[QTreeWidgetItem] = []
+            if working_names:
+                for tree in (self, self.window._sidebar_thread_panel):
+                    root = tree.invisibleRootItem()
+                    stack = [root]
+                    while stack:
+                        node = stack.pop()
+                        for index in range(node.childCount()):
+                            child = node.child(index)
+                            stack.append(child)
+                            if isinstance(child, ConversationRow) and child.key in working_names:
+                                working_items.append(child)
+            self.window.thinking_animator.set_working_items(working_items)
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         """Dispatch a typed row change through `GroupedSidebar.apply_comms` so only the
@@ -1662,6 +1685,13 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.initialize_client(NoAgent(), connection)
         self.setWindowTitle("Toad")
         self.renderer = QtLineRenderer(scheme)
+        # One shared animator pulses every sidebar row whose thread is working —
+        # Qt's equivalent of Textual's per-row NAME_WAVE effect
+        # (ui_theme.effects.NAME_WAVE / widgets/comms_sidebar.ThreadRow). The
+        # sidebar's `present` loop registers the current working rows after each
+        # redraw; the animator's one timer drives the pulse for every registered
+        # row so the sine phase stays shared across the sidebar.
+        self.thinking_animator = QtThinkingAnimator(scheme, parent=self)
         self.workspace_sessions = QtWorkspaceViews(self)
         # SidebarLayout is the one owner of the move and float policy; the phone hands it a
         # session store, where the Textual workspace hands it the saved settings. Same policy,
