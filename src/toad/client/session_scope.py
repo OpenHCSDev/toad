@@ -80,6 +80,15 @@ class SessionScope:
     def sidebar_thread_identity(self) -> object:
         return self.thread_identity
 
+    @property
+    def bound_agent(self) -> object | None:
+        """Default for a view that has no bound agent (welcome, home, DM conversation).
+        A view that binds an agent (ACP) overrides this via `AgentBoundConversation`.
+        Returning None keeps generic sidebar panels — e.g. `QtPlan.bind` reading
+        `view.bound_agent` — from having to guard with `getattr(view, "bound_agent", None)`,
+        mirroring the `thread_identity` → `NoThreadIdentity` default above."""
+        return None
+
     def belongs_to_wire(self, root: Path) -> bool:
         raise NotImplementedError
 
