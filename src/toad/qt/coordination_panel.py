@@ -6,6 +6,8 @@ a tooltip. One fact owner, two renderers.
 """
 from __future__ import annotations
 
+from typing import ClassVar
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
@@ -14,6 +16,10 @@ from toad.thread_identity import NoThreadIdentity, SessionIdentity
 
 
 class QtCoordinationStatus(QWidget):
+    spec_key: ClassVar[str] = "coordination"
+    """Which `ThreadSidebarPanelSpec.key` this widget renders — matches the TUI
+    `SessionPanel.spec_key` convention so both frontends declare the same identity."""
+
     """Compact 3-line summary of the coordination wire's identity and the ACP backend."""
 
     def __init__(self, parent: QWidget | None = None) -> None:

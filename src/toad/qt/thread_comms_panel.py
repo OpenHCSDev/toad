@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from functools import partial
+from typing import ClassVar
 
 from agent_comms.display_order import ThreadSort
 from agent_comms.registry.relationships import (
@@ -77,6 +78,10 @@ class QtRelationshipSort(QToolButton):
 
 
 class QtThreadCommsPanel(QWidget):
+    spec_key: ClassVar[str] = "comms"
+    """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
+    `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
+
     """Renders a thread's relationship rows as a Qt tree: top-level items per
     `RelationshipGroup`, children per `RelationshipEntry`. The snapshot is fetched off the
     UI thread through `app.preparation.run_thread`, as Textual's `ThreadCommsSidebar` does.

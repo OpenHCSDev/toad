@@ -14,6 +14,7 @@ machine and intent store — no further decoding to lift.
 from __future__ import annotations
 
 import asyncio
+from typing import ClassVar
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QClipboard
@@ -41,6 +42,10 @@ from toad.thread_identity import NoThreadIdentity, SessionIdentity
 
 
 class QtContextExplorer(QWidget):
+    spec_key: ClassVar[str] = "context"
+    """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
+    `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
+
     """Qt sibling of `widgets.context_explorer.ContextExplorer`.
 
     The state machine (`InspectionState`) and group decoding (`HoldingInspection.groups`)

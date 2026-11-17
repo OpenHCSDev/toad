@@ -11,6 +11,8 @@ place as the agent publishes them. Unsubscribes on rebind and on retire.
 """
 from __future__ import annotations
 
+from typing import ClassVar
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QGraphicsOpacityEffect, QHBoxLayout, QLabel,
                                QVBoxLayout, QWidget)
@@ -20,6 +22,10 @@ from toad.plan import PlanDisplayState, PlanItem
 
 
 class QtPlan(QWidget):
+    spec_key: ClassVar[str] = "plan"
+    """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
+    `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
+
     """The Qt sibling of `toad.widgets.plan.Plan`. Reads from the shared
     `PlanDisplayState` in `toad.plan` for current entries and newly-complete detection;
     no parallel entries/previous-status roster lives here."""
