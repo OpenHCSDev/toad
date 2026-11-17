@@ -1115,10 +1115,13 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         # The float layer sits over the pages. Without an opaque background it leaks the
         # conversation's pixels through gaps between the pane's own widgets, which is what
         # made the history look garbled when a sidebar was lifted off a dock onto the float.
-        # autoFillBackground + the theme's surface colour paints a clean plate under the pane
-        # and the pages repaint themselves once reposition_float() asks the center to update.
+        # The stylesheet below paints an opaque plate over the pane's own widgets. We can't
+        # use setAutoFillBackground(True) here: Qt-for-Android forces a separate backing
+        # store for an autofilled widget, and flushing it during the center's repaint
+        # recurses into QAndroidPlatformOpenGLWindow::eglSurface() and trips the deadlock
+        # protector (SIGABRT, 2026-11-17 Pixel 8a tombstone). Stylesheet styling paints
+        # through the parent's backing store instead, which is what Android needs.
         self.float_layer = QWidget(self.center)
-        self.float_layer.setAutoFillBackground(True)
         self.float_layer.setStyleSheet(self.theme.color_scheme.styles.generate_frame_style())
         self._float_layout = QVBoxLayout(self.float_layer)
         self._float_layout.setContentsMargins(0, 0, 0, 0)
