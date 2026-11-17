@@ -118,6 +118,7 @@ from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMessageFragment, QtWireFragment
 from toad.menus import MenuCommand, MenuConversation, message_menu, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
+from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
@@ -220,8 +221,15 @@ class SidebarItem(QTreeWidgetItem):
 
     def held_actions(self, listing: Welcome) -> tuple[OfferedAction, ...]:
         """What holding a finger on this line, or right-clicking it, offers: nothing, for
-        most lines."""
+        most lines. Legacy label-only API kept for bus rows which still use OfferedAction."""
         return ()
+
+    def menu_entries(self, listing: Welcome) -> tuple[MenuEntry, ...]:
+        """Rich menu-entry source — the single shape both frontends consume. A row that
+        has only label+run `held_actions` is adapted via `MenuEntry.from_offered`; a
+        row whose menu items come from a shared helper (e.g. `ConversationRow`
+        → `menu_entries_for_row`) returns the helper's output directly."""
+        return tuple(MenuEntry.from_offered(action) for action in self.held_actions(listing))
 
 
 class SidebarSection(SidebarItem):
@@ -310,6 +318,17 @@ class ConversationRow(SidebarItem):
 
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
+
+    def menu_entries(self, listing: Welcome) -> tuple[MenuEntry, ...]:
+        """Long-press menu for a conversation row: the shared Open/Copy items the
+        Textual sidebar's `widgets/thread_comms.show_row_menu` offers for its
+        RelationshipRows, via the single `menu_entries_for_row` helper."""
+        host = listing.host
+        return menu_entries_for_row(
+            target_name=self.target.name,
+            copy=host.copy_to_clipboard,
+            open_callback=lambda: host.open_row(self),
+        )
 
 
 class BusRow(SidebarItem):
@@ -477,14 +496,18 @@ class HeldRowMenu(QObject):
         return False
 
     def offer(self, point: QPoint) -> None:
-        """``point`` is in the tree's viewport, where QAbstractScrollArea reports it."""
+        """``point`` is in the tree's viewport, where QAbstractScrollArea reports it.
+        Reads the row's `menu_entries` — the richer single contract every row answers
+        (base rows adapt their `held_actions` via `MenuEntry.from_offered`, rich rows
+        like `ConversationRow` return the shared `menu_entries_for_row` output
+        directly)."""
         rows = self.listing.rows
         item: SidebarItem | None = rows.itemAt(point)
         if item is None:
             return
-        actions = item.held_actions(self.listing)
-        if actions:
-            self.listing.host.offer(actions)
+        entries = item.menu_entries(self.listing)
+        if entries:
+            self.listing.host.offer_entries(entries)
 
 
 class QtWelcomeOrigin(ProjectSessionOrigin):
