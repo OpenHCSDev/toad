@@ -18,7 +18,7 @@ from agent_comms.nominal.declared_family import (
     declared_words,
 )
 from agent_comms.planning.command import Command
-from formbridge.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType
+from formbridge.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType, TextEntryMode
 
 from toad.client.application import ClientApplication
 from toad.session_navigation import ChannelsReveal
@@ -229,6 +229,47 @@ class DirectMessagesAction(ApplicationAction):
 
     async def apply(self, app: ClientApplication) -> None:
         app.session_navigation.direct_messages()
+
+
+class OpenBusAction(ApplicationAction):
+    """Connect to this machine's bus or choose another machine."""
+
+    title = "Switch bus (local or remote)"
+    keys = {TextEntryMode: ("ctrl+shift+b",)}
+    show = True
+
+    def apply(self, app: ClientApplication) -> None:
+        app.open_bus_switcher()
+
+
+class SettingsAction(ApplicationAction):
+    """Edit persistent application preferences."""
+
+    keys = {TextEntryMode: ("ctrl+comma",)}
+    show = True
+
+    async def apply(self, app: ClientApplication) -> None:
+        await app.edit_settings()
+
+
+class TeamAction(ApplicationAction, declared_name="team"):
+    """Open the live team board, including teammates' orders and original evidence."""
+
+    keys = {TextEntryMode: ("f2",)}
+    show = True
+
+    async def apply(self, app: ClientApplication) -> None:
+        await app.open_team_board()
+
+
+class KeymapAction(ApplicationAction):
+    """Browse keyboard shortcuts and change their keys for each editing mode."""
+
+    keys = {TextEntryMode: ("f1",)}
+    show = True
+
+    async def apply(self, app: ClientApplication) -> None:
+        await app.open_keymap_browser()
 
 
 class QuitAction(LastInMenu, ReplacesFrameworkAction, ApplicationAction):
