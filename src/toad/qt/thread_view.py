@@ -458,7 +458,13 @@ class QtThreadView(
             print(f"QtThreadView {type(self).__name__} initial transcript load failed: {exc!r}", flush=True)
             traceback.print_exception(exc)
             return
-        rows = self.messages.model().rowCount() if hasattr(self.messages, "model") and self.messages.model() is not None else -1
+        try:
+            model = self.messages.model() if hasattr(self.messages, "model") else None
+            rows = model.rowCount() if model is not None else -1
+        except RuntimeError:
+            # View torn down between done-callback scheduling and running —
+            # nothing to report, the user already closed this view.
+            return
         if rows <= 0:
             # Loud only when the load produced nothing — a view that paints a
             # black body with no rows is the failure case the diagnostic targets.
