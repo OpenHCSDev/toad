@@ -18,8 +18,8 @@ from agent_comms.acp_extension import (
     NoQueueScope,
     QueueScope,
 )
-from agent_comms.text_route_update import AgentCommsUpdate
-from agent_comms.execution.acp_failure import RequestFailedUpdate
+from agent_comms.acp_extension import AgentCommsUpdate
+from agent_comms.acp_extension import RequestFailedUpdate
 from agent_comms.messaging.sent_message import AssignedSourceIdentity
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId, PathText
