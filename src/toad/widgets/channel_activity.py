@@ -14,6 +14,7 @@ from textual import widgets
 from textual.containers import VerticalGroup
 from textual.content import Content
 
+from toad.channel_activity_dispatch import ChannelActivityCompute
 from toad.client.connection import CoordinationAccess
 from toad.keyed_rows import KeyedRows
 from toad.sidebar_changes import SidebarChange
@@ -37,7 +38,7 @@ class PeerStatus(ThreadReferenceReader[StatusThread]):
         return NoStatusThread()
 
 
-class ChannelActivity(SidebarModelView, ActivityRows, KeyedRows[ThreadIncarnation], VerticalGroup):
+class ChannelActivity(ChannelActivityCompute, SidebarModelView, ActivityRows, KeyedRows[ThreadIncarnation], VerticalGroup):
     DEFAULT_CSS = """
     ChannelActivity {
         height: auto;
@@ -78,20 +79,6 @@ class ChannelActivity(SidebarModelView, ActivityRows, KeyedRows[ThreadIncarnatio
             if not row.is_leaving
         }
 
-    @property
-    def members(self):
-        return self.view.conversation.active_members(self.model_state.shown)
-
-    @property
-    def member_keys(self):
-        return tuple(row.incarnation for row in self.members)
-
-    def channel_name(self, references: ReferenceContext) -> str:
-        return self.view.conversation.destination(references).name
-
-    def accepts_observation(self) -> bool:
-        return self.view.is_current_session and self.model_state.serves(self.view._bound_root)
-
     def model_replaced(self) -> None:
         self.member_container.remove_children()
 
@@ -104,13 +91,6 @@ class ChannelActivity(SidebarModelView, ActivityRows, KeyedRows[ThreadIncarnatio
     def update_row(self, peer: ThreadIncarnation, row) -> None:
         row.bind(self.references.thread(peer).read(
             PeerStatus(self.model_state.root(), self.app.coordination_access)))
-
-    def changed_keys(self, names: frozenset[str]) -> frozenset[ThreadIncarnation]:
-        return frozenset(
-            member.incarnation for member in self.members if member.name in names
-        ) | frozenset(
-            row.peer for row in self.rows.values() if row.row.name in names
-        )
 
     def sync_members(self, changed: frozenset[ThreadIncarnation]) -> None:
         if self.is_attached and not self.is_leaving:
