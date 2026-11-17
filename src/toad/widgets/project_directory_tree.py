@@ -168,3 +168,71 @@ This shows the files in your project directory.
         path = self.cursor_path
         if path.is_file():
             self.post_message(self.InsertSelected(path))
+
+    # --- ProjectTreeOwner protocol (toad.client.project_tree_intent) ---
+    # One adapter here, one on the Qt side; ProjectTreeIntent.capture/restore are the
+    # single owner of what the intent holds and how it is applied.
+
+    @property
+    def root_path(self) -> Path:
+        return Path(self.path)
+
+    def expanded_paths(self):
+        nodes = [self.root]
+        while nodes:
+            node = nodes.pop()
+            if node.data is not None and node.is_expanded:
+                yield node.data.path
+                nodes.extend(node.children)
+
+    def read_cursor_path(self) -> Path:
+        return self.cursor_path
+
+    def read_scroll_offset(self) -> tuple[int, int]:
+        offset = self.scroll_offset
+        return (int(offset.x), int(offset.y))
+
+    async def wait_ready(self) -> None:
+        # The original async path watcher resets/reloads its tree after mount.
+        # Reader restoration must follow that owned operation, not race its reset.
+        await self.wait_path_ready()
+        # Mount completion precedes the first native viewport layout.
+        laid_out = asyncio.Event()
+        self.call_after_refresh(laid_out.set)
+        await laid_out.wait()
+
+    async def apply_intent(self, intent) -> None:
+        await self._add_to_load_queue(self.root)
+        pending = [self.root]
+        selection = self.root
+        while pending:
+            node = pending.pop()
+            if node.data is None:
+                continue
+            path = node.data.path
+            if intent.selected.is_relative_to(path):
+                selection = node
+            if path in intent.expanded:
+                node.expand()
+                await self._add_to_load_queue(node)
+                pending.extend(node.children)
+        # Selection and saved viewport are separate intent. move_cursor also
+        # schedules an ensure-visible scroll that can overwrite the saved one.
+        self.cursor_line = selection.line
+        # Mount/expansion produces native resize messages on the first frame.
+        # Scroll on the following refresh, after their viewport limits settle.
+        committed = asyncio.get_running_loop().create_future()
+
+        def restore_viewport() -> None:
+            # Path changes and unmount cancel the panel's original worker.
+            # Its queued refresh callback must retire with that continuation.
+            if committed.cancelled():
+                return
+            # Restoring an owned reader is independent of a scrollbar that
+            # has not yet been shown; native geometry still clamps the target.
+            self.scroll_to(intent.scroll[0], intent.scroll[1], animate=False,
+                           immediate=True, force=True)
+            committed.set_result(None)
+
+        self.call_after_refresh(restore_viewport)
+        await committed
