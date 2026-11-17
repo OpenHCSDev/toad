@@ -173,15 +173,22 @@ class ApplicationAction(DeclaredAction[ClientApplication], InMenu, affix="Action
 
     @classmethod
     def menu(cls, app: ClientApplication) -> tuple[tuple[ApplicationAction, str], ...]:
-        """Every offered member under its label, by menu place, then in declaration order."""
+        """Every offered member with show=True under its label, by menu place then in
+        declaration order. Members without show=True are keybinding/command-palette only;
+        they never appear in the burger menu, so Qt and Textual show exactly the same list
+        (whichever members they've imported), and debug poke-actions never leak into the
+        user menu."""
         return tuple((command, command.label(app))
                      for member in sorted(cls.members_with(cls), key=MenuPlace.position_of)
+                     if member.show
                      for command in member.offered(app))
 
 
 # Declaration order is the order of the menu and the palette.
 class NewThreadAction(ApplicationAction):
     """Start a thread in the selected project."""
+
+    show = True
 
     async def apply(self, app: ClientApplication) -> None:
         navigation = app.session_navigation
@@ -202,6 +209,7 @@ class DirectMessagesAction(ApplicationAction):
     """Open the most recently selected direct conversation."""
 
     keys = {InputMode: ("ctrl+shift+d",)}
+    show = True
 
     async def apply(self, app: ClientApplication) -> None:
         app.session_navigation.direct_messages()
@@ -211,6 +219,7 @@ class QuitAction(LastInMenu, ReplacesFrameworkAction, ApplicationAction):
     """Save preferences and quit the application."""
 
     keys = {InputMode: ("ctrl+q",)}
+    show = True
 
     async def apply(self, app: ClientApplication) -> None:
         app.application.quit()
