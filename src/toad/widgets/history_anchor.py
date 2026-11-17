@@ -120,11 +120,10 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         event.stop()
 
     CACHE_SUBTREE_GEOMETRY = True
-    scroll_revision = 0
     _restoring = False
     reader_position: ReaderPosition = TailPosition()
     """The position held during history changes and across tab returns."""
-    history_change: HistoryChange | NoHistoryChange = NO_HISTORY_CHANGE
+    # `scroll_revision` + `history_change` are declared on JumpsToLatest (shared with Qt).
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -425,9 +424,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def follows_tail(self) -> bool:
         return self.is_anchored and not self._anchor_released
 
-    @property
-    def can_jump_to_latest(self) -> bool:
-        return not self.follows_tail
+    # `can_jump_to_latest` body (returns `not self.follows_tail`) is shared on JumpsToLatest.
 
     def anchor(self, anchor: bool = True) -> None:
         changed = self.follows_tail != anchor

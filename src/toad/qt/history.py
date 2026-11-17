@@ -441,7 +441,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
     block_menu_requested = Signal(object, name="blockMenuRequested")
 
     history: QtConversationHistory
-    scroll_revision = 0
+    # `scroll_revision` + `history_change` are declared on JumpsToLatest (shared with Textual).
 
     @property
     def screen(self) -> WorkspaceFrame:
@@ -499,9 +499,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         bar = self.verticalScrollBar()
         bar.setValue(max(bar.minimum(), bar.value() - self.viewport().height()))
 
-    @property
-    def can_jump_to_latest(self) -> bool:
-        return not self.follows_tail
+    # `can_jump_to_latest` body (returns `not self.follows_tail`) is shared on JumpsToLatest.
 
     def _jump_bar_shown(self) -> bool:
         return self.jump_bar.isVisible()
