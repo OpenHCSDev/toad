@@ -44,8 +44,10 @@ from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
 from toad.client.transcript_fragments import (
+    BusMessageFragment,
     ContextTranscriptFragment,
     ToolTranscriptFragment,
+    TranscriptFragment,
 )
 from toad.history_jump import JumpsToLatest
 from toad.qt.lines import QtLineRenderer
@@ -53,17 +55,22 @@ from toad.transcript_filter import FilterState
 from ui_theme.scheme import ColourScheme, ForegroundColour, SurfaceHoverColour
 
 
-class QtWireFragment(EvidencedFragment, ABC):
+class QtWireFragment(EvidencedFragment, TranscriptFragment, ABC):
     """A wire message drawn by Qt, and the root of Qt's wire fragments: a message's role
-    selects the member declared under it."""
+    selects the member declared under it. Also a `TranscriptFragment`, so a transcript
+    source feeding this family decodes the same shape Textual's `WireFragment` does in
+    `src/toad/widgets/wire_history.py:30`."""
 
 
 class QtMembershipFragment(MembershipText, QtWireFragment, shows=(Membership,)):
     """Someone joined or left, drawn by Qt."""
 
 
-class QtMessageFragment(WireMessage, QtWireFragment, shows=(ConversationRole, NoticeRole)):
-    """A bus message drawn by Qt."""
+class QtMessageFragment(WireMessage, BusMessageFragment, QtWireFragment,
+                        shows=(ConversationRole, NoticeRole)):
+    """A bus message drawn by Qt. Also a `BusMessageFragment`, so the same type answers whether
+    it was decoded from a wire read or from a transcript event — same bridge Textual's
+    `MessageFragment` makes at `src/toad/widgets/wire_history.py:50`."""
 
 
 class QtToolTranscriptFragment(ToolTranscriptFragment):
