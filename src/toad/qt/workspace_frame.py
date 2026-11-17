@@ -11,13 +11,12 @@ protocol works on either backend without a toolkit branch.
 from __future__ import annotations
 
 from pathlib import Path
-from weakref import WeakSet
 
-from toad.history_jump import JumpsToLatest
+from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.workspace_frame import WorkspaceFrame as WorkspaceFrameProto
 
 
-class QtWorkspaceFrame:
+class QtWorkspaceFrame(JumpsHistory):
     """Mixin on `QtToadApp` that satisfies `WorkspaceFrame`.
 
     Qt widgets reach this through `self.window()` rather than `super().screen`, so each
@@ -25,15 +24,17 @@ class QtWorkspaceFrame:
     frame directly. Many hooks are no-ops on Qt today because Qt widgets drive their
     own lifecycle through the toolkit — the attributes exist so widgets typed against
     the protocol work without a toolkit branch.
+
+    `history_windows` storage comes from `JumpsHistory` so anchor `.add`/`.discard`
+    calls hit the same set on both backends.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._qt_history_windows: WeakSet[JumpsToLatest] = WeakSet()
-
     @property
-    def history_windows(self) -> set[JumpsToLatest]:
-        return set(self._qt_history_windows)
+    def back_to_bottom_windows(self) -> tuple[JumpsToLatest, ...]:
+        """Qt tracks scrolled-off windows on `ConversationView`, not here: the frame
+        holds no live windows directly on Qt today. Stays empty so BackToBottomAction
+        resolves against the view's own `back_to_bottom_windows` instead."""
+        return ()
 
     @property
     def frame_presentation(self):
