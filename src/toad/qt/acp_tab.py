@@ -195,7 +195,6 @@ class QtAcpSessionView(
         self._agent_binding = binding
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
-        self._identity = binding.initial_identity(NoThreadIdentity())
         # ThreadBindingDispatch state: the current observed presentation + the one that
         # arrived while this view was not the selected session. Textual's `Conversation`
         # declares these as class attributes; Qt's instance init keeps the same shape.
@@ -209,7 +208,6 @@ class QtAcpSessionView(
         self._thread_observation = ResourceRelease()
         # ``NativeSessionEntry.__call__`` writes these before mount.
         self.session_details: SessionDetails | None = None
-        self._mode: str = f"acp:{session_pk}"
         # Bus-submissions owner: the Composer reads ``queue_summary`` + ``delivering`` off
         # it, and on each send ``self`` publishes the event the backend converts into a
         # real submission. A queue-renderer hook will plug into this later.
@@ -364,13 +362,19 @@ class QtAcpSessionView(
 
     @property
     def mode(self) -> str:
+        """Session mode is owned by the session identity when a SessionDetails has been
+        set; before that, derive the fallback mode from the session pk — never cache it."""
         if self.session_details is not None:
             return self.session_details.identity.mode
-        return self._mode
+        return f"acp:{self._session_pk}"
 
     @property
     def thread_identity(self):
-        return self._identity
+        """Read the binding's current initial identity fresh each access — a cached
+        `_identity` captured at __init__ goes stale if the binding is later re-bound
+        to a different identity (apply_bound_agent updates the visible labels but
+        a cache here would not update)."""
+        return self._agent_binding.initial_identity(NoThreadIdentity())
 
     @property
     def origin(self) -> SessionOrigin:
@@ -384,7 +388,7 @@ class QtAcpSessionView(
         `Conversation.transcript_scope` goes through `query_ancestor(SessionScope).origin.
         transcript_scope()`; on Qt the identity owns the scope directly, so this is a
         straight delegation."""
-        return self._identity.transcript_scope()
+        return self.thread_identity.transcript_scope()
 
     @property
     def is_attached(self) -> bool:
