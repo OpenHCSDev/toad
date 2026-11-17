@@ -349,17 +349,7 @@ class BusRow(SidebarItem):
         return self.choice.held_actions(listing)
 
 
-class Page:
-    """A page of the window: shown when selected, read again when Core's stores change."""
-
-    mode: str
-
-    def reload(self) -> None:
-        """A page fed by its own subscription has nothing to read again."""
-
-    def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
-        """Selected: read again; a tab passes its identity to the visit history."""
-        self.reload()
+from toad.qt.page import Page  # re-export: callers already import Page from here
 
 
 class QtChannelListing(ChannelListing):
