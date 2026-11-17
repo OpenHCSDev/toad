@@ -205,12 +205,15 @@ class ThreadSettingsPane(QWidget):
         return body if body is not None else _placeholder_body(spec, parent)
 
     def bind(self, view) -> None:
-        """Follow the conversation the tab now shows; the welcome has none, so the toggles
-        go quiet. Panels that read / write the view receive it here; today the category
-        filter, coordination status, comms panel, plan panel and context explorer do so;
-        the Project panel port is the only one still pending this hook."""
+        """Follow the conversation the tab now shows; the welcome has none (view is None,
+        per `_bind_thread_pane`), so the toggles go quiet. Panels that read / write the
+        view receive it here; today the category filter, coordination status, comms panel,
+        plan panel and context explorer do so; the Project panel port is the only one
+        still pending this hook."""
         self._category_filter.bind(view)
-        self._coordination_status.apply(view.thread_identity)
+        self._coordination_status.apply(
+            view.thread_identity if view is not None else NoThreadIdentity()
+        )
         self._comms_panel.bind(view)
         self._plan_panel.bind(view)
         self._context_panel.bind(view)
