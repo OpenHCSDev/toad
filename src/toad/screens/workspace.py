@@ -143,10 +143,7 @@ class WorkspaceFrame(HintKeys, JumpsHistory, WidgetView, Screen):
 
         return FramePresentation(self)
 
-    @cached_property
-    def history_windows(self) -> set[JumpsToLatest]:
-        """Mounted history windows; each registers itself for its lifetime."""
-        return set()
+    # history_windows is inherited from JumpsHistory (one shared storage declaration).
 
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
         # Reader positions and restorations compensate against these widgets,

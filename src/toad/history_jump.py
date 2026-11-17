@@ -30,7 +30,23 @@ class JumpsToLatest:
 
 
 class JumpsHistory:
-    """A screen holding history windows, some of which can be put back at their latest entry."""
+    """A screen holding history windows, some of which can be put back at their latest entry.
+
+    The window registry is the one shared fact: anchors register themselves on the
+    screen (`self.screen.history_windows.add(self)`) for their lifetime, and both
+    backends read the same set to drive jump actions and layout bookkeeping. Keep it
+    here so a Qt `screen` and a Textual `screen` behave the same for consumers.
+    """
+
+    @property
+    def history_windows(self) -> set[JumpsToLatest]:
+        """The mounted history windows this screen holds. Lazy-init so subclasses
+        don't need to touch `__init__`; mutable (anchors `.add` / `.discard` it)."""
+        existing = self.__dict__.get("_history_windows")
+        if existing is None:
+            existing = set()
+            self.__dict__["_history_windows"] = existing
+        return existing
 
     @property
     @abstractmethod
