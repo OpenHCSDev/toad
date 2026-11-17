@@ -20,26 +20,31 @@ from metaclass_registry.mro_dispatch import MroDispatch
 import asyncio
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from pyqt_reactive.theming import StatusColorRole
 
 from toad.client.history_state import LatestViewportRequest
 from toad.client.reader_position import LatestPosition
 
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.agent_bound import ObservedAgentBinding
+from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.observed_field import ObservedField
 from toad.client.resource_release import ResourceRelease
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.transcript_history_contract import TranscriptHistoryContract
+from toad.core import input_events
 from toad.qt.agent_activity import QtAgentActivity
 from toad.qt.bound_view import QtBoundViewHost
+from toad.qt.composer import Composer, ComposerHost
 from toad.qt.goal import QtGoalBar
 from toad.qt.history import QtHistoryWindow
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.qt.page import Page
 from toad.status_thread import StatusThread
+from toad.submission_queue import NoQueueSource, QueueSource
 from toad.transcript_publication import BoundView, TranscriptPresentation
 from toad.transcript_scope import TranscriptScope
 from toad.widget_view import WorkspaceHosted
@@ -59,6 +64,7 @@ class QtThreadView(
     QtBoundViewHost,
     Page,
     WorkspaceHosted,
+    ComposerHost,
     QWidget,
     metaclass=PyQtWidgetMeta,
 ):
@@ -80,6 +86,13 @@ class QtThreadView(
     write a real `AgentConnection` into `self.agent_binding`; mailbox views
     (saved history) leave it as `NoAgentConnection()` and still render from
     the transcript scope.
+
+    Inherits `ComposerHost` so both subclasses mount a working composer via
+    `_setup_composer(app, layout, label)` — the mailbox view previously
+    shipped without one, which left the user staring at a transcript with no
+    way to type. The composer wiring (`submissions`, `queue_source`, `submit`,
+    `submissions_changed`, `update_slash_commands`, `notification_targets`)
+    lives here so the two Qt thread-bound views share one input path.
     """
 
     # Shared `ObservedAgentBinding` storage: the `ObservedField` descriptor on
@@ -88,6 +101,13 @@ class QtThreadView(
     # `agent_binding = ObservedField(NoAgentConnection())`. Hoisted here so there is
     # one owner — subclasses stop duplicating it.
     agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
+
+    # ``BusSubmissions.queue_evidence`` reads ``self.view.queue_source`` on the
+    # composer's first ``show_submitting``. Default until a view wires a live
+    # ``NativeQueueSource`` — ``ConversationView``, ``QtAcpSessionView`` and
+    # ``CommsChatView`` all used the same default; hoisted here so both thread
+    # views inherit it. Subclasses with a live queue binding override.
+    queue_source: QueueSource = NoQueueSource()
 
     def apply_bound_agent(self, agent: "AgentBase") -> None:
         """Default no-op: `ObservedAgentBinding.bind_agent` calls this after storing.
@@ -167,6 +187,103 @@ class QtThreadView(
         # even when `transcript.binding.thread_scope` resolved to the real
         # `KnownTranscript`.
         QTimer.singleShot(0, self._start_transcript_source)
+
+    def _setup_composer(self, app: "QtToadApp", layout: QVBoxLayout, label: str) -> None:
+        """Wire the Composer into the thread view's layout.
+
+        Call from the subclass `__init__` AFTER `_setup_transcript` and after
+        adding the transcript widgets (agent_activity + messages + optional
+        goal_bar) to `layout`. The composer mounts one Qt event-loop tick later
+        via ``QTimer.singleShot(0, ...)``: on Qt-for-Android, mounting
+        ``QPlainTextEdit`` inside ``Composer`` during ``__init__`` races
+        ``QtAndroidAccessibility::runInObjectContext()`` with the first-paint
+        EGL setup and deadlocks the window (upstream Qt-for-Android bug). The
+        deferred mount lets the main-window paint land first; the composer
+        reparents cleanly into ``self._composer_layout``.
+
+        `submissions` is created here so `BusSubmissions.queue_evidence` has a
+        valid owner by the time the composer's first `show_submitting` fires.
+        """
+        self.submissions = BusSubmissions(self)
+        self.composer: Composer | None = None
+        self._pending_composer_label: str | None = None
+        self._composer_layout = layout
+        QTimer.singleShot(0, lambda: self._mount_composer(app, label))
+
+    def _mount_composer(self, app: "QtToadApp", label: str) -> None:
+        """Deferred composer mount. See `_setup_composer` for the Android
+        deadlock that forces this to run one tick after construction."""
+        try:
+            self.composer = Composer(self, app.renderer, label)
+        except Exception as error:
+            # Loud fail — a silently-missing composer is how the mailbox view
+            # shipped without an input box in the first place.
+            print(
+                f"QtThreadView {type(self).__name__} composer mount failed: {error!r}",
+                flush=True,
+            )
+            import traceback
+            traceback.print_exc()
+            app.status_line.show_status(
+                f"Composer mount failed: {error}", StatusColorRole.ERROR
+            )
+            return
+        self._composer_layout.addWidget(self.composer)
+        if self._pending_composer_label is not None:
+            self.composer.labelled(self._pending_composer_label)
+            self._pending_composer_label = None
+
+    # ---- ComposerHost contract ----
+    #
+    # ``ComposerHost`` names ``app``, ``submissions`` (both set by subclass /
+    # ``_setup_composer``) and ``submit``. ``ConversationCommands`` (the base
+    # of ``ComposerHost``) names ``update_slash_commands`` which the composer
+    # calls when the user types ``/``. Until the session lifecycle wires the
+    # real command catalog, both thread views hand the composer an empty list
+    # so the slash offers row stays hidden rather than throwing.
+
+    def submit(self, text: TypedText) -> None:
+        """Publish ``UserInputSubmitted`` through Core's event stream — the same
+        payload Textual's prompt publishes at ``widgets/conversation.py:901-904``.
+        A listening backend ``Conversation`` picks it up and routes through its
+        ``ConversationSubmissions`` family. If no backend is listening, the
+        submit silently vanishes; the composer reflects that visibly through its
+        ``show_submitting`` state until the queue reader catches up. Shell-prefix
+        detection matches ``conversation.py:900``."""
+        body = text.text
+        event = input_events.UserInputSubmitted(
+            body[1:] if body.startswith("!") else body,
+            shell=body.startswith("!"),
+        )
+        try:
+            self.app.events.publish(event)
+        except Exception as error:
+            if self.composer is not None:
+                self.composer.show_failure(f"Send failed: {error}")
+                self.composer.restore_draft(body)
+            return
+        if self.composer is not None:
+            self.composer.show_submitting()
+
+    def submissions_changed(self) -> None:
+        """``BusSubmissions.publish_pending`` calls this when the queue changes."""
+        if self.composer is None:
+            return
+        self.composer.show_submitting()
+
+    def update_slash_commands(self) -> None:
+        """Called by the composer when the user starts typing a slash command.
+        The session lifecycle will replace this with the real ``CommandCatalog``
+        pull."""
+        if self.composer is None:
+            return
+        self.composer.set_commands([])
+
+    def notification_targets(self):
+        """The Composer's ``Receipt`` subscribes against the view's notification
+        targets. Nothing to subscribe on until the backend receipt plumbing
+        lands."""
+        return ()
 
     def _mount_goal_bar(self, app: "QtToadApp", incarnation) -> QtGoalBar | None:
         """Construct the goal strip that sits above the chat on the TUI.

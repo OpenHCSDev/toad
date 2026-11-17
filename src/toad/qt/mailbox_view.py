@@ -108,13 +108,18 @@ class QtMailboxView(QtThreadView, SessionScope):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(info)
-        # Goal strip above the activity ribbon — same slot ACP puts it, above where
-        # the next input would go. The bar hides itself when no goal is set.
+        layout.addWidget(self.agent_activity)
+        layout.addWidget(self.messages, 1)
+        # Goal strip above the composer slot, matching ACP + Textual's `Conversation`
+        # where `GoalBar` sits over its prompt. The bar hides itself when no goal
+        # is set.
         goal_bar = self._mount_goal_bar(app, thread_incarnation)
         if goal_bar is not None:
             layout.addWidget(goal_bar)
-        layout.addWidget(self.agent_activity)
-        layout.addWidget(self.messages, 1)
+        # Composer at the bottom. Hoisted on `QtThreadView` — same input path
+        # ACP uses. Label targets the mailbox thread so the placeholder shows
+        # the user where they're about to post.
+        self._setup_composer(app, layout, f"Send to {thread_incarnation.name}")
 
     # ---- SessionScope identity ----
 

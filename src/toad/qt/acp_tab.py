@@ -36,19 +36,19 @@ from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
 from toad.agent_binding import AgentConnection
-from toad.client.bus_submission import BusSubmissions, TypedText
+from toad.client.bus_submission import TypedText
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.tab_identity.kinds import CommsTab
 from toad.transcript_scope import TranscriptScope
-from toad.core import input_events
+
 from toad.launch_binding import AgentBinding
-from toad.qt.composer import Composer, ComposerHost
+from toad.qt.composer import Composer
 from toad.qt.thread_view import QtThreadView
 from toad.qt.window import QtSessionEntry
 from toad.slash_command import SlashCommand
-from toad.submission_queue import NoQueueSource, QueueSource
+
 from toad.thread_identity import NoThreadIdentity
 from toad.qt.metrics import UiGap
 
@@ -76,7 +76,6 @@ def _toad_app() -> QtToadApp:
 
 class QtAcpSessionView(
     QtThreadView,
-    ComposerHost,
     metaclass=PyQtWidgetMeta,
 ):
     """A Qt Claude-CLI session tab.
@@ -104,16 +103,10 @@ class QtAcpSessionView(
     already shared with every tab.
     """
 
-    # Default until the live agent-session plumbing wires a ``NativeQueueSource``:
-    # ``BusSubmissions.queue_evidence`` reads ``self.view.queue_source`` and would
-    # AttributeError on the composer's first ``show_submitting`` without this. Same
-    # pattern ``ConversationView`` and Textual's ``CommsChatView`` use
-    # (``src/toad/qt/window.py:749``, ``src/toad/widgets/comms_chat.py:68``).
-    queue_source: QueueSource = NoQueueSource()
-
-    # `agent_binding` lives on `QtThreadView` now — the same descriptor QtMailboxView
-    # also inherits, so there's one owner for the field both Qt views write to. See
-    # `QtThreadView.agent_binding`.
+    # `agent_binding`, `queue_source`, `submissions`, composer wiring (`submit`,
+    # `submissions_changed`, `update_slash_commands`, `notification_targets`)
+    # all live on `QtThreadView`. See that base class — the two Qt thread-bound
+    # views (ACP session + mailbox) share a single input path.
 
     def __init__(
         self,
@@ -137,10 +130,6 @@ class QtAcpSessionView(
         # and session_details slot. Lives on `QtThreadView`; same base `QtMailboxView`
         # uses, so neither view carries a parallel copy. See `QtThreadView._setup_transcript`.
         self._setup_transcript(app)
-        # Bus-submissions owner: the Composer reads ``queue_summary`` + ``delivering`` off
-        # it, and on each send ``self`` publishes the event the backend converts into a
-        # real submission. A queue-renderer hook will plug into this later.
-        self.submissions = BusSubmissions(self)
         # Layout: an identity line on top, the history below, the composer at the bottom.
         self.identity_line = ElidedLine(f"ACP session #{session_pk}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -148,15 +137,6 @@ class QtAcpSessionView(
         info = QHBoxLayout()
         info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
         info.addWidget(self.identity_line, 1)
-        # Composer: the same shape ``ConversationView`` uses for bus DMs, pointed at this
-        # host so ``submit`` ends up calling ``self.submit`` with the typed text. On
-        # Android, mounting ``ComposerEditor`` (QPlainTextEdit) during ``__init__`` races
-        # ``QtAndroidAccessibility::runInObjectContext()`` with Qt's first-paint EGL
-        # setup, deadlocking the window (upstream Qt-for-Android bug). Mount it one tick
-        # later so first paint lands first; the composer reparents cleanly into the
-        # layout slot reserved for it.
-        self.composer: Composer | None = None
-        self._pending_composer_label: str | None = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(info)
@@ -170,8 +150,9 @@ class QtAcpSessionView(
         goal_bar = self._mount_goal_bar(app, incarnation)
         if goal_bar is not None:
             layout.addWidget(goal_bar)
-        self._composer_layout = layout
-        QTimer.singleShot(0, lambda: self._mount_composer(app))
+        # Composer wiring is on QtThreadView; call the hoisted setup to mount
+        # the Composer one event-loop tick later into this layout.
+        self._setup_composer(app, layout, "Send to agent")
         # Bind the transcript once the message_history child exists: `BoundView` reads
         # `self.transcript_history` immediately. Textual binds in its `on_mount`
         # (`widgets/conversation.py:1766`); on Qt the equivalent moment is right after
@@ -191,20 +172,6 @@ class QtAcpSessionView(
         if after.ready:
             self.apply_bound_agent(after)  # type: ignore[arg-type]
             self.agent_connected(after)  # type: ignore[arg-type]
-
-    def _mount_composer(self, app) -> None:
-        """Mount the Composer one event-loop tick after construction. See the docstring in
-        ``__init__``: on Qt-for-Android the ``QPlainTextEdit`` inside ``Composer`` races
-        ``QtAndroidAccessibility::runInObjectContext()`` with the first-paint EGL setup,
-        deadlocking the window. Deferring by one tick lets the main-window paint land
-        first; the composer attaches cleanly after and Android's a11y probe sees it only
-        once the EGL surface is already current.
-        """
-        self.composer = Composer(self, app.renderer, "Send to agent")
-        self._composer_layout.addWidget(self.composer)
-        if self._pending_composer_label is not None:
-            self.composer.labelled(self._pending_composer_label)
-            self._pending_composer_label = None
 
     def apply_bound_agent(self, agent: AgentBase) -> None:
         """Mirror the agent's current identity on the composer and the identity line.
@@ -227,54 +194,10 @@ class QtAcpSessionView(
         self.app.status_line.show_status(f"{agent.get_info()} connected", StatusColorRole.INFO)
         self.app.usage.publish("agent-session-begin")
 
-    # ---- ComposerHost contract ----
-    #
-    # ``ComposerHost`` from ``toad.qt.composer`` names ``app`` (satisfied above),
-    # ``submissions`` (satisfied above) and ``submit``. ``ConversationCommands`` (the base of
-    # ``ComposerHost``) names ``update_slash_commands`` which the composer calls when the
-    # user types a ``/``; until the session lifecycle wires the real command catalog, we
-    # hand the composer an empty list so the slash offers row stays hidden rather than
-    # throwing.
-
-    def update_slash_commands(self) -> None:
-        """Called by the composer when the user starts typing a slash command. The session
-        lifecycle will replace this with the real ``CommandCatalog`` pull."""
-        if self.composer is None:
-            return
-        self.composer.set_commands([])
-
-    def submit(self, text: TypedText) -> None:
-        """Publish ``UserInputSubmitted`` through Core's event stream — the same payload
-        Textual's prompt publishes at ``widgets/conversation.py:901-904``. A listening
-        backend ``Conversation`` picks it up and routes through its ``ConversationSubmissions``
-        family. If no backend is listening, the submit silently vanishes; the composer
-        reflects that visibly through its ``show_submitting`` state until the queue reader
-        catches up. Shell-prefix detection matches ``conversation.py:900``."""
-        body = text.text
-        event = input_events.UserInputSubmitted(
-            body[1:] if body.startswith("!") else body,
-            shell=body.startswith("!"),
-        )
-        try:
-            self.app.events.publish(event)
-        except Exception as error:
-            if self.composer is not None:
-                self.composer.show_failure(f"Send failed: {error}")
-                self.composer.restore_draft(body)
-            return
-        if self.composer is not None:
-            self.composer.show_submitting()
-
-    def submissions_changed(self) -> None:
-        """``BusSubmissions.publish_pending`` calls this when the queue changes."""
-        if self.composer is None:
-            return
-        self.composer.show_submitting()
-
-    def notification_targets(self):
-        """The Composer's ``Receipt`` subscribes against the view's notification targets.
-        Nothing to subscribe on until the backend receipt plumbing lands."""
-        return ()
+    # `ComposerHost` contract (`submit`, `submissions_changed`,
+    # `update_slash_commands`, `notification_targets`) is inherited from
+    # `QtThreadView` — identical body to what used to live here. Same for
+    # `_mount_composer`.
 
     @property
     def mode(self) -> str:
