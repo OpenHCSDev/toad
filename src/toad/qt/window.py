@@ -127,6 +127,7 @@ from toad.qt.project_panel import QtProjectPanel
 from toad.qt.channel_sort import QtChannelSortControl
 from toad.qt.thinking_animator import QtThinkingAnimator
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
+from toad.qt.sidebar_scroll import QtSidebarScrollIndicator
 from toad.widgets.session_sort import ThreadSortForm
 from toad.qt.paste_profile import QtProfilePastePanel
 from toad.qt.lines import QtLineRenderer
@@ -744,6 +745,9 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)
+        # Bottom-right scroll-position percentage, mirroring Textual's sidebar
+        # indicator (the "36%" in the TUI reference). Hides when nothing scrolls.
+        self.scroll_indicator = QtSidebarScrollIndicator(self)
 
     def activate(self, item: SidebarItem) -> None:
         item.activate(self.window)
