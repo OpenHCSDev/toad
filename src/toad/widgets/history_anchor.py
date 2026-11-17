@@ -128,9 +128,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
 
-    def tail_follow_changed(self) -> None:
-        """Project the canonical tail-follow state in a specialized window."""
-
     @property
     def shown(self) -> bool:
         """Whether layout draws this window: its screen is the current one and nothing above it is hidden."""
