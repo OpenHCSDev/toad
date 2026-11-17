@@ -20,6 +20,14 @@ from agent_comms.transport.tailnet_buses import NamedHost, PeerBus, PeerHoldsBus
 from toad.client.offered_action import OfferedAction
 
 
+def openable_held(now: float) -> tuple[OpenableProfile, ...]:
+    """Every held UI profile this machine can open: filters `HeldUiProfiles.held` to its
+    `OpenableProfile` members (other members are expired or unreadable). Shared helper so
+    callers don't restate the `isinstance(entry, OpenableProfile)` guard."""
+    return tuple(entry for entry in HeldUiProfiles.held(now)
+                 if isinstance(entry, OpenableProfile))
+
+
 class ProfileArgument:
     """The profile option shared by launch parsing and a bus choice's arguments."""
 
@@ -126,10 +134,7 @@ class BusChoice(PickerRow):
     @staticmethod
     def held(now: float) -> tuple[HeldBus, ...]:
         """Every remote bus this machine holds an open profile for."""
-        return tuple(
-            HeldBus(entry) for entry in HeldUiProfiles.held(now)
-            if isinstance(entry, OpenableProfile)
-        )
+        return tuple(HeldBus(entry) for entry in openable_held(now))
 
     @staticmethod
     def offered(now: float) -> tuple[BusChoice, ...]:
