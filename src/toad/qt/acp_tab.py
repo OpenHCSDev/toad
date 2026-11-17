@@ -47,6 +47,7 @@ from toad.qt.window import Page, QtSessionEntry
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.slash_command import SlashCommand
+from toad.submission_queue import NoQueueSource, QueueSource
 from toad.thread_identity import NoThreadIdentity
 
 if TYPE_CHECKING:
@@ -71,11 +72,6 @@ def _toad_app() -> QtToadApp:
 
 
 class QtAcpSessionView(ComposerHost, Page, WorkspaceHosted, QWidget, metaclass=PyQtWidgetMeta):
-
-    @property
-    def screen(self) -> WorkspaceFrame:
-        return self.window()
-
     """A Qt Claude-CLI session tab.
 
     What this renders today: the bound session's identity line, the transcript through Qt's
@@ -90,11 +86,27 @@ class QtAcpSessionView(ComposerHost, Page, WorkspaceHosted, QWidget, metaclass=P
     ``update_slash_commands`` / ``set_mention_candidates`` are wired by the surrounding
     session lifecycle.
 
-    Not wired yet: live reconnect of a disconnected agent, queue summary rendering through
-    the ``QueueSource`` hookup (sweep finding #10), receipt notification follow, and the
-    thread sidebar. Opening the tab, reading its transcript end-to-end and submitting a new
-    prompt all work.
+    Still waiting on the full ``widgets/conversation.Conversation`` lifecycle port
+    (``agent_binding: var[AgentConnection]`` + ``OperationalSessionSources``): live
+    reconnect, receipt notification follow (needs transcript-reload hook to call
+    ``self.composer.receipt.follow`` the way ``ConversationView._refresh_source`` does
+    at ``src/toad/qt/window.py:910``), real ``CommandCatalog.read`` slash commands and
+    mention candidates (need ``agent.presentation.commands`` which only exists after
+    ``agent_binding.start_session``), and a session-scoped thread sidebar pane. The
+    global thread-sidebar placement (``ThreadSidebarPlacement`` on ``QtToadApp``) is
+    already shared with every tab.
     """
+
+    # Default until the live agent-session plumbing wires a ``NativeQueueSource``:
+    # ``BusSubmissions.queue_evidence`` reads ``self.view.queue_source`` and would
+    # AttributeError on the composer's first ``show_submitting`` without this. Same
+    # pattern ``ConversationView`` and Textual's ``CommsChatView`` use
+    # (``src/toad/qt/window.py:749``, ``src/toad/widgets/comms_chat.py:68``).
+    queue_source: QueueSource = NoQueueSource()
+
+    @property
+    def screen(self) -> WorkspaceFrame:
+        return self.window()
 
     def __init__(
         self,
