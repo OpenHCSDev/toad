@@ -104,6 +104,7 @@ from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
+from toad.client.sidebar_panels import PanelSpec
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
@@ -118,6 +119,7 @@ from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtMe
 from toad.menus import MenuCommand, MenuConversation, message_menu, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.qt.menu import QtMenu
+from toad.qt.sidebar_panel import QtSidebarPanelFrame
 from toad.qt.paste_profile import QtProfilePastePanel
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
@@ -787,15 +789,22 @@ class QtChannelGroup(ChannelGroupRows):
 
 
 class QtSidebarSearch(QWidget):
-    """Thin container that stacks the shared `SidebarFilter`'s input over the sidebar
-    tree. The `Sidebar` is a `QTreeWidget` so it cannot host a `QLineEdit` above
-    itself; wrapping gives the `SidebarPane` one widget to take as its content while
-    keeping the tree addressable as `app.sidebar`. The input writes directly through
-    `sidebar.filter.text`; the tree's `_on_filter_changed` subscriber re-presents.
+    """The sidebar's multi-panel shell: stacks the shared `SidebarFilter`'s input
+    over a column of `QtSidebarPanelFrame`s, each wrapping one content widget. Today
+    the only panel is the conversations tree; follow-up PRs split the project panel
+    (and anything else) into siblings keyed by their own `PanelSpec.title`.
 
-    Textual's `SideBar._compose_shell` stacks `SidebarSearch` over its own panels for
-    the same reason — one input, visible at the top of the pane, writes the shared
-    owner's text."""
+    Each panel reads/writes its collapsed state through the shared
+    `app.sidebar_state.panels_collapsed` owner so the two frontends agree on which
+    panel is open — same key, same writer, identical to Textual's
+    `SideBar._compose_shell` which stacks `SidebarSearch` + a viewport of
+    `SideBarCollapsible` panels for the same reason.
+
+    The input writes `sidebar.filter.text`; the tree's `_on_filter_changed`
+    subscriber re-presents. The name `QtSidebarSearch` stays for now to avoid
+    churn in callers; the class is the shell, not just the input."""
+
+    CONVERSATIONS_PANEL = PanelSpec(title="Conversations", flex=True, id="conversations")
 
     def __init__(self, sidebar: "Sidebar", parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -806,11 +815,29 @@ class QtSidebarSearch(QWidget):
         self.search_input.setClearButtonEnabled(True)
         self.search_input.setText(sidebar.filter.text)
         self.search_input.textChanged.connect(self._on_text_changed)
+        # The tree is one panel in the multi-panel shell. Future listings become
+        # siblings (project files, buses, etc.) each with their own `PanelSpec`.
+        self.conversations_panel = QtSidebarPanelFrame(
+            self.CONVERSATIONS_PANEL, sidebar, sidebar.window.sidebar_state, parent=self,
+        )
+        self.panels: list[QtSidebarPanelFrame] = [self.conversations_panel]
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 0)
         layout.setSpacing(4)
         layout.addWidget(self.search_input)
-        layout.addWidget(sidebar, 1)
+        for panel in self.panels:
+            layout.addWidget(panel, 1 if panel.spec.flex else 0)
+
+    def add_panel(self, spec: PanelSpec, body: QWidget) -> QtSidebarPanelFrame:
+        """Append a sibling panel to the shell. Follow-up PRs call this to lift the
+        project panel (and anything else) out of the conversations tree into its
+        own collapsible frame keyed by its own spec."""
+        panel = QtSidebarPanelFrame(spec, body, self.sidebar.window.sidebar_state, parent=self)
+        self.panels.append(panel)
+        layout = self.layout()
+        if isinstance(layout, QVBoxLayout):
+            layout.addWidget(panel, 1 if spec.flex else 0)
+        return panel
 
     def _on_text_changed(self, value: str) -> None:
         self.sidebar.filter.text = value
