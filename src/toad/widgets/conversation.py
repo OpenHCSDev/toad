@@ -568,6 +568,14 @@ class ConversationSessionBinding(
 
     contents = getters.query_one(Contents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
+
+    @property
+    def transcript_history(self) -> TranscriptHistory:
+        """The single TranscriptHistory child BoundView drives. Kept here so Textual's
+        Conversation satisfies the toolkit-neutral BoundViewHost protocol — Qt supplies
+        its own backend history through the same accessor."""
+        history, = self.contents.query_children(TranscriptHistory)
+        return history
     """The agent thread's latest settled presentation."""
 
     _unpublished_presentation: ThreadPresentation = NoThreadPresentation()

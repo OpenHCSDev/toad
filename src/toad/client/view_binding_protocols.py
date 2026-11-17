@@ -17,8 +17,8 @@ from typing import TYPE_CHECKING, Iterable, Protocol, Sequence, TypeVar, runtime
 
 
 if TYPE_CHECKING:
+    from toad.client.transcript_history_contract import TranscriptHistoryContract
     from toad.session_scope import SessionScope
-    from toad.widgets.transcript_history import TranscriptHistory
 
 
 T = TypeVar("T")
@@ -63,9 +63,13 @@ class AncestorLineage(Protocol):
 @runtime_checkable
 class BoundViewHost(WindowOwner, SessionScopeLookup, AncestorLineage, Protocol):
     """The composed surface `BoundView.__init__` requires on its host view: a window, a
-    SessionScope lookup, an ancestor lineage, and a `contents` container that owns the
-    `TranscriptHistory` children. Textual's `Conversation` satisfies this structurally;
-    Qt's view implements it explicitly on the ACP tab's conversation host."""
+    SessionScope lookup, an ancestor lineage, a `contents` container, and the view's
+    `transcript_history` — the single transcript-page-producing child BoundView drives.
+    Textual's `Conversation` satisfies this structurally through its widget tree;
+    Qt's view implements the accessors explicitly on the ACP tab's conversation host."""
 
     @property
     def contents(self) -> ChildrenOwner: ...
+
+    @property
+    def transcript_history(self) -> "TranscriptHistoryContract": ...
