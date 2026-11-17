@@ -5,12 +5,11 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING, Protocol
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.geometry import Region, Size, Spacing
-from textual.widgets import Static
 
-from toad.preferences import SETTINGS, SavedSettings
 from toad.sidebar_placement import (
     ActiveSidebarPlacement,
     BandSplit,
@@ -20,6 +19,22 @@ from toad.sidebar_placement import (
     SidebarPlacement,
 )
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
+
+if TYPE_CHECKING:
+    from textual.widgets import Static
+
+
+class ArrangementStore(Protocol):
+    """Where a terminal's saved sidebar arrangement lives. The one Toad setting owns it on
+    the desktop (SavedSettings over toad.json); a frontend that keeps no settings file holds
+    the arrangement for its own session. SidebarLayout reads and writes only through this, so
+    the move and float policy is the one owner over whichever store a frontend brings."""
+
+    def current_terminals(self) -> tuple[TerminalLayout, ...]:
+        """Every terminal origin's saved arrangement."""
+
+    def store_terminals(self, terminals: tuple[TerminalLayout, ...]) -> None:
+        """Replace the saved arrangements; the store decides whether and when to persist."""
 
 
 class SidebarShift(DeclaredFamily, affix="SidebarShift"):
@@ -140,13 +155,13 @@ class SidebarLayout:
     minimum_percent = 15
     maximum_percent = 50
 
-    def __init__(self, settings: SavedSettings, origin: type[TerminalOrigin]) -> None:
+    def __init__(self, settings: ArrangementStore, origin: type[TerminalOrigin]) -> None:
         self.settings, self.origin = settings, origin
 
     @property
     def terminal(self) -> TerminalLayout:
         """This origin's saved arrangement, or an empty one until something is saved."""
-        saved = (terminal for terminal in self.settings.current.layout.terminals
+        saved = (terminal for terminal in self.settings.current_terminals()
                  if terminal.origin is self.origin)
         return next(saved, TerminalLayout(self.origin))
 
@@ -182,9 +197,9 @@ class SidebarLayout:
         self._save(replace(self.terminal, placements=tuple(placements.values())))
 
     def _save(self, terminal: TerminalLayout) -> None:
-        others = tuple(saved for saved in self.settings.current.layout.terminals
+        others = tuple(saved for saved in self.settings.current_terminals()
                        if saved.origin is not self.origin)
-        self.settings.set(SETTINGS.layout.terminals, (*others, terminal))
+        self.settings.store_terminals((*others, terminal))
 
     def get(self, identity: type[SidebarPlacement]) -> SidebarPlacement:
         return self.placements[identity]

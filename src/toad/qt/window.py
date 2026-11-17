@@ -20,6 +20,7 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
+from agent_comms.ui_model.message_category import all_categories
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
@@ -31,7 +32,6 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QSizePolicy,
-    QSplitter,
     QStackedWidget,
     QToolButton,
     QTreeWidget,
@@ -93,9 +93,13 @@ from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
+from toad.qt.placement import PlacementBar, SessionArrangementStore, ThreadSettingsPane
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
+from toad.sidebar_layout import SidebarLayout
+from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
 from toad.status_thread import StatusOwner
 from toad.target_commands import TargetContext
+from toad.terminal_origin import TerminalOrigin
 from toad.work_preparation import PreparationRuntime
 
 
@@ -622,6 +626,9 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         self.submissions = BusSubmissions(self)
         self.content_ready = asyncio.Event()
         self.notification_work: asyncio.Task | NoTask = NoTask()
+        # This view owns which message categories its transcript shows; the history reads the
+        # selection through `selected_categories` and the thread settings pane writes it.
+        self.visible_categories = all_categories()
         label = entry.unobserved_tab().label()
         self.messages = QtHistoryWindow(app.renderer.scheme)
         self.message_history = QtConversationHistory(self.messages, self, app)
@@ -831,6 +838,16 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
     def draws_user_message(self, reference: MessageReference) -> bool:
         return self.message_history.draws(reference)
 
+    def set_category(self, category, on: bool) -> None:
+        """Show or hide one message category in this view's transcript, then draw the shown
+        rows again. The selection lives here; the pane reads it back on its next present."""
+        selected = self.visible_categories
+        self.visible_categories = selected | {category} if on else selected - {category}
+        self.message_history.apply_filter()
+        # The pane reflects the bound view's selection; a present after the change keeps the
+        # checks and the transcript showing the same thing.
+        self.app.thread_pane.present()
+
     def record_input(self, text: str) -> None:
         """The Qt composer recalls no earlier input, so there is no history to keep."""
 
@@ -907,17 +924,56 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         self.setWindowTitle("Toad")
         self.renderer = QtLineRenderer(scheme)
         self.workspace_sessions = QtWorkspaceViews(self)
+        # SidebarLayout is the one owner of the move and float policy; the phone hands it a
+        # session store, where the Textual workspace hands it the saved settings. Same policy,
+        # same placement model, a store each frontend owns.
+        self.sidebar_layout = SidebarLayout(SessionArrangementStore(), TerminalOrigin.of())
+        # The two panes the phone shows and whether each is open. The channels-and-threads
+        # sidebar is always available; the thread's view settings only while a tab is open.
         self.sidebar = Sidebar(self)
-        self.split = QSplitter(Qt.Orientation.Vertical)
-        self.split.setChildrenCollapsible(False)
-        self.split.setHandleWidth(10)
-        self.split.addWidget(self.workspace_sessions.pages)
-        self.split.addWidget(self.sidebar)
-        self.split.setStretchFactor(1, 2)
-        self.sidebar_bar = QPushButton()
-        self.sidebar_bar.setMinimumHeight(40)
-        self.sidebar_bar.setFlat(True)
-        self.sidebar_bar.clicked.connect(self.toggle_sidebar)
+        self.thread_pane = ThreadSettingsPane()
+        self._panes: dict[type[SidebarPlacement], QWidget] = {
+            ChannelsSidebarPlacement: self.sidebar,
+            ThreadSidebarPlacement: self.thread_pane,
+        }
+        self._pane_open: dict[type[SidebarPlacement], bool] = {
+            ChannelsSidebarPlacement: False,
+            ThreadSidebarPlacement: False,
+        }
+        # A pane docks above the conversation, below it, or floats over it. The float layer
+        # is a child of the centre, raised over the pages when a pane floats.
+        self.top_dock = self._dock()
+        self.bottom_dock = self._dock()
+        self.center = QWidget()
+        center_layout = QVBoxLayout(self.center)
+        center_layout.setContentsMargins(0, 0, 0, 0)
+        center_layout.setSpacing(0)
+        center_layout.addWidget(self.top_dock)
+        center_layout.addWidget(self.workspace_sessions.pages, 1)
+        center_layout.addWidget(self.bottom_dock)
+        self.float_layer = QWidget(self.center)
+        self._float_layout = QVBoxLayout(self.float_layer)
+        self._float_layout.setContentsMargins(0, 0, 0, 0)
+        self.float_layer.hide()
+        # One bar per pane, side by side above the tabs: its toggle, its move arrows and its
+        # float control, over the shared layout. Toad draws these two bars on the phone.
+        self.channels_bar = PlacementBar(
+            self.sidebar_layout, ChannelsSidebarPlacement,
+            heading=partial(self._pane_heading, ChannelsSidebarPlacement),
+            shown=partial(self.pane_open, ChannelsSidebarPlacement),
+            toggled=partial(self.toggle_pane, ChannelsSidebarPlacement),
+            rearranged=self.rearrange_sidebars)
+        self.thread_bar = PlacementBar(
+            self.sidebar_layout, ThreadSidebarPlacement,
+            heading=partial(self._pane_heading, ThreadSidebarPlacement),
+            shown=partial(self.pane_open, ThreadSidebarPlacement),
+            toggled=partial(self.toggle_pane, ThreadSidebarPlacement),
+            rearranged=self.rearrange_sidebars)
+        bars_row = QHBoxLayout()
+        bars_row.setContentsMargins(0, 0, 0, 0)
+        bars_row.setSpacing(2)
+        bars_row.addWidget(self.channels_bar, 1)
+        bars_row.addWidget(self.thread_bar, 1)
         # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
         self.menu = self.bar_button("≡", "Menu", self.show_menu)
         self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
@@ -950,15 +1006,15 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         QVBoxLayout(self.menu_panel).setContentsMargins(8, 4, 8, 4)
         self.menu_panel.hide()
         chrome_layout.addWidget(self.menu_panel)
-        chrome_layout.addWidget(self.sidebar_bar)
+        chrome_layout.addLayout(bars_row)
         chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
-        layout.addWidget(self.split, 1)
+        layout.addWidget(self.center, 1)
         layout.addWidget(chrome)
         self.fit_screen()
-        # The welcome lists the channels and threads, so it starts with the sidebar down.
-        self.hide_sidebar()
+        # The welcome lists the channels and threads, so both panes start down.
+        self.rearrange_sidebars()
         self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
@@ -1028,26 +1084,116 @@ class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metac
         modes = [tab.mode_name for tab in self.session_navigation.tabs]
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
-        self.paint_sidebar_bar()
+        self.present_panes()
 
-    # The sidebar sits behind a bar above the tabs, as on Toad's phone layout: ↑ brings it
-    # up over the conversation, ↓ puts it back.
+    # The two panes sit behind their bars above the tabs, as on Toad's phone layout: a bar
+    # shows or hides its pane and moves or floats it, over the shared SidebarLayout.
 
-    def paint_sidebar_bar(self) -> None:
-        index = self.tabs.currentIndex()
-        title = self.tabs.tabText(index) if index >= 0 else "Channels"
-        arrow = "↓" if self.sidebar.isVisible() else "↑"
-        self.sidebar_bar.setText(f"{arrow}  {title}  {arrow}")
+    def _dock(self) -> QWidget:
+        dock = QWidget()
+        inner = QVBoxLayout(dock)
+        inner.setContentsMargins(0, 0, 0, 0)
+        inner.setSpacing(0)
+        dock.hide()
+        return dock
+
+    def pane_open(self, identity: type[SidebarPlacement]) -> bool:
+        return self._pane_open.get(identity, False)
+
+    def toggle_pane(self, identity: type[SidebarPlacement]) -> None:
+        self._pane_open[identity] = not self.pane_open(identity)
+        self.rearrange_sidebars()
+
+    def _conversation_open(self) -> bool:
+        return self.workspace_sessions.selected is not self.workspace_sessions.home
+
+    def _pane_available(self, identity: type[SidebarPlacement]) -> bool:
+        """The thread's settings follow an open conversation; the sidebar is always there."""
+        return self._conversation_open() if identity is ThreadSidebarPlacement else True
+
+    def _pane_heading(self, identity: type[SidebarPlacement]) -> str:
+        return identity.heading(self._viewed_titles())
+
+    def _viewed_titles(self) -> Iterator[str]:
+        if self._conversation_open():
+            index = self.tabs.currentIndex()
+            if index >= 0:
+                yield self.tabs.tabText(index)
+
+    def _bind_thread_pane(self) -> None:
+        """The thread's settings follow the open conversation; the welcome is the only other
+        page, and it owns none."""
+        selected = self.workspace_sessions.selected
+        self.thread_pane.bind(selected if self._conversation_open() else None)
+
+    def _target_layout(self, placement: SidebarPlacement) -> QVBoxLayout:
+        """Where a pane goes for its placement: above the conversation, below it, or the
+        float layer. A phone draws no left or right column, so every docked side but the top
+        reads as the bottom."""
+        if placement.floating:
+            return self._float_layout
+        if placement.side.dock == "top":
+            return self.top_dock.layout()
+        return self.bottom_dock.layout()
+
+    @staticmethod
+    def _empty(layout) -> None:
+        while layout.count():
+            widget = layout.takeAt(0).widget()
+            if widget is not None:
+                widget.setParent(None)
+
+    def _layout_panes(self) -> None:
+        for layout in (self.top_dock.layout(), self.bottom_dock.layout(), self._float_layout):
+            self._empty(layout)
+        for identity, pane in self._panes.items():
+            if not (self.pane_open(identity) and self._pane_available(identity)):
+                pane.setParent(None)
+                pane.hide()
+                continue
+            self._target_layout(self.sidebar_layout.get(identity)).addWidget(pane)
+            pane.show()
+        self.top_dock.setVisible(self.top_dock.layout().count() > 0)
+        self.bottom_dock.setVisible(self.bottom_dock.layout().count() > 0)
+        self.reposition_float()
+
+    def reposition_float(self) -> None:
+        """The float layer holds whatever pane floats, raised over the lower part of the
+        conversation. An empty layer stays hidden."""
+        if self._float_layout.count() == 0:
+            self.float_layer.hide()
+            return
+        rect = self.center.rect()
+        height = max(1, int(rect.height() * 0.45))
+        self.float_layer.setGeometry(0, rect.height() - height, rect.width(), height)
+        self.float_layer.raise_()
+        self.float_layer.show()
+
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        super().resizeEvent(event)
+        self.reposition_float()
+
+    def present_panes(self) -> None:
+        """Lay the panes out for their placements and draw both bars; the thread's bar shows
+        only while a conversation is open."""
+        self._layout_panes()
+        self._bind_thread_pane()
+        self.thread_bar.setVisible(self._conversation_open())
+        self.channels_bar.present()
+        self.thread_bar.present()
+
+    def rearrange_sidebars(self) -> None:
+        """A move, float or toggle: lay the panes out again. SidebarLayout has already written
+        the arrangement to this session's store."""
+        self.present_panes()
 
     def show_sidebar(self) -> None:
-        self.sidebar.show()
-        height = max(self.split.height(), 600)
-        self.split.setSizes([height // 3, height - height // 3])
-        self.paint_sidebar_bar()
+        self._pane_open[ChannelsSidebarPlacement] = True
+        self.present_panes()
 
     def hide_sidebar(self) -> None:
-        self.sidebar.hide()
-        self.paint_sidebar_bar()
+        self._pane_open[ChannelsSidebarPlacement] = False
+        self.present_panes()
 
     def begin_frontend(self) -> None:
         """The window opens as the platform opens windows, then the saved tabs, as the start
