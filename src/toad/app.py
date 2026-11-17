@@ -19,7 +19,6 @@ from agent_comms.nominal.field_codec import (
     boundary_decoder,
 )
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.storage.locked_store import RootFile
 from metaclass_registry.mro_dispatch import handles
 from rich.console import RenderableType
 from textual import events, on
@@ -33,6 +32,7 @@ from textual.widgets import LoadingIndicator
 from textual.widgets._footer import KeyGroup
 from textual.widgets.markdown import Markdown
 
+from toad.app_core import CorePrewarm
 from toad.application_actions import ApplicationCommands
 from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
 from toad.client.bus_selection import BusChoice, PickerRow, TailnetAnswer
@@ -129,7 +129,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, ClientApplication, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
+class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, ClientApplication, CorePrewarm, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
     COMMANDS = {ApplicationCommands}
@@ -331,17 +331,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         self.ensure_settings_file()
         self.colours.start()
         self.saved_settings.apply_all()
-
-    def _prewarm_core_modules(self) -> None:
-        """Import Core's modules before the first frame, through Core's own once-per-process owner.
-
-        A cold tab's first wire revision and its first action menu each walk
-        agent_comms and import every module of it (RootFile.load_declarations,
-        and CliCommand's lazy registry over agent_comms.cli_verbs). Those
-        imports hold the GIL and the import lock against input, so they belong
-        before the first frame, not in the first cold tab.
-        """
-        RootFile.load_declarations()
 
     def _prewarm_conversation_css(self) -> None:
         """Load known conversation classes' default CSS in one parse.
