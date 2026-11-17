@@ -79,6 +79,7 @@ from toad.block_navigation import (
     SeparatedBlock,
     require_blocks,
 )
+from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.conversation_sources import ConversationSources
 from toad.client.submission import SubmissionStart
 from toad.category_filter import CategoryFilterView
@@ -559,6 +560,7 @@ class AgentWindow(Window):
 
 
 class ConversationSessionBinding(
+    ConversationThreadReadMixin,
     MroDispatch,
     WorkspaceHosted,
     ThreadStatusOwner,
@@ -572,9 +574,6 @@ class ConversationSessionBinding(
     contents = getters.query_one(Contents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
-
-    _thread_read = ThreadRead()
-    """The source state the next observed presentation settles against."""
 
     _unpublished_presentation: ThreadPresentation = NoThreadPresentation()
     """An observed presentation whose transcript refresh waits for this view to be shown."""
@@ -605,21 +604,8 @@ class ConversationSessionBinding(
     @abstractmethod
     def status_thread(self) -> StatusThread: ...
 
-    def arm_thread_read(self) -> None:
-        """Capture turn token and client authority for the next observed presentation."""
-        self._thread_read = self.agent_binding.thread_read()
-
     def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
         self.consume_thread_presentation()
-
-    def consume_thread_presentation(self) -> None:
-        """Consume this thread's one observed presentation."""
-        presentation = self.app.coordination_access.thread_status.open(
-            self.status_thread().name
-        ).presentation
-        read = self._thread_read
-        self.arm_thread_read()
-        read.settle(presentation).present(self.thread_presented)
 
     @abstractmethod
     def thread_presented(self, presentation: ThreadPresentation) -> None: ...

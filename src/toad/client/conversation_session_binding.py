@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from toad.acp.comms_updates import ThreadRead
+
 
 if TYPE_CHECKING:
     from toad.ac_runtime.agents import AgentBase, AgentConnection
@@ -60,3 +62,30 @@ class ConversationSessionBinding(Protocol):
         self, event: "core_events.ObservedServiceChanged"
     ) -> None:
         """Refresh status when the observed-service routing changes."""
+
+
+class ConversationThreadReadMixin:
+    """Default `arm_thread_read` + `consume_thread_presentation` bodies, shared by both
+    backends.
+
+    Reaches for `self.agent_binding` (ObservedField on Qt, Textual `var` on the widget
+    side — same `.thread_read()` call shape), `self.app` (DOMNode's on Textual, __init__
+    attr on Qt), `self.status_thread()` + `self.thread_presented` (declared on the
+    Protocol, implemented by each concrete view). No Textual Widget semantics.
+    """
+
+    _thread_read: ThreadRead = ThreadRead()
+    """The source state the next observed presentation settles against."""
+
+    def arm_thread_read(self) -> None:
+        """Capture turn token and client authority for the next observed presentation."""
+        self._thread_read = self.agent_binding.thread_read()
+
+    def consume_thread_presentation(self) -> None:
+        """Consume this thread's one observed presentation."""
+        presentation = self.app.coordination_access.thread_status.open(
+            self.status_thread().name
+        ).presentation
+        read = self._thread_read
+        self.arm_thread_read()
+        read.settle(presentation).present(self.thread_presented)
