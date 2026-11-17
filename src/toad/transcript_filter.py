@@ -253,7 +253,7 @@ class Filtered(FilterState):
         return self.overlay.older_page_available
 
     def scan_needed(self) -> bool:
-        return self.has_older and not self.overlay.drawn_extent[0]
+        return self.has_older and not self.overlay.draws_rows
 
     async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
         if rows_needed:
