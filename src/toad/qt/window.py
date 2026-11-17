@@ -279,14 +279,14 @@ class ConversationRow(SidebarItem):
         self.target = target
 
     @classmethod
-    def channel(cls, name: str, channel) -> ConversationRow:
+    def channel(cls, name: str, channel, *, badge: str) -> ConversationRow:
         row = cls(channel_target(name))
-        row.draw(channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+        row.draw(badge, channel.label(), channel.summary(), channel.tooltip())
         return row
 
     @classmethod
     def thread(cls, name: str, thread, *, pinned: bool = False,
-               pending_detail: str | None = None) -> ConversationRow:
+               pending_detail: str | None = None, badge: str) -> ConversationRow:
         """Thread rows (CLI inbox, mailbox) open as `KnownThreadTarget` so the tap
         routes through `thread_navigation.open` → `MailboxTab` → agent-bound view,
         mirroring Textual's `comms_sidebar.ThreadRow` at `widgets/comms_sidebar.py:242`
@@ -300,19 +300,22 @@ class ConversationRow(SidebarItem):
         flow into the hover text; the label gets a `"* "` prefix when pinned,
         matching `ChannelRowModel.label` which also prefixes its own name."""
         row = cls(KnownThreadTarget(name, thread.incarnation))
-        row.draw_thread(thread, pinned=pinned, pending_detail=pending_detail)
+        row.draw_thread(thread, pinned=pinned, pending_detail=pending_detail, badge=badge)
         return row
 
     def draw_thread(self, thread, *, pinned: bool = False,
-                    pending_detail: str | None = None) -> None:
+                    pending_detail: str | None = None, badge: str) -> None:
         """Repaint this row from a `ThreadRowModel`, honoring pin and pending-action.
         Shared with the initial construction path above so every thread-row draw —
         first paint, `sync_members` reconcile, `repaint_members` refresh — goes
-        through the same pin/pending-aware assembly."""
+        through the same pin/pending-aware assembly. `badge` comes from the caller
+        (`app.settings.sidebar.unread_counts.badge(thread.unread)`) so this view
+        honors the user's shown-unread-count preference, the same way Textual
+        does at `widgets/comms_sidebar.py:244`."""
         label = f"{'* ' if pinned else ''}{thread.label}"
         summary = pending_detail if pending_detail is not None else thread.summary
         self.draw(
-            thread.unread.badge, label, summary,
+            badge, label, summary,
             thread.tooltip(pinned=pinned, pending_detail=pending_detail),
         )
 
@@ -363,21 +366,25 @@ class Page:
 
 
 class QtChannelListing(ChannelListing):
-    def keep(self, lines: KeptLines, model: SidebarModel) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel,
+             badge_of: Callable[[object], str]) -> None:
         for name in self.listed(model):
-            lines.keep(ConversationRow.channel(name, model.channels.rows[name]))
+            channel = model.channels.rows[name]
+            lines.keep(ConversationRow.channel(name, channel, badge=badge_of(channel.unread)))
 
 
 class QtThreadListing(ThreadListing):
-    def keep(self, lines: KeptLines, model: SidebarModel) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel,
+             badge_of: Callable[[object], str]) -> None:
         for name in self.listed(model):
-            lines.keep(ConversationRow.thread(name, model.threads.rows[name]))
+            thread = model.threads.rows[name]
+            lines.keep(ConversationRow.thread(name, thread, badge=badge_of(thread.unread)))
 
 
 class WelcomeContent:
     """What the welcome lists above its buses: nothing until the bus answers."""
 
-    def draw(self, top: KeptLines) -> None:
+    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
         pass
 
 
@@ -388,10 +395,14 @@ class ListedModel(WelcomeContent):
     model: SidebarModel
     listings: ClassVar[tuple[QtChannelListing | QtThreadListing, ...]] = (QtChannelListing(), QtThreadListing())
 
-    def draw(self, top: KeptLines) -> None:
+    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
+        """`badge_of` is the caller's resolved `settings.sidebar.unread_counts.badge`
+        classmethod; the listing passes each row's `unread` through it so the welcome
+        honors the shown-unread-count preference the same way Textual does at
+        `widgets/comms_sidebar.py:80`."""
         for listing in self.listings:
             with top.group(OpenSection(listing.TITLE)) as lines:
-                listing.keep(lines, self.model)
+                listing.keep(lines, self.model, badge_of)
 
 
 @dataclass(frozen=True)
@@ -400,7 +411,7 @@ class ListedFailure(WelcomeContent):
 
     observed: FailedObservation
 
-    def draw(self, top: KeptLines) -> None:
+    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
         top.keep(UnavailableSection(self.observed))
 
 
@@ -617,7 +628,12 @@ class Welcome(Page, BusListing, QWidget):
         self.rows.redraw(partial(self.draw_lines, rows))
 
     def draw_lines(self, buses: tuple[PickerRow, ...], top: KeptLines) -> None:
-        self.content.draw(top)
+        # `settings.sidebar.unread_counts` is a `ShownUnreadCount` family member whose
+        # `.badge(unread)` classmethod honors the user's preference (always show, hide
+        # counts, hide badges). The welcome content and bus rows pass each row's
+        # `unread` through this so Qt matches Textual's behavior (`widgets/comms_sidebar.py:80`).
+        badge_of = self.host.settings.sidebar.unread_counts.badge
+        self.content.draw(top, badge_of)
         with top.group(OpenSection(self.BUSES)) as section:
             for choice in buses:
                 section.keep(BusRow(choice))
@@ -746,7 +762,8 @@ class QtChannelGroup(ChannelGroupRows):
         channel-change path can sync them without touching unrelated threads."""
         previous = self.channel
         self.channel = channel
-        self.row.draw(channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+        badge = self.sidebar.window.settings.sidebar.unread_counts.badge(channel.unread)
+        self.row.draw(badge, channel.label(), channel.summary(), channel.tooltip())
         if previous is None:
             return frozenset()
         return previous.pinned_members ^ channel.pinned_members
@@ -773,6 +790,7 @@ class QtChannelGroup(ChannelGroupRows):
         # Add/update in the model's order. A row whose name is in ``changed`` repaints;
         # a row at the wrong position moves without a rebuild.
         pending = self.sidebar.window.thread_actions.pending
+        badge_of = self.sidebar.window.settings.sidebar.unread_counts.badge
         for index, name in enumerate(wanted):
             thread = threads.get(name)
             if thread is None:
@@ -782,12 +800,14 @@ class QtChannelGroup(ChannelGroupRows):
             existing = self.member_rows.get(name)
             if existing is None:
                 item = ConversationRow.thread(name, thread, pinned=pinned,
-                                              pending_detail=pending_detail)
+                                              pending_detail=pending_detail,
+                                              badge=badge_of(thread.unread))
                 self.row.insertChild(index, item)
                 self.member_rows[name] = item
             else:
                 if name in changed:
-                    existing.draw_thread(thread, pinned=pinned, pending_detail=pending_detail)
+                    existing.draw_thread(thread, pinned=pinned, pending_detail=pending_detail,
+                                         badge=badge_of(thread.unread))
                 current_index = self.row.indexOfChild(existing)
                 if current_index != index:
                     self.row.takeChild(current_index)
@@ -803,12 +823,14 @@ class QtChannelGroup(ChannelGroupRows):
         channel_row = model_state.shown.channels.rows.get(self.name)
         pinned_members = channel_row.pinned_members if channel_row is not None else frozenset()
         pending = self.sidebar.window.thread_actions.pending
+        badge_of = self.sidebar.window.settings.sidebar.unread_counts.badge
         for name in self.member_rows.keys() & names:
             thread = threads.get(name)
             if thread is None:
                 continue
             self.member_rows[name].draw_thread(
                 thread, pinned=name in pinned_members, pending_detail=pending.get(name),
+                badge=badge_of(thread.unread),
             )
 
 
@@ -984,6 +1006,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         threads = model.threads.rows
         matches = self.filter.matches
         pending = self.window.thread_actions.pending
+        badge_of = self.window.settings.sidebar.unread_counts.badge
         for name, channel in model.channels.rows.items():
             # A channel stays visible if its name matches OR any of its member thread
             # names do; hiding a channel whose only match is a buried thread would also
@@ -992,12 +1015,14 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             if not matches(name) and not members_shown:
                 continue
             pinned_members = channel.pinned_members
-            with top.group(ConversationRow.channel(name, channel)) as group:
+            with top.group(ConversationRow.channel(name, channel, badge=badge_of(channel.unread))) as group:
                 for member in members_shown:
+                    thread = threads[member]
                     group.keep(ConversationRow.thread(
-                        member, threads[member],
+                        member, thread,
                         pinned=member in pinned_members,
                         pending_detail=pending.get(member),
+                        badge=badge_of(thread.unread),
                     ))
         with top.group(SidebarSection("Threads")) as everyone:
             for name, thread in threads.items():
@@ -1005,6 +1030,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
                     continue
                 everyone.keep(ConversationRow.thread(
                     name, thread, pending_detail=pending.get(name),
+                    badge=badge_of(thread.unread),
                 ))
 
     def _refresh_status_only(self) -> None:
