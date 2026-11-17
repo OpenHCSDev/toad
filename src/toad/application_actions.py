@@ -12,8 +12,6 @@ from typing import TYPE_CHECKING, Literal, Self
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from agent_comms.nominal.field_codec import FieldCodec
 from toad.preferences import SETTINGS
-from toad.screens.keymap import KeymapScreen
-from toad.keymap import KeyInvocationId
 from toad.client.application_actions import (
     ApplicationAction,
     ReplacesFrameworkAction,
@@ -29,50 +27,13 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class OpenBusAction(ApplicationAction):
-    """Connect to this machine's bus or choose another machine."""
-
-    title = "Switch bus (local or remote)"
-    show = True
-
-    # An application action, so the hamburger offers it through ApplicationAction.menu and
-    # the key is the same declaration: a menu entry beside a widget action would be the same
-    # command declared twice. Beside ctrl+b for the sidebar, and not a function key, because
-    # f8 and f20 are claimed and the rest are what tests bind their own fixtures to.
-    keys = {TextEntryMode: ("ctrl+shift+b",)}
-
-    def apply(self, app: ToadApp) -> None:
-        from toad.screens.bus_choice import BusChoices
-
-        app.push_screen(BusChoices(), app.picked_bus)
-
-
-class SettingsAction(ApplicationAction):
-    """Edit persistent application preferences."""
-
-    keys = {TextEntryMode: ("ctrl+comma",)}
-    show = True
-
-    async def apply(self, app: ToadApp) -> None:
-        app.run_worker(partial(self.edit, app))
-
-    async def edit(self, app: ToadApp) -> None:
-        from toad.screens.settings import SettingsScreen
-
-        await app.push_screen_wait(SettingsScreen())
-        await app.saved_settings.save()
-
-
-class TeamAction(ApplicationAction, declared_name="team"):
-    """Open the live team board, including teammates' orders and original evidence."""
-
-    keys = {TextEntryMode: ("f2",)}
-    show = True
-
-    async def apply(self, app: ToadApp) -> None:
-        from toad.screens.team import TeamPage
-
-        app.push_screen(TeamPage())
+# OpenBusAction, SettingsAction, TeamAction, KeymapAction hoisted to
+# `toad.client.application_actions` so Qt's hamburger menu sees them too.
+# Their `apply()` bodies dispatch through polymorphic ClientApplication capabilities
+# (`open_bus_switcher`, `edit_settings`, `open_team_board`, `open_keymap_browser`);
+# Textual's ToadApp (this app.py) overrides each with its push_screen behaviour.
+# Members below remain Textual-only because they target the Textual footer / vim
+# mode / url driver.
 
 
 class TransferMenuAction(ApplicationAction):
@@ -162,20 +123,6 @@ class HelpQuitAction(ReplacesFrameworkAction, System, YieldingKey, ApplicationAc
 
     async def apply(self, app: ToadApp) -> None:
         app.application.confirm_quit()
-
-
-class KeymapAction(ApplicationAction):
-    """Browse keyboard shortcuts and change their keys for each editing mode."""
-
-    keys = {TextEntryMode: ("f1",)}
-    show = True
-
-    async def apply(self, app: ToadApp) -> None:
-        focused = frozenset(KeyInvocationId(invocation.key_identity())
-                            for node, bindings in app.screen._binding_chain
-                            for _key, binding in bindings if binding.state(app, node)
-                            for invocation in binding.invocations())
-        app.push_screen(KeymapScreen(focused))
 
 
 class VimCycleTabAction(VimWorkspaceAction, declared_name=None):
