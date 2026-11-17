@@ -15,7 +15,7 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.execution.acp_failure import InputFailedUpdate
+from agent_comms.acp_extension import InputFailedUpdate
 from metaclass_registry.mro_dispatch import handles
 from textual.content import Content
 from toad.core import events as core_events

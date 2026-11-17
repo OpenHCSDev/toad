@@ -18,8 +18,8 @@ from agent_comms.acp_extension import (
     SendNowRequest,
     encode_request,
 )
-from agent_comms.execution.acp_failure import InputFailedUpdate
-from agent_comms.execution.acp_failure import ACPFailure, RequestFailure
+from agent_comms.acp_extension import InputFailedUpdate
+from agent_comms.acp_extension import ACPFailure, RequestFailure
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transcript.transcripts import TranscriptReadIdentity

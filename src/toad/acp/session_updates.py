@@ -22,7 +22,7 @@ from acp.schema import (
     UserMessageChunk,
 )
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
-from agent_comms.text_route_update import AgentCommsUpdate
+from agent_comms.acp_extension import AgentCommsUpdate
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest

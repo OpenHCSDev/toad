@@ -18,7 +18,7 @@ from acp.schema import (
     SessionNotification,
     TextContentBlock,
 )
-from agent_comms.execution.acp_failure import ACPFailure, RequestFailure
+from agent_comms.acp_extension import ACPFailure, RequestFailure
 from agent_comms.nominal.declared_family import DeclaredFamily
 from pydantic import TypeAdapter, ValidationError
 

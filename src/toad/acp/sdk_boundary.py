@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from acp.schema import SessionNotification, ToolCall
 from agent_comms.acp_extension import decode_updates
-from agent_comms.text_route_update import AgentCommsUpdate
+from agent_comms.acp_extension import AgentCommsUpdate
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldRepresentation
 
