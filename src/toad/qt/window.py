@@ -53,6 +53,7 @@ from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from ui_theme.scheme import ColourScheme, PrimaryColour
 
 from toad.client.application import ClientApplication
+from toad.qt.workspace_frame import QtWorkspaceFrame
 from toad.client.application_actions import ApplicationAction
 from toad.client.bus_selection import (
     BusChoice,
@@ -1065,7 +1066,7 @@ class QtWorkspaceViews(WorkspaceViews):
         view.deleteLater()
 
 
-class QtToadApp(ClientApplication, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
+class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core a UI profile names: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
