@@ -1526,8 +1526,14 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
     def _dock(self) -> QWidget:
         # Parent self so the dock is a child of QtToadApp from creation, not a top-level
         # QWindow on Android — see the EGL deadlock note on `self.center` above.
+        #
+        # Every dock uses QHBoxLayout: sidebars sharing one edge sit next to each other
+        # along a horizontal line rather than stacking. The edge's own `pane_bar_axis`
+        # decides whether each sidebar is flattened into that line (width edges — pane
+        # and bar are both columns) or wrapped in a QVBoxLayout group first (height
+        # edges — pane and bar stack vertically within the group).
         dock = QWidget(self)
-        inner = QVBoxLayout(dock)
+        inner = QHBoxLayout(dock)
         inner.setContentsMargins(0, 0, 0, 0)
         inner.setSpacing(0)
         dock.hide()
@@ -1562,10 +1568,10 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         selected = self.workspace_sessions.selected
         self.thread_pane.bind(selected if self._conversation_open() else None)
 
-    def _target_layout(self, placement: SidebarPlacement) -> QVBoxLayout:
-        """Where a pane goes for its placement: the float layer, or the dock on its edge. The
-        family's four edges each have their own dock, so a move the arrows allow lands where it
-        says."""
+    def _target_layout(self, placement: SidebarPlacement):
+        """Where a pane goes for its placement: the float layer (QVBoxLayout), or the dock on
+        its edge (QHBoxLayout). The family's four edges each have their own dock, so a move
+        the arrows allow lands where it says."""
         if placement.floating:
             return self._float_layout
         return self._docks[placement.side.dock].layout()
@@ -1585,8 +1591,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         for dock in self._docks.values():
             self._empty(dock.layout())
         self._empty(self._float_layout)
-        # Reparent bars to self before _target_layout.addWidget rehomes them atomically on
-        # the next pass — keeps them children of QtToadApp throughout, never top-level.
+        # Reparent bars to self before the next pass rehomes them atomically — keeps them
+        # children of QtToadApp throughout, never top-level QWindows.
         for identity, bar in self._bars.items():
             bar.setParent(self)
         for identity, pane in self._panes.items():
@@ -1604,19 +1610,35 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
             target = self._target_layout(placement)
             bar.show()
             if self.pane_open(identity):
-                if bar_first:
-                    target.addWidget(bar)
-                    target.addWidget(pane)
-                else:
-                    target.addWidget(pane)
-                    target.addWidget(bar)
                 pane.show()
+                self._arrange_sidebar(target, placement, bar, pane, bar_first=bar_first)
             else:
                 pane.setParent(self)
                 pane.hide()
-                target.addWidget(bar)
+                self._arrange_sidebar(target, placement, bar, pane=None, bar_first=bar_first)
         for dock in self._docks.values():
             dock.setVisible(dock.layout().count() > 0)
+
+    def _arrange_sidebar(self, target, placement, bar, pane, *, bar_first: bool) -> None:
+        """Add this sidebar's (bar, pane) pair to its dock's horizontal sidebar line. On a
+        'row' edge (left/right) the pair joins the line directly so the bar and pane become
+        adjacent columns within the dock. On a 'column' edge (top/bottom) the pair is
+        wrapped in a QVBoxLayout first so the pair stacks vertically inside a cell of the
+        dock's horizontal line of sidebars."""
+        widgets = (bar,) if pane is None else ((bar, pane) if bar_first else (pane, bar))
+        # A floating pane sits on the float_layer's own vertical overlay — always a column
+        # of bar above pane regardless of which edge the pane normally occupies.
+        axis = "column" if placement.floating else placement.side.pane_bar_axis()
+        if axis == "row":
+            for widget in widgets:
+                target.addWidget(widget)
+            return
+        group = QVBoxLayout()
+        group.setContentsMargins(0, 0, 0, 0)
+        group.setSpacing(0)
+        for widget in widgets:
+            group.addWidget(widget)
+        target.addLayout(group)
         self.reposition_float()
 
     def reposition_float(self) -> None:

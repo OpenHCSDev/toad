@@ -95,6 +95,18 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     @abstractmethod
+    def pane_bar_axis(cls) -> str:
+        """How a sidebar's pane and its toggle bar stack within the dock: 'row' means
+        side-by-side on one horizontal line (width edges: pane and bar are columns in a
+        row); 'column' means stacked vertically (height edges: pane above/below its bar).
+
+        Docks are always arranged as a horizontal line of sidebars (sidebars sharing an
+        edge sit next to each other). A 'row' edge flattens its pane/bar pair directly
+        into that line; a 'column' edge wraps its pair in a vertical group before
+        joining the line."""
+
+    @classmethod
+    @abstractmethod
     def control_offset(cls, distance: int) -> Offset: ...
 
     @classmethod
@@ -144,6 +156,13 @@ class WidthSidebarEdge(SidebarEdge):
         """A left or right bar is a vertical column, so its heading is rotated to read
         along the column — book-spine orientation, bottom-to-top."""
         return -90
+
+    @classmethod
+    def pane_bar_axis(cls) -> str:
+        """Width edges (left, right) run pane and bar side-by-side on the same horizontal
+        line as the dock's own sidebar sequence, so the pair flattens straight into the
+        dock's layout."""
+        return "row"
 
     @classmethod
     def extent(cls, size: Size) -> int:
@@ -214,6 +233,13 @@ class HeightSidebarEdge(SidebarEdge):
         """A top or bottom bar is a horizontal strip, so its heading reads along the
         strip as-is, no rotation."""
         return 0
+
+    @classmethod
+    def pane_bar_axis(cls) -> str:
+        """Height edges (top, bottom) run pane and bar as a vertical stack, which is
+        perpendicular to the dock's own horizontal sidebar sequence. Each sidebar needs
+        its own vertical group before joining the dock's row of sidebars."""
+        return "column"
 
     @classmethod
     def extent(cls, size: Size) -> int:
