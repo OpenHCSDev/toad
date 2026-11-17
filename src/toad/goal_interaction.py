@@ -1,13 +1,17 @@
 """Goal controls, dialogs and writes stay bound to their source."""
 from __future__ import annotations
 
+from collections.abc import Awaitable
+from typing import Any
 from weakref import ReferenceType, ref
 
 from agent_comms.errors import GoalRefused
 from agent_comms.planning.goal_actions import GoalAction
+from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalExecutionControls
+from agent_comms.planning.goals import Goal
 from toad.agent_binding import AgentConnection
-from toad.goal_controls import GoalControlsSession
+from toad.goal_controls import GoalControlsSession, GoalHistoryPage
 
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
@@ -18,8 +22,8 @@ from toad.widgets.goal_text import goal_mention_candidates
 
 class GoalSession(GoalControlsSession[AgentConnection]):
     """The Textual goal controls: the optional modal and the writes for this source binding.
-    It is the GoalControlsSession the GoalInteraction family acts on; its history, editor and
-    collapse are Textual, drawn as modals and the goal document's own state."""
+    It is the GoalControlsSession the GoalInteraction family acts on; the base owns the
+    `change`/`open_history` envelopes, so only the backend-specific hooks live here."""
 
     def __init__(self, view: GoalView[GoalSession]):
         self.view = view
@@ -61,26 +65,20 @@ class GoalSession(GoalControlsSession[AgentConnection]):
     def unavailable(self) -> None:
         self.view.feedback.flash(self.display.heading(self.execution))
 
-    async def change(self, action: type[GoalAction], text: str = "") -> None:
-        view = self.view
-        agent = view.agent_binding
-        if not self.owns(agent):
-            raise GoalRefused("The goal presentation changed; reopen its controls.")
-        # The existing Agent boundary encodes the declared goal operation.
+    def apply_goal_change(
+        self, binding: AgentConnection, action: type[GoalAction], goal: Goal, text: str
+    ) -> Awaitable[Any]:
         # Goal state governs continuation, never interruption of an active turn.
-        with self.reporting_refusals(agent):
-            await self.write(agent, agent.update_goal(action, text))
-            if self.owns(agent):
-                view.prompt.focus()
+        return binding.update_goal(action, text)
 
-    async def open_history(self) -> None:
-        """Read the goal's history from its owner and show it in a modal."""
-        view = self.view
-        goal, agent = view.goal_display.snapshot.require(), view.agent_binding
-        history = await agent.get_goal_history(goal.id)
-        if not self.owns(agent):
-            return
-        self.present(GoalDetails(view, history=history))
+    def after_change(self, binding: AgentConnection) -> None:
+        self.view.prompt.focus()
+
+    async def read_goal_history(self, binding: AgentConnection, goal: Goal) -> RecordedGoalHistory:
+        return await binding.get_goal_history(goal.id)
+
+    def show_history(self, binding: AgentConnection, page: GoalHistoryPage) -> None:
+        self.present(GoalDetails(self.view, history=page.history))
 
     async def open_edit(self) -> None:
         """Open the goal's editor over its owner's mention candidates."""

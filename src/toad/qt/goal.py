@@ -10,11 +10,16 @@ the owner path a viewer with no ACP session uses.
 
 from __future__ import annotations
 
+from collections.abc import Awaitable
 from functools import partial
+from typing import Any
+from weakref import ReferenceType, ref
 
 from agent_comms.coordination.errors import Refused
+from agent_comms.planning.goal_actions import GoalAction
+from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
-from agent_comms.planning.goals import NoGoal
+from agent_comms.planning.goals import Goal, NoGoal
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.goal import GoalDisplay
 from formbridge.operations import OperationKind
@@ -77,10 +82,12 @@ class QtGoalControl(QToolButton, GoalInteractionControl, metaclass=PyQtWidgetMet
 
 
 class QtGoalSession(GoalControlsSession[CommsGoalSource]):
-    """The Qt goal controls, bound to the peer's comms goal source."""
+    """The Qt goal controls, bound to the peer's comms goal source. The base owns the
+    `change`/`open_history` envelopes; only the backend-specific hooks live here."""
 
     def __init__(self, bar: QtGoalBar) -> None:
         self.bar = bar
+        self._open_dialog: ReferenceType[QDialog] | None = None
 
     @property
     def display(self) -> GoalDisplay:
@@ -104,22 +111,36 @@ class QtGoalSession(GoalControlsSession[CommsGoalSource]):
     async def refresh(self, binding: CommsGoalSource) -> None:
         await self.bar.goal_observation.refresh()
 
-    async def change(self, action, text: str = "") -> None:
-        source, goal = self.binding, self.display.snapshot.require()
-        with self.reporting_refusals(source):
-            await self.write(source, source.act(action, goal))
+    def apply_goal_change(
+        self, binding: CommsGoalSource, action: type[GoalAction], goal: Goal, text: str
+    ) -> Awaitable[Any]:
+        return binding.act(action, goal)
 
     def unavailable(self) -> None:
         self.host.show_info(self.display.heading(self.execution), "Goal")
 
-    async def open_history(self) -> None:
-        source, goal = self.binding, self.display.snapshot.require()
-        history = await source.history(goal)
-        if self.owns(source):
-            QtGoalHistory(self.bar, GoalHistoryPage(history)).open()
+    async def read_goal_history(self, binding: CommsGoalSource, goal: Goal) -> RecordedGoalHistory:
+        return await binding.history(goal)
+
+    def show_history(self, binding: CommsGoalSource, page: GoalHistoryPage) -> None:
+        self.present(QtGoalHistory(self.bar, page))
 
     async def open_edit(self) -> None:
-        QtGoalEdit(self.bar, self, self.display.snapshot.require()).open()
+        self.present(QtGoalEdit(self.bar, self, self.display.snapshot.require()))
+
+    def present(self, dialog: QDialog) -> None:
+        """Replace whatever this session was showing with `dialog` and open it. Tracking the
+        reference lets `close()` dismiss whichever view is current without the frontends
+        needing their own open-dialog bookkeeping."""
+        self.close()
+        self._open_dialog = ref(dialog)
+        dialog.open()
+
+    def close(self) -> None:
+        dialog = self._open_dialog() if self._open_dialog is not None else None
+        if dialog is not None and dialog.isVisible():
+            dialog.reject()
+        self._open_dialog = None
 
     def toggle_collapsed(self) -> None:
         self.bar.collapsed = not self.bar.collapsed
@@ -215,6 +236,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
 
     def close_activity(self) -> None:
         self.is_attached = False
+        self.session.close()
         self.close_core_events()
         self.app.run_operation(GoalPress, self.goal_observation.close)
 

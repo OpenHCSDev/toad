@@ -14,13 +14,14 @@ from collections.abc import Awaitable, Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from agent_comms.coordination.errors import Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalExecutionControls, GoalSnapshot
+from agent_comms.planning.goals import Goal
 from agent_comms.ui_model.goal import GoalDisplay
 from metaclass_registry import AbstractHooksMeta
 
@@ -78,21 +79,58 @@ class GoalControlsSession[Binding](metaclass=AbstractHooksMeta):
     async def refresh(self, binding: Binding) -> None:
         """Read the owner's goal again and show it."""
 
-    @abstractmethod
     async def change(self, action: type[GoalAction], text: str = "") -> None:
-        """Apply a goal action (pause, resume, clear, …) and settle by reading the owner."""
+        """Apply a goal action (pause, resume, clear, …) and settle by reading the owner.
+        Ownership is rechecked around the write; the backend-specific binding call is the
+        one hook, so Textual and Qt sessions do not restate this envelope."""
+        binding = self.binding
+        if not self.owns(binding):
+            return
+        goal = self.display.snapshot.require()
+        with self.reporting_refusals(binding):
+            await self.write(binding, self.apply_goal_change(binding, action, goal, text))
+        if self.owns(binding):
+            self.after_change(binding)
+
+    @abstractmethod
+    def apply_goal_change(
+        self, binding: Binding, action: type[GoalAction], goal: Goal, text: str
+    ) -> Awaitable[Any]:
+        """The backend-specific write the base `change()` envelope awaits. Textual calls
+        the agent's goal RPC; Qt calls the comms goal source."""
+
+    def after_change(self, binding: Binding) -> None:
+        """Hook run after a successful change while the session still owns the binding.
+        Textual focuses the composer; Qt has no default follow-up."""
 
     @abstractmethod
     def unavailable(self) -> None:
         """Report that an action is not available now, without changing the goal."""
 
-    @abstractmethod
     async def open_history(self) -> None:
-        """Show the goal's revision history, the frontend's own way."""
+        """Read the owner's goal history and show it the frontend's own way. The read and
+        the ownership recheck are the shared envelope; each frontend only draws the page."""
+        binding = self.binding
+        goal = self.display.snapshot.require()
+        history = await self.read_goal_history(binding, goal)
+        if self.owns(binding):
+            self.show_history(binding, GoalHistoryPage(history))
+
+    @abstractmethod
+    async def read_goal_history(self, binding: Binding, goal: Goal) -> RecordedGoalHistory:
+        """Read the goal's revisions and failed attempts through the binding."""
+
+    @abstractmethod
+    def show_history(self, binding: Binding, page: GoalHistoryPage) -> None:
+        """Present the history page in the frontend's own view."""
 
     @abstractmethod
     async def open_edit(self) -> None:
         """Open the goal's editor, the frontend's own way."""
+
+    def close(self) -> None:
+        """Dismiss whatever history or edit view this session opened. Default is no-op; the
+        frontend subclass overrides when its dialogs are addressable from here."""
 
     @abstractmethod
     def toggle_collapsed(self) -> None:
