@@ -550,25 +550,19 @@ class ThemedApp(SettingsScope, App[ReturnType], ResultShower, metaclass=_ThemedA
 
     def __init__(self) -> None:
         # Line styles read the diff settings, so a themed app holds settings before its colours.
+        # The assignment goes through `ClientApplication.saved_settings` setter which
+        # also registers with `ObjectStateRegistry`; no explicit register call here.
         self.saved_settings = self.open_settings()
-        ObjectStateRegistry.register(self.saved_settings.state)
         # Textual asks for the colour system and the palette while it builds the app.
         self.colours = TextualColours(self)  # type: ignore[arg-type]
         super().__init__()
         self.colours.register_catalog()
 
-    @property
-    def configuration_state(self) -> ObjectState:
-        return self.saved_settings.state
-
-    def open_settings(self) -> SavedSettings:
-        """Settings held by this app alone; an app with a settings file opens it instead."""
-        return SavedSettings()
-
-    @property
-    def settings(self) -> ToadSettings:
-        """The settings in use, to read from; `saved_settings` changes and saves them."""
-        return self.saved_settings.current
+    # `configuration_state`, `settings`, `open_settings` all provided by
+    # `ClientApplication` (earlier in MRO for the live `ToadApp`), so the local
+    # definitions this class used to hold are gone. Textual's `SettingsReader`
+    # widget-local scoping still walks ancestors and reaches the app's
+    # `configuration_state` via that MRO owner.
 
     def _display(self, screen: Screen, renderable: RenderableType | None) -> None:
         super()._display(screen, renderable)
