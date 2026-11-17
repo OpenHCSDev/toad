@@ -101,6 +101,7 @@ from toad.core.events import CoordinationObserved, TabHistoryChanged
 from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
+from toad.client.session_scope import ProjectSessionOrigin
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
@@ -458,6 +459,35 @@ class HeldRowMenu(QObject):
         actions = item.held_actions(self.listing)
         if actions:
             self.listing.host.offer(actions)
+
+
+class QtWelcomeOrigin(ProjectSessionOrigin):
+    """Standalone origin for Qt's welcome tab: Qt's `Welcome` widget cannot inherit
+    `ProjectSessionOrigin` itself because `SessionOrigin`'s `AbstractHooksMeta` clashes
+    with QWidget's shiboken6 metaclass, so the origin is a sibling object the window
+    hands to `thread_navigation.open` through `QtWorkspaceViews.origin(WELCOME)`.
+
+    Textual's `WelcomeScreen` (`screens/welcome.py:234`) inherits `ProjectSessionOrigin`
+    directly because its widget metaclass does not clash."""
+
+    is_attached: bool = True
+
+    def __init__(self, app: QtToadApp) -> None:
+        self.app = app
+        self.project_path = app.project_dir
+
+    @property
+    def coordination_root(self):
+        return self.app.coordination_access.observation.observed().root
+
+    @property
+    def thread_identity(self):
+        from toad.thread_identity import ThreadIdentity
+        observed = self.app.coordination_access.observation.observed()
+        return ThreadIdentity(
+            observed.user_identity(self.project_path).incarnation,
+            str(observed.root),
+        )
 
 
 class Welcome(Page, BusListing, QWidget):
@@ -1256,6 +1286,7 @@ class QtWorkspaceViews(WorkspaceViews):
     def __init__(self, app: QtToadApp) -> None:
         self.app = app
         self.home = Welcome(app)
+        self._welcome_origin = QtWelcomeOrigin(app)
         self.pages = QStackedWidget(app)
         self.pages.addWidget(self.home)
         self.views: dict[str, ConversationView] = {}
@@ -1270,6 +1301,8 @@ class QtWorkspaceViews(WorkspaceViews):
     def origin(self, identity: str) -> SessionOrigin:
         if view := self.views.get(identity):
             return view.origin
+        if identity == WELCOME:
+            return self._welcome_origin
         return NoSessionOrigin(identity)
 
     def navigation_owner(self) -> NoNavigationOwner:
@@ -1829,13 +1862,18 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         CLI-inbox threads) into the wire view and made them appear bus-only."""
         context = NavigationContext(
             app=self,
-            owner_mode=self.selected_mode,
+            owner_mode=WELCOME,
             project_path=self.project_dir,
             actor="",
         )
         self.run_operation(ConversationOpen, partial(self._open_target, row.target, context))
 
     async def _open_target(self, target: NavigationTarget, context: NavigationContext) -> None:
+        """Route through home: mirrors Textual's `screens/comms.py:254` which also passes
+        `WELCOME` as the owner_mode regardless of which tab the row is tapped from.
+        `QtWorkspaceViews.origin(WELCOME)` hands `thread_navigation.open` a
+        `QtWelcomeOrigin` whose `thread_identity` is observed off the thread so the
+        navigator's `origin.current` check can match it."""
         await target.open(context)
         self.hide_sidebar()
 

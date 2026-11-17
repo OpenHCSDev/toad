@@ -57,13 +57,18 @@ class ThreadNavigator:
         app = self.app
         try:
             source = app.workspace_sessions.origin(owner_mode).require()
-        except RelationViolationError:
+        except RelationViolationError as error:
+            app.show_error(error, f"Cannot open thread from {owner_mode!r}")
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         access = app.coordination_access
         observed = await app.preparation.run_thread(access.observation.observed)
         requested_root = str(observed.root)
         if not origin.current(self, owner_mode):
+            app.show_warning(
+                f"Thread origin for {owner_mode!r} is no longer current; row ignored.",
+                "Thread navigation",
+            )
             return app.selected_mode
         identity = MailboxTab(await target.incarnation_in(app.preparation, observed), requested_root)
         mounted_root = str(Path(requested_root).expanduser())
