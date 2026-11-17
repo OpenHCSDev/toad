@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
 
 from agent_comms.display_order import ThreadSort
 from agent_comms.registry.relationships import (
@@ -77,11 +76,7 @@ class RelationshipRowPresentation(WorkerGroup):
     exclusive = True
 
 
-@dataclass
-class RelationshipTreeState:
-    expanded: dict[type[RelationshipGroup], bool] = field(default_factory=dict)
-    selected: tuple[type[RelationshipGroup], tuple[str, str]] | None = None
-    selected_targets: tuple[tuple[type[RelationshipGroup], tuple[str, str]], ...] = ()
+from toad.client.relationship_tree_state import RelationshipTreeState  # noqa: E402
 
 
 class RelationshipSort(SortControl[ThreadSort]):
