@@ -162,6 +162,14 @@ class QtAcpSessionView(
         layout.addLayout(info)
         layout.addWidget(self.agent_activity)
         layout.addWidget(self.messages, 1)
+        # Goal strip above the composer slot, mirroring Textual's `Conversation`
+        # where `GoalBar` sits over its prompt. `_mount_goal_bar` returns `None`
+        # when the binding has no `ThreadIncarnation` (`NoThreadIdentity`), and
+        # the bar self-hides when no goal is set.
+        incarnation = self._agent_binding.initial_identity(NoThreadIdentity()).optional_thread_incarnation()
+        goal_bar = self._mount_goal_bar(app, incarnation)
+        if goal_bar is not None:
+            layout.addWidget(goal_bar)
         self._composer_layout = layout
         QTimer.singleShot(0, lambda: self._mount_composer(app))
         # Bind the transcript once the message_history child exists: `BoundView` reads

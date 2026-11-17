@@ -108,6 +108,11 @@ class QtMailboxView(QtThreadView, SessionScope):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(info)
+        # Goal strip above the activity ribbon — same slot ACP puts it, above where
+        # the next input would go. The bar hides itself when no goal is set.
+        goal_bar = self._mount_goal_bar(app, thread_incarnation)
+        if goal_bar is not None:
+            layout.addWidget(goal_bar)
         layout.addWidget(self.agent_activity)
         layout.addWidget(self.messages, 1)
 
