@@ -22,7 +22,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
-from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, QRect, Qt, QTimer
+from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import (
     QApplication,
@@ -72,7 +72,6 @@ from toad.client.history import ChannelDestination, WireSource, WireView
 from toad.client.history_entry import HistorySessionEntry
 from toad.client.history_notifications import HistoryNotifications
 from toad.application_lifetime import ApplicationStart
-from toad.client.condensed_path import condense_path, home_relative
 from toad.client.platform import host
 from toad.client.line_blocks import MutedRole
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
@@ -413,7 +412,7 @@ class Welcome(Page, BusListing, QWidget):
         super().__init__()
         self.host = window
         self.banner = Banner(window.renderer.theme(PrimaryColour))
-        self.project = PathLabel(window.project_dir.path)
+        self.project = BusLabel(window)
         self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.project.setStyleSheet(f"color: {window.renderer.colour(MutedRole)}")
         self.rows = ConversationRows(window)
@@ -597,17 +596,15 @@ class QtHistorySessionEntry(QtSessionEntry, HistorySessionEntry, shows=(CommsTab
         return ConversationView(sessions.app, self)
 
 
-class PathLabel(ElidedLine):
-    """A directory shown as Toad's info bar shows it: home-relative, then condensed from the
-    middle out to the characters the label has room for. The full path is its tooltip."""
+class BusLabel(ElidedLine):
+    """Where the bus this window reads lives, as its connection names it. A Qt client is
+    always remote, so its own launch directory (on the phone, /data/data/…/app) says nothing
+    about the Core it shows; the connection's location does."""
 
-    def __init__(self, path: Path) -> None:
-        super().__init__(home_relative(str(path), directory=True))
-        self.setToolTip(str(path))
-
-    def drawn(self, rect: QRect) -> tuple[int, str]:
-        cells = int(rect.width() / QFontMetricsF(self.font()).averageCharWidth())
-        return int(self.alignment()), condense_path(self.text(), max(1, cells))
+    def __init__(self, window: QtToadApp) -> None:
+        location = window.coordination_access.connection.location
+        super().__init__(location)
+        self.setToolTip(location)
 
 
 class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView, HistoryNotifications,
@@ -637,7 +634,7 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
         self.status = ElidedLine()
         self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.status.setStyleSheet(f"color: {app.renderer.colour(MutedRole)}")
-        self.directory = PathLabel(app.project_dir.path)
+        self.directory = BusLabel(app)
         self.directory.setStyleSheet(f"color: {app.renderer.colour(MutedRole)}")
         info = QHBoxLayout()
         info.setContentsMargins(6, 0, 6, 0)
