@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 from time import time
 from collections.abc import Awaitable, Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar, Self
 from functools import partial
 from pathlib import Path
@@ -383,10 +383,21 @@ class WelcomeContent:
 
 @dataclass(frozen=True)
 class ListedModel(WelcomeContent):
-    """The channels and threads the shared welcome lists."""
+    """The channels and threads the shared welcome lists.
+
+    `app` and `listings` are instance-owned so each welcome's listings can carry
+    app-specific references — previously a `ClassVar` tuple shared across every
+    `ListedModel`, which blocked passing `app.thread_actions.pending` (or any other
+    app ref) into row construction. The holder is instance-owned now; the listing
+    classes themselves (`QtChannelListing`, `QtThreadListing`) stay unchanged, so
+    downstream work (reading app.thread_actions.pending for pending_detail, etc.)
+    now has a seat at the table via `self.app`."""
 
     model: SidebarModel
-    listings: ClassVar[tuple[QtChannelListing | QtThreadListing, ...]] = (QtChannelListing(), QtThreadListing())
+    app: "QtToadApp"
+    listings: tuple[QtChannelListing | QtThreadListing, ...] = field(
+        default_factory=lambda: (QtChannelListing(), QtThreadListing())
+    )
 
     def draw(self, top: KeptLines) -> None:
         for listing in self.listings:
@@ -603,7 +614,7 @@ class Welcome(Page, BusListing, QWidget):
         self.host.show_warning(reason, "Tailnet buses")
 
     def present(self, model: SidebarModel) -> None:
-        self.content = ListedModel(model)
+        self.content = ListedModel(model, self.host)
         self.relist()
 
     def present_failed(self, observed: FailedObservation) -> None:
