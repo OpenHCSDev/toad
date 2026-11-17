@@ -76,6 +76,19 @@ class JumpsToLatest:
         self._set_jump_bar_shown(jump)
         self._after_jump_bar_change(jump)
 
+    def respond_to_scroll(self, position: float) -> None:
+        """Shared post-anchor response to a scroll offset. Both backends' native scroll
+        hooks call this after their anchor/follow-tail transition; the `lookahead.observe`
+        return gate means a no-travel tick does not restart the settle timer or re-queue
+        preparation (previously Qt's `scrolled` restarted settle on every QScroller tick
+        even when no travel was recorded, which added per-tick work on top of Android's
+        already-slow EGL backing-store flush).
+        """
+        if self.lookahead.observe(position):
+            self._schedule_settle()
+        self.request_preparation()
+        self.tail_follow_changed()
+
 
 class JumpsHistory:
     """A screen holding history windows, some of which can be put back at their latest entry.

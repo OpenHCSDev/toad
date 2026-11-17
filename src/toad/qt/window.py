@@ -587,7 +587,11 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         self.setItemDelegate(MultilinePreviewItemDelegate(
             scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text), self))
-        self.setAlternatingRowColors(True)
+        # No `setAlternatingRowColors(True)`: the delegate already owns per-item
+        # backgrounds via `ScopeColorScheme.step_border_layers`, and the extra viewport-wide
+        # stripe paint fights Qt-for-Android's EGL backing-store (no scroll-blit, every
+        # scroll pixel repaints the whole viewport — visible as flicker/jitter during
+        # kinetic touch scroll on Pixel 8a).
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)

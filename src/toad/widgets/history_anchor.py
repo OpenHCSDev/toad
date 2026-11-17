@@ -507,12 +507,11 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
             self.scroll_revision += 1
             if self.shown:
                 self.reader_position = self.reader_position.moved(self, new_value - old_value)
-            if self.lookahead.observe(new_value):
-                self._schedule_settle()
-            self.request_preparation()
             self._invalidate_tooltip_on_scroll()
         self.rejoin_reached_tail()
-        self.tail_follow_changed()
+        # Shared post-anchor response; `JumpsToLatest.respond_to_scroll` gates settle on
+        # travel so an idle tick doesn't restart the timer or re-queue preparation.
+        self.respond_to_scroll(new_value)
 
     def _invalidate_tooltip_on_scroll(self) -> None:
         """Scrolling moves the row under the mouse without a mouse event. Textual pins the
