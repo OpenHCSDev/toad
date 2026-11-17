@@ -288,13 +288,21 @@ class ConversationRow(SidebarItem):
         flow into the hover text; the label gets a `"* "` prefix when pinned,
         matching `ChannelRowModel.label` which also prefixes its own name."""
         row = cls(KnownThreadTarget(name, thread.incarnation))
+        row.draw_thread(thread, pinned=pinned, pending_detail=pending_detail)
+        return row
+
+    def draw_thread(self, thread, *, pinned: bool = False,
+                    pending_detail: str | None = None) -> None:
+        """Repaint this row from a `ThreadRowModel`, honoring pin and pending-action.
+        Shared with the initial construction path above so every thread-row draw —
+        first paint, `sync_members` reconcile, `repaint_members` refresh — goes
+        through the same pin/pending-aware assembly."""
         label = f"{'* ' if pinned else ''}{thread.label}"
         summary = pending_detail if pending_detail is not None else thread.summary
-        row.draw(
+        self.draw(
             thread.unread.badge, label, summary,
             thread.tooltip(pinned=pinned, pending_detail=pending_detail),
         )
-        return row
 
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
@@ -714,18 +722,22 @@ class QtChannelGroup(ChannelGroupRows):
                     self.row.takeChild(index)
         # Add/update in the model's order. A row whose name is in ``changed`` repaints;
         # a row at the wrong position moves without a rebuild.
+        pending = self.sidebar.window.thread_actions.pending
         for index, name in enumerate(wanted):
             thread = threads.get(name)
             if thread is None:
                 continue
+            pinned = name in channel_row.pinned_members
+            pending_detail = pending.get(name)
             existing = self.member_rows.get(name)
             if existing is None:
-                item = ConversationRow.thread(name, thread)
+                item = ConversationRow.thread(name, thread, pinned=pinned,
+                                              pending_detail=pending_detail)
                 self.row.insertChild(index, item)
                 self.member_rows[name] = item
             else:
                 if name in changed:
-                    existing.draw(thread.unread.badge, thread.label, thread.summary, thread.tooltip())
+                    existing.draw_thread(thread, pinned=pinned, pending_detail=pending_detail)
                 current_index = self.row.indexOfChild(existing)
                 if current_index != index:
                     self.row.takeChild(current_index)
@@ -738,12 +750,15 @@ class QtChannelGroup(ChannelGroupRows):
         if not model_state.shows_model():
             return
         threads = model_state.shown.threads.rows
+        channel_row = model_state.shown.channels.rows.get(self.name)
+        pinned_members = channel_row.pinned_members if channel_row is not None else frozenset()
+        pending = self.sidebar.window.thread_actions.pending
         for name in self.member_rows.keys() & names:
             thread = threads.get(name)
             if thread is None:
                 continue
-            self.member_rows[name].draw(
-                thread.unread.badge, thread.label, thread.summary, thread.tooltip()
+            self.member_rows[name].draw_thread(
+                thread, pinned=name in pinned_members, pending_detail=pending.get(name),
             )
 
 
@@ -893,6 +908,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
     def draw_lines(self, model: SidebarModel, top: KeptLines) -> None:
         threads = model.threads.rows
         matches = self.filter.matches
+        pending = self.window.thread_actions.pending
         for name, channel in model.channels.rows.items():
             # A channel stays visible if its name matches OR any of its member thread
             # names do; hiding a channel whose only match is a buried thread would also
@@ -900,14 +916,21 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             members_shown = [m for m in channel.members if matches(m)]
             if not matches(name) and not members_shown:
                 continue
+            pinned_members = channel.pinned_members
             with top.group(ConversationRow.channel(name, channel)) as group:
                 for member in members_shown:
-                    group.keep(ConversationRow.thread(member, threads[member]))
+                    group.keep(ConversationRow.thread(
+                        member, threads[member],
+                        pinned=member in pinned_members,
+                        pending_detail=pending.get(member),
+                    ))
         with top.group(SidebarSection("Threads")) as everyone:
             for name, thread in threads.items():
                 if not matches(name):
                     continue
-                everyone.keep(ConversationRow.thread(name, thread))
+                everyone.keep(ConversationRow.thread(
+                    name, thread, pending_detail=pending.get(name),
+                ))
 
     def _refresh_status_only(self) -> None:
         """Update just the status row at the top of the tree in place, without touching
