@@ -250,6 +250,33 @@ class BusListing:
         """Tell a reader the tailnet could not be asked."""
 
 
+class BusSwitcherPrompt:
+    """Status-line text a modal bus switcher shows above its rows.
+
+    Both frontends' switcher dialogs read from here so the line stays identical
+    across Qt and Textual. The texts are the ones Textual's `BusChoices`
+    inlined before this helper existed — keep the wording in one place so a
+    rename to "Open a bus" / "Discovery:" in one frontend doesn't quietly
+    drift from the other (paper1 Thm 4.6: a copy in a second place would be
+    paid on every rename).
+    """
+
+    @staticmethod
+    def initial() -> str:
+        """What the switcher shows before the tailnet has answered."""
+        return "Open a bus · asking the tailnet · Esc returns"
+
+    @staticmethod
+    def discovery(found: int) -> str:
+        """Tailnet answered with ``found`` openable buses."""
+        return f"Open a bus · {found} found on your tailnet · Esc returns"
+
+    @staticmethod
+    def failure(reason: str) -> str:
+        """Tailnet could not be asked; the reason goes in the line."""
+        return f"Discovery: {reason} · Esc returns"
+
+
 class TailnetAnswer(ABC):
     """What the tailnet said when the application asked it, shown in each open listing."""
 
