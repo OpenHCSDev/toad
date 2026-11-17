@@ -41,6 +41,7 @@ from toad.client.notification_status import (
 )
 from toad.client.subscribers import NotificationSubscriber
 from toad.widget_contracts import OpensSelectedContract, SelectsContract
+from toad.qt.composer_vim import ComposerVimMode, VimState, apply_normal_key
 from toad.qt.lines import QtLineRenderer
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
@@ -161,6 +162,10 @@ class ComposerEditor(QPlainTextEdit):
         super().__init__()
         self.composer = composer
         self.setTabChangesFocus(False)
+        # Modal vim input, off by default so non-vim users aren't trapped. A setting toggle
+        # (sweep follow-up) will flip this; once on, Esc in INSERT enters NORMAL mode.
+        self.vim_enabled = False
+        self.vim = ComposerVimMode()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         offers = self.composer.offers
@@ -169,6 +174,14 @@ class ComposerEditor(QPlainTextEdit):
         shifted = bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
         with_control = bool(modifiers & Qt.KeyboardModifier.ControlModifier)
         entered = key in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
+        # Vim NORMAL mode intercepts navigation/edit commands before any of the standard
+        # composer bindings; Enter + Ctrl+Enter still submit from NORMAL (sending a message
+        # is the composer's job, not the mode's).
+        if (self.vim_enabled and self.vim.state is VimState.NORMAL
+                and not offers.isVisible() and not entered and key != Qt.Key.Key_Escape):
+            apply_normal_key(self, self.vim, event)
+            self.composer.refresh_mode_indicator()
+            return
         if offers.isVisible() and key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
             offers.step(-1 if key == Qt.Key.Key_Up else 1)
         elif offers.isVisible() and (key == Qt.Key.Key_Tab or (entered and not shifted)):
@@ -180,7 +193,12 @@ class ComposerEditor(QPlainTextEdit):
         elif entered and not shifted:
             self.composer.submit()
         elif key == Qt.Key.Key_Escape:
-            self.composer.dismiss_control()
+            # In vim INSERT mode, Esc enters NORMAL instead of dismissing.
+            if self.vim_enabled and self.vim.state is VimState.INSERT:
+                self.vim.state = VimState.NORMAL
+                self.composer.refresh_mode_indicator()
+            else:
+                self.composer.dismiss_control()
         else:
             super().keyPressEvent(event)
 
@@ -213,6 +231,9 @@ class Composer(MentionEditor, QWidget):
         self.submitting = self.line(MutedRole)
         self.failure = self.line(FailureRole)
         self.receipt = Receipt(host.app, renderer)
+        # Vim mode indicator — only shown when vim is enabled AND the editor is in NORMAL.
+        # INSERT reads as "no indicator" (standard editing); NORMAL reads as "-- NORMAL --".
+        self.mode_indicator = self.line(MutedRole)
         row = QHBoxLayout()
         row.setContentsMargins(6, 4, 6, 4)
         row.addWidget(self.editor, 1)
@@ -222,9 +243,10 @@ class Composer(MentionEditor, QWidget):
         layout.setSpacing(0)
         layout.addWidget(self.offers)
         layout.addLayout(row)
-        for line in (self.submitting, self.failure, self.receipt):
+        for line in (self.mode_indicator, self.submitting, self.failure, self.receipt):
             layout.addWidget(line)
         self.fit_height()
+        self.refresh_mode_indicator()
 
     def line(self, role: type[LineRole]) -> WrappedText:
         label = WrappedText()
@@ -232,6 +254,22 @@ class Composer(MentionEditor, QWidget):
         label.setContentsMargins(8, 0, 8, 0)
         label.hide()
         return label
+
+    def refresh_mode_indicator(self) -> None:
+        """Show '-- NORMAL --' whenever vim is on and the editor is not in INSERT."""
+        showing = self.editor.vim_enabled and self.editor.vim.state is VimState.NORMAL
+        if showing:
+            self.mode_indicator.setText("-- NORMAL --")
+            self.mode_indicator.show()
+        else:
+            self.mode_indicator.hide()
+
+    def set_vim_enabled(self, enabled: bool) -> None:
+        """Called by the (future) vim-mode setting toggle. Also drives VimWorkspaceAction's
+        Qt consumer: when any composer has vim on, the workspace's modal command mode fires."""
+        self.editor.vim_enabled = enabled
+        self.editor.vim.state = VimState.INSERT
+        self.refresh_mode_indicator()
 
     def fit_height(self) -> None:
         """Grow with the message up to five lines, as Textual's prompt grows."""
