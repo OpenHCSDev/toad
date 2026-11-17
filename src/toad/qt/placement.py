@@ -150,14 +150,28 @@ class ThreadSettingsPane(QWidget):
             QtProjectPanel(project_path, parent=self._content)
             if project_path is not None else None
         )
-        self._section_bodies: dict[str, QWidget] = {}
-        # The session view is the default; a conversation / DM tab trims the roster via
-        # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
-        # Comms; session view adds Plan, Project, Context.
         # Shared per-thread context intents — survives widget retirement, matches
         # Textual's `ContextSessionPanel.intents`.
         self._context_intents: dict[SessionIdentity, ContextTreeIntent] = {}
         self._context_panel = QtContextExplorer(self._context_intents, self._content)
+        # One widget per spec.key: each Qt panel class declares its own `spec_key`
+        # ClassVar (same convention Textual's `SessionPanel.spec_key` uses). The
+        # dispatch in `_panel_body` reads this map instead of restating a chain of
+        # `if spec.key == "...": return self._x_panel`.
+        panels: tuple[QWidget | None, ...] = (
+            self._coordination_status,
+            self._comms_panel,
+            self._plan_panel,
+            self._context_panel,
+            self._project_panel,
+        )
+        self._bodies_by_key: dict[str, QWidget] = {
+            type(panel).spec_key: panel for panel in panels if panel is not None
+        }
+        self._section_bodies: dict[str, QWidget] = {}
+        # The session view is the default; a conversation / DM tab trims the roster via
+        # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
+        # Comms; session view adds Plan, Project, Context.
         for spec in panel_specs_for_view(is_session=True):
             section = QGroupBox(spec.heading, self._content)
             section_layout = QVBoxLayout(section)
@@ -184,19 +198,13 @@ class ThreadSettingsPane(QWidget):
         scroll.setWidget(self._content)
 
     def _panel_body(self, spec: ThreadSidebarPanelSpec, parent: QWidget) -> QWidget:
-        """The body for a given panel key; ported Qt panels return their real widget,
-        unported ones fall through to `_placeholder_body`."""
-        if spec.key == "coordination":
-            return self._coordination_status
-        if spec.key == "comms":
-            return self._comms_panel
-        if spec.key == "plan":
-            return self._plan_panel
-        if spec.key == "context":
-            return self._context_panel
-        if spec.key == "project" and self._project_panel is not None:
-            return self._project_panel
-        return _placeholder_body(spec, parent)
+        """The body for a given panel key, dispatched through `_bodies_by_key` — each Qt
+        panel class declares its own `spec_key` ClassVar, so adding a new port just means
+        constructing the widget and letting its ClassVar name the slot. Unported keys
+        (or keys whose widget is None, e.g. Project without a project_path) fall through
+        to `_placeholder_body`."""
+        body = self._bodies_by_key.get(spec.key)
+        return body if body is not None else _placeholder_body(spec, parent)
 
     def bind(self, view) -> None:
         """Follow the conversation the tab now shows; the welcome has none, so the toggles

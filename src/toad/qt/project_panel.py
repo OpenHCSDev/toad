@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Iterable
 from pathlib import Path
+from typing import ClassVar
 
 from PySide6.QtCore import QModelIndex, Qt, QTimer
 from PySide6.QtWidgets import QFileSystemModel, QTreeView, QVBoxLayout, QWidget
@@ -26,6 +27,10 @@ from toad.client.project_view import ProjectView
 
 
 class QtProjectPanel(ProjectView, QWidget):
+    spec_key: ClassVar[str] = "project"
+    """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
+    `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
+
     """The Qt sidebar's project tree. `ProjectView` is the toolkit-neutral base
     Textual's `ProjectPanel` also inherits from, so a screen can hold a project
     view on either frontend with the same interface. The widget itself implements
