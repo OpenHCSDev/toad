@@ -23,7 +23,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.message_category import all_categories
-from agent_comms.ui_model.sidebar import SidebarModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
 from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPainter, QShortcut
@@ -92,6 +92,12 @@ from toad.sidebar_changes import (
     ChangedThreads,
     SidebarChange,
 )
+from toad.sidebar_contracts import (
+    ChannelGroupRows,
+    GroupedSidebar,
+    NavigationRefresh,
+)
+from contextlib import nullcontext
 from toad.sidebar_model_view import SidebarStateMachine
 from toad.client.tab_identity.kinds import CommsTab
 from toad.command_catalog import CommandCatalog
@@ -627,6 +633,100 @@ class ConversationRows(TouchScrolled, QTreeWidget):
             draw(top)
 
 
+class NoopNavigation(NavigationRefresh):
+    """Qt does not yet maintain a shared navigation cursor across the sidebar tree."""
+
+    def apply(self) -> None:
+        return
+
+
+class QtChannelGroup(ChannelGroupRows):
+    """One channel's section in the Qt sidebar, backed by its persistent `ConversationRow`
+    item. Implements the `ChannelGroupRows` contract so `ChangedChannels` and
+    `ChangedThreads` dispatch directly through `GroupedSidebar.apply_comms` without a full
+    tree rebuild — only the affected header + member thread rows touch Qt.
+    """
+
+    def __init__(self, sidebar: Sidebar, name: str, row: ConversationRow) -> None:
+        self.sidebar = sidebar
+        self.name = name
+        self.row = row
+        self.channel: ChannelRowModel | None = None
+        # Per-member thread rows this group currently shows, by thread key.
+        self.member_rows: dict[str, ConversationRow] = {}
+
+    @property
+    def member_keys(self):
+        model_state = self.sidebar.model_state
+        if not model_state.shows_model():
+            return ()
+        channel_row = model_state.shown.channels.rows.get(self.name)
+        return channel_row.members if channel_row is not None else ()
+
+    def present(self, channel: ChannelRowModel) -> frozenset[str]:
+        """Repaint the channel header; return members whose pinned state changed so the
+        channel-change path can sync them without touching unrelated threads."""
+        previous = self.channel
+        self.channel = channel
+        self.row.draw(channel.unread.badge, channel.label(), channel.summary(), channel.tooltip())
+        if previous is None:
+            return frozenset()
+        return previous.pinned_members ^ channel.pinned_members
+
+    def sync_members(self, changed: frozenset[str]) -> None:
+        """Reconcile this channel's thread rows against the model: add missing, remove
+        stale, update rows whose key is in ``changed`` or whose model row moved."""
+        model_state = self.sidebar.model_state
+        if not model_state.shows_model():
+            return
+        threads = model_state.shown.threads.rows
+        channel_row = model_state.shown.channels.rows.get(self.name)
+        if channel_row is None:
+            return
+        wanted = tuple(channel_row.members)
+        wanted_set = frozenset(wanted)
+        # Drop member rows the channel no longer lists.
+        for name in list(self.member_rows):
+            if name not in wanted_set:
+                item = self.member_rows.pop(name)
+                index = self.row.indexOfChild(item)
+                if index >= 0:
+                    self.row.takeChild(index)
+        # Add/update in the model's order. A row whose name is in ``changed`` repaints;
+        # a row at the wrong position moves without a rebuild.
+        for index, name in enumerate(wanted):
+            thread = threads.get(name)
+            if thread is None:
+                continue
+            existing = self.member_rows.get(name)
+            if existing is None:
+                item = ConversationRow.thread(name, thread)
+                self.row.insertChild(index, item)
+                self.member_rows[name] = item
+            else:
+                if name in changed:
+                    existing.draw(thread.unread.badge, thread.label, thread.summary, thread.tooltip())
+                current_index = self.row.indexOfChild(existing)
+                if current_index != index:
+                    self.row.takeChild(current_index)
+                    self.row.insertChild(index, existing)
+
+    def repaint_members(self, names: frozenset[str]) -> None:
+        """Repaint any of this group's shown rows whose thread key is in ``names``.
+        Membership changes come through ``sync_members`` instead."""
+        model_state = self.sidebar.model_state
+        if not model_state.shows_model():
+            return
+        threads = model_state.shown.threads.rows
+        for name in self.member_rows.keys() & names:
+            thread = threads.get(name)
+            if thread is None:
+                continue
+            self.member_rows[name].draw(
+                thread.unread.badge, thread.label, thread.summary, thread.tooltip()
+            )
+
+
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     @property
@@ -637,11 +737,25 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
     shared sidebar model. State comes from the shared `SidebarStateMachine`: a
     `Detached`/`FailedSidebarState`/`Behind`/`Current` transition drives both the status
     line this sidebar owns and the row redraw. Lines are kept in place across updates, so
-    groups stay open or closed and a press stays on its row."""
+    groups stay open or closed and a press stays on its row.
+
+    Structurally satisfies `GroupedSidebar` (declared in `sidebar_contracts`) so
+    `ChangedChannels` and `ChangedThreads` dispatch through the shared
+    `SidebarChange.apply_comms` path: only the affected channel header + its changed
+    member rows touch Qt, instead of a wholesale tree rebuild. (A direct inheritance
+    would collide Qt's widget metaclass with `AbstractHooksMeta`; registration isn't
+    needed because consumers access the surface structurally, no isinstance checks.)
+    """
+
+    navigation: NavigationRefresh = NoopNavigation()
+    groups: dict[str, QtChannelGroup]
+    open_views: dict[str, str]
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__(window)
         self._status_text: str | None = None
+        self.groups = {}
+        self.open_views = {}
 
     def accepts_observation(self) -> bool:
         """The sidebar always shows while it exists: the window hides it through
@@ -659,30 +773,63 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         self._status_text = None
 
     def present(self, **changes: object) -> None:
-        """Run the state transitions, then paint status + rows + welcome in one pass."""
+        """Run the state transitions, then paint status + rows + welcome. A targeted
+        `ChangedChannels` / `ChangedThreads` dispatched into `sync` touches only the
+        affected channel header + its member rows; broader state changes fall through
+        to the wholesale redraw that rebuilds the whole tree."""
+        change = changes.get("change")
         super().present(**changes)
         model = self.model_state.shown if self.model_state.shows_model() else None
-        def draw(top: KeptLines) -> None:
-            if self._status_text is not None:
-                top.keep(StatusSection(self._status_text))
+        if model is not None and isinstance(change, (ChangedChannels, ChangedThreads)):
+            # The `sync` dispatch handled the typed partial update. Keep the status row
+            # fresh in place without rebuilding the rest of the tree.
+            self._refresh_status_only()
+        else:
+            def draw(top: KeptLines) -> None:
+                if self._status_text is not None:
+                    top.keep(StatusSection(self._status_text))
+                if model is not None:
+                    self.draw_lines(model, top)
+            self.redraw(draw)
+            # A wholesale redraw rebuilt the channel items; rebind the per-channel groups
+            # against the new items so the next targeted `sync` operates on live children.
             if model is not None:
-                self.draw_lines(model, top)
-        self.redraw(draw)
+                self._rebind_groups_from_tree(model)
+            else:
+                self.groups = {}
         if model is not None:
             self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
-        """A no-op on Qt: the typed change dispatch arrives through `present`'s own
-        redraw pass. Qt's `KeptLines` keeps per-key item identity across the redraw, so
-        open groups and placed rows survive; `ChangedChannels` and `ChangedThreads` can
-        later skip untouched subtrees inside `draw_lines` without changing this contract."""
+        """Dispatch a typed row change through `GroupedSidebar.apply_comms` so only the
+        affected header + member rows touch Qt. Full tree rebuilds happen only when the
+        state machine escalates to `AllSidebarRows` or when the model is replaced."""
+        if not self.model_state.shows_model():
+            return
+        model = self.model_state.shown
+        if isinstance(change, (ChangedChannels, ChangedThreads)):
+            change.apply_comms(self, model.channels.rows)
+        elif isinstance(change, AllSidebarRows):
+            # The caller will follow up with a wholesale redraw via `present()`.
+            return
 
     def model_replaced(self) -> None:
         """Clear rows before the new observation's redraw lands; the next `present` will
         repaint the status and the new model's rows together."""
         self._status_text = None
+        self.groups = {}
         self.redraw(lambda top: None)
+
+    def find_open_views(self) -> dict[str, str]:
+        """Which channels Qt currently shows an open tab for. The Qt sidebar does not
+        yet hoist this out of the tab bar, so the hook returns the stored map (populated
+        elsewhere when tab routing lands)."""
+        return self.open_views
+
+    def reconcile_members(self):
+        """Textual holds a DOM-level sync boundary here; Qt touches items directly."""
+        return nullcontext()
 
     def draw_lines(self, model: SidebarModel, top: KeptLines) -> None:
         threads = model.threads.rows
@@ -693,6 +840,51 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         with top.group(SidebarSection("Threads")) as everyone:
             for name, thread in threads.items():
                 everyone.keep(ConversationRow.thread(name, thread))
+
+    def _refresh_status_only(self) -> None:
+        """Update just the status row at the top of the tree in place, without touching
+        the channel subtrees that a targeted sync just redrew."""
+        root = self.invisibleRootItem()
+        status_item = None
+        for index in range(root.childCount()):
+            child = root.child(index)
+            if isinstance(child, StatusSection):
+                status_item = child
+                break
+        if self._status_text is None:
+            if status_item is not None:
+                root.takeChild(root.indexOfChild(status_item))
+            return
+        target = StatusSection(self._status_text)
+        if status_item is None:
+            root.insertChild(0, target)
+            target.placed()
+        else:
+            status_item.draw(*target.drawn)
+
+    def _rebind_groups_from_tree(self, model: SidebarModel) -> None:
+        """A wholesale redraw rebuilt the tree's top-level items, so the previous
+        `QtChannelGroup` instances now point at detached rows. Walk the current tree
+        and rebuild the groups map so the next targeted sync hits live children."""
+        channel_models = model.channels.rows
+        root = self.invisibleRootItem()
+        rebuilt: dict[str, QtChannelGroup] = {}
+        for index in range(root.childCount()):
+            item = root.child(index)
+            if not isinstance(item, ConversationRow):
+                continue
+            name = item.key
+            if name not in channel_models:
+                continue
+            group = QtChannelGroup(self, name, item)
+            group.channel = channel_models[name]
+            # Index the thread children the wholesale redraw just placed.
+            for child_index in range(item.childCount()):
+                child = item.child(child_index)
+                if isinstance(child, ConversationRow):
+                    group.member_rows[child.key] = child
+            rebuilt[name] = group
+        self.groups = rebuilt
 
     def bind_failed_observation(self, observed: FailedObservation) -> None:
         super().bind_failed_observation(observed)
