@@ -75,6 +75,13 @@ allow-direct-references = true
 [tool.hatch.build.targets.wheel]
 packages = ["src/toad"]
 
+[project.optional-dependencies]
+# Pinning the installer's `uv` the way agent-comms does, so the shared install path
+# reads a `uv==X.Y.Z` requirement off this package's dev extra when it resolves Toad.
+dev = [
+    "uv==0.13.1",
+]
+
 [dependency-groups]
 dev = [
     "playwright>=1.58.0",
