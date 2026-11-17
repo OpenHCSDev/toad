@@ -76,9 +76,14 @@ class SessionRecord:
     def changed(self, state: Qt.ApplicationState) -> None:
         self.write(time.time(), state.name)
         if state is Qt.ApplicationState.ApplicationActive and self.shown is None and (report := self.report()):
+            # The dialog is a top-level QWindow and allocating its EGL surface during
+            # ApplicationActive races Android's accessibility probe for the eglSurface()
+            # mutex (SIGABRT, QAndroidPlatformOpenGLWindow::eglSurface deadlock protector).
+            # Deferring past first-paint lets the probe release before we add a second
+            # surface — otherwise every crash seeds the next via this dialog.
             self.shown = QMessageBox(QMessageBox.Icon.Information, "How the last session ended", report)
             self.shown.setModal(False)
-            self.shown.show()
+            QTimer.singleShot(2000, self.shown.show)
 
     def ended(self, how: str) -> None:
         self.write(time.time(), how)
