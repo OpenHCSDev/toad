@@ -900,6 +900,42 @@ class QtSidebarSearch(QWidget):
         self.sidebar.filter.text = value
 
 
+class QtThreadPanel(ConversationRows):
+    """The flat thread listing shown as a sibling panel to the channels tree in the
+    multi-panel sidebar shell. The channels panel (`Sidebar` / `draw_lines`) renders
+    channel groups + their member threads; this panel renders the FLAT list of every
+    thread the observation knows about — matches Textual's `SideBarCollapsible` siblings
+    where channels and threads live in different collapsible panels. Both panels read
+    the same `SidebarModel` + shared `SidebarFilter`, and `Sidebar.present` triggers
+    this panel's redraw on the same tick so the two trees stay in step."""
+
+    THREADS_PANEL: ClassVar[PanelSpec] = PanelSpec(title="Threads", flex=True, id="sidebar-threads")
+
+    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__(window)
+        if parent is not None:
+            self.setParent(parent)
+
+    def present(self, model: SidebarModel) -> None:
+        """Redraw the flat thread list from `model.threads.rows`. Filter + pending-detail
+        + unread-badge formatting come from the same owners `Sidebar.draw_lines` reads,
+        so the two panels can't disagree on which thread rows show."""
+        sidebar = self.window.sidebar
+        matches = sidebar.filter.matches
+        pending = self.window.thread_actions.pending
+        badge_of = self.window.settings.sidebar.unread_counts.badge
+        threads = model.threads.rows
+        def draw(top: KeptLines) -> None:
+            for name, thread in threads.items():
+                if not matches(name):
+                    continue
+                top.keep(ConversationRow.thread(
+                    name, thread, pending_detail=pending.get(name),
+                    badge=badge_of(thread.unread),
+                ))
+        self.redraw(draw)
+
+
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     @property
@@ -985,6 +1021,13 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             else:
                 self.groups = {}
         if model is not None:
+            # Refresh the flat threads sibling panel on the same tick as the channels
+            # tree, so the two panels can't show stale rows relative to each other.
+            # Partial updates (ChangedChannels/ChangedThreads) touch channel members
+            # in place and leave the flat list unchanged — those cases skip the panel
+            # refresh too.
+            if change is None or not change.partial_update:
+                self.window._sidebar_thread_panel.present(model)
             self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
 
@@ -1035,14 +1078,9 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
                         pending_detail=pending.get(member),
                         badge=badge_of(thread.unread),
                     ))
-        with top.group(SidebarSection("Threads")) as everyone:
-            for name, thread in threads.items():
-                if not matches(name):
-                    continue
-                everyone.keep(ConversationRow.thread(
-                    name, thread, pending_detail=pending.get(name),
-                    badge=badge_of(thread.unread),
-                ))
+        # The flat thread listing moved to `QtThreadPanel` as a sibling panel in the
+        # multi-panel shell (`QtSidebarSearch`). `Sidebar.present` triggers that panel's
+        # redraw on the same tick so both trees refresh together.
 
     def _refresh_status_only(self) -> None:
         """Update just the status row at the top of the tree in place, without touching
@@ -1605,6 +1643,14 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.sidebar_search.add_panel(
             PanelSpec(title="Project", flex=True, collapsed=True, id="sidebar-project"),
             self._sidebar_project_panel,
+        )
+        # The flat thread listing lives in its own sibling panel next to the channels
+        # tree — mirrors Textual's `SideBarCollapsible` pair where channels and threads
+        # are separate panels users can collapse independently. `Sidebar.present`
+        # pushes updates into this panel on every wholesale redraw.
+        self._sidebar_thread_panel = QtThreadPanel(self, parent=self.sidebar_search)
+        self.sidebar_search.add_panel(
+            QtThreadPanel.THREADS_PANEL, self._sidebar_thread_panel,
         )
         self.thread_pane = ThreadSettingsPane(parent=self,
                                               project_path=self.project_dir.path)

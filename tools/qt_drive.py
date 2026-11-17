@@ -128,10 +128,12 @@ class TabsScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
-        await self.expand("#comms", "Threads")
+        await self.expand("#comms")
         tops = list(app.sidebar.items())
         comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
-        peer = tops[-1].child(0)
+        # Flat thread list moved to QtThreadPanel sibling panel (see window.py);
+        # grab the first thread row from that panel.
+        peer = next(iter(app._sidebar_thread_panel.items()))
         app.open_row(comms)
         await until(lambda: self.page is not app.workspace_sessions.home and self.page.messages.model_rows.rowCount(), "#comms")
         self.report("1-comms")
@@ -160,8 +162,8 @@ class ActivityScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
-        await self.expand("Threads")
-        everyone = list(app.sidebar.items())[-1]
+        # Flat thread list moved to QtThreadPanel sibling panel (see window.py).
+        everyone = app._sidebar_thread_panel.invisibleRootItem()
         rows = app.sidebar.observed.sidebar.threads.rows
         children = [everyone.child(index) for index in range(everyone.childCount())]
         working = [row for row in children if rows[row.key].status.is_working()]
