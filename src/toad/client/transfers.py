@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.cli_verbs.cli_result import CliResult
 from agent_comms.nominal.declared_family import DeclaredFamily
+from toad.client.host import CommsHost
 
 if TYPE_CHECKING:
     from toad.client.connection import CapturedSource, CoordinationAccess
@@ -85,7 +86,7 @@ class TransferRequest[Result: CliResult](Transfer):
     def completed(self, app: TransferHost, result: Result) -> None: ...
 
 
-class TransferHost:
+class TransferHost(CommsHost):
     """The host contract both frontends supply so `TransferRequest.execute` runs without
     importing toolkit widgets. Textual's `ToadApp` and Qt's `QtToadApp` both satisfy it
     through their existing shared attrs plus one polymorphic opener per frontend."""
@@ -105,11 +106,3 @@ class TransferHost:
         request's declared name so repeated submissions supersede the previous one.
         Textual uses `run_worker(..., exclusive=True)`; Qt uses asyncio tasks keyed by
         the kind's declared name."""
-
-    @abstractmethod
-    def show_error(self, error: Exception | str, title: str) -> None:
-        """Native error notice; shared on ClientApplication."""
-
-    @abstractmethod
-    def notify(self, message: str, *, title: str = "") -> None:
-        """Native ephemeral notice; shared on ClientApplication."""

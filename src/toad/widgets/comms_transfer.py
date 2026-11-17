@@ -54,6 +54,8 @@ from textual.geometry import Spacing
 from textual.message import Message
 from textual.view import FILL, WidgetView
 from textual.widgets import Input, Select, Static
+from toad.application_outcome import ApplicationOutcome
+from toad.comms_host import CommsHost
 from ui_theme.scheme import (
     BackgroundColour,
     ErrorColour,
@@ -63,8 +65,7 @@ from ui_theme.scheme import (
 )
 
 from toad.app_node import ToadNode
-from toad.application_outcome import ApplicationOutcome
-from toad.client.connection import CapturedSource, CoordinationAccess
+from toad.client.connection import CapturedSource, CoordinationAccess, Observing
 from toad.client.transfers import (
     Transfer,
     TransferHost,
@@ -79,7 +80,6 @@ from toad.native_style import (
     SurfaceBackground,
 )
 from toad.screens.modal import DismissibleScreen
-from toad.textual_colours import ThemedApp
 from toad.widgets.acting_button import (
     ActingButton,
     ConfirmButton,
@@ -161,7 +161,7 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
                    title="Thread Import")
 
 
-class Transfers(TransferHost, ThemedApp[ApplicationOutcome]):
+class Transfers(CommsHost[Observing], TransferHost):
     """Textual's `TransferHost`: a pushed `TransferDialog` returns the composed request
     through dismiss, and `run_worker(..., exclusive=True)` tags the task by the kind's
     declared name so re-opening the same kind supersedes the previous run."""
