@@ -39,6 +39,7 @@ from agent_comms.ui_model.message_category import (
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
+from toad.flash_host import FlashHost
 from rich.console import Console
 from rich.segment import Segment
 from rich.style import Style
@@ -935,7 +936,7 @@ class SourcesScope(DOMNode):
     def initial_editing_mode(self) -> EditingMode: ...
 
 
-class Conversation(ColumnLayout, 
+class Conversation(ColumnLayout,
     GoalView[GoalSession],
     TranscriptView,
     FollowsLayoutPreferences,
@@ -946,6 +947,7 @@ class Conversation(ColumnLayout,
     ToadNode,
     MenuConversation,
     AgentConversationCommands,
+    FlashHost,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""

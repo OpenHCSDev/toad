@@ -53,6 +53,7 @@ from ui_theme.scheme import ColourScheme, PrimaryColour
 
 from toad.client.application import ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame
+from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.application_actions import ApplicationAction
@@ -896,7 +897,7 @@ class BusLabel(ElidedLine):
 
 
 class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
-                       HistoryNotifications, ComposerHost, WorkspaceHosted, QWidget,
+                       HistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
                        metaclass=PyQtWidgetMeta):
 
     @property
