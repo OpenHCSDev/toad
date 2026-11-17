@@ -47,13 +47,10 @@ class QtAgentActivity(QtCoreObserver, QWidget):
         self._attached = False
 
     def _read_turns(self):
-        """Read the agent's current TurnBinding; a disconnected session has an idle turn."""
-        binding = getattr(self._host, "agent_binding", None)
-        presentation = getattr(binding, "presentation", None)
-        if presentation is None:
-            from toad.conversation_turn import LocalTurnBinding
-            return LocalTurnBinding(None)  # idle default
-        return presentation.turns
+        """Read the agent's current TurnBinding; a disconnected session has an idle turn
+        because `NoAgentConnection.presentation` is a `LocalAgentPresentation` whose
+        `turns` is a `LocalTurnBinding(None)`."""
+        return self._host.agent_binding.presentation.turns
 
     @property
     def coordination(self):

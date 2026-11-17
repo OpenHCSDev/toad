@@ -327,6 +327,11 @@ class BusSubmissions(SubmissionOwner):
     """A view's pending local sends: each bus message queues behind the earlier ones and
     shows as submitting until the view draws it. An agent conversation adds its prompts."""
 
+    # ConversationSubmissions overrides this as a property that reads the agent's live
+    # queue state; bus-only submissions have no queue to project. Declaring None on the
+    # base means consumers (e.g. QtQueueUi) can read the attribute directly.
+    queue_evidence: ClassVar[object | None] = None
+
     def __init__(self, view: SubmissionView):
         self.view = view
         self.active: list[SubmissionExecution] = []

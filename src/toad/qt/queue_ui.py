@@ -97,14 +97,11 @@ class QtQueueInspection(QDialog):
         self.setWindowFlags(Qt.WindowType.Dialog)
         self.submissions = submissions
         self.renderer = renderer
-        # Base ``BusSubmissions`` doesn't expose ``queue_evidence``/``queue_source``
-        # yet — only the ``ConversationSubmissions`` subclass does. The dialog
-        # paints a stub until Qt views switch over, so the UI never crashes on a
-        # view whose submissions are still the base class.
-        self.source: QueueSource | None = getattr(
-            getattr(submissions, "view", None), "queue_source", None)
-        self.evidence: QueueEvidence | None = (
-            submissions.queue_evidence if hasattr(submissions, "queue_evidence") else None)
+        # BusSubmissions declares `view` (set in __init__) and `queue_evidence` (None by
+        # default on the base; set by ConversationSubmissions). The view declares
+        # `queue_source` (NoQueueSource() by default on each toolkit's view base).
+        self.source: QueueSource | None = submissions.view.queue_source
+        self.evidence: QueueEvidence | None = submissions.queue_evidence
         self.scope: QueueScope | None = (
             self.source.queue_scope(self.evidence)
             if self.source is not None and self.evidence is not None else None)
