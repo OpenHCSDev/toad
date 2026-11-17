@@ -1141,7 +1141,7 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
         self.app.status_line.show_status(text, StatusColorRole.SUCCESS)
 
     def flash_error(self, text: str) -> None:
-        self.app.show_error_notice(text, text, "Conversation")
+        self.app.show_error(text, "Conversation")
 
     def ask(self, options, title: str = "", get_content=None, callback=None):
         """Show an inline question with these options, mirroring Textual's Conversation.ask.

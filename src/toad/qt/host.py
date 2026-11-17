@@ -3,11 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-import socket
-import threading
 import traceback
-import urllib.error
-import urllib.request
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
 
@@ -22,28 +18,16 @@ from pyqt_reactive.theming import ColorScheme, StatusColorRole, ThemeManager
 from pyqt_reactive.widgets.status_line import StatusLine
 from ui_theme.scheme import ColourScheme
 
-from toad import paths
 from toad.client.commands import CommandRefused
-from toad.client.host import CommsHost
+from toad.client.host import CommsHost, Severity, post_crash_to_sink
 from toad.work_preparation import PreparationRuntime
 
 
-_CRASH_SINK_URL = "http://100.119.57.99:8766/crash"
-
-
-def post_crash_to_sink(saved_path, prefix: str, text: str) -> None:
-    """Dev-only: POST every saved error traceback to the laptop's crash sink over the tailnet.
-
-    Local branch (local/crash-sink-dev). Non-blocking, swallow every network error — if the
-    sink is unreachable the file on disk remains the record. Also used by android.py's
-    pre-paint crash handler, where a dying QMessageBox is the only other record."""
-    try:
-        header = f"prefix={prefix}\ntext={text}\nfile={saved_path}\n\n".encode()
-        body = header + saved_path.read_bytes()
-        request = urllib.request.Request(_CRASH_SINK_URL, data=body, method="POST")
-        urllib.request.urlopen(request, timeout=2)
-    except (OSError, socket.timeout, urllib.error.URLError, ValueError):
-        pass
+_SEVERITY_TO_STATUS_COLOR = {
+    "information": StatusColorRole.INFO,
+    "warning": StatusColorRole.WARNING,
+    "error": StatusColorRole.ERROR,
+}
 
 
 class ScreenWideWindow:
@@ -126,26 +110,16 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
 
     def report_fatal(self, error: Exception) -> None:
         traceback.print_exception(error)
-        self.show_error_notice(f"Toad: {type(error).__name__}: {error}", error, "Toad")
+        super().report_fatal(error)
 
-    def show_info(self, text: str, title: str) -> None:
-        self.status_line.show_status(f"{title}: {text}", StatusColorRole.INFO)
-
-    def show_warning(self, text: str, title: str) -> None:
-        self.status_line.show_status(f"{title}: {text}", StatusColorRole.WARNING)
-
-    def show_error(self, error: Exception | str, title: str) -> None:
-        self.show_error_notice(f"{title}: {error}", error, title)
-
-    def show_error_notice(self, text: str, error: Exception | str, prefix: str) -> None:
-        """Every error the status line shows is saved first, with its traceback, under a
-        timestamped name in Toad's state folder (paths.save_error), since the notice puts
-        itself away after notice_seconds."""
-        saved = paths.save_error(error, prefix)
-        self.status_line.show_status(text, StatusColorRole.ERROR)
-        threading.Thread(
-            target=post_crash_to_sink, args=(saved, prefix, text), daemon=True
-        ).start()
+    def notify(self, message: str, *, title: str = "",
+               severity: Severity = "information",
+               markup: bool = True, sound: str | None = None) -> None:
+        """Qt paints every notice on the status line, coloured by severity. The shared
+        `show_info`/`show_warning`/`show_error` on CommsHost dispatch here, and so does
+        anything calling `self.notify(...)` directly."""
+        text = f"{title}: {message}" if title else message
+        self.status_line.show_status(text, _SEVERITY_TO_STATUS_COLOR[severity])
 
     def log_error(self, text: str) -> None:
         qCritical(text)
