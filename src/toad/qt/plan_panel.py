@@ -21,9 +21,10 @@ from PySide6.QtWidgets import (QGraphicsOpacityEffect, QHBoxLayout, QLabel,
 
 from toad.core import events as core_events
 from toad.plan import PlanItem
+from toad.qt.session_panel import SessionPanel
 
 
-class QtPlan(QWidget):
+class QtPlan(SessionPanel, QWidget):
     spec_key: ClassVar[str] = "plan"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
@@ -35,20 +36,25 @@ class QtPlan(QWidget):
         self._column.setContentsMargins(8, 4, 8, 8)
         self._column.setSpacing(2)
         self._column.addStretch(1)
-        self._view = None
         self._subscription = None
         self._render()
 
     def bind(self, view) -> None:
         """Follow a new agent view: unsubscribe the old agent's Plan events and
         subscribe to future Plan updates on the new agent's event bus. Entries are
-        read fresh from `controller.plan_display` on each render — no local cache."""
+        read fresh from `controller.plan_display` on each render — no local cache.
+
+        `_view` + the `present()` trigger come from `SessionPanel.bind`; this
+        override wraps that with the subscription-cycle lifecycle."""
         self._drop_subscription()
-        self._view = view
+        super().bind(view)
         agent = view.bound_agent if view is not None else None
-        self._render()
         if agent is not None:
             self._subscription = agent.events.subscribe(core_events.Plan, self._on_plan)
+
+    def present(self) -> None:
+        """Repaint. Called by `SessionPanel.bind` and by `_on_plan`."""
+        self._render()
 
     def _on_plan(self, event: core_events.Plan, subscription: object) -> None:
         self._render()
