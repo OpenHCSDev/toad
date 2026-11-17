@@ -2105,6 +2105,17 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
     async def close_rendering(self) -> None:
         await self.preparation.aclose()
 
+    async def open_keymap_browser(self) -> None:
+        """Qt override of `ClientApplication.open_keymap_browser`. Opens the
+        shared-UX `QtKeymapScreen` modal; both frontends consume the same
+        `KeymapBrowserState` so the browser logic lives once in
+        `toad.client.keymap_browser`."""
+        from toad.keymap import KeyInvocationId
+        from toad.qt.keymap_screen import QtKeymapScreen
+        focused: frozenset[KeyInvocationId] = frozenset()
+        dialog = QtKeymapScreen(self, focused)
+        dialog.show()
+
     async def reveal_sidebar(self) -> bool:
         """The sidebar comes up over the conversation, as its bar would bring it."""
         self.show_sidebar()
