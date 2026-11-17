@@ -747,6 +747,36 @@ class QtChannelGroup(ChannelGroupRows):
             )
 
 
+class QtSidebarSearch(QWidget):
+    """Thin container that stacks the shared `SidebarFilter`'s input over the sidebar
+    tree. The `Sidebar` is a `QTreeWidget` so it cannot host a `QLineEdit` above
+    itself; wrapping gives the `SidebarPane` one widget to take as its content while
+    keeping the tree addressable as `app.sidebar`. The input writes directly through
+    `sidebar.filter.text`; the tree's `_on_filter_changed` subscriber re-presents.
+
+    Textual's `SideBar._compose_shell` stacks `SidebarSearch` over its own panels for
+    the same reason — one input, visible at the top of the pane, writes the shared
+    owner's text."""
+
+    def __init__(self, sidebar: "Sidebar", parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
+        self.sidebar = sidebar
+        self.search_input = QLineEdit(self)
+        self.search_input.setPlaceholderText("Search")
+        self.search_input.setClearButtonEnabled(True)
+        self.search_input.setText(sidebar.filter.text)
+        self.search_input.textChanged.connect(self._on_text_changed)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(4, 4, 4, 0)
+        layout.setSpacing(4)
+        layout.addWidget(self.search_input)
+        layout.addWidget(sidebar, 1)
+
+    def _on_text_changed(self, value: str) -> None:
+        self.sidebar.filter.text = value
+
+
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     @property
@@ -1397,10 +1427,15 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # controls live inside the pane, from the shared family. The channels sidebar is always
         # available; the thread's settings only while a tab is open.
         self.sidebar = Sidebar(self)
+        # The channel/thread tree is stacked under a QLineEdit search input that writes
+        # into the sidebar's shared `SidebarFilter`; the pane takes the wrapper as its
+        # content so the input is visible at the top of the pane, mirroring Textual's
+        # `SideBar._compose_shell` which also stacks `SidebarSearch` over its panels.
+        self.sidebar_search = QtSidebarSearch(self.sidebar, parent=self)
         self.thread_pane = ThreadSettingsPane(parent=self,
                                               project_path=self.project_dir.path)
         self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
-                                         self.sidebar, SidebarControlsOwner,
+                                         self.sidebar_search, SidebarControlsOwner,
                                          applied=self.rearrange_sidebars,
                                          parent=self)
         self.thread_settings = SidebarPane(self.sidebar_layout, ThreadSidebarPlacement,
