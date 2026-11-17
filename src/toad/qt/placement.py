@@ -34,7 +34,6 @@ from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea
 
 from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
-from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
 from toad.thread_identity import NoThreadIdentity
@@ -139,7 +138,6 @@ class ThreadSettingsPane(QWidget):
         column.setSpacing(4)
         self._category_filter = _CategoryFilter(self._content)
         self._coordination_status = QtCoordinationStatus(self._content)
-        self._comms_panel = QtThreadCommsPanel(self._content)
         self._plan_panel = QtPlan(self._content)
         self._section_bodies: dict[str, QWidget] = {}
         # The session view is the default; a conversation / DM tab trims the roster via
