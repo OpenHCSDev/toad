@@ -221,7 +221,7 @@ class ConversationRow(SidebarItem):
     @classmethod
     def thread(cls, name: str, thread) -> ConversationRow:
         row = cls(DirectTarget(name))
-        row.draw(thread.unread.badge, thread.label, thread.summary, thread.title)
+        row.draw(thread.unread.badge, thread.label, thread.summary, thread.tooltip())
         return row
 
     def activate(self, window: QtToadApp) -> None:
