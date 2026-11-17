@@ -312,6 +312,14 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def get_loading_widget(self) -> Widget:
         return ToadLoadingIndicator()
 
+    def make_opening_view(self, request, origin, identity):
+        """Textual's thread-navigation opening view: a `MainScreen` in opening state.
+        Imported here (not at module top, not from `ThreadOpening`) so Qt's
+        `ThreadOpening.__init__` never has to reach `toad.screens.main` and the
+        Textual-widget pyramid it imports (textual_colours, watchdog, ...)."""
+        from toad.screens.main import MainScreen
+        return MainScreen.opening(request, origin, self)
+
     def _handle_exception(self, error: Exception) -> bool:
         """The mounted application owns escaped handler and worker errors."""
         if not self.screen_stack or not self.screen.is_mounted:

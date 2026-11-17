@@ -2027,6 +2027,14 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         """The open tabs changed: the bar draws them again."""
         self.paint_tabs()
 
+    def make_opening_view(self, request, origin, identity):
+        """Qt's thread-navigation opening placeholder: a `QtOpeningSessionView` (not
+        Textual's `MainScreen.opening(...)`). Lazy-import `QtOpeningSessionView` to
+        keep `toad.qt.window` import-light at module load. Textual's override lives at
+        `src/toad/app.ToadApp.make_opening_view`."""
+        from toad.qt.opening_view import QtOpeningSessionView
+        return QtOpeningSessionView(request.target)
+
     def visit_index(self, index: int) -> None:
         self.switch(self.session_navigation.tabs[index].mode_name, self.tab_order.record_visit)
 

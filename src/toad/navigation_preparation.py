@@ -189,12 +189,16 @@ class ThreadOpening:
         origin: ThreadOrigin,
         identity: SessionTabIdentity,
     ) -> None:
-        from toad.screens.main import MainScreen
-
         self.navigator, self.owner_mode = navigator, owner_mode
         self.request, self.origin = request, origin
         self.identity = identity
-        self.view = MainScreen.opening(request, origin, navigator.app)
+        # Polymorphic opening-view factory on `NavigationHost`. Textual returns
+        # `MainScreen.opening(...)`; Qt returns `QtOpeningSessionView(...)`.
+        # Removing the direct `from toad.screens.main import MainScreen` lazy
+        # import cuts Qt free of the entire Textual-widget pyramid
+        # (session_presentation → widgets.conversation → widgets.prompt →
+        # widgets.inline_message → textual_colours → watchdog/ncurses/pathspec).
+        self.view = navigator.app.make_opening_view(request, origin, identity)
         self.task = asyncio.create_task(self.run(), name="thread-navigation")
 
     @property
