@@ -1,22 +1,25 @@
-"""Render-sized transcript fragments; wire records and cursors remain model-owned."""
+"""Textual-flavored transcript fragments: the canonical neutral family in
+`toad.client.transcript_fragments` plus Textual's row acquisition, cursor-rest behavior,
+and the Consumer that builds Textual subclasses from a transcript event stream. Qt siblings
+of the same canonical family live in `toad.qt.history`; both backends import the authority
+from `client/`, this module adds only what Textual needs on top.
+"""
+
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from functools import cached_property, partial
 from typing import TYPE_CHECKING
 
 from agent_comms.messaging.sent_message import PublishedSentMessage
-from agent_comms.nominal.field_codec import ToolCallId
-from agent_comms.storage.recorded_time import EventTime
 from agent_comms.transcript.transcript_events import (
-    AgentTextTranscript,
     ContextTranscript,
     IncomingTranscript,
     MarkdownTranscript,
     SentTranscript,
     TextTranscript,
-    ThinkingTranscript,
     ToolTranscript,
     TranscriptEvent,
     UserTranscript,
@@ -25,25 +28,27 @@ from agent_comms.ui_model.message_category import AgentActivityBoundary
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.status import ToolCallStatus
-from toad.commit_claims import CommitClaim
-from toad.core.projection import MroProjection
-from toad.client.line_blocks import (
-    AgentRole,
-    Body,
-    Divider,
-    LineBlock,
-    LineRole,
-    MarkdownMessageBody,
-    MessageBody,
-    MutedRole,
-    UserRole,
+from toad.client.fragments import (
+    CursorRest,
+    PartPosition,
+    Shown,
 )
+from toad.client.line_blocks import LineBlock
+from toad.client.transcript_fragments import (
+    BusMessageFragment as _BusMessageFragment,
+    ContextTranscriptFragment as _ContextTranscriptFragment,
+    FragmentLineConsumer,
+    RenderBudget,
+    SentMessageFragment as _SentMessageFragment,
+    ToolTranscriptFragment as _ToolTranscriptFragment,
+    TranscriptFragment as _TranscriptFragment,
+)
+from toad.core.projection import MroProjection
 from toad.markdown_preparation import PreparedMarkdownPart
-from toad.menus import MenuCommand, message_menu
+from toad.menus import MenuCommand
 from toad.message_rows import MessageRow
 from toad.render_backend import ReusableRenderTask
-from toad.tool_output import SentMessageToolOutputPart, ToolOutput, ToolOutputPart
-from toad.widgets.agent_activity import AgentActivityPresentation
+from toad.tool_output import ToolOutput, ToolOutputPart
 from toad.widgets.presentation_window import UNPLACED, Unplaced
 from toad.widgets.transcript_lines import (
     AcquiredRows,
@@ -56,158 +61,13 @@ from toad.widgets.transcript_lines import (
     link_place,
 )
 
-from toad.client.fragments import (
-    BusMessageHistoryFragment,
-    CursorRest,
-    HistoryFragment,
-    PartPosition,
-    Shown,
-)
-
 
 if TYPE_CHECKING:
-
     from textual.widget import Widget
 
     from toad.block_navigation import FragmentBlockCursor
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LaidOut, LineHistory, RowChange
-
-
-@dataclass(frozen=True)
-class RenderBudget:
-    characters: int = 800
-    lines: int = 12
-
-    def fits(self, text: str) -> bool:
-        return len(text) <= self.characters and len(text.splitlines()) <= self.lines
-
-    def _split_table(self, part: PreparedMarkdownPart) -> Iterator[PreparedMarkdownPart]:
-        """Page a large GFM table by rows, repeating its required header."""
-        lines = part.text.splitlines(keepends=True)
-        if len(lines) <= 2:
-            yield part
-            return
-        header = "".join(lines[:2])
-        first = 2
-        row_characters = 0
-        row_limit = max(1, self.lines - 2)
-        character_limit = max(self.characters, len(header) + 1)
-        table = part.tokens[0]
-        assert table.map is not None
-        ranges = []
-        for index, row in enumerate(lines[2 : table.map[1]], 2):
-            if index > first and (
-                index - first >= row_limit or len(header) + row_characters + len(row) > character_limit
-            ):
-                ranges.append((first, index))
-                first = index
-                row_characters = 0
-            row_characters += len(row)
-        if first < len(lines):
-            ranges.append((first, len(lines)))
-        yield from part.select_table_rows(ranges)
-
-    def split(self, source: PreparedMarkdownPart) -> Iterator[PreparedMarkdownPart]:
-        text = source.text
-        if not text:
-            return
-        if self.fits(text):
-            yield source
-            return
-        lines = text.splitlines(keepends=True)
-        offsets = [0]
-        for line in lines:
-            offsets.append(offsets[-1] + len(line))
-
-        # Separate widgets always introduce a visual row boundary. Split only
-        # between top-level Markdown blocks so rendering never invents a line
-        # break at an arbitrary provider-chunk or character boundary.
-        # Top-level blocks by their first line: markdown-it's own token map, read once.
-        top_level = [(token.map[0], index, token.type) for index, token in enumerate(source.tokens)
-                     if token.level == 0 and token.map is not None]
-        token_at = {0: 0, len(lines): len(source.tokens)} | {line: index for line, index, _ in top_level}
-        tables = {line for line, _, kind in top_level if kind == "table_open"}
-        starts = sorted({0, *token_at, len(lines)})
-        parts = [(start, stop, token_at[start], token_at[stop], start in tables)
-                 for start, stop in zip(starts, starts[1:])]
-        pending_first = 0
-        pending_stop = 0
-        pending_token_first = 0
-        pending_token_stop = 0
-        pending_characters = 0
-        pending_lines = 0
-
-        def select(first: int, stop: int, token_first: int, token_stop: int):
-            return source.select_blocks(text[offsets[first] : offsets[stop]], first, slice(token_first, token_stop))
-
-        for start, stop, token_first, token_stop, is_table in parts:
-            part = text[offsets[start] : offsets[stop]]
-            if is_table and (len(part) > self.characters or part.count("\n") > self.lines):
-                if pending_characters:
-                    yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
-                    pending_characters = 0
-                    pending_lines = 0
-                yield from self._split_table(select(start, stop, token_first, token_stop))
-                continue
-            part_lines = part.count("\n") + int(bool(part) and not part.endswith("\n"))
-            exceeds = pending_characters and (
-                pending_characters + len(part) > self.characters or pending_lines + part_lines > self.lines
-            )
-            if exceeds:
-                yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
-                pending_characters = 0
-                pending_lines = 0
-            if not pending_characters:
-                pending_first = start
-                pending_token_first = token_first
-            pending_stop = stop
-            pending_token_stop = token_stop
-            pending_characters += len(part)
-            pending_lines += part_lines
-        if pending_characters:
-            yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
-
-
-class FragmentLineConsumer(MroProjection[None]):
-    """Turn a fragment's events into line blocks, one handler per event family."""
-
-    def __init__(self, *, part: PartPosition) -> None:
-        self.part = part
-        self.blocks: list[LineBlock] = []
-        self.header: tuple[Divider, ...] = ()
-        # The blocks up to and including a drawn header; a later part draws none.
-        self.header_end = 0
-
-    def divider(self, label: str, timestamp: float, role: type[LineRole]) -> None:
-        """The first event's divider is the fragment's message header, drawn or not."""
-        divider = Divider.titled(label, role, EventTime.capture(timestamp))
-        self.header = self.header or (divider,)
-        self.part.draw_divider(self, divider)
-
-    @handles(TranscriptEvent)
-    def other(self, event: TranscriptEvent) -> None:
-        """Events without visible text in committed history draw nothing."""
-
-    @handles(UserTranscript)
-    def user(self, event: UserTranscript) -> None:
-        self.divider("User", event.timestamp, UserRole)
-        self.blocks += MessageBody(event.text, bar=UserRole).presentation()
-
-    @handles(AgentTextTranscript)
-    def agent(self, event: AgentTextTranscript) -> None:
-        self.divider("Agent", event.timestamp, AgentRole)
-        self.blocks += MarkdownMessageBody(event.text).presentation()
-
-    @handles(SentTranscript)
-    def sent_report(self, event: SentTranscript) -> None:
-
-        self.blocks.extend(SentMessageToolOutputPart.capture(event).line_blocks)
-
-    @handles(ThinkingTranscript)
-    def thinking(self, event: ThinkingTranscript) -> None:
-        if event.text.strip():
-            self.blocks += AgentActivityPresentation.thinking(event.text)
 
 
 class TextualCursorRest(CursorRest):
@@ -240,45 +100,18 @@ NO_REST = TextualCursorRest()
 
 
 @dataclass
-class TranscriptFragment(HistoryFragment, TextualCursorRest):
-    """A history fragment drawn by Textual: its rows at a width, and the block cursor's effects."""
+class TranscriptFragment(_TranscriptFragment, TextualCursorRest):
+    """A history fragment drawn by Textual: the canonical blocks derivation plus the row
+    acquisition and cursor-rest behavior Textual's draw path needs. Qt's sibling uses the
+    canonical class directly; this subclass exists only for what Textual adds."""
 
     _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
 
     _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
 
-    @classmethod
-    def text_parts(cls, source: PreparedMarkdownPart, budget: RenderBudget):
-        return tuple(budget.split(source))
-
     def text_rows(self, lines: Lines) -> range:
         """The fragment's content occupies its drawn rows unless it owns a header."""
         return range(lines.height)
-
-    def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
-        """The header to pin over the window's top row, which is `row` of block `block`: a user
-        or agent message pins its divider once the divider's first row is above the top row,
-        and a later part, which draws none, always pins it."""
-        consumed = self.consumed
-        return consumed.header if (block, row) > (consumed.header_end - 1, 0) else ()
-
-    @cached_property
-    def consumed(self) -> FragmentLineConsumer:
-        """This fragment's events projected once; the blocks do not depend on how it is shown."""
-        consumer = FragmentLineConsumer(part=self.part_position)
-        if self.starts_agent_activity:
-            consumer.blocks.extend(AgentActivityPresentation.group)
-        for event in self.events:
-            consumer.project_value(event)
-        return consumer
-
-    def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
-        """What this fragment draws in committed history when shown so, one block per visual part.
-
-        A later part of a message has no divider. The blocks do
-        not depend on the width: each width's lines are built from them.
-        """
-        return tuple(self.consumed.blocks)
 
     def request_show(self, shown: Shown) -> bool:
         """Record intent and retire old acquisitions; the page retains its painted layout."""
@@ -290,11 +123,6 @@ class TranscriptFragment(HistoryFragment, TextualCursorRest):
         self._plain = self._lines.standing_in_for(self._plain)
         self.invalidate_lines()
         return True
-
-    @property
-    def block_menu(self) -> tuple[MenuCommand, ...]:
-        """What the cursor's menu offers on this fragment, besides copying."""
-        return ()
 
     def drawn_in(self, history: LineHistory) -> CursorRest:
         return self if history.draws_fragment(self) else NO_REST
@@ -314,7 +142,6 @@ class TranscriptFragment(HistoryFragment, TextualCursorRest):
     @cached_property
     def link_place(self) -> int:
         """What tells this fragment's drawn links apart from equal links in other fragments."""
-
         return link_place()
 
     def lines_for(self, width: int, theme: LineTheme) -> BlockLines:
@@ -322,10 +149,7 @@ class TranscriptFragment(HistoryFragment, TextualCursorRest):
         return self._lines.for_view(width, theme)
 
     def retains_lines(self, lines: BlockLines, theme: LineTheme) -> bool:
-        """Whether measured rows still belong to this source and palette.
-
-        RowAcquisition.for_view owns wrapping those rows at the layout width.
-        """
+        """Whether measured rows still belong to this source and palette."""
         return self._lines.retains(lines, theme) or self._plain.retains(lines, theme)
 
     def invalidate_lines(self) -> None:
@@ -343,11 +167,7 @@ class TranscriptFragment(HistoryFragment, TextualCursorRest):
         return False
 
     def stand_in_lines(self, width: int, theme: LineTheme) -> BlockLines:
-        """The styled rows drawn before a status change, rewrapped, until its new rows arrive.
-
-        A fragment never styled has none (NoStyledLines): its height is its styled
-        rows', so the page styles it before measuring rather than stating a plain height.
-        """
+        """The styled rows drawn before a status change, rewrapped, until its new rows arrive."""
         return self._plain.for_view(width, theme)
 
     @property
@@ -357,76 +177,22 @@ class TranscriptFragment(HistoryFragment, TextualCursorRest):
 
 
 @dataclass(kw_only=True)
-class ToolTranscriptFragment(TranscriptFragment):
-    """One tool call with everything it reported: a title line, and its output when opened."""
-
-    events: tuple[ToolTranscript, ...] = field(kw_only=False)
-    tool_call: ToolCallStatus
-    output_parts: tuple[ToolOutputPart, ...]
-
-    @property
-    def source_identity(self) -> ToolCallId:
-        return self.events[0].tool_call_id
-
-    @property
-    def has_details(self) -> bool:
-        # A multiline title needs disclosure even before output arrives.
-        return AgentActivityPresentation.tool_has_details(
-            self.tool_call, any(part.has_details for part in self.output_parts)
-        )
-
-    def blocks(self, shown: Shown):
-        return AgentActivityPresentation.tool(
-            self.tool_call,
-            has_details=self.has_details,
-            details_open=shown.details_open,
-            details=(block for part in self.output_parts for block in part.line_blocks),
-            details_link=self.details_link,
-        )
+class ToolTranscriptFragment(_ToolTranscriptFragment, TranscriptFragment):
+    """One tool call drawn by Textual: the canonical tool blocks derivation plus row acquisition."""
 
 
 @dataclass(kw_only=True)
-class BusMessageFragment(BusMessageHistoryFragment, TranscriptFragment):
-    """A bus message drawn by Textual: its menu, its pinned header and how its text splits."""
-
-    @classmethod
-    def text_parts(cls, source: PreparedMarkdownPart, budget: RenderBudget):
-        # Even an empty bus message owns its header and notification footer.
-        return super().text_parts(source, budget) or (source,)
-
-    @property
-    def block_menu(self):
-        return message_menu(self.row)
-
-    def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
-        """Every part of a message pins its header once the header's first row is above the top
-        row, which is `row` of block `block`; a later part draws no header, so it always
-        pins it."""
-        return (self.row.header,) if (block, row) > (len(self.leading) - 1, 0) else ()
+class BusMessageFragment(_BusMessageFragment, TranscriptFragment):
+    """A bus message drawn by Textual."""
 
 
 @dataclass(kw_only=True)
-class SentMessageFragment(BusMessageFragment):
-    publication: PublishedSentMessage
-
-    @property
-    def outgoing_sources(self):
-        return self.part_position.outgoing_sources(self.publication)
-
-    def shown_live_by(self, claim: CommitClaim) -> bool:
-        return claim.repeats_sent(self.publication.reference)
+class SentMessageFragment(_SentMessageFragment, BusMessageFragment):
+    """A sent bus message drawn by Textual."""
 
 
-class ContextTranscriptFragment(TranscriptFragment):
-    """The coordination context an agent was given: one line, and its text when opened."""
-
-    has_details = True
-
-    def blocks(self, shown):
-        summary = shown.summary("Agent coordination context", MutedRole, self.details_link)
-        if not shown.details_open:
-            return (summary,)
-        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole) for event in self.events))
+class ContextTranscriptFragment(_ContextTranscriptFragment, TranscriptFragment):
+    """The coordination context an agent was given, drawn by Textual."""
 
 
 type ResolvedSent = Mapping[SentTranscript, SentTranscript | PublishedSentMessage]
@@ -474,11 +240,7 @@ class SentSlot(BuiltSlot):
 
 @dataclass(frozen=True)
 class TextSlot(FragmentSlot):
-    """A text event, parsed and split only when its fragments are asked for.
-
-    Reading events stays cheap whatever their length, so a draft that is read again on every
-    streamed chunk can leave the parse to the worker that styles it.
-    """
+    """A text event, parsed and split only when its fragments are asked for."""
 
     event: TextTranscript
     kind: type[TranscriptFragment]
@@ -528,6 +290,9 @@ class ToolSlot(FragmentSlot):
 
 
 class TranscriptFragmentConsumer(MroProjection[None]):
+    """Build the Textual-flavored family from a stream of transcript events. Qt builds its own
+    siblings from `toad.client.transcript_fragments` through a sibling consumer."""
+
     def __init__(self) -> None:
         self.slots: list[FragmentSlot] = []
         self.tools: dict[str, ToolSlot] = {}
