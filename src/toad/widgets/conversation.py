@@ -619,6 +619,15 @@ class ConversationSessionBinding(
         self.agent_binding = agent
         agent.attach_view(self)
 
+    @property
+    def bound_agent(self) -> AgentConnection | None:
+        """The live agent on this conversation: the reactive `agent_binding` when it is
+        a real connection, else None. Mirrors `AgentBoundConversation.bound_agent` so
+        toolkit-neutral consumers can read a declared attribute instead of probing with
+        `getattr(view, "bound_agent", None)`."""
+        binding = self.agent_binding
+        return None if isinstance(binding, NoAgentConnection) else binding
+
     def apply_bound_agent(self, agent: AgentBase) -> None:
         self._update_model_info()
         self.thread_status = agent.context_measurement.status()

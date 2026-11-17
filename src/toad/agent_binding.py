@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 )
     from agent_comms.nominal.field_codec import GoalId
     from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
+    from toad.acp.agent_controller import AgentController
 
     from toad.conversation_submission import (
         AgentInputSubmission,
@@ -52,6 +53,11 @@ class AgentConnection(GoalSource):
     ready: bool
     session_disposition: SessionDisposition
     automatic_titles = True
+    controller: "AgentController | None" = None
+    """The ACP controller, when this connection is to a live ACP agent. Unbound
+    connections (NoAgentConnection) and non-ACP backends leave the default None, so
+    consumers like QtPlan can read `agent.controller` as a declared attribute instead
+    of probing via `getattr(agent, "controller", None)`."""
 
     @property
     def readiness_refusal(self) -> NoLiveAgent:
