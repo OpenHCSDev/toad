@@ -20,11 +20,12 @@ from agent_comms.messaging.sent_message import (
     OutgoingMessageReference,
     PublishedSentMessage,
 )
-from agent_comms.transcript.transcript_events import TranscriptCoverage, TranscriptEvent
+from agent_comms.transcript.transcript_events import TranscriptEvent
 
 from toad.client.history_coverage import CoveredHistory, HistoryCoverage
 from toad.client.prepared_pages import PreparedPageSource
 from toad.commit_claims import CommitClaim, SnapshotPresentation
+from toad.core.source_events import TranscriptCoverage
 
 if TYPE_CHECKING:
     from toad.forms.presentation import EntryPlacement
