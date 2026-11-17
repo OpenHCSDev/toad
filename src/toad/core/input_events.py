@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from toad.core.events import CoreEvent
-from toad.goal_interaction import GoalInteraction
+from toad.goal_controls import GoalInteraction
 from toad.input_history import InputHistory
 
 

@@ -1,63 +1,54 @@
-"""Original goal interaction members with normal dialog dependencies."""
+"""The goal buttons: History, Expand/Collapse, Pause/Resume, Edit and Clear.
+
+Each acts only through the GoalControlsSession, so the Textual and Qt goal bars run the same
+buttons. The session owns how History and Edit are shown and how the document collapses.
+"""
 
 from __future__ import annotations
 
-from agent_comms.errors import GoalRefused
 from agent_comms.planning.goal_actions import ClearGoalAction
-from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalExecutionControls
-from toad.screens.goal_details import GoalDetails
-from toad.screens.goal_edit import GoalEdit
-from toad.widgets.goal_text import goal_mention_candidates
 
-from toad.goal_interaction import GoalInteraction
-from toad.goal_interaction import GoalSession
+from toad.goal_controls import GoalControlsSession, GoalInteraction
 
 
 class HistoryInteraction(GoalInteraction):
     label = "History"
 
     @classmethod
-    async def apply(cls, session: GoalSession) -> None:
-        view = session.view
-        goal, agent = view.goal_display.snapshot.require(), view.agent_binding
-        history: RecordedGoalHistory = await agent.get_goal_history(goal.id)
-        if not session.owns(agent):
-            return
-        details = GoalDetails(session, history=history)
-        session.present(details)
+    async def apply(cls, session: GoalControlsSession) -> None:
+        await session.open_history()
 
 
 class CollapseInteraction(GoalInteraction):
     label = "Collapse"
 
     @classmethod
-    def enabled(cls, session):
+    def enabled(cls, session: GoalControlsSession) -> bool:
         return True
 
     @classmethod
-    def caption(cls, session, collapsed):
+    def caption(cls, session: GoalControlsSession, collapsed: bool) -> str:
         return "Expand" if collapsed else cls.label
 
     @classmethod
-    async def apply(cls, session):
-        bar = session.view.goal_bar
-        bar.collapsed = not bar.collapsed
+    async def apply(cls, session: GoalControlsSession) -> None:
+        session.toggle_collapsed()
 
 
 class ToggleInteraction(GoalInteraction):
     label = GoalExecutionControls.toggle_label
 
     @classmethod
-    def visible(cls, session: GoalSession) -> bool:
+    def visible(cls, session: GoalControlsSession) -> bool:
         return super().enabled(session) and session.execution.can_toggle()
 
     @classmethod
-    def caption(cls, session: GoalSession, collapsed: bool) -> str:
+    def caption(cls, session: GoalControlsSession, collapsed: bool) -> str:
         return session.execution.toggle_label if cls.visible(session) else cls.label
 
     @classmethod
-    async def apply(cls, session: GoalSession) -> None:
+    async def apply(cls, session: GoalControlsSession) -> None:
         await session.execution.apply_toggle(session.change, session.unavailable)
 
 
@@ -65,24 +56,13 @@ class EditInteraction(GoalInteraction):
     label = "Edit"
 
     @classmethod
-    async def apply(cls, session: GoalSession) -> None:
-        view = session.view
-        goal = view.goal_display.snapshot.require()
-        agent = view.agent_binding
-
-        async def save(text: str) -> None:
-            if not session.owns(agent):
-                raise GoalRefused("The goal presentation changed; reopen its editor.")
-            await session.write(agent, agent.edit_goal(goal, text))
-
-        observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
-        session.present(GoalEdit(
-            goal, goal_mention_candidates(observed), project=view.project_path, on_save=save))
+    async def apply(cls, session: GoalControlsSession) -> None:
+        await session.open_edit()
 
 
 class ClearInteraction(GoalInteraction):
     label = "Clear"
 
     @classmethod
-    async def apply(cls, session):
+    async def apply(cls, session: GoalControlsSession) -> None:
         await session.change(ClearGoalAction)

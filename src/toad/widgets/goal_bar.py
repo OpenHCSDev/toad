@@ -19,7 +19,7 @@ from ui_theme.effects import STANDBY_PULSE, Mix
 from ui_theme.scheme import ForegroundColour, SecondaryColour
 from textual.widgets import Static
 
-from toad.goal_interaction import GoalInteraction
+from toad.goal_controls import GoalBarOwner, GoalInteraction, GoalInteractionControl
 from toad.goal_view import GoalCollapse
 from toad.widgets.prompt import DeliveryControls
 from toad.core.input_events import GoalControlActivated
@@ -52,14 +52,24 @@ class GoalControl(
     Activates,
     InlineSelection,
     CoreEventReceiver,
+    GoalInteractionControl,
     Static,
     can_focus=True,
 ):
-
+    """One goal button; the Textual GoalControl the GoalInteraction family presents."""
 
     def __init__(self, interaction: type[GoalInteraction]):
         super().__init__(interaction.label)
         self.interaction = interaction
+
+    def set_shown(self, shown: bool) -> None:
+        self.display = shown
+
+    def set_label(self, label: str) -> None:
+        self.update(label)
+
+    def set_enabled(self, enabled: bool) -> None:
+        self.disabled = not enabled
 
     def activate(self):
         if not self.disabled:
@@ -131,7 +141,7 @@ class GrabbedGoalEdge(GoalEdge):
     )
 
 
-class GoalBar(GoalCollapse, ComposedWhenShown, SidePadding, VerticalGroup):
+class GoalBar(GoalBarOwner, GoalCollapse, ComposedWhenShown, SidePadding, VerticalGroup):
     collapsed: var[bool] = var(False)
     edge = ThemeState(GoalEdge)
     _separator_update_pending = False
@@ -153,7 +163,7 @@ class GoalBar(GoalCollapse, ComposedWhenShown, SidePadding, VerticalGroup):
         self.progress: GoalText = GoalProgress()
         self.document: VerticalScroll = GoalDocument(self.summary, self.progress)
         self.actions: tuple[GoalControl, ...] = tuple(
-            GoalControl(action) for action in GoalInteraction.members_with(GoalInteraction)
+            GoalControl(action) for action in self.goal_interactions()
         )
         self.controls: HorizontalGroup = GoalControls(*self.actions)
 
@@ -205,42 +215,44 @@ class GoalBar(GoalCollapse, ComposedWhenShown, SidePadding, VerticalGroup):
 
     def watch_goal_display(self) -> None:
         """The goal's own text is parsed here only: an execution or collapse change never re-reads it."""
-        goal = self.goal_display.snapshot
-        self.show(self.goal_display.visible)
+        self.present_goal_document(self.goal_display)
         if not self.goal_display.visible:
             self._end_resize()
-        if self.is_attached:
-            self.summary.update_goal_text(f"Objective: {goal.objective}")
-            self.progress.update_goal_text(f"Progress: {goal.progress}")
-            self.progress.display = goal.shows_progress
         self._show_state()
 
     def watch_execution(self) -> None:
         self._show_state()
 
     def _show_state(self) -> None:
-        """What depends on the goal, its execution and the collapse together; the goal's text does not."""
         if not self.is_attached:
             return
-        state = self.goal_display
-        goal = state.snapshot
-        execution = self.execution
-        self.header.update(state.heading(execution))
-        session = self._source().goal_controls
-        for control in self.actions:
-            action = control.interaction
-            control.disabled = not action.enabled(session)
-            control.display = action.visible(session)
-            control.update(action.caption(session, self.collapsed))
-        self.document.display = goal.shows_document and not self.collapsed
-        standby = state.standby(execution)
-        self.execution_row.display = standby and not self.collapsed
-        self.pulse.active = standby and not self.collapsed
-        self.execution_text.display = standby
-        if standby:
-            self.execution_text.update_goal_text(execution.presentation("").summary)
+        self.present_goal_state(self._source().goal_controls, self.collapsed)
         self._update_control_layout()
         self.call_after_refresh(self.update_document_height)
+
+    # GoalBarOwner's drawing hooks
+
+    def show_goal(self, visible: bool) -> None:
+        self.show(visible)
+
+    def show_goal_text(self, objective: str, progress: str, shows_progress: bool) -> None:
+        if self.is_attached:
+            self.summary.update_goal_text(objective)
+            self.progress.update_goal_text(progress)
+            self.progress.display = shows_progress
+
+    def show_heading(self, heading: str) -> None:
+        self.header.update(heading)
+
+    def show_document(self, shown: bool) -> None:
+        self.document.display = shown
+
+    def show_standby(self, shown: bool) -> None:
+        self.execution_row.display = shown
+        self.pulse.active = shown
+
+    def show_execution_text(self, text: str) -> None:
+        self.execution_text.update_goal_text(text)
 
     @on(events.Resize)
     def on_resize(self) -> None:

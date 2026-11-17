@@ -7,7 +7,8 @@ from typing import get_origin, get_type_hints
 
 importlib.import_module(sys.argv[1])
 
-from toad.goal_interaction import GoalInteraction, GoalSession
+from toad.goal_controls import GoalInteraction
+from toad.goal_interaction import GoalSession
 from toad.goal_view import GoalCollapse, GoalView
 from toad.widgets.conversation import Conversation
 from toad.widgets.goal_bar import GoalBar

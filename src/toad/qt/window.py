@@ -94,6 +94,7 @@ from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
 from toad.qt.lines import QtLineRenderer
+from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import SidebarLayout
@@ -780,7 +781,10 @@ class ConversationView(Page, StatusOwner, SessionScope, SubmissionView, WireView
     def compose_channel_activity(self) -> Iterator[ChannelActivity]:
         yield ChannelActivity(self.app, self.app.renderer, self.conversation)
 
-    def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator[PeerActivity]:
+    def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator[QtGoalBar | PeerActivity]:
+        # The peer's goal sits over its activity and the composer, as the TUI's goal bar
+        # sits over its prompt.
+        yield QtGoalBar(self.app, self.app.renderer, peer)
         self.thread_activity = PeerActivity(self.app, self.app.renderer, peer)
         yield self.thread_activity
 
