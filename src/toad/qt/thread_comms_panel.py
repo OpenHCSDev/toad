@@ -59,16 +59,23 @@ class QtRelationshipSort(QToolButton):
             self._menu.addAction(action)
         self._panel: QtThreadCommsPanel | None = None
         self._groups: tuple[SortableRelationshipGroup, ...] = ()
-        self._current_order: type[ThreadSort] | None = None
 
     def bind(self, panel: QtThreadCommsPanel) -> None:
         self._panel = panel
 
+    @property
+    def current_order(self) -> type[ThreadSort] | None:
+        """Derived from `_groups` the same way Textual's `RelationshipSort.update_groups`
+        computes it (`widgets/thread_comms.py:87-88`): one order iff every group agrees.
+        Not cached — `_groups` is the single owner; a cached copy would be the second
+        state we spent the whole session fighting."""
+        orders = {group.order for group in self._groups}
+        return next(iter(orders)) if len(orders) == 1 else None
+
     def update_groups(self, groups: tuple[SortableRelationshipGroup, ...]) -> None:
         self._groups = groups
-        orders = {group.order for group in groups}
-        self._current_order = next(iter(orders)) if len(orders) == 1 else None
-        self.setText(f"Sort: {self._current_order.title}" if self._current_order else "Sort")
+        order = self.current_order
+        self.setText(f"Sort: {order.title}" if order else "Sort")
 
     def _picked(self, order: type[ThreadSort]) -> None:
         panel = self._panel
