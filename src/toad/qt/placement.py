@@ -42,7 +42,7 @@ from toad.qt.project_panel import QtProjectPanel
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
-from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import (
     THREAD_SIDEBAR_PANELS, ThreadSidebarPanelSpec, panel_specs_for_view,
 )
@@ -210,8 +210,7 @@ class ThreadSettingsPane(QWidget):
         filter, coordination status, comms panel, plan panel and context explorer do so;
         the Project panel port is the only one still pending this hook."""
         self._category_filter.bind(view)
-        identity = getattr(view, "thread_identity", None) or NoThreadIdentity()
-        self._coordination_status.apply(identity)
+        self._coordination_status.apply(view.thread_identity)
         self._comms_panel.bind(view)
         self._plan_panel.bind(view)
         self._context_panel.bind(view)
