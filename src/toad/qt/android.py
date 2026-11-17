@@ -16,6 +16,7 @@ import ctypes
 import gc
 import os
 import sys
+import threading
 import time
 import traceback
 
@@ -26,9 +27,11 @@ from agent_comms.transport.connector_store import ConnectorStore
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QApplication, QMessageBox
 
+from toad import paths
 from toad.client.bus_selection import BusChoice
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.android_app import APP
+from toad.qt.host import post_crash_to_sink
 from toad.qt.main import current_scheme, serve
 
 BUNDLED_PROFILE = APP / "profile.json"
@@ -114,7 +117,30 @@ class SuspendedMemory:
         self.libc.mallopt(self.M_PURGE, 0)
 
 
+def _install_excepthook() -> None:
+    """Belt and suspenders beside the except BaseException clause below: a Qt slot that
+    raises on Android bypasses the asyncio loop's except, and sys.__excepthook__ prints to
+    stderr that nothing reads. This hook also saves and posts every uncaught exception,
+    so the traceback leaves the device even when the crash is a direct Qt kill."""
+    previous = sys.excepthook
+
+    def hook(kind: type[BaseException], value: BaseException, tb) -> None:
+        try:
+            saved_path = paths.save_error(value, "android_uncaught")
+            threading.Thread(
+                target=post_crash_to_sink,
+                args=(saved_path, "android_uncaught", f"Toad uncaught: {kind.__name__}"),
+                daemon=True,
+            ).start()
+        except BaseException:  # the hook must not raise, or Python's default handler aborts
+            pass
+        previous(kind, value, tb)
+
+    sys.excepthook = hook
+
+
 def main() -> None:
+    _install_excepthook()
     application = QApplication(sys.argv[:1])
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
@@ -126,6 +152,16 @@ def main() -> None:
         session.ended(f"failed {type(failure).__name__}")
         report = traceback.format_exc()
         print(report, file=sys.stderr, flush=True)
+        # The APK has no adb on this phone, so the traceback has to leave the device: save
+        # it to the state folder and POST it to the dev crash sink on the tailnet. Daemon
+        # thread so the modal is not blocked when the network is slow. The modal also stays
+        # open while this runs, since the sink POST can take a couple of seconds.
+        saved_path = paths.save_error(failure, "android_startup")
+        threading.Thread(
+            target=post_crash_to_sink,
+            args=(saved_path, "android_startup", f"Toad startup crash: {type(failure).__name__}"),
+            daemon=True,
+        ).start()
         QMessageBox(QMessageBox.Icon.Critical, "Toad could not start", report[-3000:]).exec()
         raise
     session.ended("closed")
