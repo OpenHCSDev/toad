@@ -28,7 +28,7 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.theming import StatusColorRole
@@ -166,13 +166,20 @@ class QtAcpSessionView(
         info.setContentsMargins(6, 4, 6, 4)
         info.addWidget(self.identity_line, 1)
         # Composer: the same shape ``ConversationView`` uses for bus DMs, pointed at this
-        # host so ``submit`` ends up calling ``self.submit`` with the typed text.
-        self.composer = Composer(self, app.renderer, "Send to agent")
+        # host so ``submit`` ends up calling ``self.submit`` with the typed text. On
+        # Android, mounting ``ComposerEditor`` (QPlainTextEdit) during ``__init__`` races
+        # ``QtAndroidAccessibility::runInObjectContext()`` with Qt's first-paint EGL
+        # setup, deadlocking the window (upstream Qt-for-Android bug). Mount it one tick
+        # later so first paint lands first; the composer reparents cleanly into the
+        # layout slot reserved for it.
+        self.composer: Composer | None = None
+        self._pending_composer_label: str | None = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(info)
         layout.addWidget(self.messages, 1)
-        layout.addWidget(self.composer)
+        self._composer_layout = layout
+        QTimer.singleShot(0, lambda: self._mount_composer(app))
         # Live reconnect hook: when the agent-binding changes (first attach or a real
         # reconnect), re-project state via ``apply_bound_agent`` and show the connected
         # notice once the new agent is ready. Textual's ``watch_agent_binding`` does the
@@ -188,6 +195,20 @@ class QtAcpSessionView(
             self.apply_bound_agent(after)  # type: ignore[arg-type]
             self.agent_connected(after)  # type: ignore[arg-type]
 
+    def _mount_composer(self, app) -> None:
+        """Mount the Composer one event-loop tick after construction. See the docstring in
+        ``__init__``: on Qt-for-Android the ``QPlainTextEdit`` inside ``Composer`` races
+        ``QtAndroidAccessibility::runInObjectContext()`` with the first-paint EGL setup,
+        deadlocking the window. Deferring by one tick lets the main-window paint land
+        first; the composer attaches cleanly after and Android's a11y probe sees it only
+        once the EGL surface is already current.
+        """
+        self.composer = Composer(self, app.renderer, "Send to agent")
+        self._composer_layout.addWidget(self.composer)
+        if self._pending_composer_label is not None:
+            self.composer.labelled(self._pending_composer_label)
+            self._pending_composer_label = None
+
     def apply_bound_agent(self, agent: AgentBase) -> None:
         """Mirror the agent's current identity on the composer and the identity line.
 
@@ -198,7 +219,11 @@ class QtAcpSessionView(
         """
         info = agent.get_info()
         self.identity_line.setText(f"ACP session #{self._session_pk} · {info}")
-        self.composer.labelled(f"Send to {info}")
+        label = f"Send to {info}"
+        if self.composer is None:
+            self._pending_composer_label = label
+        else:
+            self.composer.labelled(label)
 
     def agent_connected(self, agent: AgentBase) -> None:
         """Flash the connected notice on the status line; usage milestone through the app."""
@@ -217,6 +242,8 @@ class QtAcpSessionView(
     def update_slash_commands(self) -> None:
         """Called by the composer when the user starts typing a slash command. The session
         lifecycle will replace this with the real ``CommandCatalog`` pull."""
+        if self.composer is None:
+            return
         self.composer.set_commands([])
 
     def submit(self, text: TypedText) -> None:
@@ -234,13 +261,17 @@ class QtAcpSessionView(
         try:
             self.app.events.publish(event)
         except Exception as error:
-            self.composer.show_failure(f"Send failed: {error}")
-            self.composer.restore_draft(body)
+            if self.composer is not None:
+                self.composer.show_failure(f"Send failed: {error}")
+                self.composer.restore_draft(body)
             return
-        self.composer.show_submitting()
+        if self.composer is not None:
+            self.composer.show_submitting()
 
     def submissions_changed(self) -> None:
         """``BusSubmissions.publish_pending`` calls this when the queue changes."""
+        if self.composer is None:
+            return
         self.composer.show_submitting()
 
     def notification_targets(self):
