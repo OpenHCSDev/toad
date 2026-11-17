@@ -12,8 +12,11 @@ from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Static
 
+from toad.client.project_view import NO_PROJECT_VIEW, ProjectView  # re-exported below
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_tree_intent import NO_TREE_INTENT, ProjectTreeIntent, TreeIntent
+
+__all__ = ["NO_PROJECT_VIEW", "ProjectView"]
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
 from textual.css.native import Keyword, NativeDeclaration, Variable
@@ -74,22 +77,6 @@ class ProjectPanelTree(TransparentBackground, FillHeight, ProjectDirectoryTree):
     """The project's files, filling the panel on the sidebar's own surface."""
 
 
-
-
-class ProjectView:
-    """A session's project panel as its screen sees it; before one is made there is nothing to show."""
-
-    def refresh_if_visible(self) -> None:
-        """No tree is shown."""
-
-    def invalidate(self) -> None:
-        """No tree is shown."""
-
-    def show_project(self, path: Path) -> None:
-        """No tree follows the project."""
-
-
-NO_PROJECT_VIEW = ProjectView()
 
 
 class ProjectPanel(ProjectView, SidebarPanelWidget, Vertical):
