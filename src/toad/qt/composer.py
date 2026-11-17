@@ -142,8 +142,10 @@ class OfferList(QListWidget):
 
 
 class ComposerEditor(QPlainTextEdit):
-    """The message being typed. Enter sends and Shift+Enter starts a line; while offers
-    are shown, Up and Down move through them and Enter or Tab takes one, Escape hides them."""
+    """The message being typed. Enter and Ctrl+Enter send, Shift+Enter starts a line; while
+    offers are shown, Up and Down move through them and Enter or Tab takes one, Escape
+    hides them. Escape with no offers visible dismisses the control (clears the draft and
+    blurs the editor), mirroring Textual's DismissAction on a Prompt."""
 
     def __init__(self, composer: Composer) -> None:
         super().__init__()
@@ -152,7 +154,10 @@ class ComposerEditor(QPlainTextEdit):
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         offers = self.composer.offers
-        key, shifted = event.key(), bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
+        key = event.key()
+        modifiers = event.modifiers()
+        shifted = bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
+        with_control = bool(modifiers & Qt.KeyboardModifier.ControlModifier)
         entered = key in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
         if offers.isVisible() and key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
             offers.step(-1 if key == Qt.Key.Key_Up else 1)
@@ -160,8 +165,12 @@ class ComposerEditor(QPlainTextEdit):
             offers.accept_current()
         elif offers.isVisible() and key == Qt.Key.Key_Escape:
             self.composer.dismiss()
+        elif entered and with_control:
+            self.composer.submit()
         elif entered and not shifted:
-            self.composer.send()
+            self.composer.submit()
+        elif key == Qt.Key.Key_Escape:
+            self.composer.dismiss_control()
         else:
             super().keyPressEvent(event)
 
@@ -280,6 +289,26 @@ class Composer(MentionEditor, QWidget):
         self.dismissed_text = ""
         self.failure.hide()
         self.host.submit(TypedText(text))
+
+    # Toolkit-neutral action-family contract: Textual's Prompt inherits Submits +
+    # DismissibleControl from widget_actions.py; the mixin lift itself is fork
+    # a28441d7743dc4abb's work. These methods expose the same contract on Qt so the
+    # neutral family, once lifted, binds without changing this widget again.
+
+    def submit(self) -> None:
+        """What `SubmitAction` calls — the action-family alias for `send`."""
+        self.send()
+
+    def dismiss_control(self) -> None:
+        """What `DismissAction` calls — close the composer without sending.
+
+        Clears the draft, hides the offers list and relinquishes focus. The same
+        semantics as Textual's `DismissAction.apply` on a `Prompt`: the key clears
+        what is being composed, it doesn't leave half a message in place."""
+        self.editor.clear()
+        self.dismissed_text = ""
+        self.offers.show_offers("", ())
+        self.editor.clearFocus()
 
     def restore_draft(self, text: str) -> None:
         """A send that did not land comes back as the draft, in front of anything typed since."""
