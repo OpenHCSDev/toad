@@ -42,7 +42,7 @@ from toad.qt.project_panel import QtProjectPanel
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
-from toad.thread_identity import SessionIdentity
+from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.thread_sidebar_declarations import (
     THREAD_SIDEBAR_PANELS, ThreadSidebarPanelSpec, panel_specs_for_view,
 )
