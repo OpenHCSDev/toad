@@ -82,6 +82,13 @@ from toad.client.referenced_core import ReferencedCore
 from toad.client.submission import MessageDestination
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
+from toad.sidebar_changes import (
+    AllSidebarRows,
+    ChangedChannels,
+    ChangedThreads,
+    SidebarChange,
+)
+from toad.sidebar_model_view import SidebarStateMachine
 from toad.client.tab_identity.kinds import CommsTab
 from toad.command_catalog import CommandCatalog
 from toad.constants import WELCOME
@@ -261,6 +268,16 @@ class UnavailableSection(SidebarSection):
 
     def __init__(self, observed: FailedObservation) -> None:
         super().__init__(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
+
+
+class StatusSection(SidebarSection):
+    """The one-line status row at the top of the sidebar: a BoundSidebar's observation
+    status (`Connecting…`, `Behind`) or a FailedSidebarState's error line. The row is kept
+    across sibling-row updates by its fixed key so expansion state and taps survive."""
+
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
+        self.key = "__status__"
 
 
 class ConversationRow(SidebarItem):
@@ -603,26 +620,57 @@ class ConversationRows(TouchScrolled, QTreeWidget):
             draw(top)
 
 
-class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation]):
+class Sidebar(SidebarStateMachine, ConversationRows):
     """The bus's channels, each opening to the threads in it, and every thread, from the
-    shared sidebar model. It only draws: the coordination access binds it to each current
-    observation, and its lines are kept in place across updates, so groups stay open or
-    closed and a press stays on its row."""
+    shared sidebar model. State comes from the shared `SidebarStateMachine`: a
+    `Detached`/`FailedSidebarState`/`Behind`/`Current` transition drives both the status
+    line this sidebar owns and the row redraw. Lines are kept in place across updates, so
+    groups stay open or closed and a press stays on its row."""
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__(window)
-        self.observed: Observing | None = None
+        self._status_text: str | None = None
 
-    def bind_observation(self, observed: Observing) -> None:
-        if self.observed is observed:
-            return
-        self.observed = observed
-        observed.sidebar.channels.subscribe(self.rows_changed)
-        observed.sidebar.threads.subscribe(self.rows_changed)
-        self.present()
+    def accepts_observation(self) -> bool:
+        """The sidebar always shows while it exists: the window hides it through
+        placement, not through the observation."""
+        return True
 
-    def rows_changed(self, changes: object) -> None:
-        self.present()
+    def coordination_access(self):
+        return self.window.coordination_access
+
+    def show_status(self, text: str) -> None:
+        """Record the status; `present` below paints it in one redraw along with rows."""
+        self._status_text = text
+
+    def hide_status(self) -> None:
+        self._status_text = None
+
+    def present(self, **changes: object) -> None:
+        """Run the state transitions, then paint status + rows + welcome in one pass."""
+        super().present(**changes)
+        model = self.model_state.shown if self.model_state.shows_model() else None
+        def draw(top: KeptLines) -> None:
+            if self._status_text is not None:
+                top.keep(StatusSection(self._status_text))
+            if model is not None:
+                self.draw_lines(model, top)
+        self.redraw(draw)
+        if model is not None:
+            self.window.workspace_sessions.home.present(model)
+            self.window.paint_tabs()
+
+    def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
+        """A no-op on Qt: the typed change dispatch arrives through `present`'s own
+        redraw pass. Qt's `KeptLines` keeps per-key item identity across the redraw, so
+        open groups and placed rows survive; `ChangedChannels` and `ChangedThreads` can
+        later skip untouched subtrees inside `draw_lines` without changing this contract."""
+
+    def model_replaced(self) -> None:
+        """Clear rows before the new observation's redraw lands; the next `present` will
+        repaint the status and the new model's rows together."""
+        self._status_text = None
+        self.redraw(lambda top: None)
 
     def draw_lines(self, model: SidebarModel, top: KeptLines) -> None:
         threads = model.threads.rows
@@ -635,19 +683,8 @@ class Sidebar(ConversationRows, SidebarSubscriber[Observing, FailedObservation])
                 everyone.keep(ConversationRow.thread(name, thread))
 
     def bind_failed_observation(self, observed: FailedObservation) -> None:
-        self.observed = None
-        self.redraw(lambda top: top.keep(UnavailableSection(observed)))
+        super().bind_failed_observation(observed)
         self.window.workspace_sessions.home.present_failed(observed)
-
-    def present(self, **changes: object) -> None:
-        """Toad's sidebar rows: a badge and label, and the row's summary under it in
-        muted text, from the shared row models."""
-        if self.observed is None:
-            return
-        model: SidebarModel = self.observed.sidebar
-        self.redraw(partial(self.draw_lines, model))
-        self.window.workspace_sessions.home.present(model)
-        self.window.paint_tabs()
 
 
 class QtSessionEntry(SessionEntries):
