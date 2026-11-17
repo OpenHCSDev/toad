@@ -59,7 +59,7 @@ class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
 
     @classmethod
     def panel(cls, view):
-        return SideBar.Panel("Session settings", cls(view), id="agent-settings", flex=True)
+        return SideBar.Panel(title="Session settings", widget=cls(view), id="agent-settings", flex=True)
 
     def compose(self):
         self.form = SessionForm.for_prompt(self.view.conversation.prompt)
@@ -130,7 +130,7 @@ class ConfiguredView(ViewSettingsScope):
         state = self.configuration_state
         for path, parameter in ParameterFormService().parameters_for_state(state):
             field = state.field(path.value)
-            yield SideBar.Panel(field.label, ObjectProperties(field),
+            yield SideBar.Panel(title=field.label, widget=ObjectProperties(field),
                                 id=f"settings-{path.value}", flex=True)
 
     @cached_property

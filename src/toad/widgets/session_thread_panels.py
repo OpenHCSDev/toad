@@ -52,7 +52,7 @@ class SessionPanel[W: SidebarPanelWidget](DeclaredFamily, affix="SessionPanel"):
     def compose_panel(self, screen: MainScreen) -> SideBar.Panel:
         heading = (spec_for(self.spec_key).heading if self.spec_key
                    else self.declared_name.title())
-        return SideBar.Panel(heading, self.make_widget(screen),
+        return SideBar.Panel(title=heading, widget=self.make_widget(screen),
                              flex=self.flex, collapsed=self.collapsed,
                              id=self.panel_id or f"{self.declared_name}-panel",
                              header_control=self.make_header())
