@@ -1352,10 +1352,12 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
         self.thread_pane = ThreadSettingsPane(parent=self)
         self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
                                          self.sidebar, SidebarControlsOwner,
-                                         applied=self.rearrange_sidebars)
+                                         applied=self.rearrange_sidebars,
+                                         parent=self)
         self.thread_settings = SidebarPane(self.sidebar_layout, ThreadSidebarPlacement,
                                            self.thread_pane, SidebarControlsOwner,
-                                           applied=self.rearrange_sidebars)
+                                           applied=self.rearrange_sidebars,
+                                           parent=self)
         self._panes: dict[type[SidebarPlacement], SidebarPane] = {
             ChannelsSidebarPlacement: self.channels_pane,
             ThreadSidebarPlacement: self.thread_settings,
@@ -1409,12 +1411,14 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
             self.sidebar_layout, ChannelsSidebarPlacement,
             heading=partial(self._pane_heading, ChannelsSidebarPlacement),
             shown=partial(self.pane_open, ChannelsSidebarPlacement),
-            toggled=partial(self.toggle_pane, ChannelsSidebarPlacement))
+            toggled=partial(self.toggle_pane, ChannelsSidebarPlacement),
+            parent=self)
         self.thread_bar = SidebarToggle(
             self.sidebar_layout, ThreadSidebarPlacement,
             heading=partial(self._pane_heading, ThreadSidebarPlacement),
             shown=partial(self.pane_open, ThreadSidebarPlacement),
-            toggled=partial(self.toggle_pane, ThreadSidebarPlacement))
+            toggled=partial(self.toggle_pane, ThreadSidebarPlacement),
+            parent=self)
         # The toggle bars live wherever their sidebar is placed, not in the bottom chrome:
         # _layout_panes re-parents each bar into its pane's dock, before or after the pane
         # depending on whether the edge is leading (left, top) or trailing (right, bottom).
