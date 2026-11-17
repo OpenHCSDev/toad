@@ -74,6 +74,12 @@ class QtMailboxView(QtThreadView, SessionScope):
     # field exists if a later PR wires a real binding here (e.g. an opened mailbox
     # that upgrades to a live session).
 
+    # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
+    # class is instantiable; `__init__` assigns the real widgets.
+    identity_line: ElidedLine = None  # type: ignore[assignment]
+    composer: "Composer | None" = None
+    submissions: "BusSubmissions" = None  # type: ignore[assignment]
+
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()
         self.setWindowFlags(Qt.WindowType.Widget)
