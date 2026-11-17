@@ -6,7 +6,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from agent_comms.comms import Comms
-from agent_comms.context_store import UNREAD_CONTEXT, ContextManifestPage
+from agent_comms.context_store import ContextManifestPage
+from agent_comms.execution.context_prior import UNREAD_CONTEXT
 from agent_comms.execution.session_revision import NoSessionObservation
 from agent_comms.execution.turn_context import (
     ContextManifest,

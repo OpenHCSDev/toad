@@ -6,8 +6,8 @@ from functools import partial
 from agent_comms.acp_extension import (
     NoQueueScope,
     UnidentifiedInputStarted,
-    encode_updates,
 )
+from agent_comms.text_route_update import encode_updates
 from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.nominal.field_codec import InputId
 from agent_comms.projects.checkouts import Checkout

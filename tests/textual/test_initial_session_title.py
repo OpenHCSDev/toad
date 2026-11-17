@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from acp.schema import AgentCapabilities, InitializeResponse, LoadSessionResponse, NewSessionResponse
-from agent_comms.acp_extension import encode_updates
+from agent_comms.text_route_update import encode_updates
 
 from support.agents import command
 from support.coordination import coordination_fact
