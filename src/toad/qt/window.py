@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QHeaderView,
+    QLabel,
     QLineEdit,
     QPushButton,
     QSizePolicy,
@@ -596,6 +597,15 @@ class Welcome(Page, BusListing, QWidget):
         self.rows = ConversationRows(window)
         self.held_menu = HeldRowMenu(self)
         self.address = BusAddress(window)
+        # Gesture hint line below the rows, mirroring Textual's WelcomeNote(HINTS)
+        # at the tail of `WelcomeScreen.compose`. The content is owned per-frontend
+        # via `self.app.welcome_hints` — Textual carries keyboard shortcuts, Qt
+        # carries touch gestures. Strip Textual's `[b]...[/b]` markup for Qt since
+        # QLabel doesn't render it natively; the gestures text is plain already.
+        self.hints = QLabel(_strip_menu_markup_shared(window.welcome_hints), self)
+        self.hints.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hints.setWordWrap(True)
+        self.hints.setStyleSheet(window.renderer.color_style(MutedRole))
         layout = QVBoxLayout(self)
         layout.addSpacing(24)
         layout.addWidget(self.banner)
@@ -604,6 +614,8 @@ class Welcome(Page, BusListing, QWidget):
         layout.addWidget(self.new_session_button)
         layout.addSpacing(12)
         layout.addWidget(self.rows, 1)
+        layout.addWidget(self.hints)
+        layout.addSpacing(4)
         layout.addWidget(self.address)
         self.content: WelcomeContent = WelcomeContent()
         self.relist()
@@ -1169,14 +1181,20 @@ class QtHistorySessionEntry(QtSessionEntry, HistorySessionEntry, shows=(CommsTab
 
 
 class BusLabel(ElidedLine):
-    """Where the bus this window reads lives, as its connection names it. A Qt client is
-    always remote, so its own launch directory (on the phone, /data/data/…/app) says nothing
-    about the Core it shows; the connection's location does."""
+    """Where the bus this window reads lives, as its connection names it, prefixed with
+    the agent binding's `welcome_prefix` so the line reads the same way Textual's does
+    at `screens/welcome.py:256` — `f"{agent_binding.welcome_prefix}{location}"`. A Qt
+    client is always remote, so its own launch directory (on the phone, /data/data/…/app)
+    says nothing about the Core it shows; the connection's location does.
+
+    `welcome_prefix` is empty for `NoAgent` so a connection without an attached agent
+    reads as before. With `AgentAttached`, the line reads e.g. `claude · <location>`."""
 
     def __init__(self, window: QtToadApp) -> None:
         location = window.coordination_access.connection.location
-        super().__init__(location)
-        self.setToolTip(location)
+        prefix = window.agent_binding.welcome_prefix
+        super().__init__(f"{prefix}{location}")
+        self.setToolTip(f"{prefix}{location}")
 
 
 class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
@@ -2215,6 +2233,17 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
     @property
     def selected_mode(self) -> str:
         return self.workspace_sessions.selected.mode
+
+    @property
+    def welcome_hints(self) -> str:
+        """Qt (touch) override of the gesture hint line shown under the welcome
+        rows. Textual's version carries keyboard shortcuts; Qt's carries touch
+        gestures since Qt-on-Android has no keyboard. Called by both Welcome
+        implementations through `self.app.welcome_hints`."""
+        return (
+            "Tap thread to open · long-press for menu · swipe > for sidebar\n"
+            "≡ for menu · ← → navigate history"
+        )
 
     def switch(self, mode: str, visited: Callable[[CommsTab], object]) -> None:
         self.workspace_sessions.select(mode, visited)

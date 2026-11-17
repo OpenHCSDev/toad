@@ -340,5 +340,22 @@ class ClientApplication(BusPickerHost, NavigationHost):
                        "Keymap")
 
     @property
+    def welcome_hints(self) -> str:
+        """The gesture/shortcut hint line rendered below the welcome's row list.
+        Textual overrides with its keyboard shortcuts; Qt overrides with touch
+        gestures. Default raises so a frontend that forgets to override is loud,
+        not silently blank.
+
+        Mirrors the shape `WelcomeScreen.HINTS` carries on Textual at
+        `src/toad/screens/welcome.py:242`; keeping it on the app (rather than
+        on each Welcome screen class) means the content is owned per-frontend
+        but called once from both Welcome implementations via `self.app.welcome_hints`."""
+        raise NotImplementedError(
+            f"{type(self).__name__} must override welcome_hints — the welcome's "
+            f"hint line is frontend-specific (keyboard vs touch) and the default "
+            f"raises rather than silently hiding the line."
+        )
+
+    @property
     def open_tabs(self) -> tuple[OpenTab, ...]:
         return self.session_navigation.tabs

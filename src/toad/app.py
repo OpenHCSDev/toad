@@ -323,6 +323,18 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         )
         self.push_screen(KeymapScreen(focused))
 
+    @property
+    def welcome_hints(self) -> str:
+        """Textual welcome hint line: keyboard shortcuts.
+        Content preserved from `WelcomeScreen.HINTS` at
+        `src/toad/screens/welcome.py:242`; moved onto the app so Qt's
+        welcome can read the same contract via `self.app.welcome_hints`
+        and supply its own gesture string."""
+        return (
+            "[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
+            "[b]↑ ↓[/b] choose   [b]enter[/b] open"
+        )
+
     def ensure_settings_file(self) -> None:
         settings = self.saved_settings
         path = settings.path()
