@@ -159,11 +159,12 @@ class HistoryRowDelegate(RowDocumentDelegate):
         return HtmlRow(self.renderer.at_width(width - 8, font).html(blocks))
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
-        """How tall a fragment's row is at this width, before the model holds it."""
-        document = self.new_document(font, width)
-        self.keyed_formatting(self.fragment_key(fragment, font, width), fragment.clipboard_text,
-                              self.rendering(fragment, font, width)).fill(document)
-        return int(document.size().height()) + self.ROW_PADDING
+        """How tall a fragment's row is at this width, before the model holds it. The shared
+        row measurement caches this by key and width, so a pager summing its rows' pixels
+        every scrolled frame lays each row out once, not afresh on every frame."""
+        key = self.fragment_key(fragment, font, width)
+        formatting = self.keyed_formatting(key, fragment.clipboard_text, self.rendering(fragment, font, width))
+        return self.measured_height(key, font, width, formatting)
 
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
         super().paint(painter, option, index)

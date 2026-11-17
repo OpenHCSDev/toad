@@ -5,6 +5,10 @@ source/traffic scopes. The unsafe shell controller and raw display-input API
 are retired. Use the [shared isolated physical-run owner](physical-run.md) for
 new work; its stopped-history scenario is not the old active-response benchmark.
 
+## 2026-11-16 P1852 Qt row-height measurement cache — offscreen live-bus
+
+PyQT-reactive #53 `2eb83a23c064a4e6cb7215a302ad75ae3492eae1` caches a row's height under `(key, width)` in the same store `sizeHint` fills and `_row_prepared` drops, and Toad `fragment_height` measures through it, so the pager's per-scrolled-frame `drawn_extent` sum lays each loaded row out once instead of rebuilding a `QTextDocument` afresh every frame; Pixel-8a 412×915 offscreen on the live bus via `tools/qt_scroll_profile.py`, unprofiled equally-warm median/p95 input-to-paint ms — kinetic fling **145.5/154.6 → 8.0/11.3**, wheel burst with reversal **139.6/143.7 → 7.8/10.4** (both under the 16 ms budget), older-page load **315.3/427.9 → 124.7/136.6** (that latency also spans the async page fetch, not a single frame), arrival while scrolled up unchanged **5.0/5.9 → 5.5/5.9** at 0 px reader jump — the owner ranked by cProfile as 24,024 `fragment_height` calls, 13.4 s of 22 s in `QTextDocument.size()`/`setHtml` under `prepare_viewport → drawn_extent`, while frame paint stayed ~1.3 ms throughout, so the cost was recomputed measurement, not painting; offscreen `grab()` forces a full-viewport repaint so frame ms is conservative, and this is not input-provider replay or a default-install acceptance.
+
 ## 2026-11-02 installed observation attempts 08/09 — not scrolling results
 
 Both attempts used the read-only `observer-head-53e04c515` tool archive and
