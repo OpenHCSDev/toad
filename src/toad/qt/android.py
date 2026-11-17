@@ -7,9 +7,12 @@ The APK's activity (tools/android/keepalive) holds the process in the foreground
 ongoing notification, so switching away leaves Toad running; once suspended, the app
 gives the memory it can rebuild back to Android (SuspendedMemory).
 
-A failure before the window opens is shown on screen, since a phone without adb has nowhere
-else to show it. So is a cold start's cause: SessionRecord notes each state Android moves the
-app through, and the next start says how the last session ended.
+A failure before the window opens POSTs its traceback to the dev crash sink on the tailnet
+(toad.client.host.post_crash_to_sink) and saves it under the state folder, since a phone
+without adb has nowhere else to show it, and a top-level QMessageBox on Qt-for-Android
+needs its own EGL surface and deadlocks with the compositor on this platform (SIGABRT,
+QAndroidPlatformOpenGLWindow::eglSurface deadlock protector). SessionRecord notes each
+state Android moves the app through, so the next start's log says how the last ended.
 """
 
 import ctypes
@@ -26,7 +29,7 @@ from agent_comms.transport.connector import HoldUiVerb
 from agent_comms.transport.connector_store import ConnectorStore
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAccessible
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication
 
 from toad import paths
 from toad.client.bus_selection import BusChoice
@@ -68,37 +71,15 @@ class SessionRecord:
         self.PATH.parent.mkdir(parents=True, exist_ok=True)
         self.log = self.PATH.open("w", buffering=1)
         self.write(now, "started")
-        self.shown: QMessageBox | None = None
 
     def write(self, when: float, event: str) -> None:
         self.log.write(f"{when:.0f} {event}\n")
 
     def changed(self, state: Qt.ApplicationState) -> None:
         self.write(time.time(), state.name)
-        if state is Qt.ApplicationState.ApplicationActive and self.shown is None and (report := self.report()):
-            # The dialog is a top-level QWindow and allocating its EGL surface during
-            # ApplicationActive races Android's accessibility probe for the eglSurface()
-            # mutex (SIGABRT, QAndroidPlatformOpenGLWindow::eglSurface deadlock protector).
-            # Deferring past first-paint lets the probe release before we add a second
-            # surface — otherwise every crash seeds the next via this dialog.
-            self.shown = QMessageBox(QMessageBox.Icon.Information, "How the last session ended", report)
-            self.shown.setModal(False)
-            QTimer.singleShot(2000, self.shown.show)
 
     def ended(self, how: str) -> None:
         self.write(time.time(), how)
-
-    def report(self) -> str | None:
-        """None when the last run closed its window, or there was none."""
-        if not self.previous or self.previous[-1].endswith(" closed"):
-            return None
-        stamp, state = self.previous[-1].split(" ", 1)
-        since = time.strftime("%H:%M", time.localtime(int(stamp)))
-        lines = "\n".join(self.previous[-6:])
-        return (f"The last session ended without its window closing; its last record is {state}, "
-                f"at {since}. After ApplicationSuspended or ApplicationHidden, Android ended the "
-                f"process in the background; after ApplicationActive, it crashed in use.\n\n"
-                f"Its last records:\n{lines}")
 
 
 class SuspendedMemory:
@@ -182,15 +163,13 @@ def main() -> None:
         report = traceback.format_exc()
         print(report, file=sys.stderr, flush=True)
         # The APK has no adb on this phone, so the traceback has to leave the device: save
-        # it to the state folder and POST it to the dev crash sink on the tailnet. Daemon
-        # thread so the modal is not blocked when the network is slow. The modal also stays
-        # open while this runs, since the sink POST can take a couple of seconds.
+        # it to the state folder and POST it to the dev crash sink on the tailnet. On
+        # Qt-for-Android a top-level QMessageBox deadlocks with the compositor during first
+        # paint (QAndroidPlatformOpenGLWindow::eglSurface deadlock protector SIGABRT), so
+        # we rely on the sink POST and the saved file as the only record of the crash.
         saved_path = paths.save_error(failure, "android_startup")
-        threading.Thread(
-            target=post_crash_to_sink,
-            args=(saved_path, "android_startup", f"Toad startup crash: {type(failure).__name__}"),
-            daemon=True,
-        ).start()
-        QMessageBox(QMessageBox.Icon.Critical, "Toad could not start", report[-3000:]).exec()
+        post_crash_to_sink(
+            saved_path, "android_startup", f"Toad startup crash: {type(failure).__name__}"
+        )
         raise
     session.ended("closed")
