@@ -244,6 +244,13 @@ class HistoryFragment(CursorRest):
     part_position: PartPosition = field(default_factory=OnlyPart, kw_only=True)
     starts_agent_activity: bool = False
     shown: Shown = field(default_factory=Shown, kw_only=True)
+    # Core's page whose display evidence can mark this message read. Non-message
+    # fragments (tool calls, context summaries, boundary markers) carry no such
+    # evidence — None is the base default; `EvidencedFragment` overrides as a
+    # required field. `HistoryReads.retain_painted` accepts whatever paints and
+    # already skips the None case, so the row-painted call path works on any
+    # subclass without a per-caller isinstance guard.
+    evidence: MessagePage | None = field(default=None, kw_only=True)
 
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
