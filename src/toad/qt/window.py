@@ -568,11 +568,15 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         self.setItemDelegate(MultilinePreviewItemDelegate(
             scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text), self))
-        # No `setAlternatingRowColors(True)`: the delegate already owns per-item
-        # backgrounds via `ScopeColorScheme.step_border_layers`, and the extra viewport-wide
-        # stripe paint fights Qt-for-Android's EGL backing-store (no scroll-blit, every
-        # scroll pixel repaints the whole viewport — visible as flicker/jitter during
-        # kinetic touch scroll on Pixel 8a).
+        # Alternating row backgrounds come from the shared `generate_tree_widget_style`
+        # stylesheet, which already declares `alternate-background-color:
+        # {cs.alternate_row_bg}` from the scheme. The sidebar tree enables Qt's
+        # alternating flag so that color actually paints — no Qt-local color constant,
+        # the scheme stays the single owner. The earlier removal of this flag (to work
+        # around a kinetic-scroll flicker) was lifted once PR #1952's shared
+        # `respond_to_scroll` throttle landed, which fixed the flicker at its real
+        # owner instead of by removing the scheme-driven stripe.
+        self.setAlternatingRowColors(True)
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)
