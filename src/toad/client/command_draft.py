@@ -211,3 +211,47 @@ class CommandDraft:
     @abstractmethod
     def repaint_choice(self, name: str) -> None:
         """Repaint the editor for a choice whose options changed."""
+
+
+class CommandFormCore(CommandDraft):
+    """Shared Apply state machine for native command forms.
+
+    Textual's ``CommandForm`` and Qt's ``QtCommandForm`` inherit this: they supply the
+    three native hooks (``apply_enabled``, ``set_apply_enabled``, ``handle_submission``)
+    plus the hooks ``CommandDraft`` already declares; the Apply flow itself lives here
+    once. Previously both frontends restated the state machine with minor variations,
+    letting the two drift.
+    """
+
+    def finish(self) -> None:
+        """Commit whatever is being edited into the form state. Called before Apply reads it."""
+        self.form.finish()
+
+    async def confirm(self) -> None:
+        """Apply the form: finish editing, disable Apply, read arguments, submit. The button
+        is re-enabled only while the form is still alive."""
+        if not self.apply_enabled():
+            return
+        self.finish()
+        self.set_apply_enabled(False)
+        try:
+            arguments = await self.confirm_arguments()
+            if arguments is not None:
+                await self.handle_submission(arguments)
+        finally:
+            if self.draft_alive():
+                self.set_apply_enabled(True)
+
+    @abstractmethod
+    def apply_enabled(self) -> bool:
+        """Whether Apply will act on a press right now. Used to short-circuit a second press
+        while a confirm is already running."""
+
+    @abstractmethod
+    def set_apply_enabled(self, enabled: bool) -> None:
+        """Enable or disable Apply. Called at the top and bottom of ``confirm``."""
+
+    @abstractmethod
+    async def handle_submission(self, arguments: dict[str, object]) -> None:
+        """The arguments ``confirm_arguments`` cleared: forward them to the native sink —
+        dismiss a modal with them on Textual, set the Qt future and accept on Qt."""

@@ -30,7 +30,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from toad.client.command_draft import CommandDraft
+from toad.client.command_draft import CommandFormCore
 from toad.client.host import CommandOrigin
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.widget_contracts import DismissibleContract, SubmitsContract
@@ -40,7 +40,7 @@ class CommandApply(OperationKind):
     """Apply on a command form: confirm its arguments with Core, then answer the form."""
 
 
-class QtCommandForm(CommandDraft, ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract,
+class QtCommandForm(CommandFormCore, ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract,
                     metaclass=PyQtWidgetMeta):
     """One backend operation's form. It answers once: the arguments Apply submits, or None
     when it is cancelled or closed."""
@@ -89,14 +89,14 @@ class QtCommandForm(CommandDraft, ScreenWideWindow, QDialog, DismissibleContract
     def apply(self) -> None:
         self.host.run_operation(CommandApply, self.confirm)
 
-    async def confirm(self) -> None:
-        self.apply_button.setEnabled(False)
-        self.form.finish()
-        try:
-            arguments = await self.confirm_arguments()
-        finally:
-            self.apply_button.setEnabled(True)
-        if arguments is not None and not self.answer.done():
+    def apply_enabled(self) -> bool:
+        return self.apply_button.isEnabled()
+
+    def set_apply_enabled(self, enabled: bool) -> None:
+        self.apply_button.setEnabled(enabled)
+
+    async def handle_submission(self, arguments: dict[str, object]) -> None:
+        if not self.answer.done():
             self.answer.set_result(arguments)
             self.accept()
 
