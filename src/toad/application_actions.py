@@ -33,6 +33,7 @@ class OpenBusAction(ApplicationAction):
     """Connect to this machine's bus or choose another machine."""
 
     title = "Switch bus (local or remote)"
+    show = True
 
     # An application action, so the hamburger offers it through ApplicationAction.menu and
     # the key is the same declaration: a menu entry beside a widget action would be the same
@@ -50,6 +51,7 @@ class SettingsAction(ApplicationAction):
     """Edit persistent application preferences."""
 
     keys = {TextEntryMode: ("ctrl+comma",)}
+    show = True
 
     async def apply(self, app: ToadApp) -> None:
         app.run_worker(partial(self.edit, app))
@@ -65,6 +67,7 @@ class TeamAction(ApplicationAction, declared_name="team"):
     """Open the live team board, including teammates' orders and original evidence."""
 
     keys = {TextEntryMode: ("f2",)}
+    show = True
 
     async def apply(self, app: ToadApp) -> None:
         from toad.screens.team import TeamPage
@@ -74,6 +77,8 @@ class TeamAction(ApplicationAction, declared_name="team"):
 
 class TransferMenuAction(ApplicationAction):
     """Export wire history or import a thread through Core."""
+
+    show = True
 
     def __init__(self, kind: type[Transfer]) -> None:
         self.kind = kind
@@ -139,6 +144,8 @@ class SetFooterAction(System, ApplicationAction):
 class ToggleFooterAction(ApplicationAction):
     """Toggle the key-shortcut bar at the bottom of Toad."""
 
+    show = True
+
     def label(self, app: ToadApp) -> str:
         return (
             "Hide footer shortcut bar"
@@ -161,6 +168,7 @@ class KeymapAction(ApplicationAction):
     """Browse keyboard shortcuts and change their keys for each editing mode."""
 
     keys = {TextEntryMode: ("f1",)}
+    show = True
 
     async def apply(self, app: ToadApp) -> None:
         focused = frozenset(KeyInvocationId(invocation.key_identity())
