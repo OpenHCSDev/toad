@@ -149,6 +149,22 @@ class QtThreadView(
         ``submit``. ``_setup_composer`` creates and assigns it; a subclass that omits
         the call ships a composer with nowhere to send to."""
 
+    @property
+    @abstractmethod
+    def thinking_line(self) -> QWidget:
+        """One-row status line mirroring Textual's ``throbber_above``: shows the current
+        agent turn's activity when the agent is busy. ``_setup_composer`` creates it
+        via ``QtThinkingLine`` and mounts it above the goal strip + composer. A
+        subclass that omits it ships without the Thinking indicator the TUI reference
+        has above its composer."""
+
+    @property
+    @abstractmethod
+    def thread_status_line(self) -> QWidget:
+        """Session-status row mirroring Textual's ``OperationalSessionDetails`` title:
+        model name + input-delivery status. ``_setup_composer`` creates it via
+        ``QtThreadStatusLine`` and mounts it above the goal strip + composer."""
+
     def apply_bound_agent(self, agent: "AgentBase") -> None:
         """Default no-op: `ObservedAgentBinding.bind_agent` calls this after storing.
         ACP views override to update their composer / identity line / status;
@@ -248,6 +264,16 @@ class QtThreadView(
         self.composer: Composer | None = None
         self._pending_composer_label: str | None = None
         self._composer_layout = layout
+        # Mount the composer-surround UX rows ABOVE the composer slot, matching
+        # Textual's `PromptStack` order (throbber_above → thread_activity →
+        # goal_bar → prompt). The goal strip is already added by the subclass
+        # before this call; thinking/status lines go in between so the layout is
+        # identity → transcript → thinking → status → goal → composer.
+        from toad.qt.composer_surround import QtThinkingLine, QtThreadStatusLine
+        self.thinking_line = QtThinkingLine(self, app.renderer)
+        self.thread_status_line = QtThreadStatusLine(self, app.renderer)
+        layout.addWidget(self.thinking_line)
+        layout.addWidget(self.thread_status_line)
         QTimer.singleShot(0, lambda: self._mount_composer(app, label))
 
     def _mount_composer(self, app: "QtToadApp", label: str) -> None:

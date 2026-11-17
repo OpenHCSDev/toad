@@ -79,6 +79,8 @@ class QtMailboxView(QtThreadView, SessionScope):
     identity_line: ElidedLine = None  # type: ignore[assignment]
     composer: "Composer | None" = None
     submissions: "BusSubmissions" = None  # type: ignore[assignment]
+    thinking_line: "QWidget" = None  # type: ignore[assignment]
+    thread_status_line: "QWidget" = None  # type: ignore[assignment]
 
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()

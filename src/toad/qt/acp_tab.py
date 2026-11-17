@@ -108,6 +108,8 @@ class QtAcpSessionView(
     identity_line: ElidedLine = None  # type: ignore[assignment]
     composer: "Composer | None" = None
     submissions: "BusSubmissions" = None  # type: ignore[assignment]
+    thinking_line: "QWidget" = None  # type: ignore[assignment]
+    thread_status_line: "QWidget" = None  # type: ignore[assignment]
 
     # `agent_binding`, `queue_source`, `submissions`, composer wiring (`submit`,
     # `submissions_changed`, `update_slash_commands`, `notification_targets`)
