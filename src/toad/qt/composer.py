@@ -15,7 +15,7 @@ from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
 from formbridge.key_declarations import TextEntryMode
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeyEvent, QTextCursor
+from PySide6.QtGui import QGuiApplication, QKeyEvent, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from PySide6.QtWidgets import (
@@ -212,10 +212,28 @@ class ComposerEditor(QPlainTextEdit):
         super().__init__()
         self.composer = composer
         self.setTabChangesFocus(False)
+        # Android soft-keyboard wiring: without these the tap registers but the IME
+        # never raises, so the user sees a composer they can't type into. Desktop Qt
+        # raises the OS keyboard implicitly on focus; Android Qt doesn't — the editor
+        # has to opt in explicitly. Three pieces: (1) StrongFocus so a tap can take
+        # keyboard focus, (2) WA_InputMethodEnabled so the IME considers the widget,
+        # (3) mousePressEvent explicitly requests the IME show on tap (focusInEvent
+        # alone fires too early on Android, before the window is composited).
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         # Modal vim input, off by default so non-vim users aren't trapped. A setting toggle
         # (sweep follow-up) will flip this; once on, Esc in INSERT enters NORMAL mode.
         self.vim_enabled = False
         self.vim = ComposerVimMode()
+
+    def mousePressEvent(self, event) -> None:
+        super().mousePressEvent(event)
+        self.setFocus(Qt.FocusReason.MouseFocusReason)
+        QGuiApplication.inputMethod().show()
+
+    def focusInEvent(self, event) -> None:
+        super().focusInEvent(event)
+        QGuiApplication.inputMethod().show()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         # Vim NORMAL mode intercepts navigation/edit commands before the standard
