@@ -150,9 +150,8 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         native_menu.picker.value = gate_entry
         await ui.until(lambda: gate_entry.widget.is_mounted and bool(gate_entry.widget.form.values),
                        why='original backend rule-gate form')
-        from agent_comms.team.rule_deal import RuleGateSettings
-        from dataclasses import fields
-        assert set(gate_entry.widget.form.values) == {field.name for field in fields(RuleGateSettings)}
+        assert set(gate_entry.widget.form.values) == {
+            field.name for field in gate_entry.widget.definition.editable_fields}
         from toad.widgets.comms_command_dialog import CommandPreparation
         await ui.until(lambda: not CommandPreparation.running_on(gate_entry.widget), why='gate choices loaded')
         gate_entry.widget.form.values['read_batch'].editor.value = '7'

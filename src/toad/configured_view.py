@@ -99,7 +99,7 @@ class ActionProperties(CommandForm, SidebarPanelWidget):
     def panel_identity(self):
         return self.definition.declaration
 
-    async def submit(self, arguments):
+    async def handle_submission(self, arguments):
         await ThreadAction.submit(self.context, self.definition, arguments)
 
 
