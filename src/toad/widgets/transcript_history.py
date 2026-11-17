@@ -1174,7 +1174,9 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
 
     @classmethod
     def empty_source(cls, view, through):
-        return SavedTranscript(view.transcript.get_transcript_page, through, view.app.preparation)
+        from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
+        return SavedTranscript(view.transcript.get_transcript_page, through, view.app.preparation,
+                               fragments=TEXTUAL_FRAGMENT_CLASSES)
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         self.coverage.page_added(self, page)

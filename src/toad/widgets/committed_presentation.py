@@ -35,6 +35,7 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.client.reader_position import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
 from toad.transcript_preparation import TranscriptPageRenderTask
+from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 from toad.client.prepared_pages import PreparedPageSource, SavedHistory
 from formbridge.forms.declared_fields import DeclaredViews
 
@@ -130,7 +131,7 @@ class PreparedPageCommit(PreparedCommit, shows=(PreparedPageSource,)):
 
     @classmethod
     async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
-        prepared = await TranscriptPageRenderTask(page).prepared(view.app.preparation)
+        prepared = await TranscriptPageRenderTask(page, TEXTUAL_FRAGMENT_CLASSES).prepared(view.app.preparation)
         return cls(history, sequences, prepared)
 
     @property
