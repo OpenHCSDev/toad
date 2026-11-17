@@ -141,7 +141,17 @@ def _install_excepthook() -> None:
 
 def main() -> None:
     _install_excepthook()
+    # Diagnostic: Qt-for-Android's eglSurface() deadlock protector trips when
+    # Python re-enters widget show/move/update inside a paint. Ask Qt to log its
+    # backing-store + GL + window setup so logcat records the sequence that
+    # leads to the fatal, and patch QWidget methods with a reentry guard.
+    os.environ.setdefault(
+        "QT_LOGGING_RULES",
+        "qt.qpa.*=true;qt.qpa.backingstore=true;qt.qpa.gl=true;qt.qpa.androidsurface=true",
+    )
     application = QApplication(sys.argv[:1])
+    from toad.qt.paint_reentry_guard import install as _install_paint_reentry_guard
+    _install_paint_reentry_guard()
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()
