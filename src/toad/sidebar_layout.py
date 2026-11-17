@@ -5,9 +5,10 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 
 from agent_comms.nominal.declared_family import DeclaredFamily
+from metaclass_registry import AbstractHooksMeta
 from textual.geometry import Region, Size, Spacing
 
 from toad.sidebar_placement import (
@@ -20,8 +21,25 @@ from toad.sidebar_placement import (
 )
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
 
-if TYPE_CHECKING:
-    from textual.widgets import Static
+
+class PlacementControl(metaclass=AbstractHooksMeta):
+    """One sidebar placement control as a frontend draws it — a Textual Static, a Qt button.
+    It holds the action it stands for, and the SidebarPlacementAction family presents it
+    through these three calls, so an arrow or Float reads the same whichever toolkit holds it."""
+
+    action: SidebarPlacementAction
+
+    @abstractmethod
+    def set_shown(self, shown: bool) -> None:
+        """Show or hide the control."""
+
+    @abstractmethod
+    def set_label(self, label: str) -> None:
+        """The control's text."""
+
+    @abstractmethod
+    def set_tooltip(self, tooltip: str) -> None:
+        """The control's hover text."""
 
 
 class ArrangementStore(Protocol):
@@ -92,7 +110,7 @@ class SidebarPlacementAction(DeclaredFamily, affix="SidebarPlacementAction"):
     def apply(self, layout: SidebarLayout, identity: type[SidebarPlacement]) -> None: ...
 
     @abstractmethod
-    def present(self, button: Static, placement: SidebarPlacement,
+    def present(self, control: PlacementControl, placement: SidebarPlacement,
                 directions: dict[type[SidebarEdge], SidebarShift]) -> None: ...
 
 
@@ -117,11 +135,11 @@ class DirectionalSidebarPlacementAction(SidebarPlacementAction):
     def apply(self, layout: SidebarLayout, identity: type[SidebarPlacement]) -> None:
         layout.shift(identity, self.direction)
 
-    def present(self, button: Static, placement: SidebarPlacement,
+    def present(self, control: PlacementControl, placement: SidebarPlacement,
                 directions: dict[type[SidebarEdge], SidebarShift]) -> None:
         action = directions[self.direction]
-        button.display = action.available
-        button.tooltip = action.tooltip(self.direction)
+        control.set_shown(action.available)
+        control.set_tooltip(action.tooltip(self.direction))
 
 
 class FloatSidebarPlacementAction(SidebarPlacementAction):
@@ -132,11 +150,35 @@ class FloatSidebarPlacementAction(SidebarPlacementAction):
     def apply(self, layout: SidebarLayout, identity: type[SidebarPlacement]) -> None:
         layout.float_mode(identity)
 
-    def present(self, button: Static, placement: SidebarPlacement,
+    def present(self, control: PlacementControl, placement: SidebarPlacement,
                 directions: dict[type[SidebarEdge], SidebarShift]) -> None:
-        button.update("Push" if placement.floating else "Float", layout=False)
-        button.tooltip = ("Push conversation text" if placement.floating
-                          else "Float over conversation text")
+        control.set_label("Push" if placement.floating else "Float")
+        control.set_tooltip("Push conversation text" if placement.floating
+                            else "Float over conversation text")
+
+
+class SidebarControlsOwner:
+    """A sidebar's pane shows one placement control per SidebarPlacementAction. The Textual
+    sidebar and the Qt pane both inherit this: both build their controls from the one family
+    and present them from the one layout, so their arrows and Float cannot drift apart. The
+    frontend owns the control widgets (Textual mounts and queries them, Qt keeps a list); this
+    owns only which actions exist and how the family draws each."""
+
+    @staticmethod
+    def placement_actions() -> Iterator[SidebarPlacementAction]:
+        """Every placement control a sidebar offers, in the family's order."""
+        for kind in SidebarPlacementAction.members_with(SidebarPlacementAction):
+            yield from kind.offered()
+
+    @staticmethod
+    def present_placement_controls(controls: Iterator[PlacementControl], layout: SidebarLayout,
+                                   identity: type[SidebarPlacement]) -> None:
+        """Draw each control from the one layout: the same placement and the same directions
+        decide each arrow's reach and Float's label for both frontends."""
+        placement = layout.get(identity)
+        directions = layout.directions(identity)
+        for control in controls:
+            control.action.present(control, placement, directions)
 
 
 @dataclass(frozen=True, slots=True)

@@ -32,9 +32,12 @@ from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.main import current_scheme, open_app
+from toad.qt.placement import QtPlacementControl
+from toad.sidebar_layout import DirectionalSidebarPlacementAction, FloatSidebarPlacementAction
 from toad.sidebar_placement import (
     BottomSidebarEdge,
     ChannelsSidebarPlacement,
+    SidebarEdge,
     ThreadSidebarPlacement,
     TopSidebarEdge,
 )
@@ -409,15 +412,25 @@ class PlacementScenario(Scenario):
 
     def where(self, pane) -> str:
         parent = pane.parentWidget()
-        for name, container in (("top", self.app.top_dock), ("bottom", self.app.bottom_dock),
-                                ("float", self.app.float_layer)):
-            if parent is container:
+        for name, dock in self.app._docks.items():
+            if parent is dock:
                 return name
+        if parent is self.app.float_layer:
+            return "float"
         return "down"
 
     def placement(self, identity) -> str:
         placed = self.app.sidebar_layout.get(identity)
         return placed.side.declared_name + ("/float" if placed.floating else "")
+
+    def move_control(self, pane, edge: type[SidebarEdge]) -> QtPlacementControl:
+        return next(control for control in pane._controls
+                    if isinstance(control.action, DirectionalSidebarPlacementAction)
+                    and control.action.direction is edge)
+
+    def float_control(self, pane) -> QtPlacementControl:
+        return next(control for control in pane._controls
+                    if isinstance(control.action, FloatSidebarPlacementAction))
 
     async def settle(self) -> None:
         await asyncio.sleep(0.5)
@@ -440,26 +453,31 @@ class PlacementScenario(Scenario):
         home = app.workspace_sessions.home
         app.open_row(comms)
         await self.opened(home)
-        self.report("1-comms-open", channels_bar=app.channels_bar.isVisible(),
-                    thread_bar=app.thread_bar.isVisible(), thread_heading=app.thread_bar._title.text(),
-                    too_wide=self.too_wide())
-        # Open the channels pane, then move it to the top, to the bottom and float it: each
-        # control relocates the one pane over the shared SidebarLayout.
+        pane = app.channels_pane
+        # The bar is only its toggle and heading; the move arrows and Float live in the pane,
+        # as the Textual sidebar draws them. Prove the structure from the widget tree.
+        self.report("1-structure",
+                    channels_bar=app.channels_bar._title.text(),
+                    bar_controls=len(app.channels_bar.findChildren(QtPlacementControl)),
+                    pane_controls=len(pane.findChildren(QtPlacementControl)),
+                    pane_actions=[control.action.name for control in pane._controls],
+                    thread_bar=app.thread_bar._title.text(), too_wide=self.too_wide())
+        # Open the channels pane, then move it top, bottom and float it from the pane's own
+        # controls: each relocates the one pane over the shared SidebarLayout.
         app.toggle_pane(ChannelsSidebarPlacement)
         await self.settle()
-        self.report("2-channels-shown", placement=self.placement(ChannelsSidebarPlacement),
-                    at=self.where(app.sidebar))
-        app.channels_bar._moves[TopSidebarEdge].click()
+        self.report("2-shown", placement=self.placement(ChannelsSidebarPlacement), at=self.where(pane))
+        self.move_control(pane, TopSidebarEdge).click()
         await self.settle()
-        self.report("3-move-top", placement=self.placement(ChannelsSidebarPlacement), at=self.where(app.sidebar))
-        app.channels_bar._moves[BottomSidebarEdge].click()
+        self.report("3-move-top", placement=self.placement(ChannelsSidebarPlacement), at=self.where(pane))
+        self.move_control(pane, BottomSidebarEdge).click()
         await self.settle()
-        self.report("4-move-bottom", placement=self.placement(ChannelsSidebarPlacement), at=self.where(app.sidebar))
-        app.channels_bar._float.click()
+        self.report("4-move-bottom", placement=self.placement(ChannelsSidebarPlacement), at=self.where(pane))
+        self.float_control(pane).click()
         await self.settle()
         self.report("5-float", placement=self.placement(ChannelsSidebarPlacement),
-                    at=self.where(app.sidebar), too_wide=self.too_wide())
-        app.channels_bar._float.click()
+                    at=self.where(pane), float_label=self.float_control(pane).text(), too_wide=self.too_wide())
+        self.float_control(pane).click()
         app.toggle_pane(ChannelsSidebarPlacement)
         await self.settle()
         # The thread bar opens the open conversation's view settings. Toggle one category and
@@ -472,7 +490,7 @@ class PlacementScenario(Scenario):
         app.thread_pane._checks[category].click()
         await self.settle()
         comms_after = set(comms_view.visible_categories)
-        self.report("6-comms-settings", toggled=category.label, where=self.where(app.thread_pane),
+        self.report("6-comms-settings", toggled=category.label, where=self.where(app.thread_settings),
                     categories=[control.text() for control in app.thread_pane._checks.values()],
                     before_shown=before, after_shown=len(comms_after),
                     category_shown=(category in comms_after), too_wide=self.too_wide())
@@ -486,7 +504,7 @@ class PlacementScenario(Scenario):
         await self.settle()
         self.report("8-dm-settings", toggled=category.label,
                     dm_category_shown=(category in dm_view.visible_categories),
-                    comms_still=(category in comms_after), where=self.where(app.thread_pane),
+                    comms_still=(category in comms_after), where=self.where(app.thread_settings),
                     too_wide=self.too_wide())
 
 

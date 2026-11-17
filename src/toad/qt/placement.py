@@ -1,16 +1,14 @@
-"""The Qt phone's sidebar placement bars.
+"""The Qt phone's sidebar: a toggle bar and the pane it shows.
 
-Each pane the phone shows — the channels-and-threads sidebar and the open thread's own
-view settings — sits behind a bar above the tabs, exactly as Toad's phone layout draws its
-two bars side by side. A bar names its pane, shows or hides it, and moves or floats it. The
-move and float are the shared policy: this draws `SidebarLayout`, the one owner the Textual
-workspace reads for its own arrangement, over the session store below; the phone keeps no
-copy of the move and float logic, only the store its settings file does not reach.
+Toad draws a sidebar as a toggle bar — an arrow and the pane's heading — with the move and
+float controls inside the pane it opens, not on the bar. The phone follows that: each bottom
+bar is only ``↑ heading ↑``; the arrows and Float live in the expanded pane. Those controls
+come from the one SidebarPlacementAction family through SidebarControlsOwner, the same owner
+the Textual sidebar inherits, so the two frontends cannot offer different controls or filter
+them by a different rule. Qt draws only the widgets.
 
-A phone is one column wide, so only the top and bottom edges and floating make sense; the
-left and right columns a wide terminal offers are never drawn. Text that will not fit the
-412 px width is an ElidedLine, so a long thread name shows its overflow rather than widening
-the window.
+Text that will not fit the 412 px width is an ElidedLine, so a long thread name shows its
+overflow rather than widening the window.
 """
 
 from __future__ import annotations
@@ -20,22 +18,26 @@ from functools import partial
 
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QToolButton, QVBoxLayout, QWidget
-
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QHBoxLayout,
+    QLabel,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 
-from toad.sidebar_layout import ArrangementStore, SidebarLayout
-from toad.sidebar_placement import (
-    BottomSidebarEdge,
-    SidebarEdge,
-    SidebarPlacement,
-    TopSidebarEdge,
+from toad.sidebar_layout import (
+    ArrangementStore,
+    PlacementControl,
+    SidebarControlsOwner,
+    SidebarLayout,
+    SidebarPlacementAction,
 )
+from toad.sidebar_placement import SidebarPlacement
 from toad.terminal_origin import TerminalLayout
-
-# The edges a phone offers, top first: a bar moves between them, and floating is the third
-# placement, drawn as the Float control rather than an edge.
-PHONE_EDGES: tuple[type[SidebarEdge], ...] = (TopSidebarEdge, BottomSidebarEdge)
 
 
 class SessionArrangementStore(ArrangementStore):
@@ -54,103 +56,111 @@ class SessionArrangementStore(ArrangementStore):
         self._terminals = terminals
 
 
-class PlacementBar(QWidget):
-    """One pane's bar: its toggle, its move arrows and its float control, over the shared
-    `SidebarLayout`. The bar owns no placement state; it reads the layout and, on a press,
-    asks the layout to move, float or the window to show the pane, then the window lays the
-    panes out again and saves the arrangement."""
+class QtPlacementControl(QToolButton, PlacementControl, metaclass=PyQtWidgetMeta):
+    """One placement control as a Qt button: an arrow that moves the pane to its edge, or
+    Float/Push. Pressing it applies the action to the shared layout, exactly as the Textual
+    SidebarAction does; the family owns what the press does and how the control reads."""
 
-    def __init__(
-        self,
-        layout: SidebarLayout,
-        identity: type[SidebarPlacement],
-        *,
-        heading: Callable[[], str],
-        shown: Callable[[], bool],
-        toggled: Callable[[], None],
-        rearranged: Callable[[], None],
-    ) -> None:
+    def __init__(self, action: SidebarPlacementAction, layout: SidebarLayout,
+                 identity: type[SidebarPlacement], applied: Callable[[], None]) -> None:
+        super().__init__()
+        self.action = action
+        self._layout = layout
+        self._identity = identity
+        self._applied = applied
+        self.setText(action.label)
+        self.setAutoRaise(True)
+        self.setMinimumHeight(36)
+        self.clicked.connect(self._apply)
+
+    def _apply(self) -> None:
+        self.action.apply(self._layout, self._identity)
+        self._applied()
+
+    def set_shown(self, shown: bool) -> None:
+        self.setVisible(shown)
+
+    def set_label(self, label: str) -> None:
+        self.setText(label)
+
+    def set_tooltip(self, tooltip: str) -> None:
+        self.setToolTip(tooltip)
+
+
+class SidebarPane(QWidget, SidebarControlsOwner):
+    """A sidebar's expanded pane: the placement controls over its content. The controls are
+    built from SidebarControlsOwner.placement_actions() and drawn by present_placement_controls,
+    so every arrow and Float is the family's, filtered by the one directions rule. The toggle
+    bar shows and hides this pane; the move and float live here, as the Textual layout controls
+    live inside the pane and not on its toggle."""
+
+    def __init__(self, layout: SidebarLayout, identity: type[SidebarPlacement],
+                 content: QWidget, *, applied: Callable[[], None]) -> None:
+        super().__init__()
+        self._layout = layout
+        self._identity = identity
+        self.content = content
+        column = QVBoxLayout(self)
+        column.setContentsMargins(0, 0, 0, 0)
+        column.setSpacing(0)
+        controls = QHBoxLayout()
+        controls.setContentsMargins(2, 0, 2, 0)
+        controls.setSpacing(2)
+        self._controls = [
+            QtPlacementControl(action, layout, identity, applied)
+            for action in self.placement_actions()
+        ]
+        for control in self._controls:
+            controls.addWidget(control)
+        controls.addStretch(1)
+        column.addLayout(controls)
+        column.addWidget(content, 1)
+
+    def present(self) -> None:
+        self.present_placement_controls(self._controls, self._layout, self._identity)
+
+
+class SidebarToggle(QWidget):
+    """A sidebar's bar: an arrow and the pane's heading, nothing else. A press shows or hides
+    the pane; the arrow points the way the pane opens, as the Textual toggle draws it."""
+
+    def __init__(self, layout: SidebarLayout, identity: type[SidebarPlacement], *,
+                 heading: Callable[[], str], shown: Callable[[], bool],
+                 toggled: Callable[[], None]) -> None:
         super().__init__()
         self._layout = layout
         self._identity = identity
         self._heading = heading
         self._shown = shown
         self._toggled = toggled
-        self._rearranged = rearranged
-
+        self.setMinimumHeight(40)
         row = QHBoxLayout(self)
-        row.setContentsMargins(2, 0, 2, 0)
-        row.setSpacing(2)
-
-        self._moves: dict[type[SidebarEdge], QToolButton] = {}
-        for edge in PHONE_EDGES:
-            button = self._control(edge.symbol, partial(self._move, edge))
-            self._moves[edge] = button
-            row.addWidget(button)
-
-        self._toggle = QToolButton()
-        self._toggle.setAutoRaise(True)
-        self._toggle.setMinimumHeight(40)
-        self._toggle.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
-        self._toggle.clicked.connect(lambda: self._toggled())
+        row.setContentsMargins(4, 0, 4, 0)
+        row.setSpacing(4)
+        self._left = QLabel()
+        self._right = QLabel()
         self._title = ElidedLine("")
         self._title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        toggle_row = QHBoxLayout()
-        toggle_row.setContentsMargins(0, 0, 0, 0)
-        toggle_row.setSpacing(2)
-        toggle_row.addWidget(self._toggle)
-        toggle_row.addWidget(self._title, 1)
-        toggle_row.addWidget(self._float_toggle())
-        row.addLayout(toggle_row, 1)
+        row.addWidget(self._left)
+        row.addWidget(self._title, 1)
+        row.addWidget(self._right)
 
-    def _control(self, text: str, action: Callable[[], None]) -> QToolButton:
-        button = QToolButton()
-        button.setText(text)
-        button.setAutoRaise(True)
-        button.setMinimumSize(32, 40)
-        button.clicked.connect(lambda: action())
-        return button
-
-    def _float_toggle(self) -> QToolButton:
-        self._float = QToolButton()
-        self._float.setAutoRaise(True)
-        self._float.setMinimumSize(44, 40)
-        self._float.clicked.connect(self._do_float)
-        return self._float
-
-    def _move(self, edge: type[SidebarEdge]) -> None:
-        if self._layout.shift(self._identity, edge):
-            self._rearranged()
-
-    def _do_float(self) -> None:
-        self._layout.float_mode(self._identity)
-        self._rearranged()
-
-    @property
-    def placement(self) -> SidebarPlacement:
-        return self._layout.get(self._identity)
+    def mousePressEvent(self, event) -> None:  # type: ignore[override]
+        if event.button() == Qt.MouseButton.LeftButton:
+            event.accept()
+            self._toggled()
+        else:
+            super().mousePressEvent(event)
 
     def present(self) -> None:
-        """Draw the bar from the shared layout: the toggle names the pane and points at it,
-        each move arrow offers the edge it can reach, and Float or Push names what it does."""
-        placement = self.placement
+        placement = self._layout.get(self._identity)
         shown = self._shown()
         heading = self._heading()
-        # The toggle points at its pane: a closed pane's arrow points the way the pane opens
-        # (away from its edge), an open one's points back toward the edge that closes it.
         arrow = placement.side.toggle_symbol(not shown)
-        self._toggle.setText(arrow)
+        self._left.setText(arrow)
+        self._right.setText(arrow)
         self._title.setText(heading)
-        self._toggle.setToolTip(("Hide " if shown else "Show ") + heading)
-        directions = self._layout.directions(self._identity)
-        for edge, button in self._moves.items():
-            shift = directions[edge]
-            button.setEnabled(shift.available)
-            button.setToolTip(shift.tooltip(edge))
-        self._float.setText("Push" if placement.floating else "Float")
-        self._float.setToolTip(
-            "Push the conversation text aside" if placement.floating
-            else "Float over the conversation text")
+        self.setToolTip(("Hide " if shown else "Show ") + heading)
 
 
 class ThreadSettingsPane(QWidget):
