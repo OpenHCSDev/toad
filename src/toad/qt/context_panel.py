@@ -232,8 +232,15 @@ class QtContextExplorer(QWidget):
         if callable(read):
             try:
                 text = await read()
-            except Exception:  # best-effort; keep the fallback detail()
-                pass
+            except Exception as error:
+                # Keep the fallback detail() so the user still sees SOMETHING, but
+                # surface the read failure so a recurring read bug leaves a trail
+                # instead of a silently-truncated detail pane.
+                import sys
+                print(
+                    f"context_panel: ContextNode.read() failed on {model!r}: {error!r}",
+                    file=sys.stderr,
+                )
         if self._intent.selected is model:
             self._detail.setPlainText(text)
 
