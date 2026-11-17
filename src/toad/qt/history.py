@@ -54,6 +54,8 @@ from toad.client.transcript_fragments import (
     TranscriptFragment,
 )
 from toad.history_jump import JumpsToLatest
+from toad.widget_view import WorkspaceHosted
+from toad.workspace_frame import WorkspaceFrame
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
 from ui_theme.scheme import ColourScheme, ForegroundColour, SurfaceHoverColour
@@ -419,7 +421,8 @@ class QtJumpBar(QPushButton):
         self.hide()
 
 
-class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacement, PagingWindow):
+class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowView,
+                      ReaderPlacement, PagingWindow):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
     contract: reaching the top reads older pages, the bottom newer ones, End and the
@@ -433,6 +436,14 @@ class QtHistoryWindow(JumpsToLatest, TouchScrolled, VirtualRowView, ReaderPlacem
 
     history: QtConversationHistory
     scroll_revision = 0
+
+    @property
+    def screen(self) -> WorkspaceFrame:
+        """Qt's workspace frame is the top-level `QtToadApp` (which inherits
+        `QtWorkspaceFrame`). Qt widgets reach it through `window()`, not through a
+        Textual `Widget.screen` chain, so `WorkspaceHosted`'s `super().screen` is
+        replaced here."""
+        return self.window()
 
     def __init__(self, scheme: ColourScheme, parent: QWidget | None = None) -> None:
         super().__init__(HistoryRowDelegate(scheme), parent)
