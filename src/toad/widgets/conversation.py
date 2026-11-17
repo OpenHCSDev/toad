@@ -112,13 +112,7 @@ from toad.layout import trim_trailing_margin
 from toad.layout_preferences import FollowsLayoutPreferences
 from toad.client.line_blocks import LineLink
 from toad.live_output import LiveOutput
-from toad.menus import (
-    CopyClipboardCommand,
-    CopyPromptCommand,
-    ExportSvgCommand,
-    MaximizeBlockCommand,
-    MenuConversation,
-)
+from toad.menus import MenuConversation, standard_commands
 from toad.messages import QueueEvidenceOwner
 from toad.native_style import (
     AutoHeight,
@@ -2095,10 +2089,7 @@ class Conversation(ColumnLayout,
     async def select_block(self) -> None:
         cursor = self.navigation.cursor
         for block in cursor.selected_widgets:
-            commands = [CopyClipboardCommand(), CopyPromptCommand(), ExportSvgCommand()]
-            if cursor.allow_maximize:
-                commands.append(MaximizeBlockCommand())
-            commands.extend(cursor.get_block_menu())
+            commands = [*standard_commands(cursor), *cursor.get_block_menu()]
             menu = Menu(self, block, commands, focus_owner=self.window)
             menu.offset = Offset(1, cursor.region.top(self.window.region.y))
             await self.mount(menu)
