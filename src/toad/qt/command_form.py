@@ -33,15 +33,22 @@ from PySide6.QtWidgets import (
 from toad.client.command_draft import CommandDraft
 from toad.client.host import CommandOrigin
 from toad.qt.host import QtCommsHost, ScreenWideWindow
+from toad.widget_contracts import DismissibleContract, SubmitsContract
 
 
 class CommandApply(OperationKind):
     """Apply on a command form: confirm its arguments with Core, then answer the form."""
 
 
-class QtCommandForm(CommandDraft, ScreenWideWindow, QDialog, metaclass=PyQtWidgetMeta):
+class QtCommandForm(CommandDraft, ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract,
+                    metaclass=PyQtWidgetMeta):
     """One backend operation's form. It answers once: the arguments Apply submits, or None
     when it is cancelled or closed."""
+
+    dismiss_control = QDialog.reject
+
+    def submit(self) -> None:
+        self.apply()
 
     def __init__(self, host: QtCommsHost, window: QWidget | None, definition: TargetAction, target: str,
                  fields: tuple[TargetField, ...], core: CoreAccess) -> None:

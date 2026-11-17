@@ -40,6 +40,7 @@ from toad.client.notification_status import (
     UncheckedNotifications,
 )
 from toad.client.subscribers import NotificationSubscriber
+from toad.widget_contracts import OpensSelectedContract, SelectsContract
 from toad.qt.lines import QtLineRenderer
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
@@ -99,7 +100,7 @@ class MentionOffer(Offer):
         self.completion.accept(composer, self.candidate.name)
 
 
-class OfferList(QListWidget):
+class OfferList(QListWidget, SelectsContract, OpensSelectedContract):
     """The offers for what the cursor is typing, over the editor; hidden when there are none."""
 
     rows = 7
@@ -115,6 +116,15 @@ class OfferList(QListWidget):
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.itemClicked.connect(self.take_item)
         self.hide()
+
+    def select(self) -> None:
+        """Move the cursor to the first offer; a Selects consumer uses this to choose."""
+        if self.count():
+            self.setCurrentRow(0)
+
+    def open_selected(self) -> None:
+        """Commit the row the cursor is on, the same way accept_current does."""
+        self.accept_current()
 
     def show_offers(self, title: str, offers: tuple[Offer, ...]) -> None:
         if offers == self.offers:

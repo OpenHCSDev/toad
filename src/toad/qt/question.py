@@ -28,12 +28,13 @@ from PySide6.QtWidgets import (
 
 from toad.answer import Answer
 from toad.question_actions import QuestionContext
+from toad.widget_contracts import DismissibleContract
 
 if TYPE_CHECKING:
     from toad.widgets.question import Ask
 
 
-class QtQuestion(QuestionContext, QFrame):
+class QtQuestion(QuestionContext, QFrame, DismissibleContract):
     """Qt's inline question. A hidden panel at the bottom of the conversation view that fills
     with the title and option buttons when the conversation asks, and tucks itself away once
     the user picks or the question is retracted.
@@ -85,6 +86,11 @@ class QtQuestion(QuestionContext, QFrame):
         self._clear_options()
         self._ask = None
         self.hide()
+
+    def dismiss_control(self) -> None:
+        """A cross-toolkit consumer can dismiss the question panel the same way as any other
+        DismissibleContract — retracting the Ask and tucking the panel away."""
+        self.retract()
 
     def _clear_options(self) -> None:
         while self._options_row.count():
