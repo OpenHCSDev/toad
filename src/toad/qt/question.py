@@ -44,7 +44,10 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
         super().__init__(parent)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self._ask: Ask | None = None
-        self._title = QLabel()
+        # Parent self — a parentless QLabel on Qt-for-Android becomes a top-level window
+        # with its own EGL surface and can recurse into the deadlock protector during
+        # the first-paint flush of the conversation view (same shape as PR #1885).
+        self._title = QLabel(self)
         self._title.setWordWrap(True)
         self._title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self._options_row = QHBoxLayout()
