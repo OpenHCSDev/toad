@@ -39,10 +39,20 @@ public class ConnectedService extends Service {
                 .setOngoing(true)
                 .setContentIntent(PendingIntent.getActivity(this, 0, reopen, PendingIntent.FLAG_IMMUTABLE))
                 .build();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIFICATION, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING);
-        } else {
-            startForeground(NOTIFICATION, notification);
+        // Android 14+ refuses startForeground() when the service is created from a
+        // background-launch context (no visible activity, no whitelisted broadcast).
+        // The keep-alive is meaningful only alongside a running window, so if Android
+        // won't grant foreground status, the service has nothing to keep alive: stop
+        // instead of letting the process crash.
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(NOTIFICATION, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING);
+            } else {
+                startForeground(NOTIFICATION, notification);
+            }
+        } catch (android.app.ForegroundServiceStartNotAllowedException refused) {
+            android.util.Log.w("toadcomms", "ConnectedService refused by platform; stopping", refused);
+            stopSelf();
         }
     }
 
