@@ -1349,7 +1349,7 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
         # controls live inside the pane, from the shared family. The channels sidebar is always
         # available; the thread's settings only while a tab is open.
         self.sidebar = Sidebar(self)
-        self.thread_pane = ThreadSettingsPane()
+        self.thread_pane = ThreadSettingsPane(parent=self)
         self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
                                          self.sidebar, SidebarControlsOwner,
                                          applied=self.rearrange_sidebars)

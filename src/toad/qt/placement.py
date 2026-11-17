@@ -55,15 +55,15 @@ class ThreadSettingsPane(QWidget):
     conversation the tab shows, so the pane reads and writes that view's own selection and
     holds no copy of it. It stands in for the Textual thread sidebar's message filter."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
         column = QVBoxLayout(self)
         column.setContentsMargins(8, 4, 8, 4)
         column.setSpacing(2)
         self._view = None
         self._checks: dict[type[MessageCategory], QCheckBox] = {}
         for category in MessageCategory.members_with(MessageCategory):
-            check = QCheckBox(category.label)
+            check = QCheckBox(category.label, self)
             check.toggled.connect(partial(self._toggled, category))
             self._checks[category] = check
             column.addWidget(check)
