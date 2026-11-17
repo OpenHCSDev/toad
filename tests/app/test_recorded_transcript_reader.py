@@ -7,8 +7,8 @@ import pytest
 from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     decode_updates,
-    encode_updates,
 )
+from agent_comms.text_route_update import encode_updates
 from agent_comms.coordination.errors import HistoricalSourceChanged, ReloadRequired
 from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.execution.transcript_sources import (

@@ -4,11 +4,11 @@ and remote failure facts never overwrite what the user is typing."""
 from unittest.mock import patch
 
 from acp.exceptions import RequestError
-from agent_comms.acp_extension import (
+from agent_comms.execution.acp_failure import (
     InputFailedUpdate,
     RequestFailedUpdate,
-    encode_updates,
 )
+from agent_comms.text_route_update import encode_updates
 from agent_comms.execution.acp_failure import BackendDeliveryFailure
 from support.agents import deliver
 

@@ -18,9 +18,9 @@ from agent_comms.display_order import ThreadSort
 from agent_comms.registry.relationships import (
     RelationshipEntry,
     RelationshipGroup,
-    SortableRelationshipGroup,
     ThreadCommsSnapshot,
 )
+from agent_comms.registry.relationship_store import SortableRelationshipGroup
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (

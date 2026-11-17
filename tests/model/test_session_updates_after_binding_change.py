@@ -1,6 +1,9 @@
 """A session update that was being validated when its session or process was replaced publishes nothing."""
 from acp import schema
-from agent_comms.acp_extension import TextRouteUpdate, encode_updates
+from agent_comms.text_route_update import (
+    TextRouteUpdate,
+    encode_updates,
+)
 from agent_comms.messaging.routing import MessageRoute
 from support.agents import RecordedEvents, deliver
 
