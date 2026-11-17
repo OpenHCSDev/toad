@@ -51,6 +51,7 @@ from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from ui_theme.scheme import ColourScheme, PrimaryColour
 
+from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame
 from toad.flash_host import FlashHost
@@ -1309,7 +1310,7 @@ class QtWorkspaceViews(WorkspaceViews):
         view.deleteLater()
 
 
-class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
+class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core a UI profile names: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
@@ -1319,6 +1320,10 @@ class QtToadApp(ClientApplication, QtWorkspaceFrame, QtCommsHost, ScreenWideWind
     def __init__(self, connection: RemoteCoreConnection, project: Checkout,
                  preparation: PreparationRuntime, scheme: ColourScheme) -> None:
         super().__init__(project, preparation, scheme)
+        # Walk Core's declaration catalog once up front (shared with the Textual app
+        # via CorePrewarm): a cold first tab otherwise imports every agent_comms
+        # module under the GIL on its first wire revision / action menu.
+        self._prewarm_core_modules()
         self.initialize_client(NoAgent(), connection)
         self.setWindowTitle("Toad")
         self.renderer = QtLineRenderer(scheme)
