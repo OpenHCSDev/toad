@@ -10,7 +10,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QColor, QPainter
+from PySide6.QtGui import QColor, QImage, QPainter
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.effects import ACTIVITY_SWEEP
@@ -85,14 +85,30 @@ class ActivitySweep(QWidget):
         frame = ACTIVITY_SWEEP.frame(monotonic() - self.started)
         scheme = self.renderer.scheme
         width, height = self.width(), self.height()
-        painter = QPainter(self)
+        if width <= 0 or height <= 0:
+            return
+        # One Python-sampled image → one C++ blit. The 20-fps `paintEvent` used to issue
+        # one Python→Qt fillRect per pixel-column (~1000 crossings per paint on a Pixel
+        # 8a). Now one QImage is filled in Python via a uint32 memoryview — pure CPython
+        # integer writes, no Qt round-trips — and painted with a single drawImage. Each
+        # column still gets its sampled colour and its thickness-centred band.
+        image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
+        image.fill(0)
+        image.setDevicePixelRatio(self.devicePixelRatioF() or 1.0)
+        row_stride = image.bytesPerLine() // 4
+        buf = memoryview(image.bits()).cast("I", shape=[height, row_stride])
         for x in range(width):
             start, end, amount, thickness = frame.sample((x + 0.5) / width)
             if thickness <= 0:
                 continue
             ink = start.rgb(scheme).blend(end.rgb(scheme), amount)
+            pixel = (0xFF << 24) | (ink.red << 16) | (ink.green << 8) | ink.blue
             bar = max(1, round(height * thickness))
-            painter.fillRect(x, (height - bar) // 2, 1, bar, QColor(ink.hex))
+            top = (height - bar) // 2
+            for y in range(top, top + bar):
+                buf[y][x] = pixel
+        painter = QPainter(self)
+        painter.drawImage(0, 0, image)
         painter.end()
 
 
