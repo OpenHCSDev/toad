@@ -24,6 +24,7 @@ from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, CommsTail
 from formbridge.operations import ExclusiveKind, OperationKind
 
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
+from toad.client import bus_connect
 from toad.client.bus_selection import (
     BusChoice,
     BusesFound,
@@ -94,6 +95,19 @@ class ClientApplication(BusPickerHost, NavigationHost):
         """Switch this session onto a bus the reader picked."""
         self.run_operation(BusSwitch, partial(self.switch_bus, choice))
 
+    def open_held_profile(self, path) -> None:
+        """Open the bus a newly-held profile names. Used by the bus-connect paste flow
+        (`bus_connect._hold_pasted_profile`) after `HoldUiVerb` wrote the profile to the
+        held directory. Reports through the warning channel when the held file is not
+        openable, mirroring the failure path in `asked_peer` so a bad paste does not raise."""
+        match HeldUiProfiles.entry(path, time.time()):
+            case OpenableProfile() as openable:
+                self.open_bus(HeldBus(openable))
+            case held:
+                self.show_warning(
+                    f"Pasted profile cannot open its bus: {held.label()}", "Bus",
+                )
+
     async def switch_bus(self, choice: BusChoice) -> None:
         """Swap the connection, not the app.
 
@@ -130,11 +144,14 @@ class ClientApplication(BusPickerHost, NavigationHost):
         return answer.hold()
 
     def asked_peer(self, asked: AskedPeer) -> None:
-        """What the peer answered: its bus, or the reason in the words it used.
+        """What the peer answered: its bus, or the structured remediation for its refusal.
 
-        The profile it handed over is read back through the held family rather than assumed
-        openable, because that family is what says whether a held file can open a bus; a
-        fresh one that reads back expired or unreadable is worth saying out loud.
+        A handed-over profile opens its bus directly; a refusal or non-answer goes through
+        `BusConnectDecision.decision_for`, so the frontend offers tappable options
+        (copy the setup command, paste a profile) instead of a shell-command banner the
+        phone user cannot act on. The held family still gates openability — a fresh profile
+        that reads back expired or unreadable is reported to the host's warning channel
+        rather than treated as a success.
         """
         match asked:
             case HoldingPeerProfile(path=path):
@@ -145,7 +162,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
                         self.show_warning(f"{asked.found.peer.name} handed over a profile this "
                                           f"machine cannot open: {held.label()}", "Bus")
             case _:
-                self.show_warning(asked.reason(), "Bus")
+                self.offer_bus_connect(bus_connect.decision_for(asked, self))
 
     def tailnet_buses(self) -> tuple[PeerBus, ...]:
         """What the observed Core's tailnet reports on every peer: seconds of ssh, so it is
