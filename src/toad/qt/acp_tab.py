@@ -38,6 +38,7 @@ from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin
 from toad.client.tab_identity import SessionTabIdentity
+from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.tab_identity.kinds import CommsTab
 from toad.core import input_events
 from toad.launch_binding import AgentBinding
@@ -71,7 +72,7 @@ def _toad_app() -> QtToadApp:
     raise RuntimeError("No QtToadApp window is running")
 
 
-class QtAcpSessionView(ComposerHost, Page, WorkspaceHosted, QWidget, metaclass=PyQtWidgetMeta):
+class QtAcpSessionView(ConversationThreadReadMixin, ComposerHost, Page, WorkspaceHosted, QWidget, metaclass=PyQtWidgetMeta):
     """A Qt Claude-CLI session tab.
 
     What this renders today: the bound session's identity line, the transcript through Qt's
