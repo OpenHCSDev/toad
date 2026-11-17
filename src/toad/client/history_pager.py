@@ -721,8 +721,16 @@ class HistoryPager:
 
     @property
     def drawn_extent(self) -> tuple[int, int]:
-        pages = [page for page in self.pages if page.line_count]
-        return sum(page.line_count for page in pages), sum(page.prepared.stop - page.prepared.start for page in pages)
+        """The rows the loaded pages draw and the messages behind them, each page measured once."""
+        drawn = tuple((rows, page) for page in self.pages if (rows := page.line_count))
+        return (sum(rows for rows, _page in drawn),
+                sum(page.prepared.stop - page.prepared.start for _rows, page in drawn))
+
+    @property
+    def draws_rows(self) -> bool:
+        """Whether the loaded range draws anything: the first page that does answers, with no sum
+        over the rest. Asked on every scrolled frame, so its cost must not grow with history."""
+        return any(page.line_count for page in self.pages)
 
     @property
     def drawn_tail_followed(self) -> bool:
@@ -1129,7 +1137,7 @@ class DirectionalPreparation:
             return
         if history.follows_source_tail and NEWER_END.visible_more(history):
             window.jump_to_latest()
-        elif not history.drawn_extent[0] and NEWER_END.visible_more(history):
+        elif not history.draws_rows and NEWER_END.visible_more(history):
             # A filter can hide the whole loaded range. Ask the ordinary
             # source owner for the next range, not an invented row at its end.
             history.request_page(NEWER_END)
