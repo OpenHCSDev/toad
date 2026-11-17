@@ -1,12 +1,15 @@
 """Callbacks implemented by native views that subscribe to Core observations."""
 
+import inspect
 from collections.abc import Callable, Mapping
 from dataclasses import InitVar, dataclass, field
-from functools import cached_property, partial
+from functools import cache, cached_property, partial
 
 from agent_comms.messaging.message_notification import MessageNotification
 
 from formbridge.publications import Subscription
+
+from metaclass_registry.mro_dispatch import MroDispatch
 
 from toad.core.events import CoreEvent, CoreEventStream, ThreadChangeSubscription
 
@@ -91,6 +94,35 @@ class CoreObserver:
     async def consume_handlers(self, event, handlers, *args, **kwargs):
         """Run the handlers for one delivered event, in the native loop."""
         raise NotImplementedError
+
+
+class CoreObserverDispatch(CoreObserver, MroDispatch):
+    """A `CoreObserver` whose handlers are declared through `@handles` and dispatched by MRO.
+
+    The shared dispatch chassis both the Textual `CoreEventReceiver` and the Qt
+    `QtCoreObserver` inherit: no DOMNode, no Qt base, so consumers on either side get
+    `@handles(CoreEvent)`-style declarations, the per-class handler registry, and
+    `consumed_core_events()` without a toolkit base in the MRO. Delivery into the native
+    loop stays per-side (`post_core_callback`, and Textual's `consume_handlers` override).
+    """
+
+    @classmethod
+    @cache
+    def consumed_core_events(cls) -> tuple[type[CoreEvent], ...]:
+        """The Core events this receiver declares a handler for: an observed stream sends it
+        only these. The declarations are decoded once per class (a handler may also name a
+        non-Core value)."""
+        return tuple(dict.fromkeys(event for _name, classes in cls._handler_declarations
+                                   for event in classes if issubclass(event, CoreEvent)))
+
+    async def consume_handlers(self, event, handlers, *args, **kwargs):
+        """Default handler loop: each handler is called with the event. Sync or async both
+        work; Textual's override replaces this with its callback-aware `invoke`."""
+        for handler in handlers:
+            result = handler(event, *args, **kwargs)
+            if inspect.isawaitable(result):
+                await result
+        return event
 
 
 class SidebarSubscriber[Source, Failure]:

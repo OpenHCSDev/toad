@@ -14,10 +14,17 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ToadNode(SettingsReader):
-    """Keep the application refinement on one shared native parent."""
+class AppScoped:
+    """Carries a `ToadApp` reference as ``self.app``: a plain mixin with no toolkit base, so
+    Qt widgets can declare the same application-refinement type ``ToadNode`` gives Textual
+    widgets, without dragging DOMNode into the Qt metaclass's MRO.
+    """
 
     app: ToadApp
+
+
+class ToadNode(AppScoped, SettingsReader):
+    """Keep the application refinement on one shared native Textual parent."""
 
 
 class FollowsTheme(DOMNode):
