@@ -17,7 +17,7 @@ lives on the shared `CommittedHistoryBase`.
 """
 from __future__ import annotations
 
-from agent_comms.transcript.transcript_events import TranscriptCoverage
+from toad.core.source_events import TranscriptCoverage
 
 from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_coverage import ReportsCoveredPages
