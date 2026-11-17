@@ -15,14 +15,37 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
+from toad.client.history_changes import NO_HISTORY_CHANGE, HistoryChange, NoHistoryChange
+
 
 class JumpsToLatest:
-    """A scrolling window that can be put back at its latest entry."""
+    """A scrolling window that can be put back at its latest entry.
+
+    Carries shared history-window state both backends used to redeclare:
+
+    - ``scroll_revision`` ticks once per scroll motion the window applies; consumers
+      compare their stored revision against this window's to learn whether what they
+      measured still stands.
+    - ``history_change`` tracks whether the scroll underway is a pagination load (a
+      change in the history's content). Owned by the shared pager state machine;
+      Textual drives it today, Qt inherits the carrier for later wiring.
+    - ``can_jump_to_latest`` derives from ``follows_tail``: both backends had the same
+      one-liner body. The derivation lives here; subclasses declare ``follows_tail``
+      in whatever shape their anchor keeps.
+    """
+
+    scroll_revision: int = 0
+    history_change: HistoryChange | NoHistoryChange = NO_HISTORY_CHANGE
 
     @property
     @abstractmethod
+    def follows_tail(self) -> bool:
+        """Whether this window's reader is at its latest row."""
+
+    @property
     def can_jump_to_latest(self) -> bool:
         """Whether this window is scrolled away from its latest entry."""
+        return not self.follows_tail
 
     @abstractmethod
     def jump_to_latest(self) -> None:
