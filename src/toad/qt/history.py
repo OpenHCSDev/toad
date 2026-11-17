@@ -90,11 +90,25 @@ class QtContextTranscriptFragment(ContextTranscriptFragment):
     """The coordination context an agent was given, drawn by Qt."""
 
 
+@dataclass(kw_only=True)
+class QtSentMessageFragment(SentMessageFragment, EvidencedFragment):
+    """A sent bus message drawn by Qt — the Qt flavor Qt's QtPage uses as
+    `sent_message` in `QT_FRAGMENT_CLASSES`. Also an `EvidencedFragment` so
+    `QtHistoryWindow.row_painted → self.history.retain_painted(fragment)` can
+    read `fragment.evidence` without `AttributeError`. The client's bare
+    `SentMessageFragment` lacks that field; Textual pairs it with its own
+    EvidencedFragment-bearing bases at `widgets/transcript_fragments.py:170`.
+    `@dataclass(kw_only=True)` so EvidencedFragment's `evidence` field
+    actually lands on the instance; without it the two bases' dataclass
+    declarations don't combine and `fragment.evidence` raises AttributeError."""
+    evidence: object | None = None
+
+
 QT_FRAGMENT_CLASSES = FragmentClasses(
     transcript=TranscriptFragment,
     context=QtContextTranscriptFragment,
     bus_message=QtMessageFragment,
-    sent_message=SentMessageFragment,
+    sent_message=QtSentMessageFragment,
     tool=QtToolTranscriptFragment,
 )
 """The Qt flavor of the shared fragment family. A render pipeline that reaches Qt (a future
