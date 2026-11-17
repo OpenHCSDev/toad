@@ -278,6 +278,15 @@ class Question(VisibleActions, StepsVerticalCursor, QuestionContext, containers.
         self.caret_phase = LitCaret
         self.presentation.mount.reset()
 
+    def select_answer(self, index: int) -> None:
+        """Commit the option at `index` as the answer. Shared contract for `SelectAction`
+        / `SelectKindAction`; Qt's widget overrides this with its own commit path."""
+        self.selection = index
+        self._reset_blink()
+        self.post_message(self.Answer(index, self.options[index], self._ask))
+        self.selected = True
+        self.refresh_bindings()
+
     def update(self, ask: Ask) -> None:
         self._ask = ask
         self.title = ask.question

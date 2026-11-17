@@ -25,6 +25,14 @@ class QuestionContext:
     @abstractmethod
     def question(self) -> Question: ...
 
+    @abstractmethod
+    def select_answer(self, index: int) -> None:
+        """Pick the option at `index` and finalise the answer. Each toolkit implements its
+        own commit path: Textual posts the Answer event and flips its reactive `selected`;
+        Qt retracts the inline panel and fires the `Ask`'s callback. The family's
+        `SelectAction` / `SelectKindAction` call this instead of touching toolkit-specific
+        plumbing, so one declared key fires the same selection on either side."""
+
 
 class QuestionAction(Action[QuestionContext], affix="Action"):
     pass
@@ -49,13 +57,9 @@ class SelectAction(QuestionAction):
     def available(self, context):
         return context.question.accepts_selection
 
-    async def apply(self, context):
+    def apply(self, context):
         question = context.question
-        question._reset_blink()
-        question.post_message(question.Answer(question.selection,
-                             question.options[question.selection], question._ask))
-        question.selected = True
-        question.refresh_bindings()
+        question.select_answer(question.selection)
 
 
 class SelectKindAction(QuestionAction, declared_name=None):
@@ -67,12 +71,11 @@ class SelectKindAction(QuestionAction, declared_name=None):
         question = context.question
         return question.accepts_selection and any(answer.kind == self.kind for answer in question.options)
 
-    async def apply(self, context):
+    def apply(self, context):
         question = context.question
         for index, answer in enumerate(question.options):
             if answer.kind == self.kind:
-                question.selection = index
-                await SelectAction().apply(context)
+                question.select_answer(index)
                 return
 
 
