@@ -1370,6 +1370,13 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
                                            self.thread_pane, SidebarControlsOwner,
                                            applied=self.rearrange_sidebars,
                                            parent=self)
+        # Paint the panes with the scheme's sidebar tone. Without this, the panes
+        # inherit the parent QWidget's default colour (Qt doesn't auto-fill a QWidget's
+        # Window role unless asked), so the themed sidebar surface never reaches the
+        # bar. The shared style targets `#SidebarPane` set by formbridge's constructor.
+        _pane_qss = self.theme.color_scheme.styles.generate_sidebar_pane_style()
+        self.channels_pane.setStyleSheet(_pane_qss)
+        self.thread_settings.setStyleSheet(_pane_qss)
         self._panes: dict[type[SidebarPlacement], SidebarPane] = {
             ChannelsSidebarPlacement: self.channels_pane,
             ThreadSidebarPlacement: self.thread_settings,
