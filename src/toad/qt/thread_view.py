@@ -51,6 +51,9 @@ if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
+_CONTRACT_MISSING = object()
+
+
 class QtThreadView(
     ObservedAgentBinding,
     ConversationThreadReadMixin,
@@ -88,6 +91,79 @@ class QtThreadView(
     # `agent_binding = ObservedField(NoAgentConnection())`. Hoisted here so there is
     # one owner — subclasses stop duplicating it.
     agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
+
+    # ---- Shared contract: fields every concrete thread view must have populated ----
+    #
+    # Textual's `Conversation` always mounts: transcript, composer (prompt), agent
+    # activity ribbon, goal bar, identity line, flash / notice surface, bus submissions.
+    # A Qt subclass that omits any of these silently paints a broken screen — the
+    # mailbox-composer-missing bug (Nov 17 2026) was exactly that: no error, no log,
+    # just no input box, caught only by Tristan looking at a screencap.
+    #
+    # Each name here must be an instance attribute (or inherited descriptor) set to
+    # a non-None value by the time the post-init contract check fires. A missing or
+    # None field prints a loud diagnostic to stderr naming the subclass and the field,
+    # so the next thing a developer sees is the map — not a silent wrong screen.
+    #
+    # Fields `_setup_transcript` populates (messages, transcript, message_history,
+    # agent_activity) are not listed because the base owns them. The list is the
+    # SUBCLASS'S promise to the user, not to the base.
+    _REQUIRED_POST_INIT_FIELDS: tuple[str, ...] = (
+        "identity_line",   # the banner / title row every thread view shows
+        "composer",        # the input box (ACP has it, mailbox silently omitted it pre-fix)
+        "submissions",     # BusSubmissions — bus layer the composer sends through
+    )
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        """Wrap every concrete subclass's ``__init__`` so the shared contract check
+        fires after the subclass has built its own state. The check is scheduled on
+        the Qt event loop (``QTimer.singleShot(0, ...)``) so a composer mounted lazily
+        on the next tick — the pattern on Android to avoid the ComposerEditor /
+        a11y race — satisfies the check when it lands, not before.
+        """
+        super().__init_subclass__(**kwargs)
+        original_init = cls.__init__
+
+        def wrapped_init(self, *args, **kw):
+            original_init(self, *args, **kw)
+            # Defer long enough for lazy composer mounts (QTimer.singleShot(0)) to land.
+            # 500 ms gives the first Android paint plenty of room.
+            QTimer.singleShot(500, lambda: self._verify_shared_contract())
+
+        wrapped_init.__wrapped__ = original_init  # type: ignore[attr-defined]
+        cls.__init__ = wrapped_init
+
+    def _verify_shared_contract(self) -> None:
+        """Loud-log every ``_REQUIRED_POST_INIT_FIELDS`` entry this view has not
+        populated. Does not raise — the diagnostic is the point; the UI stays up
+        so the viewer sees the specific partial state and the logcat names the
+        gap. Each missing field prints one line, so a cascade of missing fields
+        prints a cascade of lines (what Tristan wanted: ``error changes = here,
+        here, here, here — tells you the map``).
+        """
+        import sys as _sys
+        try:
+            attached = self.is_attached
+        except Exception:
+            attached = False
+        if not attached:
+            return
+        for field in self._REQUIRED_POST_INIT_FIELDS:
+            value = getattr(self, field, _CONTRACT_MISSING)
+            if value is _CONTRACT_MISSING:
+                print(
+                    f"QtThreadView contract violation: {type(self).__name__} "
+                    f"never declared '{field}' — see QtThreadView._REQUIRED_POST_INIT_FIELDS",
+                    file=_sys.stderr,
+                    flush=True,
+                )
+            elif value is None:
+                print(
+                    f"QtThreadView contract violation: {type(self).__name__}.{field} "
+                    f"is None 500ms after __init__ — expected a concrete widget / owner",
+                    file=_sys.stderr,
+                    flush=True,
+                )
 
     def apply_bound_agent(self, agent: "AgentBase") -> None:
         """Default no-op: `ObservedAgentBinding.bind_agent` calls this after storing.
