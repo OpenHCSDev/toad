@@ -18,6 +18,7 @@ from toad.widget_actions import ActivationKeys, Activates, DismissibleControl, W
 
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
+from toad.client.sidebar_filter import SidebarFilter
 from toad.preferences import SETTINGS
 from dataclasses import dataclass
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -982,6 +983,12 @@ class SideBar(
         self._placement_identity = placement_identity
         super().__init__(name=name, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
+        # The shared owner of the sidebar search text and row-match decision. Qt's
+        # sidebar holds its own `SidebarFilter` and asks the same `matches(name)`
+        # question when drawing rows — the `watch_search` push below keeps this
+        # the single source of truth even though Textual's reactive remains the
+        # input-change mechanism inside Textual itself.
+        self.filter = SidebarFilter()
         self.content_stack = SidebarContentStack()
         self.new_shell()
         self.hide = hide
@@ -1121,6 +1128,12 @@ class SideBar(
         if event.input is self.search_input:
             event.stop()
             self.search = event.value
+
+    def watch_search(self, value: str) -> None:
+        """Push the reactive's new text into the shared owner so both frontends read
+        the same match decision. The reactive stays the hook Textual's
+        `SearchFollower` already watches; the owner is what Qt's sidebar reads."""
+        self.filter.text = value
 
     def panel_entries(self):
         return iter(self.panels)
