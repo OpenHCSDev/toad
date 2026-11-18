@@ -44,6 +44,7 @@ from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
 from toad.status_thread import ObservedActivity
+from toad.qt.presented_window import PresentedWindow
 
 
 class QtFlash(FlashNotice, ElidedLine, metaclass=PyQtWidgetMeta):
@@ -192,7 +193,7 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.close_core_events()
 
 
-class QtInputDeliveryDetails(DeliveryDetailsPage, QDialog, metaclass=PyQtWidgetMeta):
+class QtInputDeliveryDetails(PresentedWindow, DeliveryDetailsPage, QDialog, metaclass=PyQtWidgetMeta):
     """Textual's `InputDeliveryDetails` as a dialog; `DeliveryDetailsPage` owns its text.
 
     A Qt thread view has no input-delivery observation, so the delivery is the view's

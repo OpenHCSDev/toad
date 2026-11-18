@@ -49,12 +49,12 @@ from toad.goal_controls import (
     GoalInteractionControl,
 )
 from toad.qt.core_events import QtCoreObserver
-from toad.qt.host import ScreenWideWindow
 from toad.qt.lines import QtLineRenderer
 from toad.session_observation import GoalObservation
 from toad.core.events import ThreadRowsChanged
 from toad.widget_contracts import DismissibleContract, SubmitsContract
 from toad.qt.metrics import UiGap
+from toad.qt.presented_window import PresentedWindow
 from ui_theme.scheme import SecondaryColour
 
 
@@ -292,7 +292,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         self.standby.setText(text)
 
 
-class QtGoalHistory(ScreenWideWindow, QDialog, DismissibleContract):
+class QtGoalHistory(PresentedWindow, QDialog, DismissibleContract):
     """The goal's revisions and failed attempts, listed as the TUI's GoalDetails lists them."""
 
     dismiss_control = QDialog.reject
@@ -321,10 +321,9 @@ class QtGoalHistory(ScreenWideWindow, QDialog, DismissibleContract):
         layout = QVBoxLayout(self)
         layout.addWidget(scroll, 1)
         layout.addWidget(buttons)
-        self.fit_screen()
 
 
-class QtGoalEdit(ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract):
+class QtGoalEdit(PresentedWindow, QDialog, DismissibleContract, SubmitsContract):
     """The goal's objective in an editor; Save writes it through the session's settle-by-read."""
 
     dismiss_control = QDialog.reject
@@ -350,7 +349,6 @@ class QtGoalEdit(ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract
             layout.addWidget(WrappedText(f"Progress (read-only): {goal.progress}"))
         layout.addWidget(self.error)
         layout.addWidget(buttons)
-        self.fit_screen()
 
     def save(self) -> None:
         text = self.editor.toPlainText().strip()

@@ -1,9 +1,11 @@
 """Native form geometry and paint, supplied directly to Textual's owners."""
 from __future__ import annotations
 
+from abc import abstractmethod
+
 from textual.color import Color, TRANSPARENT
 from textual.css._style_properties import Edges
-from textual.css.scalar import Scalar
+from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing
 from textual.layouts.horizontal import HorizontalLayout
 from textual.screen import ModalScreen
@@ -16,6 +18,7 @@ from textual.widgets._select import SelectCurrent
 from textual.widgets import Input
 from toad.app_node import FollowsTheme
 from toad.widget_view import CenteredView
+from toad.window_presentation import BesideApp, FillsApp, WindowPresentation
 from toad.widgets.checkbox import Checkbox
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
 
@@ -91,3 +94,28 @@ class FormModal[Result](FollowsTheme, CenteredView, ModalScreen[Result]):
     def theme_changed(self) -> None:
         # A theme changes the entire visible modal, not each offscreen field.
         self.refresh()
+
+
+class PanelPresentation(WindowPresentation):
+    """How Textual lays a panel over the app for one screen width class: its width."""
+
+    @classmethod
+    @abstractmethod
+    def panel_width(cls) -> Scalar | None:
+        """The panel's width, or None to take the screen's whole width."""
+
+
+class FilledPanel(PanelPresentation, FillsApp):
+    """A narrow terminal's panel: the whole screen, as Qt's window fills a phone's app window."""
+
+    @classmethod
+    def panel_width(cls) -> Scalar | None:
+        return None
+
+
+class SidePanel(PanelPresentation, BesideApp):
+    """A wide terminal's panel: half the screen, its right side, the conversation still in view."""
+
+    @classmethod
+    def panel_width(cls) -> Scalar | None:
+        return Scalar(50, Unit.PERCENT, Unit.WIDTH)

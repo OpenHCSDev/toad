@@ -35,8 +35,9 @@ from PySide6.QtWidgets import (
 from toad.client.pending import Applying, ChoicesPreparation, awaited
 from toad.client.command_draft import CommandFormCore
 from toad.client.host import CommandOrigin
-from toad.qt.host import QtCommsHost, ScreenWideWindow
+from toad.qt.host import QtCommsHost
 from toad.widget_contracts import DismissibleContract, SubmitsContract
+from toad.qt.presented_window import PresentedWindow
 
 
 @awaited(Applying)
@@ -181,7 +182,7 @@ class QtCommandForm(CommandFormCore, QWidget, DismissibleContract, SubmitsContra
         self.form.editor(DottedFieldPath(name)).paint()
 
 
-class QtCommandWindow(ScreenWideWindow, QDialog, DismissibleContract, metaclass=PyQtWidgetMeta):
+class QtCommandWindow(PresentedWindow, QDialog, DismissibleContract, metaclass=PyQtWidgetMeta):
     """The window a command dialog's form is presented in, over the window it started on;
     dismissing it (Escape, Back, Cancel) closes the dialog unanswered, as Textual's
     `CommandDialog` screen dismisses."""
@@ -205,7 +206,6 @@ class QtCommandDialog(QtCommandForm):
         self.dialog = QtCommandWindow(window, definition.label)
         super().__init__(host, definition, target, fields, core, self.dialog)
         self.dialog.layout().addWidget(self)
-        self.dialog.fit_screen()
         self.dialog.finished.connect(self.closed)
 
     def present(self) -> None:

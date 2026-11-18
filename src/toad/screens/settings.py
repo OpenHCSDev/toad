@@ -18,7 +18,8 @@ from toad.widgets.footer import ToadFooter
 from textual.geometry import Spacing
 from textual.color import Color
 
-from toad.app import ScreenWidth
+from toad.forms.presentation import PanelPresentation
+from toad.screen_width import ScreenWidth
 from toad.form_family import SchemeChoosing
 from toad.settings_editing import SettingsEditing
 from toad.forms.editors import SelectEditor
@@ -46,7 +47,7 @@ class SettingsPanel(WidgetView, containers.Vertical):
 
     @property
     def width(self):
-        return ScreenWidth(self.screen.horizontal_breakpoint).side_panel_width
+        return PanelPresentation.for_width(ScreenWidth(self.screen.horizontal_breakpoint)).panel_width()
 
 
 class SettingsSearch(WidgetView, containers.VerticalGroup):
