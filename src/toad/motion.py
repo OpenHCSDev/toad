@@ -25,6 +25,9 @@ FOLLOW_ARRIVAL = Transition(Amount, 0.0, 1.0, 0.25, 60)
 # A row under the composer (the queue summary, the delivery controls) opens or closes its height
 # instead of appearing in one frame and pushing the history up.
 ROW_REVEAL = Transition(Amount, 0.0, 1.0, _TAB_DURATION, _TAB_FPS)
+# A scrollbar drawn over the text while it moves fades away once it has been still a moment,
+# rather than vanishing in one frame.
+SCROLLBAR_FADE = Transition(Amount, 1.0, 0.0, 0.3, _TAB_FPS)
 
 
 def animations_enabled() -> bool:
