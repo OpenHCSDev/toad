@@ -729,26 +729,29 @@ class QtStickyHeader(HeaderPin, QWidget):
     """`HeaderPin` floated over the history's top edge, drawn by the history rows' own
     delegate. A child of the window, not the viewport, as `QtJumpBar` is: the viewport's
     children scroll with its contents, and QScroller's grab on the viewport would take its
-    taps. Opaque, so the row it covers does not show through, as Textual's overlay is."""
+    taps. Opaque, so the row it covers does not show through, as Textual's overlay is. Taps
+    pass through to the row beneath, except on a burst's stacked headers, which open their
+    messages."""
 
     def __init__(self, window: QtHistoryWindow) -> None:
         super().__init__(window)
         self.history_window = window
-        self.document: QTextDocument | None = None
+        self.documents: tuple[QTextDocument, ...] = ()
         self.drawn: tuple = ()
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.hide()
 
-    def draw_pinned(self, header: Divider, x: int, width: int) -> None:
-        """Every scroll offset pins; only a different header, column, font or link context
-        lays the header out again."""
+    def draw_pinned(self, headers: tuple[Divider, ...], x: int, width: int) -> None:
+        """Every scroll offset pins; only different headers, column, font or link context lay
+        them out again."""
         window = self.history_window
-        drawn = (header, x, width, window.font().key(), window.rows.links_revision)
+        drawn = (headers, x, width, window.font().key(), window.rows.links_revision)
         if drawn == self.drawn:
             return
         self.drawn = drawn
-        self.document = window.rows.header_document(header, window.font(), width)
-        self.resize(width, int(self.document.size().height()))
+        self.documents = tuple(window.rows.header_document(header, window.font(), width) for header in headers)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not self.stacked.keys)
+        self.resize(width, sum(int(document.size().height()) for document in self.documents))
         self.move(window.viewport().mapTo(window, QPoint(x, 0)))
         self.raise_()
         self.update()
@@ -757,14 +760,28 @@ class QtStickyHeader(HeaderPin, QWidget):
         if self.isVisible() != shown:
             self.setVisible(shown)
 
+    def mouseReleaseEvent(self, event) -> None:  # type: ignore[override]
+        """A tap on a stacked header opens its message; the top row's own passes through."""
+        y, top = event.position().y(), 0
+        for index, document in enumerate(self.documents):
+            top += int(document.size().height())
+            if y < top:
+                if self.history_window.open_pinned(index):
+                    event.accept()
+                    return
+                break
+        event.ignore()
+
     def paintEvent(self, event) -> None:  # type: ignore[override]
-        if self.document is None:
+        if not self.documents:
             return
         painter = QPainter(self)
         painter.fillRect(self.rect(), QColor(BackgroundColour.rgb(self.history_window.rows.renderer.scheme).hex))
         context = QAbstractTextDocumentLayout.PaintContext()
         context.palette = self.palette()
-        self.document.documentLayout().draw(painter, context)
+        for document in self.documents:
+            document.documentLayout().draw(painter, context)
+            painter.translate(0, document.size().height())
         painter.end()
 
 
@@ -1421,6 +1438,14 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
     def live_message_header(self) -> PinnedHeader:
         """Qt draws no live blocks: the draft is rows, so a row under the top edge pins."""
         return PinnedHeader((), 0, 0)
+
+    def message_top(self, key) -> float | None:
+        """Qt keeps rows by pixel: the row's top under the viewport, plus the offset."""
+        model_rows = self.model_rows
+        row = model_rows.row_of(key)
+        if row < 0:
+            return None
+        return self.scroll_y + self.visualRect(model_rows.index(row, 0)).top()
 
     def placements(self, bodies) -> Iterator[tuple[object, int]]:
         return iter(())

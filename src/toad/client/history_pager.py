@@ -24,6 +24,7 @@ from agent_comms.ui_model.message_category import MessageCategory, all_categorie
 
 from agent_comms.messaging.message_reference import MessageReference
 from toad.client.fragments import FragmentKey, HistoryFragment
+from toad.client.history_changes import NO_BURST, ArrivalBurst
 from toad.client.history_preparation import (
     NEWER_END,
     OLDER_END,
@@ -172,6 +173,15 @@ class PagingWindow(ReaderWindow):
     histories: set
     scroll_target_y: float
     max_scroll_y: float
+    arrival_burst: ArrivalBurst = NO_BURST
+    """The messages that last arrived together at the end the reader follows."""
+
+    def arrivals_followed(self, arrivals: tuple[HistoryFragment, ...]) -> None:
+        """`arrivals` were published at the followed end: they join the burst while the reader
+        follows it, or while the burst is still arriving (Textual stops following where it
+        shows a tall arrival from its head)."""
+        if arrivals and (self.follows_tail or self.arrival_burst.live(monotonic())):
+            self.arrival_burst = self.arrival_burst.arrived(arrivals, monotonic())
     lookahead: DirectionalPreparation
     presentation_budget: PresentationBudget
     configuration_state: object
@@ -808,6 +818,7 @@ class HistoryPager(ResumesSource):
                     arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, end, local, protected, staged, current=current)
                     self._require_can_draw()
+                    self.window.arrivals_followed(arrivals)
                     self.hold_arrival(arrivals)
                     self.repaint(arrivals)
                     self.rows_published()
@@ -1205,6 +1216,7 @@ class ConversationPager(HistoryPager):
         self._generation += 1
         published = await self.jump_latest(request, publication_current)
         if published:
+            self.window.arrivals_followed(arrivals)
             self.repaint(arrivals, continuing=retained)
         return published
 

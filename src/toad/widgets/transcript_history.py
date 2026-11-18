@@ -869,15 +869,19 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         return (page.arrival_run.cascade_rows() for page in self.pages)
 
     def hold_arrival(self, arrivals: tuple[TranscriptFragment, ...]) -> None:
-        """The first shown arriving message places a following reader: from its head when it is taller than the window."""
+        """The latest shown arriving message places a following reader, from its head when it is
+        taller than the window: a burst shows its most recent message, and the pin stacks the
+        others' headers (`ArrivalBurst`)."""
         window = self.window
         if not window.shown:
             return
-        for head in arrivals:
-            page = self.page_holding(head.key)
-            if head.shown_in(page.visible_categories):
-                window.reader_position = window.reader_position.arrived(page, head.key)
-                return
+        shown = [fragment for fragment in arrivals
+                 if fragment.shown_in(self.page_holding(fragment.key).visible_categories)]
+        if not shown:
+            return
+        latest = shown[-1].source_identity
+        head = next(fragment for fragment in shown if fragment.source_identity == latest)
+        window.reader_position = window.reader_position.arrived(self.page_holding(head.key), head.key)
 
     def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
         phase = self.effect_phase(ARRIVAL)

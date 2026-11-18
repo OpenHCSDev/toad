@@ -907,7 +907,8 @@ class StickyScenario(Scenario):
         pin = window.sticky_header
         top = window.top_page()
         return dict(shown=pin.isVisible(),
-                    text=pin.document.toPlainText().strip() if pin.document is not None else "",
+                    text="\n".join(document.toPlainText().strip() for document in pin.documents),
+                    stacked=len(pin.stacked.keys),
                     top=getattr(top, "under", None) and (top.under.block, top.under.row),
                     geometry=(pin.x(), pin.y(), pin.width(), pin.height()))
 
@@ -2462,6 +2463,16 @@ class ArrivalScenario(Scenario):
             setattr(owner, name, timing(name, call))
         scrolled_up = bool(os.environ.get("SCROLLED"))
         window = view.messages
+        # Each publish at the followed end, and the burst it leaves (`ArrivalBurst`).
+        followed: list[tuple[float, int, bool, int]] = []
+        handed = window.arrivals_followed
+
+        def followed_arrivals(arrivals):
+            following = window.follows_tail
+            handed(arrivals)
+            followed.append((round(time.monotonic() - started, 2), len(arrivals), following,
+                             len(window.arrival_burst.messages)))
+        window.arrivals_followed = followed_arrivals
         if scrolled_up:
             # A reader scrolled up: arrivals must not move what they read, and the jump bar shows.
             window.scroll_y = max(0, window.scroll_y - 300)
@@ -2548,6 +2559,46 @@ class ArrivalScenario(Scenario):
                                                      key=lambda gap: -gap[1])[:6], flush=True)
         self.report("arrival", updates=len(updates), longest_stall_ms=gaps[-1], flicker=flicker, plain_first_draws=plain, queue_hide_then_show=flips,
                     queue_changes=len(toggles), largest_scroll_step=max(map(abs, jumps), default=0))
+        print("followed arrivals (s, fragments, following, burst size after):", followed, flush=True)
+        if not scrolled_up:
+            await self.burst_stack(window, burst)
+
+    async def burst_stack(self, window, burst: int) -> None:
+        """Tristan, 2026-11-18: "show the headers for all of them, like stacked, and then ... show
+        the most recent one". After the burst, the window shows its latest message, and the pin
+        stacks, under a count line, the header of each earlier message whose head is above the
+        top row; a tap on a stacked header brings that message's head to the top row."""
+        arrived = window.arrival_burst.messages
+        pin = window.sticky_header
+        above = [message for message in arrived[:-1]
+                 if (top := window.message_top(message.key)) is not None and top < window.scroll_y]
+        texts = [document.toPlainText().strip() for document in pin.documents]
+        latest_top = window.message_top(arrived[-1].key) if arrived else None
+        self.report("burst-stack", arrived=len(arrived), above=len(above), stacked=len(pin.stacked.keys),
+                    shown=pin.isVisible(), pin=texts, following=window.follows_tail,
+                    latest_on_screen=latest_top is not None
+                    and latest_top < window.scroll_y + window.viewport().height())
+        if burst >= 5:
+            assert len(arrived) >= burst, f"the burst holds {len(arrived)} messages of {burst} posted"
+            assert above, "every burst message's head is on screen: nothing to stack at this height"
+        if not above:
+            return
+        assert latest_top is not None and latest_top < window.scroll_y + window.viewport().height(), \
+            "the burst's latest message is not on screen"
+        assert pin.isVisible() and pin.stacked.keys, f"{len(above)} burst heads above the top row, none stacked"
+        assert texts[0] == f"{len(arrived)} new", f"the stack's count line reads {texts[0]!r}"
+        for message, text in zip(above[-type(window.arrival_burst).shown:], texts[1:]):
+            assert message.header.label.split()[0] in text, f"stacked {text!r} is not {message.header.label!r}"
+        # A tap on the first stacked header (below the count line) opens its message.
+        chosen = pin.stacked.keys[1]
+        y = int(pin.documents[0].size().height() + pin.documents[1].size().height() / 2)
+        QTest.mouseClick(pin, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, QPoint(20, y))
+        await asyncio.sleep(0.6)
+        top = window.message_top(chosen)
+        self.report("burst-opened", head_offset=None if top is None else round(top - window.scroll_y),
+                    following=window.follows_tail, stacked=len(pin.stacked.keys), burst=len(window.arrival_burst.messages))
+        assert top is not None and abs(top - window.scroll_y) <= 1, "the tapped message's head is not on the top row"
+        assert not window.arrival_burst.messages and not pin.stacked.keys, "opening a stacked header left the burst"
 
 
 class CliSyncScenario(Scenario):
