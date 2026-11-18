@@ -15,14 +15,14 @@ from pathlib import Path
 import agent_comms.agent_events as agent_events
 from agent_comms.agent_event_updates import AcpEventConsumer
 from agent_comms.coordination.coordinator import Coordination
-from agent_comms.execution.controller import SessionUpdateSink
 from agent_comms.nominal.field_codec import AcpSessionId, TurnId
+from agent_comms.transport.acp_update_sink import AcpUpdateSink
 from mcp_turn_boundaries import turn_source
 
 SESSION = AcpSessionId("pilot")
 
 
-class Pipe(SessionUpdateSink):
+class Pipe(AcpUpdateSink):
     async def publish_update(self, *, session_id, update):
         print(json.dumps({"jsonrpc": "2.0", "method": "session/update", "params": {
             "sessionId": session_id,

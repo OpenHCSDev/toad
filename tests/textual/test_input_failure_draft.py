@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from acp.exceptions import RequestError
 from agent_comms.execution.acp_failure import (
+    ACPFailure,
     InputFailedUpdate,
     RequestFailedUpdate,
 )
@@ -76,7 +77,7 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
         async with ui.reporting_error():
             await deliver(receiver, {
                 "sessionUpdate": "session_info_update",
-                "_meta": encode_updates(RequestFailedUpdate(BackendDeliveryFailure("provider refused the model")))})
+                "_meta": encode_updates(RequestFailedUpdate(ACPFailure.from_detail(None, "provider refused the model")))})
             await ui.step()
         assert receiver.session.disposition is disposition
         assert receiver.configuration.model.available
