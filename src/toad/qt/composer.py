@@ -330,7 +330,7 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         frame.setSpacing(0)
         frame.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
         frame.addWidget(self.editor, 1)
-        self.info_bar = QtInfoBar(host.app, renderer)
+        self.info_bar = QtInfoBar(host.app, renderer, self)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
         self.submitting = QtQueueSummary(self)
         self.delivery_controls = QtDeliveryControls(self)
