@@ -19,6 +19,7 @@ from formbridge.forms.value_editing import ControlConstruction, LineEditing, Sel
 from objectstate import ObjectState
 from python_introspect import resolve_annotated
 from ui_theme.catalog import SCHEMES
+from ui_theme.scheme import PrimaryColour, ThemeColour
 
 
 # The editors.
@@ -170,9 +171,37 @@ class ValueFields(FollowedValueView, FieldViews):
         return shown
 
 
+class ObjectValueFields(ValueFields):
+    """One setting of a viewed object (an `ObjectSettingField`): whether this object
+    overrides it, where its value comes from, and resetting it. Textual's object form
+    and Qt's both inherit this; each draws the source line and a Reset control."""
+
+    reset_label: ClassVar[str] = "Reset"
+
+    def overridden(self) -> bool:
+        """This object holds its own value, where the setting admits one."""
+        return self.field.allows_override and self.field.state.parameters[self.field.path.value] is not None
+
+    def source_text(self) -> str:
+        if self.overridden():
+            return "Override for this object"
+        return "Inherited from global defaults" if self.field.allows_override else "Global setting · applies to every view"
+
+    def source_detail(self) -> str:
+        """Which declaration and scope the shown value comes from."""
+        scope, owner = self.field.state.get_provenance(self.field.path.value)
+        return f"{owner.__module__}.{owner.__qualname__} · {scope or 'global'}"
+
+    def reset_field(self) -> None:
+        """Back to the parameter's own signature default, refusal cleared."""
+        self.field.reset()
+        self.editor.clear_feedback()
+
+
 class GroupFields(FieldViews):
     """A nested dataclass: a heading and the views of its fields."""
 
+    heading_colour: ClassVar[type[ThemeColour]] = PrimaryColour
     field_family: ClassVar[type[FieldViews]]
     parts: list
 

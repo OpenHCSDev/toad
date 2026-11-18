@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from enum import Enum
+from functools import cached_property
 from typing import Optional
 
 import shiboken6
@@ -25,10 +26,12 @@ from formbridge.forms.parameter_info_types import DirectDataclassInfo, Parameter
 from formbridge.forms.value_editing import ChoicesEditing, EnumEditing, MultilineEditing, OptionalEditing, ValueEditing
 from objectstate import ObjectState
 from PySide6.QtGui import QFont
+from pyqt_reactive.theming.themed_checkbox import ThemedCheckBox
 from PySide6.QtWidgets import (
     QCheckBox,
+    QPushButton,
     QComboBox,
-    QGroupBox,
+    QFrame,
     QLabel,
     QLineEdit,
     QPlainTextEdit,
@@ -44,12 +47,18 @@ from toad.form_family import (
     FieldViews,
     GroupFields,
     LineFieldEditing,
+    ObjectValueFields,
     SchemeChoosing,
     SelectFieldEditing,
     StructuredFieldEditing,
     ValueFields,
 )
+from toad.object_configuration import ObjectSettingField
+from toad.qt.lines import QtLineRenderer
 from toad.setting_choices import SchemeName
+
+
+GROUP_HEADING = "form-group-heading"
 
 
 def _stacked(*widgets: QWidget) -> QWidget:
@@ -100,7 +109,7 @@ class QtValueEditor(FieldEditing, ABC):
 
 class QtBoolEditor(QtValueEditor, shows=(bool,)):
     def build_control(self) -> QCheckBox:
-        box = QCheckBox()
+        box = ThemedCheckBox()
         box.toggled.connect(self.send)
         return box
 
@@ -164,6 +173,9 @@ class QtSelectEditor(SelectFieldEditing, QtValueEditor):
 
     def build_control(self) -> QComboBox:
         combo = QComboBox()
+        # Fit the form's width, not the longest choice: a narrow sidebar page must not scroll sideways.
+        combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        combo.setMinimumContentsLength(8)
         combo.activated.connect(lambda index: self.send(self.control.itemData(index)))
         self.install_options(combo)
         return combo
@@ -208,7 +220,7 @@ class QtOptionalEditor(OptionalEditing, QtValueEditor, shows=(Optional,)):
     editor of that value is shown while it does."""
 
     def build_control(self) -> QWidget:
-        self.holds_value = QCheckBox("Set")
+        self.holds_value = ThemedCheckBox("Set")
         self.holds_value.toggled.connect(self.change_held)
         self._member = QtValueEditor.declared_for(self.field.member)
         return _stacked(self.holds_value, self._member.widget)
@@ -255,6 +267,7 @@ class QtValueView(ValueFields, QtFieldView, shows=(ParameterInfo,)):
         super().__init__(field)
         self.editor = self.editor_for(QtValueEditor)
         self.title = QLabel(field.label)
+        self.title.setWordWrap(True)
         bold = QFont(self.title.font())
         bold.setBold(True)
         self.title.setFont(bold)
@@ -275,8 +288,15 @@ class QtGroupView(GroupFields, QtFieldView, shows=(DirectDataclassInfo,)):
     def __init__(self, field: DeclaredField) -> None:
         super().__init__(field)
         self.build_parts()
-        box = QGroupBox(field.label)
+        # A wrapped heading in a plain frame, as the TUI draws a group: a QGroupBox title
+        # cannot wrap, and its width would hold a narrow sidebar page open.
+        box = QFrame()
+        box.setFrameShape(QFrame.Shape.StyledPanel)
         layout = QVBoxLayout(box)
+        heading = QLabel(field.label)
+        heading.setObjectName(GROUP_HEADING)
+        heading.setWordWrap(True)
+        layout.addWidget(heading)
         if field.help:
             note = QLabel(field.help)
             note.setWordWrap(True)
@@ -288,7 +308,8 @@ class QtGroupView(GroupFields, QtFieldView, shows=(DirectDataclassInfo,)):
 
 
 class QtFormView(FieldForm):
-    """Every field of one page, scrolled; repaints the fields the state says changed."""
+    """Every field of one page; repaints the fields the state says changed. `body` holds
+    the fields; `widget` is that body scrolled, for a host that does not scroll it itself."""
 
     field_family = QtFieldView
 
@@ -296,19 +317,69 @@ class QtFormView(FieldForm):
         self.state = state
         self.parts = parts
         self.build_index()
-        inner = QWidget()
-        layout = QVBoxLayout(inner)
+        self.body = QWidget()
+        layout = QVBoxLayout(self.body)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(10)
         for part in parts:
             layout.addWidget(part.widget)
         layout.addStretch(1)
-        self.widget = QScrollArea()
-        self.widget.setWidgetResizable(True)
-        self.widget.setWidget(inner)
+
+    def theme(self, renderer: QtLineRenderer) -> None:
+        """Colour what the shared family declares a colour for, from the app's scheme."""
+        self.body.setStyleSheet(f"#{GROUP_HEADING} {{ color: {renderer.theme(GroupFields.heading_colour)} }}")
+
+    @cached_property
+    def widget(self) -> QScrollArea:
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(self.body)
+        return scroll
 
     def repaint_editor(self, editor: QtValueEditor) -> None:
         if editor.alive():
             editor.paint()
 
 
+
+
+# A viewed object's settings: the sub-family Textual's `ObjectFieldView` is.
+
+class QtObjectFieldView(QtFieldView):
+    """A field of a viewed object's configuration; an edit goes through the view's
+    configuration (`ObjectSettingField.edit`), not the global settings."""
+
+    field_type = ObjectSettingField
+
+    @classmethod
+    def family(cls):
+        return QtObjectFieldView
+
+
+class QtObjectValueView(ObjectValueFields, QtValueView, QtObjectFieldView, shows=(ParameterInfo,)):
+    def __init__(self, field: DeclaredField) -> None:
+        super().__init__(field)
+        self.source = QLabel()
+        self.source.setWordWrap(True)
+        self.source.setEnabled(False)
+        reset = QPushButton(self.reset_label)
+        reset.clicked.connect(self.reset_field)
+        self.widget.layout().addWidget(self.source)
+        self.widget.layout().addWidget(reset)
+        self.mark(False)
+
+    def mark(self, changed: bool) -> None:
+        overridden = self.overridden()
+        super().mark(overridden)
+        if self.editor.alive():
+            self.editor.paint()
+        self.source.setText(self.source_text())
+        self.source.setToolTip("" if overridden else self.source_detail())
+
+
+class QtObjectGroupView(QtGroupView, QtObjectFieldView, shows=(DirectDataclassInfo,)):
+    field_family = QtObjectFieldView
+
+
+class QtObjectFormView(QtFormView):
+    field_family = QtObjectFieldView

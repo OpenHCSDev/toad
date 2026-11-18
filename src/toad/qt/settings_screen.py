@@ -44,6 +44,7 @@ class QtSettingsScreen(SettingsEditing, QDialog):
         layout.addWidget(self.search)
         self.tabs = QTabWidget(self)
         for page, form in self.pages.items():
+            form.theme(app.renderer)
             self.tabs.addTab(form.widget, page.title or "Settings")
         layout.addWidget(self.tabs, stretch=1)
         buttons = QDialogButtonBox(self)

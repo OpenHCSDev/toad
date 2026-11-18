@@ -27,7 +27,6 @@ from ui_theme.scheme import (
     ErrorColour,
     ForegroundColour,
     MutedColour,
-    PrimaryColour,
     SecondaryColour,
 )
 
@@ -60,7 +59,7 @@ class GroupTitle(WidgetView, Static):
 
     @property
     def paint_foreground(self):
-        return self.app.colours.colour(PrimaryColour)
+        return self.app.colours.colour(GroupFields.heading_colour)
 
 
 class FieldView(FieldViews, WidgetView, containers.VerticalGroup):
