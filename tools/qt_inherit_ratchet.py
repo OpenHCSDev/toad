@@ -107,6 +107,8 @@ QT_ONLY = {
     'toad.qt.finger_scrolling.FingerScrolling': 'a QApplication event filter granting every QAbstractScrollArea the QScroller grab as Qt polishes it; Textual scrolls through the terminal',
     'toad.qt.finger_scrolling.MouseAndWheel': 'the desktop member of FingerScrollGesture: no QScroller grab, so a mouse drag stays a selection',
     'toad.qt.finger_scrolling.TouchAsMouse': "the Android member of FingerScrollGesture: QScroller's LeftMouseButtonGesture on Qt's touch-synthesized mouse",
+    'toad.qt.frame_probe.ProbedApplication': "a QApplication whose notify times every Qt event's delivery to its receiver; only a probed run makes it, and Textual has no Qt events",
+    'toad.qt.frame_probe.TimedHandles': "times each asyncio callback qasync runs from Qt timer events, naming a slow one's task; part of the Qt probe, which Textual's asyncio loop has no use for",
     'toad.qt.frame_probe.FrameProbe': "measures Qt's own event loop: a QTimer's lateness and Qt key-to-paint latency on the GUI thread; Textual's loop is asyncio's and has no Qt events",
     'toad.qt.history.HistoryRows': "QAbstractListModel exposing the shared fragments to Qt's list view; Textual has no item model",
     'toad.qt.history.PreparedOnFill': "a pyqt-reactive RowFormatting that fills a QTextDocument only when Qt lays a row out; Textual draws line blocks, not documents",

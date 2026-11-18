@@ -79,6 +79,8 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
             self.cancel_operations(kind)
         running = asyncio.ensure_future(
             self.float_layer.while_pending(PendingWork.for_operation(kind), task()))
+        # Named for its kind, so what a running or slow task does reads off the task itself.
+        running.set_name(kind.__name__)
         self.operations[kind].add(running)
         running.add_done_callback(self.operations[kind].discard)
         running.add_done_callback(self.operation_finished)
