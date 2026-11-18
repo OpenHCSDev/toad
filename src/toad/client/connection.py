@@ -348,6 +348,10 @@ class ObservationRetry:
     LONGEST: ClassVar[float] = 30.0
     losses: int = 0
     due: float = 0.0
+    # When the last result reached the UI (monotonic), so an outage can say how long the UI
+    # had gone without one: a relay that ends because its reader took nothing for its write
+    # deadline reads differently from a connector that went away.
+    last_arrival: float | None = None
 
     def lost(self, now: float) -> None:
         self.losses += 1
@@ -362,6 +366,17 @@ class ObservationRetry:
 
     def recovered(self) -> None:
         self.losses, self.due = 0, 0.0
+
+    def arrived(self, now: float) -> None:
+        """A result reached the UI: the outage, if any, is over."""
+        self.recovered()
+        self.last_arrival = now
+
+    def quiet_note(self, now: float) -> str:
+        """How long before ``now`` the UI last received a result, for the outage's report."""
+        if self.last_arrival is None:
+            return "No observation result had reached the UI yet."
+        return f"The last observation result reached the UI {now - self.last_arrival:.1f} s before this."
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -774,7 +789,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
 
     def receive(self, result: Observed):
         if self.is_current():
-            self.access.retry.recovered()
+            self.access.retry.arrived(time.monotonic())
             self.access.dispatch_sync(result, self)
 
     def tell(self, wanted) -> None:
@@ -797,6 +812,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         if self.is_current():
             self.failed(error, self.opened_selection())
             if self.access.retry.began():
+                error.add_note(self.access.retry.quiet_note(time.monotonic()))
                 self.access.app.report_fatal(error)
 
     def views_changed(self, event=None, subscription=None):
