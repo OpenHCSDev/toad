@@ -41,8 +41,9 @@ from objectstate import DottedFieldPath
 from toad.qt.frame_probe import FrameProbe, ProbedApplication
 from toad.client.application import BusDiscovery
 from toad.client.application_actions import (
-    ApplicationAction, NewSessionAction, NewThreadAction, QuitAction, SettingsAction,
+    ApplicationAction, NewSessionAction, NewThreadAction, OpensWindow, QuitAction, SettingsAction,
 )
+from toad.qt.presented_window import FilledWindow, PresentedWindow, WindowPresentation, window_width
 from toad.qt.settings_screen import QtSettingsScreen
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
@@ -1050,6 +1051,103 @@ class MenuScenario(Scenario):
         app.show_warning("this drive's own notice; nothing failed", "Drive")
         await asyncio.sleep(0.3)
         self.report("3-notice", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
+
+
+class WindowsPhoneScenario(Scenario):
+    summary = ("open every window an OpensWindow action opens (one per transfer kind) at WIDTH x HEIGHT "
+               "(412x915, a phone): fail when any part of one is drawn outside the app window, when a "
+               "window is not a PresentedWindow, when on a phone it does not fill the app window or on a "
+               "desktop (WIDTH 1280 HEIGHT 800) it does not float inside the screen, and when Settings "
+               "gives its pages under 60% of its height or shows no editable setting")
+
+    def window_rect(self, widget: QWidget) -> QRect:
+        return QRect(widget.mapToGlobal(QPoint(0, 0)), widget.size())
+
+    def drawn_outside(self, window: QWidget, bounds: QRect) -> list[str]:
+        """Each visible widget of `window` drawn past `bounds`. A widget inside a scroll area's
+        viewport is that viewport's: the viewport clips it and scrolls to it."""
+        outside = []
+        for widget in [window, *window.findChildren(QWidget)]:
+            if not widget.isVisible() or widget.width() <= 0 or widget.height() <= 0:
+                continue
+            clipped = widget.parentWidget()
+            while clipped is not None and clipped is not window:
+                if isinstance(clipped.parentWidget(), QAbstractScrollArea) and clipped is clipped.parentWidget().viewport():
+                    break
+                clipped = clipped.parentWidget()
+            if clipped is not None and clipped is not window:
+                continue
+            rect = self.window_rect(widget)
+            if not bounds.adjusted(-1, -1, 1, 1).contains(rect):
+                outside.append(f"{type(widget).__name__} {rect.getRect()}")
+        return outside
+
+    async def run(self) -> None:
+        app = self.app
+        width, height = int(os.environ.get("WIDTH", 412)), int(os.environ.get("HEIGHT", 915))
+        app.resize(width, height)
+        await self.listed()
+        await asyncio.sleep(0.5)
+        presentation = WindowPresentation.for_width(window_width(app))
+        print(f"app window {width}x{height}: {window_width(app).name}, windows {presentation.__name__}", flush=True)
+        faults: list[str] = []
+        opened = 0
+        for command, label in ApplicationAction.menu(app):
+            if not isinstance(command, OpensWindow):
+                continue
+            before = {id(window) for window in QApplication.topLevelWidgets() if window.isVisible()}
+            await command.apply(app)
+            await asyncio.sleep(2.0)
+            windows = [window for window in QApplication.topLevelWidgets()
+                       if window.isVisible() and id(window) not in before]
+            step = f"{command.declared_name}-{label}".replace(" ", "_").replace("/", "_")[:48]
+            app_rect = self.window_rect(app)
+            for window in windows:
+                opened += 1
+                name = type(window).__name__
+                window.grab().save(str(self.out / f"windows_phone-{step}-{name}.png"))
+                rect = self.window_rect(window)
+                if not isinstance(window, PresentedWindow):
+                    faults.append(f"{label}: {name} is not a PresentedWindow")
+                if presentation is FilledWindow:
+                    bounds = app_rect
+                    if abs(rect.x() - app_rect.x()) > 1 or abs(rect.y() - app_rect.y()) > 1 or \
+                            abs(rect.width() - app_rect.width()) > 1 or abs(rect.height() - app_rect.height()) > 1:
+                        faults.append(f"{label}: {name} at {rect.getRect()} does not fill the app window {app_rect.getRect()}")
+                else:
+                    bounds = window.screen().availableGeometry()
+                    if rect == app_rect:
+                        faults.append(f"{label}: {name} fills the app window on a wide screen")
+                outside = self.drawn_outside(window, bounds)
+                if outside:
+                    faults.append(f"{label}: {name} draws {len(outside)} widgets outside {bounds.getRect()}: {outside[:4]}")
+                if isinstance(window, QtSettingsScreen):
+                    share = window.tabs.height() / max(1, window.height())
+                    editable = [field for field in window.tabs.currentWidget().findChildren(QWidget)
+                                if field.isVisible() and field.isEnabled()
+                                and isinstance(field, (QAbstractButton, QLineEdit))]
+                    print(f"  settings: pages {share:.0%} of its height, {len(editable)} editable fields shown", flush=True)
+                    if share < 0.6:
+                        faults.append(f"{label}: settings pages take {share:.0%} of its height")
+                    if not editable:
+                        faults.append(f"{label}: settings shows no editable setting")
+                print(f"{step}: {name} at {rect.getRect()} in app {app_rect.getRect()}; outside={len(outside)}", flush=True)
+            if not windows:
+                outside = self.drawn_outside(app, self.window_rect(app))
+                app.grab().save(str(self.out / f"windows_phone-{step}-in-app.png"))
+                print(f"{step}: no new window; in-app panels outside the app window: {len(outside)}", flush=True)
+                if outside:
+                    faults.append(f"{label}: draws {len(outside)} widgets outside the app window: {outside[:4]}")
+                if app.bus_switcher.isVisible():
+                    app.bus_switcher.hide_switcher()
+            for window in windows:
+                window.close()
+            await asyncio.sleep(0.5)
+        print(f"windows opened: {opened}", flush=True)
+        if opened < 4:
+            faults.append(f"only {opened} windows opened")
+        if faults:
+            raise AssertionError("\n".join(faults))
 
 
 class MenuTextScenario(Scenario):

@@ -6,6 +6,7 @@ from collections import ChainMap
 from collections.abc import Iterable
 
 from formbridge.key_declarations import TextEntryMode
+from textual.css.scalar import Scalar, Unit
 from textual import containers, events
 from textual.app import ComposeResult
 
@@ -18,7 +19,7 @@ from toad.widgets.footer import ToadFooter
 from textual.geometry import Spacing
 from textual.color import Color
 
-from toad.app import ScreenWidth
+from toad.screen_width import ScreenWidth
 from toad.form_family import SchemeChoosing
 from toad.settings_editing import SettingsEditing
 from toad.forms.editors import SelectEditor
@@ -46,7 +47,8 @@ class SettingsPanel(WidgetView, containers.Vertical):
 
     @property
     def width(self):
-        return ScreenWidth(self.screen.horizontal_breakpoint).side_panel_width
+        percent = ScreenWidth(self.screen.horizontal_breakpoint).side_panel_percent
+        return None if percent is None else Scalar(percent, Unit.PERCENT, Unit.WIDTH)
 
 
 class SettingsSearch(WidgetView, containers.VerticalGroup):

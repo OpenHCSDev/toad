@@ -1,0 +1,177 @@
+"""Every window Toad opens over its app window, presented as the screen's width class says.
+
+`toad.screen_width.ScreenWidth` decides, from the app window's width in columns of its text:
+NARROW (a phone, or a desktop window as narrow as one) fills the app window as a phone app's
+page does, under a header whose ← goes back; WIDE floats a dialog no larger than its screen.
+Textual's windows read the same class (its settings panel fills a narrow terminal).
+
+The presentation is applied each time the window is shown, in `setVisible`, which `show`,
+`open` and `exec` all reach, so a window has it by inheriting `PresentedWindow` and no caller
+presents anything: a window opened from anywhere, and a window added later, is presented the
+same way. `tools/qt_inherit_ratchet.py` fails a Qt dialog that does not inherit it.
+
+Tristan, Android, 2026-11-18: Settings opened as a small floating dialog over the chat with one
+line of its content showing, and the team window drew part of itself off screen.
+"""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import ClassVar
+
+from PySide6.QtCore import QEvent, QObject, QPoint, QRect, Qt
+from PySide6.QtWidgets import QBoxLayout, QHBoxLayout, QLabel, QLayout, QToolButton, QWidget
+
+from toad.qt.metrics import UiGap
+from toad.screen_width import ScreenWidth
+
+# Qt's QWIDGETSIZE_MAX: no limit on a widget's size.
+_UNLIMITED = (1 << 24) - 1
+
+
+def window_width(host: QWidget) -> ScreenWidth:
+    """The width class of the window `host`: its width in columns of its font's text."""
+    width = host.width() if host.isVisible() and host.width() > 0 else host.screen().availableGeometry().width()
+    return ScreenWidth.of(width / max(1, host.fontMetrics().averageCharWidth()))
+
+
+class WindowPresentation(ABC):
+    """How a window is laid over its app window, for one width class."""
+
+    width: ClassVar[ScreenWidth]
+
+    @classmethod
+    def for_width(cls, width: ScreenWidth) -> type[WindowPresentation]:
+        return next(member for member in cls.__subclasses__() if member.width is width)
+
+    @classmethod
+    def present(cls, window: PresentedWindow, host: QWidget) -> None:
+        """Lay `window` out for this width class before it is shown."""
+        window.layout().setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
+        window.setMinimumSize(0, 0)
+        flags = cls.window_flags()
+        if window.windowFlags() != flags:
+            window.setWindowFlags(flags)
+        window.page_header().setVisible(cls.shows_header())
+        cls.place(window, host)
+
+    @classmethod
+    @abstractmethod
+    def window_flags(cls) -> Qt.WindowType: ...
+
+    @classmethod
+    @abstractmethod
+    def shows_header(cls) -> bool: ...
+
+    @classmethod
+    @abstractmethod
+    def place(cls, window: QWidget, host: QWidget) -> None:
+        """Size and place `window`; also run when the app window resizes or turns while it shows."""
+
+
+class FilledWindow(WindowPresentation):
+    """A phone app's page: exactly the app window's area, under the window's own ← header."""
+
+    width = ScreenWidth.NARROW
+
+    @classmethod
+    def window_flags(cls) -> Qt.WindowType:
+        return Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint
+
+    @classmethod
+    def shows_header(cls) -> bool:
+        return True
+
+    @classmethod
+    def place(cls, window: QWidget, host: QWidget) -> None:
+        window.setMaximumSize(host.size())
+        window.setGeometry(QRect(host.mapToGlobal(QPoint(0, 0)), host.size()))
+
+
+class FloatingWindow(WindowPresentation):
+    """A desktop dialog over the app, no larger than its screen less the system's bars."""
+
+    width = ScreenWidth.WIDE
+
+    @classmethod
+    def window_flags(cls) -> Qt.WindowType:
+        return Qt.WindowType.Dialog
+
+    @classmethod
+    def shows_header(cls) -> bool:
+        return False
+
+    @classmethod
+    def place(cls, window: QWidget, host: QWidget) -> None:
+        available = host.screen().availableGeometry()
+        window.setMaximumSize(_UNLIMITED, _UNLIMITED)
+        window.setMaximumSize(available.size())
+        window.resize(min(window.width(), available.width()), min(window.height(), available.height()))
+
+
+class PresentedWindow:
+    """A window opened over the app window. Listed before the window's Qt dialog class, so its
+    `setVisible` presents the window each time it is shown, and its header's ← and Android's
+    back key close it as the dialog's own Close does."""
+
+    _page_header: QWidget | None = None
+    _presentation: type[WindowPresentation] | None = None
+    _presentation_host: QWidget | None = None
+
+    def presentation_host(self) -> QWidget:
+        """The app window this window is opened over: its parent's window. A window is always
+        opened over one, so a window built without a parent is refused when it is shown."""
+        parent = self.parentWidget()
+        if parent is None:
+            raise TypeError(f"{type(self).__qualname__} is shown without the window it opens over "
+                            "as its parent")
+        return parent.window()
+
+    def page_header(self) -> QWidget:
+        """The ← header a filled window shows above its content, built the first time."""
+        if self._page_header is None:
+            layout = self.layout()
+            if not isinstance(layout, QBoxLayout):
+                raise TypeError(f"{type(self).__qualname__} is a PresentedWindow without a box layout "
+                                "for its page header")
+            header = QWidget(self)
+            row = QHBoxLayout(header)
+            row.setContentsMargins(0, 0, 0, UiGap.normal)
+            back = QToolButton(header)
+            back.setText("←")
+            back.setToolTip("Back")
+            back.setAutoRaise(True)
+            back.clicked.connect(self.close)
+            title = QLabel(self.windowTitle(), header)
+            self.windowTitleChanged.connect(title.setText)
+            row.addWidget(back)
+            row.addWidget(title, 1)
+            layout.insertWidget(0, header)
+            self._page_header = header
+        return self._page_header
+
+    def setVisible(self, visible: bool) -> None:  # noqa: N802 (Qt override)
+        if visible and not self.isVisible():
+            host = self.presentation_host()
+            presentation = WindowPresentation.for_width(window_width(host))
+            if self._presentation_host is not host:
+                host.installEventFilter(self)
+                self._presentation_host = host
+            self._presentation = presentation
+            presentation.present(self, host)
+        super().setVisible(visible)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: N802 (Qt override)
+        """The app window resized or turned while this window shows: place it again."""
+        if (watched is self._presentation_host and self.isVisible() and self._presentation is not None
+                and event.type() in (QEvent.Type.Resize, QEvent.Type.Move)):
+            self._presentation.place(self, watched)
+        return super().eventFilter(watched, event)
+
+    def keyPressEvent(self, event) -> None:  # noqa: N802 (Qt override)
+        """Android's back key closes the window, as its ← and its Close do."""
+        if event.key() == Qt.Key.Key_Back:
+            event.accept()
+            self.close()
+            return
+        super().keyPressEvent(event)

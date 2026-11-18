@@ -256,6 +256,14 @@ class ApplicationAction(DeclaredAction[ClientApplication], InMenu, affix="Action
                      for command in member.offered(app))
 
 
+
+class OpensWindow:
+    """An application action whose `apply` opens a window over the app: Settings, the team
+    board, the keymap, a transfer, the bus switcher. Each frontend presents every such window
+    through its one presentation owner (Qt's `PresentedWindow`), so the windows a reader can
+    open are this family's members, read wherever all of them must be checked."""
+
+
 # Declaration order is the order of the menu and the palette.
 class NewSessionAction(ApplicationAction):
     """Start this launch's session: its attached agent's, or a native thread."""
@@ -302,7 +310,7 @@ class DirectMessagesAction(ApplicationAction):
         app.session_navigation.direct_messages()
 
 
-class OpenBusAction(ApplicationAction):
+class OpenBusAction(OpensWindow, ApplicationAction):
     """Connect to this machine's bus or choose another machine."""
 
     title = "Switch bus (local or remote)"
@@ -313,7 +321,7 @@ class OpenBusAction(ApplicationAction):
         app.open_bus_switcher()
 
 
-class SettingsAction(ApplicationAction):
+class SettingsAction(OpensWindow, ApplicationAction):
     """Edit persistent application preferences."""
 
     keys = {TextEntryMode: ("ctrl+comma",)}
@@ -323,7 +331,7 @@ class SettingsAction(ApplicationAction):
         await app.edit_settings()
 
 
-class TeamAction(ApplicationAction, declared_name="team"):
+class TeamAction(OpensWindow, ApplicationAction, declared_name="team"):
     """Open the live team board, including teammates' orders and original evidence."""
 
     keys = {TextEntryMode: ("f2",)}
@@ -333,7 +341,7 @@ class TeamAction(ApplicationAction, declared_name="team"):
         await app.open_team_board()
 
 
-class KeymapAction(ApplicationAction):
+class KeymapAction(OpensWindow, ApplicationAction):
     """Browse keyboard shortcuts and change their keys for each editing mode."""
 
     keys = {TextEntryMode: ("f1",)}
@@ -343,7 +351,7 @@ class KeymapAction(ApplicationAction):
         await app.open_keymap_browser()
 
 
-class TransferMenuAction(ApplicationAction):
+class TransferMenuAction(OpensWindow, ApplicationAction):
     """Export wire history or import a thread through Core."""
 
     show = True
