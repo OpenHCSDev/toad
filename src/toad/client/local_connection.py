@@ -31,6 +31,7 @@ from agent_comms.ui_model.observation import (
 from agent_comms.ui_model.sidebar import SidebarModel
 
 from toad.client.agent_processes import AgentProcesses, SpawnsAgentProcesses
+from toad.launch_opening import LaunchOpening
 from toad.client.db import UNSCOPED_TABS, TabScope
 from toad.client.connection import (
     AnsweringReads,
@@ -57,6 +58,21 @@ def select_connection(arguments: list[str]) -> CoreConnection:
         return ProcessRemoteCoreConnection.startup(arguments)
     return LocalCoreConnection.from_launch(LaunchRoot.startup(
         arguments, lambda: LaunchRoot.from_path(CommsRoute.current().root)))
+
+
+@dataclass(frozen=True)
+class ClientLaunch:
+    """What a desktop launch's own arguments select, read once for Toad's terminal launch and
+    Qt's desktop launch alike: the Core it opens (`select_connection`) and the conversation
+    it opens there (`LaunchOpening`, `--open NAME`). Each is removed from ``arguments``, so
+    the frontend's own parser sees only the project and its agent."""
+
+    connection: CoreConnection
+    opening: LaunchOpening
+
+    @classmethod
+    def startup(cls, arguments: list[str]) -> ClientLaunch:
+        return cls(select_connection(arguments), LaunchOpening.startup(arguments))
 
 
 class LocalCoreConnection(LaunchRoot, CoreConnection):

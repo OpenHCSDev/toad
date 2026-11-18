@@ -17,6 +17,7 @@ from toad import get_version
 from toad.version import VersionMonitor
 from toad.client.tab_identity.kinds import MailboxTab
 from toad.client.tab_identity import TabNotDrawnHere, TabTargetGone
+from toad.launch_opening import LaunchOpening, NoLaunchOpening
 
 if TYPE_CHECKING:
     from ssl import SSLContext
@@ -132,10 +133,13 @@ class ApplicationLifetime:
         """Install the sole one-shot observer for the next owned startup."""
         ApplicationLifetime._startup_hook = ApplicationLifetime._startup_hook.install(observer)
 
-    def __init__(self, app: ClientApplication, resumed_session: AcpSessionId | NoAcpSessionId) -> None:
+    def __init__(self, app: ClientApplication, resumed_session: AcpSessionId | NoAcpSessionId,
+                 opening: LaunchOpening = NoLaunchOpening()) -> None:
         self.app = app
         # The agent session the launch asked to resume, if it named one.
         self.resumed_session = resumed_session
+        # The conversation the launch asked to open (`--open`), if it named one.
+        self.opening = opening
 
     def begin(self) -> None:
         """Run start as its own task: it awaits drawn frames, so neither Mount
@@ -146,6 +150,7 @@ class ApplicationLifetime:
     async def start(self) -> None:
         ApplicationLifetime._startup_hook = ApplicationLifetime._startup_hook.notify(self)
         await self.restore_workspace()
+        await self.opening.open(self.app)
         self.started()
         self.prepare_view_settings()
         self.settle_heap()
@@ -260,8 +265,9 @@ class TerminalApplicationLifetime(ApplicationLifetime):
 
         setproctitle.setproctitle(title)
 
-    def __init__(self, app: ToadApp, resumed_session: AcpSessionId | NoAcpSessionId) -> None:
-        super().__init__(app, resumed_session)
+    def __init__(self, app: ToadApp, resumed_session: AcpSessionId | NoAcpSessionId,
+                 opening: LaunchOpening = NoLaunchOpening()) -> None:
+        super().__init__(app, resumed_session, opening)
         self.quit_warning_deadline = 0.0
         self.usage = UsageReports(app)
         self.version = VersionMonitor()

@@ -48,6 +48,7 @@ from toad.constants import WELCOME
 from toad.core import events as core_events
 from toad.core import session_requests
 from toad.launch_binding import AgentBinding
+from toad.launch_opening import LaunchOpening, NoLaunchOpening
 from toad.navigation_preparation import NavigationReader
 from toad.session_host import NavigationHost
 from toad.session_navigation import SessionNavigation
@@ -200,6 +201,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
         agent_binding: AgentBinding,
         connection: CoreConnection,
         agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
+        opening: LaunchOpening = NoLaunchOpening(),
     ) -> None:
         """The launch's client owners, built once from the native constructor.
 
@@ -211,7 +213,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
         self.events = core_events.CoreEventStream(self)
         self.navigation_reader = NavigationReader()
         self.agent_binding = agent_binding
-        self.application = self.lifetime_kind(self, agent_session_id)
+        self.application = self.lifetime_kind(self, agent_session_id, opening)
         self.session_navigation = SessionNavigation(self)
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
