@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
 from typing import ClassVar
@@ -44,6 +45,11 @@ class InputSubmission(SubmittedText, DeclaredFamily, affix="InputSubmission"):
 
     @abstractmethod
     async def execute(self, owner: ConversationSubmissions): ...
+
+    def started(self, owner: ConversationSubmissions) -> Callable[[], Awaitable[object]]:
+        """Take this submission now and return the work still to do. Most kinds do all of it
+        later; a message is listed now (`AgentInputSubmission.started`)."""
+        return partial(self.execute, owner)
 
     @classmethod
     def from_event(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
@@ -118,6 +124,14 @@ class AgentInputSubmission(InputSubmission):
 
     async def execute(self, owner: ConversationSubmissions):
         return await owner.begin(self).prepare()
+
+    def started(self, owner: ConversationSubmissions) -> Callable[[], Awaitable[object]]:
+        """Listed in the delivery preview in the call that takes it from the composer: the
+        composer's cleared editor and the message's preview row are one frame, never an empty
+        one between them (it was listed a worker turn later, after the clear was painted)."""
+        start = owner.begin(self)
+        owner.publish_pending()
+        return start.prepare
 
 
 class OrdinaryInputSubmission(AgentInputSubmission):
@@ -261,6 +275,14 @@ class ConversationSubmissions(BusSubmissions):
         if not event.shell and await CommandCatalog.execute(text, self.view):
             return
         return await InputSubmission.from_event(event, self).execute(self)
+
+    def received(self, event: UserInputSubmitted) -> Callable[[], Awaitable[object]]:
+        """What the composer handed over, taken in this call; returns the work still to do.
+        Text that may name a command waits for the catalog first, so it runs as `submit`; a
+        message is listed now (`InputSubmission.started`)."""
+        if not event.shell and CommandCatalog.may_name_command(event.body.strip()):
+            return partial(self.submit, event)
+        return InputSubmission.from_event(event, self).started(self)
 
     def accepts_failure(self, message: CoreEventMessage):
         return self.view.agent_binding.accepts_failed_input(message)

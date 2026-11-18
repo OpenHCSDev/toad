@@ -181,6 +181,10 @@ class SubmissionExecution(SubmissionStart):
     def delivering(self) -> tuple[str, ...]:
         """The text this request still shows as submitting, or nothing once its destination has it."""
 
+    def previewed(self) -> tuple[str, ...]:
+        """The text the delivery preview lists for this request: what is still submitting."""
+        return self.delivering()
+
     def settle(self) -> None:
         """A drawn message retires the requests it satisfies; an agent prompt is retired by its RPC."""
 
@@ -197,6 +201,11 @@ class SubmittingPhase(ABC):
 
     @abstractmethod
     def submitting(self, text: str) -> tuple[str, ...]: ...
+
+    def previewed(self, text: str) -> tuple[str, ...]:
+        """What the delivery preview lists for this submission: what is still submitting.
+        A phase whose message is neither submitting nor drawn yet keeps it listed."""
+        return self.submitting(text)
 
 
 class BusOutcome(SubmittingPhase):
@@ -234,6 +243,13 @@ class SentMessage(DeliveryOutcome):
     def drawn_by(self, view: SubmissionView) -> bool:
         return view.draws_user_message(self.reference)
 
+    def previewed(self, text: str) -> tuple[str, ...]:
+        """Core has it and the history has not drawn it yet: the preview keeps it until the
+        execution settles on the draw, so a sent message is on screen at every instant (it
+        dropped out on Core's answer and showed nowhere until the history drew it — Tristan,
+        2026-11-18: "there's a gap where I don't see the queue and I don't see the message")."""
+        return (text,)
+
     async def settle_into(self, execution: BusSubmissionExecution) -> None:
         execution.outcome = self
         execution.owner.publish_pending()
@@ -267,6 +283,9 @@ class BusSubmissionExecution(SubmissionExecution):
         """The outcome owns whether this is still submitting; `current` only says the
         destination is still shown, which is a different question."""
         return self.outcome.submitting(self.submission.text) if self.current else ()
+
+    def previewed(self) -> tuple[str, ...]:
+        return self.outcome.previewed(self.submission.text) if self.current else ()
 
     def retire_unsent(self) -> None:
         """A message to a view that changed before it left comes back as the draft."""
@@ -381,8 +400,14 @@ class BusSubmissions(SubmissionOwner):
         return tuple(text for execution in self.active for text in execution.delivering())
 
     @property
+    def previewed(self) -> tuple[str, ...]:
+        """What the delivery preview lists: every request until the view draws it. Send now
+        reads `delivering` instead, since a message Core has cannot be sent again."""
+        return tuple(text for execution in self.active for text in execution.previewed())
+
+    @property
     def submitting(self) -> SubmittingTexts:
-        return SubmittingTexts(self.delivering)
+        return SubmittingTexts(self.previewed)
 
     @property
     def input_decision(self) -> InputDecision:

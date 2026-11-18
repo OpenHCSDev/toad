@@ -547,6 +547,10 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.dismissed_text = ""
         self.failure.hide()
         self.host.submit(TypedText(text, self.take_files()), action)
+        # The view listed the message in that call: draw its preview row with the cleared
+        # editor, in one frame, rather than on the next turn.
+        if self.queue_sync_pending:
+            self._sync_queue()
 
     # Toolkit-neutral action-family contract: Textual's Prompt inherits Submits +
     # DismissibleControl from widget_actions.py; the mixin lift itself is fork

@@ -330,7 +330,7 @@ class QtConversation(
         `UserInputSubmitted` reaches `Conversation.submissions.submit`. No Qt view runs a
         shell, so typed input is never a shell command."""
         event = action.submission_event(text.text, False, text.files)
-        self.run_worker(partial(self.submissions.submit, event), group="submit", exclusive=False)
+        self.run_worker(self.submissions.received(event), group="submit", exclusive=False)
 
     def update_slash_commands(self) -> None:
         """The composer asks for the commands it offers after a /."""
