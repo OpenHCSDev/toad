@@ -817,6 +817,9 @@ class QtStickyHeader(HeaderPin, QWidget):
         header out again from its html (its theme's colours resolved span by span) was a third
         of the phone's UI thread during a burst (2026-11-18)."""
         window = self.history_window
+        # Taps reach the stacked headers whenever a stack is pinned, even when its drawing is
+        # unchanged: equal headers can stand for other messages (one sender, one second).
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not self.stacked.keys)
         context = (width, window.font().key(), window.rows.links_revision, id(window.rows.renderer))
         drawn = (headers, x, context)
         if drawn == self.drawn:
@@ -827,7 +830,6 @@ class QtStickyHeader(HeaderPin, QWidget):
         self.laid_out = {header: kept.get(header) or window.rows.header_document(header, window.font(), width)
                          for header in headers}
         self.documents = tuple(self.laid_out[header] for header in headers)
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not self.stacked.keys)
         self.resize(width, sum(int(document.size().height()) for document in self.documents))
         self.move(window.viewport().mapTo(window, QPoint(x, 0)))
         self.raise_()

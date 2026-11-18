@@ -2832,8 +2832,11 @@ class ArrivalScenario(Scenario):
         top row; a tap on a stacked header brings that message's head to the top row."""
         arrived = window.arrival_burst.messages
         pin = window.sticky_header
+        # The top row's own message pins its header as the top row's, not in the stack.
+        own = window.top_message_header().source
         above = [message for message in arrived[:-1]
-                 if (top := window.message_top(message.key)) is not None and top < window.scroll_y]
+                 if message.key.source != own
+                 and (top := window.message_top(message.key)) is not None and top < window.scroll_y]
         texts = [document.toPlainText().strip() for document in pin.documents]
         latest_top = window.message_top(arrived[-1].key) if arrived else None
         self.report("burst-stack", arrived=len(arrived), above=len(above), stacked=len(pin.stacked.keys),

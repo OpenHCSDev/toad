@@ -24,7 +24,8 @@ from toad.client.reader_position import (
 from toad.client.line_blocks import Divider, MutedRole
 
 if TYPE_CHECKING:
-    from toad.client.fragments import FragmentKey, HistoryFragment
+    from agent_comms.nominal.field_codec import ToolCallId
+    from toad.client.fragments import EventSourceKey, FragmentKey, HistoryFragment
     from toad.client.transcript_fragments import TranscriptFragment
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
@@ -82,7 +83,8 @@ class FragmentRowUnderTop:
     width: int
 
     def pinned_header(self) -> PinnedHeader:
-        return PinnedHeader(self.fragment.sticky_header(self.block, self.row), self.x, self.width)
+        return PinnedHeader(self.fragment.sticky_header(self.block, self.row), self.x, self.width,
+                            self.fragment.key.source)
 
 
 @dataclass(frozen=True)
@@ -94,6 +96,9 @@ class PinnedHeader:
     headers: tuple[Divider, ...]
     x: int
     width: int
+    source: EventSourceKey | ToolCallId | None = None
+    """The message the top row draws (its fragment key's `source`), by which a burst leaves the
+    top row's own message out of its stack; none where no drawn fragment is on the top row."""
 
 
 @dataclass(frozen=True)
@@ -160,9 +165,10 @@ class ArrivalBurst:
         its header as before and is not stacked twice."""
         if len(self.messages) < 2 or not pinned.width:
             return NO_STACK
-        own = pinned.headers[-1:]
+        # The top row's own message by identity: messages from one sender to one destination in
+        # the same second draw equal headers, and comparing headers left such a message out.
         above = [message for message in self.messages[:-1]
-                 if message.header not in own
+                 if message.key.source != pinned.source
                  and (top := window.message_top(message.key)) is not None and top < window.scroll_y]
         if not above:
             return NO_STACK
