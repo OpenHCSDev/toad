@@ -148,19 +148,24 @@ class CommsHost:
         self.notify(text, title=title)
 
     def show_warning(self, text: str, title: str) -> None:
-        """Native warning notice of plain text; no Core state change."""
+        """Native warning notice of plain text; no Core state change. The notice puts itself
+        away, so its text is saved with the stack that reported it (paths.save_warning, in
+        logs/warnings): a warning the reader saw and could not keep can still be read back."""
+        paths.save_warning(text, title)
         self.notify(text, title=title, severity="warning", markup=False)
 
     def show_error(self, error: Exception | str, title: str,
                    severity: Severity = "error") -> None:
-        """Native error notice with the original exception.
+        """Native error notice with the original exception; every one is saved under a
+        timestamped name in Toad's state folder (paths.save_error).
 
-        A refusal is transient: ResultShower's text, or a Core refusal (ToolRefusedError: an
-        unknown channel, a refused goal action) — an intentional answer, not a failure, so
-        nothing is saved to disk. Any other exception is saved under a timestamped name in
-        Toad's state folder (paths.save_error) and posted to the dev crash sink; the notice
-        itself puts itself away after notice_seconds."""
+        A refusal (ResultShower's text, or a Core refusal, ToolRefusedError: an unknown
+        channel, a refused goal action) is an intentional answer, not a failure: its notice
+        stays one line and it is not posted to the dev crash sink. Any other exception's
+        notice names its saved log and is posted there. Either notice puts itself away
+        after notice_seconds."""
         if isinstance(error, (str, ToolRefusedError)):
+            paths.save_error(error, f"Refused {title}")
             self.notify(str(error), title=title, severity=severity, markup=False)
             return
         path = paths.save_error(error, title)

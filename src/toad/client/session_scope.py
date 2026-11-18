@@ -180,6 +180,20 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope, CheckoutRoot):
         """A project origin with no launch of its own opens views with the app's binding."""
         return default
 
+    def opening_standing(self, selected_mode: str) -> str:
+        """What must not change while a thread opened from here is prepared: a view opens
+        what it was asked for only while it is still the tab shown."""
+        return selected_mode
+
+
+class HomeSessionOrigin(ProjectSessionOrigin):
+    """Home, the welcome: every row and link opens from here whichever tab is shown
+    (`TargetOpen`), so another tab being selected meanwhile, as a second tap's opening is,
+    leaves its openings current. Textual's `WelcomeScreen` and Qt's `QtWelcomeOrigin`."""
+
+    def opening_standing(self, selected_mode: str) -> str:
+        return ""
+
 
 class NoConversationView(SessionScope):
     """The view the thread sidebar follows while no conversation is open: the welcome, as

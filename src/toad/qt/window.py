@@ -111,7 +111,7 @@ from toad.core import session_requests
 from toad.core.events import CoordinationObserved, TabHistoryChanged
 from toad.launch_binding import AgentBinding, NoAgent
 from toad.navigation_context import NoNavigationOwner
-from toad.client.session_scope import ProjectSessionOrigin
+from toad.client.session_scope import HomeSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sidebar_panels import PanelSpec
 from toad.navigation_context import ConversationViewNavigation
@@ -574,13 +574,13 @@ class HeldRowMenu(QObject):
             self.listing.host.offer_entries(entries)
 
 
-class QtWelcomeOrigin(ProjectSessionOrigin):
+class QtWelcomeOrigin(HomeSessionOrigin):
     """Standalone origin for Qt's welcome tab: Qt's `Welcome` widget cannot inherit
     `ProjectSessionOrigin` itself because `SessionOrigin`'s `AbstractHooksMeta` clashes
     with QWidget's shiboken6 metaclass, so the origin is a sibling object the window
     hands to `thread_navigation.open` through `QtWorkspaceViews.origin(WELCOME)`.
 
-    Textual's `WelcomeScreen` (`screens/welcome.py:234`) inherits `ProjectSessionOrigin`
+    Textual's `WelcomeScreen` (`screens/welcome.py:234`) inherits `HomeSessionOrigin`
     directly because its widget metaclass does not clash."""
 
     is_attached: bool = True
