@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 
 from agent_comms.display_order import ThreadSort
 from agent_comms.registry.relationships import (
@@ -19,12 +20,13 @@ from textual import on
 from textual.content import Content
 
 from textual.events import Mount, Show, Unmount
-from textual.geometry import Offset, Region
+
 from textual.widgets import Static
 
 from toad.category_filter import CategoryFilterView
 from toad.client.connection import Observing
-from toad.client.relationship_row_menu import entry_target, menu_entries_for_row
+from toad.client.relationship_row_menu import entry_target
+from toad.client.sidebar_lines import RelationshipLine
 from toad.core import events as core_events
 from toad.native_style import (
     AutoHeight,
@@ -45,7 +47,6 @@ from toad.sidebar_model_view import SidebarModelView
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widget_actions import OpensSelected, WidgetAction
 from toad.widgets.checkbox import Checkbox
-from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.comms_sidebar import ThreadStatusRow
 from toad.client.sort_control import RelationshipOrder
 from toad.client.sort_control import ThreadSortForm
@@ -119,7 +120,7 @@ class CopyIdentityAction(ViewAction):
         context.app.copy_to_clipboard(context.target_name)
 
 
-class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
+class RelationshipRow(RelationshipLine, ThreadStatusRow, actions=(CopyIdentityAction,)):
     available = True
     entry: RelationshipEntry | None = None
 
@@ -576,9 +577,8 @@ class ThreadCommsSidebar(
             return
         self.open_target(entry_target(current))
 
-    def show_row_menu(self, row: RelationshipRow, offset: Offset) -> None:
-        self.pointer_select(row, menu=True)
-        target, entry, generation = row.target_name, row.entry, self._generation
+    def relationship_opener(self, row: RelationshipRow) -> Callable[[], object]:
+        entry, generation = row.entry, self._generation
 
         def open_selected():
             # Menus hold an identity, not a row index that live sorting or
@@ -586,10 +586,4 @@ class ThreadCommsSidebar(
             if generation == self._generation and row.is_attached and row.available:
                 self.request_navigation(row, entry=entry, generation=generation)
 
-        entries = menu_entries_for_row(
-            target_name=target,
-            copy=self.app.copy_to_clipboard,
-            open_callback=open_selected if row.available else None,
-        )
-        items = [(e.run, e.label) for e in entries]
-        ActionMenu.show(self.screen, Region.from_offset(offset, (0, 0)), target, items)
+        return open_selected

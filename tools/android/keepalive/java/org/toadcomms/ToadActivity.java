@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.system.ErrnoException;
 import android.system.Os;
 import org.kivy.android.PythonActivity;
+import org.qtproject.qt.android.QtActivityResults;
 
 /**
  * The APK's activity (buildozer.spec's android.entrypoint): python-for-android's Qt activity,
@@ -18,6 +19,9 @@ import org.kivy.android.PythonActivity;
 public class ToadActivity extends PythonActivity {
 
     private static final int NOTIFICATIONS_ASKED = 1;
+
+    /** Attach's chooser: what Qt's file dialog asks the activity for becomes Android's own. */
+    private final AttachChooser attachChooser = new AttachChooser(this);
 
     /**
      * The optimization level the app's Python runs at: 1 drops asserts and keeps docstrings,
@@ -59,5 +63,21 @@ public class ToadActivity extends PythonActivity {
             requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATIONS_ASKED);
         }
         startForegroundService(new Intent(this, ConnectedService.class));
+    }
+
+    /** Every activity start passes here (the two-argument form calls this one); a file
+     *  dialog's document request is offered Android's chooser in its place. */
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode, Bundle options) {
+        super.startActivityForResult(attachChooser.offered(intent, requestCode), requestCode, options);
+    }
+
+    /** python-for-android's override notifies its own listeners and never calls super, so Qt's
+     *  receivers heard no result; each result reaches both here, as QtActivityBase would. */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Intent answered = attachChooser.answered(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, answered);
+        QtActivityResults.deliver(requestCode, resultCode, answered);
     }
 }

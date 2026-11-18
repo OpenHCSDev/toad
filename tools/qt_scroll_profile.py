@@ -82,9 +82,8 @@ class ScrollDrive:
         return self.app.workspace_sessions.pages.currentWidget()
 
     async def open_comms(self) -> None:
-        await until(lambda: sum(section.childCount()
-                               for section in self.app.workspace_sessions.home.rows.items()) > 0,
-                    "welcome rows")
+        await until(lambda: any(isinstance(row, ConversationRow) for row in self.app.sidebar.items()),
+                    "sidebar rows")
         self.app.resize(WIDTH, HEIGHT)
         for item in self.app.sidebar.items():
             item.setExpanded(item.key == "#comms" or item.isExpanded())

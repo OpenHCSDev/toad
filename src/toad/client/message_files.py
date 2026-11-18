@@ -39,8 +39,8 @@ class FilePicker(DeclaredChoice, affix="FilePicker"):
 
 
 class WindowFilePicker(TitledChoice, FilePicker):
-    """The platform's file dialog. A phone shows its own file picker, which reaches the
-    phone's storage and its cloud drives."""
+    """The platform's file dialog. A phone shows its own chooser: the apps that give a file
+    (its storage, photos and cloud drives) and the camera."""
 
     title = "File dialog"
 

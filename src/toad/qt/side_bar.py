@@ -332,7 +332,8 @@ class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
             self.lay_out()
 
     def toggle_controls(self) -> None:
-        self.controls.setVisible(self.controls.isHidden())
+        self.controls_wanted = not self.controls_wanted
+        self.controls.setVisible(self.controls_wanted and not self.holds_alone)
 
     def present(self) -> None:
         """Draw the strip, the slider and the placement actions from the one layout."""
@@ -349,14 +350,19 @@ class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
             self._grid.addWidget(action, index // 2, index % 2)
         folded = self.collapsed
         self.content_stack.setVisible(not folded)
-        self.handle.setVisible(not folded)
+        # Holding the window alone there is nothing beside the bar to fold it for or to
+        # grip: only its content shows.
+        alone = self.holds_alone
+        self.toggle.setVisible(not alone)
+        self.handle.setVisible(not folded and not alone)
+        self.controls.setVisible(self.controls_wanted and not alone)
 
     def place(self, rect: QRect, cells: Size) -> None:
         """Take ``rect`` (``cells`` in the chrome's grid) and lay the parts inside it."""
         self.setGeometry(rect)
         self._cells = cells
         local = QRect(0, 0, rect.width(), rect.height())
-        parts = self.surface_parts(self.placement.side, cells)
+        parts = self.surface_parts(cells)
         self.toggle.setGeometry(cells_to_pixels(parts.toggle, cells, local))
         self.handle.setGeometry(cells_to_pixels(parts.handle, cells, local))
         self.content_stack.setGeometry(self._held_content(cells_to_pixels(parts.content, cells, local)))

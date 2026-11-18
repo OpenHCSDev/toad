@@ -246,6 +246,9 @@ class BusListing:
     A plain parent: each frontend's widget brings its toolkit metaclass.
     """
 
+    buses_title = "Buses"
+    """The title over the rows, wherever a listing draws one."""
+
     def picker_host(self) -> BusPickerHost:
         """The application this listing opens buses in."""
         raise NotImplementedError

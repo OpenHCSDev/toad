@@ -17,6 +17,7 @@ from typing import ClassVar, Self
 from functools import partial
 from pathlib import Path
 
+from agent_comms.messaging.channel_targets import ChannelSelection, NoChannel, OneChannel
 from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
@@ -86,12 +87,11 @@ from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
 from toad.client.line_blocks import LineLink, MutedRole
 from toad.qt.banner import Banner
-from toad.client.welcome import (
-    ChannelListing, ListedFailure, ListedModel, ThreadListing, WelcomeContent, WelcomeLocation,
-)
+from toad.client.welcome import WelcomeLocation
 from toad.client.name_wave import NameWave
 from toad.client.sidebar_lines import (
-    BusChoiceLine, DetailedLine, HeaderLine, MemberGroupLine, RowTree, SidebarStatusLine, TargetLine, WelcomeSectionLine,
+    BusChoiceLine, DetailedLine, HeaderLine, LineMenuTree, MemberGroupLine, RowTree, SidebarStatusLine, TargetLine,
+    WelcomeSectionLine,
 )
 from toad.keyed_rows import KeyedRows
 from toad.setting_choices import UnreadCount
@@ -102,6 +102,7 @@ from toad.client.subscribers import SidebarSubscriber
 from toad.sidebar_changes import SidebarChange
 from toad.sidebar_contracts import (
     ChannelGroupRows,
+    FindsOpenViews,
     GroupedSidebar,
     NavigationRefresh,
 )
@@ -112,7 +113,8 @@ from toad.constants import WELCOME
 from toad.core import session_requests
 from toad.core.events import CoordinationObserved, ExternalTranscriptChanged, TabHistoryChanged
 from toad.launch_binding import AgentBinding, NoAgent
-from toad.navigation_context import NoNavigationOwner
+from toad.navigation_context import HomeNavigation, NavigationOwner
+from toad.session_navigation import TabElement
 from toad.client.session_scope import HomeSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sidebar_panels import PanelSpec
@@ -126,11 +128,9 @@ from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerEditor, MessageComposer
 from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
-from toad.client.transcript_fragments import TranscriptFragment
 from toad.qt.history import QtWireFragment, QtWireHistory
-from toad.menus import MenuCommand, MenuConversation, standard_commands
+from toad.menus import MenuCommand, MenuConversation
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
-from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
 # Imported at load, not in open_transfer: this declares the Transfer members the shared
 # TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
@@ -167,16 +167,6 @@ from toad.work_preparation import PreparationRuntime
 @awaited(ActionRunning)
 class MenuActionRun(OperationKind):
     """One application action chosen from the menu."""
-
-
-def _block_menu_commands(fragment: TranscriptFragment) -> Iterator[MenuCommand]:
-    """The shared family-derived command list for ``fragment``, plus the per-fragment
-    menu entries each fragment answers via `block_menu`. Owner is
-    `toad.menus.standard_commands` for the family-wide list; `TranscriptFragment.block_menu`
-    (default `()`) and `BusMessageFragment.block_menu → message_menu(self.row)` decide
-    the per-fragment addition without the consumer having to ask what subclass it has."""
-    yield from standard_commands(fragment)
-    yield from fragment.block_menu
 
 
 @dataclass(frozen=True)
@@ -266,12 +256,15 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
         most lines. Legacy label-only API kept for bus rows which still use OfferedAction."""
         return ()
 
-    def menu_entries(self, listing: Welcome) -> tuple[MenuEntry, ...]:
-        """Rich menu-entry source — the single shape both frontends consume. A row that
-        has only label+run `held_actions` is adapted via `MenuEntry.from_offered`; a
-        row whose menu items come from a shared helper (e.g. `ConversationRow`
-        → `menu_entries_for_row`) returns the helper's output directly."""
+    async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
+        """What `HeldRowMenu` offers for this line: a bus line's shared `held_actions`
+        (`client/bus_selection.py`); a target line answers its declared
+        `TargetLine.menu_entries`."""
         return tuple(MenuEntry.from_offered(action) for action in self.held_actions(listing))
+
+    def channel_selection(self) -> ChannelSelection:
+        """The channel a line listed under this one is read in: none, for most lines."""
+        return NoChannel()
 
 
 class SidebarSection(MemberGroupLine, SidebarItem):
@@ -295,9 +288,10 @@ class SidebarSection(MemberGroupLine, SidebarItem):
 
 
 class OpenSection(WelcomeSectionLine, SidebarSection):
-    """A welcome section (the shared `WelcomeSectionLine`, Textual's `WelcomeSection`):
-    open as the sidebar state says, so it stays as the reader left it however often the
-    listing is drawn again."""
+    """A titled section of rows that are not the sidebar model's (the buses, in the sidebar
+    while it holds the window and in the bus switcher): open as the shared sidebar state says
+    (`WelcomeSectionLine`), so it stays as the reader left it however often it is drawn
+    again."""
 
     @property
     def section_title(self) -> str:
@@ -323,10 +317,6 @@ class StatusSection(SidebarStatusLine, SidebarSection):
         super().__init__(title)
         self.key = SidebarStatusLine.key
         self.draw("", title, detail, text)
-
-
-class UnavailableSection(StatusSection):
-    """The welcome's line saying why the bus could not be read (`SidebarStatusLine`)."""
 
 
 class ConversationRow(NameWave, TargetLine, SidebarItem):
@@ -395,16 +385,17 @@ class ConversationRow(NameWave, TargetLine, SidebarItem):
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
 
-    def menu_entries(self, listing: Welcome) -> tuple[MenuEntry, ...]:
-        """Long-press menu for a conversation row: the shared Open/Copy items the
-        Textual sidebar's `widgets/thread_comms.show_row_menu` offers for its
-        RelationshipRows, via the single `menu_entries_for_row` helper."""
-        host = listing.host
-        return menu_entries_for_row(
-            target_name=self.target.name,
-            copy=host.copy_to_clipboard,
-            open_callback=lambda: host.open_row(self),
-        )
+    @property
+    def menu_tree(self) -> ConversationRows:
+        return self.treeWidget()
+
+    async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
+        return await self.menu_entries()
+
+    def listed_channel(self) -> ChannelSelection:
+        """The channel this line is listed under, as Textual's sidebar selection names it."""
+        parent = self.parent()
+        return parent.channel_selection() if parent is not None else NoChannel()
 
 
 class ThreadLine(ThreadRowFace, ConversationRow):
@@ -430,6 +421,9 @@ class ThreadLine(ThreadRowFace, ConversationRow):
 
 class ChannelEntry(ChannelRowFace, ConversationRow):
     """A channel's line: the shared channel line text (`ChannelRowFace`)."""
+
+    def channel_selection(self) -> ChannelSelection:
+        return OneChannel(self.target_name)
 
     @classmethod
     def of(cls, name: str, channel, *, counts: type[UnreadCount]) -> ChannelEntry:
@@ -459,8 +453,9 @@ class ChannelLine(ChannelEntry):
 
 
 class NewSessionRow(NewSessionControl, SidebarItem):
-    """The Channels sidebar's first line, as Textual's `NewSessionButton`: a tap starts a
-    thread in the selected project through the shared `NewSessionControl`."""
+    """The Channels sidebar's first line, as Textual's `NewSessionButton`: a tap starts what
+    the shared `NewSessionControl` says (this launch's session while no tab is shown, a thread
+    in the selected project beside one)."""
 
     key = NewSessionControl.label
 
@@ -494,22 +489,6 @@ from toad.qt.page import Page  # re-export: callers already import Page from her
 from toad.qt.metrics import UiGap
 
 
-class QtChannelListing(ChannelListing):
-    def keep(self, lines: KeptLines, model: SidebarModel, app: QtToadApp) -> None:
-        for name in self.listed(model):
-            line = ChannelEntry(channel_target(name))
-            line.show_channel_text(self.line_text(model.channels.rows[name], app.settings.sidebar.unread_counts))
-            lines.keep(line)
-
-
-class QtThreadListing(ThreadListing):
-    def keep(self, lines: KeptLines, model: SidebarModel, app: QtToadApp) -> None:
-        for name in self.listed(model):
-            lines.keep(ThreadLine.of(name, model.threads.rows[name], pinned=False,
-                                     action_status=app.thread_actions.pending.get(name),
-                                     counts=app.settings.sidebar.unread_counts))
-
-
 class BusAddress(BusAddressEntry, QLineEdit):
     """Where a reader types a machine to add by hand, under the welcome's Buses
     (`BusAddressEntry`, the field Textual's picker inherits too)."""
@@ -529,9 +508,9 @@ class HeldRowMenu(QObject):
     """A tree line's menu (SidebarItem.menu_entries), offered where a mouse right-clicks it
     or a finger is held on it (`FingerPress` delivers a held finger as the same context-menu
     request), in the window's own panel, as its menu is (QtToadApp.offer). Every tree of
-    conversation rows has one: the welcome's and the sidebar's, as every Textual sidebar row
-    answers a right-click (`CommsRow.context_activation`). ``listing`` is what a row's
-    entries act through (its ``host`` window; the welcome's own rows reach the welcome)."""
+    conversation rows has one, as every Textual sidebar row answers a right-click
+    (`CommsRow.context_activation`). ``listing`` is what a row's entries act through: its
+    ``host`` window, and for a bus row the listing that can forget it (`BusListing`)."""
 
     def __init__(self, rows: ConversationRows, listing) -> None:
         super().__init__(rows)
@@ -540,24 +519,35 @@ class HeldRowMenu(QObject):
         rows.customContextMenuRequested.connect(self.offer)
 
     def offer(self, point: QPoint) -> None:
-        """``point`` is in the tree's viewport, where QAbstractScrollArea reports it.
-        Reads the row's `menu_entries` — the richer single contract every row answers
-        (base rows adapt their `held_actions` via `MenuEntry.from_offered`, rich rows
-        like `ConversationRow` return the shared `menu_entries_for_row` output
-        directly)."""
+        """``point`` is in the tree's viewport, where QAbstractScrollArea reports it. The
+        line's own menu (`SidebarItem.menu_entries_in`: a target line's declared
+        `TargetLine.menu_entries`, a bus line's shared actions) is read, then offered."""
         rows = self.rows
         item: SidebarItem | None = rows.itemAt(point)
         if item is None:
             return
-        entries = item.menu_entries(self.listing)
+        # In the host window's coordinates, where `offer_entries` places its anchor
+        # (`ConversationRows.window` names the app, hiding QWidget.window()).
+        pressed = rows.viewport().mapTo(self.listing.host, point)
+        asyncio.ensure_future(self.offer_read(item, QRect(pressed, QSize(1, 1))))
+
+    async def offer_read(self, item: SidebarItem, anchor: QRect) -> None:
+        """A target line's commands are read off the UI thread, then offered at the press."""
+        entries = await item.menu_entries_in(self.listing)
         if entries:
-            # In the host window's coordinates, where `offer_entries` places its anchor
-            # (`ConversationRows.window` names the app, hiding QWidget.window()).
-            pressed = rows.viewport().mapTo(self.listing.host, point)
-            self.listing.host.offer_entries(entries, QRect(pressed, QSize(1, 1)))
+            self.listing.host.offer_entries(entries, anchor)
 
 
-class QtWelcomeOrigin(HomeSessionOrigin):
+@dataclass(frozen=True)
+class QtTabAt(TabElement):
+    """The open tab a Qt pointer is on (a QTabBar keeps no object per tab), as Textual's
+    `SessionLabel`: its menu is the declared `TabElement.menu_entries`."""
+
+    app: QtToadApp
+    mode_name: str
+
+
+class QtWelcomeOrigin(HomeSessionOrigin, HomeNavigation):
     """Standalone origin for Qt's welcome tab: Qt's `Welcome` widget cannot inherit
     `ProjectSessionOrigin` itself because `SessionOrigin`'s `AbstractHooksMeta` clashes
     with QWidget's shiboken6 metaclass, so the origin is a sibling object the window
@@ -586,109 +576,25 @@ class QtWelcomeOrigin(HomeSessionOrigin):
         )
 
 
-class QtStartSessionButton(NewSessionControl, QPushButton):
-    """The welcome's New Session, as Textual's `StartSessionButton`: this launch's session
-    (`NewSessionAction`), labelled and started through the shared `NewSessionControl`."""
-
-    action = NewSessionAction
-
-    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
-        super().__init__(self.label, parent)
-        self.setWindowFlags(Qt.WindowType.Widget)
-        self.setMinimumHeight(40)
-        self._host = window
-        self.clicked.connect(self._fire)
-
-    def _fire(self) -> None:
-        self._host.run_operation(MenuActionRun, partial(self.start_session, self._host))
-
-
-class Welcome(Page, BusListing, NoConversationView, QWidget):
-    """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
-    has not opened: the banner, the project, the channels and threads the shared welcome
-    lists, and the buses (BusListing): the remote ones this machine holds, with the peers
-    the tailnet reports holding one, a field to add a machine by name or address, and a held
-    finger on a saved one to forget it. A Qt client is always remote, so this machine's own
-    bus is not listed."""
+class Welcome(Page, NoConversationView, QWidget):
+    """The home page: what the pages show while no tab is (the welcome mode, the origin new
+    targets open from), and in place of a saved tab this app has not opened. It draws
+    nothing: while it is selected the comms sidebar holds the whole window
+    (`SidebarLayout.holds_alone`), with the banner, the bus, the buses and the hints the
+    welcome page used to show."""
 
     mode = WELCOME
-    BUSES = "Buses"
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__()
         self.host = window
-        self.banner = Banner(window.renderer.theme(PrimaryColour))
-        window.renderer.follows_theme(self.banner, lambda: self.banner.paint_in(window.renderer.theme(PrimaryColour)))
-        self.project = BusLabel(window)
-        self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        window.renderer.themed(self.project, lambda: self.project.setStyleSheet(window.renderer.color_style(MutedRole)))
-        self.new_session_button = QtStartSessionButton(window, parent=self)
-        self.rows = ConversationRows(window)
-        self.held_menu = HeldRowMenu(self.rows, self)
-        self.address = BusAddress(window)
-        # Gesture hint line below the rows, mirroring Textual's WelcomeNote(HINTS)
-        # at the tail of `WelcomeScreen.compose`. The content is owned per-frontend
-        # via `self.app.welcome_hints` — Textual carries keyboard shortcuts, Qt
-        # carries touch gestures. Strip Textual's `[b]...[/b]` markup for Qt since
-        # QLabel doesn't render it natively; the gestures text is plain already.
-        self.hints = QLabel(_strip_menu_markup_shared(window.welcome_hints), self)
-        self.hints.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.hints.setWordWrap(True)
-        window.renderer.themed(self.hints, lambda: self.hints.setStyleSheet(window.renderer.color_style(MutedRole)))
-        layout = QVBoxLayout(self)
-        layout.addSpacing(24)
-        layout.addWidget(self.banner)
-        layout.addWidget(self.project)
-        layout.addSpacing(8)
-        layout.addWidget(self.new_session_button)
-        layout.addSpacing(12)
-        layout.addWidget(self.rows, 1)
-        layout.addWidget(self.hints)
-        layout.addSpacing(4)
-        layout.addWidget(self.address)
-        self.content: WelcomeContent = WelcomeContent()
-        self.relist()
 
-    def picker_host(self) -> BusPickerHost:
-        return self.host
-
-    def held_rows(self) -> tuple[PickerRow, ...]:
-        return BusChoice.held(time())
-
-    def say_failure(self, reason: str) -> None:
-        self.host.show_warning(reason, "Tailnet buses")
-
-    def present(self, model: SidebarModel) -> None:
-        self.content = ListedModel(model)
-        self.relist()
-
-    def present_failed(self, observed: FailedObservation) -> None:
-        """The bus could not be read: say why, and keep the buses to switch to."""
-        self.content = ListedFailure(observed)
-        self.relist()
-
-    def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
-        """What the welcome lists, then the Buses section with ``rows``: a tailnet answer
-        arrives between sidebar updates, and both redraw the same lines in place."""
-        self.rows.redraw(partial(self.draw_lines, rows))
-
-    welcome_listings = (QtChannelListing(), QtThreadListing())
-
-    def list_section(self, top: KeptLines, listing, model: SidebarModel) -> None:
-        with top.group(OpenSection(listing.TITLE)) as lines:
-            listing.keep(lines, model, self.host)
-
-    def say_unavailable(self, top: KeptLines, text: str) -> None:
-        top.keep(UnavailableSection(text))
-
-    def draw_lines(self, buses: tuple[PickerRow, ...], top: KeptLines) -> None:
-        self.content.draw(self, top)
-        with top.group(OpenSection(self.BUSES)) as section:
-            for choice in buses:
-                section.keep(BusRow(choice))
+    def workspace_navigation_owner(self, views):
+        """Home navigates through the welcome's origin, as Textual's `WelcomeScreen` does."""
+        return views.home_origin
 
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
-        """The welcome leaves the sidebar as the user left it, as Textual's welcome does."""
+        """The home page leaves the sidebar as the user left it, as Textual's does."""
 
 
 class TreeItemRows[KeyT](KeyedRows[KeyT]):
@@ -770,7 +676,7 @@ class KeptLines(TreeItemRows[tuple[type, str]]):
         self.close()
 
 
-class ConversationRows(RowTree, QTreeWidget):
+class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
     """A tree of Toad's conversation rows in the theme's sidebar tones, every other row a
     step off: pyqt-reactive's preview delegate paints each row's unread badge and label with
     its summary under it in muted text; a tap activates the line."""
@@ -799,6 +705,16 @@ class ConversationRows(RowTree, QTreeWidget):
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)
+
+    def row_menu_context(self, line: ConversationRow):
+        """Textual's context for the same line (`NavigationTarget.menu_context`): the open tab
+        showing its target, and the channel it is listed under."""
+        sidebar = self.window.sidebar
+        return line.target.menu_context(sidebar, mode_name=sidebar.find_open_views().get(line.target_name),
+                                        channel=line.listed_channel())
+
+    def copy_name(self, name: str) -> None:
+        self.window.copy_to_clipboard(name)
 
     def paint_colours(self) -> None:
         """The tree's stylesheet and its line delegate's colours, under the current scheme.
@@ -978,7 +894,58 @@ class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
         return self.row
 
 
-class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
+class QtSidebarBuses(BusListing, ConversationRows):
+    """The buses this machine can open, under the bus line while the comms sidebar holds the
+    window, as Textual's `SidebarBuses`: the rows the welcome page listed, in the first screen
+    (above the search and the comms tree, which can list every thread). Its own tree, sized
+    to its rows, so a long list of threads never pushes it out of sight. A Qt client is
+    always remote, so this machine's own bus is not listed; a held finger on a saved one
+    offers to forget it (`BusRow.held_actions`)."""
+
+    most_rows = 6
+    """Rows shown before the list scrolls: a tailnet's buses, without taking the screen."""
+
+    def __init__(self, window: QtToadApp) -> None:
+        super().__init__(window)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.held_menu = HeldRowMenu(self, self)
+        # Opening or closing its section changes how many lines it shows.
+        self.itemExpanded.connect(lambda item: self.fit_rows())
+        self.itemCollapsed.connect(lambda item: self.fit_rows())
+        self.relist()
+
+    @property
+    def host(self) -> QtToadApp:
+        return self.window
+
+    def picker_host(self) -> BusPickerHost:
+        return self.window
+
+    def held_rows(self) -> tuple[PickerRow, ...]:
+        return BusChoice.held(time())
+
+    def say_failure(self, reason: str) -> None:
+        self.window.show_warning(reason, "Tailnet buses")
+
+    def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
+        def draw(top: KeptLines) -> None:
+            with top.group(OpenSection(self.buses_title)) as section:
+                for choice in rows:
+                    section.keep(BusRow(choice))
+        self.redraw(draw)
+        self.fit_rows()
+
+    def fit_rows(self) -> None:
+        """As tall as its shown lines, up to `most_rows` of them."""
+        self.doItemsLayout()
+        heights, item = [], self.topLevelItem(0)
+        while item is not None and len(heights) <= self.most_rows:
+            heights.append(self.visualItemRect(item).height())
+            item = self.itemBelow(item)
+        self.setFixedHeight(sum(heights) + 2 * self.frameWidth())
+
+
+class Sidebar(FindsOpenViews, WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     @property
     def screen(self) -> WorkspaceFrame:
@@ -1009,8 +976,8 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         self.open_views = {}
         # The shared owner of the sidebar's search text and row-match decision. The
         # QLineEdit hosted by `QtSidebarSearch` writes the user's text into this
-        # instance; `draw_lines` / `QtChannelListing.keep` / `QtThreadListing.keep`
-        # ask the filter's `matches(name)` when deciding whether a row joins the
+        # instance; `draw_lines` asks the filter's `matches(name)` when deciding whether a
+        # row joins the
         # tree. Textual's `SideBar` also owns one (same class, same match rule).
         self.filter: SidebarFilter = SidebarFilter()
         self.filter.subscribe(self._on_filter_changed)
@@ -1020,6 +987,12 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
     @property
     def host(self) -> QtToadApp:
         """The window a row's menu entries act in (`HeldRowMenu`)."""
+        return self.window
+
+    @property
+    def app(self) -> QtToadApp:
+        """The application, as a Textual sidebar's `app` names it for the shared readers
+        (`FindsOpenViews`, `NavigationTarget.menu_context`)."""
         return self.window
 
     def _on_filter_changed(self, _value: str) -> None:
@@ -1071,7 +1044,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
                 self.groups = {}
         if model is not None:
             self.window.channel_sort.update_order(model.observation.channel_order())
-            self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
@@ -1088,12 +1060,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         self._status_text = None
         self.groups = {}
         self.redraw(lambda top: None)
-
-    def find_open_views(self) -> dict[str, str]:
-        """Which channels Qt currently shows an open tab for. The Qt sidebar does not
-        yet hoist this out of the tab bar, so the hook returns the stored map (populated
-        elsewhere when tab routing lands)."""
-        return self.open_views
 
     def reconcile_members(self):
         """Textual holds a DOM-level sync boundary here; Qt touches items directly."""
@@ -1174,9 +1140,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             rebuilt[name] = group
         self.groups = rebuilt
 
-    def bind_failed_observation(self, observed: FailedObservation) -> None:
-        super().bind_failed_observation(observed)
-        self.window.workspace_sessions.home.present_failed(observed)
 
 
 class QtSessionEntry(SessionEntries):
@@ -1216,7 +1179,7 @@ class BusLabel(WelcomeLocation, ElidedLine):
 
 
 class ConversationView(QtConversation, ConversationViewNavigation, MenuConversation, SessionScope,
-                       WireView, metaclass=PyQtWidgetMeta):
+                       WireView, NavigationOwner, metaclass=PyQtWidgetMeta):
     """One conversation tab, Textual's `CommsChatView`: a `QtConversation` whose history is
     the conversation's wire, paged lazily by the pager Textual's channels use and drawn as
     virtual rows, read again whenever Core's stores change; the composer and activity its
@@ -1405,7 +1368,7 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
     def open_block_menu(self, fragment: QtWireFragment, pressed: QPoint) -> None:
         """The block menu for `fragment`, at `pressed` (the window's coordinates)."""
         self.held_fragment = fragment
-        entries = QtMenu.command_entries(_block_menu_commands(fragment), self.app.settings,
+        entries = QtMenu.command_entries(QtMenu.block_commands(fragment, fragment.block_menu), self.app.settings,
                                          self._run_block_menu_command)
         if entries:
             self.app.offer_entries(entries, QRect(pressed, QSize(1, 1)))
@@ -1459,7 +1422,7 @@ class QtWorkspaceViews(WorkspaceViews):
     def __init__(self, app: QtToadApp) -> None:
         self.app = app
         self.home = Welcome(app)
-        self._welcome_origin = QtWelcomeOrigin(app)
+        self.home_origin = QtWelcomeOrigin(app)
         self.pages = QStackedWidget(app)
         self.pages.addWidget(self.home)
         self.views: dict[str, ConversationView] = {}
@@ -1475,12 +1438,14 @@ class QtWorkspaceViews(WorkspaceViews):
         if view := self.views.get(identity):
             return view.origin
         if identity == WELCOME:
-            return self._welcome_origin
+            return self.home_origin
         return NoSessionOrigin(identity)
 
-    def navigation_owner(self) -> NoNavigationOwner:
-        """Rows open from the sidebar through the shared history route; no view navigates."""
-        return NoNavigationOwner(self.app)
+    def navigation_owner(self) -> NavigationOwner:
+        """Derived from the selected page, as Textual's `WorkspaceSessions.navigation_owner`
+        is from the selected view: a conversation tab navigates as itself, home as the
+        welcome's origin."""
+        return self.selected.workspace_navigation_owner(self)
 
     def prepare(self, mode: str) -> Page:
         if view := self.views.get(mode):
@@ -1594,6 +1559,37 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             self.sidebar.filter,
             QtSidebarPanels(self.sidebar_state, (QtPanelEntry.of(CHANNELS_PANEL, self.sidebar, (self.channel_sort,), CHANNELS_PANEL.title),)),
             parent=self)
+        # While no tab is shown the comms sidebar holds the window (`SidebarLayout.holds_alone`)
+        # and carries what the welcome page did: Toad's banner, the bus this window reads and
+        # the buses it can open above the search and rows, so they are in the first screen
+        # however many threads the rows list; the hints and the field to add a machine below
+        # them. Beside a tab only the search and rows show. Textual's `ChannelsSidebar`
+        # composes the same parts in the same order.
+        self.banner = Banner(self.renderer.theme(PrimaryColour))
+        self.renderer.follows_theme(self.banner, lambda: self.banner.paint_in(self.renderer.theme(PrimaryColour)))
+        self.bus_label = BusLabel(self)
+        self.bus_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.renderer.themed(self.bus_label, lambda: self.bus_label.setStyleSheet(self.renderer.color_style(MutedRole)))
+        self.hints = QLabel(_strip_menu_markup_shared(self.welcome_hints))
+        self.hints.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hints.setWordWrap(True)
+        self.renderer.themed(self.hints, lambda: self.hints.setStyleSheet(self.renderer.color_style(MutedRole)))
+        self.bus_address = BusAddress(self)
+        self.sidebar_buses = QtSidebarBuses(self)
+        self.channels_column = QWidget(self)
+        column = QVBoxLayout(self.channels_column)
+        column.setContentsMargins(0, 0, 0, 0)
+        column.setSpacing(UiGap.tight)
+        for part in (self.banner, self.bus_label, self.sidebar_buses):
+            column.addWidget(part)
+        column.addWidget(self.sidebar_search, 1)
+        # A clear gap under the rows: a row the tree's edge cuts must not read as running
+        # under the hints.
+        column.addSpacing(UiGap.loose)
+        for part in (self.hints, self.bus_address):
+            column.addWidget(part)
+        self.sole_parts = (self.banner, self.bus_label, self.sidebar_buses, self.hints, self.bus_address)
+        self.shown_alone: bool | None = None
         self.thread_pane = ThreadSettingsPane(self, parent=self,
                                               project_path=self.project_dir.path)
         # The pages and both sidebars live in one chrome that places them where the shared
@@ -1605,7 +1601,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                                         clock=self.animation_clock,
                                         available=self._pane_available, parent=self)
         self.channels_side = QtSideBar(
-            self.sidebar_layout, ChannelsSidebarPlacement, self.sidebar_search,
+            self.sidebar_layout, ChannelsSidebarPlacement, self.channels_column,
             heading=partial(self._pane_heading, ChannelsSidebarPlacement),
             laid_out=self.rearrange_sidebars, client=self, parent=self.chrome)
         self.thread_side = QtSideBar(
@@ -1669,7 +1665,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         from toad.qt.bus_switcher import QtBusSwitcher
         # Welcome is always a BusListing; the switcher registers/deregisters
         # itself while shown so answers reach both.
-        self._bus_listings: list[BusListing] = [self.workspace_sessions.home]
+        self._bus_listings: list[BusListing] = [self.sidebar_buses]
         self.bus_switcher = QtBusSwitcher(self)
         chrome_layout.addWidget(self.bus_switcher)
         # Paste surface for the bus-connect remediation ("Paste a profile" option on the
@@ -1732,7 +1728,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.setContentsMargins(margins)
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
-        self.workspace_sessions.home.project.present(self)
+        self.bus_label.present(self)
         self.workspace_sessions.selected.reload()
 
     def external_transcript_changed(self, event: ExternalTranscriptChanged, subscription: object) -> None:
@@ -1877,10 +1873,21 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         collapsed = self.sidebar_layout.is_collapsed(ThreadSidebarPlacement)
         self.thread_pane.bind(sessions.home if collapsed else sessions.selected)
 
+    def present_alone(self) -> None:
+        """Show the welcome's parts in the comms sidebar while it holds the window; hide them
+        when a tab is shown beside it."""
+        alone = self.sidebar_layout.alone
+        if alone == self.shown_alone:
+            return
+        self.shown_alone = alone
+        for part in self.sole_parts:
+            part.setVisible(alone)
+
     def present_panes(self) -> None:
         """Draw both sidebars from the one layout and place them; the thread's sidebar is
         presented only while a conversation is open."""
         self._bind_thread_pane()
+        self.present_alone()
         for side in self.chrome.sidebars:
             side.present()
         self.chrome.arrange()
@@ -2171,7 +2178,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         """The tab under a right-click or a held finger offers the shared tab menu."""
         index = self.tabs.tabAt(point)
         if index >= 0:
-            self.offer_entries(self.session_navigation.tab_menu(self.session_navigation.tabs[index].mode_name))
+            self.offer_entries(QtTabAt(self, self.session_navigation.tabs[index].mode_name).menu_entries())
 
     def move_index(self, start: int, end: int) -> None:
         """A tab dragged from one place in the bar to another: it moves past the tab it

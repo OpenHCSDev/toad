@@ -89,6 +89,38 @@ class JumpsToLatest:
         self.tail_follow_changed()
 
 
+class FollowsTail(JumpsToLatest):
+    """The one place a history window's reader joins or leaves its tail.
+
+    Joining or leaving is one change of the reader's follow intent: it counts as a reader
+    move (`scroll_revision`, unless the window is moving itself), the window applies it in its
+    toolkit (`apply_anchor`), and the jump bar shows or hides from the result. Each window
+    lists this before its toolkit's scroll base, so this `anchor` answers in both frontends
+    ahead of Textual's own `Widget.anchor`, and a window supplies only `apply_anchor`.
+
+    A subclass that defines `anchor` again is refused when its class is created: Qt's window
+    once carried its own copy without the last step, so its back-to-bottom bar stayed up
+    after a jump until the reader scrolled again (Tristan, Android, 2026-11-18)."""
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        if "anchor" in vars(cls):
+            raise TypeError(f"{cls.__qualname__} redefines FollowsTail.anchor; "
+                            "a window supplies apply_anchor, its toolkit's own move, instead")
+
+    def anchor(self, anchor: bool = True) -> None:
+        changed = self.follows_tail != anchor
+        if not self._restoring and changed:
+            self.scroll_revision += 1
+        self.apply_anchor(anchor)
+        if changed:
+            self.tail_follow_changed()
+
+    @abstractmethod
+    def apply_anchor(self, anchor: bool) -> None:
+        """Join (`anchor`) or leave the tail in this toolkit, without counting or showing it."""
+
+
 class ReaderWindow(JumpsToLatest):
     """A history window the reader keys move: a page either way, or back to the latest
     (`reader_actions`). Textual's `HistoryWindow` and Qt's `QtHistoryWindow` both list it."""

@@ -115,7 +115,7 @@ class QtBusSwitcher(BusListing, QFrame):
         KeptLines = self._KeptLines
         OpenSection = self._OpenSection
         def draw(top: "KeptLines") -> None:
-            with top.group(OpenSection("Buses")) as section:
+            with top.group(OpenSection(self.buses_title)) as section:
                 for choice in rows:
                     section.keep(BusRow(choice))
         self._tree.redraw(draw)

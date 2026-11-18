@@ -67,7 +67,7 @@ from toad.native_style import (
 )
 from textual.events import Mount
 
-from toad.sidebar_contracts import ChannelGroupRows, GroupedSidebar
+from toad.sidebar_contracts import ChannelGroupRows, FindsOpenViews, GroupedSidebar
 from toad.sidebar_navigation import SidebarNavigation
 
 from toad.widgets.sidebar_tree import CommsRow, ListedRow
@@ -354,6 +354,7 @@ class CommsSidebar(
     SidebarVisibilityObserver,
     SearchFollower,
     SelectsTargets,
+    FindsOpenViews,
     GroupedSidebar,
     OpensSelected,
 ):
@@ -489,21 +490,6 @@ class CommsSidebar(
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
         self.navigation.apply()
-
-    def find_open_views(self) -> dict[str, str]:
-        """Which open tab shows each thread of this service; the first tab claims it."""
-        app = self.app
-        threads = self.model_state.shown.threads.rows
-        views: dict[str, str] = {}
-        for details in app.session_tracker.ordered_sessions:
-            screen = app.session_navigation.source(details.mode_name)
-            if screen is None:
-                continue
-            name = screen.thread_identity.thread_name()
-            if (name in threads and name not in views
-                    and screen.belongs_to_wire(self.navigation_root)):
-                views[name] = details.mode_name
-        return views
 
     @handles(SessionChangedEvent, ThreadIdentityChanged)
     async def session_changed(self, event: SessionChangedEvent | ThreadIdentityChanged) -> None:

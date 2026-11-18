@@ -21,7 +21,7 @@ from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
 from toad.frame_presentation import FollowsUnrisenRows, UnrisenRows
-from toad.history_jump import JumpsToLatest, ReaderWindow
+from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
 from toad.widget_view import WorkspaceHosted
@@ -58,7 +58,7 @@ if TYPE_CHECKING:
 
 
 
-class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
+class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
                     ReaderPlacement, ReaderWindow, FollowsUnrisenRows, VerticalScroll, PagingWindow,
                     actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
@@ -418,10 +418,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     # `can_jump_to_latest` body (returns `not self.follows_tail`) is shared on JumpsToLatest.
 
-    def anchor(self, anchor: bool = True) -> None:
-        changed = self.follows_tail != anchor
-        if not self._restoring and changed:
-            self.scroll_revision += 1
+    def apply_anchor(self, anchor: bool) -> None:
         if anchor:
             # Tail intent replaces earlier motion even while a publication has
             # no scrollable rows. Native cancellation depends on the scrollbar.
@@ -431,11 +428,10 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
             # A reader cannot move a window they cannot see: a parked place stays.
             if self.shown:
                 self.reader_position = self.reader_position.joined_tail()
-        super().anchor(anchor)
+        # Textual's own anchor: the next one after the shared step in this window's MRO.
+        super(FollowsTail, self).anchor(anchor)
         if not anchor and self.shown and not self._restoring:
             self.reader_position = self.reader_position.left_tail(self)
-        if changed:
-            self.tail_follow_changed()
 
     def release_anchor(self) -> None:
         if not self.follows_tail:

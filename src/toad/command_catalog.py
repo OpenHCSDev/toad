@@ -2,10 +2,13 @@
 
 from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
+from functools import partial
 
 from agent_comms.errors import UnregisteredThreadError
 from formbridge.operations import ExclusiveKind, OperationKind
-from toad.client.commands import CommandContextChanged, CommandRefused, ConversationCommands, LocalCommand
+from toad.client.commands import (CommandContextChanged, CommandRefused, ConversationCommands, LocalCommand,
+                                  ViewLocalCommand)
+from toad.client.menu_entry import MenuEntry
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, SlashCommand
 from toad.target_commands import TargetContext, ThreadCommand
 
@@ -65,6 +68,15 @@ class CommandCatalog:
             target,
         )
 
+    @classmethod
+    async def pointer_menu(cls, context: TargetContext) -> tuple[MenuEntry, ...]:
+        """What a right-click or a held finger on a channel or thread offers, in every
+        frontend: the commands its target context applies, each run in that context.
+        Textual's sidebar rows show these in an `ActionMenu`, Qt's in its menu panel."""
+        choices = (await cls.read(context.app, (), context.acquired(), ViewLocalCommand)).target_choices
+        return tuple(MenuEntry(command.label(context), partial(context.execute_command, command))
+                     for command in choices)
+
     def recognizes(self, text: str) -> bool:
         """Whether typed text starts with one of these commands."""
         name = text.partition(" ")[0]
@@ -73,11 +85,16 @@ class CommandCatalog:
     def command_named(self, name: str) -> SlashCommand:
         return next(command for command in self.commands if command.command == name)
 
+    @staticmethod
+    def may_name_command(text: str) -> bool:
+        """Whether typed text can name a command at all; anything else is a message."""
+        return text.startswith("/")
+
     @classmethod
     async def execute(cls, text: str, conversation: ConversationCommands) -> bool:
         """Run typed text as the conversation's command; False when it names none, so the
         text goes on as a message. A recognized command never falls through as text."""
-        if not text.startswith("/"):
+        if not cls.may_name_command(text):
             return False
         try:
             catalog = await conversation.read_command_catalog()

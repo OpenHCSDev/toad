@@ -14,6 +14,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from toad.navigation_context import NavigationOwner, NoNavigationOwner
+
 if TYPE_CHECKING:
     from toad.client.tab_identity.kinds import CommsTab
     from toad.qt.window import QtToadApp
@@ -26,6 +28,11 @@ class Page:
 
     def reload(self) -> None:
         """A page fed by its own subscription has nothing to read again."""
+
+    def workspace_navigation_owner(self, views) -> NavigationOwner:
+        """What the workspace navigates through while this page is selected
+        (`QtWorkspaceViews.navigation_owner`): nothing, for a page that does not navigate."""
+        return NoNavigationOwner(views.app)
 
     def external_transcript_changed(self) -> None:
         """A page showing no thread's transcript has no CLI items to read."""

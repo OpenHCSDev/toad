@@ -52,6 +52,26 @@ class NavigationRefresh(metaclass=AbstractHooksMeta):
     def apply(self) -> None: ...
 
 
+class FindsOpenViews:
+    """Which open tab shows each thread of this sidebar's bus; the first tab claims it.
+    Textual's `CommsSidebar` and Qt's `Sidebar`: a row's menu runs its commands in that
+    tab's mode (`NavigationTarget.menu_context`)."""
+
+    def find_open_views(self) -> dict[str, str]:
+        app = self.app
+        threads = self.model_state.shown.threads.rows
+        views: dict[str, str] = {}
+        for details in app.session_tracker.ordered_sessions:
+            screen = app.session_navigation.source(details.mode_name)
+            if screen is None:
+                continue
+            name = screen.thread_identity.thread_name()
+            if (name in threads and name not in views
+                    and screen.belongs_to_wire(self.navigation_root)):
+                views[name] = details.mode_name
+        return views
+
+
 class GroupedSidebar(metaclass=AbstractHooksMeta):
     """A channel sidebar owns its groups, open-tab markers and navigation refresh."""
 

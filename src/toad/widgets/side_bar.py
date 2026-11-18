@@ -998,13 +998,25 @@ class SideBar(
                                           compact=True)
         self.panels_viewport: SidebarViewport = SidebarViewport()
         self.layout_controls = SidebarControls()
+        self.shell_lead, self.shell_tail = self.lead_parts(), self.tail_parts()
+
+    def lead_parts(self) -> tuple[Widget, ...]:
+        """Widgets above the search box: none, unless a sidebar shows more while it holds the
+        window alone (`ChannelsSidebar`)."""
+        return ()
+
+    def tail_parts(self) -> tuple[Widget, ...]:
+        """Widgets below the panels and controls, as `lead_parts`."""
+        return ()
 
     def _compose_shell(self) -> ComposeResult:
+        yield from self.shell_lead
         yield self.search_input
         with self.panels_viewport:
             yield from self._compose_panels()
         with self.layout_controls:
             yield from self._compose_controls()
+        yield from self.shell_tail
 
     @cached_property
     def toggle_control(self) -> SideBarToggle:
@@ -1019,7 +1031,23 @@ class SideBar(
 
     @handles(core_events.SessionSelected, core_events.OpenTabsChanged)
     async def viewed_changed(self, event: core_events.SessionSelected | core_events.OpenTabsChanged) -> None:
+        self.present_alone()
         self.toggle_control.show_heading(self.heading, self.collapsed, self.placement.side)
+
+    def validate_collapsed(self, collapsed: bool) -> bool:
+        """A bar holding the window alone is open whatever its kept fold
+        (`SidebarLayout.is_collapsed` says the same for Qt's bars)."""
+        return collapsed and not self.holds_alone
+
+    def present_alone(self) -> None:
+        """The selected view changed: a bar that holds the window now opens, and one that no
+        longer does takes its kept fold again (the sole role's fold is the saved
+        `sidebar.hide`; a bar that never holds the window keeps its own)."""
+        if self.placement_identity is not self.sidebar_layout.sole_role:
+            return
+        self.collapsed = SETTINGS.sidebar.hide.bind(self.app.saved_settings.state).value
+        self.invalidate_controls()
+        self.app.workspace_chrome.refresh_layout()
 
     @cached_property
     def resize_handle(self) -> SidebarResizeHandle:
@@ -1087,7 +1115,8 @@ class SideBar(
         # it finds midway: stopping left panels mounted without their controls and no
         # state that would ever finish them. Leaving the view cancels this worker.
         await self.content_stack.mount_all(
-            (self.search_input, self.panels_viewport, self.layout_controls))
+            (*self.shell_lead, self.search_input, self.panels_viewport, self.layout_controls,
+             *self.shell_tail))
         await self.panels_viewport.mount_all(self._compose_panels())
         await self.layout_controls.mount_all(self._compose_controls())
         self.panel_state = LoadedPanels()
@@ -1154,12 +1183,17 @@ class SideBar(
         slider = self.extent_slider
         if previous.controls_changed(current):
             edge = placement.side
-            self.content_stack.styles.padding = edge.content_padding()
+            self.content_stack.styles.padding = self.content_padding()
             self.toggle_control.set_collapsed(self.collapsed, edge)
+            # Holding the window alone there is nothing beside the bar to fold it for or to
+            # grip: only its content shows.
+            alone = self.holds_alone
+            self.toggle_control.display = not alone
+            self.layout_controls.display = self.controls_wanted and not alone
             handle = self.resize_handle
             edge.size_handle(handle)
             handle.styles.dock = edge.opposite().dock
-            handle.display = not self.collapsed
+            handle.display = not self.collapsed and not alone
             self.split_handle.display = current.presentation.leads_band
             if self.panels_loaded:
                 self.present_extent_track(slider)
@@ -1175,7 +1209,8 @@ class SideBar(
         return self.app.sidebar_layout
 
     def toggle_controls(self) -> None:
-        self.layout_controls.display = not self.layout_controls.display
+        self.controls_wanted = not self.controls_wanted
+        self.layout_controls.display = self.controls_wanted and not self.holds_alone
 
     @property
     def client(self) -> ToadApp:

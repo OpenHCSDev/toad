@@ -15,7 +15,7 @@ from typing import ClassVar
 
 from agent_comms.ui_model.sidebar import ChannelRowModel
 
-from toad.sidebar_contracts import ActivityRows, GroupedSidebar, MemberRows, RelationshipMemberRows
+from toad.sidebar_contracts import ActivityRows, GroupedSidebar, RelationshipMemberRows
 
 
 class SidebarChange(ABC):
@@ -29,10 +29,6 @@ class SidebarChange(ABC):
 
     @abstractmethod
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
-        ...
-
-    @abstractmethod
-    def apply_welcome(self, channel_list: MemberRows[str], thread_list: MemberRows[str]) -> None:
         ...
 
     @abstractmethod
@@ -57,10 +53,6 @@ class AllSidebarRows(SidebarChange):
                 group.present(rows[name])
                 group.sync_members(frozenset(group.member_keys))
 
-    def apply_welcome(self, channel_list: MemberRows[str], thread_list: MemberRows[str]) -> None:
-        channel_list.sync_members(frozenset(channel_list.member_keys))
-        thread_list.sync_members(frozenset(thread_list.member_keys))
-
     def apply_relationships(self, groups: Iterable[RelationshipMemberRows]) -> None:
         for group in groups:
             group.sync_members(frozenset(group.member_keys))
@@ -82,11 +74,6 @@ class ChangedChannels(SidebarChange):
                 if group is not None:
                     group.sync_members(group.present(rows[name]))
 
-    def apply_welcome(self, channel_list: MemberRows[str], thread_list: MemberRows[str]) -> None:
-        channel_list.sync_members(self.names)
-        # A changed channel can change the welcome thread list's order.
-        thread_list.sync_members(frozenset())
-
     def apply_relationships(self, groups: Iterable[RelationshipMemberRows]) -> None:
         pass
 
@@ -104,9 +91,6 @@ class ChangedThreads(SidebarChange):
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
         for group in sidebar.groups.values():
             group.repaint_members(self.names)
-
-    def apply_welcome(self, channel_list: MemberRows[str], thread_list: MemberRows[str]) -> None:
-        thread_list.sync_members(self.names)
 
     def apply_relationships(self, groups: Iterable[RelationshipMemberRows]) -> None:
         for group in groups:

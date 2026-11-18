@@ -86,12 +86,13 @@ from toad.setting_choices import CenterColumnAlignment, HiddenScrollbar, Transie
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
+from toad.client.menu_entry import strip_menu_markup
 from toad.qt.menu import QtMenu, QtMenuRow
 from toad.qt.activity import ChannelActivity
 from toad import paths
-from toad.qt.thread_comms_panel import QtThreadCommsPanel
+from toad.qt.thread_comms_panel import QtRelationshipItem, QtThreadCommsPanel
 from toad.qt.channel_sort import QtChannelListSort
-from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
+from toad.qt.window import ChannelLine, ConversationRow, ConversationView, MenuActionRun, QtTabAt, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
 from toad.live_output import ResponseStream, ThoughtStream
@@ -271,9 +272,10 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         return [offer.layout.name.text for offer in self.page.composer.offers.offers[:count]]
 
     async def listed(self) -> None:
-        """The bus has answered: the welcome lists at least one row."""
-        await until(lambda: sum(section.childCount() for section in self.app.workspace_sessions.home.rows.items()) > 0,
-                    "welcome rows")
+        """The bus has answered: the comms sidebar lists at least one channel or thread."""
+        # Its top lines are the channels (a scenario may name its own `rows`).
+        await until(lambda: any(isinstance(row, ConversationRow) for row in self.app.sidebar.items()),
+                    "sidebar rows")
 
     @abstractmethod
     async def run(self) -> None: ...
@@ -938,6 +940,28 @@ class StickyScenario(Scenario):
         assert not facts["shown"], "the message's own header is on the top row, yet a copy is pinned"
 
 
+class JumpBackScenario(Scenario):
+    summary = ("open JUMP_TARGET (#comms by default), scroll a screen above the end and report the "
+               "back-to-bottom bar shown; tap it, touch nothing else, and fail unless the view is at the "
+               "end and the bar is gone (it stayed until the next scroll, Tristan, Android, 2026-11-18)")
+
+    async def run(self) -> None:
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.open_named(os.environ.get("JUMP_TARGET", "#comms"))
+        window = self.page.messages
+        await until(lambda: window.scroll_y > 0, "a history taller than the window")
+        window.scroll_y = max(0, window.scroll_y - window.viewport().height() * 2)
+        await asyncio.sleep(0.8)
+        self.report("1-scrolled-up", bar=window.jump_bar.jump_shown, following=window.follows_tail)
+        assert window.jump_bar.jump_shown, "scrolled above the end, the back-to-bottom bar is not shown"
+        QTest.mouseClick(window.jump_bar, Qt.MouseButton.LeftButton)
+        await asyncio.sleep(1.2)
+        self.report("2-jumped", bar=window.jump_bar.jump_shown, following=window.follows_tail,
+                    at_end=window.at_end)
+        assert window.follows_tail and window.at_end, "the jump did not put the view at the end"
+        assert not window.jump_bar.jump_shown, "at the end after a jump, the back-to-bottom bar is still shown"
+
+
 class TallArrivalScenario(StickyScenario):
     summary = ("open TARGET (#scratch) following its end; SENDER (scratch-live-pipeline) posts one "
                "message taller than the window; once the window glides down into it, its header "
@@ -1013,18 +1037,89 @@ class EscapeScenario(Scenario):
 
 
 class WelcomeScenario(Scenario):
-    summary = "print the welcome's listings, then open its first row"
+    summary = "print what the comms sidebar lists while it holds the window, then open its first channel"
 
     async def run(self) -> None:
         await self.listed()
-        welcome = self.app.workspace_sessions.home
-        sections = list(welcome.rows.items())
-        self.report("1-welcome", **{section.text(0): [section.child(index).key for index in range(section.childCount())]
-                                    for section in sections})
-        welcome.rows.activate(sections[0].child(0))
-        await until(lambda: self.page is not welcome, "opened")
+        home = self.app.workspace_sessions.home
+        lines = list(self.app.sidebar.items())
+        self.report("1-welcome", **{line.text(0) or line.key: [line.child(index).key for index in range(line.childCount())]
+                                    for line in lines})
+        self.app.open_row(next(row for row in lines if isinstance(row, ConversationRow)))
+        await until(lambda: self.page is not home, "opened")
         await asyncio.sleep(1.0)
         self.report("2-opened")
+
+
+class SoleSidebarScenario(Scenario):
+    summary = ("with no tab open the comms sidebar holds the window (banner, bus, search, channels, threads, "
+               "buses, hints); opening a row gives one tab and the sidebar returns to its placement beside "
+               "the conversation; closing that tab gives the window back to the sidebar")
+
+    def shown(self) -> dict[str, object]:
+        app = self.app
+        side, pages = app.channels_side, app.workspace_sessions.pages
+        visible = lambda widget: widget.isVisibleTo(app)
+        on_app = lambda widget: QRect(widget.mapTo(app, QPoint(0, 0)), widget.size())
+        tree = on_app(app.sidebar.viewport())
+        buses = app.sidebar_buses
+        bus_lines = list(self.rows(buses.items()))
+        first_bus = next((line for line in bus_lines if line.parent() is not None), bus_lines[0] if bus_lines else None)
+        bus_seen = None
+        if first_bus is not None and visible(buses):
+            rect = buses.visualItemRect(first_bus)
+            bus_seen = (buses.viewport().rect().contains(rect)
+                        and app.rect().contains(QRect(buses.viewport().mapTo(app, rect.topLeft()), rect.size())))
+        return dict(sidebar=side.geometry().getRect(), pages=pages.geometry().getRect(),
+                    window=(app.width(), app.height()), tabs=self.tabs(),
+                    banner=visible(app.banner), bus=visible(app.bus_label), hints=visible(app.hints),
+                    address=visible(app.bus_address), search=visible(app.sidebar_search),
+                    strip=visible(side.toggle), buses=visible(buses),
+                    bus_rows=[line.key for line in bus_lines], bus_seen=bus_seen,
+                    channels=sum(isinstance(row, ConversationRow) for row in app.sidebar.items()),
+                    over_tree=[type(part).__name__ for part in (app.hints, app.bus_address, buses, app.bus_label, app.banner)
+                               if visible(part) and on_app(part).intersects(tree)],
+                    tree=tree.getRect(),
+                    parts={type(part).__name__: on_app(part).getRect() for part in
+                           (app.banner, app.bus_label, buses, app.sidebar_search, app.hints, app.bus_address)})
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.listed()
+        await asyncio.sleep(1.0)
+        alone = self.shown()
+        self.report("1-alone", **alone)
+        chrome = app.chrome.rect()
+        assert alone["sidebar"][2:] == (chrome.width(), chrome.height()), f"the sidebar is not the whole window: {alone}"
+        assert alone["pages"][2] == 0, f"the pages still take room: {alone}"
+        assert all(alone[part] for part in ("banner", "bus", "hints", "address", "search", "buses")), alone
+        assert not alone["strip"] and alone["channels"], alone
+        assert not alone["over_tree"], f"drawn over the comms rows: {alone['over_tree']} {alone['parts']} tree={alone['tree']}"
+        # The buses are in the first screen, unscrolled: a bus row, or the Buses line when none
+        # is held.
+        assert alone["bus_seen"], f"no bus line inside the window: {alone}"
+        # 2. A row opens the first tab: the sidebar returns to its placement beside it.
+        await self.expand("#comms")
+        home = app.workspace_sessions.home
+        app.open_row(await self.channel_row("#comms"))
+        await until(lambda: self.page is not home and self.page.content_ready.is_set(), "#comms")
+        await asyncio.sleep(1.0)
+        beside = self.shown()
+        self.report("2-tab", **beside)
+        assert len(beside["tabs"]) == 1, beside
+        assert beside["pages"][2] > 0, f"the conversation got no room: {beside}"
+        assert not any(beside[part] for part in ("banner", "bus", "hints", "address", "buses")), beside
+        # Its kept placement: its strip, and its rows only if it was kept open.
+        assert beside["strip"] and beside["search"] == (not app.channels_side.collapsed), beside
+        # 3. Closing the last tab gives the window back to the sidebar.
+        app.close_index(0)
+        await until(lambda: self.page is home, "home")
+        await asyncio.sleep(1.0)
+        again = self.shown()
+        self.report("3-closed", **again)
+        assert again["sidebar"][2:] == (chrome.width(), chrome.height()) and again["banner"] and again["buses"], again
+        assert not again["over_tree"] and again["bus_seen"], again
 
 
 class MenuScenario(Scenario):
@@ -1699,7 +1794,7 @@ class PhoneScenario(Scenario):
         self.report("1-welcome", window=self.app.width(), too_wide=self.too_wide())
         # Android's style lays pages out with wider margins than desktop; a widget sized
         # from its page's width grows the page by the difference on every resize.
-        self.app.workspace_sessions.home.layout().setContentsMargins(20, 20, 20, 20)
+        self.app.channels_column.layout().setContentsMargins(20, 20, 20, 20)
         widths = []
         for _ in range(4):
             self.app.resize(self.width, 915)
@@ -2877,6 +2972,105 @@ class DeliveryPreviewScenario(Scenario):
             raise AssertionError("; ".join(faults))
 
 
+class SendGapScenario(Scenario):
+    summary = ("open TARGET (#scratch) and send SENDS (10) messages one after another; every 16 ms "
+               "read whether each sent message is in the delivery preview or drawn in the history's "
+               "viewport, and fail when any message is in neither for a frame between its Send and "
+               "its row on screen (Tristan: the queue showed it, then a gap, then the message)")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named(os.environ.get("TARGET", "#scratch"))
+        view = self.page
+        composer = view.composer
+        history = view.messages
+        sends = int(os.environ.get("SENDS", "10"))
+        stamp = time.strftime("%H%M%S")
+        markers = [f"gap{index}-{stamp}" for index in range(sends)]
+        sent: dict[str, float] = {}
+        frames: dict[str, list[tuple[float, bool, bool]]] = {marker: [] for marker in markers}
+
+        def in_preview(marker: str) -> bool:
+            return composer.submitting.isVisible() and marker in composer.submitting.text()
+
+        def drawn(marker: str) -> bool:
+            rows = history.model_rows
+            seen = history.viewport().rect()
+            for row, fragment in enumerate(rows.fragments):
+                if fragment is not None and marker in fragment.clipboard_text:
+                    return history.visualRect(rows.index(row, 0)).intersects(seen)
+            return False
+
+        def sample() -> None:
+            now = time.monotonic()
+            for marker, at in sent.items():
+                track = frames[marker]
+                if track and track[-1][2]:
+                    continue  # drawn already: the handoff is over
+                track.append((now - at, in_preview(marker), drawn(marker)))
+        painted: dict[str, list[tuple[float, bool, bool]]] = {marker: [] for marker in markers}
+
+        def sample_painted() -> None:
+            now = time.monotonic()
+            for marker, at in sent.items():
+                track = painted[marker]
+                if track and track[-1][2]:
+                    continue
+                track.append((now - at, in_preview(marker), drawn(marker)))
+
+        class PaintSampler(QObject):
+            """Reads both places just before each repaint of the window: what a frame shows."""
+
+            def eventFilter(self, watched, event) -> bool:  # noqa: N802 - Qt virtual method name
+                if event.type() == QEvent.Type.UpdateRequest:
+                    sample_painted()
+                return False
+        paint_sampler = PaintSampler()
+        app.installEventFilter(paint_sampler)
+        from PySide6.QtCore import QTimer
+        timer = QTimer()
+        timer.setInterval(16)
+        timer.timeout.connect(sample)
+        timer.start()
+        try:
+            for marker in markers:
+                composer.editor.setPlainText(marker)
+                sent[marker] = time.monotonic()
+                composer.submit()
+                await until(lambda marker=marker: frames[marker] and frames[marker][-1][2], f"{marker} drawn",
+                            tenths=600)
+                await asyncio.sleep(0.3)
+        finally:
+            timer.stop()
+            app.removeEventFilter(paint_sampler)
+        await asyncio.sleep(1.5)
+        lingering = [marker for marker in markers if in_preview(marker)]
+        self.report("after-sends", preview_shown=composer.submitting.isVisible(), preview_text=composer.submitting.text()[:160], lingering=lingering)
+        if lingering:
+            raise AssertionError(f"drawn messages stayed in the delivery preview: {lingering}")
+        painted_gaps = {marker: sum(1 for _, preview, shown in track if not (preview or shown))
+                        for marker, track in painted.items()}
+        print(f"SEND_GAP painted frames per message={ {m: len(t) for m, t in painted.items()} } "
+              f"painted gap frames={painted_gaps}", flush=True)
+        worst: dict[str, int] = {}
+        for marker, track in frames.items():
+            run = longest = 0
+            for _, preview, shown in track:
+                run = 0 if preview or shown else run + 1
+                longest = max(longest, run)
+            worst[marker] = longest
+            first_drawn = next((at for at, _, shown in track if shown), None)
+            gaps = [index for index, (_, preview, shown) in enumerate(track) if not (preview or shown)]
+            self.report(f"send-{marker}", frames=len(track), longest_gap_frames=longest,
+                        drawn_after_s=None if first_drawn is None else round(first_drawn, 2),
+                        gap_frames_at=gaps, gap_times=[round(track[index][0], 3) for index in gaps])
+        print(f"SEND_GAP worst={max(worst.values())} frames per message={worst}", flush=True)
+        if any(worst.values()) or any(painted_gaps.values()):
+            raise AssertionError(f"a sent message was in neither the preview nor the history: sampled "
+                                 f"{worst}, painted {painted_gaps}")
+
+
 class FrameScenario(Scenario):
     summary = ("frame budget: the GUI thread's stalls and key-to-paint latency (toad.qt.frame_probe) "
                "while idle with the sidebar's waves running, while scrolling #comms, and while typing "
@@ -2917,7 +3111,6 @@ class FrameScenario(Scenario):
             timed(qt_window.Sidebar, "redraw", "sidebar.redraw")
             timed(qt_window.Sidebar, "sync", "sidebar.sync")
             timed(type(app), "paint_tabs", "paint_tabs")
-            timed(type(app.workspace_sessions.home), "present", "home.present")
             timed(type(app.thread_pane), "bind", "thread_pane.bind")
             timed(type(app.thread_pane), "setting_entries", "thread_pane.setting_entries")
             timed(type(app), "present_panes", "present_panes")
@@ -3404,6 +3597,16 @@ class HoldScenario(Scenario):
     def close_menu(self) -> None:
         self.app.menu_panel.hide()
 
+    async def opened_menu(self, tenths: int = 50) -> list[str]:
+        """The menu once it shows: a line's menu is read off the UI thread (its target's
+        commands come from Core), so it opens a moment after the press. Nothing when none
+        opens within the wait."""
+        for _ in range(tenths):
+            if shown := self.menu():
+                return shown
+            await asyncio.sleep(0.1)
+        return []
+
     async def right_click(self, widget: QWidget, point: QPoint) -> list[str]:
         """A mouse's right button at `point`, through the window, where Qt turns it into the
         context-menu request (a widget-level click skips that)."""
@@ -3411,8 +3614,7 @@ class HoldScenario(Scenario):
         handle, at = window.windowHandle(), widget.mapTo(window, point)
         await self.dispatched(lambda: QTest.mouseClick(handle, Qt.MouseButton.RightButton,
                                                        Qt.KeyboardModifier.NoModifier, at))
-        await asyncio.sleep(0.4)
-        clicked = self.menu()
+        clicked = await self.opened_menu()
         self.close_menu()
         return clicked
 
@@ -3432,7 +3634,7 @@ class HoldScenario(Scenario):
         # only once it is gone.
         await asyncio.sleep(0.4)
         await self.touch(widget, point, 1100)
-        held = self.menu()
+        held = await self.opened_menu()
         self.report(step, menu=held)
         self.close_menu()
         await asyncio.sleep(0.4)
@@ -3518,6 +3720,88 @@ class HoldScenario(Scenario):
 
         await until(lambda: comms.isVisible() and entry_rows(), "a Comms relationship row")
         await self.held_menu("6-comms-row", comms.viewport(), comms.visualItemRect(entry_rows()[0]).center())
+        if self.faults:
+            raise AssertionError("\n".join(self.faults))
+
+
+class MenuParityScenario(HoldScenario):
+    summary = ("at a Pixel 8a's size on #scratch: a right-click on a channel line, a thread line, a "
+               "tab, a message and a Comms relationship draws exactly that element's declared menu "
+               "(TargetLine, TabElement, BlockMenu, RelationshipLine), which tests/textual/"
+               "test_menu_parity.py checks Textual draws for the same elements")
+
+    @staticmethod
+    def labels(entries) -> list[str]:
+        return [strip_menu_markup(entry.label) for entry in entries]
+
+    async def parity(self, step: str, widget: QWidget, point: QPoint, declared: list[str]) -> list[str]:
+        drawn = await self.right_click(widget, point)
+        self.report(step, drawn=drawn, declared=declared)
+        self.expect(step, bool(declared), "the element declares no menu")
+        self.expect(step, drawn == declared, f"drew {drawn}, the element declares {declared}")
+        await asyncio.sleep(0.3)
+        return drawn
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named("#scratch")
+        tree = app.sidebar
+        await self.expand("#scratch")
+        # 1. The #scratch channel line: its target's commands.
+        channel = await self.found(lambda row: isinstance(row, ChannelLine) and row.target.name == "#scratch",
+                                   "the #scratch line")
+        tree.scrollToItem(channel)
+        await asyncio.sleep(0.3)
+        drawn = await self.parity("1-channel-line", tree.viewport(), tree.visualItemRect(channel).center(),
+                                  self.labels(await channel.menu_entries()))
+        self.expect("1-channel-line", drawn != ["Open", "Copy name"], "the hand-rolled Open / Copy name")
+        # 2. A thread line listed under #scratch: its target's commands, in #scratch.
+        thread = await self.found(lambda row: isinstance(row, ConversationRow) and row.parent() is channel,
+                                  "a thread listed under #scratch")
+        tree.scrollToItem(thread)
+        await asyncio.sleep(0.3)
+        drawn = await self.parity("2-thread-line", tree.viewport(), tree.visualItemRect(thread).center(),
+                                  self.labels(await thread.menu_entries()))
+        self.expect("2-thread-line", drawn != ["Open", "Copy name"], "the hand-rolled Open / Copy name")
+        # 3. The #scratch tab: the shared tab menu.
+        tabs = app.tabs
+        index = tabs.currentIndex()
+        await self.parity("3-tab", tabs, tabs.tabRect(index).center(),
+                          self.labels(QtTabAt(app, app.session_navigation.tabs[index].mode_name).menu_entries()))
+        # 4. A message: the block menu, for the fragment the press asked it of.
+        history = self.page.messages
+        viewport = history.viewport()
+        on_row = QPoint(viewport.width() // 4, viewport.height() // 3)
+        asked: list = []
+        history.block_menu_requested.connect(lambda fragment, pressed: asked.append(fragment))
+        drawn = await self.right_click(viewport, on_row)
+        self.expect("4-message", bool(asked), "no message was asked for its menu")
+        if asked:
+            fragment = asked[-1]
+            declared = self.labels(QtMenu.command_entries(QtMenu.block_commands(fragment, fragment.block_menu),
+                                                          app.settings, lambda command: None))
+            self.report("4-message", drawn=drawn, declared=declared)
+            self.expect("4-message", drawn == declared, f"drew {drawn}, the block declares {declared}")
+        # 5. A Comms relationship of scratch-live-pipeline: Open / Copy name, declared once.
+        await self.open_named("scratch-live-pipeline")
+        app.resize(412, 1600)
+        app.thread_side.toggle_pane()
+        await asyncio.sleep(1.0)
+        picker = app.thread_pane.menu.picker
+        picker.setCurrentIndex([picker.itemText(index) for index in range(picker.count())].index("Comms"))
+        panel: QtThreadCommsPanel = app.thread_pane._comms_panel
+        comms = panel._tree
+
+        def relationship_items() -> list[QtRelationshipItem]:
+            return [item for item in comms.findItems("", Qt.MatchFlag.MatchContains | Qt.MatchFlag.MatchRecursive)
+                    if panel._row_entry(item) is not None
+                    and comms.viewport().rect().contains(comms.visualItemRect(item).center())]
+
+        await until(lambda: comms.isVisible() and relationship_items(), "a Comms relationship row")
+        item = relationship_items()[0]
+        await self.parity("5-relationship", comms.viewport(), comms.visualItemRect(item).center(),
+                          self.labels(await item.menu_entries()))
         if self.faults:
             raise AssertionError("\n".join(self.faults))
 

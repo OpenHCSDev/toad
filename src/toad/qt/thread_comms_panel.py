@@ -44,7 +44,8 @@ from toad.qt.channel_sort import QtSortButton
 from toad.client.sort_control import ThreadSortForm
 from toad.thread_identity import SessionIdentity
 from toad.qt.metrics import UiGap
-from toad.client.relationship_row_menu import entry_target, menu_entries_for_row
+from toad.client.relationship_row_menu import entry_target
+from toad.client.sidebar_lines import LineMenuTree, RelationshipLine
 
 # The relationship an entry row shows; a group's own line keeps its group in UserRole.
 _ENTRY = Qt.ItemDataRole.UserRole.value + 1
@@ -62,7 +63,21 @@ class QtRelationshipSort(RelationshipOrder, QtSortButton[ThreadSort]):
         await self._panel.write_order(order)
 
 
-class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
+class QtRelationshipItem(RelationshipLine, QTreeWidgetItem):
+    """One relationship in the Comms panel, as Textual's `RelationshipRow`: its menu is the
+    shared `RelationshipLine.menu_entries` (Open while available, Copy name)."""
+
+    def __init__(self, panel: QtThreadCommsPanel, parent: QTreeWidgetItem, group, entry: RelationshipEntry) -> None:
+        super().__init__(parent, [entry.target if entry.available else f"{entry.target} (unavailable)"])
+        self.panel, self.group, self.entry = panel, group, entry
+        self.target, self.available = entry_target(entry), entry.available
+
+    @property
+    def menu_tree(self) -> QtThreadCommsPanel:
+        return self.panel
+
+
+class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
     spec_key: ClassVar[str] = "comms"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
@@ -197,8 +212,7 @@ class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQ
                     self._add_entry_item(top, entry)
 
     def _add_entry_item(self, parent_item: QTreeWidgetItem, entry: RelationshipEntry) -> None:
-        display = entry.target if entry.available else f"{entry.target} (unavailable)"
-        row = QTreeWidgetItem(parent_item, [display])
+        row = QtRelationshipItem(self, parent_item, parent_item.data(0, Qt.ItemDataRole.UserRole), entry)
         if entry.detail:
             row.setToolTip(0, entry.detail)
         row.setData(0, _ENTRY, entry)
@@ -215,18 +229,25 @@ class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQ
             asyncio.ensure_future(self._open_current(*shown))
 
     def _offer_row_menu(self, point) -> None:
-        """Open / Copy for the row under ``point`` (viewport coordinates), from the shared
-        `menu_entries_for_row`, in the window's menu panel."""
-        shown = self._row_entry(self._tree.itemAt(point))
-        app = self._app()
-        if shown is None or app is None:
+        """The relationship's own menu (`RelationshipLine.menu_entries`) for the row under
+        ``point`` (viewport coordinates), in the window's menu panel; a group line has none."""
+        item = self._tree.itemAt(point)
+        if self._row_entry(item) is None or self._app() is None:
             return
-        group, entry = shown
-        app.offer_entries(menu_entries_for_row(
-            target_name=entry.target,
-            copy=app.copy_to_clipboard,
-            open_callback=(lambda: asyncio.ensure_future(self._open_current(group, entry))) if entry.available else None,
-        ))
+        asyncio.ensure_future(self._offer_read(item))
+
+    async def _offer_read(self, item: QtRelationshipItem) -> None:
+        entries = await item.menu_entries()
+        if (app := self._app()) is not None:
+            app.offer_entries(entries)
+
+    def relationship_opener(self, line: QtRelationshipItem):
+        """Open reads the list again first (`_open_current`), as Textual's opener does."""
+        return lambda: asyncio.ensure_future(self._open_current(line.group, line.entry))
+
+    def copy_name(self, name: str) -> None:
+        if (app := self._app()) is not None:
+            app.copy_to_clipboard(name)
 
     async def _open_current(self, group, entry: RelationshipEntry) -> None:
         """Open the relationship as it stands now: the list read again, and a relationship

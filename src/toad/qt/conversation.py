@@ -118,6 +118,11 @@ class QtConversation(
     (`messages`), the flash (`feedback`), the sweep (`agent_activity`), its composer and
     the observing rows under the transcript (`activity`)."""
 
+    def workspace_navigation_owner(self, views):
+        """A conversation tab navigates as its view (`ConversationView` and `QtThreadView`
+        are `NavigationOwner`s, as Textual's views are)."""
+        return self
+
     agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
@@ -330,7 +335,7 @@ class QtConversation(
         `UserInputSubmitted` reaches `Conversation.submissions.submit`. No Qt view runs a
         shell, so typed input is never a shell command."""
         event = action.submission_event(text.text, False, text.files)
-        self.run_worker(partial(self.submissions.submit, event), group="submit", exclusive=False)
+        self.run_worker(self.submissions.received(event), group="submit", exclusive=False)
 
     def update_slash_commands(self) -> None:
         """The composer asks for the commands it offers after a /."""
