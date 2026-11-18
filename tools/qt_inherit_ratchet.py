@@ -7,6 +7,9 @@ and the Qt class adds only toolkit calls. A pair sharing nothing is a hand-rolle
 KNOWN_COPIES is the debt on main when this ratchet landed. It only shrinks:
   - a NEW copy (not listed) fails: hoist the shared behaviour and inherit it instead;
   - a listed copy that now shares an ancestor also fails until you delete its line here.
+A second rule: every class under toad.qt inherits at least one frontend-neutral toad
+ancestor, or is listed in QT_ONLY with the toolkit-only fact that keeps it out of the shared
+code. KNOWN_BARE is the bare debt when that rule landed; like KNOWN_COPIES it only shrinks.
 Run with an interpreter that has PySide6 (the agent-comms runtime):
   QT_QPA_PLATFORM=offscreen PYTHONPATH=src <runtime>/bin/python tools/qt_inherit_ratchet.py
 Every Qt PR pastes this tool's output.
@@ -77,6 +80,78 @@ NOT_SIBLINGS = {
     "toad.qt.prompt_stack.QtSessionDetails": "toad.client.session_tracker.SessionDetails is the tab's session record; the widget sibling toad.widgets.session_details.SessionDetails shares ObservedActivity + SessionStatusTitle",
 }
 
+QT_ONLY = {
+    'toad.qt.android.SessionRecord': 'Android process lifecycle: Android kills a backgrounded app and destroys its activity without telling the process, so the next start reads this record',
+    'toad.qt.android.SuspendedMemory': "Android suspend: bionic's M_PURGE returns freed allocator memory to the system",
+    'toad.qt.history.HistoryRows': "QAbstractListModel exposing the shared fragments to Qt's list view; Textual has no item model",
+    'toad.qt.history.SourceTask': "an asyncio.Task on qasync's Qt event loop with the pager's wait() join; Textual runs workers",
+    'toad.qt.host.ScreenWideWindow': "a Qt top-level window clamped to the Android screen's available width (screen less system bars)",
+    'toad.qt.metrics.UiGap': 'Qt pixel spacing tokens; Textual spaces in cells through its CSS',
+    'toad.qt.window.HeldRowMenu': "Qt TapAndHold gesture and context-menu event filter on the tree's viewport; the entries come from each row's shared menu_entries",
+    'toad.qt.window.SwallowsRelease': 'a Qt event filter that eats the one mouse release ending a held finger, so the hold does not also tap the row',
+}
+
+KNOWN_BARE = frozenset({
+    'toad.qt.activity.ActivityLine',
+    'toad.qt.activity.ActivitySweep',
+    'toad.qt.command_form.CommandApply',
+    'toad.qt.composer.CommandOffer',
+    'toad.qt.composer.ComposerEditor',
+    'toad.qt.composer.MentionOffer',
+    'toad.qt.composer.Offer',
+    'toad.qt.composer_vim.ComposerVimMode',
+    'toad.qt.draft_line.QtDraftLine',
+    'toad.qt.goal.GoalPress',
+    'toad.qt.history.HistoryRowDelegate',
+    'toad.qt.history.NoTask',
+    'toad.qt.history.QtTopRow',
+    'toad.qt.keymap_screen.QtKeymapScreen',
+    'toad.qt.keymap_screen._KeymapSave',
+    'toad.qt.mailbox_view._MailboxPresentation',
+    'toad.qt.main.QtClientSettings',
+    'toad.qt.menu.QtMenu',
+    'toad.qt.menu.QtMenuRow',
+    'toad.qt.page.Page',
+    'toad.qt.paste_profile.QtProfilePastePanel',
+    'toad.qt.settings_screen.QtBoolEditor',
+    'toad.qt.settings_screen.QtChoicesEditor',
+    'toad.qt.settings_screen.QtFloatEditor',
+    'toad.qt.settings_screen.QtIntEditor',
+    'toad.qt.settings_screen.QtSchemeChoiceEditor',
+    'toad.qt.settings_screen.QtSettingsEditor',
+    'toad.qt.settings_screen.QtSettingsPage',
+    'toad.qt.settings_screen.QtSettingsScreen',
+    'toad.qt.settings_screen.QtStrEditor',
+    'toad.qt.sidebar_panel.QtPanelEntry',
+    'toad.qt.sidebar_panel.QtSidebarShell',
+    'toad.qt.team_board_screen.QtTeamMemberView',
+    'toad.qt.thinking_animator.QtThinkingAnimator',
+    'toad.qt.transfer.QtThreadImportDialog',
+    'toad.qt.transfer.QtTransferDialog',
+    'toad.qt.transfer.QtWireExportDialog',
+    'toad.qt.window.ApplicationKeys',
+    'toad.qt.window.BusAddress',
+    'toad.qt.window.BusLabel',
+    'toad.qt.window.BusRow',
+    'toad.qt.window.CommandRead',
+    'toad.qt.window.ConversationOpen',
+    'toad.qt.window.ConversationRow',
+    'toad.qt.window.ConversationRows',
+    'toad.qt.window.HeaderLineControl',
+    'toad.qt.window.KeptLines',
+    'toad.qt.window.ListedFailure',
+    'toad.qt.window.ListedModel',
+    'toad.qt.window.MenuActionRun',
+    'toad.qt.window.OpenSection',
+    'toad.qt.window.SidebarItem',
+    'toad.qt.window.SidebarSection',
+    'toad.qt.window.StatusSection',
+    'toad.qt.window.TabClose',
+    'toad.qt.window.TabMove',
+    'toad.qt.window.UnavailableSection',
+    'toad.qt.window.WelcomeContent',
+})
+
 FRONTEND_PREFIXES = ("toad.qt", "toad.widgets", "toad.screens")
 
 
@@ -122,7 +197,25 @@ def shares_neutral(cls: type, sibling: type) -> bool:
     return any(neutral(ancestor) for ancestor in cls.__mro__ if ancestor in sibling.__mro__)
 
 
+def bare() -> frozenset[str]:
+    """Qt classes inheriting no frontend-neutral toad ancestor and not declared Qt-only."""
+    everything = classes_under("toad")
+    for path in QT_ONLY:
+        everything[path]  # a renamed or deleted Qt-only class fails here
+    return frozenset(path for path, cls in everything.items()
+                     if path.startswith("toad.qt.") and path not in QT_ONLY
+                     and not any(neutral(ancestor) for ancestor in cls.__mro__[1:]))
+
+
 def main() -> int:
+    found_bare = bare()
+    new_bare = sorted(found_bare - KNOWN_BARE)
+    rooted = sorted(KNOWN_BARE - found_bare)
+    for path in new_bare:
+        print(f"NEW BARE   {path} inherits no shared toad behaviour: inherit its owner, or declare it in QT_ONLY with the toolkit-only fact")
+    for path in rooted:
+        print(f"ROOTED     {path} now inherits shared behaviour (or is gone): delete its KNOWN_BARE line")
+    print(f"bare Qt classes: {len(found_bare)} (ratchet baseline {len(KNOWN_BARE)}); Qt-only: {len(QT_ONLY)}")
     found = copies()
     new = sorted(set(found) - set(KNOWN_COPIES))
     fixed = sorted(set(KNOWN_COPIES) - set(found))
@@ -131,7 +224,7 @@ def main() -> int:
     for path in fixed:
         print(f"FIXED      {path} now shares an ancestor (or is gone): delete its KNOWN_COPIES line")
     print(f"parallel copies: {len(found)} (ratchet baseline {len(KNOWN_COPIES)})")
-    return 1 if new or fixed else 0
+    return 1 if new or fixed or new_bare or rooted else 0
 
 
 if __name__ == "__main__":

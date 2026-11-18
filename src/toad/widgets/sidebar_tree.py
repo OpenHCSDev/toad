@@ -59,7 +59,7 @@ from ui_theme.effects import NEW_MESSAGE
 
 from toad.widgets.selection import HoverSelection, ViewLabel
 from toad.core_event_carrier import CoreEventReceiver
-from toad.keyed_rows import KeyedRows
+from toad.widgets.keyed_rows import WidgetKeyedRows
 from toad.navigation_target import NavigationTarget
 from toad.sidebar_model_view import SidebarModelView
 from toad.widgets.comms_menu import ActionMenu
@@ -318,7 +318,7 @@ class RowReconciliation:
         return row
 
 
-class SidebarGroup[RowT: "ListedRow"](MemberRows[str], TargetRows["CommsRow"], KeyedRows[str], VerticalGroup):
+class SidebarGroup[RowT: "ListedRow"](MemberRows[str], TargetRows["CommsRow"], WidgetKeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False

@@ -54,7 +54,8 @@ from toad.client.history import ChannelDestination, WirePageBuffer
 from toad.qt.command_form import QtCommandForm
 from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import panel_specs_for_view
-from toad.qt.window import ConversationRow, MessageSend, QtToadApp
+from toad.client.bus_submission import ConversationSubmission
+from toad.qt.window import ConversationRow, QtToadApp
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -364,6 +365,19 @@ class SurveyScenario(Scenario):
             print(f"survey {name}: rows={len(fragments)} kinds={kinds} tool parts={parts}", flush=True)
 
 
+class ChannelTreeScenario(Scenario):
+    summary = "the welcome and the channels sidebar with #any open, at the phone's width and then 1100px wide"
+
+    async def run(self) -> None:
+        await self.listed()
+        await self.expand("#any")
+        await asyncio.sleep(1.0)
+        self.report("1-narrow")
+        self.app.resize(1100, 900)
+        await asyncio.sleep(1.5)
+        self.report("2-wide")
+
+
 class ToolDetailScenario(Scenario):
     summary = ("open TOAD_DRIVE_THREAD, read older pages until a tool call whose details draw "
                "TOAD_DRIVE_BLOCK (Patch or RichTextBody), open it at the top, screenshot")
@@ -541,7 +555,7 @@ class ComposerScenario(Scenario):
         view = self.page
         missing = ChannelConversation(ChannelTarget("#composer-drive-missing"))
         destination = MissingChannelDestination(app.source().root, missing, view)
-        app.run_operation(MessageSend,
+        app.run_operation(ConversationSubmission,
                           lambda: view.submissions.start_bus(TypedText("this send must fail"), destination).prepare())
         await until(lambda: composer.failure.isVisible(), "failure", tenths=100)
         await asyncio.sleep(0.5)

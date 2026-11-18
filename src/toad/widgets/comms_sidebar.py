@@ -14,6 +14,7 @@ View, not authority: renders Core's sidebar presentation model
 from __future__ import annotations
 
 from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
+from toad.sidebar_rows import ChannelLineText, ChannelRowFace, ThreadLineText, ThreadRowFace
 from toad.client.coordination_panel import CoordinationStateReport, CoordinationStatusView
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
@@ -77,7 +78,7 @@ class ChannelUnreadSegment(HeaderSegment):
     """The channel's unread count, beside its title; a click opens the channel like the title."""
 
     def content(self, group: ChannelGroup) -> Content:
-        label = group.app.settings.sidebar.unread_counts.badge(group.channel.unread)
+        label = group.row.line_text.badge
         return Content.styled(f" {label}", "$text-muted") if label else Content("")
 
 
@@ -129,9 +130,7 @@ class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
         """Paint the header and return members whose channel pin changed."""
         previous, self.channel = self.channel, channel
         row = self.row
-        if previous.label() != channel.label():
-            row.set_label(channel.label())
-        row.tooltip = channel.tooltip()
+        row.present_channel(channel, counts=self.app.settings.sidebar.unread_counts)
         if row.is_mounted and (previous.active != channel.active or previous.unread != channel.unread):
             row.run_effect(NEW_MESSAGE)
         self.sort_choice.update_order(channel.order)
@@ -197,18 +196,26 @@ class ChannelRow(ListedRow):
     row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
 
 
-class ChannelHeaderRow(DetailedRow, GroupHeaderLine, ChannelRow):
+class ChannelHeaderRow(ChannelRowFace, DetailedRow, GroupHeaderLine, ChannelRow):
     """A channel group's header line: disclosure, the channel's name, unread and order,
     over a second line carrying how many of its agents are up and which tags it covers."""
 
+    line_text = ChannelLineText("", "", "", "")
+
+    def show_channel_text(self, text: ChannelLineText) -> None:
+        previous, self.line_text = self.line_text, text
+        if previous.label != text.label:
+            self.set_label(text.label)
+        self.tooltip = text.tooltip
+
     def detail(self) -> str:
-        return self.header_group.channel.summary()
+        return self.line_text.summary
 
     def header_lines(self, line: Content) -> Content:
         return self.with_detail(line)
 
 
-class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRow, ToadNode):
+class ThreadStatusRow(ThreadRowFace, MutedText, DetailedRow, NoPadding, PointerCursor, ListedRow, ToadNode):
     """Thread rows show activity through their glyph and summary, not held ink."""
 
     def __init__(self, *args, **kwargs):
@@ -221,11 +228,13 @@ class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRo
     def busy(self) -> bool:
         return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.is_working())
 
+    line_text: ThreadLineText | None = None
+
     def detail(self) -> str:
-        """A pending action's own status while one runs, else the thread's summary."""
-        if self.thread_row is None:
+        """The shared line text's second row (ThreadRowFace); none before the first paint."""
+        if self.thread_row is None or self.line_text is None:
             return ""
-        return self.action_status if self.action_status is not None else self.thread_row.summary
+        return self.line_text.detail
 
     def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
         """Render the model with this app's pin and pending action."""
@@ -238,15 +247,17 @@ class ThreadStatusRow(MutedText, DetailedRow, NoPadding, PointerCursor, ListedRo
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         # The drawn row knows the thread's birth: opening it asks Core nothing first.
         self.target = KnownThreadTarget(row.name, row.incarnation)
-        self.tooltip = Content(row.tooltip(pinned=pinned, pending_detail=action_status))
-        shown = self.app.settings.sidebar.unread_counts.badge(row.unread)
-        badge = f"{shown} " if shown else ""
-        title = self.activity_content(Content(row.label), self.busy,
-                                      prefix=Content.assemble(badge, "* " if self.pinned else ""))
-        self.update(self.with_detail(title), layout=False)
+        self.present_thread(row, pinned=pinned, action_status=action_status,
+                            counts=app.settings.sidebar.unread_counts)
         if self.is_mounted and previous is not None and (
                 previous.status.is_working() != row.status.is_working() or previous.unread != row.unread):
             self.run_effect(NEW_MESSAGE)
+
+    def show_thread_text(self, text: ThreadLineText) -> None:
+        self.line_text = text
+        self.tooltip = Content(text.tooltip)
+        title = self.activity_content(Content(text.name), self.busy, prefix=Content(text.prefix))
+        self.update(self.with_detail(title), layout=False)
 
     def set_label(self, label: str) -> None:
         self.retire_thread_row()

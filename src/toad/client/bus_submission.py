@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from agent_comms.acp_extension import InputStartedUpdate, QueueItem
+from formbridge.operations import OperationKind
 from agent_comms.errors import (
     CommittedMessageError,
     HumanSendError,
@@ -34,6 +35,11 @@ from toad.client.submission import (
     SubmissionStart,
     SubmittedText,
 )
+
+
+class ConversationSubmission(OperationKind):
+    """One message's send from a conversation view; sends run side by side and are never
+    superseded. Textual runs it as the view's worker group, Qt as the app's operation."""
 
 
 class SubmissionView:

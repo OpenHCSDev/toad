@@ -52,7 +52,7 @@ from toad.app_node import ToadNode
 from toad.client.team_board import TeamBoardState
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.core_event_carrier import CoreEventReceiver
-from toad.keyed_rows import KeyedRows
+from toad.widgets.keyed_rows import WidgetKeyedRows
 from toad.native_style import (
     AutoHeight,
     AutoWidth,
@@ -162,7 +162,7 @@ class GroupHeading(Bold, Static):
     """A team group's heading, coloured by the group's tone."""
 
 
-class TeamGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
+class TeamGroup(WidgetKeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
     """One native band really contains its rows, including ready unheld plan phases."""
 
     def __init__(self, section: HudSection) -> None:
@@ -351,7 +351,7 @@ class TeamFilter(FillWidth, Input):
     """Its look is its bases."""
 
 
-class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
+class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     """Keep native groups, filters, selection and original details across frame replacement.
 
     `state` is the shared `TeamBoardState` owned by the parent `TeamPage`; its
@@ -464,7 +464,7 @@ class TeamClose(DockedBottom, NoMargin, DismissButton):
     """Its look is its bases."""
 
 
-class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
+class TeamPage(ShadedScreen, CenteredScreen, WidgetKeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
     """Current Core frames preserve table selection, focus and the conversation below.
 
     Owns a `TeamBoardState` — the toolkit-neutral owner shared with Qt's

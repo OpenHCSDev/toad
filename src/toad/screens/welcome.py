@@ -124,9 +124,9 @@ class WelcomeChannels(ChannelListing, WelcomeSection):
         channel = self.query_ancestor(WelcomeEntries).model_state.shown.channels.rows[
             key
         ]
-        badge = self.app.settings.sidebar.unread_counts.badge(channel.unread)
-        row.set_label(f"{channel.label()} {badge}" if badge else channel.label())
-        row.tooltip = channel.tooltip()
+        text = self.line_text(channel, self.app.settings.sidebar.unread_counts)
+        row.set_label(text.label)
+        row.tooltip = text.tooltip
         row.refresh_paint()
 
 
