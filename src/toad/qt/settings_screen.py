@@ -9,13 +9,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLineEdit, QTabWidget, QVBoxLayout, QWidget
 
 from formbridge.forms.declared_fields import FormPage
 
 from toad.qt.forms import QtFormView
 from toad.settings_editing import SettingsEditing
+from toad.qt.presented_window import PresentedWindow
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
 
 # The screen.
 
-class QtSettingsScreen(SettingsEditing, QDialog):
+class QtSettingsScreen(PresentedWindow, SettingsEditing, QDialog):
     """Modal settings editor: a search above one tab per declared page. Discard rolls
     back unsaved edits; closing sends the typed edits and the app saves them."""
 
@@ -32,7 +33,6 @@ class QtSettingsScreen(SettingsEditing, QDialog):
     def __init__(self, app: QtToadApp, parent: QWidget | None = None) -> None:
         super().__init__(parent or app)
         self.app = app
-        self.setWindowFlags(Qt.WindowType.Dialog)
         self.setWindowTitle("Settings")
         self.build_pages()
 

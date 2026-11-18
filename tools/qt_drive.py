@@ -43,7 +43,7 @@ from toad.client.application import BusDiscovery
 from toad.client.application_actions import (
     ApplicationAction, NewSessionAction, NewThreadAction, OpensWindow, QuitAction, SettingsAction,
 )
-from toad.qt.presented_window import FilledWindow, PresentedWindow, WindowPresentation, window_width
+from toad.qt.presented_window import FilledWindow, PresentedWindow, QtWindowPresentation, window_width
 from toad.qt.settings_screen import QtSettingsScreen
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
@@ -1088,7 +1088,7 @@ class WindowsPhoneScenario(Scenario):
         app.resize(width, height)
         await self.listed()
         await asyncio.sleep(0.5)
-        presentation = WindowPresentation.for_width(window_width(app))
+        presentation = QtWindowPresentation.for_width(window_width(app))
         print(f"app window {width}x{height}: {window_width(app).name}, windows {presentation.__name__}", flush=True)
         faults: list[str] = []
         opened = 0
@@ -3765,10 +3765,6 @@ class FingerScenario(Scenario):
                 print(f"  {label}: FAILED {type(error).__name__}: {error}", flush=True)
                 continue
             await asyncio.sleep(3.0)
-            # A dialog on the phone is no larger than its screen (ScreenWideWindow).
-            for window in QApplication.topLevelWidgets():
-                if window is not self.app and window.isVisible():
-                    window.resize(min(window.width(), 412), min(window.height(), 640))
             # The keymap opens filtered to the focused widget's keys; every key fills the table.
             for screen in self.app.findChildren(QtKeymapScreen):
                 screen.focus_filter.setChecked(False)

@@ -98,6 +98,9 @@ NOT_SIBLINGS = {
 }
 
 QT_ONLY = {
+    'toad.qt.presented_window.PresentedWindow': "applies the shared WindowPresentation as a Qt window is shown: Qt opens a "
+        "window by show/open/exec, which all reach setVisible, so the presentation is applied there; Textual opens a "
+        "window by pushing a screen, which reads the same WindowPresentation family (forms.presentation.PanelPresentation)",
     'toad.qt.conversation.ComposerPlaceholder': "a Qt composer's place held before it is built: Qt builds a view's widgets in "
         "its constructor, so a composer built there holds the view's first frame (and on Android races the first frame's EGL "
         "setup); Textual composes a screen's widgets and mounts them after its first frame, so it has no placeholder to hold",
@@ -339,6 +342,17 @@ def bare() -> frozenset[str]:
                      and not any(neutral(ancestor) for ancestor in cls.__mro__[1:]))
 
 
+def unpresented() -> frozenset[str]:
+    """Qt windows opened over the app that do not inherit its one presentation owner. Every Qt
+    dialog is presented by `toad.qt.presented_window.PresentedWindow` (a phone fills the app
+    window, a desktop floats), so one that lays itself out has no ratchet baseline: zero."""
+    from PySide6.QtWidgets import QDialog
+    from toad.qt.presented_window import PresentedWindow
+    return frozenset(path for path, cls in classes_under("toad").items()
+                     if path.startswith("toad.qt.") and issubclass(cls, QDialog)
+                     and not issubclass(cls, PresentedWindow))
+
+
 def main() -> int:
     chains = ui_chains(candidate_modules())
     loading = {module: chain for module, chain in chains.items() if chain}
@@ -374,7 +388,11 @@ def main() -> int:
     for path in fixed:
         print(f"FIXED      {path} now shares an ancestor (or is gone): delete its KNOWN_COPIES line")
     print(f"parallel copies: {len(found)} (ratchet baseline {len(KNOWN_COPIES)})")
-    return 1 if new or fixed or new_bare or rooted or new_loading or cleared or new_direct or gone_direct else 0
+    windows = unpresented()
+    for path in sorted(windows):
+        print(f"UNPRESENTED {path} is a Qt dialog that does not inherit PresentedWindow: inherit it, so a phone fills the app window")
+    print(f"Qt dialogs outside PresentedWindow: {len(windows)} (ratchet baseline 0)")
+    return 1 if new or fixed or new_bare or rooted or new_loading or cleared or new_direct or gone_direct or windows else 0
 
 
 if __name__ == "__main__":

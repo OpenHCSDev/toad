@@ -16,14 +16,14 @@ line of its content showing, and the team window drew part of itself off screen.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import ClassVar
+from abc import abstractmethod
 
 from PySide6.QtCore import QEvent, QObject, QPoint, QRect, Qt
 from PySide6.QtWidgets import QBoxLayout, QHBoxLayout, QLabel, QLayout, QToolButton, QWidget
 
 from toad.qt.metrics import UiGap
 from toad.screen_width import ScreenWidth
+from toad.window_presentation import BesideApp, FillsApp, WindowPresentation
 
 # Qt's QWIDGETSIZE_MAX: no limit on a widget's size.
 _UNLIMITED = (1 << 24) - 1
@@ -35,14 +35,8 @@ def window_width(host: QWidget) -> ScreenWidth:
     return ScreenWidth.of(width / max(1, host.fontMetrics().averageCharWidth()))
 
 
-class WindowPresentation(ABC):
-    """How a window is laid over its app window, for one width class."""
-
-    width: ClassVar[ScreenWidth]
-
-    @classmethod
-    def for_width(cls, width: ScreenWidth) -> type[WindowPresentation]:
-        return next(member for member in cls.__subclasses__() if member.width is width)
+class QtWindowPresentation(WindowPresentation):
+    """How Qt lays a window over the app window, for one width class."""
 
     @classmethod
     def present(cls, window: PresentedWindow, host: QWidget) -> None:
@@ -69,10 +63,8 @@ class WindowPresentation(ABC):
         """Size and place `window`; also run when the app window resizes or turns while it shows."""
 
 
-class FilledWindow(WindowPresentation):
+class FilledWindow(QtWindowPresentation, FillsApp):
     """A phone app's page: exactly the app window's area, under the window's own ← header."""
-
-    width = ScreenWidth.NARROW
 
     @classmethod
     def window_flags(cls) -> Qt.WindowType:
@@ -88,10 +80,8 @@ class FilledWindow(WindowPresentation):
         window.setGeometry(QRect(host.mapToGlobal(QPoint(0, 0)), host.size()))
 
 
-class FloatingWindow(WindowPresentation):
+class FloatingWindow(QtWindowPresentation, BesideApp):
     """A desktop dialog over the app, no larger than its screen less the system's bars."""
-
-    width = ScreenWidth.WIDE
 
     @classmethod
     def window_flags(cls) -> Qt.WindowType:
@@ -115,7 +105,7 @@ class PresentedWindow:
     back key close it as the dialog's own Close does."""
 
     _page_header: QWidget | None = None
-    _presentation: type[WindowPresentation] | None = None
+    _presentation: type[QtWindowPresentation] | None = None
     _presentation_host: QWidget | None = None
 
     def presentation_host(self) -> QWidget:
@@ -153,7 +143,7 @@ class PresentedWindow:
     def setVisible(self, visible: bool) -> None:  # noqa: N802 (Qt override)
         if visible and not self.isVisible():
             host = self.presentation_host()
-            presentation = WindowPresentation.for_width(window_width(host))
+            presentation = QtWindowPresentation.for_width(window_width(host))
             if self._presentation_host is not host:
                 host.installEventFilter(self)
                 self._presentation_host = host

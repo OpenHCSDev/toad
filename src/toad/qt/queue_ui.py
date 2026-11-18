@@ -27,6 +27,7 @@ from toad.widget_contracts import ActivatesContract
 from toad.qt.metrics import UiGap
 from toad.motion import ROW_REVEAL, TransitionTarget
 from toad.qt.widget_animation import WidgetAnimation
+from toad.qt.presented_window import PresentedWindow
 
 # Qt's QWIDGETSIZE_MAX, which PySide does not export: no maximum height.
 QWIDGETSIZE_MAX = (1 << 24) - 1
@@ -192,7 +193,7 @@ class QtDeliveryControls(QueueDeliveryControls, QWidget, metaclass=PyQtWidgetMet
         self.hide()
 
 
-class QtQueueInspection(QueueInspectionOwner, QDialog, metaclass=PyQtWidgetMeta):
+class QtQueueInspection(PresentedWindow, QueueInspectionOwner, QDialog, metaclass=PyQtWidgetMeta):
     """Textual's ``QueueInspection`` as a dialog; `QueueInspectionOwner` owns the reading,
     the actions and how they settle."""
 
@@ -200,7 +201,6 @@ class QtQueueInspection(QueueInspectionOwner, QDialog, metaclass=PyQtWidgetMeta)
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.title)
-        self.setWindowFlags(Qt.WindowType.Dialog)
         self.inspect_submissions(submissions)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)

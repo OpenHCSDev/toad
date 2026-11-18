@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QDialog, QFileDialog, QLineEdit, QListWidget, QVBo
 from toad.client.message_files import FileSearch, MessagePromptComposer
 from toad.client.project_paths import ProjectPathSearch
 from toad.prompt_actions import AttachFileAction
+from toad.qt.presented_window import PresentedWindow
 
 
 def read_picked(url: QUrl, composer: MessagePromptComposer) -> None:
@@ -47,7 +48,7 @@ def open_file_dialog(parent: QWidget, composer: MessagePromptComposer) -> QFileD
     return dialog
 
 
-class QtPathSearch(ProjectPathSearch, QDialog):
+class QtPathSearch(PresentedWindow, ProjectPathSearch, QDialog):
     """The project's paths, ranked as you type; choosing one attaches that file."""
 
     shown_limit = 100

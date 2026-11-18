@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 from toad.client.transfer_forms import ExportFormatInput, ExportScopeInput, ThreadImportForm, TransferForm, WireExportForm
 from toad.client.transfers import ThreadImportRequest, Transfer, TransferHost, WireExportRequest
 from toad.qt.metrics import UiGap
+from toad.qt.presented_window import PresentedWindow
 
 if TYPE_CHECKING:
     from agent_comms.installer.harness_install import Harness
@@ -45,7 +46,7 @@ def _choices(options) -> QComboBox:
     return combo
 
 
-class QtTransferDialog(TransferForm, QDialog):
+class QtTransferDialog(PresentedWindow, TransferForm, QDialog):
     """The frame every Qt transfer dialog shares: heading, the form's rows, an error
     line, and submit/cancel buttons."""
 
