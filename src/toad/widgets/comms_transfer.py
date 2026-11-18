@@ -5,31 +5,15 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
-from pathlib import Path
 from time import monotonic
 
-from agent_comms.importing import ThreadImported
 from agent_comms.installer.harness_install import Harness
-from agent_comms.messaging.exporting import (
-    WireExportFormat,
-    WireExportLimit,
-    WireExportProvenance,
-    WireExportScope,
-)
 from agent_comms.nominal.field_codec import boundary_decoder
-from agent_comms.registry.thread_management import ImportDirectory
-from agent_comms.registry.thread_text import ExpectedSession
 from agent_comms.transport.progress import (
-    CancellableWireExport,
-    WireExportCancelled,
     WireExportProgress,
 )
-from agent_comms.transport.tools.sidebar import (
-    CommsExportWireTool,
-    CommsImportThreadTool,
-)
 from textual import on
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.color import Color
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.css._style_properties import Edges
@@ -41,7 +25,6 @@ from textual.geometry import Spacing
 from textual.message import Message
 from textual.view import FILL, WidgetView
 from textual.widgets import Input, Select, Static
-from toad.application_outcome import ApplicationOutcome
 from toad.comms_host import CommsHost
 from ui_theme.scheme import (
     BackgroundColour,
@@ -52,7 +35,7 @@ from ui_theme.scheme import (
 )
 
 from toad.app_node import ToadNode
-from toad.client.connection import CapturedSource, CoordinationAccess, Observing
+from toad.client.connection import CapturedSource, Observing
 from toad.client.transfer_forms import (
     ExportFormatInput,
     ExportScopeInput,
@@ -61,12 +44,12 @@ from toad.client.transfer_forms import (
     WireExportForm,
 )
 from toad.client.transfers import (
+    CancellableExportProgress,
+    ThreadImportRequest,
     Transfer,
     TransferHost,
-    TransferProgress,
-    TransferRequest,
+    WireExportRequest,
 )
-from toad.core import events as core_events
 from toad.native_style import (
     CenteredChildren,
     DockedBottom,
@@ -82,67 +65,9 @@ from toad.widgets.acting_button import (
 )
 
 
-# `Transfer`, `TransferRequest`, `TransferProgress` and `TransferHost` are declared in
+# `Transfer`, its request kinds, `TransferProgress` and `TransferHost` are declared in
 # `toad.client.transfers`, the forms in `toad.client.transfer_forms`. Each frontend finds a
 # kind's dialog with `TransferForm.for_kind` over its own dialog family.
-
-
-@dataclass(frozen=True)
-class WireExportRequest(TransferRequest[WireExportProvenance]):
-    destination: Path
-    format: WireExportFormat
-    scope: WireExportScope
-    limit: WireExportLimit
-
-    failure_title = "Wire export failed"
-    title = "Export wire history…"
-    cancelled_by = (WireExportCancelled,)
-
-    def perform(self, access: CoordinationAccess, selected: CapturedSource,
-                observer: TransferProgress) -> WireExportProvenance:
-        """Core's host writes the export; its progress and cancel reach this observer."""
-        return access.write(selected, access.observing(selected.root).core.call, CommsExportWireTool(
-            destination=self.destination, format=self.format, scope=self.scope, limit=self.limit,
-        ).observed_by(observer))
-
-    @asynccontextmanager
-    async def progress(self, app: App[ApplicationOutcome]) -> AsyncIterator[TransferProgress]:
-        progress = WireExportProgressView()
-        try:
-            await app.mount(progress)
-            yield progress
-        finally:
-            progress.cancel()
-            await progress.remove()
-
-    def cancelled(self, app: App[ApplicationOutcome]) -> None:
-        app.notify("Wire export cancelled", title="Wire export")
-
-    def completed(self, app: Transfers, result: WireExportProvenance) -> None:
-        app.notify(f"Exported {result.exported_messages} messages to {result.destination}", title="Wire export")
-
-
-@dataclass(frozen=True)
-class ThreadImportRequest(TransferRequest[ThreadImported]):
-    source: Path
-    harness: type[Harness]
-    name: str
-    session: ExpectedSession
-    worktree: ImportDirectory
-
-    failure_title = "Thread import failed"
-    title = "Thread Import…"
-
-    def perform(self, access: CoordinationAccess, selected: CapturedSource,
-                observer: TransferProgress) -> ThreadImported:
-        return access.write(selected, access.observing(selected.root).core.call, CommsImportThreadTool(
-            source=self.source, harness=self.harness, name=self.name, session=self.session,
-            worktree=self.worktree))
-
-    def completed(self, app: Transfers, result: ThreadImported) -> None:
-        app.events.publish(core_events.ThreadRowStateChanged(frozenset((result.thread,))))
-        app.notify(f"Imported @{result.thread} ({result.imported_messages} messages) as a stopped thread",
-                   title="Thread Import")
 
 
 class Transfers(CommsHost[Observing], TransferHost):
@@ -159,6 +84,17 @@ class Transfers(CommsHost[Observing], TransferHost):
     def start_transfer_task(self, request: Transfer, selected: CapturedSource) -> None:
         self.run_worker(request.execute(self, selected),
                         group=type(request).declared_name, exclusive=True)
+
+    @asynccontextmanager
+    async def export_progress(self) -> AsyncIterator[CancellableExportProgress]:
+        """An export's counters and its cancel button, over the screen while it runs."""
+        progress = WireExportProgressView()
+        try:
+            await self.mount(progress)
+            yield progress
+        finally:
+            progress.cancel()
+            await progress.remove()
 
     @boundary_decoder
     def transfer_submitted(self, selected: CapturedSource, request: Transfer | None) -> None:
@@ -311,7 +247,7 @@ class CancelExportButton(ActingButton):
         self.query_ancestor(WireExportProgressView).cancel_export()
 
 
-class WireExportProgressView(CancellableWireExport, TransferProgress, WidgetView, ToadNode, Vertical):
+class WireExportProgressView(CancellableExportProgress, WidgetView, ToadNode, Vertical):
     """The export's cancellation capability and a view of its own byte/message counters."""
 
     layer_name = "wire-export-progress"

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import qasync
+from PySide6.QtCore import QEvent, QObject
 from PySide6.QtWidgets import QApplication
 
 from agent_comms.projects.checkouts import Checkout
@@ -76,13 +77,47 @@ async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: 
     return app
 
 
+class EndRequest(QObject):
+    """Qt was asked to end the application: its last window closed, or something called
+    QCoreApplication.quit() (a desktop session ending; on Android, QtActivityBase.onDestroy
+    when the app is swiped from recents, which then blocks Android's main thread until
+    Python's main returns).
+
+    Qt 6 answers a quit by closing every window and leaving its event loop within that one
+    event. The loop is the client's asyncio loop, so the shared client shutdown had no loop
+    left to run on: the wakeup the closed window queued ran after qasync stopped
+    (`Task.task_wakeup ... is not the running loop`), asyncio.run's cancellation then waited
+    on a task that could no longer wake, and Android killed the app for not answering. The
+    request is taken here instead: it completes ``asked``, and the client ends itself.
+    """
+
+    def __init__(self, asked: asyncio.Future[None]) -> None:
+        super().__init__()
+        self.asked = asked
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.Quit:
+            self.ask()
+            return True
+        return False
+
+    def ask(self) -> None:
+        if not self.asked.done():
+            self.asked.set_result(None)
+
+
 async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> None:
-    """Show the bus behind ``connection``: desktop passes the process-decoding member,
-    Android the one decoding in place."""
+    """Show the bus behind ``connection`` until Qt is asked to end, then end the way every
+    end does: the window closes while its client still serves its views, then the shared
+    client shutdown, and qasync stops the loop when this returns. Desktop passes the
+    process-decoding member, Android the one decoding in place."""
     app = await open_app(connection, project, scheme)
-    closed = asyncio.get_running_loop().create_future()
-    QApplication.instance().lastWindowClosed.connect(lambda: closed.done() or closed.set_result(None))
-    await closed
+    application = QApplication.instance()
+    request = EndRequest(asyncio.get_running_loop().create_future())
+    application.installEventFilter(request)
+    application.lastWindowClosed.connect(request.ask)
+    await request.asked
+    app.close()
     await app.close_client()
 
 

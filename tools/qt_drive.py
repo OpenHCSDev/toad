@@ -1101,10 +1101,10 @@ async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
     try:
         await scenario(app, out).run()
     finally:
-        # Close as the real app does: the window, then the shared client shutdown.
+        # End as the real app does (toad.qt.main.serve): the window, then the shared client
+        # shutdown; qasync stops the loop when this returns.
         app.close()
         await app.close_client()
-        QApplication.quit()
 
 
 def main(arguments: list[str]) -> None:

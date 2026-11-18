@@ -85,8 +85,9 @@ class SidebarStatusLine(DetailedLine):
 
     @staticmethod
     def unavailable_text(error: BaseException) -> str:
-        """What a sidebar or welcome says when the bus could not be read."""
-        return f"Comms unavailable\n{error}"
+        """What a sidebar or welcome says while the bus cannot be read: one persistent state,
+        the same however many reopen attempts (connection.ObservationRetry) fail behind it."""
+        return f"Comms unavailable; reconnecting\n{error}"
 
     @staticmethod
     def status_rows(text: str) -> tuple[str, str]:

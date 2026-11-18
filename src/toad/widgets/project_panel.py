@@ -195,18 +195,19 @@ class FilePreview(SidePadding, Vertical):
     async def _load_preview(self, position=None) -> None:
         try:
             from toad.file_kind import FileKind
+            from toad.widgets.file_viewer import FileViewer
             if position is not None:
                 await self.body.remove_children()
             self.loading_label.update("Loading file…")
             self.loading_label.display = True
             try:
-                kind = FileKind.for_path(self.path)
-                source = await self.app.preparation.run_thread(kind.load, self.path)
+                viewer = FileViewer.for_kind(FileKind.for_path(self.path))
+                source = await self.app.preparation.run_thread(viewer.load, self.path)
                 if self.is_attached and not self.is_leaving:
                     if position is None:
-                        await kind.show(self, source)
+                        await viewer.show(self, source)
                     else:
-                        await kind.show_at(self, source, position)
+                        await viewer.show_at(self, source, position)
             except (OSError, ValueError, EOFError) as error:
                 if self.is_attached and not self.is_leaving:
                     self.loading_label.update(f"Unable to open {self.path}: {error}")
