@@ -113,6 +113,8 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core import session_requests
 from toad.core.events import CoordinationObserved, ExternalTranscriptChanged, TabHistoryChanged
+from agent_comms.messaging.revision_views import RosterView
+from agent_comms.presentation import NoRevision, ReadState
 from toad.launch_binding import AgentBinding, NoAgent
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
 from toad.navigation_context import HomeNavigation, NavigationOwner
@@ -1297,6 +1299,14 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
         self.refresh_thread_status()
         self.sync_working()
+        # Thread config (compose, label, status, mentions) is read on the first refresh and when
+        # the roster moved, the roster owner's own signal: channels get no thread_presented.
+        revision = self.app.coordination_access.revision
+        if revision.changed_since(RosterView(), self._config_revision):
+            self._config_revision = revision
+            asyncio.ensure_future(self._refresh_thread_config())
+
+    _config_revision: ReadState = NoRevision()
 
     def thread_presented(self, presentation) -> None:
         super().thread_presented(presentation)

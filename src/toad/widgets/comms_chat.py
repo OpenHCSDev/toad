@@ -1,6 +1,8 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+from agent_comms.messaging.revision_views import RosterView
+from agent_comms.presentation import NoRevision, ReadState
 
 import re
 from functools import partial
@@ -261,6 +263,13 @@ class CommsChatView(WireConversationView):
         await history.read_changes()
         self._refreshed_from = announced
         self.submissions.settle()
+        # Thread config (compose, label, status, mentions) is read on the first refresh and when
+        # the roster moved, the roster owner's own signal: channels get no thread_presented.
+        if announced.changed_since(RosterView(), self._config_revision):
+            self._config_revision = announced
+            self.run_worker(self._refresh_thread_config, group=self.LABELS_GROUP)
+
+    _config_revision: ReadState = NoRevision()
 
     LABELS_GROUP = "chat-labels"
 
