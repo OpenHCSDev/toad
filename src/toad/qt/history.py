@@ -149,6 +149,7 @@ class QtPage(ReaderPage):
         self.prepared = prepared
         self.history = history
         self.display = False
+        self._shown: tuple[HistoryFragment, ...] | None = None
         prepared.configure(batch_size=PresentationBudget.batch_items)
 
     @classmethod
@@ -157,8 +158,12 @@ class QtPage(ReaderPage):
 
     @property
     def shown_fragments(self) -> tuple[HistoryFragment, ...]:
-        selected = self.history.selected_categories
-        return tuple(fragment for fragment in self.prepared.fragments_in_range if fragment.shown_in(selected))
+        shown = self._shown
+        if shown is None:
+            selected = self.history.selected_categories
+            shown = tuple(fragment for fragment in self.prepared.fragments_in_range if fragment.shown_in(selected))
+            self._shown = shown
+        return shown
 
     @property
     def line_count(self) -> int:
@@ -166,14 +171,17 @@ class QtPage(ReaderPage):
         return sum(self.history.fragment_height(fragment) for fragment in self.shown_fragments)
 
     def range_changed(self) -> None:
+        self._shown = None
         self.history.window.committed_pages_changed()
 
     def set_categories(self, selected) -> None:
         """A filter change: the history's selection decides which rows show."""
+        self._shown = None
         self.range_changed()
 
     def remove(self) -> None:
         """An evicted page's rows go with the next row reset."""
+        self._shown = None
         self.display = False
 
     def drawn_height(self, fragment: HistoryFragment) -> int:
@@ -1456,6 +1464,8 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
     def committed_pages_changed(self) -> None:
         """Saved rows arrived: they now carry the output of every finished live block."""
         self.live_blocks = [block for block in self.live_blocks if not block.finished]
+        if self.history.pages:
+            self.history.note_sent_references(self.history.pages[-1].shown_fragments)
         self.show_pages()
 
     def restyle_rows(self) -> None:

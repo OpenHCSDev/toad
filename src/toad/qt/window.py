@@ -1292,12 +1292,20 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         finally:
             self.content_ready.set()
         self.submissions.settle()
-        followed = (str(source.root), next((
-            references for fragment in reversed(history.fragments) if (references := fragment.sent_references)), ()),
+        followed = (str(source.root), history.last_sent_references,
             history.pages[-1].prepared.page.source.selection.notification_identity)
         self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
         self.refresh_thread_status()
         self.sync_working()
+
+    def thread_presented(self, presentation) -> None:
+        super().thread_presented(presentation)
+        asyncio.ensure_future(self._refresh_thread_config())
+
+    async def _refresh_thread_config(self) -> None:
+        """Read compose access, status, label and mentions — facts that change when thread
+        config changes (ThreadsObserved), not on every bus message."""
+        source = self.app.source()
         label = self.conversation.label(source.references())
         self.on_composer("label", lambda composer: composer.labelled(label))
         compose = await asyncio.to_thread(self.conversation.compose_access, source.core)
