@@ -65,8 +65,7 @@ class ObjectConfiguration(ObjectState):
         scope = str(ScopeKey.of("view", identity.mode_name))
         if ObjectStateRegistry.get_by_scope(scope) is not None:
             raise ValueError(f"Settings already open for {identity}")
-        lazy_type = LazyDataclassFactory.make_lazy_simple(type(defaults.object_instance))
-        super().__init__(lazy_type(), scope_id=scope, parent_state=defaults)
+        super().__init__(self.lazy_settings_type(global_settings)(), scope_id=scope, parent_state=defaults)
         if self.path.exists():
             document = FieldCodec.decode(ObjectSettingsDocument, FieldCodec.parse(self.path.read_text("utf-8")))
             if document.identity != identity:
@@ -80,6 +79,20 @@ class ObjectConfiguration(ObjectState):
         ObjectStateRegistry.register(self)
         self.on_resolved_changed(self.apply_changes)
         self.on_state_changed(self.save_changes)
+
+    @staticmethod
+    def lazy_settings_type(global_settings: SavedSettings) -> type:
+        """The settings tree as a view holds it, every field following the app's settings
+        until the view sets it: made once per settings class."""
+        return LazyDataclassFactory.make_lazy_simple(type(global_settings.state.object_instance))
+
+    @classmethod
+    def prepare_settings_type(cls, global_settings: SavedSettings) -> None:
+        """Set up, once, what every view's configuration is built from: its lazy settings
+        class, each nested one, and their annotations, which the first instance validates
+        against. That is class setup (190 ms on a phone's speed), and unprepared it was
+        paid by the first view the reader opened."""
+        cls.lazy_settings_type(global_settings)()
 
     def field(self, path: str) -> ObjectSettingField:
         return ObjectSettingField(self, self.parameter_structure.path(path))

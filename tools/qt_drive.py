@@ -2096,6 +2096,38 @@ class FrameScenario(Scenario):
                     timed(qt_history.QtHistoryWindow, name, f"window.{name}")
             timed(qt_history.HistoryRows, "show", "rows.show")
             timed(virtual_rows.RowDocumentDelegate, "_row_prepared", "delegate._row_prepared")
+        if os.environ.get("FRAME_TIME_OPEN"):
+            # What opening a page costs, by owner (tools only).
+            from objectstate.lazy_factory import LazyDataclassFactory
+            from pyqt_reactive.widgets import virtual_rows
+            from toad import object_configuration
+            from toad.qt import history as qt_history
+            def timed_open(owner, attribute, label):
+                original = owner.__dict__[attribute]
+                wrap = type(original) if isinstance(original, (staticmethod, classmethod)) else None
+                function = original.__func__ if wrap else original
+                def wrapper(*args, **kwargs):
+                    started = time.perf_counter()
+                    try:
+                        return function(*args, **kwargs)
+                    finally:
+                        timings.setdefault(label, []).append((time.perf_counter() - started) * 1000)
+                setattr(owner, attribute, wrap(wrapper) if wrap else wrapper)
+            timed_open(object_configuration.ObjectConfiguration, "__init__", "open.view_configuration")
+            timed_open(LazyDataclassFactory, "make_lazy_simple", "open.lazy_type")
+            # A settings write, and its two registry-wide parts.
+            from objectstate import ObjectStateRegistry
+            from toad.preferences import SavedSettings
+            timed_open(SavedSettings, "set", "write.settings_set")
+            timed_open(ObjectStateRegistry, "_record_snapshot_internal", "write.snapshot")
+            timed_open(ObjectStateRegistry, "invalidate_by_type_and_scope", "write.invalidate")
+            delegate = virtual_rows.RowDocumentDelegate
+            for name in ("sizeHint", "row_document", "measured_height", "_row_prepared", "_rows_prepared",
+                         "_update_viewport"):
+                if name in delegate.__dict__:
+                    timed_open(delegate, name, f"rows.{name}")
+            for name in ("rows_changed", "show_pages"):
+                timed_open(qt_history.QtHistoryWindow, name, f"window.{name}")
         self.timings = timings
 
     def write_timings(self, probe) -> None:
@@ -2218,6 +2250,9 @@ class ActionsScenario(FrameScenario):
         await asyncio.sleep(self.settle)
         probe.sink.write(f"action {name}: trigger_returned_ms={took:.0f}\n")
         probe.report(time.perf_counter())
+        # The owners' calls this action made, then a fresh count for the next one.
+        self.write_timings(probe)
+        self.timings.clear()
 
     async def run(self) -> None:
         app = self.app
@@ -2664,6 +2699,24 @@ async def drive(scenario: type[Scenario], connection: CoreConnection, out: Path)
         await app.close_client()
 
 
+def time_settings_writes() -> None:
+    """FRAME_TIME_WRITES: each settings write's time, with the registered states and how many
+    a write left changed for its snapshot (tools only)."""
+    from objectstate import ObjectStateRegistry
+    from toad.preferences import SavedSettings
+    write = SavedSettings.set
+
+    def timed(self, path, value) -> None:
+        states = len(ObjectStateRegistry._states)
+        started = time.perf_counter()
+        try:
+            write(self, path, value)
+        finally:
+            took = (time.perf_counter() - started) * 1000
+            print(f"  settings write {path}: {took:.1f} ms, {states} states", flush=True)
+    SavedSettings.set = timed
+
+
 def main(arguments: list[str]) -> None:
     own = arguments[1:]
     connection = select_connection(own) if len(own) == 4 else None
@@ -2671,6 +2724,8 @@ def main(arguments: list[str]) -> None:
         names = "\n".join(f"  {member.declared_name:10} {member.summary}" for member in Scenario.members_with(Scenario))
         raise SystemExit(f"usage: {arguments[0]} SCENARIO OUTDIR (--comms-profile PROFILE | --comms-root ROOT)\n{names}")
     scenario = Scenario.member_named(own[0])
+    if os.environ.get("FRAME_TIME_WRITES"):
+        time_settings_writes()
     application = FrameProbe.application(arguments[:1])
     install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())
