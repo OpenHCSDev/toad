@@ -28,7 +28,6 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.connector import HoldUiVerb
 from agent_comms.transport.connector_store import ConnectorStore
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAccessible
 from PySide6.QtWidgets import QApplication
 
 from toad import paths
@@ -128,36 +127,14 @@ def _install_excepthook() -> None:
 
 def main() -> None:
     _install_excepthook()
-    # Qt-for-Android's accessibility bridge (QtAndroidAccessibility::runInObjectContext)
-    # holds the EGL deadlock-protector mutex at the same time the main loop tries to
-    # acquire it for QAndroidPlatformOpenGLWindow::eglSurface() during first paint
-    # flush, so the protector aborts (SIGABRT). Pixel 8a's accessibility service
-    # probes the window on launcher-tap even with TalkBack off — enough to engage
-    # the bridge in the critical window. Toad has no accessibility consumers; drop
-    # the bridge before QApplication binds it.
-    os.environ.setdefault("QT_ANDROID_DISABLE_ACCESSIBILITY", "1")
-    os.environ.setdefault("QT_ACCESSIBILITY", "0")
+    # Qt's accessibility bridge is switched off by the APK's activity before Qt's layout
+    # exists (tools/android/keepalive ToadActivity.onCreate sets QT_ANDROID_DISABLE_ACCESSIBILITY):
+    # Qt reads it from Java while the activity is created, before this Python runs.
     os.environ.setdefault(
         "QT_LOGGING_RULES",
         "qt.qpa.*=true;qt.qpa.backingstore=true;qt.qpa.gl=true;qt.qpa.androidsurface=true",
     )
     application = QApplication(sys.argv[:1])
-    # The env vars alone don't stop Qt's Java-side accessibility bridge — the
-    # protector still trips with runInObjectContext as the lock holder. Shut the
-    # API-side framework off too: setActive(False) tells Qt to answer "no
-    # accessibility" to Android's probes. A Python lambda can't substitute for
-    # the C function pointer installFactory expects — Shiboken NULL-derefs when
-    # it tries to introspect one, so don't install a factory at all.
-    try:
-        QAccessible.setActive(False)
-    except Exception as error:
-        # Keep launch alive — the env vars above are the primary disable path —
-        # but surface the setActive failure to logcat so a future
-        # accessibility-bridge deadlock has a breadcrumb instead of a silent
-        # no-op. `print(..., file=sys.stderr)` reaches Android's logcat via
-        # python-for-android's stdio redirector.
-        print(f"QAccessible.setActive(False) failed; env vars handle fallback: {error}",
-              file=sys.stderr)
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()

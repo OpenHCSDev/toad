@@ -210,6 +210,15 @@ ALLOWED_UNSHIPPED: set[str] = {
     "magicgui",        # Textual form editor fallback
     "format_currency", # Textual locale formatting
     "setproctitle",    # process-title decoration
+    # #2077 put toad.conversation_submission on the Qt path (qt.thread_view), which loads
+    # toad.acp -> acp.prompt -> toad.file_kind. FileKind's Textual preview methods
+    # (show/show_at/prepare_terminal -> textual_image, worker_static -> toad.app ->
+    # pyperclip) and ImageFileKind.load (PIL, image attachments) are the lazy imports;
+    # Qt has no file preview and no image attachment path, so none fires there. The fix is
+    # moving that Textual preview behaviour off the shared FileKind declaration.
+    "PIL",
+    "pyperclip",
+    "textual_image",
 }
 unexpected = {chain[-1].top for chain in lazy} - ALLOWED_UNSHIPPED
 if unexpected:
