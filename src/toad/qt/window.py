@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import os
 from time import time
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass
 from typing import ClassVar, Self
 from functools import partial
@@ -722,21 +722,23 @@ class TreeItemRows[KeyT](KeyedRows[KeyT]):
         return row.parent() is self.parent or (row.parent() is None and row.treeWidget() is not None
                                                and self.parent is row.treeWidget().invisibleRootItem())
 
-    def mount_row(self, row: QTreeWidgetItem) -> None:
-        """A new line joins, then takes its place: its text fitted, a working thread's
-        line waving."""
-        self.parent.addChild(row)
-        row.placed()
+    def mount_rows(self, rows: Iterable[QTreeWidgetItem]) -> None:
+        """Register the selected native children, then publish each line's placement."""
+        rows = tuple(rows)
+        self.parent.addChildren(rows)
+        for row in rows:
+            row.placed()
 
     def order_rows(self, position) -> None:
         """Move only the lines out of place, each where it belongs, reopening its groups."""
         for index, row in enumerate(sorted(self.member_order(), key=position)):
             if self.parent.child(index) is not row:
-                opened = [group for group in row.subtree() if group.isExpanded()]
+                states = [(group, group.isExpanded(), group.isSelected()) for group in row.subtree()]
                 self.parent.takeChild(self.parent.indexOfChild(row))
                 self.parent.insertChild(index, row)
-                for group in opened:
-                    group.setExpanded(True)
+                for group, opened, selected in states:
+                    group.setExpanded(opened)
+                    group.setSelected(selected)
 
     def retire_row(self, row: QTreeWidgetItem) -> None:
         for line in row.subtree():

@@ -45,8 +45,8 @@ class KeyedRows[KeyT]:
         """Whether ``row`` is in the container now."""
 
     @abstractmethod
-    def mount_row(self, row) -> None:
-        """Add ``row`` to the container."""
+    def mount_rows(self, rows: Iterable) -> None:
+        """Register one selected cohort with the native container."""
 
     @abstractmethod
     def order_rows(self, position: Callable[[object], int]) -> None:
@@ -66,6 +66,7 @@ class KeyedRows[KeyT]:
         for key in retired:
             self.retire_row(rows.pop(key))
         mounted = []
+        unattached = {}
         for key in keys:
             if key not in rows:
                 if not self.should_mount(key):
@@ -74,10 +75,12 @@ class KeyedRows[KeyT]:
                 rows[key] = current
                 self.update_row(key, current)
                 if not self.row_attached(current):
-                    self.mount_row(current)
+                    unattached[key] = current
                 mounted.append(current)
-            elif key in changed or not self.row_attached(rows[key]):
+            elif key in changed or (key not in unattached and not self.row_attached(rows[key])):
                 self.update_row(key, rows[key])
+        if unattached:
+            self.mount_rows(unattached.values())
         ordered = tuple(rows[key] for key in keys if key in rows)
         positions = {row: index for index, row in enumerate(ordered)}
         for row, index in positions.items():
