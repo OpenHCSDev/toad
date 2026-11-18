@@ -48,6 +48,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.client.input_decision import InputAccepted, InputDecision, RefusalFeedback
 from toad.client.prompt_composer import MessagePromptComposer, PromptComposer
 from toad.client.prompt_stack import EditingModeBadge
+from toad.client.queue_inspection import QueueDeliveryControls
 from toad.native_style import (
     AutoHeight,
     AutoWidth,
@@ -251,11 +252,11 @@ class QueueSummary(
         self.query_ancestor(Prompt).conversation.open_queue_menu()
 
 
-class DeliveryControls(ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
-    """Shown while Enter queues behind a running turn."""
+class DeliveryControls(QueueDeliveryControls, ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
+    """Shown while Enter queues behind a running turn; `QueueDeliveryControls` owns its text."""
 
     def shown_children(self) -> tuple[Widget, ...]:
-        return Label("Enter queues · "), SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
+        return Label(self.notice), SendNow(self.send_now_label)
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()

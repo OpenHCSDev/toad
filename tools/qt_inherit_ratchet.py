@@ -24,8 +24,6 @@ KNOWN_COPIES = {
     "toad.qt.bound_view.QtChildrenOwner": "toad.client.view_binding_protocols.ChildrenOwner",
     "toad.qt.keymap_screen.QtKeymapScreen": "toad.screens.keymap.KeymapScreen",
     "toad.qt.menu.QtMenu": "toad.widgets.menu.Menu",
-    "toad.qt.queue_ui.QtDeliveryControls": "toad.widgets.prompt.DeliveryControls",
-    "toad.qt.queue_ui.QtQueueInspection": "toad.screens.queue.QueueInspection",
     "toad.qt.settings_screen.QtBoolEditor": "toad.forms.editors.BoolEditor",
     "toad.qt.settings_screen.QtChoicesEditor": "toad.forms.editors.ChoicesEditor",
     "toad.qt.settings_screen.QtFloatEditor": "toad.forms.editors.FloatEditor",
@@ -43,6 +41,8 @@ NOT_SIBLINGS = {
     "toad.qt.plan_panel.QtPlan": "toad.core.events.Plan is Core's plan event, not a panel",
     "toad.qt.goal.QtGoalControl": "toad.slash_command.GoalControl is the /goal slash command, not a widget",
     "toad.qt.window.QtSessionEntry": "toad.client.session_entry.SessionEntry is the session record; QtSessionEntry is a SessionEntries member",
+    "toad.qt.prompt_stack.QtFlash": "toad.messages.Flash is the Textual Message requesting a flash; the widget sibling toad.widgets.flash.Flash shares toad.client.prompt_stack.FlashNotice",
+    "toad.qt.prompt_stack.QtSessionDetails": "toad.client.session_tracker.SessionDetails is the tab's session record; the widget sibling toad.widgets.session_details.SessionDetails shares ObservedActivity + SessionStatusTitle",
 }
 
 FRONTEND_PREFIXES = ("toad.qt", "toad.widgets", "toad.screens")
