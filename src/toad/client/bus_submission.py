@@ -22,6 +22,7 @@ from agent_comms.errors import (
     RouteChangedError,
 )
 from agent_comms.messaging.delivery_failure import delivery_failure
+from agent_comms.messaging.message_files import FileUpload
 from agent_comms.messaging.message_reference import MessageReference
 
 from toad.client.application import ClientApplication
@@ -29,6 +30,7 @@ from toad.client.connection import Observing
 from toad.client.input_decision import InputAccepted, InputDecision, InputRefused
 from toad.client.line_blocks import MutedRole, Span
 from toad.client.notification_status import DetailLines
+from toad.client.prompt_composer import PromptComposer
 from toad.client.submission import (
     BusDestination,
     MessageDestination,
@@ -57,13 +59,24 @@ class SubmissionView:
     def unknown_notice(description: str) -> str:
         return f"Send outcome unknown: {description}. Check this conversation before resending."
 
+    @property
     @abstractmethod
-    def delivery_refused(self, description: str, body: str) -> None:
-        """Nothing left this machine, or Core refused it: the draft comes back with why."""
+    def submission_composer(self) -> PromptComposer:
+        """The composer a returned draft goes back into."""
 
     @abstractmethod
-    def delivery_unknown(self, description: str, body: str) -> None:
+    def show_send_failure(self, text: str) -> None:
+        """Say why a send came back, where this view says what went wrong."""
+
+    def delivery_refused(self, description: str, draft: SubmittedText) -> None:
+        """Nothing left this machine, or Core refused it: the draft comes back with why."""
+        self.submission_composer.restore(draft)
+        self.show_send_failure(self.refusal_notice(description))
+
+    def delivery_unknown(self, description: str, draft: SubmittedText) -> None:
         """The request may have reached Core; the draft comes back with a warning."""
+        self.submission_composer.restore(draft)
+        self.show_send_failure(self.unknown_notice(description))
 
     @abstractmethod
     async def refresh_composer(self, read_only: bool) -> None:
@@ -88,9 +101,10 @@ class SubmissionView:
 
 @dataclass(frozen=True)
 class TypedText(SubmittedText):
-    """Text typed into a message composer, exactly as typed."""
+    """Text typed into a message composer, exactly as typed, and the files attached to it."""
 
     source_text: str
+    files: tuple[FileUpload, ...]
 
 
 @dataclass(frozen=True)
@@ -115,7 +129,7 @@ class UnboundSubmissionStart(SubmissionStart):
         self.owner, self.submission, self.refusal = owner, submission, refusal
 
     async def prepare(self):
-        self.owner.view.delivery_refused(self.refusal.message, self.submission.source_text)
+        self.owner.view.delivery_refused(self.refusal.message, self.submission)
 
 
 class SubmissionExecution(SubmissionStart):
@@ -250,7 +264,7 @@ class BusSubmissionExecution(SubmissionExecution):
 
     def retire_unsent(self) -> None:
         """A message to a view that changed before it left comes back as the draft."""
-        self.owner.view.delivery_refused("Message route changed; reopen this view", self.submission.source_text)
+        self.owner.view.delivery_refused("Message route changed; reopen this view", self.submission)
         self.owner.finish(self)
 
     def settle(self) -> None:
@@ -269,7 +283,7 @@ class BusSubmissionExecution(SubmissionExecution):
 
     async def deliver(self) -> DeliveryOutcome:
         """Send after the earlier messages; a refusal is answered here."""
-        view, body, destination = self.owner.view, self.submission.source_text, self.destination
+        view, draft, destination = self.owner.view, self.submission, self.destination
         access, preparation = view.app.coordination_access, view.app.preparation
         try:
             await self.after.wait()
@@ -277,35 +291,36 @@ class BusSubmissionExecution(SubmissionExecution):
             read_only = await preparation.run_thread(destination.conversation.read_only, observed.core)
             await view.refresh_composer(read_only)
             if read_only:
-                view.delivery_refused(MessageDestination.read_only_reason, body)
+                view.delivery_refused(MessageDestination.read_only_reason, draft)
                 return RefusedMessage()
             route_current = await preparation.run_thread(lambda: access.current(destination.root))
             if not route_current or not self.current:
                 raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
         except asyncio.CancelledError:
-            view.delivery_refused("Cancelled before sending", body)
+            view.delivery_refused("Cancelled before sending", draft)
             raise
         except (HumanSendError, RouteChangedError) as error:
-            delivery_failure(error).present(view, body)
+            view.delivery_refused(delivery_failure(error).description, draft)
             return RefusedMessage()
         except Exception:
             # Nothing left this machine: the draft comes back, and the failure stays loud.
-            view.delivery_refused("the send failed before it left this machine", body)
+            view.delivery_refused("the send failed before it left this machine", draft)
             raise
         try:
-            return await self.commit(observed, body)
+            return await self.commit(observed, draft)
         except (HumanSendError, RouteChangedError) as error:
-            delivery_failure(error).present(view, body)
+            view.delivery_refused(delivery_failure(error).description, draft)
             return RefusedMessage()
 
-    async def commit(self, observed: Observing, body: str) -> DeliveryOutcome:
+    async def commit(self, observed: Observing, draft: SubmittedText) -> DeliveryOutcome:
         view = self.owner.view
         task = asyncio.create_task(asyncio.to_thread(
-            observed.send_user_message, self.destination.conversation.send_target(), body))
+            observed.send_user_message, self.destination.conversation.send_target(), draft.source_text,
+            draft.files))
         try:
             return SentMessage(await asyncio.shield(task))
         except asyncio.CancelledError:
-            view.delivery_unknown("the send was cancelled while it may still be writing", body)
+            view.delivery_unknown("the send was cancelled while it may still be writing", draft)
             def _surface_late_exc(done: asyncio.Future) -> None:
                 if done.cancelled():
                     return
@@ -326,7 +341,7 @@ class BusSubmissionExecution(SubmissionExecution):
             raise
         except Exception:
             # The request left: Core may have published it. Raise for the log, never hold compose.
-            view.delivery_unknown("its reply could not be read", body)
+            view.delivery_unknown("its reply could not be read", draft)
             raise
 
 

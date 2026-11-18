@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
+from agent_comms.messaging.message_files import FileUpload
 from agent_comms.comms import Comms
 from agent_comms.errors import RouteChangedError
 from agent_comms.execution.child_process import (
@@ -757,10 +758,12 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         """The thread an unbound session at ``project`` names; Core's host resolves the path."""
         return self.core.call(CommsSessionThreadTool(project=str(project), preferred=preferred))
 
-    def send_user_message(self, target: NamedTarget, body: str) -> MessageReference:
-        """The owner's input, published by Core under the owner's identity, in process or
-        across the connector; the reference is what the view waits to draw."""
-        return self.core.call(CommsUserSendTool(target=target.name, body=body)).message.source
+    def send_user_message(self, target: NamedTarget, body: str,
+                          files: tuple[FileUpload, ...]) -> MessageReference:
+        """The owner's input and the files attached to it, published by Core under the
+        owner's identity, in process or across the connector; the reference is what the view
+        waits to draw."""
+        return self.core.call(CommsUserSendTool(target=target.name, body=body, files=files)).message.source
 
     def mark_thread_read(self, identity, project: Path, through: TranscriptCursor) -> None:
         """Acknowledge, as the owner, what this UI displayed of one thread: Core applies it,

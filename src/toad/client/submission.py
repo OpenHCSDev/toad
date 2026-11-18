@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.messaging.channel_targets import NamedTarget
+from agent_comms.messaging.message_files import FileUpload
 from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.transport.request import CoreAccess
 
@@ -23,9 +24,11 @@ class SubmissionStart(ABC):
 
 
 class SubmittedText(ABC):
-    """Text the owner submitted, exactly as typed; its request sends it stripped."""
+    """Text the owner submitted, exactly as typed, and the files attached to it; its request
+    sends the text stripped."""
 
     source_text: str
+    files: tuple[FileUpload, ...]
 
     @property
     def text(self) -> str:

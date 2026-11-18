@@ -46,7 +46,8 @@ from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.client.input_decision import InputAccepted, InputDecision, RefusalFeedback
-from toad.client.prompt_composer import MessagePromptComposer, PromptComposer
+from toad.client.message_files import MessagePromptComposer
+from toad.client.prompt_composer import PromptComposer
 from toad.client.prompt_stack import EditingModeBadge
 from toad.client.queue_inspection import QueueDeliveryControls
 from toad.native_style import (
@@ -646,7 +647,7 @@ See on-screen instructions for details.
         shell = self.shell_mode
         text = self.text
         self.clear()
-        self.publish_core(action.submission_event(text, shell))
+        self.publish_core(action.submission_event(text, shell, self.prompt.take_files()))
         if shell:
             self.prompt.shell_mode = False
 

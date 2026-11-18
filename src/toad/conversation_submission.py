@@ -15,6 +15,7 @@ from agent_comms.acp_extension import (
     QueueScope,
     SteerPromptRequest,
 )
+from agent_comms.messaging.message_files import FileUpload
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad.acp.agent import Agent
@@ -34,6 +35,7 @@ from toad.worker_group import InputHistoryRecord
 @dataclass(frozen=True)
 class InputSubmission(SubmittedText, DeclaredFamily, affix="InputSubmission"):
     source_text: str
+    files: tuple[FileUpload, ...]
     priority: ClassVar[int] = 0
 
     @classmethod
@@ -50,7 +52,7 @@ class InputSubmission(SubmittedText, DeclaredFamily, affix="InputSubmission"):
             for kind in sorted(cls.members_with(InputSubmission), key=lambda kind: kind.priority, reverse=True)
             if kind.matches(event, owner)
         )
-        return kind(event.body)
+        return kind(event.body, event.files)
 
 
 class NoInputSubmission(InputSubmission):

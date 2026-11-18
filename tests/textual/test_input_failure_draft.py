@@ -86,7 +86,7 @@ async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_compo
         ui.attach_agent(receiver)
         await ui.write_draft("")
         with patch.object(receiver.process, "prompt", side_effect=FileNotFoundError(2, "agent socket disappeared")):
-            worker = await ImmediateInputSubmission("the local failure prompt").execute(conversation.submissions)
+            worker = await ImmediateInputSubmission("the local failure prompt", ()).execute(conversation.submissions)
             await worker.wait()
         await ui.until(lambda: ui.draft() == "the local failure prompt", why="the failed prompt back in the draft")
         await receiver.stop()

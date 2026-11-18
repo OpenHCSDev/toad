@@ -1032,7 +1032,7 @@ class ComposerScenario(Scenario):
         missing = ChannelConversation(ChannelTarget("#composer-drive-missing"))
         destination = MissingChannelDestination(app.source().root, missing, view)
         app.run_operation(ConversationSubmission,
-                          lambda: view.submissions.start_bus(TypedText("this send must fail"), destination).prepare())
+                          lambda: view.submissions.start_bus(TypedText("this send must fail", ()), destination).prepare())
         await until(lambda: composer.failure.isVisible(), "failure", tenths=100)
         await asyncio.sleep(0.5)
         self.report("6-failed", failure=composer.failure.text(), draft=composer.text,

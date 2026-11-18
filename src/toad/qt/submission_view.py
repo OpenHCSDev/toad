@@ -11,13 +11,12 @@ from toad.client.submission import MessageDestination
 
 
 class QtSubmissionView(SubmissionView):
-    def delivery_refused(self, description: str, body: str) -> None:
-        self.composer.restore_draft(body)
-        self.composer.show_failure(self.refusal_notice(description))
+    @property
+    def submission_composer(self):
+        return self.composer
 
-    def delivery_unknown(self, description: str, body: str) -> None:
-        self.composer.restore_draft(body)
-        self.composer.show_failure(self.unknown_notice(description))
+    def show_send_failure(self, text: str) -> None:
+        self.composer.show_failure(text)
 
     composer_block: str = ""
 

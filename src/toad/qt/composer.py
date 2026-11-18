@@ -35,7 +35,8 @@ from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.commands import ConversationCommands
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
-from toad.client.prompt_composer import MessagePromptComposer, PromptComposer, PromptSettingEffects
+from toad.client.message_files import MessagePromptComposer
+from toad.client.prompt_composer import PromptComposer, PromptSettingEffects
 from toad.client.condensed_path import home_relative
 from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -506,7 +507,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.editor.clear()
         self.dismissed_text = ""
         self.failure.hide()
-        self.host.submit(TypedText(text), action)
+        self.host.submit(TypedText(text, self.take_files()), action)
 
     # Toolkit-neutral action-family contract: Textual's Prompt inherits Submits +
     # DismissibleControl from widget_actions.py; the mixin lift itself is fork

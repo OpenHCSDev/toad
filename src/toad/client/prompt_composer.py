@@ -10,9 +10,10 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
+from agent_comms.messaging.message_files import FileUpload
 from metaclass_registry import AbstractHooksMeta
 
-from toad.client.input_decision import InputAccepted, InputDecision
+from toad.client.input_decision import InputDecision
 from toad.setting_declarations import EachOpenWidget
 
 
@@ -84,6 +85,18 @@ class PromptComposer(metaclass=AbstractHooksMeta):
             return symbols.shell_symbol
         return symbols.multiline_symbol if "\n" in text or "```" in text else symbols.agent_symbol
 
+    @abstractmethod
+    def restore_draft(self, text: str) -> None:
+        """Join returned text to what is typed (`restored_suffix`)."""
+
+    def restore(self, draft) -> None:
+        """A send that did not land comes back as the draft."""
+        self.restore_draft(draft.source_text)
+
+    def take_files(self) -> tuple[FileUpload, ...]:
+        """The files the input being sent carries: an agent prompt attaches none."""
+        return ()
+
     @staticmethod
     def restored_suffix(current: str, text: str) -> str:
         """What a send that did not land appends to the draft: nothing when the draft
@@ -91,19 +104,6 @@ class PromptComposer(metaclass=AbstractHooksMeta):
         if not text or current == text or current.endswith("\n\n" + text):
             return ""
         return ("\n\n" if current else "") + text
-
-
-class MessagePromptComposer(PromptComposer):
-    """A message composer: always the agent glyph, and every input is accepted."""
-
-    @property
-    def input_decision(self) -> InputDecision:
-        """A message is accepted whether or not an agent is attached: its submission owner
-        refuses a send it cannot make. An agent prompt asks its owner instead."""
-        return InputAccepted()
-
-    def prompt_symbol(self, text: str, shell_mode: bool) -> str:
-        return self.settings.ui.input.agent_symbol
 
 
 class ComposerStatus:
