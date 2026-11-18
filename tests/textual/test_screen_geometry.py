@@ -123,4 +123,5 @@ async def test_with_no_tab_the_comms_sidebar_is_the_whole_row_and_the_home_view_
         await ui.until(lambda: sidebar.region.width == 120, why="the sidebar to take the whole row")
         facts = {"home": welcome.region, "sidebar": sidebar.region}
         assert sidebar.region.x == 0 and sidebar.region.width == 120, facts
-        assert welcome.region.width == 0, facts
+        # The home view is placed past the sidebar's right edge: off the screen.
+        assert welcome.region.x >= sidebar.region.right == ui.app.screen.size.width, facts

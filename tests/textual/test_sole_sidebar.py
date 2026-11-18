@@ -69,6 +69,12 @@ async def alone(ui: TextualUi, *names: str) -> ChannelsSidebar:
     await ui.until(lambda: "██" in ui.painted(sidebar.query_one(SidebarBanner)),
                    why="the banner to be painted at the sidebar's head")
     assert not sidebar.toggle_control.display and not sidebar.resize_handle.display
+    # The buses are in the first screen, above the rows however many threads they list, and
+    # nothing is drawn over the rows.
+    screen, rows = app.screen.region, sidebar.panels_viewport.region
+    buses = sidebar.query_one(SidebarBuses).query_one(BusRows).region
+    assert screen.contains_region(buses) and buses.bottom <= rows.y, (buses, rows)
+    assert not sidebar.query_one(SidebarHints).region.overlaps(rows), (sidebar.query_one(SidebarHints).region, rows)
     return sidebar
 
 

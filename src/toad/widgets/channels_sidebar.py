@@ -1,8 +1,8 @@
 """The shared Channels view, including during a destination's loading frame.
 
 While no tab is shown it holds the whole window (`SidebarLayout.holds_alone`) and carries
-what the welcome page did: Toad's banner and the project above the search and rows, the
-buses and the key hints below them. Qt's comms sidebar shows the same parts
+what the welcome page did: Toad's banner, the project and the buses above the search and
+rows, and the key hints below them. Qt's comms sidebar shows the same parts
 (`QtToadApp.present_alone`)."""
 
 from formbridge.key_declarations import TextEntryMode
@@ -91,7 +91,8 @@ class SidebarHeading(MutedText, Static):
 
 
 class SidebarBuses(SpacedAbove, AutoHeight, ListsBuses, VerticalGroup):
-    """The buses this machine can open, under the rows while the sidebar holds the window.
+    """The buses this machine can open, under the project line while the sidebar holds the
+    window, in the first screen however many threads the rows list.
 
     Tristan: "I would like it to show the buses as well so that it would list out the buses
     that are available", and then that it "didn't list the other buses on the tailnet". It
@@ -152,11 +153,13 @@ class ChannelsSidebar(SideBar, actions=(SoleNewSessionAction, SoleIrcAction)):
     def lead_parts(self) -> tuple[Widget, ...]:
         # The banner keeps its own width (its sweep's frames are built for it), centred
         # across the window it holds, as Qt's `Banner` and the welcome drew it.
+        # The buses sit under the location, in the first screen however many threads the
+        # rows below list (Qt's `QtSidebarBuses` sits there too).
         self.banner = SidebarBanner()
-        return (Center(self.banner), SidebarLocationNote())
+        return (Center(self.banner), SidebarLocationNote(), SidebarBuses())
 
     def tail_parts(self) -> tuple[Widget, ...]:
-        return (SidebarBuses(), SidebarHints())
+        return (SidebarHints(),)
 
     @on(Mount)
     def show_alone_parts(self) -> None:

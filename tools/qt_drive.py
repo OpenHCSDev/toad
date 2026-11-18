@@ -1036,18 +1036,28 @@ class SoleSidebarScenario(Scenario):
         app = self.app
         side, pages = app.channels_side, app.workspace_sessions.pages
         visible = lambda widget: widget.isVisibleTo(app)
-        lines = [line.key for line in app.sidebar.items()]
+        on_app = lambda widget: QRect(widget.mapTo(app, QPoint(0, 0)), widget.size())
+        tree = on_app(app.sidebar.viewport())
+        buses = app.sidebar_buses
+        bus_lines = list(self.rows(buses.items()))
+        first_bus = next((line for line in bus_lines if line.parent() is not None), bus_lines[0] if bus_lines else None)
+        bus_seen = None
+        if first_bus is not None and visible(buses):
+            rect = buses.visualItemRect(first_bus)
+            bus_seen = (buses.viewport().rect().contains(rect)
+                        and app.rect().contains(QRect(buses.viewport().mapTo(app, rect.topLeft()), rect.size())))
         return dict(sidebar=side.geometry().getRect(), pages=pages.geometry().getRect(),
                     window=(app.width(), app.height()), tabs=self.tabs(),
                     banner=visible(app.banner), bus=visible(app.bus_label), hints=visible(app.hints),
                     address=visible(app.bus_address), search=visible(app.sidebar_search),
-                    strip=visible(side.toggle), buses="Buses" in lines,
+                    strip=visible(side.toggle), buses=visible(buses),
+                    bus_rows=[line.key for line in bus_lines], bus_seen=bus_seen,
                     channels=sum(isinstance(row, ConversationRow) for row in app.sidebar.items()),
-                    column=app.channels_column.geometry().getRect(),
-                    column_minimum=app.channels_column.minimumSizeHint().height(),
-                    stack=side.content_stack.geometry().getRect(),
-                    parts={type(part).__name__: part.geometry().getRect() for part in
-                           (app.banner, app.bus_label, app.sidebar_search, app.hints, app.bus_address)})
+                    over_tree=[type(part).__name__ for part in (app.hints, app.bus_address, buses, app.bus_label, app.banner)
+                               if visible(part) and on_app(part).intersects(tree)],
+                    tree=tree.getRect(),
+                    parts={type(part).__name__: on_app(part).getRect() for part in
+                           (app.banner, app.bus_label, buses, app.sidebar_search, app.hints, app.bus_address)})
 
     async def run(self) -> None:
         app = self.app
@@ -1061,6 +1071,10 @@ class SoleSidebarScenario(Scenario):
         assert alone["pages"][2] == 0, f"the pages still take room: {alone}"
         assert all(alone[part] for part in ("banner", "bus", "hints", "address", "search", "buses")), alone
         assert not alone["strip"] and alone["channels"], alone
+        assert not alone["over_tree"], f"drawn over the comms rows: {alone['over_tree']} {alone['parts']} tree={alone['tree']}"
+        # The buses are in the first screen, unscrolled: a bus row, or the Buses line when none
+        # is held.
+        assert alone["bus_seen"], f"no bus line inside the window: {alone}"
         # 2. A row opens the first tab: the sidebar returns to its placement beside it.
         await self.expand("#comms")
         home = app.workspace_sessions.home
@@ -1081,6 +1095,7 @@ class SoleSidebarScenario(Scenario):
         again = self.shown()
         self.report("3-closed", **again)
         assert again["sidebar"][2:] == (chrome.width(), chrome.height()) and again["banner"] and again["buses"], again
+        assert not again["over_tree"] and again["bus_seen"], again
 
 
 class MenuScenario(Scenario):

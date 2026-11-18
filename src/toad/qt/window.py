@@ -870,7 +870,58 @@ class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
         return self.row
 
 
-class Sidebar(WorkspaceHosted, SidebarStateMachine, BusListing, ConversationRows):
+class QtSidebarBuses(BusListing, ConversationRows):
+    """The buses this machine can open, under the bus line while the comms sidebar holds the
+    window, as Textual's `SidebarBuses`: the rows the welcome page listed, in the first screen
+    (above the search and the comms tree, which can list every thread). Its own tree, sized
+    to its rows, so a long list of threads never pushes it out of sight. A Qt client is
+    always remote, so this machine's own bus is not listed; a held finger on a saved one
+    offers to forget it (`BusRow.held_actions`)."""
+
+    most_rows = 6
+    """Rows shown before the list scrolls: a tailnet's buses, without taking the screen."""
+
+    def __init__(self, window: QtToadApp) -> None:
+        super().__init__(window)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.held_menu = HeldRowMenu(self, self)
+        # Opening or closing its section changes how many lines it shows.
+        self.itemExpanded.connect(lambda item: self.fit_rows())
+        self.itemCollapsed.connect(lambda item: self.fit_rows())
+        self.relist()
+
+    @property
+    def host(self) -> QtToadApp:
+        return self.window
+
+    def picker_host(self) -> BusPickerHost:
+        return self.window
+
+    def held_rows(self) -> tuple[PickerRow, ...]:
+        return BusChoice.held(time())
+
+    def say_failure(self, reason: str) -> None:
+        self.window.show_warning(reason, "Tailnet buses")
+
+    def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
+        def draw(top: KeptLines) -> None:
+            with top.group(OpenSection(self.buses_title)) as section:
+                for choice in rows:
+                    section.keep(BusRow(choice))
+        self.redraw(draw)
+        self.fit_rows()
+
+    def fit_rows(self) -> None:
+        """As tall as its shown lines, up to `most_rows` of them."""
+        self.doItemsLayout()
+        heights, item = [], self.topLevelItem(0)
+        while item is not None and len(heights) <= self.most_rows:
+            heights.append(self.visualItemRect(item).height())
+            item = self.itemBelow(item)
+        self.setFixedHeight(sum(heights) + 2 * self.frameWidth())
+
+
+class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     @property
     def screen(self) -> WorkspaceFrame:
@@ -893,9 +944,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, BusListing, ConversationRows
     navigation: NavigationRefresh = NoopNavigation()
     groups: dict[str, QtChannelGroup]
     open_views: dict[str, str]
-    # The buses this machine can open (`BusListing`): listed under the channels while the
-    # sidebar holds the window alone, where the welcome page listed them.
-    buses: tuple[PickerRow, ...] = ()
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__(window)
@@ -916,31 +964,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, BusListing, ConversationRows
     def host(self) -> QtToadApp:
         """The window a row's menu entries act in (`HeldRowMenu`)."""
         return self.window
-
-    def picker_host(self) -> BusPickerHost:
-        return self.window
-
-    def held_rows(self) -> tuple[PickerRow, ...]:
-        """A Qt client is always remote, so this machine's own bus is not listed."""
-        return BusChoice.held(time())
-
-    def say_failure(self, reason: str) -> None:
-        self.window.show_warning(reason, "Tailnet buses")
-
-    def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
-        """A tailnet answer: the Buses section is drawn again with the rest, in place."""
-        self.buses = rows
-        if self.window.sidebar_layout.alone:
-            self.present()
-
-    def draw_buses(self, top: KeptLines) -> None:
-        """While the sidebar holds the window alone, the buses to switch to, even when this
-        bus could not be read; beside a tab the bus switcher offers them."""
-        if not self.window.sidebar_layout.alone:
-            return
-        with top.group(OpenSection(self.buses_title)) as section:
-            for choice in self.buses:
-                section.keep(BusRow(choice))
 
     def _on_filter_changed(self, _value: str) -> None:
         """Re-present the whole tree so rows whose names newly stop (or newly start)
@@ -982,7 +1005,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, BusListing, ConversationRows
                     top.keep(StatusSection(self._status_text))
                 if model is not None:
                     self.draw_lines(model, top)
-                self.draw_buses(top)
             self.redraw(draw)
             # A wholesale redraw rebuilt the channel items; rebind the per-channel groups
             # against the new items so the next targeted `sync` operates on live children.
@@ -1512,10 +1534,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             QtSidebarPanels(self.sidebar_state, (QtPanelEntry.of(CHANNELS_PANEL, self.sidebar, (self.channel_sort,), CHANNELS_PANEL.title),)),
             parent=self)
         # While no tab is shown the comms sidebar holds the window (`SidebarLayout.holds_alone`)
-        # and carries what the welcome page did: Toad's banner and the bus this window reads
-        # above the search and rows, the hints and the field to add a machine below them
-        # (the rows list the buses then too, `Sidebar.draw_buses`). Beside a tab only the
-        # search and rows show. Textual's `ChannelsSidebar` composes the same parts.
+        # and carries what the welcome page did: Toad's banner, the bus this window reads and
+        # the buses it can open above the search and rows, so they are in the first screen
+        # however many threads the rows list; the hints and the field to add a machine below
+        # them. Beside a tab only the search and rows show. Textual's `ChannelsSidebar`
+        # composes the same parts in the same order.
         self.banner = Banner(self.renderer.theme(PrimaryColour))
         self.renderer.follows_theme(self.banner, lambda: self.banner.paint_in(self.renderer.theme(PrimaryColour)))
         self.bus_label = BusLabel(self)
@@ -1526,16 +1549,20 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.hints.setWordWrap(True)
         self.renderer.themed(self.hints, lambda: self.hints.setStyleSheet(self.renderer.color_style(MutedRole)))
         self.bus_address = BusAddress(self)
+        self.sidebar_buses = QtSidebarBuses(self)
         self.channels_column = QWidget(self)
         column = QVBoxLayout(self.channels_column)
         column.setContentsMargins(0, 0, 0, 0)
         column.setSpacing(UiGap.tight)
-        for part in (self.banner, self.bus_label):
+        for part in (self.banner, self.bus_label, self.sidebar_buses):
             column.addWidget(part)
         column.addWidget(self.sidebar_search, 1)
+        # A clear gap under the rows: a row the tree's edge cuts must not read as running
+        # under the hints.
+        column.addSpacing(UiGap.loose)
         for part in (self.hints, self.bus_address):
             column.addWidget(part)
-        self.sole_parts = (self.banner, self.bus_label, self.hints, self.bus_address)
+        self.sole_parts = (self.banner, self.bus_label, self.sidebar_buses, self.hints, self.bus_address)
         self.shown_alone: bool | None = None
         self.thread_pane = ThreadSettingsPane(self, parent=self,
                                               project_path=self.project_dir.path)
@@ -1612,7 +1639,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         from toad.qt.bus_switcher import QtBusSwitcher
         # Welcome is always a BusListing; the switcher registers/deregisters
         # itself while shown so answers reach both.
-        self._bus_listings: list[BusListing] = [self.sidebar]
+        self._bus_listings: list[BusListing] = [self.sidebar_buses]
         self.bus_switcher = QtBusSwitcher(self)
         chrome_layout.addWidget(self.bus_switcher)
         # Paste surface for the bus-connect remediation ("Paste a profile" option on the
@@ -1821,15 +1848,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.thread_pane.bind(sessions.home if collapsed else sessions.selected)
 
     def present_alone(self) -> None:
-        """Show the welcome's parts in the comms sidebar while it holds the window, and the
-        buses among its rows; hide them when a tab is shown beside it."""
+        """Show the welcome's parts in the comms sidebar while it holds the window; hide them
+        when a tab is shown beside it."""
         alone = self.sidebar_layout.alone
         if alone == self.shown_alone:
             return
         self.shown_alone = alone
         for part in self.sole_parts:
             part.setVisible(alone)
-        self.sidebar.present()
 
     def present_panes(self) -> None:
         """Draw both sidebars from the one layout and place them; the thread's sidebar is
