@@ -37,6 +37,7 @@ from textual.screen import Screen
 from textual.strip import Strip
 from textual.style import Style as VisualStyle
 from textual.theme import Theme
+from toad.client.name_wave import BandCells
 from toad.settings_scope import SettingsScope
 from ui_theme.backend import Backend, TerminalBackend
 from ui_theme.catalog import SCHEMES
@@ -282,7 +283,7 @@ class TextualScheme:
     palette: PaletteState
 
 
-class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBackend[TerminalTheme]):
+class TextualColours(BandCells, Backend[Theme, Color, Strip | Content, Strip], TerminalBackend[TerminalTheme]):
     """The app's colour depth, schemes, terminal palettes, line styles and animation clock."""
 
     def __init__(self, app: ToadApp) -> None:
@@ -488,7 +489,7 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
 
     def paint_band(self, frame: Band, target: Strip) -> Strip:
         width = target.cell_length
-        start, end = (max(0, min(width, round(edge * width))) for edge in (frame.start, frame.end))
+        start, end = self.band_cells(frame, width)
         if start >= end:
             return target
         before, band, after = target.divide((start, end, width))

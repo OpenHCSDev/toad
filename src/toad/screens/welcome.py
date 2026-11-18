@@ -20,7 +20,8 @@ from textual.content import Content
 from textual.widgets import Static
 
 from toad.client.application_actions import NewSessionAction as _SharedNewSession
-from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner, WelcomeListing
+from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner, WelcomeListing, WelcomeLocation
+from toad.client.sidebar_lines import WelcomeSectionLine
 from toad.core.events import SessionSelected
 from toad.format_path import format_path
 from toad.navigation_context import NavigationContext, NavigationOwner
@@ -97,7 +98,7 @@ class WelcomeSectionTitle(WelcomeHeading, GroupTitle):
     """A sidebar-group section's title line on the splash: the look, plus its group."""
 
 
-class WelcomeSection(WelcomeListing, SpacedAbove, SidebarGroup[ListedRow]):
+class WelcomeSection(WelcomeSectionLine, WelcomeListing, SpacedAbove, SidebarGroup[ListedRow]):
     """Some of the sidebar model's rows under a title."""
 
     def __init__(self) -> None:
@@ -106,12 +107,16 @@ class WelcomeSection(WelcomeListing, SpacedAbove, SidebarGroup[ListedRow]):
         self.display = False
 
     def on_mount(self) -> None:
-        self.expanded = self.app.sidebar_state.welcome_section_open(self.TITLE)
+        self.expanded = self.opens()
         super().on_mount()
 
-    def toggle_members(self) -> None:
-        super().toggle_members()
-        self.app.sidebar_state.set_welcome_section_open(self.TITLE, self.expanded)
+    @property
+    def section_title(self) -> str:
+        return self.TITLE
+
+    @property
+    def sidebar_state(self):
+        return self.app.sidebar_state
 
     @property
     def member_keys(self):
@@ -209,6 +214,17 @@ class WelcomeNote(MutedText, SpacedAbove, Static):
     """The project line and the key hints."""
 
 
+class WelcomeLocationNote(WelcomeLocation, WelcomeNote):
+    """The welcome's location line (`WelcomeLocation`): the project this TUI works in."""
+
+    def __init__(self, app, project) -> None:
+        self.project = project
+        super().__init__(self.location_line(app), markup=False)
+
+    def location(self, app) -> str:
+        return format_path(self.project)
+
+
 class WelcomeAction(WidgetAction, affix="Action"):
     """What the welcome view does on its own keys."""
 
@@ -254,10 +270,9 @@ class WelcomeScreen(
         self.project_path = app.project_dir
 
     def compose(self) -> ComposeResult:
-        agent = self.app.agent_binding.welcome_prefix
         with WelcomeColumn(can_focus=False):
             yield WelcomeTitle()
-            yield WelcomeNote(f"{agent}{format_path(self.project_path.path)}", markup=False)
+            yield WelcomeLocationNote(self.app, self.project_path.path)
             yield WelcomeEntries()
             # Hints come from the app so Qt can supply its own gesture string;
             # see `ToadApp.welcome_hints` / `QtToadApp.welcome_hints`.

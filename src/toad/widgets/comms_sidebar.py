@@ -23,7 +23,7 @@ from toad.client.sort_control import ChannelMemberOrder
 from textual.geometry import Region
 from textual.widget import Widget
 from textual.reactive import reactive
-from ui_theme.effects import NAME_WAVE, NEW_MESSAGE
+from ui_theme.effects import NEW_MESSAGE
 from textual.widgets import Static
 
 
@@ -78,15 +78,14 @@ class ChannelUnreadSegment(HeaderSegment):
     """The channel's unread count, beside its title; a click opens the channel like the title."""
 
     def content(self, group: ChannelGroup) -> Content:
-        label = group.row.line_text.badge
-        return Content.styled(f" {label}", "$text-muted") if label else Content("")
+        return Content.styled(group.row.badge_stretch(group.row.line_text.badge), "$text-muted")
 
 
 class ChannelSortSegment(ActiveSegment):
     """The channel's member order; a click opens its menu under this stretch."""
 
     def content(self, group: ChannelGroup) -> Content:
-        return Content.styled(f" {group.sort_choice.sort_label}", "$text-muted")
+        return Content.styled(group.row.control_stretch(group.sort_choice.sort_label), "$text-muted")
 
     async def activate(self, row: GroupHeaderLine) -> None:
         await row.header_group.sort_choice.open_sort()
@@ -140,10 +139,9 @@ class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
             row.refresh(layout=False)
         return previous.pinned_members ^ channel.pinned_members
 
-    def toggle_members(self) -> None:
-        super().toggle_members()
-        sidebar = self.sidebar
-        sidebar.navigation.state.expanded[self.row.target_name] = self.expanded
+    def members_toggled(self) -> None:
+        """The channel's open state is the sidebar navigation's, kept by name."""
+        self.sidebar.navigation.state.expanded[self.row.target_name] = self.expanded
 
     def reveal_members(self) -> None:
         if not self.expanded:
@@ -226,7 +224,7 @@ class ThreadStatusRow(ThreadRowFace, MutedText, DetailedRow, NoPadding, PointerC
 
     @property
     def busy(self) -> bool:
-        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.is_working())
+        return self.thread_row is not None and self.thread_busy(self.thread_row, self.action_status)
 
     line_text: ThreadLineText | None = None
 
@@ -271,7 +269,7 @@ class ThreadStatusRow(ThreadRowFace, MutedText, DetailedRow, NoPadding, PointerC
         # The name wave paints only the label line (ViewLabel.render_line, y == 0). A finished
         # effect stays in self.effects, so ask each effect whether it is still in motion.
         # While the wave is the only one moving, repaint its line; a moving text fade paints every line.
-        wave_only = self.effect_phase(NAME_WAVE).in_motion and not any(
+        wave_only = self.effect_phase(self.name_wave).in_motion and not any(
             self.effect_phase(fade).in_motion for fade in self.text_fades)
         if wave_only:
             self.repaint_region(Region(0, 0, self.size.width, 1))
@@ -471,7 +469,7 @@ class CommsSidebar(
                     continue  # Removed or mounted while the previous group mounted.
                 row = ChannelHeaderRow(channel_target(key), key)
                 group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
-                    key, row.target.expanded_by_default))
+                    key, row.opens_expanded()))
                 group.present(rows[key])  # Its members sync once it is mounted.
                 await self.mount(group)
 

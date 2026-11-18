@@ -28,6 +28,7 @@ from textual.widgets import Static
 
 from toad.app_node import ToadNode
 from toad.client.connection import FailedObservation, Observing
+from toad.client.sidebar_lines import SidebarStatusLine
 from toad.client.subscribers import SidebarSubscriber
 from toad.core.events import ThreadRowStateChanged
 from toad.core_event_carrier import CoreEventReceiver
@@ -100,7 +101,7 @@ class FailedSidebarState(SidebarModelState):
         return child is view.unavailable
 
     def present(self, view: SidebarStateMachine) -> None:
-        view.show_status(f"Comms unavailable\n{self.observed.error}")
+        view.show_status(SidebarStatusLine.unavailable_text(self.observed.error))
         view.coordination_access().update_sidebar_interest()
 
 
@@ -254,6 +255,15 @@ class SidebarStateMachine(SidebarSubscriber[Observing, FailedObservation]):
         self.model_state.apply(self, previous.changes(changes))
 
 
+class SidebarStatus(SidebarStatusLine, Static):
+    """The sidebar's status line (the shared `SidebarStatusLine`): its title, then the detail
+    indented under it, as Qt's `StatusSection` draws it."""
+
+    def show_status(self, text: str) -> None:
+        title, detail = self.status_rows(text)
+        self.update(f"{title}\n{self.detail_text(detail)}" if detail else title)
+
+
 class SidebarModelView(SidebarStateMachine, CoreEventReceiver, ToadNode, Widget):
     """A widget showing the observed service's sidebar model.
 
@@ -263,7 +273,7 @@ class SidebarModelView(SidebarStateMachine, CoreEventReceiver, ToadNode, Widget)
 
     def __init__(self, *args: Widget, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.unavailable = Static("", markup=False)
+        self.unavailable = SidebarStatus("", markup=False)
 
     model_state: reactive[SidebarModelState] = reactive(Detached, repaint=False, always_update=True)
 
@@ -294,7 +304,7 @@ class SidebarModelView(SidebarStateMachine, CoreEventReceiver, ToadNode, Widget)
         return self.app.coordination_access
 
     def show_status(self, text: str) -> None:
-        self.unavailable.update(text)
+        self.unavailable.show_status(text)
 
     def hide_status(self) -> None:
         # Textual keeps unavailable's visibility under watch_model_state via shows_child; the

@@ -16,6 +16,7 @@ from dataclasses import dataclass
 
 from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
 
+from toad.client.sidebar_lines import DetailedLine
 from toad.setting_choices import UnreadCount
 
 
@@ -33,11 +34,16 @@ class ThreadLineText:
     @property
     def prefix(self) -> str:
         """What precedes the name on the first row: the badge, then the pin mark."""
-        return f"{self.badge} " * bool(self.badge) + self.pin
+        return DetailedLine.status_prefix(self.badge) + self.pin
 
 
 class ThreadRowFace:
     """A thread's line in a sidebar list."""
+
+    @staticmethod
+    def thread_busy(row: ThreadRowModel, action_status: str | None) -> bool:
+        """Whether the line waves (`NameWave`): its thread works, or an action on it runs."""
+        return action_status is not None or row.status.is_working()
 
     def present_thread(self, row: ThreadRowModel, *, pinned: bool, action_status: str | None,
                        counts: type[UnreadCount]) -> None:

@@ -20,6 +20,8 @@ from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
+
+from toad.client.sidebar_lines import BusChoiceLine
 from ui_theme.scheme import PrimaryColour
 
 from toad.client.bus_selection import (
@@ -63,6 +65,15 @@ class BusAddress(BusAddressEntry, FillWidth, Input):
     def submitted(self, event: Input.Submitted) -> None:
         event.stop()
         self.submit_address(self.app)
+
+
+class BusOption(BusChoiceLine, Option):
+    """A bus in the listing (the shared `BusChoiceLine`): its label, and choosing it does
+    what its choice says, as Qt's `BusRow`."""
+
+    def __init__(self, choice: PickerRow) -> None:
+        self.choice = choice
+        super().__init__(self.line_label())
 
 
 class BusRows(AutoHeight, OptionList):
@@ -111,7 +122,7 @@ class ListsBuses(BusListing, Widget):
         return BusRows(*self.bus_options())
 
     def bus_options(self) -> list[Option]:
-        return [Option(row.label()) for row in self.rows]
+        return [BusOption(row) for row in self.rows]
 
     def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
         self.rows = rows
@@ -128,11 +139,11 @@ class ListsBuses(BusListing, Widget):
     @on(OptionList.OptionSelected)
     def picked(self, event: OptionList.OptionSelected) -> None:
         """A chosen row is the answer; the row itself says what choosing it does."""
-        self.chose(self.rows[event.option_index])
+        self.chose(event.option)
 
-    def chose(self, row: PickerRow) -> None:
-        """What this listing does with the chosen row."""
-        row.chosen(self.app)
+    def chose(self, option: BusOption) -> None:
+        """What this listing does with the chosen line: what its choice says."""
+        option.choose(self.app)
 
     def forget_highlighted(self) -> None:
         """Forget the highlighted row, if it is a row a reader saved."""
@@ -179,7 +190,7 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
     def say_failure(self, reason: str) -> None:
         self.query_one(BusPrompt).update(BusSwitcherPrompt.failure(reason))
 
-    def chose(self, row: PickerRow) -> None:
+    def chose(self, option: BusOption) -> None:
         """The dialog answers its caller rather than acting itself, so one place decides
         what a chosen row does for a dismissed picker too (app.picked_bus)."""
-        self.dismiss(row)
+        self.dismiss(option.choice)

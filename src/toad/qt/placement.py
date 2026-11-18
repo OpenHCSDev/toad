@@ -93,7 +93,15 @@ class QtActionProperties(ActionPropertiesPanel, QtCommandForm):
     def __init__(self, host, context, definition, fields, parent: QWidget | None = None) -> None:
         self.context = context
         super().__init__(host, definition, context.title, fields, context.observed.core, parent)
-        self.open_draft()
+        self._drafted = False
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        """The form asks Core for its choices once it is first picked, as Textual's
+        `PanelMenu` mounts a page (and its draft opens) only when it is selected."""
+        super().showEvent(event)
+        if not self._drafted:
+            self._drafted = True
+            self.open_draft()
 
     def dismiss_control(self) -> None:
         """An embedded form discards its draft without closing the view, as Textual's does."""
