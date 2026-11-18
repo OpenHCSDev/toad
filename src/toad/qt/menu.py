@@ -142,12 +142,12 @@ class QtMenu(BlockMenu, QFrame):
     @classmethod
     def of(cls, widget: QWidget) -> QtMenu:
         """The pop-up menu of the window `widget` is in: the window's own direct child."""
-        return widget.window().findChild(cls, "toad-menu", Qt.FindChildOption.FindDirectChildrenOnly)
+        return QWidget.window(widget).findChild(cls, "toad-menu", Qt.FindChildOption.FindDirectChildrenOnly)
 
     @staticmethod
     def anchor_of(widget: QWidget) -> QRect:
         """`widget`'s rectangle in its window, as `show_entries` takes an anchor."""
-        return QRect(widget.mapTo(widget.window(), widget.rect().topLeft()), widget.size())
+        return QRect(widget.mapTo(QWidget.window(widget), widget.rect().topLeft()), widget.size())
 
     def paint(self, renderer: QtLineRenderer) -> None:
         """One surface in the renderer's theme: the float tone (a tier above what it floats

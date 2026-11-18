@@ -127,7 +127,9 @@ class PresentedWindow:
         if parent is None:
             raise TypeError(f"{type(self).__qualname__} is shown without the window it opens over "
                             "as its parent")
-        return parent.window()
+        # QWidget.window, not parent.window(): a conversation view names its scroll surface
+        # `window` (the shared contract Textual also answers), shadowing the Qt method.
+        return QWidget.window(parent)
 
     def page_header(self) -> QWidget:
         """The ← header a filled window shows above its content, built the first time."""
