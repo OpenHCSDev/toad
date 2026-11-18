@@ -135,7 +135,9 @@ THREAD_LINK = ThreadLink()
 
 class MessageFileReader(MroProjection[FileReader]):
     """Whose read a message's files are, from where it was sent: a channel message is read in
-    its channel; a direct message in the DM with the participant that is not its reader."""
+    its channel; a direct message in its own DM, as its sender. The reader is not always a
+    participant: #any shows DMs between two other threads, and naming the reader's DM with
+    the sender there was refused, failing the whole page (2026-11-18)."""
 
     @handles(ChannelTarget)
     def channel(self, target: ChannelTarget, row: MessageRow) -> FileReader:
@@ -143,7 +145,7 @@ class MessageFileReader(MroProjection[FileReader]):
 
     @handles(ThreadTarget)
     def direct(self, target: ThreadTarget, row: MessageRow) -> FileReader:
-        return FileReader(target.name if row.outgoing else row.message.sender, row.reader)
+        return FileReader(target.name, row.message.sender)
 
 
 MESSAGE_FILE_READER = MessageFileReader()
