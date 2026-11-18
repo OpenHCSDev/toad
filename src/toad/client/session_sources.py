@@ -159,3 +159,9 @@ class SourcedConversation:
     def begin_submission(self, owner, submission):
         """Where this view's input goes: its operational sources answer for agent and CLI views."""
         return self.operational_sources.begin_submission(owner, submission)
+
+    def external_transcript_changed(self) -> None:
+        """Core published this thread's CLI drafts or finished items: its sources read them,
+        shown or parked. Both toolkits route `ExternalTranscriptChanged` here; a view that
+        waited for a status change instead held a CLI's newest item until its next one."""
+        self.operational_sources.external_transcript_changed(self)

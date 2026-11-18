@@ -2175,6 +2175,214 @@ class ArrivalScenario(Scenario):
                     queue_changes=len(toggles), largest_scroll_step=max(map(abs, jumps), default=0))
 
 
+class CliSyncScenario(Scenario):
+    summary = ("open TARGET (a Claude Code session's thread) and follow TRANSCRIPT (that session's "
+               "JSONL, what its CLI shows) for DURATION seconds; every SYNCPROBE-<stamp>-<name> "
+               "token is timed when the CLI's transcript gains it and when the Qt view's rows first "
+               "show it, and the window is recorded every FRAME_MS ms; prints the lag per token")
+
+    token = r"SYNCPROBE-\d+-[A-Za-z]+\d*"
+    width: ClassVar[int] = 412
+
+    def shown_texts(self) -> list[str]:
+        """Every row the reader's view holds, saved or still live: the model's own fragments."""
+        from toad.qt.history import HistoryRows
+        rows = self.page.messages.model_rows
+        return [rows.index(row).data(HistoryRows.FRAGMENT).clipboard_text for row in range(rows.rowCount())]
+
+    async def run(self) -> None:
+        import json
+        import re
+        from PySide6.QtCore import QTimer
+        target = os.environ["TARGET"]
+        transcript = Path(os.environ["TRANSCRIPT"])
+        duration = float(os.environ.get("DURATION", "240"))
+        frame_ms = int(os.environ.get("FRAME_MS", "200"))
+        self.app.resize(self.width, 915)
+        await self.listed()
+        await self.open(await self.found(lambda row: isinstance(row, ConversationRow)
+                                         and target in (row.key, row.target.name),
+                                         f"thread {target}", rows=self.thread_rows), target)
+        self.report("1-opened", rows=self.page.messages.model_rows.rowCount())
+        pattern = re.compile(self.token)
+        cli: dict[str, tuple[float, str]] = {}
+        qt: dict[str, float] = {}
+        frames = self.out / "frames"
+        frames.mkdir(exist_ok=True)
+        source = transcript.open("rb")
+        source.seek(0, os.SEEK_END)
+        pending = b""
+        frame = 0
+        print(f"following {transcript} from byte {source.tell()}; recording every {frame_ms} ms", flush=True)
+        # Core asked directly each second, beside the observation the view follows: a token Core
+        # serves on asking but the view has not shown is held in the push, not in Core's read.
+        import threading
+        from agent_comms.nominal.field_codec import FieldCodec
+        from agent_comms.transport.tools.reads import TranscriptPageRead
+        core_seen: dict[str, float] = {}
+        reading = threading.Event()
+        reading.set()
+        asked = self.app.coordination_access.open_current().core
+
+        def ask_core() -> None:
+            while reading.is_set():
+                begun = time.time()
+                try:
+                    text = json.dumps(FieldCodec.encode(asked.call(TranscriptPageRead(thread=target))))
+                except Exception as error:  # a failed read is printed, never a quiet gap
+                    print(f"core read failed: {error!r}"[:200], flush=True)
+                    text = ""
+                for name in set(pattern.findall(text)) - core_seen.keys():
+                    core_seen[name] = begun
+                    print(f"core  {name} at {begun:.3f} (read took {time.time() - begun:.2f}s)", flush=True)
+                time.sleep(max(0.0, 1.0 - (time.time() - begun)))
+        asker = threading.Thread(target=ask_core, daemon=True)
+        asker.start()
+
+        def poll() -> None:
+            nonlocal pending
+            now = time.time()
+            pending += source.read()
+            *lines, pending = pending.split(b"\n")
+            for line in lines:
+                tokens = set(pattern.findall(line.decode(errors="replace")))
+                if not tokens:
+                    continue
+                written = json.loads(line).get("timestamp", "")
+                for name in tokens - cli.keys():
+                    cli[name] = (now, written)
+                    print(f"cli   {name} at {now:.3f} (line stamped {written})", flush=True)
+            for text in self.shown_texts():
+                for name in set(pattern.findall(text)) - qt.keys():
+                    qt[name] = now
+                    print(f"qt    {name} at {now:.3f}", flush=True)
+
+        def record() -> None:
+            nonlocal frame
+            stamp = time.strftime("%H%M%S", time.localtime()) + f"{time.time() % 1:.2f}"[1:]
+            self.app.grab().save(str(frames / f"{frame:05d}-{stamp}.jpg"), "JPG", 70)
+            frame += 1
+        timers = []
+        for interval, call in ((50, poll), (frame_ms, record)):
+            timer = QTimer()
+            timer.setInterval(interval)
+            timer.timeout.connect(call)
+            timer.start()
+            timers.append(timer)
+        started = time.monotonic()
+        while time.monotonic() - started < duration:
+            ends = [name for name in cli if name.endswith("-END")]
+            if ends and ends[0] in qt:
+                await asyncio.sleep(2.0)
+                break
+            await asyncio.sleep(0.25)
+        for timer in timers:
+            timer.stop()
+        reading.clear()
+        poll()
+        rows = []
+        for name in sorted(cli, key=lambda name: cli[name][0]):
+            seen, written = cli[name]
+            lag = None if name not in qt else round((qt[name] - seen) * 1000)
+            served = None if name not in core_seen else round((core_seen[name] - seen) * 1000)
+            rows.append({"token": name, "cli": round(seen, 3), "line_timestamp": written,
+                         "core": core_seen.get(name), "core_ms": served,
+                         "qt": qt.get(name), "lag_ms": lag})
+            print(f"lag {name}: core {'never' if served is None else f'{served} ms'}, "
+                  f"view {'never shown' if lag is None else f'{lag} ms'}", flush=True)
+        only_qt = sorted(set(qt) - set(cli))
+        (self.out / "sync.json").write_text(json.dumps({"tokens": rows, "qt_only": only_qt}, indent=1))
+        lags = sorted(row["lag_ms"] for row in rows if row["lag_ms"] is not None)
+        if lags:
+            print(f"lag over {len(lags)} tokens: min {lags[0]} ms, median {lags[len(lags) // 2]} ms, "
+                  f"max {lags[-1]} ms; {len(rows) - len(lags)} never shown; {frame} frames", flush=True)
+        self.report("2-done", tokens=len(rows), shown=len(lags))
+
+
+class IdleScenario(Scenario):
+    summary = ("sit on the welcome sidebar for SETTLE seconds, then open TARGET (#channel or "
+               "thread) and sit for DURATION seconds, touching nothing; every 5 s print this "
+               "process's CPU use and its busiest threads, the UI's own cost of following the bus")
+
+    @staticmethod
+    def thread_ticks() -> dict[str, int]:
+        """CPU ticks per thread name, from /proc: utime + stime."""
+        ticks: dict[str, int] = {}
+        for task in Path("/proc/self/task").iterdir():
+            try:
+                stat = (task / "stat").read_text()
+            except OSError:
+                continue
+            name = stat[stat.index("(") + 1:stat.rindex(")")]
+            fields = stat[stat.rindex(")") + 2:].split()
+            ticks[name] = ticks.get(name, 0) + int(fields[11]) + int(fields[12])
+        return ticks
+
+    async def sample(self, label: str, seconds: float) -> list[float]:
+        hertz = os.sysconf("SC_CLK_TCK")
+        shares: list[float] = []
+        ended = time.monotonic() + seconds
+        while time.monotonic() < ended:
+            wall, cpu, before = time.monotonic(), time.process_time(), self.thread_ticks()
+            await asyncio.sleep(5.0)
+            share = 100 * (time.process_time() - cpu) / (time.monotonic() - wall)
+            shares.append(share)
+            after = self.thread_ticks()
+            busiest = sorted(((after[name] - before.get(name, 0)) / hertz / 5 * 100, name)
+                             for name in after)[-3:]
+            waves = self.waves
+            print(f"{label} cpu {share:5.1f}%  busiest: "
+                  + ", ".join(f"{name} {percent:.0f}%" for percent, name in reversed(busiest))
+                  + f"  wave: {waves['frames'] / 5:.0f} row repaints/s over {len(waves['rows'])} rows, "
+                  f"{waves['moved'] / 5:.0f}/s moved the band", flush=True)
+            waves.update(frames=0, moved=0, rows=set())
+        return shares
+
+    async def run(self) -> None:
+        settle = float(os.environ.get("SETTLE", "60"))
+        duration = float(os.environ.get("DURATION", "120"))
+        target = os.environ["TARGET"]
+        # Each sidebar wave frame repaints its row; a frame whose band covers the same cells as
+        # the last one paints the same pixels. Counted, so the sample says what the clock costs.
+        waves = {"frames": 0, "moved": 0, "rows": set()}
+        spans: dict[int, object] = {}
+        original = ConversationRow.repaint
+
+        def counted(row) -> None:
+            span = row.wave_span()
+            waves["frames"] += 1
+            waves["rows"].add(id(row))
+            if spans.get(id(row)) != span:
+                waves["moved"] += 1
+                spans[id(row)] = span
+            original(row)
+        ConversationRow.repaint = counted
+        self.waves = waves
+        await self.listed()
+        home = await self.sample("home", settle)
+        await self.open_named(target)
+        self.report("1-opened", rows=self.page.messages.model_rows.rowCount())
+        opened = await self.sample(target, duration)
+        for label, shares in (("home", home), (target, opened)):
+            ordered = sorted(shares)
+            print(f"{label}: median {ordered[len(ordered) // 2]:.1f}% cpu, max {ordered[-1]:.1f}% "
+                  f"over {len(shares) * 5} s", flush=True)
+        self.report("2-done", rows=self.page.messages.model_rows.rowCount())
+
+
+class PeerProfileScenario(Scenario):
+    summary = ("ask PEER (a tailnet machine, at ADDRESS) for a UI profile as the app's own "
+               "bus picker does, replacing the profile held for it; prints what the peer answered")
+
+    async def run(self) -> None:
+        from agent_comms.transport.tailnet_buses import NamedHost, TailnetPeer
+        from agent_comms.transport.tailnet_profiles import TailnetProfiles
+        await self.listed()
+        found = NamedHost(peer=TailnetPeer(name=os.environ["PEER"], address=os.environ["ADDRESS"], online=True))
+        asked = await asyncio.to_thread(self.app.hold_peer_profile, found)
+        print(f"peer answered: {type(asked).__name__}; held at {TailnetProfiles.path_for(found)}", flush=True)
+
+
 class DeliveryPreviewScenario(Scenario):
     summary = ("open TARGET (#scratch), send 2 messages with ui.input.delivery_preview on, then 2 with "
                "it off, turning it off and on live: the queue rows show only while it is on, the info "

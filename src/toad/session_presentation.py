@@ -346,7 +346,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresent
         the rest as one burst. An unbuilt view reads its source on attach.
         """
         if self.widget is not None:
-            self.sources.external_transcript_changed(self.widget)
+            self.widget.external_transcript_changed()
 
     async def remove_native_tree(self, screen: MainScreen) -> None:
         if (conversation := self.widget) is None:
