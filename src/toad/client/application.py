@@ -110,6 +110,10 @@ class ClientApplication(BusPickerHost, NavigationHost):
         if (effect := field.metadata(Effect)) is not None:
             effect.apply(self, field)
 
+    async def settings_closed(self) -> None:
+        """The settings screen closed: save what it changed. Both frontends call this."""
+        await self.saved_settings.save()
+
     @property
     def settings(self) -> "ToadSettings":
         """The settings in use, to read from; `saved_settings` changes and saves them."""

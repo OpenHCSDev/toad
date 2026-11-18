@@ -1923,9 +1923,9 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         dialog.show()
 
     async def edit_settings(self) -> None:
-        """Qt override of `ClientApplication.edit_settings`. Opens the shared-UX
-        `QtSettingsScreen` modal; both frontends read/write the same
-        `SavedSettings`, and Qt walks it through `toad.client.settings_schema`."""
+        """Qt override of `ClientApplication.edit_settings`: the settings screen both
+        frontends inherit (`SettingsEditing`), drawn in Qt; it saves on close through
+        `ClientApplication.settings_closed`, as Textual's does."""
         from toad.qt.settings_screen import QtSettingsScreen
         dialog = QtSettingsScreen(self, self)
         dialog.show()

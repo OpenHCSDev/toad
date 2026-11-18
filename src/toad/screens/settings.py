@@ -19,6 +19,8 @@ from textual.geometry import Spacing
 from textual.color import Color
 
 from toad.app import ScreenWidth
+from toad.form_family import SchemeChoosing
+from toad.settings_editing import SettingsEditing
 from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView, ValueView
 from toad.forms.presentation import FormInput, FormModal
@@ -28,11 +30,11 @@ from toad.setting_choices import SchemeName
 from toad.app_node import ToadNode
 
 
-class SchemeEditor(SelectEditor, ToadNode, shows=(SchemeName,)):
-    """A colour scheme's name, picked from the schemes the running app has."""
+class SchemeEditor(SchemeChoosing, SelectEditor, ToadNode, shows=(SchemeName,)):
+    """A colour scheme's name, picked from the schemes the running app has (pywal's included)."""
 
-    def options(self) -> Iterable[tuple[str, object]]:
-        return ((name, name) for name in self.app.colours.schemes)
+    def scheme_names(self) -> Iterable[str]:
+        return self.app.colours.schemes
 
 
 class SettingsPanel(WidgetView, containers.Vertical):
@@ -86,10 +88,10 @@ class DiscardAction(SettingsAction):
     show = True
 
     def apply(self, context: SettingsScreen) -> None:
-        context.app.saved_settings.discard()
+        context.discard()
 
 
-class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], ToadNode,
+class SettingsScreen(SettingsEditing, PriorityActions, FormModal[None], DismissibleScreen[None], ToadNode,
                      actions=(SettingsAction,), scopes={PriorityActions: (DismissAction,)}):
     align_horizontal = "right"
     align_vertical = "top"
@@ -97,7 +99,7 @@ class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], 
     def __init__(self) -> None:
         super().__init__()
         self.search = FormInput(placeholder="Search settings")
-        self.pages = FormView.pages(self.app.saved_settings.state)
+        self.build_pages()
         for number, form in enumerate(self.pages.values()):
             form.id = f"settings-page-{number}"
         self.listen(Tabs.TabActivated, self.page_chosen)
@@ -114,11 +116,19 @@ class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], 
                 yield from self.pages.values()
         yield ToadFooter()
 
+    @property
+    def edited_settings(self):
+        return self.app.saved_settings
+
+    @classmethod
+    def form_type(cls):
+        return FormView
+
     def opened(self, event: events.Mount) -> None:
-        self.app.saved_settings.open_edits.append(self.finish)
+        self.start_editing()
 
     def closed(self, event: events.Unmount) -> None:
-        self.app.saved_settings.open_edits.remove(self.finish)
+        self.stop_editing()
 
     @property
     def values(self) -> ChainMap[str, ValueView]:
@@ -129,15 +139,9 @@ class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], 
         message.stop()
         self.query_one(SettingsPages).current = message.tab.id
 
-    def finish(self) -> None:
-        """Send every edit typed on any page but not left yet."""
-        for form in self.pages.values():
-            form.finish()
-
     def searched(self, message: Input.Changed) -> None:
         message.stop()
-        for form in self.pages.values():
-            form.filter(message.value)
+        self.filter_pages(message.value)
 
     def dismiss_control(self) -> None:
         """Leave with every edit sent; the settings are saved once the screen is gone."""

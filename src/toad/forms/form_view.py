@@ -5,18 +5,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterator
 
-from formbridge.forms.declared_fields import (
-    DeclaredField,
-    DeclaredViews,
-    FormPage,
-    form_pages,
-)
-from formbridge.forms.form_following import (
-    FollowedFieldView,
-    FollowedValueView,
-    FollowingForm,
-)
-from formbridge.forms.parameter_form_service import ParameterFormService
+from formbridge.forms.declared_fields import DeclaredField
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
 from formbridge.forms.value_editing import ValueEditing
 from objectstate import ObjectState
@@ -42,6 +31,7 @@ from ui_theme.scheme import (
     SecondaryColour,
 )
 
+from toad.form_family import FieldForm, FieldViews, GroupFields, ValueFields
 from toad.forms.editors import ValueEditor
 
 
@@ -73,7 +63,7 @@ class GroupTitle(WidgetView, Static):
         return self.app.colours.colour(PrimaryColour)
 
 
-class FieldView(FollowedFieldView, DeclaredViews, WidgetView, containers.VerticalGroup):
+class FieldView(FieldViews, WidgetView, containers.VerticalGroup):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
     def __init__(self, field: DeclaredField) -> None:
@@ -84,60 +74,26 @@ class FieldView(FollowedFieldView, DeclaredViews, WidgetView, containers.Vertica
     def margin(self) -> Spacing:
         return Spacing(0, 0, 0 if self.last_child else 1, 0)
 
-    field_type = DeclaredField
-
     @classmethod
     def family(cls):
         return FieldView
 
-    @classmethod
-    def members(cls):
-        return (member for member in super().members() if member.family() is cls.family())
-
-    @classmethod
-    def admits(cls, field: DeclaredField) -> bool:
-        return True
-
-    @classmethod
-    def from_field(cls, field: DeclaredField):
-        """The field provider supplies the declaration used to select its presentation."""
-        declaration = field.declaration
-        parameter = ParameterInfo.create(
-            name=declaration.name, param_type=field.annotation,
-            current_value=None, default_value=declaration.default_value,
-            description=declaration.description, is_required=declaration.is_required)
-        return cls.showing(type(parameter).__mro__)(field)
-
-    @classmethod
-    def of(cls, state: ObjectState, parent: str = "") -> list[FieldView]:
-        """Show ObjectState's direct children; FormBridge supplies each field's kind.
-
-        ObjectState already extracted this topology. Reading it does not rebuild
-        a second form tree or re-analyze the held object's values.
-        """
-        return [cls.showing(type(parameter).__mro__)(field)
-                for path, parameter in ParameterFormService().parameters_for_state(state, parent)
-                if cls.admits(field := cls.field_type(state, path))]
+    def show_field(self, shown: bool) -> None:
+        self.display = shown
 
     @abstractmethod
     def values(self) -> Iterator[ValueView]:
         """The views below this one that hold a single value."""
 
-    @abstractmethod
-    def filter(self, term: str) -> bool:
-        """Show this view only if it matches a search; say whether it is shown."""
 
-
-class ValueView(FollowedValueView, FieldView, shows=(ParameterInfo,)):
+class ValueView(ValueFields, FieldView, shows=(ParameterInfo,)):
     """A field with one value: its label, its help and the editor for its kind."""
-
-    CHANGED_MARK = " ●"
 
     editor: ValueEditor
 
     def __init__(self, field: DeclaredField) -> None:
         super().__init__(field)
-        self.editor = ValueEditor.declared_for(field)
+        self.editor = self.editor_for(ValueEditor)
         self.title = FieldTitle(field.label)
         self.refusal = FieldRefusal("", markup=False)
         self.refusal.display = False
@@ -156,27 +112,16 @@ class ValueView(FollowedValueView, FieldView, shows=(ParameterInfo,)):
 
     def description(self) -> Content:
         help = Content.from_markup(self.field.help)
-        if bounds := self.field.bounds_text:
-            help = Content.assemble(help, (f"\naccepts: {bounds}", "$text-secondary"))
+        if accepts := self.accepts_text:
+            help = Content.assemble(help, (f"\n{accepts}", "$text-secondary"))
         return Content.assemble(help, (self.editor.default_note(), "$text-secondary"))
-
-    def values(self) -> Iterator[ValueView]:
-        yield self
-
-    def filter(self, term: str) -> bool:
-        self.display = term in self.field.search_text
-        return bool(self.display)
 
     def mark(self, changed: bool) -> None:
         """Say on the title whether the value differs from the saved one."""
-        self.title.update(
-            Content.assemble(self.field.label, (self.CHANGED_MARK, "$text-warning"))
-            if changed
-            else self.field.label
-        )
+        self.title.update(Content.assemble(self.field.label, (self.changed_mark(changed), "$text-warning")))
 
 
-class GroupView(FocusWithinView, FieldView, shows=(DirectDataclassInfo,)):
+class GroupView(GroupFields, FocusWithinView, FieldView, shows=(DirectDataclassInfo,)):
     """A nested dataclass: a heading and the views of its fields."""
 
     padding = Spacing(0, 1, 0, 1)
@@ -193,23 +138,15 @@ class GroupView(FocusWithinView, FieldView, shows=(DirectDataclassInfo,)):
 
     def __init__(self, field: DeclaredField) -> None:
         super().__init__(field)
-        self.parts = self.field_family.of(field.state, field.path.value)
+        self.build_parts()
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
         yield FieldHelp(Content.from_markup(self.field.help))
         yield from self.parts
 
-    def values(self) -> Iterator[ValueView]:
-        for part in self.parts:
-            yield from part.values()
 
-    def filter(self, term: str) -> bool:
-        self.display = any([part.filter(term) for part in self.parts])
-        return bool(self.display)
-
-
-class FormView(FollowingForm, WidgetView, containers.VerticalScroll, can_focus=False):
+class FormView(FieldForm, WidgetView, containers.VerticalScroll, can_focus=False):
     """Every field of the object an ObjectState holds, edited in place.
 
     The form holds no values. An edit goes to the state; the state says which
@@ -232,18 +169,6 @@ class FormView(FollowingForm, WidgetView, containers.VerticalScroll, can_focus=F
         self.listen(events.Mount, self._mount_follow)
         self.listen(events.Unmount, self._unmount_follow)
 
-    @classmethod
-    def whole(cls, state: ObjectState) -> FormView:
-        """Every shown field of the state on one form."""
-        return cls(state, cls.field_family.of(state))
-
-    @classmethod
-    def pages(cls, state: ObjectState) -> dict[FormPage, FormView]:
-        """One form per page the top-level fields declare, in declaration order."""
-        parts = {part.field.path: part for part in cls.field_family.of(state)}
-        return {page: cls(state, [parts[path] for path in paths])
-                for page, paths in form_pages(state, parts).items()}
-
     def _mount_follow(self, event: events.Mount) -> None:
         lazy.Reveal.reveal(self, list(self.parts))
         self.follow_state()
@@ -255,10 +180,6 @@ class FormView(FollowingForm, WidgetView, containers.VerticalScroll, can_focus=F
         ve: ValueEditor = editor  # type: ignore[assignment]
         if ve.is_mounted:
             ve.paint_value()
-
-    def filter(self, term: str) -> None:
-        self.filter_parts(term)
-
 
 class InlineFormView(FormView):
     """An intrinsically sized form inside a bounded dialog panel."""

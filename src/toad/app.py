@@ -300,7 +300,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     async def _edit_settings_worker(self) -> None:
         from toad.screens.settings import SettingsScreen
         await self.push_screen_wait(SettingsScreen())
-        await self.saved_settings.save()
+        await self.settings_closed()
 
     async def open_team_board(self) -> None:
         from toad.screens.team import TeamPage
