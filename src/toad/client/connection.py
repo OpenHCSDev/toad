@@ -207,6 +207,10 @@ class CoreConnection(ABC):
     def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
+    def chosen(self, arguments: list[str]) -> CoreConnection:
+        """The connection a bus the owner chose names, read as a launch reads its arguments."""
+        return CoreConnection.select(arguments)
+
     def close(self) -> None:
         """Release connection-owned work after its observations and reads end."""
 
@@ -276,6 +280,10 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
     @property
     def location(self) -> str:
         return str(self.endpoint.url)
+
+    def chosen(self, arguments: list[str]) -> RemoteCoreConnection:
+        """Read by this same member: desktop keeps decoding in a process, Android in place."""
+        return type(self).startup(arguments)
 
     def route_selection(self) -> RouteSelection:
         raise RemoteRouteNotSelectable(

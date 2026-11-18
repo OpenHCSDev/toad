@@ -1202,8 +1202,8 @@ class BusLabel(WelcomeLocation, ElidedLine):
     """Where the bus this window reads lives, as its connection names it, prefixed with
     the agent binding's `welcome_prefix` so the line reads the same way Textual's does
     at `screens/welcome.py:256` — `f"{agent_binding.welcome_prefix}{location}"`. A Qt
-    client is always remote, so its own launch directory (on the phone, /data/data/…/app)
-    says nothing about the Core it shows; the connection's location does.
+    client's own launch directory (on the phone, /data/data/…/app) says nothing about the
+    Core it shows; the connection's location does.
 
     `welcome_prefix` is empty for `NoAgent` so a connection without an attached agent
     reads as before. With `AgentAttached`, the line reads e.g. `claude · <location>`."""
@@ -1689,9 +1689,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.input_attention.attach()
 
     def connection_for(self, choice: BusChoice) -> CoreConnection:
-        """The profile a chosen bus names, read by the member this window launched with, so
-        desktop keeps decoding in a process and Android in place."""
-        return type(self.coordination_access.connection).startup(list(choice.arguments(())))
+        """The connection a chosen bus names, read by the connection this window runs on
+        (`CoreConnection.chosen`)."""
+        return self.coordination_access.connection.chosen(list(choice.arguments(())))
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
         button = QToolButton(self)

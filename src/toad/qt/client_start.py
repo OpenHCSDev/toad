@@ -4,6 +4,7 @@ desktop, `toad.qt.android` in the APK) paint the first frame, then load this mod
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import sys
 from dataclasses import dataclass
@@ -17,7 +18,8 @@ from agent_comms.projects.checkouts import Checkout
 from objectstate import set_base_config_type
 from ui_theme.scheme import ColourScheme
 
-from toad.client.connection import ProcessRemoteCoreConnection, RemoteCoreConnection
+from toad.client.connection import CoreConnection
+from toad.launch_binding import AgentBinding
 from toad.application_lifetime import ApplicationStart
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
@@ -28,7 +30,7 @@ from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
 
 
-def _renderer_for_platform(connection: RemoteCoreConnection) -> Renderer:
+def _renderer_for_platform(connection: CoreConnection) -> Renderer:
     """A ProcessPool on hosts that fork, an in-thread renderer on Android's Python."""
     if hasattr(sys, "getandroidapilevel"):
         return InThreadRenderer()
@@ -42,13 +44,17 @@ class QtClientSettings:
     Toad's Textual settings root lives in a module that needs Textual."""
 
 
-async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> QtToadApp:
+async def open_app(connection: CoreConnection, project: Checkout, scheme: ColourScheme,
+                   agent: str = "") -> QtToadApp:
     """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
-    sidebar observing."""
+    sidebar observing; ``agent`` is the launch's ``-a``, attached when the connection starts
+    agents (`AgentBinding.launched`), as Toad's terminal launch attaches it."""
     set_base_config_type(QtClientSettings)
     FingerScrolling.install(QApplication.instance(), FingerScrollGesture.of_platform())
     FrameProbe.start_if_requested(QApplication.instance())
-    app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme)
+    launch = await AgentBinding.launched(agent, connection.agent_processes)
+    app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme,
+                    launch)
     # The loop outlives the window: closing it starts the shared client shutdown, which
     # runs on this loop, so Qt must not stop the loop when the last window closes.
     QApplication.instance().setQuitOnLastWindowClosed(False)
@@ -87,12 +93,13 @@ class EndRequest(QObject):
             self.asked.set_result(None)
 
 
-async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> None:
+async def serve(connection: CoreConnection, project: Checkout, scheme: ColourScheme,
+                agent: str = "") -> None:
     """Show the bus behind ``connection`` until Qt is asked to end, then end the way every
     end does: the window closes while its client still serves its views, then the shared
     client shutdown, and qasync stops the loop when this returns. Desktop passes the
     process-decoding member, Android the one decoding in place."""
-    app = await open_app(connection, project, scheme)
+    app = await open_app(connection, project, scheme, agent)
     application = QApplication.instance()
     request = EndRequest(asyncio.get_running_loop().create_future())
     application.installEventFilter(request)
@@ -102,9 +109,15 @@ async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: Col
     await app.close_client()
 
 
-def serve_profile(arguments: list[str], scheme: ColourScheme) -> None:
-    """Serve the bus the desktop launch's UI profile names, over the process-decoding
-    connection, until the application ends."""
-    profile = Path(arguments[1])
-    project = Checkout(Path(arguments[2]) if len(arguments) > 2 else Path.home())
-    qasync.run(serve(ProcessRemoteCoreConnection.read(profile), project, scheme))
+def serve_launch(arguments: list[str], scheme: ColourScheme) -> None:
+    """Serve the Core the desktop launch's arguments select, as Toad's terminal launch
+    selects it (`CoreConnection.select`: a UI profile reaches Core through its connector,
+    over the process-decoding connection; otherwise this machine's bus, under which agents
+    start), until the application ends."""
+    own = arguments[1:]
+    connection = CoreConnection.select(own)
+    parser = argparse.ArgumentParser(prog="toad.qt.main")
+    parser.add_argument("project", type=Path, nargs="?", default=Path.home())
+    parser.add_argument("-a", "--agent", default="", help="The agent New Session starts, as Toad's -a.")
+    options = parser.parse_args(own)
+    qasync.run(serve(connection, Checkout(options.project), scheme, options.agent))
