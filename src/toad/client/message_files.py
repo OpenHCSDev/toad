@@ -152,6 +152,35 @@ def saved_copy(content: MessageFileContent) -> Path:
     return path
 
 
+class FilePicker(DeclaredChoice, affix="FilePicker"):
+    """Which picker the attach action opens; each member names the composer's own."""
+
+    @classmethod
+    @abstractmethod
+    def open(cls, composer: MessagePromptComposer) -> None: ...
+
+
+class WindowFilePicker(TitledChoice, FilePicker):
+    """The platform's file dialog. A phone shows its own file picker, which reaches the
+    phone's storage and its cloud drives."""
+
+    title = "File dialog"
+
+    @classmethod
+    def open(cls, composer: MessagePromptComposer) -> None:
+        composer.pick_in_window()
+
+
+class PathSearchFilePicker(TitledChoice, FilePicker):
+    """The path search @ completion uses, over the project's files."""
+
+    title = "Project path search"
+
+    @classmethod
+    def open(cls, composer: MessagePromptComposer) -> None:
+        composer.pick_by_path_search()
+
+
 class FileSearch(OperationKind, ExclusiveKind):
     """A path search picker listing or ranking the project's paths; a newer one replaces it."""
 
