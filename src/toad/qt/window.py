@@ -102,7 +102,6 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.command_catalog import CommandCatalog
 from toad.constants import WELCOME
 from toad.core.events import CoordinationObserved, TabHistoryChanged
-from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
@@ -1274,7 +1273,7 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
         # self.queue_source lets BusSubmissions.queue_evidence read pending/queued/held
         # state the same way CommsChatView does (widgets/comms_chat.py:124-129).
         wire = WireSource(
-            source.root, self.conversation, source.project, entry.viewer, MarkdownMessageStyle(),
+            source.root, self.conversation, source.project, entry.viewer, app.settings.ui.message_style(),
             access=app.coordination_access, core=source.core, fragments=QtWireFragment)
         self.queue_source = wire
         self.message_history.initialize_source(wire)
@@ -1685,7 +1684,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.initialize_client(NoAgent(), connection)
         self.setWindowTitle("Toad")
         # Until a conversation reads Core's display references, bodies link the project's files.
-        self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()))
+        self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()),
+                                       self.settings.diff.marks)
         # One shared animator pulses every sidebar row whose thread is working —
         # Qt's equivalent of Textual's per-row NAME_WAVE effect
         # (ui_theme.effects.NAME_WAVE / widgets/comms_sidebar.ThreadRow). The
@@ -2091,13 +2091,17 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         through `session_navigation.history` → `CommsTab` → wire view. Previously
         this hardcoded `session_navigation.history`, which forced EVERY row (including
         CLI-inbox threads) into the wire view and made them appear bus-only."""
+        self.open_target(row.target)
+
+    def open_target(self, target: NavigationTarget) -> None:
+        """Open a thread or channel as its sidebar row does: from a row, or a link naming it."""
         context = NavigationContext(
             app=self,
             owner_mode=WELCOME,
             project_path=self.project_dir,
             actor="",
         )
-        self.run_operation(ConversationOpen, partial(self._open_target, row.target, context))
+        self.run_operation(ConversationOpen, partial(self._open_target, target, context))
 
     async def _open_target(self, target: NavigationTarget, context: NavigationContext) -> None:
         """Route through home: mirrors Textual's `screens/comms.py:254` which also passes

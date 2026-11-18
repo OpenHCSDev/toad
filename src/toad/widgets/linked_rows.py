@@ -7,12 +7,7 @@ from functools import cached_property, partial
 from pathlib import Path
 from typing import cast
 
-from agent_comms.messaging.display_references import (
-    ChannelDisplayReference,
-    HistoricalDisplayReference,
-    ThreadDisplayReference,
-)
-from metaclass_registry.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import handles
 from rich.segment import Segment
 from textual import on
 from textual._paint_state import PaintState
@@ -31,7 +26,8 @@ from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import CascadingRows, RowRun
-from toad.client.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
+from toad.client.line_blocks import LineLink
+from toad.link_opening import OpensLineLinks
 from toad.menus import MenuCommand, message_menu
 from toad.message_rows import MessageRow
 from toad.navigation_target import NavigationTarget, SelectTarget
@@ -72,41 +68,21 @@ class ReferenceRendering(RestylesOnTheme, CoreEventReceiver):
         self.invalidate_lines()
 
 
-class OpensLinks(OpensMarkdownLinks, CoreEventReceiver, MroDispatch):
-    """A widget whose drawn links open what they name: one handler per kind of link. A click
-    runs the link itself (OpenLineLink); the keyboard dispatches the same link."""
+class OpensLinks(OpensMarkdownLinks, CoreEventReceiver, OpensLineLinks):
+    """The shared link handlers in a Textual widget: a click runs the link itself
+    (OpenLineLink); the keyboard dispatches the same link."""
 
-    @handles(OpenTarget)
-    def open_target(self, link: OpenTarget) -> None:
-        self.publish_core(SelectTarget(NavigationTarget.named(link.target)))
+    def select_target(self, target: NavigationTarget) -> None:
+        self.publish_core(SelectTarget(target))
 
-    @handles(OpenHistoricalTarget)
-    def open_historical_target(self, link: OpenHistoricalTarget) -> None:
-        self.publish_core(SelectHistoricalIdentity(link.target, link.source))
+    def select_historical(self, name: str, source: str) -> None:
+        self.publish_core(SelectHistoricalIdentity(name, source))
 
-    @handles(OpenReference)
-    def open_reference(self, link: OpenReference) -> None:
-        source = self.app.coordination_access.reference_context(link.reference.root)
-        if not link.reference.current_in(source):
-            self.notify(source.description or "This reference belongs to a replaced source.", severity="warning")
-            return
-        self.dispatch_sync(link.reference)
-
-    @handles(ThreadDisplayReference, ChannelDisplayReference)
-    def open_current_reference(self, reference) -> None:
-        self.open_target(OpenTarget(reference.name))
-
-    @handles(HistoricalDisplayReference)
-    def open_recorded_reference(self, reference) -> None:
-        self.open_historical_target(OpenHistoricalTarget(reference.name, reference.source))
-
-    @handles(ProjectLink)
-    def open_project_link(self, link: ProjectLink) -> None:
+    def preview_link(self, link: ProjectLink) -> None:
         self.run_worker(link.preview(self), group="open-link")
 
-    def open_link(self, href: str) -> None:
-        """Markdown hands its href back as a string; decode it once into the link it carries."""
-        self.dispatch_sync(LineLink.from_href(href))
+    def warn_link(self, text: str) -> None:
+        self.notify(text, severity="warning")
 
     async def link_menu(self, href: str, event: object) -> bool:
         return await LineLink.from_href(href).copy_menu(self, event)

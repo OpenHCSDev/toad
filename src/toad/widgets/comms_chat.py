@@ -26,7 +26,6 @@ from toad.conversation_submission import AgentInputSubmission, ConversationSubmi
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage
-from toad.message_rows import IrcMessageStyle
 from toad.client.referenced_core import ReferencedCore
 from toad.session_scope import SessionScope
 from toad.status_thread import StatusThread
@@ -123,7 +122,7 @@ class CommsChatView(WireConversationView):
             )
         source = WireSource(
             observed.root, self.conversation, self.project_path, self._me,
-            IrcMessageStyle(), access=self.app.coordination_access, core=observed.core,
+            self.app.settings.ui.message_style(), access=self.app.coordination_access, core=observed.core,
             fragments=WireFragment,
         )
         self.queue_source = source

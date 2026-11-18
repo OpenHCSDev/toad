@@ -9,6 +9,8 @@ from typing import Annotated, ClassVar
 
 from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
+from pygments.lexers import get_lexer_for_filename
+from pygments.util import ClassNotFound
 from rich.text import Text
 
 from toad.client.line_blocks import (
@@ -263,13 +265,23 @@ class Patch(LineBlock):
             path = f"{self.before_path} → {self.after_path}"
         return f"{path} (+{self.additions}, −{self.deletions})"
 
-    @property
-    def unified_lines(self) -> tuple[tuple[tuple[str, type[LineRole]], ...], ...]:
-        """Each hunk's rows in one column: the line's number, its +/− mark and its code, in
-        the line's role."""
-        return tuple(tuple((f"{cell.label:>4} {cell.role.diff_marker} {cell.selected().expandtabs(4)}", cell.role)
+    def unified_lines(self, marks: DiffMarks) -> tuple[tuple[tuple[str, str, type[LineRole]], ...], ...]:
+        """Each hunk's rows in one column: the line's number and its +/− mark when the diff
+        settings show marks, then its code, in the line's role."""
+        width = self.number_width
+        return tuple(tuple((f"{cell.label:>{width}} {marks.prefix(cell.role)}", cell.selected().expandtabs(4),
+                            cell.role)
                            for cell in (before.otherwise(after) for before, after in group))
                      for group in self.row_groups(UNIFIED_ROWS))
+
+    @property
+    def language(self) -> str:
+        """The language its file's name declares, as the diff's code is highlighted; "" when
+        the name declares none."""
+        try:
+            return get_lexer_for_filename(self.after_path or self.before_path).aliases[0]
+        except ClassNotFound:
+            return ""
 
     @property
     def additions(self) -> int:

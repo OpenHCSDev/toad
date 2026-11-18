@@ -88,6 +88,13 @@ class SessionScope:
         return NoThreadIdentity()
 
     @property
+    def coordination_root(self) -> str | None:
+        """The bus root this session's thread is read from; a view with no thread has none.
+        Thread navigation asks every open session for it to find a tab already showing a
+        thread, so every frontend's views answer it the same way."""
+        return self.thread_identity.wire_root()
+
+    @property
     def sidebar_thread_identity(self) -> object:
         return self.thread_identity
 

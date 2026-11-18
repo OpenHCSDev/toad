@@ -31,6 +31,7 @@ from formbridge.forms.declared_fields import DeclaredField, FieldPath, FormPage,
 from toad.hint_labels import HintLabels, NextLetterHintLabels
 from toad.key_modes import KeyMode, Standard
 from toad.keymap import Keymap
+from toad.message_rows import IrcMessageStyle, WireMessageStyle
 from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
@@ -128,6 +129,11 @@ class ConversationUiSettings(ViewUiSettings, scopes=(ConversationSettingsOwner,)
         default_factory=InputSettings
     )
     """The prompt you type messages and shell commands into."""
+    message_style: Annotated[
+        type[WireMessageStyle], FieldLabel("Bus message layout"), FamilyChoices(WireMessageStyle),
+        WireName("message-style"),
+    ] = IrcMessageStyle
+    """How a conversation tab first lays out bus messages; its toggle switches the open tab."""
     info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility, WireName("info-bar"),] = True
     """The info bar is the text below the prompt text area. Disable for more space."""
     status_line: Annotated[

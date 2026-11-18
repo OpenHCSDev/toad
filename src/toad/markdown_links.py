@@ -26,9 +26,11 @@ if TYPE_CHECKING:
     from textual.widget import Widget
 
 
+# A bare `name.ext` spelling is a path; a number with a unit (`40.1s`, `3.12.0`) never is.
 _PATH_PATTERN = re.compile(
     r"(?<![\w:/@#])"
-    r"(?P<path>(?:(?:~|\.{1,2})?/)?(?:[\w.@+-]+/)+[\w.@+-]+|[\w.@+-]+\.[A-Za-z0-9][\w+-]*)"
+    r"(?P<path>(?:(?:~|\.{1,2})?/)?(?:[\w.@+-]+/)+[\w.@+-]+"
+    r"|(?!\d+(?:\.\d+)+[A-Za-z]*(?![\w.@+-]))[\w.@+-]+\.[A-Za-z0-9][\w+-]*)"
     rf"(?:{FilePosition.pattern})?"
     r"(?![\w/])"
 )
