@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import json
 from abc import abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
+from functools import partial
 from typing import ClassVar
 
 from agent_comms.nominal.field_codec import FieldCodec
@@ -137,9 +138,21 @@ class FieldViews(FollowedFieldView, DeclaredViews):
         ObjectState already extracted this topology. Reading it does not rebuild
         a second form tree or re-analyze the held object's values.
         """
-        return [cls.showing(type(parameter).__mro__)(field)
+        return [cls.part(shown) for shown in cls.shown(state, parent)]
+
+    @classmethod
+    def shown(cls, state: ObjectState, parent: str = "") -> list[tuple]:
+        """The direct children this family shows, as (parameter, field), with no view built:
+        knowing which fields a form holds is cheap, and building their views is not."""
+        return [(parameter, field)
                 for path, parameter in ParameterFormService().parameters_for_state(state, parent)
                 if cls.admits(field := cls.field_type(state, path))]
+
+    @classmethod
+    def part(cls, shown: tuple):
+        """The view of one shown field."""
+        parameter, field = shown
+        return cls.showing(type(parameter).__mro__)(field)
 
     @abstractmethod
     def show_field(self, shown: bool) -> None:
@@ -231,11 +244,16 @@ class FieldForm(FollowingForm):
         return cls(state, cls.field_family.of(state))
 
     @classmethod
-    def pages(cls, state: ObjectState) -> dict[FormPage, FieldForm]:
-        """One form per page the top-level fields declare, in declaration order."""
-        parts = {part.field.path: part for part in cls.field_family.of(state)}
-        return {page: cls(state, [parts[path] for path in paths])
-                for page, paths in form_pages(state, parts).items()}
+    def pages(cls, state: ObjectState) -> dict[FormPage, Callable[[], FieldForm]]:
+        """Each page the top-level fields declare, in declaration order, and how to build its
+        form: a page's views are built when it is shown (`LazyPages`), not when it is listed."""
+        shown = {field.path: (parameter, field) for parameter, field in cls.field_family.shown(state)}
+        return {page: partial(cls.page_form, state, tuple(shown[path] for path in paths))
+                for page, paths in form_pages(state, shown).items()}
+
+    @classmethod
+    def page_form(cls, state: ObjectState, shown: tuple[tuple, ...]) -> FieldForm:
+        return cls(state, [cls.field_family.part(field) for field in shown])
 
     def filter(self, term: str) -> None:
         self.filter_parts(term)

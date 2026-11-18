@@ -9,21 +9,26 @@ worker; Qt writes synchronously, since Qt may close the dialog after its loop ha
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING
 
 from formbridge.forms.declared_fields import FormPage
 
+from toad.client.lazy_pages import LazyPages
 from toad.form_family import FieldForm
 
 if TYPE_CHECKING:
     from toad.preferences import SavedSettings
 
 
-class SettingsEditing:
-    """Every setting the user may edit, one form per declared page, searched by label."""
+class SettingsEditing(LazyPages[FormPage, FieldForm]):
+    """Every setting the user may edit, one form per declared page, searched by label. A
+    page's form is built the first time the page is shown (`LazyPages`); edits, search and
+    discard reach the pages built so far, and a page built later starts from the search."""
 
-    pages: Mapping[FormPage, FieldForm]
+    listed: Mapping[FormPage, Callable[[], FieldForm]]
+    """Every declared page, in declaration order, and how to build its form."""
+    term: str = ""
 
     @property
     @abstractmethod
@@ -36,7 +41,19 @@ class SettingsEditing:
         """The frontend's form class; its `pages` builds this screen's forms."""
 
     def build_pages(self) -> None:
-        self.pages = self.form_type().pages(self.edited_settings.state)
+        self.listed = self.form_type().pages(self.edited_settings.state)
+        self.pages = {}
+
+    def realize_page(self, page: FormPage) -> FieldForm:
+        form = self.listed[page]()
+        self.page_realized(form)
+        if self.term:
+            form.filter(self.term)
+        return form
+
+    def page_realized(self, form: FieldForm) -> None:
+        """A page's form was just built: the frontend draws it in its theme and follows the
+        state it edits."""
 
     def start_editing(self) -> None:
         """While open, a save first takes the edits typed here but not yet left."""
@@ -51,6 +68,7 @@ class SettingsEditing:
             form.finish()
 
     def filter_pages(self, term: str) -> None:
+        self.term = term
         for form in self.pages.values():
             form.filter(term)
 
