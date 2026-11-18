@@ -135,6 +135,33 @@ class LocalBrowserAuthentication:
         return RejectedBrowserAccess()
 
 
+def check_textual_serve_version() -> None:
+    if version("textual-serve") != "1.1.3":
+        raise RuntimeError("Browser serving requires reviewed textual-serve 1.1.3")
+
+
+class TailnetWebServer(Server):
+    """Loopback backend behind tailscale serve; tailnet ACL replaces the cookie gate."""
+
+    def __init__(
+        self,
+        command: str,
+        *,
+        host: str = "127.0.0.1",
+        port: int = 8000,
+        public_url: str,
+        title: str | None = None,
+    ) -> None:
+        check_textual_serve_version()
+        self._tailnet_url = public_url
+        super().__init__(
+            command, host=host, port=port, title=title, public_url=public_url
+        )
+
+    async def on_startup(self, app: web.Application) -> None:
+        self.console.print(f"Toad tailnet browser: {self._tailnet_url}")
+
+
 class ToadWebServer(Server):
     """Keep the vendor server/child path; check local access before every route."""
 
@@ -146,8 +173,7 @@ class ToadWebServer(Server):
         port: int = 8000,
         title: str | None = None,
     ) -> None:
-        if version("textual-serve") != "1.1.3":
-            raise RuntimeError("Browser serving requires reviewed textual-serve 1.1.3")
+        check_textual_serve_version()
         endpoint = LocalBrowserEndpoint(host, port)
         super().__init__(
             command, host=host, port=port, title=title, public_url=endpoint.url

@@ -21,7 +21,7 @@ from toad.client.connection import CoreConnection
 from toad.client.local_connection import select_connection
 from toad.launch_binding import AgentAttached, AgentBinding, LaunchAgentRefused
 from toad.preferences import SavedSettings
-from toad.web_server import ToadWebServer
+from toad.web_server import TailnetWebServer, ToadWebServer
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -245,17 +245,31 @@ def replay(path: str) -> None:
     default="127.0.0.1",
     help="Loopback address to listen on (127.0.0.1 or localhost).",
 )
+@click.option(
+    "--public-url",
+    metavar="URL",
+    default=None,
+    help="Public HTTPS URL (e.g. from tailscale serve). Skips the local cookie gate.",
+)
 @click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
-def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
+def serve(port: int, host: str, public_url: str | None, toad_args: tuple[str, ...]) -> None:
     """Serve a Toad command line in a web browser.
 
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
     `toad serve acp agent-comms-acp`.
+
+    Behind tailscale serve, pass --public-url with the HTTPS endpoint so
+    textual-serve generates the right WebSocket URLs. Access control is the
+    tailnet's; the local cookie gate is skipped.
     """
 
-
     command = shlex.join([sys.executable, "-m", "toad", *toad_args])
-    server = ToadWebServer(command, host=host, port=port, title="Toad")
+    if public_url is not None:
+        server: ToadWebServer | TailnetWebServer = TailnetWebServer(
+            command, host=host, port=port, public_url=public_url, title="Toad"
+        )
+    else:
+        server = ToadWebServer(command, host=host, port=port, title="Toad")
     TerminalApplicationLifetime.set_process_title("toad serve")
     server.serve()
 
