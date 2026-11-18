@@ -1,7 +1,8 @@
 """Drive declared actions' keys through Qt's `QShortcut`, as Textual's bindings drive them.
 
-An action's keys are its row in the shared keymap catalog for the current `ui.key_mode`,
-with `ui.keymap`'s remap: the keys Textual binds (`KeymapCatalog.effective`). `ActionKeys`
+An action's keys are the keys it declares for the current `ui.key_mode`
+(`DeclaredWidgetActions.mode_bindings`, the keys a Textual context claiming it binds), with
+`ui.keymap`'s remap of its row (`Keymap.keys_for`), so no Textual context has to be loaded. `ActionKeys`
 installs one `QShortcut` per action with those keys, firing ``.apply(context)`` (or the
 callback a composer gives), and sets every live shortcut's keys again when either setting
 changes, so a remap or a new key mode reaches Qt at once.
@@ -16,8 +17,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QWidget
 
-from toad.key_modes import KeyMode
-from toad.keymap import KeymapCatalog, KeymapRow
+from toad.keymap import KeymapRow
+from toad.widget_actions import DeclaredWidgetActions
 
 
 def _qt_sequence(key: str) -> QKeySequence:
@@ -62,9 +63,11 @@ class ActionKeys:
         self.bound: dict[int, tuple[QShortcut, object]] = {}
 
     def keys(self, action: object) -> list[QKeySequence]:
+        """``action``'s declared keys in the current key mode, after the user's remap."""
         ui = self.settings().ui
-        catalog = KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
-        return [_qt_sequence(key) for key in catalog.effective(KeymapRow.of(action, ui.key_mode), ui.keymap)]
+        declared = tuple(dict.fromkeys(
+            binding.key for binding in DeclaredWidgetActions.mode_bindings(type(action), ui.key_mode.binding_mode())))
+        return [_qt_sequence(key) for key in ui.keymap.keys_for(KeymapRow.of(action, ui.key_mode), declared)]
 
     def bind(self, widget: QWidget, action: object, fire: Callable[[], None],
              scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut) -> QShortcut:

@@ -36,7 +36,6 @@ from toad.keymap import (
     KeymapCatalog,
     KeymapRefused,
     KeymapRow as KeymapCatalogRow,
-    discover,
 )
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
@@ -127,7 +126,6 @@ class KeymapBrowserState:
     """UX state for the keymap browser. Instantiated once per browser-open."""
 
     def __init__(self, app: "ClientApplication", focused_ids: frozenset[KeyInvocationId]) -> None:
-        discover()
         self.app = app
         self.focused_ids = focused_ids
         self.mode_choices = FamilyChoices(KeyMode)
