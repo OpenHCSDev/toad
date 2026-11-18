@@ -73,11 +73,16 @@ class CommandCatalog:
     def command_named(self, name: str) -> SlashCommand:
         return next(command for command in self.commands if command.command == name)
 
+    @staticmethod
+    def may_name_command(text: str) -> bool:
+        """Whether typed text can name a command at all; anything else is a message."""
+        return text.startswith("/")
+
     @classmethod
     async def execute(cls, text: str, conversation: ConversationCommands) -> bool:
         """Run typed text as the conversation's command; False when it names none, so the
         text goes on as a message. A recognized command never falls through as text."""
-        if not text.startswith("/"):
+        if not cls.may_name_command(text):
             return False
         try:
             catalog = await conversation.read_command_catalog()

@@ -314,6 +314,10 @@ class HistoryPager(ResumesSource):
     @abstractmethod
     def window(self) -> PagingWindow: ...
 
+    def window_shown(self) -> None:
+        """The window's shown rows changed (a scroll offset or a committed layout); a pager
+        that draws no bus messages has nothing to do with that."""
+
     @property
     @abstractmethod
     def can_draw_on_screen(self) -> bool: ...
@@ -1206,6 +1210,15 @@ class NativePresentation:
 class ConversationPager(HistoryPager):
     """A conversation's pager: it can replace its whole source with a newer reading of it."""
 
+    view: object
+    """The conversation this pager draws, whose composer's submissions it settles."""
+
+    def window_shown(self) -> None:
+        """The window moved or laid out: a sent message it now shows retires from the delivery
+        preview on this frame. The view settles after reading a change, but a following window
+        scrolls to the new row one layout later, and nothing settled then."""
+        self.view.submissions.settle()
+
     async def show_newest(self, request: ReplacementViewportRequest, *,
                           arrivals: tuple[HistoryFragment, ...] = (),
                           publication_current: Callable[[], bool] = lambda: True) -> bool:
@@ -1258,7 +1271,7 @@ class NativePager:
 
 
 class DrawsBusMessages:
-    """The fragments the loaded pages draw, and whether they include a bus message, scrolled into view or not."""
+    """The fragments the loaded pages draw, and whether the window shows a bus message."""
 
     pages: deque[DrawnPage]
 
@@ -1267,4 +1280,14 @@ class DrawsBusMessages:
         return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
 
     def draws(self, reference: MessageReference) -> bool:
-        return any(fragment.draws(reference) for fragment in reversed(self.fragments_in_range))
+        """Whether the window shows the bus message `reference` names: its first row is laid
+        out and starts above the window's bottom edge. A message only paged into range, or laid
+        out below the edge in the frame before a following window scrolls to it, is not shown
+        yet, so the delivery preview keeps it for that frame (it went for one frame before the
+        message came into view). `message_top` and `viewport_rows` are the window's unit."""
+        window = self.window
+        for fragment in reversed(self.fragments_in_range):
+            if fragment.draws(reference):
+                top = window.message_top(fragment.key)
+                return top is not None and top < window.scroll_y + window.viewport_rows
+        return False

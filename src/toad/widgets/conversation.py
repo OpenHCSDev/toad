@@ -1523,7 +1523,7 @@ class Conversation(AgentTurnEvents,
     @handles(input_events.UserInputSubmitted)
     async def on_user_input_submitted(self, event: input_events.UserInputSubmitted, message: CoreEventMessage) -> None:
         message.stop()
-        await self.submissions.submit(event)
+        await self.submissions.received(event)()
 
     def queue_controls_changed(self) -> None:
         """The composer's delivery controls moved; the goal bar redraws its separators."""

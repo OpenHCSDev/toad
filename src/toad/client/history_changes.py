@@ -217,6 +217,8 @@ class PinsMessageHeader:
     `top_page` and `live_message_header` answer."""
 
     sticky_header: HeaderPin
+    histories: set
+    """The pagers drawn in this window (`PagingWindow.histories`): each hears where it moved."""
     arrival_burst: ArrivalBurst
     _restoring: bool
     pinned_scroll_y: float = 0.0
@@ -238,6 +240,8 @@ class PinsMessageHeader:
         self.pinned_scroll_y = self.scroll_y
         pinned = self.top_message_header()
         self.sticky_header.pin(pinned, burst.stack(self, pinned) if burst.messages else NO_STACK)
+        for history in tuple(self.histories):
+            history.window_shown()
 
     def open_pinned(self, index: int) -> bool:
         """The reader chose the pin's `index`th header: a stacked one scrolls to its message,

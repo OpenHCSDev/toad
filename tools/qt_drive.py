@@ -2877,6 +2877,105 @@ class DeliveryPreviewScenario(Scenario):
             raise AssertionError("; ".join(faults))
 
 
+class SendGapScenario(Scenario):
+    summary = ("open TARGET (#scratch) and send SENDS (10) messages one after another; every 16 ms "
+               "read whether each sent message is in the delivery preview or drawn in the history's "
+               "viewport, and fail when any message is in neither for a frame between its Send and "
+               "its row on screen (Tristan: the queue showed it, then a gap, then the message)")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named(os.environ.get("TARGET", "#scratch"))
+        view = self.page
+        composer = view.composer
+        history = view.messages
+        sends = int(os.environ.get("SENDS", "10"))
+        stamp = time.strftime("%H%M%S")
+        markers = [f"gap{index}-{stamp}" for index in range(sends)]
+        sent: dict[str, float] = {}
+        frames: dict[str, list[tuple[float, bool, bool]]] = {marker: [] for marker in markers}
+
+        def in_preview(marker: str) -> bool:
+            return composer.submitting.isVisible() and marker in composer.submitting.text()
+
+        def drawn(marker: str) -> bool:
+            rows = history.model_rows
+            seen = history.viewport().rect()
+            for row, fragment in enumerate(rows.fragments):
+                if fragment is not None and marker in fragment.clipboard_text:
+                    return history.visualRect(rows.index(row, 0)).intersects(seen)
+            return False
+
+        def sample() -> None:
+            now = time.monotonic()
+            for marker, at in sent.items():
+                track = frames[marker]
+                if track and track[-1][2]:
+                    continue  # drawn already: the handoff is over
+                track.append((now - at, in_preview(marker), drawn(marker)))
+        painted: dict[str, list[tuple[float, bool, bool]]] = {marker: [] for marker in markers}
+
+        def sample_painted() -> None:
+            now = time.monotonic()
+            for marker, at in sent.items():
+                track = painted[marker]
+                if track and track[-1][2]:
+                    continue
+                track.append((now - at, in_preview(marker), drawn(marker)))
+
+        class PaintSampler(QObject):
+            """Reads both places just before each repaint of the window: what a frame shows."""
+
+            def eventFilter(self, watched, event) -> bool:  # noqa: N802 - Qt virtual method name
+                if event.type() == QEvent.Type.UpdateRequest:
+                    sample_painted()
+                return False
+        paint_sampler = PaintSampler()
+        app.installEventFilter(paint_sampler)
+        from PySide6.QtCore import QTimer
+        timer = QTimer()
+        timer.setInterval(16)
+        timer.timeout.connect(sample)
+        timer.start()
+        try:
+            for marker in markers:
+                composer.editor.setPlainText(marker)
+                sent[marker] = time.monotonic()
+                composer.submit()
+                await until(lambda marker=marker: frames[marker] and frames[marker][-1][2], f"{marker} drawn",
+                            tenths=600)
+                await asyncio.sleep(0.3)
+        finally:
+            timer.stop()
+            app.removeEventFilter(paint_sampler)
+        await asyncio.sleep(1.5)
+        lingering = [marker for marker in markers if in_preview(marker)]
+        self.report("after-sends", preview_shown=composer.submitting.isVisible(), preview_text=composer.submitting.text()[:160], lingering=lingering)
+        if lingering:
+            raise AssertionError(f"drawn messages stayed in the delivery preview: {lingering}")
+        painted_gaps = {marker: sum(1 for _, preview, shown in track if not (preview or shown))
+                        for marker, track in painted.items()}
+        print(f"SEND_GAP painted frames per message={ {m: len(t) for m, t in painted.items()} } "
+              f"painted gap frames={painted_gaps}", flush=True)
+        worst: dict[str, int] = {}
+        for marker, track in frames.items():
+            run = longest = 0
+            for _, preview, shown in track:
+                run = 0 if preview or shown else run + 1
+                longest = max(longest, run)
+            worst[marker] = longest
+            first_drawn = next((at for at, _, shown in track if shown), None)
+            gaps = [index for index, (_, preview, shown) in enumerate(track) if not (preview or shown)]
+            self.report(f"send-{marker}", frames=len(track), longest_gap_frames=longest,
+                        drawn_after_s=None if first_drawn is None else round(first_drawn, 2),
+                        gap_frames_at=gaps, gap_times=[round(track[index][0], 3) for index in gaps])
+        print(f"SEND_GAP worst={max(worst.values())} frames per message={worst}", flush=True)
+        if any(worst.values()) or any(painted_gaps.values()):
+            raise AssertionError(f"a sent message was in neither the preview nor the history: sampled "
+                                 f"{worst}, painted {painted_gaps}")
+
+
 class FrameScenario(Scenario):
     summary = ("frame budget: the GUI thread's stalls and key-to-paint latency (toad.qt.frame_probe) "
                "while idle with the sidebar's waves running, while scrolling #comms, and while typing "
