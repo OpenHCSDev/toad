@@ -607,10 +607,10 @@ class QtAttachedFileChip(AttachedFileChip, QPushButton):
     def __init__(self, composer: QtMessageComposer, position: int) -> None:
         super().__init__(composer.attached_row)
         self.show_file(composer, position)
-        self.setText(f"{self.label}  ✕")
+        self.setText(f"{self.caption}  ✕")
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setToolTip("Remove this file")
-        self.clicked.connect(self.remove)
+        self.clicked.connect(self.take_off)
 
 
 class QtMessageComposer(MessagePromptComposer, Composer):

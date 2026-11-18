@@ -64,7 +64,7 @@ def file_size(size: int) -> str:
 
 
 class AttachedFileChip:
-    """One attached file as its composer draws it: its label, and taking it off. Qt's and
+    """One attached file as its composer draws it: its caption, and taking it off. Qt's and
     Textual's chip widgets inherit it; a plain mixin, as the toolkits' metaclasses need."""
 
     composer: MessagePromptComposer
@@ -74,10 +74,10 @@ class AttachedFileChip:
         self.composer, self.position = composer, position
 
     @property
-    def label(self) -> str:
+    def caption(self) -> str:
         return self.composer.chip_label(self.composer.attached_files[self.position])
 
-    def remove(self) -> None:
+    def take_off(self) -> None:
         self.composer.detach_file(self.position)
 
 
