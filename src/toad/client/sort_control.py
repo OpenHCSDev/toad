@@ -15,16 +15,44 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated, ClassVar
+
+from agent_comms.display_order import ChannelSort, ThreadSort
+from formbridge.forms.declared_fields import Placeholder
+from python_introspect import FieldLabel
+
+from toad.setting_declarations import FamilyChoices
 
 if TYPE_CHECKING:
-    from agent_comms.display_order import ChannelSort, DisplayOrder, ThreadSort
+    from agent_comms.display_order import DisplayOrder
     from formbridge.forms.declared_fields import FieldPath
     from agent_comms.transport.request import ToolRequest
-    from toad.widgets.session_sort import ChannelSortForm, ThreadSortForm
 
-    SortForm = ThreadSortForm | ChannelSortForm
-    SortFormType = type[ThreadSortForm] | type[ChannelSortForm]
+
+@dataclass(frozen=True)
+class ThreadSortForm:
+    """A thread list's sort form, for every frontend: its order's choices and placeholder."""
+
+    choices: ClassVar[FamilyChoices] = FamilyChoices(ThreadSort)
+    placeholder: ClassVar[Placeholder] = Placeholder("Mixed orders")
+    order: Annotated[
+        type[ThreadSort] | None, choices, FieldLabel("Member order"), placeholder
+    ]
+
+
+@dataclass(frozen=True)
+class ChannelSortForm:
+    """The channel list's sort form, for every frontend."""
+
+    choices: ClassVar[FamilyChoices] = FamilyChoices(ChannelSort)
+    placeholder: ClassVar[Placeholder] = Placeholder("Choose order")
+    order: Annotated[
+        type[ChannelSort] | None, choices, FieldLabel("Channel order"), placeholder
+    ]
+
+
+SortForm = ThreadSortForm | ChannelSortForm
+SortFormType = type[ThreadSortForm] | type[ChannelSortForm]
 
 
 class CommsSortWrite[Order: "DisplayOrder"]:

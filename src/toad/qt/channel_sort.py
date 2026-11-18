@@ -20,8 +20,7 @@ from PySide6.QtWidgets import QMenu, QToolButton, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from agent_comms.display_order import ChannelSort, DisplayOrder, ThreadSort
-from toad.client.sort_control import ChannelListOrder, ChannelMemberOrder, CommsSortWrite, SortControlBase
-from toad.widgets.session_sort import ChannelSortForm, ThreadSortForm
+from toad.client.sort_control import ChannelListOrder, ChannelMemberOrder, ChannelSortForm, CommsSortWrite, SortControlBase, ThreadSortForm
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp

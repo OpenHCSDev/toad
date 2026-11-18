@@ -17,41 +17,21 @@ from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
-from typing import Annotated, ClassVar
+from typing import ClassVar
 
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
-from toad.client.sort_control import ChannelListOrder, CommsSortWrite, SortControlBase
-from python_introspect import FieldLabel
+from toad.client.sort_control import ChannelListOrder, ChannelSortForm, CommsSortWrite, SortControlBase, ThreadSortForm
 from textual.geometry import Region
 from textual.widget import Widget
 from textual.widgets import Static
 from toad.widget_actions import Activates
 
 from toad.widgets.comms_menu import ContextMenu
-from formbridge.forms.declared_fields import FieldPath, Placeholder
-from toad.setting_declarations import FamilyChoices
+from formbridge.forms.declared_fields import FieldPath
 from textual.events import Mount
 from textual import on
-
-
-@dataclass(frozen=True)
-class ThreadSortForm:
-    choices: ClassVar[FamilyChoices] = FamilyChoices(ThreadSort)
-    placeholder: ClassVar[Placeholder] = Placeholder("Mixed orders")
-    order: Annotated[
-        type[ThreadSort] | None, choices, FieldLabel("Member order"), placeholder
-    ]
-
-
-@dataclass(frozen=True)
-class ChannelSortForm:
-    choices: ClassVar[FamilyChoices] = FamilyChoices(ChannelSort)
-    placeholder: ClassVar[Placeholder] = Placeholder("Choose order")
-    order: Annotated[
-        type[ChannelSort] | None, choices, FieldLabel("Channel order"), placeholder
-    ]
 
 
 class SortChoice[Order: DisplayOrder](SortControlBase[Order]):

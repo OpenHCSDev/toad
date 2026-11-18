@@ -43,7 +43,7 @@ from toad.client.relationship_tree_state import RelationshipPanel, RelationshipT
 from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sort_control import RelationshipOrder
 from toad.qt.channel_sort import QtSortButton
-from toad.widgets.session_sort import ThreadSortForm
+from toad.client.sort_control import ThreadSortForm
 from toad.thread_identity import SessionIdentity
 from toad.qt.metrics import UiGap
 
