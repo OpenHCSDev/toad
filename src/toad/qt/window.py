@@ -1773,18 +1773,17 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             screen.refreshRateChanged.connect(self.follow_display)
 
     def paint_tabs(self) -> None:
-        """The tabs as the navigation has them: a tab's title, unread count and busy wave.
-        Nothing is drawn or marked again when neither the tabs nor the selected one changed."""
+        """The tabs as the navigation has them: a tab's title, unread count and busy wave; the
+        bar redraws only what changed (`show_tabs`). The selected tab is marked every time, as
+        before: marking it presents the panes, and a pane state change that asks for nothing
+        else (the sidebar leaving the whole window as the first tab opens) is presented there."""
         self.tabs.blockSignals(True)
         badge = self.settings.sidebar.unread_counts.badge
         tabs = tuple(self.session_navigation.tabs)
-        changed = self.tabs.show_tabs([(tab.label() + tab.unread_suffix(badge), tab.mode_name) for tab in tabs])
+        self.tabs.show_tabs([(tab.label() + tab.unread_suffix(badge), tab.mode_name) for tab in tabs])
         self.tabs.follow_tabs(tabs)
         self.tabs.blockSignals(False)
-        modes = self.session_navigation.tab_modes
-        selected = modes.index(self.selected_mode) if self.selected_mode in modes else -1
-        if changed or self.tabs.currentIndex() != selected:
-            self.mark_current()
+        self.mark_current()
 
     def mark_current(self) -> None:
         modes = self.session_navigation.tab_modes
