@@ -60,6 +60,13 @@ class AgentConnection(GoalSource):
     of probing via `getattr(agent, "controller", None)`."""
 
     @property
+    def plan_entries(self) -> tuple:
+        """The agent's current plan, as the thread sidebar's Plan panel lists it: the ACP
+        controller's plan display, or no entries for a connection without one."""
+        controller = self.controller
+        return tuple(controller.plan_display.entries) if controller is not None else ()
+
+    @property
     def readiness_refusal(self) -> NoLiveAgent:
         return NoLiveAgent(self.session_disposition)
 

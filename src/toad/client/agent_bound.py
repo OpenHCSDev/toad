@@ -38,10 +38,9 @@ class AgentBoundConversation(ABC):
 
     @property
     @abstractmethod
-    def bound_agent(self) -> "AgentConnection | None":
-        """The live agent on this view, or None when no agent is bound (empty slot or
-        NoAgentConnection). Consumers like QtPlan read this as a declared attribute
-        instead of probing views with `getattr(view, "bound_agent", None)`."""
+    def bound_agent(self) -> "AgentConnection":
+        """The agent on this view: its live connection, or `NoAgentConnection` before one
+        is bound."""
 
     @abstractmethod
     def _store_agent_binding(self, agent: "AgentConnection") -> None:
@@ -71,13 +70,9 @@ class ObservedAgentBinding(AgentBoundConversation):
         self.agent_binding = agent  # type: ignore[assignment]
 
     @property
-    def bound_agent(self) -> "AgentConnection | None":
-        """The live agent on this view: the stored `agent_binding` when it is a real
-        agent, else None. NoAgentConnection reads as None so callers get a clean
-        attribute instead of having to test identity against the sentinel."""
-        from toad.agent_binding import NoAgentConnection
-        binding = self.agent_binding
-        return None if isinstance(binding, NoAgentConnection) else binding
+    def bound_agent(self) -> "AgentConnection":
+        """The stored `agent_binding`: `NoAgentConnection` until a live agent binds."""
+        return self.agent_binding
 
     def on_agent_binding_change(
         self, callback: Callable[["AgentConnection", "AgentConnection"], None]

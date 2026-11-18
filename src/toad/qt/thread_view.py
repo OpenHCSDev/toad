@@ -430,6 +430,7 @@ class QtThreadView(
             self.goal_bar = None
             return None
         self.goal_bar = QtGoalBar(app, app.renderer, incarnation)
+        self.goal_bar.peer_rows_changed.connect(self.refresh_composer_surround)
         # Kick off the core-event subscription + first goal read NOW, not on
         # showEvent. `present_state()` in the bar's __init__ already hid the
         # widget (no goal snapshot yet), so waiting for showEvent would stall

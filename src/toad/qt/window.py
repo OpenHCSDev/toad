@@ -59,6 +59,7 @@ from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.category_selection import CategorySelection
+from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
@@ -638,7 +639,7 @@ class QtStartSessionButton(NewSessionControl, QPushButton):
         self._host.run_operation(MenuActionRun, partial(self.start_session, self._host))
 
 
-class Welcome(Page, BusListing, QWidget):
+class Welcome(Page, BusListing, NoConversationView, QWidget):
     """Toad's welcome, while no conversation tab is open and in place of a saved tab this app
     has not opened: the banner, the project, the channels and threads the shared welcome
     lists, and the buses (BusListing): the remote ones this machine holds, with the peers
@@ -1926,10 +1927,9 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         return (tab.title for tab in self.session_navigation.tabs if tab.mode_name == mode)
 
     def _bind_thread_pane(self) -> None:
-        """The thread's settings follow the open conversation; the welcome is the only other
-        page, and it owns none."""
-        selected = self.workspace_sessions.selected
-        self.thread_pane.bind(selected if self._conversation_open() else None)
+        """The thread's settings follow the selected page: a conversation, or the welcome,
+        which is a `NoConversationView`."""
+        self.thread_pane.bind(self.workspace_sessions.selected)
 
     def present_panes(self) -> None:
         """Draw both sidebars from the one layout and place them; the thread's sidebar is

@@ -27,7 +27,7 @@ from toad.qt.project_panel import QtProjectPanel
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
-from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import (
     THREAD_SIDEBAR_PANELS, ThreadSidebarPanelBody, ThreadSidebarPanelSpec, panel_specs_for_view,
 )
@@ -128,12 +128,9 @@ class ThreadSettingsPane(QWidget):
         return self._bodies_by_key[spec.key]
 
     def bind(self, view) -> None:
-        """Follow the conversation the tab now shows; the welcome has none (view is None,
-        per `_bind_thread_pane`), so the toggles go quiet. Panels that read / write the
-        view receive it here."""
-        self._coordination_status.identity_changed(
-            view.thread_identity if view is not None else NoThreadIdentity()
-        )
+        """Follow the view the tab now shows: a conversation, or the welcome, whose
+        `NoConversationView` answers absent members. Every panel takes the view as it is."""
+        self._coordination_status.identity_changed(view.thread_identity)
         self._comms_panel.bind(view)
         self._plan_panel.bind(view)
         self._context_panel.bind(view)

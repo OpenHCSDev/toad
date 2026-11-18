@@ -13,14 +13,16 @@ its existing metaclass without conflict, matching how `SessionScope` in
 """
 from __future__ import annotations
 
+from toad.client.session_scope import NoConversationView, SessionScope
 from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 
 
 class SessionPanel(ThreadSidebarPanelBody):
     """Qt sidebar panel bound to the active conversation view.
 
-    `_view` is the one owner of "which view this panel follows." `bind(view)`
-    updates it and triggers a `present()`. Concrete panels override `present()`
+    `_view` is the one owner of "which view this panel follows": a conversation, or the
+    welcome's `NoConversationView` answers, never None. `bind(view)` updates it and triggers
+    a `present()`. Concrete panels override `present()`
     to read from `self._view` and repaint. Panels that need additional bind-time
     work (subscriptions, refetches) extend `bind` with `super().bind(view)` then
     their own logic.
@@ -28,11 +30,10 @@ class SessionPanel(ThreadSidebarPanelBody):
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self._view: object | None = None
+        self._view: SessionScope = NoConversationView()
 
-    def bind(self, view: object | None) -> None:
-        """Attach this panel to a view (or detach with `None`). The subclass's
-        `present()` is called so the new view's state paints immediately."""
+    def bind(self, view: SessionScope) -> None:
+        """Follow ``view``; `present()` paints its state at once."""
         self._view = view
         self.present()
 

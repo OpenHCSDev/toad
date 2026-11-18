@@ -37,12 +37,12 @@ from PySide6.QtWidgets import (
 )
 
 from toad.qt.session_panel import SessionPanel
-from toad.client.category_selection import CategorySelection, NoCategorySelection
+from toad.client.category_selection import CategorySelection
 from toad.client.relationship_tree_state import RelationshipTreeState
 from toad.client.sort_control import RelationshipOrder
 from toad.qt.channel_sort import QtSortButton
 from toad.widgets.session_sort import ThreadSortForm
-from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.thread_identity import SessionIdentity
 from toad.qt.metrics import UiGap
 
 
@@ -105,7 +105,7 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
 
     @property
     def _categories(self) -> CategorySelection:
-        return self._view.category_selection if self._view is not None else NoCategorySelection()
+        return self._view.category_selection
 
     def _sync_checks(self) -> None:
         selection = self._categories
@@ -121,16 +121,10 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
 
     def present(self) -> None:
         self._sync_checks()
-        if self._view is None:
-            self._context.setText("No open conversation")
-            self._tree.clear()
-            return
         asyncio.ensure_future(self._refresh())
 
     @property
     def _thread_identity(self) -> SessionIdentity:
-        if self._view is None:
-            return NoThreadIdentity()
         return self._view.thread_identity
 
     @property
