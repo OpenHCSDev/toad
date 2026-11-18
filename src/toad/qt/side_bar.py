@@ -359,7 +359,21 @@ class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
         parts = self.surface_parts(self.placement.side, cells)
         self.toggle.setGeometry(cells_to_pixels(parts.toggle, cells, local))
         self.handle.setGeometry(cells_to_pixels(parts.handle, cells, local))
-        self.content_stack.setGeometry(cells_to_pixels(parts.content, cells, local))
+        self.content_stack.setGeometry(self._held_content(cells_to_pixels(parts.content, cells, local)))
+
+    def _held_content(self, content: QRect) -> QRect:
+        """While a grip holds an extent the content keeps its length along the drag, against
+        the wall: the bar's edge moves, and its rows are fitted to the new width once, when the
+        hold ends, as the conversation's are."""
+        held = self.content_stack.geometry()
+        if not self._layout.holding or held.isEmpty() or self.collapsed:
+            return content
+        side = self.placement.side
+        if side.coordinate(Offset(1, 0)) != 0:
+            left = content.left() if side.sign > 0 else content.right() + 1 - held.width()
+            return QRect(left, content.top(), held.width(), content.height())
+        top = content.top() if side.sign > 0 else content.bottom() + 1 - held.height()
+        return QRect(content.left(), top, content.width(), held.height())
 
 
 class PaneSlide(TransitionTarget):

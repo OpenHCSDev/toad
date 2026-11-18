@@ -120,6 +120,8 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
             QtPanelEntry.of(spec.panel, bodies[spec.key], controls.get(spec.key, ()), type(bodies[spec.key]))
             for spec in panel_specs_for_view(is_session=True))
         self._view = NoConversationView()
+        # The coordination revision the panels last read the bound view's thread at.
+        self._shown_revision = None
         # The entries built for the bound view (its settings and actions), released when the
         # view changes; the roster panels follow every view.
         self._view_entries: tuple[QtPanelEntry, ...] = ()
@@ -128,20 +130,26 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
     def bind(self, view) -> None:
         """Follow the view the tab now shows: a conversation, or the welcome, whose
         `NoConversationView` answers absent members. Every panel takes the view as it is,
-        and the view's own settings follow the roster. The entries are listed again only
-        when the view changes: the window re-binds the same view on every layout pass."""
+        and the view's own settings follow the roster. The window binds on every layout pass
+        (a drag lays out every frame) and on every observation update. The panels read the
+        view's thread at the bus's coordination revision, so they are bound again only when
+        either changed; the view's settings and actions are listed again only for a new view."""
+        revision = self.app.coordination_access.revision
+        if view is self._view and revision is self._shown_revision:
+            return
         listed = view is self._view
-        self._view = view
+        self._view, self._shown_revision = view, revision
         self._coordination_status.identity_changed(view.thread_identity)
         self._comms_panel.bind(view)
         self._plan_panel.bind(view)
         self._context_panel.bind(view)
-        if not listed:
-            self._release_view_entries()
-            entries = self.thread_entries(view)
-            self._view_entries = entries[len(self._roster):]
-            self.menu.show_entries(entries)
-            self._actions_task = asyncio.ensure_future(self._load_actions(view))
+        if listed:
+            return
+        self._release_view_entries()
+        entries = self.thread_entries(view)
+        self._view_entries = entries[len(self._roster):]
+        self.menu.show_entries(entries)
+        self._actions_task = asyncio.ensure_future(self._load_actions(view))
 
     async def _load_actions(self, view) -> None:
         """The view's backend configuration operations, read off the UI loop and listed after

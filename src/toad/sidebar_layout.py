@@ -257,22 +257,31 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
     def extent_dragged(self, percent: int) -> None:
         """A grip or the extent slider is held at ``percent``. Below the fold threshold the
         pane keeps its smallest extent (it folds when released there); from it upward the
-        pane opens if folded and takes the extent. One rule for every grip on every frontend."""
+        pane opens if folded and takes the extent. One rule for every grip on every frontend.
+        A hold only lays the bars out: nothing reaches the settings until it ends."""
         if percent >= SidebarLayout.fold_percent:
             if self.collapsed:
                 self.fold(False)
-            self.resize_to(percent)
+            if self.sidebar_layout.hold(self.placement_identity, percent):
+                self.lay_out()
 
     def extent_released(self, percent: int, restore: int) -> None:
-        """The hold ends at ``percent``. Released below the fold threshold the pane folds, and
-        its extent goes back to ``restore``, what it had before this hold, so a click on the
-        strip reopens it there."""
+        """The hold ends at ``percent``. Kept, the held extent is written once and the
+        conversation takes its new room. Released below the fold threshold the pane folds
+        instead, and keeps ``restore``, what it had before this hold, so a click on the strip
+        reopens it there."""
+        layout = self.sidebar_layout
         if percent >= SidebarLayout.fold_percent:
+            if layout.keep_held():
+                self.arranged()
             return
-        if self.sidebar_layout.resize(self.placement_identity, restore):
+        layout.drop_held()
+        layout.resize(self.placement_identity, restore)
+        if self.collapsed:
             self.arranged()
-        if not self.collapsed:
+        else:
             self.fold(True)
+            self.client.keep_settings()
 
     def dragged_percent(self, start_percent: int, delta: Offset, viewport_extent: int) -> int:
         """The extent a resize-handle drag of ``delta`` asks for, from ``start_percent``,
@@ -466,9 +475,12 @@ class SidebarChromeArrangement[Bar: SidebarSurface](ABC):
 
     def arrange_chrome(self, viewport: Size) -> ChromeArrangement[Bar]:
         bars = self.presented_sidebars()
-        resolved = self.sidebar_layout.resolve(
-            viewport, {bar.placement_identity: bar.collapsed for bar in bars})
-        gutter = resolved.gutter
+        layout = self.sidebar_layout
+        collapsed = {bar.placement_identity: bar.collapsed for bar in bars}
+        resolved = layout.resolve(viewport, collapsed)
+        # While a grip holds an extent the bars follow it, but the conversation keeps the room
+        # the kept arrangement gives it: it is laid out (its rows measured) once, on release.
+        gutter = layout.resolve(viewport, collapsed, resting=True).gutter if layout.holding else resolved.gutter
         content = Region(gutter.left, gutter.top, max(0, viewport.width - gutter.width),
                          max(0, viewport.height - gutter.height))
         return ChromeArrangement(content, gutter,
@@ -505,6 +517,9 @@ class SidebarLayout:
     def __init__(self, settings: ArrangementStore, origin: type[TerminalOrigin]) -> None:
         self.settings, self.origin = settings, origin
         self._collapsed: dict[type[SidebarPlacement], bool] = {}
+        # Extents a grip is holding: the bars are drawn at them, but nothing is written to the
+        # settings until the hold ends (`keep_held`), so a drag costs only its layout.
+        self._held: dict[type[SidebarPlacement], int] = {}
 
     def is_collapsed(self, identity: type[SidebarPlacement]) -> bool:
         """Whether the bar for ``identity`` shows only its toggle (True) or its
@@ -539,9 +554,46 @@ class SidebarLayout:
         return next(saved, TerminalLayout(self.origin))
 
     @property
-    def placements(self) -> dict[type[SidebarPlacement], SidebarPlacement]:
+    def resting_placements(self) -> dict[type[SidebarPlacement], SidebarPlacement]:
+        """The kept arrangement: the settings' placements, or each role's initial one."""
         saved = {type(placement): placement for placement in self.terminal.placements}
         return {role: saved.get(role, role.initial()) for role in ActiveSidebarPlacement.members_with(ActiveSidebarPlacement)}
+
+    @property
+    def placements(self) -> dict[type[SidebarPlacement], SidebarPlacement]:
+        """The arrangement as drawn now: the kept one, with any extent a grip is holding."""
+        placements = self.resting_placements
+        for role, percent in self._held.items():
+            placements[role] = replace(placements[role], extent_percent=percent)
+        return placements
+
+    @property
+    def holding(self) -> bool:
+        return bool(self._held)
+
+    def hold(self, identity: type[SidebarPlacement], percentage: int) -> bool:
+        """A grip holds ``identity``'s slot at ``percentage``: drawn so, not yet kept."""
+        placements = self.placements
+        percentage = max(self.minimum_percent, min(self.maximum_percent, percentage))
+        slot = self._slot(placements, identity)
+        if all(placements[key].extent_percent == percentage for key in slot):
+            return False
+        for key in slot:
+            self._held[key] = percentage
+        return True
+
+    def keep_held(self) -> bool:
+        """The hold ended: write the held extents to the settings once."""
+        if not self._held:
+            return False
+        placements = self.placements
+        self._held.clear()
+        self._store(placements)
+        return True
+
+    def drop_held(self) -> None:
+        """The hold ended without keeping what it held (the pane folded instead)."""
+        self._held.clear()
 
     def split(self, side: type[SidebarEdge]) -> int:
         """The first bar's share of the band on this edge."""
@@ -648,13 +700,14 @@ class SidebarLayout:
         self._store(placements)
         return placements[identity].floating
 
-    def resolve(self, viewport: Size, collapsed: dict[type[SidebarPlacement], bool]) -> ResolvedSidebarLayout:
+    def resolve(self, viewport: Size, collapsed: dict[type[SidebarPlacement], bool], *,
+                resting: bool = False) -> ResolvedSidebarLayout:
         """Pack each axis once; top/bottom surfaces own the corners.
 
         Float changes only conversation clearance. A pushed inner peer clears
         its floating outer peer too; collapsed handles always reserve space.
         """
-        placements = self.placements
+        placements = self.resting_placements if resting else self.placements
         spans: dict[type[SidebarPlacement], SidebarGeometry] = {}
         occupied = gutter = Spacing()
         edges = SidebarEdge.members_with(SidebarEdge)

@@ -1581,6 +1581,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
         self._animation_timer = QTimer(self)
         self._animation_timer.timeout.connect(self._tick_animation)
+        self._layout_pending = False
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
         # One background task per transfer kind, cancelled + replaced when the same
         # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
@@ -1860,8 +1861,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.chrome.arrange()
 
     def rearrange_sidebars(self) -> None:
-        """A move, float or toggle: lay the panes out again. SidebarLayout has already written
-        the arrangement into the settings the surface keeps."""
+        """A move, resize, float or fold: present the panes again, once per turn of the event
+        loop however many grip moves arrived in it. A fold can change what the thread pane
+        follows (`_bind_thread_pane`); a resize cannot, and binding the same view is free."""
+        if not self._layout_pending:
+            self._layout_pending = True
+            QTimer.singleShot(0, self, self._present_pending)
+
+    def _present_pending(self) -> None:
+        self._layout_pending = False
         self.present_panes()
 
     def show_sidebar(self) -> None:
