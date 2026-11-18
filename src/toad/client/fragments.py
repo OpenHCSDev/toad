@@ -2,6 +2,7 @@
 shows and its line blocks. Each frontend adds how it draws and measures those blocks."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from typing import ClassVar
@@ -298,6 +299,11 @@ class HistoryFragment(CursorRest):
     @cached_property
     def key(self) -> FragmentKey:
         return FragmentKey(self.source_identity, self.part_position.index)
+
+    def message_head(self, fragments: Iterable["HistoryFragment"]) -> "HistoryFragment":
+        """The first part of this fragment's message among ``fragments`` in order: where a
+        tap on any of its parts brings the reader (both frontends' clicked-head reveal)."""
+        return next((part for part in fragments if part.source_identity == self.source_identity), self)
 
     @property
     def pinned_dividers(self) -> tuple[Divider, ...]:

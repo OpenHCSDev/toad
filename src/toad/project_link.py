@@ -10,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from time import monotonic
 from typing import Annotated, ClassVar
 from agent_comms.nominal.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
@@ -100,15 +101,39 @@ class ProjectLink(LineLink):
         if suffix is not None:
             # Colons may belong to a real POSIX filename; don't erase that identity.
             try:
-                return DirectProjectFileLink(cls.existing_file(root, value), original_root=root, position=position)
+                return DirectProjectFileLink(cls.linked_file(root, value), original_root=root, position=position)
             except ProjectLinkProblem:
                 value, position = spelling, position or suffix
         try:
-            return DirectProjectFileLink(cls.existing_file(root, value), original_root=root, position=position)
+            return DirectProjectFileLink(cls.linked_file(root, value), original_root=root, position=position)
         except ProjectLinkProblem:
             if search and SearchProjectFileLink.accepts(value):
                 return SearchProjectFileLink(value, original_root=root, position=position)
         return NO_LINK
+
+    LINKED_SECONDS: ClassVar[float] = 10.0
+    _linked: ClassVar[dict[tuple[Path, str], tuple[float, Path | None]]] = {}
+
+    @classmethod
+    def linked_file(cls, root: Path, value: str) -> Path:
+        """`existing_file` for drawing text as a link: a path spelled in a message is checked
+        once per `LINKED_SECONDS`, not on every row it is drawn in. Formatting a history row
+        resolved each path-like word on disk (a realpath and a stat per word, per row, per
+        width), which a history drawn on the phone's row thread did while the screen waited
+        for the interpreter. Opening a link still checks the file as it is then (`resolve`)."""
+        key, now = (root, value), monotonic()
+        checked = cls._linked.get(key)
+        if checked is None or now - checked[0] > cls.LINKED_SECONDS:
+            try:
+                found: Path | None = cls.existing_file(root, value)
+            except ProjectLinkProblem:
+                found = None
+            if len(cls._linked) > 4096:
+                cls._linked.clear()
+            checked = cls._linked[key] = (now, found)
+        if checked[1] is None:
+            raise ProjectLinkProblem(value, root)
+        return checked[1]
 
     @staticmethod
     def existing_file(root: Path, value: str) -> Path:

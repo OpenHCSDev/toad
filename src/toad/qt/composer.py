@@ -447,7 +447,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         """The frame's border follows focus (Textual's `PromptContainer.border`), and the
         badge shows the editing mode only while focused."""
         colour = self.renderer.theme(PrimaryColour if focused else MutedColour)
-        self.frame.setStyleSheet(
+        self.renderer.apply_sheet(self.frame,
             f"#prompt-frame {{ border: 1px solid {colour}; border-radius: 2px }}"
             if self.settings.ui.input.box.bordered
             else "#prompt-frame { border: none }")
@@ -772,7 +772,7 @@ class Receipt(NotificationSubscriber, WrappedText):
         self.show()
 
     def paint_colour(self) -> None:
-        self.setStyleSheet(f"{self.renderer.color_style(self.status.role)}; padding: 0 8px 4px 8px")
+        self.renderer.apply_sheet(self, f"{self.renderer.color_style(self.status.role)}; padding: 0 8px 4px 8px")
 
     def notifications_observed(self, results) -> None:
         for status in CheckedNotifications.for_references(self.references, results):

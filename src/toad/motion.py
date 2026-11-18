@@ -30,6 +30,10 @@ ROW_REVEAL = Transition(Amount, 0.0, 1.0, _TAB_DURATION, _TAB_FPS)
 # rather than vanishing in one frame.
 SCROLLBAR_FADE = Transition(Amount, 1.0, 0.0, 0.3, _TAB_FPS)
 
+# A tapped message whose head is above the viewport glides its head to the top, rather than
+# the view jumping there in one frame.
+HEAD_REVEAL = Glide(Amount, 0.0, 1.0, 0.18)
+
 
 def animations_enabled() -> bool:
     """Whether this process animates: Textual's own animation level, which the TUI's clock

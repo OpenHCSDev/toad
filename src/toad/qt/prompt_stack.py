@@ -67,7 +67,7 @@ class QtFlash(FlashNotice, ElidedLine, metaclass=PyQtWidgetMeta):
         scheme = self.renderer.scheme
         ink = tone.colour.rgb(scheme)
         tint = BackgroundColour.rgb(scheme).blend(ink, 0.1)
-        self.setStyleSheet(f"color: {ink.hex}; background: {tint.hex}")
+        self.renderer.apply_sheet(self, f"color: {ink.hex}; background: {tint.hex}")
         self.setText(str(content))
         self.show()
 
@@ -161,7 +161,7 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
 
     def paint_title(self) -> None:
         """The title in its row's status role, under the renderer's current scheme."""
-        self.title.setStyleSheet(
+        self.renderer.apply_sheet(self.title,
             f"QToolButton {{ {self.renderer.color_style(self.title_role_for(self.row, self.status))};"
             " border: none; text-align: left; padding: 0 4px }")
 

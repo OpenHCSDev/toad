@@ -75,7 +75,7 @@ from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
-from toad.motion import FOLLOW_ARRIVAL, TransitionTarget
+from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
 from toad.qt.widget_animation import WidgetAnimation
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
@@ -195,6 +195,7 @@ class HistoryRows(QAbstractListModel):
     def __init__(self) -> None:
         super().__init__()
         self.fragments: tuple[HistoryFragment, ...] = ()
+        self._rows: dict = {}
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:  # type: ignore[override]
         return 0 if parent.isValid() else len(self.fragments)
@@ -209,10 +210,17 @@ class HistoryRows(QAbstractListModel):
     def show(self, fragments: tuple[HistoryFragment, ...]) -> None:
         self.beginResetModel()
         self.fragments = fragments
+        # Every row a key names, built with the rows: a lookup is asked per changed row on
+        # each receipt update, arrival, glide and reader restore, and a scan compared every
+        # row's key each time.
+        rows: dict = {}
+        for row, fragment in enumerate(fragments):
+            rows.setdefault(fragment.key, row)
+        self._rows = rows
         self.endResetModel()
 
     def row_of(self, key) -> int:
-        return next((row for row, fragment in enumerate(self.fragments) if fragment.key == key), -1)
+        return self._rows.get(key, -1)
 
 
 class ArrivalFade(WidgetAnimation):
@@ -270,6 +278,32 @@ class ArrivalGlide(WidgetAnimation, TransitionTarget):
         if window.follows_tail:
             with window.layout_scroll():
                 window.follow_end()
+
+
+class HeadReveal(WidgetAnimation, TransitionTarget):
+    """A tapped message whose head is above the viewport glides its head up to the top
+    (`HEAD_REVEAL`), as Textual's clicked-head reveal scrolls it into view. A finger that
+    takes the rows again stops it where it is."""
+
+    def __init__(self, window: QtHistoryWindow, start: float, target: float) -> None:
+        self.window, self.start, self.target = window, start, target
+        self.bind_widget(window, window.animation_clock)
+        self.start_transition(window.animation_clock, HEAD_REVEAL)
+
+    def apply_amount(self, amount: float) -> None:
+        window = self.window
+        window.scroll_y = self.start + (self.target - self.start) * amount
+
+    def land(self) -> None:
+        window = self.window
+        if window.head_reveal is self:
+            window.head_reveal = None
+            window.scroll_y = self.target
+
+    def cancel(self) -> None:
+        """Stop where it is: the reader's own scrolling owns the rows now."""
+        self.window.head_reveal = None
+        self.animation.stop()
 
 
 class HistoryRowDelegate(RowDocumentDelegate):
@@ -563,11 +597,14 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         """Qt holds no rows below a following reader: arrivals rise where `repaint` names them."""
 
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
-        """A status change lays the rows out again: a row's cache key carries how its fragment
-        is shown, so the changed rows render anew."""
-        changed = [fragment for fragment, shown in changes if fragment.request_show(shown)]
+        """A status change repaints only the rows it changed. A row's cache key carries how
+        its fragment is shown, so the repaint asks the delegate for the new look, which keeps
+        drawing the last one until it is prepared, and that arrival lays the rows out
+        (`RowDocumentDelegate._row_prepared`). Laying every row out here on each receipt
+        update cost the whole history's measurement while the new looks were not even ready."""
+        changed = tuple(fragment for fragment, shown in changes if fragment.request_show(shown))
         if changed:
-            self.window.rows_changed()
+            self.repaint(continuing=changed)
 
     def repaint(self, fragments: tuple[HistoryFragment, ...] = (), *, continuing=()) -> None:
         """Repaint only the rows the pager named. The shared contract already says which
@@ -891,8 +928,10 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         # fires it once when the drag ends (and Scrolling/Inactive ticks still
         # run it as before). Leaves at_end/follows_tail transitions in `scrolled`
         # alone — those are cheap and only do work when the state actually flips.
+        # A finger pulling past an edge is the one drag that asks for rows at once
+        # (`overshot`): no scroll travel measures it.
         self._scroller_dragging = False
-        self._drag_skipped_ticks = 0
+        self._overshoot = 0.0
         _scroller = QScroller.scroller(self.viewport())
         _scroller.stateChanged.connect(self._on_scroller_state)
         # The floating "jump to latest" button: child of the window (not the viewport), so
@@ -905,16 +944,26 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         # Arriving rows fading in, and the glide down to them (`arrive`).
         self.arrivals: list[ArrivalFade] = []
         self.glide: ArrivalGlide | None = None
+        # A tapped message's head gliding to the top (`reveal_head_at`).
+        self.head_reveal: HeadReveal | None = None
+        # A press that stops a fling is not a tap on a row (Android's lists do the same).
+        self._fling_stopped = False
         # Rows that arrived at the end the reader follows, not yet glided to (`glide_to_end`).
         self._arrived: tuple = ()
+        # A press makes its row Qt's current index, and autoScroll would then scroll that
+        # row into view at once (QAbstractItemView.currentChanged → scrollTo): a jump on
+        # every tap, and one that fights a drag starting on a row. A tap's reveal is the
+        # explicit `reveal_head_at`.
+        self.setAutoScroll(False)
         self.viewport().installEventFilter(self)
         # Block menu: a right-click, or a held finger (`FingerPress` delivers it as one), on a
         # message row emits `block_menu_requested` with the row's fragment. ConversationView
         # mounts the handler and runs the resulting commands.
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._emit_block_menu_at)
-        # A tap on a link opens it, in place of the row's own click (`FingerPress.tapped`).
-        FingerPress.install(QApplication.instance()).tapped.connect(self._link_tapped)
+        # A tap on a link opens it, and a tap on a message reveals its head, in place of the
+        # row's own click (`FingerPress.tapped`).
+        FingerPress.install(QApplication.instance()).tapped.connect(self._row_tapped)
         # Reader keys (ctrl+d / ctrl+u / shift+g) come from the `ReaderAction` family
         # declared in `src/toad/reader_actions.py`. Both backends drive from that one
         # declaration: Textual through the Action/BindingsMap path, Qt through
@@ -1019,17 +1068,24 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
                 if self.jump_bar.isVisible():
                     self._place_jump_bar()
                 self.repin_header()
+            elif event.type() == QEvent.Type.Scroll:
+                self.overshot(event.overshootDistance().y())
         return super().eventFilter(obj, event)
 
-    def _link_tapped(self, press: Press) -> None:
-        """A tap on a link drawn in a row opens it, and the row doesn't also take the tap."""
+    def _row_tapped(self, press: Press) -> None:
+        """A tap on a row: a link drawn there opens; otherwise a message whose head is above
+        the viewport glides its head to the top (`reveal_head_at`). Either way the row
+        doesn't also take the tap."""
         viewport = self.viewport()
         if not press.within(viewport):
             return
-        href = self.anchor_at(press.at(viewport))
+        point = press.at(viewport)
+        href = self.anchor_at(point)
         if href:
             press.claim()
             self.open_link(href)
+        elif self.reveal_head_at(point):
+            press.claim()
 
     def anchor_at(self, point: QPoint) -> str:
         """The href of the link drawn at `point` (viewport coordinates), or "" over plain text."""
@@ -1352,25 +1408,60 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
         if self._scroller_dragging:
-            self._drag_skipped_ticks += 1
             return
         self.respond_to_scroll(value)
 
+    _flinging = False
+
+    def reveal_head_at(self, point: QPoint) -> bool:
+        """A tap at ``point`` (viewport coordinates): when the tapped message's head is above
+        the viewport, glide it up to the top. A head already on screen stays where it is,
+        as in Textual (`reveal_message_head`); a tap that stopped a fling reveals nothing.
+        Whether it moved the rows."""
+        stopped, self._fling_stopped = self._fling_stopped, False
+        index = self.indexAt(point)
+        if stopped or not index.isValid():
+            return False
+        model_rows = self.model_rows
+        head = index.data(HistoryRows.FRAGMENT).message_head(model_rows.fragments)
+        row = model_rows.row_of(head.key)
+        if row < 0:
+            return False
+        top = self.visualRect(model_rows.index(row, 0)).top()
+        if top >= 0:
+            return False
+        if self.head_reveal is not None:
+            self.head_reveal.cancel()
+        start = self.scroll_y
+        self.head_reveal = HeadReveal(self, start, max(0.0, start + top))
+        return True
+
     def _on_scroller_state(self, state) -> None:
-        """Track QScroller state transitions. On the drag → not-drag edge, flush the
-        post-scroll work `scrolled` skipped while the finger was down, using the
-        current scrollbar position. Prints the skipped-tick count once per drag so
-        the perf win is visible in logcat."""
+        """On the drag → not-drag edge, answer the drag's last position at once. A finger
+        taking the rows stops a head reveal; a press that stops a fling is remembered, so
+        its release is not read as a tap on a row."""
         was_dragging = self._scroller_dragging
         self._scroller_dragging = (state == QScroller.State.Dragging)
+        if state in (QScroller.State.Pressed, QScroller.State.Dragging) and self.head_reveal is not None:
+            self.head_reveal.cancel()
+        if state == QScroller.State.Pressed:
+            self._fling_stopped = self._flinging
+        self._flinging = state == QScroller.State.Scrolling
+        if state == QScroller.State.Inactive:
+            self._overshoot = 0.0
         if was_dragging and not self._scroller_dragging:
-            print(
-                f"QtHistoryWindow drag ended: skipped {self._drag_skipped_ticks} "
-                f"respond_to_scroll ticks during drag",
-                flush=True,
-            )
-            self._drag_skipped_ticks = 0
             self.respond_to_scroll(self.verticalScrollBar().value())
+
+    def overshot(self, distance: float) -> None:
+        """A finger (or a fling's momentum) pulled the rows past an edge: the content can't
+        move, so no scroll travel is measured, yet the reader asked for more. Each pull
+        further past it asks the shared lookahead for that edge's next page, as a wheel
+        step at an edge does (`wheelEvent`)."""
+        further = abs(distance) - abs(self._overshoot)
+        self._overshoot = distance
+        if distance and further > 0:
+            rows = further / self._font_line_spacing()
+            self.lookahead.request_boundary(-rows if distance < 0 else rows)
 
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         """A wheel at an edge with nowhere left to scroll still asks for the next page."""
