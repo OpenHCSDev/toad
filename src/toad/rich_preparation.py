@@ -45,6 +45,23 @@ class RichTextBody(LineBlock):
     def selection_text(self) -> str:
         return self.content.plain
 
+    @property
+    def segments(self) -> tuple[Segment, ...]:
+        """The decoded output as styled runs, its own line breaks kept, for a frontend that
+        lays text out itself rather than through a Rich console."""
+        return tuple(self.content.render(Console(file=StringIO(), force_terminal=True, width=10_000), end=""))
+
+
+def palette_colour(style: Style, ansi) -> str | None:
+    """A Rich style's foreground as the theme's terminal palette draws it: an ANSI number in
+    `ansi`, a true colour as written; None when the style keeps the default colour."""
+    colour = style.color
+    if colour is not None and colour.number is not None and colour.number < len(ansi):
+        return ansi[colour.number].hex
+    if colour is not None and colour.triplet is not None:
+        return colour.triplet.hex
+    return None
+
 
 def _rebuild_style(values: tuple[object, ...]) -> Style:
     style = Style.__new__(Style)

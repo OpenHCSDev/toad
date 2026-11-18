@@ -9,9 +9,10 @@ keyboard. Nothing here imports a terminal library.
 
 from __future__ import annotations
 
+import re
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import ClassVar
 
 from agent_comms.messaging.display_references import NoHistorySource
@@ -82,6 +83,20 @@ class LineRoom(ABC):
 
     @abstractmethod
     def fits(self, spans: tuple[Span, ...]) -> bool: ...
+
+    def wrapped(self, spans: tuple[Span, ...]) -> tuple[tuple[Span, ...], ...]:
+        """The title as rows that fit, broken after a space, as a terminal wraps a divider's
+        title; each piece keeps its span's role and link, and a word too long stands alone."""
+        rows: list[tuple[Span, ...]] = []
+        row: tuple[Span, ...] = ()
+        for span in spans:
+            for word in re.findall(r"\S*\s*", span.text)[:-1] or [span.text]:
+                piece = replace(span, text=word)
+                if row and not self.fits((*row, piece)):
+                    rows.append(row)
+                    row = ()
+                row = (*row, piece)
+        return (*rows, row)
 
 
 class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):
@@ -197,6 +212,11 @@ class WireBody(LineBlock):
 
     @abstractmethod
     def prepare(self, context) -> LineBlock: ...
+
+    def prepared_in(self, links) -> LineBlock:
+        """This body as its style lays it out, linked through the names its message's source
+        knows: what every frontend paints in its place."""
+        return self.prepare(links.for_source(self.row.message.history_source))
 
 
 class InlineWireBody(WireBody):

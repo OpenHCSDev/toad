@@ -42,7 +42,7 @@ from toad.qt.agent_activity import QtAgentActivity
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.goal import QtGoalBar
-from toad.qt.history import QtHistoryWindow
+from toad.qt.history import QtHistoryNotifications, QtHistoryWindow
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.qt.page import Page
 from toad.status_thread import StatusThread
@@ -67,6 +67,7 @@ class QtThreadView(
     Page,
     WorkspaceHosted,
     ComposerHost,
+    QtHistoryNotifications,
     QWidget,
     metaclass=PyQtWidgetMeta,
 ):
@@ -196,22 +197,6 @@ class QtThreadView(
         """Default no-op: flash notice on connect. ACP views override; mailbox
         views have no connect event and inherit the no-op."""
 
-    # ---- HistoryNotifications hooks ----
-    # `QtTranscriptHistory` calls `self.notification_view.check_notifications()` via
-    # `prepare_viewport`. ConversationView mixes in `HistoryNotifications` which
-    # supplies the method chain; QtAcpSessionView / QtMailboxView don't carry that
-    # mixin and would AttributeError on page prep. Default no-ops here keep the
-    # transcript pipeline running; a future PR can hoist the real HistoryNotifications
-    # mixin onto QtThreadView if mailbox / ACP views ever need live notification
-    # tracking of the transcript pages they render.
-
-    def check_notifications(self) -> None:
-        """Default no-op; see class docstring. Transcript-rendering Qt views have no
-        bus notification surface yet (the notifications are Core-side)."""
-
-    def check_notifications_after_refresh(self) -> None:
-        """Default no-op; see `check_notifications`."""
-
     def _setup_transcript(self, app: "QtToadApp") -> None:
         """Build the transcript stack. Call from the subclass `__init__` after
         `super().__init__()` and after assigning `self.app`.
@@ -237,7 +222,7 @@ class QtThreadView(
         # `view.transcript.get_transcript_page`, same page type
         # (`PreparedTranscriptPage`). Tool calls, sent messages, Claude chunks and
         # context events all feed in through this one source.
-        self.messages = QtHistoryWindow(app.renderer.scheme)
+        self.messages = QtHistoryWindow(app.renderer)
         # `TranscriptPresentation` first: `QtTranscriptHistory._initial_page_source`
         # reads `self.view.transcript.get_transcript_page` during construction to
         # build its `SavedTranscript`, so the attribute has to exist before the
@@ -417,12 +402,6 @@ class QtThreadView(
         print(f"[flash error] {type(self).__name__}: {text}", flush=True)
         if self.composer is not None:
             self.composer.show_failure(text)
-
-    def notification_targets(self):
-        """The Composer's ``Receipt`` subscribes against the view's notification
-        targets. Nothing to subscribe on until the backend receipt plumbing
-        lands."""
-        return ()
 
     def _mount_goal_bar(self, app: "QtToadApp", incarnation) -> QtGoalBar | None:
         """Construct the goal strip that sits above the chat on the TUI.

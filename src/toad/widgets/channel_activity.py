@@ -95,5 +95,5 @@ class ChannelActivity(ChannelActivityCompute, SidebarModelView, ActivityRows, Ke
     def sync_members(self, changed: frozenset[ThreadIncarnation]) -> None:
         if self.is_attached and not self.is_leaving:
             members = self.members
-            self.details.title = Content(self.view.conversation.activity_title(members))
+            self.details.title = Content(self.activity_title)
             self.reconcile_keys(tuple(row.incarnation for row in members), changed=changed)

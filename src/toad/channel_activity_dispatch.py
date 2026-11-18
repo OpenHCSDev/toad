@@ -21,11 +21,30 @@ from agent_comms.messaging.display_references import ReferenceContext
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 if TYPE_CHECKING:
+    from agent_comms.ui_model.sidebar import SidebarModel
+    from toad.client.conversation import ConversationKind
     from toad.client.observation import Observing
     from toad.sidebar_model_view import SidebarModelState
 
 
-class ChannelActivityCompute:
+class ChannelActivityTitle:
+    """What a channel's activity line says: which of its members are active, titled once for
+    every frontend. The host supplies the conversation and the sidebar model it reads."""
+
+    activity_conversation: ConversationKind
+    activity_model: SidebarModel
+
+    @property
+    def members(self) -> tuple:
+        """The sidebar model's active members for the channel this view shows."""
+        return self.activity_conversation.active_members(self.activity_model)
+
+    @property
+    def activity_title(self) -> str:
+        return self.activity_conversation.activity_title(self.members)
+
+
+class ChannelActivityCompute(ChannelActivityTitle):
     """Compute methods shared by every live channel-activity view.
 
     The owner supplies `self.view` (with `conversation`, `is_current_session`,
@@ -42,9 +61,12 @@ class ChannelActivityCompute:
     references: ReferenceContext
 
     @property
-    def members(self) -> tuple:
-        """The sidebar model's active members for the channel this view shows."""
-        return self.view.conversation.active_members(self.model_state.shown)
+    def activity_conversation(self):
+        return self.view.conversation
+
+    @property
+    def activity_model(self):
+        return self.model_state.shown
 
     @property
     def member_keys(self) -> Iterable[ThreadIncarnation]:

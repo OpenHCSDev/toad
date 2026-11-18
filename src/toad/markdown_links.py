@@ -43,10 +43,18 @@ class LinkContext:
 
     @classmethod
     async def acquire(cls, widget):
-        context = cls.containing(widget)
-        access = widget.app.coordination_access
-        references = await context.references.acquire_from(partial(access.observation.current_references, access))
-        return cls(context.root, references)
+        return await cls.containing(widget).settled_by(widget.app.coordination_access)
+
+    @classmethod
+    async def observed(cls, root: Path, access):
+        """The names a view of the bus `access` observes links through, beside `root`'s files."""
+        references = access.reference_context(str(access.observation.observed().root))
+        return await cls(root, references).settled_by(access)
+
+    async def settled_by(self, access):
+        """This context with its references read from Core, as every frontend draws with."""
+        references = await self.references.acquire_from(partial(access.observation.current_references, access))
+        return LinkContext(self.root, references)
 
     @classmethod
     def containing(cls, widget: Widget):

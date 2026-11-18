@@ -17,6 +17,7 @@ from ui_theme.effects import ACTIVITY_SWEEP
 
 from toad.client.application import ClientApplication
 from toad.client.connection import CoordinationAccess
+from toad.channel_activity_dispatch import ChannelActivityTitle
 from toad.client.conversation import ConversationKind
 from toad.client.line_blocks import MutedRole
 from toad.qt.core_events import QtCoreObserver
@@ -37,24 +38,23 @@ class ActivityLine(ElidedLine):
         """Nothing observed; nothing to stop."""
 
 
-class ChannelActivity(ActivityLine):
-    """The channel's active members from the sidebar's rows, as Textual's collapsed
-    ChannelActivity titles them; it follows every change to those rows."""
+class ChannelActivity(ChannelActivityTitle, ActivityLine):
+    """The shared channel activity title as one line; it follows every change to the rows."""
 
     def __init__(self, app: ClientApplication, renderer: QtLineRenderer, conversation: ConversationKind) -> None:
         super().__init__(renderer)
-        self.conversation = conversation
-        self.model: SidebarModel = app.coordination_access.observation.observed().sidebar
-        self.model.channels.subscribe(self.rows_changed)
-        self.model.threads.subscribe(self.rows_changed)
+        self.activity_conversation = conversation
+        self.activity_model: SidebarModel = app.coordination_access.observation.observed().sidebar
+        self.activity_model.channels.subscribe(self.rows_changed)
+        self.activity_model.threads.subscribe(self.rows_changed)
         self.rows_changed(())
 
     def rows_changed(self, changes: object) -> None:
-        self.setText(self.conversation.activity_title(self.conversation.active_members(self.model)))
+        self.setText(self.activity_title)
 
     def close_activity(self) -> None:
-        self.model.channels.unsubscribe(self.rows_changed)
-        self.model.threads.unsubscribe(self.rows_changed)
+        self.activity_model.channels.unsubscribe(self.rows_changed)
+        self.activity_model.threads.unsubscribe(self.rows_changed)
 
 
 class ActivitySweep(QWidget):

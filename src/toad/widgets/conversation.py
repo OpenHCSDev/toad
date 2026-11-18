@@ -154,7 +154,7 @@ from toad.transcript_publication import (
     ViewBinding,
 )
 from toad.transcript_scope import TranscriptScope, TranscriptView
-from toad.view_actions import BackToBottomAction
+from toad.view_actions import LatestJumpBar
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
@@ -422,6 +422,7 @@ class FocusPromptAction(WindowAction):
 
 
 class JumpBar(
+    LatestJumpBar,
     StartsHidden,
     ScreenOverlay,
     DockedBottom,
@@ -436,6 +437,13 @@ class JumpBar(
         self.styles.layer = "float"
         self.styles.height = 3
         self.styles.visibility = "hidden"
+
+    @property
+    def jump_shown(self) -> bool:
+        return bool(self.display)
+
+    def show_jump(self, shown: bool) -> None:
+        self.display = shown
 
 
 class BackToBottom(PrimaryText, CenteredText, AutoWidth, AutoHeight, SidePadding, JumpToLatest):
@@ -473,10 +481,7 @@ This is a view of your conversation with the agent.
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        # Two rows: what the action does, then the key that does it. Both words are the
-        # action's own declaration; only the arrows and the row break are the button's.
-        self.jump_bar = JumpBar(BackToBottom(
-            f"{BackToBottomAction.title}\n↓ {BackToBottomAction.key_display} ↓"))
+        self.jump_bar = JumpBar(BackToBottom(JumpBar.label))
         self.sticky_header = StickyHeader()
 
     def apply_native_layout(self) -> None:
@@ -510,12 +515,6 @@ This is a view of your conversation with the agent.
                     (self.styles.padding.right, 0)
                 )
             yield scrollbar, scrollbar_region
-
-    def _jump_bar_shown(self) -> bool:
-        return bool(self.jump_bar.display)
-
-    def _set_jump_bar_shown(self, shown: bool) -> None:
-        self.jump_bar.display = shown
 
     def _after_jump_bar_change(self, shown: bool) -> None:
         if self.is_attached:

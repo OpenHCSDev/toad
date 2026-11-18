@@ -256,6 +256,22 @@ class Patch(LineBlock):
             yield tuple(rows)
 
     @property
+    def title(self) -> str:
+        """The row over the diff: which file, or which rename, and how many lines changed."""
+        path = self.after_path or self.before_path or "Edit"
+        if self.before_path != self.after_path:
+            path = f"{self.before_path} → {self.after_path}"
+        return f"{path} (+{self.additions}, −{self.deletions})"
+
+    @property
+    def unified_lines(self) -> tuple[tuple[tuple[str, type[LineRole]], ...], ...]:
+        """Each hunk's rows in one column: the line's number, its +/− mark and its code, in
+        the line's role."""
+        return tuple(tuple((f"{cell.label:>4} {cell.role.diff_marker} {cell.selected().expandtabs(4)}", cell.role)
+                           for cell in (before.otherwise(after) for before, after in group))
+                     for group in self.row_groups(UNIFIED_ROWS))
+
+    @property
     def additions(self) -> int:
         return sum(j2 - j1 for group in self.groups for tag, _, _, j1, j2 in group if tag != "equal")
 
