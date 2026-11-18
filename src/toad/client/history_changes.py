@@ -12,7 +12,7 @@ import asyncio
 from abc import abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from toad.client.reader_position import (
     BlockPosition,
@@ -21,8 +21,10 @@ from toad.client.reader_position import (
 )
 
 
+from toad.client.line_blocks import Divider, MutedRole
+
 if TYPE_CHECKING:
-    from toad.client.line_blocks import Divider
+    from toad.client.fragments import FragmentKey, HistoryFragment
     from toad.client.transcript_fragments import TranscriptFragment
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
@@ -94,23 +96,113 @@ class PinnedHeader:
     width: int
 
 
+@dataclass(frozen=True)
+class BurstMessage:
+    """One message of an arrival burst: where it is drawn (`key`, its first arriving part) and
+    the header its flow draws, which the pin draws again."""
+
+    key: FragmentKey
+    header: Divider
+
+
+@dataclass(frozen=True)
+class StackedHeaders:
+    """The burst's headers a pin stacks above the top row's own: a count line, then each
+    earlier message of the burst whose head the reader has scrolled past. `keys[i]` is the
+    message `headers[i]` opens; the count line opens the earliest one."""
+
+    headers: tuple[Divider, ...] = ()
+    keys: tuple[FragmentKey, ...] = ()
+
+
+NO_STACK = StackedHeaders()
+
+
+@dataclass(frozen=True)
+class ArrivalBurst:
+    """Messages that arrived together at the end a reader follows (Tristan, 2026-11-18: "show
+    the headers for all of them, like stacked, and then ... show the most recent one. So it'd
+    be like, three came in, here's the latest").
+
+    Arrivals whose publications come within `gap` seconds of each other are one burst; one
+    after the gap starts the next. The window shows the latest as it shows any arrival, and its
+    pin stacks the headers of the others the reader has scrolled past (`stack`). Nothing is
+    collapsed or copied: the pin draws the messages' own header blocks. The burst ends when
+    the reader scrolls up by hand or opens a stacked header (`PinsMessageHeader`)."""
+
+    messages: tuple[BurstMessage, ...] = ()
+    last: float = float("-inf")
+    gap: ClassVar[float] = 4.0
+    shown: ClassVar[int] = 3
+    """The most earlier headers stacked; the count line says how many came."""
+
+    def live(self, now: float) -> bool:
+        return bool(self.messages) and now - self.last <= self.gap
+
+    def arrived(self, fragments: tuple[HistoryFragment, ...], now: float) -> ArrivalBurst:
+        """`fragments` arrived at the followed end: each message among them with a header
+        joins this burst, or starts the next one after the gap."""
+        kept = self.messages if self.live(now) else ()
+        seen = {message.key.source for message in kept}
+        joined = []
+        for fragment in fragments:
+            if fragment.pinned_dividers and fragment.source_identity not in seen:
+                seen.add(fragment.source_identity)
+                joined.append(BurstMessage(fragment.key, fragment.pinned_dividers[-1]))
+        if not joined:
+            return self
+        return ArrivalBurst(kept + tuple(joined), now)
+
+    def stack(self, window: PinsMessageHeader, pinned: PinnedHeader) -> StackedHeaders:
+        """The earlier messages whose head is scrolled above the top row, the most recent
+        `shown` of them, under a count line; none for a burst of one, or once the reader is
+        above the burst (no head is above the top row then). The top row's own message pins
+        its header as before and is not stacked twice."""
+        if len(self.messages) < 2 or not pinned.width:
+            return NO_STACK
+        own = pinned.headers[-1:]
+        above = [message for message in self.messages[:-1]
+                 if message.header not in own
+                 and (top := window.message_top(message.key)) is not None and top < window.scroll_y]
+        if not above:
+            return NO_STACK
+        stacked = above[-self.shown:]
+        count = Divider.titled(f"{len(self.messages)} new", MutedRole)
+        return StackedHeaders((count, *(message.header for message in stacked)),
+                              (above[0].key, *(message.key for message in stacked)))
+
+
+NO_BURST = ArrivalBurst()
+
+
 class HeaderPin:
     """The overlay a history window floats over its top row: the header of the message the reader
     is in, while that header is scrolled above, so the reader of a long message still sees who
-    sent it to whom, and when. It draws the message's own header block, as the flow does, and
-    keeps no copy of the message. A plain mixin, as `LatestJumpBar` is: Textual's widget
-    metaclass refuses an `ABC` base and Qt's shiboken metaclass clashes with one."""
+    sent it to whom, and when; above it, a burst's stacked headers (`ArrivalBurst`). It draws
+    the messages' own header blocks, as the flow does, and keeps no copy of a message. A plain
+    mixin, as `LatestJumpBar` is: Textual's widget metaclass refuses an `ABC` base and Qt's
+    shiboken metaclass clashes with one."""
 
-    def pin(self, pinned: PinnedHeader) -> None:
-        """Draw the one header the window's top row needs, or none, in the column its message
-        draws it in, so it sits and wraps exactly as the flow's own header does."""
-        if pinned.headers:
-            self.draw_pinned(pinned.headers[-1], pinned.x, pinned.width)
-        self.show_pin(bool(pinned.headers))
+    stacked: StackedHeaders = NO_STACK
+
+    def pin(self, pinned: PinnedHeader, stacked: StackedHeaders = NO_STACK) -> None:
+        """Draw the headers the window's top row needs, or none, in the column its message
+        draws them in, so each sits and wraps exactly as the flow's own header does."""
+        self.stacked = stacked
+        headers = stacked.headers + pinned.headers[-1:]
+        if headers:
+            self.draw_pinned(headers, pinned.x, pinned.width)
+        self.show_pin(bool(headers))
+
+    def opened_at(self, index: int) -> FragmentKey | None:
+        """The message the pin's `index`th drawn header opens: a stacked one's, none for the
+        top row's own (the reader is already in that message)."""
+        keys = self.stacked.keys
+        return keys[index] if 0 <= index < len(keys) else None
 
     @abstractmethod
-    def draw_pinned(self, header: Divider, x: int, width: int) -> None:
-        """Draw `header` in the column at `x`, `width` wide, in the toolkit's unit."""
+    def draw_pinned(self, headers: tuple[Divider, ...], x: int, width: int) -> None:
+        """Draw `headers`, top to bottom, in the column at `x`, `width` wide, in the toolkit's unit."""
 
     @abstractmethod
     def show_pin(self, shown: bool) -> None:
@@ -125,6 +217,10 @@ class PinsMessageHeader:
     `top_page` and `live_message_header` answer."""
 
     sticky_header: HeaderPin
+    arrival_burst: ArrivalBurst
+    _restoring: bool
+    pinned_scroll_y: float = 0.0
+    """The offset the pin was last drawn at: a reader's own scroll up from it ends a burst."""
 
     def top_message_header(self) -> PinnedHeader:
         """The header of the message drawn on the window's top row, when that header is scrolled
@@ -134,8 +230,33 @@ class PinsMessageHeader:
     def repin_header(self) -> None:
         """Pin from where the reader is now. The window calls this on every scroll offset and
         every committed geometry change: a reflow, a filter, replaced rows or a restored tab can
-        change the top row's message at an unchanged offset."""
-        self.sticky_header.pin(self.top_message_header())
+        change the top row's message at an unchanged offset. Only the reader scrolls a window up:
+        following, gliding and placing an arrival move it down or keep it (`layout_scroll`)."""
+        burst = self.arrival_burst
+        if burst.messages and self.scroll_y < self.pinned_scroll_y and not self._restoring:
+            burst = self.arrival_burst = NO_BURST
+        self.pinned_scroll_y = self.scroll_y
+        pinned = self.top_message_header()
+        self.sticky_header.pin(pinned, burst.stack(self, pinned) if burst.messages else NO_STACK)
+
+    def open_pinned(self, index: int) -> bool:
+        """The reader chose the pin's `index`th header: a stacked one scrolls to its message,
+        whose head comes to the top row, and the burst ends. False for the top row's own."""
+        key = self.sticky_header.opened_at(index)
+        if key is None:
+            return False
+        top = self.message_top(key)
+        self.arrival_burst = NO_BURST
+        if top is not None:
+            self.release_anchor()
+            self.scroll_y = top
+        self.repin_header()
+        return True
+
+    @abstractmethod
+    def message_top(self, key: FragmentKey) -> float | None:
+        """The offset that puts the drawn message `key`'s first row on the window's top row, in
+        the window's unit; None when no drawn row holds it."""
 
 
 class NoHistoryChange:

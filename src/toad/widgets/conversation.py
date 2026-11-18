@@ -173,6 +173,8 @@ from toad.widgets.flash import ErrorFlash, Flash, SuccessFlash
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.history_anchor import HistoryWindow
 from toad.client.history_changes import PinsMessageHeader
+from toad.client.fragments import FragmentKey
+from toad.client.reader_position import FragmentPosition
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.widgets.menu import Menu
@@ -488,7 +490,7 @@ This is a view of your conversation with the agent.
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.jump_bar = JumpBar(BackToBottom(JumpBar.label))
-        self.sticky_header = StickyHeader()
+        self.sticky_header = StickyHeader(self)
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -501,6 +503,10 @@ This is a view of your conversation with the agent.
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
         self.repin_header()
+
+    def message_top(self, key: FragmentKey) -> float | None:
+        location = FragmentPosition(key, 0.0, 1, block=0).page(self)
+        return location.destination(self, 0.0) if location.laid_out(self) else None
 
     def prepare_viewport(self) -> None:
         """Committed geometry can change the top row's message at an unchanged offset

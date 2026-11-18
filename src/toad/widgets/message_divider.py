@@ -36,9 +36,9 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     RichLineRenderer,
 )
-from toad.client.history_changes import HeaderPin
+from toad.client.history_changes import HeaderPin, PinsMessageHeader
 from toad.widgets.agent_activity import AgentActivityPresentation
-from textual.events import Mount
+from textual.events import Click, Mount
 from textual import on
 
 
@@ -65,9 +65,14 @@ class LineBlockRow(FillWidth, AutoHeight, LinkedRows, Widget):
     def line_sets(self) -> tuple[BlockLines, ...]:
         return (self.prepared_lines(self.size.width),)
 
+    @property
+    def drawn_blocks(self) -> tuple[LineBlock, ...]:
+        """The blocks this row draws, top to bottom: its one block."""
+        return (self.block,)
+
     def prepared_lines(self, width: int) -> BlockLines:
         measured = self._lines.plain(
-            width, RichLineRenderer(self.line_theme, width), (self.block,)
+            width, RichLineRenderer(self.line_theme, width), self.drawn_blocks
         )
         self._lines = measured
         return measured.lines
@@ -94,25 +99,40 @@ class ConversationLineBlock(BlockContent, LineBlockRow):
 
 
 class StickyHeader(HeaderPin, StartsHidden, ScreenOverlay, LineBlockRow):
-    """`HeaderPin` as a line block docked over the window's top row, drawn as the flow draws
-    the message's own header block."""
+    """`HeaderPin` as line blocks docked over the window's top row, drawn as the flow draws the
+    messages' own header blocks. A click on a stacked header opens its message."""
 
     ALLOW_SELECT = False
 
-    def __init__(self) -> None:
+    def __init__(self, window: PinsMessageHeader) -> None:
         super().__init__(Gap())
+        self.window = window
+        self.headers: tuple[LineBlock, ...] = ()
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.dock = "top"
         self.styles.layer = "float"
 
-    def draw_pinned(self, header: Divider, x: int, width: int) -> None:
-        self.update_block(header)
+    @property
+    def drawn_blocks(self) -> tuple[LineBlock, ...]:
+        return self.headers
+
+    def draw_pinned(self, headers: tuple[Divider, ...], x: int, width: int) -> None:
+        if headers != self.headers:
+            self.headers, self._lines = headers, NoRows()
+            self.refresh(layout=True)
         if self.styles.width is None or self.styles.width.value != width:
             self.styles.width = width
         if self.styles.offset.x.value != x:
             self.styles.offset = (x, 0)
+
+    @on(Click)
+    def open_header(self, event: Click) -> None:
+        """The header under the click opens its message, as a tap on Qt's pin does."""
+        span = self.prepared_lines(self.size.width).block_span(lambda span: span.contains(event.y))
+        if span.placed_by(lambda span: self.window.open_pinned(span.index), lambda: False):
+            event.stop()
 
     def show_pin(self, shown: bool) -> None:
         self.display = shown

@@ -298,6 +298,12 @@ class HistoryFragment(CursorRest):
         return FragmentKey(self.source_identity, self.part_position.index)
 
     @property
+    def pinned_dividers(self) -> tuple[Divider, ...]:
+        """The header a top row in this fragment pins, and an arrival burst stacks: none for a
+        fragment that draws no header."""
+        return ()
+
+    @property
     def details_link(self) -> FragmentDetails:
         return FragmentDetails(self.key)
 
