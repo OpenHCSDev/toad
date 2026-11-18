@@ -9,7 +9,8 @@
 # (bundle_check.py: the start imports without site-packages, and no function-local import
 # reaches a package the APK does not ship beyond its baseline), then the shipped app RUN on a
 # scratch bus through every view kind and bound key (shipped_run.py), which catches the
-# imports a static read cannot see. Exits non-zero on any finding.
+# imports a static read cannot see. First, every emoji-default symbol must carry U+FE0E
+# (glyph_check.py), or it draws as a coloured picture. Exits non-zero on any finding.
 # Arguments are build.sh's; APP is filled here, so a gate passes a scratch folder.
 set -euo pipefail
 if [ $# -ne 4 ]; then sed -n '2,10p' "$0"; exit 2; fi
@@ -19,6 +20,8 @@ CHECKOUT=$(cd "$HERE/../.." && pwd)
 RT="$RUNTIME/bin/python"
 SITE=$("$RT" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 mkdir -p "$APP"
+echo "== emoji-default symbols carry U+FE0E (text presentation)"
+(cd "$CHECKOUT" && "$RT" tools/glyph_check.py | tail -1)
 echo "== closure ($(git -C "$CHECKOUT" log -1 --format='%h %s'))"
 (cd "$CHECKOUT" && PYTHONPATH=src timeout 120 "$RT" "$HERE/closure.py" "$APP/closure.json")
 echo "== assemble (into a folder holding an older build's leftovers)"

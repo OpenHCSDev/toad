@@ -57,7 +57,7 @@ from toad.widget_contracts import (
 )
 from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
 from toad.qt.lines import QtLineRenderer
-from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary
+from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary, RowReveal
 from toad.qt.prompt_stack import QtInfoBar
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
@@ -419,7 +419,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def refresh_editing_mode(self) -> None:
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, self.editor.hasFocus())
-        self.delivery_controls.setVisible(self.offers_send_now)
+        RowReveal.toggle(self.delivery_controls, self.offers_send_now, self)
 
     @property
     def offers_send_now(self) -> bool:
@@ -566,7 +566,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         """The queue summary and delivery controls from the shared submissions, as Textual's
         ``_update_queue_summary`` + ``DeliveryControls`` flip on ``offers_send_now``."""
         self.submitting.refresh(self.queue_summary)
-        self.delivery_controls.setVisible(self.offers_send_now)
+        RowReveal.toggle(self.delivery_controls, self.offers_send_now, self)
 
     def open_queue_menu(self) -> None:
         """Textual's ``Conversation.open_queue_menu`` pushes the ``QueueInspection``

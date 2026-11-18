@@ -29,7 +29,7 @@ from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QTextDocument
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
-from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
+from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
 from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.core.projection import MroProjection
@@ -72,6 +72,9 @@ from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import DrawnFilter, FilterState
+from toad.frame_presentation import ARRIVAL
+from toad.motion import FOLLOW_ARRIVAL, TransitionTarget
+from toad.qt.widget_animation import WidgetAnimation
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 if TYPE_CHECKING:
@@ -210,6 +213,63 @@ class HistoryRows(QAbstractListModel):
         return next((row for row, fragment in enumerate(self.fragments) if fragment.key == key), -1)
 
 
+class ArrivalFade(WidgetAnimation):
+    """Rows that arrived together, rising as the TUI's `ARRIVAL` cascade raises them: each fades
+    from the background into its own colours, row after row, on the app's clock. A row's
+    opacity is the cascade's `Mix` amount at the row's place in the burst, the frame Textual's
+    `TranscriptHistory` paints, so `TEXTUAL_ANIMATIONS=none` shows them at once in both."""
+
+    def __init__(self, window: QtHistoryWindow, keys: tuple) -> None:
+        self.window = window
+        self.bind_widget(window, window.animation_clock)
+        last = max(1, len(keys) - 1)
+        self.positions = {key: index / last for index, key in enumerate(keys)}
+        self.animation = window.animation_clock.start(ARRIVAL, self)
+
+    def opacity(self, key) -> float | None:
+        position = self.positions.get(key)
+        return None if position is None else self.animation.at(position).amount
+
+    def repaint(self) -> None:
+        """Only the rising rows: a whole-viewport update every tick flickers the pinned header."""
+        window = self.window
+        if self.animation.finished:
+            window.arrival_landed(self)
+        model_rows = window.model_rows
+        for key in self.positions:
+            if (row := model_rows.row_of(key)) >= 0:
+                window.update(model_rows.index(row, 0))
+
+
+class ArrivalGlide(WidgetAnimation, TransitionTarget):
+    """A reader following the end glides down to rows that arrived (`FOLLOW_ARRIVAL`) instead of
+    jumping their height in one frame; it lands on the end however far the rows grew meanwhile."""
+
+    def __init__(self, window: QtHistoryWindow, start: float) -> None:
+        self.window, self.start = window, start
+        self.at = start
+        self.bind_widget(window, window.animation_clock)
+        self.start_transition(window.animation_clock, FOLLOW_ARRIVAL)
+
+    def apply_amount(self, amount: float) -> None:
+        window = self.window
+        if not window.follows_tail:
+            self.animation.stop()
+            window.glide = None
+            return
+        # Only ever down: a row that lands mid-glide moves the end, never the reader back up.
+        self.at = max(self.at, window.scroll_y, self.start + (window.tail_scroll_y - self.start) * amount)
+        with window.layout_scroll():
+            window.scroll_y = self.at
+
+    def land(self) -> None:
+        window = self.window
+        window.glide = None
+        if window.follows_tail:
+            with window.layout_scroll():
+                window.follow_end()
+
+
 class HistoryRowDelegate(RowDocumentDelegate):
     """Each fragment's line blocks as Qt rich text, rendered on the pool at the row's width
     (dividers fill it); a row paints its plain text until then. A painted row tells the
@@ -221,6 +281,8 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
+        # Each drawn row's last prepared look (`styled_formatting`), by `row_identity`.
+        self.last_shown: dict = {}
         self.app_renderer = renderer
         """The app's renderer, which follows `ui.theme` and the `diff` settings."""
         self.renderer = renderer
@@ -263,8 +325,7 @@ class HistoryRowDelegate(RowDocumentDelegate):
         every scrolled frame lays each row out once, not afresh on every frame."""
         key = self.fragment_key(fragment, font, width)
         # The formatting is asked for only when the height is not yet measured at this width.
-        formatting = PreparedOnFill(lambda: self.keyed_formatting(key, fragment.clipboard_text,
-                                                                  self.rendering(fragment, font, width)))
+        formatting = PreparedOnFill(lambda: self.styled_formatting(key, fragment, font, width))
         return self.measured_height(key, font, width, formatting)
 
     def block_row(self, fragment: HistoryFragment, font: QFont, width: int, y: int) -> tuple[int, int]:
@@ -303,9 +364,57 @@ class HistoryRowDelegate(RowDocumentDelegate):
         text is read only where it is drawn (`row_text`, while the row is being prepared)."""
         option.index = index
 
+    def formatting(self, index: QModelIndex, font: QFont, width: int) -> RowFormatting:
+        fragment = index.data(HistoryRows.FRAGMENT)
+        return self.styled_formatting(self.fragment_key(fragment, font, width), fragment, font, width)
+
+    def styled_formatting(self, key, fragment: HistoryFragment, font: QFont, width: int) -> RowFormatting:
+        """The row's formatting under `key`; while a new look of a drawn row is still being
+        prepared, the look it last showed. A sent message's receipt answers several times
+        just after it lands (checking, then each recipient): each answer is a new key, and
+        drawing the row as plain text until the answer was styled rewrapped it to another
+        height and back, the message snapping in, out and in again."""
+        formatting = self.keyed_formatting(key, fragment.clipboard_text, self.rendering(fragment, font, width))
+        if isinstance(formatting, PlainRow):
+            shown = self.last_shown.get(self.row_identity(key))
+            if shown in self._prepared:
+                return self._prepared[shown]
+        return formatting
+
+    @staticmethod
+    def row_identity(key):
+        """Which drawn row a preparation key is for, whatever look: the fragment, links, font
+        and width, without how it is shown."""
+        (fragment_key, _shown, _revision), *drawn = key
+        return fragment_key, *drawn
+
+    def _row_prepared(self, key, prepared: RowFormatting) -> None:
+        super()._row_prepared(key, prepared)
+        if key in self._prepared:
+            self.last_shown[self.row_identity(key)] = key
+        if len(self.last_shown) > 2 * self.MAX_PREPARED_ROWS:
+            # Looks the prepared cache let go of name nothing to draw.
+            self.last_shown = {row: shown for row, shown in self.last_shown.items() if shown in self._prepared}
+
+    def is_prepared(self, key) -> bool:
+        return key in self._prepared
+
+    def adopt(self, key, formatting: RowFormatting) -> None:
+        """A row's formatting prepared before the row was drawn takes its place in the cache, as
+        one prepared on the pool does when it lands."""
+        self._row_prepared(key, formatting)
+
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
-        super().paint(painter, option, index)
-        self.view.row_painted(index.data(HistoryRows.FRAGMENT), option.rect)
+        fragment = index.data(HistoryRows.FRAGMENT)
+        opacity = self.view.arrival_opacity(fragment.key) if self.view.arrivals else None
+        if opacity is None:
+            super().paint(painter, option, index)
+        else:
+            painter.save()
+            painter.setOpacity(opacity)
+            super().paint(painter, option, index)
+            painter.restore()
+        self.view.row_painted(fragment, option.rect)
 
 
 @dataclass(frozen=True)
@@ -426,10 +535,26 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         return self.window.fragment_height(fragment)
 
     async def prepare_fragments(self, fragments, current, *, selected, target) -> None:
-        """Rows render on the delegate's pool when first drawn: nothing to prepare first."""
+        """Styled before drawn, as the shared pager asks (`ReaderPage.acquire`): each shown
+        fragment's row is formatted at the window's width and font before the pager publishes
+        it. A row first drawn plain and then rewrapped when its styled formatting landed moved
+        every row under it, which on the phone read as a message snapping in, out and back."""
+        window = self.window
+        rows, font, width = window.rows, window.font(), window.viewport_width()
+        if width <= 0:
+            return  # Not laid out yet: the first paint prepares them at the real width.
+        jobs = [(key, rows.rendering(fragment, font, width)) for fragment in fragments
+                if fragment.shown_in(selected)
+                and not rows.is_prepared(key := rows.fragment_key(fragment, font, width))]
+        if not jobs:
+            return
+        prepared = await asyncio.to_thread(lambda: [(key, prepare()) for key, prepare in jobs])
+        if current():
+            for key, formatting in prepared:
+                rows.adopt(key, formatting)
 
     def hold_arrival(self, arrivals: tuple[HistoryFragment, ...]) -> None:
-        """Qt draws arrivals at once: no rows are held below a following reader."""
+        """Qt holds no rows below a following reader: arrivals rise where `repaint` names them."""
 
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
         """A status change lays the rows out again: a row's cache key carries how its fragment
@@ -444,6 +569,10 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         visible row on every clock tick, so the message header flickered under scroll."""
         window = self.window
         model_rows = window.model_rows
+        if fragments and window.isVisible():
+            # Where Textual's `repaint` starts `ARRIVAL` (`EffectPhase.on_new_arrival`), on every
+            # publish path: an edge extended under the reader, or a newest page replacing the source.
+            window.arrive(tuple(fragment.key for fragment in fragments))
         for fragment in (*fragments, *continuing):
             row = model_rows.row_of(fragment.key)
             if row >= 0:
@@ -746,6 +875,11 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         self.jump_bar = QtJumpBar(self, renderer)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.sticky_header = QtStickyHeader(self)
+        # Arriving rows fading in, and the glide down to them (`arrive`).
+        self.arrivals: list[ArrivalFade] = []
+        self.glide: ArrivalGlide | None = None
+        # Rows that arrived at the end the reader follows, not yet glided to (`glide_to_end`).
+        self._arrived: tuple = ()
         self.viewport().installEventFilter(self)
         # Block menu: right-click (desktop) and long-press (Android) on a message row
         # emit `block_menu_requested` with the row's fragment. ConversationView mounts
@@ -760,6 +894,63 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         # key mode and keymap, firing `apply(self)` (which calls `action_page_down` /
         # `action_page_up` / `jump_to_latest` on this window).
         self._reader_shortcuts = scope.app.action_keys.bind_family(self, ReaderAction, self)
+
+    @property
+    def animation_clock(self):
+        return self._scope.app.animation_clock
+
+    def arrive(self, keys: tuple) -> None:
+        """Rows `keys` just arrived: they fade in row after row, and a reader following the
+        end glides down to them rather than jumping their height (`glide_to_end`)."""
+        if not (keys and self.animation_clock.enabled):
+            return
+        if not (self.draft or self.live_blocks):
+            # Rows committed while a draft or live block stood in for them were already seen:
+            # they replace it in place (`publish_snapshot` clears the draft in the same turn).
+            self.arrivals.append(ArrivalFade(self, keys))
+        if self.follows_tail:
+            self._arrived += keys
+            self.glide_to_end()
+
+    def glide_to_end(self) -> bool:
+        """Glide to the end from where it was before the arrived rows, once they are laid out
+        (a page published after `repaint` lays them out in `keep_reader`). A glide already
+        running turns toward the new end from where it is, so it never lands by jumping."""
+        model_rows = self.model_rows
+        rows = [row for key in self._arrived if (row := model_rows.row_of(key)) >= 0]
+        if not rows:
+            return False
+        self._arrived = ()
+        self.executeDelayedItemsLayout()
+        tail = self.tail_scroll_y
+        start = max(0, tail - sum(self.visualRect(model_rows.index(row, 0)).height() for row in rows))
+        if self.glide is not None:
+            self.glide.animation.stop()
+            start = max(start, self.glide.at)
+        with self.layout_scroll():
+            self.scroll_y = min(start, tail)
+            self.glide = ArrivalGlide(self, self.scroll_y)
+        return True
+
+    def gliding_to_end(self) -> bool:
+        """Whether a glide owns the way to the end, so whatever follows the end for a following
+        reader (`anchor`, `check_follow`, `keep_reader`) leaves it to the glide, which lands there.
+        Rows that arrived start their glide here once laid out; arrivals this view never draws
+        are let go, so following the end is never held for them."""
+        if self._arrived and not self.glide_to_end():
+            self._arrived = ()
+        return self.glide is not None
+
+    def arrival_landed(self, fade: ArrivalFade) -> None:
+        if fade in self.arrivals:
+            self.arrivals.remove(fade)
+
+    def arrival_opacity(self, key) -> float | None:
+        """How far the row `key` has risen, while it is still rising."""
+        for fade in self.arrivals:
+            if (opacity := fade.opacity(key)) is not None:
+                return opacity
+        return None
 
     async def acquire_links(self, app) -> None:
         """The names this conversation's bodies link through; the rows draw again with them."""
@@ -970,6 +1161,10 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         self._anchored = anchor
         if anchor:
             self.reader_position = self.reader_position.joined_tail()
+            # A publication restoring a following reader (`FollowTailCommit.restore_reader`)
+            # glides to rows that just arrived; a running glide lands on the end itself.
+            if self.gliding_to_end():
+                return
             try:
                 with self.layout_scroll():
                     self.follow_end()
@@ -995,7 +1190,7 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         self.anchor(True)
 
     def check_follow(self) -> bool:
-        if not self.follows_tail:
+        if not self.follows_tail or self.gliding_to_end():
             return False
         previous = self.scroll_y
         with self.layout_scroll():
@@ -1097,6 +1292,8 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
 
     def keep_reader(self, key, offset: int) -> None:
         """After a layout: at the end when following it, else the row `key` back at `offset`."""
+        if self.follows_tail and self.gliding_to_end():
+            return
         with self.layout_scroll():
             if self.follows_tail:
                 self.follow_end()
