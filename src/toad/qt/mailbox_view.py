@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.message_category import all_categories
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 from pyqt_reactive.theming import StatusColorRole
@@ -98,9 +97,6 @@ class QtMailboxView(QtThreadView, SessionScope):
         # The thread identity gets its real value from `bind_thread` below; the
         # default here is NoThreadIdentity (SessionScope default) until bind lands.
         self._identity: object | None = None
-        # `QtCategoryFilter.present` reads `view.visible_categories`; mirrors the
-        # initial state `ConversationView.__init__` sets at `window.py:1061`.
-        self.visible_categories = all_categories()
         # Matches Textual's MainScreen: `prepared.bind` lands on
         # `view.presentation.sources.load_plan` via `apply_native_load_plan`.
         self.presentation = _MailboxPresentation()

@@ -8,6 +8,7 @@ decoded once, in one place, with no per-frontend duplication.
 from __future__ import annotations
 
 import shlex
+from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -68,3 +69,16 @@ def read_coordination_state(identity: SessionIdentity) -> CoordinationStateRepor
         agent_args=shlex.join(InheritedArguments().configured().argv),
         root_path=str(root) if root is not None else "",
     )
+
+
+class CoordinationStatusView:
+    """The coordination panel as a frontend draws it: Textual's `CoordinationStatus` and Qt's
+    `QtCoordinationStatus` both inherit this. A new thread identity reads the one report and
+    the frontend draws it."""
+
+    def identity_changed(self, identity: SessionIdentity) -> None:
+        self.show_report(read_coordination_state(identity))
+
+    @abstractmethod
+    def show_report(self, report: CoordinationStateReport) -> None:
+        """Draw the report's lines and tooltip."""

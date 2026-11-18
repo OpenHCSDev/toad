@@ -207,6 +207,10 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
     def arranged(self) -> None:
         """The placement changed: lay the workspace out again."""
 
+    @abstractmethod
+    def toggle_controls(self) -> None:
+        """Show or hide the extent slider and placement actions."""
+
     @property
     def placement(self) -> SidebarPlacement:
         return self.sidebar_layout.get(self.placement_identity)
@@ -246,6 +250,34 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
         handle = inner.region(size, SidebarGeometry(edge.collapsed_extent, 1, 0, cross), Spacing())
         content = Region(0, 0, size.width, size.height).shrink(edge.content_padding())
         return SurfaceParts(toggle, handle, content)
+
+
+class SidebarResizeGrip(metaclass=AbstractHooksMeta):
+    """The line between a sidebar's content and its toggle strip: Textual's
+    `SidebarResizeHandle` and Qt's `QtSidebarResizeHandle` both inherit this. A drag resizes
+    the sidebar from the extent it had when the drag began; a press without a drag shows or
+    hides the slider and placement actions."""
+
+    grip_tooltip = "Drag toward the center to expand the sidebar"
+
+    @property
+    @abstractmethod
+    def grip_surface(self) -> SidebarSurface:
+        """The sidebar this grip resizes."""
+
+    @abstractmethod
+    def grip_viewport_extent(self) -> int:
+        """The workspace's length on the sidebar's axis, in the units drags arrive in."""
+
+    def begin_grip(self) -> None:
+        self._grip_start = self.grip_surface.placement.extent_percent
+
+    def drag_grip(self, delta: Offset) -> None:
+        surface = self.grip_surface
+        surface.resize_to(surface.dragged_percent(self._grip_start, delta, self.grip_viewport_extent()))
+
+    def grip_clicked(self) -> None:
+        self.grip_surface.toggle_controls()
 
 
 @dataclass(frozen=True, slots=True)

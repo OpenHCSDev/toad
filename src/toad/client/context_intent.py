@@ -20,7 +20,8 @@ from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 if TYPE_CHECKING:
     from textual.worker import Worker
 
-    from toad.core.context_inspection import ContextNode
+    from toad.core.context_inspection import ContextNode, InspectionState
+    from toad.thread_identity import SessionIdentity
 
 
 @dataclass
@@ -59,3 +60,38 @@ class ContextTreeIntent:
         self.selected = node.data
         show_detail(self.selected)
         return True
+
+
+class ContextInspectionReader:
+    """The context explorer's reading state, as both frontends hold it: Textual's
+    `ContextExplorer` and Qt's `QtContextExplorer` inherit this. It keeps the per-thread
+    intents store, the current `InspectionState`, and each step a read moves that state
+    through; the frontend owns only when it reads and how it draws."""
+
+    def start_inspection(self, intents: "dict[SessionIdentity, ContextTreeIntent]") -> None:
+        """Each frontend's constructor calls this once beside its widget's own."""
+        from toad.core.context_inspection import DetachedInspection
+        self._intents = intents
+        self.state: InspectionState = DetachedInspection()
+
+    @property
+    def intent(self) -> ContextTreeIntent:
+        """The viewed thread's intent, kept across widget retirements."""
+        return self._intents.setdefault(self.thread_identity, ContextTreeIntent())
+
+    def inspect_identity(self, identity: "SessionIdentity") -> None:
+        """A new thread starts its own inspection."""
+        self.state = identity.inspection_state()
+
+    def observe_revision(self, revision) -> "InspectionState":
+        """Mark the coordination revision this read observes; returns the state before it."""
+        previous = self.state
+        self.state = previous.observe(revision)
+        return previous
+
+    async def acquire_inspection(self, observed, revision, identity):
+        """Read the inspection at the intent's page cursor."""
+        return await self.state.acquire(observed, revision, identity, cursor=self.intent.cursor)
+
+    def receive_inspection(self, acquired) -> None:
+        self.state = self.state.receive_inspection(acquired)

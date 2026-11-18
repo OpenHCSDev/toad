@@ -15,6 +15,7 @@ from functools import partial
 from typing import ClassVar
 
 from agent_comms.display_order import ThreadSort
+from agent_comms.ui_model.message_category import MessageCategory
 from agent_comms.registry.relationships import (
     RelationshipEntry,
     RelationshipGroup,
@@ -24,6 +25,7 @@ from agent_comms.registry.relationships import SortableRelationshipGroup
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
+    QCheckBox,
     QHBoxLayout,
     QLabel,
     QMenu,
@@ -34,59 +36,29 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
+from toad.qt.session_panel import SessionPanel
+from toad.client.category_selection import CategorySelection, NoCategorySelection
 from toad.client.relationship_tree_state import RelationshipTreeState
+from toad.client.sort_control import RelationshipOrder
+from toad.qt.channel_sort import QtSortButton
+from toad.widgets.session_sort import ThreadSortForm
 from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.qt.metrics import UiGap
 
 
-class QtRelationshipSort(QToolButton):
-    """Header control for a `ThreadCommsSnapshot`'s sortable groups. Lists every
-    `ThreadSort` family member in a menu; selecting one calls
-    `RelationshipReads.set_relationship_order` for each sortable group in the snapshot.
-    Mirrors Textual's `RelationshipSort(SortControl[ThreadSort])` behaviour by sharing
-    both the order family (`ThreadSort.members_with`) and the write path."""
+class QtRelationshipSort(RelationshipOrder, QtSortButton[ThreadSort]):
+    """The comms panel header's relationship order, as Textual's `RelationshipSort`: the
+    shared `RelationshipOrder` labels it from the snapshot's groups and writes each group."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Widget)
-        self.setAutoRaise(True)
-        self.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.setText("Sort")
-        self._menu = QMenu(self)
-        self.setMenu(self._menu)
-        for order in ThreadSort.members_with(ThreadSort):
-            action = QAction(order.title, self._menu)
-            action.triggered.connect(partial(self._picked, order))
-            self._menu.addAction(action)
-        self._panel: QtThreadCommsPanel | None = None
-        self._groups: tuple[SortableRelationshipGroup, ...] = ()
-
-    def bind(self, panel: QtThreadCommsPanel) -> None:
+    def __init__(self, panel: QtThreadCommsPanel) -> None:
         self._panel = panel
+        super().__init__(ThreadSortForm, "relationships", panel)
 
-    @property
-    def current_order(self) -> type[ThreadSort] | None:
-        """Derived from `_groups` the same way Textual's `RelationshipSort.update_groups`
-        computes it (`widgets/thread_comms.py:87-88`): one order iff every group agrees.
-        Not cached — `_groups` is the single owner; a cached copy would be the second
-        state we spent the whole session fighting."""
-        orders = {group.order for group in self._groups}
-        return next(iter(orders)) if len(orders) == 1 else None
-
-    def update_groups(self, groups: tuple[SortableRelationshipGroup, ...]) -> None:
-        self._groups = groups
-        order = self.current_order
-        self.setText(f"Sort: {order.title}" if order else "Sort")
-
-    def _picked(self, order: type[ThreadSort]) -> None:
-        panel = self._panel
-        if panel is None or not self._groups:
-            return
-        asyncio.ensure_future(panel.write_order(self._groups, order))
+    async def write_picked(self, order: type[ThreadSort]) -> None:
+        await self._panel.write_order(order)
 
 
-class QtThreadCommsPanel(ThreadSidebarPanelBody, QWidget):
+class QtThreadCommsPanel(SessionPanel, QWidget):
     spec_key: ClassVar[str] = "comms"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
@@ -100,7 +72,6 @@ class QtThreadCommsPanel(ThreadSidebarPanelBody, QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
-        self._view = None
         self._states: dict[SessionIdentity, RelationshipTreeState] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._refresh_task: asyncio.Task | None = None
@@ -114,9 +85,17 @@ class QtThreadCommsPanel(ThreadSidebarPanelBody, QWidget):
         self._context.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         header.addWidget(self._context, 1)
         self._sort = QtRelationshipSort(self)
-        self._sort.bind(self)
         header.addWidget(self._sort)
         column.addLayout(header)
+        # One toggle per message category under the context line, as Textual's
+        # `ThreadCommsSidebar` composes its `MessageFilter`s: each writes the bound view's
+        # `CategorySelection`, and a view that filters nothing hides them.
+        self._checks: dict[type[MessageCategory], QCheckBox] = {}
+        for category in MessageCategory.members_with(MessageCategory):
+            check = QCheckBox(category.label, self)
+            check.toggled.connect(partial(self._category_toggled, category))
+            self._checks[category] = check
+            column.addWidget(check)
         self._tree = QTreeWidget(self)
         self._tree.setHeaderHidden(True)
         self._tree.setRootIsDecorated(True)
@@ -124,13 +103,24 @@ class QtThreadCommsPanel(ThreadSidebarPanelBody, QWidget):
         self._tree.itemCollapsed.connect(self._item_collapsed)
         column.addWidget(self._tree, 1)
 
-    def bind(self, view) -> None:
-        """Follow the conversation the tab now shows. The welcome has no identity, so the
-        tree goes quiet."""
-        self._view = view
-        self.present()
+    @property
+    def _categories(self) -> CategorySelection:
+        return self._view.category_selection if self._view is not None else NoCategorySelection()
+
+    def _sync_checks(self) -> None:
+        selection = self._categories
+        for category, check in self._checks.items():
+            check.setVisible(selection.filters)
+            check.blockSignals(True)
+            check.setChecked(category in selection.visible_categories)
+            check.blockSignals(False)
+
+    def _category_toggled(self, category: type[MessageCategory], on: bool) -> None:
+        self._categories.set_category(category, on)
+        self._sync_checks()
 
     def present(self) -> None:
+        self._sync_checks()
         if self._view is None:
             self._context.setText("No open conversation")
             self._tree.clear()
@@ -220,24 +210,19 @@ class QtThreadCommsPanel(ThreadSidebarPanelBody, QWidget):
         if RelationshipGroup.is_group_type(group_type):
             self._state.expanded[group_type] = False
 
-    async def write_order(self, groups: tuple[SortableRelationshipGroup, ...],
-                          order: type[ThreadSort]) -> None:
-        """Called by `QtRelationshipSort`; same write path as Textual's
-        `RelationshipSort.order_writer`."""
+    async def write_order(self, order: type[ThreadSort]) -> None:
+        """`QtRelationshipSort`'s pick: every sortable group of the snapshot shown takes the
+        order, through the shared `RelationshipOrder` write, as Textual's sort writes it."""
+        snapshot = self._snapshot
+        if snapshot is None:
+            raise ValueError("Relationship ordering is not available yet")
         identity = self._thread_identity
-        root = identity.root_path
-        if root is None:
-            return
         app = self._app()
-        if app is None:
-            return
         access = app.coordination_access
-        service = await app.preparation.run_thread(lambda: access.observing(root))
+        service = await app.preparation.run_thread(lambda: access.observing(identity.root_path))
         try:
-            for group in groups:
-                await app.preparation.run_thread(
-                    service.set_relationship_order, identity.thread_name(), type(group), order
-                )
+            await self._sort.write_relationship_order(
+                app.preparation, service, identity, snapshot.sortable_groups, order)
         finally:
             if identity == self._thread_identity:
                 self.present()

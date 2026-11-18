@@ -17,6 +17,7 @@ panel keyed by the same title stays in sync between frontends.
 
 from __future__ import annotations
 
+from pyqt_reactive.widgets.fitted_text import ElidedLine
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QFrame,
@@ -57,14 +58,23 @@ class QtSidebarPanelFrame(QFrame):
         self._chevron.setArrowType(Qt.ArrowType.DownArrow)
         self._chevron.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._chevron.clicked.connect(self._toggle)
-        self._title = QLabel(spec.title, self._header)
+        # One text line square, as Textual's `▼` takes one cell: the title keeps the width.
+        line = self.fontMetrics().lineSpacing()
+        self._chevron.setFixedSize(line, line)
+        self._chevron.setStyleSheet("QToolButton { padding: 0px; border: none; }")
+        # The title elides before the header's control, as every sidebar text does.
+        self._title = ElidedLine(spec.title)
+        self._title.setParent(self._header)
         self._title.setObjectName("QtSidebarPanelTitle")
         self._title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         header_row = QHBoxLayout(self._header)
-        header_row.setContentsMargins(UiGap.normal, UiGap.tight, UiGap.normal, UiGap.tight)
-        header_row.setSpacing(UiGap.normal)
+        # `▼ Channels  Name ▾` as Textual's header row runs it: no inset, the chevron against
+        # the title, one gap before the control.
+        header_row.setContentsMargins(0, UiGap.tight, 0, UiGap.tight)
+        header_row.setSpacing(0)
         header_row.addWidget(self._chevron)
         header_row.addWidget(self._title, 1)
+        header_row.addSpacing(UiGap.tight)
         # The control Textual's panel declares beside its title (`SideBar.Panel.header_control`),
         # such as the Channels panel's channel order.
         if header_control is not None:

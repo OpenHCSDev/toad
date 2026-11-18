@@ -17,7 +17,10 @@ the shared owner to its reactive watchers.
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from collections.abc import Callable
+
+from metaclass_registry import AbstractHooksMeta
 
 
 class SidebarFilter:
@@ -62,3 +65,18 @@ class SidebarFilter:
         if not self._text:
             return True
         return self._text.casefold() in name.casefold()
+
+
+class SidebarSearchField(metaclass=AbstractHooksMeta):
+    """The sidebar's search input as a frontend draws it: Textual's `SidebarSearch` and Qt's
+    `QtSidebarSearch` both inherit this. It says what it searches while empty, and clearing
+    it (Escape on both) empties the field, whose text the sidebar's `SidebarFilter` follows."""
+
+    search_placeholder = "Search"
+
+    @abstractmethod
+    def show_search(self, text: str) -> None:
+        """Put ``text`` in the field."""
+
+    def clear_search(self) -> None:
+        self.show_search("")

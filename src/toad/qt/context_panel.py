@@ -17,6 +17,7 @@ import asyncio
 from typing import ClassVar
 
 from PySide6.QtCore import Qt
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from PySide6.QtGui import QClipboard
 from PySide6.QtWidgets import (
     QApplication,
@@ -31,8 +32,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
-from toad.client.context_intent import ContextTreeIntent
+from toad.qt.session_panel import SessionPanel
+from toad.client.context_intent import ContextInspectionReader, ContextTreeIntent
 from toad.core.context_inspection import (
     ContextNode,
     DetachedInspection,
@@ -43,7 +44,7 @@ from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.qt.metrics import UiGap
 
 
-class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
+class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
     spec_key: ClassVar[str] = "context"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
@@ -63,9 +64,7 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
     ) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
-        self._intents = intents
-        self._view = None
-        self._state: InspectionState = DetachedInspection()
+        self.start_inspection(intents)
         self._refresh_task: asyncio.Task | None = None
 
         column = QVBoxLayout(self)
@@ -108,8 +107,8 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
         """Follow the conversation the tab now shows. The welcome has no identity, so
         the tree goes quiet."""
         self._view = view
-        self._state = self._thread_identity.inspection_state()
-        intent = self._intent
+        self.inspect_identity(self.thread_identity)
+        intent = self.intent
         self._search.setText(intent.query)
         self.present()
 
@@ -124,14 +123,10 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
     # --- shared state accessors (no Textual coupling) ----------------------
 
     @property
-    def _thread_identity(self) -> SessionIdentity:
+    def thread_identity(self) -> SessionIdentity:
         if self._view is None:
             return NoThreadIdentity()
         return self._view.thread_identity
-
-    @property
-    def _intent(self) -> ContextTreeIntent:
-        return self._intents.setdefault(self._thread_identity, ContextTreeIntent())
 
     def _app(self):
         parent = self.parent()
@@ -148,7 +143,7 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
             return
         self._refresh_task = asyncio.current_task()
         try:
-            identity = self._thread_identity
+            identity = self.thread_identity
             root = identity.root_path
             if root is None:
                 self._status.setText("Context · no thread root")
@@ -159,18 +154,15 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
                 return
             access = app.coordination_access
             observed = await app.preparation.run_thread(lambda: access.observing(root))
-            if identity != self._thread_identity:
+            if identity != self.thread_identity:
                 return
-            previous = self._state
-            self._state = previous.observe(access.revision)
-            acquired = await self._state.acquire(
-                observed, access.revision, identity, cursor=self._intent.cursor
-            )
-            if identity != self._thread_identity:
+            previous = self.observe_revision(access.revision)
+            acquired = await self.acquire_inspection(observed, access.revision, identity)
+            if identity != self.thread_identity:
                 return
-            self._state = self._state.receive_inspection(acquired)
-            self._status.setText(self._state.status)
-            self._state.present(self._render_present)
+            self.receive_inspection(acquired)
+            self._status.setText(self.state.status)
+            self.state.present(self._render_present)
         finally:
             self._refresh_task = None
 
@@ -186,7 +178,7 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
         # `HoldingInspection.groups()` is the toolkit-neutral decode. We call it off
         # the UI loop to match Textual's `Coordination.run_worker(captured.groups)`.
         groups = await app.preparation.run_thread(holding.groups)
-        if holding.thread_identity != self._thread_identity:
+        if holding.thread_identity != self.thread_identity:
             return
         self._apply_groups(groups)
 
@@ -194,7 +186,7 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
         self, groups: tuple[tuple[str, tuple[ContextNode, ...], bool], ...]
     ) -> None:
         self._tree.clear()
-        intent = self._intent
+        intent = self.intent
         query = intent.query.casefold()
         for label, models, expanded in groups:
             top = QTreeWidgetItem(self._tree, [label])
@@ -210,7 +202,7 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
         row.setData(0, Qt.ItemDataRole.UserRole, model)
         for child in model.children():
             self._add_node(row, child)
-        if model.key in self._intent.expanded:
+        if model.key in self.intent.expanded:
             row.setExpanded(True)
 
     # --- UI event handlers -------------------------------------------------
@@ -222,7 +214,7 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
         model = items[0].data(0, Qt.ItemDataRole.UserRole)
         if not isinstance(model, ContextNode):
             return
-        self._intent.selected = model
+        self.intent.selected = model
         asyncio.ensure_future(self._show_detail(model))
 
     async def _show_detail(self, model: ContextNode) -> None:
@@ -242,11 +234,11 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
                     f"context_panel: ContextNode.read() failed on {model!r}: {error!r}",
                     file=sys.stderr,
                 )
-        if self._intent.selected is model:
+        if self.intent.selected is model:
             self._detail.setPlainText(text)
 
     def _on_search(self) -> None:
-        self._intent.query = self._search.text().strip()
+        self.intent.query = self._search.text().strip()
         self.present()
 
     def _on_copy(self) -> None:
@@ -256,9 +248,9 @@ class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
     def _on_expanded(self, item: QTreeWidgetItem) -> None:
         model = item.data(0, Qt.ItemDataRole.UserRole)
         if isinstance(model, ContextNode):
-            self._intent.expanded.add(model.key)
+            self.intent.expanded.add(model.key)
 
     def _on_collapsed(self, item: QTreeWidgetItem) -> None:
         model = item.data(0, Qt.ItemDataRole.UserRole)
         if isinstance(model, ContextNode):
-            self._intent.expanded.discard(model.key)
+            self.intent.expanded.discard(model.key)

@@ -10,6 +10,7 @@ label and write an order identically. This module adds only the QToolButton and 
 from __future__ import annotations
 
 import asyncio
+from abc import abstractmethod
 from functools import partial
 from typing import TYPE_CHECKING
 
@@ -26,25 +27,21 @@ if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
-class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], SortControlBase[Order], QToolButton,
-                                         metaclass=PyQtWidgetMeta):
-    """A sort choice as a button whose menu lists its form's orders; a pick writes the
-    order through the Core, and only the observation that follows repaints the label."""
+class QtSortButton[Order: DisplayOrder](SortControlBase[Order], QToolButton, metaclass=PyQtWidgetMeta):
+    """A sort choice as a one-line button whose menu lists its form's orders, then any
+    settings it toggles; a pick hands the order to `write_picked`, and only the observation
+    that follows repaints the label."""
 
-    def __init__(self, app: QtToadApp, form_type, scope: str, parent: QWidget | None = None) -> None:
+    def __init__(self, form_type, scope: str, parent: QWidget | None = None) -> None:
         super().__init__(form_type=form_type, scope=scope, parent=parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setAutoRaise(True)
         self.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         # The label already ends in the shared "▾"; Qt's own menu arrow would draw a second.
-        # The plate keeps the label legible where it lies over a long line's text.
-        scheme = app.theme.color_scheme
-        self.setStyleSheet(f"QToolButton {{ background-color: {scheme.to_hex(scheme.panel_bg)};"
-                           " padding: 0px; border: none; }"
+        self.setStyleSheet("QToolButton { padding: 0px; border: none; }"
                            "QToolButton::menu-indicator { image: none; width: 0px; }")
-        # One text line tall, as Textual's one-row segment: the summary line below stays clear.
+        # One text line tall, as Textual's one-row segment.
         self.setFixedHeight(self.fontMetrics().lineSpacing())
-        self._app = app
         self._form_type = form_type
         menu = QMenu(self)
         menu.aboutToShow.connect(self._fill)
@@ -57,7 +54,6 @@ class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], SortControlBase[
         return ()
 
     def _fill(self) -> None:
-        """The orders, then each visibility setting marked with its current value."""
         menu = self.menu()
         menu.clear()
         choices = self._form_type.choices
@@ -65,15 +61,17 @@ class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], SortControlBase[
             action = QAction(choices.label(order), menu)
             action.triggered.connect(partial(self._picked, order))
             menu.addAction(action)
-        settings = self._app.saved_settings
         for path in self.visibility_fields():
-            field = path.bind(settings.state)
+            field = path.bind(self.saved_settings().state)
             action = QAction(f"{'✓' if field.value else '○'} {field.label}", menu)
             action.triggered.connect(partial(self._toggle_visibility, path))
             menu.addAction(action)
 
+    def saved_settings(self):
+        raise NotImplementedError(f"{type(self).__name__} toggles no settings")
+
     def _toggle_visibility(self, path) -> None:
-        settings = self._app.saved_settings
+        settings = self.saved_settings()
         settings.toggle(path)
         asyncio.ensure_future(settings.save())
 
@@ -83,9 +81,28 @@ class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], SortControlBase[
 
     def _picked(self, order: type[Order]) -> None:
         if order is not self.order:
-            asyncio.ensure_future(self._write(order))
+            asyncio.ensure_future(self.write_picked(order))
 
-    async def _write(self, order: type[Order]) -> None:
+    @abstractmethod
+    async def write_picked(self, order: type[Order]) -> None:
+        """Store the picked order where its owner keeps it."""
+
+
+class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], QtSortButton[Order]):
+    """A channel sort choice: written through the Core that supplies the observed rows
+    (`CommsSortWrite`). Its plate keeps the label legible over a long line's text."""
+
+    def __init__(self, app: QtToadApp, form_type, scope: str, parent: QWidget | None = None) -> None:
+        self._app = app
+        super().__init__(form_type, scope, parent)
+        scheme = app.theme.color_scheme
+        self.setStyleSheet(self.styleSheet()
+                           + f"QToolButton {{ background-color: {scheme.to_hex(scheme.panel_bg)}; }}")
+
+    def saved_settings(self):
+        return self._app.saved_settings
+
+    async def write_picked(self, order: type[Order]) -> None:
         access = self._app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
         await self.write_order(observed, access, str(observed.root), order)

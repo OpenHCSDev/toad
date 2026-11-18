@@ -120,3 +120,19 @@ class ChannelMemberOrder(CommsSortWrite["ThreadSort"]):
     def order_request(self, order: "type[ThreadSort]") -> "ToolRequest":
         from agent_comms.transport.tools.sidebar import CommsSortChannelTool
         return CommsSortChannelTool(name=self.scope, order=order)
+
+
+class RelationshipOrder(SortControlBase["ThreadSort"]):
+    """A thread's relationship groups' order: Textual's `RelationshipSort` and Qt's
+    `QtRelationshipSort` both inherit it. The label shows the one order every sortable group
+    shares (none when they differ), and a pick writes it to each group."""
+
+    def update_groups(self, groups) -> None:
+        orders = {group.order for group in groups}
+        self.update_order(next(iter(orders)) if len(orders) == 1 else None)
+
+    @staticmethod
+    async def write_relationship_order(preparation, service, identity, groups, order) -> None:
+        for group in groups:
+            await preparation.run_thread(
+                service.set_relationship_order, identity.thread_name(), type(group), order)

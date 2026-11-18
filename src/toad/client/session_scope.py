@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from pathlib import Path
-from typing import Never
+from typing import TYPE_CHECKING, Never
 
 from agent_comms.errors import RelationViolationError
 from agent_comms.nominal.field_codec import AcpSessionId
@@ -17,6 +17,9 @@ from metaclass_registry import AbstractHooksMeta
 
 from toad.project_path_owner import CheckoutRoot
 from toad.transcript_scope import NoTranscript, TranscriptScope
+
+if TYPE_CHECKING:
+    from toad.client.category_selection import CategorySelection
 
 
 class SessionOrigin(metaclass=AbstractHooksMeta):
@@ -65,6 +68,13 @@ class SessionScope:
     @property
     def origin(self) -> SessionOrigin:
         raise NotImplementedError
+
+    @property
+    def category_selection(self) -> CategorySelection:
+        """The categories this view's transcript shows. A view without a transcript filters
+        nothing; a view that filters inherits `CategorySelection`, which answers itself."""
+        from toad.client.category_selection import NoCategorySelection
+        return NoCategorySelection()
 
     @property
     def thread_identity(self) -> object:
