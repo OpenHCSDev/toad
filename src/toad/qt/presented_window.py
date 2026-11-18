@@ -25,10 +25,6 @@ from toad.qt.metrics import UiGap
 from toad.screen_width import ScreenWidth
 from toad.window_presentation import BesideApp, FillsApp, WindowPresentation
 
-# Qt's QWIDGETSIZE_MAX: no limit on a widget's size.
-_UNLIMITED = (1 << 24) - 1
-
-
 def window_width(host: QWidget) -> ScreenWidth:
     """The width class of the window `host`: its width in columns of its font's text."""
     width = host.width() if host.isVisible() and host.width() > 0 else host.screen().availableGeometry().width()
@@ -81,7 +77,12 @@ class FilledWindow(QtWindowPresentation, FillsApp):
 
 
 class FloatingWindow(QtWindowPresentation, BesideApp):
-    """A desktop dialog over the app, no larger than its screen less the system's bars."""
+    """A desktop dialog centred over the app: at least half the app window wide and seven
+    tenths as tall (more when its own size or its layout asks for more), never past its screen
+    less the system's bars. Settings once floated at its layout's 228x165 hint over the chat."""
+
+    least_width = 1 / 2
+    least_height = 7 / 10
 
     @classmethod
     def window_flags(cls) -> Qt.WindowType:
@@ -93,10 +94,21 @@ class FloatingWindow(QtWindowPresentation, BesideApp):
 
     @classmethod
     def place(cls, window: QWidget, host: QWidget) -> None:
-        available = host.screen().availableGeometry()
-        window.setMaximumSize(_UNLIMITED, _UNLIMITED)
+        # The window's client area, inside the screen less its bars and the window's frame (as
+        # thick as the app window's own).
+        frame, inside = host.frameGeometry(), host.geometry()
+        available = host.screen().availableGeometry().adjusted(
+            inside.left() - frame.left(), inside.top() - frame.top(),
+            inside.right() - frame.right(), inside.bottom() - frame.bottom())
+        hint = window.sizeHint()
+        width = min(available.width(), max(window.width(), hint.width(), int(host.width() * cls.least_width)))
+        height = min(available.height(), max(window.height(), hint.height(), int(host.height() * cls.least_height)))
+        placed = QRect(0, 0, width, height)
+        placed.moveCenter(QRect(host.mapToGlobal(QPoint(0, 0)), host.size()).center())
+        placed.moveLeft(max(available.left(), min(placed.left(), available.right() + 1 - width)))
+        placed.moveTop(max(available.top(), min(placed.top(), available.bottom() + 1 - height)))
         window.setMaximumSize(available.size())
-        window.resize(min(window.width(), available.width()), min(window.height(), available.height()))
+        window.setGeometry(placed)
 
 
 class PresentedWindow:
