@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Merge a reviewed toad PR only if the Qt inheritance ratchet passes on that exact head.
+# Merge a reviewed toad PR only if the Qt inheritance ratchet and the shadow check pass on that
+# exact head.
 #   tools/merge_reviewed.sh PR_NUMBER
-# Fetches the PR head into a throwaway worktree, runs tools/qt_inherit_ratchet.py there with the
-# agent-comms runtime (it has PySide6), and merges with --match-head-commit only on exit 0.
+# Fetches the PR head into a throwaway worktree, runs tools/qt_inherit_ratchet.py and
+# tools/shadow_check.py there with the agent-comms runtime (it has PySide6 and Textual), and
+# merges with --match-head-commit only when both exit 0.
 # A head that moves after the check fails the merge instead of landing unchecked code.
 # A head that does not contain current origin/main is refused: its renders and ratchet
 # describe a tree that is not what main becomes, so the branch must rebase first.
@@ -20,5 +22,7 @@ fi
 git worktree add -q --detach "$check" "$head"
 echo "ratchet on #$pr @ ${head:0:9}:"
 ( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/qt_inherit_ratchet.py 2>&1 | grep -v propagateSizeHints )
+echo "shadow check on #$pr @ ${head:0:9}:"
+( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/shadow_check.py 2>&1 | grep -v propagateSizeHints )
 gh pr merge "$pr" --squash --admin --match-head-commit "$head"
 gh pr view "$pr" --json state,mergeCommit -q '"#\(.number // "") \(.state) \(.mergeCommit.oid[0:9])"'

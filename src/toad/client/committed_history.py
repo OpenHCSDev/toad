@@ -24,6 +24,7 @@ from agent_comms.transcript.transcript_events import TranscriptEvent
 
 from toad.client.history_coverage import CoveredHistory, HistoryCoverage
 from toad.client.prepared_pages import PreparedPageSource
+from toad.client.source_resumption import ResumesSource
 from toad.commit_claims import CommitClaim, SnapshotPresentation
 from toad.core.source_events import TranscriptCoverage
 
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
     from toad.forms.presentation import EntryPlacement
 
 
-class CommittedHistoryBase(SnapshotPresentation, CoveredHistory[PreparedPageSource]):
+class CommittedHistoryBase(SnapshotPresentation, ResumesSource, CoveredHistory[PreparedPageSource]):
     """A saved source block that precedes the conversation's live tail. Behaviour-only
     base: both frontends pair this with their own pager/presentation base and let the
     MRO deliver the pager primitives (`call_after_refresh`, `request_preparation`,
@@ -61,6 +62,7 @@ class CommittedHistoryBase(SnapshotPresentation, CoveredHistory[PreparedPageSour
         return self._source_state.coverage
 
     def source_resumed(self) -> None:
+        super().source_resumed()
         self.coverage.publish(self)
 
     def publish_committed(self) -> None:

@@ -197,11 +197,18 @@ class YieldingKey:
 
 class ReplacesFrameworkAction:
     """A member declared to stand in for one of the toolkit's own actions (Screen.action_dismiss,
-    App.action_quit): replacing that written action is its purpose."""
+    App.action_quit): replacing that written action is its purpose.
+
+    A mixin listed before the member's family base (a declaration belongs to one family, so it
+    cannot subclass DeclaredAction itself). Listed after it, DeclaredAction's own check runs,
+    sees the toolkit writer and refuses at class creation: wrong order fails loudly."""
 
     @classmethod
     def require_unwritten(cls, name: str, writers: tuple[type, ...]) -> None:
-        pass
+        """Only the toolkit's own writers are exempt. An action a toad class wrote is refused here
+        as for every declaration: this member's apply would call itself."""
+        super().require_unwritten(name, tuple(
+            writer for writer in writers if not writer.__module__.startswith("textual.")))
 
 
 class MenuPlace(DeclaredOrder):
