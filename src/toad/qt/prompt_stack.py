@@ -195,16 +195,19 @@ class QtInputDeliveryDetails(DeliveryDetailsPage, QDialog, metaclass=PyQtWidgetM
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
         layout.addWidget(WrappedText(self.details_title))
+        # Each line joins the layout (and so gets its parent) before its visibility is set: a
+        # parentless widget made visible becomes its own top-level window, which deadlocks
+        # Android's accessibility bridge against its EGL surface (SIGABRT).
         error = WrappedText(self.error_text(delivery, ""))
         error.setStyleSheet(renderer.color_style(FailureRole))
-        error.setVisible(bool(error.text()))
         layout.addWidget(error)
+        error.setVisible(bool(error.text()))
         body = WrappedText(overview)
-        body.setVisible(bool(overview))
         layout.addWidget(body, 1)
+        body.setVisible(bool(overview))
         pending = WrappedText(self.pending_explanation)
-        pending.setVisible(bool(delivery.current))
         layout.addWidget(pending)
+        pending.setVisible(bool(delivery.current))
         layout.addWidget(WrappedText(delivery.pending_records_text()))
         layout.addWidget(WrappedText(delivery.history_summary))
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close, parent=self)
