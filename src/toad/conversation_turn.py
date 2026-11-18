@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
     from toad.acp.agent import Agent
     from toad.core_event_carrier import CoreEventMessage
-    from toad.widgets.conversation import Conversation
+    from toad.turn_presentation import TurnPresentation
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
@@ -173,7 +173,7 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     @abstractmethod
     def reset(self) -> None: ...
 
-    async def present_input(self, view: Conversation, text: str) -> None:
+    async def present_input(self, view: TurnPresentation, text: str) -> None:
         """Display managed inputs only when the native process reports they started."""
 
     def start_client(self) -> None:
@@ -205,10 +205,8 @@ class LocalTurnBinding(TurnBinding):
     def reset(self):
         self._owner = NoTurn()
 
-    async def present_input(self, view: Conversation, text: str):
-        from toad.widgets.user_input import UserInput
-
-        await view.post(UserInput(text))
+    async def present_input(self, view: TurnPresentation, text: str):
+        await view.present_user_input(text)
 
     def start_client(self):
         self._owner = AgentTurn()

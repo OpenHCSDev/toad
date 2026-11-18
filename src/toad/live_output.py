@@ -15,11 +15,7 @@ from toad.response_delivery import ResponseDelivery, UnroutedResponse
 from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim
 
 if TYPE_CHECKING:
-    from textual.widget import Widget
-
-    from toad.widgets.agent_response import AgentResponse
-    from toad.widgets.agent_thought import AgentThought
-    from toad.widgets.conversation import Conversation
+    from toad.turn_presentation import LiveBlock, TurnPresentation
 
 
 @dataclass
@@ -41,15 +37,16 @@ class OutputStream(DeclaredFamily, affix="Stream"):
     def matches(self, incoming: OutputStream) -> bool: ...
 
     @abstractmethod
-    def create(self, fragment: str) -> AgentResponse | AgentThought: ...
+    def create(self, view: TurnPresentation, fragment: str) -> LiveBlock:
+        """This stream's block in `view`, holding its first fragment."""
 
-    async def append(self, view: Conversation, fragment: str):
+    async def append(self, view: TurnPresentation, fragment: str):
         if self.block is None:
             if self.accepts(fragment):
-                block = self.create(fragment)
+                block = self.create(view, fragment)
                 block.source_claim = self.source_claim
                 self.block = block
-                await view.post(block, new_block=False)
+                await view.show_live_block(block, self)
         else:
             await self.block.append_fragment(fragment)
         return self.block
@@ -74,9 +71,8 @@ class ResponseStream(OutputStream):
         return (self.delivery == incoming.delivery
                 and self.source_claim is incoming.source_claim)
 
-    def create(self, fragment: str) -> AgentResponse:
-        from toad.widgets.agent_response import AgentResponse
-        return AgentResponse(fragment, delivery=self.delivery)
+    def create(self, view: TurnPresentation, fragment: str) -> LiveBlock:
+        return view.response_block(fragment, self.delivery)
 
 
 class CompleteResponseStream(ResponseStream):
@@ -99,9 +95,8 @@ class ThoughtStream(OutputStream):
     def matches(self, incoming: ThoughtStream) -> bool:
         return self.source_claim is incoming.source_claim
 
-    def create(self, fragment: str) -> AgentThought:
-        from toad.widgets.agent_thought import AgentThought
-        return AgentThought(fragment)
+    def create(self, view: TurnPresentation, fragment: str) -> LiveBlock:
+        return view.thought_block(fragment)
 
     async def settle(self) -> None:
         if self.block is not None and self.block.loading:
@@ -111,7 +106,7 @@ class ThoughtStream(OutputStream):
 class LiveOutput:
     """Owns accepted streams, serialized posting and rich-view retirement."""
 
-    def __init__(self, view: Conversation) -> None:
+    def __init__(self, view: TurnPresentation) -> None:
         self._view = weakref.ref(view)
         self.streams: dict[type[OutputStream], OutputStream] = {}
         self.lock = asyncio.Lock()
@@ -120,7 +115,7 @@ class LiveOutput:
     async def append(self, incoming: OutputStream, fragment: str):
         async with self.lock:
             view = self._view()
-            if view is None or not view.is_attached:
+            if view is None or not view.shows_live_output:
                 return None
             revision = self.revision
             await incoming.before_append(self)
@@ -128,7 +123,7 @@ class LiveOutput:
             if stream is not None and not stream.matches(incoming):
                 await self.finish(type(incoming))
                 stream = None
-            if revision != self.revision or self._view() is not view or not view.is_attached:
+            if revision != self.revision or self._view() is not view or not view.shows_live_output:
                 return None
             if stream is None:
                 stream = self.streams[type(incoming)] = incoming
@@ -143,7 +138,7 @@ class LiveOutput:
         for stream in tuple(self.streams.values()):
             await stream.settle()
 
-    async def retire_presentations(self, candidates: Collection[Widget]) -> None:
+    async def retire_presentations(self, candidates: Collection[LiveBlock]) -> None:
         """Transfer covered blocks to the source owner's native retirement.
 
         Their accepted saved rows already own the content. Flushing another
@@ -162,7 +157,7 @@ class LiveOutput:
         streams, self.streams = self.streams, {}
         if (view := self._view()) is not None:
             for stream in streams.values():
-                view.call_later(stream.finish)
+                view.after_live_output(stream.finish)
 
     def retire(self) -> None:
         self.revision += 1

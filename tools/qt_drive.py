@@ -74,6 +74,11 @@ from toad.client.bus_submission import ConversationSubmission
 from toad.setting_choices import CenterColumnAlignment
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.qt.window import ConversationRow, QtToadApp
+from toad.conversation_turn import LocalTurnBinding
+from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
+from toad.live_output import ResponseStream, ThoughtStream
+from toad.qt.history import HistoryRows
+from toad.qt.live_turn import QtLiveFragment
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -854,6 +859,41 @@ class ComposerScenario(Scenario):
         await asyncio.sleep(0.5)
         self.report("6-failed", failure=composer.failure.text(), draft=composer.text,
                     notice=app.status_line.text() if app.status_line.isVisible() else "")
+
+
+class LiveTurnScenario(Scenario):
+    summary = ("open scratch-live-pipeline and feed the shared turn code into its Qt view as an ACP "
+               "turn would (input row, a thought, a response streamed in pieces, a failure with its "
+               "help, the log link); nothing is sent to the bus")
+
+    def live_rows(self) -> list[tuple[str, str]]:
+        rows = self.page.messages.model_rows
+        tail = [rows.index(row).data(HistoryRows.FRAGMENT) for row in range(rows.rowCount())]
+        return [(type(fragment.events[0]).__name__, fragment.events[0].text)
+                for fragment in tail if isinstance(fragment, QtLiveFragment)]
+
+    async def run(self) -> None:
+        await self.open_named("scratch-live-pipeline")
+        view = self.page
+        saved = view.messages.model_rows.rowCount()
+        await LocalTurnBinding().present_input(view, "qt live turn probe")
+        await view.output.append(ThoughtStream(), "Considering the probe")
+        await asyncio.sleep(1.5)  # rows render on the delegate's pool; a frame first shows plain text
+        self.report("1-input-and-thought", saved=saved, live=self.live_rows())
+        stream = ResponseStream()
+        for piece in ("The probe ", "renders ", "as rows."):
+            await view.output.append(stream, piece)
+        await asyncio.sleep(1.5)
+        self.report("2-response-streamed", live=self.live_rows())
+        await view.output.finish(ResponseStream)
+        await TextAgentFail("Agent stopped", "probe failure details").present(view)
+        await UnsupportedResumeAgentFail("Resume refused").present(view)
+        await asyncio.sleep(1.5)
+        self.report("3-failure-and-help", live=self.live_rows(),
+                    flash=view.feedback.text() if view.feedback.isVisible() else "")
+        view.messages.committed_pages_changed()
+        self.report("4-saved-rows-arrived", live=self.live_rows(),
+                    rows=view.messages.model_rows.rowCount())
 
 
 class CommandScenario(Scenario):
