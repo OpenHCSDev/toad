@@ -166,9 +166,30 @@ class QtThreadView(
         ``QtThreadStatusLine`` and mounts it above the goal strip + composer."""
 
     def apply_bound_agent(self, agent: "AgentBase") -> None:
-        """Default no-op: `ObservedAgentBinding.bind_agent` calls this after storing.
-        ACP views override to update their composer / identity line / status;
-        mailbox views have no bound agent and inherit the no-op."""
+        """Default: refresh the composer-surround lines so a late-bound agent
+        gets the thinking + status surfaces pointing at the new binding, not
+        the pre-bind default. `ObservedAgentBinding.bind_agent` calls this
+        after storing. ACP views can override to update composer/identity too;
+        mailbox views still want the status refresh (model_info may arrive via
+        a later wire binding upgrade)."""
+        self.refresh_composer_surround()
+
+    def refresh_composer_surround(self) -> None:
+        """Re-ask each composer-surround line to re-read its state source and
+        toggle its visibility. Called on every ``apply_bound_agent`` AND on
+        ``ThreadRowsChanged`` via ``QtGoalBar.rows_changed`` — so a remote
+        thread status flip (busy/idle, model info arrival) propagates to the
+        thinking + status line without each widget needing its own core-event
+        subscription."""
+        for line in (getattr(self, "thinking_line", None), getattr(self, "thread_status_line", None)):
+            if line is not None and hasattr(line, "refresh"):
+                try:
+                    line.refresh()
+                except Exception as error:
+                    print(
+                        f"QtThreadView {type(self).__name__} composer-surround refresh failed: {error!r}",
+                        flush=True,
+                    )
 
     def agent_connected(self, agent: "AgentBase") -> None:
         """Default no-op: flash notice on connect. ACP views override; mailbox
@@ -423,6 +444,12 @@ class QtThreadView(
             self.goal_bar = None
             return None
         self.goal_bar = QtGoalBar(app, app.renderer, incarnation)
+        # Kick off the core-event subscription + first goal read NOW, not on
+        # showEvent. `present_state()` in the bar's __init__ already hid the
+        # widget (no goal snapshot yet), so waiting for showEvent would stall
+        # the observation forever. Fire-and-forget: the observation's first
+        # result will call `present_state()` again and flip the visibility.
+        self.goal_bar._attach_observation_if_needed()
         return self.goal_bar
 
     def _start_transcript_source(self) -> None:

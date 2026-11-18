@@ -58,13 +58,40 @@ class QtThinkingLine(QWidget):
         return binding.presentation.turns
 
     def _turn_changed(self, owner: TurnOwner) -> None:
-        """Refresh label from the current turn owner."""
+        """Refresh label from the current turn owner, OR fall back to the
+        host's remote thread status for mailbox views where ``owner.busy`` is
+        always False (``NoAgentConnection.presentation.turns`` is a dead
+        ``LocalTurnBinding(None)``). The remote claude-a instance's thinking
+        state lives on ``model.threads.rows[name].status.is_working()`` —
+        same source the sidebar pulse animation reads."""
         if owner.busy:
             label = owner.describe() if hasattr(owner, "describe") else "Thinking…"
             self._label.setText(f"Thinking · {label}")
             self.show()
-        else:
-            self.hide()
+            return
+        # Fallback: remote thread status for mailbox views.
+        if self._remote_thread_is_working():
+            self._label.setText("Thinking…")
+            self.show()
+            return
+        self.hide()
+
+    def _remote_thread_is_working(self) -> bool:
+        """Read ``thread.status.is_working()`` for the host's thread from the
+        app's threads model. Returns False if any lookup step fails — this is
+        a best-effort surface, not a contract."""
+        incarnation = getattr(self._host, "thread_incarnation", None)
+        if incarnation is None:
+            return False
+        app = getattr(self._host, "app", None)
+        if app is None:
+            return False
+        try:
+            model = app.coordination_access.model()
+            thread = model.threads.rows.get(incarnation.name)
+            return thread is not None and thread.status.is_working()
+        except Exception:
+            return False
 
     def refresh(self) -> None:
         """Called by the host on agent-binding changes so the line follows the
@@ -94,7 +121,15 @@ class QtThreadStatusLine(QWidget):
         layout.setContentsMargins(UiGap.loose, UiGap.tight, UiGap.loose, UiGap.tight)
         layout.setSpacing(0)
         layout.addWidget(self._label, 1)
-        self.refresh()
+        # Defer the first refresh: host.thread_identity + host.agent_binding
+        # are typically bound AFTER the view's __init__ completes (via
+        # `bind_thread` and the async identity resolution). Running refresh()
+        # synchronously here reads an unbound identity and silently hides the
+        # widget — the bug Tristan hit: "Mailbox: claude-a" visible in the
+        # header but QtThreadStatusLine blank. Defer one event-loop tick so the
+        # host's own init has landed.
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(0, self.refresh)
 
     def refresh(self) -> None:
         """Refresh from the current agent binding + thread identity.
