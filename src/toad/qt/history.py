@@ -208,16 +208,55 @@ class HistoryRows(QAbstractListModel):
         return None if answer is None else answer(self.fragments[index.row()])
 
     def show(self, fragments: tuple[HistoryFragment, ...]) -> None:
-        self.beginResetModel()
+        """The rows the pages show now, told to the view as what changed: the rows of pages
+        that did not change are the same fragment objects, so the unchanged rows before and
+        after the change are found by identity, and only the rows between them are inserted,
+        removed or changed. The view keeps every other row's measured height
+        (`RowDocumentDelegate` row sizes); a reset made it measure the whole history again
+        on every arrival (Tristan, Pixel 8a, bursts at 30 ms a frame, 2026-11-18)."""
+        old = self.fragments
+        same = min(len(old), len(fragments))
+        head = next((row for row in range(same) if old[row] is not fragments[row]), same)
+        tail = 0
+        while tail < same - head and old[-1 - tail] is fragments[-1 - tail]:
+            tail += 1
+        removed, added = len(old) - head - tail, len(fragments) - head - tail
+        if removed == added:
+            self._set(fragments, head)
+            if added:
+                self.dataChanged.emit(self.index(head, 0), self.index(head + added - 1, 0))
+            return
+        # The first `changed` rows of the change keep their old content through the removal
+        # and the insertion (rows an insert or removal does not name must not change in it),
+        # then change in place, told as a data change.
+        changed = min(removed, added)
+        kept, end = old[:head + changed], old[len(old) - tail:]
+        if removed > changed:
+            self.beginRemoveRows(QModelIndex(), head + changed, head + removed - 1)
+            self._set(kept + end, head + changed)
+            self.endRemoveRows()
+        if added > changed:
+            self.beginInsertRows(QModelIndex(), head + changed, head + added - 1)
+            self._set(kept + fragments[head + changed:head + added] + end, head + changed)
+            self.endInsertRows()
+        self._set(fragments, head)
+        if changed:
+            self.dataChanged.emit(self.index(head, 0), self.index(head + changed - 1, 0))
+
+    def _set(self, fragments: tuple[HistoryFragment, ...], first: int) -> None:
+        """Hold these rows. Every row a key names is kept with the rows (a lookup is asked per
+        changed row on each receipt update, arrival, glide and reader restore); rows before
+        `first` did not move, so a change at the end indexes only the rows after it."""
+        if fragments is self.fragments:
+            return
+        rows = self._rows if first else {}
+        if first:
+            for key in [key for key, row in rows.items() if row >= first]:
+                del rows[key]
+        for row in range(first, len(fragments)):
+            rows.setdefault(fragments[row].key, row)
         self.fragments = fragments
-        # Every row a key names, built with the rows: a lookup is asked per changed row on
-        # each receipt update, arrival, glide and reader restore, and a scan compared every
-        # row's key each time.
-        rows: dict = {}
-        for row, fragment in enumerate(fragments):
-            rows.setdefault(fragment.key, row)
         self._rows = rows
-        self.endResetModel()
 
     def row_of(self, key) -> int:
         return self._rows.get(key, -1)
@@ -1366,8 +1405,14 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         self.model_rows.show(tuple(fragment for page in history.pages if page.display
                                    for fragment in page.shown_fragments) + self.draft
                              + tuple(block.fragment() for block in self.live_blocks))
-        self.doItemsLayout()
+        self.lay_out_now()
         self.repin_header()
+
+    def lay_out_now(self) -> None:
+        """One layout now, and none left pending: a model insert or removal schedules Qt's own,
+        which a direct `doItemsLayout` would leave to run a second time on the next turn."""
+        self.scheduleDelayedItemsLayout()
+        self.executeDelayedItemsLayout()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
         """Core's CLI draft as rows after the history (none clears it); the reader keeps their place."""
@@ -1409,7 +1454,7 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         reader-restore and the viewport update — there is no viewer to serve."""
         try:
             key, offset = self.reader_place()
-            self.doItemsLayout()
+            self.lay_out_now()
             self.keep_reader(key, offset)
             self.repin_header()
             self.viewport().update()
