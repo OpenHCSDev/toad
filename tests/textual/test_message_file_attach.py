@@ -93,3 +93,20 @@ async def test_the_attach_key_opens_the_named_picker_and_escape_attaches_nothing
 def test_only_a_message_editor_answers_the_attach_key():
     assert AttachFileAction in MessageTextArea.declared_actions()
     assert AttachFileAction not in PromptTextArea.declared_actions()
+
+
+async def test_a_sent_file_draws_as_a_chip_under_its_message_in_the_terminal(workspace):
+    """The history row a reader sees: the message's text, then a chip per file it carries."""
+    workspace.thread("peer", "team")
+    async with workspace.app() as ui:
+        await ui.open_channel("#team", actor=workspace.viewer)
+        view = ui.app.selected_session.query_one(CommsChatView)
+        prompt = view.prompt
+        picked = prompt.project_path.path / "shot.png"
+        picked.write_bytes(b"\x89PNG" + bytes(2044))
+        await prompt.attach_path(picked)
+        prompt.prompt_text_area.focus()
+        await ui.type("a screenshot")
+        await ui.press("enter")
+        await ui.until(lambda: ui.shows("a screenshot") and ui.shows("[shot.png · 2.0 KB]"),
+                       why="the sent message and its file's chip under it")
