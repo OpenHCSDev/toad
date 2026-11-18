@@ -959,8 +959,10 @@ class ShippedScenario(Scenario):
                 QTest.keyClick(target, combination.key(), combination.keyboardModifiers())
                 await asyncio.sleep(0.3)
                 # A key whose action opens a dialog (Attach's file picker) leaves it open; it
-                # is closed unanswered, so the next key reaches the view again.
+                # is closed unanswered and the window active again, so the next key reaches the
+                # view; offscreen Qt hands activation back to no window when a dialog closes.
                 self.close_dialogs()
+                self.app.activateWindow()
                 await asyncio.sleep(0.1)
                 ran = [type(action).__name__ for action in keys.ran]
                 results.append(f"{where}:{spelling}->{'+'.join(ran) or 'none available'}")
