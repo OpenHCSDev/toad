@@ -297,14 +297,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     the queue summary and delivery controls, the framed ``❯`` editor, then its info bar
     and what is still submitting, the last send's failure and your last message's delivery.
 
-    `PromptComposer` (shared with Textual's `Prompt`) owns the submission owner, the
-    queue answers, the leading glyph and how a returned draft rejoins; the message
-    composers add `MessagePromptComposer` as Textual's `MessagePrompt` does. This
-    class makes the Qt calls. Enter sends (`SubmitAction`), as in the TUI. A touch keyboard's
-    Enter is committed as a newline in a multi-line field, so the frame also carries the same
-    action as a button: its label is `SubmitAction.title` and a tap runs `submit`, the method
-    `SubmitAction` binds to, so there is one send path with two triggers.
-    The shared action families bind to it through `SubmitsContract` + `DismissibleContract`."""
+    `PromptComposer` (Textual's `Prompt`) owns the submission owner, queue answers, glyph and
+    draft rejoin; message composers add `MessagePromptComposer`. This class makes the Qt calls.
+    Enter sends (`SubmitAction`), as in the TUI. A touch keyboard's Enter is committed as a
+    newline in a multi-line field, so the frame also carries a `SubmitAction.title` button whose
+    tap runs `submit`: one send path, two triggers. The shared action families bind to it
+    through `SubmitsContract` + `DismissibleContract`."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
@@ -597,8 +595,7 @@ class ProjectComposer(Composer):
 
 
 class MailboxComposer(MessageComposer, ProjectComposer):
-    """A CLI thread's composer, Textual's `MailboxPrompt(MessagePrompt)`: a message to the
-    thread's inbox, accepted with or without an agent, beside its project's path."""
+    """A CLI thread's composer, Textual's `MailboxPrompt(MessagePrompt)`, with its project path."""
 
 
 class Receipt(NotificationSubscriber, WrappedText):
