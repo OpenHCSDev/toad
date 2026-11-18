@@ -58,20 +58,11 @@ class QtMailboxView(QtThreadView, SessionScope):
     Shares the transcript stack with `QtAcpSessionView` through `QtThreadView`.
     """
 
-    # `agent_binding` lives on `QtThreadView` (shared owner, PR #...) — a NoAgentConnection
-    # ObservedField by default. Mailbox view inherits it without re-declaring; the
-    # field exists if a later PR wires a real binding here (e.g. an opened mailbox
-    # that upgrades to a live session).
-
     # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
     # class is instantiable; `__init__` assigns the real widgets.
     identity_line: ElidedLine = None  # type: ignore[assignment]
-    feedback = None
-    agent_activity = None
     thread_activity = None
     goal_bar = None
-    composer = None
-    submissions = None
 
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()

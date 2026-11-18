@@ -105,17 +105,8 @@ class QtAcpSessionView(
     # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
     # class is instantiable; `_setup_prompt_stack` assigns the real widgets.
     identity_line: ElidedLine = None  # type: ignore[assignment]
-    feedback = None
-    agent_activity = None
     thread_activity = None
     goal_bar = None
-    composer = None
-    submissions = None
-
-    # `agent_binding`, `queue_source`, `submissions`, composer wiring (`submit`,
-    # `submissions_changed`, `update_slash_commands`, `notification_targets`)
-    # all live on `QtThreadView`. See that base class — the two Qt thread-bound
-    # views (ACP session + mailbox) share a single input path.
 
     def __init__(
         self,
@@ -195,11 +186,6 @@ class QtAcpSessionView(
     @property
     def composer_label(self) -> str:
         return self._composer_label
-
-    # `ComposerHost` contract (`submit`, `submissions_changed`,
-    # `update_slash_commands`, `notification_targets`) is inherited from
-    # `QtThreadView` — identical body to what used to live here. Same for
-    # `_mount_composer`.
 
     @property
     def mode(self) -> str:

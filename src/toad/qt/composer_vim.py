@@ -37,7 +37,8 @@ class ComposerVimMode(ModalInputMode):
         return self.state.label
 
     @property
-    def inserting(self) -> bool:
+    def accepts_text(self) -> bool:
+        """The shared `EditingMode.accepts_text`, answered by the current Neovim state."""
         return self.state.accepts_text
 
     def enter_insert(self) -> None:

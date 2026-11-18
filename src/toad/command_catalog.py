@@ -4,9 +4,16 @@ from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
 
 from agent_comms.errors import UnregisteredThreadError
+from formbridge.operations import ExclusiveKind, OperationKind
 from toad.client.commands import CommandContextChanged, CommandRefused, ConversationCommands, LocalCommand
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, SlashCommand
 from toad.target_commands import TargetContext, ThreadCommand
+
+
+class CommandRead(OperationKind, ExclusiveKind):
+    """Reads a conversation's command catalog for its composer; a newer read supersedes it.
+    Textual runs it as the view's exclusive "command-catalog" worker, Qt as the app's
+    operation."""
 
 
 @dataclass(frozen=True)
