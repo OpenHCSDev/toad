@@ -21,7 +21,7 @@ from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
 from toad.frame_presentation import FollowsUnrisenRows, UnrisenRows
-from toad.history_jump import JumpsToLatest
+from toad.history_jump import JumpsToLatest, ReaderWindow
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
 from toad.widget_view import WorkspaceHosted
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
 
 
 class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
-                    ReaderPlacement, JumpsToLatest, FollowsUnrisenRows, VerticalScroll, PagingWindow,
+                    ReaderPlacement, ReaderWindow, FollowsUnrisenRows, VerticalScroll, PagingWindow,
                     actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 

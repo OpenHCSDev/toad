@@ -25,7 +25,7 @@ import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
@@ -33,7 +33,10 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.message_category import MessageCategory
 from objectstate import DottedFieldPath
-from toad.client.application_actions import ApplicationAction, QuitAction
+from toad.client.application_actions import (
+    ApplicationAction, NewSessionAction, NewThreadAction, QuitAction, SettingsAction,
+)
+from toad.qt.settings_screen import QtSettingsScreen
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
@@ -731,6 +734,80 @@ class MenuScenario(Scenario):
         app.show_warning("this drive's own notice; nothing failed", "Drive")
         await asyncio.sleep(0.3)
         self.report("3-notice", notice=app.status_line.text(), shown=app.status_line.isVisible())
+
+
+class ShippedScenario(Scenario):
+    summary = ("open every view kind the phone has and press every bound key, failing on any "
+               "exception: tools/android/shipped_run.py runs it on the shipped bundle")
+
+    # Menu actions that start an agent or create a thread change the bus; the views they open
+    # are the conversation views this scenario opens anyway.
+    creates = (NewSessionAction, NewThreadAction, QuitAction)
+
+    def __init__(self, app: QtToadApp, out: Path) -> None:
+        super().__init__(app, out)
+        self.faults: list[str] = []
+        previous = sys.excepthook
+
+        def record(kind, error, trace) -> None:
+            # A Qt slot's exception reaches here instead of the awaiting code.
+            self.faults.append("".join(traceback.format_exception(kind, error, trace)))
+            previous(kind, error, trace)
+        sys.excepthook = record
+
+    async def step(self, label: str, run) -> None:
+        try:
+            await run()
+        except Exception:
+            self.faults.append(f"{label}:\n{traceback.format_exc()}")
+        await asyncio.sleep(0.5)
+        self.report(label)
+
+    def close_dialogs(self) -> None:
+        for dialog in self.app.findChildren(QDialog):
+            if dialog.isVisible():
+                dialog.close()
+
+    async def press_bound_keys(self, label: str) -> None:
+        """Every bound action key whose widget is shown, as if pressed."""
+        pressed = []
+        for shortcut, action in tuple(self.app.action_keys.bound.values()):
+            if shortcut.parent().isVisible() and shortcut.keys():
+                pressed.append(type(action).__name__)
+                shortcut.activated.emit()
+                await asyncio.sleep(0.05)
+        await asyncio.sleep(0.5)
+        self.report(label, pressed=sorted(pressed))
+
+    async def run(self) -> None:
+        app = self.app
+        await self.listed()
+        self.report("1-welcome")
+        for command, label in ApplicationAction.menu(app):
+            if isinstance(command, self.creates):
+                continue
+            await self.step(f"2-menu-{command.declared_name}", lambda command=command: command.apply(app))
+            if isinstance(command, SettingsAction):
+                for dialog in app.findChildren(QtSettingsScreen):
+                    for index in range(dialog.tabs.count()):
+                        dialog.tabs.setCurrentIndex(index)
+                        await asyncio.sleep(0.3)
+                        self.report(f"2-settings-page-{index}", page=dialog.tabs.tabText(index))
+            self.close_dialogs()
+        await self.step("3-channel", lambda: self.open_named("#comms"))
+        await self.press_bound_keys("3-channel-keys")
+        await self.step("4-thread", lambda: self.open_named("scratch-live-pipeline"))
+        await self.step("4-thread-details", self.open_details)
+        await self.press_bound_keys("4-thread-keys")
+        self.close_dialogs()
+        if self.faults:
+            raise AssertionError(f"{len(self.faults)} fault(s) on the shipped app:\n" + "\n".join(self.faults))
+
+    async def open_details(self) -> None:
+        self.page.thread_activity.toggle()
+        await asyncio.sleep(0.3)
+        self.page.thread_activity.inspect_action.click()
+        await asyncio.sleep(1.0)
 
 
 class MissingChannelDestination(ChannelDestination):

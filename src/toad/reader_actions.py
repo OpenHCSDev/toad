@@ -16,11 +16,14 @@ from __future__ import annotations
 
 from textual.document._editing import VimMode
 
+from toad.history_jump import ReaderWindow
 from toad.widget_actions import Action
 
 
 class ReaderAction(Action, affix="Action"):
     """Vim reader keys every history window answers."""
+
+    context_capability = ReaderWindow
 
 
 class PageDownAction(ReaderAction, declared_name="reader_page_down"):

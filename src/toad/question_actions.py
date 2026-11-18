@@ -35,6 +35,8 @@ class QuestionContext:
 
 
 class QuestionAction(Action[QuestionContext], affix="Action"):
+    context_capability = QuestionContext
+
     pass
 
 

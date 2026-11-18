@@ -145,6 +145,15 @@ class WorkspaceFrame(HintKeys, JumpsHistory, WidgetView, Screen):
 
     # history_windows is inherited from JumpsHistory (one shared storage declaration).
 
+    def takes_jump_key(self) -> bool:
+        """The app's focused widget is the current screen's, and this screen is current while
+        its own key is being answered: a control drawn in screen coordinates (an open menu or
+        overlay) keeps Escape for itself."""
+        match self.app.focused:
+            case Widget(uses_screen_coordinates=True):
+                return False
+        return True
+
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
         # Reader positions and restorations compensate against these widgets,
         # so viewport layout places them even when they are off screen.

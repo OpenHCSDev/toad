@@ -159,6 +159,16 @@ class DeclaredAction(KeyDeclaration[Context], Command, DeclaredFamily, Generic[C
         """A state-dependent title overrides this; every other member shows its title."""
         return self.title
 
+    # The capability a context must have for this action to run on it. A frontend binds a
+    # family's keys only for the members its context has the capability for (`runs_on`), so a
+    # member that reaches another toolkit's chrome is never bound there, and running a bound
+    # one never has to guess whether its context fits.
+    context_capability: ClassVar[type] = object
+
+    @classmethod
+    def runs_on(cls, context: object) -> bool:
+        return isinstance(context, cls.context_capability)
+
     def available(self, context: Context) -> bool | None:
         return True
 
