@@ -83,7 +83,8 @@ class QtMailboxView(QtThreadView, SessionScope):
         self._setup_transcript(app)
         self.identity_line = ElidedLine(f"Mailbox: {thread_incarnation.name}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.identity_line.setStyleSheet(f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};")
+        app.renderer.themed(self.identity_line, lambda: self.identity_line.setStyleSheet(
+            f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};"))
         info = QHBoxLayout()
         info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
         info.addWidget(self.identity_line, 1)

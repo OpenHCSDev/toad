@@ -13,7 +13,6 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
-from formbridge.key_declarations import TextEntryMode
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QGuiApplication, QKeyEvent, QPalette, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
@@ -56,7 +55,6 @@ from toad.widget_contracts import (
     SelectsContract,
     SubmitsContract,
 )
-from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
 from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary
@@ -78,31 +76,13 @@ _COMPOSER_ACTION_METHODS = (
 )
 
 
-def _qt_sequence(spelling: str):
-    from PySide6.QtGui import QKeySequence
-    text = spelling.strip()
-    if len(text) == 1 and text.isalpha() and text.isupper():
-        return QKeySequence(f"Shift+{text}")
-    return QKeySequence(text)
-
-
 def _bind_composer_shortcuts(composer: Composer):
-    """Install one `QShortcut` per declared TextEntryMode key on each composer-action.
-
-    Qt has no Mode/InputDispatch chain like Textual's; every declared key for
-    the relevant action fires the composer's own method when the editor (or any
-    child) has focus. Textual still reaches these methods through its own
+    """One `QShortcut` per composer action on the editor, answering the action's keys in
+    the current key mode and keymap (`ActionKeys`) and running the composer's own method
+    while the editor (or a child) has focus. Textual reaches these methods through its own
     PromptTextArea action system — the keys live in one place."""
-    from PySide6.QtGui import QShortcut
-    shortcuts = []
-    for action_cls, method_name in _COMPOSER_ACTION_METHODS:
-        callback = getattr(composer, method_name)
-        for spelling in action_cls.keys.get(TextEntryMode, ()):
-            shortcut = QShortcut(_qt_sequence(spelling), composer.editor)
-            shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-            shortcut.activated.connect(callback)
-            shortcuts.append(shortcut)
-    return shortcuts
+    return [composer.host.app.action_keys.bind(composer.editor, action_cls(), getattr(composer, method_name))
+            for action_cls, method_name in _COMPOSER_ACTION_METHODS]
 
 
 class ComposerHost(ConversationCommands):
@@ -168,13 +148,20 @@ class OfferList(QListWidget, SelectsContract, OpensSelectedContract):
         super().__init__()
         self.composer = composer
         self.offers: tuple[Offer, ...] = ()
-        scheme = composer.host.app.theme.color_scheme
-        self.setItemDelegate(MultilinePreviewItemDelegate(
-            scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
-            scheme.to_qcolor(scheme.selection_text), self))
+        composer.renderer.themed(self, self.paint_colours)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.itemClicked.connect(self.take_item)
         self.hide()
+
+    def paint_colours(self) -> None:
+        """Offer lines in the current scheme's text colours."""
+        scheme = self.composer.host.app.theme.color_scheme
+        previous = self.itemDelegate()
+        self.setItemDelegate(MultilinePreviewItemDelegate(
+            scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
+            scheme.to_qcolor(scheme.selection_text), self))
+        if previous is not None:
+            previous.deleteLater()
 
     def select(self) -> None:
         """Move the cursor to the first offer; a Selects consumer uses this to choose."""
@@ -229,9 +216,13 @@ class ComposerEditor(QPlainTextEdit):
         # alone fires too early on Android, before the window is composited).
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
-        # Modal input follows the saved `ui.key_mode`, the setting Textual's prompt reads:
-        # a modal key mode (vim_normal, vim_insert) starts the editor in its mode.
-        key_mode = composer.settings.ui.key_mode
+        self.follow_key_mode()
+
+    def follow_key_mode(self) -> None:
+        """Modal input follows `ui.key_mode`, the setting Textual's prompt reads: a modal key
+        mode (vim_normal, vim_insert) puts the editor in its mode, at start and whenever the
+        setting changes."""
+        key_mode = self.composer.settings.ui.key_mode
         self.vim_enabled = key_mode.modal
         self.vim = ComposerVimMode(key_mode if key_mode.modal else VimInsert)
 
@@ -282,7 +273,7 @@ class ComposerEditor(QPlainTextEdit):
             offers.accept_current()
             return
         # Enter / Ctrl+Enter / Ctrl+Y / Shift+Enter / Escape are all bound as
-        # QShortcuts on Composer via `bind_action_shortcuts`; they read the declared
+        # QShortcuts on Composer via `ActionKeys.bind_family`; they read the declared
         # keys off `SubmitAction`/`SubmitNowAction`/`NewlineAction`/`DismissAction`
         # so the Qt editor and Textual's PromptTextArea share a single source of
         # truth. SubmitNowAction already declares `ctrl+enter` + `ctrl+y`; the
@@ -307,25 +298,21 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
         self.host, self.renderer = host, renderer
+        self.given_placeholder = placeholder
         self.mention_candidates: tuple[MentionCandidate, ...] = ()
         self.commands: list[SlashCommand] = []
         self.ranking = SlashCommandResults(case_sensitive=False)
         self.dismissed_text = ""
         self.offers = OfferList(self)
         self.editor = ComposerEditor(self)
-        self.editor.setPlaceholderText(placeholder)
+        self.editor.setPlaceholderText(self.input_placeholder())
         self.editor.textChanged.connect(self.refresh_offers)
         self.editor.cursorPositionChanged.connect(self.refresh_offers)
         self.editor.textChanged.connect(self.fit_height)
         self.editor.textChanged.connect(self.refresh_glyph)
         self.editor.setFrameShape(QFrame.Shape.NoFrame)
         self.editor.setStyleSheet("QPlainTextEdit { background: transparent; border: none }")
-        palette = self.editor.palette()
-        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(renderer.colour(MutedRole)))
-        self.editor.setPalette(palette)
-        self.offers.setStyleSheet(host.app.theme.color_scheme.styles.generate_list_widget_style())
         self.glyph = QLabel()
-        self.glyph.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}")
         self.frame = QFrame()
         self.frame.setObjectName("prompt-frame")
         frame = QHBoxLayout(self.frame)
@@ -333,6 +320,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         frame.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
         frame.addWidget(self.editor, 1)
         self.info_bar = QtInfoBar(host, renderer, self)
+        renderer.themed(self, self.paint_colours)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
         self.submitting = QtQueueSummary(self)
         self.delivery_controls = QtDeliveryControls(self)
@@ -387,12 +375,27 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.focus_changed(self.editor.hasFocus())
 
     def update_prompt(self) -> None:
-        """A leading symbol changed: draw the glyph again."""
+        """A leading symbol or the placeholder setting changed: draw both again."""
         self.refresh_glyph()
+        self.editor.setPlaceholderText(self.input_placeholder())
+
+    def input_placeholder(self) -> str:
+        """What the empty editor shows: the placeholder this composer's kind gave it."""
+        return self.given_placeholder
 
     @property
     def submissions(self) -> BusSubmissions:
         return self.host.submissions
+
+    def paint_colours(self) -> None:
+        """The muted placeholder, the offer list, the glyph and the frame's border, under the
+        renderer's current scheme."""
+        palette = self.editor.palette()
+        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(self.renderer.colour(MutedRole)))
+        self.editor.setPalette(palette)
+        self.offers.setStyleSheet(self.host.app.theme.color_scheme.styles.generate_list_widget_style())
+        self.glyph.setStyleSheet(f"color: {self.renderer.theme(SecondaryColour)}")
+        self.focus_changed(self.editor.hasFocus())
 
     def focus_changed(self, focused: bool) -> None:
         """The frame's border follows focus (Textual's `PromptContainer.border`), and the
@@ -423,7 +426,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def line(self, role: type[LineRole]) -> WrappedText:
         label = WrappedText()
-        label.setStyleSheet(self.renderer.color_style(role))
+        self.renderer.themed(label, lambda: label.setStyleSheet(self.renderer.color_style(role)))
         label.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         label.hide()
         return label
@@ -582,18 +585,28 @@ class MessageComposer(MessagePromptComposer, Composer):
     """A direct message's composer: it names its peer, as Textual's MessagePrompt does."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer) -> None:
-        super().__init__(host, renderer, "Message thread")
+        self.label = ""
+        super().__init__(host, renderer, "")
 
     def labelled(self, label: str) -> None:
-        self.editor.setPlaceholderText(f"Message {label or 'thread'}")
+        self.label = label
+        self.editor.setPlaceholderText(self.input_placeholder())
+
+    def input_placeholder(self) -> str:
+        """Textual's `MessagePrompt`: the peer it messages."""
+        return f"Message {self.label or 'thread'}"
 
 
 class ProjectComposer(Composer):
     """Textual's `Prompt`: input waits on the agent; the info bar shows `PromptPath`."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str = "") -> None:
-        super().__init__(host, renderer, placeholder or host.app.settings.ui.input.placeholder)
+        super().__init__(host, renderer, placeholder)
         self.info_bar.show_path(home_relative(str(host.project.path)))
+
+    def input_placeholder(self) -> str:
+        """Textual's `Prompt`: the kind's own placeholder, else `ui.input.placeholder`."""
+        return self.given_placeholder or self.settings.ui.input.placeholder
 
 
 class MailboxComposer(MessageComposer, ProjectComposer):
@@ -609,6 +622,7 @@ class Receipt(NotificationSubscriber, WrappedText):
         self.app, self.renderer = app, renderer
         self.references: tuple[MessageReference, ...] = ()
         self.status: NotificationStatus = UncheckedNotifications()
+        renderer.follows_theme(self, self.paint_colour)
         self.hide()
 
     def follow(self, root: str, references: tuple[MessageReference, ...],
@@ -631,8 +645,11 @@ class Receipt(NotificationSubscriber, WrappedText):
     def paint(self, status: NotificationStatus) -> None:
         self.status = status
         self.setText(f"Your last message: {status.title}")
-        self.setStyleSheet(f"{self.renderer.color_style(status.role)}; padding: 0 8px 4px 8px")
+        self.paint_colour()
         self.show()
+
+    def paint_colour(self) -> None:
+        self.setStyleSheet(f"{self.renderer.color_style(self.status.role)}; padding: 0 8px 4px 8px")
 
     def notifications_observed(self, results) -> None:
         for status in CheckedNotifications.for_references(self.references, results):

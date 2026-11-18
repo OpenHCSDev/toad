@@ -45,8 +45,6 @@ from toad.launch_binding import AgentBinding
 from toad.native_style import TransparentBackground
 from toad.neovim_editing import HostsNeovim
 from formbridge.forms.declared_fields import DeclaredField
-from toad.atomic import AtomicWriteError
-from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect
 from toad.render_backend import Renderer, RenderTask
 from toad.textual_renderers import TextualPreparedRenderer, TextualRenderProcessPool
@@ -167,7 +165,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.initialize_client(agent_binding, connection, agent_session_id)
         self.clipboard_transport = Clipboard.for_platform()
-        self.terminal_attention = TerminalAttention(self)
+        self.input_attention = TerminalAttention(self)
         self._mode_switch_lock = asyncio.Lock()
 
         ImageViewer.prepare_terminal()
@@ -232,7 +230,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         # pipe and process pools; an Unmount event may never follow that error.
         async with AsyncResourceRelease() as release:
             release.push_async_callback(self.close_background_render_tasks)
-            release.callback(self.terminal_attention.close)
+            release.callback(self.input_attention.close)
             release.callback(self.colours.stop)
             release.push_async_callback(self.close_client)
 
@@ -277,15 +275,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def settings_widgets(self, widget_type):
         roots = (*self.workspace_sessions.views.values(), *self.screen_stack)
         return {widget for root in roots for widget in root.walk_children(widget_type)}
-
-    def open_settings(self) -> SavedSettings:
-        path = SavedSettings.path()
-        raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
-
-        def report(error: AtomicWriteError) -> None:
-            self.show_error(error, "Settings")
-
-        return SavedSettings(raw, applied=self.apply_setting_effect, report_error=report)
 
     # Textual overrides of the hamburger capabilities declared on ClientApplication.
     # The default notice stays on the base so a Qt frontend still gets the menu item.
@@ -343,7 +332,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
 
     @on(Notify)
     def on_notify(self, event: Notify) -> None:
-        self.terminal_attention.notification(event.notification)
+        self.input_attention.notification(event.notification)
 
     def get_loading_widget(self) -> Widget:
         return ToadLoadingIndicator()
@@ -561,5 +550,25 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         super()._set_mouse_over(widget, hover_widget)
 
 
-    def update_show_sessions(self) -> None:
-        self.show_sessions = self.settings.ui.sessions_bar.shown(len(self.open_tabs))
+    def show_session_tabs(self, shown: bool) -> None:
+        """Textual's tab labels draw the open tabs again on the next sidebar presentation."""
+        self.show_sessions = shown
+
+    def follow_wheel_scroll_rows(self) -> None:
+        self.scroll_sensitivity_y = self.settings.ui.wheel_scroll_rows
+
+    def follow_theme(self) -> None:
+        self.colours.choose(self.settings.ui.theme)
+
+    def follow_key_mode(self) -> None:
+        from toad.widgets.prompt import PromptTextArea
+        for editor in self.settings_widgets(PromptTextArea):
+            editor.apply_keyboard_profile()
+        self.refresh_bindings()
+
+    def follow_keymap(self) -> None:
+        self.set_keymap(self.settings.ui.keymap.native())
+
+    def follow_line_renderer(self) -> None:
+        self.colours.refresh_line_renderer()
+        self.theme_changed_signal.publish(self.current_theme)

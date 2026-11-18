@@ -1590,7 +1590,7 @@ class Conversation(ColumnLayout,
             )
 
         if self.app.settings.notifications.turn_over:
-            self.app.terminal_attention.notify(
+            self.app.input_attention.notify(
                 f"{self.agent_title} has finished working",
                 title="Waiting for input",
                 sound="turn-over",
@@ -1749,7 +1749,7 @@ class Conversation(ColumnLayout,
         else:
             notify_title = title
         notify_message = "\n".join(f" • {option.text}" for option in options)
-        self.app.terminal_attention.notify(
+        self.app.input_attention.notify(
             notify_message, title=notify_title, sound="question"
         )
 

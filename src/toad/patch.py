@@ -186,8 +186,7 @@ class WrapModeEnabled(TitledChoice, WrapMode, declared_name="wrap"):
 class DiffSettings(SettingsDeclaration):
     @Effect
     def changed(app, field) -> None:
-        app.colours.refresh_line_renderer()
-        app.theme_changed_signal.publish(app.current_theme)
+        app.follow_line_renderer()
 
     view: Annotated[
         type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode), changed

@@ -298,7 +298,7 @@ class KeymapCatalog:
 
 @Effect
 def apply_keymap(app: ToadApp, field: DeclaredField) -> None:
-    app.set_keymap(app.settings.ui.keymap.native())
+    app.follow_keymap()
 
 
 def report_broken_keymap(app: ToadApp) -> None:

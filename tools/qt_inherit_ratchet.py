@@ -105,6 +105,7 @@ QT_ONLY = {
     'toad.qt.history.SourceTask': "an asyncio.Task on qasync's Qt event loop with the pager's wait() join; Textual runs workers",
     'toad.qt.host.ScreenWideWindow': "a Qt top-level window clamped to the Android screen's available width (screen less system bars)",
     'toad.qt.metrics.UiGap': 'Qt pixel spacing tokens; Textual spaces in cells through its CSS',
+    'toad.qt.action_shortcuts.ActionKeys': "Qt has no binding map: it installs a QShortcut per action and sets its keys again when ui.key_mode or ui.keymap changes; Textual's App binds the same catalog keys through its BindingsMap and set_keymap",
     'toad.qt.window.HeldRowMenu': "Qt TapAndHold gesture and context-menu event filter on the tree's viewport; the entries come from each row's shared menu_entries",
     'toad.qt.window.SwallowsRelease': 'a Qt event filter that eats the one mouse release ending a held finger, so the hold does not also tap the row',
 }

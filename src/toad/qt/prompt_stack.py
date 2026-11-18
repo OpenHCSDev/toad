@@ -105,15 +105,12 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.title.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         self.title.clicked.connect(self.toggle)
         self.details = WrappedText()
-        self.details.setStyleSheet(renderer.color_style(MutedRole))
         self.details.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         self.details.hide()
         # Textual's `InspectSession` detail action: underlined accent text in the disclosure.
         self.inspect_action = QToolButton(self)
         self.inspect_action.setText(self.inspect_label)
         self.inspect_action.setAutoRaise(True)
-        self.inspect_action.setStyleSheet(
-            f"QToolButton {{ color: {renderer.theme(AccentColour)}; text-decoration: underline; border: none }}")
         self.inspect_action.clicked.connect(lambda: asyncio.ensure_future(self.inspect()))
         self.inspect_action.hide()
         layout = QVBoxLayout(self)
@@ -122,7 +119,16 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         layout.addWidget(self.title)
         layout.addWidget(self.inspect_action, 0, Qt.AlignmentFlag.AlignLeft)
         layout.addWidget(self.details)
+        renderer.themed(self, self.paint_colours)
         self.hide()
+
+    def paint_colours(self) -> None:
+        """The muted details, the accent inspect action and the title in its status role,
+        under the renderer's current scheme."""
+        self.details.setStyleSheet(self.renderer.color_style(MutedRole))
+        self.inspect_action.setStyleSheet(
+            f"QToolButton {{ color: {self.renderer.theme(AccentColour)}; text-decoration: underline; border: none }}")
+        self.paint_title()
 
     @property
     def coordination(self):
@@ -152,14 +158,18 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.view.sync_working()
         self.view.present_thread_status()
 
+    def paint_title(self) -> None:
+        """The title in its row's status role, under the renderer's current scheme."""
+        self.title.setStyleSheet(
+            f"QToolButton {{ {self.renderer.color_style(self.title_role_for(self.row, self.status))};"
+            " border: none; text-align: left; padding: 0 4px }")
+
     def refresh_summary(self) -> None:
         row = self.row
         title = self.summary_title(row, self.history_details.summary, DeliveryView())
         symbol = self.expanded_symbol if self.expanded else self.collapsed_symbol
         self.title.setText(f"{symbol} {title}")
-        self.title.setStyleSheet(
-            f"QToolButton {{ {self.renderer.color_style(self.title_role_for(row, self.status))};"
-            " border: none; text-align: left; padding: 0 4px }")
+        self.paint_title()
         detail = self.detail_text(row)
         self.details.setText(detail)
         self.details.setVisible(self.expanded and bool(detail))
@@ -199,8 +209,8 @@ class QtInputDeliveryDetails(DeliveryDetailsPage, QDialog, metaclass=PyQtWidgetM
         # parentless widget made visible becomes its own top-level window, which deadlocks
         # Android's accessibility bridge against its EGL surface (SIGABRT).
         error = WrappedText(self.error_text(delivery, ""))
-        error.setStyleSheet(renderer.color_style(FailureRole))
         layout.addWidget(error)
+        renderer.themed(error, lambda: error.setStyleSheet(renderer.color_style(FailureRole)))
         error.setVisible(bool(error.text()))
         body = WrappedText(overview)
         layout.addWidget(body, 1)
@@ -222,7 +232,7 @@ class QtStatusLine(SettingVisible, ElidedLine, setting="ui.status_line", metacla
         super().__init__()
         self._scope = scope
         self.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}")
+        renderer.themed(self, lambda: self.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}"))
 
     @property
     def configuration_state(self):
@@ -246,10 +256,9 @@ class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
-        scheme = renderer.scheme
-        self.setStyleSheet(
-            f"color: {BackgroundColour.rgb(scheme).hex}; background: {renderer.theme(SecondaryColour)};"
-            " padding: 0 4px")
+        renderer.themed(self, lambda: self.setStyleSheet(
+            f"color: {BackgroundColour.rgb(renderer.scheme).hex}; background: {renderer.theme(SecondaryColour)};"
+            " padding: 0 4px"))
         self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
 
     def show_mode_label(self, label: str) -> None:
@@ -267,7 +276,7 @@ class QtInfoBar(SettingVisible, QWidget, setting="ui.info_bar", metaclass=PyQtWi
         super().__init__(parent)
         self._scope = scope
         self.path = ElidedLine()
-        self.path.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}")
+        renderer.themed(self.path, lambda: self.path.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}"))
         self.path.hide()
         self.status = QtStatusLine(scope, renderer)
         self.badge = QtEditingModeBadge(renderer)

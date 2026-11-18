@@ -133,7 +133,8 @@ class QtAcpSessionView(
         # Layout: an identity line on top, the history below, the composer at the bottom.
         self.identity_line = ElidedLine(f"ACP session #{session_pk}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.identity_line.setStyleSheet(f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};")
+        app.renderer.themed(self.identity_line, lambda: self.identity_line.setStyleSheet(
+            f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};"))
         info = QHBoxLayout()
         info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
         info.addWidget(self.identity_line, 1)

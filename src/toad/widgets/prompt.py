@@ -937,17 +937,17 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     @on(events.Unmount)
     def on_unmount(self) -> None:
-        self.app.terminal_attention.release(self)
+        self.app.input_attention.release(self)
 
     def watch__ask(self, ask: Ask | None) -> None:
         self.question.display = ask is not None
         self.query_one(TextPrompt).display = ask is None
         self.refresh(layout=True)
         if ask is None:
-            self.app.terminal_attention.release(self)
+            self.app.input_attention.release(self)
             self.prompt_text_area.focus()
         else:
-            self.app.terminal_attention.require(self)
+            self.app.input_attention.require(self)
             self.question.update(ask)
             self.question.focus()
 

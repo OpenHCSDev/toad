@@ -72,7 +72,7 @@ class UsageReports:
             "api_key": "phc_mJWPV7GP3ar1i9vxBg2U8aiKsjNgVwum6F6ZggaD4ri",
             "event": event_name,
             "distinct_id": app.settings.anon_id,
-            "properties": {"toad_version": get_version(), "term_program": app.terminal_attention.program(),
+            "properties": {"toad_version": get_version(), "term_program": app.input_attention.program(),
                            "term_width": width, "term_height": height} | properties,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "os": platform.system(),
@@ -155,7 +155,7 @@ class ApplicationLifetime:
             lambda resumed: partial(self.open_resumed, resumed),
         )()
         await self.show_home_without_tabs()
-        app.terminal_attention.attach()
+        app.input_attention.attach()
         self.version = app.settings.updates.monitor()
         app.delay_ui(1, partial(app.run_operation, VersionCheck, self.check_version))
         app.run_operation(ProcessTitleUpdate,

@@ -12,18 +12,20 @@ from toad.setting_declarations import Effect
 
 @Effect
 def visibility(app: ToadApp, field: DeclaredField) -> None:
+    from toad.client.prompt_composer import PromptSettingEffects
     from toad.client.prompt_stack import SettingVisible
-    from toad.widgets.prompt import Prompt
     for widget in Effect.open_widgets(app, SettingVisible):
         if widget.visibility_setting == field.path.value:
             widget.apply_setting_visibility()
-    for prompt in Effect.open_widgets(app, Prompt):
-        prompt.refresh(layout=True)
+    # A shown or hidden row changes the room the prompt's parts take (the info bar's margin
+    # reads the footer): each prompt places its input box again.
+    for prompt in Effect.open_widgets(app, PromptSettingEffects):
+        prompt.place_input_box()
 
 
 @Effect
 def wheel_scroll_rows(app: ToadApp, field: DeclaredField) -> None:
-    app.scroll_sensitivity_y = field.value
+    app.follow_wheel_scroll_rows()
 
 
 @Effect
@@ -43,19 +45,18 @@ def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
 @Effect
 def sidebar_filters(app: ToadApp, field: DeclaredField) -> None:
     app.coordination_access.update_sidebar_interest()
+    # The session tabs append the unread badge `sidebar.unread_counts` draws (`show_session_tabs`).
+    app.update_show_sessions()
 
 
 @Effect
 def theme(app: ToadApp, field: DeclaredField) -> None:
-    app.colours.choose(field.value)
+    app.follow_theme()
 
 
 @Effect
 def key_mode(app: ToadApp, field: DeclaredField) -> None:
-    from toad.widgets.prompt import PromptTextArea
-    for editor in Effect.open_widgets(app, PromptTextArea):
-        editor.apply_keyboard_profile()
-    app.refresh_bindings()
+    app.follow_key_mode()
 
 
 @Effect
@@ -65,7 +66,7 @@ def sessions_bar(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def blink_title(app: ToadApp, field: DeclaredField) -> None:
-    app.terminal_attention.update()
+    app.input_attention.update()
 
 
 

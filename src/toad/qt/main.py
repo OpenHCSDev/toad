@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
-from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,12 +14,11 @@ from PySide6.QtWidgets import QApplication
 
 from agent_comms.projects.checkouts import Checkout
 from objectstate import set_base_config_type
-from ui_theme.catalog import SCHEMES
 from ui_theme.scheme import ColourScheme
-from ui_theme.wal import WalFile
 
 from toad.client.connection import ProcessRemoteCoreConnection, RemoteCoreConnection
 from toad.application_lifetime import ApplicationStart
+from toad.qt.theme import current_scheme
 from toad.qt.window import QtToadApp
 from toad.render_backend import Renderer
 from toad.render_in_thread import InThreadRenderer
@@ -40,12 +38,6 @@ class QtClientSettings:
     """The Qt client's settings root. It holds no settings yet; ObjectState needs one root
     type named for the process before it holds any object, such as a command form's draft.
     Toad's Textual settings root lives in a module that needs Textual."""
-
-
-def current_scheme(environment: Mapping[str, str]) -> ColourScheme:
-    """Toad's default theme: pywal's palette once pywal has written it, else Textual's dark."""
-    wal = WalFile.directory(environment) / WalFile.NAME
-    return WalFile.read(wal).scheme if wal.is_file() else SCHEMES[0]
 
 
 SYMBOL_FALLBACKS = ("Noto Color Emoji", "Noto Emoji", "Twemoji", "Symbola")

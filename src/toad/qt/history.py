@@ -52,7 +52,6 @@ from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
-from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar
 from toad.client.transcript_fragments import (
@@ -69,7 +68,7 @@ from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
-from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
+from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 
 class QtWireFragment(EvidencedFragment, TranscriptFragment, ABC):
@@ -209,15 +208,22 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
+        self.app_renderer = renderer
+        """The app's renderer, which follows `ui.theme` and the `diff` settings."""
         self.renderer = renderer
-        """Replaced, never mutated, when the link context settles: a preparation already on
-        the pool keeps the binding it was handed."""
+        """Replaced, never mutated, when the link context settles or the app's renderer
+        restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
 
     def link(self, links: LinkContext) -> None:
         """Rows draw with these names from now on; rows prepared before are stale."""
-        self.renderer = self.renderer.with_links(links)
+        self.renderer = self.app_renderer.with_links(links)
         self.links_revision += 1
+
+    def restyle(self) -> None:
+        """The app's renderer took a new scheme or diff marks: rows draw by it from now on,
+        with the names they had; rows prepared before are stale."""
+        self.link(self.renderer.links)
 
     def preparation_key(self, index: QModelIndex, font: QFont, width: int):
         return self.fragment_key(index.data(HistoryRows.FRAGMENT), font, width)
@@ -569,10 +575,15 @@ class QtJumpBar(LatestJumpBar, QPushButton):
     it jumps the window back to the latest row. Text and border take PrimaryColour, as
     Textual's `BackToBottom` takes `PrimaryText`."""
 
-    def __init__(self, parent: QWidget, scheme: ColourScheme) -> None:
+    def __init__(self, parent: QWidget, renderer: QtLineRenderer) -> None:
         super().__init__(self.label, parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        renderer.themed(self, partial(self.paint_colours, renderer))
+        self.hide()
+
+    def paint_colours(self, renderer: QtLineRenderer) -> None:
+        scheme = renderer.scheme
         primary = PrimaryColour.rgb(scheme).hex
         self.setStyleSheet(
             "QPushButton {"
@@ -584,7 +595,6 @@ class QtJumpBar(LatestJumpBar, QPushButton):
             "  font-weight: bold;"
             "}"
         )
-        self.hide()
 
     @property
     def jump_shown(self) -> bool:
@@ -632,6 +642,8 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
     def __init__(self, renderer: QtLineRenderer, scope, parent: QWidget | None = None) -> None:
         super().__init__(HistoryRowDelegate(renderer), parent)
         self._scope = scope
+        # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
+        renderer.follows_theme(self, self.restyle_rows)
         self.model_rows = HistoryRows()
         self.draft: tuple[HistoryFragment, ...] = ()  # after the pages, as Textual's `CliDraft`
         self.setModel(self.model_rows)
@@ -667,7 +679,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         # QScroller's gesture grab on the viewport (from TouchScrolled) can't swallow the
         # tap and prevent `clicked` from firing on Android. Positioned over the viewport
         # by `_place_jump_bar`. Show/hide is driven by `tail_follow_changed` from `scrolled`.
-        self.jump_bar = QtJumpBar(self, renderer.scheme)
+        self.jump_bar = QtJumpBar(self, renderer)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.sticky_header = QtStickyHeader(self)
         self.viewport().installEventFilter(self)
@@ -680,10 +692,10 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         # Reader keys (ctrl+d / ctrl+u / shift+g) come from the `ReaderAction` family
         # declared in `src/toad/reader_actions.py`. Both backends drive from that one
         # declaration: Textual through the Action/BindingsMap path, Qt through
-        # `bind_action_shortcuts` which iterates members and installs a QShortcut per
-        # declared key firing `apply(self)` (which calls `action_page_down` /
+        # `ActionKeys.bind_family`, a QShortcut per member answering its keys in the current
+        # key mode and keymap, firing `apply(self)` (which calls `action_page_down` /
         # `action_page_up` / `jump_to_latest` on this window).
-        self._reader_shortcuts = bind_action_shortcuts(self, ReaderAction, self)
+        self._reader_shortcuts = scope.app.action_keys.bind_family(self, ReaderAction, self)
 
     async def acquire_links(self, app) -> None:
         """The names this conversation's bodies link through; the rows draw again with them."""
@@ -980,6 +992,10 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         self.show_pages()
         self.keep_reader(key, offset)
 
+    def restyle_rows(self) -> None:
+        self.rows.restyle()
+        self.rows_changed()
+
     def rows_changed(self) -> None:
         """Prepared rows changed height: lay them out again, keeping the reader's row.
         If the widget has been torn down, Qt reads raise RuntimeError; skip the
@@ -1048,7 +1064,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
 
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         """A wheel at an edge with nowhere left to scroll still asks for the next page."""
-        rows = -event.angleDelta().y() / 120 * self._font_line_spacing() * 3
+        rows = -event.angleDelta().y() / 120 * self._font_line_spacing() * QApplication.wheelScrollLines()
         if not self.lookahead.request_boundary(rows):
             super().wheelEvent(event)
 

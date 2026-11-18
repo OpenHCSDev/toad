@@ -18,6 +18,7 @@ import sys
 import traceback
 from abc import ABC, abstractmethod
 from pathlib import Path
+from collections.abc import Callable
 from typing import ClassVar
 
 import qasync
@@ -26,6 +27,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
+from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.message_category import MessageCategory
@@ -39,9 +41,14 @@ from toad.qt.main import current_scheme, open_app
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
 from toad.qt.goal import QtGoalBar, QtGoalHistory
-from toad.qt.prompt_stack import QtInputDeliveryDetails
+from toad.qt.prompt_stack import QtInputDeliveryDetails, QtStatusLine
 from toad.key_modes import KeyMode
-from toad.preferences import SETTINGS
+from toad.keymap import KeymapRow
+from toad.reader_actions import PageDownAction
+from toad.preferences import SETTINGS, SavedSettings
+from toad.setting_declarations import Effect, FamilyChoices
+from formbridge.forms.declared_fields import DeclaredField
+from ui_theme.catalog import SCHEMES
 from toad.qt.side_bar import QtSidebarAction
 from toad.sidebar_layout import DirectionalSidebarPlacementAction, FloatSidebarPlacementAction
 from toad.sidebar_placement import (
@@ -149,6 +156,7 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         channel it belongs to, and any one opens it."""
         await self.listed()
         if name.startswith("#"):
+            await self.channel_listed(name)
             await self.expand(name)
             await self.open(self.channel_row(name), name)
         else:
@@ -160,6 +168,11 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
             await self.open(next(row for row in rows if isinstance(row, ConversationRow)
                                  and row.target.name == name), name)
         await asyncio.sleep(2.0)
+
+    async def channel_listed(self, name: str) -> None:
+        """The sidebar lists this channel: the welcome's first rows can come before it."""
+        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == name
+                                for row in self.app.sidebar.items()), name)
 
     def channel_row(self, name: str) -> ConversationRow:
         return next(row for row in self.app.sidebar.items()
@@ -187,6 +200,18 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
                 self.app.sidebar.expandItem(channel)
                 return channel.child(0)
         raise LookupError("no channel lists a thread")
+
+    async def live_native_thread_rows(self) -> list[ConversationRow]:
+        """The listed threads a running native runtime owns, as Core presents each owner
+        binding: only a live native owner is offered the configure form (an external CLI's
+        thread is bus-held; a native thread whose owner is not running has none to ask)."""
+        root = str(self.app.source().root)
+        rows = []
+        for row in self.thread_rows():
+            read = await self.app.coordination_access.transcripts.thread_presentation(root, row.target.name)
+            if type(read.raised().binding) is LiveThreadOwnerBinding:
+                rows.append(row)
+        return rows
 
     def offered(self, count: int) -> list[str]:
         return [offer.layout.name.text for offer in self.page.composer.offers.offers[:count]]
@@ -975,6 +1000,7 @@ class ChromeScenario(Scenario):
         app.resize(self.width, self.height)
         await asyncio.sleep(0.5)
         app.show_sidebar()
+        await self.channel_listed("#comms")
         await self.expand("#comms")
         self.report("1-welcome", **self.geometry())
         comms = self.channel_row("#comms")
@@ -996,7 +1022,9 @@ class ChromeScenario(Scenario):
         await asyncio.sleep(1.0)
         self.report("2b-channel-style", before=before_style, after=style())
         override.reset()
-        peer = self.thread_row()
+        # Step 7 reads the thread's configure form, which Core offers only a live native owner.
+        native = await self.live_native_thread_rows()
+        peer = native[0] if native else self.thread_row()
         before = self.page
         app.open_row(peer)
         await until(lambda: self.page is not before, "thread")
@@ -1018,11 +1046,16 @@ class ChromeScenario(Scenario):
         self.report("6-settings-page", shown=picker.currentText())
         # The view's configuration operations load after its settings, as Textual's picker
         # adds them: the last entry is the thread's next-turn model form, an embedded page.
-        roster = len(panel_specs_for_view(is_session=True)) + len(tuple(self.page.configuration_fields()))
-        await until(lambda: picker.count() > roster, "configuration actions", tenths=150)
-        picker.setCurrentIndex(picker.count() - 1)
-        await asyncio.sleep(1.0)
-        self.report("7-action-page", entries=picker.count(), shown=picker.currentText())
+        if native:
+            roster = len(panel_specs_for_view(is_session=True)) + len(tuple(self.page.configuration_fields()))
+            await until(lambda: picker.count() > roster, "configuration actions", tenths=150)
+            picker.setCurrentIndex(picker.count() - 1)
+            await asyncio.sleep(1.0)
+            self.report("7-action-page", entries=picker.count(), shown=picker.currentText())
+        else:
+            self.report("7-action-page", skipped="the bus lists no thread with a running native owner "
+                        "(each is an external CLI's, bus-held, or its owner is not running), so none "
+                        "is offered the configure form")
         # A per-view override repaints the view at once: the column narrows to 40 cells and
         # centres, and the info bar hides; both read through the view's own settings.
         # With the settings pane closed the conversation has room for a 40-cell column.
@@ -1164,6 +1197,156 @@ class GoalScenario(Scenario):
         self.report("4-history", lines=len(history.findChildren(WrappedText)))
         history.grab().save(str(self.out / "goal-4-history-dialog.png"))
         history.reject()
+
+
+def shown(value: object) -> object:
+    """A setting's value as a report names it: a choice by its class name."""
+    return value.__name__ if isinstance(value, type) else value
+
+
+class SettingsSurface:
+    """What the Qt client draws for each app-wide setting that declares an `Effect`, read
+    off the open #comms view and the window, so a change shows as a changed reading."""
+
+    def __init__(self, app: QtToadApp, view) -> None:
+        self.app, self.view = app, view
+
+    def top_of(self, widget: QWidget) -> int:
+        return widget.mapTo(self.app, widget.rect().topLeft()).y()
+
+    def readings(self) -> dict[str, Callable[[], object]]:
+        app, view = self.app, self.view
+        composer = view.composer
+        margins = lambda: (view.layout().contentsMargins().left(), view.layout().contentsMargins().right())
+        frame = lambda: tuple(margin for layout in (composer.frame_row, composer.frame.layout())
+                              for margin in (layout.contentsMargins().left(), layout.contentsMargins().top()))
+        paging = lambda: view.messages.presentation_budget.buffer_viewports
+        status = lambda: next(not line.isHidden() for line in view.findChildren(QtStatusLine))
+        return {
+            "ui.navigation_bar": lambda: "top" if self.top_of(app.tabs) < self.top_of(app.workspace_sessions.pages) else "bottom",
+            "ui.theme": lambda: (app.renderer.scheme.name, app.theme.color_scheme.window_bg),
+            "ui.message_style": lambda: type(view.message_history.page_source.loader.style).__name__,
+            "ui.column": margins, "ui.column_width": margins, "ui.column_alignment": margins,
+            "ui.scrollbar": lambda: view.messages.verticalScrollBar().width(),
+            "ui.history_buffer_viewports": paging,
+            "ui.input.box": frame,
+            "ui.input.placeholder": lambda: composer.editor.placeholderText(),
+            "ui.input.agent_symbol": lambda: composer.glyph.text(),
+            "ui.info_bar": lambda: composer.info_bar.isVisible(),
+            "ui.status_line": status,
+            "ui.wheel_scroll_rows": lambda: QApplication.wheelScrollLines(),
+            "ui.key_mode": lambda: (composer.editor.vim_enabled, type(composer.editor.editing_mode).__name__),
+            "ui.sessions_bar": lambda: app.tabs.isVisible(),
+            "sidebar.show_stopped": lambda: app.coordination_access.sidebar_interest.show_stopped,
+            "sidebar.show_archived": lambda: app.coordination_access.sidebar_interest.show_archived,
+            "sidebar.unread_counts": lambda: [app.tabs.tabText(index) for index in range(app.tabs.count())],
+            "diff.view": lambda: (type(app.renderer.diff_marks).__name__, view.messages.rows.links_revision),
+            "diff.annotations": lambda: (type(app.renderer.diff_marks).__name__, view.messages.rows.links_revision),
+            "diff.wrap": lambda: (type(app.renderer.diff_marks).__name__, view.messages.rows.links_revision),
+            "ui.keymap.bindings": lambda: sorted(sequence.toString() for shortcut in view.messages._reader_shortcuts
+                                                 for sequence in shortcut.keys()),
+            "notifications.blink_title": lambda: type(app.input_attention.state).__name__,
+        }
+
+
+class SettingsLiveScenario(Scenario):
+    summary = ("change every app-wide setting that declares an Effect, one at a time, as the "
+               "settings screen does, and report what Qt draws before and after each")
+
+    @staticmethod
+    def read(reading) -> object:
+        """A reading, "-" where Qt draws nothing for the setting, or why it can't be read (a
+        client that predates the surface the reading names)."""
+        if reading is None:
+            return "-"
+        try:
+            return reading()
+        except AttributeError as error:
+            return f"unreadable: {error}"
+
+    def other_value(self, field):
+        """A value this setting does not hold now, of its own kind; for the keymap, page
+        down remapped to f9 in the current key mode."""
+        value = field.value
+        if field.path.value == "ui.column_width":
+            return 60 if value == 40 else 40  # columns narrower than the widened conversation
+        if field.path.value == "ui.keymap.bindings":
+            row = KeymapRow.of(PageDownAction(), self.app.settings.ui.key_mode)
+            return self.app.settings.ui.keymap.changed(row, ("f9",)).bindings
+        if (choices := field.metadata(FamilyChoices)) is not None:
+            return next(choice for choice in choices.choices() if choice is not value)
+        if field.path.value == "ui.theme":
+            return next(scheme.name for scheme in SCHEMES if scheme.name != value)
+        if type(value) is bool:
+            return not value
+        if type(value) is int:
+            return value // 2 if value > 4 else value + 2
+        if type(value) is str:
+            return value + " (drive)"
+        raise LookupError(f"{field.path.value}: no other value of {type(value).__name__} to try")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(1100, 900)  # wide enough that a 40-cell column is narrower than the view
+        await self.open_named("#comms")
+        surface = SettingsSurface(app, self.page).readings()
+        # What the sidebar lists, not the request it sends: hiding stopped threads drops them
+        # from the tree once Core presents the sidebar again.
+        surface["sidebar.show_stopped"] = surface["sidebar.show_archived"] = lambda: len(self.thread_rows())
+        saved = app.saved_settings
+        print(f"settings file: {SavedSettings.path()} (exists={SavedSettings.path().exists()})", flush=True)
+        for path in saved.state.parameter_structure.leaf_paths():
+            field = DeclaredField(saved.state, path)
+            if field.metadata(Effect) is None:
+                continue
+            name = path.value
+            if name == "ui.column":
+                saved.set(SETTINGS.ui.column_width, 40)  # a column the conversation can show
+                await asyncio.sleep(0.5)
+            if name == "ui.column_width" and not app.settings.ui.column:
+                saved.set(SETTINGS.ui.column, True)
+                await asyncio.sleep(0.5)
+            reading = surface.get(name)
+            if name == "notifications.blink_title":
+                app.input_attention.require(self)  # one question waits, as QtQuestion requires
+            view_state = self.page.configuration_state
+            overridden = name in view_state.editable_paths and view_state.parameters[name] is not None
+            before = self.read(reading)
+            if name == "ui.theme":
+                app.grab().save(str(self.out / "settingslive-theme-before.png"))
+            value = self.other_value(field)
+            field.edit(value)  # as the settings form edits it
+            await asyncio.sleep(4.0 if name.startswith("sidebar.") else 1.0)
+            after = self.read(reading)
+            if name == "ui.theme":
+                app.grab().save(str(self.out / "settingslive-theme-after.png"))
+            if name == "notifications.blink_title":
+                app.input_attention.release(self)
+            verdict = "no Qt surface" if reading is None else ("LIVE" if after != before else "NOT LIVE")
+            print(f"{name}: set={shown(value)!r} before={before!r} after={after!r} "
+                  f"view_override={overridden} -> {verdict}", flush=True)
+        await saved.save()
+        app.grab().save(str(self.out / "settingslive-end.png"))
+
+
+class SettingsReadScenario(Scenario):
+    summary = "report every app-wide Effect setting as this launch read it, and what Qt draws for it"
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(1100, 900)
+        await self.open_named("#comms")
+        surface = SettingsSurface(app, self.page).readings()
+        saved = app.saved_settings
+        print(f"settings file: {SavedSettings.path()} (exists={SavedSettings.path().exists()})", flush=True)
+        for path in saved.state.parameter_structure.leaf_paths():
+            field = DeclaredField(saved.state, path)
+            if field.metadata(Effect) is None:
+                continue
+            reading = surface.get(path.value)
+            print(f"{path.value}: read={shown(field.value)!r} "
+                  f"draws={reading() if reading else '-'!r}", flush=True)
+        app.grab().save(str(self.out / "settingsread-end.png"))
 
 
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:

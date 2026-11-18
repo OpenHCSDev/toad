@@ -475,7 +475,7 @@ class MainScreen(ThreadViewNavigation, CommandTargetScope, NativeMethodKeys, Hid
         )
 
     def watch_title(self, title: str) -> None:
-        self.app.terminal_attention.update()
+        self.app.input_attention.update()
 
     def get_loading_widget(self) -> Widget:
         return self.settings.ui.throbber.widget(self)
