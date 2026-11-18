@@ -201,9 +201,6 @@ class ThreadStatusOwner(StatusOwner):
     def status_thread(self) -> StatusThread:
         ...
 
-    def thread_observed(self, event: ThreadRowsChanged) -> None:
-        """Consume the observed thread's presentation once per store change."""
-
     def refresh_thread_status(self) -> None:
         self.status_thread().refresh(self)
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import deque
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, replace
 from functools import partial
@@ -50,7 +50,7 @@ from agent_comms.ui_model.observation import (
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
-from textual.worker import Worker, WorkerCancelled, get_current_worker
+from textual.worker import Worker, WorkerCancelled
 
 from toad.client.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.commit_claims import CommitEvidence, NativeCommitEvidence
@@ -59,7 +59,6 @@ from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.live_output import LiveOutput
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
-from toad.screens.session_view import SessionView
 from toad.client.session_scope import SessionOrigin
 from toad.session_scope import SessionScope
 from toad.transcript_scope import NoTranscript, TranscriptScope
@@ -77,12 +76,10 @@ from toad.widgets.cli_draft import CliDraft
 from toad.widgets.committed_presentation import (
     block_claim,
     commit_plan,
-    protected_blocks,
     retirement_candidates,
 )
 from toad.widgets.history_anchor import HistoryWindow
 from toad.client.reader_position import LatestPosition, TailPosition
-from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 from toad.worker_group import WorkerGroup
 
@@ -117,32 +114,12 @@ class BoundFrame:
         return await self.binding.reader.page(scope, position=position, limit=limit)
 
     def after_refresh(self, callback: Callable[[], object]) -> None:
-        self.binding.view.call_after_refresh(callback)
+        self.binding.view.after_refresh(callback)
 
     def painted(self, cursor: TranscriptCursor) -> None:
         if self.current():
-            view = self.binding.view
-            view.retire_loading_splash()
             self.owner.displayed_cursor = cursor
-            view.app.history_displayed()
-            view.query_ancestor(SessionView).history_painted()
-            view.submissions.settle()
-
-
-class DraftPresentation(MroProjection[None]):
-    """The CLI draft row draws a native draft and clears when Core reports none."""
-
-    @handles(DraftRow)
-    def draft(self, draft: DraftRow, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
-        widget.show(draft, resolve_sent=identity.wire_frontier.resolve_sent_messages)
-
-    @handles(NoDraft)
-    def none(self, draft: NoDraft, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
-        widget.clear()
-
-
-DRAFT_PRESENTATION = DraftPresentation()
-
+            self.binding.view.history_painted()
 
 class TranscriptPublication(BoundFrame, ABC):
     """Holds the source, resources and generation for one read and publication."""
@@ -166,14 +143,14 @@ class TranscriptPublication(BoundFrame, ABC):
 
     def capture_cohort(self) -> None:
         view = self.binding.view
-        self.captured = view.turns.owner.captured_snapshot(tuple(self.binding.contents.children))
+        self.captured = view.turns.owner.captured_snapshot(view.live_blocks)
         self.native_frontier = view.agent_binding.committed_native_output
 
     def native_current(self) -> bool:
         """Each captured presentation must belong to the acquired saved prefix."""
         return self.current() and all(
             block_claim(widget).accepts_native(widget, self.captured, self.identity)
-            for widget in self.binding.contents.children
+            for widget in self.binding.view.live_blocks
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
@@ -207,9 +184,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """
         if not self.current():
             return True
-        view = self.binding.view
-        pump = view.task
-        if asyncio.current_task() is pump:
+        if self.binding.view.on_native_pump():
             # A snapshot notification itself runs on this pump. Its existing
             # source worker must perform the join; waiting here blocks the very
             # messages whose resources the source needs to acquire.
@@ -246,21 +221,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """The original native pump attests applied effects at this source cut."""
         if not self.current():
             return False
-        view = self.binding.view
-        pump = view.task
-        applied = asyncio.get_running_loop().create_future()
-
-        def complete() -> None:
-            if not applied.done():
-                applied.set_result(None)
-
-        if not view.call_later(complete):
-            return False
-        try:
-            await asyncio.wait((applied, pump), return_when=asyncio.FIRST_COMPLETED)
-            return applied.done() and self.current()
-        finally:
-            applied.cancel()
+        return await self.binding.view.native_applied() and self.current()
 
     @abstractmethod
     async def publish_applied(self) -> bool: ...
@@ -296,10 +257,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         return True
 
     def show_draft(self, draft: DraftRow | NoDraft, identity: TranscriptReadIdentity) -> None:
-        widget = self.binding.view.cli_draft
-        if self.binding.contents.children[-1] is not widget:
-            self.binding.contents.move_child(widget, after=-1)
-        DRAFT_PRESENTATION.project_value(draft, widget, identity)
+        self.binding.view.show_draft(draft, identity)
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
@@ -431,6 +389,35 @@ class RunningPublicationWork(PublicationWork):
 
 
 
+@dataclass(frozen=True)
+class TaskPublicationWork(PublicationWork):
+    """A publication running as a task on the native asyncio loop (Qt's, through qasync)."""
+
+    task: asyncio.Task
+    exclusive: bool = False
+    """An exclusive publication (the window's commit) supersedes a running one of its kind."""
+
+    @property
+    def is_finished(self) -> bool:
+        return self.task.done()
+
+    def runs(self, worker: object) -> bool:
+        return worker is self.task
+
+    def cancel(self) -> None:
+        self.task.cancel()
+
+    async def joined(self) -> None:
+        self.task.cancel()
+        try:
+            await self.task
+        except asyncio.CancelledError:
+            pass
+
+    async def settled(self) -> None:
+        await asyncio.shield(self.task)
+
+
 class StartedPublicationWork(WorkerGroup, RunningPublicationWork):
     """A publication worker of one kind, started and joined through that kind."""
 
@@ -496,7 +483,7 @@ class SourcePublicationRequests:
             if not view.is_attached:
                 return False
             self.observation.close()
-            self.worker = SourcePublicationWork.start(view, self.publish)
+            self.worker = view.start_publication(self.publish, exclusive=False)
         return True
 
     async def publish(self) -> None:
@@ -527,13 +514,14 @@ class CommitPublication(CanonicalSourcePublication):
         if not self.current() or not self.owner.readable:
             return False
         view = self.binding.view
-        if not self.owner.demand.commits(len(self.binding.contents.children), view.MAX_LIVE_BLOCKS):
+        blocks = view.live_blocks
+        if not self.owner.demand.commits(len(blocks), view.MAX_LIVE_BLOCKS):
             return False
-        if any(block_claim(child).blocks_commit for child in self.binding.contents.children):
+        if any(block_claim(child).blocks_commit for child in blocks):
             return False
         potential = tuple(
             child
-            for child in self.binding.contents.children
+            for child in blocks
             if child is not self.binding.history and block_claim(child).retires
         )
         return self.plan.ready(self.binding.history) and self.plan.permits(
@@ -549,7 +537,7 @@ class CommitPublication(CanonicalSourcePublication):
         if not self.ready_to_commit():
             return True
         view = self.binding.view
-        window, contents = self.binding.window, self.binding.contents
+        window = self.binding.window
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         plan, history = self.plan, self.binding.history
@@ -567,7 +555,7 @@ class CommitPublication(CanonicalSourcePublication):
             outgoing=prepared.outgoing,
             identity=replace(self.identity, limit=Through(page.after)),
         )
-        retired = retirement_candidates(contents.children, evidence)
+        retired = retirement_candidates(view.live_blocks, evidence)
         if not plan.permits(view, retired):
             return True
         def publication_current():
@@ -578,7 +566,7 @@ class CommitPublication(CanonicalSourcePublication):
         async with AsyncExitStack() as retirement:
             async with plan.publication(view, prepared):
                 async with window.history_lock:
-                    retired = retirement_candidates(contents.children, evidence)
+                    retired = retirement_candidates(view.live_blocks, evidence)
                     if (
                         not is_current()
                         or history is not self.binding.history
@@ -588,10 +576,8 @@ class CommitPublication(CanonicalSourcePublication):
                         return True
                     plan.commit(prepared, page.after)
                     history.publish_committed()
-                    retirement.push_async_callback(
-                        self.owner.retire_presentations(contents, view.output, retired)
-                    )
-        if not window.is_attached or not contents.is_attached:
+                    retirement.push_async_callback(_joined, view.retire_blocks(retired))
+        if not self.binding.attached():
             return True
         if self.native_current():
             self.owner.demand = CLEAN_PUBLICATION
@@ -599,6 +585,10 @@ class CommitPublication(CanonicalSourcePublication):
         if page.has_newer:
             self.owner.require_commit()
         return True
+
+
+async def _joined(work: Awaitable[None]) -> None:
+    await work
 
 
 class ViewBinding:
@@ -745,12 +735,11 @@ class BoundView(ViewBinding):
         return self.view.app.coordination_access.transcripts
 
     def current(self):
-        return (
-            self.view.is_attached
-            and not self.view.is_leaving
-            and self.window.is_attached
-            and self.contents.is_attached
-        )
+        return self.view.is_attached and not self.view.is_leaving and self.attached()
+
+    def attached(self) -> bool:
+        """Whether the window and the blocks' container are still drawn."""
+        return self.window.is_attached and self.contents.is_attached
 
     @property
     def history(self) -> TranscriptHistory:
@@ -781,14 +770,13 @@ class BoundView(ViewBinding):
                 await history.show_newest(PreparedReplacementViewportRequest(
                     LatestPosition.hold(self.window), prepared,
                 ))
-            later = TranscriptHistory(
+            later = self.view.later_history(
                 PreparedTranscriptPage.empty(UnreadTranscriptPage(before=cursor, after=cursor)),
                 SavedSuffix(owner.get_transcript_page, cursor, self.view.app.preparation, after=cursor, fragments=source.fragments),
-                view=self.view, notification_view=self.contents, source_state=LiveTranscript(),
+                entry.conversation_order + 1,
             )
-            later.conversation_order = entry.conversation_order + 1
             self._history = later
-            await self.contents.mount(later)
+            await self.view.mount_history(later)
             owner.require_commit()
 
     def observe_thread(self, owner: TranscriptPresentation) -> None:
@@ -821,14 +809,12 @@ class BoundView(ViewBinding):
 
         async def replace() -> None:
             await retirement
-            replacement = TranscriptHistory.empty(
-                view=self.view, notification_view=self.contents
-            )
+            replacement = self.view.empty_history()
             self._history = replacement
-            removal = history.remove()
+            removal = self.view.remove_history(history)
             # Both native membership changes happen before yielding: callbacks
             # see one active reader while the old tree finishes pruning.
-            mounted = self.contents.mount(replacement, before=history)
+            mounted = self.view.mount_history(replacement, before=history)
             await mounted
             await removal
 
@@ -869,14 +855,14 @@ class BoundView(ViewBinding):
         await self.reveal_retained(owner, history)
         view.refresh_native_projection()
         publication = self.capture(owner, CanonicalSourcePublication)
-        view.call_after_refresh(partial(moment.refresh, publication))
+        view.after_refresh(partial(moment.refresh, publication))
 
     async def reveal_retained(self, owner: TranscriptPresentation, history: TranscriptHistory) -> None:
         view = self.view
         if not view.is_attached:
             return
         self.painted(owner, history.page_source.through)
-        view.query_one(SessionDetails)._refresh_summary()
+        view.refresh_session_summary()
 
     def capture[FrameT: BoundFrame](
         self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation
@@ -888,32 +874,31 @@ class BoundView(ViewBinding):
 
     def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         frame = BoundFrame.capture(self, owner)
-        self.view.call_after_refresh(partial(frame.painted, cursor))
+        self.view.after_refresh(partial(frame.painted, cursor))
 
     def request(self, owner) -> None:
         view = self.view
         if not view.is_attached:
             return
-        owner.worker = WindowPublicationWork.start(view, partial(owner.published, view, CommitPublication))
+        owner.worker = view.start_publication(partial(owner.published, view, CommitPublication), exclusive=True)
 
     def cancel_workers(self):
-        view = self.view
-        return (*WindowPublicationWork.cancelled_work(view), *SourcePublicationWork.cancelled_work(view))
+        return self.view.cancel_publications()
 
     def covered(self, owner: TranscriptPresentation, coverage: CoverageEvent, history: CommittedHistory):
         view = self.view
-        contents = self.contents
-        if history.is_attached and history.parent is contents:
+        if history in view.live_blocks:
             owner.events.publish(coverage)
+            blocks = view.live_blocks
             candidates = retirement_candidates(
-                contents.children,
+                blocks,
                 CommitEvidence(
                     frozenset(),
                     frozenset(coverage.sequences)
                     | history.covered_sequences(
                         frozenset(
                             sequence
-                            for child in contents.children
+                            for child in blocks
                             for sequence in block_claim(child).required_sequences
                         )
                     ),
@@ -922,16 +907,12 @@ class BoundView(ViewBinding):
                     outgoing=history.outgoing_coverage,
                 ),
             )
-            protected = protected_blocks(view, candidates)
-            retirement = owner.retire_presentations(
-                contents,
-                view.output,
-                [child for child in candidates if child not in protected],
-            )
+            protected = view.protected_blocks(candidates)
+            retirement = view.retire_blocks([child for child in candidates if child not in protected])
 
             async def complete() -> None:
                 await retirement
-                view.query_one(SessionDetails)._refresh_summary()
+                view.refresh_session_summary()
 
             return AwaitComplete(complete())
         return AwaitComplete.nothing()
@@ -1059,15 +1040,15 @@ class TranscriptPresentation(EntryPlacement):
         """Revoke in-flight view work without forgetting its published source."""
         self.generation += 1
 
-    async def published(self, view: Widget, kind: type[TranscriptPublication]) -> None:
+    async def published(self, view: BoundViewHost, kind: type[TranscriptPublication]) -> None:
         """Run one window publication; once its worker has stopped, publish what it left pending."""
-        worker = get_current_worker()
+        worker = view.current_publication()
         try:
             await self.publish(kind)
         finally:
             view.call_later(self.window_work_stopped, worker)
 
-    def window_work_stopped(self, worker: Worker) -> None:
+    def window_work_stopped(self, worker: object) -> None:
         # A superseded worker leaves the retry to the one that replaced it.
         if self.worker.runs(worker):
             self.retry()

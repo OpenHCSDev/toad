@@ -38,7 +38,7 @@ class QtCoreObserver(QtDeliveryReceiver, CoreObserverDispatch, AppScoped):
         return True
 
     def delivery_failed(self, error: Exception) -> None:
-        self.coordination.app.report_fatal(error)
+        self.app.report_fatal(error)
 
     def close_core_events(self) -> None:
         super().close_core_events()

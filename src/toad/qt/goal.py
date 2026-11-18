@@ -237,21 +237,10 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         self._goal_execution = execution
         self.present_state()
 
-    def showEvent(self, event) -> None:  # type: ignore[override]
-        super().showEvent(event)
-        self._attach_observation_if_needed()
-
-    def _attach_observation_if_needed(self) -> None:
-        """Subscribe the core-event callback + fire the first observation. Must
-        NOT be gated on showEvent: ``present_state()`` in ``__init__`` sets
-        ``show_goal(False)`` when no goal snapshot has been read yet, which
-        hides the widget — if observation only started in ``showEvent``, the
-        widget would never become visible and the observation would never fire.
-        Called from both ``showEvent`` (for the normal path) AND externally by
-        the parent view right after mount, so an unset-on-construction goal
-        still gets its first read."""
-        if self.is_attached:
-            return
+    def mount(self) -> None:
+        """Start observing the thread's goal: called once from the view's mount, after the
+        view's identity is bound, as `QtSessionDetails.mount` is. The bar hides itself until
+        a goal is read, so it cannot wait for its own show event."""
         self.is_attached = True
         self.observe_core_callback(
             self.coordination.events, ThreadRowsChanged, self.rows_changed,

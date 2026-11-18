@@ -156,11 +156,6 @@ class QtAcpSessionView(
         self._composer_label = "agent"
         incarnation = self._agent_binding.initial_identity(NoThreadIdentity()).optional_thread_incarnation()
         self._setup_prompt_stack(app, layout, incarnation)
-        # Bind the transcript once the message_history child exists: `BoundView` reads
-        # `self.transcript_history` immediately. Textual binds in its `on_mount`
-        # (`widgets/conversation.py:1766`); on Qt the equivalent moment is right after
-        # the `message_history` attribute is assigned, before any agent attaches.
-        self.transcript.bind(self)
         # Live reconnect hook: when the agent-binding changes (first attach or a real
         # reconnect), re-project state via ``apply_bound_agent`` and show the connected
         # notice once the new agent is ready. Textual's ``watch_agent_binding`` does the

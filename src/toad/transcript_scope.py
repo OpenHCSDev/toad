@@ -61,9 +61,9 @@ class TranscriptView(CoreObserver):
     def thread_scope(self) -> TranscriptScope:
         """The transcript scope this view is bound to now."""
 
-    @abstractmethod
     def follow_latest(self) -> None:
         """Show the transcript's end."""
+        self.window.jump_to_latest()
 
     @abstractmethod
     def transcript_changed(self) -> None:

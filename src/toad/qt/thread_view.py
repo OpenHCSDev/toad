@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 from agent_comms.registry.thread_presentation import NoThreadPresentation, ThreadPresentation
 from metaclass_registry.mro_dispatch import MroDispatch
 import asyncio
+from functools import partial
 
 import shiboken6
 from agent_comms.ui_model.message_category import all_categories
@@ -37,7 +38,6 @@ from toad.client.category_selection import CategorySelection
 from toad.client.view_settings import ConversationSettingsOwner
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.observed_field import ObservedField
-from toad.client.resource_release import ResourceRelease
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.transcript_history_contract import TranscriptHistoryContract
 from toad.prompt_actions import SubmitInputAction
@@ -55,8 +55,11 @@ from toad.client.prompt_composer import ComposerStatus
 from toad.client.prompt_stack import ErrorTone, SuccessTone
 from toad.conversation_turn import ConversationTurn
 from toad.submission_queue import NoQueueSource, QueueSource
-from toad.transcript_publication import BoundView, TranscriptPresentation
-from toad.transcript_scope import TranscriptScope
+from toad.transcript_publication import BoundView, CanonicalSourcePublication, TranscriptPresentation
+from toad.client.history_rows_view import AsyncioPublications, HistoryRowsBlocks, settled
+from toad.transcript_scope import TranscriptScope, TranscriptView
+from toad.qt.core_events import QtCoreObserver
+from toad.qt.draft_line import QtDraftLine
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 
@@ -74,7 +77,11 @@ class QtThreadView(
     ObservedAgentBinding,
     ConversationThreadReadMixin,
     ThreadBindingDispatch,
+    TranscriptView,
+    QtCoreObserver,
     MroDispatch,
+    HistoryRowsBlocks,
+    AsyncioPublications,
     QtBoundViewHost,
     Page,
     WorkspaceHosted,
@@ -100,6 +107,7 @@ class QtThreadView(
     """
 
     agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
+
 
     # ``BusSubmissions.queue_evidence`` reads ``self.view.queue_source`` on the
     # composer's first ``show_submitting``. Default until a view wires a live
@@ -158,7 +166,9 @@ class QtThreadView(
         """The composer this view kind mounts (Textual's `operational_sources.prompt`)."""
 
     def close_core_events(self) -> None:
-        """The rows under the transcript stop observing with the view."""
+        """The view's own subscriptions end, and the rows under the transcript stop
+        observing with it."""
+        super().close_core_events()
         self.thread_activity.close_activity()
         if self.goal_bar is not None:
             self.goal_bar.close_activity()
@@ -226,7 +236,6 @@ class QtThreadView(
         # subclasses.
         self.thread_presentation: ThreadPresentation = NoThreadPresentation()
         self._unpublished_presentation: ThreadPresentation = NoThreadPresentation()
-        self._thread_observation = ResourceRelease()
         # `NativeSessionEntry.__call__` writes this on tabs that go through the
         # entry; mailbox opens through `replace_opening_view` instead.
         self.session_details: "SessionDetails | None" = None
@@ -247,12 +256,24 @@ class QtThreadView(
         self.visible_categories = all_categories()
         self.message_history = QtTranscriptHistory(self.messages, self, app)
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent_binding.presentation.turns)
-        # Bind once message_history exists: `BoundView` reads
-        # `self.transcript_history` immediately.
+        # Qt has no mount event: the view mounts one event-loop tick later, after the
+        # opener has bound its identity (`session_navigation.bind_opened`).
+        QTimer.singleShot(0, self._mount_transcript)
+
+    def _mount_transcript(self) -> None:
+        """Bind the transcript and mount its history, in the order Textual's mounts run:
+        `Conversation.on_mount` binds, then `TranscriptHistory.on_mount` observes the source
+        and lets the history's state schedule its first page through `BoundView`.
+
+        Binding observes the view's thread scope, so it waits for the mount: a mailbox view
+        learns its thread in `bind_thread`, after construction."""
+        if not self.is_attached:
+            return
         self.transcript.bind(self)
-        # Textual's `TranscriptHistory.on_mount` observes the source and loads the first
-        # page; Qt has no mount event, so the load runs one tick after the view is placed.
-        QTimer.singleShot(0, self._start_transcript_source)
+        self.mount_history(self.message_history)
+        self.thread_activity.mount()
+        if self.goal_bar is not None:
+            self.goal_bar.mount()
 
     def _setup_prompt_stack(self, app: "QtToadApp", layout: QVBoxLayout, incarnation) -> None:
         """Mount, under the transcript, the rows Textual's `Conversation.compose` yields
@@ -263,6 +284,7 @@ class QtThreadView(
         first-paint EGL setup and deadlocks the window. Its slot is reserved here so it
         lands in order. ``submissions`` exists first so ``BusSubmissions.queue_evidence``
         has an owner by the composer's first ``show_submitting``."""
+        self.draft_line = QtDraftLine()
         self.feedback = QtFlash(app, app.renderer)
         self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
         self.thread_activity = QtSessionDetails(self, app.renderer)
@@ -271,14 +293,10 @@ class QtThreadView(
         self.composer = None
         self._composer_slot = QVBoxLayout()
         self._composer_slot.setContentsMargins(0, 0, 0, 0)
-        for row in (self.feedback, self.agent_activity, self.thread_activity, self.goal_bar):
+        for row in (self.draft_line, self.feedback, self.agent_activity, self.thread_activity, self.goal_bar):
             if row is not None:
                 layout.addWidget(row)
         layout.addLayout(self._composer_slot)
-        if self.goal_bar is not None:
-            # The bar hides itself until a goal is read, so it cannot wait for showEvent.
-            self.goal_bar._attach_observation_if_needed()
-        self.thread_activity.mount()
         self.refresh_thread_status()
         QTimer.singleShot(0, lambda: self._mount_composer(app))
 
@@ -379,56 +397,6 @@ class QtThreadView(
         self.feedback.flash(text, style=ErrorTone.declared_name)
 
 
-    def _start_transcript_source(self) -> None:
-        """Deferred transcript source start: fires on the next Qt event-loop tick,
-        after the view has mounted into the workspace stack.
-
-        Direct `await jump_latest(...)` here — not `load_initial_page` →
-        `request_latest` → `state.schedule_source_work` — because the scheduled
-        work path does not populate rows during the initial swap-in on Qt
-        (the RunningSourceWork task either doesn't get pumped before the first
-        viewport read or its paint result is dropped). Direct await drives the
-        same jump_latest body we probed working with 9+ rows on a mailbox tap.
-        `observe_source` still runs so the pager tracks the history on its
-        window for subsequent revision ticks.
-        """
-        self.message_history.observe_source()
-        request = LatestViewportRequest(LatestPosition.hold(self.message_history.window))
-        task = asyncio.ensure_future(self.message_history.jump_latest(request))
-        task.add_done_callback(self._initial_load_done)
-
-    def _initial_load_done(self, task: asyncio.Task) -> None:
-        """Report any exception from the initial page load so a failed first
-        fetch is visible instead of silently leaving the transcript blank.
-
-        An empty transcript after a clean load is ALSO reported — a view that
-        paints a black body with no rows is not a success story."""
-        if task.cancelled():
-            print(f"QtThreadView {type(self).__name__} initial load cancelled", flush=True)
-            return
-        exc = task.exception()
-        if exc is not None:
-            import traceback
-            print(f"QtThreadView {type(self).__name__} initial transcript load failed: {exc!r}", flush=True)
-            traceback.print_exception(exc)
-            return
-        try:
-            model = self.messages.model() if hasattr(self.messages, "model") else None
-            rows = model.rowCount() if model is not None else -1
-        except RuntimeError:
-            # View torn down between done-callback scheduling and running —
-            # nothing to report, the user already closed this view.
-            return
-        if rows <= 0:
-            # Loud only when the load produced nothing — a view that paints a
-            # black body with no rows is the failure case the diagnostic targets.
-            source = getattr(self.message_history, "page_source", None)
-            print(
-                f"QtThreadView {type(self).__name__} initial load empty: "
-                f"rows={rows} source={type(source).__name__ if source else None}",
-                flush=True,
-            )
-
     # ---- BoundViewHost contract ----
 
     @property
@@ -455,6 +423,49 @@ class QtThreadView(
         child `BoundView` drives. `QtTranscriptHistory` satisfies the contract
         through the shared `CommittedHistoryBase` + `ReportsCoveredPages` bases."""
         return self.message_history
+
+    # ---- BoundViewHost: Qt draws the blocks as rows of its one history model ----
+
+    def show_draft(self, draft, identity) -> None:
+        self.draft_line.show_draft(draft)
+
+    def empty_history(self) -> QtTranscriptHistory:
+        return QtTranscriptHistory(self.messages, self, self.app)
+
+    def mount_history(self, history, *, before=None):
+        self.message_history = history
+        history.observe_source()
+        history.state.mounted(history)
+        return settled()
+
+    def remove_history(self, history):
+        history.close()
+        return settled()
+
+    def call_later(self, callback, *args) -> bool:
+        if not self.is_attached:
+            return False
+        QTimer.singleShot(0, partial(callback, *args))
+        return True
+
+    def after_refresh(self, callback) -> None:
+        QTimer.singleShot(0, callback)
+
+    def history_painted(self) -> None:
+        self.submissions.settle()
+
+    def refresh_session_summary(self) -> None:
+        self.thread_activity.refresh_summary()
+
+    def resume_retained_history(self) -> None:
+        self.message_history.state.resume_if_parked(self.message_history)
+
+    # ---- TranscriptView ----
+
+    def transcript_changed(self) -> None:
+        """The thread's source changed outside this view: publish its canonical source
+        again — the request Textual's `OperationalSessionSources` makes for it."""
+        self.transcript.source_requests.request(CanonicalSourcePublication)
 
     def transcript_binding(self) -> BoundView:
         """Called by `ViewBinding.bound_to(view)` on `TranscriptPresentation.bind`.
