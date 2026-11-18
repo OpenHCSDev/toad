@@ -23,6 +23,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.message_category import all_categories
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import ExclusiveKind, OperationKind
+from toad.qt.submission_view import QtSubmissionView
 from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPainter, QShortcut
 from PySide6.QtWidgets import (
@@ -90,7 +91,6 @@ from toad.keyed_rows import KeyedRows
 from toad.setting_choices import UnreadCount
 from toad.sidebar_rows import ChannelLineText, ChannelRowFace, ThreadLineText, ThreadRowFace
 from toad.client.referenced_core import ReferencedCore
-from toad.client.submission import MessageDestination
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
 from toad.sidebar_changes import SidebarChange
@@ -1185,7 +1185,7 @@ class BusLabel(ElidedLine):
         self.setToolTip(f"{prefix}{location}")
 
 
-class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, ConversationSettingsOwner, JumpsHistory, MenuConversation, Page, SessionScope, SubmissionView, WireView,
+class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, ConversationSettingsOwner, JumpsHistory, MenuConversation, Page, SessionScope, QtSubmissionView, WireView,
                        QtHistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
                        metaclass=PyQtWidgetMeta):
 
@@ -1434,21 +1434,6 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
         root = self.app.source().root
         await self.submissions.start_bus(text, ChannelDestination(root, self.conversation, self)).prepare()
 
-    def delivery_refused(self, description: str, body: str) -> None:
-        self.composer.restore_draft(body)
-        self.composer.show_failure(self.refusal_notice(description))
-
-    def delivery_unknown(self, description: str, body: str) -> None:
-        self.composer.restore_draft(body)
-        self.composer.show_failure(self.unknown_notice(description))
-
-    async def refresh_composer(self, read_only: bool) -> None:
-        self.composer_block = MessageDestination.read_only_reason if read_only else ""
-        self.composer.hold(self.composer_block)
-
-    def draws_user_message(self, reference: MessageReference) -> bool:
-        return self.message_history.draws(reference)
-
     def categories_changed(self) -> None:
         self.message_history.apply_filter()
 
@@ -1464,15 +1449,6 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
         """A changed override reaches the open widgets of a Textual capability; a Qt view
         holds none of Textual's widgets, so no `Effect` has one to repaint here."""
         return ()
-
-    def record_input(self, text: str) -> None:
-        """The Qt composer recalls no earlier input, so there is no history to keep."""
-
-    def run_submission(self, send: Callable[[], Awaitable[None]]) -> None:
-        self.app.run_operation(ConversationSubmission, send)
-
-    def submissions_changed(self) -> None:
-        self.composer.show_submitting()
 
     # Block menu — MenuConversation implementation
     #

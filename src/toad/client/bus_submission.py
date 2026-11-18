@@ -5,6 +5,7 @@ each answer SubmissionView, and both send through BusSubmissions."""
 
 from __future__ import annotations
 
+
 import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
@@ -56,33 +57,33 @@ class SubmissionView:
     def unknown_notice(description: str) -> str:
         return f"Send outcome unknown: {description}. Check this conversation before resending."
 
+    @abstractmethod
     def delivery_refused(self, description: str, body: str) -> None:
         """Nothing left this machine, or Core refused it: the draft comes back with why."""
-        raise NotImplementedError
 
+    @abstractmethod
     def delivery_unknown(self, description: str, body: str) -> None:
         """The request may have reached Core; the draft comes back with a warning."""
-        raise NotImplementedError
 
+    @abstractmethod
     async def refresh_composer(self, read_only: bool) -> None:
         """Draw compose from the caller's Core answer."""
-        raise NotImplementedError
 
-    def draws_user_message(self, reference: MessageReference) -> bool:
-        raise NotImplementedError
+    @abstractmethod
+    def draws_user_message(self, reference: MessageReference) -> bool: ...
 
+    @abstractmethod
     def record_input(self, text: str) -> None:
         """Keep the submitted text in the composer's input history."""
-        raise NotImplementedError
 
+    @abstractmethod
     def run_submission(self, send: Callable[[], Awaitable[None]]) -> object:
         """Run one request's send as the view's background work; its failure reaches the
         native failure owner."""
-        raise NotImplementedError
 
+    @abstractmethod
     def submissions_changed(self) -> None:
         """The pending sends changed: the composer redraws what is submitting."""
-        raise NotImplementedError
 
 
 @dataclass(frozen=True)

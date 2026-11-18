@@ -33,22 +33,9 @@ from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionSco
 from toad.qt.composer import ProjectComposer
 from toad.qt.thread_view import QtThreadView
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
+from toad.client.session_sources import MailboxSources
 from toad.transcript_scope import TranscriptScope
 from toad.qt.metrics import UiGap
-
-
-class _MailboxPresentation:
-    """Same shape `ThreadNavigation.bind` writes to on Textual's MainScreen
-    (`screen.presentation.sources.load_plan = plan`). Kept so
-    `ExternalThreadNavigation` / `NativeThreadNavigation` subclasses that assign
-    to `screen.presentation.sources` run cleanly without a special case."""
-
-    class _Sources:
-        def __init__(self) -> None:
-            self.load_plan = None
-
-    def __init__(self) -> None:
-        self.sources = _MailboxPresentation._Sources()
 
 
 class QtMailboxView(QtThreadView, SessionScope):
@@ -101,9 +88,6 @@ class QtMailboxView(QtThreadView, SessionScope):
         self.id = ""
         # `bind_thread` replaces this with the real ThreadIdentity.
         self._identity: ThreadIdentity | NoThreadIdentity = NoThreadIdentity()
-        # Matches Textual's MainScreen: `prepared.bind` lands on
-        # `view.presentation.sources.load_plan` via `apply_native_load_plan`.
-        self.presentation = _MailboxPresentation()
         # The shared transcript stack: `messages`, `transcript`, `message_history`.
         self._setup_transcript(app)
         self.identity_line = ElidedLine(f"Mailbox: {thread_incarnation.name}")
@@ -195,15 +179,13 @@ class QtMailboxView(QtThreadView, SessionScope):
         """`NativeThreadNavigation.bind(screen)` calls `screen.apply_native_load_plan(plan)`.
         Textual assigns `self.presentation.sources.load_plan = plan` which feeds the
         resumable-session restore. Qt keeps the same assignment shape so Core's
-        bind logic reads the plan on the view's presentation surface."""
-        self.presentation.sources.load_plan = plan
+        bind logic reads the plan on the view's sources."""
+        self.operational_sources.load_plan = plan
 
     def apply_external_mailbox_sources(self) -> None:
-        """`ExternalThreadNavigation.bind(screen)` calls
-        `screen.apply_external_mailbox_sources()`. Textual swaps in
-        `MailboxSessionSources` which drags in the Textual-widget pyramid. The
-        default SessionScope no-op already handles it; keep this override explicit
-        so a future Qt-side mailbox-sources class has an obvious hook point."""
+        """A CLI thread's input goes to Core's inbox and queues there: the shared
+        `MailboxSources` Textual's `MailboxSessionSources` extends."""
+        self.operational_sources = MailboxSources()
 
     # ---- Content lifecycle ----
 
