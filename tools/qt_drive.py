@@ -3422,12 +3422,9 @@ class HoldScenario(Scenario):
         history.block_menu_requested.connect(lambda fragment: requested.append(type(fragment).__name__))
         await self.held_menu("2-history-row", viewport, on_row)
         print(f"2-history-row: block menu asked for {requested}", flush=True)
-        # 3. A tab offers no menu on right-click: a hold there stays the tab's press.
+        # 3. A tab offers the tab menu (moving, closing) on a right-click, and so on a hold.
         tabs = app.tabs
-        await self.touch(tabs, tabs.tabRect(0).center(), 1100)
-        self.report("3-tab", menu=self.menu())
-        self.expect("3-tab", not self.menu(), f"a tab offered a menu {self.menu()} a right-click doesn't")
-        self.close_menu()
+        await self.held_menu("3-tab", tabs, tabs.tabRect(0).center())
         # 4. A hold that then drags scrolls the history, and opens no menu.
         bar = history.verticalScrollBar()
         bar.setValue(bar.maximum())
