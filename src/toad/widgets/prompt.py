@@ -38,7 +38,7 @@ from textual.style import Style
 from textual.widgets import Label, OptionList, TextArea
 from textual.widgets.option_list import Option, OptionListComponent
 from textual.widgets.text_area import Selection, TextAreaComponent
-from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, PromptToneColour, SecondaryColour
+from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, SecondaryColour
 
 from toad import messages
 from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard_png
@@ -715,7 +715,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
              containers.VerticalGroup, ToadNode, PromptComposer, actions=(PromptFrameAction,)):
     """The Textual composer; `PromptComposer` owns its submissions, queue, glyph and draft
     decisions, shared with Qt's `Composer`."""
-    tone = PromptToneColour
+    # `TonePaint` comes first in the bases, so its `tone` would hide the composer's own.
+    tone = PromptComposer.area_tone
 
 
     TEXT_AREA_CLASS = PromptTextArea

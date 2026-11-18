@@ -29,6 +29,7 @@ from ui_theme.scheme import (
     ForegroundColour,
     HeaderToneColour,
     MutedColour,
+    SelectedTabToneColour,
 )
 
 from toad.core import events as core_events
@@ -51,6 +52,16 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
     @property
     def current(self) -> bool:
         return self.mode_name == self.app.selected_mode
+
+    # TonePaint declares a class tone; the open tab is raised a tier off the bar, the rest sit on it.
+    @property
+    def tone(self):  # type: ignore[override]
+        return SelectedTabToneColour if self.current else None
+
+    def paint_current(self) -> None:
+        """The tab opened or closed: its tone is part of its cached paint."""
+        self.refresh_paint()
+        super().paint_current()
 
     @property
     def paint_text_style(self):

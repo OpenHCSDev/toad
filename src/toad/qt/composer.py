@@ -308,6 +308,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
         self.host, self.renderer = host, renderer
+        # The composer's area is its own surface (`area_tone`), as Textual's prompt area is.
+        self.setObjectName("composer")
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.given_placeholder = placeholder
         self.mention_candidates: tuple[MentionCandidate, ...] = ()
         self.commands: list[SlashCommand] = []
@@ -398,8 +401,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         return self.host.submissions
 
     def paint_colours(self) -> None:
-        """The muted placeholder, the offer list, the glyph and the frame's border, under the
-        renderer's current scheme."""
+        """The area's tone, the muted placeholder, the offer list, the glyph and the frame's
+        border, under the renderer's current scheme."""
+        self.setStyleSheet(f"#composer {{ background: {self.renderer.theme(self.area_tone)} }}")
         palette = self.editor.palette()
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(self.renderer.colour(MutedRole)))
         self.editor.setPalette(palette)

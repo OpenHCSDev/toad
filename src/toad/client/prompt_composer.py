@@ -9,8 +9,10 @@ paint calls.
 from __future__ import annotations
 
 from abc import abstractmethod
+from typing import ClassVar
 
 from metaclass_registry import AbstractHooksMeta
+from ui_theme.scheme import PromptToneColour, ThemeColour
 
 from toad.client.input_decision import InputAccepted, InputDecision
 from toad.setting_declarations import EachOpenWidget
@@ -36,6 +38,8 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     """A conversation's composer: its submission owner, queue and leading glyph."""
 
     submissions: object | None
+    # The surface the composer's area is painted on, a tier off the transcript above it.
+    area_tone: ClassVar[type[ThemeColour]] = PromptToneColour
 
     @property
     @abstractmethod
