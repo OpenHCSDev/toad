@@ -679,6 +679,10 @@ class HistoryPager(ResumesSource):
                 self.publish_core(TranscriptSourceWorkFinished())
                 if all(history.state.accepts_source_work for history in self.window.histories):
                     self.window.reader_position.source_settled(self.window)
+            # Work handed over while this held the source; what arrives while it runs is owed
+            # to that operation in turn, so a burst's last revision is always read.
+            for work in tuple(operation.owed.values()):
+                self.schedule_source_work(work)
 
     def resume_source(self) -> None:
         self._source_state = self._source_state.resume()

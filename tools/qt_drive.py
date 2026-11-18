@@ -942,6 +942,35 @@ class MenuScenario(Scenario):
         self.report("3-notice", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
 
 
+class MenuTextScenario(Scenario):
+    summary = ("open the menu at WIDTH (412) and fail when any of its lines is drawn in less height "
+               "than its font's full height: the descenders of a description line were cut on the phone")
+
+    async def run(self) -> None:
+        from pyqt_reactive.widgets.fitted_text import FittedText
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.listed()
+        self.app.menu_panel.input_modality = TouchInput  # the phone's: each description is a second line
+        self.app.menu.click()
+        await asyncio.sleep(0.5)
+        lines = [line for row in self.app.menu_panel.findChildren(QtMenuRow)
+                 for line in row.findChildren(FittedText)]
+        clipped = [(line.text()[:30], line.contentsRect().height(), line.fontMetrics().height())
+                   for line in lines if line.contentsRect().height() < line.fontMetrics().height()]
+        if lines:
+            line = lines[0]
+            button = line.parentWidget()
+            print("line geometry:", dict(height=line.height(), contents=line.contentsRect().height(),
+                  margins=(line.contentsMargins().top(), line.contentsMargins().bottom()),
+                  minimum=line.minimumSizeHint().height(), button=button.height(),
+                  button_minimum=button.minimumHeight(), panel_sheet=self.app.menu_panel.styleSheet()[:300],
+                  app_sheet_label=[rule[:120] for rule in QApplication.instance().styleSheet().split("}") if "QLabel" in rule][:4]),
+                  flush=True)
+        self.report("1-menu", lines=len(lines), clipped=clipped[:6])
+        assert lines, "the menu shows no lines"
+        assert not clipped, f"{len(clipped)} menu lines drawn shorter than their font: {clipped[:3]}"
+
+
 class FeedbackScenario(Scenario):
     summary = ("the reader's feedback at a Pixel 8a's width: the wait a slow thread open shows in place, "
                "#comms' first page loading, an operation's wait floating over the page, a notice that "
@@ -2042,9 +2071,22 @@ class ArrivalScenario(Scenario):
         started = time.monotonic()
         original = HistoryRows.show
 
+        first_shown: dict[str, float] = {}  # a row's full text, when it first showed
+        # When Core's revisions reach this app: the pace a burst can show at, at best.
+        from toad.client.connection import CoordinationAccess
+        revisions: list[float] = []
+        observed = CoordinationAccess.revision_observed
+
+        def revision_arrived(access, result, observing):
+            revisions.append(time.monotonic() - started)
+            return observed(access, result, observing)
+        CoordinationAccess.revision_observed = revision_arrived
+
         def recorded(model, fragments):
             before = {self.label(fragment) for fragment in model.fragments}
             original(model, fragments)
+            for fragment in model.fragments:
+                first_shown.setdefault(fragment.clipboard_text, time.monotonic() - started)
             after = {self.label(fragment) for fragment in model.fragments}
             if model is not view.messages.model_rows:
                 print(f"show on another model: {type(model).__name__} rows={len(model.fragments)}", flush=True)
@@ -2162,10 +2204,13 @@ class ArrivalScenario(Scenario):
         for label, marks in appeared.items():
             by_text.setdefault(label.rsplit(" #", 1)[0], []).extend(f"{mark}{label[-5:]}" for mark in marks)
         # Each posted message's wait: from its send returning to its row first showing.
-        shown_at = {index: min((float(mark[1:]) for label, marks in appeared.items()
-                                if label.startswith(f"arrival reply {index} {stamp}")
-                                for mark in marks if mark.startswith("+")), default=None)
+        shown_at = {index: min((at for text, at in first_shown.items()
+                                if f"arrival reply {index} {stamp}" in text), default=None)
                     for index in posted}
+        print("posted at (s):", sorted(round(at, 2) for at in posted.values()), flush=True)
+        print("revisions arrived (s):", [round(at, 2) for at in revisions if at > min(posted.values(), default=0) - 1], flush=True)
+        CoordinationAccess.revision_observed = observed
+        print("shown at (s):", sorted(round(at, 2) for at in shown_at.values() if at is not None), flush=True)
         waits = sorted(round(shown_at[index] - posted[index], 2) for index in posted if shown_at[index] is not None)
         print(f"burst of {burst}: {len(waits)} shown; wait from send to row (s): "
               f"median {waits[len(waits) // 2] if waits else None}, max {waits[-1] if waits else None}; "
