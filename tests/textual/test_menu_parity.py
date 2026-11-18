@@ -4,7 +4,7 @@ Qt draws the same declared entries for the same elements; `tests/model/test_menu
 keeps either toolkit from building its own."""
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.comms_sidebar import CommsSidebar
-from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
 
 def drawn(app) -> list[str]:
@@ -50,8 +50,17 @@ async def test_sidebar_lines_and_tabs_draw_their_declared_menus(workspace):
         assert channel_menu == [entry.label for entry in await channel.menu_entries()]
         assert channel_menu
 
-        tab = next(label for label in app.query(SessionLabel)
-                   if label.mode_name == app.selected_mode)
+        # A tab: the thread opened. The home view is no tab (the sidebar holds the window).
+        thread.scroll_visible(animate=False)
+        await ui.step()
+        assert await _pilot.click(thread)
+
+        def selected_label():
+            tabs = app.screen.query(SessionsTabs)
+            return tabs.first().query_one_optional(f"#{ui.selected_tab}", SessionLabel) if tabs else None
+
+        await ui.until(lambda: selected_label() is not None, why="the thread's tab")
+        tab = selected_label()
         tab_menu = await right_click_menu(ui, tab)
         assert tab_menu == [entry.label for entry in tab.menu_entries()]
         assert tab_menu[-1] == "Close tab"
