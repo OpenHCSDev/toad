@@ -7,7 +7,12 @@ declared here, and both frontends' lines inherit them.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import ClassVar
+
+from toad.client.menu_entry import MenuEntry
+from toad.client.relationship_row_menu import menu_entries_for_row
+from toad.command_catalog import CommandCatalog
 
 
 class DetailedLine:
@@ -99,7 +104,13 @@ class SidebarStatusLine(DetailedLine):
 class TargetLine:
     """A line that opens a navigation target (a channel or a thread): it is keyed by the
     target's name and opens its members as the target says by default. Textual's
-    `CommsRow` and Qt's `ConversationRow`."""
+    `CommsRow` and Qt's `ConversationRow`.
+
+    Its menu is declared here and nowhere else: `menu_entries` is what a right-click or a
+    held finger offers in every frontend, and each toolkit only draws the entries
+    (Textual's `ActionMenu.offer`, Qt's menu panel). A toolkit line that defined its own
+    `menu_entries`, or built a menu by calling the owners below, fails
+    `tests/model/test_menu_owners.py`."""
 
     target: object
 
@@ -109,6 +120,47 @@ class TargetLine:
 
     def opens_expanded(self) -> bool:
         return self.target.expanded_by_default
+
+    @property
+    def menu_tree(self) -> LineMenuTree:
+        """The tree the line is drawn in, which supplies the context its commands run in."""
+        raise NotImplementedError
+
+    async def menu_entries(self) -> tuple[MenuEntry, ...]:
+        """The commands the line's target applies, in its tree's context."""
+        return await CommandCatalog.pointer_menu(self.menu_tree.row_menu_context(self))
+
+
+class LineMenuTree:
+    """A tree of `TargetLine`s: the context a line's commands run in, and how a Comms
+    relationship opens. Textual's sidebar trees and Qt's `ConversationRows` and
+    `QtThreadCommsPanel` answer it."""
+
+    def row_menu_context(self, line: TargetLine):
+        """The command context for `line`'s target in this tree."""
+        raise NotImplementedError
+
+    def relationship_opener(self, line: RelationshipLine) -> Callable[[], object]:
+        """What Open runs for a relationship line, captured when the menu opens."""
+        raise NotImplementedError
+
+    def copy_name(self, name: str) -> None:
+        raise NotImplementedError
+
+
+class RelationshipLine(TargetLine):
+    """A Comms relationship (Textual's `RelationshipRow`, Qt's `QtRelationshipItem`): its
+    menu is Open while the relationship is available, and Copy name."""
+
+    available: bool
+
+    async def menu_entries(self) -> tuple[MenuEntry, ...]:
+        tree = self.menu_tree
+        return menu_entries_for_row(
+            target_name=self.target_name,
+            copy=tree.copy_name,
+            open_callback=tree.relationship_opener(self) if self.available else None,
+        )
 
 
 class HeaderLine:

@@ -2,10 +2,13 @@
 
 from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
+from functools import partial
 
 from agent_comms.errors import UnregisteredThreadError
 from formbridge.operations import ExclusiveKind, OperationKind
-from toad.client.commands import CommandContextChanged, CommandRefused, ConversationCommands, LocalCommand
+from toad.client.commands import (CommandContextChanged, CommandRefused, ConversationCommands, LocalCommand,
+                                  ViewLocalCommand)
+from toad.client.menu_entry import MenuEntry
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, SlashCommand
 from toad.target_commands import TargetContext, ThreadCommand
 
@@ -64,6 +67,15 @@ class CommandCatalog:
             tuple(choice for command in entries for choice in command.target_choices(target)),
             target,
         )
+
+    @classmethod
+    async def pointer_menu(cls, context: TargetContext) -> tuple[MenuEntry, ...]:
+        """What a right-click or a held finger on a channel or thread offers, in every
+        frontend: the commands its target context applies, each run in that context.
+        Textual's sidebar rows show these in an `ActionMenu`, Qt's in its menu panel."""
+        choices = (await cls.read(context.app, (), context.acquired(), ViewLocalCommand)).target_choices
+        return tuple(MenuEntry(command.label(context), partial(context.execute_command, command))
+                     for command in choices)
 
     def recognizes(self, text: str) -> bool:
         """Whether typed text starts with one of these commands."""

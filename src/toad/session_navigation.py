@@ -76,6 +76,18 @@ class Detached:
     returning_view: SessionScope | None
 
 
+class TabElement:
+    """An open tab as a pointer finds it: Textual's `SessionLabel`, Qt's `QtTabAt`. Its menu
+    is declared here, from the navigator's `tab_menu`, and each toolkit only draws the
+    entries; a toolkit tab that built its own fails `tests/model/test_menu_owners.py`."""
+
+    app: object
+    mode_name: str
+
+    def menu_entries(self) -> tuple[MenuEntry, ...]:
+        return self.app.session_navigation.tab_menu(self.mode_name)
+
+
 class SessionNavigation(StartsSessions, SessionNavigator):
     def __init__(self, app: NavigationHost) -> None:
         self.app = app

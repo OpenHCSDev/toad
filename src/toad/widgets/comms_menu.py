@@ -104,6 +104,13 @@ class ActionMenu(ContextMenu[Callable[[], object]]):
     def show(cls, screen, anchor: Region, title: str, items):
         return super().show(screen, anchor, title, items, callback=cls.run_action)
 
+    @classmethod
+    def offer(cls, screen, anchor: Region, title: str, entries):
+        """The shared `MenuEntry` rows a right-click opens (a sidebar row's commands, a
+        relationship's Open and Copy, a tab's moves), as Qt's menu panel shows the same
+        entries."""
+        return cls.show(screen, anchor, title, [(entry.run, entry.label) for entry in entries])
+
     @staticmethod
     async def run_action(action):
         if action is not None:

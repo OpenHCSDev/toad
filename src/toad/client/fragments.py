@@ -234,6 +234,8 @@ class CursorRest:
 
     # The messages the cursor owns while the history draws them.
     rested: tuple[HistoryFragment, ...] = ()
+    # A drawn message is never maximized (a Textual widget block may be, through its cursor).
+    allow_maximize: ClassVar[bool] = False
 
     @property
     def clipboard_text(self) -> str:

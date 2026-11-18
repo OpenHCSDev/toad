@@ -86,12 +86,13 @@ from toad.setting_choices import CenterColumnAlignment, HiddenScrollbar, Transie
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
+from toad.client.menu_entry import strip_menu_markup
 from toad.qt.menu import QtMenu, QtMenuRow
 from toad.qt.activity import ChannelActivity
 from toad import paths
-from toad.qt.thread_comms_panel import QtThreadCommsPanel
+from toad.qt.thread_comms_panel import QtRelationshipItem, QtThreadCommsPanel
 from toad.qt.channel_sort import QtChannelListSort
-from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
+from toad.qt.window import ChannelLine, ConversationRow, ConversationView, MenuActionRun, QtTabAt, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
 from toad.live_output import ResponseStream, ThoughtStream
@@ -3596,6 +3597,16 @@ class HoldScenario(Scenario):
     def close_menu(self) -> None:
         self.app.menu_panel.hide()
 
+    async def opened_menu(self, tenths: int = 50) -> list[str]:
+        """The menu once it shows: a line's menu is read off the UI thread (its target's
+        commands come from Core), so it opens a moment after the press. Nothing when none
+        opens within the wait."""
+        for _ in range(tenths):
+            if shown := self.menu():
+                return shown
+            await asyncio.sleep(0.1)
+        return []
+
     async def right_click(self, widget: QWidget, point: QPoint) -> list[str]:
         """A mouse's right button at `point`, through the window, where Qt turns it into the
         context-menu request (a widget-level click skips that)."""
@@ -3603,8 +3614,7 @@ class HoldScenario(Scenario):
         handle, at = window.windowHandle(), widget.mapTo(window, point)
         await self.dispatched(lambda: QTest.mouseClick(handle, Qt.MouseButton.RightButton,
                                                        Qt.KeyboardModifier.NoModifier, at))
-        await asyncio.sleep(0.4)
-        clicked = self.menu()
+        clicked = await self.opened_menu()
         self.close_menu()
         return clicked
 
@@ -3624,7 +3634,7 @@ class HoldScenario(Scenario):
         # only once it is gone.
         await asyncio.sleep(0.4)
         await self.touch(widget, point, 1100)
-        held = self.menu()
+        held = await self.opened_menu()
         self.report(step, menu=held)
         self.close_menu()
         await asyncio.sleep(0.4)
@@ -3710,6 +3720,88 @@ class HoldScenario(Scenario):
 
         await until(lambda: comms.isVisible() and entry_rows(), "a Comms relationship row")
         await self.held_menu("6-comms-row", comms.viewport(), comms.visualItemRect(entry_rows()[0]).center())
+        if self.faults:
+            raise AssertionError("\n".join(self.faults))
+
+
+class MenuParityScenario(HoldScenario):
+    summary = ("at a Pixel 8a's size on #scratch: a right-click on a channel line, a thread line, a "
+               "tab, a message and a Comms relationship draws exactly that element's declared menu "
+               "(TargetLine, TabElement, BlockMenu, RelationshipLine), which tests/textual/"
+               "test_menu_parity.py checks Textual draws for the same elements")
+
+    @staticmethod
+    def labels(entries) -> list[str]:
+        return [strip_menu_markup(entry.label) for entry in entries]
+
+    async def parity(self, step: str, widget: QWidget, point: QPoint, declared: list[str]) -> list[str]:
+        drawn = await self.right_click(widget, point)
+        self.report(step, drawn=drawn, declared=declared)
+        self.expect(step, bool(declared), "the element declares no menu")
+        self.expect(step, drawn == declared, f"drew {drawn}, the element declares {declared}")
+        await asyncio.sleep(0.3)
+        return drawn
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named("#scratch")
+        tree = app.sidebar
+        await self.expand("#scratch")
+        # 1. The #scratch channel line: its target's commands.
+        channel = await self.found(lambda row: isinstance(row, ChannelLine) and row.target.name == "#scratch",
+                                   "the #scratch line")
+        tree.scrollToItem(channel)
+        await asyncio.sleep(0.3)
+        drawn = await self.parity("1-channel-line", tree.viewport(), tree.visualItemRect(channel).center(),
+                                  self.labels(await channel.menu_entries()))
+        self.expect("1-channel-line", drawn != ["Open", "Copy name"], "the hand-rolled Open / Copy name")
+        # 2. A thread line listed under #scratch: its target's commands, in #scratch.
+        thread = await self.found(lambda row: isinstance(row, ConversationRow) and row.parent() is channel,
+                                  "a thread listed under #scratch")
+        tree.scrollToItem(thread)
+        await asyncio.sleep(0.3)
+        drawn = await self.parity("2-thread-line", tree.viewport(), tree.visualItemRect(thread).center(),
+                                  self.labels(await thread.menu_entries()))
+        self.expect("2-thread-line", drawn != ["Open", "Copy name"], "the hand-rolled Open / Copy name")
+        # 3. The #scratch tab: the shared tab menu.
+        tabs = app.tabs
+        index = tabs.currentIndex()
+        await self.parity("3-tab", tabs, tabs.tabRect(index).center(),
+                          self.labels(QtTabAt(app, app.session_navigation.tabs[index].mode_name).menu_entries()))
+        # 4. A message: the block menu, for the fragment the press asked it of.
+        history = self.page.messages
+        viewport = history.viewport()
+        on_row = QPoint(viewport.width() // 4, viewport.height() // 3)
+        asked: list = []
+        history.block_menu_requested.connect(asked.append)
+        drawn = await self.right_click(viewport, on_row)
+        self.expect("4-message", bool(asked), "no message was asked for its menu")
+        if asked:
+            fragment = asked[-1]
+            declared = self.labels(QtMenu.command_entries(QtMenu.block_commands(fragment, fragment.block_menu),
+                                                          app.settings, lambda command: None))
+            self.report("4-message", drawn=drawn, declared=declared)
+            self.expect("4-message", drawn == declared, f"drew {drawn}, the block declares {declared}")
+        # 5. A Comms relationship of scratch-live-pipeline: Open / Copy name, declared once.
+        await self.open_named("scratch-live-pipeline")
+        app.resize(412, 1600)
+        app.thread_side.toggle_pane()
+        await asyncio.sleep(1.0)
+        picker = app.thread_pane.menu.picker
+        picker.setCurrentIndex([picker.itemText(index) for index in range(picker.count())].index("Comms"))
+        panel: QtThreadCommsPanel = app.thread_pane._comms_panel
+        comms = panel._tree
+
+        def relationship_items() -> list[QtRelationshipItem]:
+            return [item for item in comms.findItems("", Qt.MatchFlag.MatchContains | Qt.MatchFlag.MatchRecursive)
+                    if panel._row_entry(item) is not None
+                    and comms.viewport().rect().contains(comms.visualItemRect(item).center())]
+
+        await until(lambda: comms.isVisible() and relationship_items(), "a Comms relationship row")
+        item = relationship_items()[0]
+        await self.parity("5-relationship", comms.viewport(), comms.visualItemRect(item).center(),
+                          self.labels(await item.menu_entries()))
         if self.faults:
             raise AssertionError("\n".join(self.faults))
 

@@ -14,7 +14,7 @@ from agent_comms.projects.checkouts import Checkout
 
 from toad.app_node import ToadNode
 from toad.client.session_scope import HomeSessionOrigin
-from toad.navigation_context import NavigationContext, NavigationOwner
+from toad.navigation_context import HomeNavigation
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.screens.session_view import SessionView
 from toad.thread_identity import ThreadIdentity
@@ -23,7 +23,7 @@ from toad.widget_actions import TogglesIrc
 
 class WelcomeScreen(
     TogglesIrc,
-    NavigationOwner,
+    HomeNavigation,
     HomeSessionOrigin,
     SessionView,
     ToadNode,
@@ -32,13 +32,6 @@ class WelcomeScreen(
     def __init__(self) -> None:
         super().__init__()
         self.project_path = self.app.project_dir
-
-    @property
-    def navigation_context(self) -> NavigationContext:
-        assert self.id is not None
-        return NavigationContext(
-            self.app, self.id, self.project_path, self.thread_identity.thread_name()
-        )
 
     def read_history_identity(self, project: Checkout) -> ThreadIdentity:
         observed = self.app.coordination_access.observation.observed()

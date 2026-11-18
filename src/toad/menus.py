@@ -167,7 +167,7 @@ class MaximizeBlockCommand(KeyedMenuCommand):
 
     @classmethod
     def offered_for(cls, target: object) -> bool:
-        return bool(getattr(target, "allow_maximize", False))
+        return bool(target.allow_maximize)
 
     def apply(self, conversation: MenuConversation) -> None:
         conversation.maximize_block()
