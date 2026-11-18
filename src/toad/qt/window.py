@@ -118,7 +118,6 @@ from toad.navigation_context import ConversationViewNavigation
 from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
 )
-from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.qt.action_shortcuts import ActionKeys
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
@@ -150,7 +149,6 @@ from toad.qt.goal import QtGoalBar
 from toad.qt.placement import ThreadSettingsPane
 from toad.qt.side_bar import QtSideBar, QtWorkspaceChrome
 from toad.qt.question import QtQuestion
-from toad.view_actions import ViewAction
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import CHANNELS_PANEL
 from toad.sidebar_placement import (
@@ -1268,7 +1266,7 @@ class BusLabel(WelcomeLocation, ElidedLine):
         return app.coordination_access.connection.location
 
 
-class ConversationView(QtConversation, ConversationViewNavigation, JumpsHistory, MenuConversation, SessionScope,
+class ConversationView(QtConversation, ConversationViewNavigation, MenuConversation, SessionScope,
                        WireView, metaclass=PyQtWidgetMeta):
     """One conversation tab, Textual's `CommsChatView`: a `QtConversation` whose history is
     the conversation's wire, paged lazily by the pager Textual's channels use and drawn as
@@ -1324,17 +1322,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, JumpsHistory,
         # `CommsChatView.compose` yields the kind's activity after the prompt).
         for line in self.activity:
             layout.addWidget(line)
-        # Every `ViewAction` member whose declared capability this view has binds through the
-        # shared family loop; a member declared for Textual's workspace DOM is not bound. This
-        # view is a `JumpsHistory`, so `BackToBottomAction` (Escape) jumps its window.
-        self._view_shortcuts = self.app.action_keys.bind_family(self, ViewAction, self)
-
-    @property
-    def back_to_bottom_windows(self) -> tuple[JumpsToLatest, ...]:
-        """The conversation's one history window, if it has scrolled off the tail.
-        Satisfies `JumpsHistory`; `BackToBottomAction.apply(self)` reads this to jump
-        the right window back to its latest row."""
-        return (self.messages,) if self.messages.can_jump_to_latest else ()
 
     @property
     def mode(self) -> str:

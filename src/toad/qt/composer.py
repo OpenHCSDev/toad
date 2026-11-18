@@ -13,7 +13,7 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QEvent, Qt, QTimer
 from PySide6.QtGui import QColor, QGuiApplication, QKeyEvent, QPalette, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
@@ -253,6 +253,16 @@ class ComposerEditor(QPlainTextEdit):
         # Same defer as mousePressEvent — focusInEvent also runs inside Qt's
         # event-dispatch path on Android.
         QTimer.singleShot(0, QGuiApplication.inputMethod().show)
+
+    def event(self, event) -> bool:
+        """A key a priority action answers is the action's, not the text control's: Enter
+        sends and Shift+Enter starts a line through their declared actions, as Textual's
+        prompt bindings beat its text area. Declining the shortcut override lets the
+        shortcut fire."""
+        if event.type() == QEvent.Type.ShortcutOverride and self.composer.host.app.action_keys.claims(event):
+            event.ignore()
+            return True
+        return super().event(event)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         # Vim NORMAL mode intercepts navigation/edit commands before the standard

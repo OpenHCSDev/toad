@@ -23,7 +23,7 @@ from typing import ClassVar
 
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
-from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QMouseEvent
+from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -703,6 +703,51 @@ class StickyScenario(Scenario):
         assert not facts["shown"], "the message's own header is on the top row, yet a copy is pinned"
 
 
+class EscapeScenario(Scenario):
+    summary = ("in the scratch-live-pipeline thread, then #comms: scroll off the tail, press Escape in "
+               "the composer, and report the view back on its latest row (BackToBottomAction, bound on "
+               "every QtConversation)")
+
+    def at_latest(self) -> dict[str, object]:
+        window = self.page.messages
+        return dict(scroll=window.scroll_y, end=window.max_scroll_y, following=window.follows_tail,
+                    jumpable=window.can_jump_to_latest)
+
+    def escape_shortcuts(self) -> list[str]:
+        """The live Escape shortcuts this page binds, by the action each answers."""
+        return sorted(type(bound.action).__name__ for bound in self.app.action_keys.bound.values()
+                      if bound.shortcut.parent() is self.page
+                      and any(key.toString() == "Esc" for key in bound.shortcut.keys()))
+
+    async def run(self) -> None:
+        self.app.resize(412, 915)
+        self.app.show()
+        for step, target in enumerate(("#comms", "scratch-live-pipeline"), start=1):
+            await self.open_named(target)
+            await until(lambda: self.page.composer is not None, f"{target} composer")
+            window = self.page.messages
+            window.scroll_y = 0
+            await until(lambda: window.can_jump_to_latest, f"{target} off the tail", tenths=40)
+            self.report(f"{step}a-{target}-scrolled", shortcuts=self.escape_shortcuts(), **self.at_latest())
+            assert "BackToBottomAction" in self.escape_shortcuts(), f"{target}: no Escape shortcut bound"
+            self.app.activateWindow()
+            editor = self.page.composer.editor
+            editor.setFocus()
+            await asyncio.sleep(0.2)
+            QTest.keyClick(editor, Qt.Key.Key_Escape)
+            await until(lambda: window.follows_tail and window.scroll_y >= window.max_scroll_y - window.END_SLACK,
+                        f"{target} back at its latest row", tenths=60)
+            self.report(f"{step}b-{target}-escaped", **self.at_latest())
+            # At the tail nothing is off it: Escape falls through to the composer's own
+            # `DismissAction`, which clears the unsent draft (Textual's order on a Prompt).
+            editor.setFocus()
+            editor.insertPlainText("draft kept until Escape")
+            await asyncio.sleep(0.2)
+            QTest.keyClick(editor, Qt.Key.Key_Escape)
+            await until(lambda: editor.toPlainText() == "", f"{target} draft dismissed", tenths=30)
+            self.report(f"{step}c-{target}-dismissed", draft=editor.toPlainText(), **self.at_latest())
+
+
 class WelcomeScenario(Scenario):
     summary = "print the welcome's listings, then open its first row"
 
@@ -776,15 +821,49 @@ class ShippedScenario(Scenario):
                 dialog.close()
 
     async def press_bound_keys(self, label: str) -> None:
-        """Every bound action key whose widget is shown, as if pressed."""
-        pressed = []
-        for shortcut, action in tuple(self.app.action_keys.bound.values()):
-            if shortcut.parent().isVisible() and shortcut.keys():
-                pressed.append(type(action).__name__)
-                shortcut.activated.emit()
-                await asyncio.sleep(0.05)
-        await asyncio.sleep(0.5)
-        self.report(label, pressed=sorted(pressed))
+        """Every key a live shortcut answers, pressed as a real key event with focus in the
+        view's composer and again on its history, as a person would press it. Before each
+        press the history is off its tail and the composer holds a draft, so the actions
+        answering it are available. Qt's focus routing and key competition then decide what
+        runs (`ActionKeys.resolve`); each press must run exactly one action and raise nothing."""
+        keys = self.app.action_keys
+        page = self.page
+        self.app.show()
+        self.app.activateWindow()
+        targets = {"composer": page.composer.editor, "history": page.messages}
+        results = []
+        for where, target in targets.items():
+            answered: dict[str, QKeySequence] = {}
+            for bound in tuple(keys.bound.values()):
+                parent = bound.shortcut.parent()
+                if parent.isVisible() and (parent is target or parent.isAncestorOf(target)):
+                    for sequence in bound.shortcut.keys():
+                        answered.setdefault(sequence.toString(), sequence)
+            for spelling, sequence in sorted(answered.items()):
+                # Off the tail where the history is long enough to leave it.
+                page.messages.scroll_y = 0
+                await asyncio.sleep(0.3)
+                page.composer.editor.setPlainText("drafted by the shipped run")
+                target.setFocus()
+                await asyncio.sleep(0.1)
+                if not (target is QApplication.focusWidget() or target.isAncestorOf(QApplication.focusWidget())):
+                    self.faults.append(f"{label} {where}: focus did not reach {type(target).__name__}")
+                    break
+                # What the declared order runs here: the first available answering action,
+                # or nothing when none is available.
+                expected = [type(bound.action).__name__ for bound in keys.order([sequence])
+                            if bound.available()][:1]
+                del keys.ran[:]
+                combination = sequence[0]
+                QTest.keyClick(target, combination.key(), combination.keyboardModifiers())
+                await asyncio.sleep(0.3)
+                ran = [type(action).__name__ for action in keys.ran]
+                results.append(f"{where}:{spelling}->{'+'.join(ran) or 'none available'}")
+                if ran != expected:
+                    self.faults.append(f"{label} {where}: {spelling} ran {ran or 'nothing'}; "
+                                       f"the declared order runs {expected or 'nothing (none available)'}")
+        page.composer.editor.clear()
+        self.report(label, pressed=results)
 
     async def run(self) -> None:
         app = self.app
@@ -806,6 +885,12 @@ class ShippedScenario(Scenario):
         await self.step("4-thread", lambda: self.open_named("scratch-live-pipeline"))
         await self.step("4-thread-details", self.open_details)
         await self.press_bound_keys("4-thread-keys")
+        # The reader keys (ctrl+d, ctrl+u, G) are declared for the vim modes only: press every
+        # key again in vim normal mode, as a person choosing that keyboard mode would.
+        app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named("vim_normal"))
+        await asyncio.sleep(0.5)
+        await self.press_bound_keys("5-thread-vim-keys")
+        app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named("standard"))
         self.close_dialogs()
         if self.faults:
             raise AssertionError(f"{len(self.faults)} fault(s) on the shipped app:\n" + "\n".join(self.faults))
