@@ -26,11 +26,9 @@ from collections.abc import Callable
 from typing import ClassVar
 
 import qasync
-from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt, QTimer
-from PySide6.QtGui import QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QPainter, QTextDocument
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, QTimer, Qt
+from PySide6.QtGui import QContextMenuEvent, QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QPainter, QTextDocument
 
-from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, Qt, QTimer
-from PySide6.QtGui import QContextMenuEvent, QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QTextDocument
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QFileDialog, QLabel, QLineEdit, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
