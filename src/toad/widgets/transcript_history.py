@@ -52,7 +52,7 @@ from toad.native_style import (
 )
 from toad.no_worker import NoWorker
 from toad.session_scope import SessionScope
-from toad.transcript_filter import Filtered, FilterState
+from toad.transcript_filter import Filtered, FilterState, SeekingFilter
 from toad.transcript_preparation import SavedTranscript
 from toad.client.prepared_pages import (
     ClosedHistory,
@@ -496,6 +496,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     Its saved rows fade as each fragment arrives (`repaint`). A subclass says what its source is:
     `TranscriptHistory` for a saved transcript, `WireHistory` for a channel or direct conversation.
     """
+
+    # A restricted category selection is shown as a projection read and mounted over the pages.
+    restricted_filter = SeekingFilter
 
     page_view_type = TranscriptPageView
     CACHE_SUBTREE_GEOMETRY = True

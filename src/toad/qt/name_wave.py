@@ -8,14 +8,15 @@ while it runs. Nothing here keeps a period, a phase or a timer of its own.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QColor, QFont, QTextCharFormat, QTextLayout
-from PySide6.QtWidgets import QStyle, QStyleOptionTab, QStylePainter
+from PySide6.QtCore import QPointF, QRect, QSize, Qt
+from PySide6.QtGui import QColor, QFont, QPixmap, QTextCharFormat, QTextLayout
+from PySide6.QtWidgets import QLabel, QStyle, QStyleOptionTab, QStylePainter
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 
 from toad.client.name_wave import BandCells, NameWave
+from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 
 
 def waved_layout(text: str, font: QFont, formats, span: tuple[int, int], accent: QColor) -> QTextLayout:
@@ -88,10 +89,60 @@ class QtTabWave(NameWave):
         self.bar.update()
 
 
+class TabGrowth(TransitionTarget):
+    """A tab that just opened, widening from nothing on the shared clock (``TAB_OPEN``)."""
+
+    def __init__(self, bar: QtSessionTabBar, mode: str) -> None:
+        self.bar, self.mode, self.share = bar, mode, 0.0
+        self.start_transition(bar.clock, TAB_OPEN)
+
+    @property
+    def animation_visible(self) -> bool:
+        return self.bar.isVisible()
+
+    def apply_amount(self, amount: float) -> None:
+        self.share = amount
+        self.bar.relayout()
+
+    def land(self) -> None:
+        self.bar.growing.pop(self.mode, None)
+        self.bar.relayout()
+
+
+class TabGhost(TransitionTarget):
+    """A tab that just closed, as it last looked, narrowing to nothing where it stood
+    (``TAB_CLOSE``): the bar has already dropped it, so its neighbours take its place."""
+
+    def __init__(self, bar: QtSessionTabBar, rect: QRect, picture: QPixmap) -> None:
+        self.bar, self.rect = bar, rect
+        self.picture = QLabel(bar)
+        self.picture.setWindowFlags(Qt.WindowType.Widget)
+        self.picture.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.picture.setScaledContents(True)
+        self.picture.setPixmap(picture)
+        self.picture.setGeometry(rect)
+        self.picture.show()
+        self.picture.raise_()
+        self.start_transition(bar.clock, TAB_CLOSE)
+
+    @property
+    def animation_visible(self) -> bool:
+        return self.bar.isVisible()
+
+    def apply_amount(self, amount: float) -> None:
+        width = round(self.rect.width() * amount)
+        self.picture.setGeometry(self.rect.x() + (self.rect.width() - width) // 2,
+                                 self.rect.y(), width, self.rect.height())
+
+    def land(self) -> None:
+        self.picture.deleteLater()
+
+
 class QtSessionTabBar(BandCells, TearOffTabBar):
     """The workspace's tab bar: a busy tab's title waves as Textual's `SessionLabel` does.
     The title's line is the label with its one cell of padding each side, as the TUI's tab
-    draws it, so the band covers the same characters."""
+    draws it, so the band covers the same characters. A tab that opens grows in and one that
+    closes shrinks away, on the same clock."""
 
     padding_cells = 1
 
@@ -99,6 +150,43 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         super().__init__()
         self.clock, self.accent, self.ink = clock, accent, ink
         self.waves: dict[str, QtTabWave] = {}
+        self.growing: dict[str, TabGrowth] = {}
+
+    def show_tabs(self, entries: list[tuple[str, str]]) -> None:
+        """Draw ``entries`` (title, mode) as the bar's tabs. Compared with what the bar showed:
+        a mode that is new grows in, a mode that is gone leaves a shrinking picture of itself.
+        The first drawing, a restore, appears at once."""
+        shown = {self.tabData(index): self.tabRect(index) for index in range(self.count())}
+        modes = {mode for _, mode in entries}
+        moving = bool(shown) and self.clock.enabled and self.isVisible()
+        leaving = [(rect, self.grab(rect)) for mode, rect in shown.items()
+                   if moving and mode not in modes and rect.isValid()]
+        while self.count():
+            self.removeTab(0)
+        for title, mode in entries:
+            index = self.addTab(title)
+            self.setTabData(index, mode)
+        if moving:
+            for mode in modes - set(shown):
+                self.growing[mode] = TabGrowth(self, mode)
+        for rect, picture in leaving:
+            TabGhost(self, rect, picture)
+
+    def relayout(self) -> None:
+        """Lay the tabs out again with the growing tabs' current widths."""
+        self.setIconSize(self.iconSize())
+
+    def _grown(self, index: int, hint: QSize) -> QSize:
+        growth = self.growing.get(self.tabData(index))
+        if growth is not None:
+            hint.setWidth(round(hint.width() * growth.share))
+        return hint
+
+    def tabSizeHint(self, index: int) -> QSize:  # type: ignore[override]
+        return self._grown(index, super().tabSizeHint(index))
+
+    def minimumTabSizeHint(self, index: int) -> QSize:  # type: ignore[override]
+        return self._grown(index, super().minimumTabSizeHint(index))
 
     def follow_tabs(self, tabs) -> None:
         """Each open tab's wave follows its busy state; a closed tab's stops."""

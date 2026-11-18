@@ -135,6 +135,7 @@ from toad.qt.menu import QtMenu
 # TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
 from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
+from toad.motion import animations_enabled
 from toad.qt.name_wave import QtNameWaveDelegate, QtSessionTabBar
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
 from toad.qt.view_settings import capability_widgets
@@ -1623,7 +1624,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
         self._animation_timer = QTimer(self)
         self._animation_timer.timeout.connect(self._tick_animation)
-        self.animation_clock = AnimationClock(self._schedule_animation)
+        self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
         # One background task per transfer kind, cancelled + replaced when the same
         # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
         # Populated by `start_transfer_task`; the dict is the live registry.
@@ -1651,16 +1652,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # Parent self throughout: a parentless QWidget on Qt-for-Android becomes its own
         # top-level window with its own EGL surface (PR #1885's SIGABRT).
         self.chrome = QtWorkspaceChrome(self.sidebar_layout, self.workspace_sessions.pages,
+                                        clock=self.animation_clock,
                                         available=self._pane_available, parent=self)
         self.channels_side = QtSideBar(
             self.sidebar_layout, ChannelsSidebarPlacement, self.sidebar_search,
             heading=partial(self._pane_heading, ChannelsSidebarPlacement),
-            toggled=partial(self.toggle_pane, ChannelsSidebarPlacement),
             laid_out=self.rearrange_sidebars, client=self, parent=self.chrome)
         self.thread_side = QtSideBar(
             self.sidebar_layout, ThreadSidebarPlacement, self.thread_pane,
             heading=partial(self._pane_heading, ThreadSidebarPlacement),
-            toggled=partial(self.toggle_pane, ThreadSidebarPlacement),
             laid_out=self.rearrange_sidebars, client=self, parent=self.chrome)
         self.chrome.sidebars = (self.channels_side, self.thread_side)
         # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
@@ -1789,13 +1789,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def paint_tabs(self) -> None:
         self.tabs.blockSignals(True)
-        while self.tabs.count():
-            self.tabs.removeTab(0)
         badge = self.settings.sidebar.unread_counts.badge
         tabs = tuple(self.session_navigation.tabs)
-        for tab in tabs:
-            index = self.tabs.addTab(tab.label() + tab.unread_suffix(badge))
-            self.tabs.setTabData(index, tab.mode_name)
+        self.tabs.show_tabs([(tab.label() + tab.unread_suffix(badge), tab.mode_name) for tab in tabs])
         self.tabs.follow_tabs(tabs)
         self.tabs.blockSignals(False)
         self.mark_current()
@@ -1872,10 +1868,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         """Read through SidebarLayout — the single collapsed-state owner. A collapsed
         bar means the pane is NOT open, so pane_open is `not is_collapsed`."""
         return not self.sidebar_layout.is_collapsed(identity)
-
-    def toggle_pane(self, identity: type[SidebarPlacement]) -> None:
-        self.sidebar_layout.toggle_collapsed(identity)
-        self.rearrange_sidebars()
 
     def _conversation_open(self) -> bool:
         return self.workspace_sessions.selected is not self.workspace_sessions.home
