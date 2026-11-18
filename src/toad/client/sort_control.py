@@ -13,15 +13,30 @@ one authority per concept, two renderings.
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from agent_comms.display_order import DisplayOrder
+    from agent_comms.display_order import ChannelSort, DisplayOrder, ThreadSort
+    from formbridge.forms.declared_fields import FieldPath
+    from agent_comms.transport.request import ToolRequest
     from toad.widgets.session_sort import ChannelSortForm, ThreadSortForm
 
     SortForm = ThreadSortForm | ChannelSortForm
     SortFormType = type[ThreadSortForm] | type[ChannelSortForm]
+
+
+class CommsSortWrite[Order: "DisplayOrder"]:
+    """A sort control whose order the Core stores: each names the request its order is
+    stored by, and the write goes through the observed Core. Textual's `CommsSortChoice`
+    and Qt's `QtSortControl` both inherit it."""
+
+    @abstractmethod
+    def order_request(self, order: "type[Order]") -> "ToolRequest": ...
+
+    async def write_order(self, observed, access, root, order: "type[Order]") -> object:
+        return await observed.write_order(access, root, self.order_request(order))
 
 
 class SortControlBase[Order: "DisplayOrder"]:
@@ -79,3 +94,29 @@ class SortControlBase[Order: "DisplayOrder"]:
             f"Sort {self.scope} by {order.label().lower()}" if order is not None
             else f"Choose how to sort {self.scope}"
         )
+
+
+class ChannelListOrder(CommsSortWrite["ChannelSort"]):
+    """The Channels panel header's order: the channel list's order, stored by
+    `CommsSortChannelsTool`, with the stopped/archived filters beside it in its menu.
+    Textual's `ChannelListSort` and Qt's `QtChannelListSort` both inherit it."""
+
+    def order_request(self, order: "type[ChannelSort]") -> "ToolRequest":
+        from agent_comms.transport.tools.sidebar import CommsSortChannelsTool
+        return CommsSortChannelsTool(order=order)
+
+    def visibility_fields(self) -> "tuple[FieldPath, ...]":
+        from toad.preferences import SETTINGS
+        return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived
+
+
+class ChannelMemberOrder(CommsSortWrite["ThreadSort"]):
+    """One channel's member order, stored by `CommsSortChannelTool` under the channel's name
+    (the control's scope). Textual's `ChannelSortChoice` and Qt's `QtChannelSortControl`
+    both inherit it."""
+
+    scope: str
+
+    def order_request(self, order: "type[ThreadSort]") -> "ToolRequest":
+        from agent_comms.transport.tools.sidebar import CommsSortChannelTool
+        return CommsSortChannelTool(name=self.scope, order=order)

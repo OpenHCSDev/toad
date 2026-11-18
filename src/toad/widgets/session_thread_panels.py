@@ -9,7 +9,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.widget import Widget
-from toad.thread_sidebar_declarations import spec_for
+from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.plan import PlanItem
 from toad.widgets.plan import Plan
@@ -24,24 +24,22 @@ if TYPE_CHECKING:
     from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
 
-class SessionPanel[W: SidebarPanelWidget](DeclaredFamily, affix="SessionPanel"):
+class SessionPanel[W: SidebarPanelWidget](ThreadSidebarPanelBody, DeclaredFamily, affix="SessionPanel"):
     """Only small reader intent survives; the panel is a view of Core state. Identity
     (heading / panel_id / collapsed / flex) comes from the panel's `spec_key` lookup in
     `toad.thread_sidebar_declarations`; concrete subclasses set `spec_key` and the spec
     there owns the shared metadata."""
-    spec_key: ClassVar[str] = ""
-
     @property
     def collapsed(self) -> bool:
-        return spec_for(self.spec_key).collapsed if self.spec_key else False
+        return self.spec().collapsed
 
     @property
     def flex(self) -> bool:
-        return spec_for(self.spec_key).flex if self.spec_key else False
+        return self.spec().flex
 
     @property
     def panel_id(self) -> str | None:
-        return spec_for(self.spec_key).panel_id if self.spec_key else None
+        return self.spec().panel_id
 
     @abstractmethod
     def make_widget(self, screen: MainScreen) -> W: ...
@@ -50,9 +48,7 @@ class SessionPanel[W: SidebarPanelWidget](DeclaredFamily, affix="SessionPanel"):
         return None
 
     def compose_panel(self, screen: MainScreen) -> SideBar.Panel:
-        heading = (spec_for(self.spec_key).heading if self.spec_key
-                   else self.declared_name.title())
-        return SideBar.Panel(title=heading, widget=self.make_widget(screen),
+        return SideBar.Panel(title=self.spec().heading, widget=self.make_widget(screen),
                              flex=self.flex, collapsed=self.collapsed,
                              id=self.panel_id or f"{self.declared_name}-panel",
                              header_control=self.make_header())

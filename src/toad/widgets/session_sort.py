@@ -22,8 +22,7 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
-from toad.client.sort_control import SortControlBase
-from agent_comms.transport.tools.sidebar import CommsSortChannelsTool
+from toad.client.sort_control import ChannelListOrder, CommsSortWrite, SortControlBase
 from python_introspect import FieldLabel
 from textual.geometry import Region
 from textual.widget import Widget
@@ -32,10 +31,7 @@ from toad.widget_actions import Activates
 
 from toad.widgets.comms_menu import ContextMenu
 from formbridge.forms.declared_fields import FieldPath, Placeholder
-from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
-from agent_comms.transport.request import ToolRequest
-from toad.client.connection import CoordinationAccess, Observing
 from textual.events import Mount
 from textual import on
 
@@ -165,12 +161,9 @@ class SortControl[Order: DisplayOrder](
         await self.open_sort()
 
 
-class CommsSortChoice[Order: DisplayOrder](SortChoice[Order]):
+class CommsSortChoice[Order: DisplayOrder](CommsSortWrite[Order], SortChoice[Order]):
     """Both channel controls write through the Core that supplies their observed rows; each
-    names the request its own order is stored by."""
-
-    @abstractmethod
-    def order_request(self, order: type[Order]) -> ToolRequest: ...
+    names the request its own order is stored by (`CommsSortWrite`)."""
 
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
         host = self.sort_host
@@ -178,17 +171,7 @@ class CommsSortChoice[Order: DisplayOrder](SortChoice[Order]):
         observed = await access.preparation.run_thread(access.observation.observed)
         return partial(self.write_order, observed, access, host.screen.coordination_root)
 
-    async def write_order(self, observed: Observing, access: CoordinationAccess, root,
-                          order: type[Order]) -> object:
-        return await observed.write_order(access, root, self.order_request(order))
 
-
-class ChannelListSort(CommsSortChoice[ChannelSort], SortControl[ChannelSort]):
+class ChannelListSort(ChannelListOrder, CommsSortChoice[ChannelSort], SortControl[ChannelSort]):
     def __init__(self):
         super().__init__(ChannelSortForm, "channels")
-
-    def order_request(self, order: type[ChannelSort]) -> CommsSortChannelsTool:
-        return CommsSortChannelsTool(order=order)
-
-    def visibility_fields(self) -> tuple[FieldPath, ...]:
-        return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived

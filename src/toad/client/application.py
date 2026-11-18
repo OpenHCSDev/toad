@@ -108,6 +108,16 @@ class ClientApplication(BusPickerHost, NavigationHost):
         return self.saved_settings.current
 
     @property
+    def sidebar_show_stopped(self) -> bool:
+        """The sidebar's stopped filter, from the one `sidebar.show_stopped` setting both
+        frontends read."""
+        return self.settings.sidebar.show_stopped
+
+    @property
+    def sidebar_show_archived(self) -> bool:
+        return self.settings.sidebar.show_archived
+
+    @property
     def configuration_state(self) -> ObjectState:
         """The ObjectState backing `settings`; on the app the nearest `SettingsScope`
         resolves to this, so `SettingsReader`-based widgets reach the same object."""

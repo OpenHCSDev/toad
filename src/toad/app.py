@@ -469,14 +469,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
                 self.events.publish(core_events.SessionSelected(mode, previous))
 
 
-    @property
-    def sidebar_show_stopped(self) -> bool:
-        return self.saved_settings.current.sidebar.show_stopped
-
-    @property
-    def sidebar_show_archived(self) -> bool:
-        return self.saved_settings.current.sidebar.show_archived
-
     @cached_property
     def workspace_chrome(self):
         return WorkspaceChrome(self)

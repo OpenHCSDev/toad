@@ -53,9 +53,6 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
     Dialogs open over whichever window is active.
     """
 
-    sidebar_show_stopped = False
-    sidebar_show_archived = False
-
     def __init__(self, project: Checkout, preparation: PreparationRuntime, scheme: ColourScheme) -> None:
         self.project_dir = project
         self.preparation = preparation

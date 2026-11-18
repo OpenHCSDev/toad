@@ -20,6 +20,7 @@ from agent_comms.registry.thread_presentation import NoThreadPresentation, Threa
 from metaclass_registry.mro_dispatch import MroDispatch
 import asyncio
 
+import shiboken6
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -569,11 +570,9 @@ class QtThreadView(
     def is_attached(self) -> bool:
         """True until the Qt widget tears down. `BoundView.thread_scope` gates its
         subscription on this flag; Textual's `Widget.is_attached` fills the same
-        role."""
-        try:
-            return self.isVisible() or self.parent() is not None
-        except RuntimeError:
-            return False
+        role. A widget whose C++ side Qt already deleted is not attached: asking it
+        anything else would dereference the freed object."""
+        return shiboken6.isValid(self) and (self.isVisible() or self.parent() is not None)
 
     @property
     def is_leaving(self) -> bool:

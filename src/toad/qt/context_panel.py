@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 from toad.client.context_intent import ContextTreeIntent
 from toad.core.context_inspection import (
     ContextNode,
@@ -42,7 +43,7 @@ from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.qt.metrics import UiGap
 
 
-class QtContextExplorer(QWidget):
+class QtContextExplorer(ThreadSidebarPanelBody, QWidget):
     spec_key: ClassVar[str] = "context"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""

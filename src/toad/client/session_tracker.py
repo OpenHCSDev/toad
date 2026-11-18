@@ -36,6 +36,12 @@ class OpenTab(ABC):
     def label(self) -> str:
         return self.title
 
+    def unread_suffix(self, badge) -> str:
+        """What follows the label in the tab: the unread badge the user's
+        `sidebar.unread_counts` setting draws (``badge``), or nothing. Both tab bars append it."""
+        shown = badge(self.unread)
+        return f" {shown}" if shown else ""
+
     def affected_by(self, names: frozenset[str]) -> bool:
         """Local names do not change when backend thread state changes."""
         return False

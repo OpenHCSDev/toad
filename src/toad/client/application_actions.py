@@ -206,6 +206,8 @@ class NewThreadAction(ApplicationAction):
     """Start a thread in the selected project."""
 
     show = True
+    row_label = "+ New Session"
+    """How the Channels sidebar's first row names this action, on both frontends."""
 
     async def apply(self, app: ClientApplication) -> None:
         navigation = app.session_navigation

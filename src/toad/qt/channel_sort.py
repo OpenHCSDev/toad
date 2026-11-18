@@ -1,14 +1,10 @@
-"""Qt sort control for a sidebar channel group.
+"""Qt sort controls for the Channels sidebar: the panel header's channel order and each
+channel's member order.
 
-Inherits `SortControlBase[ThreadSort]` so Qt and Textual read the current form
-(order, label, tooltip) off the same owner. Textual's `ChannelSortChoice` lives
-beside this as a parallel renderer (widgets/comms_sidebar.py); the shared base
-`SortControlBase` guarantees both answer the same way to `update_order`,
-`sort_label` and `sort_tooltip`.
-
-Write path matches Textual's `CommsSortChoice.write_order`: build a
-`CommsSortChannelTool(name, order)` and send through `observed.write_order`.
-`QtChannelGroup.present` calls `update_order(channel.order)` each paint.
+Both inherit `SortControlBase` (the current form, label and tooltip) and `CommsSortWrite`
+(the request each order is stored by, written through the observed Core) — the same two
+owners Textual's `ChannelListSort` and `ChannelSortChoice` inherit — so the two frontends
+label and write an order identically. This module adds only the QToolButton and its menu.
 """
 
 from __future__ import annotations
@@ -20,58 +16,90 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMenu, QToolButton, QWidget
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
-from agent_comms.display_order import ThreadSort
-from agent_comms.transport.tools.sidebar import CommsSortChannelsTool as CommsSortChannelTool
-from toad.client.sort_control import SortControlBase
+from agent_comms.display_order import ChannelSort, DisplayOrder, ThreadSort
+from toad.client.sort_control import ChannelListOrder, ChannelMemberOrder, CommsSortWrite, SortControlBase
+from toad.widgets.session_sort import ChannelSortForm, ThreadSortForm
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
-    from toad.widgets.session_sort import ThreadSortForm
 
 
-class QtChannelSortControl(SortControlBase[ThreadSort], QToolButton):
-    """Per-channel sort button. The state (current form + label + tooltip) lives
-    on the shared `SortControlBase`; this class renders it as a QToolButton with a
-    QMenu and writes selections through the Core, mirroring
-    `CommsSortChoice.write_order` in the Textual widget.
-    """
+class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], SortControlBase[Order], QToolButton,
+                                         metaclass=PyQtWidgetMeta):
+    """A sort choice as a button whose menu lists its form's orders; a pick writes the
+    order through the Core, and only the observation that follows repaints the label."""
 
-    def __init__(
-        self,
-        app: "QtToadApp",
-        form_type: "type[ThreadSortForm]",
-        channel_name: str,
-        parent: QWidget | None = None,
-    ) -> None:
-        super().__init__(form_type=form_type, scope=channel_name, parent=parent)
+    def __init__(self, app: QtToadApp, form_type, scope: str, parent: QWidget | None = None) -> None:
+        super().__init__(form_type=form_type, scope=scope, parent=parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setAutoRaise(True)
         self.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        # The label already ends in the shared "▾"; Qt's own menu arrow would draw a second.
+        # The plate keeps the label legible where it lies over a long line's text.
+        scheme = app.theme.color_scheme
+        self.setStyleSheet(f"QToolButton {{ background-color: {scheme.to_hex(scheme.panel_bg)};"
+                           " padding: 0px; border: none; }"
+                           "QToolButton::menu-indicator { image: none; width: 0px; }")
+        # One text line tall, as Textual's one-row segment: the summary line below stays clear.
+        self.setFixedHeight(self.fontMetrics().lineSpacing())
         self._app = app
-        self._channel_name = channel_name
-        self._menu = QMenu(self)
-        self.setMenu(self._menu)
-        for order in ThreadSort.members_with(ThreadSort):
-            action = QAction(order.title, self._menu)
+        self._form_type = form_type
+        menu = QMenu(self)
+        menu.aboutToShow.connect(self._fill)
+        self.setMenu(menu)
+        self._fill()
+        self.sort_changed()
+
+    def visibility_fields(self):
+        """Settings the menu toggles beside the orders, as Textual's `SortChoice` lists them."""
+        return ()
+
+    def _fill(self) -> None:
+        """The orders, then each visibility setting marked with its current value."""
+        menu = self.menu()
+        menu.clear()
+        choices = self._form_type.choices
+        for order in choices.choices():
+            action = QAction(choices.label(order), menu)
             action.triggered.connect(partial(self._picked, order))
-            self._menu.addAction(action)
-        self.sort_changed()  # paint the "Sort ▾" placeholder
+            menu.addAction(action)
+        settings = self._app.saved_settings
+        for path in self.visibility_fields():
+            field = path.bind(settings.state)
+            action = QAction(f"{'✓' if field.value else '○'} {field.label}", menu)
+            action.triggered.connect(partial(self._toggle_visibility, path))
+            menu.addAction(action)
+
+    def _toggle_visibility(self, path) -> None:
+        settings = self._app.saved_settings
+        settings.toggle(path)
+        asyncio.ensure_future(settings.save())
 
     def sort_changed(self) -> None:
-        """Override of the base hook: repaint the button text + tooltip whenever
-        `update_order` rebuilds the form."""
         self.setText(self.sort_label)
         self.setToolTip(self.sort_tooltip)
 
-    def _picked(self, order: type[ThreadSort]) -> None:
-        if order is self.order:
-            return
-        asyncio.ensure_future(self._write(order))
+    def _picked(self, order: type[Order]) -> None:
+        if order is not self.order:
+            asyncio.ensure_future(self._write(order))
 
-    async def _write(self, order: type[ThreadSort]) -> None:
+    async def _write(self, order: type[Order]) -> None:
         access = self._app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        root = str(observed.root)
-        request = CommsSortChannelTool(name=self._channel_name, order=order)
-        await observed.write_order(access, root, request)
+        await self.write_order(observed, access, str(observed.root), order)
+
+
+class QtChannelListSort(ChannelListOrder, QtSortControl[ChannelSort]):
+    """The Channels panel header's channel order, as Textual's `ChannelListSort`."""
+
+    def __init__(self, app: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__(app, ChannelSortForm, "channels", parent)
+
+
+class QtChannelSortControl(ChannelMemberOrder, QtSortControl[ThreadSort]):
+    """One channel's member order, as Textual's `ChannelSortChoice`."""
+
+    def __init__(self, app: QtToadApp, channel_name: str, parent: QWidget | None = None) -> None:
+        super().__init__(app, ThreadSortForm, channel_name, parent)
