@@ -44,7 +44,6 @@ from toad.widgets.conversation import (
     Window,
 )
 from toad.widgets.flash import Flash
-from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.prompt import MessagePrompt, Prompt
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.wire_history import HistoryLoading, WireFragment, WireHistory
