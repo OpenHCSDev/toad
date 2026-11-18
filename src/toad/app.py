@@ -40,7 +40,7 @@ from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
 from toad.core import events as core_events
 from toad.core import input_events
-from toad.file_kind import FileKind
+from toad.widgets.file_viewer import ImageViewer
 from toad.launch_binding import AgentBinding
 from toad.native_style import TransparentBackground
 from toad.neovim_editing import HostsNeovim
@@ -170,7 +170,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         self.terminal_attention = TerminalAttention(self)
         self._mode_switch_lock = asyncio.Lock()
 
-        FileKind.prepare_terminal()
+        ImageViewer.prepare_terminal()
         super().__init__()
         # Each bus listing that is mounted hears the tailnet's answers (ListsBuses).
         self.tailnet_answers: Signal[TailnetAnswer] = Signal(self, "tailnet-answers")

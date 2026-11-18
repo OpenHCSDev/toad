@@ -13,7 +13,7 @@ from textual.worker import Worker, get_current_worker
 
 from toad.widgets.acting_button import ActingButton
 from toad.acp.log_records import ErrorsLogView, LogPage, LogView
-from toad.file_kind import FileKind
+from toad.widgets.file_viewer import FileViewer
 from toad.native_style import (
     AutoHeight,
     Borderless,
@@ -146,13 +146,13 @@ class AcpLogPreview(Vertical):
 
     def load_page(self, before: int | None = None) -> None:
         self.query_one(LogStatus).update("Reading log…")
-        self._present(partial(LogPage.read, self.path, FileKind.MAX_BYTES, before))
+        self._present(partial(LogPage.read, self.path, FileViewer.MAX_BYTES, before))
 
     def read_new_lines(self) -> None:
         """Read what was written since, while the log's end is shown and its latest record is in view."""
         page = self.page
         if page is not None and page.end == page.total and self._ready.is_set() and self._at_newest():
-            self._present(partial(page.extended, self.path, FileKind.MAX_BYTES), following=True)
+            self._present(partial(page.extended, self.path, FileViewer.MAX_BYTES), following=True)
 
     def _present(self, read: Callable[[], LogPage] | None, *, following: bool = False) -> None:
         """Draw the page `read` returns; without `read`, draw the page already held again."""
