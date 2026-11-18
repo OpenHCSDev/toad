@@ -107,7 +107,6 @@ KNOWN_BARE = frozenset({
     'toad.qt.history.QtTopRow',
     'toad.qt.keymap_screen.QtKeymapScreen',
     'toad.qt.keymap_screen._KeymapSave',
-    'toad.qt.mailbox_view._MailboxPresentation',
     'toad.qt.main.QtClientSettings',
     'toad.qt.menu.QtMenu',
     'toad.qt.menu.QtMenuRow',

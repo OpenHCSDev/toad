@@ -39,6 +39,7 @@ from agent_comms.ui_model.message_category import (
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.client.view_binding_protocols import BoundViewHost
+from toad.client.session_sources import SourcedConversation
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.flash_host import FlashHost
 from rich.console import Console
@@ -959,6 +960,7 @@ class Conversation(ColumnLayout,
     MenuConversation,
     AgentConversationCommands,
     FlashHost,
+    SourcedConversation,
     BoundViewHost,
     actions=(ConversationAction,),
 ):
@@ -1529,10 +1531,6 @@ class Conversation(ColumnLayout,
         """The composer's delivery controls moved; the goal bar redraws its separators."""
         self.goal_bar._queue_separator_update()
 
-    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart:
-        """Where this view's input goes: its operational sources answer for agent and CLI views."""
-        return self.operational_sources.begin_submission(owner, submission)
-
     async def agent_turn_over(self, stop_reason: type[StopReason]) -> None:
         """Called when the agent's turn is over.
 
@@ -1912,10 +1910,6 @@ class Conversation(ColumnLayout,
         self.feedback.flash("Compaction requested")
         await self.agent_binding.compact_context(instructions)
         self.feedback.flash("Context compacted", style="success")
-
-    @property
-    def queue_source(self) -> QueueSource:
-        return self.operational_sources
 
     def queue_evidence_changed(self) -> None:
         self.submissions.publish_pending()

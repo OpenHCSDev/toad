@@ -33,7 +33,9 @@ from toad.client.reader_position import LatestPosition
 
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.agent_bound import ObservedAgentBinding
-from toad.client.bus_submission import BusSubmissions, TypedText
+from toad.client.bus_submission import TypedText
+from toad.conversation_submission import ConversationSubmissions
+from toad.client.session_sources import SessionSources, SourcedConversation
 from toad.client.category_selection import CategorySelection
 from toad.client.view_settings import ConversationSettingsOwner
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
@@ -60,6 +62,7 @@ from toad.client.history_rows_view import AsyncioPublications, HistoryRowsBlocks
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.draft_line import QtDraftLine
+from toad.qt.submission_view import QtSubmissionView
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 
@@ -82,6 +85,8 @@ class QtThreadView(
     MroDispatch,
     HistoryRowsBlocks,
     AsyncioPublications,
+    SourcedConversation,
+    QtSubmissionView,
     QtBoundViewHost,
     Page,
     WorkspaceHosted,
@@ -109,12 +114,6 @@ class QtThreadView(
     agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
 
 
-    # ``BusSubmissions.queue_evidence`` reads ``self.view.queue_source`` on the
-    # composer's first ``show_submitting``. Default until a view wires a live
-    # ``NativeQueueSource`` — ``ConversationView``, ``QtAcpSessionView`` and
-    # ``CommsChatView`` all used the same default; hoisted here so both thread
-    # views inherit it. Subclasses with a live queue binding override.
-    queue_source: QueueSource = NoQueueSource()
 
     # ---- Shared contract: the rows Textual's `Conversation.compose` mounts ----
     #
@@ -158,8 +157,8 @@ class QtThreadView(
 
     @property
     @abstractmethod
-    def submissions(self) -> BusSubmissions:
-        """``BusSubmissions`` — the owner the composer publishes through on ``submit``."""
+    def submissions(self) -> ConversationSubmissions:
+        """The owner the composer submits through: Textual's `Conversation.submissions`."""
 
     @abstractmethod
     def composer_class(self) -> type[Composer]:
@@ -256,6 +255,8 @@ class QtThreadView(
         self.visible_categories = all_categories()
         self.message_history = QtTranscriptHistory(self.messages, self, app)
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent_binding.presentation.turns)
+        # Where input and queue go; the opener swaps in mailbox sources for a CLI thread.
+        self.operational_sources = SessionSources()
         # Qt has no mount event: the view mounts one event-loop tick later, after the
         # opener has bound its identity (`session_navigation.bind_opened`).
         QTimer.singleShot(0, self._mount_transcript)
@@ -289,7 +290,7 @@ class QtThreadView(
         self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
         self.thread_activity = QtSessionDetails(self, app.renderer)
         self.goal_bar = None if incarnation is None else QtGoalBar(app, app.renderer, incarnation)
-        self.submissions = BusSubmissions(self)
+        self.submissions = ConversationSubmissions(self)
         self.composer = None
         self._composer_slot = QVBoxLayout()
         self._composer_slot.setContentsMargins(0, 0, 0, 0)
@@ -323,30 +324,12 @@ class QtThreadView(
     # ---- ComposerHost contract: `app`, `submissions`, `submit`, `update_slash_commands` ----
 
     def submit(self, text: TypedText, action: SubmitInputAction) -> None:
-        """Publish ``UserInputSubmitted`` through Core's event stream — the same
-        payload Textual's prompt publishes at ``widgets/conversation.py:901-904``.
-        A listening backend ``Conversation`` picks it up and routes through its
-        ``ConversationSubmissions`` family. If no backend is listening, the
-        submit silently vanishes; the composer reflects that visibly through its
-        ``show_submitting`` state until the queue reader catches up. Shell-prefix
-        detection matches ``conversation.py:900``."""
+        """The composer's input enters the view's submissions, as Textual's prompt's
+        `UserInputSubmitted` reaches `Conversation.submissions.submit`; shell-prefix detection
+        matches `conversation.py`."""
         body = text.text
         event = action.submission_event(body[1:] if body.startswith("!") else body, body.startswith("!"))
-        try:
-            self.app.events.publish(event)
-        except Exception as error:
-            if self.composer is not None:
-                self.composer.show_failure(f"Send failed: {error}")
-                self.composer.restore_draft(body)
-            return
-        if self.composer is not None:
-            self.composer.show_submitting()
-
-    def submissions_changed(self) -> None:
-        """``BusSubmissions.publish_pending`` calls this when the queue changes."""
-        if self.composer is None:
-            return
-        self.composer.show_submitting()
+        self.run_worker(partial(self.submissions.submit, event), group="submit", exclusive=False)
 
     def update_slash_commands(self) -> None:
         """Called by the composer when the user starts typing a slash command.

@@ -2,38 +2,30 @@
 
 import asyncio
 from abc import ABC, abstractmethod
-from collections.abc import Callable
-from functools import partial
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.registry.thread_presentation import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
 from textual.document._editing import EditingMode
 from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
-from agent_comms.messaging.message_reference import MessageReference
 
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.configured_view import AgentProperties
-from toad.transcript_scope import MailboxSent, TranscriptView
 from toad.input_history import InputHistories
-from toad.client.input_decision import InputDecision
 from toad.native_style import StartsHidden
 from toad.client.resource_release import AsyncResourceRelease
-from toad.widgets.conversation import Conversation, ConversationSources
+from toad.widgets.conversation import Conversation
 from toad.client.reader_position import ParkedPosition
 from toad.client.history_pager import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
-from toad.submission_queue import BusQueueSource, NativeQueueSource
-from toad.client.connection import Observing
-from toad.transcript_publication import CanonicalSourcePublication
+from toad.client.session_sources import MailboxSources, SessionSources
 from toad.widgets.prompt import Prompt
 from toad.acp.agent import Agent
 from toad.core import events as core_events
@@ -154,36 +146,8 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     async def attach_binding(self, conversation: Conversation) -> None: ...
 
 
-class OperationalSessionSources(ConversationSources, NativeQueueSource):
+class OperationalSessionSources(SessionSources):
     """Own existing operational resources while the view is detached."""
-
-    def __init__(self) -> None:
-        self.agent_binding = NoAgentConnection()
-        self.shell = None
-        self.load_plan = EnsuringSessionLoadPlan()
-
-    def status_row(self, conversation: Conversation):
-        row = self.activity_row(conversation).with_delivery(conversation.input_delivery)
-        return conversation.agent_binding.session_disposition.present(
-            row, row.disconnected
-        )
-
-    def activity_row(self, conversation: Conversation):
-        # A Core history source owns status even when its ACP load fails.
-        if conversation.transcript.readable:
-            return conversation.thread_activity.row
-        return conversation.turns.binding.status_row(conversation.thread_activity.row)
-
-    def agent_info(self, conversation: Conversation) -> str:
-        return "shell"
-
-    def thread_presented(self, conversation: Conversation) -> None:
-        """A native agent reports its configuration through ACP."""
-
-    def external_transcript_changed(self, conversation: Conversation) -> None:
-        """Core publishes native and CLI drafts through the same transcript store."""
-
-        conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
     def configuration_panels(self, view):
         yield AgentProperties.panel(view)
@@ -191,23 +155,6 @@ class OperationalSessionSources(ConversationSources, NativeQueueSource):
     def prompt(self, conversation: Conversation):
 
         return Prompt(project=conversation.project_path, submissions=conversation.submissions)
-
-    def begin_submission(self, owner, submission):
-        """An operational view's input is a prompt for its agent."""
-        return owner.view.agent_binding.begin_submission(owner, submission)
-
-    def input_decision(self, conversation: Conversation) -> InputDecision:
-        agent = conversation.agent_binding
-        return agent.readiness_decision.then(
-            lambda: agent.configuration.model.input_decision
-        ).then(
-            lambda: conversation.thread_scope.owner_decision(
-                conversation.thread_presentation
-            )
-        )
-
-    def start_agent(self, conversation: Conversation) -> None:
-        conversation.agent_binding.start_agent(self, conversation)
 
     def create_agent(self, conversation: Conversation) -> None:
         """The unbound state requests a new operational connection."""
@@ -262,20 +209,8 @@ class OperationalSessionSources(ConversationSources, NativeQueueSource):
             release.push_async_callback(agent.stop)
 
 
-class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSources):
+class MailboxSessionSources(MailboxSources, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
-
-    def capture_queue_observing(
-        self, transcript: Callable[[Callable[[], Observing]], Observing],
-        observing: Callable[[], Observing],
-    ) -> Callable[[], Observing]:
-        return partial(transcript, super().capture_queue_observing(transcript, observing))
-
-    def activity_row(self, conversation: Conversation):
-        return conversation.thread_activity.row
-
-    def agent_info(self, conversation: Conversation) -> str:
-        return conversation.thread_activity.row.presentation.title
 
     def configuration_panels(self, view):
         """A mailbox has no native session configuration to advertise."""
@@ -297,15 +232,6 @@ class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSourc
         self.external_transcript_changed(conversation)
         self.thread_presented(conversation)
 
-    def begin_submission(self, owner, submission):
-        """A CLI thread's input is a message to its inbox, queued like a prompt."""
-        view = owner.view
-        return view.thread_scope.begin_mailbox(owner, submission, view, self)
-
-    async def mailbox_sent(self, view: TranscriptView, sent: MessageReference) -> None:
-        """Follow the transcript's end; the inbox message shows once the thread records it."""
-        view.follow_latest()
-        view.transcript_changed()
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresentation):

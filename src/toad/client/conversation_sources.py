@@ -36,9 +36,6 @@ class ConversationSources(QueueSource):
     def thread_presented(self, conversation: Conversation) -> None: ...
 
     @abstractmethod
-    def prompt(self, conversation: Conversation): ...
-
-    @abstractmethod
     def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart: ...
 
     @abstractmethod

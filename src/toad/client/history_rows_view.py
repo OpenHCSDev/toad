@@ -80,3 +80,16 @@ class AsyncioPublications:
 
     def current_publication(self) -> object:
         return asyncio.current_task()
+
+    @cached_property
+    def _workers(self) -> dict[str, asyncio.Task]:
+        return {}
+
+    def run_worker(self, work: Callable[[], Awaitable[object]], *, group: str, exclusive: bool) -> asyncio.Task:
+        """Textual's `run_worker` on the asyncio loop: an exclusive worker cancels the one
+        running in its group."""
+        if exclusive and (running := self._workers.get(group)) is not None:
+            running.cancel()
+        task = asyncio.ensure_future(work())
+        self._workers[group] = task
+        return task

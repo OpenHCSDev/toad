@@ -443,7 +443,9 @@ class QtHistoryNotifications(OneHistoryNotifications):
     notification_work = NoTask()
 
     def report_queue_evidence(self) -> None:
-        """Qt shows no queue evidence beside the conversation."""
+        """New queue evidence repaints the composer's queue rows, as Textual's
+        `Conversation.queue_evidence_changed` does through its submissions."""
+        self.submissions.publish_pending()
 
     def run_notification_work(self, work: Awaitable[None]) -> None:
         self.notification_work.cancel()
