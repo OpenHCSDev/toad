@@ -219,15 +219,44 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
 
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)
-        if not self.is_attached:
-            self.is_attached = True
-            self.observe_core_callback(
-                self.coordination.events, ThreadRowsChanged, self.rows_changed,
-                factory=partial(ThreadCallbackSubscription, scope=(str(self.app.source().root), self.peer.name)))
-            self.goal_observation.invalidate()
+        self._attach_observation_if_needed()
+
+    def _attach_observation_if_needed(self) -> None:
+        """Subscribe the core-event callback + fire the first observation. Must
+        NOT be gated on showEvent: ``present_state()`` in ``__init__`` sets
+        ``show_goal(False)`` when no goal snapshot has been read yet, which
+        hides the widget — if observation only started in ``showEvent``, the
+        widget would never become visible and the observation would never fire.
+        Called from both ``showEvent`` (for the normal path) AND externally by
+        the parent view right after mount, so an unset-on-construction goal
+        still gets its first read."""
+        if self.is_attached:
+            return
+        self.is_attached = True
+        self.observe_core_callback(
+            self.coordination.events, ThreadRowsChanged, self.rows_changed,
+            factory=partial(ThreadCallbackSubscription, scope=(str(self.app.source().root), self.peer.name)))
+        self.goal_observation.invalidate()
 
     def rows_changed(self, event: ThreadRowsChanged) -> None:
         self.goal_observation.invalidate()
+        # Piggyback: a ThreadRowsChanged event for this peer also implies the
+        # remote thread's status/is_working/model_info may have changed —
+        # refresh the sibling composer-surround lines so the thinking + status
+        # indicators update without each widget needing its own subscription.
+        # The parent view owns the lines; we find it via Qt parent chain and
+        # call its refresh hook if it has one.
+        view = self.parentWidget()
+        while view is not None and not hasattr(view, "refresh_composer_surround"):
+            view = view.parentWidget()
+        if view is not None:
+            try:
+                view.refresh_composer_surround()
+            except Exception as error:
+                print(
+                    f"QtGoalBar refresh_composer_surround failed: {error!r}",
+                    flush=True,
+                )
 
     def present_state(self) -> None:
         self.present_goal_state(self.session, self.collapsed)
