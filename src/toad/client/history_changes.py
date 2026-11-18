@@ -157,10 +157,24 @@ class ArrivalBurst:
         """The earlier messages whose head is scrolled above the top row, the most recent
         `shown` of them, under a count line; none for a burst of one, or once the reader is
         above the burst (no head is above the top row then). The top row's own message pins
-        its header as before and is not stacked twice."""
-        if len(self.messages) < 2 or not pinned.width or not pinned.headers:
+        its header as before and is not stacked twice.
+
+        When the top row IS a header (pinned.headers empty), the burst message at that row
+        becomes the overlay's last line, so the overlay covers the flow's header with its
+        own copy and earlier messages stack above it — never A drawn over visible B."""
+        if len(self.messages) < 2 or not pinned.width:
             return NO_STACK
-        own = pinned.headers[-1:]
+        if pinned.headers:
+            own = pinned.headers[-1:]
+            top_line: tuple[Divider, ...] = ()
+        else:
+            at_top = next((message for message in reversed(self.messages)
+                           if (t := window.message_top(message.key)) is not None
+                           and t <= window.scroll_y), None)
+            if at_top is None:
+                return NO_STACK
+            own = (at_top.header,)
+            top_line = (at_top.header,)
         above = [message for message in self.messages[:-1]
                  if message.header not in own
                  and (top := window.message_top(message.key)) is not None and top < window.scroll_y]
@@ -168,7 +182,7 @@ class ArrivalBurst:
             return NO_STACK
         stacked = above[-self.shown:]
         count = Divider.titled(f"{len(self.messages)} new", MutedRole)
-        return StackedHeaders((count, *(message.header for message in stacked)),
+        return StackedHeaders((count, *(message.header for message in stacked), *top_line),
                               (above[0].key, *(message.key for message in stacked)))
 
 
