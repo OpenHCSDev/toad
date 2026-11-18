@@ -1723,7 +1723,8 @@ class FrameScenario(Scenario):
         probe.window_start = probe.last = time.perf_counter()
         probe.reset()
 
-    async def run(self) -> None:
+    def install_timings(self) -> None:
+        """FRAME_TIME_SIDEBAR / FRAME_TIME_HISTORY: time those owners' calls where they run."""
         app = self.app
         timings: dict[str, list[float]] = {}
         if os.environ.get("FRAME_TIME_SIDEBAR"):
@@ -1747,6 +1748,7 @@ class FrameScenario(Scenario):
             timed(type(app.thread_pane), "bind", "thread_pane.bind")
             timed(type(app.thread_pane), "setting_entries", "thread_pane.setting_entries")
             timed(type(app), "present_panes", "present_panes")
+            timed(type(app), "mark_current", "mark_current")
         if os.environ.get("FRAME_TIME_HISTORY"):
             from toad.qt import history as qt_history
             from pyqt_reactive.widgets import virtual_rows
@@ -1765,6 +1767,16 @@ class FrameScenario(Scenario):
             timed(qt_history.HistoryRows, "show", "rows.show")
             timed(virtual_rows.RowDocumentDelegate, "_row_prepared", "delegate._row_prepared")
         self.timings = timings
+
+    def write_timings(self, probe) -> None:
+        for label, values in sorted(self.timings.items()):
+            values.sort()
+            probe.sink.write(f"timing {label}: n={len(values)} p50={values[len(values)//2]:.1f}ms "
+                             f"max={values[-1]:.1f}ms total={sum(values):.0f}ms\n")
+
+    async def run(self) -> None:
+        app = self.app
+        self.install_timings()
         app.resize(self.width, 915)
         # A probed run (TOAD_FRAME_PROBE) already has the app's probe, timing each event's
         # delivery; the scenario writes its phases where that probe writes.
@@ -1846,10 +1858,7 @@ class FrameScenario(Scenario):
         await asyncio.sleep(0.6)
         typed += editor.toPlainText()
         editor.clear()
-        for label, values in sorted(self.timings.items()):
-            values.sort()
-            probe.sink.write(f"timing {label}: n={len(values)} p50={values[len(values)//2]:.1f}ms "
-                             f"max={values[-1]:.1f}ms total={sum(values):.0f}ms\n")
+        self.write_timings(probe)
         self.report("done", typed=len(typed))
 
 
@@ -1886,6 +1895,7 @@ class ActionsScenario(FrameScenario):
         probe = ProbedApplication.probe or FrameProbe(QApplication.instance(), self.out / "frame-probe.log")
         probe.sink = (self.out / "frame-probe.log").open("a", buffering=1)
         probe.REPORT_SECONDS = 1e9  # one summary per action, written by `action`
+        self.install_timings()
         await self.listed()
         await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == "#comms"
                                 for row in app.sidebar.items()), "#comms row")
@@ -1921,6 +1931,7 @@ class ActionsScenario(FrameScenario):
             app.sidebar_layout.set_collapsed(ThreadSidebarPlacement, not app.sidebar_layout.is_collapsed(ThreadSidebarPlacement))
             app.rearrange_sidebars()
         await self.action(probe, "toggle the thread pane", show_thread_pane)
+        self.write_timings(probe)
         self.report("done")
 
 
