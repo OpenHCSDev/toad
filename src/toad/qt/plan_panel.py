@@ -20,12 +20,12 @@ from PySide6.QtWidgets import (QGraphicsOpacityEffect, QHBoxLayout, QLabel,
                                QVBoxLayout, QWidget)
 
 from toad.core import events as core_events
-from toad.plan import PlanItem
+from toad.plan import PlanItem, PlanView
 from toad.qt.session_panel import SessionPanel
 from toad.qt.metrics import UiGap
 
 
-class QtPlan(SessionPanel, QWidget):
+class QtPlan(PlanView, SessionPanel, QWidget):
     spec_key: ClassVar[str] = "plan"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
@@ -91,24 +91,24 @@ class QtPlan(SessionPanel, QWidget):
         self._clear_rows()
         entries = self._view.bound_agent.plan_entries
         if not entries:
-            empty = QLabel("No plan yet", self)
+            empty = QLabel(self.empty_plan_text, self)
             font = empty.font()
             font.setItalic(True)
             empty.setFont(font)
             empty.setEnabled(False)  # dim via the palette's disabled text role
             self._column.insertWidget(0, empty)
             return
-        for index, entry in enumerate(entries):
-            row = self._build_row(entry)
+        for index, (marker, entry) in enumerate(self.plan_rows(entries)):
+            row = self._build_row(marker, entry)
             self._column.insertWidget(index, row)
 
-    def _build_row(self, entry: PlanItem) -> QWidget:
+    def _build_row(self, marker_text: str, entry: PlanItem) -> QWidget:
         row = QWidget(self)
         row.setWindowFlags(Qt.WindowType.Widget)
         layout = QHBoxLayout(row)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(UiGap.normal)
-        marker = QLabel(entry.status.marker(), row)
+        marker = QLabel(marker_text, row)
         text = QLabel(entry.content, row)
         text.setWordWrap(True)
         text.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)

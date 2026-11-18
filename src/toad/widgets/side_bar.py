@@ -60,6 +60,8 @@ from toad.tone_paint import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.client.session_tracker import SidebarState
 from toad.client.sidebar_filter import SidebarSearchField
+from toad.client.sidebar_panels import PanelMenuModel, SidebarPanelCollapse
+from toad.thread_sidebar_declarations import ThreadSidebarContents
 from toad.sidebar_layout import (
     DirectionalSidebarPlacementAction,
     FloatSidebarPlacementAction,
@@ -228,6 +230,7 @@ class SidebarPanelContents(AutoHeight, NoPadding, widgets.Collapsible.Contents):
 
 
 class SideBarCollapsible(
+    SidebarPanelCollapse,
     SidebarPanelHost,
     FillWidth,
     AutoHeight,
@@ -282,11 +285,17 @@ The Sidebar contains additonal information associated with the conversation.
         self.contents.display = not collapsed
         self.styles.min_height = 1 if collapsed else self.expanded_min_height
 
+    @property
+    def panel_title(self) -> str:
+        return str(self.title)
+
+    @property
+    def panel_state(self) -> SidebarState:
+        return self.query_ancestor(SideBar).navigation
+
     def watch_collapsed(self, collapsed: bool) -> None:
         if self.is_attached:
-            self.query_ancestor(SideBar).navigation.set_panel_collapsed(
-                str(self.title), collapsed,
-            )
+            self.record_collapsed(collapsed)
 
     def compose(self) -> ComposeResult:
         if self.header_control is None:
@@ -1127,16 +1136,7 @@ class SideBar(
         return iter(self.panels)
 
     def _compose_panels(self) -> ComposeResult:
-        navigation = self.navigation
-        for panel in self.panel_entries():
-            frame = FlexSideBarCollapsible if panel.flex else SideBarCollapsible
-            yield frame(
-                panel.widget,
-                title=panel.title,
-                collapsed=navigation.is_panel_collapsed(panel.title, panel.collapsed),
-                id=panel.id,
-                header_control=panel.header_control,
-            )
+        yield from self.panels_viewport.panel_frames(self.panel_entries(), self.navigation)
 
     def _compose_controls(self) -> ComposeResult:
         yield self.extent_slider
@@ -1311,7 +1311,7 @@ class PanelPicker(OneRow, FillWidth, widgets.Select):
     """One compact selector over the entries supplied by the viewed object."""
 
 
-class PanelMenu(FillHeight, containers.Vertical):
+class PanelMenu(PanelMenuModel["SideBar.Panel"], FillHeight, containers.Vertical):
     """Discover once from the owner; mount each original panel only when selected."""
 
     def __init__(self, entries, navigation: SidebarState, scope: ViewSettingsScope):
@@ -1319,8 +1319,7 @@ class PanelMenu(FillHeight, containers.Vertical):
         self.entries = tuple(entries)
         self.navigation = navigation
         self.scope = scope
-        selected = next((entry for entry in self.entries
-                         if entry.widget.panel_identity == navigation.panel_identity), self.entries[0])
+        selected = self.initial_entry()
         self.picker = PanelPicker(((entry.title, entry) for entry in self.entries),
                                  value=selected, allow_blank=False, compact=True)
         self.body = PanelBody()
@@ -1366,8 +1365,11 @@ class PanelMenu(FillHeight, containers.Vertical):
             page = PanelPage(*children, entry.widget, id=entry.id)
             self.pages[entry] = page
             await self.body.mount(page)
-        self.navigation.panel_identity = entry.widget.panel_identity
+        self.remember_entry(entry)
         entry.widget.sidebar_visibility_changed()
+
+    def entry_identity(self, entry) -> object:
+        return entry.widget.panel_identity
 
     def activate(self, widget):
         self.picker.value = next(entry for entry in self.entries if entry.widget is widget)
@@ -1377,12 +1379,17 @@ class PanelMenu(FillHeight, containers.Vertical):
             entry.widget.finish()
 
 
-class ThreadSidebar(SideBar):
+class ThreadSidebar(ThreadSidebarContents["SideBar.Panel"], SideBar):
     placement_type = ThreadSidebarPlacement
 
     def panel_entries(self):
-        yield from super().panel_entries()
-        yield from self.query_ancestor(ViewSettingsScope).configuration_panels
+        return iter(self.thread_entries(self.query_ancestor(ViewSettingsScope)))
+
+    def roster_entries(self):
+        return SideBar.panel_entries(self)
+
+    def setting_entries(self, view):
+        return view.configuration_panels
 
     def _compose_panels(self):
         yield PanelMenu(self.panel_entries(), self.navigation, self.query_ancestor(ViewSettingsScope))

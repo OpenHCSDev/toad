@@ -34,8 +34,42 @@ KNOWN_COPIES = {
     "toad.qt.window.BusAddress": "toad.screens.bus_choice.BusAddress",
 }
 
+# Pairs whose names differ, checked by the same shared-ancestor rule: a Qt class and the
+# Textual class it draws the same thing as. A pair still sharing nothing belongs in
+# KNOWN_COPIES. The channels-sidebar pairs guard the earlier sidebar parity work.
+EXPLICIT_PAIRS = {
+    # thread (view-settings) sidebar
+    "toad.qt.placement.ThreadSettingsPane": "toad.widgets.side_bar.ThreadSidebar",
+    "toad.qt.sidebar_panel.QtPanelMenu": "toad.widgets.side_bar.PanelMenu",
+    "toad.qt.sidebar_panel.QtSidebarPanelFrame": "toad.widgets.side_bar.SideBarCollapsible",
+    "toad.qt.sidebar_panel.QtSidebarPanels": "toad.widgets.sidebar_viewport.SidebarViewport",
+    "toad.qt.placement.QtObjectProperties": "toad.configured_view.ObjectProperties",
+    "toad.qt.coordination_panel.QtCoordinationStatus": "toad.widgets.comms_sidebar.CoordinationStatus",
+    "toad.qt.thread_comms_panel.QtThreadCommsPanel": "toad.widgets.thread_comms.ThreadCommsSidebar",
+    "toad.qt.thread_comms_panel.QtRelationshipSort": "toad.widgets.thread_comms.RelationshipSort",
+    "toad.qt.plan_panel.QtPlan": "toad.widgets.plan.Plan",
+    "toad.qt.project_panel.QtProjectPanel": "toad.widgets.project_panel.ProjectPanel",
+    "toad.qt.context_panel.QtContextExplorer": "toad.widgets.context_explorer.ContextExplorer",
+    "toad.qt.session_panel.SessionPanel": "toad.widgets.session_thread_panels.SessionPanel",
+    "toad.qt.sidebar_panel.QtSidebarSearch": "toad.widgets.side_bar.SidebarSearch",
+    "toad.qt.window.ConversationView": "toad.widgets.conversation.Conversation",
+    "toad.qt.thread_view.QtThreadView": "toad.widgets.conversation.Conversation",
+    # channels sidebar and chrome (regression guards)
+    "toad.qt.side_bar.QtWorkspaceChrome": "toad.workspace_chrome.WorkspaceChrome",
+    "toad.qt.side_bar.QtSideBar": "toad.widgets.side_bar.SideBar",
+    "toad.qt.side_bar.QtSideBarToggle": "toad.widgets.side_bar.SideBarToggle",
+    "toad.qt.side_bar.QtSidebarSlider": "toad.widgets.side_bar.SidebarSlider",
+    "toad.qt.side_bar.QtSidebarAction": "toad.widgets.side_bar.SidebarAction",
+    "toad.qt.side_bar.QtSidebarResizeHandle": "toad.widgets.side_bar.SidebarResizeHandle",
+    "toad.qt.channel_sort.QtChannelListSort": "toad.widgets.session_sort.ChannelListSort",
+    "toad.qt.channel_sort.QtChannelSortControl": "toad.widgets.comms_sidebar.ChannelSortChoice",
+    "toad.qt.window.NewSessionRow": "toad.widgets.comms_sidebar.NewSessionButton",
+    "toad.qt.window.QtStartSessionButton": "toad.screens.welcome.StartSessionButton",
+}
+
 # Same name, different concept: not a frontend pair. Each entry says what the sibling really is.
 NOT_SIBLINGS = {
+    "toad.qt.sidebar_panel.QtSidebarPanels": "toad.widgets.side_bar.SidebarPanels is the panels' hydration-state family (Absent/Scheduled/Loaded), not a panel column",
     "toad.qt.plan_panel.QtPlan": "toad.core.events.Plan is Core's plan event, not a panel",
     "toad.qt.goal.QtGoalControl": "toad.slash_command.GoalControl is the /goal slash command, not a widget",
     "toad.qt.window.QtSessionEntry": "toad.client.session_entry.SessionEntry is the session record; QtSessionEntry is a SessionEntries member",
@@ -75,9 +109,17 @@ def copies() -> dict[str, str]:
         sibling = siblings.get(cls.__name__.removeprefix("Qt"))
         if sibling is None or path in NOT_SIBLINGS:
             continue
-        if not any(neutral(ancestor) for ancestor in cls.__mro__ if ancestor in sibling.__mro__):
+        if not shares_neutral(cls, sibling):
             pairs[path] = f"{sibling.__module__}.{sibling.__qualname__}"
+    for path, sibling_path in EXPLICIT_PAIRS.items():
+        cls, sibling = everything[path], everything[sibling_path]  # a renamed class fails here
+        if not shares_neutral(cls, sibling):
+            pairs[path] = sibling_path
     return pairs
+
+
+def shares_neutral(cls: type, sibling: type) -> bool:
+    return any(neutral(ancestor) for ancestor in cls.__mro__ if ancestor in sibling.__mro__)
 
 
 def main() -> int:

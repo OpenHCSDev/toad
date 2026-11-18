@@ -10,8 +10,14 @@ bodies and fails loud on a spec with none.
 """
 from __future__ import annotations
 
+from abc import abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import ClassVar
+
+from metaclass_registry import AbstractHooksMeta
+
+from toad.client.sidebar_panels import PanelSpec
 
 
 @dataclass(frozen=True)
@@ -27,6 +33,13 @@ class ThreadSidebarPanelSpec:
     # view hides project / plan / context since those belong to a session, not a thread.
     in_dm_view: bool = True
     in_session_view: bool = True
+
+    @property
+    def panel(self) -> PanelSpec:
+        """The collapsible panel both sidebars frame this entry in: its heading keys the
+        sidebar's shared `SidebarState`, as Textual's `SessionPanel.compose_panel` keys it."""
+        return PanelSpec(title=self.heading, flex=self.flex, collapsed=self.collapsed,
+                         id=self.panel_id or f"{self.key}-panel")
 
 
 THREAD_SIDEBAR_PANELS: tuple[ThreadSidebarPanelSpec, ...] = (
@@ -78,3 +91,21 @@ class ThreadSidebarPanelBody:
     @classmethod
     def spec(cls) -> ThreadSidebarPanelSpec:
         return spec_for(cls.spec_key)
+
+
+class ThreadSidebarContents[Entry](metaclass=AbstractHooksMeta):
+    """What the thread sidebar lists, in order: the roster's panels, then each of the viewed
+    object's own settings (`ViewSettingsOwner.configuration_fields`). Textual's
+    `ThreadSidebar` and Qt's `ThreadSettingsPane` both inherit this, so a setting declared
+    once is an entry on both, after the same roster."""
+
+    @abstractmethod
+    def roster_entries(self) -> Iterable[Entry]:
+        """The roster's panels, as this frontend draws them."""
+
+    @abstractmethod
+    def setting_entries(self, view) -> Iterable[Entry]:
+        """One entry per setting ``view`` lists, as this frontend draws it."""
+
+    def thread_entries(self, view) -> tuple[Entry, ...]:
+        return (*self.roster_entries(), *self.setting_entries(view))

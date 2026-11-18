@@ -49,6 +49,7 @@ from toad.sidebar_placement import (
 )
 from toad.client.history import ChannelDestination, WirePageBuffer
 from toad.qt.command_form import QtCommandForm
+from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.qt.window import ConversationRow, MessageSend, QtToadApp
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -703,7 +704,25 @@ class ChromeScenario(Scenario):
         self.report("3-thread", peer=peer.key, **self.geometry())
         app.toggle_pane(ThreadSidebarPlacement)
         await asyncio.sleep(1.0)
-        self.report("4-thread-pane", **self.geometry())
+        picker = app.thread_pane.menu.picker
+        entries = [picker.itemText(index) for index in range(picker.count())]
+        self.report("4-thread-pane", entries=entries, **self.geometry())
+        # The Comms page, then the first of the view's own settings: each page the shared
+        # entries list, picked as Textual's PanelPicker picks it.
+        picker.setCurrentIndex(entries.index("Comms"))
+        await asyncio.sleep(1.5)
+        self.report("5-comms-page", shown=picker.currentText())
+        settings = len(panel_specs_for_view(is_session=True))
+        picker.setCurrentIndex(settings)
+        await asyncio.sleep(0.5)
+        self.report("6-settings-page", shown=picker.currentText())
+
+
+class Chrome110Scenario(ChromeScenario):
+    summary = "the chrome scenario at 110 font cells across, a terminal's common width"
+
+    width: ClassVar[int] = 790
+    height: ClassVar[int] = 900
 
 
 class WideScenario(ChromeScenario):

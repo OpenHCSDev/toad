@@ -10,6 +10,8 @@ from textual.geometry import Size
 
 from toad.native_style import FullWidth, OneRow, StableGutter
 from textual.events import Mount
+
+from toad.client.sidebar_panels import SidebarPanelColumn
 from textual import on
 from textual.events import Resize
 
@@ -40,8 +42,18 @@ class ViewportHeader(SidebarHeader):
         self.query_ancestor(SidebarViewport).align_header(self)
 
 
-class SidebarViewport(StableGutter, VerticalScroll):
-    """Own scrollbar geometry and the horizontal position of sidebar headers."""
+class SidebarViewport(SidebarPanelColumn["SideBar.Panel"], StableGutter, VerticalScroll):
+    """Own scrollbar geometry and the horizontal position of sidebar headers, over the
+    shared column of collapsible panels."""
+
+    def entry_panel(self, entry):
+        return entry
+
+    def panel_frame(self, entry, collapsed: bool):
+        from toad.widgets.side_bar import FlexSideBarCollapsible, SideBarCollapsible
+        frame = FlexSideBarCollapsible if entry.flex else SideBarCollapsible
+        return frame(entry.widget, title=entry.title, collapsed=collapsed, id=entry.id,
+                     header_control=entry.header_control)
 
     CACHE_SUBTREE_GEOMETRY = True
 
