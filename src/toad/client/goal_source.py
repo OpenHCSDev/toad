@@ -45,13 +45,14 @@ class CommsGoalSource(GoalSource):
         thread with a live native owner is read over comms; one with none (a CLI inbox, or an
         owner that exited) has no owner to ask, so it answers the no-owner goal the TUI shows
         for a view without an agent instead of a request Core can only refuse."""
-        return await self.owner_binding().select_read(
-            NoAgentConnection().get_goal_snapshot, self.read_owner_goal)()
+        binding = await self.owner_binding()
+        return await binding.select_read(NoAgentConnection().get_goal_snapshot, self.read_owner_goal)()
 
-    def owner_binding(self) -> ThreadOwnerBinding:
-        """The registry lease of this goal's thread, as the observed thread rows present it."""
-        rows = self.app.coordination_access.observation.observed().sidebar.threads.rows
-        return rows[self.owner.name].presentation.binding
+    async def owner_binding(self) -> ThreadOwnerBinding:
+        """The registry lease of this goal's thread, as Core presents the thread."""
+        root = str(self.app.source().root)
+        read = await self.app.coordination_access.transcripts.thread_presentation(root, self.owner.name)
+        return read.raised().binding
 
     async def read_owner_goal(self) -> GoalSnapshotReply:
         root = str(self.app.source().root)
