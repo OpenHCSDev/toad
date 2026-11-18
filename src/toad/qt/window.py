@@ -1765,7 +1765,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         modes = self.session_navigation.tab_modes
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
-        # The strip is as tall as its tabs, and the selected one is in view however far it scrolled.
+        # Once the bar has laid its tabs out (a restyle or a new title resizes them after this),
+        # the strip is as tall as its tabs and the selected one is in view.
+        QTimer.singleShot(0, self.show_current_tab)
+
+    def show_current_tab(self) -> None:
         self.tab_strip.setFixedHeight(self.tabs.sizeHint().height())
         if (index := self.tabs.currentIndex()) >= 0:
             rect = self.tabs.tabRect(index)

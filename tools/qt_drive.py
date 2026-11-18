@@ -3152,6 +3152,10 @@ class HoldScenario(Scenario):
         # 1. A sidebar row that isn't open: the hold offers its menu, and letting go doesn't open it.
         other = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name != "#comms"
                                  and not tree.visualItemRect(row).isEmpty(), "another listed row")
+        # Pressed where it is drawn: a row below the visible list would put the finger on
+        # whatever is drawn there instead.
+        tree.scrollToItem(other)
+        await asyncio.sleep(0.3)
         held_on: list[str] = []
         FingerPress.install(QApplication.instance()).long_pressed.connect(
             lambda press: held_on.append(type(press.target).__name__))
