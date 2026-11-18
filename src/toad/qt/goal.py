@@ -25,6 +25,7 @@ from agent_comms.ui_model.goal import GoalDisplay
 from formbridge.operations import OperationKind
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -151,6 +152,10 @@ class QtGoalSession(GoalControlsSession[CommsGoalSource]):
 class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta):
     """The peer's goal over the composer, as the TUI's goal bar sits over its prompt."""
 
+    peer_rows_changed = Signal()
+    """The peer's thread row changed (status, working, model): a view that draws lines from
+    it beside the composer connects here."""
+
     def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation) -> None:
         super().__init__()
         self.app, self.peer = app, peer
@@ -240,23 +245,9 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
 
     def rows_changed(self, event: ThreadRowsChanged) -> None:
         self.goal_observation.invalidate()
-        # Piggyback: a ThreadRowsChanged event for this peer also implies the
-        # remote thread's status/is_working/model_info may have changed —
-        # refresh the sibling composer-surround lines so the thinking + status
-        # indicators update without each widget needing its own subscription.
-        # The parent view owns the lines; we find it via Qt parent chain and
-        # call its refresh hook if it has one.
-        view = self.parentWidget()
-        while view is not None and not hasattr(view, "refresh_composer_surround"):
-            view = view.parentWidget()
-        if view is not None:
-            try:
-                view.refresh_composer_surround()
-            except Exception as error:
-                print(
-                    f"QtGoalBar refresh_composer_surround failed: {error!r}",
-                    flush=True,
-                )
+        # The same event means the peer's status, working state or model may have changed;
+        # the view drawing those beside the composer listens on this signal.
+        self.peer_rows_changed.emit()
 
     def present_state(self) -> None:
         self.present_goal_state(self.session, self.collapsed)

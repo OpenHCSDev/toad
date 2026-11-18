@@ -49,9 +49,7 @@ class QtPlan(SessionPanel, QWidget):
         override wraps that with the subscription-cycle lifecycle."""
         self._drop_subscription()
         super().bind(view)
-        agent = view.bound_agent if view is not None else None
-        if agent is not None:
-            self._subscription = agent.events.subscribe(core_events.Plan, self._on_plan)
+        self._subscription = view.bound_agent.events.subscribe(core_events.Plan, self._on_plan)
 
     def present(self) -> None:
         """Repaint. Called by `SessionPanel.bind` and by `_on_plan`."""
@@ -91,8 +89,7 @@ class QtPlan(SessionPanel, QWidget):
 
     def _render(self) -> None:
         self._clear_rows()
-        agent = self._view.bound_agent if self._view is not None else None
-        entries = list(agent.controller.plan_display.entries) if agent is not None else []
+        entries = self._view.bound_agent.plan_entries
         if not entries:
             empty = QLabel("No plan yet", self)
             font = empty.font()

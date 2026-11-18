@@ -40,7 +40,7 @@ from toad.core.context_inspection import (
     HoldingInspection,
     InspectionState,
 )
-from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.thread_identity import SessionIdentity
 from toad.qt.metrics import UiGap
 
 
@@ -104,8 +104,8 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
     # --- binding / present -------------------------------------------------
 
     def bind(self, view) -> None:
-        """Follow the conversation the tab now shows. The welcome has no identity, so
-        the tree goes quiet."""
+        """Follow the view the tab now shows; the welcome's `NoThreadIdentity` has no root,
+        so the read says so and the tree stays empty."""
         self._view = view
         self.inspect_identity(self.thread_identity)
         intent = self.intent
@@ -113,19 +113,12 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         self.present()
 
     def present(self) -> None:
-        if self._view is None:
-            self._status.setText("Context · no open conversation")
-            self._tree.clear()
-            self._detail.setPlainText("No context selected.")
-            return
         asyncio.ensure_future(self._refresh())
 
     # --- shared state accessors (no Textual coupling) ----------------------
 
     @property
     def thread_identity(self) -> SessionIdentity:
-        if self._view is None:
-            return NoThreadIdentity()
         return self._view.thread_identity
 
     def _app(self):

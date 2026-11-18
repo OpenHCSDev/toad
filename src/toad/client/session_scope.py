@@ -19,6 +19,7 @@ from toad.project_path_owner import CheckoutRoot
 from toad.transcript_scope import NoTranscript, TranscriptScope
 
 if TYPE_CHECKING:
+    from toad.agent_binding import AgentConnection
     from toad.client.category_selection import CategorySelection
 
 
@@ -91,14 +92,13 @@ class SessionScope:
         return self.thread_identity
 
     @property
-    def bound_agent(self) -> object | None:
-        """Default for a view with no bound agent (welcome, DM `ConversationView`).
-        A view that binds an agent (`AgentBoundConversation`, `QtAcpSessionView`) overrides
-        this to return its binding. Returning `None` keeps generic sidebar panels — e.g.
-        `QtPlan.bind` reading `view.bound_agent` — from having to guard every read with
-        `getattr(view, 'bound_agent', None)`, mirroring the `thread_identity` →
-        `NoThreadIdentity` default above."""
-        return None
+    def bound_agent(self) -> AgentConnection:
+        """The agent this view presents. A view with none (the welcome, a DM's
+        `ConversationView`) answers `NoAgentConnection`, which has no plan and whose events
+        never fire, so a panel reads the agent without testing for its absence. A view that
+        binds an agent (`AgentBoundConversation`) overrides this with its binding."""
+        from toad.agent_binding import NoAgentConnection
+        return NoAgentConnection()
 
     def belongs_to_wire(self, root: Path) -> bool:
         raise NotImplementedError
@@ -152,3 +152,14 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope, CheckoutRoot):
     def agent_for_opening[Binding](self, default: Binding) -> Binding:
         """A project origin with no launch of its own opens views with the app's binding."""
         return default
+
+
+class NoConversationView(SessionScope):
+    """The view the thread sidebar follows while no conversation is open: the welcome, as
+    Textual's welcome is a `SessionScope` answering the defaults. Every answer a panel reads
+    is this family's own absent member (`NoThreadIdentity`, `NoCategorySelection`,
+    `NoAgentConnection`), so a binder takes a view and never tests for one."""
+
+    @property
+    def is_current(self) -> bool:
+        return False
