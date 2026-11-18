@@ -324,9 +324,14 @@ class TabStripScenario(Scenario):
         await self.expand("#comms")
         await until(lambda: len(self.thread_rows()) >= 3, "three sidebar threads")
         rows = self.thread_rows()[:count]
-        for opened, row in enumerate(rows, 1):
+        for row in rows:
+            # Its own tab, found by title: the live sidebar can list a thread whose tab is
+            # already open, so a running count of tabs is not what one open adds.
             app.open_row(row)
-            await until(lambda: app.tabs.count() >= opened, f"tab {opened}")
+            name = row.target.name
+            await until(lambda: any(name in app.tabs.tabText(index) for index in range(app.tabs.count())),
+                        f"a tab for {name}")
+        assert app.tabs.count() >= min(count, len(rows)) - 1, f"only {app.tabs.count()} tabs opened"
         await asyncio.sleep(1.5)
         strip, tabs = app.tab_strip, app.tabs
         titles = [tabs.tabText(index) for index in range(tabs.count())]
