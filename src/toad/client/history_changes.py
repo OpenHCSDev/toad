@@ -171,15 +171,19 @@ class ArrivalBurst:
             return NO_STACK
         # The top row's own message by identity: messages from one sender to one destination in
         # the same second draw equal headers, and comparing headers left such a message out.
-        # When the top row IS that message's header (nothing pinned), the overlay would cover it:
-        # its header becomes the overlay's last line, drawn once, never an earlier one over it.
+        # Nothing pinned means a header is drawn at the top edge (the top row is a message's head,
+        # or the gap just before it, which the layout counts with the message above): the overlay
+        # would cover that header, so it becomes the overlay's last line, drawn once, and no
+        # earlier header is drawn over it. It is the first burst message starting at or below
+        # the top edge.
         top_line: tuple[Divider, ...] = ()
         if not pinned.headers:
-            at_top = next((message for message in self.messages
-                           if message.key.source == pinned.source), None)
-            if at_top is None:
+            covered = next((message for message in self.messages
+                            if (top := window.message_top(message.key)) is not None
+                            and top >= window.scroll_y), None)
+            if covered is None:
                 return NO_STACK
-            top_line = (at_top.header,)
+            top_line = (covered.header,)
         above = [message for message in self.messages[:-1]
                  if message.key.source != pinned.source
                  and (top := window.message_top(message.key)) is not None and top < window.scroll_y]

@@ -21,9 +21,10 @@ from toad.client.session_scope import SessionScope
 from toad.qt.float_layer import QtPendingIndicator
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
+from toad.qt.page import Page
 
 
-class QtOpeningSessionView(SessionScope, QWidget):
+class QtOpeningSessionView(Page, SessionScope, QWidget):
     """The Qt placeholder a `ThreadOpening` mounts while async navigation runs.
 
     `session_navigation.new(identity, lambda: view, ...)` accepts any `SessionScope`
