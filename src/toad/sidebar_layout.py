@@ -562,23 +562,27 @@ class SidebarLayout:
         placement controls: there is nothing beside it to make room for."""
         return identity is self.sole_role and self.alone
 
+    def kept_collapsed(self, identity: type[SidebarPlacement]) -> bool:
+        """The fold kept for ``identity``: True (only its toggle) until something opens it.
+        `set_collapsed` and `toggle_collapsed` read and write this one, never the open state a
+        bar holding the window alone shows over it."""
+        return self._collapsed.get(identity, True)
+
     def is_collapsed(self, identity: type[SidebarPlacement]) -> bool:
         """Whether the bar for ``identity`` shows only its toggle (True) or its
-        expanded pane too (False). Defaults to True — a role starts collapsed
-        until something opens it. A bar holding the window alone is open; its kept
-        fold returns with the first tab."""
-        return not self.holds_alone(identity) and self._collapsed.get(identity, True)
+        expanded pane too (False): its kept fold, except that a bar holding the window
+        alone is open; its kept fold returns with the first tab."""
+        return not self.holds_alone(identity) and self.kept_collapsed(identity)
 
     def set_collapsed(self, identity: type[SidebarPlacement], value: bool) -> bool:
-        """Set ``identity``'s collapsed state; returns whether the state changed."""
-        if self.is_collapsed(identity) == value:
-            return False
+        """Keep ``identity``'s fold; returns whether what the bar shows changed."""
+        shown = self.is_collapsed(identity)
         self._collapsed[identity] = value
-        return True
+        return self.is_collapsed(identity) != shown
 
     def toggle_collapsed(self, identity: type[SidebarPlacement]) -> bool:
-        """Flip ``identity``'s collapsed state; returns the new value."""
-        new_value = not self.is_collapsed(identity)
+        """Flip ``identity``'s kept fold; returns the new value."""
+        new_value = not self.kept_collapsed(identity)
         self._collapsed[identity] = new_value
         return new_value
 

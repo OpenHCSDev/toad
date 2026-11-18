@@ -272,7 +272,8 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
 
     async def listed(self) -> None:
         """The bus has answered: the comms sidebar lists at least one channel or thread."""
-        await until(lambda: any(isinstance(row, ConversationRow) for row in self.rows(self.app.sidebar.items())),
+        # Its top lines are the channels (a scenario may name its own `rows`).
+        await until(lambda: any(isinstance(row, ConversationRow) for row in self.app.sidebar.items()),
                     "sidebar rows")
 
     @abstractmethod

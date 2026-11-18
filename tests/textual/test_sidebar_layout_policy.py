@@ -229,3 +229,21 @@ def test_the_thread_bar_names_the_viewed_tab_and_the_channels_bar_its_scope():
     for edge in EDGES:
         text = edge.toggle_text(False, "#comms")
         assert "#comms" in text.replace("\n", "") and text.count(edge.toggle_symbol(False)) >= 2
+
+
+def test_with_no_tab_the_comms_bar_is_open_and_keeps_the_fold_it_returns_to():
+    """While no tab is shown the comms bar holds the window: open whatever its kept fold, the
+    only bar placed, the content given nothing. A fold kept meanwhile (a frontend applying its
+    saved setting at start) is what the first tab shows."""
+    alone = [True]
+    layout = SidebarLayout(SavedSettings(), LocalTerminal, alone=lambda: alone[0])
+    assert layout.holds_alone(ChannelsSidebarPlacement)
+    assert not layout.holds_alone(ThreadSidebarPlacement)
+    assert not layout.is_collapsed(ChannelsSidebarPlacement)
+    assert not layout.set_collapsed(ChannelsSidebarPlacement, False), "nothing shown changed"
+    assert layout.kept_collapsed(ChannelsSidebarPlacement) is False, "the kept fold was recorded"
+    layout.set_collapsed(ChannelsSidebarPlacement, True)
+    assert not layout.is_collapsed(ChannelsSidebarPlacement)
+    alone[0] = False
+    assert layout.is_collapsed(ChannelsSidebarPlacement)
+    assert not layout.holds_alone(ChannelsSidebarPlacement)
