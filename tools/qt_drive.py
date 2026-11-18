@@ -938,6 +938,28 @@ class StickyScenario(Scenario):
         assert not facts["shown"], "the message's own header is on the top row, yet a copy is pinned"
 
 
+class JumpBackScenario(Scenario):
+    summary = ("open JUMP_TARGET (#comms by default), scroll a screen above the end and report the "
+               "back-to-bottom bar shown; tap it, touch nothing else, and fail unless the view is at the "
+               "end and the bar is gone (it stayed until the next scroll, Tristan, Android, 2026-11-18)")
+
+    async def run(self) -> None:
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.open_named(os.environ.get("JUMP_TARGET", "#comms"))
+        window = self.page.messages
+        await until(lambda: window.scroll_y > 0, "a history taller than the window")
+        window.scroll_y = max(0, window.scroll_y - window.viewport().height() * 2)
+        await asyncio.sleep(0.8)
+        self.report("1-scrolled-up", bar=window.jump_bar.jump_shown, following=window.follows_tail)
+        assert window.jump_bar.jump_shown, "scrolled above the end, the back-to-bottom bar is not shown"
+        QTest.mouseClick(window.jump_bar, Qt.MouseButton.LeftButton)
+        await asyncio.sleep(1.2)
+        self.report("2-jumped", bar=window.jump_bar.jump_shown, following=window.follows_tail,
+                    at_end=window.at_end)
+        assert window.follows_tail and window.at_end, "the jump did not put the view at the end"
+        assert not window.jump_bar.jump_shown, "at the end after a jump, the back-to-bottom bar is still shown"
+
+
 class TallArrivalScenario(StickyScenario):
     summary = ("open TARGET (#scratch) following its end; SENDER (scratch-live-pipeline) posts one "
                "message taller than the window; once the window glides down into it, its header "

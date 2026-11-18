@@ -97,9 +97,6 @@ class ReaderWindow:
     def drawn_pages(self) -> Iterator[ReaderPage]: ...
 
     @abstractmethod
-    def anchor(self) -> None: ...
-
-    @abstractmethod
     def release_anchor(self) -> None: ...
 
     @abstractmethod
