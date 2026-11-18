@@ -248,18 +248,8 @@ class QtThreadView(
         # Bind once message_history exists: `BoundView` reads
         # `self.transcript_history` immediately.
         self.transcript.bind(self)
-        # Trigger the initial page load. Textual's `TranscriptHistory.on_mount`
-        # does `_finish_mount()` (which calls `observe_source`) + `state.mounted(self)`
-        # (which schedules `load_initial_page` via `call_after_refresh`). Qt has no
-        # mount event — the view is constructed-and-shown synchronously — so we
-        # defer with QTimer.singleShot(0, ...) to let the view mount into the
-        # workspace first; then observe_source() + state.mounted() kick off the
-        # SavedTranscript read via the shared pager, which populates `self.messages`
-        # with the real transcript pages. Without this call, `self.message_history`
-        # would sit with its empty_page and never request pages from the bound
-        # transcript scope, which is why mailbox views used to render a black body
-        # even when `transcript.binding.thread_scope` resolved to the real
-        # `KnownTranscript`.
+        # Textual's `TranscriptHistory.on_mount` observes the source and loads the first
+        # page; Qt has no mount event, so the load runs one tick after the view is placed.
         QTimer.singleShot(0, self._start_transcript_source)
 
     def _setup_prompt_stack(self, app: "QtToadApp", layout: QVBoxLayout, incarnation) -> None:
@@ -310,14 +300,7 @@ class QtThreadView(
     def composer_label(self) -> str:
         """What the composer's placeholder names."""
 
-    # ---- ComposerHost contract ----
-    #
-    # ``ComposerHost`` names ``app``, ``submissions`` (both set by subclass /
-    # ``_setup_composer``) and ``submit``. ``ConversationCommands`` (the base
-    # of ``ComposerHost``) names ``update_slash_commands`` which the composer
-    # calls when the user types ``/``. Until the session lifecycle wires the
-    # real command catalog, both thread views hand the composer an empty list
-    # so the slash offers row stays hidden rather than throwing.
+    # ---- ComposerHost contract: `app`, `submissions`, `submit`, `update_slash_commands` ----
 
     def submit(self, text: TypedText, action: SubmitInputAction) -> None:
         """Publish ``UserInputSubmitted`` through Core's event stream — the same
