@@ -199,15 +199,17 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
             for candidate in site_packages.glob(f"{name}*"):
                 if not (recipes / candidate.name).exists():
                     (recipes / candidate.name).symlink_to(candidate)
-        settings = work / "kept" / "config" / "toad" / "toad.json"
+        # qt_drive keeps its settings and state under its OUTDIR (`out/config`, `out/state`)
+        # whatever the environment holds, so the saved theme and the error files live there.
+        out = work / "out"
+        settings = out / "config" / "toad" / "toad.json"
         settings.parent.mkdir(parents=True)
         settings.write_text(json.dumps({"ui": {"theme": UNOFFERED_THEME}}))
         trust = work / "trust.pem"
         trust.write_text((app / "cacert.pem").read_text() + (work / "cert.pem").read_text())
-        out = work / "out"
         result = shipped_qt(shipped, recipes, trust, profile, out)
         print(result.stdout[-6000:])
-        errors = sorted((work / "kept" / "state").rglob("errors/*.txt"))
+        errors = sorted((out / "state").rglob("errors/*.txt"))
         failed = (result.returncode != 0 or "ModuleNotFoundError" in result.stdout + result.stderr or errors)
         if failed:
             print(result.stderr[-8000:], file=sys.stderr)
