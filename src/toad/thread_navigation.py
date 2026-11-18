@@ -23,7 +23,7 @@ from toad.session_host import NavigationHost
 @dataclass(frozen=True)
 class ThreadOrigin:
     source: ProjectSessionOrigin
-    selected_mode: str
+    standing: str
     root: str | None
     identity: str
 
@@ -31,7 +31,7 @@ class ThreadOrigin:
     def capture(cls, app: NavigationHost, source: ProjectSessionOrigin) -> ThreadOrigin:
         return cls(
             source,
-            app.selected_mode,
+            source.opening_standing(app.selected_mode),
             source.coordination_root,
             source.thread_identity.thread_name(),
         )

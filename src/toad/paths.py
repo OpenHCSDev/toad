@@ -72,16 +72,34 @@ def generate_datetime_filename(prefix: str, suffix: str) -> str:
 
 
 def save_error(error: BaseException | str, prefix: str) -> Path:
-    """Persist an error under a timestamped name: an exception's traceback and chained causes,
-    or an error given as text with the stack that reported it."""
+    """Persist an error under a timestamped name in logs/errors."""
+    return _save_report(error, prefix, get_errors())
+
+
+def save_warning(text: str, prefix: str) -> Path:
+    """Persist a warning the reader was shown under a timestamped name in logs/warnings:
+    a warning is not a failure (logs/errors stays the failures), but its notice puts itself
+    away, so it is kept to be read back."""
+    return _save_report(text, prefix, get_warnings())
+
+
+def _save_report(error: BaseException | str, prefix: str, directory: Path) -> Path:
+    """An exception's traceback and chained causes, or text with the stack that reported it."""
     if isinstance(error, BaseException):
         report = traceback.format_exception(error)
     else:
-        report = [f"{error}\n\nReported from:\n", *traceback.format_stack()[:-1]]
-    path = get_errors() / generate_datetime_filename(prefix, ".txt")
+        report = [f"{error}\n\nReported from:\n", *traceback.format_stack()[:-2]]
+    path = directory / generate_datetime_filename(prefix, ".txt")
     descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
         stream.writelines(report)
+    return path
+
+
+def get_warnings() -> Path:
+    """The directory holding the warnings the reader was shown."""
+    path = get_log() / "warnings"
+    path.mkdir(0o700, exist_ok=True)
     return path
 
 

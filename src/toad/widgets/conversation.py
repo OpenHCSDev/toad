@@ -1386,7 +1386,7 @@ class Conversation(AgentTurnEvents,
         self.prompt.sync_session()
         for details in self.query(OperationalSessionDetails):
             details.sync_turn()
-        self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
+        self.app.show_error(event.message, "Agent failure")
 
         self.launch.publish_usage(
             self.app.application.usage.publish,

@@ -26,7 +26,7 @@ from typing import ClassVar
 
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
-from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent
+from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QTextDocument
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -37,6 +37,7 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.message_category import MessageCategory
 from objectstate import DottedFieldPath
 from toad.qt.frame_probe import FrameProbe, ProbedApplication
+from toad.client.application import BusDiscovery
 from toad.client.application_actions import (
     ApplicationAction, NewSessionAction, NewThreadAction, QuitAction, SettingsAction,
 )
@@ -81,8 +82,10 @@ from toad.client.bus_submission import ConversationSubmission
 from toad.setting_choices import CenterColumnAlignment
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.input_modality import KeyboardInput, TouchInput
-from toad.qt.float_layer import QtNoticeCard
+from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
 from toad.qt.menu import QtMenuRow
+from toad.qt.activity import ChannelActivity
+from toad import paths
 from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
@@ -134,6 +137,10 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         """The drag this drive's scroll areas answer: this platform's, unless the walk is a
         phone's."""
         return FingerScrollGesture.of_platform()
+
+    @classmethod
+    def before_open(cls) -> None:
+        """Run before the client opens, to watch what it does from its first frame."""
 
     def __init__(self, app: QtToadApp, out: Path) -> None:
         self.app = app
@@ -314,6 +321,103 @@ class ActivityScenario(Scenario):
                     and self.page.composer.info_bar.status.text(), "status")
         await asyncio.sleep(1.0)
         SurroundScenario.report_surround(self, "1-opened", peer=peer.key)
+
+
+class ParticipantSteps(Scenario, declared_name=None):
+    """A finger tapping a channel's `N active` line and a thread row the way a phone can,
+    and every notice the client posts from its first frame, so a step can fail on one."""
+
+    notices: ClassVar[list[tuple[str, str]]]
+
+    @classmethod
+    def before_open(cls) -> None:
+        cls.notices = []
+        posted = QtFloatLayer.post
+
+        def recorded(layer, text: str, role, seconds: float) -> None:
+            cls.notices.append((role.name, text))
+            posted(layer, text, role, seconds)
+        QtFloatLayer.post = recorded
+
+    def failures_since(self, count: int) -> list[str]:
+        """The warning and error notices posted after the first ``count``."""
+        return [f"{role}: {text}" for role, text in self.notices[count:] if role in ("WARNING", "ERROR")]
+
+    def activity(self) -> ChannelActivity:
+        found = self.page.findChildren(ChannelActivity)
+        if not found:
+            raise LookupError(f"{type(self.page).__name__} shows no channel activity line")
+        return found[0]
+
+    async def finger_tap(self, widget: QWidget, point: QPoint) -> None:
+        FingerScenario.press(widget, QEvent.Type.MouseButtonPress, point, True)
+        await asyncio.sleep(0.05)
+        FingerScenario.press(widget, QEvent.Type.MouseButtonRelease, point, False)
+        await asyncio.sleep(0.8)
+
+    async def tap_activity(self, label: str) -> None:
+        """Open the channel's activity line, tap a listed member, and close it again."""
+        line = self.activity()
+        heading = QPoint(line.width() // 3, line.fontMetrics().height() // 2)
+        self.report(f"{label}-shown", text=self.activity_text(line), height=line.height())
+        await self.finger_tap(line, heading)
+        self.report(f"{label}-opened", open=line.shown.details_open, members=len(line.members),
+                    height=line.height())
+        if line.members:
+            await self.finger_tap(line, QPoint(heading.x(), line.height() - heading.y()))
+            self.report(f"{label}-member-tapped", open=line.shown.details_open)
+        if line.shown.details_open:
+            await self.finger_tap(line, heading)
+        self.report(f"{label}-closed", open=line.shown.details_open)
+
+    @staticmethod
+    def activity_text(line: ChannelActivity) -> str:
+        document = QTextDocument()
+        document.setHtml(line.text())
+        return document.toPlainText()
+
+    async def open_twice(self, row: ConversationRow) -> None:
+        """A row tapped twice, as a phone can deliver one tap, or a second tap while the
+        first opening mounts: both open from home, and the second lands on the same tab."""
+        self.app.open_row(row)
+        await asyncio.sleep(0.05)
+        self.app.open_row(row)
+        await until(lambda: getattr(self.page, "thread_identity", None) is not None
+                    and self.page.thread_identity.thread_name() == row.target.name, row.target.name)
+        await asyncio.sleep(3.0)
+        named = sum(row.target.name in tab for tab in self.tabs())
+        if named != 1:
+            raise AssertionError(f"{row.target.name} is open in {named} tabs after a double tap")
+
+
+class ParticipantsScenario(ParticipantSteps):
+    summary = ("at a Pixel 8a's width, by finger: tap #comms' and a second channel's `N active` "
+               "line open, a listed member, and closed; open a thread, then tap a thread row twice "
+               "as a phone can; fails on any warning or error notice, and on one that saved no file")
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        return TouchAsMouse()
+
+    async def run(self) -> None:
+        await self.open_named("#comms")
+        await self.tap_activity("1-comms")
+        other = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name.startswith("#")
+                                 and row.target.name != "#comms", "a second channel", rows=self.app.sidebar.items)
+        await self.open(other, other.target.name)
+        await self.tap_activity("2-channel")
+        peer = await self.thread_row()
+        await self.open(peer, peer.target.name)
+        await self.open_named("#comms")
+        await self.open_twice(peer)
+        self.report("3-double-tap", tabs=self.tabs())
+        saved = [*paths.get_errors().iterdir(), *paths.get_warnings().iterdir()]
+        print("notices:", self.notices, "saved:", sorted(path.name for path in saved), flush=True)
+        failures = self.failures_since(0)
+        if len(saved) < len(failures):
+            raise AssertionError(f"{len(failures)} warning/error notice(s) but {len(saved)} saved: {failures}")
+        if failures:
+            raise AssertionError(f"{len(failures)} warning/error notice(s): {failures}")
 
 
 class SurroundScenario(Scenario):
@@ -900,7 +1004,7 @@ class FeedbackScenario(Scenario):
             app.menu_panel.hide()
 
 
-class ShippedScenario(Scenario):
+class ShippedScenario(ParticipantSteps):
     summary = ("open every view kind the phone has and press every bound key, failing on any "
                "exception: tools/android/shipped_run.py runs it on the shipped bundle")
 
@@ -995,7 +1099,12 @@ class ShippedScenario(Scenario):
             self.close_dialogs()
         await self.step("3-channel", lambda: self.open_named("#comms"))
         await self.press_bound_keys("3-channel-keys")
+        await self.noticeless("3-channel-activity", lambda: self.tap_activity("3-channel-activity"))
         await self.step("4-thread", lambda: self.open_named("scratch-live-pipeline"))
+        thread = await self.found(lambda row: isinstance(row, ConversationRow)
+                                  and row.target.name == "scratch-live-pipeline", "thread scratch-live-pipeline")
+        await self.step("4-thread-from-channel", lambda: self.open_named("#comms"))
+        await self.noticeless("4-thread-tapped-twice", lambda: self.open_twice(thread))
         await self.step("4-thread-details", self.open_details)
         await self.press_bound_keys("4-thread-keys")
         # The reader keys (ctrl+d, ctrl+u, G) are declared for the vim modes only: press every
@@ -1023,6 +1132,12 @@ class ShippedScenario(Scenario):
             applied.append(name)
         settings.set(SETTINGS.ui.theme, started)
         self.report("1-themes", started=started, applied=applied)
+
+    async def noticeless(self, label: str, run) -> None:
+        """A step that must post no warning or error notice."""
+        posted = len(self.notices)
+        await self.step(label, run)
+        self.faults.extend(f"{label}: {failure}" for failure in self.failures_since(posted))
 
     async def open_details(self) -> None:
         self.page.thread_activity.toggle()
@@ -2825,6 +2940,7 @@ def main(arguments: list[str]) -> None:
     FingerScrolling.install(application, scenario.finger_gesture())
     watch = StrayWindows()
     application.installEventFilter(watch)
+    scenario.before_open()
     qasync.run(drive(scenario, connection, Path(own[1])))
 
 
