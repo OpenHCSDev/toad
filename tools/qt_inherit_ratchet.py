@@ -98,6 +98,8 @@ NOT_SIBLINGS = {
 }
 
 QT_ONLY = {
+    'toad.qt.overlay_scrollbar.OverlayScrollBar': "a QScrollBar floated over a QAbstractScrollArea's viewport, mirroring the area's hidden bar: a terminal cannot draw over its text, so Textual shows `Scrollbar.size` only; the shared fact is `Scrollbar.overlay`",
+    'toad.qt.overlay_scrollbar._ViewportGeometry': "an event filter keeping that overlay over the viewport on QEvent.Resize/Move; Textual has no floating child to place",
     'toad.qt.widget_animation.WidgetAnimation': "a clock target's life bound to its Qt widget's C++ lifetime (destroyed signal, shiboken validity); a Textual widget is a Python object the clock can always ask",
     'toad.qt.history.ArrivalFade': "a burst's rows painted at the ARRIVAL cascade's frame as QPainter opacity; Textual paints the same frame into its strips (TranscriptHistory.arrivals_began), and both read the cascade from toad.frame_presentation",
     'toad.qt.action_shortcuts.BoundAction': "a live QShortcut and the action it answers: Qt fires neither of two shortcuts sharing a key (activatedAmbiguously), so ActionKeys keeps each to apply the declared binding order; Textual walks its binding chain itself",

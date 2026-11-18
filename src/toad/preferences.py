@@ -45,7 +45,6 @@ from toad.setting_choices import (
     LoadingStyle,
     LeftColumnAlignment,
     NavigationBarPosition,
-    NormalScrollbar,
     NotificationPolicy,
     PulseLoading,
     SchemeName,
@@ -109,10 +108,10 @@ class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsOwner,)):
     """Place the conversation column on the left, in the center, or on the right."""
     scrollbar: Annotated[
         type[Scrollbar],
-        FieldLabel("Scrollbar size"),
+        FieldLabel("Scrollbar"),
         FamilyChoices(Scrollbar),
         effects.conversation_layout,
-    ] = NormalScrollbar
+    ] = Scrollbar.for_host()
 
 
 @dataclass(frozen=True)

@@ -26,7 +26,7 @@ from typing import ClassVar
 
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
-from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent
+from PySide6.QtGui import QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QPainter
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -78,7 +78,7 @@ from toad.qt.keymap_screen import QtKeymapScreen
 from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.client.bus_submission import ConversationSubmission
-from toad.setting_choices import CenterColumnAlignment
+from toad.setting_choices import CenterColumnAlignment, HiddenScrollbar, TransientScrollbar
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.qt.float_layer import QtNoticeCard
@@ -88,6 +88,7 @@ from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
 from toad.live_output import ResponseStream, ThoughtStream
 from toad.qt.history import HistoryRows
+from toad.qt.overlay_scrollbar import OverlayScrollBar
 from toad.qt.live_turn import QtLiveFragment
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -682,6 +683,63 @@ class HistoryScenario(Scenario):
                     "end", tenths=100)
         await asyncio.sleep(1.0)
         self.report("20-end", **self.rows())
+
+
+class HeaderRuleScenario(Scenario):
+    summary = ("open #comms at phone size; for each message header shown, report where its rule's "
+               "pixels start and end against the row width and the title's length; then the "
+               "conversation scrollbar Transient: report the viewport width and the bar over the "
+               "text while scrolling and gone once still; then Hidden")
+
+    def rule_extent(self, header, width: int) -> tuple[int, int]:
+        """The leftmost and rightmost drawn pixel of the header laid out at ``width``."""
+        window = self.page.messages
+        document = window.rows.header_document(header, window.font(), width)
+        image = QImage(width, max(1, int(document.size().height())), QImage.Format.Format_ARGB32)
+        image.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(image)
+        document.drawContents(painter)
+        painter.end()
+        drawn = [x for x in range(width) if any(image.pixelColor(x, y).alpha() for y in range(image.height()))]
+        return (drawn[0], drawn[-1]) if drawn else (-1, -1)
+
+    def bar(self) -> dict[str, object]:
+        window = self.page.messages
+        overlay = window.findChild(OverlayScrollBar)
+        return dict(viewport=window.viewport().width(), bar_beside=window.verticalScrollBar().width(),
+                    overlay=None if overlay is None else (overlay.isVisible(), round(overlay.opacity.opacity(), 2),
+                                                          overlay.geometry().getRect()))
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named(os.environ.get("HEADER_TARGET", "#comms"))
+        window = self.page.messages
+        width = window.viewport().width() - 8
+        headers = [fragment.sticky_header(len(fragment.line_blocks) - 1, 1)[-1]
+                   for fragment in window.model_rows.fragments
+                   if fragment.line_blocks and fragment.sticky_header(len(fragment.line_blocks) - 1, 1)]
+        seen: dict[int, tuple] = {}
+        for header in headers:
+            title = "".join(span.text for span in header.spans)
+            seen.setdefault(len(title), (title, *self.rule_extent(header, width)))
+        for length, (title, left, right) in sorted(seen.items())[:8]:
+            print(f"rule: width={width} title_len={length} left={left} right={right} title={title[:40]!r}",
+                  flush=True)
+        self.report("1-headers", headers=len(headers), **self.bar())
+        app.saved_settings.set(SETTINGS.ui.scrollbar, TransientScrollbar)
+        await asyncio.sleep(0.5)
+        self.report("2-transient-idle", **self.bar())
+        window.scroll_y = max(0, window.scroll_y - window.viewport().height())
+        await asyncio.sleep(0.15)
+        self.report("3-transient-scrolling", **self.bar())
+        await asyncio.sleep(2.0)
+        self.report("4-transient-still", **self.bar())
+        app.saved_settings.set(SETTINGS.ui.scrollbar, HiddenScrollbar)
+        await asyncio.sleep(0.5)
+        window.scroll_y = max(0, window.scroll_y - window.viewport().height())
+        await asyncio.sleep(0.15)
+        self.report("5-hidden-scrolling", **self.bar())
 
 
 class StickyScenario(Scenario):
