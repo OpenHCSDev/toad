@@ -23,7 +23,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
-from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, Qt, QTimer
+from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
@@ -551,7 +551,10 @@ class HeldRowMenu(QObject):
             return
         entries = item.menu_entries(self.listing)
         if entries:
-            self.listing.host.offer_entries(entries)
+            # In the host window's coordinates, where `offer_entries` places its anchor
+            # (`ConversationRows.window` names the app, hiding QWidget.window()).
+            pressed = rows.viewport().mapTo(self.listing.host, point)
+            self.listing.host.offer_entries(entries, QRect(pressed, QSize(1, 1)))
 
 
 class QtWelcomeOrigin(HomeSessionOrigin):
@@ -1399,12 +1402,13 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
     # through `widgets/menu.Menu`. Keeping the action list derived means a new menu
     # command declared in `src/toad/menus.py` reaches Qt without any edit here.
 
-    def open_block_menu(self, fragment: QtWireFragment) -> None:
+    def open_block_menu(self, fragment: QtWireFragment, pressed: QPoint) -> None:
+        """The block menu for `fragment`, at `pressed` (the window's coordinates)."""
         self.held_fragment = fragment
         entries = QtMenu.command_entries(_block_menu_commands(fragment), self.app.settings,
                                          self._run_block_menu_command)
         if entries:
-            self.app.offer_entries(entries)
+            self.app.offer_entries(entries, QRect(pressed, QSize(1, 1)))
 
     def _run_block_menu_command(self, command: MenuCommand) -> None:
         result = command.apply(self)
@@ -1654,13 +1658,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         chrome_layout = QVBoxLayout(chrome)
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
-        # QtMenu is the shared rendering for both the hamburger (application) menu and
-        # the row-context (message) menu. Its rows render MenuEntry data (bold key
-        # shortcut + label), matching Textual's MenuKey/MenuDescription widgets. Parent
-        # is QtToadApp so the menu is a child QWidget, not a top-level QWindow — the
-        # EGL-deadlock hazard that killed off QMessageBox applies to any popup window.
+        # QtMenu is the window's one pop-up menu (the application menu, the held/right-click
+        # row menus, the bus-connect choices, a sort choice). It floats over the content as
+        # a child of the window, in no layout, so opening it moves nothing (`QtMenu`).
         self.menu_panel = QtMenu(self)
-        chrome_layout.addWidget(self.menu_panel)
+        self.renderer.themed(self.menu_panel, lambda: self.menu_panel.paint(self.renderer))
         # Bus switcher: inline overlay panel for the hamburger "Switch bus" entry.
         # Registered as a `BusListing` so `tailnet_answered` routes answers to it
         # while shown (same shape as Welcome, which is always registered).
@@ -2028,7 +2030,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         if self.menu_panel.isVisible():
             self.menu_panel.hide()
             return
-        self.menu_panel.show_entries(self._application_menu_entries())
+        self.menu_panel.show_entries(self._application_menu_entries(), QtMenu.anchor_of(self.menu))
 
     def _application_menu_entries(self) -> tuple[MenuEntry, ...]:
         """Project ApplicationAction.menu(self) into MenuEntry rows. The key_display
@@ -2055,10 +2057,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         — the same widget the hamburger and the message-row menus use."""
         self.offer_entries(tuple(MenuEntry.from_offered(action) for action in actions))
 
-    def offer_entries(self, entries: tuple[MenuEntry, ...]) -> None:
+    def offer_entries(self, entries: tuple[MenuEntry, ...], anchor: QRect | None = None) -> None:
         """Rich-row API: callers that have `MenuEntry` with keybindings and descriptions
-        (the hamburger menu, the row-context menu) populate the shared QtMenu directly."""
-        self.menu_panel.show_entries(entries)
+        (the hamburger menu, the row-context menu) populate the shared QtMenu directly, at
+        `anchor` in this window's coordinates (where they were asked from)."""
+        self.menu_panel.show_entries(entries, anchor)
 
     def offer_bus_connect(self, decision: BusConnectDecision) -> None:
         """Render the shared bus-connect decision through the same menu panel the hamburger
