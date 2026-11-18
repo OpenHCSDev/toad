@@ -22,7 +22,8 @@ from toad.prompt_actions import AttachFileAction
 
 def read_picked(url: QUrl, composer: MessagePromptComposer) -> None:
     """Read what a picker chose, up to what the composer can still attach, and attach it."""
-    location = url.toString(QUrl.UrlFormattingOption.PreferLocalFile)
+    # A local file's path, else the URL itself: QFile opens an Android content:// URL as is.
+    location = url.toLocalFile() or url.toString()
     picked = QFile(location)
     if not picked.open(QIODevice.OpenModeFlag.ReadOnly):
         composer.show_failure(f"Could not read {location}: {picked.errorString()}")
