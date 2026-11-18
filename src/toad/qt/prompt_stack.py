@@ -245,8 +245,11 @@ class QtInfoBar(SettingVisible, QWidget, setting="ui.info_bar", metaclass=PyQtWi
     """Under the prompt frame: the composer's directory (a CLI thread's), the status line and
     the editing-mode badge, in Textual's `InfoBar` order."""
 
-    def __init__(self, app, renderer: QtLineRenderer) -> None:
-        super().__init__()
+    def __init__(self, app, renderer: QtLineRenderer, parent: QWidget) -> None:
+        # Parented at construction: `setVisible` below on a parentless widget makes it a
+        # top-level window with its own EGL surface, which deadlocks Android's accessibility
+        # bridge (SIGABRT "Failed to acquire deadlock protector … eglSurface()").
+        super().__init__(parent)
         self.path = ElidedLine()
         self.path.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}")
         self.path.hide()

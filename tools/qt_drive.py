@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import qasync
-from PySide6.QtCore import QPoint, Qt
+from PySide6.QtCore import QEvent, QObject, QPoint, Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QPushButton, QWidget
 
@@ -68,6 +68,29 @@ async def until(check, label: str, tenths: int = 200) -> None:
     raise TimeoutError(label)
 
 
+class StrayWindows(QObject):
+    """Every widget shown as its own top-level window, other than the app window and real
+    popups/dialogs. On Android each one gets its own native window and EGL surface, which
+    deadlocks against the accessibility bridge (SIGABRT "Failed to acquire deadlock
+    protector … eglSurface()"). A widget made visible before it has a parent becomes one,
+    even if a layout reparents it a moment later — so this watches Show as it happens; the
+    desktop never crashes on it, and the drive fails loudly instead."""
+
+    ALLOWED = (Qt.WindowType.Popup, Qt.WindowType.ToolTip, Qt.WindowType.Dialog, Qt.WindowType.Sheet)
+    seen: ClassVar[list[str]] = []
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if (event.type() == QEvent.Type.Show and isinstance(watched, QWidget) and watched.isWindow()
+                and type(watched).__name__ != "QtToadApp" and watched.windowType() not in self.ALLOWED):
+            StrayWindows.seen.append(f"{type(watched).__module__}.{type(watched).__qualname__}")
+        return False
+
+    @classmethod
+    def require_none(cls, step: str) -> None:
+        if cls.seen:
+            raise AssertionError(f"{step}: widgets shown as their own top-level windows: {sorted(set(cls.seen))}")
+
+
 class Scenario(DeclaredFamily, ABC, affix="Scenario"):
     """One walk through the client; its declared name is the command-line word."""
 
@@ -85,6 +108,7 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         return [self.app.tabs.tabText(index) for index in range(self.app.tabs.count())]
 
     def report(self, step: str, **facts: object) -> None:
+        StrayWindows.require_none(step)
         shown = " ".join(f"{name}={value!r}" for name, value in facts.items())
         print(f"{step}: page={type(self.page).__name__} "
               f"sidebar={'up' if self.app.sidebar.isVisible() else 'down'} tabs={self.tabs()} {shown}",
@@ -901,7 +925,9 @@ def main(arguments: list[str]) -> None:
         names = "\n".join(f"  {member.declared_name:10} {member.summary}" for member in Scenario.members_with(Scenario))
         raise SystemExit(f"usage: {arguments[0]} SCENARIO PROFILE OUTDIR\n{names}")
     scenario = Scenario.member_named(arguments[1])
-    QApplication(arguments[:1])
+    application = QApplication(arguments[:1])
+    watch = StrayWindows()
+    application.installEventFilter(watch)
     qasync.run(drive(scenario, Path(arguments[2]), Path(arguments[3])))
 
 
