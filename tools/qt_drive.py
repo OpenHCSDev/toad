@@ -25,6 +25,17 @@ from pathlib import Path
 from collections.abc import Callable
 from typing import ClassVar
 
+
+# A drive never touches the reader's own settings: run as a script with no XDG_CONFIG_HOME or
+# XDG_STATE_HOME of its own, it keeps them under OUTDIR before anything of Toad is imported (a
+# module can read them at import). Drives run without them wrote the real toad.json
+# (2026-11-17); every caller had to remember to set both.
+if __name__ == "__main__" and len(sys.argv) > 2:
+    for variable, folder in (("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state")):
+        if not os.environ.get(variable):
+            os.environ[variable] = str((Path(sys.argv[2]) / folder).resolve())
+            Path(os.environ[variable]).mkdir(parents=True, exist_ok=True)
+
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, QTimer, Qt
 from PySide6.QtGui import QContextMenuEvent, QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QPainter, QTextDocument
