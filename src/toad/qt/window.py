@@ -1244,8 +1244,14 @@ class BusLabel(WelcomeLocation, ElidedLine):
     reads as before. With `AgentAttached`, the line reads e.g. `claude · <location>`."""
 
     def __init__(self, window: QtToadApp) -> None:
-        line = self.location_line(window)
-        super().__init__(line)
+        super().__init__("")
+        self.present(window)
+
+    def present(self, app) -> None:
+        """Name the connection observed now: a bus switch replaces the connection under the
+        same window, so the line is read again whenever the observation answers."""
+        line = self.location_line(app)
+        self.setText(line)
         self.setToolTip(line)
 
     def location(self, app) -> str:
@@ -1760,6 +1766,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.setContentsMargins(margins)
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
+        self.workspace_sessions.home.project.present(self)
         self.workspace_sessions.selected.reload()
 
     def history_changed(self, *event: object) -> None:

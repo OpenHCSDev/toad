@@ -924,11 +924,27 @@ class RestoredScenario(Scenario):
         placed = app.sidebar_layout.get(ChannelsSidebarPlacement)
         self.report("1-after-open", selected=app.tabs.tabText(app.tabs.currentIndex()),
                     channels_bar=placed.side.declared_name, roster=[i.mode_name for i in app.tab_order.names])
+        # Cold start, home in front: one real tap on the restored thread's sidebar row opens
+        # its tab (the restored entry's view is built on this first selection).
+        restored_thread = next((identity for identity in app.tab_order.names
+                                if identity.mode_name.startswith("mailbox-")), None)
+        if restored_thread is not None:
+            await app.select_session(app.tab_order.home)
+            app.show_sidebar()
+            await self.expand("#any")
+            row = next(row for row in self.thread_rows() if row.key == restored_thread.key.name)
+            tree = row.treeWidget()
+            tree.scrollToItem(row)
+            await asyncio.sleep(0.5)
+            QTest.mouseClick(tree.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
+                             tree.visualItemRect(row).center())
+            await asyncio.sleep(3.0)
+            self.report("2-first-tap", tapped=restored_thread.key.name, view=type(self.page).__name__)
         # A restored tab builds its view when it is first selected: select each, as a tap does.
         for index in range(app.tabs.count()):
             app.visit_index(index)
             await asyncio.sleep(2.0)
-            self.report(f"2-tab-{index}", view=type(self.page).__name__,
+            self.report(f"3-tab-{index}", view=type(self.page).__name__,
                         rows=getattr(getattr(self.page, "messages", None), "model_rows", None) and
                         self.page.messages.model_rows.rowCount())
 
