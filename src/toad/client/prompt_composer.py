@@ -13,7 +13,7 @@ from typing import ClassVar
 
 from agent_comms.messaging.message_files import FileUpload
 from metaclass_registry import AbstractHooksMeta
-from ui_theme.scheme import PromptToneColour, ThemeColour
+from ui_theme.scheme import InputToneColour, PromptToneColour, ThemeColour, TurnBandColour
 
 from toad.client.input_decision import InputDecision
 from toad.setting_declarations import EachOpenWidget
@@ -56,6 +56,10 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     pushes the history further."""
     # The surface the composer's area is painted on, a tier off the transcript above it.
     area_tone: ClassVar[type[ThemeColour]] = PromptToneColour
+    # The delivery and queue lines' band over that area, and the field typed into, a tier off
+    # both: each interactive part of the composer is its own surface, in both frontends.
+    queue_tone: ClassVar[type[ThemeColour]] = TurnBandColour
+    input_tone: ClassVar[type[ThemeColour]] = InputToneColour
 
     @property
     @abstractmethod

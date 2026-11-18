@@ -241,10 +241,12 @@ class QueueSummary(
     MutedText,
     StartsHidden,
     AutoHeight,
+    TonePaint,
     Label,
     can_focus=True,
 ):
     """Shows queued messages and opens their delivery status when selected."""
+    tone = PromptComposer.queue_tone
 
 
     def apply_native_layout(self) -> None:
@@ -265,7 +267,8 @@ class QueueHint(Activates, SecondaryText, StartsHidden, SideMargin, AutoWidth, O
         self.query_ancestor(Prompt).conversation.open_queue_menu()
 
 
-class DeliveryControls(QueueDeliveryControls, ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
+class DeliveryControls(TonePaint, QueueDeliveryControls, ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
+    tone = PromptComposer.queue_tone
     """Shown while Enter queues behind a running turn; `QueueDeliveryControls` owns its text."""
 
     def shown_children(self) -> tuple[Widget, ...]:
@@ -348,7 +351,10 @@ class PromptLabel(SettingsReader, WidgetView, Label):
         return self.query_ancestor(Prompt).label_glyph()
 
 
-class PromptContainer(SettingsReader, FocusWithinView, containers.HorizontalGroup):
+class PromptContainer(TonePaint, SettingsReader, FocusWithinView, containers.HorizontalGroup):
+    # The field typed into: the composer's input tone, a tier off the prompt and its band.
+    tone = PromptComposer.input_tone
+
     @property
     def margin(self):
         return self.settings.ui.input.box.frame_margin

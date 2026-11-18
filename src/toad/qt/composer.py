@@ -343,7 +343,11 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         renderer.themed(self, self.paint_colours)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
         self.submitting = QtQueueSummary(self)
+        self.submitting.setObjectName("composer-queue")
         self.delivery_controls = QtDeliveryControls(self)
+        self.delivery_controls.setObjectName("composer-delivery")
+        for line in (self.submitting, self.delivery_controls):
+            line.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         # Textual's `QueueHint`: the info bar's held count while the delivery preview is off,
         # before the status line as Textual composes it.
         self.held = QtQueueHint(self)
@@ -357,8 +361,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         # button beside the box is the box's one-line height, pinned to its bottom
         # (`fit_buttons`).
         self.frame_row = frame_row = QHBoxLayout()
+        frame_row.setSpacing(UiGap.normal)
         frame_row.addWidget(self.frame, 1)
-        frame_row.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignBottom)
+        self.add_box_button(self.send_button)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -395,9 +400,14 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             return spacing.left * cell, spacing.top * line, spacing.right * cell, spacing.bottom * line
 
         self.frame_row.setContentsMargins(*cells(box.frame_margin))
-        self.frame.layout().setContentsMargins(*cells(box.frame_padding))
+        # The box's touch room sits evenly above and below the text, so one line is centred in
+        # the box as Textual's prompt is; the editor itself is exactly its lines' height.
+        left, top, right, bottom = cells(box.frame_padding)
+        room = self.TOUCH_ROOM // 2
+        self.frame.layout().setContentsMargins(left, top + room, right, bottom + room)
         left, top, right, bottom = cells(box.label_padding)
-        self.glyph.setContentsMargins(left, top, right, bottom)
+        # The glyph's text sits on the editor's first line, below the document's own margin.
+        self.glyph.setContentsMargins(left, top + self.document_margin(), right, bottom)
         self.focus_changed(self.editor.hasFocus())
         self.fit_buttons()
 
@@ -408,16 +418,28 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         border = 2 if self.settings.ui.input.box.bordered else 0
         return self.editor_height(1) + padding.top() + padding.bottom() + border
 
+    def add_box_button(self, button: QPushButton) -> None:
+        """The one way a button joins the box's row (Send, and any a composer adds, Attach
+        first): placed before Send, bottom-aligned, and the whole row sized again, so a button
+        added after the composer was built is sized like the rest (Attach was not, 2026-11-18)."""
+        # Send is added first and stays last; every later button goes before it.
+        self.frame_row.insertWidget(self.frame_row.count() - len(self.box_buttons),
+                                    button, 0, Qt.AlignmentFlag.AlignBottom)
+        self.box_buttons = (*self.box_buttons[:-1], button, *self.box_buttons[-1:]) \
+            if self.box_buttons else (button,)
+        self.fit_buttons()
+
+    box_buttons: tuple[QPushButton, ...] = ()
+
     def fit_buttons(self) -> None:
-        """Every button in the box's row (send, and any a composer adds beside it) is the
-        box's one-line height and at least as wide as tall: level with a one-line box, and
-        pinned to the bottom of a taller one (each is added bottom-aligned)."""
+        """Every button in the box's row is one size: the box's one-line height, and the
+        widest one's width (at least as wide as tall), level with a one-line box and pinned to
+        the bottom of a taller one."""
         height = self.one_line_box_height()
-        for index in range(self.frame_row.count()):
-            button = self.frame_row.itemAt(index).widget()
-            if button is not None and button is not self.frame:
-                button.setFixedHeight(height)
-                button.setMinimumWidth(height)
+        buttons = self.box_buttons
+        width = max((height, *(button.sizeHint().width() for button in buttons)))
+        for button in buttons:
+            button.setFixedSize(width, height)
 
     def update_prompt(self) -> None:
         """A leading symbol or the placeholder setting changed: draw both again."""
@@ -435,7 +457,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     def paint_colours(self) -> None:
         """The area's tone, the muted placeholder, the offer list, the glyph and the frame's
         border, under the renderer's current scheme."""
-        self.setStyleSheet(f"#composer {{ background: {self.renderer.theme(self.area_tone)} }}")
+        # The area, the band its delivery and queue lines sit on, and the field typed into: the
+        # shared composer's three tones (Textual paints the same ones through TonePaint).
+        queue = self.renderer.theme(self.queue_tone)
+        self.setStyleSheet(
+            f"#composer {{ background: {self.renderer.theme(self.area_tone)} }}"
+            f" #composer-queue, #composer-delivery {{ background: {queue} }}")
         palette = self.editor.palette()
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(self.renderer.colour(MutedRole)))
         self.editor.setPalette(palette)
@@ -447,10 +474,11 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         """The frame's border follows focus (Textual's `PromptContainer.border`), and the
         badge shows the editing mode only while focused."""
         colour = self.renderer.theme(PrimaryColour if focused else MutedColour)
+        field = self.renderer.theme(self.input_tone)
         self.renderer.apply_sheet(self.frame,
-            f"#prompt-frame {{ border: 1px solid {colour}; border-radius: 2px }}"
+            f"#prompt-frame {{ background: {field}; border: 1px solid {colour}; border-radius: 2px }}"
             if self.settings.ui.input.box.bordered
-            else "#prompt-frame { border: none }")
+            else f"#prompt-frame {{ background: {field}; border: none }}")
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, focused)
 
     def refresh_editing_mode(self) -> None:
@@ -485,9 +513,15 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > 5 else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.editor.setFixedHeight(self.editor_height(lines))
 
+    TOUCH_ROOM: ClassVar[int] = 16
+    """Room the box adds around its text for a finger, split evenly above and below."""
+
+    def document_margin(self) -> int:
+        return round(self.editor.document().documentMargin())
+
     def editor_height(self, lines: int) -> int:
-        """The editor's height showing `lines` lines."""
-        return self.editor.fontMetrics().lineSpacing() * lines + 24
+        """The editor's height showing `lines` lines: the lines and the document's margins."""
+        return self.editor.fontMetrics().lineSpacing() * lines + 2 * self.document_margin()
 
     @property
     def text(self) -> str:
@@ -673,7 +707,7 @@ class QtMessageComposer(MessagePromptComposer, Composer):
         self.attach_button = QPushButton(AttachFileAction.title, self)
         self.attach_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
         self.attach_button.clicked.connect(self.attach_file)
-        self.frame_row.insertWidget(1, self.attach_button, 0, Qt.AlignmentFlag.AlignBottom)
+        self.add_box_button(self.attach_button)
         self.attached_row = QWidget(self)
         chips = QHBoxLayout(self.attached_row)
         chips.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
