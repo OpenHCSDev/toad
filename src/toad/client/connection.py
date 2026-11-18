@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from concurrent.futures import Future
@@ -74,6 +75,7 @@ from agent_comms.ui_model.observation import (
     NotificationsObserved,
     NotificationsReload,
     NotificationsUnreadable,
+    ObservationEnded,
     ObservationProcess,
     ObservationSource,
     Observed,
@@ -371,6 +373,37 @@ class UnselectedRoute:
     """Route capture failed before a validated selection existed."""
 
 
+@dataclass
+class ObservationRetry:
+    """When a lost observation may open again: one owner for the whole outage.
+
+    Each loss in a row doubles the wait, from FIRST up to LONGEST seconds; the first result
+    an opened observation receives ends the outage, so the next loss waits FIRST again. The
+    route check (once a second) is what reopens. Until the retry is due, reads and interest
+    changes see the failure instead of opening a new connection each, which made a Core that
+    closes every observation flash ConnectorObserverClosed on every call.
+    """
+
+    FIRST: ClassVar[float] = 1.0
+    LONGEST: ClassVar[float] = 30.0
+    losses: int = 0
+    due: float = 0.0
+
+    def lost(self, now: float) -> None:
+        self.losses += 1
+        self.due = now + min(self.FIRST * 2 ** min(self.losses - 1, 16), self.LONGEST)
+
+    def began(self) -> bool:
+        """This loss started the outage: the one the reader is told about."""
+        return self.losses == 1
+
+    def waiting(self, now: float) -> bool:
+        return now < self.due
+
+    def recovered(self) -> None:
+        self.losses, self.due = 0, 0.0
+
+
 @dataclass(frozen=True, kw_only=True)
 class Observation(ABC):
     access: CoordinationAccess = field(compare=False)
@@ -416,6 +449,7 @@ class Observation(ABC):
         return access.reference_context(root)
 
     def failed(self, error: Exception, selected):
+        self.access.retry.lost(time.monotonic())
         return self.adopt(FailedObservation(error, selected, access=self.access))
 
     def adopt[O: Observation](self, observation: O) -> O | Observation:
@@ -471,6 +505,55 @@ class NotObserving(Observation):
         return await self.observed().read(request)
 
 
+class ClosedObservation(Observation):
+    """The access has closed: nothing is observed, and nothing opens again.
+
+    A frontend's views can still change their interests after the shared shutdown: Qt
+    closes the remaining windows as the application ends, and a team page's closeEvent
+    stops its heartbeat. Those reached NotObserving, which opened a fresh observation, its
+    relay thread and an attach queued onto a loop that was stopping. Here an interest change
+    has nothing to change, and a read is refused.
+    """
+
+    def through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
+        return self
+
+    def require(self, access: CoordinationAccess, selected: RouteSelection):
+        return self
+
+    def closed(self) -> RouteChangedError:
+        return RouteChangedError("Comms access closed")
+
+    async def read(self, request: AwaitedRead) -> object:
+        raise self.closed()
+
+    @property
+    def core(self) -> CoreAccess:
+        raise self.closed()
+
+    @property
+    def sidebar(self):
+        raise self.closed()
+
+    def references_for(self, root: str) -> ReferenceContext:
+        return UnavailableReferences(root, str(self.closed()))
+
+    def show_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation]) -> None:
+        """No view follows a closed access."""
+
+    def observe_sidebar(self, wanted):
+        """No observation is left to tell."""
+
+    def observe_notifications(self, wanted: ObserveNotifications):
+        """No observation is left to tell."""
+
+    def thread_interest(self, access: CoordinationAccess):
+        """No observation is left to tell."""
+
+    def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
+        """No observation is left to tell."""
+
+
 @dataclass(frozen=True, eq=False)
 class FailedObservation(Observation):
     error: Exception = field(compare=False, repr=False)
@@ -478,6 +561,18 @@ class FailedObservation(Observation):
 
     async def read(self, request: AwaitedRead) -> object:
         raise self.error
+
+    def through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
+        """Open again once the retry is due; until then this failure is the observation."""
+        if access.retry.waiting(time.monotonic()):
+            return self
+        return super().through(connection, access)
+
+    def require(self, access: CoordinationAccess, selected: RouteSelection):
+        """A changed route opens now; the failed one waits for its retry."""
+        if selected == self.selection and access.retry.waiting(time.monotonic()):
+            return self
+        return super().require(access, selected)
 
     def __eq__(self, other: object) -> bool:
         # Exceptions declare their type, constructor fields and extra state through
@@ -516,7 +611,8 @@ class FailedObservation(Observation):
             view.notifications_failed(self.error)
 
     def thread_interest(self, access: CoordinationAccess):
-        access.app.show_error(self.error, "Thread status unavailable")
+        if access.retry.began():
+            access.app.show_error(self.error, "Thread status unavailable")
 
     def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
         self.access.events.publish(TeamHudFailed(self.error))
@@ -718,12 +814,30 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
 
     def receive(self, result: Observed):
         if self.is_current():
+            self.access.retry.recovered()
             self.access.dispatch_sync(result, self)
 
+    def tell(self, wanted) -> None:
+        """Tell the peer what this observation's views want.
+
+        A process that has ended answers with its end, and its reader reports that same end
+        through ``receive_failed``, which makes the failure current and retries. Raised here
+        too, it escaped whichever view changed its interest (an attach queued just before the
+        peer closed, a viewport asking for notifications) as a second, uncaught report of one
+        closure. As ObservationProcess.stop_observing does, the end stays with its owner.
+        """
+        try:
+            self.process.request(wanted)
+        except ObservationEnded:
+            pass
+
     def receive_failed(self, error: Exception):
+        """The observation closed: the failure becomes current and retries; the reader is
+        told once per outage, not once per reopen that closes again."""
         if self.is_current():
             self.failed(error, self.opened_selection())
-            self.access.app.report_fatal(error)
+            if self.access.retry.began():
+                self.access.app.report_fatal(error)
 
     def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.root)
@@ -732,7 +846,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         request = ObserveViews(frozenset(threads), frozenset(channels))
         if request != access.views_interest:
             access.views_interest = request
-            self.process.request(request)
+            self.tell(request)
 
     def references_for(self, root: str) -> ReferenceContext:
         return self.sidebar.observation.references_for(root)
@@ -747,16 +861,16 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         return references.at(root)
 
     def thread_interest(self, access: CoordinationAccess):
-        self.process.request(ObserveThreads(access.events.observed_threads(str(self.root))))
+        self.tell(ObserveThreads(access.events.observed_threads(str(self.root))))
 
     def observe_sidebar(self, wanted):
-        self.process.request(wanted if wanted is not None else StopSidebar())
+        self.tell(wanted if wanted is not None else StopSidebar())
 
     def observe_notifications(self, wanted: ObserveNotifications):
-        self.process.request(wanted)
+        self.tell(wanted)
 
     def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
-        self.process.request(wanted)
+        self.tell(wanted)
 
 class AnsweringReads(Observing):
     """Interests have ended; acquired reads keep their process and release owners. Each
@@ -862,6 +976,7 @@ class CoordinationAccess(MroDispatch):
 
         self.transcripts = CoordinationTranscriptReader(self)
         self.observation: Observation = NotObserving(access=self)
+        self.retry = ObservationRetry()
         self.events = CoreEventStream(self)
         self.revision: ReadState = NoRevision()
         self.route_task: asyncio.Task[None] | None = None
@@ -1202,7 +1317,7 @@ class CoordinationAccess(MroDispatch):
                     observation.callback(lambda: self.observation.subscriptions.close())
                     await self.stop_observing()
             finally:
-                self.observation = NotObserving(access=self)
+                self.observation = ClosedObservation(access=self)
                 for task in tuple(self.retiring):
                     release.push_async_callback(join_retirement, task)
 
@@ -1214,6 +1329,8 @@ class CoordinationAccess(MroDispatch):
         has joined, as close() orders it."""
         await self.stop_route_check()
         previous, self.connection = self.connection, connection
+        # Another bus is not the lost one: it opens now, not when the old one's retry is due.
+        self.retry.recovered()
         await self.observe_route()
         for task in tuple(self.retiring):
             await join_retirement(task)
