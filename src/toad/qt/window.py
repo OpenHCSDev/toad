@@ -108,7 +108,7 @@ from toad.sidebar_model_view import SidebarStateMachine
 from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core import session_requests
-from toad.core.events import CoordinationObserved, TabHistoryChanged
+from toad.core.events import CoordinationObserved, ExternalTranscriptChanged, TabHistoryChanged
 from toad.launch_binding import AgentBinding, NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import HomeSessionOrigin
@@ -1518,6 +1518,12 @@ class QtWorkspaceViews(WorkspaceViews):
     def detach(self, identity: str) -> ConversationView | None:
         return self.views.pop(identity, None)
 
+    def external_transcript_changed(self) -> None:
+        """Every open view reads its CLI items, shown or parked, as Textual's screens do: a
+        parked view that waited would draw what it missed as one burst on return."""
+        for view in tuple(self.views.values()):
+            view.external_transcript_changed()
+
     async def finish(self, view: ConversationView) -> None:
         # As Textual's `Conversation` unmount: the view's agent leaves its surface and stops
         # before the widgets it draws into are deleted.
@@ -1675,6 +1681,10 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.sidebar_layout.set_collapsed(ChannelsSidebarPlacement, self.settings.sidebar.hide)
         self.rearrange_sidebars()
         self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)
+        # CLI drafts and finished items change no thread status, so `CoordinationObserved`
+        # never carries them: without this a CLI's newest item waited for its next one.
+        self.transcripts = self.coordination_access.events.subscribe(
+            ExternalTranscriptChanged, self.external_transcript_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
         self.shortcuts = ShortcutLifecycle[ApplicationKeys](QApplication.instance())
@@ -1716,6 +1726,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
         self.workspace_sessions.home.project.present(self)
         self.workspace_sessions.selected.reload()
+
+    def external_transcript_changed(self, event: ExternalTranscriptChanged, subscription: object) -> None:
+        self.workspace_sessions.external_transcript_changed()
 
     def history_changed(self, *event: object) -> None:
         """Back and forward are live exactly when the visit history has a step that way."""
