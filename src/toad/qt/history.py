@@ -11,6 +11,8 @@ rows are pixels here.
 from __future__ import annotations
 
 import asyncio
+
+import shiboken6
 from abc import ABC
 from collections import deque
 from collections.abc import Awaitable, Callable, Iterator
@@ -528,6 +530,12 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
 
     history: QtConversationHistory
     # `scroll_revision` + `history_change` are declared on JumpsToLatest (shared with Textual).
+
+    @property
+    def is_attached(self) -> bool:
+        """Whether the window is still in its view, as Textual's `Widget.is_attached`
+        answers for `HistoryWindow`: `BoundView` publishes only into an attached window."""
+        return shiboken6.isValid(self) and self.parent() is not None
 
     @property
     def screen(self) -> WorkspaceFrame:

@@ -214,31 +214,12 @@ class QtMailboxView(QtThreadView, SessionScope):
         through the pager without extra async work here."""
 
     async def wait_content_ready(self) -> None:
-        """Wait for the message_history's first page to be ready, so the user
-        sees transcript content (not just an empty window) when the tab opens.
-        Textual's MainScreen awaits its presentation's `content_ready` in the
-        same shape."""
-        if hasattr(self.message_history, "wait_content_ready"):
-            await self.message_history.wait_content_ready()
+        """The first page publishes through `BoundView` once the view mounts."""
 
     # ---- SessionScope lifecycle ----
 
-    def close_core_events(self) -> None:
-        """Release the thread-observation context so the bound view's Core
-        subscription stops before the tab entry is forgotten. Mirrors the
-        teardown `TranscriptPresentation._unbind_view` does at
-        `transcript_publication.py:1026` — `ResourceRelease.close()` is the
-        `ExitStack` API."""
-        self._thread_observation.close()
-        super().close_core_events()
-
     async def retire_presentation(self) -> None:
-        """Let go of the drawn transcript before the tab it returns to is
-        shown. `message_history.retire` (if present) tears down the presentation
-        chain; otherwise there's nothing to let go of yet."""
-        retire = getattr(self.message_history, "retire", None)
-        if retire is not None:
-            await retire()
+        """A history-rows view keeps no native presentation beside its history."""
 
     def belongs_to_wire(self, root) -> bool:
         return self.root == str(root)

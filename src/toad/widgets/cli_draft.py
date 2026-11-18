@@ -4,6 +4,7 @@ from functools import partial
 
 from agent_comms.execution.transcript_sources import DraftRow
 from agent_comms.transcript.transcript_drafts import NoDraft
+from agent_comms.transcript.transcripts import TranscriptReadIdentity
 from metaclass_registry.mro_dispatch import handles
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
@@ -138,3 +139,18 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
     def line_sets(self) -> tuple[BlockLines, ...]:
         return (self._lines,)
 
+
+
+class DraftPresentation(MroProjection[None]):
+    """The CLI draft row draws a native draft and clears when Core reports none."""
+
+    @handles(DraftRow)
+    def draft(self, draft: DraftRow, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
+        widget.show(draft, resolve_sent=identity.wire_frontier.resolve_sent_messages)
+
+    @handles(NoDraft)
+    def none(self, draft: NoDraft, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
+        widget.clear()
+
+
+DRAFT_PRESENTATION = DraftPresentation()

@@ -151,13 +151,19 @@ from toad.target_commands import TargetContext
 from toad.transcript_publication import (
     BoundView,
     ObservedSourcePublication,
+    SourcePublicationWork,
     TranscriptPresentation,
     ViewBinding,
+    WindowPublicationWork,
 )
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.view_actions import LatestJumpBar
 from toad.widget_view import WorkspaceHosted
-from toad.widgets.cli_draft import CliDraft
+from toad.widgets.cli_draft import DRAFT_PRESENTATION, CliDraft
+from toad.widgets.committed_presentation import protected_blocks
+from toad.client.history_state import LiveTranscript
+from toad.screens.session_view import SessionView
+from textual.worker import get_current_worker
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.flash import ErrorFlash, Flash, SuccessFlash
 from toad.widgets.goal_bar import GoalBar
@@ -174,7 +180,7 @@ from toad.widgets.note import ErrorNote, Note
 from toad.status_thread import WorkingStatusOwner
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.prompt import Prompt
-from toad.widgets.session_details import OperationalSessionDetails
+from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
 from toad.widgets.shell_terminal import ShellTerminal
 from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
@@ -821,10 +827,6 @@ class ConversationSessionBinding(
         for history in self.contents.line_histories():
             history.state.resume_if_parked(history)
 
-    def refresh_native_projection(self) -> None:
-        """Publish bound owner facts and invalidate the delivery read resource."""
-        self.agent_binding.refresh_projection(self)
-
     def attach_launch(self, launch: AgentBinding) -> None:
         """Selection changes write the conversation's launch at its owner."""
         self.launch = launch
@@ -966,9 +968,6 @@ class Conversation(ColumnLayout,
     def thread_scope(self) -> TranscriptScope:
         return self.transcript.binding.thread_scope
 
-    def follow_latest(self) -> None:
-        self.window.jump_to_latest()
-
     def status_thread(self) -> StatusThread:
         return self.thread_scope.status_thread(
             self.app.coordination_access
@@ -1011,6 +1010,89 @@ class Conversation(ColumnLayout,
 
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
+
+    # ---- BoundViewHost: Textual draws the blocks as mounted children ----
+
+    @property
+    def live_blocks(self) -> tuple[Widget, ...]:
+        return tuple(self.contents.children)
+
+    def retire_blocks(self, blocks):
+        return self.transcript.retire_presentations(self.contents, self.output, blocks)
+
+    def protected_blocks(self, candidates):
+        return protected_blocks(self, candidates)
+
+    def blocks_in_viewport(self, candidates) -> bool:
+        # A hidden tab has no exposed viewport. Never request offscreen geometry
+        # (which could rebuild the whole scene) to decide retirement.
+        if not self.screen.is_current:
+            return False
+        visible = self.screen._compositor.published_widgets
+        viewport = self.window.published_viewport
+        return any(widget in visible and viewport.overlaps(visible[widget][0]) for widget in candidates)
+
+    def show_draft(self, draft, identity) -> None:
+        widget = self.cli_draft
+        if self.contents.children[-1] is not widget:
+            self.contents.move_child(widget, after=-1)
+        DRAFT_PRESENTATION.project_value(draft, widget, identity)
+
+    def empty_history(self) -> TranscriptHistory:
+        return TranscriptHistory.empty(view=self, notification_view=self.contents)
+
+    def later_history(self, page, source, conversation_order: int) -> TranscriptHistory:
+        later = TranscriptHistory(page, source, view=self, notification_view=self.contents,
+                                  source_state=LiveTranscript())
+        later.conversation_order = conversation_order
+        return later
+
+    def mount_history(self, history, *, before=None):
+        return self.contents.mount(history, before=before)
+
+    def remove_history(self, history):
+        return history.remove()
+
+    def after_refresh(self, callback) -> None:
+        self.call_after_refresh(callback)
+
+    def on_native_pump(self) -> bool:
+        return asyncio.current_task() is self.task
+
+    async def native_applied(self) -> bool:
+        pump = self.task
+        applied = asyncio.get_running_loop().create_future()
+
+        def complete() -> None:
+            if not applied.done():
+                applied.set_result(None)
+
+        if not self.call_later(complete):
+            return False
+        try:
+            await asyncio.wait((applied, pump), return_when=asyncio.FIRST_COMPLETED)
+            return applied.done()
+        finally:
+            applied.cancel()
+
+    def start_publication(self, task, *, exclusive: bool):
+        kind = WindowPublicationWork if exclusive else SourcePublicationWork
+        return kind.start(self, task)
+
+    def cancel_publications(self):
+        return (*WindowPublicationWork.cancelled_work(self), *SourcePublicationWork.cancelled_work(self))
+
+    def current_publication(self):
+        return get_current_worker()
+
+    def history_painted(self) -> None:
+        self.retire_loading_splash()
+        self.app.history_displayed()
+        self.query_ancestor(SessionView).history_painted()
+        self.submissions.settle()
+
+    def refresh_session_summary(self) -> None:
+        self.query_one(SessionDetails)._refresh_summary()
 
     async def submission_request_failed(self, error: RequestError, text: str) -> None:
         self.turns.finish_client()

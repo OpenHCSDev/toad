@@ -14,6 +14,8 @@ from agent_comms.transcript.transcript_events import TranscriptCoverage, Transcr
 from agent_comms.transcript.transcripts import TranscriptPage
 from metaclass_registry import AbstractHooksMeta
 
+from toad.core.source_events import TranscriptCoverage as CoverageEvent
+
 
 class CoveredHistory[Document](metaclass=AbstractHooksMeta):
     """What coverage reads from a saved history and asks it to do."""
@@ -46,8 +48,11 @@ class CoveredHistory[Document](metaclass=AbstractHooksMeta):
 class ReportsCoveredPages(metaclass=AbstractHooksMeta):
     """A history whose own page reads reach the presentation's coverage evidence."""
 
-    @abstractmethod
-    def page_covered(self, page: TranscriptPage) -> None: ...
+    def page_covered(self, page: TranscriptPage) -> None:
+        """A loaded page's coverage reaches Core through the view's transcript binding."""
+        view = self.view
+        view.transcript.binding.covered(
+            view.transcript, CoverageEvent(page.events), self).call_when_ready(view)
 
 
 class HistoryCoverage(DeclaredFamily, affix="Coverage"):

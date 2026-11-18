@@ -40,7 +40,6 @@ from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.client.history_coverage import ReportsCoveredPages
 from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_pager import ConversationPager, DrawsBusMessages, HistoryPager, NativePager
-from toad.core.source_events import TranscriptCoverage
 from toad.frame_presentation import ARRIVAL, ArrivalRun
 from toad.entry_placement import EntryPlacement
 from toad.message_rows import RecordedMessageClock
@@ -954,11 +953,6 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         self.coverage.page_added(self, page)
-
-    def page_covered(self, page: TranscriptPage) -> None:
-        view = self.view
-        view.transcript.binding.covered(
-            view.transcript, TranscriptCoverage(page.events), self).call_when_ready(view)
 
     async def restore_source(self, source: PreparedPageSource, current) -> None:
         """Put the parked pages back into the same mounted reader."""

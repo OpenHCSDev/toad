@@ -17,7 +17,6 @@ lives on the shared `CommittedHistoryBase`.
 """
 from __future__ import annotations
 
-from toad.core.source_events import TranscriptCoverage
 
 from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_coverage import ReportsCoveredPages
@@ -50,12 +49,3 @@ class QtTranscriptHistory(QtConversationHistory, CommittedHistoryBase, ReportsCo
             fragments=QT_FRAGMENT_CLASSES,
         )
 
-    def page_covered(self, page) -> None:
-        """Announce a loaded page's coverage to Core through the view's transcript
-        binding. Mirrors `TranscriptHistory.page_covered` at
-        `widgets/transcript_history.py:965` — same signal, same downstream work, no
-        toolkit branch."""
-        view = self.view
-        view.transcript.binding.covered(
-            view.transcript, TranscriptCoverage(page.events), self
-        ).call_when_ready(view)

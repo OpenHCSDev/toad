@@ -36,7 +36,6 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.client.reader_position import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
 from toad.transcript_preparation import TranscriptPageRenderTask
-from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 from toad.client.prepared_pages import PreparedPageSource, SavedHistory
 from formbridge.forms.declared_fields import DeclaredViews
 
@@ -121,7 +120,7 @@ class PreparedPageCommit(PreparedCommit, shows=(PreparedPageSource,)):
 
     @classmethod
     async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
-        prepared = await TranscriptPageRenderTask(page, TEXTUAL_FRAGMENT_CLASSES).prepared(view.app.preparation)
+        prepared = await TranscriptPageRenderTask(page, history.page_source.fragments).prepared(view.app.preparation)
         return cls(history, sequences, prepared)
 
     @property
@@ -186,7 +185,7 @@ class CommitPlan(ABC):
         pass
 
     def permits(self, view: Conversation, candidates: Iterable[Widget]) -> bool:
-        return not protected_blocks(view, candidates)
+        return not view.protected_blocks(candidates)
 
     def ready(self, history: CommittedHistory) -> bool:
         return history.source_ready
@@ -227,7 +226,7 @@ class FollowTailCommit(CommitPlan):
 
     def finish(self, view, cursor) -> None:
         view.transcript.binding.painted(view.transcript, cursor)
-        view.call_after_refresh(self.restore_reader, view.window)
+        view.after_refresh(partial(self.restore_reader, view.window))
 
     def restore_reader(self, window) -> None:
         # The publication's captured intent owns its deferred layout effect as
@@ -243,16 +242,7 @@ class RetainViewportCommit(CommitPlan):
 
     def permits(self, view, candidates) -> bool:
         candidates = tuple(candidates)
-        if not super().permits(view, candidates):
-            return False
-        # Hidden tabs have no exposed viewport. Never request offscreen geometry
-        # (which could rebuild the whole scene) to decide retirement.
-        if not view.screen.is_current:
-            return True
-        visible = view.screen._compositor.published_widgets
-        viewport = view.window.published_viewport
-        return not any(widget in visible and viewport.overlaps(visible[widget][0])
-                       for widget in candidates)
+        return super().permits(view, candidates) and not view.blocks_in_viewport(candidates)
 
     def commit(self, prepared, cursor) -> None:
         prepared.history.retain_committed(cursor)
