@@ -20,10 +20,15 @@ def main(arguments: list[str] = sys.argv) -> None:
     application = FrameProbe.application(arguments[:1])
     scheme = current_scheme(os.environ)
     QtSplash.shown(application, scheme)
-    # The client loads once the first frame is up: importing it is most of a start.
+    # The client loads once the first frame is up: importing it is most of a start. The
+    # desktop selects its Core as Toad's terminal launch does (`select_connection`: a UI
+    # profile reaches Core through its connector, otherwise this machine's bus, under which
+    # agents start); Android's start is always remote and never loads `local_connection`.
+    from toad.client.local_connection import select_connection
     from toad.qt.client_start import serve_launch
 
-    serve_launch(arguments, scheme)
+    own = arguments[1:]
+    serve_launch(select_connection(own), own, scheme)
 
 
 if __name__ == "__main__":

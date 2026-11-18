@@ -109,13 +109,9 @@ async def serve(connection: CoreConnection, project: Checkout, scheme: ColourSch
     await app.close_client()
 
 
-def serve_launch(arguments: list[str], scheme: ColourScheme) -> None:
-    """Serve the Core the desktop launch's arguments select, as Toad's terminal launch
-    selects it (`CoreConnection.select`: a UI profile reaches Core through its connector,
-    over the process-decoding connection; otherwise this machine's bus, under which agents
-    start), until the application ends."""
-    own = arguments[1:]
-    connection = CoreConnection.select(own)
+def serve_launch(connection: CoreConnection, own: list[str], scheme: ColourScheme) -> None:
+    """Serve ``connection``, the Core the desktop entry selected from its arguments, with the
+    project and ``-a`` agent the rest of ``own`` name, until the application ends."""
     parser = argparse.ArgumentParser(prog="toad.qt.main")
     parser.add_argument("project", type=Path, nargs="?", default=Path.home())
     parser.add_argument("-a", "--agent", default="", help="The agent New Session starts, as Toad's -a.")

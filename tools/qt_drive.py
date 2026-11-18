@@ -44,6 +44,7 @@ from toad.qt.settings_screen import QtSettingsScreen
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import CoreConnection
+from toad.client.local_connection import select_connection
 from toad.client.line_blocks import LineLink
 from toad.qt.client_start import open_app
 from toad.qt.glyph_fonts import install_glyph_fonts
@@ -2389,7 +2390,7 @@ async def drive(scenario: type[Scenario], connection: CoreConnection, out: Path)
 
 def main(arguments: list[str]) -> None:
     own = arguments[1:]
-    connection = CoreConnection.select(own) if len(own) == 4 else None
+    connection = select_connection(own) if len(own) == 4 else None
     if connection is None or len(own) != 2:
         names = "\n".join(f"  {member.declared_name:10} {member.summary}" for member in Scenario.members_with(Scenario))
         raise SystemExit(f"usage: {arguments[0]} SCENARIO OUTDIR (--comms-profile PROFILE | --comms-root ROOT)\n{names}")

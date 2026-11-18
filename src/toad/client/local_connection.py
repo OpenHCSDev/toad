@@ -64,6 +64,10 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
 
     agent_processes: ClassVar[AgentProcesses] = SpawnsAgentProcesses()
 
+    def chosen(self, arguments: list[str]) -> CoreConnection:
+        """Read as a launch reads its arguments: a profile is remote, a root this machine's."""
+        return select_connection(arguments)
+
     @classmethod
     def from_launch(cls, root: LaunchRoot) -> LocalCoreConnection:
         return cls(root.path)

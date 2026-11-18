@@ -207,9 +207,9 @@ class CoreConnection(ABC):
     def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
+    @abstractmethod
     def chosen(self, arguments: list[str]) -> CoreConnection:
-        """The connection a bus the owner chose names, read as a launch reads its arguments."""
-        return CoreConnection.select(arguments)
+        """The connection a bus the owner chose names, read by this connection's kind."""
 
     def close(self) -> None:
         """Release connection-owned work after its observations and reads end."""
