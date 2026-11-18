@@ -34,6 +34,8 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QStackedWidget,
     QToolButton,
     QTreeWidget,
@@ -1617,16 +1619,29 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                                     self.theme.color_scheme.to_qcolor(self.theme.color_scheme.text_primary))
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
-        self.tabs.setUsesScrollButtons(True)
-        self.tabs.setElideMode(Qt.TextElideMode.ElideRight)
+        # Each tab keeps its own width and the strip scrolls: a swipe moves it on the phone
+        # (every scroll area scrolls by finger, `finger_scrolling`), where many tabs were
+        # squeezed behind two arrow buttons. A right-click, which a held finger is
+        # (`finger_press`), offers the shared tab menu: moving and closing.
+        self.tabs.setUsesScrollButtons(False)
+        self.tabs.setElideMode(Qt.TextElideMode.ElideNone)
         self.tabs.tabBarClicked.connect(self.visit_index)
         self.tabs.tabCloseRequested.connect(self.close_index)
         self.tabs.tabMoved.connect(self.move_index)
+        self.tabs.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tabs.customContextMenuRequested.connect(self.offer_tab_menu)
+        self.tab_strip = QScrollArea(self)
+        self.tab_strip.setWidget(self.tabs)
+        self.tab_strip.setWidgetResizable(True)
+        self.tab_strip.setFrameShape(QFrame.Shape.NoFrame)
+        self.tab_strip.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tab_strip.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tab_strip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
         for widget in (self.menu, self.back, self.forward):
             bar.addWidget(widget)
-        bar.addWidget(self.tabs, 1)
+        bar.addWidget(self.tab_strip, 1)
         # The bar row is Toad's header band: a frame in the theme's header tone. Notices
         # float over the pages in `float_layer`; they are no part of this band.
         self.navigation = chrome = QFrame(self)
@@ -1750,6 +1765,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         modes = self.session_navigation.tab_modes
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
+        # The strip is as tall as its tabs, and the selected one is in view however far it scrolled.
+        self.tab_strip.setFixedHeight(self.tabs.sizeHint().height())
+        if (index := self.tabs.currentIndex()) >= 0:
+            rect = self.tabs.tabRect(index)
+            self.tab_strip.ensureVisible(rect.center().x(), rect.center().y(), rect.width() // 2 + UiGap.dialog, 0)
         self.present_panes()
         self.input_attention.update()
 
@@ -1812,7 +1832,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def show_session_tabs(self, shown: bool) -> None:
         self.paint_tabs()
-        self.tabs.setVisible(shown)
+        self.tab_strip.setVisible(shown)
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:
         """Read through SidebarLayout — the single collapsed-state owner. A collapsed
@@ -2133,6 +2153,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def close_index(self, index: int) -> None:
         self.close_session(self.session_navigation.tabs[index].mode_name)
+
+    def offer_tab_menu(self, point: QPoint) -> None:
+        """The tab under a right-click or a held finger offers the shared tab menu."""
+        index = self.tabs.tabAt(point)
+        if index >= 0:
+            self.offer_entries(self.session_navigation.tab_menu(self.session_navigation.tabs[index].mode_name))
 
     def move_index(self, start: int, end: int) -> None:
         """A tab dragged from one place in the bar to another: it moves past the tab it

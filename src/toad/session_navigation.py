@@ -42,6 +42,7 @@ from toad.launch_binding import (
 from toad.navigation_preparation import CommsNavigationRequest, ThreadNavigationRequest
 from toad.navigation_target import DirectTarget, HistoryRouted
 from toad.client.history_entry import HistorySessionEntry
+from toad.client.menu_entry import MenuEntry
 from toad.client.session_entry import NativeSessionEntry, PreviewSessionEntry, SessionEntry
 from toad.client.session_scope import SessionScope
 from toad.session_host import NavigationHost, SessionNavigator
@@ -471,6 +472,26 @@ class SessionNavigation(StartsSessions, SessionNavigator):
     def tabs(self) -> tuple[OpenTab, ...]:
         observed = self.app.coordination_access.observation
         return self.app.tab_order.project(observed.tabs(self))
+
+    def tab_menu(self, mode_name: str) -> tuple[MenuEntry, ...]:
+        """What a right-click or a held finger on an open tab offers, in every frontend: move
+        it past the open tab beside it, or close it. A move counts its steps in the shared
+        order, which also holds saved tabs this window has not opened, as a dragged tab's does."""
+        tabs = self.tabs
+        modes = [tab.mode_name for tab in tabs]
+        if mode_name not in modes:
+            return ()
+        index, order = modes.index(mode_name), self.app.tab_order.names
+        here = order.index(tabs[index].identity)
+        publish = self.events.publish
+        entries = [
+            MenuEntry(label, partial(publish, session_requests.SessionMove(
+                mode_name, order.index(tabs[beside].identity) - here)))
+            for label, beside in (("Move left", index - 1), ("Move right", index + 1))
+            if 0 <= beside < len(tabs)
+        ]
+        entries.append(MenuEntry("Close tab", partial(publish, session_requests.SessionClose(mode_name))))
+        return tuple(entries)
 
     @property
     def tab_modes(self) -> tuple[str, ...]:

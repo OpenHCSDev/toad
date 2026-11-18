@@ -306,6 +306,47 @@ class TabsScenario(Scenario):
               "saved:", [row.identity.mode_name for row in saved], flush=True)
 
 
+class TabStripScenario(Scenario):
+    summary = ("at phone width, open COUNT (6) sidebar threads as tabs: the strip scrolls instead of "
+               "squeezing them, no tab's title is cut short, the selected tab is in view, and a "
+               "right-click (a held finger) on a tab offers Move left/right and Close tab; Move right "
+               "moves it past its neighbour")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.listed()
+        count = int(os.environ.get("COUNT", "6"))
+        await self.expand("#comms")
+        await until(lambda: len(self.thread_rows()) >= 3, "three sidebar threads")
+        rows = self.thread_rows()[:count]
+        for opened, row in enumerate(rows, 1):
+            app.open_row(row)
+            await until(lambda: app.tabs.count() >= opened, f"tab {opened}")
+        await asyncio.sleep(1.5)
+        strip, tabs = app.tab_strip, app.tabs
+        titles = [tabs.tabText(index) for index in range(tabs.count())]
+        cut = [title for index, title in enumerate(titles)
+               if tabs.fontMetrics().horizontalAdvance(title) > tabs.tabRect(index).width()]
+        scrolls = strip.horizontalScrollBar().maximum()
+        current = tabs.tabRect(tabs.currentIndex())
+        seen = strip.viewport().rect().translated(strip.horizontalScrollBar().value(), 0)
+        self.report("1-many-tabs", tabs=len(titles), strip_scrolls=scrolls, cut=cut[:3],
+                    selected_in_view=seen.contains(current.center()))
+        assert scrolls > 0, "the tabs were squeezed into the strip instead of scrolling"
+        assert not cut, f"tab titles cut short: {cut[:3]}"
+        assert seen.contains(current.center()), "the selected tab is scrolled out of view"
+        first = tabs.tabData(0)
+        tabs.customContextMenuRequested.emit(tabs.tabRect(0).center())
+        await asyncio.sleep(0.4)
+        offered = [row.label.text() for row in app.menu_panel.findChildren(QtMenuRow)]
+        self.report("2-tab-menu", offered=offered)
+        assert offered == ["Move right", "Close tab"], f"first tab offered {offered}"
+        next(row for row in app.menu_panel.findChildren(QtMenuRow) if row.label.text() == "Move right")._fire()
+        await until(lambda: tabs.tabData(1) == first, "the first tab moved right")
+        self.report("3-moved", order=[tabs.tabData(index) for index in range(tabs.count())][:4])
+
+
 class ActivityScenario(Scenario):
     summary = "open a working thread's DM (else the first thread); print its info row and activity"
 
