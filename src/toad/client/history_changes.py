@@ -158,7 +158,7 @@ class ArrivalBurst:
         `shown` of them, under a count line; none for a burst of one, or once the reader is
         above the burst (no head is above the top row then). The top row's own message pins
         its header as before and is not stacked twice."""
-        if len(self.messages) < 2 or not pinned.width:
+        if len(self.messages) < 2 or not pinned.width or not pinned.headers:
             return NO_STACK
         own = pinned.headers[-1:]
         above = [message for message in self.messages[:-1]
