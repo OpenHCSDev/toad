@@ -20,7 +20,7 @@ from toad.client.application_actions import (
 )
 from toad.widget_actions import VimWorkspaceAction
 from toad.widgets.comms_transfer import Transfer, Transfers
-from toad.core.session_requests import SessionNavigate
+from toad.core.session_requests import SessionMove, SessionNavigate
 from toad.sidebar_placement import LeftSidebarEdge, RightSidebarEdge, SidebarEdge
 
 if TYPE_CHECKING:
@@ -163,9 +163,7 @@ class VimMoveTabAction(VimWorkspaceAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:
-        if entry := app.session_navigation.get(app.selected_mode):
-            await app.tab_order.move(entry.identity, self.direction)
-            app.session_navigation.publish()
+        app.session_navigation.events.publish(SessionMove(app.selected_mode, self.direction))
 
 
 class VimMoveTabLeftAction(VimMoveTabAction):

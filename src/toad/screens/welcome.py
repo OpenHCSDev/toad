@@ -105,6 +105,14 @@ class WelcomeSection(WelcomeListing, SpacedAbove, SidebarGroup[ListedRow]):
         # Shown once the model lists something for it.
         self.display = False
 
+    def on_mount(self) -> None:
+        self.expanded = self.app.sidebar_state.welcome_section_open(self.TITLE)
+        super().on_mount()
+
+    def toggle_members(self) -> None:
+        super().toggle_members()
+        self.app.sidebar_state.set_welcome_section_open(self.TITLE, self.expanded)
+
     @property
     def member_keys(self):
         return self.listed(self.query_ancestor(WelcomeEntries).model_state.shown)

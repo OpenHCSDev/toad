@@ -8,12 +8,19 @@ from functools import partial
 from typing import TYPE_CHECKING, Literal
 
 from agent_comms.planning.command import Command
+from formbridge.operations import OperationKind
 from agent_comms.projects.checkouts import Checkout
 
 from toad.core.events import CoreEvent
 
 if TYPE_CHECKING:
+    from toad.navigation_target import NavigationTarget
     from toad.session_navigation import SessionNavigation
+
+
+class SessionRequestApply(OperationKind):
+    """A workspace session request applied by the session navigator; requests run side by
+    side, in the order they were published."""
 
 
 class WorkspaceSessionRequest(Command, CoreEvent):
@@ -66,6 +73,35 @@ class SessionRename(WorkspaceSessionRequest):
         source = navigation.source(self.mode_name)
         if name and source is not None:
             await source.conversation.rename_session(name)
+
+
+@dataclass(frozen=True)
+class SessionMove(WorkspaceSessionRequest):
+    """Move a tab ``steps`` places in the shared tab order (negative: toward the start)."""
+
+    mode_name: str
+    steps: int
+
+    async def apply(self, navigation: SessionNavigation) -> None:
+        if entry := navigation.get(self.mode_name):
+            await navigation.app.tab_order.move(entry.identity, self.steps)
+            navigation.publish()
+
+
+@dataclass(frozen=True)
+class TargetOpen(WorkspaceSessionRequest):
+    """Open a thread or channel as its sidebar row does, from home: a row's tap or a link
+    naming it. Home is the origin whichever tab the request came from."""
+
+    target: NavigationTarget
+
+    async def apply(self, navigation: SessionNavigation) -> None:
+        from toad.constants import WELCOME
+        from toad.navigation_context import NavigationContext
+
+        app = navigation.app
+        await self.target.open(NavigationContext(app=app, owner_mode=WELCOME,
+                                                 project_path=app.project_dir, actor=""))
 
 
 @dataclass(frozen=True)

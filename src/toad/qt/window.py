@@ -104,13 +104,13 @@ from toad.sidebar_model_view import SidebarStateMachine
 from toad.client.tab_identity.kinds import CommsTab
 from toad.command_catalog import CommandCatalog
 from toad.constants import WELCOME
+from toad.core import session_requests
 from toad.core.events import CoordinationObserved, TabHistoryChanged
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sidebar_panels import PanelSpec
-from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
 )
@@ -157,10 +157,6 @@ from toad.terminal_origin import TerminalOrigin
 from toad.work_preparation import PreparationRuntime
 
 
-class ConversationOpen(OperationKind, ExclusiveKind):
-    """Opens a tapped row's conversation in its tab; a newer tap supersedes the running one."""
-
-
 class CommandRead(OperationKind, ExclusiveKind):
     """Reads the conversation's command catalog for its composer; a newer read supersedes it."""
 
@@ -177,14 +173,6 @@ def _block_menu_commands(fragment: TranscriptFragment) -> Iterator[MenuCommand]:
     the per-fragment addition without the consumer having to ask what subclass it has."""
     yield from standard_commands(fragment)
     yield from fragment.block_menu
-
-
-class TabClose(OperationKind):
-    """Closes one tab; closes run side by side."""
-
-
-class TabMove(OperationKind):
-    """Moves one dragged tab in the shared tab order; moves run in the order dragged."""
 
 
 @dataclass(frozen=True)
@@ -278,10 +266,15 @@ class SidebarSection(SidebarItem):
 
 
 class OpenSection(SidebarSection):
-    """A section that starts open, as the welcome's do; a tap still closes it."""
+    """A welcome section: open as the shared sidebar state says (`welcome_section_open`), so
+    it stays as the reader left it however often the listing is drawn again."""
 
     def placed(self) -> None:
-        self.setExpanded(True)
+        self.setExpanded(self.treeWidget().window.sidebar_state.welcome_section_open(self.key))
+
+    def activate(self, window: QtToadApp) -> None:
+        super().activate(window)
+        window.sidebar_state.set_welcome_section_open(self.key, self.isExpanded())
 
 
 class UnavailableSection(SidebarSection):
@@ -704,41 +697,70 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         """The welcome leaves the sidebar as the user left it, as Textual's welcome does."""
 
 
-class KeptLines:
-    """One tree line's children through one redraw, by kind and key. A line still wanted
-    keeps its item, so a press on it and its open or closed group survive the update; the
-    lines no longer wanted go at the end. One redraw visits each line once."""
+class TreeItemRows[KeyT](KeyedRows[KeyT]):
+    """The shared `KeyedRows` reconciliation over one tree item's children. Qt forgets an
+    item's open groups when the item is taken out of the tree, so a reorder reopens them
+    where they land."""
+
+    parent: QTreeWidgetItem
+
+    def member_order(self) -> Iterator[QTreeWidgetItem]:
+        return (self.parent.child(index) for index in range(self.parent.childCount()))
+
+    def row_attached(self, row: QTreeWidgetItem) -> bool:
+        return row.parent() is self.parent or (row.parent() is None and row.treeWidget() is not None
+                                               and self.parent is row.treeWidget().invisibleRootItem())
+
+    def mount_row(self, row: QTreeWidgetItem) -> None:
+        self.parent.addChild(row)
+
+    def order_rows(self, position) -> None:
+        """Move only the lines out of place, each where it belongs, reopening its groups."""
+        for index, row in enumerate(sorted(self.member_order(), key=position)):
+            if self.parent.child(index) is not row:
+                opened = [group for group in row.subtree() if group.isExpanded()]
+                self.parent.takeChild(self.parent.indexOfChild(row))
+                self.parent.insertChild(index, row)
+                for group in opened:
+                    group.setExpanded(True)
+
+    def retire_row(self, row: QTreeWidgetItem) -> None:
+        self.parent.removeChild(row)
+
+
+class KeptLines(TreeItemRows[tuple[type, str]]):
+    """One tree line's children through one redraw, by kind and key, on the shared
+    `KeyedRows`: a line still wanted keeps its item, so a press on it and its open or closed
+    group survive the update; a new line joins; the lines no longer wanted go and the rest
+    take the drawn order when the redraw closes."""
 
     def __init__(self, parent: QTreeWidgetItem) -> None:
         self.parent = parent
-        self.previous = {(type(line), line.key): line
-                         for line in (parent.child(index) for index in range(parent.childCount()))}
-        self.count = 0
+        self.rows = {(type(line), line.key): line for line in self.member_order()}
+        self.wanted: list[tuple[type, str]] = []
 
     def keep[Row: SidebarItem](self, line: Row) -> Row:
-        kept = self.previous.pop((type(line), line.key), line)
-        kept.draw(*line.drawn)
-        if kept is line:
-            self.parent.insertChild(self.count, line)
+        key = (type(line), line.key)
+        kept = self.rows.get(key)
+        if kept is None:
+            # A new line joins where this redraw has reached, so a steady listing moves nothing.
+            kept = self.rows[key] = line
+            self.parent.insertChild(len(self.wanted), line)
             line.placed()
-        elif self.parent.child(self.count) is not kept:
-            # The view holds which groups are open; a taken item forgets, so a moved line
-            # opens its groups again where it lands.
-            opened = [group for group in kept.subtree() if group.isExpanded()]
-            self.parent.takeChild(self.parent.indexOfChild(kept))
-            self.parent.insertChild(self.count, kept)
-            for group in opened:
-                group.setExpanded(True)
-        self.count += 1
+        else:
+            kept.draw(*line.drawn)
+        self.wanted.append(key)
         return kept
+
+    def create_row(self, key):
+        raise LookupError(f"{key} was drawn without being kept")
 
     def group(self, line: SidebarItem) -> KeptLines:
         """``line`` kept, with its own children kept in turn until the group closes."""
         return KeptLines(self.keep(line))
 
     def close(self) -> None:
-        for _ in range(self.parent.childCount() - self.count):
-            self.parent.takeChild(self.count)
+        self.reconcile_keys(self.wanted, changed=frozenset())
 
     def __enter__(self) -> Self:
         return self
@@ -859,7 +881,7 @@ class HeaderLineControl(QWidget):
         event.ignore()
 
 
-class QtChannelGroup(ChannelGroupRows, KeyedRows[str]):
+class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
     """One channel's section in the Qt sidebar, backed by its persistent `ConversationRow`
     item. Implements the `ChannelGroupRows` contract so `ChangedChannels` and
     `ChangedThreads` dispatch directly through `GroupedSidebar.apply_comms` without a full
@@ -938,22 +960,10 @@ class QtChannelGroup(ChannelGroupRows, KeyedRows[str]):
                            action_status=self.sidebar.window.thread_actions.pending.get(key),
                            counts=self.sidebar.window.settings.sidebar.unread_counts)
 
-    # KeyedRows: the channel's tree item is the container
-
-    def member_order(self) -> Iterator[ThreadLine]:
-        return (self.row.child(index) for index in range(self.row.childCount()))
-
-    def row_attached(self, row: ThreadLine) -> bool:
-        return row.parent() is self.row
-
-    def mount_row(self, row: ThreadLine) -> None:
-        self.row.addChild(row)
-
-    def order_rows(self, position) -> None:
-        self.row.addChildren(sorted(self.row.takeChildren(), key=position))
-
-    def retire_row(self, row: ThreadLine) -> None:
-        self.row.removeChild(row)
+    @property
+    def parent(self) -> ChannelLine:
+        """TreeItemRows: the channel's own line holds its thread lines."""
+        return self.row
 
 
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
@@ -2024,22 +2034,9 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.open_target(row.target)
 
     def open_target(self, target: NavigationTarget) -> None:
-        """Open a thread or channel as its sidebar row does: from a row, or a link naming it."""
-        context = NavigationContext(
-            app=self,
-            owner_mode=WELCOME,
-            project_path=self.project_dir,
-            actor="",
-        )
-        self.run_operation(ConversationOpen, partial(self._open_target, target, context))
-
-    async def _open_target(self, target: NavigationTarget, context: NavigationContext) -> None:
-        """Route through home: mirrors Textual's `screens/comms.py:254` which also passes
-        `WELCOME` as the owner_mode regardless of which tab the row is tapped from.
-        `QtWorkspaceViews.origin(WELCOME)` hands `thread_navigation.open` a
-        `QtWelcomeOrigin` whose `thread_identity` is observed off the thread so the
-        navigator's `origin.current` check can match it."""
-        await target.open(context)
+        """Open a thread or channel as its sidebar row does: from a row, or a link naming it.
+        The shared navigator applies the request (`TargetOpen`), from home."""
+        self.session_navigation.events.publish(session_requests.TargetOpen(target))
 
     @property
     def selected_mode(self) -> str:
@@ -2105,20 +2102,16 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.switch(self.session_navigation.tabs[index].mode_name, self.tab_order.record_visit)
 
     def close_index(self, index: int) -> None:
-        self.run_operation(TabClose, partial(self.session_navigation.close,
-                                             self.session_navigation.tabs[index].mode_name))
+        self.close_session(self.session_navigation.tabs[index].mode_name)
 
     def move_index(self, start: int, end: int) -> None:
         """A tab dragged from one place in the bar to another: it moves past the tab it
         displaced in the shared order, which also holds saved tabs this window has not
         opened, and the bar draws that order again."""
         tabs, order = self.session_navigation.tabs, self.tab_order.names
-        moved, displaced = tabs[start].identity, tabs[end].identity
-        self.run_operation(TabMove, partial(self.move_tab, moved, order.index(displaced) - order.index(moved)))
-
-    async def move_tab(self, identity: CommsTab, steps: int) -> None:
-        await self.tab_order.move(identity, steps)
-        self.paint_tabs()
+        moved, displaced = tabs[start], tabs[end].identity
+        self.session_navigation.events.publish(session_requests.SessionMove(
+            moved.mode_name, order.index(displaced) - order.index(moved.identity)))
 
     def go_back(self) -> None:
         """Android back: an open sidebar goes down first; then the visit history's previous

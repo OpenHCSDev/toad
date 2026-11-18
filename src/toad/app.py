@@ -39,7 +39,7 @@ from toad.client.bus_selection import BusChoice, PickerRow, TailnetAnswer
 from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
 from toad.core import events as core_events
-from toad.core import input_events, session_requests
+from toad.core import input_events
 from toad.file_kind import FileKind
 from toad.launch_binding import AgentBinding
 from toad.native_style import TransparentBackground
@@ -177,7 +177,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         # The themed app opened the settings that own this terminal's sidebar arrangement.
         self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of())
         self._return_value: ApplicationOutcome = Ended(self.application.version)
-        self.session_navigation.bind_events()
         self.set_reactive(ToadApp.project_dir, project_dir)
 
     @handles(input_events.ChangeDirectory)
@@ -538,10 +537,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def history_displayed(self) -> None:
         """A view's history was painted."""
         self.heap.history_displayed(self)
-
-    @handles(session_requests.WorkspaceSessionRequest)
-    async def on_workspace_session_request(self, event: session_requests.WorkspaceSessionRequest) -> None:
-        await event.apply(self.session_navigation)
 
     @on(events.TextSelected)
     async def on_text_selected(self) -> None:

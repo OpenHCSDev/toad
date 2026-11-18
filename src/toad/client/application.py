@@ -152,6 +152,8 @@ class ClientApplication(BusPickerHost, NavigationHost):
         )
         self._session_tracker = SessionTracker(self.tab_order)
         self.coordination_access = connection.open_access(self)
+        # Every frontend acts on the workspace requests published on the navigator.
+        self.session_navigation.bind_events()
         # One switch at a time: a second pick waits for the first to finish moving the owners.
         self.bus_switching = asyncio.Lock()
 
