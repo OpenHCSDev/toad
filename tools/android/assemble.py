@@ -62,7 +62,7 @@ for name, entry in json.loads(closure_file.read_text()).items():
         shutil.copy2(root, target)
     print(f"{name:26} {sum(1 for _ in target.rglob('*.py')) if target.is_dir() else 1} files")
 
-compileall.compile_dir(app, quiet=1, optimize=2, workers=0,
+compileall.compile_dir(app, quiet=1, optimize=2, workers=1,
                        invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH)
 shutil.copy2(HERE / "main.py", app / "main.py")
 held = app / "profile.json"
