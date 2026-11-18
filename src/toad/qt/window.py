@@ -1193,11 +1193,15 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             status_item.draw(*target.drawn)
 
     def _rebind_groups_from_tree(self, model: SidebarModel) -> None:
-        """A wholesale redraw rebuilt the tree's top-level items, so the previous
-        `QtChannelGroup` instances now point at detached rows. Walk the current tree
-        and rebuild the groups map so the next targeted sync hits live children."""
+        """Index the groups against the tree a wholesale redraw left. The redraw keeps a
+        wanted line's item (`redraw`), so a channel whose row is still the one its group holds
+        keeps that group and its header control, repainted from the row as drawn now; only a
+        channel whose row is new builds a group. Building one makes its header's widgets, and
+        on a phone a redraw arrives with each bus change, so rebuilding them all every time
+        stalled the window for each change."""
         channel_models = model.channels.rows
         root = self.invisibleRootItem()
+        previous = self.groups
         rebuilt: dict[str, QtChannelGroup] = {}
         for index in range(root.childCount()):
             item = root.child(index)
@@ -1206,7 +1210,13 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             name = item.key
             if name not in channel_models:
                 continue
-            group = QtChannelGroup(self, name, item)
+            group = previous.get(name)
+            if group is None or group.row is not item:
+                group = QtChannelGroup(self, name, item)
+            else:
+                badge, label, _, _ = item.drawn
+                item.header.show_title(label, badge)
+                group.rows = {}
             group.channel = channel_models[name]
             group.sort_choice.update_order(group.channel.order)
             # Index the thread children the wholesale redraw just placed.
@@ -1642,7 +1652,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.channel_sort = QtChannelListSort(self)
         self.sidebar_search = QtSidebarShell(
             self.sidebar.filter,
-            QtSidebarPanels(self.sidebar_state, (QtPanelEntry(CHANNELS_PANEL, self.sidebar, (self.channel_sort,), CHANNELS_PANEL.title),)),
+            QtSidebarPanels(self.sidebar_state, (QtPanelEntry.of(CHANNELS_PANEL, self.sidebar, (self.channel_sort,), CHANNELS_PANEL.title),)),
             parent=self)
         self.thread_pane = ThreadSettingsPane(self, parent=self,
                                               project_path=self.project_dir.path)

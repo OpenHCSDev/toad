@@ -1362,15 +1362,16 @@ class PanelMenu(PanelMenuModel["SideBar.Panel"], FillHeight, containers.Vertical
             page.display = panel is entry
             panel.widget.sidebar_visibility_changed()
         if entry not in self.pages:
-            children = (() if entry.header_control is None else (entry.header_control,))
-            page = PanelPage(*children, entry.widget, id=entry.id)
-            self.pages[entry] = page
-            await self.body.mount(page)
+            await self.body.mount(self.page(entry))
         self.remember_entry(entry)
         entry.widget.sidebar_visibility_changed()
 
     def entry_identity(self, entry) -> object:
         return entry.widget.panel_identity
+
+    def realize_page(self, entry):
+        children = (() if entry.header_control is None else (entry.header_control,))
+        return PanelPage(*children, entry.widget, id=entry.id)
 
     def activate(self, widget):
         self.picker.value = next(entry for entry in self.entries if entry.widget is widget)

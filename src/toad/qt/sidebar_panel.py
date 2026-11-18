@@ -17,9 +17,9 @@ panel keyed by the same title stays in sync between frontends.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from functools import partial
+from functools import cached_property, partial
 
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
@@ -240,13 +240,32 @@ class QtSidebarPanels(SidebarPanelColumn["QtPanelEntry"], QScrollArea, metaclass
 
 @dataclass(frozen=True, eq=False)
 class QtPanelEntry:
-    """One entry of a `QtPanelMenu`: its panel spec, the widget the page shows, the controls
-    the page sets above it (Textual's `SideBar.Panel.header_control`), and what names it."""
+    """One entry of a `QtPanelMenu` or a panel column: its panel spec, how its page's widget
+    is built, the controls the page sets above it (Textual's `SideBar.Panel.header_control`),
+    and what names it. The widget is built the first time something shows it: a viewed object
+    lists one page per setting and the menu shows one at a time (`PanelMenuModel.page`)."""
 
     spec: PanelSpec
-    widget: QWidget
+    build: Callable[[], QWidget]
     controls: tuple[QWidget, ...]
     identity: object
+
+    @classmethod
+    def of(cls, spec: PanelSpec, widget: QWidget, controls: tuple[QWidget, ...], identity: object) -> QtPanelEntry:
+        """An entry over a widget that already exists: a pane's own panels."""
+        return cls(spec, lambda: widget, controls, identity)
+
+    @cached_property
+    def widget(self) -> QWidget:
+        return self.build()
+
+    def built(self) -> bool:
+        return "widget" in vars(self)
+
+    def release_page(self) -> None:
+        """The view this entry's page edited is no longer bound."""
+        if self.built():
+            self.widget.release_page()
 
 
 class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMeta):
@@ -259,14 +278,15 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
         self.setWindowFlags(Qt.WindowType.Widget)
         self.navigation = navigation
         self.entries = ()
+        self.pages = {}
         self.picker = QComboBox(self)
         self.picker.currentIndexChanged.connect(self._picked)
-        self.pages = QStackedWidget(self)
+        self.stack = QStackedWidget(self)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.picker)
-        layout.addWidget(self.pages, 1)
+        layout.addWidget(self.stack, 1)
 
     def entry_identity(self, entry: QtPanelEntry) -> object:
         return entry.identity
@@ -276,20 +296,19 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
         over its widget; widgets of entries listed again keep their state."""
         self.picker.blockSignals(True)
         self.picker.clear()
-        for entry in self.entries:
+        for entry in self.pages:
             for widget in (entry.widget, *entry.controls):
                 widget.hide()
                 widget.setParent(self)
-        while self.pages.count():
-            page = self.pages.widget(0)
-            self.pages.removeWidget(page)
+        for page in self.pages.values():
+            self.stack.removeWidget(page)
             page.deleteLater()
+        self.pages = {}
         self.entries = entries
         for entry in entries:
             self.picker.addItem(entry.spec.title)
-            self.pages.addWidget(self._page(entry))
         self.picker.setCurrentIndex(entries.index(self.initial_entry()))
-        self.pages.setCurrentIndex(self.picker.currentIndex())
+        self.show_entry(self.entries[self.picker.currentIndex()])
         self.picker.blockSignals(False)
 
     def add_entries(self, entries: tuple[QtPanelEntry, ...]) -> None:
@@ -299,11 +318,10 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
         self.picker.blockSignals(True)
         for entry in entries:
             self.picker.addItem(entry.spec.title)
-            self.pages.addWidget(self._page(entry))
         self.picker.blockSignals(False)
 
-    def _page(self, entry: QtPanelEntry) -> QWidget:
-        page = QWidget(self.pages)
+    def realize_page(self, entry: QtPanelEntry) -> QWidget:
+        page = QWidget(self.stack)
         page.setWindowFlags(Qt.WindowType.Widget)
         column = QVBoxLayout(page)
         column.setContentsMargins(0, 0, 0, 0)
@@ -320,9 +338,13 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
         entry.widget.setParent(page)
         column.addWidget(entry.widget, 1)
         entry.widget.show()
+        self.stack.addWidget(page)
         return page
+
+    def show_entry(self, entry: QtPanelEntry) -> None:
+        self.stack.setCurrentWidget(self.page(entry))
 
     def _picked(self, index: int) -> None:
         entry = self.entries[index]
-        self.pages.setCurrentIndex(index)
+        self.show_entry(entry)
         self.remember_entry(entry)

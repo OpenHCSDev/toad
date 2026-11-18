@@ -23,7 +23,7 @@ from typing import ClassVar
 
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
-from PySide6.QtGui import QMouseEvent
+from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QMouseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -1521,6 +1521,153 @@ class WaveScenario(Scenario):
             await asyncio.sleep(2.0)
             self.report("5-tab", waving_tabs=[mode for mode, wave in app.tabs.waves.items()
                                               if wave.wave_running()])
+
+
+class FrameScenario(Scenario):
+    summary = ("frame budget: the GUI thread's stalls and key-to-paint latency (toad.qt.frame_probe) "
+               "while idle with the sidebar's waves running, while scrolling #comms, and while typing "
+               "into scratch-live-pipeline's composer (never sent); one probe line per phase in "
+               "OUT/frame-probe.log")
+
+    width: ClassVar[int] = 412
+    phase_seconds: ClassVar[float] = float(os.environ.get("FRAME_SECONDS", "12"))
+
+    def wants(self, phase: str) -> bool:
+        """FRAME_PHASES (comma-separated: idle-up, idle-down, scroll, typing) runs only those."""
+        chosen = os.environ.get("FRAME_PHASES")
+        return not chosen or phase in chosen.split(",")
+
+    async def phase(self, probe, name: str) -> None:
+        probe.sink.write(f"--- {name}\n")
+        probe.window_start = probe.last = time.perf_counter()
+        probe.reset()
+
+    async def run(self) -> None:
+        from toad.qt.frame_probe import FrameProbe
+        app = self.app
+        timings: dict[str, list[float]] = {}
+        if os.environ.get("FRAME_TIME_SIDEBAR"):
+            # Measure the sidebar's per-observation work where it runs (tools only).
+            from toad.qt import window as qt_window
+            def timed(owner, attribute, label):
+                original = getattr(owner, attribute)
+                def wrapper(*args, **kwargs):
+                    started = time.perf_counter()
+                    try:
+                        return original(*args, **kwargs)
+                    finally:
+                        timings.setdefault(label, []).append((time.perf_counter() - started) * 1000)
+                setattr(owner, attribute, wrapper)
+            timed(qt_window.Sidebar, "present", "sidebar.present")
+            timed(qt_window.Sidebar, "_rebind_groups_from_tree", "rebind_groups")
+            timed(qt_window.Sidebar, "redraw", "sidebar.redraw")
+            timed(qt_window.Sidebar, "sync", "sidebar.sync")
+            timed(type(app), "paint_tabs", "paint_tabs")
+            timed(type(app.workspace_sessions.home), "present", "home.present")
+            timed(type(app.thread_pane), "bind", "thread_pane.bind")
+            timed(type(app.thread_pane), "setting_entries", "thread_pane.setting_entries")
+            timed(type(app), "present_panes", "present_panes")
+        if os.environ.get("FRAME_TIME_HISTORY"):
+            from toad.qt import history as qt_history
+            from pyqt_reactive.widgets import virtual_rows
+            def timed(owner, attribute, label):
+                original = getattr(owner, attribute)
+                def wrapper(*args, **kwargs):
+                    started = time.perf_counter()
+                    try:
+                        return original(*args, **kwargs)
+                    finally:
+                        timings.setdefault(label, []).append((time.perf_counter() - started) * 1000)
+                setattr(owner, attribute, wrapper)
+            for name in ("rows_changed", "show_pages", "prepare_viewport", "respond_to_scroll", "repin_header"):
+                if hasattr(qt_history.QtHistoryWindow, name):
+                    timed(qt_history.QtHistoryWindow, name, f"window.{name}")
+            timed(qt_history.HistoryRows, "show", "rows.show")
+            timed(virtual_rows.RowDocumentDelegate, "_row_prepared", "delegate._row_prepared")
+        self.timings = timings
+        app.resize(self.width, 915)
+        probe = FrameProbe(QApplication.instance(), self.out / "frame-probe.log")
+        probe.REPORT_SECONDS = self.phase_seconds - 0.5
+        await self.open_named("#comms")
+        app.show_sidebar()
+        await asyncio.sleep(2.0)
+        forced = self.thread_rows()[:int(os.environ.get("FRAME_WAVES", "4"))]
+        for row in forced:
+            row.follow_activity(True)
+        await asyncio.sleep(0.5)
+        waving = [line for line in self.rows(app.sidebar.items()) if line.wave_span() is not None]
+        if self.wants("idle-up"):
+            await self.phase(probe, f"idle sidebar-up waving={len(waving)}")
+            await asyncio.sleep(self.phase_seconds)
+        for row in forced:
+            row.follow_activity(row.busy)
+        app.hide_sidebar()
+        await asyncio.sleep(1.0)
+        if self.wants("idle-down"):
+            await self.phase(probe, "idle sidebar-down #comms")
+            await asyncio.sleep(self.phase_seconds)
+        window = self.page.messages
+        await self.phase(probe, f"scroll #comms rows={window.model_rows.rowCount()}")
+        end = time.perf_counter() + (self.phase_seconds if self.wants("scroll") else 0)
+        step, steps, started = -60, 0, time.perf_counter()
+        while time.perf_counter() < end:
+            target = window.scroll_y + step
+            if target <= 0 or target >= window.max_scroll_y:
+                step = -step
+            window.scroll_y = max(0, min(window.max_scroll_y, target))
+            steps += 1
+            await asyncio.sleep(0.016)
+        if steps:
+            spent = time.perf_counter() - started
+            # A step asks 16 ms of sleep; what it took beyond that is the frame's work.
+            probe.sink.write(f"scroll steps={steps} per_step_ms={1000 * spent / steps:.1f} "
+                             f"work_per_step_ms={1000 * spent / steps - 16:.1f}\n")
+        await asyncio.sleep(1.0)
+        await self.open_named("scratch-live-pipeline")
+        editor = self.page.composer.editor
+        editor.clear()
+        editor.setFocus()
+        await asyncio.sleep(1.0)
+        await self.phase(probe, "typing scratch-live-pipeline")
+        end = time.perf_counter() + (self.phase_seconds if self.wants("typing") else 0)
+        text = "the quick brown fox jumps over the lazy dog "
+        index = 0
+        while time.perf_counter() < end:
+            char = text[index % len(text)]
+            key = Qt.Key.Key_Space if char == " " else getattr(Qt.Key, f"Key_{char.upper()}")
+            QApplication.postEvent(editor, QKeyEvent(QEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier, char))
+            QApplication.postEvent(editor, QKeyEvent(QEvent.Type.KeyRelease, key, Qt.KeyboardModifier.NoModifier, char))
+            index += 1
+            await asyncio.sleep(0.12)
+        await asyncio.sleep(0.6)
+        typed = editor.toPlainText()
+        editor.clear()
+        await asyncio.sleep(0.5)
+        # As a phone's soft keyboard types: each letter replaces the word being composed
+        # (preedit), and a space commits the word.
+        await self.phase(probe, "soft-keyboard typing scratch-live-pipeline")
+        end = time.perf_counter() + (self.phase_seconds if self.wants("typing") else 0)
+        word, index = "", 0
+        while time.perf_counter() < end:
+            char = text[index % len(text)]
+            if char == " ":
+                event = QInputMethodEvent("", [])
+                event.setCommitString(word + " ")
+                word = ""
+            else:
+                word += char
+                event = QInputMethodEvent(word, [])
+            QApplication.postEvent(editor, event)
+            index += 1
+            await asyncio.sleep(0.12)
+        await asyncio.sleep(0.6)
+        typed += editor.toPlainText()
+        editor.clear()
+        for label, values in sorted(self.timings.items()):
+            values.sort()
+            probe.sink.write(f"timing {label}: n={len(values)} p50={values[len(values)//2]:.1f}ms "
+                             f"max={values[-1]:.1f}ms total={sum(values):.0f}ms\n")
+        self.report("done", typed=len(typed))
 
 
 class GoalScenario(Scenario):
