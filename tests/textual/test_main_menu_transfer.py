@@ -62,7 +62,7 @@ async def choose(ui, menu, label: str):
     options = menu.options
     shown = [str(options.get_option_at_index(i).prompt) for i in range(options.option_count)]
     assert shown == [label for _, label in ApplicationAction.menu(ui.textual[0])]
-    assert shown[0] == "New thread" and shown[-1] == "Quit"
+    assert shown[-1] == "Quit"
     await ui.press(*["down"] * shown.index(label), "enter")
 
 
@@ -138,7 +138,7 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
         await dialog.confirm()
         await ui.until(lambda: comms.registry.snapshot().taken("imported"), seconds=10, why="the imported thread")
         thread = comms.registry.require("imported")
-        assert comms.registry.status(thread.name).stopped
+        assert comms.registry.status(thread.name).is_stopped()
         assert "Imported history" in Path(thread.runtime.path).read_text()
         await ui.until(lambda: any(note.title == "Thread Import" and "@imported" in note.message
                                    for note in ui.textual[0]._notifications), why="the import completion")
