@@ -33,6 +33,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.message_category import MessageCategory
 from objectstate import DottedFieldPath
+from toad.qt.frame_probe import FrameProbe, ProbedApplication
 from toad.client.application_actions import (
     ApplicationAction, NewSessionAction, NewThreadAction, QuitAction, SettingsAction,
 )
@@ -1722,8 +1723,8 @@ class FrameScenario(Scenario):
         probe.window_start = probe.last = time.perf_counter()
         probe.reset()
 
-    async def run(self) -> None:
-        from toad.qt.frame_probe import FrameProbe
+    def install_timings(self) -> None:
+        """FRAME_TIME_SIDEBAR / FRAME_TIME_HISTORY: time those owners' calls where they run."""
         app = self.app
         timings: dict[str, list[float]] = {}
         if os.environ.get("FRAME_TIME_SIDEBAR"):
@@ -1747,6 +1748,7 @@ class FrameScenario(Scenario):
             timed(type(app.thread_pane), "bind", "thread_pane.bind")
             timed(type(app.thread_pane), "setting_entries", "thread_pane.setting_entries")
             timed(type(app), "present_panes", "present_panes")
+            timed(type(app), "mark_current", "mark_current")
         if os.environ.get("FRAME_TIME_HISTORY"):
             from toad.qt import history as qt_history
             from pyqt_reactive.widgets import virtual_rows
@@ -1765,8 +1767,21 @@ class FrameScenario(Scenario):
             timed(qt_history.HistoryRows, "show", "rows.show")
             timed(virtual_rows.RowDocumentDelegate, "_row_prepared", "delegate._row_prepared")
         self.timings = timings
+
+    def write_timings(self, probe) -> None:
+        for label, values in sorted(self.timings.items()):
+            values.sort()
+            probe.sink.write(f"timing {label}: n={len(values)} p50={values[len(values)//2]:.1f}ms "
+                             f"max={values[-1]:.1f}ms total={sum(values):.0f}ms\n")
+
+    async def run(self) -> None:
+        app = self.app
+        self.install_timings()
         app.resize(self.width, 915)
-        probe = FrameProbe(QApplication.instance(), self.out / "frame-probe.log")
+        # A probed run (TOAD_FRAME_PROBE) already has the app's probe, timing each event's
+        # delivery; the scenario writes its phases where that probe writes.
+        probe = ProbedApplication.probe or FrameProbe(QApplication.instance(), self.out / "frame-probe.log")
+        probe.sink = (self.out / "frame-probe.log").open("a", buffering=1)
         probe.REPORT_SECONDS = self.phase_seconds - 0.5
         await self.open_named("#comms")
         app.show_sidebar()
@@ -1843,11 +1858,81 @@ class FrameScenario(Scenario):
         await asyncio.sleep(0.6)
         typed += editor.toPlainText()
         editor.clear()
-        for label, values in sorted(self.timings.items()):
-            values.sort()
-            probe.sink.write(f"timing {label}: n={len(values)} p50={values[len(values)//2]:.1f}ms "
-                             f"max={values[-1]:.1f}ms total={sum(values):.0f}ms\n")
+        self.write_timings(probe)
         self.report("done", typed=len(typed))
+
+
+class ActionsScenario(FrameScenario):
+    summary = ("one-off actions as a finger does them, each cold and in its own probe window: open "
+               "#comms, expand a channel group, open a thread, switch tabs, open the menu, open "
+               "Settings, close it, show the thread pane; the probe's stalls and named slow work "
+               "per action in OUT/frame-probe.log (run with TOAD_FRAME_PROBE=1 to time Qt events)")
+
+    settle: ClassVar[float] = float(os.environ.get("ACTION_SETTLE", "3"))
+
+    def tap(self, widget: QWidget, point: QPoint) -> None:
+        QTest.mouseClick(widget, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, point)
+
+    def tap_row(self, row) -> None:
+        tree = self.app.sidebar
+        tree.scrollToItem(row)
+        self.tap(tree.viewport(), tree.visualItemRect(row).center())
+
+    async def action(self, probe, name: str, act) -> None:
+        await self.phase(probe, name)
+        started = time.perf_counter()
+        result = act()
+        if asyncio.iscoroutine(result):
+            await result
+        took = (time.perf_counter() - started) * 1000
+        await asyncio.sleep(self.settle)
+        probe.sink.write(f"action {name}: trigger_returned_ms={took:.0f}\n")
+        probe.report(time.perf_counter())
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(self.width, 915)
+        probe = ProbedApplication.probe or FrameProbe(QApplication.instance(), self.out / "frame-probe.log")
+        probe.sink = (self.out / "frame-probe.log").open("a", buffering=1)
+        probe.REPORT_SECONDS = 1e9  # one summary per action, written by `action`
+        self.install_timings()
+        await self.listed()
+        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == "#comms"
+                                for row in app.sidebar.items()), "#comms row")
+        app.show_sidebar()
+        await asyncio.sleep(2.0)
+        home = app.workspace_sessions.home
+        await self.action(probe, "open #comms (tap its row, cold)", lambda: self.tap_row(self.channel_row("#comms")))
+        await until(lambda: self.page is not home, "#comms open")
+        if any(isinstance(row, ConversationRow) and row.target.name == "#scratch" for row in app.sidebar.items()):
+            before = self.page
+            await self.action(probe, "open #scratch (a second channel, cold)",
+                              lambda: self.tap_row(self.channel_row("#scratch")))
+            await until(lambda: self.page is not before, "#scratch open")
+        group = next(row for row in app.sidebar.items()
+                     if isinstance(row, ConversationRow) and row.childCount() and not row.isExpanded())
+        await self.action(probe, f"expand channel group {group.key}", lambda: app.sidebar.expandItem(group))
+        thread = next(row for row in self.rows(app.sidebar.items())
+                      if isinstance(row, ConversationRow) and row.key == "scratch-live-pipeline")
+        before = self.page
+        await self.action(probe, "open thread scratch-live-pipeline (tap its row, cold)", lambda: self.tap_row(thread))
+        await until(lambda: self.page is not before, "thread open")
+        tabs = app.tabs
+        await self.action(probe, "switch tab to #comms (tap)", lambda: self.tap(tabs, tabs.tabRect(0).center()))
+        await self.action(probe, "switch tab back to the thread (tap)", lambda: self.tap(tabs, tabs.tabRect(1).center()))
+        await self.action(probe, "open the menu (tap)", lambda: app.menu.click())
+        settings = next(command for command, label in ApplicationAction.menu(app) if "settings" in command.declared_name)
+        app.menu_panel.hide()
+        await self.action(probe, f"open Settings from the menu ({settings.declared_name})", lambda: settings.apply(app))
+        await self.action(probe, "close Settings", lambda: next(
+            widget for widget in QApplication.topLevelWidgets() + app.findChildren(QWidget)
+            if type(widget).__name__.endswith("SettingsScreen") and widget.isVisible()).close())
+        def show_thread_pane() -> None:
+            app.sidebar_layout.set_collapsed(ThreadSidebarPlacement, not app.sidebar_layout.is_collapsed(ThreadSidebarPlacement))
+            app.rearrange_sidebars()
+        await self.action(probe, "toggle the thread pane", show_thread_pane)
+        self.write_timings(probe)
+        self.report("done")
 
 
 class GoalScenario(Scenario):
@@ -2254,7 +2339,7 @@ def main(arguments: list[str]) -> None:
         names = "\n".join(f"  {member.declared_name:10} {member.summary}" for member in Scenario.members_with(Scenario))
         raise SystemExit(f"usage: {arguments[0]} SCENARIO PROFILE OUTDIR\n{names}")
     scenario = Scenario.member_named(arguments[1])
-    application = QApplication(arguments[:1])
+    application = FrameProbe.application(arguments[:1])
     install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())
     watch = StrayWindows()

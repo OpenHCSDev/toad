@@ -1753,7 +1753,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.mark_current()
 
     def mark_current(self) -> None:
-        modes = [tab.mode_name for tab in self.session_navigation.tabs]
+        modes = self.session_navigation.tab_modes
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
         self.present_panes()
@@ -1842,8 +1842,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def _bind_thread_pane(self) -> None:
         """The thread's settings follow the selected page: a conversation, or the welcome,
-        which is a `NoConversationView`."""
-        self.thread_pane.bind(self.workspace_sessions.selected)
+        which is a `NoConversationView`. A collapsed pane shows only its bar, so it follows the
+        welcome until it opens (opening it lays the panes out again, which binds the selected
+        page): binding a conversation lists its settings and binds its comms, plan and context
+        panels, work every tab open and switch paid for a pane nobody saw. Following the
+        welcome, not the last page, keeps no closed view behind the collapsed panels."""
+        sessions = self.workspace_sessions
+        collapsed = self.sidebar_layout.is_collapsed(ThreadSidebarPlacement)
+        self.thread_pane.bind(sessions.home if collapsed else sessions.selected)
 
     def present_panes(self) -> None:
         """Draw both sidebars from the one layout and place them; the thread's sidebar is

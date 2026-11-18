@@ -10,12 +10,13 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from toad.qt.frame_probe import FrameProbe
 from toad.qt.splash import QtSplash
 from toad.qt.theme import current_scheme
 
 
 def main(arguments: list[str] = sys.argv) -> None:
-    application = QApplication(arguments[:1])
+    application = FrameProbe.application(arguments[:1])
     scheme = current_scheme(os.environ)
     QtSplash.shown(application, scheme)
     # The client loads once the first frame is up: importing it is most of a start.
