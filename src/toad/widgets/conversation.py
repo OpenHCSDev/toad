@@ -25,6 +25,7 @@ from agent_comms.planning.goal_presentation import (
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goals import NoGoal
 from agent_comms.projects.checkouts import Checkout
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.thread_presentation import (
     NoThreadPresentation,
     ThreadPresentation,
@@ -106,6 +107,7 @@ from toad.core.source_events import (
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
+from toad.goal_controls import GoalSource
 from toad.goal_interaction import GoalSession
 from toad.goal_view import GoalView
 from toad.client.input_decision import InputDecision
@@ -607,6 +609,21 @@ class ConversationSessionBinding(
     def operational_sources(self) -> ConversationSources:
         return self.query_ancestor(SourcesScope).operational_sources
 
+    @property
+    def goal_source(self) -> GoalSource:
+        """Where this view reads and changes its owner's goal: its sources say (an agent's, or
+        Core's for a CLI's mailbox)."""
+        return self.operational_sources.goal_source(self)
+
+    def goal_owner(self) -> ThreadIncarnation | None:
+        """The thread incarnation whose goal this view shows, once its session names one."""
+        return self.query_ancestor(SessionScope).thread_identity.optional_thread_incarnation()
+
+    @property
+    def coordination_root(self) -> str | None:
+        """The bus root the view's session reads its thread from."""
+        return self.query_ancestor(SessionScope).coordination_root
+
     def transcript_scope(self) -> TranscriptScope:
         """The native session identity whose canonical transcript this view shows."""
         return self.query_ancestor(SessionScope).origin.transcript_scope()
@@ -982,6 +999,7 @@ class Conversation(ColumnLayout,
         self.thread_presentation = presentation
         self._update_model_info()
         self.operational_sources.thread_presented(self)
+        self.goal_source.presentation_changed(self.goal_observation)
         self.dispatch_sync(presentation)
 
     def start_unbound_session(self) -> None:

@@ -13,6 +13,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from toad.client.input_decision import InputDecision
+from toad.goal_controls import GoalSource
 from toad.client.submission import SubmissionStart
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.submission_queue import QueueSource
@@ -46,3 +47,7 @@ class ConversationSources(QueueSource):
 
     @abstractmethod
     def external_transcript_changed(self, conversation: Conversation) -> None: ...
+
+    @abstractmethod
+    def goal_source(self, conversation: Conversation) -> GoalSource:
+        """Where the conversation reads and changes its owner's goal."""

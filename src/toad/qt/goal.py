@@ -10,16 +10,12 @@ the owner path a viewer with no ACP session uses.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable
 from functools import partial
-from typing import Any
 from weakref import ReferenceType, ref
 
 from agent_comms.coordination.errors import Refused
-from agent_comms.planning.goal_actions import GoalAction
-from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalExecutionControls, IdleGoalExecution
-from agent_comms.planning.goals import Goal, NoGoal
+from agent_comms.planning.goals import NoGoal
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.goal import GoalDisplay
 from formbridge.operations import OperationKind
@@ -108,24 +104,16 @@ class QtGoalSession(GoalControlsSession[CommsGoalSource]):
 
     @property
     def binding(self) -> CommsGoalSource:
-        return self.bar.agent_binding
+        return self.bar.goal_source
 
     def owns(self, binding: CommsGoalSource) -> bool:
-        return self.bar.is_attached and self.bar.session is self and self.bar.agent_binding is binding
+        return self.bar.is_attached and self.bar.session is self and self.bar.goal_source is binding
 
     async def refresh(self, binding: CommsGoalSource) -> None:
         await self.bar.goal_observation.refresh()
 
-    def apply_goal_change(
-        self, binding: CommsGoalSource, action: type[GoalAction], goal: Goal, text: str
-    ) -> Awaitable[Any]:
-        return binding.act(action, goal)
-
     def unavailable(self) -> None:
         self.host.show_info(self.display.heading(self.execution), "Goal")
-
-    async def read_goal_history(self, binding: CommsGoalSource, goal: Goal) -> RecordedGoalHistory:
-        return await binding.history(goal)
 
     def show_history(self, binding: CommsGoalSource, page: GoalHistoryPage) -> None:
         self.present(QtGoalHistory(self.bar, page))
@@ -162,7 +150,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
     def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation) -> None:
         super().__init__()
         self.app, self.peer = app, peer
-        self.agent_binding = CommsGoalSource(app, peer)
+        self.goal_source = CommsGoalSource(app, peer, str(app.source().root))
         self.session = QtGoalSession(self)
         self.goal_observation = GoalObservation(self)
         self._goal_display: GoalDisplay = NoGoal()
@@ -364,7 +352,7 @@ class QtGoalEdit(ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract
     async def write(self, text: str) -> None:
         source = self.session.binding
         try:
-            await self.session.write(source, source.edit(self.goal, text))
+            await self.session.write(source, source.edit_goal(self.goal, text))
         except Refused as error:
             self.error.setText(str(error))
             return

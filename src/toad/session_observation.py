@@ -28,11 +28,15 @@ class SessionObservation(ABC):
     def active(self):
         return self.task is not None and not self.task.done()
 
+    def source(self, view):
+        """Where this projection reads: the view's agent, unless the projection says otherwise."""
+        return view.agent_binding
+
     def invalidate(self):
         view = self.view
         if view is None or not view.is_attached:
             return
-        view.agent_binding.invalidate_observation(self)
+        self.source(view).invalidate_observation(self)
 
     def schedule(self, agent):
         self.agent = agent
@@ -75,7 +79,7 @@ class SessionObservation(ABC):
     def invalidate_from(self, agent: AgentConnection) -> None:
         """A notice from the bound owner requests a fresh read, not publication of its past value."""
         view = self.view
-        if view is not None and view.agent_binding.matches_agent(agent):
+        if view is not None and self.source(view).matches_agent(agent):
             self.invalidate()
 
     async def _run(self):
@@ -87,13 +91,13 @@ class SessionObservation(ABC):
             except self.errors as error:
                 if self.view is not view or not view.is_attached:
                     return
-                if revision != self.revision or not view.agent_binding.matches_agent(agent):
+                if revision != self.revision or not self.source(view).matches_agent(agent):
                     continue
                 self.failed(view, error)
                 return
             if self.view is not view or not view.is_attached:
                 return
-            if revision != self.revision or not view.agent_binding.matches_agent(agent):
+            if revision != self.revision or not self.source(view).matches_agent(agent):
                 continue
             self.publish(view, result)
             return
@@ -118,6 +122,9 @@ class GoalObservation(SessionObservation):
     task dying unretrieved."""
 
     errors = (*SessionObservation.errors, ReportedError)
+
+    def source(self, view) -> GoalSource:
+        return view.goal_source
 
     async def read(self, agent: GoalSource) -> GoalSnapshot:
         return await agent.get_goal_snapshot()
