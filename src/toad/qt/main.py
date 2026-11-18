@@ -1,5 +1,5 @@
 """Start the Qt client on the Core its arguments select, as Toad's terminal launch does:
-`python -m toad.qt.main [--comms-profile PROFILE | --comms-root ROOT] [PROJECT] [--agent NAME]`.
+`python -m toad.qt.main [--comms-profile PROFILE | --comms-root ROOT] [--open NAME] [PROJECT] [--agent NAME]`.
 
 This module is the desktop entry and imports only what Qt's first frame needs: the frame is
 painted (`QtSplash`), then the client loads and serves (`toad.qt.client_start`)."""
@@ -23,14 +23,14 @@ def main(arguments: list[str] = sys.argv) -> None:
     scheme = current_scheme(os.environ)
     QtSplash.shown(application, scheme)
     # The client loads once the first frame is up: importing it is most of a start. The
-    # desktop selects its Core as Toad's terminal launch does (`select_connection`: a UI
+    # desktop reads its launch as Toad's terminal launch does (`ClientLaunch`: a UI
     # profile reaches Core through its connector, otherwise this machine's bus, under which
     # agents start); Android's start is always remote and never loads `local_connection`.
-    from toad.client.local_connection import select_connection
+    from toad.client.local_connection import ClientLaunch
     from toad.qt.client_start import serve_launch
 
     own = arguments[1:]
-    serve_launch(select_connection(own), own, scheme)
+    serve_launch(ClientLaunch.startup(own), own, scheme)
 
 
 if __name__ == "__main__":

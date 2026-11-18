@@ -207,9 +207,8 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
             if not entries:
                 empty = QTreeWidgetItem(top, [group_type.empty_text])
                 empty.setFlags(empty.flags() & ~Qt.ItemFlag.ItemIsSelectable)
-            for entry in entries:
-                if self._search.matches(entry.target):
-                    self._add_entry_item(top, entry)
+            for entry in self._search.matching(entries, lambda entry: entry.target):
+                self._add_entry_item(top, entry)
 
     def _add_entry_item(self, parent_item: QTreeWidgetItem, entry: RelationshipEntry) -> None:
         row = QtRelationshipItem(self, parent_item, parent_item.data(0, Qt.ItemDataRole.UserRole), entry)

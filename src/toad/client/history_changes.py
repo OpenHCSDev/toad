@@ -24,7 +24,8 @@ from toad.client.reader_position import (
 from toad.client.line_blocks import Divider, MutedRole
 
 if TYPE_CHECKING:
-    from toad.client.fragments import FragmentKey, HistoryFragment
+    from agent_comms.nominal.field_codec import ToolCallId
+    from toad.client.fragments import EventSourceKey, FragmentKey, HistoryFragment
     from toad.client.transcript_fragments import TranscriptFragment
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
@@ -82,7 +83,8 @@ class FragmentRowUnderTop:
     width: int
 
     def pinned_header(self) -> PinnedHeader:
-        return PinnedHeader(self.fragment.sticky_header(self.block, self.row), self.x, self.width)
+        return PinnedHeader(self.fragment.sticky_header(self.block, self.row), self.x, self.width,
+                            self.fragment.key.source)
 
 
 @dataclass(frozen=True)
@@ -94,6 +96,9 @@ class PinnedHeader:
     headers: tuple[Divider, ...]
     x: int
     width: int
+    source: EventSourceKey | ToolCallId | None = None
+    """The message the top row draws (its fragment key's `source`), by which a burst leaves the
+    top row's own message out of its stack; none where no drawn fragment is on the top row."""
 
 
 @dataclass(frozen=True)
@@ -157,18 +162,36 @@ class ArrivalBurst:
         """The earlier messages whose head is scrolled above the top row, the most recent
         `shown` of them, under a count line; none for a burst of one, or once the reader is
         above the burst (no head is above the top row then). The top row's own message pins
-        its header as before and is not stacked twice."""
+        its header as before and is not stacked twice.
+
+        When the top row IS a header (pinned.headers empty), the burst message at that row
+        becomes the overlay's last line, so the overlay covers the flow's header with its
+        own copy and earlier messages stack above it — never A drawn over visible B."""
         if len(self.messages) < 2 or not pinned.width:
             return NO_STACK
-        own = pinned.headers[-1:]
+        # The top row's own message by identity: messages from one sender to one destination in
+        # the same second draw equal headers, and comparing headers left such a message out.
+        # Nothing pinned means a header is drawn at the top edge (the top row is a message's head,
+        # or the gap just before it, which the layout counts with the message above): the overlay
+        # would cover that header, so it becomes the overlay's last line, drawn once, and no
+        # earlier header is drawn over it. It is the first burst message starting at or below
+        # the top edge.
+        top_line: tuple[Divider, ...] = ()
+        if not pinned.headers:
+            covered = next((message for message in self.messages
+                            if (top := window.message_top(message.key)) is not None
+                            and top >= window.scroll_y), None)
+            if covered is None:
+                return NO_STACK
+            top_line = (covered.header,)
         above = [message for message in self.messages[:-1]
-                 if message.header not in own
+                 if message.key.source != pinned.source
                  and (top := window.message_top(message.key)) is not None and top < window.scroll_y]
         if not above:
             return NO_STACK
         stacked = above[-self.shown:]
         count = Divider.titled(f"{len(self.messages)} new", MutedRole)
-        return StackedHeaders((count, *(message.header for message in stacked)),
+        return StackedHeaders((count, *(message.header for message in stacked), *top_line),
                               (above[0].key, *(message.key for message in stacked)))
 
 
@@ -233,9 +256,13 @@ class PinsMessageHeader:
         """Pin from where the reader is now. The window calls this on every scroll offset and
         every committed geometry change: a reflow, a filter, replaced rows or a restored tab can
         change the top row's message at an unchanged offset. Only the reader scrolls a window up:
-        following, gliding and placing an arrival move it down or keep it (`layout_scroll`)."""
+        following, gliding and placing an arrival move it down or keep it (`layout_scroll`).
+        The burst ends when the reader leaves the end, not when the window's offset falls: rows
+        above that shrink (a receipt, the queue rows closing) clamp the offset up while the reader
+        still follows, and ending the burst there emptied it before it could stack."""
         burst = self.arrival_burst
-        if burst.messages and self.scroll_y < self.pinned_scroll_y and not self._restoring:
+        if (burst.messages and not self.follows_tail and self.scroll_y < self.pinned_scroll_y
+                and not self._restoring):
             burst = self.arrival_burst = NO_BURST
         self.pinned_scroll_y = self.scroll_y
         pinned = self.top_message_header()

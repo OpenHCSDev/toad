@@ -28,7 +28,7 @@ from weakref import WeakSet
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QTextDocument
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QPixmap, QTextDocument
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
@@ -208,19 +208,67 @@ class HistoryRows(QAbstractListModel):
         return None if answer is None else answer(self.fragments[index.row()])
 
     def show(self, fragments: tuple[HistoryFragment, ...]) -> None:
-        self.beginResetModel()
+        """The rows the pages show now, told to the view as what changed: the rows of pages
+        that did not change are the same fragment objects, so the unchanged rows before and
+        after the change are found by identity, and only the rows between them are inserted,
+        removed or changed. The view keeps every other row's measured height
+        (`RowDocumentDelegate` row sizes); a reset made it measure the whole history again
+        on every arrival (Tristan, Pixel 8a, bursts at 30 ms a frame, 2026-11-18)."""
+        old = self.fragments
+        same = min(len(old), len(fragments))
+        head = next((row for row in range(same) if old[row] is not fragments[row]), same)
+        tail = 0
+        while tail < same - head and old[-1 - tail] is fragments[-1 - tail]:
+            tail += 1
+        removed, added = len(old) - head - tail, len(fragments) - head - tail
+        if removed == added:
+            self._set(fragments, head)
+            if added:
+                self.dataChanged.emit(self.index(head, 0), self.index(head + added - 1, 0))
+            return
+        # The first `changed` rows of the change keep their old content through the removal
+        # and the insertion (rows an insert or removal does not name must not change in it),
+        # then change in place, told as a data change.
+        changed = min(removed, added)
+        kept, end = old[:head + changed], old[len(old) - tail:]
+        if removed > changed:
+            self.beginRemoveRows(QModelIndex(), head + changed, head + removed - 1)
+            self._set(kept + end, head + changed)
+            self.endRemoveRows()
+        if added > changed:
+            self.beginInsertRows(QModelIndex(), head + changed, head + added - 1)
+            self._set(kept + fragments[head + changed:head + added] + end, head + changed)
+            self.endInsertRows()
+        self._set(fragments, head)
+        if changed:
+            self.dataChanged.emit(self.index(head, 0), self.index(head + changed - 1, 0))
+
+    def _set(self, fragments: tuple[HistoryFragment, ...], first: int) -> None:
+        """Hold these rows. Every row a key names is kept with the rows (a lookup is asked per
+        changed row on each receipt update, arrival, glide and reader restore); rows before
+        `first` did not move, so a change at the end indexes only the rows after it."""
+        if fragments is self.fragments:
+            return
+        rows = self._rows if first else {}
+        if first:
+            for key in [key for key, row in rows.items() if row >= first]:
+                del rows[key]
+        for row in range(first, len(fragments)):
+            rows.setdefault(fragments[row].key, row)
         self.fragments = fragments
-        # Every row a key names, built with the rows: a lookup is asked per changed row on
-        # each receipt update, arrival, glide and reader restore, and a scan compared every
-        # row's key each time.
-        rows: dict = {}
-        for row, fragment in enumerate(fragments):
-            rows.setdefault(fragment.key, row)
         self._rows = rows
-        self.endResetModel()
 
     def row_of(self, key) -> int:
         return self._rows.get(key, -1)
+
+    def changed(self, fragments: tuple[HistoryFragment, ...]) -> None:
+        """These rows' fragments now show differently (`request_show` changes a fragment in
+        place, so `show` sees the same object): each is told to the view as a data change,
+        which drops its kept height, so it is measured again in its new look."""
+        for fragment in fragments:
+            if (row := self.row_of(fragment.key)) >= 0:
+                index = self.index(row, 0)
+                self.dataChanged.emit(index, index)
 
 
 class ArrivalFade(WidgetAnimation):
@@ -325,11 +373,15 @@ class HistoryRowDelegate(RowDocumentDelegate):
         """Replaced, never mutated, when the link context settles or the app's renderer
         restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
+        # A rising row's picture while it fades in, by fragment key: (look, pixmap).
+        self.fading: dict = {}
 
     def link(self, links: LinkContext) -> None:
         """Rows draw with these names from now on; rows prepared before are stale."""
         self.renderer = self.app_renderer.with_links(links)
         self.links_revision += 1
+        # Every row's key names the links it was drawn with: none keeps its height.
+        self.forget_row_sizes()
 
     def restyle(self) -> None:
         """The app's renderer took a new scheme or diff marks: rows draw by it from now on,
@@ -444,13 +496,36 @@ class HistoryRowDelegate(RowDocumentDelegate):
         fragment = index.data(HistoryRows.FRAGMENT)
         opacity = self.view.arrival_opacity(fragment.key) if self.view.arrivals else None
         if opacity is None:
+            self.fading.pop(fragment.key, None)
             super().paint(painter, option, index)
         else:
             painter.save()
             painter.setOpacity(opacity)
-            super().paint(painter, option, index)
+            painter.drawPixmap(option.rect.topLeft(), self.fading_picture(painter, option, index, fragment.key))
             painter.restore()
         self.view.row_painted(fragment, option.rect)
+
+    def fading_picture(self, painter: QPainter, option, index, key) -> QPixmap:
+        """A rising row drawn once into a picture, which each frame of its fade paints at that
+        frame's opacity: its look does not change while it rises, and laying its rich text out
+        and drawing every glyph again each frame was most of a burst's repaint on the phone
+        (2026-11-18). A new width, height, pixel ratio or document draws it again."""
+        ratio = painter.device().devicePixelRatioF()
+        rect = option.rect
+        local = QStyleOptionViewItem(option)
+        local.rect = QRect(0, 0, rect.width(), rect.height())
+        look = (rect.width(), rect.height(), ratio, id(self.painted_document(index, local)))
+        kept = self.fading.get(key)
+        if kept is not None and kept[0] == look:
+            return kept[1]
+        picture = QPixmap(max(1, round(rect.width() * ratio)), max(1, round(rect.height() * ratio)))
+        picture.setDevicePixelRatio(ratio)
+        picture.fill(Qt.GlobalColor.transparent)
+        drawing = QPainter(picture)
+        super().paint(drawing, local, index)
+        drawing.end()
+        self.fading[key] = (look, picture)
+        return picture
 
 
 @dataclass(frozen=True)
@@ -604,6 +679,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         update cost the whole history's measurement while the new looks were not even ready."""
         changed = tuple(fragment for fragment, shown in changes if fragment.request_show(shown))
         if changed:
+            self.window.model_rows.changed(changed)
             self.repaint(continuing=changed)
 
     def repaint(self, fragments: tuple[HistoryFragment, ...] = (), *, continuing=()) -> None:
@@ -778,19 +854,33 @@ class QtStickyHeader(HeaderPin, QWidget):
         self.history_window = window
         self.documents: tuple[QTextDocument, ...] = ()
         self.drawn: tuple = ()
+        # Each pinned header's laid-out document, while the pin's width, font, link context and
+        # renderer stay the same.
+        self.laid_out: dict[Divider, QTextDocument] = {}
+        self.layout_context: tuple = ()
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.hide()
 
     def draw_pinned(self, headers: tuple[Divider, ...], x: int, width: int) -> None:
-        """Every scroll offset pins; only different headers, column, font or link context lay
-        them out again."""
+        """Every scroll offset pins; only different headers, column, font, link context or
+        renderer (a theme) lay anything out again, and then only the headers not already laid
+        out: a burst's stack changes as each head glides past the top, and laying every stacked
+        header out again from its html (its theme's colours resolved span by span) was a third
+        of the phone's UI thread during a burst (2026-11-18)."""
         window = self.history_window
-        drawn = (headers, x, width, window.font().key(), window.rows.links_revision)
+        # Taps reach the stacked headers whenever a stack is pinned, even when its drawing is
+        # unchanged: equal headers can stand for other messages (one sender, one second).
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not self.stacked.keys)
+        context = (width, window.font().key(), window.rows.links_revision, id(window.rows.renderer))
+        drawn = (headers, x, context)
         if drawn == self.drawn:
             return
         self.drawn = drawn
-        self.documents = tuple(window.rows.header_document(header, window.font(), width) for header in headers)
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not self.stacked.keys)
+        kept = self.laid_out if context == self.layout_context else {}
+        self.layout_context = context
+        self.laid_out = {header: kept.get(header) or window.rows.header_document(header, window.font(), width)
+                         for header in headers}
+        self.documents = tuple(self.laid_out[header] for header in headers)
         self.resize(width, sum(int(document.size().height()) for document in self.documents))
         self.move(window.viewport().mapTo(window, QPoint(x, 0)))
         self.raise_()
@@ -1021,6 +1111,8 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
     def arrival_landed(self, fade: ArrivalFade) -> None:
         if fade in self.arrivals:
             self.arrivals.remove(fade)
+        for key in fade.positions:
+            self.rows.fading.pop(key, None)
 
     def arrival_opacity(self, key) -> float | None:
         """How far the row `key` has risen, while it is still rising."""
@@ -1327,8 +1419,14 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         self.model_rows.show(tuple(fragment for page in history.pages if page.display
                                    for fragment in page.shown_fragments) + self.draft
                              + tuple(block.fragment() for block in self.live_blocks))
-        self.doItemsLayout()
+        self.lay_out_now()
         self.repin_header()
+
+    def lay_out_now(self) -> None:
+        """One layout now, and none left pending: a model insert or removal schedules Qt's own,
+        which a direct `doItemsLayout` would leave to run a second time on the next turn."""
+        self.scheduleDelayedItemsLayout()
+        self.executeDelayedItemsLayout()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
         """Core's CLI draft as rows after the history (none clears it); the reader keeps their place."""
@@ -1370,7 +1468,7 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         reader-restore and the viewport update — there is no viewer to serve."""
         try:
             key, offset = self.reader_place()
-            self.doItemsLayout()
+            self.lay_out_now()
             self.keep_reader(key, offset)
             self.repin_header()
             self.viewport().update()
