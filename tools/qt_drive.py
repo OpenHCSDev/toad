@@ -2330,14 +2330,34 @@ class IdleScenario(Scenario):
             after = self.thread_ticks()
             busiest = sorted(((after[name] - before.get(name, 0)) / hertz / 5 * 100, name)
                              for name in after)[-3:]
+            waves = self.waves
             print(f"{label} cpu {share:5.1f}%  busiest: "
-                  + ", ".join(f"{name} {percent:.0f}%" for percent, name in reversed(busiest)), flush=True)
+                  + ", ".join(f"{name} {percent:.0f}%" for percent, name in reversed(busiest))
+                  + f"  wave: {waves['frames'] / 5:.0f} row repaints/s over {len(waves['rows'])} rows, "
+                  f"{waves['moved'] / 5:.0f}/s moved the band", flush=True)
+            waves.update(frames=0, moved=0, rows=set())
         return shares
 
     async def run(self) -> None:
         settle = float(os.environ.get("SETTLE", "60"))
         duration = float(os.environ.get("DURATION", "120"))
         target = os.environ["TARGET"]
+        # Each sidebar wave frame repaints its row; a frame whose band covers the same cells as
+        # the last one paints the same pixels. Counted, so the sample says what the clock costs.
+        waves = {"frames": 0, "moved": 0, "rows": set()}
+        spans: dict[int, object] = {}
+        original = ConversationRow.repaint
+
+        def counted(row) -> None:
+            span = row.wave_span()
+            waves["frames"] += 1
+            waves["rows"].add(id(row))
+            if spans.get(id(row)) != span:
+                waves["moved"] += 1
+                spans[id(row)] = span
+            original(row)
+        ConversationRow.repaint = counted
+        self.waves = waves
         await self.listed()
         home = await self.sample("home", settle)
         await self.open_named(target)
