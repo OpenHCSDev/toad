@@ -213,6 +213,12 @@ class GoalInteractionControl(metaclass=AbstractHooksMeta):
         """Whether the button can be pressed."""
 
 
+class GoalCollapse:
+    """The goal document owns whether its controls are collapsed."""
+
+    collapsed: bool
+
+
 class GoalBarOwner(metaclass=AbstractHooksMeta):
     """The goal bar: one button per GoalInteraction, the state line, the goal's document and
     the standby row. Both frontends inherit it, build `actions` from `goal_interactions()`, and

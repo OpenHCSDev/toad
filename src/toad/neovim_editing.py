@@ -176,8 +176,7 @@ class NeovimDisplay:
     completed: int
 
     def state(self) -> NeovimState:
-        member = next((member for member in NeovimState.members_with(NeovimState)
-                       if member.recognizes(self.mode.mode)), NeovimState)
+        member = NeovimState.for_mode(self.mode.mode)
         return member(self.mode.blocking, self.cursor, self.command_line,
                       tuple(region.selection() for region in self.regions), self.selected)
 
@@ -199,6 +198,13 @@ class NeovimState(DeclaredFamily, affix="State"):
     @classmethod
     def recognizes(cls, code: str) -> bool:
         return code in cls.mode_codes or any(code.startswith(prefix) for prefix in cls.mode_prefixes)
+
+    @classmethod
+    def for_mode(cls, code: str) -> type[NeovimState]:
+        """The member a Vim mode code names (``i``, ``n``, ``no``, …); the family itself
+        for a code no member declares."""
+        return next((member for member in NeovimState.members_with(NeovimState)
+                     if member.recognizes(code)), NeovimState)
 
     @property
     def label(self) -> str:

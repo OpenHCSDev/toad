@@ -16,13 +16,14 @@ from textual.worker import Worker
 
 from toad.app_node import ToadNode
 from toad.client.bus_submission import SubmissionView
+from toad.client.prompt_composer import ComposerStatus
 from toad.client.submission import MessageDestination
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.worker_group import InputHistoryRecord
 
 
-class DeliveryFailureView(SubmissionView, ToadNode, Widget):
+class DeliveryFailureView(ComposerStatus, SubmissionView, ToadNode, Widget):
     """The composed input, status and delivery behavior shared by conversations.
 
     Sending never holds compose: a send waits in the view's submissions, shown above the
@@ -40,7 +41,7 @@ class DeliveryFailureView(SubmissionView, ToadNode, Widget):
     def draws_user_message(self, reference: MessageReference) -> bool: ...
 
     def compute_status(self) -> str | Content | RichText:
-        return self.composer_block or self.thread_status
+        return self.composed_status()
 
     async def refresh_composer(self, read_only: bool) -> None:
         """Draw compose from the caller's Core answer."""

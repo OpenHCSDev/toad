@@ -43,7 +43,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
-from pyqt_reactive.theming import StatusColorRole
 from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
@@ -114,7 +113,7 @@ from toad.navigation_target import (
 )
 from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.qt.action_shortcuts import bind_action_shortcuts
-from toad.qt.activity import ChannelActivity, PeerActivity
+from toad.qt.activity import ChannelActivity, PeerActivity, QtObservedSweep
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
@@ -131,6 +130,10 @@ from toad.qt.paste_profile import QtProfilePastePanel
 from agent_comms.messaging.display_references import ProjectReferences
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
+from toad.client.prompt_composer import ComposerStatus
+from toad.prompt_actions import SubmitInputAction
+from toad.client.prompt_stack import SuccessTone
+from toad.qt.prompt_stack import QtFlash
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, ThreadSettingsPane
 from toad.qt.side_bar import QtSideBar, QtWorkspaceChrome
@@ -143,7 +146,9 @@ from toad.sidebar_placement import (
     SidebarPlacement,
     ThreadSidebarPlacement,
 )
-from toad.status_thread import StatusOwner
+from toad.status_thread import StatusThread, WorkingStatusOwner
+from toad.conversation_turn import ConversationTurn
+from toad.agent_binding import NoAgentConnection
 from toad.target_commands import TargetContext
 from toad.terminal_origin import TerminalOrigin
 from toad.work_preparation import PreparationRuntime
@@ -1292,7 +1297,7 @@ class BusLabel(ElidedLine):
         self.setToolTip(f"{prefix}{location}")
 
 
-class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
+class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, JumpsHistory, MenuConversation, Page, SessionScope, SubmissionView, WireView,
                        QtHistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
                        metaclass=PyQtWidgetMeta):
 
@@ -1339,17 +1344,13 @@ class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, 
         self.queue_source = wire
         self.message_history.initialize_source(wire)
         self.message_history.observe_source()
-        self.label = ElidedLine(label)
-        self.status = ElidedLine()
-        self.status.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self.status.setStyleSheet(app.renderer.color_style(MutedRole))
-        self.directory = BusLabel(app)
-        self.directory.setStyleSheet(app.renderer.color_style(MutedRole))
-        info = QHBoxLayout()
-        info.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
-        info.addWidget(self.directory, 1)
-        info.addWidget(self.label)
-        info.addWidget(self.status, 2)
+        # Textual's `CommsChatView.compose`: the flash under the window, the prompt (its
+        # info bar carries the thread status), then who is here, under the prompt.
+        self.feedback = QtFlash(app, app.renderer)
+        # Textual's `CommsChatView.throbber_above`: the sweep painting `working()` — an idle
+        # turn (no agent on a wire view), the peer's observed row, or the first page loading.
+        self.turns = ConversationTurn(lambda owner: self.sync_working(), lambda: NoAgentConnection().presentation.turns)
+        self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
         self.composer = self.conversation.prompt(self)
         self.composer.labelled(label)
         self.activity = tuple(self.conversation.compose_activity(self))
@@ -1359,14 +1360,16 @@ class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, 
         self.question = QtQuestion(self)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self.messages, 1)
-        layout.addLayout(info)
-        # The peer's or channel's activity sits on the input, as the TUI draws it: what is
-        # happening shows where the next message is typed.
-        for line in self.activity:
-            layout.addWidget(line)
+        layout.addWidget(self.feedback)
+        layout.addWidget(self.agent_activity)
         layout.addWidget(self.composer)
         layout.addWidget(self.question)
+        # Under the prompt, not over it: who is here is reference (Textual's
+        # `CommsChatView.compose` yields the kind's activity after the prompt).
+        for line in self.activity:
+            layout.addWidget(line)
         # Every `ViewAction` subclass binds through the shared family loop. A new
         # subclass adds a key automatically — no edit here — and Textual-only siblings
         # whose `apply()` reaches chrome Qt doesn't carry stay silent via the
@@ -1450,16 +1453,27 @@ class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, 
         self.composer.receipt.follow(str(source.root), next((
             references for fragment in reversed(history.fragments) if (references := fragment.sent_references)), ()),
             history.pages[-1].prepared.page.source.selection.notification_identity)
-        self.conversation.status_thread(source.root, self.app.coordination_access).refresh(self)
+        self.refresh_thread_status()
+        self.sync_working()
         label = self.conversation.label(source.references())
-        self.label.setText(label)
         self.composer.labelled(label)
         read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
         await self.refresh_composer(read_only)
-        self.status.setText(await self.conversation.status_text(source, read_only=read_only))
+        self.thread_status = await self.conversation.status_text(source, read_only=read_only)
+        self.composer.show_status(self.composed_status())
         await self.conversation.update_mentions(self, source)
 
     # The kind's composer and activity (ConversationActivity)
+
+    def status_thread(self) -> StatusThread:
+        return self.conversation.status_thread(self.app.source().root, self.app.coordination_access)
+
+    def history_loading(self) -> bool:
+        """As Textual's `CommsChatView`: the wire history is reading its first page."""
+        return self.message_history.reading
+
+    def sync_working(self) -> None:
+        self.agent_activity.sync()
 
     def channel_prompt(self, placeholder: str) -> ChannelComposer:
         return ChannelComposer(self, self.app.renderer, placeholder)
@@ -1474,7 +1488,7 @@ class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, 
         # The peer's goal sits over its activity and the composer, as the TUI's goal bar
         # sits over its prompt.
         yield QtGoalBar(self.app, self.app.renderer, peer)
-        self.thread_activity = PeerActivity(self.app, self.app.renderer, peer)
+        self.thread_activity = PeerActivity(self.app, self.app.renderer, peer, self.sync_working)
         yield self.thread_activity
 
     async def update_channel_mentions(self, source: ReferencedCore) -> None:
@@ -1499,10 +1513,10 @@ class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, 
         self.composer.set_commands((await self.read_command_catalog()).commands)
 
     def flash(self, text: str) -> None:
-        self.app.status_line.show_status(text, StatusColorRole.INFO)
+        self.feedback.flash(text)
 
     def flash_success(self, text: str) -> None:
-        self.app.status_line.show_status(text, StatusColorRole.SUCCESS)
+        self.feedback.flash(text, style=SuccessTone.declared_name)
 
     def flash_error(self, text: str) -> None:
         self.app.show_error(text, "Conversation")
@@ -1520,8 +1534,11 @@ class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, 
 
     # Sending, through the shared submissions (SubmissionView)
 
-    def submit(self, text: TypedText) -> None:
-        self.app.run_operation(MessageSend, partial(self.start_send, text))
+    def submit(self, text: TypedText, action: SubmitInputAction) -> None:
+        """A bus message is delivered as soon as it is sent, so every action sends it; an
+        empty send-now has no held queue here to flush."""
+        if text.text.strip():
+            self.app.run_operation(MessageSend, partial(self.start_send, text))
 
     async def start_send(self, text: TypedText) -> None:
         if await CommandCatalog.execute(text.text, self):
@@ -1538,7 +1555,8 @@ class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, 
         self.composer.show_failure(self.unknown_notice(description))
 
     async def refresh_composer(self, read_only: bool) -> None:
-        self.composer.hold(MessageDestination.read_only_reason if read_only else "")
+        self.composer_block = MessageDestination.read_only_reason if read_only else ""
+        self.composer.hold(self.composer_block)
 
     def draws_user_message(self, reference: MessageReference) -> bool:
         return self.message_history.draws(reference)

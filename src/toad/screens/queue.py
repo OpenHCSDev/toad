@@ -1,11 +1,6 @@
 """Show queued messages, their delivery status and available actions."""
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-
-from acp.exceptions import RequestError
-from agent_comms.acp_extension import QueueScope
-from agent_comms.errors import RelationViolationError, RouteChangedError, UnregisteredThreadError
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalScroll
 from textual.css.native import NativeDeclaration, Variable
@@ -14,13 +9,11 @@ from ui_theme.scheme import ErrorColour
 from textual.widgets import Static
 
 from toad.widgets.acting_button import ActingButton, DismissButton
-from toad.acp.queue_attachment import QueueActionRefused
+from toad.client.queue_inspection import QueueInspectionOwner
 from toad.conversation_submission import ConversationSubmissions
-from toad.client.line_blocks import SpanColumns
 from toad.native_style import AutoHeight
 from toad.screens.modal import CenteredScreen, ShadedScreen, SurfacePanel
 from toad.screens.source_modal import SourceModal
-from toad.submission_queue import QueueEvidence
 
 from toad.widgets.tool_content import ToolContent
 
@@ -56,15 +49,13 @@ class QueueClear(ActingButton):
         await self.query_ancestor(QueueInspection).clear_queue()
 
 
-class QueueInspection(ShadedScreen, CenteredScreen, SourceModal):
-    """Shows the selected conversation's queue and delivery status."""
+class QueueInspection(QueueInspectionOwner, ShadedScreen, CenteredScreen, SourceModal):
+    """Shows the selected conversation's queue and delivery status; `QueueInspectionOwner`
+    owns the reading and the actions, shared with Qt's `QtQueueInspection`."""
 
     def __init__(self, submissions: ConversationSubmissions) -> None:
         super().__init__()
-        self.submissions = submissions
-        self.source = submissions.view.queue_source
-        self.evidence = submissions.queue_evidence
-        self.scope = self.source.queue_scope(self.evidence)
+        self.inspect_submissions(submissions)
 
     @property
     def source_view(self):
@@ -72,31 +63,21 @@ class QueueInspection(ShadedScreen, CenteredScreen, SourceModal):
 
     def compose(self) -> ComposeResult:
         with QueuePanel():
-            yield Static("Queue and delivery")
+            yield Static(self.title)
             with VerticalScroll():
                 details = ToolContent()
-                details.update((SpanColumns(self.source.queue_details(self.evidence)),))
+                details.update((self.details_block(),))
                 yield details
-            yield Static("Editing, deleting and reordering individual queued messages isn't available here.")
+            yield Static(self.unavailable_note)
             yield QueueError("")
             with QueueActions():
-                available = self.source.queue_actions_available(self.evidence)
+                available = self.actions_available
                 yield QueueSendNow("Send now", disabled=not available)
                 yield QueueClear("Clear queued inputs", disabled=not available)
                 yield DismissButton("Close")
 
-    async def apply_action(self, action: Callable[[QueueEvidence, QueueScope], Awaitable[None]]) -> None:
-        try:
-            await action(self.evidence, self.scope)
-        except (QueueActionRefused, RequestError, RelationViolationError,
-                RouteChangedError, UnregisteredThreadError) as error:
-            self.query_one(QueueError).update(str(error))
-            return
-        self.submissions.publish_pending()
+    def show_queue_error(self, text: str) -> None:
+        self.query_one(QueueError).update(text)
+
+    def close_inspection(self) -> None:
         self.dismiss()
-
-    async def send_now(self) -> None:
-        await self.apply_action(self.source.queue_send_now)
-
-    async def clear_queue(self) -> None:
-        await self.apply_action(self.source.queue_clear)

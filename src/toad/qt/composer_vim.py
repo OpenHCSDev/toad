@@ -12,28 +12,39 @@ subclass on the same base.
 
 from __future__ import annotations
 
-from enum import Enum
-
 from formbridge.key_declarations import ModalInputMode
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent, QTextCursor
 
-
-class VimState(Enum):
-    """Which mode the editor is in. VISUAL is deliberately out of scope for first ship."""
-
-    NORMAL = "NORMAL"
-    INSERT = "INSERT"
+from toad.neovim_editing import InsertState, NeovimState, NormalState
 
 
 class ComposerVimMode(ModalInputMode):
     """Modal command dispatch for Qt's ComposerEditor. Inherits the shared
     `ModalInputMode` contract (modal=True, navigation_spellings, fallback_bindings) so the
-    declared-key machinery treats this the same as Textual's VimMode."""
+    declared-key machinery treats this the same as Textual's VimMode.
 
-    def __init__(self) -> None:
-        self.state = VimState.INSERT
+    Its state is a member of Textual's `NeovimState` family (`InsertState`,
+    `NormalState`, …), so the mode names and `accepts_text` come from the one owner the
+    TUI's badge reads; the saved `key_mode` picks the starting member by its first map mode."""
+
+    def __init__(self, key_mode) -> None:
+        self.state: NeovimState = NeovimState.for_mode(key_mode.map_modes[0])(blocking=False)
         self._pending: str = ""  # multi-char commands like `dd`, `gg`
+
+    @property
+    def label(self) -> str:
+        return self.state.label
+
+    @property
+    def inserting(self) -> bool:
+        return self.state.accepts_text
+
+    def enter_insert(self) -> None:
+        self.state = InsertState(blocking=False)
+
+    def enter_normal(self) -> None:
+        self.state = NormalState(blocking=False)
 
 
 _NORMAL_MOTIONS: dict[int, QTextCursor.MoveOperation] = {
@@ -100,7 +111,7 @@ def apply_normal_key(editor, mode: ComposerVimMode, event: QKeyEvent) -> bool:
         if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
             cursor.movePosition(QTextCursor.MoveOperation.StartOfLine)
             editor.setTextCursor(cursor)
-        mode.state = VimState.INSERT
+        mode.enter_insert()
         mode._pending = ""
         return True
 
@@ -110,7 +121,7 @@ def apply_normal_key(editor, mode: ComposerVimMode, event: QKeyEvent) -> bool:
         else:
             cursor.movePosition(QTextCursor.MoveOperation.Right)
         editor.setTextCursor(cursor)
-        mode.state = VimState.INSERT
+        mode.enter_insert()
         mode._pending = ""
         return True
 
@@ -123,7 +134,7 @@ def apply_normal_key(editor, mode: ComposerVimMode, event: QKeyEvent) -> bool:
             cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)
             cursor.insertText("\n")
         editor.setTextCursor(cursor)
-        mode.state = VimState.INSERT
+        mode.enter_insert()
         mode._pending = ""
         return True
 

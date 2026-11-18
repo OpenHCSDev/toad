@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from functools import cached_property
 from typing import ClassVar
 
@@ -13,6 +12,7 @@ from textual.visual import RenderOptions, Visual
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import BackgroundColour
 
+from toad.client.prompt_stack import ObservedSweep
 from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import FullWidth, OneRow
 from toad.textual_colours import BlockInk, FullInk
@@ -76,15 +76,12 @@ class Throbber(EffectInContent, FullWidth, OneRow, Animated[Ribbon]):
         return self._busy_visual if self.busy else ""
 
 
-class ObservedThrobber(Throbber):
-    """Paint an existing activity owner without a writable busy mirror."""
-
-    def __init__(self, read_busy: Callable[[], bool], **kwargs) -> None:
-        super().__init__(**kwargs)
-        self._read_busy = read_busy
+class ObservedThrobber(ObservedSweep, Throbber):
+    """Paint an existing activity owner without a writable busy mirror; `ObservedSweep`
+    owns the reading, shared with Qt's sweep."""
 
     def compute_busy(self) -> bool:
-        return self._read_busy()
+        return self.read_busy()
 
     def sync(self) -> None:
         """Read the activity owner again, and let the reactive do the rest.

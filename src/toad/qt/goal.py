@@ -25,9 +25,10 @@ from agent_comms.ui_model.goal import GoalDisplay
 from formbridge.operations import OperationKind
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,
+    QFrame,
     QDialogButtonBox,
     QHBoxLayout,
     QPlainTextEdit,
@@ -44,6 +45,7 @@ from toad.client.line_blocks import MutedRole
 from toad.client.subscribers import ThreadCallbackSubscription
 from toad.goal_controls import (
     GoalBarOwner,
+    GoalCollapse,
     GoalControlsSession,
     GoalHistoryPage,
     GoalInteraction,
@@ -56,6 +58,7 @@ from toad.session_observation import GoalObservation
 from toad.core.events import ThreadRowsChanged
 from toad.widget_contracts import DismissibleContract, SubmitsContract
 from toad.qt.metrics import UiGap
+from ui_theme.scheme import SecondaryColour
 
 
 class GoalPress(OperationKind):
@@ -149,12 +152,12 @@ class QtGoalSession(GoalControlsSession[CommsGoalSource]):
         self.bar.present_state()
 
 
-class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta):
-    """The peer's goal over the composer, as the TUI's goal bar sits over its prompt."""
+class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=PyQtWidgetMeta):
+    """The peer's goal over the composer, as the TUI's goal bar sits over its prompt: a
+    secondary rule on top (Textual's `GoalEdge`), the state line, the objective scrolled
+    within a fifth of the window (Textual's `20vh` cap) and the action row."""
 
-    peer_rows_changed = Signal()
-    """The peer's thread row changed (status, working, model): a view that draws lines from
-    it beside the composer connects here."""
+    document_share = 0.2
 
     def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation) -> None:
         super().__init__()
@@ -175,17 +178,29 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
         self.progress.setStyleSheet(muted)
         # Parent self so the document stays a child from creation, not a top-level QWindow
         # on Qt-for-Android (prevents the EGL deadlock protector shape PR #1885 fixed).
-        self.document = QWidget(self)
-        document = QVBoxLayout(self.document)
+        self.document = QScrollArea(self)
+        self.document.setWidgetResizable(True)
+        self.document.setFrameShape(QFrame.Shape.NoFrame)
+        self.document.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        body = QWidget(self.document)
+        document = QVBoxLayout(body)
         document.setContentsMargins(0, 0, 0, 0)
         document.addWidget(self.objective)
         document.addWidget(self.progress)
+        document.addStretch(1)
+        self.document.setWidget(body)
+        secondary = renderer.theme(SecondaryColour)
         self.actions = tuple(QtGoalControl(interaction, self) for interaction in self.goal_interactions())
         controls = QHBoxLayout()
         controls.setContentsMargins(0, 0, 0, 0)
+        controls.setSpacing(UiGap.frame)
         for control in self.actions:
+            control.setStyleSheet(f"QToolButton {{ color: {secondary}; border: none; padding: 0 }}")
             controls.addWidget(control)
         controls.addStretch(1)
+        self.setObjectName("goal-bar")
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet(f"#goal-bar {{ border-top: 1px solid {secondary} }}")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.loose, UiGap.tight, UiGap.loose, UiGap.tight)
         layout.setSpacing(0)
@@ -245,9 +260,6 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
 
     def rows_changed(self, event: ThreadRowsChanged) -> None:
         self.goal_observation.invalidate()
-        # The same event means the peer's status, working state or model may have changed;
-        # the view drawing those beside the composer listens on this signal.
-        self.peer_rows_changed.emit()
 
     def present_state(self) -> None:
         self.present_goal_state(self.session, self.collapsed)
@@ -270,6 +282,17 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, QWidget, metaclass=PyQtWidgetMeta)
         self.objective.setText(objective)
         self.progress.setText(progress)
         self.progress.setVisible(shows_progress)
+        self.fit_document()
+
+    def fit_document(self) -> None:
+        """The document is as tall as its text, up to its share of the window."""
+        body = self.document.widget()
+        cap = int(QWidget.window(self).height() * self.document_share) or body.sizeHint().height()
+        self.document.setFixedHeight(max(1, min(body.sizeHint().height(), cap)))
+
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        super().resizeEvent(event)
+        self.fit_document()
 
     def show_heading(self, heading: str) -> None:
         self.header.setText(heading)

@@ -8,14 +8,9 @@ from textual.widget import Widget
 from toad.agent_binding import AgentConnection
 from toad.app_node import ToadNode
 from toad.core_event_carrier import CoreEventReceiver
+from toad.goal_controls import GoalCollapse
 from toad.session_observation import GoalObservation
 from toad.widgets.flash import Flash
-
-
-class GoalCollapse:
-    """The goal document owns whether its controls are collapsed."""
-
-    collapsed: bool
 
 
 class GoalView[Controls](CoreEventReceiver, ToadNode):

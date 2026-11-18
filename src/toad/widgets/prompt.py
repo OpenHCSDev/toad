@@ -46,7 +46,9 @@ from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.client.input_decision import InputAccepted, InputDecision, RefusalFeedback
-from toad.key_modes import Standard
+from toad.client.prompt_composer import MessagePromptComposer, PromptComposer
+from toad.client.prompt_stack import EditingModeBadge
+from toad.client.queue_inspection import QueueDeliveryControls
 from toad.native_style import (
     AutoHeight,
     AutoWidth,
@@ -250,18 +252,23 @@ class QueueSummary(
         self.query_ancestor(Prompt).conversation.open_queue_menu()
 
 
-class DeliveryControls(ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
-    """Shown while Enter queues behind a running turn."""
+class DeliveryControls(QueueDeliveryControls, ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
+    """Shown while Enter queues behind a running turn; `QueueDeliveryControls` owns its text."""
 
     def shown_children(self) -> tuple[Widget, ...]:
-        return Label("Enter queues · "), SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
+        return Label(self.notice), SendNow(self.send_now_label)
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.padding = (0, 0, 0, 1)
 
 
-class EditingModeLabel(AutoWidth, OneRow, SidePadding, NoWrap, Label):
+class EditingModeLabel(EditingModeBadge, AutoWidth, OneRow, SidePadding, NoWrap, Label):
+    """The info bar's badge; `EditingModeBadge` decides its text."""
+
+    def show_mode_label(self, label: str) -> None:
+        self.update(label)
+
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.dock = "right"
@@ -498,7 +505,7 @@ See on-screen instructions for details.
     def show_editing_mode(self, mode: EditingMode) -> None:
         """The editor owns its label before either widget is mounted."""
         if self.is_mounted:
-            self.editing_mode_label.update((mode if self.has_focus else Standard()).label)
+            self.editing_mode_label.present_editing_mode(mode, self.has_focus)
 
     def watch_has_focus(self, focus: bool) -> None:
         self.show_editing_mode(self.editing_mode)
@@ -703,7 +710,9 @@ class EnterInsertAction(PromptFrameAction):
 
 
 class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingEffects, TonePaint,
-             containers.VerticalGroup, ToadNode, actions=(PromptFrameAction,)):
+             containers.VerticalGroup, ToadNode, PromptComposer, actions=(PromptFrameAction,)):
+    """The Textual composer; `PromptComposer` owns its submissions, queue, glyph and draft
+    decisions, shared with Qt's `Composer`."""
     tone = PromptToneColour
 
 
@@ -745,29 +754,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.submissions = submissions
 
     @property
-    def holds_input(self) -> bool:
-        """Whether this composer's queue takes Enter or waits to be sent; its source answers."""
-        return self.operational_submissions.holds_input
-
-    @property
-    def operational_submissions(self):
-        if self.submissions is None:
-            raise RuntimeError("Operational prompt requires its submission owner")
-        return self.submissions
-
-    @property
-    def conversation(self):
-        """The view this prompt submits to; its submission owner holds it, so the prompt
-        answers the same whether it is mounted inside that view or beside it."""
-        return self.operational_submissions.view
-
-    @property
     def input_decision(self) -> InputDecision:
-        return InputAccepted() if self.shell_mode else self.operational_submissions.input_decision
-
-    @property
-    def agent_ready(self) -> bool:
-        return self.input_decision.allows
+        return InputAccepted() if self.shell_mode else super().input_decision
 
     @property
     def text(self) -> str:
@@ -790,12 +778,10 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     def restore_draft(self, text: str) -> None:
         """Recover local input as an edit of the retained document and undo history."""
-        current = self.text
-        if text and current != text and not current.endswith("\n\n" + text):
+        if suffix := self.restored_suffix(self.text, text):
             editor = self.prompt_text_area
             editor.history.checkpoint()
-            editor.insert(("\n\n" if current else "") + text,
-                          editor.document.end, maintain_selection_offset=True)
+            editor.insert(suffix, editor.document.end, maintain_selection_offset=True)
             editor.history.checkpoint()
 
     def watch_agent_binding(self) -> None:
@@ -902,7 +888,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.call_after_refresh(self.sync_queue)
 
     def _update_queue_summary(self) -> None:
-        text = self.operational_submissions.queue_summary
+        text = self.queue_summary
         summary = self.query_one(QueueSummary)
         summary.display = bool(text)
         summary.tooltip = "Show queued messages and delivery status."
@@ -1042,14 +1028,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def label_glyph(self) -> Content:
-        symbols = self.settings.ui.input
-        if self.shell_mode:
-            return Content.styled(symbols.shell_symbol, "$text-primary")
         return Content.styled(
-            symbols.multiline_symbol
-            if "\n" in self.text or "```" in self.text
-            else symbols.agent_symbol,
-            "$text-secondary",
+            self.prompt_symbol(self.text, self.shell_mode),
+            "$text-primary" if self.shell_mode else "$text-secondary",
         )
 
     def compose_completions(self) -> ComposeResult:
@@ -1112,7 +1093,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         raise SkipAction()
 
 
-class MessagePrompt(Prompt):
+class MessagePrompt(MessagePromptComposer, Prompt):
     TEXT_AREA_CLASS = MessageTextArea
 
     def __init__(self, *, placeholder: str | None = None, **kwargs):
@@ -1143,9 +1124,6 @@ class MessagePrompt(Prompt):
         )
         self.prompt_text_area.highlight_language = "markdown"
         self.prompt_label.refresh()
-
-    def label_glyph(self) -> Content:
-        return Content.styled(self.settings.ui.input.agent_symbol, "$text-secondary")
 
     def compose_info_popups(self) -> ComposeResult:
         return ()

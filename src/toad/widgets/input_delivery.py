@@ -18,6 +18,7 @@ from textual.widgets import Static
 from agent_comms.input_attempt import HistoricalInput
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.project_link import AcpLogLink
+from toad.client.prompt_stack import DeliveryDetailsPage
 from toad.widgets.selection import ChangingText, InlineSelection
 from toad.widget_actions import VisibleActions, Activates
 from rich.style import Style as RichStyle
@@ -208,7 +209,9 @@ class OpenLogButton(ActingButton):
         await self.query_ancestor(InputDeliveryDetails).open_log()
 
 
-class InputDeliveryDetails(CenteredChildren, DismissibleScreen[None]):
+class InputDeliveryDetails(DeliveryDetailsPage, CenteredChildren, DismissibleScreen[None]):
+    """The session details; `DeliveryDetailsPage` owns their text, shared with Qt."""
+
     native_theme = (
         NativeDeclaration.of(Styles.background, Variable(BackgroundColour.name), Percent(40)),
     )
@@ -233,26 +236,16 @@ class InputDeliveryDetails(CenteredChildren, DismissibleScreen[None]):
 
     def compose(self) -> ComposeResult:
         with DetailsFrame():
-            yield DetailsText("Session details", markup=False)
+            yield DetailsText(self.details_title, markup=False)
             yield DetailsError(markup=False)
             with DetailsBody():
                 overview = SessionOverview(self.overview_text, markup=False)
                 overview.display = bool(self.overview_text)
                 yield overview
-                yield PendingExplanation(
-                    "These inputs have no confirmed start. They may still be queued. "
-                    "They are not automatically retried.",
-                    markup=False,
-                )
+                yield PendingExplanation(self.pending_explanation, markup=False)
                 yield DeliveryRecords(markup=False)
                 yield DetailsHistoricalSummary(markup=False)
-                yield HistoryExplanation(
-                    "Earlier notices are not awaiting a start in the owner's current turn or queue, "
-                    "or predate delivery tracking. A notice is not proof that an input is unread. "
-                    "Clearing hides the notice only: it does not confirm delivery, mark messages "
-                    "read, or retry inputs. Cleared notices remain available here.",
-                    markup=False,
-                )
+                yield HistoryExplanation(self.history_explanation, markup=False)
                 yield LoadHistory("Load earlier notices", markup=False)
                 yield ClearHistory("Clear earlier notices", markup=False)
                 yield HistoricalRecords(markup=False)
@@ -275,8 +268,9 @@ class InputDeliveryDetails(CenteredChildren, DismissibleScreen[None]):
     def watch_error(self) -> None:
         if self.is_attached:
             error = self.query_one(DetailsError)
-            error.display = bool(self.delivery.error or self.error)
-            error.update(self.delivery.error or self.error)
+            text = self.error_text(self.delivery, self.error)
+            error.display = bool(text)
+            error.update(text)
 
     def _refresh_records(self) -> None:
         if not self.is_attached:

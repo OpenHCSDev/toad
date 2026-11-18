@@ -6,13 +6,9 @@ that Textual reads — Qt just paints and binds."""
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
 from functools import partial
 from typing import TYPE_CHECKING
 
-from acp.exceptions import RequestError
-from agent_comms.acp_extension import QueueScope
-from agent_comms.errors import RelationViolationError, RouteChangedError, UnregisteredThreadError
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,
@@ -23,11 +19,11 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import WrappedText
 
-from toad.acp.queue_attachment import QueueActionRefused
-from toad.client.line_blocks import FailureRole, MutedRole, SpanColumns
-from toad.submission_queue import QueueEvidence, QueueSource
+from toad.client.line_blocks import FailureRole, MutedRole
+from toad.client.queue_inspection import QueueDeliveryControls, QueueInspectionOwner
 from toad.widget_contracts import ActivatesContract
 from toad.qt.metrics import UiGap
 
@@ -65,10 +61,9 @@ class QtQueueSummary(ActivatesContract, WrappedText):
         self.composer.open_queue_menu()
 
 
-class QtDeliveryControls(QWidget):
-    """The strip shown when Enter queues behind a running turn, mirroring Textual's
-    ``DeliveryControls`` label row: a note that Enter queues plus a ``Send now`` button
-    bound to the shared ``BusSubmissions.send_now`` worker call."""
+class QtDeliveryControls(QueueDeliveryControls, QWidget, metaclass=PyQtWidgetMeta):
+    """Textual's ``DeliveryControls`` row; `QueueDeliveryControls` owns its text, and the
+    button calls the composer's shared send-now."""
 
     def __init__(self, composer: "Composer") -> None:
         super().__init__(composer)
@@ -77,121 +72,64 @@ class QtDeliveryControls(QWidget):
         row = QHBoxLayout(self)
         row.setContentsMargins(UiGap.frame, UiGap.tight, UiGap.frame, UiGap.tight)
         row.setSpacing(UiGap.loose)
-        self.notice = QLabel("Enter queues · ", self)
-        self.send_now_button = QPushButton("Send now (Ctrl+Y)", self)
-        self.send_now_button.setToolTip("Send the queued inputs now (Ctrl+Y / Ctrl+Enter).")
+        self.send_now_button = QPushButton(self.send_now_label, self)
         self.send_now_button.clicked.connect(self.composer.send_now)
-        row.addWidget(self.notice)
+        row.addWidget(QLabel(self.notice, self))
         row.addWidget(self.send_now_button, 1)
         self.hide()
 
 
-class QtQueueInspection(QDialog):
-    """Qt counterpart of ``screens/queue.QueueInspection``: reads queue details from the
-    shared ``queue_source`` and binds Send now / Clear to the same async handlers."""
+class QtQueueInspection(QueueInspectionOwner, QDialog, metaclass=PyQtWidgetMeta):
+    """Textual's ``QueueInspection`` as a dialog; `QueueInspectionOwner` owns the reading,
+    the actions and how they settle."""
 
     def __init__(self, submissions: "ConversationSubmissions", renderer: "QtLineRenderer",
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Queue and delivery")
+        self.setWindowTitle(self.title)
         self.setWindowFlags(Qt.WindowType.Dialog)
-        self.submissions = submissions
-        self.renderer = renderer
-        # BusSubmissions declares `view` (set in __init__) and `queue_evidence` (None by
-        # default on the base; set by ConversationSubmissions). The view declares
-        # `queue_source` (NoQueueSource() by default on each toolkit's view base).
-        self.source: QueueSource | None = submissions.view.queue_source
-        self.evidence: QueueEvidence | None = submissions.queue_evidence
-        self.scope: QueueScope | None = (
-            self.source.queue_scope(self.evidence)
-            if self.source is not None and self.evidence is not None else None)
-
+        self.inspect_submissions(submissions)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
         layout.setSpacing(UiGap.frame)
-
-        heading = QLabel("Queue and delivery", self)
+        heading = QLabel(self.title, self)
         heading.setStyleSheet("font-weight: bold;")
         layout.addWidget(heading)
-
-        self.details = QLabel(self._render_details(), self)
-        self.details.setWordWrap(True)
-        self.details.setTextFormat(Qt.TextFormat.RichText)
-        layout.addWidget(self.details, 1)
-
-        note = QLabel(
-            "Editing, deleting and reordering individual queued messages isn't available here.",
-            self,
-        )
+        # A bus-only submissions owner has no queue evidence: there is no queue to detail.
+        details = QLabel(renderer.html((self.details_block(),)) if self.evidence is not None else "", self)
+        details.setWordWrap(True)
+        details.setTextFormat(Qt.TextFormat.RichText)
+        layout.addWidget(details, 1)
+        note = QLabel(self.unavailable_note, self)
         note.setWordWrap(True)
         layout.addWidget(note)
-
         self.error = QLabel("", self)
         self.error.setWordWrap(True)
-        # FailureRole owns the error colour + weight in the shared line-blocks family
-        # (`toad.client.line_blocks`), pulling from `ui_theme.scheme.ErrorColour`.
-        # No Qt-local hex — the shared scheme is the single owner.
-        self.error.setStyleSheet(self.renderer.color_style(FailureRole))
+        self.error.setStyleSheet(renderer.color_style(FailureRole))
         self.error.hide()
         layout.addWidget(self.error)
+        buttons = QDialogButtonBox(self)
+        self.send_now_button = buttons.addButton("Send now", QDialogButtonBox.ButtonRole.ApplyRole)
+        self.clear_button = buttons.addButton("Clear queued inputs", QDialogButtonBox.ButtonRole.DestructiveRole)
+        buttons.addButton(QDialogButtonBox.StandardButton.Close).clicked.connect(self.accept)
+        self.enable_actions()
+        self.send_now_button.clicked.connect(partial(self.run_action, self.send_now))
+        self.clear_button.clicked.connect(partial(self.run_action, self.clear_queue))
+        layout.addWidget(buttons)
 
-        self.buttons = QDialogButtonBox(self)
-        self.send_now_button = self.buttons.addButton(
-            "Send now", QDialogButtonBox.ButtonRole.ApplyRole)
-        self.clear_button = self.buttons.addButton(
-            "Clear queued inputs", QDialogButtonBox.ButtonRole.DestructiveRole)
-        self.close_button = self.buttons.addButton(QDialogButtonBox.StandardButton.Close)
-        available = (self.source is not None and self.evidence is not None
-                     and self.source.queue_actions_available(self.evidence))
+    def enable_actions(self, enabled: bool = True) -> None:
+        available = enabled and self.actions_available
         self.send_now_button.setEnabled(available)
         self.clear_button.setEnabled(available)
-        self.send_now_button.clicked.connect(self._on_send_now)
-        self.clear_button.clicked.connect(self._on_clear)
-        self.close_button.clicked.connect(self.accept)
-        layout.addWidget(self.buttons)
 
-    def _render_details(self) -> str:
-        """Render the shared ``queue_details`` through the Qt line renderer. Falls
-        back to a short note when the submissions owner hasn't wired queue evidence
-        yet (Qt views still using base ``BusSubmissions``)."""
-        if self.source is None or self.evidence is None:
-            return (
-                "<p>Queue inspection is available once the view's submissions owner "
-                "wires <code>queue_evidence</code> (follow-up: Qt views switch to "
-                "<code>ConversationSubmissions</code>).</p>"
-            )
-        block = SpanColumns(self.source.queue_details(self.evidence))
-        return self.renderer.html((block,))
+    def run_action(self, action) -> None:
+        self.enable_actions(False)
+        asyncio.ensure_future(action())
 
-    def _on_send_now(self) -> None:
-        self._apply_action(self.source.queue_send_now)
+    def show_queue_error(self, text: str) -> None:
+        self.error.setText(text)
+        self.error.show()
+        self.enable_actions()
 
-    def _on_clear(self) -> None:
-        self._apply_action(self.source.queue_clear)
-
-    def _apply_action(self, action: Callable[[QueueEvidence, QueueScope], Awaitable[None]]) -> None:
-        """Run the action on the Qt event loop, mirroring Textual's ``QueueInspection``."""
-        if self.source is None or self.evidence is None or self.scope is None:
-            return
-        self.send_now_button.setEnabled(False)
-        self.clear_button.setEnabled(False)
-        task = asyncio.get_event_loop().create_task(self._run_action(action))
-        task.add_done_callback(lambda _t: None)
-
-    async def _run_action(
-        self, action: Callable[[QueueEvidence, QueueScope], Awaitable[None]],
-    ) -> None:
-        assert self.source is not None and self.evidence is not None and self.scope is not None
-        try:
-            await action(self.evidence, self.scope)
-        except (QueueActionRefused, RequestError, RelationViolationError,
-                RouteChangedError, UnregisteredThreadError) as error:
-            self.error.setText(str(error))
-            self.error.show()
-            # Re-enable, let the user try again or close.
-            available = self.source.queue_actions_available(self.evidence)
-            self.send_now_button.setEnabled(available)
-            self.clear_button.setEnabled(available)
-            return
-        self.submissions.publish_pending()
+    def close_inspection(self) -> None:
         self.accept()

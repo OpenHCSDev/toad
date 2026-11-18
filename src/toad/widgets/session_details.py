@@ -4,16 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from metaclass_registry.mro_dispatch import handles
 from agent_comms.registry.thread_identity import ThreadIncarnation
-from agent_comms.registry.thread_presentation import (
-    ThreadPresentationStatus,
-    SessionDisconnected,
-    WorkingThreadPresentationStatus,
-    ThreadRetired,
-)
 from agent_comms.ui_model.status import ThreadStatusModel
-from toad.core.projection import MroProjection
 from toad.navigation_context import NavigationScope
 from toad.tone_paint import TonePaint
 from ui_theme.scheme import TurnBandColour
@@ -22,7 +14,8 @@ from textual.reactive import var
 from textual.widgets import Collapsible, Static
 from textual.widgets.collapsible import CollapsibleTitle
 
-from toad.client.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
+from toad.client.line_blocks import LineRole
+from toad.client.prompt_stack import SessionStatusTitle
 from toad.native_style import (
     AutoHeight,
     Borderless,
@@ -35,7 +28,7 @@ from toad.native_style import (
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
-from toad.widgets.session_history_details import SessionHistoryDetails
+from toad.client.session_history_details import SessionHistoryDetails
 from textual.events import Mount
 from textual import on
 
@@ -76,7 +69,7 @@ class SessionDetails(
     TonePaint,
     Collapsible,
     ObservedThreadActivity,
-    MroProjection[type[LineRole]],
+    SessionStatusTitle,
 ):
     """The observed-thread capability and disclosure share one status view.
 
@@ -110,7 +103,7 @@ class SessionDetails(
         self.delivery = delivery
         self.notifications = Static("", markup=False)
         super().__init__(
-            InspectSession("Inspect session", markup=False),
+            InspectSession(self.inspect_label, markup=False),
             self.notifications, history, delivery,
             title="", collapsed=True, id=self.DEFAULT_ID,
         )
@@ -130,27 +123,9 @@ class SessionDetails(
 
         await self.query_ancestor(Conversation).inspect_session()
 
-    @handles(ThreadPresentationStatus)
-    def idle_role(self, status) -> type[LineRole]:
-        return NoticeRole if status.details else MutedRole
-
-    @handles(WorkingThreadPresentationStatus)
-    def working_role(self, status) -> type[LineRole]:
-        return WorkingRole
-
-    @handles(ThreadRetired)
-    def retired_role(self, status) -> type[LineRole]:
-        return NoticeRole
-
-    @handles(SessionDisconnected)
-    def disconnected_role(self, status) -> type[LineRole]:
-        return NoticeRole
-
     @property
     def title_role(self) -> type[LineRole]:
-        return self.project_value(
-            self.history.status.present_status(self.status_source().status)
-        )
+        return self.title_role_for(self.status_source(), self.history.status)
 
     @on(Mount)
     def on_mount(self) -> None:
@@ -168,31 +143,10 @@ class SessionDetails(
         if self.is_mounted:
             self._refresh_summary()
 
-    @property
-    def title_names(self) -> tuple[str, ...]:
-        """The operational row is its own session; its status leads the title."""
-        return ()
-
-    def summary_title(self, row: ThreadStatusModel) -> str:
-        """The collapsed row: its status, saved history and what delivery has to say.
-
-        Delivery's parts come from delivery, which is the point: this line used to spell
-        the notice count itself as f"{delivery.notices} notices" while the bar inside the
-        expanded contents spelled the same count its own way, two paces below. One owner
-        now, joined by whoever is joining.
-        """
-        delivery = self.delivery.delivery
-        return " · ".join((
-            *self.title_names, *row.summary, *self.history_details.summary,
-            *delivery.parts(),
-            *(("Delivery unavailable",) if delivery.error else ()),
-        ))
-
     def _refresh_summary(self, *_args) -> None:
         row = self.status_source()
-        title = self.summary_title(row)
-        # The status is already the disclosure's title, not a second row inside.
-        detail = "\n".join(row.lines[1:])
+        title = self.summary_title(row, self.history_details.summary, self.delivery.delivery)
+        detail = self.detail_text(row)
         self.notifications.update(detail)
         self.notifications.display = bool(detail)
         label = Content.styled(title, self.app.colours.style(self.title_role))
@@ -200,7 +154,7 @@ class SessionDetails(
         if not Content.from_text(self.title, markup=False).is_same(label):
             self.title = label
         self.overview_text = self.history_details.overview(row.lines)
-        self.display = bool(row.summary[0])
+        self.display = self.shown(row)
 
     def sync_turn(self) -> None:
         self._refresh_summary()

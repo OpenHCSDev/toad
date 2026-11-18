@@ -6,11 +6,15 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from agent_comms.ui_model.status import ThreadStatusModel
 
 from toad.client.subscribers import CoreObserver, ThreadCallbackSubscription
 from toad.core.events import ThreadRowsChanged
+
+if TYPE_CHECKING:
+    from toad.conversation_turn import ConversationTurn
 
 
 class ActivityView:
@@ -202,3 +206,20 @@ class ThreadStatusOwner(StatusOwner):
 
     def refresh_thread_status(self) -> None:
         self.status_thread().refresh(self)
+
+
+class WorkingStatusOwner(ThreadStatusOwner):
+    """A conversation whose activity sweep reads one answer: its own turn is busy, the
+    thread it observes is working, or its saved history is still loading.
+
+    Toolkit-neutral: Textual's `Conversation` and Qt's `QtThreadView` both inherit it, so
+    neither frontend recomputes "is it thinking" from its own copy of the state."""
+
+    turns: ConversationTurn
+
+    @abstractmethod
+    def history_loading(self) -> bool:
+        """Whether saved history is still loading into the transcript."""
+
+    def working(self) -> bool:
+        return self.turns.owner.busy or self._observed_working or self.history_loading()

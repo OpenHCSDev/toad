@@ -6,6 +6,7 @@ from weakref import ref
 from agent_comms.planning.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.planning.goals import GoalUnavailable
+from agent_comms.nominal.field_codec import ReportedError
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.goal_controls import GoalSource
 
@@ -109,7 +110,14 @@ class SessionObservation(ABC):
 
 class GoalObservation(SessionObservation):
     """The goal a view shows, read from its GoalSource: a TUI session's agent, or the phone's
-    comms goal source. A failed read keeps the last goal, marked unavailable."""
+    comms goal source. A failed read keeps the last goal, marked unavailable.
+
+    A refusal relayed from the comms service arrives as `ReportedError` (its declared type
+    does not cross the wire), e.g. "The read requires the live native owner." for a thread
+    whose owner is not running; the bar says "Goal state unavailable" instead of the read
+    task dying unretrieved."""
+
+    errors = (*SessionObservation.errors, ReportedError)
 
     async def read(self, agent: GoalSource) -> GoalSnapshot:
         return await agent.get_goal_snapshot()
