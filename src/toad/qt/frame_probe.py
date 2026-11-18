@@ -8,6 +8,7 @@ for the process. It measures two things and writes a summary line every few seco
 - **stalls**: a 10 ms timer's lateness. Every tick that arrives more than a frame late is
   time the event loop spent elsewhere, so the largest lateness is the worst stall a
   scroll or an animation suffered;
+- **collector pauses**: each of Python's garbage collections, timed from start to stop;
 - **key latency**: from a key press or a soft keyboard's input-method event reaching the
   application to the next paint of the widget it was delivered to, which is when the typed
   glyph is on screen.
@@ -17,6 +18,7 @@ The probe only observes; nothing reads its numbers back into the app.
 
 from __future__ import annotations
 
+import gc
 import os
 import time
 from pathlib import Path
@@ -44,6 +46,8 @@ class FrameProbe(QObject):
         self.window_start = self.last
         self.reset()
         self.pending_keys: dict[int, float] = {}
+        self.collecting_since = 0.0
+        gc.callbacks.append(self.collected)
         application.installEventFilter(self)
         self.timer.start()
         self.sink.write(f"{time.time():.3f} probe started interval_ms={self.INTERVAL_MS}\n")
@@ -54,6 +58,7 @@ class FrameProbe(QObject):
         self.late_ms = 0.0
         self.buckets = [0] * len(self.STALL_BUCKETS)
         self.keys: list[float] = []
+        self.gc_ms: list[float] = []
 
     def ticked(self) -> None:
         now = time.perf_counter()
@@ -76,10 +81,20 @@ class FrameProbe(QObject):
         keys = sorted(self.keys)
         key_line = (f"keys={len(keys)} key_p50={keys[len(keys) // 2]:.1f} key_max={keys[-1]:.1f}"
                     if keys else "keys=0")
+        pauses = (f"gc={len(self.gc_ms)} gc_max_ms={max(self.gc_ms):.1f} gc_total_ms={sum(self.gc_ms):.0f}"
+                  if self.gc_ms else "gc=0")
         self.sink.write(f"{time.time():.3f} span={span:.1f}s ticks={self.ticks} "
-                        f"worst_stall_ms={self.worst_ms:.1f} loop_busy={busy:.0f}% {stalls} {key_line}\n")
+                        f"worst_stall_ms={self.worst_ms:.1f} loop_busy={busy:.0f}% {stalls} {key_line} {pauses}\n")
         self.window_start = now
         self.reset()
+
+    def collected(self, phase: str, info: dict) -> None:
+        """Python's collector paused the thread it ran on: how long, from its start to stop."""
+        if phase == "start":
+            self.collecting_since = time.perf_counter()
+        elif self.collecting_since:
+            self.gc_ms.append((time.perf_counter() - self.collecting_since) * 1000.0)
+            self.collecting_since = 0.0
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         kind = event.type()

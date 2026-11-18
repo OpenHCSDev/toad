@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import gc
 from functools import cached_property, partial
 from importlib import import_module
 import platform
@@ -146,6 +147,17 @@ class ApplicationLifetime:
         ApplicationLifetime._startup_hook = ApplicationLifetime._startup_hook.notify(self)
         await self.restore_workspace()
         self.started()
+        self.settle_heap()
+
+    @staticmethod
+    def settle_heap() -> None:
+        """What is alive once the workspace is back (modules, classes, declared families, the
+        restored tabs) lives as long as the process. One collection now, then everything left
+        is frozen out of later collections, which then walk only what the run makes after it.
+        A full collection otherwise walked all of it with the UI thread stopped: 0.5 s in the
+        middle of a scroll and 1.3 s at startup on a phone's speed."""
+        gc.collect()
+        gc.freeze()
 
     async def restore_workspace(self) -> None:
         """The session the launch asked to resume, else the saved tabs; home when neither."""
