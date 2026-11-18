@@ -42,6 +42,7 @@ from toad.command_catalog import CommandCatalog, CommandRead
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn
 from toad.flash_host import FlashHost
+from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.prompt_actions import SubmitInputAction
 from toad.qt.activity import QtObservedSweep
 from toad.qt.composer import Composer, ComposerHost
@@ -56,6 +57,7 @@ from toad.status_thread import StatusThread, WorkingStatusOwner
 from toad.transcript_publication import TranscriptPresentation
 from toad.turn_presentation import TurnPresentation
 from toad.live_output import LiveOutput
+from toad.view_actions import ViewAction
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
@@ -82,6 +84,7 @@ class QtConversation(
     QtHistoryNotifications,
     FlashHost,
     TurnPresentation,
+    JumpsHistory,
     QWidget,
     metaclass=PyQtWidgetMeta,
 ):
@@ -116,6 +119,18 @@ class QtConversation(
         self.feedback = QtFlash(app, app.renderer)
         self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
         self.submissions = ConversationSubmissions(self)
+        # Every conversation answers the workspace's `ViewAction` keys, as Textual's
+        # `WorkspaceFrame` does for whichever conversation it shows: each member whose
+        # declared capability this view has binds through the shared family loop, so
+        # `BackToBottomAction` (Escape) jumps this view's window in a channel, a thread or
+        # an agent session alike. A member declared for Textual's workspace DOM is not bound.
+        self._view_shortcuts = app.action_keys.bind_family(self, ViewAction, self)
+
+    @property
+    def back_to_bottom_windows(self) -> tuple[JumpsToLatest, ...]:
+        """The conversation's one history window, if it has scrolled off the tail
+        (`JumpsHistory`): `BackToBottomAction.apply(self)` jumps it to its latest row."""
+        return (self.messages,) if self.messages.can_jump_to_latest else ()
 
     def close_core_events(self) -> None:
         """The view's subscriptions end, the rows under the transcript stop observing, and

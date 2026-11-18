@@ -703,6 +703,51 @@ class StickyScenario(Scenario):
         assert not facts["shown"], "the message's own header is on the top row, yet a copy is pinned"
 
 
+class EscapeScenario(Scenario):
+    summary = ("in the scratch-live-pipeline thread, then #comms: scroll off the tail, press Escape in "
+               "the composer, and report the view back on its latest row (BackToBottomAction, bound on "
+               "every QtConversation)")
+
+    def at_latest(self) -> dict[str, object]:
+        window = self.page.messages
+        return dict(scroll=window.scroll_y, end=window.max_scroll_y, following=window.follows_tail,
+                    jumpable=window.can_jump_to_latest)
+
+    def escape_shortcuts(self) -> list[str]:
+        """The live Escape shortcuts this page binds, by the action each answers."""
+        return sorted(type(bound.action).__name__ for bound in self.app.action_keys.bound.values()
+                      if bound.shortcut.parent() is self.page
+                      and any(key.toString() == "Esc" for key in bound.shortcut.keys()))
+
+    async def run(self) -> None:
+        self.app.resize(412, 915)
+        self.app.show()
+        for step, target in enumerate(("#comms", "scratch-live-pipeline"), start=1):
+            await self.open_named(target)
+            await until(lambda: self.page.composer is not None, f"{target} composer")
+            window = self.page.messages
+            window.scroll_y = 0
+            await until(lambda: window.can_jump_to_latest, f"{target} off the tail", tenths=40)
+            self.report(f"{step}a-{target}-scrolled", shortcuts=self.escape_shortcuts(), **self.at_latest())
+            assert "BackToBottomAction" in self.escape_shortcuts(), f"{target}: no Escape shortcut bound"
+            self.app.activateWindow()
+            editor = self.page.composer.editor
+            editor.setFocus()
+            await asyncio.sleep(0.2)
+            QTest.keyClick(editor, Qt.Key.Key_Escape)
+            await until(lambda: window.follows_tail and window.scroll_y >= window.max_scroll_y - window.END_SLACK,
+                        f"{target} back at its latest row", tenths=60)
+            self.report(f"{step}b-{target}-escaped", **self.at_latest())
+            # At the tail nothing is off it: Escape falls through to the composer's own
+            # `DismissAction`, which clears the unsent draft (Textual's order on a Prompt).
+            editor.setFocus()
+            editor.insertPlainText("draft kept until Escape")
+            await asyncio.sleep(0.2)
+            QTest.keyClick(editor, Qt.Key.Key_Escape)
+            await until(lambda: editor.toPlainText() == "", f"{target} draft dismissed", tenths=30)
+            self.report(f"{step}c-{target}-dismissed", draft=editor.toPlainText(), **self.at_latest())
+
+
 class WelcomeScenario(Scenario):
     summary = "print the welcome's listings, then open its first row"
 
@@ -778,10 +823,10 @@ class ShippedScenario(Scenario):
     async def press_bound_keys(self, label: str) -> None:
         """Every bound action key whose widget is shown, as if pressed."""
         pressed = []
-        for shortcut, action in tuple(self.app.action_keys.bound.values()):
-            if shortcut.parent().isVisible() and shortcut.keys():
-                pressed.append(type(action).__name__)
-                shortcut.activated.emit()
+        for bound in tuple(self.app.action_keys.bound.values()):
+            if bound.shortcut.parent().isVisible() and bound.shortcut.keys():
+                pressed.append(type(bound.action).__name__)
+                bound.shortcut.activated.emit()
                 await asyncio.sleep(0.05)
         await asyncio.sleep(0.5)
         self.report(label, pressed=sorted(pressed))
