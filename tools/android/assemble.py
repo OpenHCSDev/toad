@@ -1,4 +1,4 @@
-"""Lay out the APK's app folder: the Python closure as source, the entry point, the files
+"""Lay out the APK's app folder: the Python closure as source and compiled bytecode, the entry point, the files
 toad.qt.android reads beside it, and buildozer.spec filled in from buildozer.spec.in.
 
     python tools/android/assemble.py CLOSURE.json APP TOOLCHAIN PROFILE
@@ -7,7 +7,16 @@ Run with the interpreter the closure came from: the CA bundle is its certifi's, 
 PySide6's and the theme its pywal cache, read through ui_theme's WalFile. TOOLCHAIN is the
 folder toolchain.sh fills (sdk/, wheels/); PROFILE is the UI profile the phone holds first,
 copied in and never committed. Packages built by python-for-android recipes and the PySide6
-wheels are left to the build; every other package ships as source.
+wheels are left to the build; every other package ships as source, with its bytecode.
+
+The bytecode is compiled here because the phone would otherwise compile every module the
+first time it starts after each install: an install unpacks the app folder afresh, so the
+bytecode the last start wrote is gone, and compiling the client's modules adds about six
+seconds at a phone's speed to that start. It is compiled as the phone runs Python
+(optimization 2, the `.opt-2.pyc` the phone writes itself), and never checked against its
+source: an install unpacks source and bytecode together, so they cannot disagree, while a
+timestamp check would refuse every file (unpacking gives each a new modification time) and
+a hash check would read and hash every source at every start.
 """
 import json
 import os
@@ -17,6 +26,9 @@ import zipfile
 from configparser import ConfigParser
 from pathlib import Path
 from string import Template
+
+import compileall
+import py_compile
 
 import certifi
 import PySide6
@@ -50,6 +62,8 @@ for name, entry in json.loads(closure_file.read_text()).items():
         shutil.copy2(root, target)
     print(f"{name:26} {sum(1 for _ in target.rglob('*.py')) if target.is_dir() else 1} files")
 
+compileall.compile_dir(app, quiet=1, optimize=2, workers=0,
+                       invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH)
 shutil.copy2(HERE / "main.py", app / "main.py")
 held = app / "profile.json"
 if profile != held:
