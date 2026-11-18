@@ -347,7 +347,11 @@ class QueueScenario(SurroundScenario):
     async def send(self, text: str, now: bool = False) -> None:
         editor = self.page.composer.editor
         editor.setPlainText(text)
-        (self.page.composer.submit_now if now else self.page.composer.submit)()
+        if now:  # the delivery row's Send now label, pressed as a reader taps it
+            from toad.qt.queue_ui import QtSendNow
+            QTest.mouseClick(self.page.composer.delivery_controls.findChild(QtSendNow), Qt.MouseButton.LeftButton)
+        else:
+            self.page.composer.submit()
         await asyncio.sleep(0.4)
 
     async def run(self) -> None:
@@ -394,8 +398,8 @@ class DraftScenario(SurroundScenario):
             if window.draft:
                 seen += 1
                 await asyncio.sleep(1.5)
-                self.report(f"{seen}-draft", revision=window.draft_revision,
-                            draft=[(type(fragment).__name__, fragment.clipboard_text[:60]) for fragment in window.draft],
+                self.report(f"{seen}-draft", draft=[(type(fragment).__name__, len(fragment.events),
+                                                     fragment.clipboard_text[:60]) for fragment in window.draft],
                             last_rows=[type(window.model_rows.fragments[-index]).__name__ for index in (2, 1)],
                             rows=window.model_rows.rowCount())
                 if seen >= 2:

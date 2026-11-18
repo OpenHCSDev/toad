@@ -542,15 +542,10 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.failure.show()
 
     def show_submitting(self) -> None:
-        """Push queue-summary text and delivery-controls visibility from the shared
-        ``view.submissions`` state. Mirrors Textual's ``_update_queue_summary`` +
-        ``DeliveryControls.ComposedWhenShown`` flip on ``holds_input``."""
+        """The queue summary and delivery controls from the shared submissions, as Textual's
+        ``_update_queue_summary`` + ``DeliveryControls`` flip on ``offers_send_now``."""
         self.submitting.refresh(self.queue_summary)
         self.delivery_controls.setVisible(self.offers_send_now)
-
-    def send_now(self) -> None:
-        """The delivery row's Send now: Textual's `SendNow` runs `submit_now` too."""
-        self.submit_now()
 
     def open_queue_menu(self) -> None:
         """Textual's ``Conversation.open_queue_menu`` pushes the ``QueueInspection``
@@ -586,8 +581,7 @@ class MessageComposer(MessagePromptComposer, Composer):
 
 
 class ProjectComposer(Composer):
-    """An agent session's composer, Textual's `Prompt`: its input waits on the agent, and
-    its info bar shows the project (`compose_agent_info` yields `PromptPath`)."""
+    """Textual's `Prompt`: input waits on the agent; the info bar shows `PromptPath`."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str = "") -> None:
         super().__init__(host, renderer, placeholder or host.app.settings.ui.input.placeholder)

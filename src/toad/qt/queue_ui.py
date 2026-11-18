@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QHBoxLayout,
     QLabel,
-    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -33,21 +32,13 @@ if TYPE_CHECKING:
     from toad.qt.lines import QtLineRenderer
 
 
-class QtQueueSummary(ActivatesContract, WrappedText):
-    """One-line queue summary; clicking opens the queue inspection, as Textual's
-    ``QueueSummary(Activates, ...)`` label does."""
+class QtActivatedText(ActivatesContract, WrappedText):
+    """Muted text a press activates (Textual's ``Activates`` + ``SecondaryText``); it wraps."""
 
-    def __init__(self, composer: "Composer") -> None:
-        super().__init__()
+    def __init__(self, composer: "Composer", text: str = "") -> None:
+        super().__init__(text)
         self.composer = composer
         self.setStyleSheet(composer.renderer.color_style(MutedRole))
-        self.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
-        self.setToolTip("Show queued messages and delivery status.")
-        self.hide()
-
-    def refresh(self, text: str) -> None:
-        self.setText(text)
-        self.setVisible(bool(text))
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.MouseButton.LeftButton:
@@ -56,26 +47,43 @@ class QtQueueSummary(ActivatesContract, WrappedText):
         else:
             super().mousePressEvent(event)
 
+
+class QtSendNow(QtActivatedText):
+    """Textual's ``SendNow``: a press runs the composer's `submit_now`, as Ctrl+Enter does."""
+
+    def activate(self) -> None:
+        self.composer.submit_now()
+
+
+class QtQueueSummary(QtActivatedText):
+    """The queue summary; a press opens the queue inspection, as Textual's ``QueueSummary``."""
+
+    def __init__(self, composer: "Composer") -> None:
+        super().__init__(composer)
+        self.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
+        self.setToolTip("Show queued messages and delivery status.")
+        self.hide()
+
+    def refresh(self, text: str) -> None:
+        self.setText(text)
+        self.setVisible(bool(text))
+
     def activate(self) -> None:
         """What the shared ``ActivatesContract`` calls — open the queue menu."""
         self.composer.open_queue_menu()
 
 
 class QtDeliveryControls(QueueDeliveryControls, QWidget, metaclass=PyQtWidgetMeta):
-    """Textual's ``DeliveryControls`` row; `QueueDeliveryControls` owns its text, and the
-    button calls the composer's shared send-now."""
+    """Textual's ``DeliveryControls`` row; `QueueDeliveryControls` owns its text."""
 
     def __init__(self, composer: "Composer") -> None:
         super().__init__(composer)
         self.setWindowFlags(Qt.WindowType.Widget)
-        self.composer = composer
         row = QHBoxLayout(self)
         row.setContentsMargins(UiGap.frame, UiGap.tight, UiGap.frame, UiGap.tight)
         row.setSpacing(UiGap.loose)
-        self.send_now_button = QPushButton(self.send_now_label, self)
-        self.send_now_button.clicked.connect(self.composer.send_now)
-        row.addWidget(QLabel(self.notice, self))
-        row.addWidget(self.send_now_button, 1)
+        row.addWidget(QLabel(self.notice, self), 0, Qt.AlignmentFlag.AlignTop)
+        row.addWidget(QtSendNow(composer, self.send_now_label), 1)
         self.hide()
 
 

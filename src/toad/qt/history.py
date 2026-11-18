@@ -892,8 +892,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         self.doItemsLayout()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
-        """Core's current CLI draft as rows after the history; none clears it. The reader
-        keeps their place, or follows the end as the draft grows."""
+        """Core's CLI draft as rows after the history (none clears it); the reader keeps their place."""
         if not fragments and not self.draft:
             return
         key, offset = self.reader_place()
