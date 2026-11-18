@@ -20,8 +20,6 @@ import pkgutil
 import sys
 
 KNOWN_COPIES = {
-    "toad.qt.bound_view.QtBoundViewHost": "toad.client.view_binding_protocols.BoundViewHost",
-    "toad.qt.bound_view.QtChildrenOwner": "toad.client.view_binding_protocols.ChildrenOwner",
     "toad.qt.keymap_screen.QtKeymapScreen": "toad.screens.keymap.KeymapScreen",
     "toad.qt.menu.QtMenu": "toad.widgets.menu.Menu",
     "toad.qt.queue_ui.QtDeliveryControls": "toad.widgets.prompt.DeliveryControls",

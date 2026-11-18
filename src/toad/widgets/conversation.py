@@ -38,6 +38,7 @@ from agent_comms.ui_model.message_category import (
 )
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.client.view_binding_protocols import BoundViewHost
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.flash_host import FlashHost
 from rich.console import Console
@@ -571,8 +572,8 @@ class ConversationSessionBinding(
     @property
     def transcript_history(self) -> TranscriptHistory:
         """The single TranscriptHistory child BoundView drives. Kept here so Textual's
-        Conversation satisfies the toolkit-neutral BoundViewHost protocol — Qt supplies
-        its own backend history through the same accessor."""
+        Conversation answers the shared BoundViewHost contract — Qt's views answer
+        the same member with their own history."""
         history, = self.contents.query_children(TranscriptHistory)
         return history
     """The agent thread's latest settled presentation."""
@@ -961,6 +962,7 @@ class Conversation(ColumnLayout,
     MenuConversation,
     AgentConversationCommands,
     FlashHost,
+    BoundViewHost,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""

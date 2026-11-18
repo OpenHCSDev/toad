@@ -129,7 +129,13 @@ class ClientApplication(BusPickerHost, NavigationHost):
         connection: CoreConnection,
         agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
     ) -> None:
-        """The launch's client owners, built once from the native constructor."""
+        """The launch's client owners, built once from the native constructor.
+
+        The renderer starts here, before any view asks it to prepare a page: a process pool
+        spawned lazily by the first page read held every frontend's first transcript blank
+        for its workers' startup (3.7 s on desktop Qt, which never started it). The native
+        constructor runs before a terminal captures stderr, which spawn bookkeeping needs."""
+        self.preparation.renderer.start()
         self.events = core_events.CoreEventStream(self)
         self.navigation_reader = NavigationReader()
         self.agent_binding = agent_binding
