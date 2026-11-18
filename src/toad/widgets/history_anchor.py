@@ -196,11 +196,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def live_message_row(self, message: MessageRowOwner) -> tuple[MessageRowOwner, ...]:
         return (message,)
 
-    def top_message_header(self) -> PinnedHeader:
-        """The header of the message drawn on the window's top row, when that header is scrolled
-        above it, with the column the flow draws it in."""
-        return self.top_page().pinned_header(self)
-
     def live_message_header(self) -> PinnedHeader:
         """The header of the live message drawn on the window's top row, or none."""
         y = self.scroll_y

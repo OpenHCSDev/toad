@@ -169,6 +169,7 @@ from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.flash import ErrorFlash, Flash, SuccessFlash
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.history_anchor import HistoryWindow
+from toad.client.history_changes import PinsMessageHeader
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from toad.widgets.menu import Menu
@@ -472,6 +473,7 @@ class Window(
     StableGutter,
     CoreEventReceiver,
     HistoryWindow,
+    PinsMessageHeader,
     actions=(WindowAction,),
 ):
     HELP = """\
@@ -500,13 +502,13 @@ This is a view of your conversation with the agent.
 
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
-        self.sticky_header.pin(self.top_message_header())
+        self.repin_header()
 
     def prepare_viewport(self) -> None:
         """Committed geometry can change the top row's message at an unchanged offset
         (a reflow, a filter, replaced pages, a restored tab); pin from that scene too."""
         super().prepare_viewport()
-        self.sticky_header.pin(self.top_message_header())
+        self.repin_header()
 
     @on(events.Mount)
     def on_mount(self) -> None:

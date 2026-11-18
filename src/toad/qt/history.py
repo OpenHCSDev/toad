@@ -24,7 +24,7 @@ from weakref import WeakSet
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QDesktopServices, QFont, QFontMetrics
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QTextDocument
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QWidget
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
@@ -46,6 +46,8 @@ from toad.client.history_pager import (
     ReaderPlacement,
     Runway,
 )
+from toad.client.line_blocks import Divider
+from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
@@ -67,7 +69,7 @@ from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
-from ui_theme.scheme import ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
+from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 
 class QtWireFragment(EvidencedFragment, TranscriptFragment, ABC):
@@ -243,6 +245,27 @@ class HistoryRowDelegate(RowDocumentDelegate):
         key = self.fragment_key(fragment, font, width)
         formatting = self.keyed_formatting(key, fragment.clipboard_text, self.rendering(fragment, font, width))
         return self.measured_height(key, font, width, formatting)
+
+    def block_row(self, fragment: HistoryFragment, font: QFont, width: int, y: int) -> tuple[int, int]:
+        """Which of `fragment`'s line blocks its row draws at pixel `y`, and which line of that
+        block: the unit the fragment's own header decision (`sticky_header`) reads. A block's
+        height is its own rows laid out at this width, cached as the row's height is."""
+        blocks = fragment.line_blocks
+        line = QFontMetrics(font).lineSpacing() or 1
+        top = 0
+        for index, block in enumerate(blocks):
+            height = self.measured_height((self.fragment_key(fragment, font, width), index), font, width,
+                                          self.html(self.renderer, (block,), width, font))
+            if y < top + height or index == len(blocks) - 1:
+                return index, max(0, int((y - top) // line))
+            top += height
+        return 0, 0
+
+    def header_document(self, header: Divider, font: QFont, width: int) -> QTextDocument:
+        """A message's header block laid out as its row lays it out at this width."""
+        document = self.new_document(font, width)
+        self.html(self.renderer, (header,), width, font).fill(document)
+        return document
 
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
         super().paint(painter, option, index)
@@ -481,11 +504,64 @@ QT_LINK_PREVIEW = QtLinkPreview()
 
 
 @dataclass(frozen=True)
-class QtTopRow:
-    """The row under a Qt window's top edge: Qt keeps its reader by scroll row."""
+class QtTopRow(TopPage):
+    """No row under a Qt window's top edge: Qt keeps its reader by scroll row."""
 
     def reader_position(self, window: QtHistoryWindow) -> RowPosition:
         return RowPosition(window.scroll_y)
+
+
+@dataclass(frozen=True)
+class QtRowUnderTop(QtTopRow):
+    """A fragment's row holds the top edge; its fragment decides the pinned header."""
+
+    under: FragmentRowUnderTop
+
+    def pinned_header(self, window: QtHistoryWindow) -> PinnedHeader:
+        return self.under.pinned_header()
+
+
+class QtStickyHeader(HeaderPin, QWidget):
+    """`HeaderPin` floated over the history's top edge, drawn by the history rows' own
+    delegate. A child of the window, not the viewport, as `QtJumpBar` is: the viewport's
+    children scroll with its contents, and QScroller's grab on the viewport would take its
+    taps. Opaque, so the row it covers does not show through, as Textual's overlay is."""
+
+    def __init__(self, window: QtHistoryWindow) -> None:
+        super().__init__(window)
+        self.history_window = window
+        self.document: QTextDocument | None = None
+        self.drawn: tuple = ()
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.hide()
+
+    def draw_pinned(self, header: Divider, x: int, width: int) -> None:
+        """Every scroll offset pins; only a different header, column, font or link context
+        lays the header out again."""
+        window = self.history_window
+        drawn = (header, x, width, window.font().key(), window.rows.links_revision)
+        if drawn == self.drawn:
+            return
+        self.drawn = drawn
+        self.document = window.rows.header_document(header, window.font(), width)
+        self.resize(width, int(self.document.size().height()))
+        self.move(window.viewport().mapTo(window, QPoint(x, 0)))
+        self.raise_()
+        self.update()
+
+    def show_pin(self, shown: bool) -> None:
+        if self.isVisible() != shown:
+            self.setVisible(shown)
+
+    def paintEvent(self, event) -> None:  # type: ignore[override]
+        if self.document is None:
+            return
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), QColor(BackgroundColour.rgb(self.history_window.rows.renderer.scheme).hex))
+        context = QAbstractTextDocumentLayout.PaintContext()
+        context.palette = self.palette()
+        self.document.documentLayout().draw(painter, context)
+        painter.end()
 
 
 class QtJumpBar(LatestJumpBar, QPushButton):
@@ -519,7 +595,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
 
 
 class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowView,
-                      ReaderPlacement, PagingWindow, OpensLineLinks):
+                      ReaderPlacement, PagingWindow, OpensLineLinks, PinsMessageHeader):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
     contract: reaching the top reads older pages, the bottom newer ones, End and the
@@ -593,6 +669,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         # by `_place_jump_bar`. Show/hide is driven by `tail_follow_changed` from `scrolled`.
         self.jump_bar = QtJumpBar(self, renderer.scheme)
         self.jump_bar.clicked.connect(self.jump_to_latest)
+        self.sticky_header = QtStickyHeader(self)
         self.viewport().installEventFilter(self)
         # Block menu: right-click (desktop) and long-press (Android) on a message row
         # emit `block_menu_requested` with the row's fragment. ConversationView mounts
@@ -643,8 +720,10 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
 
     def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
         if obj is self.viewport():
-            if event.type() == QEvent.Type.Resize and self.jump_bar.isVisible():
-                self._place_jump_bar()
+            if event.type() == QEvent.Type.Resize:
+                if self.jump_bar.isVisible():
+                    self._place_jump_bar()
+                self.repin_header()
             elif event.type() == QEvent.Type.Gesture:
                 held = event.gesture(Qt.GestureType.TapAndHoldGesture)
                 if held is not None and held.state() == Qt.GestureState.GestureFinished:
@@ -890,6 +969,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         self.model_rows.show(tuple(fragment for page in history.pages if page.display
                                    for fragment in page.shown_fragments) + self.draft)
         self.doItemsLayout()
+        self.repin_header()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
         """Core's CLI draft as rows after the history (none clears it); the reader keeps their place."""
@@ -908,6 +988,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
             key, offset = self.reader_place()
             self.doItemsLayout()
             self.keep_reader(key, offset)
+            self.repin_header()
             self.viewport().update()
         except RuntimeError:
             return
@@ -943,6 +1024,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
             self.release_anchor()
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
+        self.repin_header()
         if self._scroller_dragging:
             self._drag_skipped_ticks += 1
             return
@@ -1014,7 +1096,22 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
     # The reader window contract's measurements Qt keeps by row instead
 
     def top_page(self) -> QtTopRow:
-        return QtTopRow()
+        """The row under the viewport's top edge, with the block and line of its fragment
+        there: Qt measures that by pixel, where Textual counts cells."""
+        try:
+            top = self.indexAt(self.viewport().rect().topLeft())
+        except RuntimeError:
+            return QtTopRow()
+        if not top.isValid():
+            return QtTopRow()
+        rect = self.visualRect(top)
+        fragment = top.data(HistoryRows.FRAGMENT)
+        block, row = self.rows.block_row(fragment, self.font(), rect.width(), -rect.top())
+        return QtRowUnderTop(FragmentRowUnderTop(fragment, block, row, rect.left(), rect.width()))
+
+    def live_message_header(self) -> PinnedHeader:
+        """Qt draws no live blocks: the draft is rows, so a row under the top edge pins."""
+        return PinnedHeader((), 0, 0)
 
     def placements(self, bodies) -> Iterator[tuple[object, int]]:
         return iter(())

@@ -9,6 +9,7 @@ toolkit's refresh and attach checks.
 from __future__ import annotations
 
 import asyncio
+from abc import abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -22,6 +23,7 @@ from toad.client.reader_position import (
 
 if TYPE_CHECKING:
     from toad.client.line_blocks import Divider
+    from toad.client.transcript_fragments import TranscriptFragment
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
 
@@ -60,8 +62,25 @@ class PageUnderTop(PageBelowTop):
     def pinned_header(self, window: HistoryWindow) -> PinnedHeader:
         span = self.span(window)
         row = int(window.scroll_y - self.first)
-        return PinnedHeader(span.fragment.sticky_header(span.index, row - span.first),
-                            self.page.content_region.x - window.content_region.x, self.page.size.width)
+        return FragmentRowUnderTop(span.fragment, span.index, row - span.first,
+                                   self.page.content_region.x - window.content_region.x,
+                                   self.page.size.width).pinned_header()
+
+
+@dataclass(frozen=True)
+class FragmentRowUnderTop:
+    """Row `row` of block `block` of `fragment` is on a window's top row, and the fragment is
+    drawn in the column at `x` (from the window's content edge) `width` wide. Every frontend
+    measures this in its own unit; the fragment alone decides which header that pins."""
+
+    fragment: TranscriptFragment
+    block: int
+    row: int
+    x: int
+    width: int
+
+    def pinned_header(self) -> PinnedHeader:
+        return PinnedHeader(self.fragment.sticky_header(self.block, self.row), self.x, self.width)
 
 
 @dataclass(frozen=True)
@@ -73,6 +92,50 @@ class PinnedHeader:
     headers: tuple[Divider, ...]
     x: int
     width: int
+
+
+class HeaderPin:
+    """The overlay a history window floats over its top row: the header of the message the reader
+    is in, while that header is scrolled above, so the reader of a long message still sees who
+    sent it to whom, and when. It draws the message's own header block, as the flow does, and
+    keeps no copy of the message. A plain mixin, as `LatestJumpBar` is: Textual's widget
+    metaclass refuses an `ABC` base and Qt's shiboken metaclass clashes with one."""
+
+    def pin(self, pinned: PinnedHeader) -> None:
+        """Draw the one header the window's top row needs, or none, in the column its message
+        draws it in, so it sits and wraps exactly as the flow's own header does."""
+        if pinned.headers:
+            self.draw_pinned(pinned.headers[-1], pinned.x, pinned.width)
+        self.show_pin(bool(pinned.headers))
+
+    @abstractmethod
+    def draw_pinned(self, header: Divider, x: int, width: int) -> None:
+        """Draw `header` in the column at `x`, `width` wide, in the toolkit's unit."""
+
+    @abstractmethod
+    def show_pin(self, shown: bool) -> None:
+        """Draw the pin, or stop drawing it."""
+
+
+class PinsMessageHeader:
+    """A history window that pins the header of the message on its top row. Both frontends
+    answer which header that is through this one method: the top row's fragment decides
+    (`FragmentRowUnderTop`), and with no drawn fragment there the live message does
+    (`TopPage.pinned_header`). Listed after the window's own toolkit class, so the window's
+    `top_page` and `live_message_header` answer."""
+
+    sticky_header: HeaderPin
+
+    def top_message_header(self) -> PinnedHeader:
+        """The header of the message drawn on the window's top row, when that header is scrolled
+        above it, with the column the flow draws it in."""
+        return self.top_page().pinned_header(self)
+
+    def repin_header(self) -> None:
+        """Pin from where the reader is now. The window calls this on every scroll offset and
+        every committed geometry change: a reflow, a filter, replaced rows or a restored tab can
+        change the top row's message at an unchanged offset."""
+        self.sticky_header.pin(self.top_message_header())
 
 
 class NoHistoryChange:
