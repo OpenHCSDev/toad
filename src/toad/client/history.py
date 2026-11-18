@@ -79,7 +79,22 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
 
     def __init__(self, *args, **kwargs) -> None:
         self._painted_reads: dict[FragmentKey, EvidencedFragment] = {}
+        self._last_sent_references: tuple[MessageReference, ...] = ()
         super().__init__(*args, **kwargs)
+
+    @property
+    def last_sent_references(self) -> tuple[MessageReference, ...]:
+        """The most recent outgoing message's references, updated incrementally when
+        pages commit — never a reverse scan of all fragments."""
+        return self._last_sent_references
+
+    def note_sent_references(self, fragments: tuple) -> None:
+        """Check the given (new) fragments for the most recent sent references.
+        Called by the page commit path with only the arriving fragments."""
+        for fragment in reversed(fragments):
+            if references := fragment.sent_references:
+                self._last_sent_references = references
+                return
 
     # Reading the bound source's first page; a frontend may show it.
     reading = False

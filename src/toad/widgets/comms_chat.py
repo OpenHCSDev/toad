@@ -1,6 +1,8 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+from agent_comms.messaging.revision_views import RosterView
+from agent_comms.presentation import NoRevision, ReadState
 
 import re
 from functools import partial
@@ -44,7 +46,6 @@ from toad.widgets.conversation import (
     Window,
 )
 from toad.widgets.flash import Flash
-from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.prompt import MessagePrompt, Prompt
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.wire_history import HistoryLoading, WireFragment, WireHistory
@@ -254,13 +255,32 @@ class CommsChatView(WireConversationView):
         return self.message_history.reading
 
     async def _refresh_source(self) -> None:
-        """Read what changed in the conversation and draw it: the history's source work."""
+        """Read what changed in the conversation and draw it: the history's source work.
+        Thread-config reads (compose, status, mentions, label) are driven by
+        thread_presented, not by every bus message."""
         history = self.message_history
         announced = self.app.coordination_access.revision
-        newly_announced = announced != self._refreshed_from
-        changed = await history.read_changes()
-        # Source observation and its pending first page belong to the
-        # history, even before this tab is drawable. Composer work follows.
+        await history.read_changes()
+        self._refreshed_from = announced
+        self.submissions.settle()
+        # Thread config (compose, label, status, mentions) is read on the first refresh and when
+        # the roster moved, the roster owner's own signal: channels get no thread_presented.
+        if announced.changed_since(RosterView(), self._config_revision):
+            self._config_revision = announced
+            self.run_worker(self._refresh_thread_config, group=self.LABELS_GROUP)
+
+    _config_revision: ReadState = NoRevision()
+
+    LABELS_GROUP = "chat-labels"
+
+    def thread_presented(self, presentation) -> None:
+        super().thread_presented(presentation)
+        self.run_worker(self._refresh_thread_config, group=self.LABELS_GROUP)
+
+    async def _refresh_thread_config(self) -> None:
+        """Read compose access, status, mentions and label — facts that change when thread
+        config changes (ThreadsObserved), not on every bus message."""
+        history = self.message_history
         source = history.page_source
         snapshot = history.source_snapshot()
         if not await history.source_is_current(snapshot):
@@ -269,51 +289,20 @@ class CommsChatView(WireConversationView):
         if not await history.source_is_current(snapshot):
             return
         await self.refresh_composer(compose)
-        self._refreshed_from = announced
-        # A sent message may now be drawn: its queue entry retires before mentions are read.
-        self.submissions.settle()
-        # Composer mentions and DM status read the observer's snapshot
-        # and the agent records, which can take seconds on a busy bus. They are
-        # not this conversation's messages, so they run after this work ends
-        # and the history can load pages while they wait.
-        self.run_worker(partial(self._refresh_labels, source, changed, newly_announced, compose.read_only),
-                        group=self.LABELS_GROUP)
-
-    LABELS_GROUP = "chat-labels"
-
-    async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
-        """Refresh composer mentions and status for the history as it is drawn now."""
-        history = self.message_history
-        snapshot = history.source_snapshot()
-        conversation = self.conversation
-        if source is not history.page_source:
-            return
         try:
-            # An unchanged history may have read the stores before the observer
-            # announced the change; mention completion reads the observer's snapshot.
-            if changed or newly_announced:
-                await source.update_mentions(self)
-            if changed:
-                if not await history.source_is_current(snapshot):
-                    return
-                if (not self.is_attached or source is not history.page_source
-                        or not self.query_ancestor(SessionScope).is_current):
-                    return
-            self.call_after_refresh(history.mark_visible)
-            if not changed:
+            await source.update_mentions(self)
+            if not await history.source_is_current(snapshot):
                 return
-            status = await source.status_text(read_only=read_only)
+            self.call_after_refresh(history.mark_visible)
+            status = await source.status_text(read_only=compose.read_only)
         except (CoordinationReadUnavailable, ReadAgain):
-            # The coordination store is busy or moved on: the observer's next
-            # announcement refreshes this view and reads the labels again.
             return
-        if not await history.source_is_current(snapshot) or self.conversation != conversation:
+        if not await history.source_is_current(snapshot) or self.conversation != self.conversation:
             return
         self.thread_status = status
         if self.window.follows_tail:
             self.window.anchor()
-        if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
-            history.request_preparation()
+
 
     def channel_prompt(self, placeholder: str) -> ChannelPrompt:
         return ChannelPrompt(project=self.project_path, placeholder=placeholder, submissions=self.submissions)

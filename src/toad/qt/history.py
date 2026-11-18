@@ -76,7 +76,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
 from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
-from toad.qt.widget_animation import WidgetAnimation
+from toad.qt.widget_animation import WidgetAnimation, frame_interval
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 if TYPE_CHECKING:
@@ -149,6 +149,7 @@ class QtPage(ReaderPage):
         self.prepared = prepared
         self.history = history
         self.display = False
+        self._shown: tuple[HistoryFragment, ...] | None = None
         prepared.configure(batch_size=PresentationBudget.batch_items)
 
     @classmethod
@@ -157,8 +158,12 @@ class QtPage(ReaderPage):
 
     @property
     def shown_fragments(self) -> tuple[HistoryFragment, ...]:
-        selected = self.history.selected_categories
-        return tuple(fragment for fragment in self.prepared.fragments_in_range if fragment.shown_in(selected))
+        shown = self._shown
+        if shown is None:
+            selected = self.history.selected_categories
+            shown = tuple(fragment for fragment in self.prepared.fragments_in_range if fragment.shown_in(selected))
+            self._shown = shown
+        return shown
 
     @property
     def line_count(self) -> int:
@@ -166,14 +171,17 @@ class QtPage(ReaderPage):
         return sum(self.history.fragment_height(fragment) for fragment in self.shown_fragments)
 
     def range_changed(self) -> None:
+        self._shown = None
         self.history.window.committed_pages_changed()
 
     def set_categories(self, selected) -> None:
         """A filter change: the history's selection decides which rows show."""
+        self._shown = None
         self.range_changed()
 
     def remove(self) -> None:
         """An evicted page's rows go with the next row reset."""
+        self._shown = None
         self.display = False
 
     def drawn_height(self, fragment: HistoryFragment) -> int:
@@ -1008,19 +1016,18 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         self._settle_timer.setSingleShot(True)
         self._settle_timer.timeout.connect(self._settle)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
-        # Touch-down scroll throttle: QScroller emits valueChanged at touch rate
-        # (90Hz on Pixel 8a, up to 240Hz on higher-rate panels) while the finger
-        # is dragging. The post-scroll chain (`respond_to_scroll` →
-        # `lookahead.observe` + `request_preparation` + `tail_follow_changed` +
-        # `_after_jump_bar_change → refresh_bindings`) is sized for frame-rate
-        # inertia ticks, not touch rate. Track QScroller's Dragging state and
-        # skip `respond_to_scroll` while the finger is down; `_on_scroller_state`
-        # fires it once when the drag ends (and Scrolling/Inactive ticks still
-        # run it as before). Leaves at_end/follows_tail transitions in `scrolled`
-        # alone — those are cheap and only do work when the state actually flips.
-        # A finger pulling past an edge is the one drag that asks for rows at once
-        # (`overshot`): no scroll travel measures it.
-        self._scroller_dragging = False
+        # Frame-rate coalescing: QScroller fires valueChanged at touch rate (90Hz
+        # on Pixel 8a, up to 240Hz). The post-scroll chain (repin_header,
+        # lookahead, page requests, tail-follow) runs once per display frame —
+        # the same cadence as the TUI. Each valueChanged records the latest offset
+        # and starts a single-shot timer at the display's frame interval; the
+        # timer fires the full shared response. At frame-rate input (fling,
+        # keyboard), the timer fires on the next event-loop pass (0 ms remaining),
+        # so there is no added latency.
+        self._scroll_frame_timer = QTimer(self)
+        self._scroll_frame_timer.setSingleShot(True)
+        self._scroll_frame_timer.timeout.connect(self._scroll_frame)
+        self._scroll_frame_pending = False
         self._overshoot = 0.0
         _scroller = QScroller.scroller(self.viewport())
         _scroller.stateChanged.connect(self._on_scroller_state)
@@ -1456,6 +1463,8 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
     def committed_pages_changed(self) -> None:
         """Saved rows arrived: they now carry the output of every finished live block."""
         self.live_blocks = [block for block in self.live_blocks if not block.finished]
+        if self.history.pages:
+            self.history.note_sent_references(self.history.pages[-1].shown_fragments)
         self.show_pages()
 
     def restyle_rows(self) -> None:
@@ -1489,21 +1498,16 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
             self.reader_position = RowPosition(self.scroll_y)
 
     def scrolled(self, value: int) -> None:
-        """The reader moved: join or leave the end, then delegate the post-anchor response
-        (lookahead, settle timer, preparation, tail-follow) to the shared template on
-        `JumpsToLatest.respond_to_scroll` — same gate Textual uses, so no-travel ticks
-        from QScroller don't restart the settle timer during Android touch scrolls.
+        """The reader moved: join or leave the end, and schedule the full response on the
+        next display frame. QScroller fires valueChanged at touch rate during a drag;
+        coalescing to frames runs the same work at the same cadence as the TUI.
 
-        Touch-down throttle: while QScroller is in Dragging state the finger is
-        tracking the viewport and valueChanged fires at touch rate. The
-        post-scroll chain is deferred until drag ends; `_on_scroller_state`
-        fires `respond_to_scroll` once on the transition out of Dragging. The
-        at_end/follows_tail transitions here stay — they're cheap state flips
-        and consumers (jump bar + anchor) need to see them during drag."""
+        The at_end/follows_tail transitions are immediate — they are cheap state flips
+        and consumers (jump bar + anchor) need to see them during every touch tick."""
         # Every offset pins, the window's own as well as the reader's: a glide down into a tall
-        # arrival moves the top row into it, and returning before this left the arrival's header
-        # unpinned until the reader scrolled (Tristan, Android, 2026-11-18).
-        self.repin_header()
+        # arrival moves the top row into it, and skipping the window's own offsets left the
+        # arrival's header unpinned and its burst unstacked (Tristan, Android, 2026-11-18).
+        self._schedule_scroll_frame()
         if self._restoring:
             return
         if self.at_end and not self.follows_tail:
@@ -1512,9 +1516,25 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
             self.release_anchor()
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
-        if self._scroller_dragging:
-            return
-        self.respond_to_scroll(value)
+        self._reader_scrolled = True
+
+    _reader_scrolled = False
+
+    def _schedule_scroll_frame(self) -> None:
+        if not self._scroll_frame_pending:
+            self._scroll_frame_pending = True
+            interval = max(1, round(frame_interval(QWidget.screen(self)) * 1000))
+            self._scroll_frame_timer.start(interval)
+
+    def _scroll_frame(self) -> None:
+        """One display frame's scroll response: the pin for every offset, and the reader's
+        response (velocity, page requests, tail-follow) when the reader moved. Runs at frame
+        rate regardless of input rate — the same cadence as the TUI."""
+        self._scroll_frame_pending = False
+        self.repin_header()
+        if self._reader_scrolled:
+            self._reader_scrolled = False
+            self.respond_to_scroll(self.verticalScrollBar().value())
 
     _flinging = False
 
@@ -1540,11 +1560,8 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         return True
 
     def _on_scroller_state(self, state) -> None:
-        """On the drag → not-drag edge, answer the drag's last position at once. A finger
-        taking the rows stops a head reveal; a press that stops a fling is remembered, so
-        its release is not read as a tap on a row."""
-        was_dragging = self._scroller_dragging
-        self._scroller_dragging = (state == QScroller.State.Dragging)
+        """A finger taking the rows stops a head reveal; a press that stops a fling is
+        remembered, so its release is not read as a tap on a row."""
         if state in (QScroller.State.Pressed, QScroller.State.Dragging) and self.head_reveal is not None:
             self.head_reveal.cancel()
         if state == QScroller.State.Pressed:
@@ -1552,8 +1569,6 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         self._flinging = state == QScroller.State.Scrolling
         if state == QScroller.State.Inactive:
             self._overshoot = 0.0
-        if was_dragging and not self._scroller_dragging:
-            self.respond_to_scroll(self.verticalScrollBar().value())
 
     def overshot(self, distance: float) -> None:
         """A finger (or a fling's momentum) pulled the rows past an edge: the content can't
