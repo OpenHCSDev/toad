@@ -7,7 +7,7 @@ project + thread identity + the presentation's load plan, satisfies the
 SessionScope / Qt-page surface, and renders the thread's transcript.
 
 Transcript machinery (`QtHistoryWindow` + `TranscriptPresentation` +
-`QtTranscriptHistory` + `QtAgentActivity`) is inherited from
+`QtTranscriptHistory` and the rows under it) are inherited from
 `QtThreadView` — the same shared base `QtAcpSessionView` uses so the two
 thread-bound views share one implementation of the transcript stack, not
 two. The mailbox-specific pieces (identity, `use_mailbox`, `apply_native_load_plan`,
@@ -15,6 +15,8 @@ NoAgent binding default) stay here.
 """
 
 from __future__ import annotations
+
+import asyncio
 
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
@@ -28,6 +30,7 @@ from toad.acp.agent_session import UnopenedSessionDisposition
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.observed_field import ObservedField
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.qt.composer import ProjectComposer
 from toad.qt.thread_view import QtThreadView
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.transcript_scope import TranscriptScope
@@ -76,10 +79,12 @@ class QtMailboxView(QtThreadView, SessionScope):
     # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
     # class is instantiable; `__init__` assigns the real widgets.
     identity_line: ElidedLine = None  # type: ignore[assignment]
-    composer: "Composer | None" = None
-    submissions: "BusSubmissions" = None  # type: ignore[assignment]
-    thinking_line: "QWidget" = None  # type: ignore[assignment]
-    thread_status_line: "QWidget" = None  # type: ignore[assignment]
+    feedback = None
+    agent_activity = None
+    thread_activity = None
+    goal_bar = None
+    composer = None
+    submissions = None
 
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()
@@ -100,11 +105,8 @@ class QtMailboxView(QtThreadView, SessionScope):
         # Matches Textual's MainScreen: `prepared.bind` lands on
         # `view.presentation.sources.load_plan` via `apply_native_load_plan`.
         self.presentation = _MailboxPresentation()
-        # Build the shared transcript stack (QtHistoryWindow + TranscriptPresentation
-        # + QtTranscriptHistory + QtAgentActivity). After this call, `self.messages`,
-        # `self.transcript`, `self.message_history`, `self.agent_activity` all exist.
+        # The shared transcript stack: `messages`, `transcript`, `message_history`.
         self._setup_transcript(app)
-        # Identity line + layout — messages are the main body, activity ribbon above.
         self.identity_line = ElidedLine(f"Mailbox: {thread_incarnation.name}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.identity_line.setStyleSheet(f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};")
@@ -113,19 +115,24 @@ class QtMailboxView(QtThreadView, SessionScope):
         info.addWidget(self.identity_line, 1)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addLayout(info)
-        layout.addWidget(self.agent_activity)
         layout.addWidget(self.messages, 1)
-        # Goal strip above the composer slot, matching ACP + Textual's `Conversation`
-        # where `GoalBar` sits over its prompt. The bar hides itself when no goal
-        # is set.
-        goal_bar = self._mount_goal_bar(app, thread_incarnation)
-        if goal_bar is not None:
-            layout.addWidget(goal_bar)
-        # Composer at the bottom. Hoisted on `QtThreadView` — same input path
-        # ACP uses. Label targets the mailbox thread so the placeholder shows
-        # the user where they're about to post.
-        self._setup_composer(app, layout, f"Send to {thread_incarnation.name}")
+        # Under the transcript, Textual's order: flash, sweep, status, goal, prompt.
+        self._setup_prompt_stack(app, layout, thread_incarnation)
+
+    def composer_class(self) -> type[ProjectComposer]:
+        """Textual's `MailboxSessionSources.prompt`: a `MailboxPrompt`."""
+        return ProjectComposer
+
+    @property
+    def composer_label(self) -> str:
+        return self.thread_incarnation.name
+
+    def present_thread_status(self) -> None:
+        """A CLI thread shows Core's configuration answer, as Textual's
+        `MailboxSessionSources.thread_presented` reads it."""
+        asyncio.ensure_future(self.thread_scope.show_mailbox_status(self, self.app.coordination_access))
 
     # ---- SessionScope identity ----
 
@@ -176,8 +183,13 @@ class QtMailboxView(QtThreadView, SessionScope):
     def bind_thread(self, owner, root: str) -> None:
         """`session_navigation.bind_opened` calls `view.bind_thread(owner, root)`;
         mirrors `MainScreen.bind_thread` at `screens/main.py:386`, builds the
-        `ThreadIdentity(owner, root)` that `thread_identity` then returns."""
+        `ThreadIdentity(owner, root)` that `thread_identity` then returns.
+
+        The status rows bound at construction read `NoTranscript`; with the identity
+        known, the status thread and Core's configuration answer are read for it."""
         self._identity = ThreadIdentity(owner, root)
+        self.refresh_thread_status()
+        self.present_thread_status()
 
     # ---- ThreadNavigation.bind hooks ----
 
@@ -225,6 +237,7 @@ class QtMailboxView(QtThreadView, SessionScope):
         `transcript_publication.py:1026` — `ResourceRelease.close()` is the
         `ExitStack` API."""
         self._thread_observation.close()
+        super().close_core_events()
 
     async def retire_presentation(self) -> None:
         """Let go of the drawn transcript before the tab it returns to is

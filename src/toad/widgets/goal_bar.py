@@ -19,8 +19,7 @@ from ui_theme.effects import STANDBY_PULSE, Mix
 from ui_theme.scheme import ForegroundColour, SecondaryColour
 from textual.widgets import Static
 
-from toad.goal_controls import GoalBarOwner, GoalInteraction, GoalInteractionControl
-from toad.goal_view import GoalCollapse
+from toad.goal_controls import GoalBarOwner, GoalCollapse, GoalInteraction, GoalInteractionControl
 from toad.widgets.prompt import DeliveryControls
 from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver

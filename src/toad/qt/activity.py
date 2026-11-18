@@ -20,6 +20,7 @@ from toad.client.connection import CoordinationAccess
 from toad.channel_activity_dispatch import ChannelActivityTitle
 from toad.client.conversation import ConversationKind
 from toad.client.line_blocks import MutedRole
+from toad.client.prompt_stack import ObservedSweep
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.status_thread import ObservedActivity
@@ -66,7 +67,8 @@ class ActivitySweep(QWidget):
         self.renderer = renderer
         self.working = False
         self.started = monotonic()
-        self.setFixedHeight(6)
+        # One text row, always reserved, as Textual's throbber row: only its paint changes.
+        self.setFixedHeight(self.fontMetrics().lineSpacing())
         self.timer = QTimer(self)
         self.timer.setInterval(int(1000 / ACTIVITY_SWEEP.frames_per_second))
         self.timer.timeout.connect(self.update)
@@ -110,6 +112,14 @@ class ActivitySweep(QWidget):
         painter = QPainter(self)
         painter.drawImage(0, 0, image)
         painter.end()
+
+
+class QtObservedSweep(ObservedSweep, ActivitySweep):
+    """The sweep under a thread view's transcript, Textual's `AboveThrobber`: it paints the
+    view's `working()` answer through the shared `ObservedSweep`, never a busy copy."""
+
+    def sync(self) -> None:
+        self.sweep(self.read_busy())
 
 
 class PeerActivity(ObservedActivity, QtCoreObserver, QWidget):

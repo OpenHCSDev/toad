@@ -15,15 +15,16 @@ from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
 from formbridge.key_declarations import TextEntryMode
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QGuiApplication, QKeyEvent, QTextCursor
+from PySide6.QtGui import QColor, QGuiApplication, QKeyEvent, QPalette, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
+    QLabel,
     QListWidget,
     QListWidgetItem,
     QPlainTextEdit,
-    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -34,6 +35,11 @@ from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.commands import ConversationCommands
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
+from toad.client.prompt_composer import MessagePromptComposer
+from toad.client.condensed_path import home_relative
+from toad.key_modes import Standard
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from ui_theme.scheme import MutedColour, PrimaryColour, SecondaryColour
 from toad.client.notification_status import (
     CheckedNotifications,
     NotificationStatus,
@@ -53,6 +59,7 @@ from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.qt.composer_vim import ComposerVimMode, VimState, apply_normal_key
 from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary
+from toad.qt.prompt_stack import QtInfoBar
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
 from toad.qt.metrics import UiGap
@@ -226,6 +233,10 @@ class ComposerEditor(QPlainTextEdit):
         self.vim_enabled = False
         self.vim = ComposerVimMode()
 
+    def focusOutEvent(self, event) -> None:
+        super().focusOutEvent(event)
+        self.composer.focus_changed(False)
+
     def mousePressEvent(self, event) -> None:
         super().mousePressEvent(event)
         self.setFocus(Qt.FocusReason.MouseFocusReason)
@@ -240,6 +251,7 @@ class ComposerEditor(QPlainTextEdit):
 
     def focusInEvent(self, event) -> None:
         super().focusInEvent(event)
+        self.composer.focus_changed(True)
         # Same defer as mousePressEvent — focusInEvent also runs inside Qt's
         # event-dispatch path on Android.
         QTimer.singleShot(0, QGuiApplication.inputMethod().show)
@@ -272,18 +284,16 @@ class ComposerEditor(QPlainTextEdit):
         super().keyPressEvent(event)
 
 
-class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
-    """A conversation's composer: the offer list, the editor and its send button, then
-    what is still submitting, the last send's failure and the delivery of your last message.
+class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, DismissibleContract, QWidget,
+               metaclass=PyQtWidgetMeta):
+    """A conversation's composer, Textual's message prompt drawn natively: the offer list,
+    the queue summary and delivery controls, the framed ``❯`` editor, then its info bar
+    and what is still submitting, the last send's failure and your last message's delivery.
 
-    It sets no colours of its own: the application's pyqt-reactive theme styles its button,
-    and the theme's input and list styles frame the editor and the offers.
-
-    Inherits `SubmitsContract` + `DismissibleContract` so the shared action families
-    (`SubmitAction`, `SubmitNowAction`, `DismissAction`, `NewlineAction` in
-    `toad.prompt_actions` / `toad.widget_actions`) bind to this widget without Qt
-    restating any key spelling — one declaration in those modules drives both Textual's
-    PromptTextArea and the Qt editor."""
+    `MessagePromptComposer` (shared with Textual's `MessagePrompt`) owns the submission
+    owner, the queue answers, the leading glyph and how a returned draft rejoins; this
+    class makes the Qt calls. Enter sends (`SubmitAction`), as in the TUI: no Send button.
+    The shared action families bind to it through `SubmitsContract` + `DismissibleContract`."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
@@ -298,54 +308,74 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         self.editor.textChanged.connect(self.refresh_offers)
         self.editor.cursorPositionChanged.connect(self.refresh_offers)
         self.editor.textChanged.connect(self.fit_height)
-        self.send_button = QPushButton("Send", self)
-        self.send_button.clicked.connect(self.send)
-        styles = host.app.theme.color_scheme.styles
-        self.editor.setStyleSheet(styles.generate_text_input_style())
-        self.offers.setStyleSheet(styles.generate_list_widget_style())
-        # Clickable queue summary + delivery controls: Textual's QueueSummary +
-        # DeliveryControls land here via their shared contracts. Reading the queue
-        # state through host.submissions.queue_summary + .holds_input keeps Qt from
-        # keeping its own copy of what's in flight.
+        self.editor.textChanged.connect(self.refresh_glyph)
+        self.editor.setFrameShape(QFrame.Shape.NoFrame)
+        self.editor.setStyleSheet("QPlainTextEdit { background: transparent; border: none }")
+        palette = self.editor.palette()
+        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(renderer.colour(MutedRole)))
+        self.editor.setPalette(palette)
+        self.offers.setStyleSheet(host.app.theme.color_scheme.styles.generate_list_widget_style())
+        self.glyph = QLabel()
+        self.glyph.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}; padding: 0 4px")
+        self.frame = QFrame()
+        self.frame.setObjectName("prompt-frame")
+        frame = QHBoxLayout(self.frame)
+        frame.setContentsMargins(UiGap.normal, UiGap.normal, UiGap.normal, UiGap.normal)
+        frame.setSpacing(0)
+        frame.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
+        frame.addWidget(self.editor, 1)
+        self.info_bar = QtInfoBar(host.app, renderer)
+        # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
         self.submitting = QtQueueSummary(self)
         self.delivery_controls = QtDeliveryControls(self)
         self.failure = self.line(FailureRole)
         self.receipt = Receipt(host.app, renderer)
-        # Vim mode indicator — only shown when vim is enabled AND the editor is in NORMAL.
-        # INSERT reads as "no indicator" (standard editing); NORMAL reads as "-- NORMAL --".
+        # Vim NORMAL indicator; INSERT reads as "no indicator".
         self.mode_indicator = self.line(MutedRole)
-        row = QHBoxLayout()
-        row.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
-        row.addWidget(self.editor, 1)
-        row.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignBottom)
+        frame_row = QHBoxLayout()
+        frame_row.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.tight)
+        frame_row.addWidget(self.frame)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
+        # Textual's compose order: completions, delivery controls, the prompt container,
+        # its info bar (`widgets/prompt.py` `Prompt.compose`).
         layout.addWidget(self.offers)
-        # QueueSummary + DeliveryControls go ABOVE the editor row — mirrors
-        # Textual's compose() order (`compose_delivery_controls` yields before
-        # PromptContainer at `widgets/prompt.py:1077-1090`), so the queue strip
-        # lands in the same slot on both frontends. The post-editor lines
-        # (mode indicator, failure, receipt) are Textual's InfoBar equivalents
-        # and stay below.
         layout.addWidget(self.submitting)
         layout.addWidget(self.delivery_controls)
-        layout.addLayout(row)
+        layout.addLayout(frame_row)
+        layout.addWidget(self.info_bar)
         for line in (self.mode_indicator, self.failure, self.receipt):
             layout.addWidget(line)
-        # Bind the declared prompt-action keys as QShortcuts on the editor. The
-        # callbacks target `self` (the composer) so `SubmitAction`/`DismissAction`
-        # /`SubmitNowAction`/`NewlineAction` on Qt fire the same contract Textual's
-        # Prompt uses — no hand-rolled Enter/Ctrl+Enter/Escape in `keyPressEvent`.
+        # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
+        self.focus_changed(False)
+        self.refresh_glyph()
         self.fit_height()
         self.refresh_mode_indicator()
-        # Reflect whatever's already queued the moment the composer mounts, so
-        # a view that carries queued input into first paint shows the strip
-        # without waiting for the next `submissions_changed` tick. Matches
-        # Textual's `call_after_refresh(self.sync_queue)` in Prompt.on_mount
-        # at `widgets/prompt.py:900-902`.
         self.show_submitting()
+
+    @property
+    def settings(self):
+        return self.host.app.settings
+
+    @property
+    def submissions(self) -> BusSubmissions:
+        return self.host.submissions
+
+    def focus_changed(self, focused: bool) -> None:
+        """The frame's border follows focus (Textual's `PromptContainer.border`), and the
+        badge shows the editing mode only while focused."""
+        colour = PrimaryColour if focused else MutedColour
+        self.frame.setStyleSheet(
+            f"#prompt-frame {{ border: 1px solid {self.renderer.theme(colour)}; border-radius: 2px }}")
+        self.info_bar.badge.present_editing_mode(Standard(), focused)
+
+    def refresh_glyph(self) -> None:
+        self.glyph.setText(self.prompt_symbol(self.text, False))
+
+    def show_status(self, status) -> None:
+        self.info_bar.status.present_status(status)
 
     def line(self, role: type[LineRole]) -> WrappedText:
         label = WrappedText()
@@ -483,10 +513,10 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         self.editor.clearFocus()
 
     def restore_draft(self, text: str) -> None:
-        """A send that did not land comes back as the draft, in front of anything typed since."""
-        typed = self.text
-        self.editor.setPlainText(text if not typed.strip() else f"{text}\n{typed}")
-        self.editor.moveCursor(QTextCursor.MoveOperation.End)
+        """A send that did not land rejoins the draft as Textual's prompt rejoins it."""
+        if suffix := self.restored_suffix(self.text, text):
+            self.editor.moveCursor(QTextCursor.MoveOperation.End)
+            self.editor.insertPlainText(suffix)
 
     def show_failure(self, text: str) -> None:
         self.failure.setText(text)
@@ -496,9 +526,8 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         """Push queue-summary text and delivery-controls visibility from the shared
         ``view.submissions`` state. Mirrors Textual's ``_update_queue_summary`` +
         ``DeliveryControls.ComposedWhenShown`` flip on ``holds_input``."""
-        submissions = self.host.submissions
-        self.submitting.refresh(submissions.queue_summary)
-        self.delivery_controls.setVisible(bool(submissions.holds_input))
+        self.submitting.refresh(self.queue_summary)
+        self.delivery_controls.setVisible(self.offers_send_now)
 
     def send_now(self) -> None:
         """What ``QueueSummary.activate`` triggers (and Ctrl+Y when input is held):
@@ -509,10 +538,9 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
         ``ConversationSubmissions`` subclass that wires ``view.queue_source``); until
         the Qt views switch to that subclass, this is a safe no-op so the button and
         shortcut still bind without crashing."""
-        submissions = self.host.submissions
-        if not submissions.holds_input:
+        if not self.holds_input:
             return
-        send_now = getattr(submissions, "send_now", None)
+        send_now = getattr(self.submissions, "send_now", None)
         if send_now is None:
             return
         send_now()
@@ -530,7 +558,6 @@ class Composer(MentionEditor, SubmitsContract, DismissibleContract, QWidget):
     def hold(self, reason: str) -> None:
         """A read-only view holds compose and says why; an empty reason opens it."""
         self.editor.setReadOnly(bool(reason))
-        self.send_button.setEnabled(not reason)
         self.editor.setToolTip(reason)
 
     def labelled(self, label: str) -> None:
@@ -548,7 +575,16 @@ class MessageComposer(Composer):
         super().__init__(host, renderer, "Message thread")
 
     def labelled(self, label: str) -> None:
-        self.editor.setPlaceholderText(f"Message {label}")
+        self.editor.setPlaceholderText(f"Message {label or 'thread'}")
+
+
+class ProjectComposer(MessageComposer):
+    """A thread view's composer shows its project in the info bar, as Textual's
+    `Prompt`/`MailboxPrompt.compose_agent_info` yield `PromptPath`."""
+
+    def __init__(self, host: ComposerHost, renderer: QtLineRenderer) -> None:
+        super().__init__(host, renderer)
+        self.info_bar.show_path(home_relative(str(host.project.path)))
 
 
 class Receipt(NotificationSubscriber, WrappedText):

@@ -40,14 +40,18 @@ from toad.client.resource_release import ResourceRelease
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.transcript_history_contract import TranscriptHistoryContract
 from toad.core import input_events
-from toad.qt.agent_activity import QtAgentActivity
+from toad.qt.activity import QtObservedSweep
+from toad.qt.prompt_stack import QtFlash, QtSessionDetails
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.goal import QtGoalBar
 from toad.qt.history import QtHistoryNotifications, QtHistoryWindow
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.qt.page import Page
-from toad.status_thread import StatusThread
+from toad.status_thread import StatusThread, WorkingStatusOwner
+from toad.client.prompt_composer import ComposerStatus
+from toad.client.prompt_stack import ErrorTone, SuccessTone
+from toad.conversation_turn import ConversationTurn
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.transcript_publication import BoundView, TranscriptPresentation
 from toad.transcript_scope import TranscriptScope
@@ -62,6 +66,8 @@ if TYPE_CHECKING:
 
 class QtThreadView(
     CategorySelection,
+    WorkingStatusOwner,
+    ComposerStatus,
     ObservedAgentBinding,
     ConversationThreadReadMixin,
     ThreadBindingDispatch,
@@ -81,31 +87,15 @@ class QtThreadView(
     - Implement `thread_identity`, `mode`, `origin`, `transcript_scope` per
       SessionScope contract.
 
-    The transcript stack (`self.messages`, `self.transcript`,
-    `self.message_history`, `self.agent_activity`) and the `BoundViewHost`
-    contract (`window`, `contents`, `transcript_history`, `transcript_binding`)
-    are owned here so there is one source for the Qt transcript rendering.
-
-    Also provides the `ObservedAgentBinding` wiring (`agent_binding`
-    ObservedField + change watchers) so both views share the shape Textual's
-    `Conversation.watch_agent_binding` plays. ACP views (live session) will
-    write a real `AgentConnection` into `self.agent_binding`; mailbox views
-    (saved history) leave it as `NoAgentConnection()` and still render from
-    the transcript scope.
-
-    Inherits `ComposerHost` so both subclasses mount a working composer via
-    `_setup_composer(app, layout, label)` — the mailbox view previously
-    shipped without one, which left the user staring at a transcript with no
-    way to type. The composer wiring (`submissions`, `queue_source`, `submit`,
-    `submissions_changed`, `update_slash_commands`, `notification_targets`)
-    lives here so the two Qt thread-bound views share one input path.
+    The transcript stack (`messages`, `transcript`, `message_history`), the
+    `BoundViewHost` contract, the `ObservedAgentBinding` field (a real
+    `AgentConnection` on ACP views, `NoAgentConnection()` on mailbox views), the
+    rows under the transcript (`_setup_prompt_stack`) and the composer's input path
+    are owned here, so the two thread-bound views share one implementation.
+    `WorkingStatusOwner` and `ComposerStatus` are the parents Textual's
+    `Conversation` inherits for the working answer and the info bar's status.
     """
 
-    # Shared `ObservedAgentBinding` storage: the `ObservedField` descriptor on
-    # `AgentBoundConversation` requires each concrete class to provide one. Previously
-    # `QtAcpSessionView` and `QtMailboxView` each declared their own identical
-    # `agent_binding = ObservedField(NoAgentConnection())`. Hoisted here so there is
-    # one owner — subclasses stop duplicating it.
     agent_binding: ObservedField[AgentConnection] = ObservedField(NoAgentConnection())
 
     # ``BusSubmissions.queue_evidence`` reads ``self.view.queue_source`` on the
@@ -115,24 +105,14 @@ class QtThreadView(
     # views inherit it. Subclasses with a live queue binding override.
     queue_source: QueueSource = NoQueueSource()
 
-    # ---- Shared contract: fields every concrete thread view must declare ----
+    # ---- Shared contract: the rows Textual's `Conversation.compose` mounts ----
     #
-    # Textual's `Conversation` always mounts: transcript, composer (prompt), agent
-    # activity ribbon, goal bar, identity line, flash / notice surface, bus submissions.
-    # A Qt subclass that omits any of these silently paints a broken screen — the
-    # mailbox-composer-missing bug (Nov 17 2026) was exactly that: no error, no log,
-    # just no input box, caught only by Tristan looking at a screencap.
-    #
-    # Expressed as abstract properties so a subclass that omits one fails at class
-    # instantiation (`PyQtWidgetMeta.__call__` raises `TypeError` listing every
-    # missing name). Each subclass satisfies the abstract by declaring a class-level
-    # default (typically `: Composer | None = None`) and assigning the real widget
-    # in its `__init__`; the class-level declaration is what Python's
-    # `__abstractmethods__` check reads, and the instance assignment is what the
-    # app actually uses at runtime.
-    #
-    # Fields `_setup_transcript` populates (messages, transcript, message_history,
-    # agent_activity) are satisfied on the base, so subclasses don't re-declare them.
+    # Under the transcript Textual yields `Flash`, then its `PromptStack`: the activity
+    # sweep (`throbber_above`), the session-status disclosure (`thread_activity`), the
+    # goal bar and the prompt (with its info bar). `_setup_prompt_stack` mounts the Qt
+    # sibling of each in that order. Each is an abstract property so a subclass that
+    # omits one fails at instantiation (`TypeError` listing every missing name); the
+    # subclass satisfies it with a class-level `None` and the base assigns the widget.
 
     @property
     @abstractmethod
@@ -141,60 +121,82 @@ class QtThreadView(
 
     @property
     @abstractmethod
+    def feedback(self) -> QtFlash:
+        """Textual's `Flash`: the centred transient notice ("Agent Comms connected")."""
+
+    @property
+    @abstractmethod
+    def agent_activity(self) -> QtObservedSweep:
+        """Textual's `throbber_above`: the sweep painting `working()`."""
+
+    @property
+    @abstractmethod
+    def thread_activity(self) -> QtSessionDetails:
+        """Textual's `OperationalSessionDetails`: ``▶ <status> · …`` over its details."""
+
+    @property
+    @abstractmethod
+    def goal_bar(self) -> QtGoalBar | None:
+        """Textual's `GoalBar`; `None` for a view with no managed thread to own a goal."""
+
+    @property
+    @abstractmethod
     def composer(self) -> "Composer | None":
-        """The input box (``Composer``), mounted via ``_setup_composer`` and lazily
-        populated one Qt tick later (`None` until the Android first-paint race clears).
-        ACP + mailbox views both carry this; a subclass that omits it ships without
-        an input box, which the Nov 17 2026 screencap caught."""
+        """Textual's prompt: the framed ``❯`` editor and its info bar, mounted one Qt
+        tick after construction (`None` until the Android first-paint race clears)."""
 
     @property
     @abstractmethod
     def submissions(self) -> BusSubmissions:
-        """``BusSubmissions`` — the bus-layer owner the composer publishes through on
-        ``submit``. ``_setup_composer`` creates and assigns it; a subclass that omits
-        the call ships a composer with nowhere to send to."""
+        """``BusSubmissions`` — the owner the composer publishes through on ``submit``."""
+
+    @abstractmethod
+    def composer_class(self) -> type[Composer]:
+        """The composer this view kind mounts (Textual's `operational_sources.prompt`)."""
+
+    def close_core_events(self) -> None:
+        """The rows under the transcript stop observing with the view."""
+        self.thread_activity.close_activity()
+        if self.goal_bar is not None:
+            self.goal_bar.close_activity()
+
+    def history_loading(self) -> bool:
+        """As Textual's `Conversation`: only wire histories page in under a loading row."""
+        return False
+
+    def sync_working(self) -> None:
+        """Textual's `Conversation.sync_working`: the sweep and the status title read the
+        one `working()` answer and the observed row again."""
+        self.agent_activity.sync()
+        self.thread_activity.refresh_summary()
+
+    def _turn_changed(self, owner) -> None:
+        self.sync_working()
+
+    _thread_status: object = ""
 
     @property
-    @abstractmethod
-    def thinking_line(self) -> QWidget:
-        """One-row status line mirroring Textual's ``throbber_above``: shows the current
-        agent turn's activity when the agent is busy. ``_setup_composer`` creates it
-        via ``QtThinkingLine`` and mounts it above the goal strip + composer. A
-        subclass that omits it ships without the Thinking indicator the TUI reference
-        has above its composer."""
+    def thread_status(self):
+        return self._thread_status
 
-    @property
-    @abstractmethod
-    def thread_status_line(self) -> QWidget:
-        """Session-status row mirroring Textual's ``OperationalSessionDetails`` title:
-        model name + input-delivery status. ``_setup_composer`` creates it via
-        ``QtThreadStatusLine`` and mounts it above the goal strip + composer."""
+    @thread_status.setter
+    def thread_status(self, status) -> None:
+        self._thread_status = status
+        self.sync_status()
+
+    def sync_status(self) -> None:
+        """The info bar shows `ComposerStatus.composed_status()` once the composer exists."""
+        if self.composer is not None:
+            self.composer.show_status(self.composed_status())
+
+    def present_thread_status(self) -> None:
+        """A native agent reports its configuration through ACP (Textual's
+        `OperationalSessionSources.thread_presented`); a CLI thread overrides."""
 
     def apply_bound_agent(self, agent: "AgentBase") -> None:
-        """Default: refresh the composer-surround lines so a late-bound agent
-        gets the thinking + status surfaces pointing at the new binding, not
-        the pre-bind default. `ObservedAgentBinding.bind_agent` calls this
-        after storing. ACP views can override to update composer/identity too;
-        mailbox views still want the status refresh (model_info may arrive via
-        a later wire binding upgrade)."""
-        self.refresh_composer_surround()
-
-    def refresh_composer_surround(self) -> None:
-        """Re-ask each composer-surround line to re-read its state source and
-        toggle its visibility. Called on every ``apply_bound_agent`` AND on
-        ``ThreadRowsChanged`` via ``QtGoalBar.rows_changed`` — so a remote
-        thread status flip (busy/idle, model info arrival) propagates to the
-        thinking + status line without each widget needing its own core-event
-        subscription."""
-        for line in (getattr(self, "thinking_line", None), getattr(self, "thread_status_line", None)):
-            if line is not None and hasattr(line, "refresh"):
-                try:
-                    line.refresh()
-                except Exception as error:
-                    print(
-                        f"QtThreadView {type(self).__name__} composer-surround refresh failed: {error!r}",
-                        flush=True,
-                    )
+        """A late-bound agent: the status thread and working answer are read again."""
+        self.refresh_thread_status()
+        self.sync_working()
 
     def agent_connected(self, agent: "AgentBase") -> None:
         """Default no-op: flash notice on connect. ACP views override; mailbox
@@ -235,11 +237,7 @@ class QtThreadView(
         # reads them through `selected_categories` from its first page.
         self.visible_categories = all_categories()
         self.message_history = QtTranscriptHistory(self.messages, self, app)
-        # Activity sweep above the transcript — Qt sibling of Textual's
-        # `Conversation.throbber_above = AboveThrobber(self.working)`. Reads the
-        # shared `TurnOwner.busy` via a `ConversationTurn` and animates the shared
-        # `ACTIVITY_SWEEP` ribbon.
-        self.agent_activity = QtAgentActivity(self, app.renderer)
+        self.turns = ConversationTurn(self._turn_changed, lambda: self.agent_binding.presentation.turns)
         # Bind once message_history exists: `BoundView` reads
         # `self.transcript_history` immediately.
         self.transcript.bind(self)
@@ -257,60 +255,53 @@ class QtThreadView(
         # `KnownTranscript`.
         QTimer.singleShot(0, self._start_transcript_source)
 
-    def _setup_composer(self, app: "QtToadApp", layout: QVBoxLayout, label: str) -> None:
-        """Wire the Composer into the thread view's layout.
+    def _setup_prompt_stack(self, app: "QtToadApp", layout: QVBoxLayout, incarnation) -> None:
+        """Mount, under the transcript, the rows Textual's `Conversation.compose` yields
+        after its window, in its order: flash, sweep, session status, goal bar, prompt.
 
-        Call from the subclass `__init__` AFTER `_setup_transcript` and after
-        adding the transcript widgets (agent_activity + messages + optional
-        goal_bar) to `layout`. The composer mounts one Qt event-loop tick later
-        via ``QTimer.singleShot(0, ...)``: on Qt-for-Android, mounting
-        ``QPlainTextEdit`` inside ``Composer`` during ``__init__`` races
-        ``QtAndroidAccessibility::runInObjectContext()`` with the first-paint
-        EGL setup and deadlocks the window (upstream Qt-for-Android bug). The
-        deferred mount lets the main-window paint land first; the composer
-        reparents cleanly into ``self._composer_layout``.
-
-        `submissions` is created here so `BusSubmissions.queue_evidence` has a
-        valid owner by the time the composer's first `show_submitting` fires.
-        """
+        The composer mounts one Qt event-loop tick later: on Qt-for-Android, mounting
+        ``QPlainTextEdit`` during ``__init__`` races ``QtAndroidAccessibility`` with the
+        first-paint EGL setup and deadlocks the window. Its slot is reserved here so it
+        lands in order. ``submissions`` exists first so ``BusSubmissions.queue_evidence``
+        has an owner by the composer's first ``show_submitting``."""
+        self.feedback = QtFlash(app, app.renderer)
+        self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
+        self.thread_activity = QtSessionDetails(self, app.renderer)
+        self.goal_bar = None if incarnation is None else QtGoalBar(app, app.renderer, incarnation)
         self.submissions = BusSubmissions(self)
-        self.composer: Composer | None = None
-        self._pending_composer_label: str | None = None
-        self._composer_layout = layout
-        # Mount the composer-surround UX rows ABOVE the composer slot, matching
-        # Textual's `PromptStack` order (throbber_above → thread_activity →
-        # goal_bar → prompt). The goal strip is already added by the subclass
-        # before this call; thinking/status lines go in between so the layout is
-        # identity → transcript → thinking → status → goal → composer.
-        from toad.qt.composer_surround import QtThinkingLine, QtThreadStatusLine
-        self.thinking_line = QtThinkingLine(self, app.renderer)
-        self.thread_status_line = QtThreadStatusLine(self, app.renderer)
-        layout.addWidget(self.thinking_line)
-        layout.addWidget(self.thread_status_line)
-        QTimer.singleShot(0, lambda: self._mount_composer(app, label))
+        self.composer = None
+        self._composer_slot = QVBoxLayout()
+        self._composer_slot.setContentsMargins(0, 0, 0, 0)
+        for row in (self.feedback, self.agent_activity, self.thread_activity, self.goal_bar):
+            if row is not None:
+                layout.addWidget(row)
+        layout.addLayout(self._composer_slot)
+        if self.goal_bar is not None:
+            # The bar hides itself until a goal is read, so it cannot wait for showEvent.
+            self.goal_bar._attach_observation_if_needed()
+        self.thread_activity.mount()
+        self.refresh_thread_status()
+        QTimer.singleShot(0, lambda: self._mount_composer(app))
 
-    def _mount_composer(self, app: "QtToadApp", label: str) -> None:
-        """Deferred composer mount. See `_setup_composer` for the Android
-        deadlock that forces this to run one tick after construction."""
+    def _mount_composer(self, app: "QtToadApp") -> None:
+        """Deferred composer mount; see `_setup_prompt_stack`. A failed mount is loud:
+        a silently-missing composer is how the mailbox view first shipped."""
         try:
-            self.composer = Composer(self, app.renderer, label)
+            self.composer = self.composer_class()(self, app.renderer)
         except Exception as error:
-            # Loud fail — a silently-missing composer is how the mailbox view
-            # shipped without an input box in the first place.
-            print(
-                f"QtThreadView {type(self).__name__} composer mount failed: {error!r}",
-                flush=True,
-            )
+            print(f"QtThreadView {type(self).__name__} composer mount failed: {error!r}", flush=True)
             import traceback
             traceback.print_exc()
-            app.status_line.show_status(
-                f"Composer mount failed: {error}", StatusColorRole.ERROR
-            )
+            app.status_line.show_status(f"Composer mount failed: {error}", StatusColorRole.ERROR)
             return
-        self._composer_layout.addWidget(self.composer)
-        if self._pending_composer_label is not None:
-            self.composer.labelled(self._pending_composer_label)
-            self._pending_composer_label = None
+        self._composer_slot.addWidget(self.composer)
+        self.composer.labelled(self.composer_label)
+        self.sync_status()
+
+    @property
+    @abstractmethod
+    def composer_label(self) -> str:
+        """What the composer's placeholder names."""
 
     # ---- ComposerHost contract ----
     #
@@ -389,55 +380,15 @@ class QtThreadView(
         )
 
     def flash(self, text: str) -> None:
-        """Shared `ConversationCommands` contract: a short notice under the
-        prompt. Textual routes through its `FlashHost` feedback widget; Qt
-        does not have one yet, so the base prints LOUDLY to stderr so the
-        notice is never swallowed. A future `QtFlashHost` would replace the
-        print without changing the call sites."""
-        print(f"[flash] {type(self).__name__}: {text}", flush=True)
+        """Shared `FlashHost` contract, drawn by Textual's `Flash` sibling."""
+        self.feedback.flash(text)
 
     def flash_success(self, text: str) -> None:
-        """Shared contract: successful-action feedback. See `flash`."""
-        print(f"[flash success] {type(self).__name__}: {text}", flush=True)
+        self.feedback.flash(text, style=SuccessTone.declared_name)
 
     def flash_error(self, text: str) -> None:
-        """Shared contract: error feedback. In addition to the stderr line
-        (so logcat captures it), surface via the composer's own failure strip
-        when available — that matches where the user is looking after a bad
-        send."""
-        print(f"[flash error] {type(self).__name__}: {text}", flush=True)
-        if self.composer is not None:
-            self.composer.show_failure(text)
+        self.feedback.flash(text, style=ErrorTone.declared_name)
 
-    def _mount_goal_bar(self, app: "QtToadApp", incarnation) -> QtGoalBar | None:
-        """Construct the goal strip that sits above the chat on the TUI.
-
-        The subclass passes the `ThreadIncarnation` the view is bound to (mailbox
-        carries one as an `__init__` arg; ACP reads
-        `self._agent_binding.initial_identity(...).optional_thread_incarnation()`).
-        `None` means this view has no managed-thread goal to show, and the goal
-        bar is skipped — a polymorphic branch through
-        `SessionIdentity.optional_thread_incarnation`, not an `isinstance` guard.
-
-        Returns the widget for the subclass to place in its own layout slot
-        (ACP: above the composer; mailbox: above `self.agent_activity`).
-
-        The bar drives its own visibility through `present_state → setVisible`
-        off the thread's `GoalDisplay`: when the goal is unset it takes no
-        layout space, matching Textual's `ComposedWhenShown` goal bar.
-        """
-        if incarnation is None:
-            self.goal_bar = None
-            return None
-        self.goal_bar = QtGoalBar(app, app.renderer, incarnation)
-        self.goal_bar.peer_rows_changed.connect(self.refresh_composer_surround)
-        # Kick off the core-event subscription + first goal read NOW, not on
-        # showEvent. `present_state()` in the bar's __init__ already hid the
-        # widget (no goal snapshot yet), so waiting for showEvent would stall
-        # the observation forever. Fire-and-forget: the observation's first
-        # result will call `present_state()` again and flip the visibility.
-        self.goal_bar._attach_observation_if_needed()
-        return self.goal_bar
 
     def _start_transcript_source(self) -> None:
         """Deferred transcript source start: fires on the next Qt event-loop tick,
@@ -530,6 +481,8 @@ class QtThreadView(
         Mirrors `Conversation.thread_presented` at `widgets/conversation.py:972` —
         same shape, skipping the Textual `operational_sources` leg."""
         self.thread_presentation = presentation
+        self.refresh_thread_status()
+        self.present_thread_status()
         self.dispatch_sync(presentation)
 
     # ---- thread_scope / status_thread for ConversationThreadReadMixin ----

@@ -29,9 +29,8 @@ import asyncio
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
-from pyqt_reactive.theming import StatusColorRole
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
@@ -44,7 +43,7 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.transcript_scope import TranscriptScope
 
 from toad.launch_binding import AgentBinding
-from toad.qt.composer import Composer
+from toad.qt.composer import ProjectComposer
 from toad.qt.thread_view import QtThreadView
 from toad.qt.window import QtSessionEntry
 from toad.slash_command import SlashCommand
@@ -104,12 +103,14 @@ class QtAcpSessionView(
     """
 
     # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
-    # class is instantiable; `__init__` + `_setup_composer` assign the real widgets.
+    # class is instantiable; `_setup_prompt_stack` assigns the real widgets.
     identity_line: ElidedLine = None  # type: ignore[assignment]
-    composer: "Composer | None" = None
-    submissions: "BusSubmissions" = None  # type: ignore[assignment]
-    thinking_line: "QWidget" = None  # type: ignore[assignment]
-    thread_status_line: "QWidget" = None  # type: ignore[assignment]
+    feedback = None
+    agent_activity = None
+    thread_activity = None
+    goal_bar = None
+    composer = None
+    submissions = None
 
     # `agent_binding`, `queue_source`, `submissions`, composer wiring (`submit`,
     # `submissions_changed`, `update_slash_commands`, `notification_targets`)
@@ -147,20 +148,14 @@ class QtAcpSessionView(
         info.addWidget(self.identity_line, 1)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addLayout(info)
-        layout.addWidget(self.agent_activity)
         layout.addWidget(self.messages, 1)
-        # Goal strip above the composer slot, mirroring Textual's `Conversation`
-        # where `GoalBar` sits over its prompt. `_mount_goal_bar` returns `None`
-        # when the binding has no `ThreadIncarnation` (`NoThreadIdentity`), and
-        # the bar self-hides when no goal is set.
+        # Under the transcript, Textual's order: flash, sweep, status, goal, prompt. A
+        # binding with no `ThreadIncarnation` has no goal owner, so no goal bar.
+        self._composer_label = "agent"
         incarnation = self._agent_binding.initial_identity(NoThreadIdentity()).optional_thread_incarnation()
-        goal_bar = self._mount_goal_bar(app, incarnation)
-        if goal_bar is not None:
-            layout.addWidget(goal_bar)
-        # Composer wiring is on QtThreadView; call the hoisted setup to mount
-        # the Composer one event-loop tick later into this layout.
-        self._setup_composer(app, layout, "Send to agent")
+        self._setup_prompt_stack(app, layout, incarnation)
         # Bind the transcript once the message_history child exists: `BoundView` reads
         # `self.transcript_history` immediately. Textual binds in its `on_mount`
         # (`widgets/conversation.py:1766`); on Qt the equivalent moment is right after
@@ -182,25 +177,29 @@ class QtAcpSessionView(
             self.agent_connected(after)  # type: ignore[arg-type]
 
     def apply_bound_agent(self, agent: AgentBase) -> None:
-        """Mirror the agent's current identity on the composer and the identity line.
-
-        Textual's ``Conversation.apply_bound_agent`` also updates its thread-status pill
-        and re-arms the goal + delivery observations; those run through
-        ``QtGoalBar``/``observed thread status`` on Qt, which are driven by Core events
-        and don't need a direct call from here.
-        """
+        """As Textual's `Conversation.apply_bound_agent`: the status thread and working
+        answer, the agent's name on the identity line and composer, and its context
+        measurement as the info bar's status."""
+        super().apply_bound_agent(agent)
         info = agent.get_info()
         self.identity_line.setText(f"ACP session #{self._session_pk} · {info}")
-        label = f"Send to {info}"
-        if self.composer is None:
-            self._pending_composer_label = label
-        else:
-            self.composer.labelled(label)
+        self._composer_label = info
+        if self.composer is not None:
+            self.composer.labelled(info)
+        self.thread_status = agent.context_measurement.status()
 
     def agent_connected(self, agent: AgentBase) -> None:
-        """Flash the connected notice on the status line; usage milestone through the app."""
-        self.app.status_line.show_status(f"{agent.get_info()} connected", StatusColorRole.INFO)
+        """Flash the connected notice, as Textual's `Conversation.agent_connected`."""
+        self.flash_success(f"{agent.get_info()} connected")
         self.app.usage.publish("agent-session-begin")
+
+    def composer_class(self) -> type[ProjectComposer]:
+        """Textual's `OperationalSessionSources.prompt`: the operational prompt."""
+        return ProjectComposer
+
+    @property
+    def composer_label(self) -> str:
+        return self._composer_label
 
     # `ComposerHost` contract (`submit`, `submissions_changed`,
     # `update_slash_commands`, `notification_targets`) is inherited from

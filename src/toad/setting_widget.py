@@ -5,16 +5,15 @@ from toad.setting_declarations import EachOpenWidget
 from textual.events import Mount
 from textual import on
 from toad.settings_scope import SettingsReader
+from toad.client.prompt_stack import SettingVisible
 
 
-class SettingVisibility(SettingsReader):
-    def __init_subclass__(cls, *, setting: str, **kwargs):
-        super().__init_subclass__(**kwargs)
-        cls.visibility_setting = setting
+class SettingVisibility(SettingVisible, SettingsReader):
+    """A Textual row the shared `SettingVisible` setting shows on mount."""
 
     @on(Mount)
     def on_mount(self):
-        self.display = self.configuration_state.get_resolved_value(self.visibility_setting)
+        self.display = self.setting_visible(self.configuration_state)
 
 
 class PromptSettingEffects:

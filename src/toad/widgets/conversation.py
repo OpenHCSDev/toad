@@ -170,10 +170,8 @@ from toad.widgets.message_notifications import VisibleHistoryNotifications
 from toad.client.history_reads import NothingToRead, PaintedRead
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import ErrorNote, Note
-from toad.widgets.observed_thread_activity import (
-    ObservedThreadActivity,
-    ThreadStatusOwner,
-)
+from toad.status_thread import WorkingStatusOwner
+from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.prompt import Prompt
 from toad.widgets.session_details import OperationalSessionDetails
 from toad.widgets.shell_terminal import ShellTerminal
@@ -557,7 +555,7 @@ class ConversationSessionBinding(
     MroDispatch,
     ThreadBindingDispatch,
     WorkspaceHosted,
-    ThreadStatusOwner,
+    WorkingStatusOwner,
     DeliveryFailureView,
     AgentConversation,
     CategoryFilterView,
@@ -1093,9 +1091,6 @@ class Conversation(ColumnLayout,
     def history_loading(self) -> bool:
         """Whether this view's history is reading its first page; only wire histories page in."""
         return False
-
-    def working(self) -> bool:
-        return self.turns.owner.busy or self._observed_working or self.history_loading()
 
     def sync_working(self) -> None:
         self.throbber_above.sync()

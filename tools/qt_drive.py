@@ -175,13 +175,74 @@ class ActivityScenario(Scenario):
         working = [row for row in children if rows[row.key].status.is_working()]
         peer = (working or children)[0]
         app.open_row(peer)
-        await until(lambda: self.page is not app.workspace_sessions.home and self.page.status.text(), "status")
+        await until(lambda: self.page is not app.workspace_sessions.home and self.page.composer is not None
+                    and self.page.composer.info_bar.status.text(), "status")
         await asyncio.sleep(1.0)
+        SurroundScenario.report_surround(self, "1-opened", peer=peer.key)
+
+
+class SurroundScenario(Scenario):
+    summary = ("open a thread (PEER env, else the first working one) on a Pixel 8a and print every "
+               "row between its transcript and the tab bar, in Textual's PromptStack order")
+
+    width: ClassVar[int] = 412
+
+    def report_surround(self, step: str, **facts: object) -> None:
+        """Each row Textual's `Conversation.compose` mounts under its window, as Qt shows it."""
         view = self.page
-        activity = view.thread_activity
-        self.report("1-opened", peer=peer.key, directory=view.directory.text(), label=view.label.text(),
-                    status=view.status.text(), working=activity.working, sweeping=activity.timer.isActive(),
-                    rows=view.messages.model_rows.rowCount())
+
+        def row(name):
+            widget = getattr(view, name, None)
+            return "absent" if widget is None else ("shown" if widget.isVisible() else "hidden")
+
+        composer = view.composer
+        info = composer.info_bar if composer is not None else None
+        goal = getattr(view, "goal_bar", None)
+        details = getattr(view, "thread_activity", None)
+        sweep = getattr(view, "agent_activity", None)
+        self.report(
+            step, **facts,
+            flash=(row("feedback"), view.feedback.text() if view.feedback.isVisible() else ""),
+            sweep=(row("agent_activity"), sweep is not None and hasattr(sweep, "working") and sweep.working),
+            working=view.working() if hasattr(view, "working") else None,
+            status_title=(row("thread_activity"), details.title.text() if hasattr(details, "title") else ""),
+            goal=(row("goal_bar"), goal.header.text() if goal is not None else "",
+                  [control.text() for control in goal.actions if control.isVisible()] if goal is not None else []),
+            composer=(composer is not None and composer.isVisible(),
+                      composer.glyph.text() if composer else "", composer.editor.placeholderText() if composer else "",
+                      bool(composer and composer.findChildren(QPushButton))),
+            info_bar=(info.path.text(), info.status.text(), info.badge.text()) if info else None,
+            rows=view.messages.model_rows.rowCount())
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", self.width)), 915)
+        everyone = app._sidebar_thread_panel.invisibleRootItem()
+        rows = app.coordination_access.observation.observed().sidebar.threads.rows
+        children = [everyone.child(index) for index in range(everyone.childCount())]
+        print("working:", [row.key for row in children if rows[row.key].status.is_working()], flush=True)
+        wanted = os.environ.get("PEER")
+        peer = next((row for row in children if row.key == wanted), None) if wanted else None
+        if peer is None:
+            peer = next((row for row in children if rows[row.key].status.is_working()), children[0])
+        home = app.workspace_sessions.home
+        app.open_row(peer)
+        await until(lambda: self.page is not home and getattr(self.page, "composer", None) is not None, "composer")
+        await until(lambda: self.page.messages.model_rows.rowCount(), "transcript", tenths=150)
+        await asyncio.sleep(4.0)
+        self.report_surround("1-opened", peer=peer.key)
+        self.page.flash_success("Agent Comms connected")
+        await asyncio.sleep(0.3)
+        self.report_surround("2-flash", peer=peer.key)
+        details = self.page.thread_activity
+        details.toggle()
+        await asyncio.sleep(0.3)
+        self.report_surround("3-details-open", peer=peer.key, details=details.details.text()[:120])
+        details.toggle()
+        self.page.composer.editor.setFocus()
+        await asyncio.sleep(0.3)
+        self.report_surround("4-focused", peer=peer.key)
 
 
 class TranscriptScenario(Scenario):
