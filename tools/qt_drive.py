@@ -186,14 +186,18 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
             await self.expand(name)
             await self.open(self.channel_row(name), name)
         else:
-            pending, rows = list(self.app.sidebar.items()), []
-            while pending:
-                item = pending.pop()
-                rows.append(item)
-                pending.extend(item.child(index) for index in range(item.childCount()))
-            await self.open(next(row for row in rows if isinstance(row, ConversationRow)
-                                 and row.target.name == name), name)
+            await until(lambda: self.named_rows(name), name)
+            await self.open(self.named_rows(name)[0], name)
         await asyncio.sleep(2.0)
+
+    def named_rows(self, name: str) -> list[ConversationRow]:
+        """The sidebar rows opening this thread: one under each channel it belongs to."""
+        pending, rows = list(self.app.sidebar.items()), []
+        while pending:
+            item = pending.pop()
+            rows.append(item)
+            pending.extend(item.child(index) for index in range(item.childCount()))
+        return [row for row in rows if isinstance(row, ConversationRow) and row.target.name == name]
 
     async def channel_listed(self, name: str) -> None:
         """The sidebar lists this channel: the welcome's first rows can come before it."""
