@@ -42,6 +42,7 @@ from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.client.line_blocks import LineLink
 from toad.qt.client_start import open_app
+from toad.qt.glyph_fonts import install_glyph_fonts
 from toad.qt.theme import current_scheme
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling, TouchAsMouse
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
@@ -2254,6 +2255,7 @@ def main(arguments: list[str]) -> None:
         raise SystemExit(f"usage: {arguments[0]} SCENARIO PROFILE OUTDIR\n{names}")
     scenario = Scenario.member_named(arguments[1])
     application = QApplication(arguments[:1])
+    install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())
     watch = StrayWindows()
     application.installEventFilter(watch)

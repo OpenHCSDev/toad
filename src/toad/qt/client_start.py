@@ -42,25 +42,10 @@ class QtClientSettings:
     Toad's Textual settings root lives in a module that needs Textual."""
 
 
-SYMBOL_FALLBACKS = ("Noto Color Emoji", "Noto Emoji", "Twemoji", "Symbola")
-"""Families a glyph the text font lacks falls back to, in order: the shared transcript
-draws pictographs (a tool row's 🔧), which a terminal's own font fallback finds. Android
-ships Noto Color Emoji; a desktop has whichever of these is installed."""
-
-
-def use_symbol_fallbacks(application: QApplication) -> None:
-    """The application font, then the symbol families: every widget and row document
-    inherits the chain, so a glyph missing from the text font is not drawn as a box."""
-    font = application.font()
-    font.setFamilies([font.family(), *SYMBOL_FALLBACKS])
-    application.setFont(font)
-
-
 async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> QtToadApp:
     """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
     sidebar observing."""
     set_base_config_type(QtClientSettings)
-    use_symbol_fallbacks(QApplication.instance())
     FingerScrolling.install(QApplication.instance(), FingerScrollGesture.of_platform())
     FrameProbe.start_if_requested(QApplication.instance())
     app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme)
