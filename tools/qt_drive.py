@@ -1034,8 +1034,10 @@ class MenuFloatScenario(Scenario):
         # 2. A tap outside closes it and the tap goes nowhere else.
         tabs_before, page_before = self.tabs(), self.page
         history = self.page.messages.viewport()
-        outside = next(QPoint(x, 12) for x in (history.width() - 12, 12)
-                       if not menu.geometry().contains(history.mapTo(app, QPoint(x, 12))))
+        # Any point of the history the floating menu does not cover: it floats over part of it.
+        outside = next(QPoint(x, y) for y in (12, history.height() // 2, history.height() - 12)
+                       for x in (history.width() - 12, 12)
+                       if not menu.geometry().contains(history.mapTo(app, QPoint(x, y))))
         QTest.mouseClick(history, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, outside)
         await asyncio.sleep(0.3)
         self.report("2-outside-tap", shown=menu.isVisible())
