@@ -23,7 +23,6 @@ import pkgutil
 import sys
 
 KNOWN_COPIES = {
-    "toad.qt.window.BusAddress": "toad.screens.bus_choice.BusAddress",
 }
 
 # Pairs whose names differ, checked by the same shared-ancestor rule: a Qt class and the

@@ -64,6 +64,7 @@ from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
+    BusAddressEntry,
     BusChoice,
     BusListing,
     BusPickerHost,
@@ -510,17 +511,18 @@ class Banner(WelcomeBanner, QWidget):
                     painter.drawText(QPointF(left + column * cell, baseline), character)
 
 
-class BusAddress(QLineEdit):
-    """Where a reader types a machine to add by hand, under the welcome's Buses: the Textual
-    picker's field, asked through the same BusPickerHost.ask_typed_host."""
+class BusAddress(BusAddressEntry, QLineEdit):
+    """Where a reader types a machine to add by hand, under the welcome's Buses
+    (`BusAddressEntry`, the field Textual's picker inherits too)."""
 
     def __init__(self, host: BusPickerHost) -> None:
-        super().__init__(placeholderText="Add a machine by name or address")
-        self.host = host
-        self.returnPressed.connect(self.ask)
+        super().__init__(placeholderText=self.address_placeholder)
+        self.returnPressed.connect(lambda: self.submit_address(host))
 
-    def ask(self) -> None:
-        self.host.ask_typed_host(self.text())
+    def typed_address(self) -> str:
+        return self.text()
+
+    def clear_address(self) -> None:
         self.clear()
 
 

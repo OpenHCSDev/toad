@@ -57,6 +57,29 @@ class BusPickerHost:
             self.ask_peer_for_profile(NamedHost.typed(address))
 
 
+class BusAddressEntry:
+    """The field a reader types a machine into, in either frontend's bus listing: what it
+    asks for, and that submitting asks the host for that machine and empties the field.
+
+    Tristan: let a bus be added by hand - type an address, save it, and be able to remove
+    saved ones again. Submitting runs the same ask-for-profile flow a discovered peer runs,
+    so there is no second way to open a bus; once the host hands a profile over it becomes
+    an ordinary held row, and removing it is removing that profile.
+    """
+
+    address_placeholder: ClassVar[str] = "Add a machine by name or address"
+
+    @abstractmethod
+    def typed_address(self) -> str: ...
+
+    @abstractmethod
+    def clear_address(self) -> None: ...
+
+    def submit_address(self, host: BusPickerHost) -> None:
+        host.ask_typed_host(self.typed_address())
+        self.clear_address()
+
+
 class PickerRow(ABC):
     """One row the bus picker shows, and what picking it does.
 
