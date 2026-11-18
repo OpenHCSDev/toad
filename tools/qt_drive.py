@@ -1919,17 +1919,24 @@ class ArrivalScenario(Scenario):
         timer.setInterval(16)
         timer.timeout.connect(sample)
         timer.start()
-        sender = os.environ.get("SENDER", "scratch-live-pipeline" if target.startswith("#") else "scratch-arrival-sender")
+        # The other party: in a channel, a scratch thread posting to it; in a thread's view, the
+        # thread itself replying to the user, the messages that view exists to show.
+        sender, recipient = (("scratch-live-pipeline", target) if target.startswith("#")
+                             else (target, "user"))
+        sender = os.environ.get("SENDER", sender)
+        refused: list[str] = []
 
         async def post(index: int) -> None:
             # Under a CPU-throttled drive, the sender runs in a scope of its own (SENDER_SCOPE=1):
             # its process start would otherwise spend the app's quota.
             outside = ("systemd-run", "--user", "--scope", "-q") if os.environ.get("SENDER_SCOPE") else ()
             process = await asyncio.create_subprocess_exec(
-                *outside, "agent-comms", "send", "--from", sender, "--to", target, "--type", "info",
+                *outside, "agent-comms", "send", "--from", sender, "--to", recipient, "--type", "info",
                 "--body", f"arrival reply {index} {stamp}",
-                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
-            await process.wait()
+                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+            _, error = await process.communicate()
+            if process.returncode:  # A refused post is a failed walk, never a quiet one.
+                refused.append(error.decode(errors="replace").strip()[-200:])
         # How long each arrival-handling call holds the loop: the pager's publish into the rows,
         # a relayout when a row's look lands, and the arrival repaint.
         from toad.qt.history import QtConversationHistory as History, QtHistoryWindow as Window
@@ -1963,6 +1970,8 @@ class ArrivalScenario(Scenario):
             composer.submit()
             await asyncio.sleep(0.25)
         await asyncio.gather(*posts)
+        if refused:
+            raise RuntimeError(f"the scratch sender's posts were refused: {refused}")
         await asyncio.sleep(8.0)
         print("final rows:", view.messages.model_rows.rowCount(),
               [self.label(f) for f in view.messages.model_rows.fragments][-8:], flush=True)
