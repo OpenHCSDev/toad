@@ -1075,9 +1075,16 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
     def _row_tapped(self, press: Press) -> None:
         """A tap on a row: a link drawn there opens; otherwise a message whose head is above
         the viewport glides its head to the top (`reveal_head_at`). Either way the row
-        doesn't also take the tap."""
+        doesn't also take the tap. A tap on rows still moving (a fling, a reveal) only stops
+        them, as Android's lists do: the reader was catching the rows, not choosing one."""
         viewport = self.viewport()
         if not press.within(viewport):
+            return
+        stopped, self._fling_stopped = self._fling_stopped, False
+        scroller = QScroller.scroller(viewport)
+        if stopped or scroller.state() == QScroller.State.Scrolling:
+            scroller.stop()
+            press.claim()
             return
         point = press.at(viewport)
         href = self.anchor_at(point)
@@ -1416,11 +1423,9 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
     def reveal_head_at(self, point: QPoint) -> bool:
         """A tap at ``point`` (viewport coordinates): when the tapped message's head is above
         the viewport, glide it up to the top. A head already on screen stays where it is,
-        as in Textual (`reveal_message_head`); a tap that stopped a fling reveals nothing.
-        Whether it moved the rows."""
-        stopped, self._fling_stopped = self._fling_stopped, False
+        as in Textual (`reveal_message_head`). Whether it moved the rows."""
         index = self.indexAt(point)
-        if stopped or not index.isValid():
+        if not index.isValid():
             return False
         model_rows = self.model_rows
         head = index.data(HistoryRows.FRAGMENT).message_head(model_rows.fragments)
