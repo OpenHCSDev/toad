@@ -96,7 +96,8 @@ from toad.widgets.inline_message import span_content
 from toad.widgets.model_switcher import ModelSwitcher
 from toad.widgets.path_search import PathSearch
 from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PaddedOptionRows, PromptPopup
-from toad.widgets.question import Ask, PromptQuestion, Question
+from toad.answer import Ask
+from toad.widgets.question import PromptQuestion, Question
 from toad.widgets.selection import ChangingText, InlineSelection, SelectionOptionList
 from toad.widgets.slash_complete import SlashComplete
 

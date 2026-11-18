@@ -176,9 +176,10 @@ class QtAcpSessionView(
         self.thread_status = agent.context_measurement.status()
 
     def agent_connected(self, agent: AgentBase) -> None:
-        """Flash the connected notice, as Textual's `Conversation.agent_connected`."""
+        """Flash the connected notice, as Textual's `Conversation.agent_connected`. Qt sends
+        no usage report: that delivery is the terminal app's (it reports the terminal program
+        and size, and loads httpx), and this call raised AttributeError on every connect."""
         self.flash_success(f"{agent.get_info()} connected")
-        self.app.usage.publish("agent-session-begin")
 
     def composer_class(self) -> type[ProjectComposer]:
         """Textual's `OperationalSessionSources.prompt`: the operational prompt."""

@@ -1437,10 +1437,10 @@ class ConversationView(QtConversation, ConversationViewNavigation, JumpsHistory,
     def ask(self, options, title: str = "", get_content=None, callback=None):
         """Show an inline question with these options, mirroring Textual's Conversation.ask.
 
-        A `toad.widgets.question.Ask` is passed to the mounted `QtQuestion`, which pops up
+        A `toad.answer.Ask` is passed to the mounted `QtQuestion`, which pops up
         under the composer with an option button per answer and fires `callback(answer)`
         when the user picks. Returns the Ask for the backend to track."""
-        from toad.widgets.question import Ask
+        from toad.answer import Ask
         ask = Ask(title, options, get_content, callback)
         self.question.update(ask)
         return ask

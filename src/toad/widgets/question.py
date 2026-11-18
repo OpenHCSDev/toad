@@ -16,7 +16,7 @@ from textual.widget import Widget
 from textual.screen import Screen
 from ui_theme.scheme import AccentColour, BoostColour, MutedColour
 
-from toad.answer import Answer
+from toad.answer import Answer, Ask, Options
 from toad.native_style import (
     FillWidth,
     MutedText,
@@ -33,18 +33,6 @@ from toad.tone_paint import UntintedTonePaint
 from toad.question_actions import QuestionAction, QuestionContext, SelectKindAction
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import StepsVerticalCursor, VisibleActions
-
-type Options = list[Answer]
-
-
-@dataclass
-class Ask:
-    """Data for Question."""
-
-    question: str
-    options: Options
-    get_content: Callable[[], Widget] | None = None
-    callback: Callable[[Answer], None] | None = None
 
 
 class NonSelectableLabel(widgets.Label):
