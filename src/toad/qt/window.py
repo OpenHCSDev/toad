@@ -137,7 +137,14 @@ from toad.qt.question import QtQuestion
 from toad.view_actions import ViewAction
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import SidebarControlsOwner, SidebarLayout
-from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
+from toad.sidebar_placement import (
+    BarDockedPaneFloatingArrangement,
+    ChannelsSidebarPlacement,
+    DockedPlacementArrangement,
+    PlacementArrangement,
+    SidebarPlacement,
+    ThreadSidebarPlacement,
+)
 from toad.status_thread import StatusOwner
 from toad.target_commands import TargetContext
 from toad.terminal_origin import TerminalOrigin
@@ -2016,12 +2023,43 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         selected = self.workspace_sessions.selected
         self.thread_pane.bind(selected if self._conversation_open() else None)
 
+    # Below this, a docked pane would push the transcript + composer column to zero
+    # width on the dominant portrait phone (1080px). The promotion to
+    # BarDockedPaneFloatingArrangement keeps the toggle bar on its edge so muscle
+    # memory finds it while releasing the pane to the float overlay.
+    _NARROW_VIEWPORT_WIDTH = 900
+
+    def _effective_arrangement(self, placement: SidebarPlacement) -> type[PlacementArrangement]:
+        """The arrangement actually used to lay this placement out, after viewport-width
+        promotion. A naturally-docked placement promotes to
+        ``BarDockedPaneFloatingArrangement`` when the viewport is narrower than
+        ``_NARROW_VIEWPORT_WIDTH`` — floating placements are honoured as the user chose."""
+        base = placement.arrangement
+        if base is DockedPlacementArrangement and self.width() < self._NARROW_VIEWPORT_WIDTH:
+            return BarDockedPaneFloatingArrangement
+        return base
+
+    def _layout_for_key(self, key: str | None):
+        """Resolve an arrangement dock key to its layout container: ``None`` → the float
+        layer; any other key → the matching edge dock's layout."""
+        return self._float_layout if key is None else self._docks[key].layout()
+
     def _target_layout(self, placement: SidebarPlacement):
         """Where a pane goes for its placement: the arrangement names its dock by key, or
-        None for a floating pane that joins the float layer. No branch on `floating` /
-        `side.dock` here — the PlacementArrangement family answers directly."""
-        key = placement.arrangement.dock_key(placement.side)
-        return self._float_layout if key is None else self._docks[key].layout()
+        None for a floating pane that joins the float layer. Routes through
+        ``_effective_arrangement`` so a narrow viewport's promotion applies. For an
+        arrangement that splits bar from pane, this returns the PANE's target — the bar's
+        target is ``_bar_target_layout``."""
+        key = self._effective_arrangement(placement).dock_key(placement.side)
+        return self._layout_for_key(key)
+
+    def _bar_target_layout(self, placement: SidebarPlacement):
+        """Where the bar goes for its placement. ``DockedPlacementArrangement`` and
+        ``FloatingPlacementArrangement`` co-locate bar with pane (same answer as
+        ``_target_layout``); ``BarDockedPaneFloatingArrangement`` keeps the bar on its
+        edge dock while the pane floats."""
+        key = self._effective_arrangement(placement).bar_dock_key(placement.side)
+        return self._layout_for_key(key)
 
     def _empty(self, layout) -> None:
         # Park widgets on self (QtToadApp) rather than orphaning them. Qt-for-Android gives
@@ -2062,20 +2100,30 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
                 continue
             placement = self.sidebar_layout.get(identity)
             # The PlacementArrangement family (DockedPlacementArrangement for docked,
-            # FloatingPlacementArrangement for floating) answers bar-first and axis
-            # polymorphically — no `placement.floating or placement.side.sign == 1`
-            # branch in window code.
-            arrangement = placement.arrangement
+            # FloatingPlacementArrangement for floating, BarDockedPaneFloatingArrangement
+            # for narrow-viewport promotion where the bar stays on edge and the pane
+            # overlays) answers bar-first and axis polymorphically — no `floating` /
+            # `side.sign` branch in window code.
+            arrangement = self._effective_arrangement(placement)
             bar_first = arrangement.bar_first(placement.side)
-            target = self._target_layout(placement)
+            bar_target = self._bar_target_layout(placement)
+            pane_target = self._target_layout(placement)
             bar.show()
             if self.pane_open(identity):
                 pane.show()
-                self._arrange_sidebar(target, placement, bar, pane, bar_first=bar_first)
+                if bar_target is pane_target:
+                    self._arrange_sidebar(bar_target, placement, bar, pane, bar_first=bar_first)
+                else:
+                    # Bar and pane land in separate targets
+                    # (BarDockedPaneFloatingArrangement). Bar joins its edge dock alone;
+                    # pane joins the float layer alone.
+                    self._arrange_sidebar(bar_target, placement, bar, pane=None, bar_first=bar_first)
+                    self._arrange_sidebar(pane_target, placement, bar=None, pane=pane, bar_first=bar_first)
             else:
                 pane.setParent(self)
                 pane.hide()
-                self._arrange_sidebar(target, placement, bar, pane=None, bar_first=bar_first)
+                # No pane to place; bar goes to its own target either way.
+                self._arrange_sidebar(bar_target, placement, bar, pane=None, bar_first=bar_first)
         for dock in self._docks.values():
             dock.setVisible(dock.layout().count() > 0)
         # QGridLayout on `self.center` caches column/row sizeHints, and a dock's own
@@ -2088,20 +2136,32 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.center.layout().invalidate()
 
     def _arrange_sidebar(self, target, placement, bar, pane, *, bar_first: bool) -> None:
-        """Add this sidebar's (bar, pane) pair to its target container. The arrangement
-        answers the pane/bar axis polymorphically — 'row' means the pair joins the line
-        directly (adjacent columns within the dock), 'column' means wrap in a QVBoxLayout
-        first (pair stacks vertically inside a cell). A FloatingPlacementArrangement
-        answers 'column' regardless of the side it normally occupies.
+        """Add this sidebar's widgets to its target container. The arrangement answers
+        the pane/bar axis polymorphically — 'row' means the pair joins the line directly
+        (adjacent columns within the dock), 'column' means wrap in a QVBoxLayout first
+        (pair stacks vertically inside a cell). FloatingPlacementArrangement answers
+        'column' regardless of the side it normally occupies.
+
+        Either (but not both) of ``bar`` and ``pane`` may be ``None``:
+        - bar=None: pane-only. The split-routing path from ``BarDockedPaneFloatingArrangement``
+          calls this to put the pane alone on the float layer; the bar was already placed
+          by a sibling call into the edge dock.
+        - pane=None: bar-only. Either the pane is closed, or the arrangement split pane
+          to a different target.
 
         The pane gets stretch=1 so it absorbs growth when its sidebar group shares the
         dock with a collapsed sibling; the bar gets stretch=0 so a bar-only group does
-        not vertically expand to match the sibling's open pane (the bug Tristan reported
-        as "the other bar vertically expands rather than the pane growing above it").
-        A bar-only group pads itself with a stretch on the wall-facing end so the bar
-        stays pinned to the wall and the group's excess space is empty, not bar."""
-        widgets = (bar,) if pane is None else ((bar, pane) if bar_first else (pane, bar))
-        axis = placement.arrangement.pane_bar_axis(placement.side)
+        not vertically expand to match the sibling's open pane. A bar-only group pads
+        itself with a stretch on the wall-facing end so the bar stays pinned to the wall
+        and the group's excess space is empty, not bar."""
+        assert bar is not None or pane is not None, "arrange_sidebar needs at least one widget"
+        if bar is None:
+            widgets = (pane,)
+        elif pane is None:
+            widgets = (bar,)
+        else:
+            widgets = (bar, pane) if bar_first else (pane, bar)
+        axis = self._effective_arrangement(placement).pane_bar_axis(placement.side)
         if axis == "row":
             for widget in widgets:
                 target.addWidget(widget, 1 if widget is pane else 0)
@@ -2121,6 +2181,9 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
             else:
                 group.addStretch(1)
                 group.addWidget(bar, 0)
+        elif bar is None:
+            # Pane-only group (split routing): pane fills its target alone.
+            group.addWidget(pane, 1)
         else:
             for widget in widgets:
                 group.addWidget(widget, 1 if widget is pane else 0)
@@ -2147,6 +2210,16 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         super().resizeEvent(event)
         self.reposition_float()
+        # Crossing ``_NARROW_VIEWPORT_WIDTH`` changes the effective arrangement for any
+        # naturally-docked placement; relay the panes so promotion to
+        # ``BarDockedPaneFloatingArrangement`` (or demotion back to
+        # ``DockedPlacementArrangement``) actually takes effect. Guard on the threshold
+        # so ordinary resize ticks don't thrash the layout.
+        old = event.oldSize().width() if event.oldSize().isValid() else -1
+        new = self.width()
+        narrow = self._NARROW_VIEWPORT_WIDTH
+        if old >= 0 and (old < narrow) != (new < narrow):
+            self._layout_panes()
 
     def present_panes(self) -> None:
         """Lay the panes out for their placements and draw both bars and their controls; the
