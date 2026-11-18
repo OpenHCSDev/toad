@@ -12,6 +12,8 @@ from agent_comms.ui_model.message_category import (
 )
 from support.journals import assistant_entry, user_entry, write_journal
 
+from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
+from toad.client.message_files import NO_PAGE_FILES
 from toad.message_rows import MarkdownMessageStyle
 from toad.transcript_preparation import TranscriptPageRenderTask
 from toad.client.history_state import PreparedReplacementViewportRequest
@@ -75,7 +77,7 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
             workspace.comms.registry.require("source"), session_file=RegistrySessionLocation.from_path(str(replacement), workspace.comms.root)))
         page = await ui.app.preparation.run_thread(
             lambda: workspace.comms.transcripts.capture_page_read("source").read())
-        prepared = await TranscriptPageRenderTask(page).prepared(ui.app.preparation)
+        prepared = await TranscriptPageRenderTask(page, TEXTUAL_FRAGMENT_CLASSES, NO_PAGE_FILES).prepared(ui.app.preparation)
         # A replacement is source work, as the app's own commit publication runs it: wait until
         # that operation releases the source, then reserve, so the two reads never overlap.
         await ui.until(lambda: history.state.accepts_source_work, why="the app's source operation to finish")

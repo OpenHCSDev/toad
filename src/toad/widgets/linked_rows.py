@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Awaitable, Callable
 from functools import cached_property, partial
 from pathlib import Path
 from typing import cast
@@ -83,6 +84,13 @@ class OpensLinks(OpensMarkdownLinks, CoreEventReceiver, OpensLineLinks):
 
     def warn_link(self, text: str) -> None:
         self.notify(text, severity="warning")
+
+    def run_link(self, work: Callable[[], Awaitable[None]]) -> None:
+        self.run_worker(work(), group="open-link")
+
+    def show_file(self, path: Path) -> None:
+        """A kept file previews as a project file does."""
+        self.app.run_worker(partial(self.app.session_navigation.preview, path, position=None))
 
     async def link_menu(self, href: str, event: object) -> bool:
         return await LineLink.from_href(href).copy_menu(self, event)

@@ -63,7 +63,9 @@ from toad.client.session_scope import SessionOrigin
 from toad.session_scope import SessionScope
 from toad.transcript_scope import NoTranscript, TranscriptScope
 from toad.entry_placement import ChronologicalEntry, EntryPlacement
-from toad.transcript_preparation import SavedSuffix
+from toad.client.message_files import PageFiles
+from toad.client.transcript_fragments import FragmentClasses, transcript_file_readers
+from toad.transcript_preparation import SavedSuffix, TranscriptPages
 from toad.client.prepared_pages import (
     FrozenClosedHistory,
     FrozenSavedPrefix,
@@ -112,6 +114,11 @@ class BoundFrame:
 
     async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
         return await self.binding.reader.page(scope, position=position, limit=limit)
+
+    async def page_files(self, page: TranscriptPage, classes: FragmentClasses) -> PageFiles:
+        return await self.binding.reader.page_files(page, partial(
+            transcript_file_readers, page.events, resolve_sent=page.resolve_sent_messages,
+            classes=classes))
 
     def after_refresh(self, callback: Callable[[], object]) -> None:
         self.binding.view.after_refresh(callback)
@@ -318,6 +325,10 @@ class Uncaptured:
     async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
         # A page request queued before the view lost its binding: its answer no longer
         # stands, and the request a new binding makes reads again.
+        raise ReadAgain()
+
+    async def page_files(self, page: TranscriptPage, classes: FragmentClasses) -> PageFiles:
+        """A page read before the view lost its binding is read again, its files with it."""
         raise ReadAgain()
 
     async def publish(self) -> bool:
@@ -756,7 +767,7 @@ class BoundView(ViewBinding):
         await history.retire_source(parked=True)
         source = history.page_source
         prefix = cursor.painted_read(
-            lambda at: FrozenSavedPrefix(source, owner.get_transcript_page, at, self.view.app.preparation, fragments=source.fragments),
+            lambda at: FrozenSavedPrefix(source, owner, at, self.view.app.preparation, fragments=source.fragments),
             FrozenClosedHistory(cursor, self.view.app.preparation),
         )
         prepared = await prefix.latest(history.pages[-1].prepared)
@@ -772,7 +783,7 @@ class BoundView(ViewBinding):
                 ))
             later = self.view.later_history(
                 PreparedTranscriptPage.empty(UnreadTranscriptPage(before=cursor, after=cursor)),
-                SavedSuffix(owner.get_transcript_page, cursor, self.view.app.preparation, after=cursor, fragments=source.fragments),
+                SavedSuffix(owner, cursor, self.view.app.preparation, after=cursor, fragments=source.fragments),
                 entry.conversation_order + 1,
             )
             self._history = later
@@ -959,7 +970,7 @@ REFRESH_DEMAND = RefreshDemand()
 COMMIT_DEMAND = CommitDemand()
 
 
-class TranscriptPresentation(EntryPlacement):
+class TranscriptPresentation(TranscriptPages, EntryPlacement):
     """Owns the transcript document; attached native publishers can be replaced."""
 
     def __init__(self) -> None:
@@ -1020,6 +1031,9 @@ class TranscriptPresentation(EntryPlacement):
         if self.binding.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
+
+    async def page_files(self, page: TranscriptPage, classes: FragmentClasses) -> PageFiles:
+        return await self.binding.capture(self, BoundFrame).page_files(page, classes)
 
     @property
     def retained_source_bytes(self) -> int:

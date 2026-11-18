@@ -11,6 +11,8 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
 from support import journals
 
+from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
+from toad.client.message_files import NO_PAGE_FILES
 from toad.screens.main import MainScreen
 from toad.client.tab_identity.kinds import MailboxTab
 from toad.widgets.agent_response import AgentResponse
@@ -84,13 +86,13 @@ async def test_read_receipts_reuse_original_prepared_suppliers(workspace):
     async with workspace.app(size=(110, 35)) as ui:
         page, _, _ = await saved_history(workspace, ui)
         runtime = ui.app.preparation
-        first = await TranscriptPageRenderTask(page).prepared(runtime)
+        first = await TranscriptPageRenderTask(page, TEXTUAL_FRAGMENT_CLASSES, NO_PAGE_FILES).prepared(runtime)
         page.snapshot.records_cut.mark_read(
             workspace.comms.bus.reads, "saved", page.snapshot.runtime.read_key, page.after.offset)
         current = workspace.comms.transcripts.capture_page_read("saved").read()
         assert page.snapshot != current.snapshot
         assert page.snapshot.same_content(current.snapshot)
-        second = await TranscriptPageRenderTask(current).prepared(runtime)
+        second = await TranscriptPageRenderTask(current, TEXTUAL_FRAGMENT_CLASSES, NO_PAGE_FILES).prepared(runtime)
         assert first is not second
         assert first.page is page
         assert second.page is current

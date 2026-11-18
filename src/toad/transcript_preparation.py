@@ -5,10 +5,16 @@ from __future__ import annotations
 
 import asyncio
 import pickle
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
 from hashlib import sha256
 
 from agent_comms.execution.transcript_sources import (
+    AtFrontier,
+    LatestPage,
+    PageLimit,
+    PagePosition,
     TranscriptCursor,
 )
 from agent_comms.nominal.field_codec import ContentExclude, FieldCodec
@@ -26,6 +32,7 @@ from toad.client.prepared_pages import (
     SourcePageWork,
     TranscriptNoProgress,
 )
+from toad.client.message_files import NO_PAGE_FILES, PageFiles
 from toad.client.transcript_fragments import FragmentClasses, transcript_fragments
 from toad.render_backend import ContentAddressedRenderTask
 from toad.work_preparation import (
@@ -37,14 +44,46 @@ from toad.work_preparation import (
 )
 
 
+class TranscriptPages(ABC):
+    """Where a saved transcript's pages are read, and the files each page's messages carry."""
+
+    @abstractmethod
+    async def get_transcript_page(
+        self, *, position: PagePosition = LatestPage(), limit: PageLimit = AtFrontier(),
+    ) -> TranscriptPage: ...
+
+    @abstractmethod
+    async def page_files(self, page: TranscriptPage, classes: FragmentClasses) -> PageFiles:
+        """One read of the files every bus message on ``page`` carries."""
+
+
+@dataclass(frozen=True)
+class LoadedTranscriptPages(TranscriptPages):
+    """Pages read by ``load`` with no file store beside them, so a page shows no files: an
+    attached history's, whose files stay with the bus that recorded them."""
+
+    load: Callable[..., Awaitable[TranscriptPage]]
+
+    async def get_transcript_page(
+        self, *, position: PagePosition = LatestPage(), limit: PageLimit = AtFrontier(),
+    ) -> TranscriptPage:
+        return await self.load(position=position, limit=limit)
+
+    async def page_files(self, page: TranscriptPage, classes: FragmentClasses) -> PageFiles:
+        return NO_PAGE_FILES
+
+
 @dataclass(frozen=True)
 class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentAddressedRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
     classes: FragmentClasses
+    files: PageFiles
 
     def preparation_digest(self, work: RenderPreparation[PreparedTranscriptPage]) -> bytes:
-        """Read marks and coordination activity cannot change prepared content."""
-        return sha256(pickle.dumps(FieldCodec.project(self.page, ContentExclude), protocol=5)).digest()
+        """Read marks and coordination activity cannot change prepared content; the files its
+        messages carry do."""
+        return sha256(pickle.dumps(
+            (FieldCodec.project(self.page, ContentExclude), self.files), protocol=5)).digest()
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
         return result.retained_bytes
@@ -55,6 +94,7 @@ class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentA
             self.page.events,
             resolve_sent=self.page.resolve_sent_messages,
             classes=self.classes,
+            files=self.files,
         )
         return PreparedTranscriptPage.measured(self.page, fragments)
 
@@ -72,12 +112,13 @@ class TranscriptPageWork(SourcePageWork[TranscriptCursor]):
 
     async def execute(self, runtime: PreparationRuntime, key: WorkKey) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
-        page = await request.end.load_page(self.loader, request.cursor, self.through)
+        page = await request.end.load_page(self.loader.get_transcript_page, request.cursor, self.through)
         if not request.progressed(page):
             raise TranscriptNoProgress(request, self.through, page)
+        files = await self.loader.page_files(page, self.classes)
         if self.scope.closed:
             raise asyncio.CancelledError
-        prepared = await TranscriptPageRenderTask(page, self.classes).prepared(runtime)
+        prepared = await TranscriptPageRenderTask(page, self.classes, files).prepared(runtime)
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 

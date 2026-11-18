@@ -9,12 +9,13 @@ from agent_comms.transcript.transcript_events import (
     ThinkingTranscript,
 )
 
+from toad.client.message_files import NO_PAGE_FILES
 from toad.client.transcript_fragments import RenderBudget, transcript_fragments
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 
 
 def fragments(*events):
-    return transcript_fragments(events, resolve_sent=lambda reports: {}, classes=TEXTUAL_FRAGMENT_CLASSES)
+    return transcript_fragments(events, resolve_sent=lambda reports: {}, classes=TEXTUAL_FRAGMENT_CLASSES, files=NO_PAGE_FILES)
 
 
 def test_thinking_parts_of_one_reply_have_distinct_keys():

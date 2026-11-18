@@ -13,6 +13,7 @@ the UI retains its captured session, source and queue authority around those cal
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable, Iterable
 from functools import partial
 
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
@@ -22,10 +23,12 @@ from agent_comms.execution.transcript_sources import (
     PageLimit,
     PagePosition,
 )
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.registry.thread_presentation import ThreadPresentation
 from agent_comms.transcript.transcripts import (
     LivePageSource,
     PageSource,
+    TranscriptPage,
 )
 from agent_comms.transport.tools.sidebar import CommsThreadPresentationTool
 from agent_comms.ui_model.observation import (
@@ -36,6 +39,7 @@ from agent_comms.ui_model.observation import (
     UnreadableHistory,
 )
 
+from toad.client.message_files import FileReader, PageFiles
 from toad.client.transcript_requests import TranscriptRequests
 
 
@@ -65,6 +69,16 @@ class CoordinationTranscriptReader:
             UnreadableHistory.outcome,
             partial(core.call, CommsThreadPresentationTool(thread=thread)),
         )
+
+    async def page_files(
+        self, page: TranscriptPage,
+        readers: Callable[[], Iterable[tuple[MessageReference, FileReader]]],
+    ) -> PageFiles:
+        """One read of the files the page's bus messages carry, on the bus the page was read
+        from; the messages are found and read off the UI thread, like the page itself."""
+        root = page.snapshot.root
+        core = await self.core(root)
+        return await self.access.preparation.run_thread(lambda: PageFiles.read(root, core, readers()))
 
     async def publication(
         self, update: TranscriptSnapshotUpdate
