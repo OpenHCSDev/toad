@@ -57,7 +57,7 @@ from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.client.bus_submission import ConversationSubmission
 from toad.setting_choices import CenterColumnAlignment
-from toad.message_rows import MarkdownMessageStyle
+from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.qt.window import ConversationRow, QtToadApp
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -915,10 +915,15 @@ class ChromeScenario(Scenario):
         channel = self.page
         style = lambda: type(channel.message_history.page_source.loader.style).__name__
         before_style = style()
-        channel.configuration_state.field("ui.message_style").edit(MarkdownMessageStyle)
+        # The override is the view's on the live bus: edit to the style the tab does not draw
+        # now, and reset it after, so no run inherits the last run's override (a fixed target
+        # made every run after the first a no-op that timed out).
+        override = channel.configuration_state.field("ui.message_style")
+        override.edit(IrcMessageStyle if before_style == MarkdownMessageStyle.__name__ else MarkdownMessageStyle)
         await until(lambda: style() != before_style, "message style", tenths=100)
         await asyncio.sleep(1.0)
-        self.report("2b-channel-markdown", before=before_style, after=style())
+        self.report("2b-channel-style", before=before_style, after=style())
+        override.reset()
         peer = self.thread_row()
         before = self.page
         app.open_row(peer)
@@ -954,15 +959,19 @@ class ChromeScenario(Scenario):
         view = self.page
         state = view.configuration_state
         margins = lambda: (view.layout().contentsMargins().left(), view.layout().contentsMargins().right())
+        overrides = {"ui.column": True, "ui.column_width": 40,
+                     "ui.column_alignment": CenterColumnAlignment, "ui.info_bar": False}
         before = margins()
-        state.field("ui.column").edit(True)
-        state.field("ui.column_width").edit(40)
-        state.field("ui.column_alignment").edit(CenterColumnAlignment)
-        state.field("ui.info_bar").edit(False)
+        for path, value in overrides.items():
+            state.field(path).edit(value)
         await asyncio.sleep(0.5)
         self.report("8-view-override", width=view.width(), cell=view.fontMetrics().averageCharWidth(),
                     margins_before=before, margins_after=margins(),
                     info_bar=view.composer.info_bar.isVisible())
+        # These overrides are the view's on the live bus: reset them, so the next run starts
+        # from the inherited layout and its before/after shows the repaint again.
+        for path in overrides:
+            state.field(path).reset()
 
 
 class Chrome110Scenario(ChromeScenario):

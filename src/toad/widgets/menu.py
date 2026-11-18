@@ -32,7 +32,7 @@ from toad.native_style import (
     TransparentBackground,
 )
 from toad.menus import MenuCommand, MenuConversation, MenuOwner
-from toad.keymap import KeymapCatalog
+from toad.client.block_menu import BlockMenu
 from toad.widgets.selection import SelectionListItem
 from toad.tone_paint import UntintedTonePaint
 from textual.events import Mount
@@ -69,12 +69,11 @@ class MenuOption(FillWidth, SidePadding, AutoHeight, SelectionListItem, ToadNode
         yield MenuDescription(self.command.description)
 
     def refresh_key(self) -> None:
-        keys = KeymapCatalog.menu_keys(self.command, self.app.settings.ui.key_mode,
-                                      self.app.settings.ui.keymap)
-        self.query_one(MenuKey).update(", ".join(keys) or " ")
+        self.query_one(MenuKey).update(BlockMenu.command_keys(self.command, self.app.settings) or " ")
 
 
 class Menu(
+    BlockMenu,
     DismissibleControl,
     UntintedTonePaint,
     TransparentBackground,
@@ -107,7 +106,7 @@ class Menu(
         self.conversation = conversation
         self.block = owner
         self._focus_owner = focus_owner
-        self._commands = tuple(sorted(commands, key=lambda command: not type(command).default_keys()))
+        self._commands = self.ordered(commands)
         super().__init__(*args, **kwargs)
 
     @classmethod

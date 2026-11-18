@@ -365,18 +365,6 @@ class ClientApplication(BusPickerHost, NavigationHost):
         self.show_info("Keymap browser is not yet available on this frontend.",
                        "Keymap")
 
-    def open_transfer(self, kind) -> None:
-        """Open the transfer dialog for `kind` (a `toad.client.transfers.Transfer`
-        subclass: `WireExportRequest`, `ThreadImportRequest`). Textual's `Transfers`
-        pushes the per-kind `TransferDialog`; Qt overrides with `QtTransferDialog`.
-        The default raises rather than silently no-op so a frontend that forgets to
-        wire this through is loud."""
-        raise NotImplementedError(
-            f"{type(self).__name__} must override open_transfer — the shared "
-            f"TransferMenuAction fired for kind={kind.declared_name!r} but no "
-            f"frontend dialog is wired."
-        )
-
     @property
     def welcome_hints(self) -> str:
         """The gesture/shortcut hint line rendered below the welcome's row list.

@@ -33,7 +33,7 @@ async def test_transfer_actions_survive_short_viewport_and_notice(
         # result. The separate physical06 evidence establishes real FileExistsError.
         app.notify("Existing destination was preserved. " * 8,
                    title="Transfer notice", severity="error", timeout=60)
-        dialog = transfer.dialog(selected)
+        dialog = TransferDialog.for_kind(transfer)(selected)
         app.push_screen(dialog)
         await ui.until(lambda: app.screen is dialog and bool(dialog.query(Input)),
                        why="the transfer's native fields")

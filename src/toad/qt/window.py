@@ -64,6 +64,7 @@ from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
+    BusAddressEntry,
     BusChoice,
     BusListing,
     BusPickerHost,
@@ -127,6 +128,9 @@ from toad.menus import MenuCommand, MenuConversation, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
+# Imported at load, not in open_transfer: this declares the Transfer members the shared
+# TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
+from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.thinking_animator import QtThinkingAnimator
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
@@ -510,17 +514,18 @@ class Banner(WelcomeBanner, QWidget):
                     painter.drawText(QPointF(left + column * cell, baseline), character)
 
 
-class BusAddress(QLineEdit):
-    """Where a reader types a machine to add by hand, under the welcome's Buses: the Textual
-    picker's field, asked through the same BusPickerHost.ask_typed_host."""
+class BusAddress(BusAddressEntry, QLineEdit):
+    """Where a reader types a machine to add by hand, under the welcome's Buses
+    (`BusAddressEntry`, the field Textual's picker inherits too)."""
 
     def __init__(self, host: BusPickerHost) -> None:
-        super().__init__(placeholderText="Add a machine by name or address")
-        self.host = host
-        self.returnPressed.connect(self.ask)
+        super().__init__(placeholderText=self.address_placeholder)
+        self.returnPressed.connect(lambda: self.submit_address(host))
 
-    def ask(self) -> None:
-        self.host.ask_typed_host(self.text())
+    def typed_address(self) -> str:
+        return self.text()
+
+    def clear_address(self) -> None:
         self.clear()
 
 
@@ -1481,14 +1486,8 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
 
     def open_block_menu(self, fragment: QtWireFragment) -> None:
         self.held_fragment = fragment
-        entries = tuple(
-            MenuEntry(
-                label=_strip_menu_markup_shared(command.description),
-                run=partial(self._run_block_menu_command, command),
-                key_display=", ".join(type(command).default_keys()),
-            )
-            for command in _block_menu_commands(fragment)
-        )
+        entries = QtMenu.command_entries(_block_menu_commands(fragment), self.app.settings,
+                                         self._run_block_menu_command)
         if entries:
             self.app.offer_entries(entries)
 
@@ -1923,9 +1922,9 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         dialog.show()
 
     async def edit_settings(self) -> None:
-        """Qt override of `ClientApplication.edit_settings`. Opens the shared-UX
-        `QtSettingsScreen` modal; both frontends read/write the same
-        `SavedSettings`, and Qt walks it through `toad.client.settings_schema`."""
+        """Qt override of `ClientApplication.edit_settings`: the settings screen both
+        frontends inherit (`SettingsEditing`), drawn in Qt; it writes the settings file
+        when it closes, as Textual's does."""
         from toad.qt.settings_screen import QtSettingsScreen
         dialog = QtSettingsScreen(self, self)
         dialog.show()
@@ -1940,15 +1939,12 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         dialog.show()
 
     def open_transfer(self, kind) -> None:
-        """Qt override of `ClientApplication.open_transfer`. Opens the shared-UX
-        Qt dialog registered for `kind` in `toad.qt.transfer._QT_DIALOGS`; the
-        dialog's submit path calls `start_transfer_task(request, selected)` so
-        one running task per kind supersedes repeat submissions."""
-        from toad.qt.transfer import qt_dialog_for
+        """Qt override of `ClientApplication.open_transfer`: the Qt member of the shared
+        transfer-form family that composes `kind`; its submit calls
+        `start_transfer_task(request, selected)`, so one task per kind supersedes a repeat."""
         access = self.coordination_access
         selected = access.selected(access.observation.observed().root)
-        dialog = qt_dialog_for(kind, self, selected, parent=self)
-        dialog.show()
+        QtTransferDialog.for_kind(kind)(self, selected, parent=self).show()
 
     def start_transfer_task(self, request, selected) -> None:
         """Qt analog of Textual's `run_worker(..., exclusive=True)`: cancel any

@@ -19,13 +19,12 @@ from pathlib import Path
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFormLayout, QFrame, QLabel, QScrollArea, QWidget
+from PySide6.QtWidgets import QFrame, QScrollArea, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from toad.client.context_intent import ContextTreeIntent
 from toad.client.session_scope import NoConversationView
 from toad.client.session_tracker import SidebarState
-from toad.client.settings_schema import ObjectSettingRow
 from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sidebar_panels import ActionPropertiesPanel, ObjectPropertiesPanel
 from toad.qt.command_form import QtCommandForm
@@ -33,14 +32,13 @@ from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
-from toad.qt.settings_screen import QtSettingsEditor
+from toad.qt.forms import QtObjectFieldView, QtObjectFormView
 from toad.qt.sidebar_panel import QtPanelEntry, QtPanelMenu, QtSidebarShell
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ThreadSidebarContents, panel_specs_for_view
-from toad.qt.metrics import UiGap
 
 __all__ = ["QtObjectProperties", "SessionArrangementStore", "ThreadSettingsPane"]
 
@@ -63,28 +61,25 @@ class SessionArrangementStore(ArrangementStore):
 
 class QtObjectProperties(ObjectPropertiesPanel, QScrollArea, metaclass=PyQtWidgetMeta):
     """One setting of the viewed object as a settings-pane page, as Textual's
-    `ObjectProperties`: each leaf of the field is a row the shared settings editors draw,
-    writing through the view's configuration (`ObjectSettingRow`). The rows scroll when
-    they outgrow the sidebar."""
+    `ObjectProperties`: the object form over that one field (`QtObjectFormView`), so the
+    section heading and description, each field's help, bounds and default, its source
+    line and Reset come from the same shared field contract Textual's page draws. Edits go
+    through the view's configuration. The form scrolls when it outgrows the sidebar."""
 
-    def __init__(self, field, app, parent: QWidget | None = None) -> None:
+    def __init__(self, field, renderer, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.field = field
-        rows = QWidget(self)
-        rows.setWindowFlags(Qt.WindowType.Widget)
-        form = QFormLayout(rows)
-        form.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
-        form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
-        form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapAllRows)
-        for row in ObjectSettingRow.rows(field, app.saved_settings):
-            label = QLabel(row.label, rows)
-            label.setWordWrap(True)
-            label.setToolTip(row.help)
-            form.addRow(label, QtSettingsEditor.for_row(row, app, rows))
-        self.setWidget(rows)
+        self.form = QtObjectFormView(field.state, [QtObjectFieldView.from_field(field)])
+        self.form.theme(renderer)
+        self.setWidget(self.form.body)
+        self.form.follow_state()
+        self.destroyed.connect(self.form.leave_state)
+
+    def finish(self) -> None:
+        self.form.finish()
 
     def release_page(self) -> None:
         """The view this page edited is no longer bound."""
@@ -188,7 +183,7 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
 
     def setting_entries(self, view) -> tuple[QtPanelEntry, ...]:
         return tuple(
-            QtPanelEntry(view.field_panel(field), QtObjectProperties(field, self.app), (), field.path)
+            QtPanelEntry(view.field_panel(field), QtObjectProperties(field, self.app.renderer), (), field.path)
             for field in view.configuration_fields())
 
     def present(self) -> None:

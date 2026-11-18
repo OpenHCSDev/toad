@@ -1,40 +1,27 @@
 """Inputs for the existing agent-comms export and thread-import operations."""
 
-import asyncio
 from abc import abstractmethod
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
-from typing import ClassVar
 
-from agent_comms.cli_verbs.cli_result import CliResult
 from agent_comms.importing import ThreadImported
 from agent_comms.installer.harness_install import Harness
 from agent_comms.messaging.exporting import (
-    ChannelScope,
-    DmScope,
-    EverythingScope,
-    FullLimit,
-    JsonlFormat,
-    MaxBytesLimit,
-    TextFormat,
     WireExportFormat,
     WireExportLimit,
     WireExportProvenance,
     WireExportScope,
 )
-from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
+from agent_comms.nominal.field_codec import boundary_decoder
 from agent_comms.registry.thread_management import ImportDirectory
 from agent_comms.registry.thread_text import ExpectedSession
 from agent_comms.transport.progress import (
     CancellableWireExport,
     WireExportCancelled,
-    WireExportObserver,
     WireExportProgress,
 )
 from agent_comms.transport.tools.sidebar import (
@@ -66,6 +53,13 @@ from ui_theme.scheme import (
 
 from toad.app_node import ToadNode
 from toad.client.connection import CapturedSource, CoordinationAccess, Observing
+from toad.client.transfer_forms import (
+    ExportFormatInput,
+    ExportScopeInput,
+    ThreadImportForm,
+    TransferForm,
+    WireExportForm,
+)
 from toad.client.transfers import (
     Transfer,
     TransferHost,
@@ -86,13 +80,11 @@ from toad.widgets.acting_button import (
     Confirms,
     DismissButton,
 )
-from toad.work_preparation import PreparationRuntime
 
 
 # `Transfer`, `TransferRequest`, `TransferProgress` and `TransferHost` are declared in
-# `toad.client.transfers` so Qt can share the family without pulling Textual. Members
-# below still live here because their `dialog()` factories return Textual `TransferDialog`s
-# — Qt's per-kind dialogs live in `toad.qt.transfer`.
+# `toad.client.transfers`, the forms in `toad.client.transfer_forms`. Each frontend finds a
+# kind's dialog with `TransferForm.for_kind` over its own dialog family.
 
 
 @dataclass(frozen=True)
@@ -105,10 +97,6 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
     failure_title = "Wire export failed"
     title = "Export wire history…"
     cancelled_by = (WireExportCancelled,)
-
-    @classmethod
-    def dialog(cls, selected: CapturedSource) -> WireExportDialog:
-        return WireExportDialog(selected.root)
 
     def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> WireExportProvenance:
@@ -145,10 +133,6 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
     failure_title = "Thread import failed"
     title = "Thread Import…"
 
-    @classmethod
-    def dialog(cls, selected: CapturedSource) -> ThreadImportDialog:
-        return ThreadImportDialog()
-
     def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> ThreadImported:
         return access.write(selected, access.observing(selected.root).core.call, CommsImportThreadTool(
@@ -169,7 +153,8 @@ class Transfers(CommsHost[Observing], TransferHost):
     def open_transfer(self, kind: type[Transfer]) -> None:
         access = self.coordination_access
         selected = access.selected(access.observation.observed().root)
-        self.push_screen(kind.dialog(selected), callback=partial(self.transfer_submitted, selected))
+        self.push_screen(TransferDialog.for_kind(kind)(selected),
+                         callback=partial(self.transfer_submitted, selected))
 
     def start_transfer_task(self, request: Transfer, selected: CapturedSource) -> None:
         self.run_worker(request.execute(self, selected),
@@ -275,14 +260,16 @@ class TransferError(Static):
     )
 
 
-class TransferDialog(Confirms, CenteredChildren, DismissibleScreen[Transfer]):
+class TransferDialog(TransferForm, Confirms, CenteredChildren, DismissibleScreen[Transfer]):
     """Both transfer grammars share their frame, viewport and native dismissal."""
 
-    heading: ClassVar[str]
-    submit_label: ClassVar[str]
     native_theme = (
         NativeDeclaration.of(Styles.background, Variable(BackgroundColour.name), Percent(40)),
     )
+
+    def __init__(self, selected: CapturedSource) -> None:
+        super().__init__()
+        self.begin(selected)
 
 
     def compose(self) -> ComposeResult:
@@ -298,8 +285,14 @@ class TransferDialog(Confirms, CenteredChildren, DismissibleScreen[Transfer]):
     @abstractmethod
     def fields(self) -> ComposeResult: ...
 
-    def _error(self, error: str) -> None:
-        self.query_one(TransferError).update(error)
+    def show_error(self, text: str) -> None:
+        self.query_one(TransferError).update(text)
+
+    def submit(self, request: Transfer) -> None:
+        self.dismiss(request)
+
+    async def confirm(self) -> None:
+        self.confirm_request()
 
     @staticmethod
     @boundary_decoder
@@ -376,176 +369,82 @@ class WireExportProgressView(CancellableWireExport, TransferProgress, WidgetView
         self.cancel()
 
 
-class ExportFormatInput(DeclaredFamily, affix="FormatInput"):
-    """UI labels and default filenames, not another wire-format identity."""
-
-    label: ClassVar[str]
-    suffix: ClassVar[str]
-
-    @classmethod
-    def destination(cls, stem: Path) -> Path:
-        return stem.with_suffix(cls.suffix)
-
-    @classmethod
-    @abstractmethod
-    def format(cls) -> WireExportFormat: ...
-
-
-class JsonlFormatInput(ExportFormatInput):
-    label = "JSON Lines (portable wire)"
-    suffix = ".jsonl"
-
-    @classmethod
-    def format(cls) -> JsonlFormat:
-        return JsonlFormat()
-
-
-class TextFormatInput(ExportFormatInput):
-    label = "Readable text"
-    suffix = ".txt"
-
-    @classmethod
-    def format(cls) -> TextFormat:
-        return TextFormat()
-
-
-class ExportScopeInput(DeclaredFamily, affix="ScopeInput"):
-    """The dialog's human input grammar; Core still resolves the wire scope."""
-
-    label: ClassVar[str]
-
-    @classmethod
-    @abstractmethod
-    def parse(cls, target: str) -> WireExportScope: ...
-
-
-class EverythingScopeInput(ExportScopeInput):
-    label = "Everything"
-
-    @classmethod
-    def parse(cls, target: str) -> EverythingScope:
-        return EverythingScope()
-
-
-class ChannelScopeInput(ExportScopeInput):
-    label = "One channel"
-
-    @classmethod
-    def parse(cls, target: str) -> ChannelScope:
-        return ChannelScope(target)
-
-
-class DmScopeInput(ExportScopeInput):
-    label = "One DM"
-
-    @classmethod
-    def parse(cls, target: str) -> DmScope:
-        first, second = (name.strip().removeprefix("@") for name in target.split(","))
-        return DmScope((first, second))
-
-
-class WireExportDialog(TransferDialog):
-    """Select destination, representation, scope and an explicit size ceiling."""
-
-    heading = "Export wire history (not a Pi session)"
-    submit_label = "Export"
-    default_format: ClassVar[type[ExportFormatInput]] = JsonlFormatInput
-    default_scope: ClassVar[type[ExportScopeInput]] = EverythingScopeInput
-
-    def __init__(self, root: Path) -> None:
-        super().__init__()
-        self.destination_stem = root / "exports" / f"wire-{datetime.now(UTC):%Y%m%d-%H%M%S-%f}"
+class WireExportDialog(WireExportForm, TransferDialog):
+    request_kind = WireExportRequest
 
     @cached_property
     def destination_input(self) -> Input:
-        return ExportPath(str(self.default_format.destination(self.destination_stem)),
-                          placeholder="Destination path")
+        return ExportPath(self.default_destination, placeholder=self.destination_placeholder)
 
     @cached_property
     def format_select(self) -> Select[type[ExportFormatInput]]:
-        return ExportFormatChoice(
-            [(choice.label, choice) for choice in ExportFormatInput.members_with(ExportFormatInput)],
-            value=self.default_format, allow_blank=False,
-        )
+        return ExportFormatChoice(list(self.format_options()), value=self.default_format, allow_blank=False)
 
     @cached_property
     def scope_select(self) -> Select[type[ExportScopeInput]]:
-        return ExportScopeChoice(
-            [(choice.label, choice) for choice in ExportScopeInput.members_with(ExportScopeInput)],
-            value=self.default_scope, allow_blank=False,
-        )
+        return ExportScopeChoice(list(self.scope_options()), value=self.default_scope, allow_blank=False)
 
     def fields(self) -> ComposeResult:
         yield self.destination_input
         yield self.format_select
         yield self.scope_select
-        yield ExportTarget(placeholder="#channel or first,second (for DM)")
-        yield ExportLimit("5242880", placeholder="Max bytes; empty = full")
+        yield ExportTarget(placeholder=self.target_placeholder)
+        yield ExportLimit(self.limit_default, placeholder=self.limit_placeholder)
 
     @on(Mount)
     def on_mount(self) -> None:
         self.destination_input.focus()
 
     def format_changed(self) -> None:
-        defaults = (str(choice.destination(self.destination_stem))
-                    for choice in ExportFormatInput.members_with(ExportFormatInput))
-        if self.destination_input.value in defaults:
-            chosen = self.require_selection(self.format_select)
-            self.destination_input.value = str(chosen.destination(self.destination_stem))
+        self.destination_input.value = self.destination_for_format(
+            self.destination_input.value, self.require_selection(self.format_select))
 
-    async def confirm(self) -> None:
-        try:
-            path = self.destination_input.value.strip()
-            if not path:
-                raise ValueError("Choose an output path.")
-            target = self.query_one(ExportTarget).value.strip()
-            scope = self.require_selection(self.scope_select).parse(target)
-            value = self.query_one(ExportLimit).value.strip()
-            limit = MaxBytesLimit(int(value)) if value else FullLimit()
-            request = WireExportRequest(
-                Path(path).expanduser(), self.require_selection(self.format_select).format(), scope, limit,
-            )
-        except (TypeError, ValueError) as error:
-            self._error(str(error))
-            return
-        self.dismiss(request)
+    def destination_text(self) -> str:
+        return self.destination_input.value
+
+    def target_text(self) -> str:
+        return self.query_one(ExportTarget).value
+
+    def limit_text(self) -> str:
+        return self.query_one(ExportLimit).value
+
+    def chosen_format(self) -> type[ExportFormatInput]:
+        return self.require_selection(self.format_select)
+
+    def chosen_scope(self) -> type[ExportScopeInput]:
+        return self.require_selection(self.scope_select)
 
 
-class ThreadImportDialog(TransferDialog):
-    """Create one stopped, resumable thread from OpenCode or Codex history."""
-
-    heading = "Thread Import: a stored harness session"
-    submit_label = "Import stopped thread"
+class ThreadImportDialog(ThreadImportForm, TransferDialog):
+    request_kind = ThreadImportRequest
 
     @cached_property
     def harness_select(self) -> Select[type[Harness]]:
-        harnesses = Harness.members_with(Harness)
-        return ChoiceField(
-            [(harness.declared_name, harness) for harness in harnesses],
-            value=harnesses[0], allow_blank=False,
-        )
+        options = list(self.harness_options())
+        return ChoiceField(options, value=options[0][1], allow_blank=False)
 
     def fields(self) -> ComposeResult:
         yield self.harness_select
-        yield ImportSource(placeholder="Source JSON, database or rollout JSONL")
-        yield ImportName(placeholder="New thread name")
-        yield ImportSessionId(placeholder="Session ID (OpenCode database only)")
-        yield ImportWorktree(placeholder="Project directory override (optional)")
+        yield ImportSource(placeholder=self.source_placeholder)
+        yield ImportName(placeholder=self.name_placeholder)
+        yield ImportSessionId(placeholder=self.session_placeholder)
+        yield ImportWorktree(placeholder=self.worktree_placeholder)
 
     @on(Mount)
     def on_mount(self) -> None:
         self.query_one(ImportSource).focus()
 
-    async def confirm(self) -> None:
-        source = self.query_one(ImportSource).value.strip()
-        name = self.query_one(ImportName).value.strip()
-        if not source or not name:
-            self._error("A source and a new thread name are required.")
-            return
-        self.dismiss(ThreadImportRequest(
-            Path(source).expanduser(),
-            self.require_selection(self.harness_select),
-            name,
-            FieldCodec.decode(ExpectedSession, self.query_one(ImportSessionId).value.strip() or None),
-            FieldCodec.decode(ImportDirectory, self.query_one(ImportWorktree).value.strip() or None),
-        ))
+    def source_text(self) -> str:
+        return self.query_one(ImportSource).value
+
+    def name_text(self) -> str:
+        return self.query_one(ImportName).value
+
+    def session_text(self) -> str:
+        return self.query_one(ImportSessionId).value
+
+    def worktree_text(self) -> str:
+        return self.query_one(ImportWorktree).value
+
+    def chosen_harness(self) -> type[Harness]:
+        return self.require_selection(self.harness_select)

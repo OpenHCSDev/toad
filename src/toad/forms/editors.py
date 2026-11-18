@@ -2,30 +2,22 @@
 
 from __future__ import annotations
 
-import json
 from abc import abstractmethod
 from collections.abc import Iterable
 from enum import Enum
 from typing import ClassVar, Optional
 
-from agent_comms.nominal.field_codec import FieldCodec
 from formbridge.forms.declared_fields import (
     DeclaredField,
     Multiline,
 )
 from formbridge.forms.value_editing import (
     ChoicesEditing,
-    ControlConstruction,
     EnumEditing,
-    LineEditing,
     MultilineEditing,
     OptionalEditing,
-    SelectEditing,
 )
-from python_introspect import (
-    AnnotationChoices,
-    resolve_annotated,
-)
+from python_introspect import AnnotationChoices
 from textual import containers, events
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar
@@ -39,6 +31,7 @@ from textual.widgets import Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
 from ui_theme.scheme import MutedColour
 
+from toad.form_family import FieldEditing, LineFieldEditing, SelectFieldEditing, StructuredFieldEditing
 from toad.forms.presentation import (
     FormCheckbox,
     FormInput,
@@ -48,7 +41,7 @@ from toad.forms.presentation import (
 from toad.tone_paint import UntintedTonePaint
 
 
-class ValueEditor(ControlConstruction, Widget):
+class ValueEditor(FieldEditing, Widget):
     """A control that shows one field's value and sends the user's edits to the state.
 
     The value lives in the ObjectState: the control is painted from it. Only
@@ -69,10 +62,6 @@ class ValueEditor(ControlConstruction, Widget):
         super().__init__(field)
         self.listen(events.Mount, self.control_mounted)
 
-    @property
-    def previewing(self) -> bool:
-        return self.field.state.parameters[self.field.path.value] is None and self.field.value is not None
-
     def paint_value(self) -> None:
         self.paint()
         self.styles.color = self.app.colours.colour(MutedColour) if self.previewing else None
@@ -84,10 +73,6 @@ class ValueEditor(ControlConstruction, Widget):
     @abstractmethod
     def bind_control(self) -> None:
         """Connect the native control's edits after it has been initialized."""
-
-    @abstractmethod
-    def paint(self) -> None:
-        """Paint the control from the state."""
 
     def display_feedback(self, text: str) -> None:
         self.feedback = text
@@ -116,18 +101,15 @@ class BoolEditor(ValueEditor, FormCheckbox, shows=(bool,)):
             self.value = bool(self.field.value)
 
 
-class LineEditor(LineEditing, ValueEditor, FormInput):
+class LineEditor(LineFieldEditing, ValueEditor, FormInput):
     """One line of text, read as the field's type when the user leaves it or presses enter."""
 
     accepts: ClassVar[InputType]
 
-    def current_text(self) -> str:
-        return "" if self.previewing else self.value_text(self.field.value)
-
     def control_arguments(self) -> dict[str, object]:
         return {
             "value": self.current_text(),
-            "placeholder": self.value_text(self.field.value) if self.previewing else self.field.placeholder,
+            "placeholder": self.placeholder_text(),
             "type": self.accepts,
             "validators": [Function(self.acceptable)],
         }
@@ -136,25 +118,15 @@ class LineEditor(LineEditing, ValueEditor, FormInput):
         self.listen(Input.Blurred, self.finished)
         self.listen(Input.Submitted, self.finished)
 
-    def read(self, text: str) -> object:
-        return resolve_annotated(self.field.annotation)(text)  # type: ignore[operator]
-
     def finished(self, message: Input.Blurred | Input.Submitted) -> None:
         message.stop()
         self.finish()
 
     def finish(self) -> None:
-        if self.value == self.current_text():
-            return
-        try:
-            value = self.read(self.value)
-        except ValueError as error:
-            self.refuse(error)
-        else:
-            self.send(value)
+        self.commit(self.value)
 
     def paint(self) -> None:
-        self.placeholder = self.value_text(self.field.value) if self.previewing else self.field.placeholder
+        self.placeholder = self.placeholder_text()
         self.value = self.current_text()
 
 
@@ -170,15 +142,9 @@ class StrEditor(LineEditor, shows=(str,)):
     accepts = "text"
 
 
-class StructuredEditor(LineEditor, shows=(tuple, list, dict)):
+class StructuredEditor(StructuredFieldEditing, LineEditor, shows=(tuple, list, dict)):
     """A JSON value checked against the complete declared collection type."""
     accepts = "text"
-
-    def value_text(self, value: object) -> str:
-        return json.dumps(FieldCodec.encode(value), ensure_ascii=False)
-
-    def read(self, text: str) -> object:
-        return FieldCodec.decode(self.field.annotation, FieldCodec.parse(text.encode()))
 
 
 class MultilineEditor(MultilineEditing, ValueEditor, UntintedTonePaint, FramedControl, TextArea, shows=(Multiline,)):
@@ -202,7 +168,7 @@ class MultilineEditor(MultilineEditing, ValueEditor, UntintedTonePaint, FramedCo
                 self.load_text(value)
 
 
-class SelectEditor(SelectEditing, ValueEditor, WidgetView, Select[object]):
+class SelectEditor(SelectFieldEditing, ValueEditor, WidgetView, Select[object]):
     """One of a list of values. A value that is not on the list shows as its own text."""
 
     CURRENT = FormSelectCurrent
@@ -215,7 +181,7 @@ class SelectEditor(SelectEditing, ValueEditor, WidgetView, Select[object]):
     def control_arguments(self) -> dict[str, object]:
         options = tuple(self.options())
         value = self.field.value
-        listed = not self.previewing and any(value == choice for _, choice in options)
+        listed = not self.previewing and any(value == choice for _, choice in options)  # no native options yet
         return {
             "options": options,
             "value": value if listed else Select.NULL,
@@ -239,7 +205,7 @@ class SelectEditor(SelectEditing, ValueEditor, WidgetView, Select[object]):
         value = self.field.value
         with self.prevent(Select.Changed):
             self.prompt = self.value_text(value)
-            self.value = value if not self.previewing and self.lists(value) else Select.NULL
+            self.value = value if self.shows_choice(value) else Select.NULL
 
 
 class ChoicesEditor(ChoicesEditing, SelectEditor, shows=(AnnotationChoices,)):

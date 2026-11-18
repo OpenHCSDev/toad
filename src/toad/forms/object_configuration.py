@@ -2,6 +2,7 @@
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
 from textual import events
 from textual.widgets import Static
+from toad.form_family import ObjectValueFields
 from toad.forms.form_view import FieldView, ValueView, GroupView, FormView
 from toad.object_configuration import ObjectSettingField
 from toad.widgets.acting_button import ActingButton
@@ -15,24 +16,20 @@ class ObjectFieldView(FieldView):
         return ObjectFieldView
 
 
-
-
 class ResetSettingButton(ActingButton):
     """Reset uses the parameter's own signature, including lazy None defaults."""
-    def __init__(self, field):
-        super().__init__("Reset")
-        self.field = field
+    def __init__(self):
+        super().__init__(ObjectValueFields.reset_label)
 
     async def act(self):
-        self.field.reset()
-        self.query_ancestor(ObjectValueView).editor.feedback = ""
+        self.query_ancestor(ObjectValueView).reset_field()
 
 
-class ObjectValueView(ValueView, ObjectFieldView, shows=(ParameterInfo,)):
+class ObjectValueView(ObjectValueFields, ValueView, ObjectFieldView, shows=(ParameterInfo,)):
     def __init__(self, field):
         super().__init__(field)
         self.source = Static("", markup=False)
-        self.reset = ResetSettingButton(field)
+        self.reset = ResetSettingButton()
         self.listen(events.Mount, lambda event: self.mark(False))
 
     def compose(self):
@@ -41,17 +38,13 @@ class ObjectValueView(ValueView, ObjectFieldView, shows=(ParameterInfo,)):
         yield self.reset
 
     def mark(self, changed):
-        local = self.field.allows_override
-        explicit = local and self.field.state.parameters[self.field.path.value] is not None
-        super().mark(explicit)
+        overridden = self.overridden()
+        super().mark(overridden)
         if self.editor.is_mounted:
             self.editor.paint_value()
-        if explicit:
-            self.source.update("Override for this object")
-        else:
-            scope, owner = self.field.state.get_provenance(self.field.path.value)
-            self.source.update("Inherited from global defaults" if local else "Global setting · applies to every view")
-            self.source.tooltip = f"{owner.__module__}.{owner.__qualname__} · {scope or 'global'}"
+        self.source.update(self.source_text())
+        if not overridden:
+            self.source.tooltip = self.source_detail()
 
 
 class ObjectGroupView(GroupView, ObjectFieldView, shows=(DirectDataclassInfo,)):

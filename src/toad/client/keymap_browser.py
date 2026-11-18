@@ -24,6 +24,7 @@ Textual widget queries (`query_ancestor`, `query_one(KeymapKeys)`).
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
@@ -261,3 +262,88 @@ class KeymapBrowserState:
         await self.app.saved_settings.save()
         self._recompute_visible()
         return KeymapApplied(unsaved=self.app.saved_settings.unsaved)
+
+
+class KeymapBrowsing:
+    """The keymap browser screen both frontends inherit: its words, and how a search,
+    a cell selection, Apply and Reset move between the native widgets and the state.
+
+    A frontend supplies the native reads (`selected`, `typed_keys`, `search_text`,
+    `focus_filter_on`) and writes (`show_rows`, `show_selection`, `show_status`,
+    `focus_keys`, `forget_selection`); the algorithm lives here once.
+    """
+
+    heading = "Keyboard shortcuts — select a mode cell to change its keys"
+    search_placeholder = "Search actions"
+    focus_filter_label = "Only commands in the previous focus"
+    keys_placeholder = "Keys separated by commas"
+    no_selection = "Select a mode cell first"
+
+    state: KeymapBrowserState
+
+    def begin_browsing(self, app: "ClientApplication", focused: frozenset[KeyInvocationId]) -> None:
+        self.state = KeymapBrowserState(app, focused)
+
+    @abstractmethod
+    def selected(self) -> KeymapSelection | None:
+        """The mode cell the native table has selected, as the state reads it."""
+
+    @abstractmethod
+    def typed_keys(self) -> str: ...
+
+    @abstractmethod
+    def search_text(self) -> str: ...
+
+    @abstractmethod
+    def focus_filter_on(self) -> bool: ...
+
+    @abstractmethod
+    def show_rows(self, rows: tuple[KeymapRow, ...]) -> None: ...
+
+    @abstractmethod
+    def show_selection(self, keys: str, summary: str, conflicts: str) -> None: ...
+
+    @abstractmethod
+    def show_status(self, text: str) -> None: ...
+
+    @abstractmethod
+    def focus_keys(self) -> None: ...
+
+    @abstractmethod
+    def forget_selection(self) -> None:
+        """Put the native table back on no mode cell."""
+
+    def refresh_rows(self) -> None:
+        """Re-filter; a filtered table forgets the previously selected cell."""
+        self.state.set_search(self.search_text())
+        self.state.set_focus_filter(self.focus_filter_on())
+        self.show_rows(self.state.rows())
+        self.forget_selection()
+
+    def selection_changed(self) -> None:
+        selection = self.selected()
+        if selection is None:
+            self.show_selection("", "", "")
+            return
+        self.show_selection(self.state.current_keys(selection), self.state.summary(selection),
+                            "; ".join(self.state.conflicts(selection)))
+        self.focus_keys()
+
+    async def apply_typed_keys(self) -> None:
+        selection = self.selected()
+        if selection is None:
+            self.show_status(self.no_selection)
+            return
+        self.show_result(await self.state.apply_keys(selection, self.typed_keys()))
+
+    async def reset_selected_keys(self) -> None:
+        selection = self.selected()
+        if selection is None:
+            self.show_status(self.no_selection)
+            return
+        self.show_result(await self.state.reset_keys(selection))
+
+    def show_result(self, result: KeymapResult) -> None:
+        if result.should_repopulate():
+            self.refresh_rows()
+        self.show_status(result.status_text())

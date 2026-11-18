@@ -1,420 +1,76 @@
-"""Qt settings screen — a thin renderer over `SettingsSchema`.
+"""Qt settings screen: the shared `SettingsEditing` screen over Qt's form family.
 
-Opened by `QtToadApp.edit_settings` (overrides the `ClientApplication` stub);
-the hamburger menu's `SettingsAction` fires that capability. Both frontends
-read/write the same `SavedSettings`; this Qt surface iterates the shared
-`SettingsSchema` and dispatches each row to a `QtSettingsEditor` family member
-by its declared `SettingsRowKind`.
-
-Writes go through `SettingsRowSchema.write` / `.toggle`, which validate and
-publish `PreferenceChanged` on the shared event stream — Textual's own forms
-see the change for free. No parallel save path.
+Pages, search, open-edit registration, finish and discard are inherited from the parent
+Textual's `SettingsScreen` inherits; the forms are `toad.qt.forms.QtFormView`. Closing
+sends the typed edits and writes the settings file.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, Iterator, Self
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QDoubleValidator, QIntValidator
-from PySide6.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QScrollArea,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLineEdit, QTabWidget, QVBoxLayout, QWidget
 
-from toad.client.settings_schema import (
-    BoolRowKind,
-    ChoicesRowKind,
-    FloatRowKind,
-    IntRowKind,
-    SchemeChoiceRowKind,
-    SettingsPageSchema,
-    SettingsRowKind,
-    SettingsRowSchema,
-    SettingsSchema,
-    StrRowKind,
-)
+from toad.qt.forms import QtFormView
+from toad.settings_editing import SettingsEditing
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
-class QtSettingsEditor(QWidget):
-    """A Qt widget that renders one `SettingsRowSchema` and sends its edits.
+# The screen.
 
-    Family dispatch: each member is decorated with `@shows(KindClass, ...)` to
-    declare the `SettingsRowKind` classes it handles. `for_row(row, app, parent)`
-    picks the first member whose declaration claims the row's kind and
-    instantiates it.
-
-    Note: a class-decorator registration is used instead of the usual `shows=`
-    class keyword because PySide6's `shiboken` metaclass refuses extra kwargs
-    on class creation.
-    """
-
-    shows: ClassVar[tuple[type[SettingsRowKind], ...]] = ()
-    _registry: ClassVar[list[type["QtSettingsEditor"]]] = []
-
-    @classmethod
-    def members(cls) -> Iterator[type["QtSettingsEditor"]]:
-        yield from cls._registry
-
-    @classmethod
-    def for_row(
-        cls, row: SettingsRowSchema, app: "QtToadApp", parent: QWidget | None = None
-    ) -> "QtSettingsEditor":
-        for member in cls._registry:
-            if any(isinstance(row.kind, declared) for declared in member.shows):
-                return member(row, app, parent)
-        raise LookupError(f"No QtSettingsEditor shows row kind {type(row.kind).__name__}")
-
-    def __init__(
-        self, row: SettingsRowSchema, app: "QtToadApp", parent: QWidget | None = None
-    ) -> None:
-        super().__init__(parent)
-        self.row = row
-        self.app = app
-        self._build()
-        self.paint()
-
-    def _build(self) -> None:  # pragma: no cover - overridden
-        raise NotImplementedError
-
-    def paint(self) -> None:  # pragma: no cover - overridden
-        raise NotImplementedError
-
-    def _write_or_surface(self, value: object) -> None:
-        """Shared write path: on failure, surface to the screen's status line and
-        traceback to stderr, then repaint so the editor shows the committed value.
-
-        Every per-type editor used to `except Exception: self.paint()` which silently
-        rolled back the row — the user saw the field snap back with no explanation.
-        This hoist means a validation / write failure reaches the screen's status
-        line (visible) and logcat / stderr (debuggable) via one call-site."""
-        try:
-            self.row.write(value)
-        except Exception as error:
-            self._surface_error(error)
-
-    def _surface_error(self, error: BaseException) -> None:
-        """Push an editor error (parse failure or write failure) to the screen's
-        status line + stderr, then repaint the row from committed state."""
-        import sys, traceback
-        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-        screen = self.window()
-        surface = getattr(screen, "surface_write_error", None)
-        if surface is not None:
-            surface(self.row.label, error)
-        self.paint()
-
-
-def shows(*kinds: type[SettingsRowKind]):
-    """Decorator: register a `QtSettingsEditor` subclass for these kind classes."""
-
-    def wrap(cls: type[QtSettingsEditor]) -> type[QtSettingsEditor]:
-        cls.shows = kinds
-        QtSettingsEditor._registry.append(cls)
-        return cls
-
-    return wrap
-
-
-@shows(BoolRowKind)
-class QtBoolEditor(QtSettingsEditor):
-    def _build(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.box = QCheckBox(self)
-        self.box.toggled.connect(self._on_toggled)
-        layout.addWidget(self.box)
-        layout.addStretch(1)
-
-    def paint(self) -> None:
-        self.box.blockSignals(True)
-        try:
-            self.box.setChecked(bool(self.row.value))
-        finally:
-            self.box.blockSignals(False)
-
-    def _on_toggled(self, checked: bool) -> None:
-        self.row.write(checked)
-
-
-@shows(IntRowKind)
-class QtIntEditor(QtSettingsEditor):
-    def _build(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.field = QLineEdit(self)
-        self.field.setValidator(QIntValidator(self))
-        self.field.editingFinished.connect(self._on_finished)
-        layout.addWidget(self.field)
-        hint = self.row.bounds_text
-        if hint:
-            layout.addWidget(QLabel(f"  ({hint})", self))
-
-    def paint(self) -> None:
-        self.field.blockSignals(True)
-        try:
-            self.field.setText(str(self.row.value) if self.row.value is not None else "")
-        finally:
-            self.field.blockSignals(False)
-
-    def _on_finished(self) -> None:
-        text = self.field.text().strip()
-        if not text:
-            return
-        try:
-            value = int(text)
-        except ValueError as error:
-            self._surface_error(error)
-            return
-        self._write_or_surface(value)
-
-
-@shows(FloatRowKind)
-class QtFloatEditor(QtSettingsEditor):
-    def _build(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.field = QLineEdit(self)
-        self.field.setValidator(QDoubleValidator(self))
-        self.field.editingFinished.connect(self._on_finished)
-        layout.addWidget(self.field)
-        hint = self.row.bounds_text
-        if hint:
-            layout.addWidget(QLabel(f"  ({hint})", self))
-
-    def paint(self) -> None:
-        self.field.blockSignals(True)
-        try:
-            self.field.setText(str(self.row.value) if self.row.value is not None else "")
-        finally:
-            self.field.blockSignals(False)
-
-    def _on_finished(self) -> None:
-        text = self.field.text().strip()
-        if not text:
-            return
-        try:
-            value = float(text)
-        except ValueError as error:
-            self._surface_error(error)
-            return
-        self._write_or_surface(value)
-
-
-@shows(StrRowKind)
-class QtStrEditor(QtSettingsEditor):
-    def _build(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.field = QLineEdit(self)
-        self.field.editingFinished.connect(self._on_finished)
-        layout.addWidget(self.field)
-
-    def paint(self) -> None:
-        self.field.blockSignals(True)
-        try:
-            self.field.setText(str(self.row.value) if self.row.value is not None else "")
-        finally:
-            self.field.blockSignals(False)
-
-    def _on_finished(self) -> None:
-        self._write_or_surface(self.field.text())
-
-
-@shows(ChoicesRowKind)
-class QtChoicesEditor(QtSettingsEditor):
-    def _build(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.combo = QComboBox(self)
-        kind = self.row.kind
-        assert isinstance(kind, ChoicesRowKind)
-        for label, value in kind.options:
-            self.combo.addItem(label, value)
-        self.combo.currentIndexChanged.connect(self._on_changed)
-        layout.addWidget(self.combo)
-
-    def paint(self) -> None:
-        self.combo.blockSignals(True)
-        try:
-            value = self.row.value
-            for index in range(self.combo.count()):
-                if self.combo.itemData(index) == value:
-                    self.combo.setCurrentIndex(index)
-                    return
-            self.combo.setCurrentIndex(-1)
-        finally:
-            self.combo.blockSignals(False)
-
-    def _on_changed(self, index: int) -> None:
-        if index < 0:
-            return
-        self._write_or_surface(self.combo.itemData(index))
-
-
-@shows(SchemeChoiceRowKind)
-class QtSchemeChoiceEditor(QtSettingsEditor):
-    """Scheme names come from the running app, not the row; options rebuild on paint."""
-
-    def _build(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.combo = QComboBox(self)
-        self.combo.setEditable(True)  # a value not in the list still shows
-        self.combo.currentTextChanged.connect(self._on_changed)
-        layout.addWidget(self.combo)
-
-    def paint(self) -> None:
-        self.combo.blockSignals(True)
-        try:
-            self.combo.clear()
-            # Qt reads scheme names directly from the ui-theme catalog — Textual's
-            # `app.colours.schemes` is a Textual-specific registry that Qt doesn't
-            # carry. SCHEMES is the shared source both frontends ultimately read.
-            from ui_theme.catalog import SCHEMES
-            self.combo.addItems([s.name for s in SCHEMES])
-            current = str(self.row.value or "")
-            self.combo.setEditText(current)
-        finally:
-            self.combo.blockSignals(False)
-
-    def _on_changed(self, text: str) -> None:
-        self._write_or_surface(text)
-
-
-class QtSettingsPage(QWidget):
-    """One tab's worth of rows, laid out label-and-editor per row."""
-
-    def __init__(
-        self,
-        app: "QtToadApp",
-        page: SettingsPageSchema,
-        parent: QWidget | None = None,
-    ) -> None:
-        super().__init__(parent)
-        self.app = app
-        self.page = page
-        self._row_widgets: list[tuple[SettingsRowSchema, QWidget, QWidget, QtSettingsEditor]] = []
-
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
-        inner = QWidget(scroll)
-        form = QFormLayout(inner)
-        form.setContentsMargins(8, 8, 8, 8)
-        form.setSpacing(6)
-        form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
-        for row in page.rows:
-            label_widget = QLabel(row.label, inner)
-            label_widget.setWordWrap(True)
-            if row.help:
-                label_widget.setToolTip(row.help)
-            editor = QtSettingsEditor.for_row(row, app, inner)
-            form.addRow(label_widget, editor)
-            self._row_widgets.append((row, label_widget, editor, editor))
-        scroll.setWidget(inner)
-        outer.addWidget(scroll)
-
-    def apply_filter(self, term: str) -> int:
-        """Hide rows whose search text does not match `term`. Returns matched count."""
-        needle = term.strip().lower()
-        shown = 0
-        for row, label_widget, editor_widget, _ in self._row_widgets:
-            visible = not needle or needle in row.search_text or needle in row.label.lower()
-            label_widget.setVisible(visible)
-            editor_widget.setVisible(visible)
-            if visible:
-                shown += 1
-        return shown
-
-    def repaint_all(self) -> None:
-        for _, _, _, editor in self._row_widgets:
-            editor.paint()
-
-
-class QtSettingsScreen(QDialog):
-    """Modal settings editor. One tab per `SettingsPageSchema`; each tab holds a
-    search-filterable scroll of label-and-editor rows. Discard rolls back unsaved
-    edits; closing saves (the file is written by `SavedSettings` on change)."""
+class QtSettingsScreen(SettingsEditing, QDialog):
+    """Modal settings editor: a search above one tab per declared page. Discard rolls
+    back unsaved edits; closing sends the typed edits and the app saves them."""
 
     closed = Signal()
 
-    def __init__(self, app: "QtToadApp", parent: QWidget | None = None) -> None:
+    def __init__(self, app: QtToadApp, parent: QWidget | None = None) -> None:
         super().__init__(parent or app)
+        self.app = app
         self.setWindowFlags(Qt.WindowType.Dialog)
         self.setWindowTitle("Settings")
-        self.app = app
-        self.schema = SettingsSchema(app.saved_settings)
-        self._pages: list[QtSettingsPage] = []
+        self.build_pages()
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(6)
-
         self.search = QLineEdit(self)
         self.search.setPlaceholderText("Search settings")
-        self.search.textChanged.connect(self._on_search_changed)
+        self.search.textChanged.connect(self.filter_pages)
         layout.addWidget(self.search)
-
         self.tabs = QTabWidget(self)
-        for page in self.schema.pages():
-            widget = QtSettingsPage(app, page, self.tabs)
-            title = page.title or "Settings"
-            self.tabs.addTab(widget, title)
-            self._pages.append(widget)
+        for page, form in self.pages.items():
+            form.theme(app.renderer)
+            self.tabs.addTab(form.widget, page.title or "Settings")
         layout.addWidget(self.tabs, stretch=1)
-
-        # Status line for write / validation failures surfaced by QtSettingsEditor.
-        # Loud-fail replacement for the previous `except Exception: self.paint()`
-        # silent-rollback pattern: the user sees why the field snapped back.
-        self.status = QLabel("", self)
-        self.status.setWordWrap(True)
-        self.status.setVisible(False)
-        layout.addWidget(self.status)
-
         buttons = QDialogButtonBox(self)
-        discard_btn = buttons.addButton(
-            "Discard changes", QDialogButtonBox.ButtonRole.ResetRole
-        )
-        close_btn = buttons.addButton(QDialogButtonBox.StandardButton.Close)
-        discard_btn.clicked.connect(self._on_discard)
-        close_btn.clicked.connect(self._on_close)
+        buttons.addButton("Discard changes", QDialogButtonBox.ButtonRole.ResetRole).clicked.connect(self.discard)
+        buttons.addButton(QDialogButtonBox.StandardButton.Close).clicked.connect(self.close)
         layout.addWidget(buttons)
 
-    def surface_write_error(self, row_label: str, error: BaseException) -> None:
-        """Called by QtSettingsEditor._surface_error when a per-row write or parse
-        fails. Shows the message in the dialog's status line; stderr log is handled
-        by the editor so logcat / dev tooling also sees the traceback."""
-        self.status.setText(f"{row_label}: {type(error).__name__}: {error}")
-        self.status.setVisible(True)
+        for form in self.pages.values():
+            form.follow_state()
+        self.start_editing()
 
-    def _on_search_changed(self, text: str) -> None:
-        for page in self._pages:
-            page.apply_filter(text)
+    @property
+    def edited_settings(self):
+        return self.app.saved_settings
 
-    def _on_discard(self) -> None:
-        self.schema.discard()
-        for page in self._pages:
-            page.repaint_all()
-
-    def _on_close(self) -> None:
-        self.schema.finish()
-        self.accept()
+    @classmethod
+    def form_type(cls):
+        return QtFormView
 
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt override)
+        """Send the typed edits and write the file now. Qt also closes this dialog while the
+        application quits, after its loop has stopped: an async save started here would
+        never run (and would hold asyncio's shutdown), so the write is synchronous."""
+        self.finish()
+        self.stop_editing()
+        for form in self.pages.values():
+            form.leave_state()
+        self.edited_settings.save_sync()
         self.closed.emit()
         super().closeEvent(event)

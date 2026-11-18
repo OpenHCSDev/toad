@@ -1,9 +1,8 @@
-"""Qt's keymap browser — a thin renderer over `KeymapBrowserState`.
+"""Qt's keymap browser: the shared `KeymapBrowsing` flow drawn in Qt.
 
-Opened by `QtToadApp.open_keymap_browser` (overrides the `ClientApplication`
-stub); the hamburger menu's `KeymapAction` fires that capability. Both
-frontends consume the same `toad.client.keymap_browser.KeymapBrowserState`;
-Qt owns the widget layout + event routing, nothing else.
+Opened by `QtToadApp.open_keymap_browser`. The words, the filter, what a selected cell
+fills in, Apply/Reset and how a result shows are inherited from the flow Textual's
+`KeymapScreen` inherits; this module adds only Qt widgets and their reads and writes.
 """
 
 from __future__ import annotations
@@ -26,7 +25,7 @@ from PySide6.QtWidgets import (
 )
 from ui_theme.scheme import ErrorColour, MutedColour
 
-from toad.client.keymap_browser import KeymapBrowserState, KeymapSelection
+from toad.client.keymap_browser import KeymapBrowsing
 from toad.keymap import KeyInvocationId
 from toad.qt.metrics import UiGap
 
@@ -34,41 +33,28 @@ if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
-class QtKeymapScreen(QDialog):
-    """Modal keymap browser. Lays out:
-      - heading + search field + focus-filter checkbox
-      - table (rows = actions, columns = Action + one per mode)
-      - summary label
-      - keys line edit + Apply/Reset/Close buttons
-      - status label
+class QtKeymapScreen(KeymapBrowsing, QDialog):
+    """Modal keymap browser: heading, search, focus filter, the action × mode table,
+    the selection's summary, the keys field with Apply/Reset/Close, and a status line."""
 
-    Event routing: every mutation (search text, focus checkbox, cell click,
-    Apply, Reset) forwards to `self.state`; afterwards the table re-reads
-    `self.state.rows()` and status shows `result.status_text()` /
-    `result.should_repopulate()` — polymorphic, no isinstance on result types."""
-
-    def __init__(self, app: "QtToadApp", focused: frozenset[KeyInvocationId]) -> None:
+    def __init__(self, app: QtToadApp, focused: frozenset[KeyInvocationId]) -> None:
         super().__init__(app)
+        self.app = app
         self.setWindowFlags(Qt.WindowType.Dialog)
         self.setWindowTitle("Keyboard shortcuts")
-        self.app = app
-        self.state = KeymapBrowserState(app, focused)
-        self._selection: KeymapSelection | None = None
+        self.begin_browsing(app, focused)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
         layout.setSpacing(UiGap.loose)
-
-        layout.addWidget(QLabel("Keyboard shortcuts — tap a mode cell to change its keys"))
-
+        layout.addWidget(QLabel(self.heading))
         self.search = QLineEdit(self)
-        self.search.setPlaceholderText("Search actions")
-        self.search.textChanged.connect(self._on_search_changed)
+        self.search.setPlaceholderText(self.search_placeholder)
+        self.search.textChanged.connect(self.refresh_rows)
         layout.addWidget(self.search)
-
-        self.focus_filter = QCheckBox("Only commands in the previous focus", self)
+        self.focus_filter = QCheckBox(self.focus_filter_label, self)
         self.focus_filter.setChecked(True)
-        self.focus_filter.toggled.connect(self._on_focus_toggled)
+        self.focus_filter.toggled.connect(self.refresh_rows)
         layout.addWidget(self.focus_filter)
 
         self.table = QTableWidget(self)
@@ -78,111 +64,78 @@ class QtKeymapScreen(QDialog):
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
         self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.cellClicked.connect(self._on_cell_clicked)
+        self.table.cellClicked.connect(self.selection_changed)
         layout.addWidget(self.table, 1)
 
         self.summary = QLabel("", self)
         self.summary.setWordWrap(True)
         layout.addWidget(self.summary)
-
         controls = QHBoxLayout()
         self.keys = QLineEdit(self)
-        self.keys.setPlaceholderText("Keys separated by commas")
+        self.keys.setPlaceholderText(self.keys_placeholder)
         controls.addWidget(self.keys, 1)
-        self.apply_button = QPushButton("Apply", self)
-        self.apply_button.clicked.connect(self._on_apply_clicked)
-        controls.addWidget(self.apply_button)
-        self.reset_button = QPushButton("Reset", self)
-        self.reset_button.clicked.connect(self._on_reset_clicked)
-        controls.addWidget(self.reset_button)
-        self.close_button = QPushButton("Close", self)
-        self.close_button.clicked.connect(self.accept)
-        controls.addWidget(self.close_button)
+        for label, act in (("Apply", self.apply_typed_keys), ("Reset", self.reset_selected_keys)):
+            button = QPushButton(label, self)
+            button.clicked.connect(lambda _checked=False, act=act: self.app.run_operation(_KeymapSave, act))
+            controls.addWidget(button)
+        close = QPushButton("Close", self)
+        close.clicked.connect(self.accept)
+        controls.addWidget(close)
         layout.addLayout(controls)
-
         self.status = QLabel("", self)
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
 
         self.resize(600, 500)
-        self._populate()
+        self.refresh_rows()
 
-    # ---- state → table ----
+    # The native reads and writes `KeymapBrowsing` asks for.
 
-    def _populate(self) -> None:
-        # Pull the two dimmed/warning foreground colors from the shared scheme
-        # (MutedColour for the "dim" row, ErrorColour for a key-conflict cell)
-        # rather than hand-rolled greys. Same ColourScheme that drives
-        # `QtJumpBar`'s styling and `activity.py`'s sweep gradient.
+    def selected(self):
+        return self.state.select(self.table.currentRow(), self.table.currentColumn())
+
+    def typed_keys(self) -> str:
+        return self.keys.text()
+
+    def search_text(self) -> str:
+        return self.search.text()
+
+    def focus_filter_on(self) -> bool:
+        return self.focus_filter.isChecked()
+
+    def show_rows(self, rows) -> None:
         scheme = self.app.renderer.scheme
-        dim_brush = QBrush(QColor(MutedColour.rgb(scheme).hex))
-        conflict_brush = QBrush(QColor(ErrorColour.rgb(scheme).hex))
-        rows = self.state.rows()
+        dim = QBrush(QColor(MutedColour.rgb(scheme).hex))
+        conflict = QBrush(QColor(ErrorColour.rgb(scheme).hex))
         self.table.setRowCount(len(rows))
         for row_index, row in enumerate(rows):
-            title_item = QTableWidgetItem(row.title)
-            title_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
+            title = QTableWidgetItem(row.title)
+            title.setFlags(Qt.ItemFlag.ItemIsEnabled)
             if row.dim:
-                title_item.setForeground(dim_brush)
-            self.table.setItem(row_index, 0, title_item)
+                title.setForeground(dim)
+            self.table.setItem(row_index, 0, title)
             for column_index, cell in enumerate(row.cells, start=1):
                 item = QTableWidgetItem(cell.keys)
                 item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
                 if cell.conflict:
-                    item.setForeground(conflict_brush)
+                    item.setForeground(conflict)
                 self.table.setItem(row_index, column_index, item)
 
-    # ---- event handlers ----
+    def show_selection(self, keys: str, summary: str, conflicts: str) -> None:
+        self.keys.setText(keys)
+        self.summary.setText(summary)
+        self.status.setText(conflicts)
 
-    def _on_search_changed(self, text: str) -> None:
-        self.state.set_search(text)
-        self._populate()
+    def show_status(self, text: str) -> None:
+        self.status.setText(text)
 
-    def _on_focus_toggled(self, on: bool) -> None:
-        self.state.set_focus_filter(on)
-        self._populate()
-
-    def _on_cell_clicked(self, row: int, column: int) -> None:
-        selection = self.state.select(row, column)
-        self._selection = selection
-        if selection is None:
-            self.summary.setText("")
-            self.status.setText("")
-            self.keys.setText("")
-            return
-        self.keys.setText(self.state.current_keys(selection))
-        self.summary.setText(self.state.summary(selection))
-        self.status.setText("; ".join(self.state.conflicts(selection)))
+    def focus_keys(self) -> None:
         self.keys.setFocus()
 
-    def _on_apply_clicked(self) -> None:
-        if self._selection is None:
-            self.status.setText("Select a mode cell first")
-            return
-        self.app.run_operation(_KeymapSave, self._apply_async)
-
-    def _on_reset_clicked(self) -> None:
-        if self._selection is None:
-            self.status.setText("Select a mode cell first")
-            return
-        self.app.run_operation(_KeymapSave, self._reset_async)
-
-    async def _apply_async(self) -> None:
-        assert self._selection is not None
-        result = await self.state.apply_keys(self._selection, self.keys.text())
-        self._show_result(result)
-
-    async def _reset_async(self) -> None:
-        assert self._selection is not None
-        result = await self.state.reset_keys(self._selection)
-        self._show_result(result)
-
-    def _show_result(self, result) -> None:
-        if result.should_repopulate():
-            self._populate()
-        self.status.setText(result.status_text())
+    def forget_selection(self) -> None:
+        self.table.setCurrentCell(-1, -1)
 
 
 class _KeymapSave:
-    """Operation marker for `run_operation` — lets the app track concurrent
-    keymap saves the same way it tracks other coalesced operations."""
+    """Operation marker for `run_operation`: the app tracks concurrent keymap saves the
+    way it tracks its other coalesced operations."""

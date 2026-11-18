@@ -23,7 +23,7 @@ from textual.widgets.option_list import Option
 from ui_theme.scheme import PrimaryColour
 
 from toad.client.bus_selection import (
-    BusChoice, BusListing, BusPickerHost, BusSwitcherPrompt, PickerRow, TailnetAnswer,
+    BusAddressEntry, BusChoice, BusListing, BusPickerHost, BusSwitcherPrompt, PickerRow, TailnetAnswer,
 )
 from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
@@ -47,14 +47,22 @@ class BusPrompt(Static):
     """What the picker is for, above its rows."""
 
 
-class BusAddress(FillWidth, Input):
-    """Where a reader types a machine to add by hand.
+class BusAddress(BusAddressEntry, FillWidth, Input):
+    """Where a reader types a machine to add by hand (`BusAddressEntry`)."""
 
-    Tristan: let a bus be added by hand - type an address, save it, and be able to remove
-    saved ones again. Submitting runs the same ask-for-profile flow a discovered peer runs,
-    so there is no second way to open a bus; once the host hands a profile over it becomes
-    an ordinary held row, and removing it is removing that profile.
-    """
+    def __init__(self) -> None:
+        super().__init__(placeholder=self.address_placeholder)
+
+    def typed_address(self) -> str:
+        return self.value
+
+    def clear_address(self) -> None:
+        self.value = ""
+
+    @on(Input.Submitted)
+    def submitted(self, event: Input.Submitted) -> None:
+        event.stop()
+        self.submit_address(self.app)
 
 
 class BusRows(AutoHeight, OptionList):
@@ -126,12 +134,6 @@ class ListsBuses(BusListing, Widget):
         """What this listing does with the chosen row."""
         row.chosen(self.app)
 
-    @on(Input.Submitted)
-    def typed_a_host(self, event: Input.Submitted) -> None:
-        event.stop()
-        self.app.ask_typed_host(event.value)
-        event.input.value = ""
-
     def forget_highlighted(self) -> None:
         """Forget the highlighted row, if it is a row a reader saved."""
         highlighted = self.query_one(BusRows).highlighted
@@ -164,7 +166,7 @@ class BusChoices(CenteredScreen, PriorityActions, ListsBuses, DismissibleScreen[
         with BusPanel():
             yield BusPrompt(BusSwitcherPrompt.initial())
             yield self.bus_rows()
-            yield BusAddress(placeholder="Add a machine by name or address")
+            yield BusAddress()
 
     @on(Mount)
     def ask_again(self) -> None:
