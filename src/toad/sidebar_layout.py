@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, replace
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry import AbstractHooksMeta
@@ -21,6 +21,9 @@ from toad.sidebar_placement import (
 )
 from toad.client.sidebar_panels import PanelSpec
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
+
+if TYPE_CHECKING:
+    from toad.client.application import ClientApplication
 
 
 class PlacementControl(metaclass=AbstractHooksMeta):
@@ -203,9 +206,20 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
     def sidebar_layout(self) -> SidebarLayout:
         """The one placement owner this surface's controls write."""
 
+    @property
     @abstractmethod
+    def client(self) -> ClientApplication:
+        """The application whose settings keep this surface's arrangement."""
+
+    @abstractmethod
+    def lay_out(self) -> None:
+        """Lay the workspace out again from the layout's placements."""
+
     def arranged(self) -> None:
-        """The placement changed: lay the workspace out again."""
+        """The placement changed: the workspace is laid out again, and the arrangement is
+        kept in the settings file now, for the next start of any frontend."""
+        self.lay_out()
+        self.client.keep_settings()
 
     @abstractmethod
     def toggle_controls(self) -> None:

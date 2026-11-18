@@ -20,6 +20,7 @@ same column count does.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtGui import QPainter, QPalette
@@ -38,6 +39,9 @@ from toad.sidebar_layout import (
     SidebarToggleFace,
 )
 from toad.sidebar_placement import SidebarPlacement
+
+if TYPE_CHECKING:
+    from toad.client.application import ClientApplication
 
 
 def cells_to_pixels(region: Region, cells: Size, pixels: QRect) -> QRect:
@@ -214,7 +218,7 @@ class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
 
     def __init__(self, layout: SidebarLayout, identity: type[SidebarPlacement], content: QWidget, *,
                  heading: Callable[[], str], toggled: Callable[[], None],
-                 arranged: Callable[[], None], parent: QWidget) -> None:
+                 laid_out: Callable[[], None], client: ClientApplication, parent: QWidget) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         # `#SidebarPane` is the hook the scheme's sidebar-pane style selects.
@@ -224,7 +228,8 @@ class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
         self._identity = identity
         self._heading = heading
         self._toggled = toggled
-        self._arranged = arranged
+        self._laid_out = laid_out
+        self._client = client
         self.content = content
         self.content_stack = QWidget(self)
         self.controls = QWidget(self.content_stack)
@@ -261,8 +266,12 @@ class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
     def sidebar_layout(self) -> SidebarLayout:
         return self._layout
 
-    def arranged(self) -> None:
-        self._arranged()
+    @property
+    def client(self) -> ClientApplication:
+        return self._client
+
+    def lay_out(self) -> None:
+        self._laid_out()
 
     def toggle_pane(self) -> None:
         self._toggled()

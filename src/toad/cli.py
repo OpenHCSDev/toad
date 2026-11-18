@@ -17,7 +17,7 @@ from toad import about, get_version, paths
 from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import read_agents
 from toad.app import ToadApp
-from toad.application_lifetime import ApplicationLifetime
+from toad.application_lifetime import TerminalApplicationLifetime
 from toad.client.connection import CoreConnection
 from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
 from toad.preferences import SavedSettings
@@ -273,7 +273,7 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
 
     command = shlex.join([sys.executable, "-m", "toad", *toad_args])
     server = ToadWebServer(command, host=host, port=port, title="Toad")
-    ApplicationLifetime.set_process_title("toad serve")
+    TerminalApplicationLifetime.set_process_title("toad serve")
     server.serve()
 
 

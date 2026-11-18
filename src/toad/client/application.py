@@ -15,8 +15,8 @@ import json
 import time
 from abc import abstractmethod
 from collections.abc import Awaitable, Iterable
-from functools import partial
-from typing import TYPE_CHECKING
+from functools import cached_property, partial
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
@@ -49,11 +49,18 @@ from toad.launch_binding import AgentBinding
 from toad.navigation_preparation import NavigationReader
 from toad.session_host import NavigationHost
 from toad.session_navigation import SessionNavigation
+from toad.sidebar_layout import SidebarLayout
+from toad.terminal_origin import TerminalOrigin
 from toad.thread_actions import ThreadActions
 from toad.thread_navigation import ThreadNavigator
 
 if TYPE_CHECKING:
     from toad.preferences import SavedSettings, ToadSettings
+
+
+class SettingsKept(OperationKind, ExclusiveKind):
+    """Writes the settings in use to their file after a change meant to outlive the run;
+    a newer change's write replaces one still running."""
 
 
 class BusSwitch(OperationKind):
@@ -191,7 +198,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
         self.events = core_events.CoreEventStream(self)
         self.navigation_reader = NavigationReader()
         self.agent_binding = agent_binding
-        self.application = ApplicationLifetime(self, agent_session_id)
+        self.application = self.lifetime_kind(self, agent_session_id)
         self.session_navigation = SessionNavigation(self)
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
@@ -311,6 +318,20 @@ class ClientApplication(BusPickerHost, NavigationHost):
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
         """Show ``answer`` in each bus listing this frontend has open."""
 
+    lifetime_kind: ClassVar[type[ApplicationLifetime]] = ApplicationLifetime
+    """What this frontend's start, background and end do; the terminal app adds its own."""
+
+    @cached_property
+    def sidebar_layout(self) -> SidebarLayout:
+        """The one placement owner of this terminal's sidebars, kept in the settings file
+        with every other setting, so an arrangement outlives the run in every frontend."""
+        return SidebarLayout(self.saved_settings, TerminalOrigin.of())
+
+    def keep_settings(self) -> None:
+        """A change meant for the next start (a sidebar moved, resized, folded) reaches the
+        settings file now, not only at a quit the platform may never send."""
+        self.run_operation(SettingsKept, self.saved_settings.save)
+
     async def close_client(self) -> None:
         """Release the launch's client owners in the order they depend on each other:
         running operations first, then thread work and navigation, the observation's
@@ -327,6 +348,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
             release.push_async_callback(self.thread_actions.close)
             release.push_async_callback(self.thread_navigation.close)
             release.push_async_callback(self.end_operations)
+            release.push_async_callback(self.application.ended)
 
     @abstractmethod
     async def close_native_views(self) -> None:

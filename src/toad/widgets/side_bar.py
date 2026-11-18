@@ -79,6 +79,7 @@ from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
+    from toad.app import ToadApp
     from toad.client.tab_order import TabOrder
 
 
@@ -1191,11 +1192,12 @@ class SideBar(
     def toggle_controls(self) -> None:
         self.layout_controls.display = not self.layout_controls.display
 
-    def arranged(self) -> None:
-        """Lay the workspace out again and save the arrangement for the next start."""
-        app = self.app
-        app.workspace_chrome.refresh_layout()
-        self.run_worker(app.saved_settings.save(), group="sidebar-layout", exclusive=True)
+    @property
+    def client(self) -> ToadApp:
+        return self.app
+
+    def lay_out(self) -> None:
+        self.app.workspace_chrome.refresh_layout()
 
     @on(SidebarSlider.Changed)
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:

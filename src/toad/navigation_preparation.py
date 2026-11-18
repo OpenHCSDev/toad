@@ -77,15 +77,9 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
         screen.use_mailbox()
 
     def launch_screen(self, app):
-        """A named launch retains the same acquired identity as a sidebar open."""
-        from toad.screens.main import MainScreen
-
-        screen = MainScreen.from_thread(
-            self.project,
-            self.root,
-            self.thread.incarnation,
-            app.agent_binding,
-        )
+        """A named launch (a restored tab, a resumed session) retains the same acquired
+        identity as a sidebar open; the frontend draws the thread's view."""
+        screen = app.thread_view(self)
         self.bind(screen)
         return screen
 

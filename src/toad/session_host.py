@@ -17,7 +17,7 @@ from toad.navigation_preparation import NavigationReader
 from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.client.session_scope import SessionOrigin, SessionScope
 from toad.client.session_tracker import SessionTracker
-from toad.client.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity, TabNotDrawnHere
 
 if TYPE_CHECKING:
     from toad.navigation_preparation import ThreadNavigationRequest
@@ -34,7 +34,10 @@ class SessionEntries(DeclaredViews):
 
     @classmethod
     def declared_for(cls, identity: TabIdentity) -> Callable[..., Self]:
-        return cls.showing(identity.declarations())
+        try:
+            return cls.showing(identity.declarations())
+        except LookupError as missing:
+            raise TabNotDrawnHere(identity) from missing
 
 
 class WorkspaceViews(metaclass=AbstractHooksMeta):
@@ -91,6 +94,12 @@ class NavigationHost(NavigatingHost[Observing]):
         owns its placeholder so this shared layer (and `ThreadOpening`) does not have to
         import the Textual-widget pyramid just to reach `MainScreen`."""
         ...
+
+    @abstractmethod
+    def thread_view(self, prepared) -> SessionScope:
+        """The view of a thread a named launch opens without an opening placeholder (a
+        restored tab, a resumed session), bound to the thread's incarnation under its root.
+        Textual draws a `MainScreen`; Qt the `QtMailboxView` its sidebar opens."""
 
     @abstractmethod
     def replace_opening_view(

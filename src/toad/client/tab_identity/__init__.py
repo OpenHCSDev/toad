@@ -16,6 +16,15 @@ class TabTargetGone(Exception):
         super().__init__(f"{identity}: {reason}")
 
 
+class TabNotDrawnHere(LookupError):
+    """This frontend declares no view for the tab's kind (Qt draws no file preview). The tab
+    stays saved for a frontend that draws it; it is not a target that is gone."""
+
+    def __init__(self, identity: TabIdentity) -> None:
+        self.identity = identity
+        super().__init__(f"No view in this frontend shows {identity}")
+
+
 class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.client.tab_identity"):
     @cached_property
     def mode_name(self) -> str:

@@ -573,6 +573,9 @@ class SavedSettings(ExternalStore):
             self.in_file = frozenset(self.user_set)
 
     def save_sync(self, force: bool = False) -> None:
+        """Write now, before returning; what an open settings form holds is written too."""
+        for commit in self.open_edits:
+            commit()
         if force or self.unsaved:
             text = self.json
             if self.write(text):

@@ -1,7 +1,5 @@
 """The Qt sidebars' Toad-specific pieces; the surfaces themselves are `toad.qt.side_bar`.
 
-  - `SessionArrangementStore`: the phone's per-run arrangement store (the desktop uses the
-    Toad settings file; Android has no settings file in its import reach).
   - `ThreadSettingsPane`: the thread sidebar's content. Iterates the shared panel roster
     declared in `toad.thread_sidebar_declarations` so the sections Qt draws match the panels
     Textual composes; every roster entry has a Qt body (a `ThreadSidebarPanelBody`), and an
@@ -35,28 +33,10 @@ from toad.qt.project_panel import QtProjectPanel
 from toad.qt.forms import QtObjectFieldView, QtObjectFormView
 from toad.qt.sidebar_panel import QtPanelEntry, QtPanelMenu, QtSidebarShell
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
-from toad.sidebar_layout import ArrangementStore
-from toad.terminal_origin import TerminalLayout
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ThreadSidebarContents, panel_specs_for_view
 
-__all__ = ["QtObjectProperties", "SessionArrangementStore", "ThreadSettingsPane"]
-
-
-class SessionArrangementStore(ArrangementStore):
-    """The phone's sidebar arrangement for this run. The desktop keeps its arrangement in the
-    one Toad setting over toad.json; the phone client has no settings file in its import
-    reach, so it holds the arrangement for the session and starts each run from the roles'
-    own defaults. SidebarLayout is still the one owner of the move and float policy over it."""
-
-    def __init__(self) -> None:
-        self._terminals: tuple[TerminalLayout, ...] = ()
-
-    def current_terminals(self) -> tuple[TerminalLayout, ...]:
-        return self._terminals
-
-    def store_terminals(self, terminals: tuple[TerminalLayout, ...]) -> None:
-        self._terminals = terminals
+__all__ = ["QtObjectProperties", "ThreadSettingsPane"]
 
 
 class QtObjectProperties(ObjectPropertiesPanel, QScrollArea, metaclass=PyQtWidgetMeta):

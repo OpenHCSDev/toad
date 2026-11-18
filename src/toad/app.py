@@ -48,16 +48,15 @@ from formbridge.forms.declared_fields import DeclaredField
 from toad.setting_declarations import Effect
 from toad.render_backend import Renderer, RenderTask
 from toad.textual_renderers import TextualPreparedRenderer, TextualRenderProcessPool
+from toad.application_lifetime import TerminalApplicationLifetime
 from toad.client.application import ClientApplication
 from toad.client.resource_release import AsyncResourceRelease
 from toad.screens import comms, main  # noqa: F401 - register widget classes
 from toad.screens.workspace import WorkspaceScreen
 from toad.session_entry import TextualSessionEntry
 from toad.session_scope import SessionScope
-from toad.sidebar_layout import SidebarLayout
 from toad.client.tab_identity import TabIdentity
 from toad.terminal_attention import TerminalAttention
-from toad.terminal_origin import TerminalOrigin
 from toad.widgets.comms_command_dialog import ScreenCommandOrigin
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
@@ -133,6 +132,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     COMMANDS = {ApplicationCommands}
     MODES = {"workspace": WorkspaceScreen}
     session_entries = TextualSessionEntry
+    lifetime_kind = TerminalApplicationLifetime
     BINDING_GROUP_TITLE = "System"
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
@@ -172,8 +172,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         super().__init__()
         # Each bus listing that is mounted hears the tailnet's answers (ListsBuses).
         self.tailnet_answers: Signal[TailnetAnswer] = Signal(self, "tailnet-answers")
-        # The themed app opened the settings that own this terminal's sidebar arrangement.
-        self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of())
         self._return_value: ApplicationOutcome = Ended(self.application.version)
         self.set_reactive(ToadApp.project_dir, project_dir)
 
@@ -344,6 +342,11 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         Textual-widget pyramid it imports (textual_colours, watchdog, ...)."""
         from toad.screens.main import MainScreen
         return MainScreen.opening(request, origin, self)
+
+    def thread_view(self, prepared):
+        from toad.screens.main import MainScreen
+        return MainScreen.from_thread(prepared.project, prepared.root,
+                                      prepared.thread.incarnation, self.agent_binding)
 
     def replace_opening_view(self, opening_view, prepared, identity):
         """Textual's `MainScreen` handles both opening and bound lifecycle phases on

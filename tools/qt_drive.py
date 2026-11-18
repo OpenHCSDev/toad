@@ -865,6 +865,90 @@ async def record_mark(buffer: WirePageBuffer, page) -> None:
     MARKED.append(page)
 
 
+class PersistScenario(Scenario):
+    """First half of a close/open check: open a thread and a channel, move the channels bar,
+    then end as the app ends. `restored`, run next in a fresh process over the same
+    XDG_STATE_HOME/XDG_CONFIG_HOME, reads back what came back."""
+
+    summary = "open the first listed thread and #comms, move the channels bar to the bottom, then quit"
+
+    async def run(self) -> None:
+        app = self.app
+        await self.listed()
+        await self.expand("#any")
+        await self.open(self.thread_rows()[0], "first thread")
+        await self.open_named("#comms")
+        app.show_sidebar()
+        await asyncio.sleep(0.5)
+        next(control for control in app.channels_side._actions
+             if isinstance(control.action, DirectionalSidebarPlacementAction)
+             and control.action.direction is BottomSidebarEdge).click()
+        await asyncio.sleep(0.5)
+        app.hide_sidebar()
+        await asyncio.sleep(0.5)
+        placed = app.sidebar_layout.get(ChannelsSidebarPlacement)
+        from toad.preferences import SavedSettings
+        self.report("1-before-close", selected=app.tabs.tabText(app.tabs.currentIndex()),
+                    settings_file=SavedSettings.path().is_file(), unsaved=app.saved_settings.unsaved,
+                    channels_bar=placed.side.declared_name, roster=[i.mode_name for i in app.tab_order.names])
+
+
+class BarSaveScenario(Scenario):
+    """A moved bar is in the settings file before any background or quit."""
+
+    summary = "move the channels bar to the bottom; report whether toad.json holds it at once"
+
+    async def run(self) -> None:
+        from toad.preferences import SavedSettings
+        app = self.app
+        app.show_sidebar()
+        await asyncio.sleep(0.5)
+        next(control for control in app.channels_side._actions
+             if isinstance(control.action, DirectionalSidebarPlacementAction)
+             and control.action.direction is BottomSidebarEdge).click()
+        await asyncio.sleep(1.0)
+        path = SavedSettings.path()
+        self.report("1-moved", path=str(path), settings_file=path.is_file(), unsaved=app.saved_settings.unsaved,
+                    holds_bottom=path.is_file() and '"bottom"' in path.read_text())
+
+
+class RestoredScenario(Scenario):
+    """Second half: what a fresh start over the saved state shows before anything is touched."""
+
+    summary = "report the tabs, selection and channels-bar placement a fresh start restored"
+
+    async def run(self) -> None:
+        app = self.app
+        await self.listed()
+        await asyncio.sleep(3.0)
+        placed = app.sidebar_layout.get(ChannelsSidebarPlacement)
+        self.report("1-after-open", selected=app.tabs.tabText(app.tabs.currentIndex()),
+                    channels_bar=placed.side.declared_name, roster=[i.mode_name for i in app.tab_order.names])
+        # Cold start, home in front: one real tap on the restored thread's sidebar row opens
+        # its tab (the restored entry's view is built on this first selection).
+        restored_thread = next((identity for identity in app.tab_order.names
+                                if identity.mode_name.startswith("mailbox-")), None)
+        if restored_thread is not None:
+            await app.select_session(app.tab_order.home)
+            app.show_sidebar()
+            await self.expand("#any")
+            row = next(row for row in self.thread_rows() if row.key == restored_thread.key.name)
+            tree = row.treeWidget()
+            tree.scrollToItem(row)
+            await asyncio.sleep(0.5)
+            QTest.mouseClick(tree.viewport(), Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier,
+                             tree.visualItemRect(row).center())
+            await asyncio.sleep(3.0)
+            self.report("2-first-tap", tapped=restored_thread.key.name, view=type(self.page).__name__)
+        # A restored tab builds its view when it is first selected: select each, as a tap does.
+        for index in range(app.tabs.count()):
+            app.visit_index(index)
+            await asyncio.sleep(2.0)
+            self.report(f"3-tab-{index}", view=type(self.page).__name__,
+                        rows=getattr(getattr(self.page, "messages", None), "model_rows", None) and
+                        self.page.messages.model_rows.rowCount())
+
+
 class PlacementScenario(Scenario):
     summary = ("move and float the channels bar, then change the view settings for #comms and "
                "a DM through the thread bar; list anything too wide for a Pixel 8a")

@@ -61,17 +61,20 @@ class ChannelListing(WelcomeListing):
 
 
 class ThreadListing(WelcomeListing):
-    """The threads of the all-comms channel, in the order chosen for it."""
+    """The threads of the all-comms channel: the active ones first, then the rest, each in
+    the order chosen for the channel. The welcome lists only the first few, and on a bus of
+    seventy stopped threads in creation order the one thread working now fell past them."""
 
     TITLE = "Threads"
 
     def keys(self, model: SidebarModel) -> tuple[str, ...]:
         listed = model.channels.rows.get(ALL_COMMS_TARGET)
-        return tuple(
+        members = tuple(
             name
             for name in (listed.members if listed is not None else ())
             if name in model.threads.rows
         )
+        return tuple(sorted(members, key=lambda name: not model.threads.rows[name].active))
 
 
 class WelcomeLocation:
