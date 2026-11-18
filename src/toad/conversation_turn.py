@@ -142,8 +142,26 @@ class ManagedTurn(TurnOwner):
         return self.state.active.started_at
 
     @property
+    def turn_output_tokens(self) -> int:
+        return getattr(self.state, "turn_output_tokens", 0)
+
+    @property
     def session_state(self):
         return "busy" if self.busy else "idle"
+
+    def status_line(self, now: float) -> str:
+        """The live status: phase word, elapsed time, and tokens this turn."""
+        if not self.busy:
+            return "Ready"
+        parts = [self.activity]
+        if self.started_at is not None:
+            elapsed = max(0, now - self.started_at)
+            minutes, seconds = divmod(int(elapsed), 60)
+            parts.append(f"{minutes}:{seconds:02d}" if minutes else f"{seconds}s")
+        tokens = self.turn_output_tokens
+        if tokens:
+            parts.append(f"{tokens:,} tokens")
+        return " · ".join(parts)
 
     def accepts_update(self, update) -> bool:
         return update.matches_turn(self.state.active.reported_turn)
