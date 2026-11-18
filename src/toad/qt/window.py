@@ -1302,10 +1302,9 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         await self.content_ready.wait()
 
     def close_core_events(self) -> None:
-        """The shared close, then the receipt stops following and the wire lets go."""
+        """The shared close (its history lets go of the wire), then the receipt stops following."""
         super().close_core_events()
         self.composer.receipt.stop()
-        self.message_history.retire_source()
 
     async def retire_presentation(self) -> None:
         """The history lets go of its page reader; its rows go with the widgets."""
@@ -1520,6 +1519,9 @@ class QtWorkspaceViews(WorkspaceViews):
         # As Textual's `Conversation` unmount: the view's agent leaves its surface and stops
         # before the widgets it draws into are deleted.
         await view.operational_binding.retire_surface(view)
+        # As Textual's widget teardown (`_message_pump_closing`): its receivers and its
+        # history's reads end before the widgets they write into are deleted.
+        view.close_core_events()
         view.close_configuration()
         self.pages.removeWidget(view)
         view.deleteLater()

@@ -15,14 +15,19 @@ from functools import partial
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.transcript.transcript_events import NoticeTranscript
+from acp import schema
+from agent_comms.nominal.field_codec import FieldCodec, ToolCallId
+from agent_comms.transcript.transcript_events import ToolStartTranscript
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.acp.status import ToolCallStatus
+from toad.client.fragments import Shown
 from toad.client.subscribers import CallbackSubscription
 from toad.core.events import CoreEvent
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
+from toad.qt.history import QtToolTranscriptFragment
 from toad.qt.live_turn import QtLiveBlock
-from toad.tool_output import ToolOutput
+from toad.tool_output import TextToolOutputPart, ToolOutput
 from toad.surface_binding import SurfaceBinding
 
 if TYPE_CHECKING:
@@ -54,38 +59,89 @@ class AgentEventSubscription(CallbackSubscription):
                 await result
 
 
-class QtToolBlock(QtLiveBlock):
-    """One tool call's row: its title and status, then its text output, redrawn in place as
-    the agent updates the call."""
+@dataclass(kw_only=True)
+class QtLiveToolFragment(QtToolTranscriptFragment):
+    """A live tool call's row, drawn as a saved one is (`AgentActivityPresentation.tool`: the
+    title and status, details behind the disclosure); its revision keys the row cache."""
 
-    event_kind = NoticeTranscript
+    live_revision: int = 0
 
-    def __init__(self, window: QtHistoryWindow, tool_call_id: str) -> None:
+    @property
+    def revision(self) -> int:
+        return self.live_revision
+
+
+class QtLiveToolRow(QtLiveBlock):
+    """A live row that draws one ACP tool call as history draws a recorded one."""
+
+    shown = Shown()
+
+    def __init__(self, window: QtHistoryWindow) -> None:
         super().__init__(window, "")
-        self.tool_call_id = tool_call_id
 
-    def show(self, call) -> None:
-        parts = (part.row_markdown for part in ToolOutput.capture_parts(call))
-        self.text = "\n\n".join((f"🔧 **{call.title}** · {call.status or 'pending'}",
-                                 *(part for part in parts if part)))
-        self.finished = call.status in ("completed", "failed")
+    @property
+    def loading(self) -> bool:
+        return False
+
+    def call(self) -> schema.ToolCall: ...
+
+    def output_parts(self, call: schema.ToolCall):
+        return ToolOutput.capture_parts(call)
+
+    def fragment(self) -> QtLiveToolFragment:
+        call = self.call()
+        event = ToolStartTranscript(tool_call_id=FieldCodec.decode(ToolCallId, call.tool_call_id),
+                                    tool_name=call.title, raw_input={},
+                                    position=self.position, timestamp=self.timestamp)
+        return QtLiveToolFragment(events=(event,), tool_call=ToolCallStatus.from_acp(call),
+                                  output_parts=self.output_parts(call), shown=self.shown,
+                                  live_revision=self.revision)
+
+    def redraw(self) -> None:
         self.revision += 1
         self.window.live_changed()
 
 
-class QtTerminalBlock(QtLiveBlock):
-    """A terminal the agent runs: its command, then its output, redrawn as it arrives. The
-    shared `TerminalExecution` attaches it as its view, as it attaches Textual's terminal."""
+class QtToolBlock(QtLiveToolRow):
+    """One tool call's row, redrawn in place as the agent updates the call."""
 
-    event_kind = NoticeTranscript
+    def __init__(self, window: QtHistoryWindow, call: schema.ToolCall) -> None:
+        super().__init__(window)
+        self.current = call
+        self.finished = call.status in ("completed", "failed")
 
-    def __init__(self, window: QtHistoryWindow, execution) -> None:
-        super().__init__(window, "")
+    def call(self) -> schema.ToolCall:
+        return self.current
+
+    def show(self, call: schema.ToolCall) -> None:
+        self.current = call
+        self.finished = call.status in ("completed", "failed")
+        self.redraw()
+
+
+class QtTerminalBlock(QtLiveToolRow):
+    """A terminal the agent runs: its command as the title and its output open beneath, as
+    Textual's `TerminalTool` shows it. The shared `TerminalExecution` attaches it as its view,
+    as it attaches Textual's terminal."""
+
+    shown = Shown(details_open=True)
+
+    def __init__(self, window: QtHistoryWindow, terminal_id: str, execution) -> None:
+        super().__init__(window)
+        self.terminal_id = terminal_id
         self.execution = execution
 
     @property
     def is_attached(self) -> bool:
         return self in self.window.live_blocks
+
+    def call(self) -> schema.ToolCall:
+        return schema.ToolCall(tool_call_id=self.terminal_id, title=f"$ {self.execution.command}",
+                               kind="execute", status="completed" if self.finished else "in_progress")
+
+    def output_parts(self, call: schema.ToolCall):
+        output, _truncated = self.execution.get_output()
+        return (TextToolOutputPart.from_text(output.rstrip(), None),) if output.strip() else ()
 
     def set_state(self, state) -> None:
         """The output is read from the execution; no terminal model is kept here."""
@@ -94,10 +150,8 @@ class QtTerminalBlock(QtLiveBlock):
         """A row takes no keyboard input."""
 
     def present_execution(self, scrollback, alternate) -> None:
-        output, _truncated = self.execution.get_output()
-        self.text = f"$ {self.execution.command}\n```\n{output.rstrip()}\n```"
-        self.revision += 1
-        self.window.live_changed()
+        self.finished = self.execution.operation.outcome().finished
+        self.redraw()
 
 
 class QtSurfaceBinding(SurfaceBinding, MroDispatch):
@@ -132,9 +186,10 @@ class QtSurfaceBinding(SurfaceBinding, MroDispatch):
         block = self.tools.get(call.tool_call_id)
         if block is None:
             target.output.boundary()
-            block = self.tools[call.tool_call_id] = QtToolBlock(target.messages, call.tool_call_id)
+            block = self.tools[call.tool_call_id] = QtToolBlock(target.messages, call)
             target.messages.show_live(block)
-        block.show(call)
+        else:
+            block.show(call)
 
     async def present_permission(self, request, view) -> None:
         await self.dispatch(request.presentation, view, request)
@@ -172,7 +227,7 @@ class QtSurfaceBinding(SurfaceBinding, MroDispatch):
             if block is not None:
                 target.messages.drop_live(block)
             target.output.boundary()
-            block = self.terminals[terminal_id] = QtTerminalBlock(target.messages, execution)
+            block = self.terminals[terminal_id] = QtTerminalBlock(target.messages, terminal_id, execution)
             target.messages.show_live(block)
         execution.attach(block)
         return True

@@ -1089,8 +1089,11 @@ class AgentSessionScenario(Scenario):
     def live_rows(self) -> list[tuple[str, str]]:
         rows = self.page.messages.model_rows
         tail = [rows.index(row).data(HistoryRows.FRAGMENT) for row in range(rows.rowCount())]
-        return [(type(fragment.events[0]).__name__, fragment.events[0].text)
-                for fragment in tail if isinstance(fragment, QtLiveFragment)]
+        # A live row's position is negative (`QtLiveBlock`); the text is what the row draws.
+        return [(type(fragment.events[0]).__name__,
+                 " / ".join(block.selection_text for block in fragment.line_blocks))
+                for fragment in tail if fragment is not None and fragment.events
+                and fragment.events[0].position < 0]
 
     def shown(self, marker: str) -> bool:
         """The marker in a row the agent's turn drew: the prompt's own row names them all."""

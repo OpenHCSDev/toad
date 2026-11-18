@@ -147,6 +147,7 @@ class QtConversation(
             row.close_activity()
         self.app.cancel_operations(CommandRead)
         self.app.coordination_access.stop_notifications(self)
+        self.message_history.retire_source()
 
     def history_loading(self) -> bool:
         """As Textual's `Conversation`: only wire histories page in under a loading row."""
