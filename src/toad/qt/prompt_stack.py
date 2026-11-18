@@ -8,17 +8,29 @@ Each class inherits the parent its Textual sibling inherits and adds only Qt pai
 
 from __future__ import annotations
 
+import asyncio
+
 from agent_comms.acp_extension import TurnChangedUpdate
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.status import ThreadStatusModel
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QToolButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QSizePolicy,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
-from ui_theme.scheme import BackgroundColour, SecondaryColour
+from ui_theme.scheme import AccentColour, BackgroundColour, SecondaryColour
 
-from toad.client.line_blocks import MutedRole
+from toad.client.line_blocks import FailureRole, MutedRole
 from toad.client.prompt_stack import (
+    DeliveryDetailsPage,
     EditingModeBadge,
     FlashNotice,
     FlashTone,
@@ -79,6 +91,7 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
     # Textual's `NativeHistory.status`: a Qt client has no private native cursor, so the
     # saved-history status is hidden and `SessionHistoryDetails` reads only the coverage.
     status = HiddenCursorStatus
+    display = HiddenCursorStatus.visible
 
     def __init__(self, view, renderer: QtLineRenderer) -> None:
         super().__init__()
@@ -95,10 +108,19 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.details.setStyleSheet(renderer.color_style(MutedRole))
         self.details.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         self.details.hide()
+        # Textual's `InspectSession` detail action: underlined accent text in the disclosure.
+        self.inspect_action = QToolButton(self)
+        self.inspect_action.setText(self.inspect_label)
+        self.inspect_action.setAutoRaise(True)
+        self.inspect_action.setStyleSheet(
+            f"QToolButton {{ color: {renderer.theme(AccentColour)}; text-decoration: underline; border: none }}")
+        self.inspect_action.clicked.connect(lambda: asyncio.ensure_future(self.inspect()))
+        self.inspect_action.hide()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.title)
+        layout.addWidget(self.inspect_action, 0, Qt.AlignmentFlag.AlignLeft)
         layout.addWidget(self.details)
         self.hide()
 
@@ -141,7 +163,16 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         detail = self.detail_text(row)
         self.details.setText(detail)
         self.details.setVisible(self.expanded and bool(detail))
+        self.inspect_action.setVisible(self.expanded)
         self.setVisible(self.shown(row))
+
+    async def inspect(self) -> None:
+        """This row holds its view, as Textual's `OperationalSessionDetails` holds its
+        conversation, so it never asks the widget tree which one it is."""
+        self.view.inspect_session()
+
+    def overview(self) -> str:
+        return self.history_details.overview(self.row.lines)
 
     def toggle(self) -> None:
         self.expanded = not self.expanded
@@ -149,6 +180,36 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
 
     def close_activity(self) -> None:
         self.close_core_events()
+
+
+class QtInputDeliveryDetails(DeliveryDetailsPage, QDialog, metaclass=PyQtWidgetMeta):
+    """Textual's `InputDeliveryDetails` as a dialog; `DeliveryDetailsPage` owns its text.
+
+    A Qt thread view has no input-delivery observation, so the delivery is the view's
+    `DeliveryView` answer and there are no earlier notices to load or clear."""
+
+    def __init__(self, parent: QWidget, renderer: QtLineRenderer, overview: str,
+                 delivery: DeliveryView) -> None:
+        super().__init__(parent)
+        self.setWindowTitle(self.details_title)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
+        layout.addWidget(WrappedText(self.details_title))
+        error = WrappedText(self.error_text(delivery, ""))
+        error.setStyleSheet(renderer.color_style(FailureRole))
+        error.setVisible(bool(error.text()))
+        layout.addWidget(error)
+        body = WrappedText(overview)
+        body.setVisible(bool(overview))
+        layout.addWidget(body, 1)
+        pending = WrappedText(self.pending_explanation)
+        pending.setVisible(bool(delivery.current))
+        layout.addWidget(pending)
+        layout.addWidget(WrappedText(delivery.pending_records_text()))
+        layout.addWidget(WrappedText(delivery.history_summary))
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close, parent=self)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
 
 
 class QtStatusLine(SettingVisible, ElidedLine, setting="ui.status_line", metaclass=PyQtWidgetMeta):

@@ -4,6 +4,7 @@ peer with its status and Toad's activity sweep while the peer works."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from time import monotonic
 
 from agent_comms.registry.thread_identity import ThreadIncarnation
@@ -125,29 +126,23 @@ class QtObservedSweep(ObservedSweep, ActivitySweep):
 
 class PeerActivity(ObservedActivity, QtCoreObserver, QWidget):
     """A direct message's peer as Textual's ConversationSessionDetails titles it collapsed:
-    its name and status summary, over the sweep while it works. The view's status thread
-    binds the peer's row into it."""
+    its name and status summary. The view's status thread binds the peer's row into it;
+    each row asks the view to sync its working answer, which the view's one sweep paints."""
 
-    def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation) -> None:
+    def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation,
+                 changed: Callable[[], None]) -> None:
         super().__init__()
-        self.app, self.peer = app, peer
+        self.app, self.peer, self.changed = app, peer, changed
         self.row = ThreadStatusModel.pending("")
         self.is_mounted = False
-        self.strip = ActivitySweep(renderer)
         self.summary = ActivityLine(renderer)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addWidget(self.strip)
         layout.addWidget(self.summary)
 
     @property
     def coordination(self) -> CoordinationAccess:
         return self.app.coordination_access
-
-    @property
-    def timer(self) -> QTimer:
-        return self.strip.timer
 
     def showEvent(self, event) -> None:
         super().showEvent(event)
@@ -157,7 +152,7 @@ class PeerActivity(ObservedActivity, QtCoreObserver, QWidget):
 
     def show(self, row: ThreadStatusModel) -> None:
         self.row = row
-        self.strip.sweep(self.working)
+        self.changed()
         self.summary.setText(" · ".join((row.name, *row.summary)))
         self.summary.setVisible(bool(row.summary and row.summary[0]))
 

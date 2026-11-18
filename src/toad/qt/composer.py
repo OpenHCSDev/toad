@@ -37,7 +37,7 @@ from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
 from toad.client.prompt_composer import MessagePromptComposer
 from toad.client.condensed_path import home_relative
-from toad.key_modes import Standard
+from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from ui_theme.scheme import MutedColour, PrimaryColour, SecondaryColour
 from toad.client.notification_status import (
@@ -47,7 +47,7 @@ from toad.client.notification_status import (
     UncheckedNotifications,
 )
 from toad.client.subscribers import NotificationSubscriber
-from toad.prompt_actions import NewlineAction, SubmitAction, SubmitNowAction
+from toad.prompt_actions import NewlineAction, SubmitAction, SubmitInputAction, SubmitNowAction
 from toad.widget_actions import DismissAction
 from toad.widget_contracts import (
     DismissibleContract,
@@ -56,7 +56,7 @@ from toad.widget_contracts import (
     SubmitsContract,
 )
 from toad.qt.action_shortcuts import bind_action_shortcuts
-from toad.qt.composer_vim import ComposerVimMode, VimState, apply_normal_key
+from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
 from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary
 from toad.qt.prompt_stack import QtInfoBar
@@ -111,7 +111,7 @@ class ComposerHost(ConversationCommands):
     app: ClientApplication
     submissions: BusSubmissions
 
-    def submit(self, text: TypedText) -> None:
+    def submit(self, text: TypedText, action: SubmitInputAction) -> None:
         raise NotImplementedError
 
 
@@ -228,10 +228,16 @@ class ComposerEditor(QPlainTextEdit):
         # alone fires too early on Android, before the window is composited).
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
-        # Modal vim input, off by default so non-vim users aren't trapped. A setting toggle
-        # (sweep follow-up) will flip this; once on, Esc in INSERT enters NORMAL mode.
-        self.vim_enabled = False
-        self.vim = ComposerVimMode()
+        # Modal input follows the saved `ui.key_mode`, the setting Textual's prompt reads:
+        # a modal key mode (vim_normal, vim_insert) starts the editor in its mode.
+        key_mode = composer.settings.ui.key_mode
+        self.vim_enabled = key_mode.modal
+        self.vim = ComposerVimMode(key_mode if key_mode.modal else VimInsert)
+
+    @property
+    def editing_mode(self):
+        """What the info bar's badge names: the modal state, else the standard mode."""
+        return self.vim if self.vim_enabled else Standard()
 
     def focusOutEvent(self, event) -> None:
         super().focusOutEvent(event)
@@ -262,10 +268,10 @@ class ComposerEditor(QPlainTextEdit):
         # on the composer and fire through QShortcut regardless.
         offers = self.composer.offers
         key = event.key()
-        if (self.vim_enabled and self.vim.state is VimState.NORMAL
+        if (self.vim_enabled and not self.vim.inserting
                 and not offers.isVisible() and key != Qt.Key.Key_Escape):
             apply_normal_key(self, self.vim, event)
-            self.composer.refresh_mode_indicator()
+            self.composer.refresh_editing_mode()
             return
         # Offer navigation stays local — it's widget-scoped, not a declared action family.
         if offers.isVisible() and key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
@@ -330,8 +336,6 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         self.delivery_controls = QtDeliveryControls(self)
         self.failure = self.line(FailureRole)
         self.receipt = Receipt(host.app, renderer)
-        # Vim NORMAL indicator; INSERT reads as "no indicator".
-        self.mode_indicator = self.line(MutedRole)
         frame_row = QHBoxLayout()
         frame_row.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.tight)
         frame_row.addWidget(self.frame)
@@ -345,14 +349,13 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         layout.addWidget(self.delivery_controls)
         layout.addLayout(frame_row)
         layout.addWidget(self.info_bar)
-        for line in (self.mode_indicator, self.failure, self.receipt):
+        for line in (self.failure, self.receipt):
             layout.addWidget(line)
         # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
         self.focus_changed(False)
         self.refresh_glyph()
         self.fit_height()
-        self.refresh_mode_indicator()
         self.show_submitting()
 
     @property
@@ -369,7 +372,10 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         colour = PrimaryColour if focused else MutedColour
         self.frame.setStyleSheet(
             f"#prompt-frame {{ border: 1px solid {self.renderer.theme(colour)}; border-radius: 2px }}")
-        self.info_bar.badge.present_editing_mode(Standard(), focused)
+        self.info_bar.badge.present_editing_mode(self.editor.editing_mode, focused)
+
+    def refresh_editing_mode(self) -> None:
+        self.info_bar.badge.present_editing_mode(self.editor.editing_mode, self.editor.hasFocus())
 
     def refresh_glyph(self) -> None:
         self.glyph.setText(self.prompt_symbol(self.text, False))
@@ -383,22 +389,6 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         label.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         label.hide()
         return label
-
-    def refresh_mode_indicator(self) -> None:
-        """Show '-- NORMAL --' whenever vim is on and the editor is not in INSERT."""
-        showing = self.editor.vim_enabled and self.editor.vim.state is VimState.NORMAL
-        if showing:
-            self.mode_indicator.setText("-- NORMAL --")
-            self.mode_indicator.show()
-        else:
-            self.mode_indicator.hide()
-
-    def set_vim_enabled(self, enabled: bool) -> None:
-        """Called by the (future) vim-mode setting toggle. Also drives VimWorkspaceAction's
-        Qt consumer: when any composer has vim on, the workspace's modal command mode fires."""
-        self.editor.vim_enabled = enabled
-        self.editor.vim.state = VimState.INSERT
-        self.refresh_mode_indicator()
 
     def fit_height(self) -> None:
         """Grow with the message up to five lines, as Textual's prompt grows."""
@@ -458,14 +448,14 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
 
     # Sending
 
-    def send(self) -> None:
+    def send(self, action: SubmitInputAction = SubmitAction()) -> None:
+        """Hand what is typed to the view with the action that sends it; the action owns
+        the event it becomes, as Textual's `SubmitInputAction.submission_event` does."""
         text = self.text
-        if not text.strip():
-            return
         self.editor.clear()
         self.dismissed_text = ""
         self.failure.hide()
-        self.host.submit(TypedText(text))
+        self.host.submit(TypedText(text), action)
 
     # Toolkit-neutral action-family contract: Textual's Prompt inherits Submits +
     # DismissibleControl from widget_actions.py; the mixin lift itself is fork
@@ -473,17 +463,16 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
     # neutral family, once lifted, binds without changing this widget again.
 
     def submit(self) -> None:
-        """What `SubmitAction` calls — the action-family alias for `send`."""
-        self.send()
+        """What `SubmitAction` (Enter) calls: an empty prompt sends nothing."""
+        if self.text.strip():
+            self.send(SubmitAction())
 
     def submit_now(self) -> None:
-        """What `SubmitNowAction` (Ctrl+Enter, Ctrl+Y) calls. When input is held in
-        the queue, routes through `BusSubmissions.send_now` so the pending inputs
-        flush immediately (same semantics as Textual's `SendPromptNow`). Otherwise
-        a plain send of what's typed."""
-        if self.text.strip():
-            self.send()
-        self.send_now()
+        """What `SubmitNowAction` (Ctrl+Enter, Ctrl+Y) calls: the typed text, or with an
+        empty prompt the held queue, is sent ahead (`UserInputSubmitted(immediate=True)`;
+        the backend's `QueueNowInputSubmission` flushes an empty immediate submit)."""
+        if self.text.strip() or self.holds_input:
+            self.send(SubmitNowAction())
 
     def _insert_newline(self) -> None:
         """What `NewlineAction` (Shift+Enter, Ctrl+J) calls — a real `\\n`, not a submit."""
@@ -503,9 +492,9 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         if self.offers.isVisible():
             self.dismiss()
             return
-        if self.editor.vim_enabled and self.editor.vim.state is VimState.INSERT:
-            self.editor.vim.state = VimState.NORMAL
-            self.refresh_mode_indicator()
+        if self.editor.vim_enabled and self.editor.vim.inserting:
+            self.editor.vim.enter_normal()
+            self.refresh_editing_mode()
             return
         self.editor.clear()
         self.dismissed_text = ""
@@ -530,20 +519,8 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         self.delivery_controls.setVisible(self.offers_send_now)
 
     def send_now(self) -> None:
-        """What ``QueueSummary.activate`` triggers (and Ctrl+Y when input is held):
-        asks the shared ``ConversationSubmissions.send_now`` worker to flush the queue.
-        No-op when nothing is held, matching Textual's ``SendPromptNow`` gate.
-
-        Base ``BusSubmissions`` doesn't own the ``send_now`` worker (it's on the
-        ``ConversationSubmissions`` subclass that wires ``view.queue_source``); until
-        the Qt views switch to that subclass, this is a safe no-op so the button and
-        shortcut still bind without crashing."""
-        if not self.holds_input:
-            return
-        send_now = getattr(self.submissions, "send_now", None)
-        if send_now is None:
-            return
-        send_now()
+        """The delivery row's Send now: Textual's `SendNow` runs `submit_now` too."""
+        self.submit_now()
 
     def open_queue_menu(self) -> None:
         """Textual's ``Conversation.open_queue_menu`` pushes the ``QueueInspection``

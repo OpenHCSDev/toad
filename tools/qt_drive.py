@@ -35,6 +35,9 @@ from toad.qt.main import current_scheme, open_app
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
 from toad.qt.goal import QtGoalBar, QtGoalHistory
+from toad.qt.prompt_stack import QtInputDeliveryDetails
+from toad.key_modes import KeyMode
+from toad.preferences import SETTINGS
 from toad.qt.side_bar import QtSidebarAction
 from toad.sidebar_layout import DirectionalSidebarPlacementAction, FloatSidebarPlacementAction
 from toad.sidebar_placement import (
@@ -226,12 +229,17 @@ class SurroundScenario(Scenario):
                       composer.glyph.text() if composer else "", composer.editor.placeholderText() if composer else "",
                       bool(composer and composer.findChildren(QPushButton))),
             info_bar=(info.path.text(), info.status.text(), info.badge.text()) if info else None,
+            editing=(composer.editor.editing_mode.label, composer.editor.hasFocus()) if composer else None,
             rows=view.messages.model_rows.rowCount())
 
     async def run(self) -> None:
         await self.listed()
         app = self.app
         app.resize(int(os.environ.get("WIDTH", self.width)), 915)
+        if mode := os.environ.get("KEY_MODE"):
+            # As a person choosing "Keyboard mode" on the settings screen: the one setting
+            # both frontends' prompts read.
+            app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named(mode))
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
         children = self.thread_rows()
         print("working:", [row.key for row in children if rows[row.key].status.is_working()], flush=True)
@@ -251,8 +259,18 @@ class SurroundScenario(Scenario):
         details = self.page.thread_activity
         details.toggle()
         await asyncio.sleep(0.3)
-        self.report_surround("3-details-open", peer=peer.key, details=details.details.text()[:120])
+        self.report_surround("3-details-open", peer=peer.key, details=details.details.text()[:120],
+                             inspect=details.inspect_action.isVisible())
+        details.inspect_action.click()
+        await until(lambda: app.findChild(QtInputDeliveryDetails) is not None, "session details")
+        await asyncio.sleep(0.3)
+        dialog = app.findChild(QtInputDeliveryDetails)
+        dialog.grab().save(str(self.out / "surround-3b-session-details.png"))
+        print("3b-session-details:", [line.text()[:80] for line in dialog.findChildren(WrappedText) if line.isVisible()],
+              flush=True)
+        dialog.reject()
         details.toggle()
+        app.activateWindow()
         self.page.composer.editor.setFocus()
         await asyncio.sleep(0.3)
         self.report_surround("4-focused", peer=peer.key)

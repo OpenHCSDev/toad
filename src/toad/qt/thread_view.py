@@ -39,9 +39,10 @@ from toad.client.observed_field import ObservedField
 from toad.client.resource_release import ResourceRelease
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.transcript_history_contract import TranscriptHistoryContract
-from toad.core import input_events
+from toad.prompt_actions import SubmitInputAction
 from toad.qt.activity import QtObservedSweep
-from toad.qt.prompt_stack import QtFlash, QtSessionDetails
+from toad.qt.prompt_stack import QtFlash, QtInputDeliveryDetails, QtSessionDetails
+from agent_comms.ui_model.delivery import DeliveryView
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.goal import QtGoalBar
@@ -189,6 +190,12 @@ class QtThreadView(
         if self.composer is not None:
             self.composer.show_status(self.composed_status())
 
+    def inspect_session(self) -> None:
+        """Textual's `Conversation.inspect_session`: the session details over the view, the
+        overview from the status row."""
+        QtInputDeliveryDetails(
+            self, self.app.renderer, self.thread_activity.overview(), DeliveryView()).open()
+
     def present_thread_status(self) -> None:
         """A native agent reports its configuration through ACP (Textual's
         `OperationalSessionSources.thread_presented`); a CLI thread overrides."""
@@ -312,7 +319,7 @@ class QtThreadView(
     # real command catalog, both thread views hand the composer an empty list
     # so the slash offers row stays hidden rather than throwing.
 
-    def submit(self, text: TypedText) -> None:
+    def submit(self, text: TypedText, action: SubmitInputAction) -> None:
         """Publish ``UserInputSubmitted`` through Core's event stream — the same
         payload Textual's prompt publishes at ``widgets/conversation.py:901-904``.
         A listening backend ``Conversation`` picks it up and routes through its
@@ -321,10 +328,7 @@ class QtThreadView(
         ``show_submitting`` state until the queue reader catches up. Shell-prefix
         detection matches ``conversation.py:900``."""
         body = text.text
-        event = input_events.UserInputSubmitted(
-            body[1:] if body.startswith("!") else body,
-            shell=body.startswith("!"),
-        )
+        event = action.submission_event(body[1:] if body.startswith("!") else body, body.startswith("!"))
         try:
             self.app.events.publish(event)
         except Exception as error:

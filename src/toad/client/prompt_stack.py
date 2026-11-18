@@ -115,7 +115,14 @@ class ObservedSweep:
 
 class SessionStatusTitle(MroProjection[type[LineRole]]):
     """The collapsed session-status line: what the observed thread is doing, with saved
-    history and delivery joined after it, inked by the status's type."""
+    history and delivery joined after it, inked by the status's type; disclosed, it offers
+    "Inspect session", which opens the session details of the view the row belongs to."""
+
+    inspect_label: ClassVar[str] = "Inspect session"
+
+    @abstractmethod
+    async def inspect(self) -> None:
+        """Open the session details of the view this row belongs to."""
 
     @handles(ThreadPresentationStatus)
     def idle_role(self, status) -> type[LineRole]:
@@ -162,6 +169,25 @@ class SessionStatusTitle(MroProjection[type[LineRole]]):
     @staticmethod
     def shown(row: ThreadStatusModel) -> bool:
         return bool(row.summary and row.summary[0])
+
+
+class DeliveryDetailsPage:
+    """The session-details page "Inspect session" opens: its title, the overview, the
+    inputs with no confirmed start and what the earlier notices mean."""
+
+    details_title: ClassVar[str] = "Session details"
+    pending_explanation: ClassVar[str] = (
+        "These inputs have no confirmed start. They may still be queued. "
+        "They are not automatically retried.")
+    history_explanation: ClassVar[str] = (
+        "Earlier notices are not awaiting a start in the owner's current turn or queue, "
+        "or predate delivery tracking. A notice is not proof that an input is unread. "
+        "Clearing hides the notice only: it does not confirm delivery, mark messages "
+        "read, or retry inputs. Cleared notices remain available here.")
+
+    @staticmethod
+    def error_text(delivery: DeliveryView, error: str) -> str:
+        return delivery.error or error
 
 
 class SettingVisible:

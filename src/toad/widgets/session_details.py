@@ -103,7 +103,7 @@ class SessionDetails(
         self.delivery = delivery
         self.notifications = Static("", markup=False)
         super().__init__(
-            InspectSession("Inspect session", markup=False),
+            InspectSession(self.inspect_label, markup=False),
             self.notifications, history, delivery,
             title="", collapsed=True, id=self.DEFAULT_ID,
         )
