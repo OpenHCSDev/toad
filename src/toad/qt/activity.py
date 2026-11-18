@@ -4,6 +4,8 @@ peer with its status and Toad's activity sweep while the peer works."""
 
 from __future__ import annotations
 
+from array import array
+from bisect import bisect_left
 from collections.abc import Callable
 from time import monotonic
 
@@ -100,32 +102,50 @@ class ActivitySweep(QWidget):
             return
         frame = ACTIVITY_SWEEP.frame(monotonic() - self.started)
         scheme = self.renderer.scheme
+        # The ribbon is sampled once per logical pixel and Qt scales the image onto the
+        # whole strip. The image used to be tagged with the device pixel ratio, which drew
+        # it at 1/ratio of the strip: on a Pixel 8a (2.625) the sweep ran across the first
+        # 38% of the row and its band never passed it.
         width, height = self.width(), self.height()
         if width <= 0 or height <= 0:
             return
-        # One Python-sampled image → one C++ blit. The 20-fps `paintEvent` used to issue
-        # one Python→Qt fillRect per pixel-column (~1000 crossings per paint on a Pixel
-        # 8a). Now one QImage is filled in Python via a uint32 memoryview — pure CPython
-        # integer writes, no Qt round-trips — and painted with a single drawImage. Each
-        # column still gets its sampled colour and its thickness-centred band.
+        # The ribbon inks one run of columns (`Ribbon.sample` is zero outside its ends), so
+        # only that run is sampled: the inked columns are contiguous.
+        first = max(0, int(frame.start * width))
+        last = min(width, int(frame.end * width) + 1)
+        x0, pixels, bars = -1, array("I"), []
+        for x in range(first, last):
+            start, end, amount, thickness = frame.sample((x + 0.5) / width)
+            if thickness <= 0:
+                if bars:
+                    break
+                continue
+            x0 = x if x0 < 0 else x0
+            ink = start.rgb(scheme).blend(end.rgb(scheme), amount)
+            pixels.append((0xFF << 24) | (ink.red << 16) | (ink.green << 8) | ink.blue)
+            bars.append(max(1, round(height * thickness)))
+        if not bars:
+            return
         image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
         image.fill(0)
-        image.setDevicePixelRatio(self.devicePixelRatioF() or 1.0)
         row_stride = image.bytesPerLine() // 4
         # Flat: CPython memoryviews cannot index a multi-dimensional row (`buf[y]`).
         buf = memoryview(image.bits()).cast("I")
-        for x in range(width):
-            start, end, amount, thickness = frame.sample((x + 0.5) / width)
-            if thickness <= 0:
-                continue
-            ink = start.rgb(scheme).blend(end.rgb(scheme), amount)
-            pixel = (0xFF << 24) | (ink.red << 16) | (ink.green << 8) | ink.blue
-            bar = max(1, round(height * thickness))
-            top = (height - bar) // 2
-            for y in range(top, top + bar):
-                buf[y * row_stride + x] = pixel
+        # Each column's ink is centred and its height rises to the body and falls again
+        # (the taper is a smoothstep), so a row's ink is one run of columns around the
+        # tallest: one slice write per row, found by bisecting the rising and falling sides,
+        # not one Python write per pixel.
+        peak = bars.index(max(bars))
+        rising, falling = bars[:peak + 1], bars[peak:]
+        for y in range((height - bars[peak]) // 2, (height - bars[peak]) // 2 + bars[peak]):
+            def inks(bar: int, y: int = y) -> bool:
+                return (height - bar) // 2 <= y < (height - bar) // 2 + bar
+            left = bisect_left(rising, True, key=inks)
+            right = peak + bisect_left(falling, True, key=lambda bar: not inks(bar))
+            offset = y * row_stride + x0 + left
+            buf[offset:offset + right - left] = pixels[left:right]
         painter = QPainter(self)
-        painter.drawImage(0, 0, image)
+        painter.drawImage(self.rect(), image)
         painter.end()
 
 
