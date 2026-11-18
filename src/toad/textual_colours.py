@@ -300,7 +300,7 @@ class TextualColours(BandCells, Backend[Theme, Color, Strip | Content, Strip], T
             self._add(scheme)
         self._observer: BaseObserver | None = None
         self._cadence = ClockCadence()
-        self.clock = AnimationClock(self._schedule)
+        self.clock = AnimationClock(self._schedule, frame_interval=app.frame_interval)
 
     # The catalog and pywal.
 

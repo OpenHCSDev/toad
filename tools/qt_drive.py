@@ -2600,6 +2600,22 @@ class ArrivalScenario(Scenario):
             await asyncio.sleep(0.5)
             top = window.indexAt(window.viewport().rect().topLeft())
             reading = (self.label(top.data(HistoryRows.FRAGMENT)), window.visualRect(top).top())
+        # Every frame the history paints, with where it was and whether a glide moved it: the
+        # motion a reader sees is these frames, not the clock's ticks.
+        painted: list[tuple[float, float, bool]] = []
+
+        class PaintedFrames(QObject):
+            def eventFilter(self, watched, event):  # noqa: N802 - Qt virtual method name
+                if event.type() == QEvent.Type.Paint:
+                    painted.append((time.perf_counter(), float(window.scroll_y), window.glide is not None,
+                                    sum(r.width() * r.height() for r in event.region())
+                                    / max(1, watched.width() * watched.height())))
+                return False
+        frame_watch = PaintedFrames()
+        window.viewport().installEventFilter(frame_watch)
+        if (refresh := os.environ.get("REFRESH")) and hasattr(app.animation_clock, "frame_interval"):
+            app.animation_clock.frame_interval = 1 / float(refresh)
+        print("burst: posting", flush=True)  # a profiler attaches here
         posts = [asyncio.ensure_future(post(index)) for index in range(burst)]
         for index in range(0 if scrolled_up else 3):
             composer.editor.setPlainText(f"arrival send {index} {stamp}")
@@ -2609,6 +2625,23 @@ class ArrivalScenario(Scenario):
         if refused:
             raise RuntimeError(f"the scratch sender's posts were refused: {refused}")
         await asyncio.sleep(8.0)
+        window.viewport().removeEventFilter(frame_watch)
+        gliding = [index for index, frame in enumerate(painted) if frame[2]]
+        intervals = sorted((painted[i][0] - painted[i - 1][0]) * 1000 for i in gliding if i and painted[i - 1][2])
+        steps = [painted[i][1] - painted[i - 1][1] for i in gliding if i and painted[i - 1][2]]
+        moving = sorted(step for step in steps if step > 0)
+
+        def quantile(values, q):
+            return round(values[min(len(values) - 1, int(q * len(values)))], 1) if values else None
+        median_step = quantile(moving, 0.5)
+        print(f"glide frames: {len(gliding)} painted while gliding; interval ms median "
+              f"{quantile(intervals, 0.5)} p95 {quantile(intervals, 0.95)} max {quantile(intervals, 1.0)}; "
+              f"over 17 ms {sum(1 for value in intervals if value > 17)}; px per frame median {median_step} "
+              f"max {quantile(moving, 1.0)}; repeated frames (no move) {sum(1 for step in steps if step == 0)}; "
+              f"steps over twice the median {sum(1 for step in moving if median_step and step > 2 * median_step)}; "
+              f"share of the viewport area each gliding paint repainted: median "
+              f"{round(sorted(painted[i][3] for i in gliding)[len(gliding) // 2], 3) if gliding else None}",
+              flush=True)
         print("final rows:", view.messages.model_rows.rowCount(),
               [self.label(f) for f in view.messages.model_rows.fragments][-8:], flush=True)
         timer.stop()

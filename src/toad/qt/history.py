@@ -735,6 +735,9 @@ class QtStickyHeader(HeaderPin, QWidget):
 
     def __init__(self, window: QtHistoryWindow) -> None:
         super().__init__(window)
+        # It fills its rectangle (paintEvent), so the rows it covers are not painted under it: a
+        # glide repaints only the band it floats over (`VirtualRowView.scrollContentsBy`).
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
         self.history_window = window
         self.documents: tuple[QTextDocument, ...] = ()
         self.drawn: tuple = ()
