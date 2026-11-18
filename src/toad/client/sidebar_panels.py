@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 
     from toad.client.session_tracker import SidebarState
 
+from toad.client.lazy_pages import LazyPages
+
 
 @dataclass(frozen=True)
 class PanelSpec:
@@ -37,7 +39,7 @@ class PanelSpec:
     id: str | None = None
 
 
-class PanelMenuModel[Entry]:
+class PanelMenuModel[Entry](LazyPages[Entry, object]):
     """A sidebar whose panels are shown one at a time, picked from a list: Textual's
     `PanelMenu` and Qt's `QtPanelMenu` both inherit this. The entries come from the viewed
     object in its order; the pick opens on the entry the sidebar's `SidebarState` last
@@ -45,20 +47,10 @@ class PanelMenuModel[Entry]:
 
     entries: tuple[Entry, ...]
     navigation: "SidebarState"
-    pages: dict
-    """Each shown entry's page, kept while another is picked."""
 
     @abstractmethod
     def realize_page(self, entry: Entry):
         """Build this entry's page: its header controls over its panel."""
-
-    def page(self, entry: Entry):
-        """This entry's page, realized the first time the entry is shown and never when it is
-        only listed: a viewed object lists one page per setting and one is shown at a time,
-        so realizing every page as the menu listed them cost each opened tab every form."""
-        if entry not in self.pages:
-            self.pages[entry] = self.realize_page(entry)
-        return self.pages[entry]
 
     @abstractmethod
     def entry_identity(self, entry: Entry) -> object:

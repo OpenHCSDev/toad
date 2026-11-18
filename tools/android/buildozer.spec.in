@@ -4,7 +4,7 @@ title = toadcomms
 package.name = toadcomms
 package.domain = org.toadcomms
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,qml,js,json,toml,css,md,sha256,txt,tcss,pem
+source.include_exts = py,pyc,png,jpg,kv,atlas,qml,js,json,toml,css,md,sha256,txt,tcss,pem
 version = 0.1
 requirements = python3,shiboken6,PySide6,pydantic-core==2.46.5,tree-sitter==0.26.0,tree-sitter-python==0.25.0
 orientation = portrait

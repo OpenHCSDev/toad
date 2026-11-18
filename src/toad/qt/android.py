@@ -23,41 +23,13 @@ import threading
 import time
 import traceback
 
-import qasync
-from agent_comms.projects.checkouts import Checkout
-from agent_comms.transport.connector import HoldUiVerb
-from agent_comms.transport.connector_profile import UiConnectionProfile
-from agent_comms.transport.connector_store import ConnectorStore
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QApplication
 
 from toad import paths
-from toad.client.bus_selection import BusChoice
-from toad.client.connection import RemoteCoreConnection
-from toad.qt.android_app import APP, KEPT
-from toad.client.host import post_crash_to_sink
-from toad.qt.main import current_scheme, serve
-
-BUNDLED_PROFILE = APP / "profile.json"
-
-
-def held_connection() -> RemoteCoreConnection:
-    """The bus this APK was built for, as the terminal app opens the connection it was
-    launched with: the held profile for the bundled profile's endpoint. Held buses are
-    listed by file name, so the first of them was whichever host sorts first (laptop before
-    ts-gaming), and a bus the reader once switched to became every later launch's. On first
-    start the bundled profile is held the way any given profile is held
-    (`agent-comms-connector hold-ui`), so the welcome lists it beside the tailnet's buses and
-    a reader can forget it; with it forgotten, the first bus still held opens."""
-    if not BusChoice.held(time.time()):
-        # The APK unpacks its files readable by the app; a held credential is the app's alone.
-        BUNDLED_PROFILE.chmod(0o600)
-        HoldUiVerb(profile=BUNDLED_PROFILE).apply(ConnectorStore.owned())
-    built_for = UiConnectionProfile.read(BUNDLED_PROFILE).endpoint.url
-    held = BusChoice.held(time.time())
-    chosen = next((bus for bus in held if bus.profile.profile.endpoint.url == built_for), held[0])
-    return RemoteCoreConnection.read(chosen.profile.path)
-
+from toad.qt.android_app import KEPT
+from toad.qt.splash import QtSplash
+from toad.qt.theme import current_scheme
 
 class SessionRecord:
     """The states Android moved this run of the app through, one line each, kept so the next
@@ -121,6 +93,8 @@ def _install_excepthook() -> None:
     def hook(kind: type[BaseException], value: BaseException, tb) -> None:
         try:
             saved_path = paths.save_error(value, "android_uncaught")
+            from toad.client.host import post_crash_to_sink
+
             threading.Thread(
                 target=post_crash_to_sink,
                 args=(saved_path, "android_uncaught", f"Toad uncaught: {kind.__name__}"),
@@ -133,6 +107,16 @@ def _install_excepthook() -> None:
     sys.excepthook = hook
 
 
+def load_client():
+    """Load the client (Core's wire records, the transport, every view): most of a start.
+    The first frame is up by now. The APK's closure and its checks load it through this
+    same call, so what they bundle and check is what runs. Answers the function that
+    serves the held bus."""
+    from toad.qt.android_bus import serve_held
+
+    return serve_held
+
+
 def main() -> None:
     _install_excepthook()
     # Qt's accessibility bridge is switched off by the APK's activity before Qt's layout
@@ -143,8 +127,10 @@ def main() -> None:
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()
     application.applicationStateChanged.connect(memory.changed)
+    scheme = current_scheme(os.environ)
+    QtSplash.shown(application, scheme)
     try:
-        qasync.run(serve(held_connection(), Checkout(APP), current_scheme(os.environ)))
+        load_client()(scheme)
     except BaseException as failure:
         session.ended(f"failed {type(failure).__name__}")
         report = traceback.format_exc()
@@ -155,6 +141,8 @@ def main() -> None:
         # paint (QAndroidPlatformOpenGLWindow::eglSurface deadlock protector SIGABRT), so
         # we rely on the sink POST and the saved file as the only record of the crash.
         saved_path = paths.save_error(failure, "android_startup")
+        from toad.client.host import post_crash_to_sink
+
         post_crash_to_sink(
             saved_path, "android_startup", f"Toad startup crash: {type(failure).__name__}"
         )

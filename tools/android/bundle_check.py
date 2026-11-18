@@ -5,7 +5,10 @@ APP folder plus the recipe-built packages from SITE_PACKAGES.
 
 Run it after assemble.py. It checks the APK's start, toad.qt.android, two ways:
 
-- it must import, run by an interpreter without site-packages; a failure exits non-zero;
+- it must import, run by an interpreter without site-packages at the optimization level the
+  APK's Python runs at (`recipe_built.python_optimize`), from the bytecode the app folder
+  ships for that level; a failure exits non-zero, as does a module with no such bytecode or an
+  application action whose summary (its docstring, which names it in every menu) is empty;
 - it lists every import inside a function of a module that import loaded which can reach a
   package the APK does not ship, or Textual's UI (toad.widgets/screens/app, textual.app/
   widgets/screen/containers) that the start had not loaded, once per site, with one chain;
@@ -21,6 +24,7 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -28,7 +32,7 @@ from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 
-from recipe_built import import_names
+from recipe_built import import_names, python_optimize
 
 ENTRY = "toad.qt.android"
 FRONTEND_UI = ("toad.widgets", "toad.screens", "toad.app", "textual.app", "textual.widgets",
@@ -187,6 +191,20 @@ class ShippedTree:
 
 app = Path(sys.argv[1]).resolve()
 site_packages = Path(sys.argv[2])
+optimize = python_optimize()
+# Bytecode the phone's interpreter does not look for is shipped dead weight, and a module
+# without the bytecode it looks for is compiled at every start after an install.
+tag = sys.implementation.cache_tag + (f".opt-{optimize}" if optimize else "")
+# The shipped packages: not the entry script, which runs as source, nor the build's own state.
+packages = [entry for entry in app.iterdir() if not entry.name.startswith(".") and entry.name != "bin"]
+sources = [source for entry in packages
+           for source in (entry.rglob("*.py") if entry.is_dir() else [entry] if entry.suffix == ".py" else [])]
+uncompiled = [source for source in sources if source.name != "main.py"
+              and not (source.parent / "__pycache__" / f"{source.stem}.{tag}.pyc").is_file()]
+if uncompiled:
+    print(f"error: {len(uncompiled)} shipped module(s) without {tag}.pyc, e.g. {uncompiled[0]}")
+    sys.exit(1)
+print(f"shipped bytecode is {tag}.pyc, the level the APK's Python runs at")
 with tempfile.TemporaryDirectory() as recipes:
     for name in import_names():
         for candidate in site_packages.glob(f"{name}*"):
@@ -194,10 +212,15 @@ with tempfile.TemporaryDirectory() as recipes:
             if not target.exists():
                 target.symlink_to(candidate)
     result = subprocess.run(
-        [sys.executable, "-S", "-c",
-         (f"import json, sys; sys.path[:0] = [{str(app)!r}, {recipes!r}]; from toad.qt.android_app import enter; enter(); import {ENTRY}; "
-          "print('shipped app imports toad.qt.main'); print(json.dumps(sorted(sys.modules)))")],
-        capture_output=True, text=True, timeout=120, cwd=recipes, check=False)
+        # -B: the app folder ships the bytecode assemble.py compiled; this run writes none.
+        [sys.executable, "-S", "-B", "-c",
+         (f"import json, sys; sys.path[:0] = [{str(app)!r}, {recipes!r}]; from toad.qt.android_app import enter; enter(); import {ENTRY}; {ENTRY}.load_client(); "
+          "from toad.client.application_actions import ApplicationAction; "
+          "blank = [action.__name__ for action in ApplicationAction.declarations() if not action.summary()]; "
+          "blank and sys.exit(f'error: application actions with an empty summary at -O{sys.flags.optimize}: {blank}'); "
+          "print('shipped app imports toad.qt.main; every application action has a summary'); print(json.dumps(sorted(sys.modules)))")],
+        capture_output=True, text=True, timeout=120, cwd=recipes, check=False,
+        env=os.environ | {"PYTHONOPTIMIZE": str(optimize)})
     if result.returncode:
         print(result.stderr.strip())
         sys.exit(result.returncode)

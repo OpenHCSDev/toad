@@ -20,7 +20,8 @@ from textual.content import Content
 from textual.widgets import Static
 
 from toad.client.application_actions import NewSessionAction as _SharedNewSession
-from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner, WelcomeListing, WelcomeLocation
+from toad.client.welcome import ChannelListing, ThreadListing, WelcomeListing, WelcomeLocation
+from toad.welcome_banner import WelcomeBanner
 from toad.client.sidebar_lines import WelcomeSectionLine
 from toad.core.events import SessionSelected
 from toad.format_path import format_path

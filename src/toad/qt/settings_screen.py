@@ -9,8 +9,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLineEdit, QTabWidget, QVBoxLayout, QWidget
+
+from formbridge.forms.declared_fields import FormPage
 
 from toad.qt.forms import QtFormView
 from toad.settings_editing import SettingsEditing
@@ -42,18 +44,44 @@ class QtSettingsScreen(SettingsEditing, QDialog):
         self.search.textChanged.connect(self.filter_pages)
         layout.addWidget(self.search)
         self.tabs = QTabWidget(self)
-        for page, form in self.pages.items():
-            form.theme(app.renderer)
-            self.tabs.addTab(form.widget, page.title or "Settings")
+        # One empty frame per declared page; a page's form is built into its frame when
+        # the page is shown, so opening the screen builds one page, after the screen's
+        # frame is on screen.
+        self.frames: dict[FormPage, QWidget] = {}
+        for page in self.listed:
+            frame = QWidget(self.tabs)
+            QVBoxLayout(frame).setContentsMargins(0, 0, 0, 0)
+            self.frames[page] = frame
+            self.tabs.addTab(frame, page.title or "Settings")
+        self.tabs.currentChanged.connect(self.show_page)
         layout.addWidget(self.tabs, stretch=1)
         buttons = QDialogButtonBox(self)
         buttons.addButton("Discard changes", QDialogButtonBox.ButtonRole.ResetRole).clicked.connect(self.discard)
         buttons.addButton(QDialogButtonBox.StandardButton.Close).clicked.connect(self.close)
         layout.addWidget(buttons)
-
-        for form in self.pages.values():
-            form.follow_state()
         self.start_editing()
+        self.first_page_scheduled = False
+
+    def paintEvent(self, event) -> None:  # noqa: N802 (Qt override)
+        """The shown page is built once the screen's own frame has painted: a timer started
+        earlier can fire before that paint and hold it behind the page's form."""
+        super().paintEvent(event)
+        if not self.first_page_scheduled:
+            self.first_page_scheduled = True
+            QTimer.singleShot(0, self, lambda: self.show_page(self.tabs.currentIndex()))
+
+    def show_page(self, index: int) -> None:
+        if index >= 0:
+            self.page(tuple(self.listed)[index])
+
+    def page_realized(self, form: QtFormView) -> None:
+        form.theme(self.app.renderer)
+        form.follow_state()
+
+    def realize_page(self, page: FormPage) -> QtFormView:
+        form = super().realize_page(page)
+        self.frames[page].layout().addWidget(form.widget)
+        return form
 
     @property
     def edited_settings(self):

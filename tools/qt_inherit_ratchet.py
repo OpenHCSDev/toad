@@ -99,6 +99,8 @@ NOT_SIBLINGS = {
 
 QT_ONLY = {
     'toad.qt.action_shortcuts.BoundAction': "a live QShortcut and the action it answers: Qt fires neither of two shortcuts sharing a key (activatedAmbiguously), so ActionKeys keeps each to apply the declared binding order; Textual walks its binding chain itself",
+    'toad.qt.splash.QtSplash': "Qt's first frame, painted from Qt and the theme before the client's modules import: a terminal draws Textual's first frame as soon as App.run starts, with the client already imported in the same process, so the TUI has no window to show before its app exists",
+    'toad.qt.splash.StepAside': "an application event filter that closes the first frame when Qt shows the client's window: QEvent.Show on a top-level QWidget has no Textual counterpart",
     'toad.qt.android.SessionRecord': 'Android process lifecycle: Android kills a backgrounded app and destroys its activity without telling the process, so the next start reads this record',
     'toad.qt.android.SuspendedMemory': "Android suspend: bionic's M_PURGE returns freed allocator memory to the system",
     'toad.qt.finger_scrolling.FingerScrollGesture': "what a drag on a Qt scroll area's viewport means per platform (QScroller's grab); the terminal scrolls the TUI",
@@ -108,7 +110,7 @@ QT_ONLY = {
     'toad.qt.frame_probe.FrameProbe': "measures Qt's own event loop: a QTimer's lateness and Qt key-to-paint latency on the GUI thread; Textual's loop is asyncio's and has no Qt events",
     'toad.qt.history.HistoryRows': "QAbstractListModel exposing the shared fragments to Qt's list view; Textual has no item model",
     'toad.qt.history.PreparedOnFill': "a pyqt-reactive RowFormatting that fills a QTextDocument only when Qt lays a row out; Textual draws line blocks, not documents",
-    'toad.qt.main.EndRequest': "Qt 6's QEvent.Quit closes every window and leaves qasync's event loop inside one event; this event filter takes the request so the shared client shutdown runs on the loop first. Textual closes its client in App._close_all while its own loop still runs",
+    'toad.qt.client_start.EndRequest': "Qt 6's QEvent.Quit closes every window and leaves qasync's event loop inside one event; this event filter takes the request so the shared client shutdown runs on the loop first. Textual closes its client in App._close_all while its own loop still runs",
     'toad.qt.history.SourceTask': "an asyncio.Task on qasync's Qt event loop with the pager's wait() join; Textual runs workers",
     'toad.qt.float_layer.QtNoticeCard': "one notice drawn as a Qt frame over the page; Textual draws the same notice with its framework's own toast (textual.widgets._toast), and the text, severity and seconds come from the shared host's notify",
     'toad.qt.host.ScreenWideWindow': "a Qt top-level window clamped to the Android screen's available width (screen less system bars)",
@@ -131,7 +133,7 @@ KNOWN_BARE = frozenset({
     'toad.qt.history.HistoryRowDelegate',
     'toad.qt.history.NoTask',
     'toad.qt.keymap_screen._KeymapSave',
-    'toad.qt.main.QtClientSettings',
+    'toad.qt.client_start.QtClientSettings',
     'toad.qt.menu.QtMenuRow',
     'toad.qt.page.Page',
     'toad.qt.paste_profile.QtProfilePastePanel',
