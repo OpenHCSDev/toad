@@ -9,7 +9,7 @@ import asyncio
 from agent_comms.projects.checkouts import Checkout
 
 from toad.app import ToadApp
-from toad.client.connection import LocalCoreConnection
+from toad.client.local_connection import LocalCoreConnection
 from toad.constants import WELCOME
 from toad.launch_binding import NoAgent
 

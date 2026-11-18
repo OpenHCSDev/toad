@@ -22,18 +22,14 @@ from pathlib import Path
 from typing import ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
-from agent_comms.comms import Comms
 from agent_comms.errors import RouteChangedError
 from agent_comms.execution.child_process import (
     HelperStart,
     SpawnedHelper,
     join_retirement,
 )
-from agent_comms.execution.launch_root import LaunchRoot
-from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.execution.remote_core_process import ProcessRemoteCoreAccess
 from agent_comms.transport.remote_core import RemoteCoreAccess
-from agent_comms.execution.root_runtime import RootRuntime
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.installer.active_route import CommsRoute
 from agent_comms.installer.route_selection import RouteSelection
@@ -59,7 +55,6 @@ from agent_comms.registry.registry_document import (
     RegistrySnapshot,
 )
 from agent_comms.registry.threads import Thread
-from agent_comms.transport.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess, ToolRequest
 from agent_comms.transport.tools.sidebar import (
     CommsHistoricalThreadsTool,
@@ -71,7 +66,6 @@ from agent_comms.transport.tools.sidebar import (
 )
 from agent_comms.ui_model.observation import (
     AwaitedRead,
-    LocalRouteObservation,
     NotificationsObserved,
     NotificationsReload,
     NotificationsUnreadable,
@@ -205,20 +199,6 @@ class CoreConnection(ABC):
     helper_start: ClassVar[HelperStart] = SpawnedHelper()
     """How this launch starts its local route observer and its render workers."""
 
-    @staticmethod
-    def select(arguments: list[str]) -> CoreConnection:
-        """The connection launch ``arguments`` name: a UI profile selects the remote Core.
-
-        A launch reads its own arguments here, and a running app reads a chosen bus's here
-        too, so one parser decides which Core both open. A frontend-only install has no
-        published agent runtime yet: the route owner supplies its normal local default when
-        absent, while a broken route still refuses.
-        """
-        if RemoteCoreConnection.argument in arguments:
-            return ProcessRemoteCoreConnection.startup(arguments)
-        return LocalCoreConnection.from_launch(LaunchRoot.startup(
-            arguments, lambda: LaunchRoot.from_path(CommsRoute.current().root)))
-
     def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
@@ -236,6 +216,11 @@ class CoreConnection(ABC):
 
     @abstractmethod
     def route_selection(self) -> RouteSelection: ...
+
+    @abstractmethod
+    def open_selected(self, access: CoordinationAccess, selected: RouteSelection) -> Observing:
+        """Open Core for ``selected`` and observe it. Only a connection that selects routes
+        opens one; any other refuses as its ``route_selection`` does."""
 
     @abstractmethod
     def observation_source(self, route: CommsRoute) -> ObservationSource:
@@ -256,50 +241,6 @@ class CoreConnection(ABC):
     @abstractmethod
     def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
         """The observation serving ``source``, or the refusal that it is not this Core's."""
-
-
-class LocalCoreConnection(LaunchRoot, CoreConnection):
-    """A local connection inherits the selected root and its launch behavior."""
-
-    @classmethod
-    def from_launch(cls, root: LaunchRoot) -> LocalCoreConnection:
-        return cls(root.path)
-
-    @property
-    def location(self) -> str:
-        return str(self.path)
-
-    def tab_scopes(self) -> tuple[TabScope, ...]:
-        """Tabs saved before scopes existed were local sessions' tabs; this Core reads them as
-        its own and rewrites them under its location."""
-        return (*super().tab_scopes(), UNSCOPED_TABS)
-
-    def route_selection(self) -> RouteSelection:
-        return RouteSelection.of(self)
-
-    def observation_source(self, route: CommsRoute) -> ObservationSource:
-        """A local route is observed in a process this machine starts for it."""
-        return LocalRouteObservation(route, self.helper_start)
-
-    def capture(self, access: CoordinationAccess, source: str | Path) -> SelectedRoute:
-        return SelectedRoute(self.route_selection().require_source(source))
-
-    def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
-        """The held launch route's root."""
-        return self.route_selection().root_is_current(source)
-
-    def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
-        """Select this app's route for ``source`` and open its observation."""
-        return access.require(self.route_selection().require_source(source))
-
-    def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
-        """Capture the current route and open its service, or expose the opening error."""
-        selected: RouteSelection | UnselectedRoute = UnselectedRoute()
-        try:
-            selected = self.route_selection()
-            return access.require(selected)
-        except (OSError, ValueError, RuntimeError) as error:
-            return access.observation.failed(error, selected)
 
 
 class RemoteUserMissing(RuntimeError):
@@ -332,6 +273,10 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
     def route_selection(self) -> RouteSelection:
         raise RemoteRouteNotSelectable(
             f"{self.endpoint.url} answers Core requests; local route selection does not apply")
+
+    def open_selected(self, access: CoordinationAccess, selected: RouteSelection) -> Observing:
+        raise RemoteRouteNotSelectable(
+            f"{self.endpoint.url} answers Core requests; it opens no local route")
 
     def observation_source(self, route: CommsRoute) -> ObservationSource:
         """The connector serves this UI's observation; it is the source."""
@@ -438,7 +383,7 @@ class Observation(ABC):
     def tabs(self, sessions: SessionCollection[Observing]):
         return {entry.identity: self.tab(entry, sessions) for entry in sessions.members}
     def require(self, access: CoordinationAccess, selected: RouteSelection):
-        return access.open_selected(selected)
+        return access.connection.open_selected(access, selected)
 
     def through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
         """No observation through ``connection`` is current yet: open one."""
@@ -900,35 +845,6 @@ class AnsweringReads(Observing):
 
 
 @dataclass(frozen=True)
-class LocalObserving(Observing):
-    """Core in this process, opened for one validated route selection."""
-
-    selection: RouteSelection = field(kw_only=True)
-    service: Comms = field(kw_only=True)
-
-    @property
-    def root(self) -> Path:
-        return self.selection.root
-
-    def observes(self, root: str | Path) -> bool:
-        return Path(root).expanduser().resolve() == self.root
-
-    def opened_selection(self) -> RouteSelection:
-        return self.selection
-
-    def user_identity(self, project: Checkout) -> Thread:
-        """In process, the user thread is read, or claimed for this project's checkout."""
-        return self.service.messaging.user_identity(project)
-
-    @property
-    def core(self) -> CoreAccess:
-        return LocalCoreAccess(self.service, self.process)
-
-    def require(self, access: CoordinationAccess, selected: RouteSelection):
-        return self if self.selection == selected else access.open_selected(selected)
-
-
-@dataclass(frozen=True)
 class RemoteObserving(Observing):
     """Core behind the connector: the connection answers requests, its peer carries observation."""
 
@@ -955,11 +871,6 @@ class RemoteObserving(Observing):
     @property
     def core(self) -> CoreAccess:
         return self.connection
-
-
-@dataclass(frozen=True)
-class LocalAnsweringReads(AnsweringReads, LocalObserving, answers_for=LocalObserving):
-    pass
 
 
 @dataclass(frozen=True)
@@ -1037,21 +948,6 @@ class CoordinationAccess(MroDispatch):
         self.confirm_route(selected)
         with self.opening:
             return self.observation.require(self, selected)
-
-    def open_selected(self, selected: RouteSelection) -> Observing:
-        def attach() -> Observing:
-            previous = self.observation
-            service = Comms(selected.route)
-            if service.root.resolve() != selected.root:
-                raise RouteChangedError("Comms route changed while opening the service")
-            self.confirm_route(selected)
-            return previous.adopt(LocalObserving(
-                SidebarModel(self.app.schedule_ui), ObservationProcess(self.connection.observation_source(service.route)),
-                selection=selected, service=service, access=self))
-
-        return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(
-            attach, self.app.succeed_onto,
-        )
 
     def observe_remote(self, connection: RemoteCoreConnection, root: Path) -> RemoteObserving:
         """Observe the Core behind the connector: its peer carries the observation, and the

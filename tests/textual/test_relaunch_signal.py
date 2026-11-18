@@ -10,7 +10,7 @@ from agent_comms.projects.checkouts import Checkout
 
 from toad.app import ToadApp
 from toad.application_outcome import Succeeded
-from toad.client.connection import LocalCoreConnection
+from toad.client.local_connection import LocalCoreConnection
 from toad.launch_binding import NoAgent
 
 
