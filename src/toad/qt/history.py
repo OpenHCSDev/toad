@@ -419,10 +419,14 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
 @dataclass(frozen=True)
 class PreparedOnFill(RowFormatting):
-    """A row's formatting prepared only when a document is filled from it: a measurement that
-    answers from its cache never fills, so it never pays for the preparation."""
+    """A row's formatting prepared only when a measurement needs it: one that answers from its
+    cache never resolves it, so it never pays for the preparation. What it resolves to may be
+    the row's pending stand-in, which the measurement estimates instead of laying out."""
 
     prepare: Callable[[], RowFormatting]
+
+    def resolved(self) -> RowFormatting:
+        return self.prepare().resolved()
 
     def fill(self, document: QTextDocument) -> None:
         self.prepare().fill(document)
