@@ -10,8 +10,8 @@ from __future__ import annotations
 import asyncio
 import inspect
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterator
-from contextlib import contextmanager
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -509,8 +509,8 @@ class TextualUi(AppAgents, Ui):
     def failure(self) -> BaseException | None:
         return self.app._exception or self.errors.unexpected(self)
 
-    @contextmanager
-    def reporting_error(self) -> Iterator[None]:
+    @asynccontextmanager
+    async def reporting_error(self) -> AsyncIterator[None]:
         """The enclosed steps show exactly one error on purpose; it is acknowledged when they end,
         and any second error saved in the same steps fails the test instead of hiding behind it."""
         if unexpected := self.errors.unexpected(self):
@@ -519,6 +519,10 @@ class TextualUi(AppAgents, Ui):
         self.errors = ExpectsErrors()
         try:
             yield
+            await self.until(
+                lambda: frozenset(self.reported_errors()) - before,
+                why="the expected error reported",
+            )
         finally:
             saved = frozenset(self.reported_errors())
             self.errors = RefusesErrors(saved)

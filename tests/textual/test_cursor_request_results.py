@@ -10,7 +10,7 @@ from agent_comms.acp_extension import (
     CursorEnvelope,
     VerifiedCursorObservation,
 )
-from agent_comms.text_route_update import encode_updates
+from agent_comms.execution.session_updates import encode_updates
 from agent_comms.execution.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import AcpSessionId, RootId
 from agent_comms.execution.native_input_record import (

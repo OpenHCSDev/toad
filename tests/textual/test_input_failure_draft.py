@@ -8,10 +8,11 @@ from agent_comms.execution.acp_failure import (
     InputFailedUpdate,
     RequestFailedUpdate,
 )
-from agent_comms.text_route_update import encode_updates
+from agent_comms.execution.session_updates import encode_updates
 from agent_comms.execution.acp_failure import BackendDeliveryFailure
 from support.agents import deliver
 
+from toad.command_catalog import CommandCatalog
 from toad.conversation_submission import ImmediateInputSubmission
 from toad.core.input_events import UserInputSubmitted
 
@@ -38,9 +39,10 @@ async def test_a_prompt_whose_request_fails_is_restored_to_the_composer(workspac
             receiver = ui.detached_agent("fixture")
             ui.attach_agent(receiver)
             await ui.write_draft("")
-            with patch.object(receiver.process, "prompt", side_effect=error):
-                await receiver.controller.submit("rpc prompt")
-            await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
+            async with ui.reporting_error():
+                with patch.object(receiver.process, "prompt", side_effect=error):
+                    await receiver.controller.submit("rpc prompt")
+                await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
             if isinstance(error, ConnectionError):
                 failure = receiver.session.disposition.failure
                 assert "Unconfirmed" in failure.details
@@ -64,18 +66,22 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
         ui.attach_agent(receiver)
         receiver.configuration.receive([schema.SessionConfigOptionSelect.model_validate(MODEL_ADVERTISEMENT)])
         disposition = receiver.session.disposition
-        assert ui.conversation.model_selection_available
+        assert receiver.configuration.model.available
         await ui.write_draft("")
-        with patch.object(receiver.process, "prompt",
-                          side_effect=RequestError.internal_error({"details": "WebSocket error"})):
-            await receiver.controller.submit("rpc prompt")
-        await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
-        await deliver(receiver, {
-            "sessionUpdate": "session_info_update",
-            "_meta": encode_updates(RequestFailedUpdate(BackendDeliveryFailure("provider refused the model")))})
-        await ui.step()
+        async with ui.reporting_error():
+            with patch.object(receiver.process, "prompt",
+                              side_effect=RequestError.internal_error({"details": "WebSocket error"})):
+                await receiver.controller.submit("rpc prompt")
+            await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
+        async with ui.reporting_error():
+            await deliver(receiver, {
+                "sessionUpdate": "session_info_update",
+                "_meta": encode_updates(RequestFailedUpdate(BackendDeliveryFailure("provider refused the model")))})
+            await ui.step()
         assert receiver.session.disposition is disposition
-        assert ui.conversation.model_selection_available
+        assert receiver.configuration.model.available
+        await CommandCatalog.execute("/model", ui.conversation)
+        await ui.until(lambda: ui.conversation.prompt.model_switcher.is_open, why="model selection after provider failure")
         await receiver.stop()
 
 
@@ -85,10 +91,11 @@ async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_compo
         receiver = ui.detached_agent("fixture")
         ui.attach_agent(receiver)
         await ui.write_draft("")
-        with patch.object(receiver.process, "prompt", side_effect=FileNotFoundError(2, "agent socket disappeared")):
-            worker = await ImmediateInputSubmission("the local failure prompt", ()).execute(conversation.submissions)
-            await worker.wait()
-        await ui.until(lambda: ui.draft() == "the local failure prompt", why="the failed prompt back in the draft")
+        async with ui.reporting_error():
+            with patch.object(receiver.process, "prompt", side_effect=FileNotFoundError(2, "agent socket disappeared")):
+                worker = await ImmediateInputSubmission("the local failure prompt", ()).execute(conversation.submissions)
+                await worker.wait()
+            await ui.until(lambda: ui.draft() == "the local failure prompt", why="the failed prompt back in the draft")
         await receiver.stop()
 
 
@@ -193,9 +200,10 @@ async def test_a_send_whose_reply_cannot_be_read_returns_the_draft(workspace):
         await ui.open_direct("peer", actor=workspace.viewer)
         chat = ui.app.selected_session.query_one(CommsChatView)
         unreadable = UnsupportedFieldType("Unsupported JSON type: ToolResult")
-        with patch.object(Observing, "send_user_message", side_effect=unreadable), ui.reporting_error():
-            worker = await chat.submissions.submit(UserInputSubmitted("UNREADABLE_REPLY_SEND"))
-            with pytest.raises(WorkerFailed):
-                await worker.wait()
+        with patch.object(Observing, "send_user_message", side_effect=unreadable):
+            async with ui.reporting_error():
+                worker = await chat.submissions.submit(UserInputSubmitted("UNREADABLE_REPLY_SEND"))
+                with pytest.raises(WorkerFailed):
+                    await worker.wait()
         assert not chat.submissions.delivering
         assert chat.prompt.text == "UNREADABLE_REPLY_SEND"

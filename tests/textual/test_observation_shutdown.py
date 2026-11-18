@@ -68,7 +68,7 @@ async def test_an_observer_dying_during_shutdown_still_releases_its_resources(wo
             process = access.observation.observed().process
             assert not (await asyncio.wait_for(process.read(empty_read(workspace)), 30)).outcomes
             reading = None
-            with ui.reporting_error():
+            async with ui.reporting_error():
                 try:
                     async with held(process) as pid:
                         reading = asyncio.create_task(process.read(empty_read(workspace)))

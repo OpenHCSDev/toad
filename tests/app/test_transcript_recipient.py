@@ -3,7 +3,7 @@
 from dataclasses import replace
 
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
-from agent_comms.text_route_update import encode_updates
+from agent_comms.execution.session_updates import encode_updates
 from agent_comms.execution.session_file import RegistrySessionLocation
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
