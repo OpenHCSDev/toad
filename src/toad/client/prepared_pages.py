@@ -486,6 +486,14 @@ class ReplaceablePageSource(PreparedPageSource):
     @abstractmethod
     def replacement(self, through) -> ReplaceablePageSource: ...
 
+    @abstractmethod
+    async def route_is_current(self) -> bool:
+        """Whether the route still selects this source. ``WirePageBuffer`` checks the
+        live wire; ``ClosedHistory`` always returns False; ``SavedHistory`` is always
+        True (a saved snapshot IS what you asked for). Declared abstract here so any
+        new ``ReplaceablePageSource`` subclass has to answer; the caller
+        ``HistoryReads.source_is_current`` depends on every source satisfying it."""
+
     def reads_from(self, root: str | Path) -> bool:
         """Whether this reader reads a conversation from ``root``; a closed one reads none."""
         return False
@@ -521,6 +529,10 @@ class SavedHistory(ReplaceablePageSource):
 
     def replacement(self, through) -> SavedHistory:
         return type(self)(self.loader, through, self.runtime, fragments=self.fragments)
+
+    async def route_is_current(self) -> bool:
+        """A saved snapshot IS the route — the file doesn't move under us."""
+        return True
 
     def read_task(self, request: PageRequest) -> SourcePageWork:
         return self.work(self.scope, self.loader, self.through, request, self.fragments)
