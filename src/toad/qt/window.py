@@ -380,7 +380,7 @@ class ConversationRow(NameWave, TargetLine, SidebarItem):
 
     def repaint(self) -> None:
         tree = self.treeWidget()
-        if tree is not None:
+        if tree is not None and self.wave_moved(self.wave_span()):
             tree.viewport().update(tree.visualItemRect(self))
 
     def wave_span(self) -> tuple[int, int] | None:
