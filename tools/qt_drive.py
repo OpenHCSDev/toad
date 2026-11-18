@@ -828,6 +828,35 @@ class StickyScenario(Scenario):
         assert not facts["shown"], "the message's own header is on the top row, yet a copy is pinned"
 
 
+class TallArrivalScenario(StickyScenario):
+    summary = ("open TARGET (#scratch) following its end; SENDER (scratch-live-pipeline) posts one "
+               "message taller than the window; once the window glides down into it, its header "
+               "must be pinned over the top row without the reader scrolling")
+
+    async def run(self) -> None:
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        target = os.environ.get("TARGET", "#scratch")
+        sender = os.environ.get("SENDER", "scratch-live-pipeline")
+        await self.open_named(target)
+        window = self.page.messages
+        await until(lambda: window.follows_tail, "following the end")
+        stamp = time.strftime("%H:%M:%S")
+        body = "\n".join(f"tall arrival {stamp} line {line}" for line in range(120))
+        process = await asyncio.create_subprocess_exec(
+            "agent-comms", "send", "--from", sender, "--to", target, "--type", "info", "--body", body,
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+        _, error = await process.communicate()
+        assert process.returncode == 0, error.decode(errors="replace")[-300:]
+        await until(lambda: any(f"tall arrival {stamp} line 119" in fragment.clipboard_text
+                                for fragment in window.model_rows.fragments), "the tall message's row")
+        await until(lambda: window.glide is None and window.follows_tail, "the glide landed on the end")
+        await asyncio.sleep(0.5)
+        facts = self.pinned()
+        self.report("1-tall-arrived", **facts)
+        assert facts["shown"], "a tall arrival fills the window, yet its header is not pinned"
+        assert sender in facts["text"], f"pinned {facts['text']!r} is not {sender}'s header"
+
+
 class EscapeScenario(Scenario):
     summary = ("in the scratch-live-pipeline thread, then #comms: scroll off the tail, press Escape in "
                "the composer, and report the view back on its latest row (BackToBottomAction, bound on "
@@ -911,6 +940,35 @@ class MenuScenario(Scenario):
         app.show_warning("this drive's own notice; nothing failed", "Drive")
         await asyncio.sleep(0.3)
         self.report("3-notice", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
+
+
+class MenuTextScenario(Scenario):
+    summary = ("open the menu at WIDTH (412) and fail when any of its lines is drawn in less height "
+               "than its font's full height: the descenders of a description line were cut on the phone")
+
+    async def run(self) -> None:
+        from pyqt_reactive.widgets.fitted_text import FittedText
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.listed()
+        self.app.menu_panel.input_modality = TouchInput  # the phone's: each description is a second line
+        self.app.menu.click()
+        await asyncio.sleep(0.5)
+        lines = [line for row in self.app.menu_panel.findChildren(QtMenuRow)
+                 for line in row.findChildren(FittedText)]
+        clipped = [(line.text()[:30], line.contentsRect().height(), line.fontMetrics().height())
+                   for line in lines if line.contentsRect().height() < line.fontMetrics().height()]
+        if lines:
+            line = lines[0]
+            button = line.parentWidget()
+            print("line geometry:", dict(height=line.height(), contents=line.contentsRect().height(),
+                  margins=(line.contentsMargins().top(), line.contentsMargins().bottom()),
+                  minimum=line.minimumSizeHint().height(), button=button.height(),
+                  button_minimum=button.minimumHeight(), panel_sheet=self.app.menu_panel.styleSheet()[:300],
+                  app_sheet_label=[rule[:120] for rule in QApplication.instance().styleSheet().split("}") if "QLabel" in rule][:4]),
+                  flush=True)
+        self.report("1-menu", lines=len(lines), clipped=clipped[:6])
+        assert lines, "the menu shows no lines"
+        assert not clipped, f"{len(clipped)} menu lines drawn shorter than their font: {clipped[:3]}"
 
 
 class FeedbackScenario(Scenario):
@@ -2013,9 +2071,22 @@ class ArrivalScenario(Scenario):
         started = time.monotonic()
         original = HistoryRows.show
 
+        first_shown: dict[str, float] = {}  # a row's full text, when it first showed
+        # When Core's revisions reach this app: the pace a burst can show at, at best.
+        from toad.client.connection import CoordinationAccess
+        revisions: list[float] = []
+        observed = CoordinationAccess.revision_observed
+
+        def revision_arrived(access, result, observing):
+            revisions.append(time.monotonic() - started)
+            return observed(access, result, observing)
+        CoordinationAccess.revision_observed = revision_arrived
+
         def recorded(model, fragments):
             before = {self.label(fragment) for fragment in model.fragments}
             original(model, fragments)
+            for fragment in model.fragments:
+                first_shown.setdefault(fragment.clipboard_text, time.monotonic() - started)
             after = {self.label(fragment) for fragment in model.fragments}
             if model is not view.messages.model_rows:
                 print(f"show on another model: {type(model).__name__} rows={len(model.fragments)}", flush=True)
@@ -2066,6 +2137,8 @@ class ArrivalScenario(Scenario):
                              else (target, "user"))
         sender = os.environ.get("SENDER", sender)
         refused: list[str] = []
+        posted: dict[int, float] = {}  # when each post's send returned, s after start
+        burst = int(os.environ.get("BURST", "3"))  # how many the sender posts at once
 
         async def post(index: int) -> None:
             # Under a CPU-throttled drive, the sender runs in a scope of its own (SENDER_SCOPE=1):
@@ -2076,6 +2149,7 @@ class ArrivalScenario(Scenario):
                 "--body", f"arrival reply {index} {stamp}",
                 stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
             _, error = await process.communicate()
+            posted[index] = time.monotonic() - started
             if process.returncode:  # A refused post is a failed walk, never a quiet one.
                 refused.append(error.decode(errors="replace").strip()[-200:])
         # How long each arrival-handling call holds the loop: the pager's publish into the rows,
@@ -2105,7 +2179,7 @@ class ArrivalScenario(Scenario):
             await asyncio.sleep(0.5)
             top = window.indexAt(window.viewport().rect().topLeft())
             reading = (self.label(top.data(HistoryRows.FRAGMENT)), window.visualRect(top).top())
-        posts = [asyncio.ensure_future(post(index)) for index in range(3)]
+        posts = [asyncio.ensure_future(post(index)) for index in range(burst)]
         for index in range(0 if scrolled_up else 3):
             composer.editor.setPlainText(f"arrival send {index} {stamp}")
             composer.submit()
@@ -2129,6 +2203,18 @@ class ArrivalScenario(Scenario):
         by_text: dict[str, list[str]] = {}
         for label, marks in appeared.items():
             by_text.setdefault(label.rsplit(" #", 1)[0], []).extend(f"{mark}{label[-5:]}" for mark in marks)
+        # Each posted message's wait: from its send returning to its row first showing.
+        shown_at = {index: min((at for text, at in first_shown.items()
+                                if f"arrival reply {index} {stamp}" in text), default=None)
+                    for index in posted}
+        print("posted at (s):", sorted(round(at, 2) for at in posted.values()), flush=True)
+        print("revisions arrived (s):", [round(at, 2) for at in revisions if at > min(posted.values(), default=0) - 1], flush=True)
+        CoordinationAccess.revision_observed = observed
+        print("shown at (s):", sorted(round(at, 2) for at in shown_at.values() if at is not None), flush=True)
+        waits = sorted(round(shown_at[index] - posted[index], 2) for index in posted if shown_at[index] is not None)
+        print(f"burst of {burst}: {len(waits)} shown; wait from send to row (s): "
+              f"median {waits[len(waits) // 2] if waits else None}, max {waits[-1] if waits else None}; "
+              f"never shown {[index for index in posted if shown_at[index] is None]}", flush=True)
         # A message that leaves the rows after it showed, or shows under two keys, flickers.
         flicker = {text: sorted(marks, key=lambda mark: float(mark[1:].split("#")[0]))
                    for text, marks in by_text.items() if stamp in text and len(marks) > 1}

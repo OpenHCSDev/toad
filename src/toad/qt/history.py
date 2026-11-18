@@ -1319,6 +1319,10 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         fires `respond_to_scroll` once on the transition out of Dragging. The
         at_end/follows_tail transitions here stay — they're cheap state flips
         and consumers (jump bar + anchor) need to see them during drag."""
+        # Every offset pins, the window's own as well as the reader's: a glide down into a tall
+        # arrival moves the top row into it, and returning before this left the arrival's header
+        # unpinned until the reader scrolled (Tristan, Android, 2026-11-18).
+        self.repin_header()
         if self._restoring:
             return
         if self.at_end and not self.follows_tail:
@@ -1327,7 +1331,6 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
             self.release_anchor()
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
-        self.repin_header()
         if self._scroller_dragging:
             self._drag_skipped_ticks += 1
             return
