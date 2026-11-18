@@ -122,6 +122,14 @@ class SidebarState:
         self.set_panel_collapsed(title, new_value)
         return new_value
 
+    def welcome_section_open(self, title: str) -> bool:
+        """Whether the welcome's section under ``title`` is open: open until the reader closes
+        it, and as the reader left it whenever the listing is drawn again."""
+        return self.expanded.get(f"welcome:{title}", True)
+
+    def set_welcome_section_open(self, title: str, value: bool) -> None:
+        self.expanded[f"welcome:{title}"] = value
+
 
 @dataclass(frozen=True)
 class SessionName:

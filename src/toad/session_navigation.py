@@ -29,6 +29,7 @@ from formbridge.operations import ExclusiveKind, OperationKind
 from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import AgentNotFound, read_agents
 from toad.core import events as core_events
+from toad.core import session_requests
 from toad.core.events import CoreEventStream
 from toad.client.db import SessionMeta
 from toad.launch_binding import (
@@ -93,12 +94,20 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         self.app.run_operation(DirectMessagesOpen, operation)
 
     def bind_events(self) -> None:
-        self.app.subscribe_core(self.events)
-        self.app.observe_core_callback(
-            self.app.coordination_access.events,
-            core_events.CoordinationObserved,
-            self.observed,
+        """Every frontend: the workspace requests published on this navigator (a tab's close,
+        `ClientApplication.close_session`) apply here, and each Core observation is read for
+        retired views on the UI thread. The navigator holds both subscriptions."""
+        self._subscriptions = (
+            self.events.subscribe(session_requests.WorkspaceSessionRequest, self.requested),
+            self.app.coordination_access.events.subscribe(core_events.CoordinationObserved,
+                                                          self.coordination_observed),
         )
+
+    def requested(self, request: session_requests.WorkspaceSessionRequest, subscription) -> None:
+        self.app.run_operation(session_requests.SessionRequestApply, partial(request.apply, self))
+
+    def coordination_observed(self, event: core_events.CoordinationObserved, subscription) -> None:
+        self.app.schedule_ui(partial(self.observed, event))
 
     async def reveal(self) -> None:
 
