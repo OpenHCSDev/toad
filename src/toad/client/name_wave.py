@@ -33,6 +33,14 @@ class NameWave(BandCells):
     and paints the frame it reads."""
 
     name_wave: ClassVar[Effect[Band]] = NAME_WAVE
+    painted_span: tuple[int, int] | None = None  # the band's cells as the line last drew them
+
+    def wave_moved(self, span: tuple[int, int] | None) -> bool:
+        """Whether a frame's band covers other cells than the line last drew. The band is
+        drawn in whole cells, so a frame that leaves it on the same cells would paint the same
+        line: on a busy bus about 40% of 660 sidebar row frames a second did (`qt_drive idle`)."""
+        moved, self.painted_span = span != self.painted_span, span
+        return moved
 
     def wave_running(self) -> bool:
         raise NotImplementedError
@@ -47,8 +55,10 @@ class NameWave(BandCells):
         """Being busy is drawn, never spelled: it starts the wave without changing the text."""
         if busy:
             if not self.wave_running():
+                self.painted_span = None  # its first frame draws: the name turns bold with it
                 self.start_wave()
         else:
+            self.painted_span = None
             self.stop_wave()
 
     def name_bold(self) -> bool:
