@@ -506,8 +506,8 @@ class ContextExplorer(
         access = self.app.coordination_access
         previous = self.observe_revision(access.revision)
         try:
-            observed = await self.app.preparation.run_thread(lambda: access.observing(identity.root_path))
-            if not self._reading(identity):
+            observed = await self.observed_source(access, self.app.preparation, identity.root_path)
+            if observed is None or not self._reading(identity):
                 return
             acquired = await self.acquire_inspection(observed, access.revision, identity)
             if not self._reading(identity):
@@ -517,6 +517,9 @@ class ContextExplorer(
             self.state.present(lambda current: self._inspection_acquired(previous, current, force))
         except asyncio.CancelledError:
             raise
+
+    def show_source_unavailable(self, text: str) -> None:
+        self.query_one(ContextStatus).update(text)
 
     def _inspection_acquired(self, previous: InspectionState, current: HoldingInspection, force: bool) -> None:
         self.query_one(ContextOlder).disabled = not current.inspection.page.has_older()

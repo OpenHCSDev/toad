@@ -146,8 +146,8 @@ class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQ
             if app is None:
                 return
             access = app.coordination_access
-            service = await app.preparation.run_thread(lambda: access.observing(root))
-            if identity != self.thread_identity:
+            service = await self.observed_source(access, app.preparation, root)
+            if service is None or identity != self.thread_identity:
                 return
             snapshot = await app.preparation.run_thread(service.relationships, identity.thread_name())
             if identity != self.thread_identity:
@@ -155,6 +155,10 @@ class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQ
             self._apply(snapshot)
         finally:
             self._refresh_task = None
+
+    def show_source_unavailable(self, text: str) -> None:
+        self._context.setText(text)
+        self._tree.clear()
 
     def _app(self):
         parent = self.parent()

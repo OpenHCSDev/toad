@@ -146,8 +146,8 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
             if app is None:
                 return
             access = app.coordination_access
-            observed = await app.preparation.run_thread(lambda: access.observing(root))
-            if identity != self.thread_identity:
+            observed = await self.observed_source(access, app.preparation, root)
+            if observed is None or identity != self.thread_identity:
                 return
             previous = self.observe_revision(access.revision)
             acquired = await self.acquire_inspection(observed, access.revision, identity)
@@ -158,6 +158,10 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
             self.state.present(self._render_present)
         finally:
             self._refresh_task = None
+
+    def show_source_unavailable(self, text: str) -> None:
+        self._status.setText(text)
+        self._tree.clear()
 
     def _render_present(self, holding: HoldingInspection) -> None:
         """Called by `InspectionState.present` once a HoldingInspection is ready. We

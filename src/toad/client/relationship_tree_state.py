@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from toad.client.panel_source import PanelSource
+
 
 @dataclass
 class RelationshipTreeState:
@@ -16,7 +18,7 @@ class RelationshipTreeState:
     selected_targets: tuple[tuple[type, tuple[str, str]], ...] = ()
 
 
-class RelationshipPanel:
+class RelationshipPanel(PanelSource):
     """The thread sidebar's Comms panel as both frontends hold it: Textual's
     `ThreadCommsSidebar` and Qt's `QtThreadCommsPanel` inherit this. It keeps each thread's
     tree state across binds, says whose relationships these are, and decides which entries

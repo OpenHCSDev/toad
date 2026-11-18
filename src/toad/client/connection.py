@@ -486,6 +486,11 @@ class FailedObservation(Observation):
                 and self.selection == other.selection
                 and self.error.__reduce__() == other.error.__reduce__())
 
+    def serving(self, source: str | Path):
+        """No root is observed while Core cannot be read: asking for one raises the failure
+        that stopped the observation, never the claim that ``source`` is another route's."""
+        raise self.error
+
     @property
     def core(self) -> CoreAccess:
         raise self.error
