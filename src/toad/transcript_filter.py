@@ -72,7 +72,7 @@ class FilterState(DeclaredFamily, affix="Filter"):
             return NoFilter(owner)
         if not selected:
             return EmptyFilter(owner)
-        return SeekingFilter(owner)
+        return owner.restricted_filter(owner)
 
     @property
     def scanning(self):
@@ -178,6 +178,11 @@ class EmptyFilter(NoFilter):
     has_older = False
 
 
+class DrawnFilter(NoFilter):
+    """A restricted selection a frontend draws from the pages it already holds, keeping only the
+    selected categories' rows (Qt's `QtPage.shown_fragments`): nothing scans for a projection."""
+
+
 class SeekingFilter(NoFilter):
     """A restricted selection awaiting its first prepared projection."""
     active = True
@@ -189,7 +194,7 @@ class SeekingFilter(NoFilter):
     def scan_needed(self):
         owner = self.owner
         return (self.has_older and owner.window.scroll_y <=
-                owner.window.lookahead.ahead_rows(owner.window.outer_size.height))
+                owner.window.lookahead.ahead_rows(owner.window.viewport_rows))
 
     async def advance(self, snapshot):
         from toad.widgets.transcript_history import ProjectedTranscriptHistory

@@ -69,11 +69,13 @@ from toad.sidebar_layout import (
     SidebarExtentTrack,
     SidebarLayout,
     SidebarPlacementAction,
+    SidebarFoldGrip,
     SidebarResizeGrip,
     SidebarShift,
     SidebarSurface,
     SidebarToggleFace,
 )
+from toad.pointer_gesture import NO_GESTURE, Gesture, GestureControl, PressedGesture
 from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, SidebarPlacement, ThreadSidebarPlacement
 from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 from toad.app_node import ToadNode
@@ -323,83 +325,6 @@ class ToggleSidebarAction(WidgetAction):
         context.post_message(context.Pressed())
 
 
-class SideBarToggle(
-    SidebarToggleFace,
-    MutedText,
-    CenteredContent,
-    HoverSelection,
-    DeclaredWidgetActions,
-    PrimaryActivation,
-    widgets.Static,
-    actions=(ToggleSidebarAction,),
-):
-    """Collapse target spanning the conversation-facing resize edge."""
-
-    native_theme = (
-        NativeDeclaration.of(Styles.background, Variable(PrimaryColour.name), Percent(8)),
-    )
-
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.layer = "sidebar-toggle"
-
-    @property
-    def paint_highlighted(self):
-        bar = self.query_ancestor(SideBar)
-        return super().paint_highlighted or (bar.collapsed and bar.mouse_hover)
-
-    ALLOW_SELECT = False
-
-    can_focus = True
-
-    class Pressed(Message):
-        def __init__(self, *, focus: bool = True) -> None:
-            super().__init__()
-            self.focus = focus
-
-    def __init__(self, collapsed: bool, *, edge: type[SidebarEdge], heading: str) -> None:
-        super().__init__()
-        self.heading = heading
-        self.set_collapsed(collapsed, edge)
-
-    def show_heading(self, heading: str, collapsed: bool, edge: type[SidebarEdge]) -> None:
-        """The bar names what it shows now; only a changed name redraws."""
-        if heading != self.heading:
-            self.heading = heading
-            self.set_collapsed(collapsed, edge)
-
-    def set_collapsed(self, collapsed: bool, edge: type[SidebarEdge]) -> None:
-        edge.size_toggle(self)
-        self.styles.dock = edge.opposite().dock
-        self.offset = edge.control_offset(0 if collapsed else 1)
-        self.present_toggle(collapsed, edge, self.heading)
-
-    def show_toggle(self, text: str, tooltip: str) -> None:
-        if self.content != text:
-            self.update(text, layout=False)
-        if self.tooltip != tooltip:
-            self.tooltip = tooltip
-
-    @property
-    def primary_activation(self):
-        return self.pointer_toggle
-
-    def pointer_toggle(self) -> None:
-        self.query_ancestor(SideBar).toggle(focus=False)
-
-    def focus_on_click(self) -> bool:
-        # Pointer activation is a visibility change. Focusing this handle first
-        # rebuilds bindings, only to move focus again when the sidebar toggles.
-        # It remains keyboard-focusable through normal Tab navigation.
-        return False
-
-    @on(Click)
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.pointer_toggle()
-
-
 class HeaderButtonLook(DeclaresTheme):
     """An available header control: full ink and a pointing hand."""
 
@@ -546,54 +471,9 @@ class TabHistoryControls(
             button.sync(app.tab_order)
 
 
-class Gesture:
-    """Where one pointer gesture on a control stands: nothing, a press, or a drag. A press that
-    moves becomes a drag; a press released where it began is a click."""
-
-    # Whether a newer pointer move may replace a pending one: only while the gesture holds it.
-    holds_pointer: ClassVar[bool] = True
-
-    def moved(self, control: CapturedDrag, position: Offset) -> Gesture:
-        return self
-
-    def released(self, control: CapturedDrag, position: Offset) -> Gesture:
-        return NO_GESTURE
-
-
-class NoGesture(Gesture):
-    holds_pointer = False
-
-
-@dataclass(frozen=True)
-class PressedGesture(Gesture):
-    start: Offset
-
-    def moved(self, control: CapturedDrag, position: Offset) -> Gesture:
-        if position == self.start:
-            return self
-        control.drag_to(position)
-        return DRAGGING
-
-    def released(self, control: CapturedDrag, position: Offset) -> Gesture:
-        control.clicked()
-        return NO_GESTURE
-
-
-class DraggingGesture(Gesture):
-    def moved(self, control: CapturedDrag, position: Offset) -> Gesture:
-        control.drag_to(position)
-        return self
-
-    def released(self, control: CapturedDrag, position: Offset) -> Gesture:
-        control.drag_to(position)
-        return NO_GESTURE
-
-
-NO_GESTURE, DRAGGING = NoGesture(), DraggingGesture()
-
-
-class CapturedDrag:
-    """One captured pointer gesture; controls own its coordinate mapping and what a click does."""
+class CapturedDrag(GestureControl):
+    """One captured pointer gesture in a terminal; controls own its coordinate mapping and
+    what a click does. The gesture's states are the shared `toad.pointer_gesture` ones."""
 
     # Screen selection starts before MouseDown reaches the control.
     ALLOW_SELECT = False
@@ -605,13 +485,6 @@ class CapturedDrag:
     @abstractmethod
     def drag_start(self, event: events.MouseDown) -> None:
         ...
-
-    @abstractmethod
-    def drag_to(self, position: Offset) -> None:
-        ...
-
-    def clicked(self) -> None:
-        """A press released without moving: by default it moved nothing, so it does nothing."""
 
     @on(events.MouseDown)
     def on_mouse_down(self, event: events.MouseDown) -> None:
@@ -643,6 +516,107 @@ class CapturedDrag:
     @on(events.MouseRelease)
     def on_mouse_release(self) -> None:
         self._gesture = NO_GESTURE
+
+    @on(Click)
+    def on_captured_click(self, event: Click) -> None:
+        """The captured gesture already answered this press (``clicked`` or a drag); the click
+        Textual sends after it must not reach a parent, such as a folded bar that opens on click."""
+        if event.button == 1:
+            event.stop()
+
+
+class SideBarToggle(
+    SidebarToggleFace,
+    SidebarFoldGrip,
+    CapturedDrag,
+    MutedText,
+    CenteredContent,
+    HoverSelection,
+    DeclaredWidgetActions,
+    PrimaryActivation,
+    widgets.Static,
+    actions=(ToggleSidebarAction,),
+):
+    """Collapse target spanning the conversation-facing resize edge."""
+
+    native_theme = (
+        NativeDeclaration.of(Styles.background, Variable(PrimaryColour.name), Percent(8)),
+    )
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.layer = "sidebar-toggle"
+
+    @property
+    def paint_highlighted(self):
+        bar = self.query_ancestor(SideBar)
+        return super().paint_highlighted or (bar.collapsed and bar.mouse_hover)
+
+    ALLOW_SELECT = False
+
+    can_focus = True
+
+    class Pressed(Message):
+        def __init__(self, *, focus: bool = True) -> None:
+            super().__init__()
+            self.focus = focus
+
+    def __init__(self, collapsed: bool, *, edge: type[SidebarEdge], heading: str) -> None:
+        super().__init__()
+        self.heading = heading
+        self.set_collapsed(collapsed, edge)
+
+    def show_heading(self, heading: str, collapsed: bool, edge: type[SidebarEdge]) -> None:
+        """The bar names what it shows now; only a changed name redraws."""
+        if heading != self.heading:
+            self.heading = heading
+            self.set_collapsed(collapsed, edge)
+
+    def set_collapsed(self, collapsed: bool, edge: type[SidebarEdge]) -> None:
+        edge.size_toggle(self)
+        self.styles.dock = edge.opposite().dock
+        self.offset = edge.control_offset(0 if collapsed else 1)
+        self.present_toggle(collapsed, edge, self.heading)
+
+    def show_toggle(self, text: str, tooltip: str) -> None:
+        if self.content != text:
+            self.update(text, layout=False)
+        if self.tooltip != tooltip:
+            self.tooltip = tooltip
+
+    @property
+    def primary_activation(self):
+        return self.pointer_toggle
+
+    def pointer_toggle(self) -> None:
+        self.query_ancestor(SideBar).toggle(focus=False)
+
+    def focus_on_click(self) -> bool:
+        # Pointer activation is a visibility change. Focusing this handle first
+        # rebuilds bindings, only to move focus again when the sidebar toggles.
+        # It remains keyboard-focusable through normal Tab navigation.
+        return False
+
+    @property
+    def grip_surface(self) -> SideBar:
+        return self.query_ancestor(SideBar)
+
+    def grip_viewport_extent(self) -> int:
+        bar = self.grip_surface
+        return bar.placement.side.extent(bar.query_ancestor(Widget).content_size)
+
+    def drag_start(self, event: events.MouseDown) -> None:
+        self._start_point = event.screen_offset
+        self.begin_grip()
+
+    def drag_to(self, position: Offset) -> None:
+        self.drag_grip(position - self._start_point)
+
+    def dragged(self) -> None:
+        self.end_grip()
+
+    def clicked(self) -> None:
+        self.grip_clicked()
 
 
 class SidebarSlider(
@@ -683,9 +657,15 @@ class SidebarSlider(
     def drag_to(self, position: Offset) -> None:
         value = self.value_at(position.x - self._drag_origin_x, self._drag_width, self._drag_reversed)
         if value != self.value:
-            self.value = value
+            self.track_moved(self.query_ancestor(SideBar), value)
             self.refresh()
-            self.post_message(self.Changed(self, value))
+
+    def dragged(self) -> None:
+        self.track_released(self.query_ancestor(SideBar))
+
+    def clicked(self) -> None:
+        """A press picks its value; letting go there ends the hold as a drag's release does."""
+        self.track_released(self.query_ancestor(SideBar))
 
     def step_horizontal(self, direction: int) -> None:
         value = self.stepped(direction)
@@ -699,6 +679,7 @@ class SidebarSlider(
         self._drag_origin_x = self.region.x
         self._drag_width = self.size.width
         self._drag_reversed = self.reversed
+        self.begin_track(self.query_ancestor(SideBar))
         self.drag_to(event.screen_offset)
 
 
@@ -819,6 +800,9 @@ class SidebarResizeHandle(
     def drag_start(self, event: events.MouseDown) -> None:
         self._start_point = event.screen_offset
         self.begin_grip()
+
+    def dragged(self) -> None:
+        self.end_grip()
 
 
 class BandSplitHandle(
@@ -994,11 +978,12 @@ class SideBar(
         self.new_shell()
         self.hide = hide
         self.extent_slider = SidebarSlider(
-            SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
+            SidebarSlider.floor, SidebarLayout.maximum_percent,
             SidebarLayout.minimum_percent,
         )
         self.panel_state: SidebarPanels = AbsentPanels() if defer_mount else LoadedPanels()
         self._presented_collapsed: bool | None = None
+        self._pressed_folded = False
         self._presented_layout: BarDisplay = BarDisplay()
 
     def invalidate_controls(self) -> None:
@@ -1201,8 +1186,15 @@ class SideBar(
 
     @on(SidebarSlider.Changed)
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
+        """A keyboard step is a whole hold: stepping to 0 folds, keeping the extent it had."""
         event.stop()
-        self.resize_to(event.value)
+        restore = self.placement.extent_percent
+        self.extent_dragged(event.value)
+        self.extent_released(event.value, restore)
+
+    def fold(self, collapsed: bool) -> None:
+        if collapsed != self.collapsed:
+            self.toggle(focus=False)
 
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
@@ -1254,9 +1246,16 @@ class SideBar(
         event.stop()
         self.toggle(focus=event.focus)
 
+    @on(events.MouseDown)
+    def on_strip_press(self, event: events.MouseDown) -> None:
+        """A press that reaches the bar itself: no captured control (slider, handle, strip)
+        owned it. Only such a press, on a folded bar, opens it when it clicks."""
+        self._pressed_folded = self.collapsed and event.button == 1
+
     @on(Click)
     def on_click(self, event: Click) -> None:
-        if self.collapsed and event.button == 1:
+        pressed_folded, self._pressed_folded = self._pressed_folded, False
+        if self.collapsed and event.button == 1 and pressed_folded:
             event.stop()
             self.toggle(focus=False)
 

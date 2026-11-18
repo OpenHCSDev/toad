@@ -25,7 +25,7 @@ import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
@@ -54,7 +54,9 @@ from toad.preferences import SETTINGS, SavedSettings
 from toad.setting_declarations import Effect, FamilyChoices
 from formbridge.forms.declared_fields import DeclaredField
 from ui_theme.catalog import SCHEMES
-from toad.qt.side_bar import QtSidebarAction
+from textual.geometry import Offset
+from toad.qt.name_wave import TabGhost, TabGrowth
+from toad.qt.side_bar import PaneSlide, QtSidebarAction
 from toad.sidebar_layout import DirectionalSidebarPlacementAction, FloatSidebarPlacementAction
 from toad.sidebar_placement import (
     BottomSidebarEdge,
@@ -1117,7 +1119,7 @@ class PlacementScenario(Scenario):
         # read it back off the view: the pane writes the view's own selection, no second copy.
         comms_view = app.workspace_sessions.selected
         category = next(iter(MessageCategory.members_with(MessageCategory)))
-        app.toggle_pane(ThreadSidebarPlacement)
+        app.thread_side.toggle_pane()
         await self.settle()
         before = len(set(comms_view.visible_categories))
         app.thread_pane._comms_panel._checks[category].click()
@@ -1142,6 +1144,163 @@ class PlacementScenario(Scenario):
                     dm_category_shown=(category in dm_view.visible_categories),
                     comms_still=(category in comms_after), where=self.where(app.thread_side),
                     too_wide=self.too_wide())
+
+
+class SlideScenario(Scenario):
+    summary = ("the channels pane's grips at a Pixel 8a's width: drag the resize handle to the wall "
+               "and let go (folds, keeps its extent), click the strip (reopens there), drag the folded "
+               "strip outward (opens as far as the pointer), take the slider to 0 (folds), then open "
+               "and close tabs; prints sizes and the animation's frame gaps")
+
+    width: ClassVar[int] = 412
+
+    @staticmethod
+    def press(widget: QWidget, kind: QEvent.Type, at: QPoint, held: bool, screen: QPoint | None = None) -> None:
+        """A mouse event at ``at`` in ``widget``, at ``screen`` on the screen: a finger's place on
+        the screen does not move when the widget under it does."""
+        event = QMouseEvent(kind, QPointF(at), QPointF(screen or widget.mapToGlobal(at)),
+                            Qt.MouseButton.LeftButton,
+                            Qt.MouseButton.LeftButton if held else Qt.MouseButton.NoButton,
+                            Qt.KeyboardModifier.NoModifier)
+        QApplication.sendEvent(widget, event)
+
+    async def drag(self, widget: QWidget, start: QPoint, stop: QPoint, *, steps: int = 12,
+                   midway=None) -> None:
+        origin = widget.mapToGlobal(start)
+        self.press(widget, QEvent.Type.MouseButtonPress, start, True, origin)
+        for step in range(1, steps + 1):
+            travel = (stop - start) * step / steps
+            self.press(widget, QEvent.Type.MouseMove, start + travel, True, origin + travel)
+            await asyncio.sleep(0.01)
+            if midway is not None and step == steps // 2:
+                midway()
+        self.press(widget, QEvent.Type.MouseButtonRelease, stop, False, origin + (stop - start))
+
+    def click(self, widget: QWidget) -> None:
+        middle = widget.rect().center()
+        self.press(widget, QEvent.Type.MouseButtonPress, middle, True)
+        self.press(widget, QEvent.Type.MouseButtonRelease, middle, False)
+
+    def wall(self, pane, widget: QWidget, length: int) -> QPoint:
+        """``length`` pixels from ``widget``'s middle toward the pane's wall."""
+        side = pane.placement.side
+        horizontal = side.coordinate(Offset(1, 0)) != 0
+        toward = -side.sign * length
+        return widget.rect().center() + (QPoint(toward, 0) if horizontal else QPoint(0, toward))
+
+    def state(self, pane) -> str:
+        box = pane.geometry()
+        return (f"{'folded' if pane.collapsed else 'open'} extent={pane.placement.extent_percent}% "
+                f"at={box.x()},{box.y()} {box.width()}x{box.height()}")
+
+    async def landed(self) -> None:
+        await until(lambda: not self.app.chrome.slides, "slide landed")
+        await asyncio.sleep(0.05)
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(self.width, 915)
+        app.show_sidebar()
+        await asyncio.sleep(0.6)
+        await self.landed()
+        pane = app.channels_side
+        app.sidebar_layout.resize(ChannelsSidebarPlacement, 40)
+        app.rearrange_sidebars()
+        await asyncio.sleep(0.3)
+        before = pane.placement.extent_percent
+        self.report("1-open", pane=self.state(pane))
+        stamps: list[float] = []
+        moving = PaneSlide.apply_amount
+
+        def timed(slide, amount):
+            stamps.append(time.perf_counter())
+            moving(slide, amount)
+        PaneSlide.apply_amount = timed
+
+        seen: dict[str, str] = {}
+        await self.drag(pane.handle, pane.handle.rect().center(), self.wall(pane, pane.handle, pane.width() + 20),
+                        midway=lambda: seen.setdefault("mid", self.state(pane)))
+        print("  mid-drag:", seen["mid"], flush=True)
+        await self.landed()
+        assert pane.collapsed and pane.placement.extent_percent == before, self.state(pane)
+        self.report("2-dragged-to-wall", pane=self.state(pane))
+        stamps.clear()
+        self.click(pane.toggle)
+        await self.landed()
+        assert not pane.collapsed and pane.placement.extent_percent == before, self.state(pane)
+        gaps = [later - earlier for earlier, later in zip(stamps, stamps[1:])]
+        self.report("3-strip-clicked", pane=self.state(pane))
+        self.click(pane.toggle)
+        await self.landed()
+        assert pane.collapsed, self.state(pane)
+        horizontal = pane.placement.side.coordinate(Offset(1, 0)) != 0
+        reach = (app.chrome.width() if horizontal else app.chrome.height()) * 30 // 100
+        await self.drag(pane.toggle, pane.toggle.rect().center(), self.wall(pane, pane.toggle, -reach))
+        await self.landed()
+        assert not pane.collapsed, self.state(pane)
+        self.report("4-strip-dragged-open", pane=self.state(pane))
+        dragged = pane.placement.extent_percent
+        self.click(pane.handle)
+        await asyncio.sleep(0.2)
+        slider = pane.slider
+        far = QPoint(slider.width() - 2 if slider.reversed else 1, slider.height() // 2)
+        await self.drag(slider, slider.rect().center(), far)
+        await self.landed()
+        assert pane.collapsed and pane.placement.extent_percent == dragged, self.state(pane)
+        self.report("5-slider-to-0", pane=self.state(pane))
+        PaneSlide.apply_amount = moving
+        print("  opening slide frame gaps ms:", [round(gap * 1000, 1) for gap in gaps],
+              "max", round(max(gaps, default=0) * 1000, 1), flush=True)
+        await self.expand("#comms")
+        tops = list(app.sidebar.items())
+        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        app.open_row(comms)
+        await until(lambda: app.tabs.count() == 1, "#comms tab")
+        await asyncio.sleep(0.5)
+        grew: list[int] = []
+        growing = TabGrowth.apply_amount
+
+        started: list[float] = []
+        starting = TabGrowth.start_transition
+
+        def began(growth, clock, effect):
+            started.append(time.perf_counter())
+            starting(growth, clock, effect)
+        TabGrowth.start_transition = began
+
+        def widened(growth, amount):
+            growing(growth, amount)
+            grew.append(app.tabs.tabRect(app.tabs.count() - 1).width())
+            started.append(time.perf_counter())
+        TabGrowth.apply_amount = widened
+        app.open_row(self.thread_row())
+        await until(lambda: app.tabs.count() == 2, "second tab")
+        await until(lambda: not app.tabs.growing, "tab grown", tenths=50)
+        TabGrowth.apply_amount = growing
+        TabGrowth.start_transition = starting
+        print("  tab opening: ms from start to each frame",
+              [round((stamp - started[0]) * 1000) for stamp in started[1:]], flush=True)
+        settled = app.tabs.tabRect(app.tabs.count() - 1).width()
+        print("  tab opening: new tab widths per frame", grew, "settled", settled, flush=True)
+        assert len(grew) > 1 and grew[0] < settled, (grew, settled)
+        self.report("6-tabs-open")
+        ghosts: list[int] = []
+        shrinking = TabGhost.apply_amount
+
+        def shrank(ghost, amount):
+            shrinking(ghost, amount)
+            ghosts.append(ghost.picture.width())
+        TabGhost.apply_amount = shrank
+        app.close_index(app.tabs.currentIndex())
+        await until(lambda: app.tabs.count() == 1, "close")
+        await until(lambda: not [label for label in app.tabs.findChildren(QLabel) if label.isVisible()],
+                    "ghost gone", tenths=50)
+        TabGhost.apply_amount = shrinking
+        left = [label for label in app.tabs.findChildren(QLabel) if label.isVisible()]
+        print("  tab closing: ghost widths per frame", ghosts, "left after", len(left), flush=True)
+        assert len(ghosts) > 1 and ghosts[-1] < ghosts[0] and not left, (ghosts, left)
+        self.report("7-tab-closed")
 
 
 class ChromeScenario(Scenario):
@@ -1200,7 +1359,7 @@ class ChromeScenario(Scenario):
         await until(lambda: self.page is not before, "thread")
         await asyncio.sleep(1.5)
         self.report("3-thread", peer=peer.key, **self.geometry())
-        app.toggle_pane(ThreadSidebarPlacement)
+        app.thread_side.toggle_pane()
         await asyncio.sleep(1.0)
         picker = app.thread_pane.menu.picker
         entries = [picker.itemText(index) for index in range(picker.count())]
@@ -1229,7 +1388,7 @@ class ChromeScenario(Scenario):
         # A per-view override repaints the view at once: the column narrows to 40 cells and
         # centres, and the info bar hides; both read through the view's own settings.
         # With the settings pane closed the conversation has room for a 40-cell column.
-        app.toggle_pane(ThreadSidebarPlacement)
+        app.thread_side.toggle_pane()
         await asyncio.sleep(0.5)
         view = self.page
         state = view.configuration_state
@@ -1642,7 +1801,7 @@ class FingerScenario(Scenario):
         await asyncio.sleep(0.3)
         await self.exercise("3-composer")
         composer.clear()
-        app.toggle_pane(ThreadSidebarPlacement)
+        app.thread_side.toggle_pane()
         await asyncio.sleep(1.0)
         picker = app.thread_pane.menu.picker
         picker.showPopup()
@@ -1652,7 +1811,7 @@ class FingerScenario(Scenario):
         picker.setCurrentIndex(len(panel_specs_for_view(is_session=True)))
         await asyncio.sleep(0.8)
         await self.exercise("5-view-settings")
-        app.toggle_pane(ThreadSidebarPlacement)
+        app.thread_side.toggle_pane()
         await asyncio.sleep(0.3)
         for command, label in ApplicationAction.menu(app):
             if type(command) is QuitAction:

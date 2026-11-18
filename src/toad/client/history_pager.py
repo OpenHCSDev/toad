@@ -724,6 +724,11 @@ class HistoryPager(ResumesSource):
         """A saved viewer or nested pager shows every category; a conversation's history shows its filter."""
         return all_categories()
 
+    # How a restricted category selection shows: Textual reads and mounts a projection
+    # (`SeekingFilter`), Qt draws only the selected rows of the pages it holds (`DrawnFilter`).
+    # Each frontend's history names its `toad.transcript_filter.FilterState` member.
+    restricted_filter: ClassVar[type]
+
     @property
     def drawn_extent(self) -> tuple[int, int]:
         """The rows the loaded pages draw and the messages behind them, each page measured once."""

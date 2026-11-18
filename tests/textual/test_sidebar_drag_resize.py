@@ -83,18 +83,17 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         outward = 4 if side.sign > 0 else slider.size.width - 1
         # Width changes on press, then the capture owner gets the release.
         # A final Click may land outside the track it has just resized.
+        # The track's wall end is 0: let go there and the pane folds, keeping the extent it
+        # had before the press, so revealing it reopens at that width.
         assert await pilot.mouse_down(slider, offset=(outward, 0))
         await pilot.mouse_up(offset=(slider._drag_origin_x + outward, slider.region.y))
         await ui.step()
-        assert slider.value == 15 and bar.size.width == 18
-        assert handle.region.x == (bar.region.right - 1 if side.sign > 0 else bar.region.x)
-        bar.toggle()
-        await ui.step()
+        assert bar.collapsed and bar.placement.extent_percent == 50, (side, bar.placement, slider.value, slider.minimum)
         assert not handle.display
         assert toggle.region == bar.region
         bar.reveal()
         await ui.step()
-        assert handle.display
+        assert handle.display and bar.size.width == 60, (side, bar.region)
 
 
 @pytest.mark.parametrize("side", SidebarEdge.members_with(SidebarEdge))
@@ -182,3 +181,46 @@ async def test_a_click_on_the_resize_handle_toggles_the_controls_and_a_drag_does
         await pilot.mouse_up(offset=(start + bar.placement.side.sign * 6, y))
         await ui.step()
         assert controls.display, "A drag resizes without hiding the controls"
+
+
+@pytest.mark.parametrize("side", SidebarEdge.members_with(WidthSidebarEdge))
+async def test_drag_to_the_wall_folds_and_the_strip_reopens_or_drags_open(workspace, side):
+    """Both grips hold one extent: the handle let go at the wall folds the pane and keeps the
+    extent it had before the drag; a click on the strip reopens it there; the folded strip
+    dragged outward opens the pane as far as the pointer went."""
+    async with workspace.app(size=(120, 40)) as ui:
+        app, pilot = ui.textual
+        bar = app.workspace_chrome.channels
+        app.sidebar_layout.move(bar.placement_identity, side)
+        app.sidebar_layout.resize(bar.placement_identity, 40)
+        bar.reveal()
+        app.workspace_chrome.refresh_layout()
+        await ui.step()
+        handle = bar.query_one(SidebarResizeHandle)
+        toggle = bar.query_one(SideBarToggle)
+        y = handle.region.y + 3
+        start = handle.region.x
+        wall = 0 if side.sign > 0 else 119
+        assert await pilot.mouse_down(handle, offset=(0, 3))
+        await pilot.hover(offset=(start - side.sign * 10, y))
+        await ui.step()
+        assert not bar.collapsed and bar.placement.extent_percent < 40, bar.placement
+        await pilot.hover(offset=(wall, y))
+        await pilot.mouse_up(offset=(wall, y))
+        await ui.step()
+        assert bar.collapsed and bar.placement.extent_percent == 40, bar.placement
+
+        assert await pilot.click(toggle)
+        await ui.step()
+        assert not bar.collapsed and bar.placement.extent_percent == 40, bar.placement
+        assert await pilot.click(toggle)
+        await ui.step()
+        assert bar.collapsed
+
+        strip = toggle.region
+        x = strip.x if side.sign > 0 else strip.right - 1
+        assert await pilot.mouse_down(toggle, offset=(x - strip.x, 3))
+        await pilot.hover(offset=(x + side.sign * 36, strip.y + 3))
+        await pilot.mouse_up(offset=(x + side.sign * 36, strip.y + 3))
+        await ui.step()
+        assert not bar.collapsed and bar.placement.extent_percent == 30, bar.placement

@@ -66,7 +66,7 @@ from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
-from toad.transcript_filter import FilterState
+from toad.transcript_filter import DrawnFilter, FilterState
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 
@@ -298,6 +298,10 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     """A wire conversation's pages, read marks and message statuses in a Qt window: the
     shared pager, read marking and notifications, answering their hooks with the window's
     rows and the Qt event loop."""
+
+    # A restricted category selection is drawn from the pages already held: each page shows
+    # only its selected categories' rows, so no projection is read or mounted.
+    restricted_filter = DrawnFilter
 
     page_view_type = QtPage
     newer = None

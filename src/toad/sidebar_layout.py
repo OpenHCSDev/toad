@@ -225,6 +225,15 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
     def toggle_controls(self) -> None:
         """Show or hide the extent slider and placement actions."""
 
+    @abstractmethod
+    def fold(self, collapsed: bool) -> None:
+        """Fold the surface to its strip (True) or open its pane (False), through the
+        frontend's one collapsed owner, and lay the workspace out again."""
+
+    def toggle_pane(self) -> None:
+        """A click on the strip: open a folded pane, fold an open one."""
+        self.fold(not self.collapsed)
+
     @property
     def placement(self) -> SidebarPlacement:
         return self.sidebar_layout.get(self.placement_identity)
@@ -243,8 +252,27 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
         """The extent slider reads this placement's extent, reversed on a trailing edge."""
         placement = self.placement
         track.reversed = placement.side.sign < 0
-        track.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
-                        placement.extent_percent)
+        track.set_range(track.floor, SidebarLayout.maximum_percent, placement.extent_percent)
+
+    def extent_dragged(self, percent: int) -> None:
+        """A grip or the extent slider is held at ``percent``. Below the fold threshold the
+        pane keeps its smallest extent (it folds when released there); from it upward the
+        pane opens if folded and takes the extent. One rule for every grip on every frontend."""
+        if percent >= SidebarLayout.fold_percent:
+            if self.collapsed:
+                self.fold(False)
+            self.resize_to(percent)
+
+    def extent_released(self, percent: int, restore: int) -> None:
+        """The hold ends at ``percent``. Released below the fold threshold the pane folds, and
+        its extent goes back to ``restore``, what it had before this hold, so a click on the
+        strip reopens it there."""
+        if percent >= SidebarLayout.fold_percent:
+            return
+        if self.sidebar_layout.resize(self.placement_identity, restore):
+            self.arranged()
+        if not self.collapsed:
+            self.fold(True)
 
     def dragged_percent(self, start_percent: int, delta: Offset, viewport_extent: int) -> int:
         """The extent a resize-handle drag of ``delta`` asks for, from ``start_percent``,
@@ -272,7 +300,7 @@ class SidebarResizeGrip(metaclass=AbstractHooksMeta):
     the sidebar from the extent it had when the drag began; a press without a drag shows or
     hides the slider and placement actions."""
 
-    grip_tooltip = "Drag toward the center to expand the sidebar"
+    grip_tooltip = "Drag to resize; drag to the edge to fold"
 
     @property
     @abstractmethod
@@ -284,14 +312,44 @@ class SidebarResizeGrip(metaclass=AbstractHooksMeta):
         """The workspace's length on the sidebar's axis, in the units drags arrive in."""
 
     def begin_grip(self) -> None:
-        self._grip_start = self.grip_surface.placement.extent_percent
+        """A press: the pane's extent now is what a fold on release restores. A folded pane is
+        held from nothing, so dragging its strip outward opens it as far as the pointer goes."""
+        surface = self.grip_surface
+        self._grip_restore = surface.placement.extent_percent
+        self._grip_start = 0 if surface.collapsed else self._grip_restore
+        self._grip_percent = self._grip_start
 
     def drag_grip(self, delta: Offset) -> None:
         surface = self.grip_surface
-        surface.resize_to(surface.dragged_percent(self._grip_start, delta, self.grip_viewport_extent()))
+        self._grip_percent = surface.dragged_percent(self._grip_start, delta, self.grip_viewport_extent())
+        surface.extent_dragged(self._grip_percent)
+
+    def end_grip(self) -> None:
+        """A drag let go: released at the wall the pane folds and keeps its pre-drag extent."""
+        self.grip_surface.extent_released(self._grip_percent, self._grip_restore)
 
     def grip_clicked(self) -> None:
         self.grip_surface.toggle_controls()
+
+
+class SidebarFoldGrip(SidebarResizeGrip):
+    """The pane's strip, as both frontends' toggles inherit it: a drag resizes exactly as the
+    resize handle does (opening a folded pane, folding at the wall), and a click without a
+    drag opens or folds the pane."""
+
+    grip_tooltip = "Click to show or hide; drag to resize"
+
+    def grip_clicked(self) -> None:
+        self.grip_surface.toggle_pane()
+
+
+@dataclass(frozen=True, slots=True)
+class PlacedSidebar:
+    """Where the chrome arrangement last put one sidebar, in cells, and whether it was folded
+    there: comparing two of these says whether the bar just opened or folded."""
+
+    region: Region
+    folded: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -322,6 +380,8 @@ class SidebarExtentTrack:
     its thumb moves the way its wall-facing edge does."""
 
     label_cells = 4
+    # The track's wall end: held there and let go, the pane folds.
+    floor = 0
 
     def start_track(self, minimum: int, maximum: int, value: int) -> None:
         """Each frontend's constructor calls this once beside its own widget's."""
@@ -332,7 +392,8 @@ class SidebarExtentTrack:
 
     @property
     def track_tooltip(self) -> str:
-        return f"Drag or use ←/→ to resize ({self.minimum}–{self.maximum}% of the placement axis)"
+        return (f"Drag or use ←/→ to resize (up to {self.maximum}% of the placement axis); "
+                "let go at 0 to fold")
 
     def set_range(self, minimum: int, maximum: int, value: int) -> None:
         self.minimum, self.maximum = minimum, max(minimum, maximum)
@@ -357,6 +418,18 @@ class SidebarExtentTrack:
         if reverse:
             ratio = 1 - ratio
         return round(self.minimum + ratio * (self.maximum - self.minimum))
+
+    def begin_track(self, surface: SidebarSurface) -> None:
+        """A press on the track: the extent now is what a fold on release restores."""
+        self._track_restore = surface.placement.extent_percent
+
+    def track_moved(self, surface: SidebarSurface, value: int) -> None:
+        if value != self.value:
+            self.value = value
+            surface.extent_dragged(value)
+
+    def track_released(self, surface: SidebarSurface) -> None:
+        surface.extent_released(self.value, self._track_restore)
 
     def stepped(self, direction: int) -> int:
         if self.reversed:
@@ -426,6 +499,8 @@ class SidebarLayout:
 
     minimum_percent = 15
     maximum_percent = 50
+    # A grip or the slider held below this folds the pane when released.
+    fold_percent = minimum_percent // 2
 
     def __init__(self, settings: ArrangementStore, origin: type[TerminalOrigin]) -> None:
         self.settings, self.origin = settings, origin
