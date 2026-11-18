@@ -32,7 +32,7 @@ from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.forms import QtObjectFieldView, QtObjectFormView
-from toad.qt.sidebar_panel import DeferredPanelEntry, QtPanelEntry, QtPanelMenu, QtSidebarShell
+from toad.qt.sidebar_panel import QtPanelEntry, QtPanelMenu, QtSidebarShell
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ThreadSidebarContents, panel_specs_for_view
@@ -117,7 +117,7 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         controls = {QtThreadCommsPanel.spec_key: (self._comms_panel.sort,)}
         # A roster entry with no Qt body is a missing port: building the pane fails on it.
         self._roster = tuple(
-            QtPanelEntry(spec.panel, bodies[spec.key], controls.get(spec.key, ()), type(bodies[spec.key]))
+            QtPanelEntry.of(spec.panel, bodies[spec.key], controls.get(spec.key, ()), type(bodies[spec.key]))
             for spec in panel_specs_for_view(is_session=True))
         self._view = NoConversationView()
         # The entries built for the bound view (its settings and actions), released when the
@@ -154,8 +154,8 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         if view is not self._view:
             return
         actions = tuple(
-            DeferredPanelEntry(view.action_panel(action), partial(QtActionProperties, self.app, context, action, fields),
-                               (), action.declaration)
+            QtPanelEntry(view.action_panel(action), partial(QtActionProperties, self.app, context, action, fields),
+                         (), action.declaration)
             for context, action, fields in declarations)
         self._view_entries += actions
         self.menu.add_entries(actions)
@@ -172,8 +172,8 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
 
     def setting_entries(self, view) -> tuple[QtPanelEntry, ...]:
         return tuple(
-            DeferredPanelEntry(view.field_panel(field), partial(QtObjectProperties, field, self.app.renderer),
-                               (), field.path)
+            QtPanelEntry(view.field_panel(field), partial(QtObjectProperties, field, self.app.renderer),
+                         (), field.path)
             for field in view.configuration_fields())
 
     def present(self) -> None:

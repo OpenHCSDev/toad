@@ -1652,7 +1652,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.channel_sort = QtChannelListSort(self)
         self.sidebar_search = QtSidebarShell(
             self.sidebar.filter,
-            QtSidebarPanels(self.sidebar_state, (QtPanelEntry(CHANNELS_PANEL, self.sidebar, (self.channel_sort,), CHANNELS_PANEL.title),)),
+            QtSidebarPanels(self.sidebar_state, (QtPanelEntry.of(CHANNELS_PANEL, self.sidebar, (self.channel_sort,), CHANNELS_PANEL.title),)),
             parent=self)
         self.thread_pane = ThreadSettingsPane(self, parent=self,
                                               project_path=self.project_dir.path)

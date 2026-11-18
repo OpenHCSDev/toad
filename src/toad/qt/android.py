@@ -138,10 +138,6 @@ def main() -> None:
     # Qt's accessibility bridge is switched off by the APK's activity before Qt's layout
     # exists (tools/android/keepalive ToadActivity.onCreate sets QT_ANDROID_DISABLE_ACCESSIBILITY):
     # Qt reads it from Java while the activity is created, before this Python runs.
-    os.environ.setdefault(
-        "QT_LOGGING_RULES",
-        "qt.qpa.*=true;qt.qpa.backingstore=true;qt.qpa.gl=true;qt.qpa.androidsurface=true",
-    )
     application = QApplication(sys.argv[:1])
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
