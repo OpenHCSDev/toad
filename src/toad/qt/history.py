@@ -1495,15 +1495,12 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         from QScroller don't restart the settle timer during Android touch scrolls.
 
         Touch-down throttle: while QScroller is in Dragging state the finger is
-        tracking the viewport and valueChanged fires at touch rate. The
-        post-scroll chain is deferred until drag ends; `_on_scroller_state`
-        fires `respond_to_scroll` once on the transition out of Dragging. The
-        at_end/follows_tail transitions here stay — they're cheap state flips
+        tracking the viewport and valueChanged fires at touch rate. The repin,
+        post-scroll chain, and lookahead are all deferred until drag ends;
+        `_on_scroller_state` fires them once on the transition out of Dragging.
+        A fling (Scrolling state) fires normally at frame rate.
+        The at_end/follows_tail transitions stay — they're cheap state flips
         and consumers (jump bar + anchor) need to see them during drag."""
-        # Every offset pins, the window's own as well as the reader's: a glide down into a tall
-        # arrival moves the top row into it, and returning before this left the arrival's header
-        # unpinned until the reader scrolled (Tristan, Android, 2026-11-18).
-        self.repin_header()
         if self._restoring:
             return
         if self.at_end and not self.follows_tail:
@@ -1513,7 +1510,9 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
         if self._scroller_dragging:
+            self.lookahead.observe(value)
             return
+        self.repin_header()
         self.respond_to_scroll(value)
 
     _flinging = False
@@ -1553,6 +1552,7 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
         if state == QScroller.State.Inactive:
             self._overshoot = 0.0
         if was_dragging and not self._scroller_dragging:
+            self.repin_header()
             self.respond_to_scroll(self.verticalScrollBar().value())
 
     def overshot(self, distance: float) -> None:
