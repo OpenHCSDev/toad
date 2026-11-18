@@ -40,6 +40,9 @@ class ServedCore(CoreAccess):
         self.called.append(request.declared_name)
         return ServedRequest.serving(request).apply_without_thread(self.comms, HumanCaller())
 
+    def serves(self, request_type) -> bool:
+        return True
+
 
 def test_a_page_draws_each_message_s_files_and_a_chip_fetches_the_sent_bytes(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))

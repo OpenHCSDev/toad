@@ -1297,9 +1297,9 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         self.sync_working()
         label = self.conversation.label(source.references())
         self.on_composer("label", lambda composer: composer.labelled(label))
-        read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
-        await self.refresh_composer(read_only)
-        self.thread_status = await self.conversation.status_text(source, read_only=read_only)
+        compose = await asyncio.to_thread(self.conversation.compose_access, source.core)
+        await self.refresh_composer(compose)
+        self.thread_status = await self.conversation.status_text(source, read_only=compose.read_only)
         await self.conversation.update_mentions(self, source)
 
     # The kind's composer and activity (ConversationActivity)

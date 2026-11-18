@@ -1147,6 +1147,32 @@ class MenuScenario(Scenario):
         self.report("3-notice", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
 
 
+class OlderBusScenario(ParticipantSteps):
+    summary = ("open #comms and expect FILES (\"absent\" or \"served\") for this bus: with absent, the "
+               "history draws its messages, no notice is posted, and the composer offers no Attach")
+
+    async def run(self) -> None:
+        from toad.client.message_file_links import MessageFileLink
+        files = os.environ.get("FILES", "served")
+        self.app.resize(412, 915)
+        await self.open_named("#comms")
+        await until(lambda: self.page.messages.model_rows.rowCount(), "the first page")
+        await asyncio.sleep(2.0)
+        fragments = self.page.messages.model_rows.fragments
+        chips = sum(1 for fragment in fragments for block in fragment.blocks(fragment.shown)
+                    for span in getattr(block, "spans", ()) if isinstance(span.link, MessageFileLink))
+        composer = self.page.composer
+        failures = self.failures_since(0)
+        self.report("1-history", files=files, fragments=len(fragments), chips=chips,
+                    takes_files=composer.takes_files, attach_shown=composer.attach_button.isVisible(),
+                    failures=failures)
+        assert not failures, f"notices posted: {failures}"
+        assert composer.takes_files == (files == "served"), f"takes_files={composer.takes_files} on a bus with files {files}"
+        assert composer.attach_button.isVisible() == (files == "served"), "Attach is offered against what the bus takes"
+        if files == "absent":
+            assert chips == 0, f"{chips} file chips drawn from a bus without files"
+
+
 class MenuTextScenario(Scenario):
     summary = ("open the menu at WIDTH (412) and fail when any of its lines is drawn in less height "
                "than its font's full height: the descenders of a description line were cut on the phone")

@@ -59,6 +59,7 @@ from toad.client.reader_position import LatestPosition
 from toad.client.source_resumption import ResumesSource
 from toad.client.submission import (
     BusDestination,
+    ComposeAccess,
     SubmissionOwner,
     SubmissionStart,
     SubmittedText,
@@ -617,8 +618,8 @@ class WirePageBuffer(SavedHistory):
         await asyncio.to_thread(
             self.loader.core.call, CommsMarkPageReadTool(page=page, worktree=self.loader.project))
 
-    async def read_only(self) -> bool:
-        return await self.runtime.run_thread(self.loader.conversation.read_only, self.loader.core)
+    async def compose_access(self) -> ComposeAccess:
+        return await self.runtime.run_thread(self.loader.conversation.compose_access, self.loader.core)
 
     async def update_mentions(self, view: WireView) -> None:
         await self.loader.conversation.update_mentions(view, self.loader)

@@ -119,6 +119,10 @@ class PromptComposer(metaclass=AbstractHooksMeta):
             return symbols.shell_symbol
         return symbols.multiline_symbol if "\n" in text or "```" in text else symbols.agent_symbol
 
+    def offer_files(self, takes_files: bool) -> None:
+        """Whether this composer's bus takes files. A prompt to an agent attaches none, so it
+        offers none either way; a message composer offers Attach while its bus takes them."""
+
     @abstractmethod
     def show_failure(self, text: str) -> None:
         """Say, under the input, why something typed or attached did not go."""

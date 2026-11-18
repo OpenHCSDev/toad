@@ -265,10 +265,10 @@ class CommsChatView(WireConversationView):
         snapshot = history.source_snapshot()
         if not await history.source_is_current(snapshot):
             return
-        read_only = await source.read_only()
+        compose = await source.compose_access()
         if not await history.source_is_current(snapshot):
             return
-        await self.refresh_composer(read_only)
+        await self.refresh_composer(compose)
         self._refreshed_from = announced
         # A sent message may now be drawn: its queue entry retires before mentions are read.
         self.submissions.settle()
@@ -276,7 +276,7 @@ class CommsChatView(WireConversationView):
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
         # and the history can load pages while they wait.
-        self.run_worker(partial(self._refresh_labels, source, changed, newly_announced, read_only),
+        self.run_worker(partial(self._refresh_labels, source, changed, newly_announced, compose.read_only),
                         group=self.LABELS_GROUP)
 
     LABELS_GROUP = "chat-labels"

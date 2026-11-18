@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 
 from toad.client.bus_submission import ConversationSubmission, SubmissionView
-from toad.client.submission import MessageDestination
+from toad.client.submission import ComposeAccess
 
 
 class QtSubmissionView(SubmissionView):
@@ -20,10 +20,12 @@ class QtSubmissionView(SubmissionView):
 
     composer_block: str = ""
 
-    async def refresh_composer(self, read_only: bool) -> None:
-        """Hold the composer with the destination's read-only reason, or release it."""
-        self.composer_block = MessageDestination.read_only_reason if read_only else ""
+    async def refresh_composer(self, access: ComposeAccess) -> None:
+        """Hold the composer with the destination's read-only reason, or release it, and offer
+        files where the bus takes them."""
+        self.composer_block = access.block_reason
         self.on_composer("hold", lambda composer: composer.hold(self.composer_block))
+        self.on_composer("files", lambda composer: composer.offer_files(access.takes_files))
 
     def draws_user_message(self, reference) -> bool:
         return self.message_history.draws(reference)

@@ -688,6 +688,9 @@ class QtMessageComposer(MessagePromptComposer, Composer):
     def pick_by_path_search(self) -> None:
         open_path_search(self, self, self.host.app.project_dir.path, self.host.app.run_operation)
 
+    def show_files_offered(self) -> None:
+        self.attach_button.setVisible(self.takes_files)
+
     def show_attached(self) -> None:
         chips = self.attached_row.layout()
         while (item := chips.takeAt(0)) is not None:
