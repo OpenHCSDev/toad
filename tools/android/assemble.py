@@ -13,7 +13,7 @@ The bytecode is compiled here because the phone would otherwise compile every mo
 first time it starts after each install: an install unpacks the app folder afresh, so the
 bytecode the last start wrote is gone, and compiling the client's modules adds about six
 seconds at a phone's speed to that start. It is compiled as the phone runs Python
-(optimization 2, the `.opt-2.pyc` the phone writes itself), and never checked against its
+(at the optimization level the APK's activity sets, `recipe_built.python_optimize`), and never checked against its
 source: an install unpacks source and bytecode together, so they cannot disagree, while a
 timestamp check would refuse every file (unpacking gives each a new modification time) and
 a hash check would read and hash every source at every start.
@@ -32,7 +32,7 @@ import py_compile
 
 import certifi
 import PySide6
-from recipe_built import SPEC, import_names
+from recipe_built import SPEC, import_names, python_optimize
 from ui_theme.wal import WalFile
 
 closure_file, app, toolchain, profile = (Path(argument).resolve() for argument in sys.argv[1:5])
@@ -49,6 +49,7 @@ for name in built_by_recipes:
             stale.unlink()
 # Hidden directories are build state (the native Pi agent under _native), not package code.
 ignore = shutil.ignore_patterns("*.so", "*.pyd", "__pycache__", "*.pyc", "tests", "test", ".*")
+shipped = []
 for name, entry in json.loads(closure_file.read_text()).items():
     if name in built_by_recipes:
         continue
@@ -61,9 +62,16 @@ for name, entry in json.loads(closure_file.read_text()).items():
     else:
         shutil.copy2(root, target)
     print(f"{name:26} {sum(1 for _ in target.rglob('*.py')) if target.is_dir() else 1} files")
+    shipped.append(target)
 
-compileall.compile_dir(app, quiet=1, optimize=2, workers=1,
-                       invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH)
+# The shipped packages only: the app folder also holds the build's own state (.buildozer).
+compiled = {"quiet": 1, "optimize": python_optimize(),
+            "invalidation_mode": py_compile.PycInvalidationMode.UNCHECKED_HASH}
+for target in shipped:
+    if target.is_dir():
+        compileall.compile_dir(target, workers=1, **compiled)
+    elif target.suffix == ".py":
+        compileall.compile_file(target, **compiled)
 shutil.copy2(HERE / "main.py", app / "main.py")
 held = app / "profile.json"
 if profile != held:

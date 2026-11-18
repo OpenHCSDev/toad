@@ -19,6 +19,23 @@ public class ToadActivity extends PythonActivity {
 
     private static final int NOTIFICATIONS_ASKED = 1;
 
+    /**
+     * The optimization level the app's Python runs at: 1 drops asserts and keeps docstrings,
+     * which name every menu action and key (MenuDeclaration.key_summary,
+     * ApplicationAction.summary). python-for-android's activity sets PYTHONOPTIMIZE=2, which
+     * strips them, so every summary was blank on the phone. The APK's bytecode is compiled at
+     * this level (tools/android/assemble.py reads it here), so the files it ships are the ones
+     * this interpreter loads.
+     */
+    static final String PYTHON_OPTIMIZE = "1";
+
+    /** python-for-android's activity sets the interpreter's environment through this, before
+     *  Qt starts Python; the optimization level it sets is replaced by the app's. */
+    @Override
+    public void setEnvironmentVariable(String key, String value) {
+        super.setEnvironmentVariable(key, "PYTHONOPTIMIZE".equals(key) ? PYTHON_OPTIMIZE : value);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Qt's accessibility bridge stays off: any enabled accessibility service (on this
