@@ -26,6 +26,7 @@ from toad.client.queue_inspection import QueueDeliveryControls, QueueInspectionO
 from toad.widget_contracts import ActivatesContract
 from toad.qt.metrics import UiGap
 from toad.motion import ROW_REVEAL, TransitionTarget
+from toad.qt.widget_animation import WidgetAnimation
 
 # Qt's QWIDGETSIZE_MAX, which PySide does not export: no maximum height.
 QWIDGETSIZE_MAX = (1 << 24) - 1
@@ -59,7 +60,7 @@ class QtSendNow(QtActivatedText):
         self.composer.submit_now()
 
 
-class RowReveal(TransitionTarget):
+class RowReveal(WidgetAnimation, TransitionTarget):
     """One row under the composer opening or closing its height on the app's clock
     (`ROW_REVEAL`), so the history above it moves smoothly rather than by the row's height in
     one frame. It runs from the height the row has now: a summary that empties and fills again
@@ -68,6 +69,7 @@ class RowReveal(TransitionTarget):
 
     def __init__(self, row: QWidget, clock, opening: bool) -> None:
         self.row, self.opening = row, opening
+        self.bind_widget(row, clock)
         self.start = 0 if row.isHidden() else row.height()
         if opening and row.isHidden():
             row.setFixedHeight(0)
@@ -110,10 +112,6 @@ class RowReveal(TransitionTarget):
         if row.hasHeightForWidth() and row.width() > 0:
             return row.heightForWidth(row.width())
         return row.sizeHint().height()
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.row.isVisible()
 
     def apply_amount(self, amount: float) -> None:
         end = self.height_of(self.row) if self.opening else 0

@@ -74,6 +74,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
 from toad.motion import FOLLOW_ARRIVAL, TransitionTarget
+from toad.qt.widget_animation import WidgetAnimation
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 if TYPE_CHECKING:
@@ -212,7 +213,7 @@ class HistoryRows(QAbstractListModel):
         return next((row for row, fragment in enumerate(self.fragments) if fragment.key == key), -1)
 
 
-class ArrivalFade:
+class ArrivalFade(WidgetAnimation):
     """Rows that arrived together, rising as the TUI's `ARRIVAL` cascade raises them: each fades
     from the background into its own colours, row after row, on the app's clock. A row's
     opacity is the cascade's `Mix` amount at the row's place in the burst, the frame Textual's
@@ -220,13 +221,10 @@ class ArrivalFade:
 
     def __init__(self, window: QtHistoryWindow, keys: tuple) -> None:
         self.window = window
+        self.bind_widget(window, window.animation_clock)
         last = max(1, len(keys) - 1)
         self.positions = {key: index / last for index, key in enumerate(keys)}
         self.animation = window.animation_clock.start(ARRIVAL, self)
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.window.isVisible()
 
     def opacity(self, key) -> float | None:
         position = self.positions.get(key)
@@ -243,18 +241,15 @@ class ArrivalFade:
                 window.update(model_rows.index(row, 0))
 
 
-class ArrivalGlide(TransitionTarget):
+class ArrivalGlide(WidgetAnimation, TransitionTarget):
     """A reader following the end glides down to rows that arrived (`FOLLOW_ARRIVAL`) instead of
     jumping their height in one frame; it lands on the end however far the rows grew meanwhile."""
 
     def __init__(self, window: QtHistoryWindow, start: float) -> None:
         self.window, self.start = window, start
         self.at = start
+        self.bind_widget(window, window.animation_clock)
         self.start_transition(window.animation_clock, FOLLOW_ARRIVAL)
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.window.isVisible()
 
     def apply_amount(self, amount: float) -> None:
         window = self.window
