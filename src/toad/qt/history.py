@@ -30,6 +30,7 @@ from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPoi
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QTextDocument
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
+from toad.client.pending import AwaitsFirstPage
 from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.core.projection import MroProjection
 from toad.link_opening import OpensLineLinks
@@ -54,6 +55,7 @@ from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
+from toad.qt.float_layer import QtFloatLayer
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar
 from toad.client.transcript_fragments import (
@@ -507,6 +509,24 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     def close(self) -> None:
         self.attached = False
         super().close()
+
+
+class QtWireHistory(AwaitsFirstPage, QtConversationHistory):
+    """A channel or direct conversation's history, as Textual's `WireHistory`: until its
+    first page is drawn the reader is told it is loading, floating over the window so
+    nothing moves when it goes."""
+
+    def __init__(self, window: QtHistoryWindow, view, app) -> None:
+        super().__init__(window, view, app)
+        self.waiting = QtFloatLayer(app.theme.color_scheme, app.renderer, window)
+        QTimer.singleShot(int(self.waiting.pending_delay * 1000), self.waiting, self.show_first_page)
+
+    def show_first_page(self) -> None:
+        if self.undrawn:
+            self.waiting.show_pending(self.first_page)
+
+    def first_page_drawn(self) -> None:
+        self.waiting.clear_pending(self.first_page)
 
 
 class QtHistoryNotifications(OneHistoryNotifications):

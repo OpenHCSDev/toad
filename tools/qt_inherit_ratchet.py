@@ -110,6 +110,7 @@ QT_ONLY = {
     'toad.qt.history.PreparedOnFill': "a pyqt-reactive RowFormatting that fills a QTextDocument only when Qt lays a row out; Textual draws line blocks, not documents",
     'toad.qt.main.EndRequest': "Qt 6's QEvent.Quit closes every window and leaves qasync's event loop inside one event; this event filter takes the request so the shared client shutdown runs on the loop first. Textual closes its client in App._close_all while its own loop still runs",
     'toad.qt.history.SourceTask': "an asyncio.Task on qasync's Qt event loop with the pager's wait() join; Textual runs workers",
+    'toad.qt.float_layer.QtNoticeCard': "one notice drawn as a Qt frame over the page; Textual draws the same notice with its framework's own toast (textual.widgets._toast), and the text, severity and seconds come from the shared host's notify",
     'toad.qt.host.ScreenWideWindow': "a Qt top-level window clamped to the Android screen's available width (screen less system bars)",
     'toad.qt.metrics.UiGap': 'Qt pixel spacing tokens; Textual spaces in cells through its CSS',
     'toad.qt.action_shortcuts.ActionKeys': "Qt has no binding map: it installs a QShortcut per action and sets its keys again when ui.key_mode or ui.keymap changes; Textual's App binds the same catalog keys through its BindingsMap and set_keymap",

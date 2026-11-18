@@ -21,6 +21,7 @@ from toad.native_style import (
 )
 from textual.events import Mount
 from textual import on
+from toad.client.pending import ThreadOpening
 
 
 class SplashText(EffectInContent, Animated[TextFrame], Static):
@@ -74,7 +75,7 @@ class ThreadLoading(
 ):
     """The splash while a thread attaches: its label swept into the theme's colours."""
 
-    LABEL = TEXT = "Loading thread and history…"
+    LABEL = TEXT = ThreadOpening.label
 
     @classmethod
     def initial_contents(cls, launch: AgentBinding) -> tuple[ThreadLoading, ...]:

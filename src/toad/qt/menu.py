@@ -12,56 +12,68 @@ from collections.abc import Callable, Iterable
 from functools import partial
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
-    QPushButton,
     QVBoxLayout,
     QWidget,
 )
 
 from toad.client.block_menu import BlockMenu
+from toad.client.input_modality import InputModality, KeyboardInput, TouchInput
 from toad.client.menu_entry import MenuEntry
 from toad.qt.metrics import UiGap
 
 
-class QtMenuRow(QWidget):
-    """One menu row: a bold key-display column on the left and a label/description
-    column that fills the rest. A click fires the entry's action. The whole row is
-    the clickable target, not just the text, so a fat-fingered tap on the phone still
-    counts as a selection."""
+def platform_input() -> type[InputModality]:
+    """Qt on Android is driven by touch; elsewhere by keys."""
+    return TouchInput if QGuiApplication.platformName() == "android" else KeyboardInput
 
-    def __init__(self, entry: MenuEntry, chosen: Callable[[MenuEntry], None],
+
+class QtMenuRow(QFrame):
+    """One menu row: a bold key column (when the menu's modality shows keys) and a label
+    column that fills the rest, with the description inline or on its own line as the
+    modality says. The whole row is the tap target, not just the text, so a fat-fingered
+    tap on the phone still counts; it is as tall as its wrapped text and never shorter than
+    the modality's tap target. A release inside the row runs the entry."""
+
+    def __init__(self, entry: MenuEntry, menu: QtMenu, chosen: Callable[[MenuEntry], None],
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
+        self.setObjectName("menu-row")
+        self.setStyleSheet("#menu-row:hover { background: palette(midlight); }")
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self._entry = entry
         self._chosen = chosen
-        self._button = QPushButton(self)
-        self._button.setFlat(True)
-        self._button.setMinimumHeight(44)
-        self._button.clicked.connect(self._fire)
-        outer = QHBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.setSpacing(0)
-        outer.addWidget(self._button)
-        # The button is the hit target; the two labels paint over it inside an
-        # inner layout so the row reads as [bold key] [label] without the button's
-        # own text getting in the way.
-        inner = QHBoxLayout(self._button)
-        inner.setContentsMargins(UiGap.dialog, UiGap.tight, UiGap.dialog, UiGap.tight)
-        inner.setSpacing(UiGap.dialog)
-        key = QLabel(entry.key_display, self._button)
-        key.setStyleSheet("font-weight: bold;")
-        key.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        inner.addWidget(key)
-        label = QLabel(BlockMenu.row_text(entry), self._button)
-        label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        inner.addWidget(label, 1)
+        self.setMinimumHeight(max(44, menu.input_modality.row_height))
+        row = QHBoxLayout(self)
+        row.setContentsMargins(UiGap.dialog, UiGap.tight, UiGap.dialog, UiGap.tight)
+        row.setSpacing(UiGap.dialog)
+        if keys := menu.row_keys(entry):
+            key = QLabel(keys, self)
+            key.setStyleSheet("font-weight: bold;")
+            key.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            row.addWidget(key)
+        text = QVBoxLayout()
+        text.setSpacing(0)
+        self.label = QLabel(menu.row_text(entry), self)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.label.setWordWrap(True)
+        text.addWidget(self.label)
+        if entry.description and not menu.input_modality.describes_inline():
+            description = QLabel(entry.description, self)
+            description.setWordWrap(True)
+            description.setEnabled(False)  # the theme's muted text, as a secondary line
+            text.addWidget(description)
+        row.addLayout(text, 1)
 
-    def _fire(self) -> None:
-        self._chosen(self._entry)
+    def mouseReleaseEvent(self, event) -> None:  # noqa: N802 - Qt virtual method name
+        if self.rect().contains(event.position().toPoint()):
+            self._chosen(self._entry)
+        super().mouseReleaseEvent(event)
 
 
 class QtMenu(BlockMenu, QFrame):
@@ -74,6 +86,7 @@ class QtMenu(BlockMenu, QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
+        self.input_modality = platform_input()
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
         self._layout.setSpacing(UiGap.tight)
@@ -88,7 +101,7 @@ class QtMenu(BlockMenu, QFrame):
             if widget is not None:
                 widget.deleteLater()
         for entry in entries:
-            self._layout.addWidget(QtMenuRow(entry, self._chose, parent=self))
+            self._layout.addWidget(QtMenuRow(entry, self, self._chose, parent=self))
         self.show()
 
     def _chose(self, entry: MenuEntry) -> None:

@@ -26,6 +26,7 @@ from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from formbridge.operations import ExclusiveKind, OperationKind
 
+from toad.client.pending import ActionRunning, awaited
 from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import AgentNotFound, read_agents
 from toad.core import events as core_events
@@ -51,14 +52,17 @@ from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 
 
+@awaited(ActionRunning)
 class DirectMessagesOpen(OperationKind):
     """Opens a direct-message conversation through the navigating view."""
 
 
+@awaited(ActionRunning)
 class ChannelsReveal(OperationKind):
     """Shows the channels sidebar, opening the newest session first when none is selected."""
 
 
+@awaited(ActionRunning)
 class NewThreadForm(OperationKind, ExclusiveKind):
     """Prepares and opens the new-thread form; a newer request supersedes one running."""
 

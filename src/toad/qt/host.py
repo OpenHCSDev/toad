@@ -15,11 +15,11 @@ from PySide6.QtWidgets import QApplication, QLayout
 from pyqt_reactive.core.deferred_callback import DeferredCallback, RepeatingCallback
 from pyqt_reactive.services.ui_thread_dispatch import UiThreadDispatcher
 from pyqt_reactive.theming import ColorScheme, StatusColorRole, ThemeManager
-from pyqt_reactive.widgets.status_line import StatusLine
 from ui_theme.scheme import ColourScheme
 
 from toad.client.commands import CommandRefused
 from toad.client.host import CommsHost, Severity, post_crash_to_sink
+from toad.client.pending import PendingWork
 from toad.work_preparation import PreparationRuntime
 
 
@@ -48,9 +48,10 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
     the clipboard), and its constructor continues to the widget's. Posting onto the UI thread
     is pyqt-reactive's dispatcher, which this host is; timers are its owned callbacks,
     parented to the application; the theme is the shared ui_theme scheme as pyqt-reactive's
-    ColorScheme, applied once to the whole QApplication; notices go to its status line, which
-    puts each away after the contract's notice_seconds, and an error notice is saved first.
-    Dialogs open over whichever window is active.
+    ColorScheme, applied once to the whole QApplication; notices float over the pages in the
+    window's float layer (`QtFloatLayer`), each put away after the contract's notice_seconds,
+    and an error notice is saved first. An operation the reader waits on shows its work in
+    that layer while it runs. Dialogs open over whichever window is active.
     """
 
     def __init__(self, project: Checkout, preparation: PreparationRuntime, scheme: ColourScheme) -> None:
@@ -58,7 +59,6 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
         self.preparation = preparation
         self.theme = ThemeManager(ColorScheme.from_theme(scheme))
         self.theme.apply_color_scheme(self.theme.color_scheme)
-        self.status_line = StatusLine(self.theme.color_scheme, self.notice_seconds)
         self.operations: defaultdict[type[OperationKind], set[asyncio.Future[None]]] = defaultdict(set)
         # The loop qasync runs on Qt's thread. Asked from a worker thread (an observation
         # adopted off the loop, as a bus switch adopts one), get_running_loop has none.
@@ -77,7 +77,8 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
     def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
         if kind.exclusive:
             self.cancel_operations(kind)
-        running = asyncio.ensure_future(task())
+        running = asyncio.ensure_future(
+            self.float_layer.while_pending(PendingWork.for_operation(kind), task()))
         self.operations[kind].add(running)
         running.add_done_callback(self.operations[kind].discard)
         running.add_done_callback(self.operation_finished)
@@ -112,11 +113,11 @@ class QtCommsHost(CommsHost, UiThreadDispatcher):
     def notify(self, message: str, *, title: str = "",
                severity: Severity = "information",
                markup: bool = True, sound: str | None = None) -> None:
-        """Qt paints every notice on the status line, coloured by severity. The shared
-        `show_info`/`show_warning`/`show_error` on CommsHost dispatch here, and so does
-        anything calling `self.notify(...)` directly."""
+        """Qt floats every notice over the pages, coloured by severity, as Textual floats its
+        toasts; the content under it never moves. The shared `show_info`/`show_warning`/
+        `show_error` on CommsHost dispatch here, and so does anything calling `self.notify`."""
         text = f"{title}: {message}" if title else message
-        self.status_line.show_status(text, _SEVERITY_TO_STATUS_COLOR[severity])
+        self.float_layer.post(text, _SEVERITY_TO_STATUS_COLOR[severity], self.notice_seconds)
 
     def log_error(self, text: str) -> None:
         qCritical(text)

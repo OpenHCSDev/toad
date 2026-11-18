@@ -11,6 +11,7 @@ from textual.reactive import var
 from textual.strip import Strip
 from textual.widgets import Static
 
+from toad.client.pending import AwaitsFirstPage
 from toad.block_navigation import ConversationBlock
 from toad.client.fragments import EvidencedFragment, MembershipText, WireMessage
 from toad.client.history import (
@@ -92,7 +93,7 @@ class ReadTranscriptPage(TranscriptPageView):
 class HistoryLoading(ConversationBlock, Static):
     """Channel history loading is an atomic conversation block."""
 
-class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHistory, ConversationHistory[ViewT]):
+class WireHistory[ViewT: WireConversationView](AwaitsFirstPage, VisibleReadMarking, ReadMarkedHistory, ConversationHistory[ViewT]):
     """The line history of a channel or direct conversation.
 
     Paging, preparation, trimming and the reader's position are the line
@@ -125,9 +126,8 @@ class WireHistory[ViewT: WireConversationView](VisibleReadMarking, ReadMarkedHis
     def watch_reading(self, _reading: bool) -> None:
         self.view.sync_working()
 
-    def rows_published(self) -> None:
-        super().rows_published()
-        if not self.undrawn and (placeholder := self.view.query_one_optional(HistoryLoading)):
+    def first_page_drawn(self) -> None:
+        if placeholder := self.view.query_one_optional(HistoryLoading):
             placeholder.remove()
 
 

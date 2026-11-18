@@ -69,7 +69,8 @@ class MenuOption(FillWidth, SidePadding, AutoHeight, SelectionListItem, ToadNode
         yield MenuDescription(self.command.description)
 
     def refresh_key(self) -> None:
-        self.query_one(MenuKey).update(BlockMenu.command_keys(self.command, self.app.settings) or " ")
+        keys = BlockMenu.command_keys(self.command, self.app.settings)
+        self.query_one(MenuKey).update(Menu.input_modality.menu_keys(keys) or " ")
 
 
 class Menu(

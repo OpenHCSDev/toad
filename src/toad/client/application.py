@@ -26,6 +26,7 @@ from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, CommsTail
 from formbridge.operations import ExclusiveKind, OperationKind
 from objectstate import ObjectState, ObjectStateRegistry
 
+from toad.client.pending import BusConnecting, awaited
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
 from toad.client import bus_connect
 from toad.client.bus_selection import (
@@ -63,6 +64,7 @@ class SettingsKept(OperationKind, ExclusiveKind):
     a newer change's write replaces one still running."""
 
 
+@awaited(BusConnecting)
 class BusSwitch(OperationKind):
     """Switches the application onto a bus the reader chose."""
 

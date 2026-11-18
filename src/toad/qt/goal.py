@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.client.pending import ActionRunning, awaited
 from toad.client.application import ClientApplication
 from toad.client.connection import CoordinationAccess
 from toad.client.goal_source import CommsGoalSource
@@ -57,6 +58,7 @@ from toad.qt.metrics import UiGap
 from ui_theme.scheme import SecondaryColour
 
 
+@awaited(ActionRunning)
 class GoalPress(OperationKind):
     """One goal button press: read the owner, then apply the button."""
 

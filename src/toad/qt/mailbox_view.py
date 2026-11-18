@@ -22,7 +22,6 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
-from pyqt_reactive.theming import StatusColorRole
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
@@ -221,6 +220,4 @@ class QtMailboxView(QtThreadView, SessionScope):
         self.identity_line.setText(
             f"Mailbox {self.thread_incarnation.name} failed: {error}"
         )
-        self.app.status_line.show_status(
-            f"Mailbox open failed: {error}", StatusColorRole.ERROR
-        )
+        self.app.show_error(error, "Mailbox open failed")

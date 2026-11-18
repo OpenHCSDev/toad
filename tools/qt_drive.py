@@ -73,7 +73,10 @@ from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.client.bus_submission import ConversationSubmission
 from toad.setting_choices import CenterColumnAlignment
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
-from toad.qt.window import ConversationRow, QtToadApp
+from toad.client.input_modality import KeyboardInput, TouchInput
+from toad.qt.float_layer import QtNoticeCard
+from toad.qt.menu import QtMenuRow
+from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
 from toad.live_output import ResponseStream, ThoughtStream
@@ -771,7 +774,7 @@ class MenuScenario(Scenario):
         app = self.app
         app.menu.click()
         await asyncio.sleep(0.3)
-        self.report("1-menu", actions=[choice.text() for choice in app.menu_panel.findChildren(QPushButton)])
+        self.report("1-menu", actions=[row.label.text() for row in app.menu_panel.findChildren(QtMenuRow)])
         app.menu_panel.hide()
         for command, label in ApplicationAction.menu(app):
             if type(command) is QuitAction:
@@ -785,7 +788,97 @@ class MenuScenario(Scenario):
                 traceback.print_exc()
         app.show_warning("this drive's own notice; nothing failed", "Drive")
         await asyncio.sleep(0.3)
-        self.report("3-notice", notice=app.status_line.text(), shown=app.status_line.isVisible())
+        self.report("3-notice", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
+
+
+class FeedbackScenario(Scenario):
+    summary = ("the reader's feedback at a Pixel 8a's width: the wait a slow thread open shows in place, "
+               "#comms' first page loading, an operation's wait floating over the page, a notice that "
+               "floats without moving the history, the menu under touch (no keys, tap-high rows), "
+               "then the menu under keys at 790px")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.listed()
+        await self.expand("Threads", "#comms")
+        # 1. A slow open: the shared reader is held back a second, as a slow bus would hold it.
+        reader = app.navigation_reader
+        real_read = reader.read
+
+        async def slow_read(request):
+            await asyncio.sleep(1.2)
+            return await real_read(request)
+
+        reader.read = slow_read
+        try:
+            threads = self.thread_rows()
+            app.open_row(next((row for row in threads if row.target.name == "scratch-live-pipeline"), threads[0]))
+            await until(lambda: isinstance(self.page, QtOpeningSessionView), "opening view", tenths=50)
+            await asyncio.sleep(0.5)
+            opening = self.page
+            self.report("1-opening", shown=opening.pending.isVisible(), words=opening.pending.label.text(),
+                        sweeping=opening.pending.sweep.working)
+            await until(lambda: not isinstance(self.page, QtOpeningSessionView), "opened", tenths=150)
+        finally:
+            reader.read = real_read
+        await asyncio.sleep(1.0)
+        self.report("2-opened", waiting=app.float_layer.isVisible())
+        # 2. #comms' first page: its wait floats over the history until the first rows are drawn.
+        app.open_row(self.channel_row("#comms"))
+        seen: list[tuple[bool, str]] = []
+        for _ in range(60):
+            await asyncio.sleep(0.05)
+            if isinstance(self.page, ConversationView):
+                pending = self.page.messages.history.waiting.pending
+                seen.append((pending.isVisible(), pending.label.text()))
+                if pending.isVisible():
+                    self.report("3-first-page", words=pending.label.text())
+                    break
+        await until(lambda: self.page.messages.model_rows.rowCount(), "#comms rows", tenths=150)
+        await asyncio.sleep(1.0)
+        history = self.page.messages.history
+        self.report("4-first-page-drawn", seen_waiting=any(shown for shown, _ in seen),
+                    waiting_now=history.waiting.isVisible())
+        # 3. An operation the reader waits on floats its wait over the page.
+        app.run_operation(MenuActionRun, lambda: asyncio.sleep(1.2))
+        await asyncio.sleep(0.5)
+        self.report("5-operation", shown=app.float_layer.isVisible(),
+                    words=app.float_layer.pending.label.text())
+        await asyncio.sleep(1.2)
+        self.report("6-operation-done", shown=app.float_layer.isVisible())
+        # 4. A notice floats: the history's first row stays where it was.
+        view = self.page.messages
+
+        def first_row_y() -> tuple[int, int, int]:
+            """Where the history's viewport sits in the window, its height, and how far it is
+            scrolled: a notice in the page's layout would move or shrink it."""
+            port = view.viewport()
+            return port.mapTo(app, QPoint(0, 0)).y(), port.height(), view.verticalScrollBar().value()
+
+        before = first_row_y()
+        app.show_error("drive's forced refusal; nothing failed", "Drive")
+        await asyncio.sleep(0.3)
+        after = first_row_y()
+        self.report("7-notice", notices=app.float_layer.shown_notices(), row_y_before=before,
+                    row_y_after=after, moved=before != after)
+        if before != after:
+            raise AssertionError(f"the notice moved the history: {before} -> {after}")
+        app.float_layer.findChild(QtNoticeCard).dismiss()
+        await asyncio.sleep(0.3)
+        # 5. The menu under touch, then under keys at a desktop width.
+        for step, modality, width in (("8-menu-touch", TouchInput, 412), ("9-menu-keys", KeyboardInput, 790)):
+            app.resize(width, 915)
+            app.menu_panel.input_modality = modality
+            app.menu_panel.hide()
+            app.menu.click()
+            await asyncio.sleep(0.4)
+            rows = app.menu_panel.findChildren(QtMenuRow)
+            keys = [label.text() for row in rows for label in row.findChildren(QLabel)
+                    if "bold" in label.styleSheet()]
+            self.report(step, rows=len(rows), keys_shown=keys[:4],
+                        least_height=min(row.height() for row in rows) if rows else 0)
+            app.menu_panel.hide()
 
 
 class ShippedScenario(Scenario):
@@ -943,7 +1036,7 @@ class ComposerScenario(Scenario):
         await until(lambda: composer.failure.isVisible(), "failure", tenths=100)
         await asyncio.sleep(0.5)
         self.report("6-failed", failure=composer.failure.text(), draft=composer.text,
-                    notice=app.status_line.text() if app.status_line.isVisible() else "")
+                    notices=app.float_layer.shown_notices())
 
 
 class LiveTurnScenario(Scenario):
@@ -1011,9 +1104,9 @@ class CommandScenario(Scenario):
         self.report("2-copied", clipboard=QApplication.clipboard().text(), draft=composer.text,
                     sending=composer.submitting.text())
         await self.send("/copy now")
-        await until(lambda: app.status_line.isVisible() and "current target" in app.status_line.text(),
+        await until(lambda: any("current target" in notice for notice in app.float_layer.shown_notices()),
                     "refused", tenths=100)
-        self.report("3-refused", notice=app.status_line.text(), shown=app.status_line.isVisible())
+        self.report("3-refused", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
         await self.open(self.channel_row("#comms"), "#comms")
         await self.send("/rename-tag")
         await until(self.forms, "form", tenths=150)
@@ -1029,7 +1122,7 @@ class CommandScenario(Scenario):
         form.form.finish()
         await asyncio.sleep(1.0)
         self.report("5-filled", value=form.arguments(), confirmation=form.confirmation_text.text(),
-                    confirmable=form.confirmed.isVisible(), notice=app.status_line.text())
+                    confirmable=form.confirmed.isVisible(), notices=app.float_layer.shown_notices())
         dialog.grab().save(str(self.out / f"{type(self).declared_name}-5-filled.png"))
         dialog.reject()
         answer = await form.answer
