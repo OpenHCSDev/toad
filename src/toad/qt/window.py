@@ -1262,8 +1262,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         # Textual's `CommsChatView.compose`: the flash under the window, the sweep painting
         # `working()` (an idle turn, the peer's observed row, or the first page loading),
         # the prompt (its info bar carries the thread status), then who is here.
-        self.composer = self.conversation.prompt(self)
-        self.composer.labelled(label)
         self.activity = tuple(self.conversation.compose_activity(self))
         # The inline consent prompt ("did you mean it?", edit/clear confirmations) — hidden
         # until the conversation asks, mounted below the composer so the picks sit where
@@ -1275,7 +1273,8 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         layout.addWidget(self.messages, 1)
         layout.addWidget(self.feedback)
         layout.addWidget(self.agent_activity)
-        layout.addWidget(self.composer)
+        self.reserve_composer(layout, lambda: self.conversation.prompt(self),
+                              lambda composer: composer.labelled(label))
         layout.addWidget(self.question)
         # Under the prompt, not over it: who is here is reference (Textual's
         # `CommsChatView.compose` yields the kind's activity after the prompt).
@@ -1306,7 +1305,8 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
     def close_core_events(self) -> None:
         """The shared close (its history lets go of the wire), then the receipt stops following."""
         super().close_core_events()
-        self.composer.receipt.stop()
+        if self.composer is not None:
+            self.composer.receipt.stop()
 
     async def retire_presentation(self) -> None:
         """The history lets go of its page reader; its rows go with the widgets."""
@@ -1336,13 +1336,14 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         finally:
             self.content_ready.set()
         self.submissions.settle()
-        self.composer.receipt.follow(str(source.root), next((
+        followed = (str(source.root), next((
             references for fragment in reversed(history.fragments) if (references := fragment.sent_references)), ()),
             history.pages[-1].prepared.page.source.selection.notification_identity)
+        self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
         self.refresh_thread_status()
         self.sync_working()
         label = self.conversation.label(source.references())
-        self.composer.labelled(label)
+        self.on_composer("label", lambda composer: composer.labelled(label))
         read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
         await self.refresh_composer(read_only)
         self.thread_status = await self.conversation.status_text(source, read_only=read_only)
@@ -1377,8 +1378,8 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
 
     async def update_channel_mentions(self, source: ReferencedCore) -> None:
         answer = await self.app.coordination_access.current_sidebar()
-        self.composer.set_mention_candidates(
-            await self.app.preparation.run_thread(self.conversation.mention_candidates, answer))
+        candidates = await self.app.preparation.run_thread(self.conversation.mention_candidates, answer)
+        self.on_composer("mentions", lambda composer: composer.set_mention_candidates(candidates))
 
     # Commands the composer offers after a /
 

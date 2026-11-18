@@ -142,8 +142,7 @@ class QtAcpSessionView(
         """The identity line and composer name the agent, as Textual's info bar does."""
         self.identity_line.setText(f"ACP session #{self._session_pk} · {text}")
         self._composer_label = text
-        if self.composer is not None:
-            self.composer.labelled(text)
+        self.on_composer("label", lambda composer: composer.labelled(text))
 
     @property
     def agent_title(self) -> str:
