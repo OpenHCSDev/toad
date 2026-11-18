@@ -32,8 +32,8 @@ async def choose(ui, invocation, mode=Standard):
     screen.query_one(KeymapSearch).value = invocation.key_title()
     await ui.step()
     table = screen.query_one(DataTable)
-    table.move_cursor(row=screen.visible_declarations.index(KeymapRow.of(invocation, mode).declaration),
-                      column=screen.modes.index(mode) + 1)
+    table.move_cursor(row=screen.state.visible_declarations.index(KeymapRow.of(invocation, mode).declaration),
+                      column=screen.state.modes.index(mode) + 1)
     table.focus()
     await ui.press("enter")
 
@@ -119,7 +119,7 @@ async def test_previous_focus_keeps_application_and_input_invocations_in_their_o
         }
         await ui.press("f1")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the mixed-mode keymap menu")
-        assert expected <= set(app.screen.visible_declarations)
+        assert expected <= set(app.screen.state.visible_declarations)
         assert search.value == "keep"
 
 
@@ -132,9 +132,9 @@ async def test_the_menu_discovers_and_remaps_a_native_callable_with_both_aliases
         row = KeymapRow.of(invocation, Standard)
         await ui.press("f1")
         await ui.until(lambda: isinstance(ui.app.screen, KeymapScreen), why="the native callable in the menu")
-        catalog = ui.app.screen.catalog
+        catalog = ui.app.screen.state.catalog
         assert catalog.defaults(row) == ("f8", "f9")
-        assert len(ui.app.screen.modes) == 4
+        assert len(ui.app.screen.state.modes) == 4
         await choose(ui, invocation)
         ui.app.screen.query_one(KeymapKeys).value = "f6"
         await ui.pilot.click(KeymapApply)
