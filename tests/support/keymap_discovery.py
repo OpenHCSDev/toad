@@ -12,8 +12,8 @@ from toad.keymap import KeymapCatalog, KeymapRow
 assert "toad.screens.welcome" not in sys.modules
 catalog = KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
 assert "toad.screens.welcome" in sys.modules
-from toad.screens.welcome import NewSessionAction  # noqa: E402 - discovery imported it
+from toad.screens.welcome import WelcomeStartSession  # noqa: E402 - discovery imported it
 
-row = KeymapRow.of(NewSessionAction(), Standard)
-assert catalog.require(row.declaration).key_title() == NewSessionAction().key_title()
-assert catalog.defaults(row) == NewSessionAction.keys[Standard.binding_mode()]
+row = KeymapRow.of(WelcomeStartSession(), Standard)
+assert catalog.require(row.declaration).key_title() == WelcomeStartSession().key_title()
+assert catalog.defaults(row) == WelcomeStartSession.keys[Standard.binding_mode()]

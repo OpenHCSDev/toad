@@ -2,7 +2,8 @@
 import pytest
 from textual.widget import Widget
 
-from toad.application_actions import TeamAction, HelpQuitAction, KeymapAction
+from toad.application_actions import HelpQuitAction
+from toad.client.application_actions import KeymapAction, TeamAction
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.keymap import Keymap, KeymapCatalog, KeymapRow
 from toad.preferences import SETTINGS, SavedSettings
@@ -72,3 +73,29 @@ def test_hidden_system_bindings_keep_their_valid_saved_references():
     settings = SavedSettings()
     settings.set(SETTINGS.ui.keymap.bindings, keymap.bindings)
     assert SavedSettings(settings.document()).current.ui.keymap == keymap
+
+
+def test_a_saved_keymap_follows_its_declaration_when_the_class_moves_module():
+    # KeymapAction lived in toad.application_actions until #2001 hoisted it to toad.client;
+    # a toad.json written before that names the old module and must keep its keys.
+    moved = {"ui": {"keymap": {"bindings": [
+        {"declaration": "toad.application_actions.KeymapAction", "mode": "standard", "keys": ["f1"]},
+    ]}}}
+    settings = SavedSettings(moved)
+    (remap,) = settings.current.ui.keymap.bindings
+    assert remap.declaration == KeymapAction.identity() and remap.keys == ("f1",)
+    # What is written back names the declaration, not its module, so the next move is harmless.
+    assert settings.document()["ui"]["keymap"]["bindings"][0]["declaration"] == "KeymapAction"
+    assert SavedSettings(settings.document()).current.ui.keymap == settings.current.ui.keymap
+
+
+def test_an_unknown_or_ambiguous_saved_declaration_is_refused_by_name():
+    catalog = KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
+    with pytest.raises(ValueError, match="Unknown keyboard invocation 'toad.nowhere.Nonexistent'"):
+        catalog.resolve("toad.nowhere.Nonexistent")
+    # Two declarations are called SubmitAction: the bare name names neither and is never guessed.
+    with pytest.raises(ValueError, match="could name any of"):
+        catalog.resolve("SubmitAction")
+    assert catalog.resolve("prompt_actions.SubmitAction").endswith("prompt_actions.SubmitAction")
+    for reference in catalog.invocations:
+        assert catalog.resolve(catalog.spelling(reference)) == reference

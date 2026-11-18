@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from functools import cache, cached_property
@@ -45,21 +46,63 @@ class KeymapRefused(ValueError):
 
 
 class KeyInvocationId(NominalText):
-    """A saved reference to one concrete command, including its parameters."""
+    """One concrete command, including its parameters, as its declaration names it now:
+    `module.qualname`, with `:`-joined qualified parts for parameterised bindings."""
 
 
 class KeyInvocationSpelling(NominalSpelling[KeyInvocationId]):
+    """A saved keymap names a command by its declaration, not by the module it lives in:
+    moving a class between modules must not unbind a user's keys. The catalog owns both
+    directions (`KeymapCatalog.resolve` / `KeymapCatalog.spelling`)."""
+
     spelling = re.compile(r".+")
 
     @classmethod
     def from_text(cls, value: str) -> KeyInvocationId:
-        reference = KeyInvocationId(value)
-        KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode))).require(reference)
-        return reference
+        return KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode))).resolve(value)
 
     @classmethod
     def encode(cls, value: object) -> str:
-        return str(value)
+        return KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode))).spelling(
+            KeyInvocationId(str(value)))
+
+
+@dataclass(frozen=True)
+class SpelledIdentity:
+    """A command identity read as its `:`-joined dotted parts, each split at the dots. The
+    part after a part's module is its qualname; comparing tails of parts is how a saved
+    spelling finds its declaration wherever that declaration's module now is."""
+
+    parts: tuple[tuple[str, ...], ...]
+
+    @classmethod
+    def of(cls, text: str) -> SpelledIdentity:
+        return cls(tuple(tuple(part.split(".")) for part in text.split(":")))
+
+    def qualname_lengths(self) -> tuple[int, ...]:
+        """How many trailing names of each part are its qualname: everything after the longest
+        prefix that is an imported module (a catalog identity's declarations are imported)."""
+        return tuple(next((len(part) - cut for cut in range(len(part) - 1, 0, -1)
+                           if ".".join(part[:cut]) in sys.modules), len(part))
+                     for part in self.parts)
+
+    def shared_tail(self, other: SpelledIdentity, minimum: tuple[int, ...]) -> int | None:
+        """Total trailing names this spelling shares with `other`, part by part; None unless
+        every part shares at least its `minimum` (the other's qualname)."""
+        if len(self.parts) != len(other.parts):
+            return None
+        total = 0
+        for mine, theirs, least in zip(self.parts, other.parts, minimum):
+            shared = 0
+            while shared < min(len(mine), len(theirs)) and mine[-1 - shared] == theirs[-1 - shared]:
+                shared += 1
+            if shared < least:
+                return None
+            total += shared
+        return total
+
+    def tail(self, lengths: tuple[int, ...]) -> str:
+        return ":".join(".".join(part[-length:]) for part, length in zip(self.parts, lengths))
 
 
 @dataclass(frozen=True)
@@ -196,6 +239,47 @@ class KeymapCatalog:
             return self.invocations[reference]
         except KeyError:
             raise KeymapRefused(f"Unknown keyboard invocation {reference!r}") from None
+
+    @cached_property
+    def spelled(self) -> Mapping[KeyInvocationId, tuple[SpelledIdentity, tuple[int, ...]]]:
+        """Each declared identity split into names, with each part's qualname length."""
+        return MappingProxyType({reference: (identity, identity.qualname_lengths())
+                                 for reference in self.invocations
+                                 for identity in (SpelledIdentity.of(reference),)})
+
+    def resolve(self, saved: str) -> KeyInvocationId:
+        """The declared command a saved spelling names: the one sharing the longest tail with
+        it, covering at least its whole qualname. A module path that moved, or the short
+        spelling `spelling` writes, still finds its command; a tie or no match refuses."""
+        wanted = SpelledIdentity.of(saved)
+        scored = [(shared, reference) for reference, (identity, least) in self.spelled.items()
+                  for shared in (wanted.shared_tail(identity, least),) if shared is not None]
+        if not scored:
+            raise KeymapRefused(f"Unknown keyboard invocation {saved!r}")
+        best = max(shared for shared, _ in scored)
+        chosen = [reference for shared, reference in scored if shared == best]
+        if len(chosen) > 1:
+            raise KeymapRefused(f"Keyboard invocation {saved!r} could name any of "
+                                f"{', '.join(sorted(chosen))}; spell its module too")
+        return chosen[0]
+
+    def spelling(self, reference: KeyInvocationId) -> str:
+        """The shortest tail of the identity that `resolve` maps back to it alone: the bare
+        qualname unless another declaration shares it, then with its module's last names."""
+        self.require(reference)
+        identity, least = self.spelled[reference]
+        lengths = least
+        while True:
+            text = identity.tail(lengths)
+            try:
+                if self.resolve(text) == reference:
+                    return text
+            except KeymapRefused:
+                pass
+            grown = tuple(min(length + 1, len(part)) for length, part in zip(lengths, identity.parts))
+            if grown == lengths:
+                return str(reference)
+            lengths = grown
 
     def defaults(self, row: KeymapRow) -> tuple[str, ...]:
         return self.default_keys[row.declaration, row.mode]
