@@ -96,7 +96,7 @@ class QtPathSearch(ProjectPathSearch, QDialog):
 
 
 def open_path_search(parent: QWidget, composer: MessagePromptComposer, root: Path, run: Callable) -> QtPathSearch:
-    search = QtPathSearch(parent, root, lambda path: read_picked(QUrl.fromLocalFile(str(path)), composer), run)
+    search = QtPathSearch(parent, root, lambda path: run(FileSearch, lambda: composer.attach_path(path)), run)
     search.setWindowModality(Qt.WindowModality.WindowModal)
     search.open()
     return search

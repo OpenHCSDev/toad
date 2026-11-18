@@ -52,6 +52,7 @@ from toad.client.notification_status import (
 from toad.client.subscribers import NotificationSubscriber
 from toad.prompt_actions import (
     AttachFileAction,
+    MessageAction,
     NewlineAction,
     PromptAction,
     SubmitAction,
@@ -309,7 +310,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     # own .apply, which expects a Textual `PromptTextArea`) lets both backends consume the
     # same key declarations without Qt dragging Textual's PromptSubmission chassis. A kind
     # of composer adds the actions only it answers.
-    action_methods: ClassVar[tuple[tuple[type[PromptAction], Callable[..., None]], ...]]
+    action_methods: ClassVar[tuple[tuple[type[PromptAction | MessageAction], Callable[..., None]], ...]]
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
