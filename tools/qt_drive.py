@@ -958,6 +958,10 @@ class ShippedScenario(Scenario):
                 combination = sequence[0]
                 QTest.keyClick(target, combination.key(), combination.keyboardModifiers())
                 await asyncio.sleep(0.3)
+                # A key whose action opens a dialog (Attach's file picker) leaves it open; it
+                # is closed unanswered, so the next key reaches the view again.
+                self.close_dialogs()
+                await asyncio.sleep(0.1)
                 ran = [type(action).__name__ for action in keys.ran]
                 results.append(f"{where}:{spelling}->{'+'.join(ran) or 'none available'}")
                 if ran != expected:
