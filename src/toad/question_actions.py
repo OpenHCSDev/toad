@@ -51,6 +51,8 @@ class SelectionAction(QuestionAction):
 class SelectAction(QuestionAction):
     """Answer with the selected option."""
 
+    saved_key = "QuestionSelectAction"  # toad.widget_actions.SelectAction is saved as SelectAction
+
     keys = {TextEntryMode: ("enter",)}
     show = True
 

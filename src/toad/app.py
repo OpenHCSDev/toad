@@ -526,6 +526,8 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         # The terminal driver is running now, so ANSI themes can query its colours.
         await self.colours.mount()
         self.start_client()
+        from toad.keymap import report_broken_keymap
+        report_broken_keymap(self)
         # Background threads (Core reads, preparation) give the GIL back to
         # the UI thread within 1 ms instead of the default 5 ms.
         sys.setswitchinterval(0.001)

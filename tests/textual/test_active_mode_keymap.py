@@ -3,7 +3,7 @@
 import pytest
 from textual.widgets import Input
 
-from toad.application_actions import TeamAction
+from toad.client.application_actions import TeamAction
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.neovim_editing import NeovimEditing
 from toad.preferences import SETTINGS
