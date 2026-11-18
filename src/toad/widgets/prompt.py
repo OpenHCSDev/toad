@@ -1108,10 +1108,6 @@ class MessagePrompt(MessagePromptComposer, Prompt):
         super().__init__(**kwargs)
 
     @property
-    def input_decision(self) -> InputDecision:
-        return InputAccepted()
-
-    @property
     def supports_completion(self) -> bool:
         return False
 

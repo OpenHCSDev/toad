@@ -15,6 +15,7 @@ from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_scope import OneGoal
 from agent_comms.planning.goals import Goal
 from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.registry.thread_presentation import ThreadOwnerBinding
 from agent_comms.transport.owner_connection import CapturedOwner
 from agent_comms.transport.runtime_request import RuntimeRequest
 from agent_comms.transport.runtime_requests import (
@@ -25,6 +26,7 @@ from agent_comms.transport.runtime_requests import (
 from agent_comms.transport.tools.reads import OwnerGoalRead
 from agent_comms.ui_model.observation import ReadOwnerOperation
 
+from toad.agent_binding import NoAgentConnection
 from toad.goal_controls import GoalSource
 
 
@@ -37,7 +39,21 @@ class CommsGoalSource(GoalSource):
         self.owner = owner
 
     async def get_goal_snapshot(self) -> GoalSnapshotReply:
-        """The owner's current goal snapshot (goal + execution), read as the TUI reads it."""
+        """The owner's current goal snapshot (goal + execution), read as the TUI reads it.
+
+        The registry's owner binding selects the reader, as it selects every owner read: a
+        thread with a live native owner is read over comms; one with none (a CLI inbox, or an
+        owner that exited) has no owner to ask, so it answers the no-owner goal the TUI shows
+        for a view without an agent instead of a request Core can only refuse."""
+        return await self.owner_binding().select_read(
+            NoAgentConnection().get_goal_snapshot, self.read_owner_goal)()
+
+    def owner_binding(self) -> ThreadOwnerBinding:
+        """The registry lease of this goal's thread, as the observed thread rows present it."""
+        rows = self.app.coordination_access.observation.observed().sidebar.threads.rows
+        return rows[self.owner.name].presentation.binding
+
+    async def read_owner_goal(self) -> GoalSnapshotReply:
         root = str(self.app.source().root)
         return await self.app.coordination_access.transcripts.read(
             ReadOwnerOperation(root, self.owner, operation=OwnerGoalRead()))

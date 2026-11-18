@@ -36,7 +36,7 @@ from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.commands import ConversationCommands
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
-from toad.client.prompt_composer import MessagePromptComposer, PromptSettingEffects
+from toad.client.prompt_composer import MessagePromptComposer, PromptComposer, PromptSettingEffects
 from toad.client.condensed_path import home_relative
 from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -291,14 +291,15 @@ class ComposerEditor(QPlainTextEdit):
         super().keyPressEvent(event)
 
 
-class Composer(PromptSettingEffects, MessagePromptComposer, MentionEditor, SubmitsContract, DismissibleContract, QWidget,
+class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContract, DismissibleContract, QWidget,
                metaclass=PyQtWidgetMeta):
-    """A conversation's composer, Textual's message prompt drawn natively: the offer list,
+    """A conversation's composer, Textual's prompt drawn natively: the offer list,
     the queue summary and delivery controls, the framed ``❯`` editor, then its info bar
     and what is still submitting, the last send's failure and your last message's delivery.
 
-    `MessagePromptComposer` (shared with Textual's `MessagePrompt`) owns the submission
-    owner, the queue answers, the leading glyph and how a returned draft rejoins; this
+    `PromptComposer` (shared with Textual's `Prompt`) owns the submission owner, the
+    queue answers, the leading glyph and how a returned draft rejoins; the message
+    composers add `MessagePromptComposer` as Textual's `MessagePrompt` does. This
     class makes the Qt calls. Enter sends (`SubmitAction`), as in the TUI. A touch keyboard's
     Enter is committed as a newline in a multi-line field, so the frame also carries the same
     action as a button: its label is `SubmitAction.title` and a tap runs `submit`, the method
@@ -502,7 +503,7 @@ class Composer(PromptSettingEffects, MessagePromptComposer, MentionEditor, Submi
         """What `SubmitNowAction` (Ctrl+Enter, Ctrl+Y) calls: the typed text, or with an
         empty prompt the held queue, is sent ahead (`UserInputSubmitted(immediate=True)`;
         the backend's `QueueNowInputSubmission` flushes an empty immediate submit)."""
-        if self.text.strip() or self.holds_input:
+        if self.offers_send_now:
             self.send(SubmitNowAction())
 
     def _insert_newline(self) -> None:
@@ -572,11 +573,11 @@ class Composer(PromptSettingEffects, MessagePromptComposer, MentionEditor, Submi
         """The view's label changed; a channel's composer keeps the placeholder its kind gave it."""
 
 
-class ChannelComposer(Composer):
+class ChannelComposer(MessagePromptComposer, Composer):
     """A channel's composer, which offers its members after an @."""
 
 
-class MessageComposer(Composer):
+class MessageComposer(MessagePromptComposer, Composer):
     """A direct message's composer: it names its peer, as Textual's MessagePrompt does."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer) -> None:
@@ -586,13 +587,18 @@ class MessageComposer(Composer):
         self.editor.setPlaceholderText(f"Message {label or 'thread'}")
 
 
-class ProjectComposer(MessageComposer):
-    """A thread view's composer shows its project in the info bar, as Textual's
-    `Prompt`/`MailboxPrompt.compose_agent_info` yield `PromptPath`."""
+class ProjectComposer(Composer):
+    """An agent session's composer, Textual's `Prompt`: its input waits on the agent, and
+    its info bar shows the project (`compose_agent_info` yields `PromptPath`)."""
 
-    def __init__(self, host: ComposerHost, renderer: QtLineRenderer) -> None:
-        super().__init__(host, renderer)
+    def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str = "") -> None:
+        super().__init__(host, renderer, placeholder or host.app.settings.ui.input.placeholder)
         self.info_bar.show_path(home_relative(str(host.project.path)))
+
+
+class MailboxComposer(MessageComposer, ProjectComposer):
+    """A CLI thread's composer, Textual's `MailboxPrompt(MessagePrompt)`: a message to the
+    thread's inbox, accepted with or without an agent, beside its project's path."""
 
 
 class Receipt(NotificationSubscriber, WrappedText):

@@ -77,10 +77,10 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self._lines = NoStyledLines(self._width)
         self.display = False
 
-    def show(self, draft: DraftRow, *, resolve_sent) -> None:
+    def show(self, draft: DraftRow, identity: TranscriptReadIdentity) -> None:
         if draft == self.draft:
             return
-        self._plan = FragmentPlan.read(draft.events, resolve_sent=resolve_sent, classes=TEXTUAL_FRAGMENT_CLASSES)
+        self._plan = FragmentPlan.for_draft(draft, identity, TEXTUAL_FRAGMENT_CLASSES)
         self.draft = draft
         self._request_render()
 
@@ -146,7 +146,7 @@ class DraftPresentation(MroProjection[None]):
 
     @handles(DraftRow)
     def draft(self, draft: DraftRow, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
-        widget.show(draft, resolve_sent=identity.wire_frontier.resolve_sent_messages)
+        widget.show(draft, identity)
 
     @handles(NoDraft)
     def none(self, draft: NoDraft, widget: CliDraft, identity: TranscriptReadIdentity) -> None:

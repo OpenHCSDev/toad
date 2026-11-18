@@ -30,7 +30,7 @@ from toad.acp.agent_session import UnopenedSessionDisposition
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.observed_field import ObservedField
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
-from toad.qt.composer import ProjectComposer
+from toad.qt.composer import MailboxComposer
 from toad.qt.thread_view import QtThreadView
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.client.session_sources import MailboxSources
@@ -104,9 +104,9 @@ class QtMailboxView(QtThreadView, SessionScope):
         # Under the transcript, Textual's order: flash, sweep, status, goal, prompt.
         self._setup_prompt_stack(app, layout, thread_incarnation)
 
-    def composer_class(self) -> type[ProjectComposer]:
+    def composer_class(self) -> type[MailboxComposer]:
         """Textual's `MailboxSessionSources.prompt`: a `MailboxPrompt`."""
-        return ProjectComposer
+        return MailboxComposer
 
     @property
     def composer_label(self) -> str:

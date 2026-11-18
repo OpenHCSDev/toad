@@ -12,7 +12,7 @@ from abc import abstractmethod
 
 from metaclass_registry import AbstractHooksMeta
 
-from toad.client.input_decision import InputDecision
+from toad.client.input_decision import InputAccepted, InputDecision
 from toad.setting_declarations import EachOpenWidget
 
 
@@ -95,6 +95,12 @@ class PromptComposer(metaclass=AbstractHooksMeta):
 
 class MessagePromptComposer(PromptComposer):
     """A message composer: always the agent glyph, and every input is accepted."""
+
+    @property
+    def input_decision(self) -> InputDecision:
+        """A message is accepted whether or not an agent is attached: its submission owner
+        refuses a send it cannot make. An agent prompt asks its owner instead."""
+        return InputAccepted()
 
     def prompt_symbol(self, text: str, shell_mode: bool) -> str:
         return self.settings.ui.input.agent_symbol

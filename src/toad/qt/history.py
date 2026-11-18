@@ -226,7 +226,8 @@ class HistoryRowDelegate(RowDocumentDelegate):
     def fragment_key(self, fragment: HistoryFragment, font: QFont, width: int):
         """A fragment's row as shown, with these links, in this font at this width: dividers
         fill the width."""
-        return (fragment.key, fragment.shown), self.links_revision, font.family(), font.pointSize(), width
+        return ((fragment.key, fragment.shown), self.view.draft_revision_of(fragment), self.links_revision,
+                font.family(), font.pointSize(), width)
 
     def rendering(self, fragment: HistoryFragment, font: QFont, width: int) -> Callable[[], RowFormatting]:
         return partial(self.html, self.renderer, fragment.line_blocks, width, QFont(font))
@@ -556,6 +557,12 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         super().__init__(HistoryRowDelegate(renderer), parent)
         self._scope = scope
         self.model_rows = HistoryRows()
+        # The thread's in-progress CLI draft, drawn after the pages' rows as Textual's
+        # `CliDraft` sits after its history; each new draft read is a new revision, so the
+        # rows it grows are prepared again rather than painted from the last chunk's cache.
+        self.draft: tuple[HistoryFragment, ...] = ()
+        self.draft_keys: frozenset = frozenset()
+        self.draft_revision = 0
         self.setModel(self.model_rows)
         self.histories: WeakSet = WeakSet()
         self.history_lock = asyncio.Lock()
@@ -865,9 +872,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         has been torn down, the Qt reads raise RuntimeError; yield as a no-op so the
         page-change work still runs but the reader-restore is skipped on a dead view."""
         try:
-            top = self.indexAt(self.viewport().rect().topLeft())
-            key = top.data(HistoryRows.FRAGMENT).key if top.isValid() else None
-            offset = self.visualRect(top).top() if top.isValid() else 0
+            key, offset = self.reader_place()
         except RuntimeError:
             yield
             return
@@ -877,21 +882,43 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
             self.show_pages()
             self.keep_reader(key, offset)
 
+    def reader_place(self) -> tuple[object, int]:
+        """The row at the top of the viewport and how far down it starts, so a relayout can
+        put the reader back on it."""
+        top = self.indexAt(self.viewport().rect().topLeft())
+        if not top.isValid():
+            return None, 0
+        return top.data(HistoryRows.FRAGMENT).key, self.visualRect(top).top()
+
     def show_pages(self) -> None:
-        """Read the rows again from the history's shown pages."""
+        """Read the rows again from the history's shown pages, then the draft after them."""
         history = self.history
         self.model_rows.show(tuple(fragment for page in history.pages if page.display
-                                   for fragment in page.shown_fragments))
+                                   for fragment in page.shown_fragments) + self.draft)
         self.doItemsLayout()
+
+    def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
+        """Core's current CLI draft as rows after the history; none clears it. The reader
+        keeps their place, or follows the end as the draft grows."""
+        if not fragments and not self.draft:
+            return
+        key, offset = self.reader_place()
+        self.draft = fragments
+        self.draft_keys = frozenset(fragment.key for fragment in fragments)
+        self.draft_revision += 1
+        self.show_pages()
+        self.keep_reader(key, offset)
+
+    def draft_revision_of(self, fragment: HistoryFragment) -> int:
+        """Which draft read a row was drawn from: 0 for a committed row."""
+        return self.draft_revision if fragment.key in self.draft_keys else 0
 
     def rows_changed(self) -> None:
         """Prepared rows changed height: lay them out again, keeping the reader's row.
         If the widget has been torn down, Qt reads raise RuntimeError; skip the
         reader-restore and the viewport update — there is no viewer to serve."""
         try:
-            top = self.indexAt(self.viewport().rect().topLeft())
-            key = top.data(HistoryRows.FRAGMENT).key if top.isValid() else None
-            offset = self.visualRect(top).top() if top.isValid() else 0
+            key, offset = self.reader_place()
             self.doItemsLayout()
             self.keep_reader(key, offset)
             self.viewport().update()

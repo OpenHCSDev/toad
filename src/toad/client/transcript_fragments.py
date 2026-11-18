@@ -482,6 +482,13 @@ class FragmentPlan:
         resolved = resolve_sent(report for slot in consumer.slots for report in slot.sent_reports())
         return cls(tuple(consumer.slots), resolved)
 
+    @classmethod
+    def for_draft(cls, draft, identity, classes: FragmentClasses) -> FragmentPlan:
+        """Core's in-progress CLI draft, read as committed events are, its sent reports
+        resolved against the read identity's wire frontier."""
+        return cls.read(draft.events, resolve_sent=identity.wire_frontier.resolve_sent_messages,
+                        classes=classes)
+
     def fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for slot in self.slots for fragment in slot.fragments(self.resolved))
 
