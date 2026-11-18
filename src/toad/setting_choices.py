@@ -186,9 +186,20 @@ class AlwaysNotification(NotificationPolicy):
 
 
 class Scrollbar(DeclaredChoice, affix="Scrollbar"):
-    """The conversation's vertical scrollbar width, in cells, declared once by each member."""
+    """The conversation's vertical scrollbar, declared once by each member: `size` is the
+    width it takes beside the text, in cells; `overlay` is the width it draws over the text
+    while the conversation moves, gone a moment after. A terminal cannot draw over its text,
+    so Textual shows only `size`; Qt shows both."""
 
     size: ClassVar[int]
+    overlay: ClassVar[int] = 0
+
+    @classmethod
+    def for_host(cls) -> type[Scrollbar]:
+        """The platform's default: a touch platform scrolls by finger, so its bar only shows
+        while the conversation moves and leaves the text its whole width; on a desktop the
+        bar stays beside the text to be grabbed."""
+        return host.select({"android": TransientScrollbar, "*": NormalScrollbar})
 
 
 class NormalScrollbar(Scrollbar):
@@ -197,6 +208,13 @@ class NormalScrollbar(Scrollbar):
 
 class ThinScrollbar(Scrollbar):
     size = 1
+
+
+class TransientScrollbar(Scrollbar):
+    """Drawn over the text while it scrolls, then faded out; it takes no width."""
+
+    size = 0
+    overlay = 1
 
 
 class HiddenScrollbar(Scrollbar):

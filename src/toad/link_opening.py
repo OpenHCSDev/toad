@@ -11,6 +11,9 @@ Qt's shiboken metaclass clashes with one.
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Awaitable, Callable
+from functools import partial
+from pathlib import Path
 
 from agent_comms.messaging.display_references import (
     ChannelDisplayReference,
@@ -20,6 +23,7 @@ from agent_comms.messaging.display_references import (
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.client.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
+from toad.client.message_file_links import MessageFileLink
 from toad.navigation_target import NavigationTarget
 from toad.project_link import ProjectLink
 
@@ -55,6 +59,22 @@ class OpensLineLinks(MroDispatch):
     def open_project_link(self, link: ProjectLink) -> None:
         self.preview_link(link)
 
+    @handles(MessageFileLink)
+    def open_message_file(self, link: MessageFileLink) -> None:
+        self.run_link(partial(self.fetch_message_file, link))
+
+    async def fetch_message_file(self, link: MessageFileLink) -> None:
+        """Read the file from the bus its message is on, keep it, and open it; a refusal or a
+        lost connection is told to the reader."""
+        access = self.app.coordination_access
+        try:
+            path = await access.preparation.run_thread(
+                lambda: link.fetched(access.observing(link.root).core))
+        except (ValueError, OSError) as error:
+            self.warn_link(f"{link.file.name} could not be read: {error}")
+            return
+        self.show_file(path)
+
     def open_link(self, href: str) -> None:
         """A drawn link hands its href back as a string; decode it once into the link it carries."""
         self.dispatch_sync(LineLink.from_href(href))
@@ -76,3 +96,11 @@ class OpensLineLinks(MroDispatch):
     @abstractmethod
     def warn_link(self, text: str) -> None:
         """Tell the reader why a link opened nothing."""
+
+    @abstractmethod
+    def run_link(self, work: Callable[[], Awaitable[None]]) -> None:
+        """Run a link's background work as this view's; its failure reaches the view's owner."""
+
+    @abstractmethod
+    def show_file(self, path: Path) -> None:
+        """Open a file kept on this machine the way this frontend opens files."""

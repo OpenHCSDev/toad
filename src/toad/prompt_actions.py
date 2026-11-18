@@ -5,6 +5,7 @@ from textual.document._editing import VimMode
 
 from toad.widget_actions import Action, EngineKey
 from toad.core.input_events import UserInputSubmitted
+from agent_comms.messaging.message_files import FileUpload
 from typing import TYPE_CHECKING
 
 
@@ -53,6 +54,20 @@ class EnterShellAction(PromptAction):
         editor.prompt.shell_mode = True
 
 
+class MessageAction(Action, affix="Action"):
+    """Keys only a message composer's editor answers: an agent prompt binds none of them."""
+
+
+class AttachFileAction(MessageAction):
+    """Attach a file to the message: the picker the file picker setting names opens."""
+
+    keys = {TextEntryMode: ("ctrl+t",)}
+    title = "Attach"
+
+    async def apply(self, editor: PromptTextArea) -> None:
+        editor.prompt.attach_file()
+
+
 class SubmitInputAction(PromptAction, declared_name=None):
     """Submission shares eligibility, while each command owns how it sends."""
     priority = True
@@ -66,8 +81,8 @@ class SubmitInputAction(PromptAction, declared_name=None):
     def coalesce(self, following: SubmitInputAction) -> SubmitInputAction:
         return following
 
-    def submission_event(self, text: str, shell: bool) -> UserInputSubmitted:
-        return UserInputSubmitted(text, shell)
+    def submission_event(self, text: str, shell: bool, files: tuple[FileUpload, ...]) -> UserInputSubmitted:
+        return UserInputSubmitted(text, shell, files=files)
 
 
 class SubmitAction(SubmitInputAction):
@@ -90,8 +105,8 @@ class SubmitNowAction(SubmitInputAction):
     def coalesce(self, following: SubmitInputAction) -> SubmitInputAction:
         return self
 
-    def submission_event(self, text: str, shell: bool) -> UserInputSubmitted:
-        return UserInputSubmitted(text, shell, immediate=True)
+    def submission_event(self, text: str, shell: bool, files: tuple[FileUpload, ...]) -> UserInputSubmitted:
+        return UserInputSubmitted(text, shell, immediate=True, files=files)
 
 
 class CopyOrClearInputAction(PromptAction):

@@ -21,6 +21,7 @@ from collections.abc import Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 from typing import ClassVar
 from weakref import WeakSet
 
@@ -812,7 +813,8 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
     # Emitted when the viewer right-clicks or long-presses a message row; carries the
     # fragment under that point. Consumers (ConversationView) build a block menu from
     # the shared `MenuCommand` family and offer it through the host's offer panel.
-    block_menu_requested = Signal(object, name="blockMenuRequested")
+    #: The row's fragment, and where it was pressed in the window's coordinates.
+    block_menu_requested = Signal(object, QPoint, name="blockMenuRequested")
 
     history: QtConversationHistory
     # `scroll_revision` + `history_change` are declared on JumpsToLatest (shared with Textual).
@@ -1036,6 +1038,14 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
     def warn_link(self, text: str) -> None:
         self.history.view.flash_error(text)
 
+    def run_link(self, work: Callable[[], Awaitable[None]]) -> None:
+        self.history.run_worker(work)
+
+    def show_file(self, path: Path) -> None:
+        """A kept file opens in the application the system names for it."""
+        if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
+            self.warn_link(f"No application opens {path.name}; it is kept at {path}.")
+
     @handles(FragmentDetails)
     def toggle_details(self, link: FragmentDetails) -> None:
         """A tap on a ▶ row opens or closes that fragment's details, as Textual's page does."""
@@ -1053,7 +1063,7 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         fragment = self.model_rows.data(index, HistoryRows.FRAGMENT)
         if fragment is None:
             return
-        self.block_menu_requested.emit(fragment)
+        self.block_menu_requested.emit(fragment, self.viewport().mapTo(self.window(), point))
 
     # Geometry, in pixels
 

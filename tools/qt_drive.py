@@ -15,6 +15,7 @@ what the window draws.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import time
 import os
 import sys
@@ -25,10 +26,11 @@ from collections.abc import Callable
 from typing import ClassVar
 
 import qasync
-from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt, QTimer
-from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QTextDocument
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, QTimer, Qt
+from PySide6.QtGui import QContextMenuEvent, QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QPainter, QTextDocument
+
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QFileDialog, QLabel, QLineEdit, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
@@ -80,19 +82,21 @@ from toad.qt.keymap_screen import QtKeymapScreen
 from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.client.bus_submission import ConversationSubmission
-from toad.setting_choices import CenterColumnAlignment
+from toad.setting_choices import CenterColumnAlignment, HiddenScrollbar, TransientScrollbar
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
-from toad.qt.menu import QtMenuRow
+from toad.qt.menu import QtMenu, QtMenuRow
 from toad.qt.activity import ChannelActivity
 from toad import paths
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
+from toad.qt.channel_sort import QtChannelListSort
 from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
 from toad.live_output import ResponseStream, ThoughtStream
 from toad.qt.history import HistoryRows
+from toad.qt.overlay_scrollbar import OverlayScrollBar
 from toad.qt.live_turn import QtLiveFragment
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -304,6 +308,52 @@ class TabsScenario(Scenario):
         saved = await (await app.get_db()).tab_list(app.tab_order.scopes)
         print("roster:", [identity.mode_name for identity in app.tab_order.names],
               "saved:", [row.identity.mode_name for row in saved], flush=True)
+
+
+class TabStripScenario(Scenario):
+    summary = ("at phone width, open COUNT (6) sidebar threads as tabs: the strip scrolls instead of "
+               "squeezing them, no tab's title is cut short, the selected tab is in view, and a "
+               "right-click (a held finger) on a tab offers Move left/right and Close tab; Move right "
+               "moves it past its neighbour")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.listed()
+        count = int(os.environ.get("COUNT", "6"))
+        await self.expand("#comms")
+        await until(lambda: len(self.thread_rows()) >= 3, "three sidebar threads")
+        rows = self.thread_rows()[:count]
+        for row in rows:
+            # Its own tab, found by title: the live sidebar can list a thread whose tab is
+            # already open, so a running count of tabs is not what one open adds.
+            app.open_row(row)
+            name = row.target.name
+            await until(lambda: any(name in app.tabs.tabText(index) for index in range(app.tabs.count())),
+                        f"a tab for {name}")
+        assert app.tabs.count() >= min(count, len(rows)) - 1, f"only {app.tabs.count()} tabs opened"
+        await asyncio.sleep(1.5)
+        strip, tabs = app.tab_strip, app.tabs
+        titles = [tabs.tabText(index) for index in range(tabs.count())]
+        cut = [title for index, title in enumerate(titles)
+               if tabs.fontMetrics().horizontalAdvance(title) > tabs.tabRect(index).width()]
+        scrolls = strip.horizontalScrollBar().maximum()
+        current = tabs.tabRect(tabs.currentIndex())
+        seen = strip.viewport().rect().translated(strip.horizontalScrollBar().value(), 0)
+        self.report("1-many-tabs", tabs=len(titles), strip_scrolls=scrolls, cut=cut[:3],
+                    selected_in_view=seen.contains(current.center()))
+        assert scrolls > 0, "the tabs were squeezed into the strip instead of scrolling"
+        assert not cut, f"tab titles cut short: {cut[:3]}"
+        assert seen.contains(current.center()), "the selected tab is scrolled out of view"
+        first = tabs.tabData(0)
+        tabs.customContextMenuRequested.emit(tabs.tabRect(0).center())
+        await asyncio.sleep(0.4)
+        offered = [row.label.text() for row in app.menu_panel.findChildren(QtMenuRow)]
+        self.report("2-tab-menu", offered=offered)
+        assert offered == ["Move right", "Close tab"], f"first tab offered {offered}"
+        next(row for row in app.menu_panel.findChildren(QtMenuRow) if row.label.text() == "Move right")._fire()
+        await until(lambda: tabs.tabData(1) == first, "the first tab moved right")
+        self.report("3-moved", order=[tabs.tabData(index) for index in range(tabs.count())][:4])
 
 
 class ActivityScenario(Scenario):
@@ -790,6 +840,63 @@ class HistoryScenario(Scenario):
         self.report("20-end", **self.rows())
 
 
+class HeaderRuleScenario(Scenario):
+    summary = ("open #comms at phone size; for each message header shown, report where its rule's "
+               "pixels start and end against the row width and the title's length; then the "
+               "conversation scrollbar Transient: report the viewport width and the bar over the "
+               "text while scrolling and gone once still; then Hidden")
+
+    def rule_extent(self, header, width: int) -> tuple[int, int]:
+        """The leftmost and rightmost drawn pixel of the header laid out at ``width``."""
+        window = self.page.messages
+        document = window.rows.header_document(header, window.font(), width)
+        image = QImage(width, max(1, int(document.size().height())), QImage.Format.Format_ARGB32)
+        image.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(image)
+        document.drawContents(painter)
+        painter.end()
+        drawn = [x for x in range(width) if any(image.pixelColor(x, y).alpha() for y in range(image.height()))]
+        return (drawn[0], drawn[-1]) if drawn else (-1, -1)
+
+    def bar(self) -> dict[str, object]:
+        window = self.page.messages
+        overlay = window.findChild(OverlayScrollBar)
+        return dict(viewport=window.viewport().width(), bar_beside=window.verticalScrollBar().width(),
+                    overlay=None if overlay is None else (overlay.isVisible(), round(overlay.opacity.opacity(), 2),
+                                                          overlay.geometry().getRect()))
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named(os.environ.get("HEADER_TARGET", "#comms"))
+        window = self.page.messages
+        width = window.viewport().width() - 8
+        headers = [fragment.sticky_header(len(fragment.line_blocks) - 1, 1)[-1]
+                   for fragment in window.model_rows.fragments
+                   if fragment.line_blocks and fragment.sticky_header(len(fragment.line_blocks) - 1, 1)]
+        seen: dict[int, tuple] = {}
+        for header in headers:
+            title = "".join(span.text for span in header.spans)
+            seen.setdefault(len(title), (title, *self.rule_extent(header, width)))
+        for length, (title, left, right) in sorted(seen.items())[:8]:
+            print(f"rule: width={width} title_len={length} left={left} right={right} title={title[:40]!r}",
+                  flush=True)
+        self.report("1-headers", headers=len(headers), **self.bar())
+        app.saved_settings.set(SETTINGS.ui.scrollbar, TransientScrollbar)
+        await asyncio.sleep(0.5)
+        self.report("2-transient-idle", **self.bar())
+        window.scroll_y = max(0, window.scroll_y - window.viewport().height())
+        await asyncio.sleep(0.15)
+        self.report("3-transient-scrolling", **self.bar())
+        await asyncio.sleep(2.0)
+        self.report("4-transient-still", **self.bar())
+        app.saved_settings.set(SETTINGS.ui.scrollbar, HiddenScrollbar)
+        await asyncio.sleep(0.5)
+        window.scroll_y = max(0, window.scroll_y - window.viewport().height())
+        await asyncio.sleep(0.15)
+        self.report("5-hidden-scrolling", **self.bar())
+
+
 class StickyScenario(Scenario):
     summary = ("open STICKY_TARGET (#comms by default); scroll into the middle of its tallest message "
                "and report the pinned header over the top row, then put that message's header on the "
@@ -973,6 +1080,132 @@ class MenuTextScenario(Scenario):
         assert not clipped, f"{len(clipped)} menu lines drawn shorter than their font: {clipped[:3]}"
 
 
+def changed_outside(before: QImage, after: QImage, kept: QRect) -> int:
+    """How many pixels differ between two grabs of one window outside `kept`."""
+    before, after = (image.convertToFormat(QImage.Format.Format_RGB32) for image in (before, after))
+    width, height = before.width(), before.height()
+    if (width, height) != (after.width(), after.height()):
+        return width * height
+    left, right = max(0, kept.left()), min(width, kept.right() + 1)
+    changed = 0
+    for y in range(height):
+        a, b = before.constScanLine(y).tobytes(), after.constScanLine(y).tobytes()
+        if kept.top() <= y <= kept.bottom():
+            pairs = ((a[:left * 4], b[:left * 4]), (a[right * 4:], b[right * 4:]))
+        else:
+            pairs = ((a, b),)
+        for one, other in pairs:
+            if one != other:
+                changed += sum(1 for x in range(0, len(one), 4) if one[x:x + 4] != other[x:x + 4])
+    return changed
+
+
+class MenuFloatScenario(Scenario):
+    summary = ("every pop-up menu floats: the page keeps every pixel outside it, an outside tap "
+               "closes it without touching what was under it, Escape closes it; the composer's "
+               "buttons are the input box's one-line height; then quit with the menu open")
+
+    async def floats(self, opening, step: str, faults: list[str]) -> None:
+        """Open a menu, check nothing underneath moved, screenshot it."""
+        app, menu = self.app, self.app.menu_panel
+        menu.hide()
+        await asyncio.sleep(0.4)
+        for attempt in range(3):  # a live row may repaint between the grabs; retry such a race
+            before = app.grab().toImage()
+            opening()
+            QApplication.processEvents()
+            after = app.grab().toImage()
+            moved = changed_outside(before, after, menu.geometry())
+            if moved == 0 or attempt == 2:
+                break
+            menu.hide()
+            await asyncio.sleep(0.6)
+        self.report(step, shown=menu.isVisible(), geometry=menu.geometry().getRect(), moved_pixels=moved,
+                    rows=[row.label.text() for row in menu.findChildren(QtMenuRow)])
+        if not menu.isVisible():
+            faults.append(f"{step}: the menu did not open")
+        if moved:
+            faults.append(f"{step}: opening it changed {moved} pixels outside it")
+        if menu.parentWidget() is not app or menu.isWindow() or app.navigation.layout().indexOf(menu) != -1:
+            faults.append(f"{step}: the menu is not a free child of the window")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.open_named("#comms")
+        faults: list[str] = []
+        menu = app.menu_panel
+        # 1. The application menu, from its button.
+        await self.floats(app.menu.click, "1-app-menu", faults)
+        # 2. A tap outside closes it and the tap goes nowhere else.
+        tabs_before, page_before = self.tabs(), self.page
+        history = self.page.messages.viewport()
+        # Any point of the history the floating menu does not cover: it floats over part of it.
+        outside = next(QPoint(x, y) for y in (12, history.height() // 2, history.height() - 12)
+                       for x in (history.width() - 12, 12)
+                       if not menu.geometry().contains(history.mapTo(app, QPoint(x, y))))
+        QTest.mouseClick(history, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, outside)
+        await asyncio.sleep(0.3)
+        self.report("2-outside-tap", shown=menu.isVisible())
+        if menu.isVisible():
+            faults.append("2: an outside tap left the menu open")
+        if self.tabs() != tabs_before or self.page is not page_before:
+            faults.append("2: the outside tap also acted on what was under it")
+        # 3. Escape closes it.
+        app.menu.click()
+        await asyncio.sleep(0.3)
+        QTest.keyClick(app, Qt.Key.Key_Escape)
+        await asyncio.sleep(0.3)
+        self.report("3-escape", shown=menu.isVisible())
+        if menu.isVisible():
+            faults.append("3: Escape left the menu open")
+        # 4. A message's menu, where the row was pressed (a right-click; a held finger asks the same).
+        messages = self.page.messages
+        point = QPoint(messages.viewport().width() // 2, messages.viewport().height() // 2)
+
+        def right_click() -> None:
+            QApplication.sendEvent(messages.viewport(), QContextMenuEvent(
+                QContextMenuEvent.Reason.Mouse, point, messages.viewport().mapToGlobal(point)))
+        await self.floats(right_click, "4-message-menu", faults)
+        pressed = messages.viewport().mapTo(app, point)
+        if menu.isVisible() and not (menu.geometry().top() == pressed.y() + 1 or menu.geometry().bottom() == pressed.y() - 1):
+            faults.append(f"4: the message menu is not at the pressed row ({pressed.y()} vs {menu.geometry().getRect()})")
+        menu.hide()
+        # 5. A sort choice's menu, under its button.
+        sorts = app.findChildren(QtChannelListSort)
+        if sorts and not app.sidebar.isVisible():
+            app.show_sidebar()
+            await asyncio.sleep(0.5)
+        if sorts and sorts[0].isVisible():
+            await self.floats(sorts[0].click, "5-sort-menu", faults)
+            under = QtMenu.anchor_of(sorts[0])
+            if menu.isVisible() and under.bottom() + 1 != menu.geometry().top() and menu.geometry().bottom() + 1 != under.top():
+                faults.append(f"5: the sort menu is not at its button ({under.getRect()} vs {menu.geometry().getRect()})")
+            menu.hide()
+            app.hide_sidebar()
+            await asyncio.sleep(0.4)
+        else:
+            print("5-sort-menu: no visible channel-list sort button here; skipped", flush=True)
+        # 6. The composer's buttons, one line then three.
+        composer = self.page.composer
+        for lines in (1, 3):
+            await self.type("\n".join(["composer line"] * lines))
+            await asyncio.sleep(0.3)
+            frame, send = composer.frame.geometry(), composer.send_button.geometry()
+            self.report(f"6-composer-{lines}-lines", box=frame.getRect(), send=send.getRect())
+            if send.height() != composer.one_line_box_height():
+                faults.append(f"6: with {lines} line(s) the send button is {send.height()}px, the one-line box {composer.one_line_box_height()}px")
+            if send.bottom() != frame.bottom():
+                faults.append(f"6: with {lines} line(s) the send button's bottom {send.bottom()} is not the box's {frame.bottom()}")
+        composer.editor.clear()
+        # 7. Quit with the menu open: the drive's own close ends the app with it showing.
+        app.menu.click()
+        await asyncio.sleep(0.3)
+        self.report("7-open-at-quit", shown=menu.isVisible())
+        if faults:
+            raise AssertionError("menu_float faults:\n" + "\n".join(faults))
+
+
 class FeedbackScenario(Scenario):
     summary = ("the reader's feedback at a Pixel 8a's width: the wait a slow thread open shows in place, "
                "#comms' first page loading, an operation's wait floating over the page, a notice that "
@@ -1133,6 +1366,12 @@ class ShippedScenario(ParticipantSteps):
                 combination = sequence[0]
                 QTest.keyClick(target, combination.key(), combination.keyboardModifiers())
                 await asyncio.sleep(0.3)
+                # A key whose action opens a dialog (Attach's file picker) leaves it open; it
+                # is closed unanswered and the window active again, so the next key reaches the
+                # view; offscreen Qt hands activation back to no window when a dialog closes.
+                self.close_dialogs()
+                self.app.activateWindow()
+                await asyncio.sleep(0.1)
                 ran = [type(action).__name__ for action in keys.ran]
                 results.append(f"{where}:{spelling}->{'+'.join(ran) or 'none available'}")
                 if ran != expected:
@@ -1158,6 +1397,7 @@ class ShippedScenario(ParticipantSteps):
                         self.report(f"2-settings-page-{index}", page=dialog.tabs.tabText(index))
             self.close_dialogs()
         await self.step("3-channel", lambda: self.open_named("#comms"))
+        await self.step("3-channel-attach", self.open_attach)
         await self.press_bound_keys("3-channel-keys")
         await self.noticeless("3-channel-activity", lambda: self.tap_activity("3-channel-activity"))
         await self.step("4-thread", lambda: self.open_named("scratch-live-pipeline"))
@@ -1166,6 +1406,7 @@ class ShippedScenario(ParticipantSteps):
         await self.step("4-thread-from-channel", lambda: self.open_named("#comms"))
         await self.noticeless("4-thread-tapped-twice", lambda: self.open_twice(thread))
         await self.step("4-thread-details", self.open_details)
+        await self.step("4-thread-attach", self.open_attach)
         await self.press_bound_keys("4-thread-keys")
         # The reader keys (ctrl+d, ctrl+u, G) are declared for the vim modes only: press every
         # key again in vim normal mode, as a person choosing that keyboard mode would.
@@ -1176,6 +1417,18 @@ class ShippedScenario(ParticipantSteps):
         self.close_dialogs()
         if self.faults:
             raise AssertionError(f"{len(self.faults)} fault(s) on the shipped app:\n" + "\n".join(self.faults))
+
+    async def open_attach(self) -> None:
+        """The composer's Attach opens its file picker; it is closed without picking."""
+        self.page.composer.attach_button.click()
+        await asyncio.sleep(0.5)
+        dialogs = [dialog for dialog in self.app.findChildren(QFileDialog) if dialog.isVisible()]
+        if len(dialogs) != 1:
+            raise AssertionError(f"Attach opened {len(dialogs)} file dialogs")
+        dialogs[0].reject()
+        await asyncio.sleep(0.3)
+        if self.page.composer.attached_files:
+            raise AssertionError("closing the picker attached a file")
 
     async def apply_offered_themes(self) -> None:
         """The app started with its saved theme (shipped_run saves one Qt does not offer); then
@@ -1204,6 +1457,40 @@ class ShippedScenario(ParticipantSteps):
         await asyncio.sleep(0.3)
         self.page.thread_activity.inspect_action.click()
         await asyncio.sleep(1.0)
+
+
+class AttachScenario(Scenario):
+    summary = ("attach OUTDIR/attached.bin to a message to the scratch thread scratch-live-pipeline "
+               "through the composer's file dialog and send it: run it on a scratch bus only")
+
+    async def run(self) -> None:
+        await self.listed()
+        await self.open_named("scratch-live-pipeline")
+        composer = self.page.composer
+        picked = self.out / "attached.bin"
+        picked.write_bytes(os.urandom(300_000) + b"the end of the attached file\n")
+        composer.attach_button.click()
+        await until(lambda: any(dialog.isVisible() for dialog in self.app.findChildren(QFileDialog)),
+                    "file dialog", tenths=50)
+        (dialog,) = [dialog for dialog in self.app.findChildren(QFileDialog) if dialog.isVisible()]
+        # As a person picks it: the path typed into the dialog's file name field, then Enter.
+        # (QFileDialog.selectFile leaves a field that has focus as it is.)
+        (field,) = dialog.findChildren(QLineEdit)
+        field.setFocus()
+        field.setText(str(picked))
+        QTest.keyClick(field, Qt.Key.Key_Return)
+        await asyncio.sleep(1.0)
+        await until(lambda: composer.attached_files, "attached file", tenths=50)
+        chips = [chip.text() for chip in composer.attached_row.findChildren(QPushButton)]
+        self.report("1-attached", chips=chips, sha256=hashlib.sha256(picked.read_bytes()).hexdigest())
+        await self.type("a file from the Qt composer")
+        composer.submit()
+        await until(lambda: not composer.attached_files and not composer.submissions.delivering,
+                    "sent", tenths=150)
+        await asyncio.sleep(2.0)
+        self.report("2-sent", chips=[chip.text() for chip in composer.attached_row.findChildren(QPushButton)
+                                     if chip.isVisible()],
+                    failure=composer.failure.text() if composer.failure.isVisible() else "")
 
 
 class MissingChannelDestination(ChannelDestination):
@@ -1243,7 +1530,7 @@ class ComposerScenario(Scenario):
         missing = ChannelConversation(ChannelTarget("#composer-drive-missing"))
         destination = MissingChannelDestination(app.source().root, missing, view)
         app.run_operation(ConversationSubmission,
-                          lambda: view.submissions.start_bus(TypedText("this send must fail"), destination).prepare())
+                          lambda: view.submissions.start_bus(TypedText("this send must fail", ()), destination).prepare())
         await until(lambda: composer.failure.isVisible(), "failure", tenths=100)
         await asyncio.sleep(0.5)
         self.report("6-failed", failure=composer.failure.text(), draft=composer.text,
@@ -3111,6 +3398,10 @@ class HoldScenario(Scenario):
         # 1. A sidebar row that isn't open: the hold offers its menu, and letting go doesn't open it.
         other = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name != "#comms"
                                  and not tree.visualItemRect(row).isEmpty(), "another listed row")
+        # Pressed where it is drawn: a row below the visible list would put the finger on
+        # whatever is drawn there instead.
+        tree.scrollToItem(other)
+        await asyncio.sleep(0.3)
         held_on: list[str] = []
         FingerPress.install(QApplication.instance()).long_pressed.connect(
             lambda press: held_on.append(type(press.target).__name__))
@@ -3136,12 +3427,9 @@ class HoldScenario(Scenario):
         history.block_menu_requested.connect(lambda fragment: requested.append(type(fragment).__name__))
         await self.held_menu("2-history-row", viewport, on_row)
         print(f"2-history-row: block menu asked for {requested}", flush=True)
-        # 3. A tab offers no menu on right-click: a hold there stays the tab's press.
+        # 3. A tab offers the tab menu (moving, closing) on a right-click, and so on a hold.
         tabs = app.tabs
-        await self.touch(tabs, tabs.tabRect(0).center(), 1100)
-        self.report("3-tab", menu=self.menu())
-        self.expect("3-tab", not self.menu(), f"a tab offered a menu {self.menu()} a right-click doesn't")
-        self.close_menu()
+        await self.held_menu("3-tab", tabs, tabs.tabRect(0).center())
         # 4. A hold that then drags scrolls the history, and opens no menu.
         bar = history.verticalScrollBar()
         bar.setValue(bar.maximum())

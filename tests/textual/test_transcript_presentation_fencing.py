@@ -10,6 +10,8 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import NativeThread
 from support.journals import assistant_entry, write_journal
 
+from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
+from toad.client.message_file_links import NO_PAGE_FILES
 from toad.transcript_publication import (
     CLEAN_PUBLICATION,
     COMMIT_DEMAND,
@@ -394,7 +396,7 @@ async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage
             () if empty else (assistant_entry("PREPARED_REPLACEMENT", id="new"),)))
         workspace.comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(str(new), workspace.comms.root)))
         page = workspace.comms.transcripts.capture_page_read("source").read()
-        prepared = await TranscriptPageRenderTask(page).prepared(ui.app.preparation)
+        prepared = await TranscriptPageRenderTask(page, TEXTUAL_FRAGMENT_CLASSES, NO_PAGE_FILES).prepared(ui.app.preparation)
         assert await history.show_newest(PreparedReplacementViewportRequest(
             LatestPosition.hold(history.window), prepared))
         await ui.step()

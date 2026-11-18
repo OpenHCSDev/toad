@@ -23,7 +23,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
-from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, Qt, QTimer
+from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
@@ -34,6 +34,8 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QStackedWidget,
     QToolButton,
     QTreeWidget,
@@ -549,7 +551,10 @@ class HeldRowMenu(QObject):
             return
         entries = item.menu_entries(self.listing)
         if entries:
-            self.listing.host.offer_entries(entries)
+            # In the host window's coordinates, where `offer_entries` places its anchor
+            # (`ConversationRows.window` names the app, hiding QWidget.window()).
+            pressed = rows.viewport().mapTo(self.listing.host, point)
+            self.listing.host.offer_entries(entries, QRect(pressed, QSize(1, 1)))
 
 
 class QtWelcomeOrigin(HomeSessionOrigin):
@@ -1397,12 +1402,13 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
     # through `widgets/menu.Menu`. Keeping the action list derived means a new menu
     # command declared in `src/toad/menus.py` reaches Qt without any edit here.
 
-    def open_block_menu(self, fragment: QtWireFragment) -> None:
+    def open_block_menu(self, fragment: QtWireFragment, pressed: QPoint) -> None:
+        """The block menu for `fragment`, at `pressed` (the window's coordinates)."""
         self.held_fragment = fragment
         entries = QtMenu.command_entries(_block_menu_commands(fragment), self.app.settings,
                                          self._run_block_menu_command)
         if entries:
-            self.app.offer_entries(entries)
+            self.app.offer_entries(entries, QRect(pressed, QSize(1, 1)))
 
     def _run_block_menu_command(self, command: MenuCommand) -> None:
         result = command.apply(self)
@@ -1617,29 +1623,46 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                                     self.theme.color_scheme.to_qcolor(self.theme.color_scheme.text_primary))
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
-        self.tabs.setUsesScrollButtons(True)
-        self.tabs.setElideMode(Qt.TextElideMode.ElideRight)
+        # Each tab keeps its own width and the strip scrolls: a swipe moves it on the phone
+        # (every scroll area scrolls by finger, `finger_scrolling`), where many tabs were
+        # squeezed behind two arrow buttons. A right-click, which a held finger is
+        # (`finger_press`), offers the shared tab menu: moving and closing.
+        self.tabs.setUsesScrollButtons(False)
+        self.tabs.setElideMode(Qt.TextElideMode.ElideNone)
         self.tabs.tabBarClicked.connect(self.visit_index)
         self.tabs.tabCloseRequested.connect(self.close_index)
         self.tabs.tabMoved.connect(self.move_index)
+        self.tabs.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tabs.customContextMenuRequested.connect(self.offer_tab_menu)
+        self.tab_strip = QScrollArea(self)
+        self.tab_strip.setWidget(self.tabs)
+        self.tab_strip.setWidgetResizable(True)
+        self.tab_strip.setFrameShape(QFrame.Shape.NoFrame)
+        self.tab_strip.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tab_strip.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tab_strip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        # The header band's sheet pads and borders every frame inside it (a 5 px inset here,
+        # which clipped the tabs' lower 10 px); the strip is only a window onto the tabs.
+        self.tab_strip.setObjectName("toad-tab-strip")
+        self.tab_strip.setStyleSheet("#toad-tab-strip { border: none; padding: 0px; background: transparent; }")
+        # A renamed or added tab changes the strip's range: the selected one stays in view.
+        self.tab_strip.horizontalScrollBar().rangeChanged.connect(lambda *_: self.show_current_tab())
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
         for widget in (self.menu, self.back, self.forward):
             bar.addWidget(widget)
-        bar.addWidget(self.tabs, 1)
+        bar.addWidget(self.tab_strip, 1)
         # The bar row is Toad's header band: a frame in the theme's header tone. Notices
         # float over the pages in `float_layer`; they are no part of this band.
         self.navigation = chrome = QFrame(self)
         chrome_layout = QVBoxLayout(chrome)
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
-        # QtMenu is the shared rendering for both the hamburger (application) menu and
-        # the row-context (message) menu. Its rows render MenuEntry data (bold key
-        # shortcut + label), matching Textual's MenuKey/MenuDescription widgets. Parent
-        # is QtToadApp so the menu is a child QWidget, not a top-level QWindow — the
-        # EGL-deadlock hazard that killed off QMessageBox applies to any popup window.
+        # QtMenu is the window's one pop-up menu (the application menu, the held/right-click
+        # row menus, the bus-connect choices, a sort choice). It floats over the content as
+        # a child of the window, in no layout, so opening it moves nothing (`QtMenu`).
         self.menu_panel = QtMenu(self)
-        chrome_layout.addWidget(self.menu_panel)
+        self.renderer.themed(self.menu_panel, lambda: self.menu_panel.paint(self.renderer))
         # Bus switcher: inline overlay panel for the hamburger "Switch bus" entry.
         # Registered as a `BusListing` so `tailnet_answered` routes answers to it
         # while shown (same shape as Welcome, which is always registered).
@@ -1750,6 +1773,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         modes = self.session_navigation.tab_modes
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
+        # Once the bar has laid its tabs out (a restyle or a new title resizes them after this),
+        # the strip is as tall as its tabs and the selected one is in view.
+        QTimer.singleShot(0, self.show_current_tab)
+
+    def show_current_tab(self) -> None:
+        self.tab_strip.setFixedHeight(self.tabs.sizeHint().height())
+        if (index := self.tabs.currentIndex()) >= 0:
+            rect = self.tabs.tabRect(index)
+            self.tab_strip.ensureVisible(rect.center().x(), rect.center().y(), rect.width() // 2 + UiGap.dialog, 0)
         self.present_panes()
         self.input_attention.update()
 
@@ -1812,7 +1844,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def show_session_tabs(self, shown: bool) -> None:
         self.paint_tabs()
-        self.tabs.setVisible(shown)
+        self.tab_strip.setVisible(shown)
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:
         """Read through SidebarLayout — the single collapsed-state owner. A collapsed
@@ -1998,7 +2030,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         if self.menu_panel.isVisible():
             self.menu_panel.hide()
             return
-        self.menu_panel.show_entries(self._application_menu_entries())
+        self.menu_panel.show_entries(self._application_menu_entries(), QtMenu.anchor_of(self.menu))
 
     def _application_menu_entries(self) -> tuple[MenuEntry, ...]:
         """Project ApplicationAction.menu(self) into MenuEntry rows. The key_display
@@ -2025,10 +2057,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         — the same widget the hamburger and the message-row menus use."""
         self.offer_entries(tuple(MenuEntry.from_offered(action) for action in actions))
 
-    def offer_entries(self, entries: tuple[MenuEntry, ...]) -> None:
+    def offer_entries(self, entries: tuple[MenuEntry, ...], anchor: QRect | None = None) -> None:
         """Rich-row API: callers that have `MenuEntry` with keybindings and descriptions
-        (the hamburger menu, the row-context menu) populate the shared QtMenu directly."""
-        self.menu_panel.show_entries(entries)
+        (the hamburger menu, the row-context menu) populate the shared QtMenu directly, at
+        `anchor` in this window's coordinates (where they were asked from)."""
+        self.menu_panel.show_entries(entries, anchor)
 
     def offer_bus_connect(self, decision: BusConnectDecision) -> None:
         """Render the shared bus-connect decision through the same menu panel the hamburger
@@ -2133,6 +2166,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def close_index(self, index: int) -> None:
         self.close_session(self.session_navigation.tabs[index].mode_name)
+
+    def offer_tab_menu(self, point: QPoint) -> None:
+        """The tab under a right-click or a held finger offers the shared tab menu."""
+        index = self.tabs.tabAt(point)
+        if index >= 0:
+            self.offer_entries(self.session_navigation.tab_menu(self.session_navigation.tabs[index].mode_name))
 
     def move_index(self, start: int, end: int) -> None:
         """A tab dragged from one place in the bar to another: it moves past the tab it

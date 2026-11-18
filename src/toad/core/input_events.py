@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Literal
 
+from agent_comms.messaging.message_files import FileUpload
+
 from toad.core.events import CoreEvent
 from toad.goal_controls import GoalInteraction
 from toad.input_history import InputHistory
@@ -28,6 +30,8 @@ class UserInputSubmitted(CoreEvent):
     shell: bool = False
     auto_complete: bool = False
     immediate: bool = False
+    files: tuple[FileUpload, ...] = ()
+    """What the message composer attached; an agent prompt attaches none."""
 
 
 @dataclass(frozen=True)

@@ -6,7 +6,9 @@ BusSubmissions); this module draws them and reads the keys."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import ClassVar
 
 from agent_comms.messaging.mentions import MentionCandidate
 from agent_comms.messaging.message_reference import MessageReference
@@ -35,7 +37,8 @@ from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.commands import ConversationCommands
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
-from toad.client.prompt_composer import MessagePromptComposer, PromptComposer, PromptSettingEffects
+from toad.client.message_files import AttachedFileChip, MessagePromptComposer
+from toad.client.prompt_composer import PromptComposer, PromptSettingEffects
 from toad.client.condensed_path import home_relative
 from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -47,7 +50,15 @@ from toad.client.notification_status import (
     UncheckedNotifications,
 )
 from toad.client.subscribers import NotificationSubscriber
-from toad.prompt_actions import NewlineAction, SubmitAction, SubmitInputAction, SubmitNowAction
+from toad.prompt_actions import (
+    AttachFileAction,
+    MessageAction,
+    NewlineAction,
+    PromptAction,
+    SubmitAction,
+    SubmitInputAction,
+    SubmitNowAction,
+)
 from toad.widget_actions import DismissAction
 from toad.widget_contracts import (
     DismissibleContract,
@@ -56,6 +67,7 @@ from toad.widget_contracts import (
     SubmitsContract,
 )
 from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
+from toad.qt.file_pickers import open_file_dialog, open_path_search
 from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueHint, QtQueueInspection, QtQueueSummary, RowReveal
 from toad.qt.prompt_stack import QtInfoBar
@@ -64,25 +76,13 @@ from toad.slash_command_results import CommandMatch, SlashCommandResults
 from toad.qt.metrics import UiGap
 
 
-# The declared TextEntryMode key spellings each prompt action exposes drive the Qt
-# composer's QShortcuts. Keeping the composer method as the callback (not the action's
-# own .apply, which expects a Textual `PromptTextArea`) lets both backends consume the
-# same key declarations without Qt dragging Textual's PromptSubmission chassis.
-_COMPOSER_ACTION_METHODS = (
-    (SubmitAction, "submit"),
-    (SubmitNowAction, "submit_now"),
-    (DismissAction, "dismiss_control"),
-    (NewlineAction, "_insert_newline"),
-)
-
-
 def _bind_composer_shortcuts(composer: Composer):
     """One `QShortcut` per composer action on the editor, answering the action's keys in
     the current key mode and keymap (`ActionKeys`) and running the composer's own method
     while the editor (or a child) has focus. Textual reaches these methods through its own
     PromptTextArea action system — the keys live in one place."""
-    return [composer.host.app.action_keys.bind(composer.editor, action_cls(), getattr(composer, method_name))
-            for action_cls, method_name in _COMPOSER_ACTION_METHODS]
+    return [composer.host.app.action_keys.bind(composer.editor, action_cls(), method.__get__(composer))
+            for action_cls, method in composer.action_methods]
 
 
 class ComposerHost(ConversationCommands):
@@ -305,9 +305,19 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     tap runs `submit`: one send path, two triggers. The shared action families bind to it
     through `SubmitsContract` + `DismissibleContract`."""
 
+    # The declared TextEntryMode key spellings each prompt action exposes drive the Qt
+    # composer's QShortcuts. Keeping the composer method as the callback (not the action's
+    # own .apply, which expects a Textual `PromptTextArea`) lets both backends consume the
+    # same key declarations without Qt dragging Textual's PromptSubmission chassis. A kind
+    # of composer adds the actions only it answers.
+    action_methods: ClassVar[tuple[tuple[type[PromptAction | MessageAction], Callable[..., None]], ...]]
+
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__()
         self.host, self.renderer = host, renderer
+        # The composer's area is its own surface (`area_tone`), as Textual's prompt area is.
+        self.setObjectName("composer")
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.given_placeholder = placeholder
         self.mention_candidates: tuple[MentionCandidate, ...] = ()
         self.commands: list[SlashCommand] = []
@@ -343,7 +353,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.send_button = QPushButton(SubmitAction.title, self)
         self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
         self.send_button.clicked.connect(self.submit)
-        # The row's margins are the input box setting's frame margin (`place_input_box`).
+        # The row's margins are the input box setting's frame margin (`place_input_box`); every
+        # button beside the box is the box's one-line height, pinned to its bottom
+        # (`fit_buttons`).
         self.frame_row = frame_row = QHBoxLayout()
         frame_row.addWidget(self.frame, 1)
         frame_row.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignBottom)
@@ -387,6 +399,25 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         left, top, right, bottom = cells(box.label_padding)
         self.glyph.setContentsMargins(left, top, right, bottom)
         self.focus_changed(self.editor.hasFocus())
+        self.fit_buttons()
+
+    def one_line_box_height(self) -> int:
+        """The input box's height holding one line: the editor's one-line height, the box's
+        padding, and its border where it draws one."""
+        padding = self.frame.layout().contentsMargins()
+        border = 2 if self.settings.ui.input.box.bordered else 0
+        return self.editor_height(1) + padding.top() + padding.bottom() + border
+
+    def fit_buttons(self) -> None:
+        """Every button in the box's row (send, and any a composer adds beside it) is the
+        box's one-line height and at least as wide as tall: level with a one-line box, and
+        pinned to the bottom of a taller one (each is added bottom-aligned)."""
+        height = self.one_line_box_height()
+        for index in range(self.frame_row.count()):
+            button = self.frame_row.itemAt(index).widget()
+            if button is not None and button is not self.frame:
+                button.setFixedHeight(height)
+                button.setMinimumWidth(height)
 
     def update_prompt(self) -> None:
         """A leading symbol or the placeholder setting changed: draw both again."""
@@ -402,8 +433,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         return self.host.submissions
 
     def paint_colours(self) -> None:
-        """The muted placeholder, the offer list, the glyph and the frame's border, under the
-        renderer's current scheme."""
+        """The area's tone, the muted placeholder, the offer list, the glyph and the frame's
+        border, under the renderer's current scheme."""
+        self.setStyleSheet(f"#composer {{ background: {self.renderer.theme(self.area_tone)} }}")
         palette = self.editor.palette()
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(self.renderer.colour(MutedRole)))
         self.editor.setPalette(palette)
@@ -451,7 +483,11 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         lines = max(1, min(5, typed))
         self.editor.setVerticalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > 5 else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.editor.setFixedHeight(self.editor.fontMetrics().lineSpacing() * lines + 24)
+        self.editor.setFixedHeight(self.editor_height(lines))
+
+    def editor_height(self, lines: int) -> int:
+        """The editor's height showing `lines` lines."""
+        return self.editor.fontMetrics().lineSpacing() * lines + 24
 
     @property
     def text(self) -> str:
@@ -510,7 +546,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.editor.clear()
         self.dismissed_text = ""
         self.failure.hide()
-        self.host.submit(TypedText(text), action)
+        self.host.submit(TypedText(text, self.take_files()), action)
 
     # Toolkit-neutral action-family contract: Textual's Prompt inherits Submits +
     # DismissibleControl from widget_actions.py; the mixin lift itself is fork
@@ -602,11 +638,66 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         """The view's label changed; a channel's composer keeps the placeholder its kind gave it."""
 
 
-class ChannelComposer(MessagePromptComposer, Composer):
+Composer.action_methods = (
+    (SubmitAction, Composer.submit),
+    (SubmitNowAction, Composer.submit_now),
+    (DismissAction, Composer.dismiss_control),
+    (NewlineAction, Composer._insert_newline),
+)
+
+
+class QtAttachedFileChip(AttachedFileChip, QPushButton):
+    """An attached file as a button over the editor; tapping it takes the file off."""
+
+    def __init__(self, composer: QtMessageComposer, position: int) -> None:
+        super().__init__(composer.attached_row)
+        self.show_file(composer, position)
+        self.setText(f"{self.caption}  ✕")
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setToolTip("Remove this file")
+        self.clicked.connect(self.take_off)
+
+
+class QtMessageComposer(MessagePromptComposer, Composer):
+    """A bus message's composer on Qt: the shared message composer, an Attach button beside
+    Send, the attached files as chips over the editor, and Qt's two pickers."""
+
+    action_methods = (*Composer.action_methods, (AttachFileAction, MessagePromptComposer.attach_file))
+
+    def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
+        super().__init__(host, renderer, placeholder)
+        self.attach_button = QPushButton(AttachFileAction.title, self)
+        self.attach_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
+        self.attach_button.clicked.connect(self.attach_file)
+        self.frame_row.insertWidget(1, self.attach_button, 0, Qt.AlignmentFlag.AlignBottom)
+        self.attached_row = QWidget(self)
+        chips = QHBoxLayout(self.attached_row)
+        chips.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
+        chips.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout = self.layout()
+        layout.insertWidget(layout.indexOf(self.frame_row), self.attached_row)
+        self.attached_row.hide()
+
+    def pick_in_window(self) -> None:
+        open_file_dialog(self, self)
+
+    def pick_by_path_search(self) -> None:
+        open_path_search(self, self, self.host.app.project_dir.path, self.host.app.run_operation)
+
+    def show_attached(self) -> None:
+        chips = self.attached_row.layout()
+        while (item := chips.takeAt(0)) is not None:
+            item.widget().deleteLater()
+        for position in range(len(self.attached_files)):
+            chips.addWidget(QtAttachedFileChip(self, position))
+        self.attached_row.setVisible(bool(self.attached_files))
+
+
+class ChannelComposer(QtMessageComposer):
     """A channel's composer, which offers its members after an @."""
 
 
-class MessageComposer(MessagePromptComposer, Composer):
+class MessageComposer(QtMessageComposer):
     """A direct message's composer: it names its peer, as Textual's MessagePrompt does."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer) -> None:
