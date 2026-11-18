@@ -2503,6 +2503,111 @@ class SettingsReadScenario(Scenario):
             print(f"{path.value}: read={shown(field.value)!r} "
                   f"draws={reading() if reading else '-'!r}", flush=True)
         app.grab().save(str(self.out / "settingsread-end.png"))
+class HoldScenario(Scenario):
+    summary = ("at a Pixel 8a's size, with real touch through the window and the phone's touch-as-mouse "
+               "gesture: hold a finger on a sidebar channel, on a history row and on a tab; each that "
+               "offers a menu on right-click opens the same menu, and letting go doesn't also tap it. A "
+               "hold then a drag scrolls with no menu, and a tap still opens a row")
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        return TouchAsMouse()
+
+    def __init__(self, app: QtToadApp, out: Path) -> None:
+        super().__init__(app, out)
+        self.finger = QTest.createTouchDevice()
+        self.faults: list[str] = []
+
+    async def touch(self, widget: QWidget, point: QPoint, held_ms: int, moves: tuple[int, ...] = ()) -> None:
+        """A finger down at `point` (in `widget`), held for `held_ms`, moved up by each of
+        `moves` pixels a frame apart, then lifted, through the window as Android delivers it."""
+        window = widget.window()
+        handle, at = window.windowHandle(), widget.mapTo(window, point)
+        QTest.touchEvent(handle, self.finger).press(0, at).commit()
+        await asyncio.sleep(held_ms / 1000)
+        for step in moves:
+            at = at - QPoint(0, step)
+            QTest.touchEvent(handle, self.finger).move(0, at).commit()
+            await asyncio.sleep(0.016)
+        QTest.touchEvent(handle, self.finger).release(0, at).commit()
+        await asyncio.sleep(0.6)
+
+    def menu(self) -> list[str]:
+        """The menu the window shows, row by row, or nothing when it is closed."""
+        panel = self.app.menu_panel
+        return [row.label.text() for row in panel.findChildren(QtMenuRow)] if panel.isVisible() else []
+
+    def close_menu(self) -> None:
+        self.app.menu_panel.hide()
+
+    async def right_click(self, widget: QWidget, point: QPoint) -> list[str]:
+        QTest.mouseClick(widget, Qt.MouseButton.RightButton, Qt.KeyboardModifier.NoModifier, point)
+        await asyncio.sleep(0.4)
+        clicked = self.menu()
+        self.close_menu()
+        return clicked
+
+    def expect(self, step: str, fact: bool, said: str) -> None:
+        if not fact:
+            self.faults.append(f"{step}: {said}")
+
+    async def held_menu(self, step: str, widget: QWidget, point: QPoint) -> None:
+        """A hold opens the menu a right-click opens there, and its release taps nothing."""
+        page = self.page
+        await self.touch(widget, point, 1100)
+        held = self.menu()
+        self.report(step, menu=held)
+        self.close_menu()
+        clicked = await self.right_click(widget, point)
+        self.expect(step, bool(held), "a held finger opened no menu")
+        self.expect(step, held == clicked, f"the hold's menu {held} is not the right-click's {clicked}")
+        self.expect(step, self.page is page, f"letting go opened {type(self.page).__name__}")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named("#comms")
+        tree = app.sidebar
+        await self.expand("#comms")
+        # 1. A sidebar row that isn't open: the hold offers its menu, and letting go doesn't open it.
+        other = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name != "#comms"
+                                 and not tree.visualItemRect(row).isEmpty(), "another listed row")
+        await self.held_menu("1-sidebar-row", tree.viewport(), tree.visualItemRect(other).center())
+        # 2. A message row in the history: its block menu.
+        history = self.page.messages
+        rows = history.model_rows
+        index = rows.index(max(0, rows.rowCount() - 2), 0)
+        history.scrollTo(index)
+        await asyncio.sleep(0.4)
+        await self.held_menu("2-history-row", history.viewport(), history.visualRect(index).center())
+        # 3. A tab offers no menu on right-click: a hold there stays the tab's press.
+        tabs = app.tabs
+        await self.touch(tabs, tabs.tabRect(0).center(), 1100)
+        self.report("3-tab", menu=self.menu())
+        self.expect("3-tab", not self.menu(), f"a tab offered a menu {self.menu()} a right-click doesn't")
+        self.close_menu()
+        # 4. A hold that then drags scrolls the history, and opens no menu.
+        bar = history.verticalScrollBar()
+        bar.setValue(bar.maximum())
+        await asyncio.sleep(0.4)
+        before = bar.value()
+        viewport = history.viewport()
+        await self.touch(viewport, QPoint(viewport.width() // 2, int(viewport.height() * 0.3)), 300,
+                         moves=(-24,) * 14)
+        await asyncio.sleep(1.0)
+        self.report("4-hold-then-drag", scrolled=(before, bar.value()), menu=self.menu())
+        self.expect("4-hold-then-drag", bar.value() != before, "the drag after a short hold didn't scroll")
+        self.expect("4-hold-then-drag", not self.menu(), f"the drag opened a menu {self.menu()}")
+        self.close_menu()
+        # 5. A tap still opens a row.
+        page = self.page
+        await self.touch(tree.viewport(), tree.visualItemRect(other).center(), 60)
+        await until(lambda: self.page is not page and not isinstance(self.page, QtOpeningSessionView), "tapped row")
+        self.report("5-tap-opens")
+        if self.faults:
+            raise AssertionError("\n".join(self.faults))
+
+
 class FingerScenario(Scenario):
     summary = ("at a Pixel 8a's width with the phone's touch-as-mouse gesture: drag every visible "
                "scroll area by finger on the welcome, sidebar, #comms, the multi-line composer, the "

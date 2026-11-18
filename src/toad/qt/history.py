@@ -31,6 +31,7 @@ from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices,
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
+from toad.qt.finger_press import FingerPress, Press
 from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.core.projection import MroProjection
 from toad.link_opening import OpensLineLinks
@@ -885,12 +886,13 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         # Rows that arrived at the end the reader follows, not yet glided to (`glide_to_end`).
         self._arrived: tuple = ()
         self.viewport().installEventFilter(self)
-        # Block menu: right-click (desktop) and long-press (Android) on a message row
-        # emit `block_menu_requested` with the row's fragment. ConversationView mounts
-        # the handler and runs the resulting commands.
+        # Block menu: a right-click, or a held finger (`FingerPress` delivers it as one), on a
+        # message row emits `block_menu_requested` with the row's fragment. ConversationView
+        # mounts the handler and runs the resulting commands.
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._emit_block_menu_at)
-        self.viewport().grabGesture(Qt.GestureType.TapAndHoldGesture)
+        # A tap on a link opens it, in place of the row's own click (`FingerPress.tapped`).
+        FingerPress.install(QApplication.instance()).tapped.connect(self._link_tapped)
         # Reader keys (ctrl+d / ctrl+u / shift+g) come from the `ReaderAction` family
         # declared in `src/toad/reader_actions.py`. Both backends drive from that one
         # declaration: Textual through the Action/BindingsMap path, Qt through
@@ -995,26 +997,17 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
                 if self.jump_bar.isVisible():
                     self._place_jump_bar()
                 self.repin_header()
-            elif event.type() == QEvent.Type.Gesture:
-                held = event.gesture(Qt.GestureType.TapAndHoldGesture)
-                if held is not None and held.state() == Qt.GestureState.GestureFinished:
-                    self._emit_block_menu_at(self.viewport().mapFromGlobal(held.position().toPoint()))
-                    return True
-            elif event.type() == QEvent.Type.MouseButtonPress:
-                self._pressed_at = event.position().toPoint()
-            elif event.type() == QEvent.Type.MouseButtonRelease and self._tapped(event.position().toPoint()):
-                href = self.anchor_at(event.position().toPoint())
-                if href:
-                    self.open_link(href)
-                    return True
         return super().eventFilter(obj, event)
 
-    _pressed_at: QPoint | None = None
-
-    def _tapped(self, point: QPoint) -> bool:
-        """A release where the press was, not the end of a drag the scroller moved."""
-        pressed, self._pressed_at = self._pressed_at, None
-        return pressed is not None and (point - pressed).manhattanLength() <= QApplication.startDragDistance()
+    def _link_tapped(self, press: Press) -> None:
+        """A tap on a link drawn in a row opens it, and the row doesn't also take the tap."""
+        viewport = self.viewport()
+        if not press.within(viewport):
+            return
+        href = self.anchor_at(press.at(viewport))
+        if href:
+            press.claim()
+            self.open_link(href)
 
     def anchor_at(self, point: QPoint) -> str:
         """The href of the link drawn at `point` (viewport coordinates), or "" over plain text."""

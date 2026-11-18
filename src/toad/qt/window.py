@@ -523,22 +523,10 @@ class BusAddress(BusAddressEntry, QLineEdit):
         self.clear()
 
 
-class SwallowsRelease(QObject):
-    """Eats the one release that ends a held finger, then goes: the finger was holding the
-    row for its actions, so letting go must not also tap it and open that bus."""
-
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if event.type() == QEvent.Type.MouseButtonRelease:
-            watched.removeEventFilter(self)
-            self.deleteLater()
-            return True
-        return False
-
-
 class HeldRowMenu(QObject):
-    """A tree line's held actions (SidebarItem.held_actions), offered where a finger is held
-    on it or a mouse right-clicks it (a phone has no right button), in the window's own
-    panel, as its menu is (QtToadApp.offer)."""
+    """A tree line's held actions (SidebarItem.held_actions), offered where a mouse
+    right-clicks it or a finger is held on it (`FingerPress` delivers a held finger as the
+    same context-menu request), in the window's own panel, as its menu is (QtToadApp.offer)."""
 
     def __init__(self, listing: Welcome) -> None:
         super().__init__(listing)
@@ -546,18 +534,6 @@ class HeldRowMenu(QObject):
         rows = listing.rows
         rows.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         rows.customContextMenuRequested.connect(self.offer)
-        rows.viewport().grabGesture(Qt.GestureType.TapAndHoldGesture)
-        rows.viewport().installEventFilter(self)
-
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if event.type() == QEvent.Type.Gesture:
-            held = event.gesture(Qt.GestureType.TapAndHoldGesture)
-            if held is not None and held.state() == Qt.GestureState.GestureFinished:
-                viewport = self.listing.rows.viewport()
-                viewport.installEventFilter(SwallowsRelease(viewport))
-                self.offer(viewport.mapFromGlobal(held.position().toPoint()))
-                return True
-        return False
 
     def offer(self, point: QPoint) -> None:
         """``point`` is in the tree's viewport, where QAbstractScrollArea reports it.
