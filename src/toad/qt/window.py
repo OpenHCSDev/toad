@@ -1316,7 +1316,10 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         """Read compose access, status, label and mentions — facts that change when thread
         config changes (ThreadsObserved), not on every bus message."""
         source = self.app.source()
-        label = self.conversation.label(source.references())
+        # The label reads Core's thread references: off the GUI loop, as compose access is.
+        # Read on the loop it held a tab's opening for 104 ms on the desktop (frame probe).
+        references = await asyncio.to_thread(source.references)
+        label = self.conversation.label(references)
         self.on_composer("label", lambda composer: composer.labelled(label))
         compose = await asyncio.to_thread(self.conversation.compose_access, source.core)
         await self.refresh_composer(compose)
