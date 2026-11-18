@@ -57,7 +57,7 @@ from toad.widget_contracts import (
 )
 from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
 from toad.qt.lines import QtLineRenderer
-from toad.qt.queue_ui import QtDeliveryControls, QtQueueInspection, QtQueueSummary, RowReveal
+from toad.qt.queue_ui import QtDeliveryControls, QtQueueHint, QtQueueInspection, QtQueueSummary, RowReveal
 from toad.qt.prompt_stack import QtInfoBar
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
@@ -334,6 +334,10 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
         self.submitting = QtQueueSummary(self)
         self.delivery_controls = QtDeliveryControls(self)
+        # Textual's `QueueHint`: the info bar's held count while the delivery preview is off,
+        # before the status line as Textual composes it.
+        self.held = QtQueueHint(self)
+        self.info_bar.layout().insertWidget(self.info_bar.layout().indexOf(self.info_bar.status), self.held)
         self.failure = self.line(FailureRole)
         self.receipt = Receipt(host.app, renderer)
         self.send_button = QPushButton(SubmitAction.title, self)
@@ -360,7 +364,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.place_input_box()
         self.refresh_glyph()
         self.fit_height()
-        self.show_submitting()
+        self.sync_queue()
 
     @property
     def settings(self):
@@ -419,7 +423,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def refresh_editing_mode(self) -> None:
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, self.editor.hasFocus())
-        RowReveal.toggle(self.delivery_controls, self.offers_send_now, self)
+        RowReveal.toggle(self.delivery_controls, self.shows_delivery_controls, self)
 
     @property
     def offers_send_now(self) -> bool:
@@ -562,11 +566,22 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.failure.setText(text)
         self.failure.show()
 
-    def show_submitting(self) -> None:
-        """The queue summary and delivery controls from the shared submissions, as Textual's
-        ``_update_queue_summary`` + ``DeliveryControls`` flip on ``offers_send_now``."""
+    queue_sync_pending: bool = False
+
+    def sync_queue(self) -> None:
+        """The queue summary, the delivery controls and the held count from the shared
+        submissions, as Textual's ``Prompt.sync_queue`` shows them; once per event-loop turn,
+        however many changes the turn reports (a send publishes several, and every
+        notification read reports the queue again)."""
+        if not self.queue_sync_pending:
+            self.queue_sync_pending = True
+            QTimer.singleShot(0, self, self._sync_queue)
+
+    def _sync_queue(self) -> None:
+        self.queue_sync_pending = False
         self.submitting.refresh(self.queue_summary)
-        RowReveal.toggle(self.delivery_controls, self.offers_send_now, self)
+        RowReveal.toggle(self.delivery_controls, self.shows_delivery_controls, self)
+        self.held.refresh(self.queue_hint)
 
     def open_queue_menu(self) -> None:
         """Textual's ``Conversation.open_queue_menu`` pushes the ``QueueInspection``

@@ -281,6 +281,10 @@ class ConversationSubmissions(BusSubmissions):
         return self.view.queue_source.queue_summary(self.queue_evidence)
 
     @property
+    def queue_hint(self) -> str:
+        return self.view.queue_source.queue_hint(self.queue_evidence)
+
+    @property
     def queue_projection(self):
         return self.view.agent_binding.presentation.queue
 

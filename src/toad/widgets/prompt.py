@@ -247,10 +247,19 @@ class QueueSummary(
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
-        self.styles.max_height = 3
+        self.styles.max_height = PromptComposer.queue_summary_lines
 
     def activate(self) -> None:
 
+        self.query_ancestor(Prompt).conversation.open_queue_menu()
+
+
+class QueueHint(Activates, SecondaryText, StartsHidden, SideMargin, AutoWidth, OneRow, NoWrap, Label,
+                can_focus=True):
+    """The held count in the info bar while the delivery preview is off; selecting it
+    opens the queue, as the summary does."""
+
+    def activate(self) -> None:
         self.query_ancestor(Prompt).conversation.open_queue_menu()
 
 
@@ -872,7 +881,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         if not self.is_mounted:
             return
         editor = self.prompt_text_area
-        self.query_one(DeliveryControls).show(SubmitNowAction().available(editor))
+        self.query_one(DeliveryControls).show(self.shows_delivery_preview and SubmitNowAction().available(editor))
         editor.refresh_bindings()
 
         self.conversation.queue_controls_changed()
@@ -895,6 +904,10 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         summary.display = bool(text)
         summary.tooltip = "Show queued messages and delivery status."
         summary.update(Content(text))
+        hint = self.queue_hint
+        held = self.query_one(QueueHint)
+        held.display = bool(hint)
+        held.update(Content(hint))
 
     @on(messages.SendPromptNow)
     async def on_send_prompt_now(self, event):
@@ -1080,6 +1093,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         yield from self.compose_info_popups()
         with InfoBar():
             yield editor.editing_mode_label
+            yield QueueHint("", markup=False)
             yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
             yield from self.compose_mode_controls()

@@ -2043,6 +2043,74 @@ class ArrivalScenario(Scenario):
                     queue_changes=len(toggles), largest_scroll_step=max(map(abs, jumps), default=0))
 
 
+class DeliveryPreviewScenario(Scenario):
+    summary = ("open TARGET (#scratch), send 2 messages with ui.input.delivery_preview on, then 2 with "
+               "it off, turning it off and on live: the queue rows show only while it is on, the info "
+               "bar's held count only while it is off, and the history keeps its height while it is off")
+
+    width: ClassVar[int] = 412
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(self.width, 915)
+        await self.open_named(os.environ.get("TARGET", "#scratch"))
+        view = self.page
+        composer = view.composer
+        samples: list[tuple[bool, bool, bool, int, str]] = []
+
+        def sample() -> None:
+            samples.append((composer.submitting.isVisible(), composer.delivery_controls.isVisible(),
+                            composer.held.isVisible(), view.messages.viewport().height(), composer.held.text()))
+        from PySide6.QtCore import QTimer
+        timer = QTimer()
+        timer.setInterval(16)
+        timer.timeout.connect(sample)
+        stamp = time.strftime("%H:%M:%S")
+
+        async def send(phase: str) -> list[tuple[bool, bool, bool, int, str]]:
+            samples.clear()
+            timer.start()
+            for index in range(2):
+                composer.editor.setPlainText(f"delivery preview {phase} {index} {stamp}")
+                composer.submit()
+                await asyncio.sleep(0.1)
+            await asyncio.sleep(6.0)
+            timer.stop()
+            return list(samples)
+
+        def setting(shown: bool) -> None:
+            app.saved_settings.set(SETTINGS.ui.input.delivery_preview, shown)
+        faults: list[str] = []
+        try:
+            setting(True)
+            await asyncio.sleep(0.5)
+            on = await send("on")
+            self.report("1-preview-on", summary_shown=any(s for s, *_ in on),
+                        held_shown=any(h for _, _, h, *_ in on))
+            if any(h for _, _, h, *_ in on):
+                faults.append("the held count showed while the preview was on")
+            setting(False)
+            await asyncio.sleep(0.5)
+            off = await send("off")
+            heights = sorted({height for *_, height, _ in off})
+            self.report("2-preview-off", summary_shown=any(s for s, *_ in off),
+                        controls_shown=any(c for _, c, *_ in off), held=sorted({text for *_, text in off} - {""}),
+                        viewport_heights=heights)
+            if any(s or c for s, c, *_ in off):
+                faults.append("a queue row showed while the preview was off")
+            if len(heights) > 1:
+                faults.append(f"the history changed height while the preview was off: {heights}")
+            setting(True)
+            await asyncio.sleep(0.5)
+            self.report("3-preview-on-again", held_shown=composer.held.isVisible())
+            if composer.held.isVisible():
+                faults.append("the held count stayed after the preview came back")
+        finally:
+            setting(True)
+        if faults:
+            raise AssertionError("; ".join(faults))
+
+
 class FrameScenario(Scenario):
     summary = ("frame budget: the GUI thread's stalls and key-to-paint latency (toad.qt.frame_probe) "
                "while idle with the sidebar's waves running, while scrolling #comms, and while typing "

@@ -9,6 +9,7 @@ paint calls.
 from __future__ import annotations
 
 from abc import abstractmethod
+from typing import ClassVar
 
 from metaclass_registry import AbstractHooksMeta
 
@@ -31,11 +32,20 @@ class PromptSettingEffects:
         """The placeholder or a leading symbol changed: the prompt shows the new text."""
         self.update_prompt()
 
+    @EachOpenWidget
+    def apply_delivery_preview(self) -> None:
+        """The delivery preview was turned on or off: the prompt shows its queue rows, or
+        drops them for the held count, at once."""
+        self.sync_queue()
+
 
 class PromptComposer(metaclass=AbstractHooksMeta):
     """A conversation's composer: its submission owner, queue and leading glyph."""
 
     submissions: object | None
+    queue_summary_lines: ClassVar[int] = 3
+    """The queue summary's most lines; a longer one is cut there, so its wrapping never
+    pushes the history further."""
 
     @property
     @abstractmethod
@@ -69,13 +79,34 @@ class PromptComposer(metaclass=AbstractHooksMeta):
 
     @property
     def offers_send_now(self) -> bool:
-        """Delivery controls ("Enter queues · Send now") show while input is held for a
-        ready agent."""
+        """Send now (Ctrl+Enter) sends ahead while input is held for a ready agent."""
         return self.agent_ready and self.holds_input
 
     @property
+    def shows_delivery_preview(self) -> bool:
+        """The `ui.input.delivery_preview` setting: the queue rows above the prompt, or only
+        the held count in the info bar."""
+        return self.settings.ui.input.delivery_preview
+
+    @property
+    def shows_delivery_controls(self) -> bool:
+        """The delivery controls row ("Enter queues · Send now") shows while Send now is
+        offered and the preview is on; with it off, Ctrl+Enter still sends ahead."""
+        return self.shows_delivery_preview and self.offers_send_now
+
+    @property
     def queue_summary(self) -> str:
-        return self.operational_submissions.queue_summary
+        """The queue rows' text; while the preview is off nothing is read for them."""
+        return self.operational_submissions.queue_summary if self.shows_delivery_preview else ""
+
+    @property
+    def queue_hint(self) -> str:
+        """The info bar's held count while the preview is off; nothing while it is on."""
+        return "" if self.shows_delivery_preview else self.operational_submissions.queue_hint
+
+    @abstractmethod
+    def sync_queue(self) -> None:
+        """Show the queue rows, the delivery controls and the held count as the shared answers say."""
 
     def prompt_symbol(self, text: str, shell_mode: bool) -> str:
         """The glyph that leads the input: shell, multiline or the agent prompt (``❯``)."""

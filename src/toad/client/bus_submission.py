@@ -109,6 +109,12 @@ class SubmittingTexts:
     def details(self) -> DetailLines:
         return tuple((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),) for text in self.texts)
 
+    @staticmethod
+    def held_hint(count: int) -> str:
+        """The one-word stand-in for the delivery preview while it is off: how many of the
+        view's messages are still held, and nothing when none is."""
+        return f"⧗ {count} held" if count else ""
+
 
 class UnboundSubmissionStart(SubmissionStart):
     def __init__(self, owner: BusSubmissions, submission: SubmittedText, refusal: InputRefused):
@@ -376,6 +382,10 @@ class BusSubmissions(SubmissionOwner):
     @property
     def queue_summary(self) -> str:
         return " | ".join(self.submitting.summary)
+
+    @property
+    def queue_hint(self) -> str:
+        return self.submitting.held_hint(len(self.submitting.texts))
 
     def settle(self) -> None:
         """The view drew new messages: retire the bus sends they show."""

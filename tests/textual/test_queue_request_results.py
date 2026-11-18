@@ -4,36 +4,10 @@ session request produced when an older request answers late, and a failed send n
 import asyncio
 
 import pytest
-from acp.schema import NewSessionResponse
-from agent_comms.acp_extension import (
-    AvailableQueueProjection,
-    QueueChangedUpdate,
-    QueueItem,
-    LiveQueueScope,
-)
-from agent_comms.text_route_update import encode_updates
-from agent_comms.nominal.field_codec import AcpSessionId, InputId
-from agent_comms.execution.child_process import ProcessIdentity
-from agent_comms.registry.thread_identity import (
-    ClaimedIdentity,
-    RecordedThreadIncarnation,
-)
-
-from support.agents import PendingAnswer, PendingConnection
-from toad.widgets.prompt import QueueSummary
 from acp.exceptions import RequestError
 
-
-def response(session, next_owner=False):
-    generation = 2 if next_owner else 1
-    scope = LiveQueueScope(
-        session_id=AcpSessionId(session),
-        claimed_identity=ClaimedIdentity(RecordedThreadIncarnation(session, 1000.0), generation),
-        owner=ProcessIdentity(1234, 1),
-    )
-    items = (QueueItem(InputId("a" * 32), "same text"), QueueItem(InputId("b" * 32), "same text"))
-    return NewSessionResponse(
-        sessionId=session, _meta=encode_updates(QueueChangedUpdate(scope, generation, AvailableQueueProjection(items))))
+from support.agents import PendingAnswer, PendingConnection, queued_session_response as response
+from toad.widgets.prompt import QueueSummary
 
 
 @pytest.mark.parametrize("successor", ["new", "stop"])

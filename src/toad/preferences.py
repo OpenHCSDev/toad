@@ -91,6 +91,12 @@ class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsOwner,)):
     ] = "$"
     """Shown before a shell command."""
 
+    delivery_preview: Annotated[
+        bool, FieldLabel("Show delivery preview?"), PromptSettingEffects.apply_delivery_preview,
+        WireName("delivery-preview"),
+    ] = True
+    """The rows above the prompt that list messages still submitting, queued or held at their recipients, with Send now. Disable to keep the history its full height: the info bar then shows only how many are held, and selecting it opens the queue."""
+
 
 @dataclass(frozen=True)
 class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsOwner,)):
