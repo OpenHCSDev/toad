@@ -271,9 +271,10 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         return [offer.layout.name.text for offer in self.page.composer.offers.offers[:count]]
 
     async def listed(self) -> None:
-        """The bus has answered: the welcome lists at least one row."""
-        await until(lambda: sum(section.childCount() for section in self.app.workspace_sessions.home.rows.items()) > 0,
-                    "welcome rows")
+        """The bus has answered: the comms sidebar lists at least one channel or thread."""
+        # Its top lines are the channels (a scenario may name its own `rows`).
+        await until(lambda: any(isinstance(row, ConversationRow) for row in self.app.sidebar.items()),
+                    "sidebar rows")
 
     @abstractmethod
     async def run(self) -> None: ...
@@ -1035,18 +1036,89 @@ class EscapeScenario(Scenario):
 
 
 class WelcomeScenario(Scenario):
-    summary = "print the welcome's listings, then open its first row"
+    summary = "print what the comms sidebar lists while it holds the window, then open its first channel"
 
     async def run(self) -> None:
         await self.listed()
-        welcome = self.app.workspace_sessions.home
-        sections = list(welcome.rows.items())
-        self.report("1-welcome", **{section.text(0): [section.child(index).key for index in range(section.childCount())]
-                                    for section in sections})
-        welcome.rows.activate(sections[0].child(0))
-        await until(lambda: self.page is not welcome, "opened")
+        home = self.app.workspace_sessions.home
+        lines = list(self.app.sidebar.items())
+        self.report("1-welcome", **{line.text(0) or line.key: [line.child(index).key for index in range(line.childCount())]
+                                    for line in lines})
+        self.app.open_row(next(row for row in lines if isinstance(row, ConversationRow)))
+        await until(lambda: self.page is not home, "opened")
         await asyncio.sleep(1.0)
         self.report("2-opened")
+
+
+class SoleSidebarScenario(Scenario):
+    summary = ("with no tab open the comms sidebar holds the window (banner, bus, search, channels, threads, "
+               "buses, hints); opening a row gives one tab and the sidebar returns to its placement beside "
+               "the conversation; closing that tab gives the window back to the sidebar")
+
+    def shown(self) -> dict[str, object]:
+        app = self.app
+        side, pages = app.channels_side, app.workspace_sessions.pages
+        visible = lambda widget: widget.isVisibleTo(app)
+        on_app = lambda widget: QRect(widget.mapTo(app, QPoint(0, 0)), widget.size())
+        tree = on_app(app.sidebar.viewport())
+        buses = app.sidebar_buses
+        bus_lines = list(self.rows(buses.items()))
+        first_bus = next((line for line in bus_lines if line.parent() is not None), bus_lines[0] if bus_lines else None)
+        bus_seen = None
+        if first_bus is not None and visible(buses):
+            rect = buses.visualItemRect(first_bus)
+            bus_seen = (buses.viewport().rect().contains(rect)
+                        and app.rect().contains(QRect(buses.viewport().mapTo(app, rect.topLeft()), rect.size())))
+        return dict(sidebar=side.geometry().getRect(), pages=pages.geometry().getRect(),
+                    window=(app.width(), app.height()), tabs=self.tabs(),
+                    banner=visible(app.banner), bus=visible(app.bus_label), hints=visible(app.hints),
+                    address=visible(app.bus_address), search=visible(app.sidebar_search),
+                    strip=visible(side.toggle), buses=visible(buses),
+                    bus_rows=[line.key for line in bus_lines], bus_seen=bus_seen,
+                    channels=sum(isinstance(row, ConversationRow) for row in app.sidebar.items()),
+                    over_tree=[type(part).__name__ for part in (app.hints, app.bus_address, buses, app.bus_label, app.banner)
+                               if visible(part) and on_app(part).intersects(tree)],
+                    tree=tree.getRect(),
+                    parts={type(part).__name__: on_app(part).getRect() for part in
+                           (app.banner, app.bus_label, buses, app.sidebar_search, app.hints, app.bus_address)})
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.listed()
+        await asyncio.sleep(1.0)
+        alone = self.shown()
+        self.report("1-alone", **alone)
+        chrome = app.chrome.rect()
+        assert alone["sidebar"][2:] == (chrome.width(), chrome.height()), f"the sidebar is not the whole window: {alone}"
+        assert alone["pages"][2] == 0, f"the pages still take room: {alone}"
+        assert all(alone[part] for part in ("banner", "bus", "hints", "address", "search", "buses")), alone
+        assert not alone["strip"] and alone["channels"], alone
+        assert not alone["over_tree"], f"drawn over the comms rows: {alone['over_tree']} {alone['parts']} tree={alone['tree']}"
+        # The buses are in the first screen, unscrolled: a bus row, or the Buses line when none
+        # is held.
+        assert alone["bus_seen"], f"no bus line inside the window: {alone}"
+        # 2. A row opens the first tab: the sidebar returns to its placement beside it.
+        await self.expand("#comms")
+        home = app.workspace_sessions.home
+        app.open_row(await self.channel_row("#comms"))
+        await until(lambda: self.page is not home and self.page.content_ready.is_set(), "#comms")
+        await asyncio.sleep(1.0)
+        beside = self.shown()
+        self.report("2-tab", **beside)
+        assert len(beside["tabs"]) == 1, beside
+        assert beside["pages"][2] > 0, f"the conversation got no room: {beside}"
+        assert not any(beside[part] for part in ("banner", "bus", "hints", "address", "buses")), beside
+        # Its kept placement: its strip, and its rows only if it was kept open.
+        assert beside["strip"] and beside["search"] == (not app.channels_side.collapsed), beside
+        # 3. Closing the last tab gives the window back to the sidebar.
+        app.close_index(0)
+        await until(lambda: self.page is home, "home")
+        await asyncio.sleep(1.0)
+        again = self.shown()
+        self.report("3-closed", **again)
+        assert again["sidebar"][2:] == (chrome.width(), chrome.height()) and again["banner"] and again["buses"], again
+        assert not again["over_tree"] and again["bus_seen"], again
 
 
 class MenuScenario(Scenario):
@@ -1721,7 +1793,7 @@ class PhoneScenario(Scenario):
         self.report("1-welcome", window=self.app.width(), too_wide=self.too_wide())
         # Android's style lays pages out with wider margins than desktop; a widget sized
         # from its page's width grows the page by the difference on every resize.
-        self.app.workspace_sessions.home.layout().setContentsMargins(20, 20, 20, 20)
+        self.app.channels_column.layout().setContentsMargins(20, 20, 20, 20)
         widths = []
         for _ in range(4):
             self.app.resize(self.width, 915)
@@ -2939,7 +3011,6 @@ class FrameScenario(Scenario):
             timed(qt_window.Sidebar, "redraw", "sidebar.redraw")
             timed(qt_window.Sidebar, "sync", "sidebar.sync")
             timed(type(app), "paint_tabs", "paint_tabs")
-            timed(type(app.workspace_sessions.home), "present", "home.present")
             timed(type(app.thread_pane), "bind", "thread_pane.bind")
             timed(type(app.thread_pane), "setting_entries", "thread_pane.setting_entries")
             timed(type(app), "present_panes", "present_panes")

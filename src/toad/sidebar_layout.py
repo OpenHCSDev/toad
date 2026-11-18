@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, ClassVar, Protocol
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry import AbstractHooksMeta
@@ -13,6 +13,7 @@ from textual.geometry import Offset, Region, Size, Spacing
 
 from toad.sidebar_placement import (
     ActiveSidebarPlacement,
+    ChannelsSidebarPlacement,
     BandSplit,
     SidebarEdge,
     SidebarFold,
@@ -234,6 +235,20 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
         """A click on the strip: open a folded pane, fold an open one."""
         self.fold(not self.collapsed)
 
+    controls_wanted = True
+    """Whether the reader shows the extent slider and placement actions (`toggle_controls`);
+    they are hidden while the surface holds the window alone, and come back as the reader
+    left them."""
+
+    @property
+    def holds_alone(self) -> bool:
+        """This surface takes the whole window (`SidebarLayout.holds_alone`)."""
+        return self.sidebar_layout.holds_alone(self.placement_identity)
+
+    def content_padding(self) -> Spacing:
+        """The room the content leaves its strip and grip: none while it holds the window."""
+        return Spacing() if self.holds_alone else self.placement.side.content_padding()
+
     @property
     def placement(self) -> SidebarPlacement:
         return self.sidebar_layout.get(self.placement_identity)
@@ -289,17 +304,17 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
         edge = self.placement.side
         return start_percent + round(100 * edge.sign * edge.coordinate(delta) / max(1, viewport_extent))
 
-    @staticmethod
-    def surface_parts(edge: type[SidebarEdge], size: Size) -> SurfaceParts:
-        """Where a surface's toggle strip, resize handle and content go inside its own region,
-        in cells. Both sit on the conversation-facing side (the edge's opposite), as Textual
-        docks SideBarToggle and SidebarResizeHandle; the content keeps the edge's
-        ``content_padding`` clear of them."""
+    def surface_parts(self, size: Size) -> SurfaceParts:
+        """Where this surface's toggle strip, resize handle and content go inside its own
+        region, in cells. Both sit on the conversation-facing side (the edge's opposite), as
+        Textual docks SideBarToggle and SidebarResizeHandle; the content keeps
+        `content_padding` clear of them. Holding the window alone, the content is all of it."""
+        edge = self.placement.side
         inner = edge.opposite()
         cross = size.width
         toggle = inner.region(size, SidebarGeometry(0, edge.collapsed_extent, 0, cross), Spacing())
         handle = inner.region(size, SidebarGeometry(edge.collapsed_extent, 1, 0, cross), Spacing())
-        content = Region(0, 0, size.width, size.height).shrink(edge.content_padding())
+        content = Region(0, 0, size.width, size.height).shrink(self.content_padding())
         return SurfaceParts(toggle, handle, content)
 
 
@@ -476,6 +491,12 @@ class SidebarChromeArrangement[Bar: SidebarSurface](ABC):
     def arrange_chrome(self, viewport: Size) -> ChromeArrangement[Bar]:
         bars = self.presented_sidebars()
         layout = self.sidebar_layout
+        # No tab shown: the sole bar is the whole window and nothing else is placed.
+        for bar in bars:
+            if layout.holds_alone(bar.placement_identity):
+                return ChromeArrangement(Region(viewport.width, 0, 0, viewport.height),
+                                         Spacing(left=viewport.width),
+                                         {bar: Region(0, 0, viewport.width, viewport.height)})
         collapsed = {bar.placement_identity: bar.collapsed for bar in bars}
         resolved = layout.resolve(viewport, collapsed)
         # While a grip holds an extent the bars follow it, but the conversation keeps the room
@@ -511,32 +532,57 @@ class SidebarLayout:
 
     minimum_percent = 15
     maximum_percent = 50
+    sole_role: ClassVar[type[SidebarPlacement]] = ChannelsSidebarPlacement
+    """The bar that takes the whole window while no tab is shown: the comms sidebar (its
+    channels, threads, search and buses), with Toad's banner at its head. It replaced the
+    welcome page (Tristan, 2026-11-18): opening a row gives the first tab, and the bar
+    returns to its kept placement beside it, with the other bars the view brings."""
     # A grip or the slider held below this folds the pane when released.
     fold_percent = minimum_percent // 2
 
-    def __init__(self, settings: ArrangementStore, origin: type[TerminalOrigin]) -> None:
+    def __init__(self, settings: ArrangementStore, origin: type[TerminalOrigin],
+                 alone: Callable[[], bool] = lambda: False) -> None:
         self.settings, self.origin = settings, origin
+        # Whether no tab is shown: the application answers it from the selected view (the
+        # welcome mode is the one view that is not a tab), so nothing here keeps a copy.
+        self._alone = alone
         self._collapsed: dict[type[SidebarPlacement], bool] = {}
         # Extents a grip is holding: the bars are drawn at them, but nothing is written to the
         # settings until the hold ends (`keep_held`), so a drag costs only its layout.
         self._held: dict[type[SidebarPlacement], int] = {}
 
-    def is_collapsed(self, identity: type[SidebarPlacement]) -> bool:
-        """Whether the bar for ``identity`` shows only its toggle (True) or its
-        expanded pane too (False). Defaults to True — a role starts collapsed
-        until something opens it."""
+    @property
+    def alone(self) -> bool:
+        """No tab is shown: the `sole_role` bar holds the window."""
+        return self._alone()
+
+    def holds_alone(self, identity: type[SidebarPlacement]) -> bool:
+        """Whether ``identity``'s bar takes the whole window: no tab is shown and it is the
+        `sole_role`. Such a bar is open whatever its kept fold, and shows no strip, grip or
+        placement controls: there is nothing beside it to make room for."""
+        return identity is self.sole_role and self.alone
+
+    def kept_collapsed(self, identity: type[SidebarPlacement]) -> bool:
+        """The fold kept for ``identity``: True (only its toggle) until something opens it.
+        `set_collapsed` and `toggle_collapsed` read and write this one, never the open state a
+        bar holding the window alone shows over it."""
         return self._collapsed.get(identity, True)
 
+    def is_collapsed(self, identity: type[SidebarPlacement]) -> bool:
+        """Whether the bar for ``identity`` shows only its toggle (True) or its
+        expanded pane too (False): its kept fold, except that a bar holding the window
+        alone is open; its kept fold returns with the first tab."""
+        return not self.holds_alone(identity) and self.kept_collapsed(identity)
+
     def set_collapsed(self, identity: type[SidebarPlacement], value: bool) -> bool:
-        """Set ``identity``'s collapsed state; returns whether the state changed."""
-        if self.is_collapsed(identity) == value:
-            return False
+        """Keep ``identity``'s fold; returns whether what the bar shows changed."""
+        shown = self.is_collapsed(identity)
         self._collapsed[identity] = value
-        return True
+        return self.is_collapsed(identity) != shown
 
     def toggle_collapsed(self, identity: type[SidebarPlacement]) -> bool:
-        """Flip ``identity``'s collapsed state; returns the new value."""
-        new_value = not self.is_collapsed(identity)
+        """Flip ``identity``'s kept fold; returns the new value."""
+        new_value = not self.kept_collapsed(identity)
         self._collapsed[identity] = new_value
         return new_value
 

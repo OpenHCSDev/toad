@@ -22,7 +22,7 @@ from toad.screens.keymap import KeymapPanel, KeymapScreen, KeymapStatus, KeymapT
 from toad.screens.modal import ModalPanel
 from toad.screens.queue import QueueActions, QueueInspection, QueuePanel
 from toad.screens.team import HudRows, TeamClose, TeamPage, TeamPanel
-from toad.screens.welcome import WelcomeColumn, WelcomeScreen
+from toad.screens.welcome import WelcomeScreen
 from toad.widgets.history_anchor import HistoryWindow
 
 SIZE = WIDTH, HEIGHT = 100, 40
@@ -115,14 +115,13 @@ async def test_goal_history_is_a_centred_95_percent_panel_with_close_docked_unde
         assert document.region.bottom < close.region.y, facts
 
 
-async def test_welcome_column_is_64_wide_and_centred_beside_the_sidebar(workspace):
+async def test_with_no_tab_the_comms_sidebar_is_the_whole_row_and_the_home_view_takes_none(workspace):
     async with workspace.app(size=(120, 40), session=False) as ui:
         await ui.until_shows("n new session")
         welcome = ui.app.screen.query_one(WelcomeScreen)
-        column, sidebar = welcome.query_one(WelcomeColumn), ui.app.workspace_chrome.channels
-        space, region = welcome.content_region, column.region
-        facts = {"welcome": space, "column": region, "sidebar": sidebar.region}
-        assert region.x >= sidebar.region.right, facts
-        assert region.width == 64, facts
-        assert abs((region.x - space.x) - (space.right - region.right)) <= 1, facts
-        assert abs((region.y - space.y) - (space.bottom - region.bottom)) <= 1, facts
+        sidebar = ui.app.workspace_chrome.channels
+        await ui.until(lambda: sidebar.region.width == 120, why="the sidebar to take the whole row")
+        facts = {"home": welcome.region, "sidebar": sidebar.region}
+        assert sidebar.region.x == 0 and sidebar.region.width == 120, facts
+        # The home view is placed past the sidebar's right edge: off the screen.
+        assert welcome.region.x >= sidebar.region.right == ui.app.screen.size.width, facts

@@ -19,7 +19,7 @@ class Banner(WelcomeBanner, QWidget):
     Mono (`toad.qt.glyph_fonts`), which holds the blocks and box drawing; Android's own
     monospace font has neither. It takes the width and never asks for one."""
 
-    LINES = WelcomeBanner.TEXT.splitlines()  # the shared banner, as Textual's WelcomeTitle draws it
+    LINES = WelcomeBanner.TEXT.splitlines()  # the shared banner, as Textual's SidebarBanner draws it
     COLUMNS = max(map(len, LINES))
 
     def __init__(self, colour: str) -> None:
