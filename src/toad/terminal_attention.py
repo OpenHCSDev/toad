@@ -23,12 +23,9 @@ class TerminalAttention(InputAttention):
         if driver := self.app._driver:
             driver.write(f"\033]0;{icon} {title}\007")
 
-    def notify(self, message: str, *, title: str = "", sound: str | None = None) -> None:
-        """Dispatch the existing declared desktop policy on Textual's worker."""
-        policy = self.app.settings.notifications.system
-        # The policy's desktop owns delivery failure: notifypy's D-Bus path reports an error reply as sent.
-        self.app.run_worker(partial(policy.deliver, self.app, message, title=title, sound=sound),
-                            thread=True)
+    def deliver(self, send) -> None:
+        """On Textual's thread worker."""
+        self.app.run_worker(send, thread=True)
 
     def notification(self, notification: Notification) -> None:
         settings = self.app.settings.notifications

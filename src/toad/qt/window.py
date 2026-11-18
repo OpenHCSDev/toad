@@ -75,7 +75,6 @@ from toad.client.connection import (
     CoreConnection,
     FailedObservation,
     Observing,
-    RemoteCoreConnection,
 )
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
@@ -110,7 +109,7 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core import session_requests
 from toad.core.events import CoordinationObserved, TabHistoryChanged
-from toad.launch_binding import NoAgent
+from toad.launch_binding import AgentBinding, NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
@@ -1203,8 +1202,8 @@ class BusLabel(WelcomeLocation, ElidedLine):
     """Where the bus this window reads lives, as its connection names it, prefixed with
     the agent binding's `welcome_prefix` so the line reads the same way Textual's does
     at `screens/welcome.py:256` — `f"{agent_binding.welcome_prefix}{location}"`. A Qt
-    client is always remote, so its own launch directory (on the phone, /data/data/…/app)
-    says nothing about the Core it shows; the connection's location does.
+    client's own launch directory (on the phone, /data/data/…/app) says nothing about the
+    Core it shows; the connection's location does.
 
     `welcome_prefix` is empty for `NoAgent` so a connection without an attached agent
     reads as before. With `AgentAttached`, the line reads e.g. `claude · <location>`."""
@@ -1303,10 +1302,9 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         await self.content_ready.wait()
 
     def close_core_events(self) -> None:
-        """The shared close, then the receipt stops following and the wire lets go."""
+        """The shared close (its history lets go of the wire), then the receipt stops following."""
         super().close_core_events()
         self.composer.receipt.stop()
-        self.message_history.retire_source()
 
     async def retire_presentation(self) -> None:
         """The history lets go of its page reader; its rows go with the widgets."""
@@ -1386,17 +1384,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         """Commands address the conversation its page source reads, as Textual's
         `CommsChatView.command_target_context`."""
         return self.message_history.page_source.command_context(self)
-
-    def ask(self, options, title: str = "", get_content=None, callback=None):
-        """Show an inline question with these options, mirroring Textual's Conversation.ask.
-
-        A `toad.answer.Ask` is passed to the mounted `QtQuestion`, which pops up
-        under the composer with an option button per answer and fires `callback(answer)`
-        when the user picks. Returns the Ask for the backend to track."""
-        from toad.answer import Ask
-        ask = Ask(title, options, get_content, callback)
-        self.question.update(ask)
-        return ask
 
     def begin_submission(self, owner, submission):
         """A channel or inbox message goes where this view's page source says, as
@@ -1529,6 +1516,9 @@ class QtWorkspaceViews(WorkspaceViews):
         return self.views.pop(identity, None)
 
     async def finish(self, view: ConversationView) -> None:
+        # As Textual's `Conversation` unmount: the view's agent leaves its surface and stops
+        # before the widgets it draws into are deleted.
+        await view.operational_binding.retire_surface(view)
         view.close_configuration()
         self.pages.removeWidget(view)
         view.deleteLater()
@@ -1556,20 +1546,22 @@ class QtWorkspaceViews(WorkspaceViews):
 
 
 class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
-    """The shared client application on Qt, over the Core a UI profile names: the threads,
+    """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
 
     session_entries = QtSessionEntry
 
-    def __init__(self, connection: RemoteCoreConnection, project: Checkout,
-                 preparation: PreparationRuntime, scheme: ColourScheme) -> None:
+    def __init__(self, connection: CoreConnection, project: Checkout,
+                 preparation: PreparationRuntime, scheme: ColourScheme,
+                 launch: AgentBinding = NoAgent()) -> None:
         super().__init__(project, preparation, scheme)
         # Walk Core's declaration catalog once up front (shared with the Textual app
         # via CorePrewarm): a cold first tab otherwise imports every agent_comms
         # module under the GIL on its first wire revision / action menu.
         self._prewarm_core_modules()
-        self.initialize_client(NoAgent(), connection)
+        # The launch's agent, as Textual's `-a`: New Session starts its session.
+        self.initialize_client(launch, connection)
         self.input_attention = QtWindowAttention(self)
         self.action_keys = ActionKeys(lambda: self.settings)
         # Until a conversation reads Core's display references, bodies link the project's files.
@@ -1695,9 +1687,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.input_attention.attach()
 
     def connection_for(self, choice: BusChoice) -> CoreConnection:
-        """The profile a chosen bus names, read by the member this window launched with, so
-        desktop keeps decoding in a process and Android in place."""
-        return type(self.coordination_access.connection).startup(list(choice.arguments(())))
+        """The connection a chosen bus names, read by the connection this window runs on
+        (`CoreConnection.chosen`)."""
+        return self.coordination_access.connection.chosen(list(choice.arguments(())))
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
         button = QToolButton(self)
@@ -1892,6 +1884,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     async def start_frontend(self) -> None:
         await self.coordination_access.follow_sidebar(self.sidebar)
         await self.application.start()
+
+    @property
+    def app_focus(self) -> bool:
+        """Textual's `App.app_focus`: whether the desktop has this app in front, which the
+        notification policy (`notifications.system`) reads before a desktop notification."""
+        return QApplication.applicationState() == Qt.ApplicationState.ApplicationActive
 
     def application_state_changed(self, state: Qt.ApplicationState) -> None:
         if state in (Qt.ApplicationState.ApplicationSuspended, Qt.ApplicationState.ApplicationHidden,

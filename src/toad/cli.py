@@ -15,12 +15,11 @@ from agent_comms.projects.checkouts import Checkout
 import __main__
 from toad import about, get_version, paths
 from toad.client.agent_schema import AgentDefinition
-from toad.client.agents import read_agents
 from toad.app import ToadApp
 from toad.application_lifetime import TerminalApplicationLifetime
 from toad.client.connection import CoreConnection
 from toad.client.local_connection import select_connection
-from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
+from toad.launch_binding import AgentAttached, AgentBinding, LaunchAgentRefused
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer
 
@@ -53,29 +52,12 @@ def run_terminal(app: ToadApp) -> None:
     app.return_value.finish()
 
 
-async def get_agent_binding(launch_agent: str) -> AgentBinding:
-    if not launch_agent:
-        return NoAgent()
-    requested = launch_agent.lower()
-
-
-    agents = await read_agents()
-
-    for agent_data in agents.values():
-        if (
-            agent_data.short_name.lower() == requested
-            or agent_data.identity.lower() == requested
-        ):
-            return AgentAttached(agent_data)
-
-    known = ", ".join(sorted(
-        f"{agent.short_name} ({agent.identity})" if agent.short_name else agent.identity
-        for agent in agents.values()
-    ))
-    raise click.BadParameter(
-        f"Unknown agent {launch_agent!r}. Known agents: {known}",
-        param_hint="-a / --agent",
-    )
+async def get_agent_binding(connection: CoreConnection, launch_agent: str) -> AgentBinding:
+    """The launch's agent, chosen by the same owner Qt's launch asks: its connection."""
+    try:
+        return await AgentBinding.launched(launch_agent, connection.agent_processes)
+    except LaunchAgentRefused as error:
+        raise click.BadParameter(str(error), param_hint="-a / --agent") from error
 
 
 class DefaultCommandGroup(click.Group):
@@ -144,7 +126,7 @@ def run(connection: CoreConnection, project_dir: str, agent: str = "1"):
 
 
 
-    binding = asyncio.run(get_agent_binding(agent))
+    binding = asyncio.run(get_agent_binding(connection, agent))
     app = ToadApp(
         agent_binding=binding,
         project_dir=project,

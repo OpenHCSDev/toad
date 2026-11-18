@@ -1,9 +1,12 @@
 """Drive the Qt client offscreen against a live bus and print what it shows.
 
-    QT_QPA_PLATFORM=offscreen PYTHONPATH=src python tools/qt_drive.py SCENARIO PROFILE OUTDIR
+    QT_QPA_PLATFORM=offscreen PYTHONPATH=src python tools/qt_drive.py SCENARIO OUTDIR --comms-profile PROFILE
+    QT_QPA_PLATFORM=offscreen PYTHONPATH=src python tools/qt_drive.py SCENARIO OUTDIR --comms-root ROOT
 
-PROFILE is a UI profile (~/.local/state/agent-comms/ui-profiles/NAME.json); OUTDIR gets a
-screenshot per step. Each scenario opens the client exactly as `toad.qt.client_start.serve` does
+The Core is selected as `toad.qt.main` selects it: PROFILE is a UI profile
+(~/.local/state/agent-comms/ui-profiles/NAME.json), ROOT a bus root this machine opens
+directly (the connection agent processes start under); OUTDIR gets a screenshot per step.
+Each scenario opens the client exactly as `toad.qt.client_start.serve` does
 and prints the state a reader would see, so two runs (before and after a change) compare
 line by line. This is the real-application check for the phone client; tests cannot see
 what the window draws.
@@ -40,7 +43,8 @@ from toad.client.application_actions import (
 from toad.qt.settings_screen import QtSettingsScreen
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
-from toad.client.connection import RemoteCoreConnection
+from toad.client.connection import CoreConnection
+from toad.client.local_connection import select_connection
 from toad.client.line_blocks import LineLink
 from toad.qt.client_start import open_app
 from toad.qt.glyph_fonts import install_glyph_fonts
@@ -1075,6 +1079,56 @@ class LiveTurnScenario(Scenario):
         view.messages.committed_pages_changed()
         self.report("4-saved-rows-arrived", live=self.live_rows(),
                     rows=view.messages.model_rows.rowCount())
+
+
+class AgentSessionScenario(Scenario):
+    summary = ("over --comms-root, start an agent session on the tests' scripted ACP peer (no "
+               "model), send it support.agents.FULL_TURN (the TUI's test_full_agent_turn), answer "
+               "its permission question, and read its reply, thought, tool call and terminal "
+               "output as live rows; run it on a scratch root, never a live one")
+
+    def live_rows(self) -> list[tuple[str, str]]:
+        rows = self.page.messages.model_rows
+        tail = [rows.index(row).data(HistoryRows.FRAGMENT) for row in range(rows.rowCount())]
+        # A live row's position is negative (`QtLiveBlock`); the text is what the row draws.
+        return [(type(fragment.events[0]).__name__,
+                 " / ".join(block.selection_text for block in fragment.line_blocks))
+                for fragment in tail if fragment is not None and fragment.events
+                and fragment.events[0].position < 0]
+
+    def shown(self, marker: str) -> bool:
+        """The marker in a row the agent's turn drew: the prompt's own row names them all."""
+        return any(marker in text for kind, text in self.live_rows() if kind != "UserTranscript")
+
+    async def run(self) -> None:
+        sys.path.insert(0, str(PROJECT / "tests"))
+        from support.agents import FULL_TURN, peer, script
+        from toad.launch_binding import AgentAttached
+        from toad.qt.acp_tab import QtAcpSessionView
+
+        project = self.out / "project"
+        project.mkdir(exist_ok=True)
+        app = self.app
+        await app.session_navigation.start_agent_session(AgentAttached(peer("scripted")), Checkout(project))
+        await until(lambda: isinstance(self.page, QtAcpSessionView), "agent session tab")
+        view = self.page
+        await until(lambda: view.agent_binding.ready, "agent ready", tenths=600)
+        await until(lambda: view.composer is not None, "composer")
+        self.report("1-agent-ready", agent=view.agent_binding.get_info(),
+                    identity=view.identity_line.text())
+        await self.type(script(*FULL_TURN))
+        view.composer.send()
+        await until(lambda: self.shown("TURN_TOOL"), "reply, thought and tool call", tenths=300)
+        await until(lambda: view.question.isVisible(), "permission question", tenths=300)
+        self.report("2-permission-asked", live=self.live_rows(), question=view.question._title.text())
+        allow = next(button for button in view.question.findChildren(QPushButton) if button.text() == "Allow")
+        allow.click()
+        await until(lambda: self.shown("TURN_TERMINAL_OUTPUT"), "terminal output", tenths=300)
+        await until(lambda: self.shown("TURN_DONE") and not view.turns.owner.busy, "turn finished", tenths=300)
+        await asyncio.sleep(1.0)
+        self.report("3-turn-over", live=self.live_rows(),
+                    question_visible=view.question.isVisible(),
+                    busy=view.turns.owner.busy)
 
 
 class CommandScenario(Scenario):
@@ -2391,10 +2445,10 @@ class FingerScenario(Scenario):
         print("  no checkable button visible in a scrolled form", flush=True)
 
 
-async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
+async def drive(scenario: type[Scenario], connection: CoreConnection, out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     WirePageBuffer.mark_page = record_mark
-    app = await open_app(RemoteCoreConnection.read(profile), Checkout(PROJECT), current_scheme(os.environ))
+    app = await open_app(connection, Checkout(PROJECT), current_scheme(os.environ))
     try:
         await scenario(app, out).run()
     finally:
@@ -2405,16 +2459,18 @@ async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
 
 
 def main(arguments: list[str]) -> None:
-    if len(arguments) != 4:
+    own = arguments[1:]
+    connection = select_connection(own) if len(own) == 4 else None
+    if connection is None or len(own) != 2:
         names = "\n".join(f"  {member.declared_name:10} {member.summary}" for member in Scenario.members_with(Scenario))
-        raise SystemExit(f"usage: {arguments[0]} SCENARIO PROFILE OUTDIR\n{names}")
-    scenario = Scenario.member_named(arguments[1])
+        raise SystemExit(f"usage: {arguments[0]} SCENARIO OUTDIR (--comms-profile PROFILE | --comms-root ROOT)\n{names}")
+    scenario = Scenario.member_named(own[0])
     application = FrameProbe.application(arguments[:1])
     install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())
     watch = StrayWindows()
     application.installEventFilter(watch)
-    qasync.run(drive(scenario, Path(arguments[2]), Path(arguments[3])))
+    qasync.run(drive(scenario, connection, Path(own[1])))
 
 
 if __name__ == "__main__":

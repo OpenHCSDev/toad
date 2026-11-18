@@ -1,13 +1,15 @@
-"""Core in this process: the TUI's local route, opened from the launch root.
+"""Core in this process: this machine's own bus, opened from the launch root.
 
-The Qt client only ever observes Core across the connector (``ProcessRemoteCoreConnection``),
-so it never imports this module and never loads Core. A launch that may select the local
-route chooses its connection here.
+A launch that may select the local route chooses its connection here (`select_connection`):
+the TUI's, and desktop Qt's entry (`toad.qt.main`) once its first frame is up. It is the one
+connection agent processes start under (`agent_processes`). The Qt client's shared modules
+never import it, and Android's start, always remote (``RemoteCoreConnection``), never loads it.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import ClassVar
 from pathlib import Path
 
 from agent_comms.comms import Comms
@@ -28,6 +30,7 @@ from agent_comms.ui_model.observation import (
 )
 from agent_comms.ui_model.sidebar import SidebarModel
 
+from toad.client.agent_processes import AgentProcesses, SpawnsAgentProcesses
 from toad.client.db import UNSCOPED_TABS, TabScope
 from toad.client.connection import (
     AnsweringReads,
@@ -58,6 +61,12 @@ def select_connection(arguments: list[str]) -> CoreConnection:
 
 class LocalCoreConnection(LaunchRoot, CoreConnection):
     """A local connection inherits the selected root and its launch behavior."""
+
+    agent_processes: ClassVar[AgentProcesses] = SpawnsAgentProcesses()
+
+    def chosen(self, arguments: list[str]) -> CoreConnection:
+        """Read as a launch reads its arguments: a profile is remote, a root this machine's."""
+        return select_connection(arguments)
 
     @classmethod
     def from_launch(cls, root: LaunchRoot) -> LocalCoreConnection:

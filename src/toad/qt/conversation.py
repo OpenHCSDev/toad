@@ -12,6 +12,7 @@ commands it offers.
 from __future__ import annotations
 
 import asyncio
+import inspect
 
 import shiboken6
 from textual.content import Content
@@ -27,6 +28,9 @@ from PySide6.QtWidgets import QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from toad.agent_binding import AgentConnection, NoAgentConnection
+from toad.agent_turn_events import AgentTurnEvents
+from toad.answer import Ask
+from toad.qt.agent_surface import QtSurfaceBinding, subscribe_agent
 from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.bus_submission import TypedText
 from toad.client.category_selection import CategorySelection
@@ -64,6 +68,7 @@ from toad.workspace_frame import WorkspaceFrame
 
 
 class QtConversation(
+    AgentTurnEvents,
     QtViewSettings,
     CategorySelection,
     WorkingStatusOwner,
@@ -142,6 +147,7 @@ class QtConversation(
             row.close_activity()
         self.app.cancel_operations(CommandRead)
         self.app.coordination_access.stop_notifications(self)
+        self.message_history.retire_source()
 
     def history_loading(self) -> bool:
         """As Textual's `Conversation`: only wire histories page in under a loading row."""
@@ -181,6 +187,42 @@ class QtConversation(
 
     def agent_connected(self, agent) -> None:
         """A view with no connect event announces nothing; the ACP view flashes its notice."""
+
+    # ---- The bound agent: its stream, its surface and its questions ----
+
+    @property
+    def operational_binding(self) -> AgentConnection:
+        """The agent this view runs (`SessionScope.operational_binding`)."""
+        return self.agent_binding
+
+    def agent_surface(self, events) -> QtSurfaceBinding:
+        """The surface the bound agent presents its tools, permissions and terminals on."""
+        return QtSurfaceBinding(self, events)
+
+    def subscribe_agent(self, events):
+        """Receive the bound agent's whole stream on Qt's loop, through this view's own
+        declared handlers (`AgentTurnEvents` and the view's own)."""
+        return subscribe_agent(self, events)
+
+    def publish_core(self, event) -> None:
+        """Textual publishes a conversation's own events to its message pump, where its
+        screen hears them; a Qt view's own handlers are the only listeners."""
+        asyncio.ensure_future(self.dispatch(event))
+
+    def request_permissions(self, request) -> None:
+        """Present the request through the agent's surface: it asks in this view's question."""
+        self.run_worker(partial(request.present, self), group="permission", exclusive=False)
+
+    def ask(self, options, title: str = "", get_content=None, callback=None) -> Ask:
+        """Textual's `Conversation.ask`: the question under the composer lists the options and
+        fires `callback(answer)` on a pick. Returns the Ask for its asker to retract."""
+        ask = Ask(title, options, get_content, callback)
+        self.question.update(ask)
+        return ask
+
+    def retract(self, ask: Ask) -> None:
+        """The asker withdrew `ask` (answered elsewhere, or its request ended)."""
+        self.question.withdraw(ask)
 
     # ---- ComposerHost: where typed input goes, and the commands offered after a / ----
 
@@ -297,10 +339,16 @@ class QtConversation(
         return self
 
     def call_later(self, callback, *args) -> bool:
+        """Textual's `call_later`: after the work already queued, and a coroutine callback
+        (a turn's `AgentSubmissionExecution.complete`) is awaited, not dropped."""
         if not self.is_attached:
             return False
-        QTimer.singleShot(0, partial(callback, *args))
+        QTimer.singleShot(0, partial(self.called_later, callback, args))
         return True
+
+    def called_later(self, callback, args) -> None:
+        if inspect.isawaitable(result := callback(*args)):
+            self.run_worker(lambda: result, group="call_later")
 
     def after_refresh(self, callback) -> None:
         QTimer.singleShot(0, callback)

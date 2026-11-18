@@ -12,20 +12,42 @@ from agent_comms.projects.checkouts import Checkout
 from metaclass_registry import AbstractHooksMeta
 
 from toad.agent_binding import AgentConnection
+from toad.client.agent_processes import AgentProcesses
 from toad.client.agent_schema import AgentDefinition
+from toad.client.agents import read_agents
 from toad.core import session_requests
 from toad.core.events import CoreEventStream
+from toad.surface_binding import SurfaceBinding
 from toad.thread_identity import SessionIdentity
 from toad.transcript_scope import TranscriptScope
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 class AgentConversation(metaclass=AbstractHooksMeta):
     """What a launch's agent binding does to the conversation it builds: hand it the launch,
-    resume a named session, and start its session."""
+    resume a named session, and start its session. Every frontend's agent conversation
+    inherits the chain (launch → unbound start → its sources create the agent); each answers
+    only how it defers the start, shows a view without an agent, and receives the agent's
+    events (`agent_surface`)."""
 
-    @abstractmethod
-    def attach_launch(self, launch: AgentBinding) -> None: ...
+    launch: AgentBinding
+    _agent_session_id: AcpSessionId | NoAcpSessionId
+
+    def attach_launch(self, launch: AgentBinding) -> None:
+        """Selection changes write the conversation's launch at its owner."""
+        self.launch = launch
+
+    def resume_agent_session(self, session_id: AcpSessionId) -> None:
+        self._agent_session_id = session_id
+
+    def start_native_session(self) -> None:
+        self.agent_binding.start_session(self)
+
+    def start_unbound_session(self) -> None:
+        self.launch.start_unbound(self)
+
+    def _start_agent(self) -> None:
+        self.operational_sources.start_agent(self)
 
     @abstractmethod
     def present_without_agent(self) -> None:
@@ -36,10 +58,9 @@ class AgentConversation(metaclass=AbstractHooksMeta):
         """Start the attached agent once the frame is presented."""
 
     @abstractmethod
-    def resume_agent_session(self, session_id: AcpSessionId) -> None: ...
-
-    @abstractmethod
-    def start_native_session(self) -> None: ...
+    def agent_surface(self, events: CoreEventStream) -> SurfaceBinding:
+        """How this view receives its bound agent's events and presents its tools,
+        permissions and terminals."""
 
 
 class AgentOrigin(metaclass=AbstractHooksMeta):
@@ -70,8 +91,40 @@ class StartsSessions(metaclass=AbstractHooksMeta):
         """A new session of the agent this launch attached: saved, then opened."""
 
 
+class LaunchAgentRefused(LookupError):
+    """The launch's ``--agent`` names no agent this launch can attach."""
+
+
+class UnknownAgent(LaunchAgentRefused):
+    """No configured agent answers to the requested name."""
+
+    def __init__(self, requested: str, known: tuple[str, ...]) -> None:
+        super().__init__(f"Unknown agent {requested!r}. Known agents: {', '.join(known)}")
+        self.requested = requested
+        self.known = known
+
+
 class AgentBinding(ABC):
     """Known native launch state carries construction and attachment behavior."""
+
+    @staticmethod
+    async def launched(requested: str, processes: AgentProcesses) -> AgentBinding:
+        """The launch's agent for the name the user asked for (empty: none), attached when
+        ``processes`` (the launch's Core connection) starts agents; Toad's and Qt's ``-a``."""
+        if not requested:
+            return NoAgent()
+        wanted = requested.lower()
+        agents = await read_agents()
+        for agent in agents.values():
+            if wanted in (agent.short_name.lower(), agent.identity.lower()):
+                return processes.start(partial(AgentAttached, agent), AgentBinding.refused_launch)
+        raise UnknownAgent(requested, tuple(sorted(
+            f"{agent.short_name} ({agent.identity})" if agent.short_name else agent.identity
+            for agent in agents.values())))
+
+    @staticmethod
+    def refused_launch(reason: str) -> AgentBinding:
+        raise LaunchAgentRefused(reason)
 
     @property
     @abstractmethod

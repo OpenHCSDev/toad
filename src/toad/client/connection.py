@@ -94,6 +94,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.client.agent_processes import AgentProcesses, NoAgentProcesses
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.client.bus_selection import ProfileArgument
 from toad.client.host import CommsHost
@@ -199,8 +200,16 @@ class CoreConnection(ABC):
     helper_start: ClassVar[HelperStart] = SpawnedHelper()
     """How this launch starts its local route observer and its render workers."""
 
+    agent_processes: ClassVar[AgentProcesses]
+    """Whether an agent process starts under this connection: only beside a local route
+    (`LocalCoreConnection`, in `toad.client.local_connection`)."""
+
     def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
+
+    @abstractmethod
+    def chosen(self, arguments: list[str]) -> CoreConnection:
+        """The connection a bus the owner chose names, read by this connection's kind."""
 
     def close(self) -> None:
         """Release connection-owned work after its observations and reads end."""
@@ -257,6 +266,8 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
 
     Read replies decode where they arrive, as on Android, which has no interpreter to spawn."""
 
+    agent_processes: ClassVar[AgentProcesses] = NoAgentProcesses()
+
     @classmethod
     def startup(cls, arguments: list[str]) -> RemoteCoreConnection:
         index = arguments.index(cls.argument)
@@ -269,6 +280,10 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
     @property
     def location(self) -> str:
         return str(self.endpoint.url)
+
+    def chosen(self, arguments: list[str]) -> RemoteCoreConnection:
+        """Read by this same member: desktop keeps decoding in a process, Android in place."""
+        return type(self).startup(arguments)
 
     def route_selection(self) -> RouteSelection:
         raise RemoteRouteNotSelectable(

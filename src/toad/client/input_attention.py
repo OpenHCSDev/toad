@@ -10,6 +10,8 @@ title. The blink's timer is the host's `repeat_ui`.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from functools import partial
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 
@@ -145,3 +147,13 @@ class InputAttention(ABC):
     @abstractmethod
     def publish_title(self, icon: str) -> None:
         """Show the app's title led by ``icon`` where this frontend shows it."""
+
+    def notify(self, message: str, *, title: str = "", sound: str | None = None) -> None:
+        """A desktop notification, as the declared `notifications.system` policy admits it."""
+        policy = self.app.settings.notifications.system
+        # The policy's desktop owns delivery failure: notifypy's D-Bus path reports an error reply as sent.
+        self.deliver(partial(policy.deliver, self.app, message, title=title, sound=sound))
+
+    @abstractmethod
+    def deliver(self, send: Callable[[], None]) -> None:
+        """Run ``send`` (blocking desktop I/O) off this frontend's UI thread."""

@@ -95,6 +95,20 @@ def script(*steps: dict) -> str:
     return json.dumps(list(steps))
 
 
+FULL_TURN = (
+    {"say": "TURN_REPLY one two three"},
+    {"update": {"sessionUpdate": "agent_thought_chunk", "content": {"type": "text", "text": "TURN_THOUGHT"}}},
+    {"update": {"sessionUpdate": "tool_call", "toolCallId": "turn-read", "title": "TURN_TOOL read", "kind": "read",
+                "status": "completed",
+                "content": [{"type": "content", "content": {"type": "text", "text": "TURN_TOOL_OUTPUT"}}]}},
+    {"ask": "TURN_PERMISSION"},
+    {"terminal": ["echo", "TURN_TERMINAL_OUTPUT"]},
+    {"say": "TURN_DONE"},
+)
+"""One turn of every kind of agent output: a reply, a thought, a tool call, a permission
+question, a terminal; the TUI test and the Qt drive (``qt_drive.py agent_session``) send it alike."""
+
+
 class PendingAnswer:
     """One SDK request whose answer the test supplies later."""
 
