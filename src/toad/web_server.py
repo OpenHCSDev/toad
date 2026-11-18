@@ -15,7 +15,6 @@ import shlex
 import signal
 import socket
 import stat
-import subprocess
 import sys
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Iterator
@@ -244,23 +243,13 @@ class TailnetBrowserAuthentication(BrowserAuthentication):
 
     @classmethod
     def from_status(cls, https_port: int) -> TailnetBrowserAuthentication:
-        result = subprocess.run(
-            ("tailscale", "status", "--json", "--self"),
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        import json
+        from agent_comms.transport.tailnet_buses import TailnetBuses
 
-        status = json.loads(result.stdout)
-        dns_name = status["Self"]["DNSName"].rstrip(".")
-        user_id = str(status["Self"]["UserID"])
-        owner_login = status["User"][user_id]["LoginName"]
+        me = TailnetBuses.this_machine()
         endpoint = TailnetBrowserEndpoint(
-            dns_name, https_port, OwnerOnlyDirectory.user_runtime()
+            me.dns_name, https_port, OwnerOnlyDirectory.user_runtime()
         )
-        return cls(endpoint, owner_login)
+        return cls(endpoint, me.owner_login)
 
     def credential(self, request: web.Request) -> BrowserAccess:
         if request.headers.getall("Tailscale-User-Login", []) == [self.owner_login]:
