@@ -12,6 +12,7 @@ from abc import abstractmethod
 from typing import ClassVar
 
 from metaclass_registry import AbstractHooksMeta
+from ui_theme.scheme import PromptToneColour, ThemeColour
 
 from toad.client.input_decision import InputAccepted, InputDecision
 from toad.setting_declarations import EachOpenWidget
@@ -46,6 +47,8 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     queue_summary_lines: ClassVar[int] = 3
     """The queue summary's most lines; a longer one is cut there, so its wrapping never
     pushes the history further."""
+    # The surface the composer's area is painted on, a tier off the transcript above it.
+    area_tone: ClassVar[type[ThemeColour]] = PromptToneColour
 
     @property
     @abstractmethod
