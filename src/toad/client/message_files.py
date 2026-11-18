@@ -28,6 +28,7 @@ from formbridge.operations import ExclusiveKind, OperationKind
 from toad.client.input_decision import InputAccepted, InputDecision
 from toad.client.message_file_links import file_size
 from toad.client.prompt_composer import PromptComposer
+from toad.client.submission import ComposeAccess
 
 
 class FilePicker(DeclaredChoice, affix="FilePicker"):
@@ -88,6 +89,9 @@ class MessagePromptComposer(PromptComposer):
     sends with the text."""
 
     attached_files: tuple[FileUpload, ...] = ()
+    takes_files: bool = True
+    """Whether this composer's bus takes files, as its Core last answered (`ComposeAccess`);
+    open until it answers, as every bus that takes files is."""
 
     @property
     def input_decision(self) -> InputDecision:
@@ -98,8 +102,21 @@ class MessagePromptComposer(PromptComposer):
     def prompt_symbol(self, text: str, shell_mode: bool) -> str:
         return self.settings.ui.input.agent_symbol
 
+    def offer_files(self, takes_files: bool) -> None:
+        if self.takes_files != takes_files:
+            self.takes_files = takes_files
+            self.show_files_offered()
+
+    @abstractmethod
+    def show_files_offered(self) -> None:
+        """Offer Attach only while `takes_files`."""
+
     def attach_file(self) -> None:
-        """The attach action: the picker this composer's settings name opens."""
+        """The attach action: the picker this composer's settings name opens, on a bus that
+        takes files. A key pressed before the bus answered meets the reason instead."""
+        if not self.takes_files:
+            self.show_failure(ComposeAccess.files_refused_reason)
+            return
         self.settings.ui.input.file_picker.open(self)
 
     @abstractmethod

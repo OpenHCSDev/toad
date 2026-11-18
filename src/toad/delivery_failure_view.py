@@ -17,7 +17,7 @@ from textual.worker import Worker
 from toad.app_node import ToadNode
 from toad.client.bus_submission import ConversationSubmission, SubmissionView
 from toad.client.prompt_composer import ComposerStatus
-from toad.client.submission import MessageDestination
+from toad.client.submission import ComposeAccess
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.worker_group import InputHistoryRecord
@@ -43,11 +43,12 @@ class DeliveryFailureView(ComposerStatus, SubmissionView, ToadNode, Widget):
     def compute_status(self) -> str | Content | RichText:
         return self.composed_status()
 
-    async def refresh_composer(self, read_only: bool) -> None:
+    async def refresh_composer(self, access: ComposeAccess) -> None:
         """Draw compose from the caller's Core answer."""
         if not self.is_attached:
             return
-        reason = MessageDestination.read_only_reason if read_only else ""
+        self.prompt.offer_files(access.takes_files)
+        reason = access.block_reason
         area = self.prompt.prompt_text_area
         area.disabled = bool(reason)
         area.tooltip = reason or None

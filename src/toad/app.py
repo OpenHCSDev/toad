@@ -4,7 +4,6 @@ import json
 import os
 import signal
 import sys
-from enum import IntEnum
 from functools import cached_property
 from inspect import isabstract
 from pathlib import Path
@@ -23,7 +22,6 @@ from metaclass_registry.mro_dispatch import handles
 from rich.console import RenderableType
 from textual import events, on
 from textual.await_complete import AwaitComplete
-from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import Required, var
 from textual.signal import Signal
@@ -32,6 +30,7 @@ from textual.widgets import LoadingIndicator
 from textual.widgets._footer import KeyGroup
 from textual.widgets.markdown import Markdown
 
+from toad.screen_width import ScreenWidth
 from toad.app_core import CorePrewarm
 from toad.application_actions import ApplicationCommands
 from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
@@ -110,21 +109,6 @@ class ToadLoadingIndicator(TransparentBackground, LoadingIndicator):
 
 class ApplicationNotRunningError(RuntimeError):
     """The application has no event loop to accept cross-thread work."""
-
-
-class ScreenWidth(IntEnum):
-    """Native sizing modes; legacy breakpoint classes are derived from them."""
-
-    side_panel_width: Scalar | None
-
-    def __new__(cls, minimum_width: int, side_panel_width: Scalar | None):
-        mode = int.__new__(cls, minimum_width)
-        mode._value_ = minimum_width
-        mode.side_panel_width = side_panel_width
-        return mode
-
-    NARROW = (0, None)
-    WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
 class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, ClientApplication, CorePrewarm, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):

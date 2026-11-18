@@ -165,6 +165,9 @@ async def test_command_form_opens_before_preparation_and_first_mouse_confirm_sub
                 raise TimeoutError("The test did not release command preparation")
             return self.original.call(request)
 
+        def serves(self, request_type):
+            return self.original.serves(request_type)
+
     async with running_session(workspace) as (ui, app, config, path):
         project = Checkout(workspace.project)
         command, = NewThreadCliCommand.project_bindings(workspace.comms, project)

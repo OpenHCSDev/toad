@@ -105,6 +105,15 @@ class QtLineRenderer(LineBlockPainter[str]):
         for repaint in tuple(self.followers):
             repaint()
 
+    @staticmethod
+    def apply_sheet(widget: QWidget, sheet: str) -> None:
+        """Give ``widget`` this style sheet. Qt repolishes a widget and asks its parents to
+        lay out again on every `setStyleSheet`, even with the sheet it already has, so a
+        line restyled on each status update or focus change re-laid out the composer each
+        time; an unchanged sheet now costs nothing."""
+        if widget.styleSheet() != sheet:
+            widget.setStyleSheet(sheet)
+
     def themed(self, widget: QWidget, paint: Callable[[], None]) -> None:
         """``paint`` draws ``widget``'s own colours from this renderer's scheme: now, and
         again each time the scheme changes. Colours set once keep the scheme they were

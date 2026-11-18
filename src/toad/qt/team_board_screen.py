@@ -46,6 +46,7 @@ from toad.client.team_board import TeamBoardState
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.metrics import UiGap
+from toad.qt.presented_window import PresentedWindow
 
 if TYPE_CHECKING:
     from agent_comms.team.team_hud import TeamHud
@@ -53,7 +54,7 @@ if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
-class QtTeamBoardScreen(QtCoreObserver, QDialog):
+class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
     """Modal team board dialog.
 
     `team_name` restricts the view to a single teammate (empty = show all),
@@ -63,7 +64,7 @@ class QtTeamBoardScreen(QtCoreObserver, QDialog):
 
     def __init__(self, app: "QtToadApp", team_name: str = "") -> None:
         super().__init__()
-        self.setParent(app, Qt.WindowType.Dialog)
+        self.setParent(app)
         self.setWindowTitle("Team")
         self.resize(900, 650)
         self.app = app  # QtCoreObserver's AppScoped expects this

@@ -33,6 +33,7 @@ from toad.client.notification_status import DetailLines
 from toad.client.prompt_composer import PromptComposer
 from toad.client.submission import (
     BusDestination,
+    ComposeAccess,
     MessageDestination,
     SubmissionOwner,
     SubmissionStart,
@@ -79,8 +80,9 @@ class SubmissionView:
         self.show_send_failure(self.unknown_notice(description))
 
     @abstractmethod
-    async def refresh_composer(self, read_only: bool) -> None:
-        """Draw compose from the caller's Core answer."""
+    async def refresh_composer(self, access: ComposeAccess) -> None:
+        """Draw compose from the caller's Core answer: held or open, and whether it offers
+        files."""
 
     @abstractmethod
     def draws_user_message(self, reference: MessageReference) -> bool: ...
@@ -313,10 +315,13 @@ class BusSubmissionExecution(SubmissionExecution):
         try:
             await self.after.wait()
             observed = await preparation.run_thread(access.observing, destination.root)
-            read_only = await preparation.run_thread(destination.conversation.read_only, observed.core)
-            await view.refresh_composer(read_only)
-            if read_only:
+            compose = await preparation.run_thread(destination.conversation.compose_access, observed.core)
+            await view.refresh_composer(compose)
+            if compose.read_only:
                 view.delivery_refused(MessageDestination.read_only_reason, draft)
+                return RefusedMessage()
+            if compose.refuses(draft):
+                view.delivery_refused(compose.files_refused_reason, draft)
                 return RefusedMessage()
             route_current = await preparation.run_thread(lambda: access.current(destination.root))
             if not route_current or not self.current:

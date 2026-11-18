@@ -28,19 +28,19 @@ from ui_theme.scheme import ErrorColour, MutedColour
 from toad.client.keymap_browser import KeymapBrowsing
 from toad.keymap import KeyInvocationId
 from toad.qt.metrics import UiGap
+from toad.qt.presented_window import PresentedWindow
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
-class QtKeymapScreen(KeymapBrowsing, QDialog):
+class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
     """Modal keymap browser: heading, search, focus filter, the action × mode table,
     the selection's summary, the keys field with Apply/Reset/Close, and a status line."""
 
     def __init__(self, app: QtToadApp, focused: frozenset[KeyInvocationId]) -> None:
         super().__init__(app)
         self.app = app
-        self.setWindowFlags(Qt.WindowType.Dialog)
         self.setWindowTitle("Keyboard shortcuts")
         self.begin_browsing(app, focused)
 

@@ -12,8 +12,18 @@ gone is never touched.
 from __future__ import annotations
 
 import shiboken6
+from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QWidget
 from ui_theme.clock import AnimationClock
+
+
+
+def frame_interval(screen: QScreen | None) -> float:
+    """Seconds between the frames `screen` shows: one over its refresh rate (a Pixel 8a's 120 Hz),
+    or 60 Hz where it reports none (offscreen, some remote displays). Motion ticks at it
+    (`ui_theme.effects.DisplayRate`); the window's clock and the activity sweep both read it here."""
+    rate = screen.refreshRate() if screen is not None else 0.0
+    return 1 / (rate if rate >= 20 else 60)
 
 
 class WidgetAnimation:

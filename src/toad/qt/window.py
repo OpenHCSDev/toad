@@ -25,7 +25,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QKeySequence, QShortcut
+from PySide6.QtGui import QColor, QKeySequence, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -58,6 +58,7 @@ from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame
+from toad.qt.widget_animation import frame_interval
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
@@ -1297,9 +1298,9 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         self.sync_working()
         label = self.conversation.label(source.references())
         self.on_composer("label", lambda composer: composer.labelled(label))
-        read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
-        await self.refresh_composer(read_only)
-        self.thread_status = await self.conversation.status_text(source, read_only=read_only)
+        compose = await asyncio.to_thread(self.conversation.compose_access, source.core)
+        await self.refresh_composer(compose)
+        self.thread_status = await self.conversation.status_text(source, read_only=compose.read_only)
         await self.conversation.update_mentions(self, source)
 
     # The kind's composer and activity (ConversationActivity)
@@ -1537,6 +1538,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # The one animation clock every effect's frames come from (ui_theme's
         # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
         self._animation_timer = QTimer(self)
+        # Motion ticks every frame the screen shows; a coarse timer's few percent of slack
+        # would land some ticks between two frames and show one frame twice.
+        self._animation_timer.setTimerType(Qt.TimerType.PreciseTimer)
         self._animation_timer.timeout.connect(self._tick_animation)
         self._layout_pending = False
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
@@ -1698,6 +1702,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.winId()
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
         self.fit_safe_area(self.windowHandle().safeAreaMargins())
+        self._display_screens: set[QScreen] = set()
+        self.windowHandle().screenChanged.connect(self.follow_display)
+        self.follow_display()
         # The saved settings drawn now the widgets exist, as Textual's `on_load` applies them
         # all; from here each change applies its `Effect` (`ClientApplication.open_settings`).
         self.saved_settings.apply_all()
@@ -1755,6 +1762,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def _tick_animation(self) -> None:
         self.animation_clock.tick()
+
+    def follow_display(self, *_changed) -> None:
+        """The clock's frame interval is the screen's this window is on: it follows the window to
+        another screen, and a screen that changes its refresh rate (a phone's adaptive 60/120 Hz)."""
+        screen = self.windowHandle().screen()
+        self.animation_clock.frame_interval = frame_interval(screen)
+        if screen is not None and screen not in self._display_screens:
+            self._display_screens.add(screen)
+            screen.refreshRateChanged.connect(self.follow_display)
 
     def paint_tabs(self) -> None:
         self.tabs.blockSignals(True)

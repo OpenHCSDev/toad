@@ -13,21 +13,26 @@ from abc import ABC, abstractmethod
 
 from textual import constants
 from ui_theme.clock import AnimationClock
-from ui_theme.effects import Amount, Effect, Transition
+from ui_theme.effects import Amount, Effect, Glide, Transition
 
 _TAB_DURATION = 0.15
 _TAB_FPS = 60
 TAB_OPEN = Transition(Amount, 0.0, 1.0, _TAB_DURATION, _TAB_FPS)
 TAB_CLOSE = Transition(Amount, 1.0, 0.0, _TAB_DURATION, _TAB_FPS)
 # A reader following the end glides down to rows that arrived, over the time the first of them
-# takes to fade in (``ARRIVAL``'s `NEW_TEXT`), instead of jumping their whole height at once.
-FOLLOW_ARRIVAL = Transition(Amount, 0.0, 1.0, 0.25, 60)
+# takes to fade in (``ARRIVAL``'s `NEW_TEXT`), instead of jumping their whole height at once. It
+# is motion, so it moves on every frame the screen shows (120 on a Pixel 8a), not a fixed 60.
+FOLLOW_ARRIVAL = Glide(Amount, 0.0, 1.0, 0.25)
 # A row under the composer (the queue summary, the delivery controls) opens or closes its height
 # instead of appearing in one frame and pushing the history up.
 ROW_REVEAL = Transition(Amount, 0.0, 1.0, _TAB_DURATION, _TAB_FPS)
 # A scrollbar drawn over the text while it moves fades away once it has been still a moment,
 # rather than vanishing in one frame.
 SCROLLBAR_FADE = Transition(Amount, 1.0, 0.0, 0.3, _TAB_FPS)
+
+# A tapped message whose head is above the viewport glides its head to the top, rather than
+# the view jumping there in one frame.
+HEAD_REVEAL = Glide(Amount, 0.0, 1.0, 0.18)
 
 
 def animations_enabled() -> bool:
@@ -42,7 +47,7 @@ class TransitionTarget(ABC):
     shrinking away are all this; each frontend only says what an amount moves.
 
     It advances by what it showed, not by the wall clock: a tick counts at most two of the
-    effect's frames, so a loop held up by other work (opening a session, say) delays the motion
+    effect's frames (its cadence on this clock's medium), so a loop held up by other work (opening a session, say) delays the motion
     rather than skipping it, and every transition is seen from start to end."""
 
     def start_transition(self, clock: AnimationClock, effect: Effect[Amount]) -> None:
@@ -70,7 +75,7 @@ class TransitionTarget(ABC):
 
     def repaint(self) -> None:
         now = self.clock.time
-        self.shown_for += min(now - self.shown_at, 2 / self.effect.frames_per_second)
+        self.shown_for += min(now - self.shown_at, 2 * self.effect.cadence.interval(self.clock.frame_interval))
         self.shown_at = now
         if self.shown_for >= self.effect.duration:
             self.finish()

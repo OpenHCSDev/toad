@@ -64,6 +64,10 @@ class AttachFileAction(MessageAction):
     keys = {TextEntryMode: ("ctrl+t",)}
     title = "Attach"
 
+    def available(self, editor):
+        """Offered while the composer's bus takes files (`ComposeAccess.takes_files`)."""
+        return editor.prompt.takes_files
+
     async def apply(self, editor: PromptTextArea) -> None:
         editor.prompt.attach_file()
 

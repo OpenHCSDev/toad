@@ -1162,6 +1162,10 @@ class MessagePrompt(MessagePromptComposer, Prompt):
     def supports_completion(self) -> bool:
         return False
 
+    def show_files_offered(self) -> None:
+        """Attach's key is offered (`AttachFileAction.available`) only while the bus takes files."""
+        self.refresh_bindings()
+
     def sync_configuration(self) -> None:
         pass
 

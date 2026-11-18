@@ -31,7 +31,7 @@ from toad.client.history_preparation import OLDER_END, PageEnd, PageRequest
 from toad.client.history_reads import NothingToRead, PaintedRead
 from toad.client.history_state import DEFERRED_WORK, SourceWork
 from toad.client.input_decision import TranscriptNotReady
-from toad.client.submission import SubmissionOwner, SubmissionStart, SubmittedText
+from toad.client.submission import ComposeAccess, SubmissionOwner, SubmissionStart, SubmittedText
 from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim, RetainedBlockClaim
 from toad.status_thread import NoStatusThread
 from toad.work_preparation import (
@@ -655,8 +655,9 @@ class ClosedHistory(ReplaceablePageSource):
     async def mark_page(self, page: MessagePage) -> None:
         raise ValueError("This transcript has no saved-source reader")
 
-    async def read_only(self) -> bool:
-        return True
+    async def compose_access(self) -> ComposeAccess:
+        """A source not yet ready holds compose, and takes nothing."""
+        return ComposeAccess(read_only=True, takes_files=False)
 
     async def update_mentions(self, view) -> None:
         return

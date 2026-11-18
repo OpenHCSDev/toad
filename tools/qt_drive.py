@@ -25,6 +25,17 @@ from pathlib import Path
 from collections.abc import Callable
 from typing import ClassVar
 
+
+# A drive never touches the reader's own settings: run as a script with no XDG_CONFIG_HOME or
+# XDG_STATE_HOME of its own, it keeps them under OUTDIR before anything of Toad is imported (a
+# module can read them at import). Drives run without them wrote the real toad.json
+# (2026-11-17); every caller had to remember to set both.
+if __name__ == "__main__" and len(sys.argv) > 2:
+    for variable, folder in (("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state")):
+        if not os.environ.get(variable):
+            os.environ[variable] = str((Path(sys.argv[2]) / folder).resolve())
+            Path(os.environ[variable]).mkdir(parents=True, exist_ok=True)
+
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, QTimer, Qt
 from PySide6.QtGui import QContextMenuEvent, QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QPainter, QTextDocument
@@ -41,8 +52,9 @@ from objectstate import DottedFieldPath
 from toad.qt.frame_probe import FrameProbe, ProbedApplication
 from toad.client.application import BusDiscovery
 from toad.client.application_actions import (
-    ApplicationAction, NewSessionAction, NewThreadAction, QuitAction, SettingsAction,
+    ApplicationAction, NewSessionAction, NewThreadAction, OpensWindow, QuitAction, SettingsAction,
 )
+from toad.qt.presented_window import FilledWindow, PresentedWindow, QtWindowPresentation, window_width
 from toad.qt.settings_screen import QtSettingsScreen
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
@@ -1145,6 +1157,128 @@ class MenuScenario(Scenario):
         app.show_warning("this drive's own notice; nothing failed", "Drive")
         await asyncio.sleep(0.3)
         self.report("3-notice", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
+
+
+class OlderBusScenario(ParticipantSteps):
+    summary = ("open #comms and expect FILES (\"absent\" or \"served\") for this bus: with absent, the "
+               "history draws its messages, no notice is posted, and the composer offers no Attach")
+
+    async def run(self) -> None:
+        from toad.client.message_file_links import MessageFileLink
+        files = os.environ.get("FILES", "served")
+        self.app.resize(412, 915)
+        await self.open_named("#comms")
+        await until(lambda: self.page.messages.model_rows.rowCount(), "the first page")
+        await asyncio.sleep(2.0)
+        fragments = self.page.messages.model_rows.fragments
+        chips = sum(1 for fragment in fragments for block in fragment.blocks(fragment.shown)
+                    for span in getattr(block, "spans", ()) if isinstance(span.link, MessageFileLink))
+        composer = self.page.composer
+        failures = self.failures_since(0)
+        self.report("1-history", files=files, fragments=len(fragments), chips=chips,
+                    takes_files=composer.takes_files, attach_shown=composer.attach_button.isVisible(),
+                    failures=failures)
+        assert not failures, f"notices posted: {failures}"
+        assert composer.takes_files == (files == "served"), f"takes_files={composer.takes_files} on a bus with files {files}"
+        assert composer.attach_button.isVisible() == (files == "served"), "Attach is offered against what the bus takes"
+        if files == "absent":
+            assert chips == 0, f"{chips} file chips drawn from a bus without files"
+
+class WindowsPhoneScenario(Scenario):
+    summary = ("open every window an OpensWindow action opens (one per transfer kind) at WIDTH x HEIGHT "
+               "(412x915, a phone): fail when any part of one is drawn outside the app window, when a "
+               "window is not a PresentedWindow, when on a phone it does not fill the app window or on a "
+               "desktop (WIDTH 1280 HEIGHT 800) it does not float inside the screen, and when Settings "
+               "gives its pages under 60% of its height or shows no editable setting")
+
+    def window_rect(self, widget: QWidget) -> QRect:
+        return QRect(widget.mapToGlobal(QPoint(0, 0)), widget.size())
+
+    def drawn_outside(self, window: QWidget, bounds: QRect) -> list[str]:
+        """Each visible widget of `window` drawn past `bounds`. A widget inside a scroll area's
+        viewport is that viewport's: the viewport clips it and scrolls to it."""
+        outside = []
+        for widget in [window, *window.findChildren(QWidget)]:
+            if not widget.isVisible() or widget.width() <= 0 or widget.height() <= 0:
+                continue
+            clipped = widget.parentWidget()
+            while clipped is not None and clipped is not window:
+                if isinstance(clipped.parentWidget(), QAbstractScrollArea) and clipped is clipped.parentWidget().viewport():
+                    break
+                clipped = clipped.parentWidget()
+            if clipped is not None and clipped is not window:
+                continue
+            rect = self.window_rect(widget)
+            if not bounds.adjusted(-1, -1, 1, 1).contains(rect):
+                outside.append(f"{type(widget).__name__} {rect.getRect()}")
+        return outside
+
+    async def run(self) -> None:
+        app = self.app
+        width, height = int(os.environ.get("WIDTH", 412)), int(os.environ.get("HEIGHT", 915))
+        app.resize(width, height)
+        await self.listed()
+        await asyncio.sleep(0.5)
+        presentation = QtWindowPresentation.for_width(window_width(app))
+        print(f"app window {width}x{height}: {window_width(app).name}, windows {presentation.__name__}", flush=True)
+        faults: list[str] = []
+        opened = 0
+        for command, label in ApplicationAction.menu(app):
+            if not isinstance(command, OpensWindow):
+                continue
+            before = {id(window) for window in QApplication.topLevelWidgets() if window.isVisible()}
+            await command.apply(app)
+            await asyncio.sleep(2.0)
+            windows = [window for window in QApplication.topLevelWidgets()
+                       if window.isVisible() and id(window) not in before]
+            step = f"{command.declared_name}-{label}".replace(" ", "_").replace("/", "_")[:48]
+            app_rect = self.window_rect(app)
+            for window in windows:
+                opened += 1
+                name = type(window).__name__
+                window.grab().save(str(self.out / f"windows_phone-{step}-{name}.png"))
+                rect = self.window_rect(window)
+                if not isinstance(window, PresentedWindow):
+                    faults.append(f"{label}: {name} is not a PresentedWindow")
+                if presentation is FilledWindow:
+                    bounds = app_rect
+                    if abs(rect.x() - app_rect.x()) > 1 or abs(rect.y() - app_rect.y()) > 1 or \
+                            abs(rect.width() - app_rect.width()) > 1 or abs(rect.height() - app_rect.height()) > 1:
+                        faults.append(f"{label}: {name} at {rect.getRect()} does not fill the app window {app_rect.getRect()}")
+                else:
+                    bounds = window.screen().availableGeometry()
+                    if rect == app_rect:
+                        faults.append(f"{label}: {name} fills the app window on a wide screen")
+                outside = self.drawn_outside(window, bounds)
+                if outside:
+                    faults.append(f"{label}: {name} draws {len(outside)} widgets outside {bounds.getRect()}: {outside[:4]}")
+                if isinstance(window, QtSettingsScreen):
+                    share = window.tabs.height() / max(1, window.height())
+                    editable = [field for field in window.tabs.currentWidget().findChildren(QWidget)
+                                if field.isVisible() and field.isEnabled()
+                                and isinstance(field, (QAbstractButton, QLineEdit))]
+                    print(f"  settings: pages {share:.0%} of its height, {len(editable)} editable fields shown", flush=True)
+                    if share < 0.6:
+                        faults.append(f"{label}: settings pages take {share:.0%} of its height")
+                    if not editable:
+                        faults.append(f"{label}: settings shows no editable setting")
+                print(f"{step}: {name} at {rect.getRect()} in app {app_rect.getRect()}; outside={len(outside)}", flush=True)
+            if not windows:
+                outside = self.drawn_outside(app, self.window_rect(app))
+                app.grab().save(str(self.out / f"windows_phone-{step}-in-app.png"))
+                print(f"{step}: no new window; in-app panels outside the app window: {len(outside)}", flush=True)
+                if outside:
+                    faults.append(f"{label}: draws {len(outside)} widgets outside the app window: {outside[:4]}")
+                if app.bus_switcher.isVisible():
+                    app.bus_switcher.hide_switcher()
+            for window in windows:
+                window.close()
+            await asyncio.sleep(0.5)
+        print(f"windows opened: {opened}", flush=True)
+        if opened < 4:
+            faults.append(f"only {opened} windows opened")
+        if faults:
+            raise AssertionError("\n".join(faults))
 
 
 class MenuTextScenario(Scenario):
@@ -2574,6 +2708,22 @@ class ArrivalScenario(Scenario):
             await asyncio.sleep(0.5)
             top = window.indexAt(window.viewport().rect().topLeft())
             reading = (self.label(top.data(HistoryRows.FRAGMENT)), window.visualRect(top).top())
+        # Every frame the history paints, with where it was and whether a glide moved it: the
+        # motion a reader sees is these frames, not the clock's ticks.
+        painted: list[tuple[float, float, bool]] = []
+
+        class PaintedFrames(QObject):
+            def eventFilter(self, watched, event):  # noqa: N802 - Qt virtual method name
+                if event.type() == QEvent.Type.Paint:
+                    painted.append((time.perf_counter(), float(window.scroll_y), window.glide is not None,
+                                    sum(r.width() * r.height() for r in event.region())
+                                    / max(1, watched.width() * watched.height())))
+                return False
+        frame_watch = PaintedFrames()
+        window.viewport().installEventFilter(frame_watch)
+        if (refresh := os.environ.get("REFRESH")) and hasattr(app.animation_clock, "frame_interval"):
+            app.animation_clock.frame_interval = 1 / float(refresh)
+        print("burst: posting", flush=True)  # a profiler attaches here
         posts = [asyncio.ensure_future(post(index)) for index in range(burst)]
         for index in range(0 if scrolled_up else 3):
             composer.editor.setPlainText(f"arrival send {index} {stamp}")
@@ -2583,6 +2733,23 @@ class ArrivalScenario(Scenario):
         if refused:
             raise RuntimeError(f"the scratch sender's posts were refused: {refused}")
         await asyncio.sleep(8.0)
+        window.viewport().removeEventFilter(frame_watch)
+        gliding = [index for index, frame in enumerate(painted) if frame[2]]
+        intervals = sorted((painted[i][0] - painted[i - 1][0]) * 1000 for i in gliding if i and painted[i - 1][2])
+        steps = [painted[i][1] - painted[i - 1][1] for i in gliding if i and painted[i - 1][2]]
+        moving = sorted(step for step in steps if step > 0)
+
+        def quantile(values, q):
+            return round(values[min(len(values) - 1, int(q * len(values)))], 1) if values else None
+        median_step = quantile(moving, 0.5)
+        print(f"glide frames: {len(gliding)} painted while gliding; interval ms median "
+              f"{quantile(intervals, 0.5)} p95 {quantile(intervals, 0.95)} max {quantile(intervals, 1.0)}; "
+              f"over 17 ms {sum(1 for value in intervals if value > 17)}; px per frame median {median_step} "
+              f"max {quantile(moving, 1.0)}; repeated frames (no move) {sum(1 for step in steps if step == 0)}; "
+              f"steps over twice the median {sum(1 for step in moving if median_step and step > 2 * median_step)}; "
+              f"share of the viewport area each gliding paint repainted: median "
+              f"{round(sorted(painted[i][3] for i in gliding)[len(gliding) // 2], 3) if gliding else None}",
+              flush=True)
         print("final rows:", view.messages.model_rows.rowCount(),
               [self.label(f) for f in view.messages.model_rows.fragments][-8:], flush=True)
         timer.stop()
@@ -3448,6 +3615,293 @@ class SettingsSurface:
         }
 
 
+class PaintClock(QObject):
+    """Records when the watched widget next paints."""
+
+    def __init__(self, painted: list[float], parent: QObject) -> None:
+        super().__init__(parent)
+        self.painted = painted
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.Paint and not self.painted:
+            self.painted.append(time.perf_counter())
+        return False
+
+
+class HistoryScrollBackScenario(Scenario):
+    summary = ("at a Pixel 8a's size with the phone's touch-as-mouse gesture: read #comms idle, then "
+               "drag its history back by finger to its start (or about 300 earlier rows); per older "
+               "page, the time from the reader reaching the top to the page's rows drawn, the "
+               "probe's stalls and the work repeated over the scroll-back; then, by touch through "
+               "the window, a tap on a message whose head is above the top, a tap on moving rows and "
+               "a drag that starts on a row (OUT/frame-probe.log, OUT/scroll-back.txt)")
+
+    idle_seconds: ClassVar[float] = float(os.environ.get("SCROLL_BACK_IDLE", "8"))
+    rows_wanted: ClassVar[int] = int(os.environ.get("SCROLL_BACK_ROWS", "300"))
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        return TouchAsMouse()
+
+    async def drag(self, viewport: QWidget) -> None:
+        """One finger drag down the viewport, as a reader pulls earlier history into view."""
+        height, x = viewport.height(), viewport.width() // 2
+        start, end = QPoint(x, int(height * 0.2)), QPoint(x, int(height * 0.85))
+        FingerScenario.press(viewport, QEvent.Type.MouseButtonPress, start, True)
+        await asyncio.sleep(0.016)
+        for step in range(1, 13):
+            at = start + (end - start) * step / 12
+            FingerScenario.press(viewport, QEvent.Type.MouseMove, QPoint(int(at.x()), int(at.y())), True)
+            await asyncio.sleep(0.016)
+        FingerScenario.press(viewport, QEvent.Type.MouseButtonRelease, end, False)
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        probe = ProbedApplication.probe or FrameProbe(QApplication.instance(), self.out / "frame-probe.log")
+        probe.sink = (self.out / "frame-probe.log").open("a", buffering=1)
+        probe.REPORT_SECONDS = 1e9  # one report per phase, written when the phase ends
+        await self.open_named("#comms")
+        app.hide_sidebar()
+        await asyncio.sleep(2.0)
+        window = self.page.messages
+        results = (self.out / "scroll-back.txt").open("w", buffering=1)
+        painted_ms = self.time_paints(window) if os.environ.get("SCROLL_BACK_TIME_PAINT") else None
+        probe.sink.write(f"--- idle reading #comms rows={window.model_rows.rowCount()}\n")
+        probe.window_start = probe.last = time.perf_counter()
+        probe.reset()
+        await asyncio.sleep(self.idle_seconds)
+        probe.report(time.perf_counter())
+        rows_at_start = window.model_rows.rowCount()
+        counts = self.count_work(window)
+        cpu_started = time.thread_time()
+        probe.sink.write(f"--- scroll back #comms rows={rows_at_start}\n")
+        probe.window_start = probe.last = time.perf_counter()
+        probe.reset()
+        viewport = window.viewport()
+        painted: list[float] = []
+        viewport.installEventFilter(PaintClock(painted, viewport))
+        pages, drags, deadline = [], 0, time.perf_counter() + 150
+        from toad.client.history_preparation import OLDER_END
+
+        def older_left() -> bool:
+            return any(OLDER_END.visible_more(history) for history in window.histories)
+
+        while (window.model_rows.rowCount() - rows_at_start < self.rows_wanted and time.perf_counter() < deadline
+               and (older_left() or window.scroll_y > 0)):
+            first = window.model_rows.fragments[0].key
+            await self.drag(viewport)
+            drags += 1
+            reached = None
+            while time.perf_counter() < deadline:
+                if window.model_rows.fragments[0].key != first:
+                    break
+                if window.scroll_y <= 0 and not older_left():
+                    break  # the reader is at the start of the history
+                if reached is None and window.scroll_y <= 0:
+                    reached = time.perf_counter()
+                    results.write(f"top at={time.time():.3f} rows={window.model_rows.rowCount()}\n")
+                if reached is not None and os.environ.get("SCROLL_BACK_DEBUG") and time.perf_counter() - reached > 3 \
+                        and not getattr(self, "_explained", False):
+                    self._explained = True
+                    self.explain_top(window, results)
+                if reached is None and QScroller.scroller(viewport).state() == QScroller.State.Inactive \
+                        and window.scroll_y > 0:
+                    break  # the drag settled short of the top: drag again
+                await asyncio.sleep(0.005)
+            if window.model_rows.fragments[0].key != first:
+                painted.clear()
+                while not painted and time.perf_counter() < deadline:
+                    await asyncio.sleep(0.002)  # the first viewport paint after the rows landed
+                shown = painted[0] if painted else time.perf_counter()
+                waited = (shown - reached) * 1000 if reached is not None else 0.0
+                pages.append(waited)
+                results.write(f"page {len(pages)} at={time.time():.3f} drags={drags} "
+                              f"rows={window.model_rows.rowCount()} visible_after_top_ms={waited:.0f}\n")
+        probe.report(time.perf_counter())
+        results.write(f"work: main_thread_cpu_s={time.thread_time() - cpu_started:.2f} "
+                      + " ".join(f"{name}={count}" for name, count in counts.items()) + "\n")
+        loaded = window.model_rows.rowCount() - rows_at_start
+        ordered = sorted(pages)
+        results.write(f"pages={len(pages)} rows_loaded={loaded} drags={drags} "
+                      f"visible_after_top_ms_median={ordered[len(ordered) // 2] if ordered else 0:.0f} "
+                      f"max={ordered[-1] if ordered else 0:.0f}\n")
+        if painted_ms is not None:
+            for label, values in painted_ms.items():
+                values.sort()
+                if values:
+                    results.write(f"paint {label}: n={len(values)} p50={values[len(values) // 2]:.1f}ms "
+                                  f"p95={values[int(len(values) * 0.95)]:.1f}ms max={values[-1]:.1f}ms "
+                                  f"total={sum(values):.0f}ms\n")
+        await self.taps(window, results)
+        results.close()
+        print((self.out / "scroll-back.txt").read_text(), flush=True)
+        self.report("done", rows=window.model_rows.rowCount(), loaded=loaded)
+
+    def count_work(self, window) -> dict[str, int]:
+        """Work the scroll-back repeats, counted: the history's full relayouts (every row
+        measured again), the receipt updates that asked for them, and the layout requests the
+        composer and its parents take (each one re-lays the input area out)."""
+        counts = {"full_relayouts": 0, "receipt_updates": 0, "composer_layout_requests": 0}
+        relayout = window.rows_changed
+
+        def counted_relayout():
+            counts["full_relayouts"] += 1
+            return relayout()
+        window.rows_changed = counted_relayout
+        history = self.page.message_history
+        show = history._show
+
+        async def counted_show(changes):
+            counts["receipt_updates"] += 1
+            return await show(changes)
+        history._show = counted_show
+
+        class LayoutRequests(QObject):
+            def eventFilter(self, watched, event):
+                if event.type() == QEvent.Type.LayoutRequest:
+                    counts["composer_layout_requests"] += 1
+                    name = f"layout_request:{type(watched).__name__}"
+                    counts[name] = counts.get(name, 0) + 1
+                return False
+        composer = self.page.composer
+        filter_ = LayoutRequests(composer)
+        for widget in (composer, *composer.findChildren(QWidget)):
+            widget.installEventFilter(filter_)
+        return counts
+
+    @staticmethod
+    def time_paints(window) -> dict[str, list[float]]:
+        """SCROLL_BACK_TIME_PAINT: each row the delegate paints, and their sum per viewport
+        paint (one frame of the history), tools only."""
+        timings: dict[str, list[float]] = {"frame rows": [], "row": []}
+        delegate = window.itemDelegate()
+        paint_row = delegate.paint
+
+        def row(painter, option, index):
+            started = time.perf_counter()
+            try:
+                return paint_row(painter, option, index)
+            finally:
+                took = (time.perf_counter() - started) * 1000
+                timings["row"].append(took)
+                if timings["frame rows"]:
+                    timings["frame rows"][-1] += took
+        delegate.paint = row
+
+        class FramePaints(QObject):
+            def eventFilter(self, watched, event):
+                if event.type() == QEvent.Type.Paint:
+                    timings["frame rows"].append(0.0)
+                return False
+        window.viewport().installEventFilter(FramePaints(window))
+        return timings
+
+    def explain_top(self, window, results) -> None:
+        """Why the reader at the top is not given older rows (SCROLL_BACK_DEBUG)."""
+        from toad.client.history_preparation import OLDER_END
+        look = window.lookahead
+        for history in window.histories:
+            edge = OLDER_END.edge(history.pages).prepared
+            facts = dict(
+                state=type(history._source_state).__name__, presenting=window.presenting,
+                filter_idle=history.filter.idle, categories=bool(history.selected_categories),
+                at_boundary=OLDER_END.at_boundary(window), visible_more=OLDER_END.visible_more(history),
+                can_extend=OLDER_END.can_extend(edge), source_more=history.page_source.has_more(OLDER_END, edge.page),
+                runway=look.runway(history), demand=type(look.demand).__name__,
+                read_rows=look.read_rows(history, OLDER_END), pages=len(history.pages),
+                fragments=len(history.fragments), fragment_limit=history.fragment_limit,
+                unfilled=window.unfilled_rows)
+            results.write("top stalled: " + " ".join(f"{k}={v}" for k, v in facts.items()) + "\n")
+
+    @staticmethod
+    async def settled(viewport: QWidget) -> None:
+        for _ in range(100):
+            if QScroller.scroller(viewport).state() == QScroller.State.Inactive:
+                return
+            await asyncio.sleep(0.05)
+
+    async def taps(self, window, results) -> None:
+        """Real touch through the window, as Android delivers it (the app classifies each
+        press there, `FingerPress`): a tap on a message whose head is above the viewport; a
+        tap that stops a fling; a drag that starts on a row."""
+        finger = QTest.createTouchDevice()
+        viewport, x = window.viewport(), window.viewport().width() // 2
+        top_level = viewport.window()
+        handle = top_level.windowHandle()
+
+        def at(point: QPoint) -> QPoint:
+            return viewport.mapTo(top_level, point)
+
+        def touch(sequence) -> None:
+            """Deliver one touch step from a Qt timer: its commit processes events, which
+            inside this drive's asyncio task would step other tasks re-entrantly."""
+            QTimer.singleShot(0, sequence.commit)
+
+        model_rows = window.model_rows
+        await self.settled(viewport)
+        # Away from both ends, so a row is cut by the top and a drag has room both ways: back
+        # to the latest, then a viewport and a half up from it.
+        window.jump_to_latest()
+        await asyncio.sleep(2.0)
+        window.scroll_y = max(0, window.max_scroll_y - int(viewport.height() * 1.5) + 37)
+        await asyncio.sleep(1.0)
+        results.write(f"taps from scroll_y={window.scroll_y:.0f} of {window.max_scroll_y:.0f}\n")
+        # (1) the row the viewport's top cuts through: its head is above.
+        index = window.indexAt(QPoint(x, 1))
+        rect = window.visualRect(index)
+        if index.isValid() and rect.top() < 0:
+            head = index.data(HistoryRows.FRAGMENT).message_head(model_rows.fragments)
+            point = QPoint(x, max(4, min(rect.bottom(), viewport.height()) // 2))
+            before = window.scroll_y
+            touch(QTest.touchEvent(handle, finger).press(0, at(point)))
+            await asyncio.sleep(0.06)
+            released = time.perf_counter()
+            touch(QTest.touchEvent(handle, finger).release(0, at(point)))
+            moved = None
+            while time.perf_counter() - released < 2.0:
+                if moved is None and window.scroll_y != before:
+                    moved = time.perf_counter()
+                if moved is not None and window.head_reveal is None:
+                    break
+                await asyncio.sleep(0.002)
+            row = model_rows.row_of(head.key)
+            head_top = window.visualRect(model_rows.index(row, 0)).top() if row >= 0 else None
+            results.write(f"tap head-above: release_to_motion_ms={(moved - released) * 1000 if moved else -1:.0f} "
+                          f"head_top_after={head_top} tapped_row={index.row()} head_row={row} "
+                          f"cut_top={rect.top()} scroll_before={before:.0f} scroll_after={window.scroll_y:.0f}\n")
+        else:
+            results.write("tap head-above: no row cut by the top\n")
+        # (2) the rows still moving (a fling's momentum, started as QScroller starts one), then
+        # a tap: it stops them and reveals nothing.
+        await self.settled(viewport)
+        scroller = QScroller.scroller(viewport)
+        scroller.scrollTo(QPointF(0, max(0.0, window.scroll_y - viewport.height() * 3)), 1500)
+        await asyncio.sleep(0.15)
+        flinging = scroller.state() == QScroller.State.Scrolling
+        tap = QPoint(x, viewport.height() // 2)
+        touch(QTest.touchEvent(handle, finger).press(0, at(tap)))
+        await asyncio.sleep(0.06)
+        touch(QTest.touchEvent(handle, finger).release(0, at(tap)))
+        at_tap = window.scroll_y
+        await asyncio.sleep(0.6)
+        results.write(f"tap during fling: flinging={flinging} moved_after_tap_px={abs(window.scroll_y - at_tap):.0f} "
+                      f"revealed={window.head_reveal is not None}\n")
+        # (3) a slow drag that starts on a row.
+        await self.settled(viewport)
+        before = window.scroll_y
+        start, end = QPoint(x, int(viewport.height() * 0.3)), QPoint(x, int(viewport.height() * 0.5))
+        touch(QTest.touchEvent(handle, finger).press(0, at(start)))
+        await asyncio.sleep(0.15)
+        for step in range(1, 21):
+            touch(QTest.touchEvent(handle, finger).move(0, at(start + (end - start) * step / 20)))
+            await asyncio.sleep(0.02)
+        touch(QTest.touchEvent(handle, finger).release(0, at(end)))
+        await self.settled(viewport)
+        results.write(f"drag from a row: finger_px={end.y() - start.y()} rows_moved_px={before - window.scroll_y:.0f} "
+                      f"revealed={window.head_reveal is not None}\n")
+
+
 class SettingsLiveScenario(Scenario):
     summary = ("change every app-wide setting that declares an Effect, one at a time, as the "
                "settings screen does, and report what Qt draws before and after each")
@@ -3951,10 +4405,6 @@ class FingerScenario(Scenario):
                 print(f"  {label}: FAILED {type(error).__name__}: {error}", flush=True)
                 continue
             await asyncio.sleep(3.0)
-            # A dialog on the phone is no larger than its screen (ScreenWideWindow).
-            for window in QApplication.topLevelWidgets():
-                if window is not self.app and window.isVisible():
-                    window.resize(min(window.width(), 412), min(window.height(), 640))
             # The keymap opens filtered to the focused widget's keys; every key fills the table.
             for screen in self.app.findChildren(QtKeymapScreen):
                 screen.focus_filter.setChecked(False)
@@ -4038,6 +4488,12 @@ def main(arguments: list[str]) -> None:
     scenario = Scenario.member_named(own[0])
     if os.environ.get("FRAME_TIME_WRITES"):
         time_settings_writes()
+    if os.environ.get("QT_DRIVE_PHONE_RENDERER"):
+        # The phone renders in a thread of this process (`InThreadRenderer`); a desktop
+        # drive uses a process pool. Measure what the phone runs.
+        from toad.qt import client_start
+        from toad.render_in_thread import InThreadRenderer
+        client_start._renderer_for_platform = lambda connection: InThreadRenderer()
     application = FrameProbe.application(arguments[:1])
     install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())

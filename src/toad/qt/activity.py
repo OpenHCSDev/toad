@@ -25,6 +25,7 @@ from toad.client.line_blocks import NO_LINK, MutedRole
 from toad.client.prompt_stack import ObservedSweep
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
+from toad.qt.widget_animation import frame_interval
 from toad.status_thread import ObservedActivity
 from toad.qt.metrics import UiGap
 
@@ -95,14 +96,13 @@ class ActivitySweep(QWidget):
         # One text row, always reserved, as Textual's throbber row: only its paint changes.
         self.setFixedHeight(self.fontMetrics().lineSpacing())
         self.timer = QTimer(self)
+        self.timer.setTimerType(Qt.TimerType.PreciseTimer)
         self.timer.timeout.connect(self.update)
 
     def sweep(self, working: bool) -> None:
         self.working = working
         if working:
-            screen = self.screen()
-            rate = screen.refreshRate() if screen is not None else 0.0
-            self.timer.start(max(8, round(1000 / (rate if rate >= 20 else 60))))
+            self.timer.start(max(1, round(frame_interval(self.screen()) * 1000)))
         else:
             self.timer.stop()
         self.update()

@@ -702,9 +702,8 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         The fragment the cursor rests on after: the head, or the clicked part when the head stays put."""
         page = self.page_holding(fragment.key)
         original = page.prepared
-        first = next(index for index, part in enumerate(original.fragments)
-                     if part.source_identity == fragment.source_identity)
-        head = original.fragments[first]
+        head = fragment.message_head(original.fragments)
+        first = original.fragments.index(head)
         window = self.window
         head_placement = self.fragment_placement(head)
         if head_placement.head_on_screen(window):
