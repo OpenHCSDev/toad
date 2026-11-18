@@ -1,8 +1,10 @@
 """Qt's file pickers for a message composer: the file dialog and the project path search.
 
-The dialog is Qt's own QFileDialog. On Android, Qt answers it with the system's document
-picker (the Storage Access Framework), which returns a `content://` URL that QFile reads;
-on a desktop it is the platform's dialog. The path search ranks the project's paths through
+The dialog is Qt's own QFileDialog. On a desktop it is Qt's themed dialog (pyqt-reactive's
+theme selects it). On Android it is native: Qt asks the activity for a document, and the
+APK's activity offers Android's chooser in its place - the apps that give a file (Files,
+Photos, Drive) and the camera (tools/android/keepalive AttachChooser). Either answer comes
+back as a `content://` URL that QFile reads. The path search ranks the project's paths through
 the shared ProjectPaths, as Textual's @ completion does. Both hand the bytes they read to
 `MessagePromptComposer.file_picked`, which decides what is attached.
 """

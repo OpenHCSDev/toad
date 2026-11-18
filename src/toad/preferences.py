@@ -94,7 +94,7 @@ class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsOwner,)):
     file_picker: Annotated[
         type[FilePicker], FieldLabel("File picker"), FamilyChoices(FilePicker), WireName("file-picker"),
     ] = WindowFilePicker
-    """What attaching a file to a message opens: the file dialog (on a phone, its own file picker) or the project path search."""
+    """What attaching a file to a message opens: the file dialog (on a phone, Android's chooser: files, photos or the camera) or the project path search."""
 
     delivery_preview: Annotated[
         bool, FieldLabel("Show delivery preview?"), PromptSettingEffects.apply_delivery_preview,
