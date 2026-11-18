@@ -10,25 +10,45 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.cli_verbs.cli_result import CliResult
+from agent_comms.importing import ThreadImported
+from agent_comms.installer.harness_install import Harness
+from agent_comms.messaging.exporting import (
+    WireExportFormat,
+    WireExportLimit,
+    WireExportProvenance,
+    WireExportScope,
+)
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.registry.thread_management import ImportDirectory
+from agent_comms.registry.thread_text import ExpectedSession
+from agent_comms.transport.progress import CancellableWireExport, WireExportCancelled
+from agent_comms.transport.tools.sidebar import CommsExportWireTool, CommsImportThreadTool
 from toad.client.host import CommsHost
+from toad.core import events as core_events
 
 if TYPE_CHECKING:
     from toad.client.connection import CapturedSource, CoordinationAccess
-    from toad.core import core_events
     from toad.work_preparation import PreparationRuntime
 
 
 class TransferProgress:
-    """A transfer's shared progress capability. The default is not cancellable; Textual's
-    `WireExportProgressView` replaces it for exports that want a visible cancel button."""
+    """A transfer's shared progress capability. The default is not cancellable; an export's
+    is (`CancellableExportProgress`)."""
 
     def cancel(self) -> None:
         pass
+
+
+class CancellableExportProgress(CancellableWireExport, TransferProgress):
+    """An export's progress: Core's export call reports to it and stops when it is cancelled.
+    A frontend with no view of the counters uses it as it is; Textual's
+    `WireExportProgressView` adds the counters and a cancel button."""
 
 
 class Transfer(DeclaredFamily, affix="Request"):
@@ -76,7 +96,7 @@ class TransferRequest[Result: CliResult](Transfer):
 
     @asynccontextmanager
     async def progress(self, app: TransferHost) -> AsyncIterator[TransferProgress]:
-        """Default progress sink; Textual's WireExportRequest overrides to mount a view."""
+        """Default progress sink: nothing to show, nothing to cancel."""
         yield TransferProgress()
 
     def cancelled(self, app: TransferHost) -> None:
@@ -95,6 +115,12 @@ class TransferHost(CommsHost):
     preparation: PreparationRuntime
     events: core_events.CoreEventStream
 
+    @asynccontextmanager
+    async def export_progress(self) -> AsyncIterator[CancellableExportProgress]:
+        """Where a running export reports. Without a view of its counters it is still
+        cancellable: cancelling the transfer's task stops Core's export."""
+        yield CancellableExportProgress()
+
     @abstractmethod
     def open_transfer(self, kind: type[Transfer]) -> None:
         """Open the frontend-specific dialog for `kind`; on submit, the frontend calls
@@ -106,3 +132,55 @@ class TransferHost(CommsHost):
         request's declared name so repeated submissions supersede the previous one.
         Textual uses `run_worker(..., exclusive=True)`; Qt uses asyncio tasks keyed by
         the kind's declared name."""
+
+
+@dataclass(frozen=True)
+class WireExportRequest(TransferRequest[WireExportProvenance]):
+    destination: Path
+    format: WireExportFormat
+    scope: WireExportScope
+    limit: WireExportLimit
+
+    failure_title = "Wire export failed"
+    title = "Export wire history…"
+    cancelled_by = (WireExportCancelled,)
+
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
+                observer: CancellableExportProgress) -> WireExportProvenance:
+        """Core's host writes the export; its progress and cancel reach this observer."""
+        return access.write(selected, access.observing(selected.root).core.call, CommsExportWireTool(
+            destination=self.destination, format=self.format, scope=self.scope, limit=self.limit,
+        ).observed_by(observer))
+
+    def progress(self, app: TransferHost) -> AbstractAsyncContextManager[CancellableExportProgress]:
+        """The host decides how a running export is shown (`TransferHost.export_progress`)."""
+        return app.export_progress()
+
+    def cancelled(self, app: TransferHost) -> None:
+        app.notify("Wire export cancelled", title="Wire export")
+
+    def completed(self, app: TransferHost, result: WireExportProvenance) -> None:
+        app.notify(f"Exported {result.exported_messages} messages to {result.destination}", title="Wire export")
+
+
+@dataclass(frozen=True)
+class ThreadImportRequest(TransferRequest[ThreadImported]):
+    source: Path
+    harness: type[Harness]
+    name: str
+    session: ExpectedSession
+    worktree: ImportDirectory
+
+    failure_title = "Thread import failed"
+    title = "Thread Import…"
+
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
+                observer: TransferProgress) -> ThreadImported:
+        return access.write(selected, access.observing(selected.root).core.call, CommsImportThreadTool(
+            source=self.source, harness=self.harness, name=self.name, session=self.session,
+            worktree=self.worktree))
+
+    def completed(self, app: TransferHost, result: ThreadImported) -> None:
+        app.events.publish(core_events.ThreadRowStateChanged(frozenset((result.thread,))))
+        app.notify(f"Imported @{result.thread} ({result.imported_messages} messages) as a stopped thread",
+                   title="Thread Import")

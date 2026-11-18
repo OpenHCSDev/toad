@@ -23,9 +23,8 @@ from PySide6.QtWidgets import (
 )
 
 from toad.client.transfer_forms import ExportFormatInput, ExportScopeInput, ThreadImportForm, TransferForm, WireExportForm
-from toad.client.transfers import Transfer, TransferHost
+from toad.client.transfers import ThreadImportRequest, Transfer, TransferHost, WireExportRequest
 from toad.qt.metrics import UiGap
-from toad.widgets.comms_transfer import ThreadImportRequest, WireExportRequest
 
 if TYPE_CHECKING:
     from agent_comms.installer.harness_install import Harness
