@@ -12,7 +12,9 @@ from agent_comms.projects.checkouts import Checkout
 from metaclass_registry import AbstractHooksMeta
 
 from toad.agent_binding import AgentConnection
+from toad.client.agent_processes import AgentProcesses
 from toad.client.agent_schema import AgentDefinition
+from toad.client.agents import read_agents
 from toad.core import session_requests
 from toad.core.events import CoreEventStream
 from toad.surface_binding import SurfaceBinding
@@ -89,8 +91,40 @@ class StartsSessions(metaclass=AbstractHooksMeta):
         """A new session of the agent this launch attached: saved, then opened."""
 
 
+class LaunchAgentRefused(LookupError):
+    """The launch's ``--agent`` names no agent this launch can attach."""
+
+
+class UnknownAgent(LaunchAgentRefused):
+    """No configured agent answers to the requested name."""
+
+    def __init__(self, requested: str, known: tuple[str, ...]) -> None:
+        super().__init__(f"Unknown agent {requested!r}. Known agents: {', '.join(known)}")
+        self.requested = requested
+        self.known = known
+
+
 class AgentBinding(ABC):
     """Known native launch state carries construction and attachment behavior."""
+
+    @staticmethod
+    async def launched(requested: str, processes: AgentProcesses) -> AgentBinding:
+        """The launch's agent for the name the user asked for (empty: none), attached when
+        ``processes`` (the launch's Core connection) starts agents; Toad's and Qt's ``-a``."""
+        if not requested:
+            return NoAgent()
+        wanted = requested.lower()
+        agents = await read_agents()
+        for agent in agents.values():
+            if wanted in (agent.short_name.lower(), agent.identity.lower()):
+                return processes.start(partial(AgentAttached, agent), AgentBinding.refused_launch)
+        raise UnknownAgent(requested, tuple(sorted(
+            f"{agent.short_name} ({agent.identity})" if agent.short_name else agent.identity
+            for agent in agents.values())))
+
+    @staticmethod
+    def refused_launch(reason: str) -> AgentBinding:
+        raise LaunchAgentRefused(reason)
 
     @property
     @abstractmethod

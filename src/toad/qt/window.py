@@ -75,7 +75,6 @@ from toad.client.connection import (
     CoreConnection,
     FailedObservation,
     Observing,
-    RemoteCoreConnection,
 )
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
@@ -1518,6 +1517,9 @@ class QtWorkspaceViews(WorkspaceViews):
         return self.views.pop(identity, None)
 
     async def finish(self, view: ConversationView) -> None:
+        # As Textual's `Conversation` unmount: the view's agent leaves its surface and stops
+        # before the widgets it draws into are deleted.
+        await view.operational_binding.retire_surface(view)
         view.close_configuration()
         self.pages.removeWidget(view)
         view.deleteLater()
@@ -1545,13 +1547,13 @@ class QtWorkspaceViews(WorkspaceViews):
 
 
 class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
-    """The shared client application on Qt, over the Core a UI profile names: the threads,
+    """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
 
     session_entries = QtSessionEntry
 
-    def __init__(self, connection: RemoteCoreConnection, project: Checkout,
+    def __init__(self, connection: CoreConnection, project: Checkout,
                  preparation: PreparationRuntime, scheme: ColourScheme,
                  launch: AgentBinding = NoAgent()) -> None:
         super().__init__(project, preparation, scheme)
@@ -1875,6 +1877,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     async def start_frontend(self) -> None:
         await self.coordination_access.follow_sidebar(self.sidebar)
         await self.application.start()
+
+    @property
+    def app_focus(self) -> bool:
+        """Textual's `App.app_focus`: whether the desktop has this app in front, which the
+        notification policy (`notifications.system`) reads before a desktop notification."""
+        return QApplication.applicationState() == Qt.ApplicationState.ApplicationActive
 
     def application_state_changed(self, state: Qt.ApplicationState) -> None:
         if state in (Qt.ApplicationState.ApplicationSuspended, Qt.ApplicationState.ApplicationHidden,

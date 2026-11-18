@@ -19,8 +19,7 @@ from toad.app import ToadApp
 from toad.application_lifetime import TerminalApplicationLifetime
 from toad.client.connection import CoreConnection
 from toad.client.local_connection import select_connection
-from toad.client.agent_processes import AgentProcesses, UnknownAgent
-from toad.launch_binding import AgentAttached, AgentBinding
+from toad.launch_binding import AgentAttached, AgentBinding, LaunchAgentRefused
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer
 
@@ -53,11 +52,11 @@ def run_terminal(app: ToadApp) -> None:
     app.return_value.finish()
 
 
-async def get_agent_binding(launch_agent: str) -> AgentBinding:
-    """The launch's agent, chosen by the same owner Qt's launch asks."""
+async def get_agent_binding(connection: CoreConnection, launch_agent: str) -> AgentBinding:
+    """The launch's agent, chosen by the same owner Qt's launch asks: its connection."""
     try:
-        return await AgentProcesses.of_platform().launch_binding(launch_agent)
-    except UnknownAgent as error:
+        return await AgentBinding.launched(launch_agent, connection.agent_processes)
+    except LaunchAgentRefused as error:
         raise click.BadParameter(str(error), param_hint="-a / --agent") from error
 
 
@@ -127,7 +126,7 @@ def run(connection: CoreConnection, project_dir: str, agent: str = "1"):
 
 
 
-    binding = asyncio.run(get_agent_binding(agent))
+    binding = asyncio.run(get_agent_binding(connection, agent))
     app = ToadApp(
         agent_binding=binding,
         project_dir=project,

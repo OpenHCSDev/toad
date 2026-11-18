@@ -245,7 +245,7 @@ class QtAcpSessionView(
         """Session mode is owned by the session identity when a SessionDetails has been
         set; before that, derive the fallback mode from the session pk — never cache it."""
         if self.session_details is not None:
-            return self.session_details.identity.mode
+            return self.session_details.mode_name
         return f"acp:{self._session_pk}"
 
     @property

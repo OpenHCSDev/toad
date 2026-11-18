@@ -94,6 +94,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.client.agent_processes import AgentProcesses, NoAgentProcesses
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.client.bus_selection import ProfileArgument
 from toad.client.host import CommsHost
@@ -199,6 +200,10 @@ class CoreConnection(ABC):
     helper_start: ClassVar[HelperStart] = SpawnedHelper()
     """How this launch starts its local route observer and its render workers."""
 
+    agent_processes: ClassVar[AgentProcesses]
+    """Whether an agent process starts under this connection: only beside a local route
+    (`LocalCoreConnection`, in `toad.client.local_connection`)."""
+
     def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
 
@@ -256,6 +261,8 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
     """The owner's UI profile is the remote connection: Core answers through the connector.
 
     Read replies decode where they arrive, as on Android, which has no interpreter to spawn."""
+
+    agent_processes: ClassVar[AgentProcesses] = NoAgentProcesses()
 
     @classmethod
     def startup(cls, arguments: list[str]) -> RemoteCoreConnection:

@@ -15,7 +15,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.transcript.transcript_events import MarkdownTranscript
+from agent_comms.transcript.transcript_events import NoticeTranscript
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.client.subscribers import CallbackSubscription
@@ -58,7 +58,7 @@ class QtToolBlock(QtLiveBlock):
     """One tool call's row: its title and status, then its text output, redrawn in place as
     the agent updates the call."""
 
-    event_kind = MarkdownTranscript
+    event_kind = NoticeTranscript
 
     def __init__(self, window: QtHistoryWindow, tool_call_id: str) -> None:
         super().__init__(window, "")
@@ -77,7 +77,7 @@ class QtTerminalBlock(QtLiveBlock):
     """A terminal the agent runs: its command, then its output, redrawn as it arrives. The
     shared `TerminalExecution` attaches it as its view, as it attaches Textual's terminal."""
 
-    event_kind = MarkdownTranscript
+    event_kind = NoticeTranscript
 
     def __init__(self, window: QtHistoryWindow, execution) -> None:
         super().__init__(window, "")
@@ -145,13 +145,15 @@ class QtSurfaceBinding(SurfaceBinding, MroDispatch):
 
     @handles(DiffPermissionPresentation)
     async def ask_file_write(self, presentation, view, request) -> None:
-        self.ask(view, request, f"{view.agent_title} would like to write files")
+        """As Textual's file-write review, it also notifies the desktop."""
+        title = f"{view.agent_title} would like to write files"
+        self.ask(view, request, title)
+        view.app.input_attention.notify(title, title="Permissions request", sound="question")
 
     def ask(self, view, request, title: str) -> None:
         """Every permission asks through the view's shared question (`QtQuestion`, a
         `ChoiceQuestion`), and its answer goes back to the request."""
         ask = view.ask(request.options, title, None, partial(request.answer, self))
-        view.app.input_attention.notify(title, title="Permissions request", sound="question")
 
         def retire() -> None:
             view.retract(ask)

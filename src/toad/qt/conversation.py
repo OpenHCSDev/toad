@@ -12,6 +12,7 @@ commands it offers.
 from __future__ import annotations
 
 import asyncio
+import inspect
 
 import shiboken6
 from textual.content import Content
@@ -337,10 +338,16 @@ class QtConversation(
         return self
 
     def call_later(self, callback, *args) -> bool:
+        """Textual's `call_later`: after the work already queued, and a coroutine callback
+        (a turn's `AgentSubmissionExecution.complete`) is awaited, not dropped."""
         if not self.is_attached:
             return False
-        QTimer.singleShot(0, partial(callback, *args))
+        QTimer.singleShot(0, partial(self.called_later, callback, args))
         return True
+
+    def called_later(self, callback, args) -> None:
+        if inspect.isawaitable(result := callback(*args)):
+            self.run_worker(lambda: result, group="call_later")
 
     def after_refresh(self, callback) -> None:
         QTimer.singleShot(0, callback)

@@ -15,6 +15,7 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.nominal.field_codec import AcpSessionId
 from metaclass_registry import AbstractHooksMeta
 
+from toad.agent_binding import NoAgentConnection
 from toad.project_path_owner import CheckoutRoot
 from toad.transcript_scope import NoTranscript, TranscriptScope
 
@@ -75,7 +76,6 @@ class SessionScope:
         """The agent this session runs: a view with no agent (welcome, a channel, a CLI
         inbox) has none. Textual's `MainScreen` answers its presentation's binding, Qt's
         conversation views their `agent_binding`."""
-        from toad.agent_binding import NoAgentConnection
         return NoAgentConnection()
 
     @property

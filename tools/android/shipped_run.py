@@ -129,7 +129,7 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
         "enter()\n"
         f"os.environ['SSL_CERT_FILE'] = {str(trust)!r}\n"
         "os.environ['QT_QPA_PLATFORM'] = 'offscreen'\n"
-        f"sys.argv = ['qt_drive.py', 'shipped', {str(profile)!r}, {str(out)!r}]\n"
+        f"sys.argv = ['qt_drive.py', 'shipped', {str(out)!r}, '--comms-profile', {str(profile)!r}]\n"
         f"runpy.run_path({str(CHECKOUT / 'tools' / 'qt_drive.py')!r}, run_name='__main__')\n"
     )
     # -B: the app folder ships the bytecode assemble.py compiled; this run writes none beside it.

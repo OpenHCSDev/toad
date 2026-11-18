@@ -324,10 +324,10 @@ class ClientApplication(BusPickerHost, NavigationHost):
     lifetime_kind: ClassVar[type[ApplicationLifetime]] = ApplicationLifetime
     """What this frontend's start, background and end do; the terminal app adds its own."""
 
-    @cached_property
+    @property
     def agent_processes(self) -> AgentProcesses:
-        """Whether this platform runs agent processes: a desktop does, Android does not."""
-        return AgentProcesses.of_platform()
+        """Whether agent processes start here: the Core connection decides."""
+        return self.coordination_access.connection.agent_processes
 
     @cached_property
     def sidebar_layout(self) -> SidebarLayout:

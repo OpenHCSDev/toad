@@ -7,9 +7,10 @@ from agent_comms.projects.checkouts import Checkout
 from support.agents import peer
 
 from toad.client.agents import read_agents
+from toad.client.connection import RemoteCoreConnection
 from toad.cli import get_agent_binding
 from toad.screens.main import MainScreen
-from toad.launch_binding import AgentAttached, AgentSession, NoAgent
+from toad.launch_binding import AgentAttached, AgentBinding, AgentSession, LaunchAgentRefused, NoAgent
 from toad.thread_identity import NoThreadIdentity
 from agent_comms.nominal.field_codec import AcpSessionId
 
@@ -17,20 +18,33 @@ from agent_comms.nominal.field_codec import AcpSessionId
 async def test_startup_binding_is_decoded_once_and_retained_by_the_app(workspace):
     definition = next(iter((await read_agents()).values()))
     selected = AgentAttached(definition)
+    local = workspace.local_connection.from_launch(workspace.launch_root)
     for spelling, expected in (
         ("", NoAgent()),
         (definition.identity.upper(), selected),
         (definition.short_name.upper(), selected),
     ):
-        assert await get_agent_binding(spelling) == expected
+        assert await get_agent_binding(local, spelling) == expected
     with pytest.raises(click.BadParameter, match="no-such-startup-agent"):
-        await get_agent_binding("no-such-startup-agent")
+        await get_agent_binding(local, "no-such-startup-agent")
     async with workspace.app(binding=selected, session=False) as ui:
         app, _ = ui.textual
         assert app.agent_binding is selected
         assert NoAgent().attached(app.agent_binding) is selected
         assert selected.attached(NoAgent()) is selected
         assert ui.tabs() == ()
+
+
+async def test_a_remote_connection_attaches_no_agent_and_says_why():
+    """A UI profile reaches Core without a local route, so its launch starts no agent process."""
+    processes = RemoteCoreConnection.agent_processes
+    definition = next(iter((await read_agents()).values()))
+    assert await AgentBinding.launched("", processes) == NoAgent()
+    with pytest.raises(LaunchAgentRefused, match="UI profile"):
+        await AgentBinding.launched(definition.identity, processes)
+    created, refused = [], []
+    processes.start(lambda: created.append(True), refused.append)
+    assert created == [] and refused and "UI profile" in refused[0]
 
 
 async def test_no_agent_does_not_match_a_launch(workspace):
