@@ -42,6 +42,7 @@ from toad.client.conversation_capabilities import (
 from toad.client.fragments import EvidencedFragment, FragmentKey, MessageShown
 from toad.client.history_preparation import HistorySourceSnapshot, PageRequest
 from toad.client.history_reads import NothingToRead, PaintedRead, ReadMarking, ReadWork
+from toad.client.message_files import PageFiles
 from toad.client.history_state import (
     LatestReplacementViewportRequest,
     ReplacementViewportRequest,
@@ -62,7 +63,7 @@ from toad.client.submission import (
     SubmissionStart,
     SubmittedText,
 )
-from toad.message_rows import WireMessageStyle
+from toad.message_rows import MessageRow, WireMessageStyle
 from toad.submission_queue import BusQueueSource
 from toad.target_commands import TargetContext
 
@@ -429,11 +430,13 @@ class WireSource(BusQueueSource, ConversationSource):
         # "Checking": the answer that follows then changes nothing it has to redraw.
         scope = ReadNotifications(str(self.root), LiveNotificationRead(()),
                                   display=page.selection.notification_identity)
+        files = PageFiles.read(str(self.root), self.core, (
+            (message.reference, MessageRow(message, self.me).file_reader) for message in page.messages))
         fragments = tuple(
             self.fragments.of(message, shown=MessageShown(
                 style=self.style,
                 status=self.access.notification_status(scope, message.role.notification_references(message))),
-                evidence=evidence, reader=self.me, page=page)
+                evidence=evidence, reader=self.me, page=page, files=files.of(message.reference))
             for message, evidence in page.message_evidence()
         )
         wire = WirePage(

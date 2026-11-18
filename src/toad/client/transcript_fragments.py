@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from functools import cached_property, partial
 from typing import ClassVar
 
+from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.sent_message import PublishedSentMessage
 from agent_comms.nominal.field_codec import ToolCallId
 from agent_comms.storage.recorded_time import EventTime
@@ -43,6 +44,7 @@ from toad.client.fragments import (
     PartPosition,
     Shown,
 )
+from toad.client.message_files import NO_PAGE_FILES, FileReader, PageFiles
 from toad.message_rows import MessageRow
 from toad.client.line_blocks import (
     AgentRole,
@@ -364,12 +366,13 @@ class SentSlot(BuiltSlot):
 
     report: SentTranscript
     classes: FragmentClasses
+    files: PageFiles
 
     def sent_reports(self) -> tuple[SentTranscript, ...]:
         return (self.report,)
 
     def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
-        builder = TranscriptFragmentConsumer(self.classes)
+        builder = TranscriptFragmentConsumer(self.classes, self.files)
         builder.project_value(resolved[self.report])
         return builder.unresolved()
 
@@ -426,13 +429,35 @@ class ToolSlot(FragmentSlot):
         return self.fragments({})
 
 
+class BusMessageRow(MroProjection[tuple[MessageRow, ...]]):
+    """The bus message a transcript event draws, as its row: a received message read by its
+    recipient, a sent one once resolved read by the recipient it was published to. Every
+    other event, a sent report not yet resolved included, draws none."""
+
+    @handles(IncomingTranscript)
+    def incoming(self, event: IncomingTranscript) -> tuple[MessageRow, ...]:
+        return (MessageRow(event.message, event.reader),)
+
+    @handles(PublishedSentMessage)
+    def published(self, message: PublishedSentMessage) -> tuple[MessageRow, ...]:
+        return (MessageRow(message.original, message.scope.recipient.name),)
+
+    @handles(TranscriptEvent)
+    def other(self, event: TranscriptEvent) -> tuple[MessageRow, ...]:
+        return ()
+
+
+BUS_MESSAGE_ROW = BusMessageRow()
+
+
 class TranscriptFragmentConsumer(MroProjection[None]):
     """Build a frontend's fragment family from a stream of transcript events. The frontend
     picks which subclasses to construct by passing its `FragmentClasses`; Textual passes
     `TEXTUAL_FRAGMENT_CLASSES` from `widgets/transcript_fragments.py`, Qt passes its own."""
 
-    def __init__(self, classes: FragmentClasses) -> None:
+    def __init__(self, classes: FragmentClasses, files: PageFiles) -> None:
         self.classes = classes
+        self.files = files
         self.slots: list[FragmentSlot] = []
         self.tools: dict[str, ToolSlot] = {}
         self.budget = RenderBudget()
@@ -448,20 +473,22 @@ class TranscriptFragmentConsumer(MroProjection[None]):
 
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript) -> None:
-        self.text(event, self.classes.bus_message, row=MessageRow(event.message, event.reader))
+        (row,) = BUS_MESSAGE_ROW.project_value(event)
+        self.text(event, self.classes.bus_message, row=row, files=self.files.of(row.message.reference))
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript) -> None:
-        self.slots.append(SentSlot(self.classes.transcript((event,)), event, self.classes))
+        self.slots.append(SentSlot(self.classes.transcript((event,)), event, self.classes, self.files))
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage) -> None:
-        original = message.original
+        (row,) = BUS_MESSAGE_ROW.project_value(message)
         self.text(
             message.message,
             self.classes.sent_message,
             publication=message,
-            row=MessageRow(original, message.scope.recipient.name),
+            row=row,
+            files=self.files.of(row.message.reference),
         )
 
     @handles(UserTranscript, MarkdownTranscript)
@@ -492,8 +519,9 @@ class FragmentPlan:
         *,
         resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
         classes: FragmentClasses,
+        files: PageFiles,
     ) -> FragmentPlan:
-        consumer = TranscriptFragmentConsumer(classes)
+        consumer = TranscriptFragmentConsumer(classes, files)
         for event in events:
             consumer.project_value(event)
         resolved = resolve_sent(report for slot in consumer.slots for report in slot.sent_reports())
@@ -504,7 +532,7 @@ class FragmentPlan:
         """Core's in-progress CLI draft, read as committed events are, its sent reports
         resolved against the read identity's wire frontier."""
         return cls.read(draft.events, resolve_sent=identity.wire_frontier.resolve_sent_messages,
-                        classes=classes)
+                        classes=classes, files=NO_PAGE_FILES)
 
     def fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for slot in self.slots for fragment in slot.fragments(self.resolved))
@@ -515,5 +543,20 @@ def transcript_fragments(
     *,
     resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
     classes: FragmentClasses,
+    files: PageFiles,
 ) -> tuple[TranscriptFragment, ...]:
-    return FragmentPlan.read(events, resolve_sent=resolve_sent, classes=classes).fragments()
+    return FragmentPlan.read(events, resolve_sent=resolve_sent, classes=classes, files=files).fragments()
+
+
+def transcript_file_readers(
+    events: tuple[TranscriptEvent, ...],
+    *,
+    resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
+    classes: FragmentClasses,
+) -> tuple[tuple[MessageReference, FileReader], ...]:
+    """Every bus message these events draw once their sent reports resolve, with the read its
+    files are listed under: what one page's file read asks before the page is drawn."""
+    plan = FragmentPlan.read(events, resolve_sent=resolve_sent, classes=classes, files=NO_PAGE_FILES)
+    return tuple((row.message.reference, row.file_reader)
+                 for drawn in (*events, *plan.resolved.values())
+                 for row in BUS_MESSAGE_ROW.project_value(drawn))

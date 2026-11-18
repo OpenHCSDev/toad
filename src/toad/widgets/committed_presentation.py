@@ -120,7 +120,9 @@ class PreparedPageCommit(PreparedCommit, shows=(PreparedPageSource,)):
 
     @classmethod
     async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
-        prepared = await TranscriptPageRenderTask(page, history.page_source.fragments).prepared(view.app.preparation)
+        classes = history.page_source.fragments
+        files = await view.transcript.page_files(page, classes)
+        prepared = await TranscriptPageRenderTask(page, classes, files).prepared(view.app.preparation)
         return cls(history, sequences, prepared)
 
     @property
