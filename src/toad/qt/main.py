@@ -11,12 +11,14 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from toad.fatal_trace import FatalTrace
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.splash import QtSplash
 from toad.qt.theme import current_scheme
 
 
 def main(arguments: list[str] = sys.argv) -> None:
+    FatalTrace.enabled()  # before Qt: a native crash anywhere after this leaves every thread's stack
     application = FrameProbe.application(arguments[:1])
     scheme = current_scheme(os.environ)
     QtSplash.shown(application, scheme)

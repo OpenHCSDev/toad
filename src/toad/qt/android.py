@@ -26,6 +26,7 @@ import traceback
 from PySide6.QtCore import Qt, QTimer
 
 from toad import paths
+from toad.fatal_trace import FatalTrace
 from toad.qt.android_app import KEPT
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.splash import QtSplash
@@ -118,6 +119,7 @@ def load_client():
 
 
 def main() -> None:
+    FatalTrace.enabled()  # before Qt: a native crash anywhere after this leaves every thread's stack
     _install_excepthook()
     # Qt's accessibility bridge is switched off by the APK's activity before Qt's layout
     # exists (tools/android/keepalive ToadActivity.onCreate sets QT_ANDROID_DISABLE_ACCESSIBILITY):

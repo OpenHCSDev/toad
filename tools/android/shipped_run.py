@@ -146,6 +146,44 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
                           env=os.environ | {"PYTHONOPTIMIZE": str(python_optimize())})
 
 
+def shipped_fault(app: Path, recipes: Path, crash: bool) -> subprocess.CompletedProcess:
+    """The shipped interpreter's fault trace (toad.fatal_trace): Android's entry opens it first
+    thing, so a native crash leaves every thread's stack under the state's errors folder.
+    `crash` faults the process on purpose; otherwise it exits cleanly, which leaves no file."""
+    code = (
+        "import faulthandler, sys\n"
+        f"sys.path[:0] = [{str(app)!r}, {str(recipes)!r}]\n"
+        "from toad.qt.android_app import enter\n"
+        "enter()\n"
+        "import toad.qt.android, toad.qt.main\n"
+        "from toad.fatal_trace import FatalTrace\n"
+        "missing = [entry.__name__ for entry in (toad.qt.android, toad.qt.main) if 'FatalTrace' not in entry.main.__code__.co_names]\n"
+        "missing and sys.exit(f'error: entries that do not open the fault trace: {missing}')\n"
+        "FatalTrace.enabled()\n"
+        + ("faulthandler._sigsegv()\n" if crash else "")
+    )
+    return subprocess.run([sys.executable, "-S", "-B", "-c", code], capture_output=True, text=True,
+                          timeout=120, cwd=recipes, check=False,
+                          env=os.environ | {"PYTHONOPTIMIZE": str(python_optimize()), "QT_QPA_PLATFORM": "offscreen"})
+
+
+def fault_trace_failure(state: Path, app: Path, recipes: Path) -> str | None:
+    """Why the fault trace would not catch a native crash on the phone, or None."""
+    clean = shipped_fault(app, recipes, crash=False)
+    left = sorted(state.rglob("errors/fatal*.txt"))
+    if clean.returncode != 0 or left:
+        return f"a clean run exited {clean.returncode} and left {[path.name for path in left]}: {clean.stderr[-2000:]}"
+    crashed = shipped_fault(app, recipes, crash=True)
+    traces = sorted(state.rglob("errors/fatal*.txt"))
+    text = traces[-1].read_text() if traces else ""
+    if crashed.returncode != -11 or "Segmentation fault" not in text or "Current thread" not in text:
+        return (f"a faulted run exited {crashed.returncode} with {len(traces)} trace file(s): "
+                f"{text[-1000:] or crashed.stderr[-2000:]}")
+    for trace in traces:
+        trace.unlink()
+    return None
+
+
 def main(runtime: Path, app: Path, site_packages: Path) -> int:
     work = Path(tempfile.mkdtemp(prefix="toad-shipped-"))
     bus = ScratchBus(runtime, work)
@@ -179,6 +217,11 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
                   f"{len(errors)} error file(s)); TOAD_SHIPPED_KEEP=1 keeps its scratch folder", file=sys.stderr)
             return 1
         print("shipped app ran every view kind and bound key on a scratch bus")
+        fault = fault_trace_failure(work / "kept" / "state", shipped, recipes)
+        if fault:
+            print(f"error: the shipped app's fault trace: {fault}", file=sys.stderr)
+            return 1
+        print("a native crash in the shipped app leaves every thread's stack under its errors folder")
         return 0
     finally:
         bus.stop()
