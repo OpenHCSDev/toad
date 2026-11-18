@@ -100,7 +100,7 @@ from toad.sidebar_rows import ChannelLineText, ChannelRowFace, ThreadLineText, T
 from toad.client.referenced_core import ReferencedCore
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
-from toad.sidebar_changes import SidebarChange
+from toad.sidebar_changes import AllSidebarRows, SidebarChange
 from toad.sidebar_contracts import (
     ChannelGroupRows,
     FindsOpenViews,
@@ -997,11 +997,9 @@ class Sidebar(FindsOpenViews, WorkspaceHosted, SidebarStateMachine, Conversation
         return self.window
 
     def _on_filter_changed(self, _value: str) -> None:
-        """Re-present the whole tree so rows whose names newly stop (or newly start)
-        matching the filter appear / disappear. `present` is already the one wholesale
-        redraw, so routing the refresh through it keeps the filter path identical to
-        every other model-change path."""
-        self.present()
+        """Every row may newly match or stop matching: all rows, as Textual's search
+        follower re-syncs every group."""
+        self.present(change=AllSidebarRows(), reorder=True)
 
     def accepts_observation(self) -> bool:
         """The sidebar always shows while it exists: the window hides it through
@@ -1019,41 +1017,43 @@ class Sidebar(FindsOpenViews, WorkspaceHosted, SidebarStateMachine, Conversation
         self._status_text = None
 
     def present(self, **changes: object) -> None:
-        """Run the state transitions, then paint status + rows + welcome. A targeted
-        `ChangedChannels` / `ChangedThreads` dispatched into `sync` touches only the
-        affected channel header + its member rows; broader state changes fall through
-        to the wholesale redraw that rebuilds the whole tree."""
-        change = changes.get("change")
+        """Run the shared state transition, whose model change reaches `sync`, then keep the
+        status line current in place. A bare present (each observation, a show) draws no rows:
+        rows change only through the change the state machine hands `sync`, as Textual's
+        sidebar draws them. Redrawing every channel and thread here on each observation was
+        17% of the phone's UI thread during a burst of arrivals (2026-11-18)."""
         super().present(**changes)
+        self._refresh_status_only()
         model = self.model_state.shown if self.model_state.shows_model() else None
-        if model is not None and change is not None and change.partial_update:
-            # The `sync` dispatch handled the typed partial update. Keep the status row
-            # fresh in place without rebuilding the rest of the tree.
-            self._refresh_status_only()
-        else:
-            def draw(top: KeptLines) -> None:
-                if self._status_text is not None:
-                    top.keep(StatusSection(self._status_text))
-                if model is not None:
-                    self.draw_lines(model, top)
-            self.redraw(draw)
-            # A wholesale redraw rebuilt the channel items; rebind the per-channel groups
-            # against the new items so the next targeted `sync` operates on live children.
-            if model is not None:
-                self._rebind_groups_from_tree(model)
-            else:
+        if model is None:
+            if self.groups:
                 self.groups = {}
-        if model is not None:
-            self.window.channel_sort.update_order(model.observation.channel_order())
-            self.window.paint_tabs()
+                self.redraw(lambda top: None)
+                self._refresh_status_only()
+            return
+        self.window.channel_sort.update_order(model.observation.channel_order())
+        self.window.paint_tabs()
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
-        """Dispatch a typed row change through `GroupedSidebar.apply_comms` so only the
-        affected header + member rows touch Qt. Wholesale changes (partial_update=False)
-        are left to the caller's follow-up `present()` to rebuild the tree."""
-        if not self.model_state.shows_model() or not change.partial_update:
+        """Apply the change the shared state machine handed over. A partial one that keeps
+        the channels' order touches only its header and member rows (`apply_comms`); every
+        other one (all rows, a channel added, removed or moved) draws the tree again in
+        place, keeping each still-wanted line's item."""
+        if not self.model_state.shows_model():
             return
-        change.apply_comms(self, self.model_state.shown.channels.rows)
+        model = self.model_state.shown
+        if change.partial_update and not reorder:
+            change.apply_comms(self, model.channels.rows)
+            return
+
+        def draw(top: KeptLines) -> None:
+            if self._status_text is not None:
+                top.keep(StatusSection(self._status_text))
+            self.draw_lines(model, top)
+        self.redraw(draw)
+        # The redraw rebuilt the channel items; the groups bind to the new ones so the next
+        # partial change operates on live children.
+        self._rebind_groups_from_tree(model)
 
     def model_replaced(self) -> None:
         """Clear rows before the new observation's redraw lands; the next `present` will
@@ -1773,13 +1773,18 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             screen.refreshRateChanged.connect(self.follow_display)
 
     def paint_tabs(self) -> None:
+        """The tabs as the navigation has them: a tab's title, unread count and busy wave.
+        Nothing is drawn or marked again when neither the tabs nor the selected one changed."""
         self.tabs.blockSignals(True)
         badge = self.settings.sidebar.unread_counts.badge
         tabs = tuple(self.session_navigation.tabs)
-        self.tabs.show_tabs([(tab.label() + tab.unread_suffix(badge), tab.mode_name) for tab in tabs])
+        changed = self.tabs.show_tabs([(tab.label() + tab.unread_suffix(badge), tab.mode_name) for tab in tabs])
         self.tabs.follow_tabs(tabs)
         self.tabs.blockSignals(False)
-        self.mark_current()
+        modes = self.session_navigation.tab_modes
+        selected = modes.index(self.selected_mode) if self.selected_mode in modes else -1
+        if changed or self.tabs.currentIndex() != selected:
+            self.mark_current()
 
     def mark_current(self) -> None:
         modes = self.session_navigation.tab_modes

@@ -152,10 +152,21 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
 
-    def show_tabs(self, entries: list[tuple[str, str]]) -> None:
-        """Draw ``entries`` (title, mode) as the bar's tabs. Compared with what the bar showed:
-        a mode that is new grows in, a mode that is gone leaves a shrinking picture of itself.
-        The first drawing, a restore, appears at once."""
+    def show_tabs(self, entries: list[tuple[str, str]]) -> bool:
+        """Draw ``entries`` (title, mode) as the bar's tabs; whether anything changed. The same
+        tabs in the same order only retitle the ones whose title changed, as Textual's tab
+        strip reconciles its labels: rebuilding every tab relaid and repainted the bar on each
+        sidebar observation (Tristan's phone, a burst of arrivals, 2026-11-18). Otherwise,
+        compared with what the bar showed: a mode that is new grows in, a mode that is gone
+        leaves a shrinking picture of itself. The first drawing, a restore, appears at once."""
+        current = [(self.tabText(index), self.tabData(index)) for index in range(self.count())]
+        if current == entries:
+            return False
+        if [mode for _, mode in current] == [mode for _, mode in entries]:
+            for index, (title, _) in enumerate(entries):
+                if current[index][0] != title:
+                    self.setTabText(index, title)
+            return True
         shown = {self.tabData(index): self.tabRect(index) for index in range(self.count())}
         modes = {mode for _, mode in entries}
         moving = bool(shown) and self.clock.enabled and self.isVisible()
@@ -171,6 +182,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
                 self.growing[mode] = TabGrowth(self, mode)
         for rect, picture in leaving:
             TabGhost(self, rect, picture)
+        return True
 
     def relayout(self) -> None:
         """Lay the tabs out again with the growing tabs' current widths."""
