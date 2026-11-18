@@ -132,7 +132,8 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
         f"sys.argv = ['qt_drive.py', 'shipped', {str(profile)!r}, {str(out)!r}]\n"
         f"runpy.run_path({str(CHECKOUT / 'tools' / 'qt_drive.py')!r}, run_name='__main__')\n"
     )
-    return subprocess.run([sys.executable, "-S", "-c", code], capture_output=True, text=True,
+    # -B: the app folder ships the bytecode assemble.py compiled; this run writes none beside it.
+    return subprocess.run([sys.executable, "-S", "-B", "-c", code], capture_output=True, text=True,
                           timeout=600, cwd=recipes, check=False)
 
 

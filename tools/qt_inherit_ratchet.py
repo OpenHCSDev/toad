@@ -99,6 +99,8 @@ NOT_SIBLINGS = {
 
 QT_ONLY = {
     'toad.qt.action_shortcuts.BoundAction': "a live QShortcut and the action it answers: Qt fires neither of two shortcuts sharing a key (activatedAmbiguously), so ActionKeys keeps each to apply the declared binding order; Textual walks its binding chain itself",
+    'toad.qt.splash.QtSplash': "Qt's first frame, painted from Qt and the theme before the client's modules import: a terminal draws Textual's first frame as soon as App.run starts, with the client already imported in the same process, so the TUI has no window to show before its app exists",
+    'toad.qt.splash.StepAside': "an application event filter that closes the first frame when Qt shows the client's window: QEvent.Show on a top-level QWidget has no Textual counterpart",
     'toad.qt.android.SessionRecord': 'Android process lifecycle: Android kills a backgrounded app and destroys its activity without telling the process, so the next start reads this record',
     'toad.qt.android.SuspendedMemory': "Android suspend: bionic's M_PURGE returns freed allocator memory to the system",
     'toad.qt.finger_scrolling.FingerScrollGesture': "what a drag on a Qt scroll area's viewport means per platform (QScroller's grab); the terminal scrolls the TUI",

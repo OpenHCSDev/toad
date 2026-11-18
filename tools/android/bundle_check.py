@@ -194,7 +194,8 @@ with tempfile.TemporaryDirectory() as recipes:
             if not target.exists():
                 target.symlink_to(candidate)
     result = subprocess.run(
-        [sys.executable, "-S", "-c",
+        # -B: the app folder ships the bytecode assemble.py compiled; this run writes none.
+        [sys.executable, "-S", "-B", "-c",
          (f"import json, sys; sys.path[:0] = [{str(app)!r}, {recipes!r}]; from toad.qt.android_app import enter; enter(); import {ENTRY}; {ENTRY}.load_client(); "
           "print('shipped app imports toad.qt.main'); print(json.dumps(sorted(sys.modules)))")],
         capture_output=True, text=True, timeout=120, cwd=recipes, check=False)
