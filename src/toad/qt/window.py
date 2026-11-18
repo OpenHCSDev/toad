@@ -1637,6 +1637,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tab_strip.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tab_strip.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tab_strip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        # The header band's sheet pads and borders every frame inside it (a 5 px inset here,
+        # which clipped the tabs' lower 10 px); the strip is only a window onto the tabs.
+        self.tab_strip.setObjectName("toad-tab-strip")
+        self.tab_strip.setStyleSheet("#toad-tab-strip { border: none; padding: 0px; background: transparent; }")
+        # A renamed or added tab changes the strip's range: the selected one stays in view.
+        self.tab_strip.horizontalScrollBar().rangeChanged.connect(lambda *_: self.show_current_tab())
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
         for widget in (self.menu, self.back, self.forward):
