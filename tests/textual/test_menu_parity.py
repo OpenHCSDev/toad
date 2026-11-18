@@ -50,7 +50,8 @@ async def test_sidebar_lines_and_tabs_draw_their_declared_menus(workspace):
         assert channel_menu == [entry.label for entry in await channel.menu_entries()]
         assert channel_menu
 
-        tab = app.query_one(f"#{app.selected_mode}", SessionLabel)
+        tab = next(label for label in app.query(SessionLabel)
+                   if label.mode_name == app.selected_mode)
         tab_menu = await right_click_menu(ui, tab)
         assert tab_menu == [entry.label for entry in tab.menu_entries()]
         assert tab_menu[-1] == "Close tab"

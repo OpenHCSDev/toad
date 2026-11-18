@@ -3774,7 +3774,7 @@ class MenuParityScenario(HoldScenario):
         viewport = history.viewport()
         on_row = QPoint(viewport.width() // 4, viewport.height() // 3)
         asked: list = []
-        history.block_menu_requested.connect(asked.append)
+        history.block_menu_requested.connect(lambda fragment, pressed: asked.append(fragment))
         drawn = await self.right_click(viewport, on_row)
         self.expect("4-message", bool(asked), "no message was asked for its menu")
         if asked:
