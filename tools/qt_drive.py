@@ -23,7 +23,7 @@ from typing import ClassVar
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QPushButton, QWidget
+from PySide6.QtWidgets import QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -986,6 +986,67 @@ class WideScenario(ChromeScenario):
 
     width: ClassVar[int] = 1400
     height: ClassVar[int] = 900
+
+
+class WaveScenario(Scenario):
+    summary = ("the name wave on the sidebar's thread lines: one line forced to wave with the "
+               "shared clock frozen at three instants (the band's characters at each, for "
+               "the TUI's at the same width: TOAD_WAVE_CELLS), then the live working threads")
+
+    width: ClassVar[int] = 412
+    instants: ClassVar[tuple[float, ...]] = (1000.0, 1000.35, 1000.7)
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(self.width, 915)
+        app.show_sidebar()
+        await asyncio.sleep(1.0)
+        tree = app.sidebar
+        name = os.environ.get("TOAD_WAVE_THREAD")
+        row = self.thread_row() if not name else next(
+            line for line in self.rows(tree.items()) if isinstance(line, ConversationRow) and line.key == name)
+        tree.scrollToItem(row)
+        await asyncio.sleep(0.5)
+        cells = int(os.environ.get("TOAD_WAVE_CELLS", "0"))
+        cell = tree.fontMetrics().averageCharWidth()
+        if cells:
+            # The tree as wide as the TUI's row, so the band covers the same characters.
+            tree.setFixedWidth(tree.width() + (cells - tree.line_width(row) // cell) * cell)
+            await asyncio.sleep(0.5)
+        clock = app.animation_clock
+        live_now = clock.now
+        row.follow_activity(True)
+        delegate = tree.itemDelegateForColumn(0)
+        for step, instant in enumerate(self.instants, 1):
+            clock.now = lambda instant=instant: instant
+            clock.time = instant
+            tree.viewport().update()
+            await asyncio.sleep(0.2)
+            title = row.drawn[1]
+            prefix, _ = row.first_line()
+            text = prefix + title
+            start, end = row.wave_span()
+            option = QStyleOptionViewItem()
+            layout = delegate._prepared_text(option, tree.indexFromItem(row)).paragraphs[0]
+            self.report(f"{step}-frozen", instant=instant, cells=tree.line_width(row) // cell,
+                        band=(start, end), chars=text[start:end], bold=layout.font().bold())
+        clock.now = live_now
+        row.follow_activity(row.busy)
+        await asyncio.sleep(1.0)
+        waving = [line for line in self.rows(tree.items()) if line.wave_span() is not None]
+        if waving:
+            tree.scrollToItem(waving[0])
+            await asyncio.sleep(0.5)
+        self.report("4-live", working=sorted({line.key for line in waving}))
+        if waving:
+            # A working thread's tab title waves too, as Textual's `SessionLabel` does.
+            home = app.workspace_sessions.home
+            app.open_row(waving[0])
+            await until(lambda: self.page is not home, "working thread")
+            await asyncio.sleep(2.0)
+            self.report("5-tab", waving_tabs=[mode for mode, wave in app.tabs.waves.items()
+                                              if wave.wave_running()])
 
 
 class GoalScenario(Scenario):

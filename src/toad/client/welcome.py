@@ -3,10 +3,12 @@ model's rows each section lists under which title. Each frontend draws them."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import ClassVar
 
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 
+from toad.client.sidebar_lines import SidebarStatusLine
 from toad.constants import ALL_COMMS_TARGET
 from toad.setting_choices import UnreadCount
 from toad.sidebar_rows import ChannelLineText
@@ -70,3 +72,45 @@ class ThreadListing(WelcomeListing):
             for name in (listed.members if listed is not None else ())
             if name in model.threads.rows
         )
+
+
+class WelcomeLocation:
+    """The welcome's location line: the attached agent's prefix, then where the welcome
+    works. Textual's names the project it was started in; a remote client (Qt) names the
+    bus connection it reads, its own launch directory saying nothing about that Core."""
+
+    def location(self, app) -> str:
+        raise NotImplementedError
+
+    def location_line(self, app) -> str:
+        return f"{app.agent_binding.welcome_prefix}{self.location(app)}"
+
+
+class WelcomeContent:
+    """What the welcome lists above its buses for what the bus last answered: nothing until
+    it answers. A plain parent; the welcome draws each part through its own hooks
+    (`list_section`, `say_unavailable`)."""
+
+    def draw(self, welcome, lines) -> None:
+        """Nothing has answered yet."""
+
+
+@dataclass(frozen=True)
+class ListedModel(WelcomeContent):
+    """The bus answered: each welcome listing (channels, then threads) under its title."""
+
+    model: SidebarModel
+
+    def draw(self, welcome, lines) -> None:
+        for listing in welcome.welcome_listings:
+            welcome.list_section(lines, listing, self.model)
+
+
+@dataclass(frozen=True)
+class ListedFailure(WelcomeContent):
+    """The bus could not be read: say why (`SidebarStatusLine.unavailable_text`)."""
+
+    observed: object
+
+    def draw(self, welcome, lines) -> None:
+        welcome.say_unavailable(lines, SidebarStatusLine.unavailable_text(self.observed.error))

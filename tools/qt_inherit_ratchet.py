@@ -56,6 +56,17 @@ EXPLICIT_PAIRS = {
     "toad.qt.channel_sort.QtChannelSortControl": "toad.widgets.comms_sidebar.ChannelSortChoice",
     "toad.qt.window.NewSessionRow": "toad.widgets.comms_sidebar.NewSessionButton",
     "toad.qt.window.QtStartSessionButton": "toad.screens.welcome.StartSessionButton",
+    # channel tree lines (toad.client.sidebar_lines) and the welcome
+    "toad.qt.window.SidebarItem": "toad.widgets.sidebar_tree.DetailedRow",
+    "toad.qt.window.SidebarSection": "toad.widgets.sidebar_tree.SidebarGroup",
+    "toad.qt.window.OpenSection": "toad.screens.welcome.WelcomeSection",
+    "toad.qt.window.StatusSection": "toad.sidebar_model_view.SidebarStatus",
+    "toad.qt.window.UnavailableSection": "toad.sidebar_model_view.SidebarStatus",
+    "toad.qt.window.ConversationRow": "toad.widgets.sidebar_tree.CommsRow",
+    "toad.qt.window.ConversationRows": "toad.widgets.sidebar_tree.TargetTree",
+    "toad.qt.window.HeaderLineControl": "toad.widgets.sidebar_tree.GroupHeaderLine",
+    "toad.qt.window.BusRow": "toad.screens.bus_choice.BusOption",
+    "toad.qt.window.BusLabel": "toad.screens.welcome.WelcomeLocationNote",
 }
 
 # Same name, different concept: not a frontend pair. Each entry says what the sibling really is.
@@ -100,23 +111,9 @@ KNOWN_BARE = frozenset({
     'toad.qt.sidebar_panel.QtPanelEntry',
     'toad.qt.sidebar_panel.QtSidebarShell',
     'toad.qt.team_board_screen.QtTeamMemberView',
-    'toad.qt.thinking_animator.QtThinkingAnimator',
     'toad.qt.window.ApplicationKeys',
-    'toad.qt.window.BusLabel',
-    'toad.qt.window.BusRow',
     'toad.qt.window.CommandRead',
-    'toad.qt.window.ConversationRow',
-    'toad.qt.window.ConversationRows',
-    'toad.qt.window.HeaderLineControl',
-    'toad.qt.window.ListedFailure',
-    'toad.qt.window.ListedModel',
     'toad.qt.window.MenuActionRun',
-    'toad.qt.window.OpenSection',
-    'toad.qt.window.SidebarItem',
-    'toad.qt.window.SidebarSection',
-    'toad.qt.window.StatusSection',
-    'toad.qt.window.UnavailableSection',
-    'toad.qt.window.WelcomeContent',
 })
 
 FRONTEND_PREFIXES = ("toad.qt", "toad.widgets", "toad.screens")

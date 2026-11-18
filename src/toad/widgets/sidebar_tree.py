@@ -65,6 +65,7 @@ from toad.sidebar_model_view import SidebarModelView
 from toad.widgets.comms_menu import ActionMenu
 from toad.tone_paint import AlternatingTone
 from toad.widget_actions import OpenSelectedAction, OpensSelected
+from toad.client.sidebar_lines import DetailedLine, HeaderLine, MemberGroupLine, RowTree, TargetLine
 
 
 class TargetTreeMember(HiddenActions):
@@ -139,15 +140,14 @@ class TitleSegment(HeaderSegment):
 TITLE = TitleSegment()
 
 
-class DetailedRow(TwoRows, NoWrap, EllipsisOverflow, Widget):
-    """A sidebar row whose second line is its own quieter detail, indented under the title.
+class DetailedRow(DetailedLine, TwoRows, NoWrap, EllipsisOverflow, Widget):
+    """A sidebar row whose second line is its own quieter detail, indented under the title
+    (the shared `DetailedLine`, which Qt's `SidebarItem` draws too).
 
     Two rows wanted this independently: a thread's summary and a channel's agent counts.
-    The newline, the indent and the muted ink are declared here once, so a row that grows
-    a second line cannot invent its own spelling of one.
+    The newline and the muted ink are declared here once, so a row that grows a second
+    line cannot invent its own spelling of one.
     """
-
-    detail_indent: ClassVar[int] = 2
 
     def detail(self) -> str:
         """The row's second line. A row with nothing to add leaves it blank."""
@@ -155,10 +155,10 @@ class DetailedRow(TwoRows, NoWrap, EllipsisOverflow, Widget):
 
     def with_detail(self, title: Content) -> Content:
         return Content.assemble(title, Content.styled(
-            f"\n{' ' * self.detail_indent}{self.detail()}", "$text-muted"))
+            f"\n{self.detail_text(self.detail())}", "$text-muted"))
 
 
-class GroupHeaderLine(PointerCursor, Static):
+class GroupHeaderLine(HeaderLine, PointerCursor, Static):
     """A group's whole header line as one widget: its segments around the row's title.
 
     The line is the group's row, so a disclosure, a badge or a control costs a
@@ -259,7 +259,7 @@ class SidebarMembers(VerticalGroup):
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.layout = SidebarReaderLayout()
-        self.styles.margin = (0, 0, 0, 2)
+        self.styles.margin = (0, 0, 0, RowTree.member_indent)
 
 
 class RowReconciliation:
@@ -318,7 +318,7 @@ class RowReconciliation:
         return row
 
 
-class SidebarGroup[RowT: "ListedRow"](MemberRows[str], TargetRows["CommsRow"], WidgetKeyedRows[str], VerticalGroup):
+class SidebarGroup[RowT: "ListedRow"](MemberGroupLine, MemberRows[str], TargetRows["CommsRow"], WidgetKeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
@@ -362,10 +362,16 @@ class SidebarGroup[RowT: "ListedRow"](MemberRows[str], TargetRows["CommsRow"], W
         if self.accepts_members():
             self.sync_members(frozenset(self.member_keys))
 
-    def toggle_members(self) -> None:
-        if self.accepts_members():
-            self.expanded = not self.expanded
-            self.sync_members(frozenset(self.member_keys))
+    @property
+    def members_open(self) -> bool:
+        return self.expanded
+
+    def show_members(self, shown: bool) -> None:
+        self.expanded = shown
+        self.sync_members(frozenset(self.member_keys))
+
+    def accepts_toggle(self) -> bool:
+        return self.accepts_members()
 
     def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile model-owned member rows and repaint the named members."""
@@ -516,7 +522,7 @@ class SearchFollower:
                 group.sync_members(frozenset(group.member_keys))
 
 
-class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizontalCursor, Vertical,
+class TargetTree(RowTree, HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizontalCursor, Vertical,
                  scopes={HiddenActions: (CursorCommand,)}):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
@@ -660,16 +666,12 @@ class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizo
 
 
 class CommsRow(
-    TargetTreeMember, OpensSelected, PrimaryActivation, ContextActivation, CoreEventReceiver, HoverSelection, ViewLabel,
+    TargetLine, TargetTreeMember, OpensSelected, PrimaryActivation, ContextActivation, CoreEventReceiver, HoverSelection, ViewLabel,
     scopes={HiddenActions: (OpenSelectedAction,)},
 ):
     """One interactive row: a channel or a thread."""
 
     text_fades = (NEW_MESSAGE,)
-
-    @property
-    def target_name(self) -> str:
-        return self.target.name
 
     def show_menu(self, sidebar: TargetTree, offset: Offset) -> None:
         sidebar.show_row_menu(self, offset)

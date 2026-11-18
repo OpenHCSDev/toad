@@ -13,13 +13,14 @@ from textual.content import Content
 from textual.strip import Strip
 from textual.visual import VisualType, visualize
 from textual.widgets import ListItem, ListView, OptionList, Static
-from ui_theme.effects import NAME_WAVE, NEW_TEXT, Band, Frame
+from ui_theme.effects import NEW_TEXT, Band, Frame
 from ui_theme.scheme import (
     BlockCursorBackgroundColour,
     BlockCursorForegroundColour,
     ThemeColour,
 )
 
+from toad.client.name_wave import NameWave
 from toad.frame_presentation import Animated
 from toad.tone_paint import UntintedTonePaint
 
@@ -42,20 +43,23 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
                 self.run_effect(effect)
 
 
-class ViewLabel(Animated[Band], Static):
-    """A working view waves through its own name; emphasis is independent of content fades."""
+class ViewLabel(NameWave, Animated[Band], Static):
+    """A working view waves through its own name (the shared `NameWave`); emphasis is
+    independent of content fades."""
+
+    def wave_running(self) -> bool:
+        return self.name_wave in self.effects
+
+    def start_wave(self) -> None:
+        self.run_effect(self.name_wave)
+
+    def stop_wave(self) -> None:
+        self.stop_effect(self.name_wave)
 
     def activity_content(self, label: Content, busy: bool, *, prefix: Content) -> Content:
-        """The row's own label, working or not: being busy is drawn, never spelled.
-
-        The typed status starts the wave without changing the label or firing a
-        content fade. The shared app clock owns its frames.
-        """
-        if busy:
-            if NAME_WAVE not in self.effects:
-                self.run_effect(NAME_WAVE)
-        else:
-            self.stop_effect(NAME_WAVE)
+        """The row's own label, working or not: the typed status starts the wave without
+        changing the label or firing a content fade. The shared app clock owns its frames."""
+        self.follow_activity(busy)
         return Content.assemble(prefix, label)
 
     @property
@@ -64,12 +68,11 @@ class ViewLabel(Animated[Band], Static):
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         line = super().render_line(y, paint)
-        if NAME_WAVE in self.effects and y == 0:
+        if self.wave_running() and y == 0:
             # The frame is a span of the line; the backend owns how a span is inked.
-            line = self.effect_frame(NAME_WAVE).paint(self.app.colours, line)
+            line = self.effect_frame(self.name_wave).paint(self.app.colours, line)
         current = self.current
-        return self.emphasize(
-            line, Style(bold=current or NAME_WAVE in self.effects, underline=current), y)
+        return self.emphasize(line, Style(bold=current or self.name_bold(), underline=current), y)
 
     def emphasize(self, line: Strip, style: Style, y: int) -> Strip:
         """The whole line carries the row's current-target emphasis."""

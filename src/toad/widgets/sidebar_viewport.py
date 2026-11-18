@@ -8,6 +8,7 @@ from textual.box_model import BoxModel
 from textual.containers import HorizontalGroup, VerticalScroll
 from textual.geometry import Size
 
+from toad.client.sidebar_lines import RowTree
 from toad.native_style import FullWidth, OneRow, StableGutter
 from textual.events import Mount
 
@@ -60,7 +61,7 @@ class SidebarViewport(SidebarPanelColumn["SideBar.Panel"], StableGutter, Vertica
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.overflow_x = self.styles.overflow_y = "auto"
-        self.styles.scrollbar_size_horizontal = self.styles.scrollbar_size_vertical = 1
+        self.styles.scrollbar_size_horizontal = self.styles.scrollbar_size_vertical = RowTree.scrollbar_cells
 
     def preserve_reader(self, placements) -> None:
         placement = next((p for p in placements if self.scroll_y

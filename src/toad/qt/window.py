@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 from time import time
 from collections.abc import Awaitable, Callable, Iterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import ClassVar, Self
 from functools import partial
 from pathlib import Path
@@ -48,9 +48,9 @@ from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
-from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
-from ui_theme.scheme import ColourScheme, PrimaryColour
+from ui_theme.clock import AnimationClock
+from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour
 
 from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
@@ -87,7 +87,13 @@ from toad.client.history_entry import HistorySessionEntry
 from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
 from toad.client.line_blocks import LineLink, MutedRole
-from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
+from toad.client.welcome import (
+    ChannelListing, ListedFailure, ListedModel, ThreadListing, WelcomeBanner, WelcomeContent, WelcomeLocation,
+)
+from toad.client.name_wave import NameWave
+from toad.client.sidebar_lines import (
+    BusChoiceLine, DetailedLine, HeaderLine, MemberGroupLine, RowTree, SidebarStatusLine, TargetLine, WelcomeSectionLine,
+)
 from toad.keyed_rows import KeyedRows
 from toad.setting_choices import UnreadCount
 from toad.sidebar_rows import ChannelLineText, ChannelRowFace, ThreadLineText, ThreadRowFace
@@ -132,7 +138,7 @@ from toad.qt.menu import QtMenu
 # TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
 from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
-from toad.qt.thinking_animator import QtThinkingAnimator
+from toad.qt.name_wave import QtNameWaveDelegate, QtSessionTabBar
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
 from toad.qt.view_settings import QtViewSettings, capability_widgets
 from toad.qt.paste_profile import QtProfilePastePanel
@@ -198,8 +204,9 @@ class ObservedSource(ConversationSource):
     project: Checkout
 
 
-class SidebarItem(QTreeWidgetItem):
-    """One line of the sidebar tree; its row widget draws it, a tap activates it."""
+class SidebarItem(DetailedLine, QTreeWidgetItem):
+    """One line of the sidebar tree, the shared `DetailedLine` (Textual's `DetailedRow`):
+    its title after its status prefix, its detail indented under it; a tap activates it."""
 
     key: str
     drawn: tuple[str, str, str, str] = ("", "", "", "")
@@ -216,7 +223,7 @@ class SidebarItem(QTreeWidgetItem):
     def first_line(self) -> tuple[str, str]:
         """The status prefix and the name the line's first row draws."""
         badge, label, _, _ = self.drawn
-        return (f"{badge} " if badge else ""), label
+        return self.status_prefix(badge), label
 
     def fit(self) -> None:
         """Lay the text out for the width the tree gives this line: the name and the summary
@@ -231,13 +238,26 @@ class SidebarItem(QTreeWidgetItem):
             metrics = tree.fontMetrics()
             right = Qt.TextElideMode.ElideRight
             name = metrics.elidedText(name, right, max(1, width - metrics.horizontalAdvance(prefix)))
-            summary = metrics.elidedText(summary, right, max(1, width - metrics.horizontalAdvance("  ")))
+            summary = metrics.elidedText(summary, right,
+                                         max(1, width - metrics.horizontalAdvance(self.detail_text(""))))
         self.setData(0, LAYOUT_ROLE, StyledTextLayout(
             name=Segment(name), status_prefix=prefix, detail_line=summary, multiline=True))
 
     def placed(self) -> None:
         """A new line fits its text to the tree it just joined."""
         self.fit()
+
+    def take(self, line: SidebarItem) -> None:
+        """A redraw's fresh ``line`` for this kept one: draw its text here."""
+        self.draw(*line.drawn)
+
+    def retired(self) -> None:
+        """The line leaves the tree; a line running nothing has nothing to stop."""
+
+    def wave_span(self) -> tuple[int, int] | None:
+        """The title characters the name wave covers now; None for a line that is not
+        waving (`ConversationRow` waves while its thread works)."""
+        return None
 
     def subtree(self) -> Iterator[SidebarItem]:
         """This line and every line under it."""
@@ -262,45 +282,62 @@ class SidebarItem(QTreeWidgetItem):
         return tuple(MenuEntry.from_offered(action) for action in self.held_actions(listing))
 
 
-class SidebarSection(SidebarItem):
-    """A group of rows with a title, such as Threads."""
+class SidebarSection(MemberGroupLine, SidebarItem):
+    """A group of rows with a title, such as Threads: the shared `MemberGroupLine`
+    (Textual's `SidebarGroup`), its members the item's children."""
 
     def __init__(self, title: str) -> None:
         super().__init__()
         self.key = title
         self.draw("", title, "", "")
 
+    @property
+    def members_open(self) -> bool:
+        return self.isExpanded()
 
-class OpenSection(SidebarSection):
-    """A welcome section: open as the shared sidebar state says (`welcome_section_open`), so
-    it stays as the reader left it however often the listing is drawn again."""
-
-    def placed(self) -> None:
-        self.setExpanded(self.treeWidget().window.sidebar_state.welcome_section_open(self.key))
+    def show_members(self, shown: bool) -> None:
+        self.setExpanded(shown)
 
     def activate(self, window: QtToadApp) -> None:
-        super().activate(window)
-        window.sidebar_state.set_welcome_section_open(self.key, self.isExpanded())
+        self.toggle_members()
 
 
-class UnavailableSection(SidebarSection):
-    """The line saying why the bus could not be read."""
+class OpenSection(WelcomeSectionLine, SidebarSection):
+    """A welcome section (the shared `WelcomeSectionLine`, Textual's `WelcomeSection`):
+    open as the sidebar state says, so it stays as the reader left it however often the
+    listing is drawn again."""
 
-    def __init__(self, observed: FailedObservation) -> None:
-        super().__init__(f"Bus unavailable: {type(observed.error).__name__}: {observed.error}")
+    @property
+    def section_title(self) -> str:
+        return self.key
+
+    @property
+    def sidebar_state(self):
+        return self.treeWidget().window.sidebar_state
+
+    def placed(self) -> None:
+        super().placed()
+        self.setExpanded(self.opens())
 
 
-class StatusSection(SidebarSection):
-    """The one-line status row at the top of the sidebar: a BoundSidebar's observation
-    status (`Connecting…`, `Behind`) or a FailedSidebarState's error line. The row is kept
-    across sibling-row updates by its fixed key so expansion state and taps survive."""
+class StatusSection(SidebarStatusLine, SidebarSection):
+    """The status line at the top of the sidebar (the shared `SidebarStatusLine`, Textual's
+    `SidebarStatus`): an observation status (`Connecting…`, `Behind`) or why the bus could
+    not be read, its first line the title and the rest under it. Its fixed key keeps it
+    across sibling-row updates."""
 
     def __init__(self, text: str) -> None:
-        super().__init__(text)
-        self.key = "__status__"
+        title, detail = self.status_rows(text)
+        super().__init__(title)
+        self.key = SidebarStatusLine.key
+        self.draw("", title, detail, text)
 
 
-class ConversationRow(SidebarItem):
+class UnavailableSection(StatusSection):
+    """The welcome's line saying why the bus could not be read (`SidebarStatusLine`)."""
+
+
+class ConversationRow(NameWave, TargetLine, SidebarItem):
     """A row that opens its target through the target's own polymorphic `open(context)`.
 
     `target` is a `NavigationTarget` (not specifically a `HistoryRouted`) because threads
@@ -309,16 +346,59 @@ class ConversationRow(SidebarItem):
     `CommsTab` → wire view. One row class, two destinations; the target picks.
     """
 
+    busy = False
+    """Whether the line's thread works: the line then waves (`NameWave`)."""
+
     def __init__(self, target: NavigationTarget) -> None:
         super().__init__()
         self.key = target.name
         self.target = target
+        self.animation = None
 
     def placed(self) -> None:
         """A new channel line opens as its target opens by default (the feed does), as the
-        Textual sidebar's ChannelGroup does."""
+        Textual sidebar's ChannelGroup does; a working thread's line starts waving."""
         super().placed()
-        self.setExpanded(self.target.expanded_by_default)
+        self.setExpanded(self.opens_expanded())
+        self.follow_activity(self.busy)
+
+    def take(self, line: SidebarItem) -> None:
+        super().take(line)
+        self.busy = line.busy
+        self.follow_activity(self.busy)
+
+    def retired(self) -> None:
+        self.stop_wave()
+
+    # NameWave, on the app's clock; the row is the animation's target.
+
+    def wave_running(self) -> bool:
+        return self.animation is not None
+
+    def start_wave(self) -> None:
+        self.animation = self.treeWidget().window.animation_clock.start(self.name_wave, self)
+
+    def stop_wave(self) -> None:
+        if self.animation is not None:
+            self.animation.stop()
+            self.animation = None
+
+    @property
+    def animation_visible(self) -> bool:
+        tree = self.treeWidget()
+        return tree is not None and tree.isVisible()
+
+    def repaint(self) -> None:
+        tree = self.treeWidget()
+        if tree is not None:
+            tree.viewport().update(tree.visualItemRect(self))
+
+    def wave_span(self) -> tuple[int, int] | None:
+        """The band's cells over the line's width in cells, as Textual's row paints it."""
+        tree = self.treeWidget()
+        if self.animation is None or tree is None:
+            return None
+        return self.band_cells(self.animation.frame(), tree.line_width(self) // tree.fontMetrics().averageCharWidth())
 
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
@@ -345,6 +425,12 @@ class ThreadLine(ThreadRowFace, ConversationRow):
         line = cls(KnownThreadTarget(name, thread.incarnation))
         line.present_thread(thread, pinned=pinned, action_status=action_status, counts=counts)
         return line
+
+    def present_thread(self, row, *, pinned: bool, action_status: str | None, counts) -> None:
+        self.busy = self.thread_busy(row, action_status)
+        super().present_thread(row, pinned=pinned, action_status=action_status, counts=counts)
+        if self.treeWidget() is not None:
+            self.follow_activity(self.busy)
 
     def show_thread_text(self, text: ThreadLineText) -> None:
         self.draw(text.badge, text.pin + text.name, text.detail, text.tooltip)
@@ -394,22 +480,22 @@ class NewSessionRow(NewSessionControl, SidebarItem):
         window.run_operation(MenuActionRun, partial(self.start_session, window))
 
 
-class BusRow(SidebarItem):
-    """A bus the welcome lists; a tap does what picking that row in the Textual picker does:
-    switch onto a held bus, or ask a tailnet peer for a profile to its bus."""
+class BusRow(BusChoiceLine, SidebarItem):
+    """A bus the welcome lists (the shared `BusChoiceLine`, Textual's `BusOption`): a tap
+    does what its choice says: switch onto a held bus, or ask a tailnet peer for a profile
+    to its bus."""
 
     def __init__(self, choice: PickerRow) -> None:
         super().__init__()
-        self.key = choice.label()
         self.choice = choice
-        self.draw("", choice.label(), "", choice.label())
+        self.key = self.line_label()
+        self.draw("", self.key, "", self.key)
 
     def activate(self, window: QtToadApp) -> None:
-        self.choice.chosen(window)
+        self.choose(window)
 
     def held_actions(self, listing: Welcome) -> tuple[OfferedAction, ...]:
-        """The bus row's own (PickerRow.held_actions): forgetting a saved one."""
-        return self.choice.held_actions(listing)
+        return self.line_actions(listing)
 
 
 from toad.qt.page import Page  # re-export: callers already import Page from here
@@ -430,47 +516,6 @@ class QtThreadListing(ThreadListing):
             lines.keep(ThreadLine.of(name, model.threads.rows[name], pinned=False,
                                      action_status=app.thread_actions.pending.get(name),
                                      counts=app.settings.sidebar.unread_counts))
-
-
-class WelcomeContent:
-    """What the welcome lists above its buses: nothing until the bus answers."""
-
-    def draw(self, top: KeptLines) -> None:
-        pass
-
-
-@dataclass(frozen=True)
-class ListedModel(WelcomeContent):
-    """The channels and threads the shared welcome lists.
-
-    `app` and `listings` are instance-owned so each welcome's listings can carry
-    app-specific references — previously a `ClassVar` tuple shared across every
-    `ListedModel`, which blocked passing `app.thread_actions.pending` (or any other
-    app ref) into row construction. The holder is instance-owned now; the listing
-    classes themselves (`QtChannelListing`, `QtThreadListing`) stay unchanged, so
-    downstream work (reading app.thread_actions.pending for pending_detail, etc.)
-    now has a seat at the table via `self.app`."""
-
-    model: SidebarModel
-    app: "QtToadApp"
-    listings: tuple[QtChannelListing | QtThreadListing, ...] = field(
-        default_factory=lambda: (QtChannelListing(), QtThreadListing())
-    )
-
-    def draw(self, top: KeptLines) -> None:
-        for listing in self.listings:
-            with top.group(OpenSection(listing.TITLE)) as lines:
-                listing.keep(lines, self.model, self.app)
-
-
-@dataclass(frozen=True)
-class ListedFailure(WelcomeContent):
-    """The bus could not be read: say why."""
-
-    observed: FailedObservation
-
-    def draw(self, top: KeptLines) -> None:
-        top.keep(UnavailableSection(self.observed))
 
 
 class Banner(WelcomeBanner, QWidget):
@@ -681,7 +726,7 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         self.host.show_warning(reason, "Tailnet buses")
 
     def present(self, model: SidebarModel) -> None:
-        self.content = ListedModel(model, self.host)
+        self.content = ListedModel(model)
         self.relist()
 
     def present_failed(self, observed: FailedObservation) -> None:
@@ -694,8 +739,17 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         arrives between sidebar updates, and both redraw the same lines in place."""
         self.rows.redraw(partial(self.draw_lines, rows))
 
+    welcome_listings = (QtChannelListing(), QtThreadListing())
+
+    def list_section(self, top: KeptLines, listing, model: SidebarModel) -> None:
+        with top.group(OpenSection(listing.TITLE)) as lines:
+            listing.keep(lines, model, self.host)
+
+    def say_unavailable(self, top: KeptLines, text: str) -> None:
+        top.keep(UnavailableSection(text))
+
     def draw_lines(self, buses: tuple[PickerRow, ...], top: KeptLines) -> None:
-        self.content.draw(top)
+        self.content.draw(self, top)
         with top.group(OpenSection(self.BUSES)) as section:
             for choice in buses:
                 section.keep(BusRow(choice))
@@ -719,7 +773,10 @@ class TreeItemRows[KeyT](KeyedRows[KeyT]):
                                                and self.parent is row.treeWidget().invisibleRootItem())
 
     def mount_row(self, row: QTreeWidgetItem) -> None:
+        """A new line joins, then takes its place: its text fitted, a working thread's
+        line waving."""
         self.parent.addChild(row)
+        row.placed()
 
     def order_rows(self, position) -> None:
         """Move only the lines out of place, each where it belongs, reopening its groups."""
@@ -732,6 +789,8 @@ class TreeItemRows[KeyT](KeyedRows[KeyT]):
                     group.setExpanded(True)
 
     def retire_row(self, row: QTreeWidgetItem) -> None:
+        for line in row.subtree():
+            line.retired()
         self.parent.removeChild(row)
 
 
@@ -755,7 +814,7 @@ class KeptLines(TreeItemRows[tuple[type, str]]):
             self.parent.insertChild(len(self.wanted), line)
             line.placed()
         else:
-            kept.draw(*line.drawn)
+            kept.take(line)
         self.wanted.append(key)
         return kept
 
@@ -776,7 +835,7 @@ class KeptLines(TreeItemRows[tuple[type, str]]):
         self.close()
 
 
-class ConversationRows(TouchScrolled, QTreeWidget):
+class ConversationRows(RowTree, TouchScrolled, QTreeWidget):
     """A tree of Toad's conversation rows in the theme's sidebar tones, every other row a
     step off: pyqt-reactive's preview delegate paints each row's unread badge and label with
     its summary under it in muted text; a tap activates the line."""
@@ -786,18 +845,20 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         self.window = window
         scheme = window.theme.color_scheme
         self.setHeaderHidden(True)
-        self.setIndentation(10)
+        cell = self.fontMetrics().averageCharWidth()
+        # Members indent as Textual's `SidebarMembers` do (`RowTree.member_indent` cells).
+        self.setIndentation(self.member_indent * cell)
         # One column: a line's text spans the row, as Textual's rows do. A channel line's
         # order control lies over the right end of its first line (`HeaderLineControl`).
         self.setColumnCount(1)
-        # The scrollbar is one cell wide, as Textual's sidebar viewport draws it
-        # (`scrollbar_size_vertical = 1`): a narrow sidebar keeps its text width.
-        cell = self.fontMetrics().averageCharWidth()
+        # The scrollbar is `RowTree.scrollbar_cells` wide, as Textual's sidebar viewport
+        # draws it: a narrow sidebar keeps its text width.
+        bar = self.scrollbar_cells * cell
         self.setStyleSheet(scheme.styles.generate_tree_widget_style()
-                           + f"QScrollBar:vertical {{ width: {cell}px; }}"
-                           f"QScrollBar:horizontal {{ height: {cell}px; }}")
-        self.setItemDelegateForColumn(0, MultilinePreviewItemDelegate(
-            scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
+                           + f"QScrollBar:vertical {{ width: {bar}px; }}"
+                           f"QScrollBar:horizontal {{ height: {bar}px; }}")
+        self.setItemDelegateForColumn(0, QtNameWaveDelegate(
+            QColor(window.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text), self))
         self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         # Alternating row backgrounds come from the shared `generate_tree_widget_style`
@@ -853,7 +914,7 @@ class NoopNavigation(NavigationRefresh):
         return
 
 
-class HeaderLineControl(QWidget):
+class HeaderLineControl(HeaderLine, QWidget):
     """A channel line's first row: its name, elided before the control that ends the row,
     as Textual's header line ends in its `ChannelSortSegment`. Presses beside the control
     pass through to the tree, so the line still opens."""
@@ -865,7 +926,8 @@ class HeaderLineControl(QWidget):
         # header line draws the title, then `ChannelUnreadSegment`, then the order.
         self.title = ElidedLine("")
         self.badge = QLabel("")
-        # Title and badge abut (`#a…●`); one gap separates them from the order.
+        # The badge follows the title one cell after it (`HeaderLine.badge_stretch`); one
+        # gap separates them from the order.
         row = QHBoxLayout(self)
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(0)
@@ -878,7 +940,7 @@ class HeaderLineControl(QWidget):
 
     def show_title(self, label: str, badge: str) -> None:
         self.title.setText(label)
-        self.badge.setText(badge)
+        self.badge.setText(self.badge_stretch(badge))
         self.badge.setVisible(bool(badge))
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
@@ -1061,23 +1123,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             self.window.channel_sort.update_order(model.observation.channel_order())
             self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
-            # Register every working thread row with the shared pulse animator
-            # so its text foreground sine-waves while the agent is busy — Qt's
-            # port of Textual's NAME_WAVE effect
-            # (ui_theme.effects.NAME_WAVE wired into comms_sidebar.ThreadRow).
-            working_names = {name for name, thread in model.threads.rows.items()
-                             if thread.status.is_working()}
-            working_items: list[QTreeWidgetItem] = []
-            if working_names:
-                stack = [self.invisibleRootItem()]
-                while stack:
-                    node = stack.pop()
-                    for index in range(node.childCount()):
-                        child = node.child(index)
-                        stack.append(child)
-                        if isinstance(child, ConversationRow) and child.key in working_names:
-                            working_items.append(child)
-            self.window.thinking_animator.set_working_items(working_items)
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         """Dispatch a typed row change through `GroupedSidebar.apply_comms` so only the
@@ -1185,7 +1230,7 @@ class QtHistorySessionEntry(QtSessionEntry, HistorySessionEntry, shows=(CommsTab
         return ConversationView(sessions.app, self)
 
 
-class BusLabel(ElidedLine):
+class BusLabel(WelcomeLocation, ElidedLine):
     """Where the bus this window reads lives, as its connection names it, prefixed with
     the agent binding's `welcome_prefix` so the line reads the same way Textual's does
     at `screens/welcome.py:256` — `f"{agent_binding.welcome_prefix}{location}"`. A Qt
@@ -1196,10 +1241,12 @@ class BusLabel(ElidedLine):
     reads as before. With `AgentAttached`, the line reads e.g. `claude · <location>`."""
 
     def __init__(self, window: QtToadApp) -> None:
-        location = window.coordination_access.connection.location
-        prefix = window.agent_binding.welcome_prefix
-        super().__init__(f"{prefix}{location}")
-        self.setToolTip(f"{prefix}{location}")
+        line = self.location_line(window)
+        super().__init__(line)
+        self.setToolTip(line)
+
+    def location(self, app) -> str:
+        return app.coordination_access.connection.location
 
 
 class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, CategorySelection, ConversationSettingsOwner, ConversationViewNavigation, JumpsHistory, MenuConversation, Page, SessionScope, QtSubmissionView, WireView,
@@ -1636,13 +1683,11 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # Until a conversation reads Core's display references, bodies link the project's files.
         self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()),
                                        self.settings.diff.marks)
-        # One shared animator pulses every sidebar row whose thread is working —
-        # Qt's equivalent of Textual's per-row NAME_WAVE effect
-        # (ui_theme.effects.NAME_WAVE / widgets/comms_sidebar.ThreadRow). The
-        # sidebar's `present` loop registers the current working rows after each
-        # redraw; the animator's one timer drives the pulse for every registered
-        # row so the sine phase stays shared across the sidebar.
-        self.thinking_animator = QtThinkingAnimator(scheme, parent=self)
+        # The one animation clock every effect's frames come from (ui_theme's
+        # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
+        self._animation_timer = QTimer(self)
+        self._animation_timer.timeout.connect(self._tick_animation)
+        self.animation_clock = AnimationClock(self._schedule_animation)
         # One background task per transfer kind, cancelled + replaced when the same
         # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
         # Populated by `start_transfer_task`; the dict is the live registry.
@@ -1695,7 +1740,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.forward = self.bar_button("→", "Forward", partial(self.tab_order.navigate, 1))
         # pyqt-reactive's tab bar in the theme's tab style; a dragged tab moves in the
         # shared tab order, which the bar then draws again.
-        self.tabs = TearOffTabBar()
+        self.tabs = QtSessionTabBar(self.animation_clock, QColor(self.renderer.theme(AccentColour)),
+                                    self.theme.color_scheme.to_qcolor(self.theme.color_scheme.text_primary))
         self.tabs.setStyleSheet(self.theme.color_scheme.styles.generate_tab_widget_style())
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
@@ -1807,13 +1853,26 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
     # Tabs: SessionNavigation owns the open entries, TabOrder their order, the saved roster
     # and the visit history; the bar draws the shared tab projection.
 
+    def _schedule_animation(self, interval: float | None) -> None:
+        """The clock's one timer: tick every ``interval`` seconds, or stop."""
+        if interval is None:
+            self._animation_timer.stop()
+        else:
+            self._animation_timer.start(max(1, round(interval * 1000)))
+
+    def _tick_animation(self) -> None:
+        self.animation_clock.tick()
+
     def paint_tabs(self) -> None:
         self.tabs.blockSignals(True)
         while self.tabs.count():
             self.tabs.removeTab(0)
         badge = self.settings.sidebar.unread_counts.badge
-        for tab in self.session_navigation.tabs:
-            self.tabs.addTab(tab.label() + tab.unread_suffix(badge))
+        tabs = tuple(self.session_navigation.tabs)
+        for tab in tabs:
+            index = self.tabs.addTab(tab.label() + tab.unread_suffix(badge))
+            self.tabs.setTabData(index, tab.mode_name)
+        self.tabs.follow_tabs(tabs)
         self.tabs.blockSignals(False)
         self.mark_current()
 
