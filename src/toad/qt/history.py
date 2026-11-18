@@ -28,7 +28,7 @@ from weakref import WeakSet
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QTextDocument
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QPixmap, QTextDocument
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
@@ -325,6 +325,8 @@ class HistoryRowDelegate(RowDocumentDelegate):
         """Replaced, never mutated, when the link context settles or the app's renderer
         restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
+        # A rising row's picture while it fades in, by fragment key: (look, pixmap).
+        self.fading: dict = {}
 
     def link(self, links: LinkContext) -> None:
         """Rows draw with these names from now on; rows prepared before are stale."""
@@ -444,13 +446,36 @@ class HistoryRowDelegate(RowDocumentDelegate):
         fragment = index.data(HistoryRows.FRAGMENT)
         opacity = self.view.arrival_opacity(fragment.key) if self.view.arrivals else None
         if opacity is None:
+            self.fading.pop(fragment.key, None)
             super().paint(painter, option, index)
         else:
             painter.save()
             painter.setOpacity(opacity)
-            super().paint(painter, option, index)
+            painter.drawPixmap(option.rect.topLeft(), self.fading_picture(painter, option, index, fragment.key))
             painter.restore()
         self.view.row_painted(fragment, option.rect)
+
+    def fading_picture(self, painter: QPainter, option, index, key) -> QPixmap:
+        """A rising row drawn once into a picture, which each frame of its fade paints at that
+        frame's opacity: its look does not change while it rises, and laying its rich text out
+        and drawing every glyph again each frame was most of a burst's repaint on the phone
+        (2026-11-18). A new width, height, pixel ratio or document draws it again."""
+        ratio = painter.device().devicePixelRatioF()
+        rect = option.rect
+        local = QStyleOptionViewItem(option)
+        local.rect = QRect(0, 0, rect.width(), rect.height())
+        look = (rect.width(), rect.height(), ratio, id(self.painted_document(index, local)))
+        kept = self.fading.get(key)
+        if kept is not None and kept[0] == look:
+            return kept[1]
+        picture = QPixmap(max(1, round(rect.width() * ratio)), max(1, round(rect.height() * ratio)))
+        picture.setDevicePixelRatio(ratio)
+        picture.fill(Qt.GlobalColor.transparent)
+        drawing = QPainter(picture)
+        super().paint(drawing, local, index)
+        drawing.end()
+        self.fading[key] = (look, picture)
+        return picture
 
 
 @dataclass(frozen=True)
@@ -1021,6 +1046,8 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
     def arrival_landed(self, fade: ArrivalFade) -> None:
         if fade in self.arrivals:
             self.arrivals.remove(fade)
+        for key in fade.positions:
+            self.rows.fading.pop(key, None)
 
     def arrival_opacity(self, key) -> float | None:
         """How far the row `key` has risen, while it is still rising."""
