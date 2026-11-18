@@ -89,6 +89,17 @@ class JumpsToLatest:
         self.tail_follow_changed()
 
 
+class ReaderWindow(JumpsToLatest):
+    """A history window the reader keys move: a page either way, or back to the latest
+    (`reader_actions`). Textual's `HistoryWindow` and Qt's `QtHistoryWindow` both list it."""
+
+    @abstractmethod
+    def action_page_down(self) -> None: ...
+
+    @abstractmethod
+    def action_page_up(self) -> None: ...
+
+
 class JumpsHistory:
     """A screen holding history windows, some of which can be put back at their latest entry.
 
@@ -112,3 +123,7 @@ class JumpsHistory:
     @abstractmethod
     def back_to_bottom_windows(self) -> tuple[JumpsToLatest, ...]:
         """Its drawn history windows that are scrolled away from their latest entry."""
+
+    def takes_jump_key(self) -> bool:
+        """Whether the jump key is this screen's now, rather than the focused control's."""
+        return True

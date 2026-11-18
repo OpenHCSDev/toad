@@ -1313,12 +1313,9 @@ class ConversationView(QtConversation, ConversationViewNavigation, JumpsHistory,
         # `CommsChatView.compose` yields the kind's activity after the prompt).
         for line in self.activity:
             layout.addWidget(line)
-        # Every `ViewAction` subclass binds through the shared family loop. A new
-        # subclass adds a key automatically — no edit here — and Textual-only siblings
-        # whose `apply()` reaches chrome Qt doesn't carry stay silent via the
-        # AttributeError guard in `ActionKeys.bind_family`. This view implements
-        # `JumpsHistory.back_to_bottom_windows`, so `BackToBottomAction.apply(self)`
-        # jumps the right window.
+        # Every `ViewAction` member whose declared capability this view has binds through the
+        # shared family loop; a member declared for Textual's workspace DOM is not bound. This
+        # view is a `JumpsHistory`, so `BackToBottomAction` (Escape) jumps its window.
         self._view_shortcuts = self.app.action_keys.bind_family(self, ViewAction, self)
 
     @property

@@ -34,24 +34,11 @@ def _qt_sequence(key: str) -> QKeySequence:
 
 
 def _fire(action: Any, context: Any) -> None:
-    """Run ``action.apply(context)``, swallowing the AttributeError or NotImplementedError
-    a Textual-only action raises when its context (a Qt widget) doesn't carry the Textual
-    chrome it reaches for. Silent-skip keeps the family loop intact: every new Qt-targeted
-    subclass binds automatically, and Textual-only siblings stay quiet instead of blowing
-    up the key press. Any other exception reaches Qt's logger as a real fault."""
-    try:
-        if not getattr(action, "available", lambda _c: True)(context):
-            return
+    """Run ``action.apply(context)`` when the action is available there. Only actions whose
+    declared capability the context has are bound (`ActionKeys.bind_family`), so a failure
+    here is a real fault and reaches Qt's logger."""
+    if action.available(context):
         action.apply(context)
-    except AttributeError:
-        # A Textual-only action whose `.apply` references a Qt-missing surface
-        # silently skips — the docstring's family-loop-intact promise holds for
-        # the cross-frontend case the family dispatch naturally hits.
-        return
-    # NOTE: NotImplementedError is no longer swallowed — a Qt subclass that
-    # raises `NotImplementedError` from `.apply` is a real missing implementation
-    # the action family contract demands, and silent-skip would hide it.
-    # Let it reach Qt's logger alongside every other real fault.
 
 
 class ActionKeys:
@@ -84,14 +71,13 @@ class ActionKeys:
     def bind_family(self, widget: QWidget, family: type, context: Any,
                     scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut,
                     ) -> list[QShortcut]:
-        """A shortcut for every member of ``family``, firing its ``.apply(context)``.
-
-        Actions whose ``available(context)`` or ``apply(context)`` raises AttributeError are
-        skipped when pressed: a Textual-only sibling (`ShowSidebarAction` reaching into
-        `context.app.workspace_chrome.channels`) can coexist in the family with a Qt-usable
-        one (`BackToBottomAction` reading `context.back_to_bottom_windows`)."""
+        """A shortcut for every member of ``family`` whose declared capability ``context`` has
+        (`DeclaredAction.runs_on`), firing its ``.apply(context)``. A member that reaches another
+        toolkit's chrome (`ShowSidebarAction`, Textual's workspace DOM) is not bound here."""
         shortcuts = []
         for action_cls in family.members_with(family):
+            if not action_cls.runs_on(context):
+                continue
             action = action_cls()
             shortcuts.append(self.bind(widget, action, lambda _a=action: _fire(_a, context), scope))
         return shortcuts

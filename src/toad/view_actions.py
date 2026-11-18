@@ -17,7 +17,6 @@ from abc import abstractmethod
 
 
 from formbridge.key_declarations import TextEntryMode
-from textual.widget import Widget
 
 from toad.app_node import ToadNode
 from toad.history_jump import JumpsHistory
@@ -32,6 +31,8 @@ class ShowSidebarAction(ViewAction):
     title = 'Sidebar'
     keys = {TextEntryMode: ('ctrl+b', 'f20')}
     show = True
+    # It reveals Textual's workspace chrome by querying Textual's DOM.
+    context_capability = ToadNode
 
     def available(self, context: ToadNode) -> bool:
         sidebar = context.app.workspace_chrome.channels
@@ -51,14 +52,10 @@ class BackToBottomAction(ViewAction):
     keys = {TextEntryMode: ("escape",)}
     key_display = "Esc"
     priority = True
+    context_capability = JumpsHistory
 
     def available(self, context: JumpsHistory) -> bool:
-        # The app's focused widget is the current screen's, and this screen is current
-        # while its own key is being answered.
-        match context.app.focused:
-            case Widget(uses_screen_coordinates=True):
-                return False
-        return bool(context.back_to_bottom_windows)
+        return context.takes_jump_key() and bool(context.back_to_bottom_windows)
 
     def apply(self, context: JumpsHistory) -> None:
         for window in context.back_to_bottom_windows[:1]:

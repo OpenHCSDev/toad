@@ -61,7 +61,7 @@ from toad.client.transcript_fragments import (
     ToolTranscriptFragment,
     TranscriptFragment,
 )
-from toad.history_jump import JumpsToLatest
+from toad.history_jump import JumpsToLatest, ReaderWindow
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
@@ -603,7 +603,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
         self.setVisible(shown)
 
 
-class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, VirtualRowView,
+class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
                       ReaderPlacement, PagingWindow, OpensLineLinks, PinsMessageHeader):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
