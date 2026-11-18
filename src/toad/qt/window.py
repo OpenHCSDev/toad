@@ -549,7 +549,9 @@ class HeldRowMenu(QObject):
             return
         entries = item.menu_entries(self.listing)
         if entries:
-            pressed = rows.viewport().mapTo(rows.window(), point)
+            # In the host window's coordinates, where `offer_entries` places its anchor
+            # (`ConversationRows.window` names the app, hiding QWidget.window()).
+            pressed = rows.viewport().mapTo(self.listing.host, point)
             self.listing.host.offer_entries(entries, QRect(pressed, QSize(1, 1)))
 
 
