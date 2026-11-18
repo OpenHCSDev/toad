@@ -86,6 +86,10 @@ class PromptComposer(metaclass=AbstractHooksMeta):
         return symbols.multiline_symbol if "\n" in text or "```" in text else symbols.agent_symbol
 
     @abstractmethod
+    def show_failure(self, text: str) -> None:
+        """Say, under the input, why something typed or attached did not go."""
+
+    @abstractmethod
     def restore_draft(self, text: str) -> None:
         """Join returned text to what is typed (`restored_suffix`)."""
 

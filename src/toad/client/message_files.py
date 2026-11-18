@@ -13,7 +13,8 @@ from __future__ import annotations
 import mimetypes
 from abc import abstractmethod
 
-from agent_comms.messaging.message_files import FileUpload
+from agent_comms.messaging.message_files import MAX_MESSAGE_FILE_BYTES, FileUpload
+from formbridge.operations import ExclusiveKind, OperationKind
 from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 
 from toad.client.input_decision import InputAccepted, InputDecision
@@ -49,6 +50,10 @@ class PathSearchFilePicker(TitledChoice, FilePicker):
         composer.pick_by_path_search()
 
 
+class FileSearch(OperationKind, ExclusiveKind):
+    """A path search picker listing or ranking the project's paths; a newer one replaces it."""
+
+
 def file_size(size: int) -> str:
     """A size as a reader takes it in at a glance."""
     for unit in ("B", "KB", "MB"):
@@ -56,6 +61,24 @@ def file_size(size: int) -> str:
             return f"{size} {unit}" if unit == "B" else f"{size:.1f} {unit}"
         size /= 1024
     raise AssertionError("unreachable")
+
+
+class AttachedFileChip:
+    """One attached file as its composer draws it: its label, and taking it off. Qt's and
+    Textual's chip widgets inherit it; a plain mixin, as the toolkits' metaclasses need."""
+
+    composer: MessagePromptComposer
+    position: int
+
+    def show_file(self, composer: MessagePromptComposer, position: int) -> None:
+        self.composer, self.position = composer, position
+
+    @property
+    def label(self) -> str:
+        return self.composer.chip_label(self.composer.attached_files[self.position])
+
+    def remove(self) -> None:
+        self.composer.detach_file(self.position)
 
 
 class MessagePromptComposer(PromptComposer):
@@ -89,9 +112,11 @@ class MessagePromptComposer(PromptComposer):
     def show_attached(self) -> None:
         """Draw `attached_files` beside the editor, each with a way to take it off."""
 
-    @abstractmethod
-    def show_failure(self, text: str) -> None:
-        """Tell the person why nothing was attached."""
+    @property
+    def read_limit(self) -> int:
+        """The most bytes a picker reads of one file: one past what still fits, so an
+        oversized file is refused below without being read whole."""
+        return MAX_MESSAGE_FILE_BYTES - sum(upload.size for upload in self.attached_files) + 1
 
     def file_picked(self, name: str, content: bytes, mime_type: str = "") -> None:
         """A picker returned a file: attach it, or say why it cannot go with this message."""

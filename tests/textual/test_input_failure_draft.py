@@ -123,9 +123,9 @@ async def test_wire_sends_queue_in_order_while_compose_stays_open(workspace):
     gate = threading.Event()
     send = Observing.send_user_message
 
-    def held(observed, target, body):
+    def held(observed, target, body, files):
         gate.wait(10)
-        return send(observed, target, body)
+        return send(observed, target, body, files)
 
     async with workspace.app(size=(110, 32)) as ui:
         await ui.open_direct("peer", actor=workspace.viewer)

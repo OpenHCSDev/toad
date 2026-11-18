@@ -12,6 +12,7 @@ what the window draws.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import time
 import os
 import sys
@@ -25,7 +26,7 @@ import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
 from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QFileDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
@@ -974,9 +975,11 @@ class ShippedScenario(Scenario):
                         self.report(f"2-settings-page-{index}", page=dialog.tabs.tabText(index))
             self.close_dialogs()
         await self.step("3-channel", lambda: self.open_named("#comms"))
+        await self.step("3-channel-attach", self.open_attach)
         await self.press_bound_keys("3-channel-keys")
         await self.step("4-thread", lambda: self.open_named("scratch-live-pipeline"))
         await self.step("4-thread-details", self.open_details)
+        await self.step("4-thread-attach", self.open_attach)
         await self.press_bound_keys("4-thread-keys")
         # The reader keys (ctrl+d, ctrl+u, G) are declared for the vim modes only: press every
         # key again in vim normal mode, as a person choosing that keyboard mode would.
@@ -988,11 +991,52 @@ class ShippedScenario(Scenario):
         if self.faults:
             raise AssertionError(f"{len(self.faults)} fault(s) on the shipped app:\n" + "\n".join(self.faults))
 
+    async def open_attach(self) -> None:
+        """The composer's Attach opens its file picker; it is closed without picking."""
+        self.page.composer.attach_button.click()
+        await asyncio.sleep(0.5)
+        dialogs = [dialog for dialog in self.app.findChildren(QFileDialog) if dialog.isVisible()]
+        if len(dialogs) != 1:
+            raise AssertionError(f"Attach opened {len(dialogs)} file dialogs")
+        dialogs[0].reject()
+        await asyncio.sleep(0.3)
+        if self.page.composer.attached_files:
+            raise AssertionError("closing the picker attached a file")
+
     async def open_details(self) -> None:
         self.page.thread_activity.toggle()
         await asyncio.sleep(0.3)
         self.page.thread_activity.inspect_action.click()
         await asyncio.sleep(1.0)
+
+
+class AttachScenario(Scenario):
+    summary = ("attach OUTDIR/attached.bin to a message to the scratch thread scratch-live-pipeline "
+               "through the composer's file dialog and send it: run it on a scratch bus only")
+
+    async def run(self) -> None:
+        await self.listed()
+        await self.open_named("scratch-live-pipeline")
+        composer = self.page.composer
+        picked = self.out / "attached.bin"
+        picked.write_bytes(os.urandom(300_000) + b"the end of the attached file\n")
+        composer.attach_button.click()
+        await until(lambda: any(dialog.isVisible() for dialog in self.app.findChildren(QFileDialog)),
+                    "file dialog", tenths=50)
+        (dialog,) = [dialog for dialog in self.app.findChildren(QFileDialog) if dialog.isVisible()]
+        dialog.selectFile(str(picked))
+        dialog.accept()
+        await until(lambda: composer.attached_files, "attached file", tenths=50)
+        chips = [chip.text() for chip in composer.attached_row.findChildren(QPushButton)]
+        self.report("1-attached", chips=chips, sha256=hashlib.sha256(picked.read_bytes()).hexdigest())
+        await self.type("a file from the Qt composer")
+        composer.submit()
+        await until(lambda: not composer.attached_files and not composer.submissions.delivering,
+                    "sent", tenths=150)
+        await asyncio.sleep(2.0)
+        self.report("2-sent", chips=[chip.text() for chip in composer.attached_row.findChildren(QPushButton)
+                                     if chip.isVisible()],
+                    failure=composer.failure.text() if composer.failure.isVisible() else "")
 
 
 class MissingChannelDestination(ChannelDestination):
