@@ -9,14 +9,15 @@ from PySide6.QtCore import QPointF
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
+from toad.qt.glyph_fonts import MONOSPACE_FAMILY
 from toad.welcome_banner import WelcomeBanner
 
 
 class Banner(WelcomeBanner, QWidget):
     """Toad's banner, filling the width it is given in whole characters, as the terminal
-    draws it: each character in its own cell of the grid. Android's monospace font has no
-    box-drawing glyphs, and the fallback's glyphs are wider, so text drawn as a run slid
-    every row off the blocks above it. It takes the width and never asks for one."""
+    draws it: each character in its own cell of the grid. Its font is the bundled Noto Sans
+    Mono (`toad.qt.glyph_fonts`), which holds the blocks and box drawing; Android's own
+    monospace font has neither. It takes the width and never asks for one."""
 
     LINES = WelcomeBanner.TEXT.splitlines()  # the shared banner, as Textual's WelcomeTitle draws it
     COLUMNS = max(map(len, LINES))
@@ -24,7 +25,7 @@ class Banner(WelcomeBanner, QWidget):
     def __init__(self, colour: str) -> None:
         super().__init__()
         self.colour = QColor(colour)
-        font = QFont("monospace")
+        font = QFont(MONOSPACE_FAMILY)
         font.setStyleHint(QFont.StyleHint.TypeWriter)
         self.setFont(font)
         self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)

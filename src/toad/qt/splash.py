@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget
 from ui_theme.scheme import BackgroundColour, ColourScheme, MutedColour, PrimaryColour
 
 from toad.qt.banner import Banner
+from toad.qt.glyph_fonts import install_glyph_fonts
 
 
 class QtSplash(QWidget):
@@ -35,7 +36,9 @@ class QtSplash(QWidget):
     @classmethod
     def shown(cls, application: QApplication, scheme: ColourScheme) -> QtSplash:
         """Show the first frame and paint it now: the client's load holds the thread next,
-        so the frame must be on screen before this returns."""
+        so the frame must be on screen before this returns. The bundled glyph fonts are
+        registered first, so the banner draws in them from the first frame on."""
+        install_glyph_fonts(application)
         splash = cls(scheme)
         splash.resize(application.primaryScreen().availableSize())
         splash.show()
