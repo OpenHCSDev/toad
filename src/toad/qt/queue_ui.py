@@ -127,10 +127,12 @@ class RowReveal(WidgetAnimation, TransitionTarget):
 class QtQueueSummary(QtActivatedText):
     """The queue summary; a press opens the queue inspection, as Textual's ``QueueSummary``.
 
-    It wraps as Textual's ``AutoHeight`` summary does. Its height opens, closes and follows its
-    lines through `RowReveal`: at phone width "Submitting (1): …" and "Delivery (4 visible
+    It wraps as Textual's ``AutoHeight`` summary does, to the same most lines
+    (`PromptComposer.queue_summary_lines`). Its height opens, closes and follows its lines
+    through `RowReveal`: at phone width "Submitting (1): …" and "Delivery (4 visible
     messages): …" wrap to different line counts, and each send popped the history above by a
-    line and back in one frame."""
+    line and back in one frame. Without the cap every longer preview grew the strip again, and
+    every frame of that growth resized and repainted the history above."""
 
     def __init__(self, composer: "Composer") -> None:
         super().__init__(composer)
@@ -138,6 +140,11 @@ class QtQueueSummary(QtActivatedText):
         self.setToolTip("Show queued messages and delivery status.")
         self.reveal: RowReveal | None = None
         self.hide()
+
+    def heightForWidth(self, width: int) -> int:  # noqa: N802 - Qt virtual method name
+        margins = self.contentsMargins()
+        most = self.composer.queue_summary_lines * self.fontMetrics().lineSpacing() + margins.top() + margins.bottom()
+        return min(super().heightForWidth(width), most)
 
     def refresh(self, text: str) -> None:
         if text and text != self.text():  # A closing summary keeps its last words while it closes.
@@ -148,6 +155,25 @@ class QtQueueSummary(QtActivatedText):
 
     def activate(self) -> None:
         """What the shared ``ActivatesContract`` calls — open the queue menu."""
+        self.composer.open_queue_menu()
+
+
+class QtQueueHint(QtActivatedText):
+    """Textual's ``QueueHint``: the held count in the info bar while the delivery preview is
+    off. A few words in a row that is always there, so the history never moves for it; a
+    press opens the queue inspection, as the summary's does."""
+
+    def __init__(self, composer: "Composer") -> None:
+        super().__init__(composer)
+        self.setToolTip("Show queued messages and delivery status.")
+        self.hide()
+
+    def refresh(self, text: str) -> None:
+        if text != self.text():
+            self.setText(text)
+        self.setVisible(bool(text))
+
+    def activate(self) -> None:
         self.composer.open_queue_menu()
 
 

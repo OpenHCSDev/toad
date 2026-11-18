@@ -38,4 +38,4 @@ class QtSubmissionView(SubmissionView):
 
     def submissions_changed(self) -> None:
         if self.composer is not None:
-            self.composer.show_submitting()
+            self.composer.sync_queue()

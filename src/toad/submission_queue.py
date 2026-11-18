@@ -88,6 +88,14 @@ class QueueSource(ABC):
     def queue_summary(self, evidence: QueueEvidence) -> str:
         return "Queue unavailable"
 
+    def held_count(self, evidence: QueueEvidence) -> int:
+        """How many of the view's messages are still held: its own still submitting."""
+        return len(evidence.submitting.texts)
+
+    def queue_hint(self, evidence: QueueEvidence) -> str:
+        """The summary's stand-in while the delivery preview is off."""
+        return evidence.submitting.held_hint(self.held_count(evidence))
+
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         return ((Span("No queue observation is available for this source.", MutedRole),),)
 
@@ -125,6 +133,11 @@ class NativeQueueSource(QueueSource):
             if texts:
                 parts.append(f"{label} ({len(texts)}{detail}): " + " · ".join(texts[:self.preview_limit]))
         return " | ".join(parts)
+
+    def held_count(self, evidence: QueueEvidence) -> int:
+        """Also the prompts the agent accepted and has not taken, and those restored to it."""
+        projection = evidence.presentation.queue
+        return super().held_count(evidence) + len(projection.items) + len(projection.restored)
 
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         projection = evidence.presentation.queue
@@ -195,6 +208,11 @@ class BusQueueSource(QueueSource):
         coverage = f"Delivery ({len(entries)} visible messages)"
         return " | ".join((
             *evidence.submitting.summary, coverage + (f": {previews}" if previews else ": unobserved")))
+
+    def held_count(self, evidence: QueueEvidence) -> int:
+        """Also the visible messages a recipient has not taken yet."""
+        return super().held_count(evidence) + sum(
+            1 for entry in evidence.entries if entry.status.queued_recipients)
 
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         recipients = evidence.queued_recipients
