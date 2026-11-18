@@ -10,8 +10,9 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
+from toad.client.input_modality import InputModality, KeyboardInput
 from toad.client.menu_entry import MenuEntry, strip_menu_markup
 from toad.keymap import KeymapCatalog
 from toad.menus import MenuCommand
@@ -21,7 +22,11 @@ if TYPE_CHECKING:
 
 
 class BlockMenu:
-    """The block-menu decisions both frontends share."""
+    """The block-menu decisions both frontends share. What a row shows of a command's keys
+    and description follows the frontend's declared `input_modality`: a terminal is driven
+    by keys; a phone by touch, where a key column is noise and a row must be tappable."""
+
+    input_modality: ClassVar[type[InputModality]] = KeyboardInput
 
     @staticmethod
     def ordered(commands: Iterable[MenuCommand]) -> tuple[MenuCommand, ...]:
@@ -42,7 +47,13 @@ class BlockMenu:
                       key_display=cls.command_keys(command, settings))
             for command in cls.ordered(commands))
 
-    @staticmethod
-    def row_text(entry: MenuEntry) -> str:
-        """A plain row's text column: the label, then its description when it has one."""
-        return entry.label if not entry.description else f"{entry.label} — {entry.description}"
+    def row_keys(self, entry: MenuEntry) -> str:
+        """The key column this menu's rows show for `entry`."""
+        return self.input_modality.menu_keys(entry.key_display)
+
+    def row_text(self, entry: MenuEntry) -> str:
+        """A row's text column: the label, then its description on the same line when the
+        modality keeps it inline; otherwise the description goes under the label."""
+        if entry.description and self.input_modality.describes_inline():
+            return f"{entry.label} — {entry.description}"
+        return entry.label

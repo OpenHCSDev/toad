@@ -49,6 +49,7 @@ from toad.widgets.prompt import MessagePrompt, Prompt
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.wire_history import HistoryLoading, WireFragment, WireHistory
 from toad.wire_conversation_view import WireConversationView
+from toad.client.pending import HistoryPage
 
 
 def session_thread_name(project_path) -> str:
@@ -94,7 +95,7 @@ class CommsChatView(WireConversationView):
             with ContentsGrid():
                 yield CursorContainer()
                 with self.message_contents:
-                    yield HistoryLoading("Loading messages…")
+                    yield HistoryLoading(HistoryPage.label)
                     yield self.message_history
         yield Flash()
         with PromptStack():

@@ -17,7 +17,6 @@ from agent_comms.messaging.channel_targets import CommandTarget
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
-from pyqt_reactive.theming import StatusColorRole
 
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.client.draft_fragments import DRAFT_FRAGMENTS
@@ -162,10 +161,7 @@ class QtThreadView(
         try:
             self.composer = self.composer_class()(self, app.renderer)
         except Exception as error:
-            print(f"QtThreadView {type(self).__name__} composer mount failed: {error!r}", flush=True)
-            import traceback
-            traceback.print_exc()
-            app.status_line.show_status(f"Composer mount failed: {error}", StatusColorRole.ERROR)
+            app.show_error(error, "Composer mount failed")
             return
         self._composer_slot.addWidget(self.composer)
         self.composer.labelled(self.composer_label)

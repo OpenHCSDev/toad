@@ -52,6 +52,7 @@ from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
 
+from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame
@@ -125,7 +126,7 @@ from toad.qt.composer import ChannelComposer, ComposerEditor, MessageComposer
 from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.client.transcript_fragments import TranscriptFragment
-from toad.qt.history import QtConversationHistory, QtWireFragment
+from toad.qt.history import QtWireFragment, QtWireHistory
 from toad.menus import MenuCommand, MenuConversation, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.client.relationship_row_menu import menu_entries_for_row
@@ -144,6 +145,7 @@ from toad.client.view_layout import LayoutFollower
 from toad.qt.paste_profile import QtProfilePastePanel
 from agent_comms.messaging.display_references import ProjectReferences
 from toad.markdown_links import LinkContext
+from toad.qt.float_layer import QtFloatLayer
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import ThreadSettingsPane
@@ -161,6 +163,7 @@ from toad.target_commands import TargetContext
 from toad.work_preparation import PreparationRuntime
 
 
+@awaited(ActionRunning)
 class MenuActionRun(OperationKind):
     """One application action chosen from the menu."""
 
@@ -1290,7 +1293,7 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         label = entry.unobserved_tab().label()
         self._setup_conversation(app)
         self.messages.block_menu_requested.connect(self.open_block_menu)
-        self.message_history = QtConversationHistory(self.messages, self, app)
+        self.message_history = QtWireHistory(self.messages, self, app)
         source = app.source()
         # WireSource IS a BusQueueSource (client/history.py): the submissions read its
         # pending/queued/held state as `CommsChatView` does.
@@ -1617,6 +1620,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # Until a conversation reads Core's display references, bodies link the project's files.
         self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()),
                                        self.settings.diff.marks)
+        # Notices and the work the reader waits on float over the pages, never in their layout.
+        self.float_layer = QtFloatLayer(self.theme.color_scheme, self.renderer, self)
         # The one animation clock every effect's frames come from (ui_theme's
         # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
         self._animation_timer = QTimer(self)
@@ -1680,13 +1685,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         for widget in (self.menu, self.back, self.forward):
             bar.addWidget(widget)
         bar.addWidget(self.tabs, 1)
-        # The bar row is Toad's header band: a frame in the theme's header tone, with the
-        # latest notice over it.
+        # The bar row is Toad's header band: a frame in the theme's header tone. Notices
+        # float over the pages in `float_layer`; they are no part of this band.
         self.navigation = chrome = QFrame(self)
         chrome_layout = QVBoxLayout(chrome)
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
-        chrome_layout.addWidget(self.status_line)
         # QtMenu is the shared rendering for both the hamburger (application) menu and
         # the row-context (message) menu. Its rows render MenuEntry data (bold key
         # shortcut + label), matching Textual's MenuKey/MenuDescription widgets. Parent
@@ -1809,7 +1813,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tabs.accent, self.tabs.ink = QColor(self.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary)
         self.tabs.update()
         self.navigation.setStyleSheet(scheme.styles.generate_frame_style())
-        self.status_line.color_scheme = scheme
+        self.float_layer.follow_scheme(scheme)
 
     def settings_widgets(self, widget_type: type) -> list:
         return capability_widgets(self, widget_type)
@@ -2129,7 +2133,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         keep `toad.qt.window` import-light at module load. Textual's override lives at
         `src/toad/app.ToadApp.make_opening_view`."""
         from toad.qt.opening_view import QtOpeningSessionView
-        return QtOpeningSessionView(request.target)
+        return QtOpeningSessionView(request.target, self.renderer)
 
     def thread_view(self, prepared):
         """The `QtMailboxView` a sidebar open swaps in, bound to the thread as Textual's

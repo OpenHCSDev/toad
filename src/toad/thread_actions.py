@@ -13,15 +13,18 @@ from agent_comms.transport.tools.sidebar import (
 )
 from formbridge.operations import OperationKind
 
+from toad.client.pending import ActionRunning, awaited
 from toad.client.commands import SharedTargetContext
 from toad.client.host import CommsHost
 from toad.core import events as core_events
 
 
+@awaited(ActionRunning)
 class ThreadActionRun(OperationKind):
     """One accepted thread action writing its edit through Core."""
 
 
+@awaited(ActionRunning)
 class CommandFieldsPreparation(OperationKind):
     """Prepares a command's editable fields off the loop, then opens its form."""
 

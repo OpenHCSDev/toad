@@ -23,6 +23,7 @@ from formbridge.forms.declared_fields import DeclaredField, DeclaredMetadata, Mu
 from objectstate import DottedFieldPath, ObjectState
 from python_introspect import FieldLabel
 from python_introspect.choices import LabelledChoices
+from toad.client.pending import ChoicesPreparation
 
 
 @dataclass(eq=False)
@@ -130,7 +131,7 @@ class CommandDraft:
     def update_confirmation(self) -> None:
         self.reset_confirmed()
         if self.preparing():
-            self.show_confirmation("Loading choices…", False)
+            self.show_confirmation(ChoicesPreparation.label, False)
             return
         self.start_confirmation(self.read_confirmation(self.arguments()))
 

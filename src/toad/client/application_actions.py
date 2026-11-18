@@ -258,14 +258,13 @@ class ApplicationAction(DeclaredAction[ClientApplication], InMenu, affix="Action
 
 # Declaration order is the order of the menu and the palette.
 class NewSessionAction(ApplicationAction):
-    """Start this launch's session: its attached agent's, or a native thread.
+    """Start this launch's session: its attached agent's, or a native thread."""
 
-    Both frontends fire this (Textual's `StartSessionButton` and Qt's Welcome
-    `NewSessionButton`): the body lives on the ClientApplication so one owner
-    answers the "new session" intent regardless of toolkit. The Textual welcome
-    screen still binds its `n` key through its own `WelcomeStartSession`
-    action, which forwards here."""
-
+    # The docstring is the text every menu and palette shows the reader. Both frontends fire
+    # this (Textual's `StartSessionButton` and Qt's Welcome `NewSessionButton`): the body
+    # lives on the ClientApplication so one owner answers the "new session" intent
+    # regardless of toolkit. The Textual welcome screen still binds its `n` key through its
+    # own `WelcomeStartSession` action, which forwards here.
     show = True
 
     async def apply(self, app: ClientApplication) -> None:

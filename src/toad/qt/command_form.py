@@ -32,12 +32,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.client.pending import Applying, ChoicesPreparation, awaited
 from toad.client.command_draft import CommandFormCore
 from toad.client.host import CommandOrigin
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.widget_contracts import DismissibleContract, SubmitsContract
 
 
+@awaited(Applying)
 class CommandApply(OperationKind):
     """Apply on a command form: confirm its arguments with Core, then answer the form."""
 
@@ -122,7 +124,10 @@ class QtCommandForm(CommandFormCore, QWidget, DismissibleContract, SubmitsContra
         return not self.preparation.done()
 
     def start_preparation(self, preparation: Coroutine) -> None:
-        self.preparation = asyncio.ensure_future(preparation)
+        # The reader sees the choices are being read: the host's float layer shows the
+        # shared wait once it outlasts the delay.
+        self.preparation = asyncio.ensure_future(
+            self.host.float_layer.while_pending(ChoicesPreparation, preparation))
         self.preparation.add_done_callback(self.preparation_ended)
 
     def preparation_ended(self, task: asyncio.Future[None]) -> None:
