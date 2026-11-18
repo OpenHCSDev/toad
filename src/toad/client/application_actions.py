@@ -261,10 +261,8 @@ class NewSessionAction(ApplicationAction):
     """Start this launch's session: its attached agent's, or a native thread."""
 
     # The docstring is the text every menu and palette shows the reader. Both frontends fire
-    # this (Textual's `StartSessionButton` and Qt's Welcome `NewSessionButton`): the body
-    # lives on the ClientApplication so one owner answers the "new session" intent
-    # regardless of toolkit. The Textual welcome screen still binds its `n` key through its
-    # own `WelcomeStartSession` action, which forwards here.
+    # it from the comms sidebar's New Session row while no tab is shown
+    # (`NewSessionControl.action`), and Textual's `n` key there (`SoleNewSessionAction`).
     show = True
 
     async def apply(self, app: ClientApplication) -> None:
@@ -380,13 +378,17 @@ class QuitAction(LastInMenu, ReplacesFrameworkAction, ApplicationAction):
 
 
 class NewSessionControl:
-    """A control that starts a session: what it says and the action a press applies.
-    Textual's `NewSessionButton` (the Channels sidebar's row) and `StartSessionButton` (the
-    welcome's), Qt's `NewSessionRow` and `QtStartSessionButton` all inherit it. The sidebar's
-    starts a thread in the selected project; the welcome's starts this launch's session."""
+    """The comms sidebar's first row, which starts a session: what it says and the action a
+    press applies. Textual's `NewSessionButton` and Qt's `NewSessionRow` inherit it. While no
+    tab is shown the sidebar holds the window where the welcome page stood, and the row starts
+    this launch's session as the welcome's button did (`NewSessionAction`: the attached agent's,
+    or a native thread); beside a tab it starts a thread in the selected project."""
 
     label = "+ New Session"
-    action: type[ApplicationAction] = NewThreadAction
+
+    @staticmethod
+    def action(app: ClientApplication) -> ApplicationAction:
+        return NewSessionAction() if app.sidebar_layout.alone else NewThreadAction()
 
     async def start_session(self, app: ClientApplication) -> None:
-        await self.action().apply(app)
+        await self.action(app).apply(app)

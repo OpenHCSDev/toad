@@ -55,10 +55,10 @@ class MemberGroupLine:
 
 
 class WelcomeSectionLine(MemberGroupLine):
-    """A welcome section: it opens as the shared sidebar state says
-    (`SidebarState.welcome_section_open`) and records what the reader leaves it as, so it
-    stays put however often the welcome is drawn again. Textual's `WelcomeSection` and Qt's
-    `OpenSection`."""
+    """A titled section of rows that are not the sidebar model's: it opens as the shared
+    sidebar state says (`SidebarState.welcome_section_open`) and records what the reader
+    leaves it as, so it stays put however often it is drawn again. Qt's `OpenSection` (the
+    buses, under the sidebar's rows while it holds the window, and in the bus switcher)."""
 
     @property
     def section_title(self) -> str:
@@ -78,14 +78,14 @@ class WelcomeSectionLine(MemberGroupLine):
 class SidebarStatusLine(DetailedLine):
     """The sidebar's status: an observation status (`Connecting…`, `Behind`) or why the bus
     could not be read, its first line as the title and the rest as the detail under it.
-    Textual's `SidebarStatus`, Qt's `StatusSection` and `UnavailableSection`, and the
-    failed sidebar state's text all read it here."""
+    Textual's `SidebarStatus`, Qt's `StatusSection`, and the failed sidebar state's text all
+    read it here."""
 
     key: ClassVar[str] = "__status__"
 
     @staticmethod
     def unavailable_text(error: BaseException) -> str:
-        """What a sidebar or welcome says while the bus cannot be read: one persistent state,
+        """What a sidebar says while the bus cannot be read: one persistent state,
         the same however many reopen attempts (connection.ObservationRetry) fail behind it."""
         return f"Comms unavailable; reconnecting\n{error}"
 

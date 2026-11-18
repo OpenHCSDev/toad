@@ -6,7 +6,7 @@ carried a `search: reactive("")` attribute and Qt had no filter at all, so the
 two frontends disagreed by construction. This class is the single owner of the
 match decision and the current text; Textual's `SideBar.search` reactive and
 Qt's `QLineEdit` both write through it, and every listing (Textual's
-`SidebarGroup.sync_members`, Qt's `QtChannelListing.keep` / `QtThreadListing.keep`)
+`SidebarGroup.sync_members`, Qt's `Sidebar.draw_lines`)
 reads through `matches` instead of comparing text itself. A new frontend never
 reimplements the match rule; it hands the filter a row name and asks.
 

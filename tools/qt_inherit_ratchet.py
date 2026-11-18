@@ -73,18 +73,16 @@ EXPLICIT_PAIRS = {
     "toad.qt.channel_sort.QtChannelListSort": "toad.widgets.session_sort.ChannelListSort",
     "toad.qt.channel_sort.QtChannelSortControl": "toad.widgets.comms_sidebar.ChannelSortChoice",
     "toad.qt.window.NewSessionRow": "toad.widgets.comms_sidebar.NewSessionButton",
-    "toad.qt.window.QtStartSessionButton": "toad.screens.welcome.StartSessionButton",
     # channel tree lines (toad.client.sidebar_lines) and the welcome
     "toad.qt.window.SidebarItem": "toad.widgets.sidebar_tree.DetailedRow",
     "toad.qt.window.SidebarSection": "toad.widgets.sidebar_tree.SidebarGroup",
-    "toad.qt.window.OpenSection": "toad.screens.welcome.WelcomeSection",
     "toad.qt.window.StatusSection": "toad.sidebar_model_view.SidebarStatus",
-    "toad.qt.window.UnavailableSection": "toad.sidebar_model_view.SidebarStatus",
     "toad.qt.window.ConversationRow": "toad.widgets.sidebar_tree.CommsRow",
     "toad.qt.window.ConversationRows": "toad.widgets.sidebar_tree.TargetTree",
     "toad.qt.window.HeaderLineControl": "toad.widgets.sidebar_tree.GroupHeaderLine",
     "toad.qt.window.BusRow": "toad.screens.bus_choice.BusOption",
-    "toad.qt.window.BusLabel": "toad.screens.welcome.WelcomeLocationNote",
+    "toad.qt.window.BusLabel": "toad.widgets.channels_sidebar.SidebarLocationNote",
+    "toad.qt.banner.Banner": "toad.widgets.channels_sidebar.SidebarBanner",
 }
 
 # Same name, different concept: not a frontend pair. Each entry says what the sibling really is.

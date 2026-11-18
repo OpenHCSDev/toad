@@ -18,7 +18,6 @@ from toad.application_lifetime import ApplicationLifetime, ApplicationStart
 from toad.cli import main
 from toad.constants import WELCOME
 from toad.frame_presentation import AnimationEffects, EffectRunning
-from toad.screens.welcome import WelcomeEntries
 from toad.widgets.comms_sidebar import ThreadStatusRow
 from ui_theme.effects import NAME_WAVE
 
@@ -33,10 +32,11 @@ async def exercise(options, lifetime: ApplicationLifetime) -> None:
             await app.wait_operations(ApplicationStart)
             await app.select_session(WELCOME)
             pilot = Pilot(app)
-            entries = app.selected_session.query_one(WelcomeEntries)
-            while not entries.model_state.shows_model() or entries.model_state.shown.observation.shows_status():
+            # No tab: the comms sidebar holds the window and lists the threads.
+            roster = app.workspace_chrome.channels.roster
+            while not roster.model_state.shows_model() or roster.model_state.shown.observation.shows_status():
                 await pilot.pause()
-            rows = tuple(app.selected_session.query(ThreadStatusRow))
+            rows = tuple(roster.query(ThreadStatusRow))
             remaining = max((fade.remaining(0) for row in rows for fade in row.text_fades), default=0)
             assert remaining is not None
             await asyncio.sleep(remaining + 1)

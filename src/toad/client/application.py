@@ -343,7 +343,8 @@ class ClientApplication(BusPickerHost, NavigationHost):
     def sidebar_layout(self) -> SidebarLayout:
         """The one placement owner of this terminal's sidebars, kept in the settings file
         with every other setting, so an arrangement outlives the run in every frontend."""
-        return SidebarLayout(self.saved_settings, TerminalOrigin.of())
+        return SidebarLayout(self.saved_settings, TerminalOrigin.of(),
+                             alone=lambda: self.selected_mode == WELCOME)
 
     def keep_settings(self) -> None:
         """A change meant for the next start (a sidebar moved, resized, folded) reaches the
