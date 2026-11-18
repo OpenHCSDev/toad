@@ -6,10 +6,9 @@ from abc import abstractmethod
 
 from textual.widget import Widget
 
+from toad.client.view_layout import LayoutFollower
 
-class FollowsLayoutPreferences(Widget):
-    """A widget that projects the current layout settings onto itself when they change."""
 
-    @abstractmethod
-    def apply_layout_preferences(self) -> None:
-        """Read the current layout settings and place this widget by them."""
+class FollowsLayoutPreferences(LayoutFollower, Widget):
+    """A Textual widget that projects the current layout settings onto itself when they
+    change (the shared `LayoutFollower` capability the layout effect reaches)."""

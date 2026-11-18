@@ -218,10 +218,22 @@ class QtInputDeliveryDetails(DeliveryDetailsPage, QDialog, metaclass=PyQtWidgetM
 class QtStatusLine(SettingVisible, ElidedLine, setting="ui.status_line", metaclass=PyQtWidgetMeta):
     """The info bar's status, right-aligned in the secondary ink, as Textual's `StatusLine`."""
 
-    def __init__(self, renderer: QtLineRenderer) -> None:
+    def __init__(self, scope, renderer: QtLineRenderer) -> None:
         super().__init__()
+        self._scope = scope
         self.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}")
+
+    @property
+    def configuration_state(self):
+        return self._scope.configuration_state
+
+    def show_setting(self, visible: bool) -> None:
+        self.setVisible(visible)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        self.apply_setting_visibility()
 
     def present_status(self, status) -> None:
         text = str(status)
@@ -248,15 +260,16 @@ class QtInfoBar(SettingVisible, QWidget, setting="ui.info_bar", metaclass=PyQtWi
     """Under the prompt frame: the composer's directory (a CLI thread's), the status line and
     the editing-mode badge, in Textual's `InfoBar` order."""
 
-    def __init__(self, app, renderer: QtLineRenderer, parent: QWidget) -> None:
-        # Parented at construction: `setVisible` below on a parentless widget makes it a
-        # top-level window with its own EGL surface, which deadlocks Android's accessibility
-        # bridge (SIGABRT "Failed to acquire deadlock protector … eglSurface()").
+    def __init__(self, scope, renderer: QtLineRenderer, parent: QWidget) -> None:
+        # Parented at construction: a parentless widget shown is a top-level window with its
+        # own EGL surface, which deadlocks Android's accessibility bridge (SIGABRT "Failed
+        # to acquire deadlock protector … eglSurface()").
         super().__init__(parent)
+        self._scope = scope
         self.path = ElidedLine()
         self.path.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}")
         self.path.hide()
-        self.status = QtStatusLine(renderer)
+        self.status = QtStatusLine(scope, renderer)
         self.badge = QtEditingModeBadge(renderer)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(UiGap.frame, 0, UiGap.frame, UiGap.tight)
@@ -267,9 +280,19 @@ class QtInfoBar(SettingVisible, QWidget, setting="ui.info_bar", metaclass=PyQtWi
         layout.addStretch(0)
         layout.addWidget(self.status)
         layout.addWidget(self.badge)
-        state = app.configuration_state
-        self.setVisible(self.setting_visible(state))
-        self.status.setVisible(self.status.setting_visible(state))
+
+
+    @property
+    def configuration_state(self):
+        """The settings of the view this bar sits in: its override, else the app's."""
+        return self._scope.configuration_state
+
+    def show_setting(self, visible: bool) -> None:
+        self.setVisible(visible)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        self.apply_setting_visibility()
 
     def show_path(self, path: str) -> None:
         self.path.setText(path)

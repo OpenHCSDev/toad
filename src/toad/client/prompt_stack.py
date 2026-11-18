@@ -200,8 +200,20 @@ class SettingVisible:
         if setting is not None:
             cls.visibility_setting = setting
 
+    configuration_state: object
+    """The settings this row reads: its nearest settings scope's (the view's own, else the
+    app's)."""
+
     def setting_visible(self, configuration_state) -> bool:
         return bool(configuration_state.get_resolved_value(self.visibility_setting))
+
+    def apply_setting_visibility(self) -> None:
+        """Show or hide the row as its setting now resolves (the visibility effect)."""
+        self.show_setting(self.setting_visible(self.configuration_state))
+
+    @abstractmethod
+    def show_setting(self, visible: bool) -> None:
+        """Show or hide the native row."""
 
 
 class EditingModeBadge(metaclass=AbstractHooksMeta):

@@ -84,7 +84,8 @@ from toad.prompt_cursor import (
     PreviousHistoryCursor,
     PromptCursor,
 )
-from toad.setting_widget import PromptSettingEffects, SettingVisibility
+from toad.client.prompt_composer import PromptSettingEffects
+from toad.setting_widget import SettingVisibility
 from toad.slash_command import SlashCommand
 from toad.widget_actions import (
     Action, DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
@@ -949,6 +950,12 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             self.app.terminal_attention.require(self)
             self.question.update(ask)
             self.question.focus()
+
+    def place_input_box(self) -> None:
+        """Prompt parts read their room from the input box setting when laid out."""
+        for part in self.walk_children():
+            part.refresh(layout=True)
+        self.refresh(layout=True)
 
     def update_prompt(self):
         editor = self.prompt_text_area

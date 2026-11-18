@@ -1,6 +1,7 @@
 """A channel or direct conversation's history as every frontend reads it: which painted messages
 wait to be marked read, and the acknowledgement that marks them."""
 import asyncio
+from functools import partial
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -71,6 +72,7 @@ class ReadMarkedHistory(ReadMarking):
     history, so its hooks are declared without ABC's metaclass."""
 
     page_source: ReplaceablePageSource
+    view: WireView
 
     def __init__(self, *args, **kwargs) -> None:
         self._painted_reads: dict[FragmentKey, EvidencedFragment] = {}
@@ -125,6 +127,15 @@ class ReadMarkedHistory(ReadMarking):
         super().prepare_viewport()
         if self.can_draw_on_screen:
             self.mark_visible()
+            self.follow_message_style()
+
+    def follow_message_style(self) -> None:
+        """Draw the messages in the style the view's settings now name (its override, else
+        the app's), once the history can draw: a change made while it could not is drawn
+        when it next lays out. The drawn style is the source's; nothing else remembers it."""
+        style = self.view.configuration_state.fields.ui.message_style
+        if self.can_draw_on_screen and self.page_source.style_differs(style):
+            self.schedule_source_work(partial(self.restyle, style()))
 
     def source_resumed(self) -> None:
         self.mark_visible()
@@ -132,6 +143,10 @@ class ReadMarkedHistory(ReadMarking):
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
         await self.page_source.change_style(self)
+
+    async def restyle(self, style) -> None:
+        """Draw every message in ``style`` (the message-style setting changed)."""
+        await self.page_source.restyle_to(self, style)
 
     @abstractmethod
     def mark_visible_after_paint(self) -> None:
@@ -223,6 +238,11 @@ class WireView(ConversationActivity):
     @abstractmethod
     def mode(self) -> str:
         """The session this view belongs to, as commands target it."""
+
+    def apply_message_style(self) -> None:
+        """The message-style setting changed for this tab (its override or the app's): draw
+        the bus messages in the style it now resolves to (the `message_style` effect)."""
+        self.message_history.follow_message_style()
 
     @abstractmethod
     def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
@@ -555,10 +575,18 @@ class WirePageBuffer(SavedHistory):
         return ReadWork(history._mark_read(history.source_snapshot()))
 
     async def change_style(self, history: ReadMarkedHistory) -> None:
-        if not history.can_draw_on_screen:
+        await self.restyle_to(history, self.loader.style.next())
+
+    def style_differs(self, style) -> bool:
+        """Whether the messages are drawn in a style other than ``style``."""
+        return type(self.loader.style) is not style
+
+    async def restyle_to(self, history: ReadMarkedHistory, style) -> None:
+        """Draw every message in ``style``, here and in pages read from now on."""
+        if not history.can_draw_on_screen or type(style) is type(self.loader.style):
             return
         await history.show_newest(
-            RestyledViewportRequest(LatestPosition.hold(history.window), self.loader.restyled(self.loader.style.next()))
+            RestyledViewportRequest(LatestPosition.hold(history.window), self.loader.restyled(style))
         )
 
     async def read_revision(self):

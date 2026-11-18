@@ -98,3 +98,54 @@ class NoNavigationOwner(NavigationOwner):
     async def open_sidebar_target(self, target: NavigationDestination) -> None:
         """A target asked of no navigating view is refused with a notice, not a traceback."""
         self.app.show_info("Nothing opens from this view", "Navigation")
+
+
+class ThreadViewNavigation:
+    """A view showing one thread navigates as that thread: its target is the thread, and
+    what it opens attaches to the view's own tab, in its project, acting as the thread.
+    Textual's `MainScreen` and Qt's `QtThreadView` both inherit this, so a thread's
+    configuration actions (model, thinking level, service tier) reach both."""
+
+    @property
+    @abstractmethod
+    def navigation_mode(self) -> str:
+        """The tab this view is."""
+
+    @property
+    @abstractmethod
+    def navigation_project(self) -> Checkout:
+        """The project the view's thread works in."""
+
+    @property
+    def navigation_target(self):
+        from toad.navigation_target import ThreadTarget
+        return ThreadTarget(self.thread_identity.thread_name())
+
+    @property
+    def navigation_context(self) -> NavigationContext:
+        return NavigationContext(self.app, self.navigation_mode, self.navigation_project,
+                                 self.thread_identity.thread_name())
+
+
+class ConversationViewNavigation:
+    """A conversation tab (a channel's history) navigates as its conversation: its target is
+    the conversation's history destination, and what it opens attaches to home (no session
+    owns the tab). Textual's `CommsChatView` and Qt's `ConversationView` both inherit this, so
+    a channel's configuration actions reach both."""
+
+    @property
+    @abstractmethod
+    def navigation_project(self) -> Checkout:
+        """The project the tab's threads work in."""
+
+    @property
+    def navigation_target(self):
+        from toad.navigation_target import HistoryTarget
+        names = self.app.coordination_access.observation.observed().sidebar.observation.thread_names()
+        return HistoryTarget.for_conversation(self.conversation, names)
+
+    @property
+    def navigation_context(self) -> NavigationContext:
+        from toad.constants import WELCOME
+        return NavigationContext(self.app, WELCOME, self.navigation_project,
+                                 self.thread_identity.thread_name())

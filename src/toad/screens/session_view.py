@@ -204,20 +204,13 @@ class SidebarSessionView[SidebarT: ThreadSidebar](ConfiguredView, ConversationSe
     layer_order = ("sidebar", "screen", "base")
 
     async def configuration_action_panels(self):
-        def read():
-            entries = []
-            for context in self.navigation_target.configuration_contexts(self):
-                for action in context.available_actions():
-                    for configuration in action.declaration.configuration_actions(action):
-                        entries.append((context, configuration, configuration.editable_fields))
-            return entries
-        declarations = await self.app.preparation.run_thread(read)
-        return tuple(SideBar.Panel(
-                         title=action.label,
-                         widget=ActionProperties(context, action, fields),
-                         flex=True,
-                     )
-                     for context, action, fields in declarations)
+        declarations = await self.app.preparation.run_thread(self.configuration_actions)
+        panels = []
+        for context, action, fields in declarations:
+            panel = self.action_panel(action)
+            panels.append(SideBar.Panel(title=panel.title, widget=ActionProperties(context, action, fields),
+                                        flex=panel.flex))
+        return tuple(panels)
 
     @property
     def paint_background(self) -> Color:

@@ -34,6 +34,12 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab], declared_name=No
         self.key, self.viewer, self.participants = opened.key, opened.viewer, opened.participants
         self.project = project
 
+    @property
+    def viewer_identity(self):
+        """The viewer as a thread on the conversation's wire: who the tab acts as."""
+        from toad.thread_identity import SessionIdentity
+        return SessionIdentity.for_thread(self.viewer, self.key.root)
+
     @staticmethod
     def reopened(identity: CommsTab, observed: Observing, project: Checkout) -> CommsNavigation:
         """A conversation tab read again on the bus that owns it, as its viewer."""

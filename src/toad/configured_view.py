@@ -11,9 +11,8 @@ from toad.native_style import FillHeight
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.forms.presentation import FormModal
 from toad.client.session_tracker import SidebarState
-from toad.client.sidebar_panels import ObjectPropertiesPanel
+from toad.client.sidebar_panels import ActionPropertiesPanel, ObjectPropertiesPanel
 from toad.settings_scope import ViewSettingsScope
-from toad.thread_actions import ThreadAction
 from toad.widgets.acting_button import DismissButton
 from toad.widgets.comms_command_dialog import CommandForm
 from toad.widgets.comms_menu import ActionMenu
@@ -83,19 +82,12 @@ class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
         self.form.finish()
 
 
-class ActionProperties(CommandForm, SidebarPanelWidget):
+class ActionProperties(ActionPropertiesPanel, CommandForm, SidebarPanelWidget):
     """The original backend operation form, using its original target writer."""
 
     def __init__(self, context, definition, fields):
         self.context = context
         super().__init__(definition, context.title, fields, context.observed.core)
-
-    @property
-    def panel_identity(self):
-        return self.definition.declaration
-
-    async def handle_submission(self, arguments):
-        await ThreadAction.submit(self.context, self.definition, arguments)
 
 
 class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):

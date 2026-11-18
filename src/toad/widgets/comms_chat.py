@@ -122,7 +122,7 @@ class CommsChatView(WireConversationView):
             )
         source = WireSource(
             observed.root, self.conversation, self.project_path, self._me,
-            self.app.settings.ui.message_style(), access=self.app.coordination_access, core=observed.core,
+            self.settings.ui.message_style(), access=self.app.coordination_access, core=observed.core,
             fragments=WireFragment,
         )
         self.queue_source = source

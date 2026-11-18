@@ -1,5 +1,6 @@
 """A backend command's form on Qt: the shared CommandDraft drawn with pyqt-reactive's
-declared form, in a dialog over the window the command started on.
+declared form, embedded in a panel (`QtCommandForm`, as Textual's `CommandForm`) or in a
+dialog over the window the command started on (`QtCommandDialog`, as `CommandDialog`).
 
 CommandDraft owns the fields, choices, confirmation text and what Apply submits, as it
 does for Textual's CommandForm; this module draws them and runs the draft's work as
@@ -20,6 +21,7 @@ from objectstate import DottedFieldPath
 from pyqt_reactive.forms.declared_form import DeclaredForm
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import WrappedText
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -40,28 +42,28 @@ class CommandApply(OperationKind):
     """Apply on a command form: confirm its arguments with Core, then answer the form."""
 
 
-class QtCommandForm(CommandFormCore, ScreenWideWindow, QDialog, DismissibleContract, SubmitsContract,
-                    metaclass=PyQtWidgetMeta):
-    """One backend operation's form. It answers once: the arguments Apply submits, or None
-    when it is cancelled or closed."""
-
-    dismiss_control = QDialog.reject
+class QtCommandForm(CommandFormCore, QWidget, DismissibleContract, SubmitsContract,
+                        metaclass=PyQtWidgetMeta):
+    """One backend operation's form, embedded in a panel or presented in a dialog: Qt's
+    sibling of Textual's `CommandForm`, over the same `CommandFormCore` Apply flow. Where the
+    arguments go (a dialog's answer, the view's settings pane submitting them) and what
+    Cancel does are the embedding's."""
 
     def submit(self) -> None:
         self.apply()
 
-    def __init__(self, host: QtCommsHost, window: QWidget | None, definition: TargetAction, target: str,
-                 fields: tuple[TargetField, ...], core: CoreAccess) -> None:
-        super().__init__(window)
+    def __init__(self, host: QtCommsHost, definition: TargetAction, target: str,
+                 fields: tuple[TargetField, ...], core: CoreAccess, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
         self.host = host
         self.init_draft(definition, target, fields, core)
+        self._alive = True
         loop = asyncio.get_running_loop()
-        self.answer: asyncio.Future[dict[str, object] | None] = loop.create_future()
         self.preparation: asyncio.Future[None] = loop.create_future()
         self.preparation.set_result(None)
         self.confirmation: asyncio.Future[None] = loop.create_future()
         self.confirmation.set_result(None)
-        self.setWindowTitle(definition.label)
         title = WrappedText(f"{definition.label} — {target}")
         self.form = DeclaredForm(self.state, host.theme.color_scheme)
         scroll = QScrollArea(self)
@@ -76,15 +78,27 @@ class QtCommandForm(CommandFormCore, ScreenWideWindow, QDialog, DismissibleContr
         )
         self.apply_button = buttons.button(QDialogButtonBox.StandardButton.Apply)
         self.apply_button.clicked.connect(self.apply)
-        buttons.rejected.connect(self.reject)
+        buttons.rejected.connect(self.dismiss_control)
         layout = QVBoxLayout(self)
         layout.addWidget(title)
         layout.addWidget(scroll, 1)
         layout.addWidget(self.confirmation_text)
         layout.addWidget(self.confirmed)
         layout.addWidget(buttons)
-        self.fit_screen()
-        self.finished.connect(self.closed)
+
+    def release_page(self) -> None:
+        """The embedding drops this page: close it and let Qt delete it."""
+        self.close_page()
+        self.deleteLater()
+
+    def close_page(self) -> None:
+        """The page is gone: stop following its draft and its reads."""
+        if self._alive:
+            self._alive = False
+            self.close_draft()
+            self.form.leave_state()
+            self.preparation.cancel()
+            self.confirmation.cancel()
 
     def apply(self) -> None:
         self.host.run_operation(CommandApply, self.confirm)
@@ -95,23 +109,11 @@ class QtCommandForm(CommandFormCore, ScreenWideWindow, QDialog, DismissibleContr
     def set_apply_enabled(self, enabled: bool) -> None:
         self.apply_button.setEnabled(enabled)
 
-    async def handle_submission(self, arguments: dict[str, object]) -> None:
-        if not self.answer.done():
-            self.answer.set_result(arguments)
-            self.accept()
-
-    def closed(self, result: int) -> None:
-        if not self.answer.done():
-            self.answer.set_result(None)
-        self.close_draft()
-        self.form.leave_state()
-        self.preparation.cancel()
-        self.confirmation.cancel()
 
     # CommandDraft's native hooks
 
     def draft_alive(self) -> bool:
-        return not self.answer.done()
+        return self._alive
 
     async def draft_run_thread(self, work):
         return await self.host.preparation.run_thread(work)
@@ -174,6 +176,51 @@ class QtCommandForm(CommandFormCore, ScreenWideWindow, QDialog, DismissibleContr
         self.form.editor(DottedFieldPath(name)).paint()
 
 
+class QtCommandWindow(ScreenWideWindow, QDialog, DismissibleContract, metaclass=PyQtWidgetMeta):
+    """The window a command dialog's form is presented in, over the window it started on;
+    dismissing it (Escape, Back, Cancel) closes the dialog unanswered, as Textual's
+    `CommandDialog` screen dismisses."""
+
+    dismiss_control = QDialog.reject
+
+    def __init__(self, window: QWidget | None, title: str) -> None:
+        super().__init__(window)
+        self.setWindowTitle(title)
+        QVBoxLayout(self)
+
+
+class QtCommandDialog(QtCommandForm):
+    """The shared operation form in its modal presentation, as Textual's `CommandDialog`:
+    it answers once, with the arguments Apply submits, or None when it is cancelled or
+    closed."""
+
+    def __init__(self, host: QtCommsHost, window: QWidget | None, definition: TargetAction, target: str,
+                 fields: tuple[TargetField, ...], core: CoreAccess) -> None:
+        self.answer: asyncio.Future[dict[str, object] | None] = asyncio.get_running_loop().create_future()
+        self.dialog = QtCommandWindow(window, definition.label)
+        super().__init__(host, definition, target, fields, core, self.dialog)
+        self.dialog.layout().addWidget(self)
+        self.dialog.fit_screen()
+        self.dialog.finished.connect(self.closed)
+
+    def present(self) -> None:
+        self.dialog.open()
+        self.open_draft()
+
+    async def handle_submission(self, arguments: dict[str, object]) -> None:
+        if not self.answer.done():
+            self.answer.set_result(arguments)
+            self.dialog.accept()
+
+    def dismiss_control(self) -> None:
+        self.dialog.dismiss_control()
+
+    def closed(self, _result: int) -> None:
+        if not self.answer.done():
+            self.answer.set_result(None)
+        self.close_page()
+
+
 class WindowCommandOrigin(CommandOrigin):
     """The window a command started on; its form opens only while that window is active."""
 
@@ -186,7 +233,6 @@ class WindowCommandOrigin(CommandOrigin):
 
     async def edit(self, definition: TargetAction, title: str, fields: tuple[TargetField, ...],
                    core: CoreAccess) -> dict[str, object] | None:
-        form = QtCommandForm(self.host, self.window, definition, title, fields, core)
-        form.open()
-        form.open_draft()
+        form = QtCommandDialog(self.host, self.window, definition, title, fields, core)
+        form.present()
         return await form.answer

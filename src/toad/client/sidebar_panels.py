@@ -114,3 +114,20 @@ class SidebarPanelColumn[Entry](metaclass=AbstractHooksMeta):
     @staticmethod
     def claims_room(panel: PanelSpec, collapsed: bool) -> bool:
         return panel.flex and not collapsed
+
+
+class ActionPropertiesPanel:
+    """One backend configuration operation as a settings-pane entry: Textual's
+    `ActionProperties` and Qt's `QtActionProperties` both inherit this. The operation's
+    declaration names the entry, and Apply submits through the original guarded writer."""
+
+    context: object
+    definition: object
+
+    @property
+    def panel_identity(self) -> object:
+        return self.definition.declaration
+
+    async def handle_submission(self, arguments) -> None:
+        from toad.thread_actions import ThreadAction
+        await ThreadAction.submit(self.context, self.definition, arguments)

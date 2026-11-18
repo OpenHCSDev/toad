@@ -23,7 +23,7 @@ from toad.client.conversation import ConversationKind
 from toad.core import session_requests
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.core_event_carrier import CoreEventMessage
-from toad.navigation_context import NavigationContext
+from toad.navigation_context import ConversationViewNavigation, NavigationContext
 from toad.navigation_target import (
     FeedTarget,
     HistoryTarget,
@@ -92,7 +92,7 @@ class FocusPromptAction(ViewAction):
             chat.prepare_prompt()
 
 
-class CommsScreen(ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[ThreadSidebar], ToadNode, can_focus=False,
+class CommsScreen(ConversationViewNavigation, ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[ThreadSidebar], ToadNode, can_focus=False,
                   actions=(ViewAction, ReturnToViewAction, CloseViewAction)):
     """A channel or DM represented as a native concurrent Toad session."""
 
@@ -101,13 +101,13 @@ class CommsScreen(ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRo
         self,
         *,
         project_path: Checkout,
-        me: str,
+        identity: SessionIdentity,
         conversation: ConversationKind,
         wire_root: str,
     ) -> None:
         super().__init__()
         self.project_path = project_path
-        self._identity = SessionIdentity.for_thread(me, wire_root)
+        self._identity = identity
         self.conversation = conversation
         self.wire_root = wire_root
         self._content_ready = asyncio.Event()
@@ -125,12 +125,8 @@ class CommsScreen(ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRo
         return NoSessionOrigin(self.id or "conversation tab")
 
     @property
-    def navigation_target(self) -> NavigationTarget:
-        return HistoryTarget.for_conversation(
-            self.conversation,
-            self.app.coordination_access.observation.observed()
-            .sidebar.observation.thread_names(),
-        )
+    def navigation_project(self) -> Checkout:
+        return self.project_path
 
 
 
@@ -250,15 +246,6 @@ class CommsScreen(ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRo
         event.stop()
         FocusPromptAction().apply(self)
 
-    @property
-    def navigation_context(self) -> NavigationContext:
-        # Threads opened from a conversation tab attach to home: no session owns this tab.
-        return NavigationContext(
-            self.app,
-            WELCOME,
-            self.project_path,
-            self.thread_identity.thread_name(),
-        )
 
     async def open_sidebar_target(self, target: NavigationTarget) -> None:
         """Navigation from a conversation tab is home's: home is prepared as the origin first."""

@@ -1,6 +1,5 @@
 """What the app does when a declared setting changes."""
 from __future__ import annotations
-from dataclasses import replace
 from typing import TYPE_CHECKING
 from formbridge.forms.declared_fields import DeclaredField
 
@@ -13,11 +12,11 @@ from toad.setting_declarations import Effect
 
 @Effect
 def visibility(app: ToadApp, field: DeclaredField) -> None:
-    from toad.setting_widget import SettingVisibility
+    from toad.client.prompt_stack import SettingVisible
     from toad.widgets.prompt import Prompt
-    for widget in Effect.open_widgets(app, SettingVisibility):
+    for widget in Effect.open_widgets(app, SettingVisible):
         if widget.visibility_setting == field.path.value:
-            widget.display = widget.configuration_state.get_resolved_value(field.path.value)
+            widget.apply_setting_visibility()
     for prompt in Effect.open_widgets(app, Prompt):
         prompt.refresh(layout=True)
 
@@ -29,17 +28,15 @@ def wheel_scroll_rows(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
-    from toad.widgets.history_anchor import HistoryWindow
-    for window in Effect.open_widgets(app, HistoryWindow):
-        value = window.configuration_state.get_resolved_value(field.path.value)
-        window.presentation_budget = replace(window.presentation_budget, buffer_viewports=value)
-        window.request_preparation()
+    from toad.client.history_pager import PagingWindow
+    for window in Effect.open_widgets(app, PagingWindow):
+        window.apply_buffer_viewports()
 
 
 @Effect
 def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
-    from toad.layout_preferences import FollowsLayoutPreferences
-    for widget in Effect.open_widgets(app, FollowsLayoutPreferences):
+    from toad.client.view_layout import LayoutFollower
+    for widget in Effect.open_widgets(app, LayoutFollower):
         widget.apply_layout_preferences()
 
 
@@ -70,3 +67,10 @@ def sessions_bar(app: ToadApp, field: DeclaredField) -> None:
 def blink_title(app: ToadApp, field: DeclaredField) -> None:
     app.terminal_attention.update()
 
+
+
+@Effect
+def message_style(app: ToadApp, field: DeclaredField) -> None:
+    from toad.client.history import WireView
+    for view in Effect.open_widgets(app, WireView):
+        view.apply_message_style()

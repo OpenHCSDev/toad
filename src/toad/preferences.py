@@ -56,7 +56,7 @@ from toad.setting_choices import (
     TopNavigationBar,
 )
 from toad.setting_declarations import FamilyChoices, SettingsDeclaration
-from toad.setting_widget import PromptSettingEffects
+from toad.client.prompt_composer import PromptSettingEffects
 from toad.client.view_settings import ConversationSettingsOwner, ViewSettingsOwner
 from toad.terminal_origin import TerminalLayout
 from toad.version import CheckedVersionMonitor, VersionMonitor
@@ -131,7 +131,7 @@ class ConversationUiSettings(ViewUiSettings, scopes=(ConversationSettingsOwner,)
     """The prompt you type messages and shell commands into."""
     message_style: Annotated[
         type[WireMessageStyle], FieldLabel("Bus message layout"), FamilyChoices(WireMessageStyle),
-        WireName("message-style"),
+        effects.message_style, WireName("message-style"),
     ] = IrcMessageStyle
     """How a conversation tab first lays out bus messages; its toggle switches the open tab."""
     info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility, WireName("info-bar"),] = True

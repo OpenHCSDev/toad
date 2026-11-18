@@ -51,10 +51,12 @@ from toad.sidebar_placement import (
     TopSidebarEdge,
 )
 from toad.client.history import ChannelDestination, WirePageBuffer
-from toad.qt.command_form import QtCommandForm
+from toad.qt.command_form import QtCommandDialog
 from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.client.bus_submission import ConversationSubmission
+from toad.setting_choices import CenterColumnAlignment
+from toad.message_rows import MarkdownMessageStyle
 from toad.qt.window import ConversationRow, QtToadApp
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -594,8 +596,8 @@ class CommandScenario(Scenario):
 
     form_name: ClassVar[str] = "qt-drive-never-applied"
 
-    def forms(self) -> list[QtCommandForm]:
-        return [form for form in self.app.findChildren(QtCommandForm) if form.isVisible()]
+    def forms(self) -> list[QtCommandDialog]:
+        return [form for form in self.app.findChildren(QtCommandDialog) if form.isVisible()]
 
     async def send(self, text: str) -> None:
         await self.type(text)
@@ -624,19 +626,20 @@ class CommandScenario(Scenario):
         await self.send("/rename-tag")
         await until(self.forms, "form", tenths=150)
         form = self.forms()[0]
+        dialog = form.dialog
         await until(lambda: not form.preparing(), "choices", tenths=150)
         rows = [(row.label.text(), type(row.editor).__name__) for row in form.form.values.values()]
-        self.report("4-form", title=form.windowTitle(), rows=rows, confirmation=form.confirmation_text.text(),
+        self.report("4-form", title=dialog.windowTitle(), rows=rows, confirmation=form.confirmation_text.text(),
                     width=form.minimumSizeHint().width())
-        form.grab().save(str(self.out / f"{type(self).declared_name}-4-form.png"))
+        dialog.grab().save(str(self.out / f"{type(self).declared_name}-4-form.png"))
         editor = form.form.editor(DottedFieldPath("new_name"))
         editor.setText(self.form_name)
         form.form.finish()
         await asyncio.sleep(1.0)
         self.report("5-filled", value=form.arguments(), confirmation=form.confirmation_text.text(),
                     confirmable=form.confirmed.isVisible(), notice=app.status_line.text())
-        form.grab().save(str(self.out / f"{type(self).declared_name}-5-filled.png"))
-        form.reject()
+        dialog.grab().save(str(self.out / f"{type(self).declared_name}-5-filled.png"))
+        dialog.reject()
         answer = await form.answer
         await asyncio.sleep(0.5)
         self.report("6-cancelled", answer=answer, open_forms=len(self.forms()))
@@ -826,6 +829,14 @@ class ChromeScenario(Scenario):
         await until(lambda: self.page is not home and self.page.content_ready.is_set(), "#comms")
         await asyncio.sleep(1.5)
         self.report("2-channel", **self.geometry())
+        # The tab's own message-style override redraws its messages at once, as the TUI's.
+        channel = self.page
+        style = lambda: type(channel.message_history.page_source.loader.style).__name__
+        before_style = style()
+        channel.configuration_state.field("ui.message_style").edit(MarkdownMessageStyle)
+        await until(lambda: style() != before_style, "message style", tenths=100)
+        await asyncio.sleep(1.0)
+        self.report("2b-channel-markdown", before=before_style, after=style())
         peer = self.thread_row()
         before = self.page
         app.open_row(peer)
@@ -846,6 +857,30 @@ class ChromeScenario(Scenario):
         picker.setCurrentIndex(settings)
         await asyncio.sleep(0.5)
         self.report("6-settings-page", shown=picker.currentText())
+        # The view's configuration operations load after its settings, as Textual's picker
+        # adds them: the last entry is the thread's next-turn model form, an embedded page.
+        roster = len(panel_specs_for_view(is_session=True)) + len(tuple(self.page.configuration_fields()))
+        await until(lambda: picker.count() > roster, "configuration actions", tenths=150)
+        picker.setCurrentIndex(picker.count() - 1)
+        await asyncio.sleep(1.0)
+        self.report("7-action-page", entries=picker.count(), shown=picker.currentText())
+        # A per-view override repaints the view at once: the column narrows to 40 cells and
+        # centres, and the info bar hides; both read through the view's own settings.
+        # With the settings pane closed the conversation has room for a 40-cell column.
+        app.toggle_pane(ThreadSidebarPlacement)
+        await asyncio.sleep(0.5)
+        view = self.page
+        state = view.configuration_state
+        margins = lambda: (view.layout().contentsMargins().left(), view.layout().contentsMargins().right())
+        before = margins()
+        state.field("ui.column").edit(True)
+        state.field("ui.column_width").edit(40)
+        state.field("ui.column_alignment").edit(CenterColumnAlignment)
+        state.field("ui.info_bar").edit(False)
+        await asyncio.sleep(0.5)
+        self.report("8-view-override", width=view.width(), cell=view.fontMetrics().averageCharWidth(),
+                    margins_before=before, margins_after=margins(),
+                    info_bar=view.composer.info_bar.isVisible())
 
 
 class Chrome110Scenario(ChromeScenario):
