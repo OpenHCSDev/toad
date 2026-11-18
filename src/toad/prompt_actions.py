@@ -54,7 +54,11 @@ class EnterShellAction(PromptAction):
         editor.prompt.shell_mode = True
 
 
-class AttachFileAction(PromptAction):
+class MessageAction(Action, affix="Action"):
+    """Keys only a message composer's editor answers: an agent prompt binds none of them."""
+
+
+class AttachFileAction(MessageAction):
     """Attach a file to the message: the picker the file picker setting names opens."""
 
     keys = {TextEntryMode: ("ctrl+t",)}

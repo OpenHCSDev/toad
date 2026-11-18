@@ -43,13 +43,11 @@ from textual.widgets.tree import TreeNode
 
 from metaclass_registry.mro_dispatch import handles
 
-from toad import directory
 from toad.core.events import LinkContextChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.project_path_owner import ProjectPathOwner
-from toad.path_search_ranking import PathSearchRanking
+from toad.client.project_paths import ProjectPathSearch
 from toad.messages import Dismiss, InsertPath, PromptSuggestion
-from toad.path_filter import PathFilter
 from ui_theme.scheme import ForegroundColour
 
 from toad.native_style import MutedText, SideMargin, SidePadding
@@ -268,7 +266,7 @@ class SwitchPathPickerAction(WidgetAction):
 
 
 class PathSearch(
-    CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, ForwardsCursor, Submits, CompletionPopup,
+    ProjectPathSearch, CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, ForwardsCursor, Submits, CompletionPopup,
     scopes={HiddenActions: (DismissAction, SubmitAction)},
     actions=(SwitchPathPickerAction,),
 ):
@@ -286,23 +284,20 @@ class PathSearch(
 
     def __init__(self) -> None:
         super().__init__()
-        self.ranking = PathSearchRanking()
         self._paths_dirty = True
 
     @classmethod
     def for_prompt(cls, prompt: Prompt) -> Self | None:
         return cls()
 
-    @property
-    def root(self) -> Path:
-        return ProjectPathOwner.containing(self).project_root
-
     @on(events.Mount)
     def on_mount(self) -> None:
+        self.start_path_search(ProjectPathOwner.containing(self).project_root)
         self.observe_core(ProjectPathOwner.containing(self).link_context_events)
 
     @handles(LinkContextChanged)
     def project_changed(self, event: LinkContextChanged) -> None:
+        self.start_path_search(ProjectPathOwner.containing(self).project_root)
         for tree in self.query(ProjectDirectoryTree):
             tree.path = self.root
         self.invalidate_paths()
@@ -454,27 +449,10 @@ class PathSearch(
         self.option_list.set_loading(True)
         root = self.root
         try:
-            path_filter = await asyncio.to_thread(PathFilter.from_git_root, root)
+            paths = await self.scan_paths(add_directories=True)
             if tree := self.query_one_optional(ProjectDirectoryTree):
-                tree.path_filter = path_filter
+                tree.path_filter = self.path_filter
                 tree.invalidate()
-            paths = await directory.scan(
-                root, path_filter=path_filter, add_directories=True
-            )
-
-            def make_absolute(paths: list[Path]) -> list[Path]:
-                """Make all paths absolute.
-
-                Args:
-                    paths: A list of paths.
-
-                Returns:
-                    List of absolute paths,
-
-                """
-                return [path.absolute() for path in paths]
-
-            paths = await asyncio.to_thread(make_absolute, paths)
             if self.root != root:
                 return
             self.paths = paths
@@ -496,20 +474,7 @@ class PathSearch(
 
     @work(description="watch_paths")
     async def watch_paths(self, paths: list[Path]) -> None:
-
-        def path_display(path: Path) -> str:
-            is_directory = path.is_dir()
-            if is_directory:
-                return str(path.relative_to(self.root)) + "/"
-            else:
-                return str(path.relative_to(self.root))
-
-        def make_display_paths() -> list[str]:
-            display_paths = sorted(map(path_display, paths), key=str.lower)
-            display_paths.sort(key=lambda path: path.count("/"))
-            return display_paths
-
-        self.display_paths = await asyncio.to_thread(make_display_paths)
+        self.display_paths = await asyncio.to_thread(self.spell_paths, paths)
 
         self.option_list.highlighted = None
         self._update_paths(self.display_paths)
@@ -532,5 +497,5 @@ class PathSearch(
         Args:
             paths: A list of paths.
         """
-        await self.ranking.update_paths(paths)
+        await self.rank_paths(paths)
         self.call_after_refresh(self.option_list.set_loading, False)
