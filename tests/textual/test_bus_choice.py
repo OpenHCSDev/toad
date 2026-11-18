@@ -34,7 +34,8 @@ from toad.app import ToadApp
 from toad.application_outcome import Ended, Succeeded
 from toad.client.application import BusDiscovery, BusSwitch
 from toad.client.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
-from toad.client.connection import FailedObservation, LocalObserving, RemoteCoreConnection
+from toad.client.connection import FailedObservation, RemoteCoreConnection
+from toad.client.local_connection import LocalObserving
 from toad.client.db import TabScope
 from toad.screens.bus_choice import BusAddress, BusChoices, BusPanel, BusRows
 from toad.client.application_actions import ApplicationAction

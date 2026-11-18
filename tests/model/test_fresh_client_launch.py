@@ -5,7 +5,7 @@ from agent_comms.execution.launch_root import LaunchRoot
 from agent_comms.installer import active_route
 
 from toad.cli import main
-from toad.client.connection import LocalCoreConnection
+from toad.client.local_connection import LocalCoreConnection
 
 
 def test_a_fresh_frontend_selects_the_route_owners_default(tmp_path, monkeypatch):

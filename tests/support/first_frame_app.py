@@ -54,7 +54,7 @@ if __name__ == "__main__":
     from agent_comms.execution.launch_root import LaunchRoot
     from agent_comms.projects.checkouts import Checkout
 
-    from toad.client.connection import LocalCoreConnection
+    from toad.client.local_connection import LocalCoreConnection
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()

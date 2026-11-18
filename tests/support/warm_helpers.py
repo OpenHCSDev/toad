@@ -31,7 +31,7 @@ import struct
 from typing import ClassVar
 
 from agent_comms.execution.child_process import HelperStart
-from toad.client.connection import LocalCoreConnection
+from toad.client.local_connection import LocalCoreConnection
 
 EXIT = struct.Struct("i")
 

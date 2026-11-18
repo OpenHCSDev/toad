@@ -38,6 +38,7 @@ from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
 from toad.client.bus_selection import BusChoice, PickerRow, TailnetAnswer
 from toad.clipboard import Clipboard
 from toad.client.connection import CoreConnection
+from toad.client.local_connection import select_connection
 from toad.core import events as core_events
 from toad.core import input_events
 from toad.widgets.file_viewer import ImageViewer
@@ -214,7 +215,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
 
     def connection_for(self, choice: BusChoice) -> CoreConnection:
         """The connection the chosen bus's launch arguments name, read as a launch reads them."""
-        return CoreConnection.select(list(choice.arguments(sys.argv[1:])))
+        return select_connection(list(choice.arguments(sys.argv[1:])))
 
     def relaunch(self) -> None:
         running = LaunchRuntime.running()
