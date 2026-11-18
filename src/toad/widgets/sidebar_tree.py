@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from contextlib import contextmanager
 from functools import (
     partial,
@@ -48,8 +48,6 @@ from textual.widget import Widget
 from textual.worker import Worker
 from textual.widgets import Static
 
-from toad.client.commands import ViewLocalCommand
-from toad.command_catalog import CommandCatalog
 from toad.core.events import SessionSelected
 from toad.native_style import EllipsisOverflow, NoWrap, PointerCursor, TwoRows
 from toad.no_worker import NoWorker
@@ -65,7 +63,7 @@ from toad.sidebar_model_view import SidebarModelView
 from toad.widgets.comms_menu import ActionMenu
 from toad.tone_paint import AlternatingTone
 from toad.widget_actions import OpenSelectedAction, OpensSelected
-from toad.client.sidebar_lines import DetailedLine, HeaderLine, MemberGroupLine, RowTree, TargetLine
+from toad.client.sidebar_lines import DetailedLine, HeaderLine, LineMenuTree, MemberGroupLine, RowTree, TargetLine
 
 
 class TargetTreeMember(HiddenActions):
@@ -522,8 +520,8 @@ class SearchFollower:
                 group.sync_members(frozenset(group.member_keys))
 
 
-class TargetTree(RowTree, HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizontalCursor, Vertical,
-                 scopes={HiddenActions: (CursorCommand,)}):
+class TargetTree(LineMenuTree, RowTree, HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizontalCursor,
+                 Vertical, scopes={HiddenActions: (CursorCommand,)}):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
@@ -571,9 +569,31 @@ class TargetTree(RowTree, HiddenActions, VisibleActions, StepsVerticalCursor, Mo
     def reconciliation_tree(self):
         return self
 
-    @abstractmethod
     def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        ...
+        """Draw the line's own menu (`TargetLine.menu_entries`) at the pointer: Qt's menu
+        panel draws the same entries for the same line."""
+        self.pointer_select(row, menu=True)
+        title, screen, source = self.menu_title(row), self.app.screen, self.app.selected_session
+        current = self.menu_still_current(row)
+
+        async def read():
+            entries = await row.menu_entries()
+            if (not self.is_attached or self.app.selected_session is not source
+                    or self.app.screen is not screen or not current()):
+                return
+            ActionMenu.offer(screen, Region.from_offset(offset, (0, 0)), title, entries)
+
+        self.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
+
+    def menu_title(self, row: CommsRow) -> str:
+        return row.target_name
+
+    def menu_still_current(self, row: CommsRow) -> Callable[[], bool]:
+        """Whether the menu read for `row` may still be shown once it is read."""
+        return lambda: True
+
+    def copy_name(self, name: str) -> None:
+        self.app.copy_to_clipboard(name)
 
     def row_selected(self, row: CommsRow) -> bool:
         """A tree that keeps no selected set selects no row."""
@@ -679,6 +699,10 @@ class CommsRow(
     def context_activation(self, offset: Offset) -> None:
         self.show_menu(self.navigation_tree, offset)
 
+    @property
+    def menu_tree(self) -> TargetTree:
+        return self.navigation_tree
+
 
     can_focus = True
 
@@ -751,23 +775,12 @@ class TargetMenuTree(SidebarModelView, TargetTree):
     def row_menu_context(self, row: CommsRow):
         raise NotImplementedError
 
-    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
-        self.pointer_select(row, menu=True)
-        ctx = self.row_menu_context(row)
-        selected_screen = self.app.screen
-        source = self.app.selected_session
+    def menu_title(self, row: CommsRow) -> str:
+        return self.row_menu_context(row).title
 
-        async def read():
-            choices = (await CommandCatalog.read(ctx.app, (), ctx.acquired(), ViewLocalCommand)).target_choices
-            if (not self.is_attached or self.app.selected_session is not source
-                    or not self.model_state.serves(ctx.observed.root)
-                    or self.app.screen is not selected_screen):
-                return
-            ActionMenu.show(selected_screen, Region.from_offset(offset, (0, 0)), ctx.title,
-                [(partial(ctx.execute_command, command), command.label(ctx))
-                 for command in choices])
-
-        self.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
+    def menu_still_current(self, row: CommsRow) -> Callable[[], bool]:
+        root = self.row_menu_context(row).observed.root
+        return lambda: self.model_state.serves(root)
 
 
 class SelectsTargets(TargetTree):

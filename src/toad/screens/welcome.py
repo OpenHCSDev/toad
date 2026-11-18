@@ -25,7 +25,7 @@ from toad.welcome_banner import WelcomeBanner
 from toad.client.sidebar_lines import WelcomeSectionLine
 from toad.core.events import SessionSelected
 from toad.format_path import format_path
-from toad.navigation_context import NavigationContext, NavigationOwner
+from toad.navigation_context import HomeNavigation
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.bus_choice import ListsBuses
@@ -254,7 +254,7 @@ class StartSessionButton(NewSessionButton):
 class WelcomeScreen(
     NativeMethodKeys,
     TogglesIrc,
-    NavigationOwner,
+    HomeNavigation,
     HomeSessionOrigin,
     CenteredChildren,
     SessionView,
@@ -278,13 +278,6 @@ class WelcomeScreen(
             # Hints come from the app so Qt can supply its own gesture string;
             # see `ToadApp.welcome_hints` / `QtToadApp.welcome_hints`.
             yield WelcomeNote(self.app.welcome_hints)
-
-    @property
-    def navigation_context(self) -> NavigationContext:
-        assert self.id is not None
-        return NavigationContext(
-            self.app, self.id, self.project_path, self.thread_identity.thread_name()
-        )
 
     def read_history_identity(self, project: Checkout) -> ThreadIdentity:
         observed = self.app.coordination_access.observation.observed()

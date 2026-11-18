@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, ClassVar
 from toad.client.input_modality import InputModality, KeyboardInput
 from toad.client.menu_entry import MenuEntry, strip_menu_markup
 from toad.keymap import KeymapCatalog
-from toad.menus import MenuCommand
+from toad.menus import MenuCommand, standard_commands
 
 if TYPE_CHECKING:
     from toad.preferences import ToadSettings
@@ -27,6 +27,15 @@ class BlockMenu:
     by keys; a phone by touch, where a key column is noise and a row must be tappable."""
 
     input_modality: ClassVar[type[InputModality]] = KeyboardInput
+
+    @staticmethod
+    def block_commands(target: object, offered: Iterable[MenuCommand]) -> tuple[MenuCommand, ...]:
+        """A block's menu, declared once for both frontends: the family's commands that
+        apply to ``target`` (a Textual block cursor, a Qt history fragment; each answers
+        `allow_maximize`), then the block's own (``offered``: its `block_menu`). Textual's
+        `Menu` and Qt's `QtMenu` only draw it; a frontend that assembled its own list fails
+        `tests/model/test_menu_owners.py`."""
+        return (*standard_commands(target), *offered)
 
     @staticmethod
     def ordered(commands: Iterable[MenuCommand]) -> tuple[MenuCommand, ...]:

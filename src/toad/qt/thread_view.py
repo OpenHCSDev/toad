@@ -24,7 +24,7 @@ from agent_comms.ui_model.delivery import DeliveryView
 from toad.client.draft_fragments import DRAFT_FRAGMENTS
 from toad.client.history_rows_view import HistoryRowsBlocks, settled
 from toad.client.transcript_history_contract import TranscriptHistoryContract
-from toad.navigation_context import ThreadViewNavigation
+from toad.navigation_context import NavigationOwner, ThreadViewNavigation
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer
 from toad.qt.conversation import QtConversation
@@ -46,6 +46,7 @@ class QtThreadView(
     ThreadViewNavigation,
     HistoryRowsBlocks,
     QtBoundViewHost,
+    NavigationOwner,
     metaclass=PyQtWidgetMeta,
 ):
     """A `QtConversation` showing one bound thread's transcript.

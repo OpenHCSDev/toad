@@ -13,6 +13,8 @@ from textual.view import (
 )
 from toad.native_style import KeepsFocusOnClick
 from toad.widget_actions import ActivationKeys
+from toad.widgets.comms_menu import ActionMenu
+from toad.session_navigation import TabElement
 from textual.color import TRANSPARENT
 from textual.content import Content
 from textual.css.scalar import Scalar, ScalarOffset, Unit
@@ -43,7 +45,7 @@ from toad.widgets.selection import ChangingText, ViewLabel
 from textual import on
 
 
-class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widgets.Label):
+class SessionLabel(TabElement, WidgetView, PrimaryActivation, ViewLabel, ChangingText, widgets.Label):
     ALLOW_SELECT = False
     width = AUTO
     height = Scalar.from_number(1)
@@ -107,7 +109,13 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
 
     @on(events.Click)
     def on_click(self, event: events.Click) -> None:
-        if event.button == 2:
+        if event.button == 3:
+            # The shared tab menu (`SessionNavigation.tab_menu`): Qt's tab offers the same
+            # entries on a right-click or a held finger.
+            event.stop()
+            ActionMenu.offer(self.screen, Region.from_offset(event.screen_offset, (0, 0)),
+                             self.content.plain, self.menu_entries())
+        elif event.button == 2:
             event.stop()
             self.app.session_navigation.events.publish(session_requests.SessionClose(self.mode_name))
         elif event.button == 1:

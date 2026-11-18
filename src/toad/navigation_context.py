@@ -100,6 +100,17 @@ class NoNavigationOwner(NavigationOwner):
         self.app.show_info("Nothing opens from this view", "Navigation")
 
 
+class HomeNavigation(NavigationOwner):
+    """Home (the welcome, while no tab is open) navigates as the reader at home: the
+    welcome's mode, its project and the reader's own thread. Textual's `WelcomeScreen` and
+    Qt's `QtWelcomeOrigin`."""
+
+    @property
+    def navigation_context(self) -> NavigationContext:
+        from toad.constants import WELCOME
+        return NavigationContext(self.app, WELCOME, self.project_path, self.thread_identity.thread_name())
+
+
 class ThreadViewNavigation:
     """A view showing one thread navigates as that thread: its target is the thread, and
     what it opens attaches to the view's own tab, in its project, acting as the thread.
