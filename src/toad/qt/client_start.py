@@ -1,0 +1,125 @@
+"""The Qt client, loaded once Qt's first frame is up: its window over the bus behind a
+connection, and the way every run of it ends (`serve`). The entries (`toad.qt.main` on a
+desktop, `toad.qt.android` in the APK) paint the first frame, then load this module."""
+
+from __future__ import annotations
+
+import asyncio
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+import qasync
+from PySide6.QtCore import QEvent, QObject
+from PySide6.QtWidgets import QApplication
+
+from agent_comms.projects.checkouts import Checkout
+from objectstate import set_base_config_type
+from ui_theme.scheme import ColourScheme
+
+from toad.client.connection import ProcessRemoteCoreConnection, RemoteCoreConnection
+from toad.application_lifetime import ApplicationStart
+from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
+from toad.qt.frame_probe import FrameProbe
+from toad.qt.window import QtToadApp
+from toad.render_backend import Renderer
+from toad.render_in_thread import InThreadRenderer
+from toad.render_processes import RenderProcessPool
+from toad.work_preparation import PreparationRuntime
+
+
+def _renderer_for_platform(connection: RemoteCoreConnection) -> Renderer:
+    """A ProcessPool on hosts that fork, an in-thread renderer on Android's Python."""
+    if hasattr(sys, "getandroidapilevel"):
+        return InThreadRenderer()
+    return RenderProcessPool(connection.helper_start)
+
+
+@dataclass(frozen=True)
+class QtClientSettings:
+    """The Qt client's settings root. It holds no settings yet; ObjectState needs one root
+    type named for the process before it holds any object, such as a command form's draft.
+    Toad's Textual settings root lives in a module that needs Textual."""
+
+
+SYMBOL_FALLBACKS = ("Noto Color Emoji", "Noto Emoji", "Twemoji", "Symbola")
+"""Families a glyph the text font lacks falls back to, in order: the shared transcript
+draws pictographs (a tool row's 🔧), which a terminal's own font fallback finds. Android
+ships Noto Color Emoji; a desktop has whichever of these is installed."""
+
+
+def use_symbol_fallbacks(application: QApplication) -> None:
+    """The application font, then the symbol families: every widget and row document
+    inherits the chain, so a glyph missing from the text font is not drawn as a box."""
+    font = application.font()
+    font.setFamilies([font.family(), *SYMBOL_FALLBACKS])
+    application.setFont(font)
+
+
+async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> QtToadApp:
+    """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
+    sidebar observing."""
+    set_base_config_type(QtClientSettings)
+    use_symbol_fallbacks(QApplication.instance())
+    FingerScrolling.install(QApplication.instance(), FingerScrollGesture.of_platform())
+    FrameProbe.start_if_requested(QApplication.instance())
+    app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme)
+    # The loop outlives the window: closing it starts the shared client shutdown, which
+    # runs on this loop, so Qt must not stop the loop when the last window closes.
+    QApplication.instance().setQuitOnLastWindowClosed(False)
+    await (await app.get_db()).create()
+    app.start_client()
+    await app.wait_operations(ApplicationStart)
+    return app
+
+
+class EndRequest(QObject):
+    """Qt was asked to end the application: its last window closed, or something called
+    QCoreApplication.quit() (a desktop session ending; on Android, QtActivityBase.onDestroy
+    when the app is swiped from recents, which then blocks Android's main thread until
+    Python's main returns).
+
+    Qt 6 answers a quit by closing every window and leaving its event loop within that one
+    event. The loop is the client's asyncio loop, so the shared client shutdown had no loop
+    left to run on: the wakeup the closed window queued ran after qasync stopped
+    (`Task.task_wakeup ... is not the running loop`), asyncio.run's cancellation then waited
+    on a task that could no longer wake, and Android killed the app for not answering. The
+    request is taken here instead: it completes ``asked``, and the client ends itself.
+    """
+
+    def __init__(self, asked: asyncio.Future[None]) -> None:
+        super().__init__()
+        self.asked = asked
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.Quit:
+            self.ask()
+            return True
+        return False
+
+    def ask(self) -> None:
+        if not self.asked.done():
+            self.asked.set_result(None)
+
+
+async def serve(connection: RemoteCoreConnection, project: Checkout, scheme: ColourScheme) -> None:
+    """Show the bus behind ``connection`` until Qt is asked to end, then end the way every
+    end does: the window closes while its client still serves its views, then the shared
+    client shutdown, and qasync stops the loop when this returns. Desktop passes the
+    process-decoding member, Android the one decoding in place."""
+    app = await open_app(connection, project, scheme)
+    application = QApplication.instance()
+    request = EndRequest(asyncio.get_running_loop().create_future())
+    application.installEventFilter(request)
+    application.lastWindowClosed.connect(request.ask)
+    await request.asked
+    app.close()
+    await app.close_client()
+
+
+def serve_profile(arguments: list[str], scheme: ColourScheme) -> None:
+    """Serve the bus the desktop launch's UI profile names, over the process-decoding
+    connection, until the application ends."""
+    profile = Path(arguments[1])
+    project = Checkout(Path(arguments[2]) if len(arguments) > 2 else Path.home())
+    qasync.run(serve(ProcessRemoteCoreConnection.read(profile), project, scheme))

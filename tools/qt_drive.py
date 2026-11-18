@@ -3,7 +3,7 @@
     QT_QPA_PLATFORM=offscreen PYTHONPATH=src python tools/qt_drive.py SCENARIO PROFILE OUTDIR
 
 PROFILE is a UI profile (~/.local/state/agent-comms/ui-profiles/NAME.json); OUTDIR gets a
-screenshot per step. Each scenario opens the client exactly as `toad.qt.main.serve` does
+screenshot per step. Each scenario opens the client exactly as `toad.qt.client_start.serve` does
 and prints the state a reader would see, so two runs (before and after a change) compare
 line by line. This is the real-application check for the phone client; tests cannot see
 what the window draws.
@@ -41,7 +41,8 @@ from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.client.line_blocks import LineLink
-from toad.qt.main import current_scheme, open_app
+from toad.qt.client_start import open_app
+from toad.qt.theme import current_scheme
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling, TouchAsMouse
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
@@ -2241,7 +2242,7 @@ async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
     try:
         await scenario(app, out).run()
     finally:
-        # End as the real app does (toad.qt.main.serve): the window, then the shared client
+        # End as the real app does (toad.qt.client_start.serve): the window, then the shared client
         # shutdown; qasync stops the loop when this returns.
         app.close()
         await app.close_client()

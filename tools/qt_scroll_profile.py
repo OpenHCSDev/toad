@@ -39,7 +39,8 @@ from PySide6.QtWidgets import QApplication
 from agent_comms.projects.checkouts import Checkout
 from toad.client.connection import RemoteCoreConnection
 from toad.client.history import WirePageBuffer
-from toad.qt.main import current_scheme, open_app
+from toad.qt.client_start import open_app
+from toad.qt.theme import current_scheme
 
 from qt_drive import ConversationRow, until
 

@@ -2,7 +2,8 @@
 
 Run with the interpreter whose packages the APK bundles, from a Toad checkout:
     PYTHONPATH=src python tools/android/closure.py OUT.json
-Enters the APK's environment and imports toad.qt.android, as the APK's main.py does, and writes
+Enters the APK's environment, imports toad.qt.android and loads its client as the APK's start
+does (`load_client`, after the first frame), and writes
 {top-level name: {"root": path}} for assemble.py.
 """
 import json
@@ -15,7 +16,10 @@ from toad.qt.android_app import enter
 
 enter()
 before = set(sys.modules)
-import toad.qt.android  # noqa: F401 - the import is the measurement
+import toad.qt.android  # noqa: E402 - the import is the measurement
+
+# The client loads after the first frame, through the call the APK's start makes.
+toad.qt.android.load_client()
 
 closure = {}
 # Modules with no file of their own on disk: shiboken makes __feature__ at runtime, and
