@@ -28,6 +28,7 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.theming import StatusColorRole
 
+from toad.client.draft_fragments import DRAFT_FRAGMENTS
 from toad.client.history_state import LatestViewportRequest
 from toad.client.reader_position import LatestPosition
 
@@ -51,7 +52,7 @@ from agent_comms.ui_model.delivery import DeliveryView
 from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.goal import QtGoalBar
-from toad.qt.history import QtHistoryNotifications, QtHistoryWindow
+from toad.qt.history import QtHistoryNotifications, QtHistoryWindow, QT_FRAGMENT_CLASSES
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.qt.page import Page
 from toad.status_thread import StatusThread, WorkingStatusOwner
@@ -63,7 +64,6 @@ from toad.transcript_publication import BoundView, CanonicalSourcePublication, T
 from toad.client.history_rows_view import AsyncioPublications, HistoryRowsBlocks, settled
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.qt.core_events import QtCoreObserver
-from toad.qt.draft_line import QtDraftLine
 from toad.qt.submission_view import QtSubmissionView
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
@@ -289,7 +289,6 @@ class QtThreadView(
         first-paint EGL setup and deadlocks the window. Its slot is reserved here so it
         lands in order. ``submissions`` exists first so ``BusSubmissions.queue_evidence``
         has an owner by the composer's first ``show_submitting``."""
-        self.draft_line = QtDraftLine()
         self.feedback = QtFlash(app, app.renderer)
         self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
         self.thread_activity = QtSessionDetails(self, app.renderer)
@@ -298,7 +297,7 @@ class QtThreadView(
         self.composer = None
         self._composer_slot = QVBoxLayout()
         self._composer_slot.setContentsMargins(0, 0, 0, 0)
-        for row in (self.draft_line, self.feedback, self.agent_activity, self.thread_activity, self.goal_bar):
+        for row in (self.feedback, self.agent_activity, self.thread_activity, self.goal_bar):
             if row is not None:
                 layout.addWidget(row)
         layout.addLayout(self._composer_slot)
@@ -414,7 +413,7 @@ class QtThreadView(
     # ---- BoundViewHost: Qt draws the blocks as rows of its one history model ----
 
     def show_draft(self, draft, identity) -> None:
-        self.draft_line.show_draft(draft)
+        self.messages.show_draft(DRAFT_FRAGMENTS.project_value(draft, identity, QT_FRAGMENT_CLASSES))
 
     def empty_history(self) -> QtTranscriptHistory:
         return QtTranscriptHistory(self.messages, self, self.app)

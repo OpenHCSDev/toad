@@ -12,6 +12,7 @@ what the window draws.
 from __future__ import annotations
 
 import asyncio
+import time
 import os
 import sys
 import traceback
@@ -325,6 +326,87 @@ class SurroundScenario(Scenario):
         self.page.composer.editor.setFocus()
         await asyncio.sleep(0.3)
         self.report_surround("4-focused", peer=peer.key)
+
+
+class QueueScenario(SurroundScenario):
+    summary = ("open PEER (a scratch CLI thread) and walk its queue as the TUI shows it: the delivery "
+               "controls and queue summary on open, after two sends through the composer, and after "
+               "Send now; print the thread's owner binding and goal bar")
+
+    def report_queue(self, step: str) -> None:
+        view = self.page
+        composer = view.composer
+        self.report(
+            step,
+            controls=(composer.delivery_controls.isVisible(), composer.offers_send_now,
+                      composer.agent_ready, composer.holds_input),
+            summary=composer.submitting.text() if composer.submitting.isVisible() else "",
+            goal=(view.goal_bar.isVisible(), view.goal_bar.header.text()) if view.goal_bar is not None else None,
+            rows=view.messages.model_rows.rowCount())
+
+    async def send(self, text: str, now: bool = False) -> None:
+        editor = self.page.composer.editor
+        editor.setPlainText(text)
+        if now:  # the delivery row's Send now label, pressed as a reader taps it
+            from toad.qt.queue_ui import QtSendNow
+            QTest.mouseClick(self.page.composer.delivery_controls.findChild(QtSendNow), Qt.MouseButton.LeftButton)
+        else:
+            self.page.composer.submit()
+        await asyncio.sleep(0.4)
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", self.width)), 915)
+        wanted = os.environ["PEER"]
+        peer = next(row for row in self.thread_rows() if row.key == wanted)
+        home = app.workspace_sessions.home
+        app.open_row(peer)
+        await until(lambda: self.page is not home and getattr(self.page, "composer", None) is not None, "composer")
+        await until(lambda: self.page.messages.model_rows.rowCount(), "transcript", tenths=150)
+        await asyncio.sleep(4.0)
+        self.report_queue("1-opened")
+        stamp = time.strftime("%H:%M:%S")
+        await self.send(f"queue probe A {stamp}")
+        await self.send(f"queue probe B {stamp}")
+        self.report_queue("2-queued-two")
+        await asyncio.sleep(4.0)
+        self.report_queue("3-after-delivery")
+        await self.send(f"queue probe now {stamp}", now=True)
+        await asyncio.sleep(4.0)
+        self.report_queue("4-sent-now")
+
+
+class DraftScenario(SurroundScenario):
+    summary = ("open PEER (a CLI thread mid-turn) and wait up to DRAFT_WAIT seconds for Core's CLI draft; "
+               "report the draft rows the history window draws after the committed rows, and screenshot it")
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", self.width)), 915)
+        wanted = os.environ["PEER"]
+        peer = next(row for row in self.thread_rows() if row.key == wanted)
+        home = app.workspace_sessions.home
+        app.open_row(peer)
+        await until(lambda: self.page is not home and getattr(self.page, "composer", None) is not None, "composer")
+        await until(lambda: self.page.messages.model_rows.rowCount(), "transcript", tenths=150)
+        window = self.page.messages
+        deadline = time.monotonic() + float(os.environ.get("DRAFT_WAIT", "240"))
+        seen = 0
+        while time.monotonic() < deadline:
+            if window.draft:
+                seen += 1
+                await asyncio.sleep(1.5)
+                self.report(f"{seen}-draft", draft=[(type(fragment).__name__, len(fragment.events),
+                                                     fragment.clipboard_text[:60]) for fragment in window.draft],
+                            last_rows=[type(window.model_rows.fragments[-index]).__name__ for index in (2, 1)],
+                            rows=window.model_rows.rowCount())
+                if seen >= 2:
+                    return
+                await asyncio.sleep(4.0)
+            await asyncio.sleep(0.5)
+        self.report("no-draft", rows=window.model_rows.rowCount())
 
 
 class TranscriptScenario(Scenario):
