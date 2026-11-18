@@ -30,7 +30,7 @@ from toad.native_style import (
     TransparentBackground,
 )
 from toad.tone_paint import UntintedTonePaint
-from toad.question_actions import QuestionAction, QuestionContext, SelectKindAction
+from toad.question_actions import ChoiceQuestion, QuestionAction, QuestionContext, SelectKindAction
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import StepsVerticalCursor, VisibleActions
 
@@ -204,7 +204,7 @@ class QuestionOptions(containers.VerticalGroup):
     """The question's answers, in order."""
 
 
-class Question(VisibleActions, StepsVerticalCursor, QuestionContext, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
+class Question(VisibleActions, StepsVerticalCursor, QuestionContext, ChoiceQuestion, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
     """A text question with a menu of responses."""
 
     BINDING_GROUP_TITLE = "Question"

@@ -11,6 +11,11 @@ commands it offers.
 """
 from __future__ import annotations
 
+import asyncio
+
+import shiboken6
+from textual.content import Content
+
 from functools import partial
 
 import shiboken6
@@ -42,12 +47,15 @@ from toad.qt.activity import QtObservedSweep
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.history import QtHistoryNotifications, QtHistoryWindow
+from toad.qt.live_turn import QtLiveBlock, QtThoughtBlock, QtUserInputBlock
 from toad.qt.page import Page
 from toad.qt.prompt_stack import QtFlash
 from toad.qt.submission_view import QtSubmissionView
 from toad.qt.view_settings import QtViewSettings
 from toad.status_thread import StatusThread, WorkingStatusOwner
 from toad.transcript_publication import TranscriptPresentation
+from toad.turn_presentation import TurnPresentation
+from toad.live_output import LiveOutput
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
@@ -73,6 +81,7 @@ class QtConversation(
     ComposerHost,
     QtHistoryNotifications,
     FlashHost,
+    TurnPresentation,
     QWidget,
     metaclass=PyQtWidgetMeta,
 ):
@@ -100,6 +109,8 @@ class QtConversation(
         # them through `selected_categories` from its first page.
         self.visible_categories = all_categories()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent_binding.presentation.turns)
+        # The turn's live streams, as Textual's `Conversation.output`: drawn as rows here.
+        self.output = LiveOutput(self)
         # Where input and queue go; the opener swaps in mailbox sources for a CLI thread.
         self.operational_sources = SessionSources()
         self.feedback = QtFlash(app, app.renderer)
@@ -189,6 +200,43 @@ class QtConversation(
 
     def flash_error(self, text: str) -> None:
         self.feedback.flash(text, style=ErrorTone.declared_name)
+
+    # ---- TurnPresentation: the shared turn code's blocks, as history rows ----
+
+    @property
+    def shows_live_output(self) -> bool:
+        return shiboken6.isValid(self)
+
+    def after_live_output(self, finish) -> None:
+        asyncio.get_running_loop().call_soon(lambda: asyncio.ensure_future(finish()))
+
+    async def present_user_input(self, text: str) -> None:
+        self.messages.show_live(QtUserInputBlock(self.messages, text))
+
+    def response_block(self, fragment: str, delivery) -> QtLiveBlock:
+        return QtLiveBlock(self.messages, fragment)
+
+    def thought_block(self, fragment: str) -> QtLiveBlock:
+        return QtThoughtBlock(self.messages, fragment)
+
+    async def show_live_block(self, block, stream) -> None:
+        self.messages.show_live(block)
+
+    async def present_error_note(self, message: str, details: str) -> None:
+        heading = Content.from_markup(message).plain if message else ""
+        text = " — ".join(part for part in (heading and f"**{heading}**", details.strip()) if part)
+        block = QtLiveBlock(self.messages, text)
+        block.finished = True
+        self.messages.show_live(block)
+        self.flash_error(heading or details.strip())
+
+    async def present_help_note(self, markdown: str) -> None:
+        block = QtLiveBlock(self.messages, markdown)
+        block.finished = True
+        self.messages.show_live(block)
+
+    async def present_log_link(self, markdown: str) -> None:
+        await self.present_help_note(markdown)
 
     # ---- The thread-binding chain ----
 

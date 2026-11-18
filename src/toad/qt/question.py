@@ -30,7 +30,7 @@ from PySide6.QtWidgets import (
 
 from toad.answer import Answer
 from toad.client.input_attention import InputAttention
-from toad.question_actions import QuestionContext, SelectKindAction
+from toad.question_actions import ChoiceQuestion, QuestionContext, SelectKindAction
 from toad.widget_contracts import DismissibleContract
 from toad.qt.metrics import UiGap
 
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from toad.answer import Ask
 
 
-class QtQuestion(QuestionContext, QFrame, DismissibleContract):
+class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
     """Qt's inline question. A hidden panel at the bottom of the conversation view that fills
     with the title and option buttons when the conversation asks, and tucks itself away once
     the user picks or the question is retracted.

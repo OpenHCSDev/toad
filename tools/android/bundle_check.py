@@ -241,18 +241,6 @@ KNOWN_LAZY: dict[str, str] = {
         "notifypy. Qt: desktop notifications come from TerminalAttention.notify, Textual's",
     'toad.client.platform -> notifypy.os_notifiers.linux':
         "notifypy.os_notifiers.linux. Qt: desktop notifications come from TerminalAttention.notify, Textual's",
-    'toad.conversation_turn -> toad.widgets.user_input':
-        "toad.widgets.user_input. Qt: REACHABLE on Qt desktop (an ACP send from QtAcpSessionView), not on Android (no ACP agent runs); Qt's ACP view also lacks post, jump_to_latest, auto_name_from_prompt and publish_core, so ACP sends never worked on Qt",
-    'toad.core.events -> toad.widgets.agent_response':
-        "toad.widgets.agent_response. Qt: present_failure/show_log run only from Textual Conversation's AgentFail handler",
-    'toad.core.events -> toad.widgets.markdown_note':
-        "toad.widgets.markdown_note. Qt: present_failure/show_log run only from Textual Conversation's AgentFail handler",
-    'toad.core.events -> toad.widgets.note':
-        "toad.widgets.note. Qt: present_failure/show_log run only from Textual Conversation's AgentFail handler",
-    'toad.live_output -> toad.widgets.agent_response':
-        "toad.widgets.agent_response. Qt: streams append only from Textual Conversation's Update handler",
-    'toad.live_output -> toad.widgets.agent_thought':
-        "toad.widgets.agent_thought. Qt: streams append only from Textual Conversation's Update handler",
     'toad.setting_choices -> toad.widgets.future_text':
         'toad.widgets.future_text. Qt: QuotesLoading.widget runs only from toad.screens.main',
     'toad.tool_output -> toad.widgets.tool_content':

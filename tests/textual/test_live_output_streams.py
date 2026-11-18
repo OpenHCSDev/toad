@@ -15,15 +15,14 @@ from toad.live_output import (
 )
 from toad.response_delivery import RoutedResponse
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.agent_thought import AgentThought
 
 
 class DiagnosticStream(OutputStream):
     def matches(self, incoming):
         return True
 
-    def create(self, fragment):
-        return AgentThought(fragment)
+    def create(self, view, fragment):
+        return view.thought_block(fragment)
 
 
 def consumed_stream(agent):

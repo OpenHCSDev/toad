@@ -256,6 +256,12 @@ class HistoryFragment(CursorRest):
     has_details: ClassVar[bool] = False
 
     @property
+    def revision(self) -> int:
+        """What makes the same fragment draw differently: a saved fragment or a draft grows
+        only by events. A live block that grows in place overrides it."""
+        return len(self.events)
+
+    @property
     def body_text(self) -> str:
         """Plain-text body for copy / menu / long-press, empty for fragments that have no
         copyable body (tool-call title lines, context summaries). Overridden by

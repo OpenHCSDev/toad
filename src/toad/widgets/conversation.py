@@ -34,6 +34,7 @@ from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.ui_model.message_category import (
     AgentActivityBoundary,
+    OtherCategory,
     MessageCategory,
     all_categories,
 )
@@ -192,6 +193,9 @@ from toad.widgets.terminal_tool import TerminalTool
 from toad.widgets.throbber import AboveThrobber
 from toad.widgets.transcript_history import JumpToLatest, LineHistory, TranscriptHistory
 from toad.widgets.user_input import UserInput
+from toad.widgets.agent_response import AgentResponse
+from toad.widgets.agent_thought import AgentThought
+from toad.turn_presentation import TurnPresentation
 
 from toad.widgets.transcript_lines import LineTarget
 
@@ -571,6 +575,7 @@ class ConversationSessionBinding(
     DeliveryFailureView,
     AgentConversation,
     CategoryFilterView,
+    TurnPresentation,
     containers.Vertical,
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
@@ -1977,6 +1982,44 @@ class Conversation(ColumnLayout,
 
         if self.navigation.select(widget):
             self.refresh_block_cursor(lambda cursor: cursor.show_clicked(self.window))
+
+    # ---- TurnPresentation: the shared turn code's blocks, as Textual widgets ----
+
+    @property
+    def shows_live_output(self) -> bool:
+        return self.is_attached
+
+    def after_live_output(self, finish) -> None:
+        self.call_later(finish)
+
+    async def present_user_input(self, text: str) -> None:
+        await self.post(UserInput(text))
+
+    def response_block(self, fragment: str, delivery) -> AgentResponse:
+        return AgentResponse(fragment, delivery=delivery)
+
+    def thought_block(self, fragment: str) -> AgentThought:
+        return AgentThought(fragment)
+
+    async def show_live_block(self, block, stream) -> None:
+        await self.post(block, new_block=False)
+
+    async def present_error_note(self, message: str, details: str) -> None:
+        if message:
+            error = Content.assemble(
+                Content.from_markup(message).stylize("$text-error"),
+                " — ",
+                Content(details.strip()).stylize("dim"),
+            )
+        else:
+            error = Content(details.strip()).stylize("$text-error")
+        await self.post(ErrorNote(error))
+
+    async def present_help_note(self, markdown: str) -> None:
+        await self.post(MarkdownNote(markdown))
+
+    async def present_log_link(self, markdown: str) -> None:
+        await self.post(AgentResponse(markdown, show_divider=False, category=OtherCategory))
 
     async def post[WidgetType: Widget](
         self,

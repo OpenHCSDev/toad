@@ -13,17 +13,12 @@ if TYPE_CHECKING:
     from toad.widgets.question import Question
 
 
-class QuestionContext:
-    """Inline questions and their review screen select the same question owner.
+class ChoiceQuestion:
+    """A question whose options the user picks from: the owner the selection actions act on.
 
-    Plain mixin, no toolkit base: Textual's `Question` already inherits DOMNode
-    via `containers.VerticalGroup`, and `PermissionsScreen` via `Screen[Answer]`.
-    A Qt Question widget lists this mixin beside `QWidget` without dragging
-    Textual's metaclass into its MRO.
+    Plain mixin, no toolkit base, so Textual's `Question` (a `VerticalGroup`) and Qt's
+    `QtQuestion` (a `QFrame`) both inherit it without crossing metaclasses.
     """
-    @property
-    @abstractmethod
-    def question(self) -> Question: ...
 
     @abstractmethod
     def select_answer(self, index: int) -> None:
@@ -32,6 +27,21 @@ class QuestionContext:
         Qt retracts the inline panel and fires the `Ask`'s callback. The family's
         `SelectAction` / `SelectKindAction` call this instead of touching toolkit-specific
         plumbing, so one declared key fires the same selection on either side."""
+
+
+class QuestionContext:
+    """Inline questions and their review screen select the same question owner.
+
+    Plain mixin, no toolkit base: Textual's `Question` already inherits DOMNode
+    via `containers.VerticalGroup`, and `PermissionsScreen` via `Screen[Answer]`.
+    A Qt Question widget lists this mixin beside `QWidget` without dragging
+    Textual's metaclass into its MRO. The context only names its question; selecting
+    belongs to the `ChoiceQuestion` it names, so a review screen that delegates to its
+    own question owes no selection of its own.
+    """
+    @property
+    @abstractmethod
+    def question(self) -> ChoiceQuestion: ...
 
 
 class QuestionAction(Action[QuestionContext], affix="Action"):

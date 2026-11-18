@@ -10,6 +10,8 @@ rows are pixels here.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import asyncio
 
 import shiboken6
@@ -68,6 +70,9 @@ from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import DrawnFilter, FilterState
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
+
+if TYPE_CHECKING:
+    from toad.qt.live_turn import QtLiveBlock
 
 
 class QtWireFragment(EvidencedFragment, TranscriptFragment, ABC):
@@ -153,7 +158,7 @@ class QtPage(ReaderPage):
         return sum(self.history.fragment_height(fragment) for fragment in self.shown_fragments)
 
     def range_changed(self) -> None:
-        self.history.window.show_pages()
+        self.history.window.committed_pages_changed()
 
     def set_categories(self, selected) -> None:
         """A filter change: the history's selection decides which rows show."""
@@ -232,8 +237,8 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
     def fragment_key(self, fragment: HistoryFragment, font: QFont, width: int):
         """A fragment's row as shown, with these links, in this font at this width: dividers
-        fill the width. A draft's row grows by events, so its count is part of the key."""
-        shown = fragment.key, fragment.shown, len(fragment.events)
+        fill the width. A draft or live row grows, so its revision is part of the key."""
+        shown = fragment.key, fragment.shown, fragment.revision
         return shown, self.links_revision, font.family(), font.pointSize(), width
 
     def rendering(self, fragment: HistoryFragment, font: QFont, width: int) -> Callable[[], RowFormatting]:
@@ -649,6 +654,7 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         renderer.follows_theme(self, self.restyle_rows)
         self.model_rows = HistoryRows()
         self.draft: tuple[HistoryFragment, ...] = ()  # after the pages, as Textual's `CliDraft`
+        self.live_blocks: list[QtLiveBlock] = []  # after the draft, as Textual's live blocks
         self.setModel(self.model_rows)
         self.histories: WeakSet = WeakSet()
         self.history_lock = asyncio.Lock()
@@ -982,7 +988,8 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         """Read the rows again from the history's shown pages, then the draft after them."""
         history = self.history
         self.model_rows.show(tuple(fragment for page in history.pages if page.display
-                                   for fragment in page.shown_fragments) + self.draft)
+                                   for fragment in page.shown_fragments) + self.draft
+                             + tuple(block.fragment() for block in self.live_blocks))
         self.doItemsLayout()
         self.repin_header()
 
@@ -994,6 +1001,27 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         self.draft = fragments
         self.show_pages()
         self.keep_reader(key, offset)
+
+    def show_live(self, block: QtLiveBlock) -> None:
+        """A turn's live block as a row after the history and the draft."""
+        self.live_blocks.append(block)
+        self.live_changed()
+
+    def live_changed(self) -> None:
+        """A live block grew or left: read the rows again, following the end if the reader was."""
+        key, offset = self.reader_place()
+        self.show_pages()
+        self.keep_reader(key, offset)
+
+    def drop_live(self, block: QtLiveBlock) -> None:
+        if block in self.live_blocks:
+            self.live_blocks.remove(block)
+            self.live_changed()
+
+    def committed_pages_changed(self) -> None:
+        """Saved rows arrived: they now carry the output of every finished live block."""
+        self.live_blocks = [block for block in self.live_blocks if not block.finished]
+        self.show_pages()
 
     def restyle_rows(self) -> None:
         self.rows.restyle()

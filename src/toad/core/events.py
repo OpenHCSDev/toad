@@ -6,7 +6,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import Annotated, ClassVar
+from typing import TYPE_CHECKING, Annotated, ClassVar
 from weakref import WeakSet, WeakValueDictionary
 
 from formbridge.publications import (
@@ -33,6 +33,9 @@ from toad.live_output import OutputStream, ThoughtStream
 from toad.plan import PlanItem
 from toad.client.tab_identity import TabIdentity
 from formbridge.operations import ExclusiveKind, OperationKind
+
+if TYPE_CHECKING:
+    from toad.turn_presentation import TurnPresentation
 
 
 class ThreadInterestUpdate(OperationKind, ExclusiveKind):
@@ -348,20 +351,8 @@ class AgentFail(CoreEvent):
         """Specialized setup/help feedback survives the session's failure label."""
         await self.present(view)
 
-    async def present(self, view) -> None:
-        from textual.content import Content
-
-        from toad.widgets.note import ErrorNote
-
-        if self.message:
-            error = Content.assemble(
-                Content.from_markup(self.message).stylize("$text-error"),
-                " — ",
-                Content(self.details.strip()).stylize("dim"),
-            )
-        else:
-            error = Content(self.details.strip()).stylize("$text-error")
-        await view.post(ErrorNote(error))
+    async def present(self, view: TurnPresentation) -> None:
+        await view.present_error_note(self.message, self.details)
 
 
 @dataclass(frozen=True)
@@ -377,11 +368,9 @@ class HelpAgentFail(TextAgentFail):
     @abstractmethod
     def help_text(self) -> str: ...
 
-    async def present(self, view) -> None:
-        from toad.widgets.markdown_note import MarkdownNote
-
+    async def present(self, view: TurnPresentation) -> None:
         await super().present(view)
-        await view.post(MarkdownNote(self.help_text))
+        await view.present_help_note(self.help_text)
 
 class UnsupportedResumeAgentFail(HelpAgentFail):
     help_text = """## Agent does not support resume
@@ -404,15 +393,10 @@ class FailureLog:
 
     log_path: Path
 
-    async def show_log(self, view) -> None:
-        from agent_comms.ui_model.message_category import OtherCategory
-
+    async def show_log(self, view: TurnPresentation) -> None:
         from toad.project_link import AcpLogLink
-        from toad.widgets.agent_response import AgentResponse
 
-        link = AgentResponse(AcpLogLink.markdown(self.log_path),
-                             show_divider=False, category=OtherCategory)
-        await view.post(link)
+        await view.present_log_link(AcpLogLink.markdown(self.log_path))
 
 
 @dataclass(frozen=True)
