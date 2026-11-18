@@ -18,7 +18,20 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from agent_comms.registry.relationships import RelationshipEntry
+
 from toad.client.menu_entry import MenuEntry
+from toad.navigation_target import NavigationTarget, ThreadTarget
+
+
+def entry_target(entry: RelationshipEntry) -> NavigationTarget:
+    """Where a thread's relationship row opens: the person's own thread, else the target
+    it names. Both frontends' Comms rows open it (Textual's `RelationshipRow`, Qt's
+    `QtThreadCommsPanel`)."""
+    person = entry.person
+    if person is None:
+        return NavigationTarget.named(entry.target)
+    return ThreadTarget(person.thread.name)
 
 
 def menu_entries_for_row(

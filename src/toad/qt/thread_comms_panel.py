@@ -46,6 +46,10 @@ from toad.qt.channel_sort import QtSortButton
 from toad.client.sort_control import ThreadSortForm
 from toad.thread_identity import SessionIdentity
 from toad.qt.metrics import UiGap
+from toad.client.relationship_row_menu import entry_target, menu_entries_for_row
+
+# The relationship an entry row shows; a group's own line keeps its group in UserRole.
+_ENTRY = Qt.ItemDataRole.UserRole.value + 1
 
 
 class QtRelationshipSort(RelationshipOrder, QtSortButton[ThreadSort]):
@@ -105,6 +109,11 @@ class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQ
         self._tree.setRootIsDecorated(True)
         self._tree.itemExpanded.connect(self._item_expanded)
         self._tree.itemCollapsed.connect(self._item_collapsed)
+        # A row opens on a tap and offers Open / Copy on a right-click or a held finger,
+        # as Textual's `RelationshipRow` does (`request_navigation`, `show_row_menu`).
+        self._tree.itemClicked.connect(self._item_clicked)
+        self._tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self._tree.customContextMenuRequested.connect(self._offer_row_menu)
         column.addWidget(self._tree, 1)
 
     @property
@@ -194,7 +203,53 @@ class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQ
         row = QTreeWidgetItem(parent_item, [display])
         if entry.detail:
             row.setToolTip(0, entry.detail)
-        row.setData(0, Qt.ItemDataRole.UserRole, entry)
+        row.setData(0, _ENTRY, entry)
+
+    def _row_entry(self, item: QTreeWidgetItem | None) -> tuple[object, RelationshipEntry] | None:
+        """The group and relationship an entry row shows; a group or "none" line shows none."""
+        if item is None or item.data(0, _ENTRY) is None:
+            return None
+        return item.parent().data(0, Qt.ItemDataRole.UserRole), item.data(0, _ENTRY)
+
+    def _item_clicked(self, item: QTreeWidgetItem) -> None:
+        shown = self._row_entry(item)
+        if shown is not None and shown[1].available:
+            asyncio.ensure_future(self._open_current(*shown))
+
+    def _offer_row_menu(self, point) -> None:
+        """Open / Copy for the row under ``point`` (viewport coordinates), from the shared
+        `menu_entries_for_row`, in the window's menu panel."""
+        shown = self._row_entry(self._tree.itemAt(point))
+        app = self._app()
+        if shown is None or app is None:
+            return
+        group, entry = shown
+        app.offer_entries(menu_entries_for_row(
+            target_name=entry.target,
+            copy=app.copy_to_clipboard,
+            open_callback=(lambda: asyncio.ensure_future(self._open_current(group, entry))) if entry.available else None,
+        ))
+
+    async def _open_current(self, group, entry: RelationshipEntry) -> None:
+        """Open the relationship as it stands now: the list read again, and a relationship
+        that changed since it was drawn is not opened (Textual's `_navigate_current`)."""
+        app = self._app()
+        identity = self.thread_identity
+        if app is None or identity.root_path is None:
+            return
+        if identity.root_path != app.coordination_access.observation.observed().root:
+            app.show_warning("This view uses a different wire; open its matching connection to navigate.", "Comms")
+            return
+        service = await self.observed_source(app.coordination_access, app.preparation, identity.root_path)
+        if service is None:
+            return
+        snapshot = await app.preparation.run_thread(service.relationships, identity.thread_name())
+        current = snapshot.current_entry(group, entry)
+        if current is None:
+            app.show_warning("This relationship changed; refresh the list before opening it.", "Comms")
+            self.present()
+            return
+        app.open_target(entry_target(current))
 
     def _item_expanded(self, item: QTreeWidgetItem) -> None:
         group_type = item.data(0, Qt.ItemDataRole.UserRole)

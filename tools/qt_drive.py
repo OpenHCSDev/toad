@@ -25,7 +25,7 @@ from collections.abc import Callable
 from typing import ClassVar
 
 import qasync
-from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QTextDocument
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
@@ -50,6 +50,7 @@ from toad.client.line_blocks import LineLink
 from toad.qt.client_start import open_app
 from toad.qt.glyph_fonts import install_glyph_fonts
 from toad.qt.theme import current_scheme, offered_schemes
+from toad.qt.finger_press import FingerPress
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling, TouchAsMouse
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
@@ -86,6 +87,7 @@ from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
 from toad.qt.menu import QtMenuRow
 from toad.qt.activity import ChannelActivity
 from toad import paths
+from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
@@ -3013,6 +3015,174 @@ class SettingsReadScenario(Scenario):
             print(f"{path.value}: read={shown(field.value)!r} "
                   f"draws={reading() if reading else '-'!r}", flush=True)
         app.grab().save(str(self.out / "settingsread-end.png"))
+class HoldScenario(Scenario):
+    summary = ("at a Pixel 8a's size, with real touch through the window and the phone's touch-as-mouse "
+               "gesture: hold a finger on a sidebar channel, on a history row and on a tab; each that "
+               "offers a menu on right-click opens the same menu, and letting go doesn't also tap it. A "
+               "hold then a drag scrolls with no menu, and a tap still opens a row")
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        return TouchAsMouse()
+
+    def __init__(self, app: QtToadApp, out: Path) -> None:
+        super().__init__(app, out)
+        self.finger = QTest.createTouchDevice()
+        self.faults: list[str] = []
+
+    async def touch(self, widget: QWidget, point: QPoint, held_ms: int, moves: tuple[int, ...] = ()) -> None:
+        """A finger down at `point` (in `widget`), held for `held_ms`, moved up by each of
+        `moves` pixels a frame apart, then lifted, through the window as Android delivers it."""
+        window = widget.window()
+        handle, at = window.windowHandle(), widget.mapTo(window, point)
+        await self.dispatched(lambda: QTest.touchEvent(handle, self.finger).press(0, at).commit())
+        await asyncio.sleep(held_ms / 1000)
+        for step in moves:
+            at = at - QPoint(0, step)
+            await self.dispatched(lambda: QTest.touchEvent(handle, self.finger).move(0, at).commit())
+            await asyncio.sleep(0.016)
+        await self.dispatched(lambda: QTest.touchEvent(handle, self.finger).release(0, at).commit())
+        await asyncio.sleep(0.6)
+
+    @staticmethod
+    async def dispatched(deliver) -> None:
+        """Deliver input through the window from Qt's own dispatch, as the platform does: the
+        window processes Qt's events at once, which from inside this scenario's asyncio task
+        would enter the loop's other tasks within it."""
+        done = asyncio.get_running_loop().create_future()
+
+        def run() -> None:
+            deliver()
+            done.set_result(None)
+
+        QTimer.singleShot(0, run)
+        await done
+
+    def menu(self) -> list[str]:
+        """The menu the window shows, row by row, or nothing when it is closed."""
+        panel = self.app.menu_panel
+        return [row.label.text() for row in panel.findChildren(QtMenuRow)] if panel.isVisible() else []
+
+    def close_menu(self) -> None:
+        self.app.menu_panel.hide()
+
+    async def right_click(self, widget: QWidget, point: QPoint) -> list[str]:
+        """A mouse's right button at `point`, through the window, where Qt turns it into the
+        context-menu request (a widget-level click skips that)."""
+        window = widget.window()
+        handle, at = window.windowHandle(), widget.mapTo(window, point)
+        await self.dispatched(lambda: QTest.mouseClick(handle, Qt.MouseButton.RightButton,
+                                                       Qt.KeyboardModifier.NoModifier, at))
+        await asyncio.sleep(0.4)
+        clicked = self.menu()
+        self.close_menu()
+        return clicked
+
+    def expect(self, step: str, fact: bool, said: str) -> None:
+        if not fact:
+            self.faults.append(f"{step}: {said}")
+
+    async def held_menu(self, step: str, widget: QWidget, point: QPoint) -> None:
+        """A hold opens the menu a right-click opens there, and its release taps nothing."""
+        page = self.page
+        # The right-click first: what a mouse offers there before any finger has touched. When
+        # a menu panel moves the layout under a held finger, Qt routes the next mouse
+        # right-click to the widget that was under that point (Qt's own state, with or without
+        # FingerPress), which a phone, having no mouse, never meets.
+        clicked = await self.right_click(widget, point)
+        # The menu panel sits in the window's layout: the rows return to where they were
+        # only once it is gone.
+        await asyncio.sleep(0.4)
+        await self.touch(widget, point, 1100)
+        held = self.menu()
+        self.report(step, menu=held)
+        self.close_menu()
+        await asyncio.sleep(0.4)
+        self.expect(step, bool(held), "a held finger opened no menu")
+        self.expect(step, held == clicked, f"the hold's menu {held} is not the right-click's {clicked}")
+        self.expect(step, self.page is page, f"letting go opened {type(self.page).__name__}")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named("#comms")
+        tree = app.sidebar
+        await self.expand("#comms")
+        # 1. A sidebar row that isn't open: the hold offers its menu, and letting go doesn't open it.
+        other = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name != "#comms"
+                                 and not tree.visualItemRect(row).isEmpty(), "another listed row")
+        held_on: list[str] = []
+        FingerPress.install(QApplication.instance()).long_pressed.connect(
+            lambda press: held_on.append(type(press.target).__name__))
+        clicked: list[str] = []
+        tree.itemClicked.connect(lambda item: clicked.append(item.key))
+        # A channel's line has its order control drawn over it: the hold lands on that overlay.
+        await self.held_menu("1-sidebar-row", tree.viewport(), tree.visualItemRect(other).center())
+        # 1b. A thread's line, which has no control drawn over it.
+        thread = await self.found(lambda row: isinstance(row, ConversationRow) and row.parent() is not None
+                                  and not tree.visualItemRect(row).isEmpty(), "a listed thread line")
+        await self.held_menu("1b-thread-line", tree.viewport(), tree.visualItemRect(thread).center())
+        print(f"1-sidebar: held on {held_on}; rows a release clicked {clicked}", flush=True)
+        self.expect("1-sidebar", not clicked, f"letting go of a hold clicked {clicked}")
+        # 2. A message row in the history: its block menu.
+        # A point a third down the rows: a long row's centre can lie off the page, the sticky
+        # header covers the top and the floating "back to bottom" bar the bottom, and a hold on
+        # either is that control's own press.
+        history = self.page.messages
+        viewport = history.viewport()
+        on_row = QPoint(viewport.width() // 4, viewport.height() // 3)
+        self.expect("2-history-row", history.indexAt(on_row).isValid(), "no message row under the held point")
+        requested: list[str] = []
+        history.block_menu_requested.connect(lambda fragment: requested.append(type(fragment).__name__))
+        await self.held_menu("2-history-row", viewport, on_row)
+        print(f"2-history-row: block menu asked for {requested}", flush=True)
+        # 3. A tab offers no menu on right-click: a hold there stays the tab's press.
+        tabs = app.tabs
+        await self.touch(tabs, tabs.tabRect(0).center(), 1100)
+        self.report("3-tab", menu=self.menu())
+        self.expect("3-tab", not self.menu(), f"a tab offered a menu {self.menu()} a right-click doesn't")
+        self.close_menu()
+        # 4. A hold that then drags scrolls the history, and opens no menu.
+        bar = history.verticalScrollBar()
+        bar.setValue(bar.maximum())
+        await asyncio.sleep(0.4)
+        before = bar.value()
+        viewport = history.viewport()
+        await self.touch(viewport, QPoint(viewport.width() // 2, int(viewport.height() * 0.3)), 300,
+                         moves=(-24,) * 14)
+        await asyncio.sleep(1.0)
+        self.report("4-hold-then-drag", scrolled=(before, bar.value()), menu=self.menu())
+        self.expect("4-hold-then-drag", bar.value() != before, "the drag after a short hold didn't scroll")
+        self.expect("4-hold-then-drag", not self.menu(), f"the drag opened a menu {self.menu()}")
+        self.close_menu()
+        # 5. A tap still opens a row.
+        page = self.page
+        await self.touch(tree.viewport(), tree.visualItemRect(other).center(), 60)
+        await until(lambda: self.page is not page and not isinstance(self.page, QtOpeningSessionView), "tapped row")
+        self.report("5-tap-opens")
+        # 6. A thread's Comms rows (the thread pane) offer Open / Copy, as Textual's do.
+        await self.open_named("scratch-live-pipeline")
+        # A phone's pane gives the Comms tree under its category toggles little room: a
+        # taller window shows its rows.
+        app.resize(412, 1600)
+        app.thread_side.toggle_pane()
+        await asyncio.sleep(1.0)
+        picker = app.thread_pane.menu.picker
+        picker.setCurrentIndex([picker.itemText(index) for index in range(picker.count())].index("Comms"))
+        panel: QtThreadCommsPanel = app.thread_pane._comms_panel
+        comms = panel._tree
+
+        def entry_rows():
+            return [item for item in comms.findItems("", Qt.MatchFlag.MatchContains | Qt.MatchFlag.MatchRecursive)
+                    if panel._row_entry(item) is not None
+                    and comms.viewport().rect().contains(comms.visualItemRect(item).center())]
+
+        await until(lambda: comms.isVisible() and entry_rows(), "a Comms relationship row")
+        await self.held_menu("6-comms-row", comms.viewport(), comms.visualItemRect(entry_rows()[0]).center())
+        if self.faults:
+            raise AssertionError("\n".join(self.faults))
+
+
 class FingerScenario(Scenario):
     summary = ("at a Pixel 8a's width with the phone's touch-as-mouse gesture: drag every visible "
                "scroll area by finger on the welcome, sidebar, #comms, the multi-line composer, the "

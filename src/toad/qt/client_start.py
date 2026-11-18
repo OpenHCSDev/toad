@@ -21,6 +21,7 @@ from ui_theme.scheme import ColourScheme
 from toad.client.connection import CoreConnection
 from toad.launch_binding import AgentBinding
 from toad.application_lifetime import ApplicationStart
+from toad.qt.finger_press import FingerPress
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.window import QtToadApp
@@ -51,6 +52,7 @@ async def open_app(connection: CoreConnection, project: Checkout, scheme: Colour
     agents (`AgentBinding.launched`), as Toad's terminal launch attaches it."""
     set_base_config_type(QtClientSettings)
     FingerScrolling.install(QApplication.instance(), FingerScrollGesture.of_platform())
+    FingerPress.install(QApplication.instance())
     FrameProbe.start_if_requested(QApplication.instance())
     launch = await AgentBinding.launched(agent, connection.agent_processes)
     app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme,
