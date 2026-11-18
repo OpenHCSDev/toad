@@ -8,7 +8,7 @@ from textual.widget import Widget
 from toad.agent_binding import AgentConnection
 from toad.app_node import ToadNode
 from toad.core_event_carrier import CoreEventReceiver
-from toad.goal_controls import GoalCollapse
+from toad.goal_controls import GoalCollapse, GoalSource
 from toad.session_observation import GoalObservation
 from toad.widgets.flash import Flash
 
@@ -17,6 +17,7 @@ class GoalView[Controls](CoreEventReceiver, ToadNode):
     """A real conversation retains its existing fields and source binding."""
 
     agent_binding: AgentConnection
+    goal_source: GoalSource
     goal_controls: Controls
     goal_display: GoalDisplay
     goal_execution: GoalExecutionControls

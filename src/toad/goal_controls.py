@@ -18,10 +18,11 @@ from typing import Any, ClassVar
 
 from agent_comms.coordination.errors import Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import GoalId
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalExecutionControls, GoalSnapshot
-from agent_comms.planning.goals import Goal
+from agent_comms.planning.goals import Goal, GoalDeclaration
 from agent_comms.ui_model.goal import GoalDisplay
 from metaclass_registry import AbstractHooksMeta
 
@@ -29,13 +30,30 @@ from toad.client.host import CommsHost
 
 
 class GoalSource(ABC):
-    """Where a goal view reads its owner's goal: a session's agent connection in the TUI, a
-    thread's comms goal source on the phone. GoalObservation reads, publishes or degrades
-    through it, so both frontends observe the goal by the one procedure."""
+    """Where a goal view reads and changes its owner's goal: a live session's agent connection,
+    or a thread's comms goal source (every Qt view, and a TUI view with no agent, such as a
+    CLI's mailbox). GoalObservation reads through it and GoalControlsSession writes through it,
+    so both frontends observe and change the goal by the one procedure."""
 
     @abstractmethod
     async def get_goal_snapshot(self) -> GoalSnapshot:
         """The owner's current goal and execution."""
+
+    @abstractmethod
+    async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
+        """Set (with `text`), pause, resume, retry or clear the goal."""
+
+    @abstractmethod
+    async def edit_goal(self, goal: Goal, text: str) -> Goal:
+        """Edit the goal's text, keeping its identity."""
+
+    @abstractmethod
+    async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
+        """The goal's recorded revisions and failed attempts."""
+
+    def presentation_changed(self, observation) -> None:
+        """The goal's thread presentation changed. A source whose owner announces its goal
+        changes (a live agent) has nothing to do; one that reads Core asks for a fresh read."""
 
     @abstractmethod
     def matches_agent(self, agent) -> bool:
@@ -46,7 +64,7 @@ class GoalSource(ABC):
         """Ask `observation` to read this source again."""
 
 
-class GoalControlsSession[Binding](metaclass=AbstractHooksMeta):
+class GoalControlsSession[Binding: GoalSource](metaclass=AbstractHooksMeta):
     """What a goal button acts on, without a toolkit. The Textual GoalSession binds to its
     agent connection, the Qt one to the thread's comms goal source; each press runs against
     the binding it started with and stops as soon as the session no longer owns it."""
@@ -92,12 +110,12 @@ class GoalControlsSession[Binding](metaclass=AbstractHooksMeta):
         if self.owns(binding):
             self.after_change(binding)
 
-    @abstractmethod
     def apply_goal_change(
         self, binding: Binding, action: type[GoalAction], goal: Goal, text: str
     ) -> Awaitable[Any]:
-        """The backend-specific write the base `change()` envelope awaits. Textual calls
-        the agent's goal RPC; Qt calls the comms goal source."""
+        """The write the base `change()` envelope awaits, through the session's goal source.
+        Goal state governs continuation, never interruption of an active turn."""
+        return binding.update_goal(action, text)
 
     def after_change(self, binding: Binding) -> None:
         """Hook run after a successful change while the session still owns the binding.
@@ -116,9 +134,9 @@ class GoalControlsSession[Binding](metaclass=AbstractHooksMeta):
         if self.owns(binding):
             self.show_history(binding, GoalHistoryPage(history))
 
-    @abstractmethod
     async def read_goal_history(self, binding: Binding, goal: Goal) -> RecordedGoalHistory:
         """Read the goal's revisions and failed attempts through the binding."""
+        return await binding.get_goal_history(goal.id)
 
     @abstractmethod
     def show_history(self, binding: Binding, page: GoalHistoryPage) -> None:

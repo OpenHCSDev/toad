@@ -13,12 +13,15 @@ from collections.abc import Callable
 from functools import partial
 
 from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.thread_presentation import EnsuringSessionLoadPlan
 
 from toad.agent_binding import NoAgentConnection
 from toad.client.connection import Observing
 from toad.client.conversation_sources import ConversationSources
+from toad.client.goal_source import CommsGoalSource
 from toad.client.input_decision import InputDecision
+from toad.goal_controls import GoalSource
 from toad.submission_queue import BusQueueSource, NativeQueueSource, QueueSource
 from toad.transcript_publication import CanonicalSourcePublication
 from toad.transcript_scope import MailboxSent, TranscriptView
@@ -67,9 +70,27 @@ class SessionSources(ConversationSources, NativeQueueSource):
     def start_agent(self, conversation) -> None:
         conversation.agent_binding.start_agent(self, conversation)
 
+    def goal_source(self, conversation) -> GoalSource:
+        """An operational view's goal is its agent's."""
+        return conversation.agent_binding
+
 
 class MailboxSources(MailboxSent, BusQueueSource, SessionSources):
     """A CLI thread receives user messages through Core's inbox, not ACP."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.goal_sources: dict[ThreadIncarnation, CommsGoalSource] = {}
+
+    def goal_source(self, conversation) -> GoalSource:
+        """A CLI has no agent connection: its goal is the one the bus holds for its inbox, read
+        and changed through Core as Qt's goal bar reads it (`CommsGoalSource`). One source per
+        incarnation, so a press settles against the source it started on."""
+        owner = conversation.goal_owner()
+        if owner is None:
+            return super().goal_source(conversation)
+        return self.goal_sources.setdefault(
+            owner, CommsGoalSource(conversation.app, owner, conversation.coordination_root))
 
     def capture_queue_observing(
         self, transcript: Callable[[Callable[[], Observing]], Observing],
