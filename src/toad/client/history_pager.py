@@ -30,6 +30,7 @@ from toad.client.history_preparation import (
     HistorySourceSnapshot,
     PageEnd,
 )
+from toad.client.source_resumption import ResumesSource
 from toad.client.history_state import (
     LatestViewportRequest,
     LatestViewportState,
@@ -280,7 +281,7 @@ class ReaderPlacement:
             self.anchor()
 
 
-class HistoryPager:
+class HistoryPager(ResumesSource):
     """One history's pages of one source, within a reader window.
 
     The frontend's history answers the hooks below with its widgets: which window holds
@@ -685,12 +686,6 @@ class HistoryPager:
         self.source_resumed()
         self.window.check_follow()
         self.request_preparation()
-
-    def source_resumed(self) -> None:
-        """A parked source publishes again: report what its drawn pages mean to their owner.
-
-        A source with no owner to report to (the saved LineHistory a historical view builds)
-        has nothing to say; CommittedHistory and WireHistory override it."""
 
     @property
     def fragments(self) -> tuple[HistoryFragment, ...]:

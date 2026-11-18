@@ -55,6 +55,7 @@ from toad.client.prepared_pages import (
     Unchanged,
 )
 from toad.client.reader_position import LatestPosition
+from toad.client.source_resumption import ResumesSource
 from toad.client.submission import (
     BusDestination,
     SubmissionOwner,
@@ -66,7 +67,7 @@ from toad.submission_queue import BusQueueSource
 from toad.target_commands import TargetContext
 
 
-class ReadMarkedHistory(ReadMarking):
+class ReadMarkedHistory(ReadMarking, ResumesSource):
     """A history whose painted messages are acknowledged: the one map of painted evidence
     waiting for Core, and the acknowledgement that retires it. A mixin beside the native
     history, so its hooks are declared without ABC's metaclass."""
@@ -138,6 +139,7 @@ class ReadMarkedHistory(ReadMarking):
             self.schedule_source_work(partial(self.restyle, style()))
 
     def source_resumed(self) -> None:
+        super().source_resumed()
         self.mark_visible()
 
     async def toggle_style(self) -> None:
