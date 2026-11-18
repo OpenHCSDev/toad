@@ -4,7 +4,7 @@ import pytest
 from textual.widgets import DataTable, Input, Static
 from textual.binding import ModeBinding
 
-from toad.application_actions import TeamAction, KeymapAction
+from toad.client.application_actions import KeymapAction, TeamAction
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.preferences import SETTINGS, SavedSettings
 from toad.screens.keymap import KeymapApply, KeymapKeys, KeymapScreen, KeymapSearch, KeymapStatus
