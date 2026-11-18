@@ -9,6 +9,7 @@ import asyncio
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import qasync
 from PySide6.QtCore import QEvent, QObject
@@ -20,6 +21,7 @@ from ui_theme.scheme import ColourScheme
 
 from toad.client.connection import CoreConnection
 from toad.launch_binding import AgentBinding
+from toad.launch_opening import LaunchOpening, NoLaunchOpening
 from toad.application_lifetime import ApplicationStart
 from toad.qt.finger_press import FingerPress
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
@@ -29,6 +31,10 @@ from toad.render_backend import Renderer
 from toad.render_in_thread import InThreadRenderer
 from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
+
+if TYPE_CHECKING:
+    # Android's start never loads the desktop's local connection.
+    from toad.client.local_connection import ClientLaunch
 
 
 def _renderer_for_platform(connection: CoreConnection) -> Renderer:
@@ -46,7 +52,7 @@ class QtClientSettings:
 
 
 async def open_app(connection: CoreConnection, project: Checkout, scheme: ColourScheme,
-                   agent: str = "") -> QtToadApp:
+                   agent: str = "", opening: LaunchOpening = NoLaunchOpening()) -> QtToadApp:
     """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
     sidebar observing; ``agent`` is the launch's ``-a``, attached when the connection starts
     agents (`AgentBinding.launched`), as Toad's terminal launch attaches it."""
@@ -56,7 +62,7 @@ async def open_app(connection: CoreConnection, project: Checkout, scheme: Colour
     FrameProbe.start_if_requested(QApplication.instance())
     launch = await AgentBinding.launched(agent, connection.agent_processes)
     app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme,
-                    launch)
+                    launch, opening)
     # The loop outlives the window: closing it starts the shared client shutdown, which
     # runs on this loop, so Qt must not stop the loop when the last window closes.
     QApplication.instance().setQuitOnLastWindowClosed(False)
@@ -96,12 +102,12 @@ class EndRequest(QObject):
 
 
 async def serve(connection: CoreConnection, project: Checkout, scheme: ColourScheme,
-                agent: str = "") -> None:
+                agent: str = "", opening: LaunchOpening = NoLaunchOpening()) -> None:
     """Show the bus behind ``connection`` until Qt is asked to end, then end the way every
     end does: the window closes while its client still serves its views, then the shared
     client shutdown, and qasync stops the loop when this returns. Desktop passes the
     process-decoding member, Android the one decoding in place."""
-    app = await open_app(connection, project, scheme, agent)
+    app = await open_app(connection, project, scheme, agent, opening)
     application = QApplication.instance()
     request = EndRequest(asyncio.get_running_loop().create_future())
     application.installEventFilter(request)
@@ -111,11 +117,12 @@ async def serve(connection: CoreConnection, project: Checkout, scheme: ColourSch
     await app.close_client()
 
 
-def serve_launch(connection: CoreConnection, own: list[str], scheme: ColourScheme) -> None:
-    """Serve ``connection``, the Core the desktop entry selected from its arguments, with the
-    project and ``-a`` agent the rest of ``own`` name, until the application ends."""
+def serve_launch(launch: ClientLaunch, own: list[str], scheme: ColourScheme) -> None:
+    """Serve the Core the desktop entry's ``launch`` selected from its arguments, opening the
+    conversation it named, with the project and ``-a`` agent the rest of ``own`` name, until
+    the application ends."""
     parser = argparse.ArgumentParser(prog="toad.qt.main")
     parser.add_argument("project", type=Path, nargs="?", default=Path.home())
     parser.add_argument("-a", "--agent", default="", help="The agent New Session starts, as Toad's -a.")
     options = parser.parse_args(own)
-    qasync.run(serve(connection, Checkout(options.project), scheme, options.agent))
+    qasync.run(serve(launch.connection, Checkout(options.project), scheme, options.agent, launch.opening))

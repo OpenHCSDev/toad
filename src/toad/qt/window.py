@@ -114,6 +114,7 @@ from toad.constants import WELCOME
 from toad.core import session_requests
 from toad.core.events import CoordinationObserved, ExternalTranscriptChanged, TabHistoryChanged
 from toad.launch_binding import AgentBinding, NoAgent
+from toad.launch_opening import LaunchOpening, NoLaunchOpening
 from toad.navigation_context import HomeNavigation, NavigationOwner
 from toad.session_navigation import TabElement
 from toad.client.session_scope import HomeSessionOrigin
@@ -1070,13 +1071,14 @@ class Sidebar(FindsOpenViews, WorkspaceHosted, SidebarStateMachine, Conversation
         top.keep(NewSessionRow())
         threads = model.threads.rows
         matches = self.filter.matches
+        matching = self.filter.matching
         pending = self.window.thread_actions.pending
         counts = self.window.settings.sidebar.unread_counts
         for name, channel in model.channels.rows.items():
             # A channel stays visible if its name matches OR any of its member thread
             # names do; hiding a channel whose only match is a buried thread would also
             # hide the thread. The group opens whichever path kept it.
-            members_shown = [m for m in channel.members if matches(m)]
+            members_shown = matching(channel.members)
             if not matches(name) and not members_shown:
                 continue
             pinned_members = channel.pinned_members
@@ -1520,14 +1522,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def __init__(self, connection: CoreConnection, project: Checkout,
                  preparation: PreparationRuntime, scheme: ColourScheme,
-                 launch: AgentBinding = NoAgent()) -> None:
+                 launch: AgentBinding = NoAgent(), opening: LaunchOpening = NoLaunchOpening()) -> None:
         super().__init__(project, preparation, scheme)
         # Walk Core's declaration catalog once up front (shared with the Textual app
         # via CorePrewarm): a cold first tab otherwise imports every agent_comms
         # module under the GIL on its first wire revision / action menu.
         self._prewarm_core_modules()
         # The launch's agent, as Textual's `-a`: New Session starts its session.
-        self.initialize_client(launch, connection)
+        # The conversation the launch named (`--open`), opened once the saved tabs are back.
+        self.initialize_client(launch, connection, opening=opening)
         self.input_attention = QtWindowAttention(self)
         self.action_keys = ActionKeys(lambda: self.settings)
         # Until a conversation reads Core's display references, bodies link the project's files.
