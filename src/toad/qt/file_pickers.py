@@ -38,7 +38,9 @@ def open_file_dialog(parent: QWidget, composer: MessagePromptComposer) -> QFileD
     """Qt's file dialog over ``parent``, attaching the file it returns."""
     dialog = QFileDialog(parent, AttachFileAction.title)
     dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
-    dialog.urlSelected.connect(lambda url: read_picked(url, composer))
+    # An accepted dialog holds its one choice: Qt's own dialog emits no urlSelected, and
+    # Android's document picker answers with a content:// URL, so both are read from here.
+    dialog.accepted.connect(lambda: [read_picked(url, composer) for url in dialog.selectedUrls()])
     dialog.finished.connect(dialog.deleteLater)
     dialog.open()
     return dialog
