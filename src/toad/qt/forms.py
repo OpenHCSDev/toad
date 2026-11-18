@@ -15,7 +15,9 @@ object form's views) subclasses `QtFieldView` and names itself as `family()`, as
 
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from enum import Enum
 from functools import cached_property
 from typing import Optional
@@ -55,6 +57,7 @@ from toad.form_family import (
 )
 from toad.object_configuration import ObjectSettingField
 from toad.qt.lines import QtLineRenderer
+from toad.qt.theme import offered_schemes
 from toad.setting_choices import SchemeName
 
 
@@ -212,7 +215,8 @@ class QtEnumEditor(EnumEditing, QtSelectEditor, shows=(Enum,)):
 
 
 class QtSchemeEditor(SchemeChoosing, QtSelectEditor, shows=(SchemeName,)):
-    pass
+    def scheme_names(self) -> Iterable[str]:
+        return offered_schemes(os.environ)
 
 
 class QtOptionalEditor(OptionalEditing, QtValueEditor, shows=(Optional,)):

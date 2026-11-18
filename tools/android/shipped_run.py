@@ -14,6 +14,10 @@ and the phone's DM view died on `No module named 'click'`). This runs it. Exit 0
   and a `#comms` channel message, served by RUNTIME's connector on a loopback port with a
   throwaway TLS front (the client speaks only HTTPS) and a scratch UI grant. HOME points at
   the scratch folder for the connector, so no live grant or bus is read or written.
+- The app starts with `ui.theme` saved as a scheme Qt does not offer (`ansi-dark`, drawn in the
+  terminal's own colours, which Qt has no terminal to ask): the shared toad.json can hold the
+  TUI's choice, and a phone that saved one died at every launch (2026-11-18). It must open with
+  the not-offered warning, and the scenario then applies every scheme Qt offers in turn.
 - The scenario opens the welcome, every menu action that changes nothing (settings and each
   of its pages, the keymap, the transfer dialogs, channels, direct messages, the bus switcher,
   team), the channel, the CLI thread with its session details, and presses every bound action
@@ -22,6 +26,7 @@ and the phone's DM view died on `No module named 'click'`). This runs it. Exit 0
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import socket
@@ -35,6 +40,8 @@ from recipe_built import import_names, python_optimize
 HERE = Path(__file__).resolve().parent
 CHECKOUT = HERE.parent.parent
 THREAD, PEER, CHANNEL = "scratch-live-pipeline", "scratch-peer", "comms"
+# Drawn in the terminal's own colours: the TUI offers it, Qt does not.
+UNOFFERED_THEME = "ansi-dark"
 
 
 def free_port() -> int:
@@ -154,6 +161,9 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
             for candidate in site_packages.glob(f"{name}*"):
                 if not (recipes / candidate.name).exists():
                     (recipes / candidate.name).symlink_to(candidate)
+        settings = work / "kept" / "config" / "toad" / "toad.json"
+        settings.parent.mkdir(parents=True)
+        settings.write_text(json.dumps({"ui": {"theme": UNOFFERED_THEME}}))
         trust = work / "trust.pem"
         trust.write_text((app / "cacert.pem").read_text() + (work / "cert.pem").read_text())
         out = work / "out"

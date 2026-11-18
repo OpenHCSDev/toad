@@ -19,7 +19,6 @@ from formbridge.forms.parameter_form_service import ParameterFormService
 from formbridge.forms.value_editing import ControlConstruction, LineEditing, SelectEditing, ValueEditing
 from objectstate import ObjectState
 from python_introspect import resolve_annotated
-from ui_theme.catalog import SCHEMES
 from ui_theme.scheme import PrimaryColour, ThemeColour
 
 
@@ -86,9 +85,10 @@ class SelectFieldEditing(SelectEditing, FieldEditing):
 class SchemeChoosing(SelectEditing):
     """A colour scheme's name, offered from the schemes the running frontend has."""
 
+    @abstractmethod
     def scheme_names(self) -> Iterable[str]:
-        """ui_theme's catalog; a frontend that adds runtime schemes (pywal) overrides this."""
-        return (scheme.name for scheme in SCHEMES)
+        """The schemes this frontend can draw: the same offer its `ui.theme` effect applies
+        from, so the picker never lists a scheme the frontend would refuse."""
 
     def options(self) -> Iterable[tuple[str, object]]:
         return ((name, name) for name in self.scheme_names())
