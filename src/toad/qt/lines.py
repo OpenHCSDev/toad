@@ -19,7 +19,7 @@ from ui_theme.colour import require_terminal_palette
 
 from markdown_it import MarkdownIt
 from metaclass_registry.mro_dispatch import handles
-from ui_theme.scheme import ColourScheme, ThemeColour
+from ui_theme.scheme import ColourScheme, RuleColour, ThemeColour
 
 from toad.client.line_blocks import (
     Body,
@@ -200,17 +200,20 @@ class QtLineRenderer(LineBlockPainter[str]):
     @handles(Divider)
     def divider(self, block: Divider) -> str:
         """Every row of the title flanked by rules filling the width, as Textual's divider does.
-        One paragraph so Qt adds no extra block gap between wrapped rows."""
+        A terminal can only draw its rule in whole `─` cells; Qt draws each side as a real line
+        reaching the edge, so every rule spans the full width whatever the title's length.
+        The title's cell takes its content's width and the side cells share the rest."""
         bold = QFont(self.font)
         bold.setBold(True)
         room = PixelRoom(QFontMetricsF(bold), self.width)
         groups = [row for group in DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
                   for row in room.wrapped(group)]
-        rows = "<br>".join(f'{self.styled("─" * max(room.rule(group), 0), block.role)} '
-                           f'<b>{self.title(group, block)}</b> '
-                           f'{self.styled("─" * max(room.rule(group), 0), block.role)}'
-                           for group in groups)
-        return f'<p align="center" style="white-space:pre">{rows}</p>'
+        colour = self.theme(RuleColour)
+        rule = f'<td valign="middle"><hr style="background-color:{colour};color:{colour}"/></td>'
+        rows = "".join(f'<tr>{rule}<td width="1" valign="middle" style="white-space:pre">'
+                       f'&nbsp;<b>{self.title(group, block)}</b>&nbsp;</td>{rule}</tr>'
+                       for group in groups)
+        return f'<table width="100%" cellspacing="0" cellpadding="0">{rows}</table>'
 
     def title(self, spans: tuple[Span, ...], block: Divider) -> str:
         return "".join(self.span(span, span.link.heading_role(span.role, block.role)) for span in spans)
