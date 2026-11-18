@@ -256,6 +256,35 @@ class SurroundScenario(Scenario):
 
     width: ClassVar[int] = 412
 
+    @staticmethod
+    def sweep_extent(view, sweep) -> object:
+        """The sweep row's width beside its view's, and the share of the row the paint inks,
+        rendered at the screen's device pixel ratio (a phone's 2.625 is where a logical image
+        drew at 1/ratio of the row)."""
+        if sweep is None:
+            return None
+        from PySide6.QtCore import QPoint
+        from PySide6.QtGui import QImage, QPainter, QRegion
+        from PySide6.QtWidgets import QWidget
+        # Measured painting, whether or not the thread works right now: geometry is the
+        # question, and the live answer is put back after the render.
+        working = sweep.working
+        sweep.sweep(True)
+        ratio = sweep.devicePixelRatioF() or 1.0
+        image = QImage(round(sweep.width() * ratio), round(sweep.height() * ratio),
+                       QImage.Format.Format_ARGB32_Premultiplied)
+        image.setDevicePixelRatio(ratio)
+        image.fill(0)
+        painter = QPainter(image)
+        sweep.render(painter, QPoint(), QRegion(), QWidget.RenderFlag.DrawChildren)
+        painter.end()
+        sweep.sweep(working)
+        inked = [x for x in range(image.width())
+                 if any(image.pixelColor(x, y).alpha() for y in range(0, image.height(), 2))]
+        span = (round(inked[0] / image.width(), 3), round((inked[-1] + 1) / image.width(), 3)) if inked else None
+        return {"row": sweep.width(), "view": view.width(), "ratio": ratio, "inked": span,
+                "working": working}
+
     def report_surround(self, step: str, **facts: object) -> None:
         """Each row Textual's `Conversation.compose` mounts under its window, as Qt shows it."""
         view = self.page
@@ -273,6 +302,7 @@ class SurroundScenario(Scenario):
             step, **facts,
             flash=(row("feedback"), view.feedback.text() if view.feedback.isVisible() else ""),
             sweep=(row("agent_activity"), sweep is not None and hasattr(sweep, "working") and sweep.working),
+            sweep_extent=SurroundScenario.sweep_extent(view, sweep),
             working=view.working() if hasattr(view, "working") else None,
             status_title=(row("thread_activity"), details.title.text() if hasattr(details, "title") else ""),
             goal=(row("goal_bar"), goal.header.text() if goal is not None else "",
@@ -292,6 +322,8 @@ class SurroundScenario(Scenario):
             # As a person choosing "Keyboard mode" on the settings screen: the one setting
             # both frontends' prompts read.
             app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named(mode))
+        # The welcome answers before the sidebar has drawn its thread rows.
+        await until(self.thread_rows, "sidebar thread rows")
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
         children = self.thread_rows()
         print("working:", [row.key for row in children if rows[row.key].status.is_working()], flush=True)
