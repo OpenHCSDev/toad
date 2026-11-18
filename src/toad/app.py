@@ -343,6 +343,11 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         from toad.screens.main import MainScreen
         return MainScreen.opening(request, origin, self)
 
+    def thread_view(self, prepared):
+        from toad.screens.main import MainScreen
+        return MainScreen.from_thread(prepared.project, prepared.root,
+                                      prepared.thread.incarnation, self.agent_binding)
+
     def replace_opening_view(self, opening_view, prepared, identity):
         """Textual's `MainScreen` handles both opening and bound lifecycle phases on
         the same instance — `prepared.bind(view)` updates state in place, no swap

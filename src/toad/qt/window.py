@@ -2139,6 +2139,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         from toad.qt.opening_view import QtOpeningSessionView
         return QtOpeningSessionView(request.target)
 
+    def thread_view(self, prepared):
+        """The `QtMailboxView` a sidebar open swaps in, bound to the thread as Textual's
+        `MainScreen.from_thread` binds its screen."""
+        from toad.qt.mailbox_view import QtMailboxView
+        view = QtMailboxView(self, prepared.project, prepared.thread.incarnation, prepared.root)
+        view.bind_thread(prepared.thread.incarnation, prepared.root)
+        return view
+
     def replace_opening_view(self, opening_view, prepared, identity):
         """Qt's opening→bound lifecycle swap. Constructs a `QtMailboxView` from
         `prepared` (thread incarnation + root + project), swaps it into

@@ -96,6 +96,12 @@ class NavigationHost(NavigatingHost[Observing]):
         ...
 
     @abstractmethod
+    def thread_view(self, prepared) -> SessionScope:
+        """The view of a thread a named launch opens without an opening placeholder (a
+        restored tab, a resumed session), bound to the thread's incarnation under its root.
+        Textual draws a `MainScreen`; Qt the `QtMailboxView` its sidebar opens."""
+
+    @abstractmethod
     def replace_opening_view(
         self,
         opening_view: SessionScope,

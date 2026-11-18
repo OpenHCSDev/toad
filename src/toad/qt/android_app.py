@@ -10,8 +10,10 @@ imported:
 - Python's ssl looks for /etc/ssl/cert.pem, which Android lacks (and Android's own store is
   named by OpenSSL's old subject hash), so the app carries certifi's CA bundle;
 - Toad's default theme is pywal's palette, and the app carries the desktop's colors.json;
-- Toad's database (saved tabs) and the held bus profiles, which agent-comms keeps under the
-  home directory, live in the app's own storage.
+- Toad's settings (toad.json), its database (saved tabs) and the held bus profiles, which
+  agent-comms keeps under the home directory, live in the app's own storage beside the app
+  folder, not in it: python-for-android unpacks the app folder again at every install of a
+  new APK, which deleted all three with each update.
 
 Importing this module changes nothing. Only the APK's own process enters the APK's
 environment: on 2026-11-16 these lines ran at import, the agent-comms installer imported every
@@ -23,6 +25,8 @@ import os
 from pathlib import Path
 
 APP = Path(__file__).resolve().parents[2]
+# The app's own storage that an APK update leaves alone: the folder the app folder sits in.
+KEPT = APP.parent
 
 
 def enter() -> None:
@@ -31,5 +35,6 @@ def enter() -> None:
         os.environ[f"{speedup}_NO_EXTENSIONS"] = "1"
     os.environ["SSL_CERT_FILE"] = str(APP / "cacert.pem")
     os.environ["PYWAL_CACHE_DIR"] = str(APP / "wal")
-    os.environ["XDG_STATE_HOME"] = str(APP / "state")
-    os.environ["HOME"] = str(APP / "home")
+    os.environ["XDG_STATE_HOME"] = str(KEPT / "state")
+    os.environ["XDG_CONFIG_HOME"] = str(KEPT / "config")
+    os.environ["HOME"] = str(KEPT / "home")

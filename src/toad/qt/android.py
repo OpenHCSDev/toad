@@ -33,7 +33,7 @@ from PySide6.QtWidgets import QApplication
 from toad import paths
 from toad.client.bus_selection import BusChoice
 from toad.client.connection import RemoteCoreConnection
-from toad.qt.android_app import APP
+from toad.qt.android_app import APP, KEPT
 from toad.client.host import post_crash_to_sink
 from toad.qt.main import current_scheme, serve
 
@@ -63,7 +63,7 @@ class SessionRecord:
     so a killed process still leaves them; the file holds one run, replaced at each start.
     """
 
-    PATH = APP / "state" / "android-lifecycle.log"
+    PATH = KEPT / "state" / "android-lifecycle.log"
 
     def __init__(self, now: float) -> None:
         self.previous = self.PATH.read_text().splitlines() if self.PATH.is_file() else []
