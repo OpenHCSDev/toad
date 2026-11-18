@@ -29,6 +29,8 @@ KNOWN_COPIES = {
 # Textual class it draws the same thing as. A pair still sharing nothing belongs in
 # KNOWN_COPIES. The channels-sidebar pairs guard the earlier sidebar parity work.
 EXPLICIT_PAIRS = {
+    # the pinned header of the message the reader is in
+    "toad.qt.history.QtStickyHeader": "toad.widgets.message_divider.StickyHeader",
     # thread (view-settings) sidebar
     "toad.qt.placement.ThreadSettingsPane": "toad.widgets.side_bar.ThreadSidebar",
     "toad.qt.sidebar_panel.QtPanelMenu": "toad.widgets.side_bar.PanelMenu",
@@ -103,7 +105,6 @@ KNOWN_BARE = frozenset({
     'toad.qt.goal.GoalPress',
     'toad.qt.history.HistoryRowDelegate',
     'toad.qt.history.NoTask',
-    'toad.qt.history.QtTopRow',
     'toad.qt.keymap_screen._KeymapSave',
     'toad.qt.main.QtClientSettings',
     'toad.qt.menu.QtMenuRow',

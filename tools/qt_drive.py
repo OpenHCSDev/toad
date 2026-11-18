@@ -587,6 +587,46 @@ class HistoryScenario(Scenario):
         self.report("20-end", **self.rows())
 
 
+class StickyScenario(Scenario):
+    summary = ("open STICKY_TARGET (#comms by default); scroll into the middle of its tallest message "
+               "and report the pinned header over the top row, then put that message's header on the "
+               "top row and report the pin hidden, as Textual's StickyHeader pins and hides")
+
+    def pinned(self) -> dict[str, object]:
+        window = self.page.messages
+        pin = window.sticky_header
+        top = window.top_page()
+        return dict(shown=pin.isVisible(),
+                    text=pin.document.toPlainText().strip() if pin.document is not None else "",
+                    top=getattr(top, "under", None) and (top.under.block, top.under.row),
+                    geometry=(pin.x(), pin.y(), pin.width(), pin.height()))
+
+    async def run(self) -> None:
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.open_named(os.environ.get("STICKY_TARGET", "#comms"))
+        window = self.page.messages
+        rows = window.model_rows
+        headed = [row for row, fragment in enumerate(rows.fragments)
+                  if fragment.line_blocks and fragment.sticky_header(len(fragment.line_blocks) - 1, 1)]
+        tallest = max(headed, key=lambda row: window.visualRect(rows.index(row, 0)).height())
+        fragment = rows.fragments[tallest]
+        header = fragment.sticky_header(len(fragment.line_blocks) - 1, 1)[-1]
+        words = "".join(span.text for span in header.spans).split()
+        rect = window.visualRect(rows.index(tallest, 0))
+        window.scroll_y = window.scroll_y + rect.top() + rect.height() // 2
+        await asyncio.sleep(0.8)
+        facts = self.pinned()
+        self.report("1-mid-message", header=" ".join(words), height=rect.height(), **facts)
+        assert facts["shown"], "mid-message: no header pinned"
+        assert all(word in facts["text"] for word in words), f"pinned {facts['text']!r} is not {words}"
+        rect = window.visualRect(rows.index(tallest, 0))
+        window.scroll_y = window.scroll_y + rect.top()
+        await asyncio.sleep(0.8)
+        facts = self.pinned()
+        self.report("2-header-on-top", **facts)
+        assert not facts["shown"], "the message's own header is on the top row, yet a copy is pinned"
+
+
 class WelcomeScenario(Scenario):
     summary = "print the welcome's listings, then open its first row"
 

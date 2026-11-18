@@ -36,7 +36,7 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     RichLineRenderer,
 )
-from toad.widgets.history_anchor import PinnedHeader
+from toad.client.history_changes import HeaderPin
 from toad.widgets.agent_activity import AgentActivityPresentation
 from textual.events import Mount
 from textual import on
@@ -93,12 +93,9 @@ class ConversationLineBlock(BlockContent, LineBlockRow):
         return selection.extract(self.block.selection_text), "\n"
 
 
-class StickyHeader(StartsHidden, ScreenOverlay, LineBlockRow):
-    """The header of the message under the window's top row, pinned there while its own row
-    is scrolled above, so the reader of a long message still sees who sent it to whom, and when.
-
-    It is the message's own header block drawn the same way; it keeps no copy of the message.
-    """
+class StickyHeader(HeaderPin, StartsHidden, ScreenOverlay, LineBlockRow):
+    """`HeaderPin` as a line block docked over the window's top row, drawn as the flow draws
+    the message's own header block."""
 
     ALLOW_SELECT = False
 
@@ -110,17 +107,15 @@ class StickyHeader(StartsHidden, ScreenOverlay, LineBlockRow):
         self.styles.dock = "top"
         self.styles.layer = "float"
 
-    def pin(self, pinned: PinnedHeader) -> None:
-        """Draw the one header the window's top row needs, or none, in the column its message
-        draws it in, so it sits and wraps exactly as the flow's own header does."""
-        for header in pinned.headers:
-            self.update_block(header)
-        if pinned.headers:
-            if self.styles.width is None or self.styles.width.value != pinned.width:
-                self.styles.width = pinned.width
-            if self.styles.offset.x.value != pinned.x:
-                self.styles.offset = (pinned.x, 0)
-        self.display = bool(pinned.headers)
+    def draw_pinned(self, header: Divider, x: int, width: int) -> None:
+        self.update_block(header)
+        if self.styles.width is None or self.styles.width.value != width:
+            self.styles.width = width
+        if self.styles.offset.x.value != x:
+            self.styles.offset = (x, 0)
+
+    def show_pin(self, shown: bool) -> None:
+        self.display = shown
 
 
 class MessageDivider(EffectInContent, SpacedAbove, Animated[Mix], ConversationLineBlock):
