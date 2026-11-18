@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QPlainTextEdit,
+    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -298,7 +299,10 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
 
     `MessagePromptComposer` (shared with Textual's `MessagePrompt`) owns the submission
     owner, the queue answers, the leading glyph and how a returned draft rejoins; this
-    class makes the Qt calls. Enter sends (`SubmitAction`), as in the TUI: no Send button.
+    class makes the Qt calls. Enter sends (`SubmitAction`), as in the TUI. A touch keyboard's
+    Enter is committed as a newline in a multi-line field, so the frame also carries the same
+    action as a button: its label is `SubmitAction.title` and a tap runs `submit`, the method
+    `SubmitAction` binds to, so there is one send path with two triggers.
     The shared action families bind to it through `SubmitsContract` + `DismissibleContract`."""
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
@@ -336,9 +340,13 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         self.delivery_controls = QtDeliveryControls(self)
         self.failure = self.line(FailureRole)
         self.receipt = Receipt(host.app, renderer)
+        self.send_button = QPushButton(SubmitAction.title, self)
+        self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
+        self.send_button.clicked.connect(self.submit)
         frame_row = QHBoxLayout()
         frame_row.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.tight)
-        frame_row.addWidget(self.frame)
+        frame_row.addWidget(self.frame, 1)
+        frame_row.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignBottom)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
