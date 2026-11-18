@@ -58,7 +58,8 @@ from toad.qt.workspace_frame import QtWorkspaceFrame
 from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
-from toad.client.application_actions import ApplicationAction, NewSessionAction, NewThreadAction
+from toad.client.category_selection import CategorySelection
+from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
     BusChoice,
@@ -104,7 +105,7 @@ from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
-from toad.client.sidebar_filter import SidebarFilter
+from toad.client.sidebar_filter import SidebarFilter, SidebarSearchField
 from toad.client.sidebar_panels import PanelSpec
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
@@ -210,13 +211,34 @@ class SidebarItem(QTreeWidgetItem):
         if text == self.drawn:
             return
         self.drawn = text
-        self.setData(0, LAYOUT_ROLE, StyledTextLayout(
-            name=Segment(label), status_prefix=f"{badge} " if badge else "", detail_line=summary,
-            multiline=True))
         self.setToolTip(0, tooltip)
+        self.fit()
+
+    def first_line(self) -> tuple[str, str]:
+        """The status prefix and the name the line's first row draws."""
+        badge, label, _, _ = self.drawn
+        return (f"{badge} " if badge else ""), label
+
+    def fit(self) -> None:
+        """Lay the text out for the width the tree gives this line: the name and the summary
+        each end in an ellipsis where they would overflow, as Textual's rows elide, rather than
+        being cut at the edge. The prefix (status, unread) always shows. Elision is the font's
+        own ElideRight, the rule `ElidedLine` draws with."""
+        prefix, name = self.first_line()
+        summary = self.drawn[2]
+        tree = self.treeWidget()
+        if tree is not None:
+            width = tree.line_width(self)
+            metrics = tree.fontMetrics()
+            right = Qt.TextElideMode.ElideRight
+            name = metrics.elidedText(name, right, max(1, width - metrics.horizontalAdvance(prefix)))
+            summary = metrics.elidedText(summary, right, max(1, width - metrics.horizontalAdvance("  ")))
+        self.setData(0, LAYOUT_ROLE, StyledTextLayout(
+            name=Segment(name), status_prefix=prefix, detail_line=summary, multiline=True))
 
     def placed(self) -> None:
-        """A new line needs nothing once it is in the tree."""
+        """A new line fits its text to the tree it just joined."""
+        self.fit()
 
     def subtree(self) -> Iterator[SidebarItem]:
         """This line and every line under it."""
@@ -245,8 +267,9 @@ class SidebarSection(SidebarItem):
     """A group of rows with a title, such as Threads."""
 
     def __init__(self, title: str) -> None:
-        super().__init__([title])
+        super().__init__()
         self.key = title
+        self.draw("", title, "", "")
 
 
 class OpenSection(SidebarSection):
@@ -290,6 +313,7 @@ class ConversationRow(SidebarItem):
     def placed(self) -> None:
         """A new channel line opens as its target opens by default (the feed does), as the
         Textual sidebar's ChannelGroup does."""
+        super().placed()
         self.setExpanded(self.target.expanded_by_default)
 
     @classmethod
@@ -354,33 +378,29 @@ class ChannelLine(ConversationRow):
     beneath it."""
 
     header: HeaderLineControl | None = None
-    header_text = ""
+
+    def first_line(self) -> tuple[str, str]:
+        """The header draws the first row; the tree's text is the summary alone."""
+        return "", ""
 
     def draw(self, badge: str, label: str, summary: str, tooltip: str) -> None:
-        text = (badge, label, summary, tooltip)
-        if text == self.drawn:
-            return
-        self.drawn = text
-        self.header_text = f"{badge} {label}" if badge else label
-        self.setData(0, LAYOUT_ROLE, StyledTextLayout(
-            name=Segment(""), detail_line=summary, multiline=True))
-        self.setToolTip(0, tooltip)
+        super().draw(badge, label, summary, tooltip)
         if self.header is not None:
-            self.header.title.setText(self.header_text)
+            self.header.show_title(label, badge)
 
 
-class NewSessionRow(SidebarItem):
+class NewSessionRow(NewSessionControl, SidebarItem):
     """The Channels sidebar's first line, as Textual's `NewSessionButton`: a tap starts a
-    thread in the selected project through the shared `NewThreadAction`."""
+    thread in the selected project through the shared `NewSessionControl`."""
 
-    key = NewThreadAction.row_label
+    key = NewSessionControl.label
 
     def __init__(self) -> None:
         super().__init__()
-        self.draw("", NewThreadAction.row_label, "", "Start a thread in the selected project")
+        self.draw("", self.label, "", "Start a thread in the selected project")
 
     def activate(self, window: QtToadApp) -> None:
-        window.run_operation(MenuActionRun, partial(NewThreadAction().apply, window))
+        window.run_operation(MenuActionRun, partial(self.start_session, window))
 
 
 class BusRow(SidebarItem):
@@ -601,24 +621,21 @@ class QtWelcomeOrigin(ProjectSessionOrigin):
         )
 
 
-class QtNewSessionButton(QPushButton):
-    """Qt's New Session button on the welcome: fires the shared
-    `NewSessionAction` so this frontend starts a session the same way Textual's
-    `StartSessionButton` and the welcome's `n` key do. The action owner lives on
-    `toad.client.application_actions.NewSessionAction`; the button holds no
-    policy of its own."""
+class QtStartSessionButton(NewSessionControl, QPushButton):
+    """The welcome's New Session, as Textual's `StartSessionButton`: this launch's session
+    (`NewSessionAction`), labelled and started through the shared `NewSessionControl`."""
+
+    action = NewSessionAction
 
     def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
-        super().__init__("New session", parent)
+        super().__init__(self.label, parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setMinimumHeight(40)
         self._host = window
         self.clicked.connect(self._fire)
 
     def _fire(self) -> None:
-        self._host.run_operation(
-            MenuActionRun, partial(NewSessionAction().apply, self._host)
-        )
+        self._host.run_operation(MenuActionRun, partial(self.start_session, self._host))
 
 
 class Welcome(Page, BusListing, QWidget):
@@ -639,7 +656,7 @@ class Welcome(Page, BusListing, QWidget):
         self.project = BusLabel(window)
         self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.project.setStyleSheet(window.renderer.color_style(MutedRole))
-        self.new_session_button = QtNewSessionButton(window, parent=self)
+        self.new_session_button = QtStartSessionButton(window, parent=self)
         self.rows = ConversationRows(window)
         self.held_menu = HeldRowMenu(self)
         self.address = BusAddress(window)
@@ -761,7 +778,12 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         # One column: a line's text spans the row, as Textual's rows do. A channel line's
         # order control lies over the right end of its first line (`HeaderLineControl`).
         self.setColumnCount(1)
-        self.setStyleSheet(scheme.styles.generate_tree_widget_style())
+        # The scrollbar is one cell wide, as Textual's sidebar viewport draws it
+        # (`scrollbar_size_vertical = 1`): a narrow sidebar keeps its text width.
+        cell = self.fontMetrics().averageCharWidth()
+        self.setStyleSheet(scheme.styles.generate_tree_widget_style()
+                           + f"QScrollBar:vertical {{ width: {cell}px; }}"
+                           f"QScrollBar:horizontal {{ height: {cell}px; }}")
         self.setItemDelegateForColumn(0, MultilinePreviewItemDelegate(
             scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text), self))
@@ -781,6 +803,25 @@ class ConversationRows(TouchScrolled, QTreeWidget):
 
     def activate(self, item: SidebarItem) -> None:
         item.activate(self.window)
+
+    def line_width(self, item: SidebarItem) -> int:
+        """The text width a line at ``item``'s depth gets: the viewport less the indentation
+        its ancestors (and the root's branch) take and the delegate's text inset."""
+        depth = int(self.rootIsDecorated())
+        parent = item.parent()
+        while parent is not None:
+            depth += 1
+            parent = parent.parent()
+        return (self.viewport().width() - self.indentation() * depth
+                - 2 * MultilinePreviewItemDelegate.TEXT_INSET_X)
+
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        """A new width fits every line's text again."""
+        super().resizeEvent(event)
+        root = self.invisibleRootItem()
+        for index in range(root.childCount()):
+            for line in root.child(index).subtree():
+                line.fit()
 
     def items(self):
         return (self.topLevelItem(index) for index in range(self.topLevelItemCount()))
@@ -808,13 +849,25 @@ class HeaderLineControl(QWidget):
     def __init__(self, control: QWidget) -> None:
         super().__init__()
         self.setWindowFlags(Qt.WindowType.Widget)
+        # The name elides; its unread badge follows it and always shows, as Textual's
+        # header line draws the title, then `ChannelUnreadSegment`, then the order.
         self.title = ElidedLine("")
-        self.title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.badge = QLabel("")
+        # Title and badge abut (`#a…●`); one gap separates them from the order.
         row = QHBoxLayout(self)
-        row.setContentsMargins(UiGap.normal, 0, 0, 0)
-        row.setSpacing(UiGap.normal)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(0)
         row.addWidget(self.title, 1, Qt.AlignmentFlag.AlignTop)
+        row.addWidget(self.badge, 0, Qt.AlignmentFlag.AlignTop)
+        row.addSpacing(UiGap.tight)
         row.addWidget(control, 0, Qt.AlignmentFlag.AlignTop)
+        for label in (self.title, self.badge):
+            label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+
+    def show_title(self, label: str, badge: str) -> None:
+        self.title.setText(label)
+        self.badge.setText(badge)
+        self.badge.setVisible(bool(badge))
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         event.ignore()
@@ -846,7 +899,8 @@ class QtChannelGroup(ChannelGroupRows):
         # `ChannelSortSegment` ends the header line. `setItemWidget` requires the item
         # to already be in the tree, which both construction paths guarantee.
         row.header = HeaderLineControl(self.sort_choice)
-        row.header.title.setText(row.header_text)
+        badge, label, _, _ = row.drawn
+        row.header.show_title(label, badge)
         sidebar.setItemWidget(row, 0, row.header)
 
     @property
@@ -937,41 +991,48 @@ class QtChannelGroup(ChannelGroupRows):
             )
 
 
-class QtSidebarSearch(QWidget):
-    """The sidebar's multi-panel shell: stacks the shared `SidebarFilter`'s input
-    over a column of `QtSidebarPanelFrame`s, each wrapping one content widget. Today
-    the only panel is the conversations tree; follow-up PRs split the project panel
-    (and anything else) into siblings keyed by their own `PanelSpec.title`.
+class QtSidebarSearch(SidebarSearchField, QLineEdit, metaclass=PyQtWidgetMeta):
+    """The sidebar's search input, as Textual's `SidebarSearch`: its text is the sidebar's
+    `SidebarFilter` text, and Escape clears it."""
 
-    Each panel reads/writes its collapsed state through the shared
-    `app.sidebar_state.panels_collapsed` owner so the two frontends agree on which
-    panel is open — same key, same writer, identical to Textual's
-    `SideBar._compose_shell` which stacks `SidebarSearch` + a viewport of
-    `SideBarCollapsible` panels for the same reason.
+    def __init__(self, search: SidebarFilter, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
+        self.setPlaceholderText(self.search_placeholder)
+        self.setText(search.text)
+        self.textChanged.connect(lambda text: setattr(search, "text", text))
 
-    The input writes `sidebar.filter.text`; the tree's `_on_filter_changed`
-    subscriber re-presents. The name `QtSidebarSearch` stays for now to avoid
-    churn in callers; the class is the shell, not just the input."""
+    def show_search(self, text: str) -> None:
+        self.setText(text)
+
+    def keyPressEvent(self, event) -> None:  # type: ignore[override]
+        if event.key() == Qt.Key.Key_Escape and self.text():
+            event.accept()
+            self.clear_search()
+            return
+        super().keyPressEvent(event)
+
+
+class QtSidebarShell(QWidget):
+    """The channels sidebar's content, as Textual's `SideBar._compose_shell`: the search input
+    over its panels. The Channels sidebar declares one panel (`CHANNELS_PANEL`) with the
+    channel order in its header; its collapsed state is the shared `SidebarState`'s."""
 
     def __init__(self, sidebar: "Sidebar", parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.sidebar = sidebar
-        self.search_input = QLineEdit(self)
-        self.search_input.setPlaceholderText("Search")
-        self.search_input.setClearButtonEnabled(True)
-        self.search_input.setText(sidebar.filter.text)
-        self.search_input.textChanged.connect(self._on_text_changed)
+        self.search_input = QtSidebarSearch(sidebar.filter, self)
         self.channel_sort = QtChannelListSort(sidebar.window)
-        # The tree is one panel in the multi-panel shell. Future listings become
-        # siblings (project files, buses, etc.) each with their own `PanelSpec`.
-        self.conversations_panel = QtSidebarPanelFrame(
+        self.channels_panel = QtSidebarPanelFrame(
             CHANNELS_PANEL, sidebar, sidebar.window.sidebar_state, parent=self,
             header_control=self.channel_sort,
         )
-        self.panels: list[QtSidebarPanelFrame] = [self.conversations_panel]
+        self.panels: list[QtSidebarPanelFrame] = [self.channels_panel]
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(UiGap.normal, UiGap.normal, UiGap.normal, 0)
+        # No inset: Textual's sidebar content runs to the strip, and a narrow sidebar
+        # needs every column for its names.
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(UiGap.normal)
         layout.addWidget(self.search_input)
         for panel in self.panels:
@@ -994,8 +1055,6 @@ class QtSidebarSearch(QWidget):
             return
         layout.setStretch(index, self._panel_stretch(panel))
 
-    def _on_text_changed(self, value: str) -> None:
-        self.sidebar.filter.text = value
 
 
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
@@ -1232,7 +1291,7 @@ class BusLabel(ElidedLine):
         self.setToolTip(f"{prefix}{location}")
 
 
-class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
+class ConversationView(CategorySelection, JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
                        QtHistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
                        metaclass=PyQtWidgetMeta):
 
@@ -1259,8 +1318,8 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
         self.app, self.entry = app, entry
         self.submissions = BusSubmissions(self)
         self.content_ready = asyncio.Event()
-        # This view owns which message categories its transcript shows; the history reads the
-        # selection through `selected_categories` and the thread settings pane writes it.
+        # This view owns which message categories its transcript shows (`CategorySelection`);
+        # the history reads it through `selected_categories` and the comms panel writes it.
         self.visible_categories = all_categories()
         # The fragment the viewer most recently long-pressed, if any; menu commands read
         # it to know which block they act on.
@@ -1483,15 +1542,8 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
     def draws_user_message(self, reference: MessageReference) -> bool:
         return self.message_history.draws(reference)
 
-    def set_category(self, category, on: bool) -> None:
-        """Show or hide one message category in this view's transcript, then draw the shown
-        rows again. The selection lives here; the pane reads it back on its next present."""
-        selected = self.visible_categories
-        self.visible_categories = selected | {category} if on else selected - {category}
+    def categories_changed(self) -> None:
         self.message_history.apply_filter()
-        # The pane reflects the bound view's selection; a present after the change keeps the
-        # checks and the transcript showing the same thing.
-        self.app.thread_pane.present()
 
     def record_input(self, text: str) -> None:
         """The Qt composer recalls no earlier input, so there is no history to keep."""
@@ -1691,7 +1743,7 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # into the sidebar's shared `SidebarFilter`; the pane takes the wrapper as its
         # content so the input is visible at the top of the pane, mirroring Textual's
         # `SideBar._compose_shell` which also stacks `SidebarSearch` over its panels.
-        self.sidebar_search = QtSidebarSearch(self.sidebar, parent=self)
+        self.sidebar_search = QtSidebarShell(self.sidebar, parent=self)
         self.thread_pane = ThreadSettingsPane(parent=self,
                                               project_path=self.project_dir.path)
         # The pages and both sidebars live in one chrome that places them where the shared

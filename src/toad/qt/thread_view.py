@@ -21,6 +21,7 @@ from metaclass_registry.mro_dispatch import MroDispatch
 import asyncio
 
 import shiboken6
+from agent_comms.ui_model.message_category import all_categories
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -32,6 +33,7 @@ from toad.client.reader_position import LatestPosition
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.bus_submission import BusSubmissions, TypedText
+from toad.client.category_selection import CategorySelection
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.observed_field import ObservedField
 from toad.client.resource_release import ResourceRelease
@@ -59,6 +61,7 @@ if TYPE_CHECKING:
 
 
 class QtThreadView(
+    CategorySelection,
     ObservedAgentBinding,
     ConversationThreadReadMixin,
     ThreadBindingDispatch,
@@ -228,6 +231,9 @@ class QtThreadView(
         # build its `SavedTranscript`, so the attribute has to exist before the
         # history does.
         self.transcript = TranscriptPresentation()
+        # The categories this view's transcript shows (`CategorySelection`); the history
+        # reads them through `selected_categories` from its first page.
+        self.visible_categories = all_categories()
         self.message_history = QtTranscriptHistory(self.messages, self, app)
         # Activity sweep above the transcript — Qt sibling of Textual's
         # `Conversation.throbber_above = AboveThrobber(self.working)`. Reads the
@@ -544,6 +550,9 @@ class QtThreadView(
         return self.thread_scope.status_thread(self.app.coordination_access)
 
     # ---- attached / current session ----
+
+    def categories_changed(self) -> None:
+        self.message_history.apply_filter()
 
     @property
     def is_attached(self) -> bool:

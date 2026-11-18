@@ -13,7 +13,6 @@ reachable graph (textual_colours, watchdog, pathspec, ncurses, …).
 
 from __future__ import annotations
 
-from agent_comms.ui_model.message_category import all_categories
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
@@ -35,12 +34,6 @@ class QtOpeningSessionView(SessionScope, QWidget):
         self.id = ""  # workspace_sessions.prepare assigns the real mode name on mount
         self._title = title
         self._error: Exception | None = None
-        # Sidebar panels bound while this view is the selected tab (QtCategoryFilter via
-        # `thread_pane.bind`) read `view.visible_categories` to decide which message
-        # categories to show. Opening view carries all categories as the placeholder
-        # default — the real view's own attribute overrides this once `prepared.bind`
-        # swaps it in. `ConversationView.__init__` sets the same field at window.py:1061.
-        self.visible_categories = all_categories()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.page, UiGap.page, UiGap.page, UiGap.page)
         self._label = QLabel(f"Opening {title}…", self)

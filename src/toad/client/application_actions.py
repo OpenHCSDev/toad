@@ -206,8 +206,6 @@ class NewThreadAction(ApplicationAction):
     """Start a thread in the selected project."""
 
     show = True
-    row_label = "+ New Session"
-    """How the Channels sidebar's first row names this action, on both frontends."""
 
     async def apply(self, app: ClientApplication) -> None:
         navigation = app.session_navigation
@@ -309,3 +307,16 @@ class QuitAction(LastInMenu, ReplacesFrameworkAction, ApplicationAction):
 
     async def apply(self, app: ClientApplication) -> None:
         app.application.quit()
+
+
+class NewSessionControl:
+    """A control that starts a session: what it says and the action a press applies.
+    Textual's `NewSessionButton` (the Channels sidebar's row) and `StartSessionButton` (the
+    welcome's), Qt's `NewSessionRow` and `QtStartSessionButton` all inherit it. The sidebar's
+    starts a thread in the selected project; the welcome's starts this launch's session."""
+
+    label = "+ New Session"
+    action: type[ApplicationAction] = NewThreadAction
+
+    async def start_session(self, app: ClientApplication) -> None:
+        await self.action().apply(app)

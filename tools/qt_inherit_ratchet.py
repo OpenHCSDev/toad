@@ -26,23 +26,16 @@ KNOWN_COPIES = {
     "toad.qt.menu.QtMenu": "toad.widgets.menu.Menu",
     "toad.qt.queue_ui.QtDeliveryControls": "toad.widgets.prompt.DeliveryControls",
     "toad.qt.queue_ui.QtQueueInspection": "toad.screens.queue.QueueInspection",
-    "toad.qt.session_panel.SessionPanel": "toad.widgets.session_thread_panels.SessionPanel",
     "toad.qt.settings_screen.QtBoolEditor": "toad.forms.editors.BoolEditor",
     "toad.qt.settings_screen.QtChoicesEditor": "toad.forms.editors.ChoicesEditor",
     "toad.qt.settings_screen.QtFloatEditor": "toad.forms.editors.FloatEditor",
     "toad.qt.settings_screen.QtIntEditor": "toad.forms.editors.IntEditor",
     "toad.qt.settings_screen.QtSettingsScreen": "toad.screens.settings.SettingsScreen",
     "toad.qt.settings_screen.QtStrEditor": "toad.forms.editors.StrEditor",
-    "toad.qt.side_bar.QtSidebarResizeHandle": "toad.widgets.side_bar.SidebarResizeHandle",
-    "toad.qt.thread_comms_panel.QtRelationshipSort": "toad.widgets.thread_comms.RelationshipSort",
     "toad.qt.transfer.QtThreadImportDialog": "toad.widgets.comms_transfer.ThreadImportDialog",
     "toad.qt.transfer.QtTransferDialog": "toad.widgets.comms_transfer.TransferDialog",
     "toad.qt.transfer.QtWireExportDialog": "toad.widgets.comms_transfer.WireExportDialog",
     "toad.qt.window.BusAddress": "toad.screens.bus_choice.BusAddress",
-    "toad.qt.window.QtNewSessionButton": "toad.widgets.comms_sidebar.NewSessionButton",
-    "toad.qt.window.QtSidebarSearch": "toad.widgets.side_bar.SidebarSearch",
-    "toad.qt.context_panel.QtContextExplorer": "toad.widgets.context_explorer.ContextExplorer",
-    "toad.qt.coordination_panel.QtCoordinationStatus": "toad.widgets.comms_sidebar.CoordinationStatus",
 }
 
 # Same name, different concept: not a frontend pair. Each entry says what the sibling really is.

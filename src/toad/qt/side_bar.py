@@ -33,6 +33,7 @@ from toad.sidebar_layout import (
     SidebarExtentTrack,
     SidebarLayout,
     SidebarPlacementAction,
+    SidebarResizeGrip,
     SidebarSurface,
     SidebarToggleFace,
 )
@@ -152,19 +153,26 @@ class QtSideBarToggle(SidebarToggleFace, QLabel, metaclass=PyQtWidgetMeta):
             self._surface.toggle_pane()
 
 
-class QtSidebarResizeHandle(QWidget):
-    """The line between the content and the toggle strip: a drag resizes the sidebar through
-    the surface's shared ``dragged_percent``; a press without a drag shows or hides the
-    slider and placement controls, as the Textual handle does."""
+class QtSidebarResizeHandle(SidebarResizeGrip, QWidget, metaclass=PyQtWidgetMeta):
+    """The line between the content and the toggle strip, as Textual's
+    `SidebarResizeHandle`: a drag resizes through the shared `SidebarResizeGrip`; a press
+    without a drag shows or hides the slider and placement controls."""
 
     def __init__(self, surface: QtSideBar) -> None:
         super().__init__(surface)
         self.setWindowFlags(Qt.WindowType.Widget)
-        self.setToolTip("Drag toward the center to expand the sidebar")
+        self.setToolTip(self.grip_tooltip)
         self._surface = surface
         self._start: QPoint | None = None
-        self._start_percent = 0
         self._dragged = False
+
+    @property
+    def grip_surface(self) -> QtSideBar:
+        return self._surface
+
+    def grip_viewport_extent(self) -> int:
+        chrome = self._surface.parentWidget()
+        return self._surface.placement.side.extent(Size(chrome.width(), chrome.height()))
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         """The handle's line, as the edge's ``handle_text`` draws it in a terminal: one
@@ -181,8 +189,8 @@ class QtSidebarResizeHandle(QWidget):
         if event.button() == Qt.MouseButton.LeftButton:
             event.accept()
             self._start = event.globalPosition().toPoint()
-            self._start_percent = self._surface.placement.extent_percent
             self._dragged = False
+            self.begin_grip()
 
     def mouseMoveEvent(self, event) -> None:  # type: ignore[override]
         if self._start is None:
@@ -191,14 +199,11 @@ class QtSidebarResizeHandle(QWidget):
         moved = event.globalPosition().toPoint() - self._start
         self._dragged = self._dragged or moved.manhattanLength() > 4
         if self._dragged:
-            chrome = self._surface.parentWidget()
-            viewport = self._surface.placement.side.extent(Size(chrome.width(), chrome.height()))
-            self._surface.resize_to(self._surface.dragged_percent(
-                self._start_percent, Offset(moved.x(), moved.y()), viewport))
+            self.drag_grip(Offset(moved.x(), moved.y()))
 
     def mouseReleaseEvent(self, event) -> None:  # type: ignore[override]
         if self._start is not None and not self._dragged:
-            self._surface.toggle_controls()
+            self.grip_clicked()
         self._start = None
 
 

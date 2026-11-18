@@ -14,7 +14,7 @@ View, not authority: renders Core's sidebar presentation model
 from __future__ import annotations
 
 from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
-from toad.client.coordination_panel import read_coordination_state
+from toad.client.coordination_panel import CoordinationStateReport, CoordinationStatusView
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
 from agent_comms.display_order import ThreadSort
@@ -37,7 +37,7 @@ from toad.navigation_target import (
 )
 from toad.client.session_tracker import SidebarSelection
 from toad.widgets.selection import HoverSelection
-from toad.client.application_actions import NewThreadAction
+from toad.client.application_actions import NewSessionControl
 from toad.widget_actions import OpensSelected
 from toad.widgets.session_sort import ChannelListSort, CommsSortChoice, ThreadSortForm
 from toad.widgets.sidebar_tree import (
@@ -284,6 +284,7 @@ class ThreadRow(ThreadStatusRow):
 
 
 class NewSessionButton(
+    NewSessionControl,
     MutedText,
     FillWidth,
     OneRow,
@@ -300,16 +301,17 @@ class NewSessionButton(
     can_focus = True
 
     def __init__(self) -> None:
-        super().__init__(NewThreadAction.row_label)
+        super().__init__(self.label)
 
     @property
     def primary_activation(self):
         return self.create
 
     async def create(self) -> None:
-        await NewThreadAction().apply(self.app)
+        await self.start_session(self.app)
 
 class CoordinationStatus(
+    CoordinationStatusView,
     MutedText,
     NoPadding,
     ShowsThreadIdentity,
@@ -319,8 +321,7 @@ class CoordinationStatus(
     """Compact diagnostics for the persistent coordination wire."""
 
 
-    def identity_changed(self, identity: SessionIdentity) -> None:
-        report = read_coordination_state(identity)
+    def show_report(self, report: CoordinationStateReport) -> None:
         # Textual adds colour to the wire root and the persistence label; both renderers
         # assemble from the same report so the facts are owned once, in one place.
         self.update(

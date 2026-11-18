@@ -8,7 +8,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-from toad.client.context_intent import ContextTreeIntent
+from toad.client.context_intent import ContextInspectionReader, ContextTreeIntent
 from agent_comms.coordination.coordinator import Coordination
 from agent_comms.coordination.errors import Refused
 from metaclass_registry.mro_dispatch import handles
@@ -395,6 +395,7 @@ class RefreshContextAction(ContextExplorerAction):
 
 
 class ContextExplorer(
+    ContextInspectionReader,
     AutoHeight,
     NativeMethodKeys,
     ShowsThreadIdentity,
@@ -405,15 +406,10 @@ class ContextExplorer(
 
     def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
         super().__init__()
-        self.state: InspectionState = DetachedInspection()
-        self._intents = intents
+        self.start_inspection(intents)
         self.search_field = ContextSearch(
             placeholder="Search current context or selected recorded request · Enter",
         )
-
-    @property
-    def intent(self) -> ContextTreeIntent:
-        return self._intents.setdefault(self.thread_identity, ContextTreeIntent())
 
     def compose(self):
         yield ContextStatus(
@@ -480,7 +476,7 @@ class ContextExplorer(
 
     def identity_changed(self, identity: SessionIdentity) -> None:
         self.workers.cancel_node(self)
-        self.state = identity.inspection_state()
+        self.inspect_identity(identity)
         self.search_field.value = self.intent.query
         self.query_one(ContextTree).clear()
         self.query_one(ContextStatus).update(f"Context · {identity.display_thread()}")
@@ -508,16 +504,15 @@ class ContextExplorer(
     async def _read_owner(self, identity: ThreadIdentity, *, force: bool = False):
         status = self.query_one(ContextStatus)
         access = self.app.coordination_access
-        previous = self.state
-        self.state = previous.observe(access.revision)
+        previous = self.observe_revision(access.revision)
         try:
             observed = await self.app.preparation.run_thread(lambda: access.observing(identity.root_path))
             if not self._reading(identity):
                 return
-            acquired = await self.state.acquire(observed, access.revision, identity, cursor=self.intent.cursor)
+            acquired = await self.acquire_inspection(observed, access.revision, identity)
             if not self._reading(identity):
                 return
-            self.state = self.state.receive_inspection(acquired)
+            self.receive_inspection(acquired)
             status.update(self.state.status)
             self.state.present(lambda current: self._inspection_acquired(previous, current, force))
         except asyncio.CancelledError:

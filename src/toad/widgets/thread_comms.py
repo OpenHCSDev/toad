@@ -47,6 +47,7 @@ from toad.widget_actions import OpensSelected, WidgetAction
 from toad.widgets.checkbox import Checkbox
 from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.comms_sidebar import ThreadStatusRow
+from toad.client.sort_control import RelationshipOrder
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import (
     SideBar,
@@ -80,13 +81,9 @@ class RelationshipRowPresentation(WorkerGroup):
 from toad.client.relationship_tree_state import RelationshipTreeState  # noqa: E402
 
 
-class RelationshipSort(SortControl[ThreadSort]):
+class RelationshipSort(RelationshipOrder, SortControl[ThreadSort]):
     def __init__(self):
         super().__init__(ThreadSortForm, "relationships")
-
-    def update_groups(self, groups):
-        orders = {group.order for group in groups}
-        self.update_order(next(iter(orders)) if len(orders) == 1 else None)
 
     async def order_writer(self):
         tree = self.query_ancestor(SidebarPanelHost).query_one(ThreadCommsSidebar)
@@ -104,10 +101,7 @@ class RelationshipSort(SortControl[ThreadSort]):
             ):
                 return
             try:
-                for group in groups:
-                    await self.app.preparation.run_thread(
-                        service.set_relationship_order, identity.thread_name(), type(group), order
-                    )
+                await self.write_relationship_order(self.app.preparation, service, identity, groups, order)
             finally:
                 if (
                     generation == tree._generation
@@ -418,10 +412,7 @@ class ThreadCommsSidebar(
         if self._filter_view is not None:
             category = self._filter_controls.get(event.checkbox)
             if category is not None:
-                selected = self._filter_view.visible_categories
-                self._filter_view.visible_categories = (
-                    selected | {category} if event.value else selected - {category}
-                )
+                self._filter_view.set_category(category, event.value)
 
     def _visible(self):
         return (

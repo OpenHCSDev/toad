@@ -59,6 +59,7 @@ from toad.widget_view import WorkspaceHosted
 from toad.tone_paint import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.client.session_tracker import SidebarState
+from toad.client.sidebar_filter import SidebarSearchField
 from toad.sidebar_layout import (
     DirectionalSidebarPlacementAction,
     FloatSidebarPlacementAction,
@@ -66,6 +67,7 @@ from toad.sidebar_layout import (
     SidebarExtentTrack,
     SidebarLayout,
     SidebarPlacementAction,
+    SidebarResizeGrip,
     SidebarShift,
     SidebarSurface,
     SidebarToggleFace,
@@ -746,6 +748,7 @@ class SidebarAction(
         self.post_message(self.Pressed(self.action))
 
 class SidebarResizeHandle(
+    SidebarResizeGrip,
     NoPadding,
     VisibleActions,
     StepsHorizontalCursor,
@@ -772,20 +775,25 @@ class SidebarResizeHandle(
         super().__init__()
         edge.size_handle(self)
         self.styles.dock = edge.opposite().dock
-        self.tooltip = "Drag toward the center to expand the sidebar"
+        self.tooltip = self.grip_tooltip
 
     def render(self) -> str:
         return self.query_ancestor(SideBar).placement.side.handle_text(self.size)
 
+    @property
+    def grip_surface(self) -> SideBar:
+        return self.query_ancestor(SideBar)
+
+    def grip_viewport_extent(self) -> int:
+        bar = self.grip_surface
+        return bar.placement.side.extent(bar.query_ancestor(Widget).content_size)
+
     def clicked(self) -> None:
         """A click, not a drag, shows or hides the bar's placement buttons and extent slider."""
-        controls = self.query_ancestor(SideBar).layout_controls
-        controls.display = not controls.display
+        self.grip_clicked()
 
     def drag_to(self, position: Offset) -> None:
-        bar = self.query_ancestor(SideBar)
-        bar.resize_to(bar.dragged_percent(self._start_percent, position - self._start_point,
-                                          self._drag_viewport))
+        self.drag_grip(position - self._start_point)
 
     def resize_by(self, direction: Offset) -> None:
         bar = self.query_ancestor(SideBar)
@@ -799,11 +807,8 @@ class SidebarResizeHandle(
         self.resize_by(Offset(0, direction))
 
     def drag_start(self, event: events.MouseDown) -> None:
-        bar = self.query_ancestor(SideBar)
-        self._drag_edge = bar.placement.side
         self._start_point = event.screen_offset
-        self._start_percent = bar.placement.extent_percent
-        self._drag_viewport = self._drag_edge.extent(bar.query_ancestor(Widget).content_size)
+        self.begin_grip()
 
 
 class BandSplitHandle(
@@ -865,11 +870,14 @@ class ClearSidebarSearchAction(WidgetAction):
     keys = {TextEntryMode: ("escape",)}
 
     def apply(self, context: SidebarSearch) -> None:
-        context.value = ""
+        context.clear_search()
 
 
-class SidebarSearch(DeclaredWidgetActions, widgets.Input, actions=(ClearSidebarSearchAction,)):
+class SidebarSearch(SidebarSearchField, DeclaredWidgetActions, widgets.Input, actions=(ClearSidebarSearchAction,)):
     """Sidebar text filter with a declared clear action."""
+
+    def show_search(self, text: str) -> None:
+        self.value = text
 
 
 class SearchSidebarAction(WidgetAction):
@@ -991,7 +999,8 @@ class SideBar(
         panels are absent mounts none of them (each tab's collapsed sidebar built and styled
         them for nothing), and a removed widget is never mounted again, so every load gets
         its own."""
-        self.search_input = SidebarSearch(value=self.search, placeholder="Search", compact=True)
+        self.search_input = SidebarSearch(value=self.search, placeholder=SidebarSearch.search_placeholder,
+                                          compact=True)
         self.panels_viewport: SidebarViewport = SidebarViewport()
         self.layout_controls = SidebarControls()
 
@@ -1178,6 +1187,9 @@ class SideBar(
     @property
     def sidebar_layout(self) -> SidebarLayout:
         return self.app.sidebar_layout
+
+    def toggle_controls(self) -> None:
+        self.layout_controls.display = not self.layout_controls.display
 
     def arranged(self) -> None:
         """Lay the workspace out again and save the arrangement for the next start."""

@@ -223,9 +223,7 @@ class StartSessionButton(NewSessionButton):
     """The welcome view's New Session is this launch's, as its n key is; the sidebar's
     makes another native thread."""
 
-    async def create(self) -> None:
-        screen = self.query_ancestor(WelcomeScreen)
-        await _SharedNewSession().apply(screen.app)
+    action = _SharedNewSession
 
 
 class WelcomeScreen(

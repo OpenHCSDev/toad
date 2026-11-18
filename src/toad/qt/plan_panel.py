@@ -19,14 +19,13 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QGraphicsOpacityEffect, QHBoxLayout, QLabel,
                                QVBoxLayout, QWidget)
 
-from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 from toad.core import events as core_events
 from toad.plan import PlanItem
 from toad.qt.session_panel import SessionPanel
 from toad.qt.metrics import UiGap
 
 
-class QtPlan(ThreadSidebarPanelBody, SessionPanel, QWidget):
+class QtPlan(SessionPanel, QWidget):
     spec_key: ClassVar[str] = "plan"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""

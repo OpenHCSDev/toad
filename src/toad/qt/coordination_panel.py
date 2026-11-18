@@ -10,14 +10,15 @@ from typing import ClassVar
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
-from toad.client.coordination_panel import read_coordination_state
-from toad.thread_identity import NoThreadIdentity, SessionIdentity
+from toad.client.coordination_panel import CoordinationStateReport, CoordinationStatusView
+from toad.thread_identity import NoThreadIdentity
 from toad.qt.metrics import UiGap
 
 
-class QtCoordinationStatus(ThreadSidebarPanelBody, QWidget):
+class QtCoordinationStatus(CoordinationStatusView, ThreadSidebarPanelBody, QWidget, metaclass=PyQtWidgetMeta):
     spec_key: ClassVar[str] = "coordination"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — matches the TUI
     `SessionPanel.spec_key` convention so both frontends declare the same identity."""
@@ -35,9 +36,8 @@ class QtCoordinationStatus(ThreadSidebarPanelBody, QWidget):
         self._label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self._label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         layout.addWidget(self._label)
-        self.apply(NoThreadIdentity())
+        self.identity_changed(NoThreadIdentity())
 
-    def apply(self, identity: SessionIdentity) -> None:
-        report = read_coordination_state(identity)
+    def show_report(self, report: CoordinationStateReport) -> None:
         self._label.setText(report.summary_text())
         self.setToolTip(report.tooltip_text())

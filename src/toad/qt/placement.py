@@ -13,18 +13,15 @@ overflow rather than widening the window.
 
 from __future__ import annotations
 
-from functools import partial
 from pathlib import Path
 
-from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QCheckBox, QFrame, QGroupBox, QLabel, QScrollArea,
+from PySide6.QtWidgets import (QFrame, QGroupBox, QScrollArea,
                                QVBoxLayout, QWidget)
 
 from toad.client.context_intent import ContextTreeIntent
 from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
-from toad.qt.session_panel import SessionPanel
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
@@ -55,38 +52,6 @@ class SessionArrangementStore(ArrangementStore):
         self._terminals = terminals
 
 
-class _CategoryFilter(SessionPanel, QWidget):
-    """The message-category toggle list. Lives in its own widget so `ThreadSettingsPane`
-    can compose it as one section among the sidebar panels declared in the shared roster.
-    `_view` and `bind()` come from `SessionPanel`; `present()` is the per-panel override."""
-
-    def __init__(self, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Widget)
-        column = QVBoxLayout(self)
-        column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
-        column.setSpacing(UiGap.tight)
-        self._checks: dict[type[MessageCategory], QCheckBox] = {}
-        for category in MessageCategory.members_with(MessageCategory):
-            check = QCheckBox(category.label, self)
-            check.toggled.connect(partial(self._toggled, category))
-            self._checks[category] = check
-            column.addWidget(check)
-
-    def present(self) -> None:
-        view = self._view
-        selected = view.visible_categories if view is not None else all_categories()
-        for category, check in self._checks.items():
-            check.setEnabled(view is not None)
-            check.blockSignals(True)
-            check.setChecked(category in selected)
-            check.blockSignals(False)
-
-    def _toggled(self, category: type[MessageCategory], on: bool) -> None:
-        if self._view is not None:
-            self._view.set_category(category, on)
-
-
 class ThreadSettingsPane(QWidget):
     """The open thread's sidebar content. Composes one section per panel in the shared
     roster (`toad.thread_sidebar_declarations.THREAD_SIDEBAR_PANELS`) so the Qt sidebar
@@ -112,7 +77,6 @@ class ThreadSettingsPane(QWidget):
         column = QVBoxLayout(self._content)
         column.setContentsMargins(0, 0, 0, 0)
         column.setSpacing(UiGap.normal)
-        self._category_filter = _CategoryFilter(self._content)
         self._coordination_status = QtCoordinationStatus(self._content)
         self._comms_panel = QtThreadCommsPanel(self._content)
         self._plan_panel = QtPlan(self._content)
@@ -151,12 +115,6 @@ class ThreadSettingsPane(QWidget):
             # (Textual reads the same flag from the shared roster); without a
             # stretch factor QVBoxLayout would hand it only its sizeHint.
             column.addWidget(section, 1 if spec.flex else 0)
-        self._categories_section = QGroupBox("Message categories", self._content)
-        categories_layout = QVBoxLayout(self._categories_section)
-        categories_layout.setContentsMargins(0, UiGap.tight, 0, UiGap.tight)
-        categories_layout.setSpacing(0)
-        categories_layout.addWidget(self._category_filter)
-        column.addWidget(self._categories_section)
         # Add a terminal stretch only when nothing above already stretches, so a
         # flex=True section (Project) can fill the pane without a competing
         # empty stretch below taking half the space.
@@ -173,8 +131,7 @@ class ThreadSettingsPane(QWidget):
         """Follow the conversation the tab now shows; the welcome has none (view is None,
         per `_bind_thread_pane`), so the toggles go quiet. Panels that read / write the
         view receive it here."""
-        self._category_filter.bind(view)
-        self._coordination_status.apply(
+        self._coordination_status.identity_changed(
             view.thread_identity if view is not None else NoThreadIdentity()
         )
         self._comms_panel.bind(view)
@@ -182,6 +139,5 @@ class ThreadSettingsPane(QWidget):
         self._context_panel.bind(view)
 
     def present(self) -> None:
-        self._category_filter.present()
         self._comms_panel.present()
         self._context_panel.present()

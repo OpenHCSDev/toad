@@ -1,4 +1,7 @@
-"""Shared mixin for Qt sidebar panels that follow the active conversation view.
+"""Qt's thread-sidebar panel base: Textual's `SessionPanel` family's sibling.
+
+Both inherit `ThreadSidebarPanelBody` (the roster entry a panel names). This base adds the
+Qt panels' one view binding.
 
 Every panel that renders per-view state (category filter, context explorer, plan,
 thread-comms panel) carried the same three lines independently: `self._view = None`,
@@ -10,8 +13,10 @@ its existing metaclass without conflict, matching how `SessionScope` in
 """
 from __future__ import annotations
 
+from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 
-class SessionPanel:
+
+class SessionPanel(ThreadSidebarPanelBody):
     """Qt sidebar panel bound to the active conversation view.
 
     `_view` is the one owner of "which view this panel follows." `bind(view)`
