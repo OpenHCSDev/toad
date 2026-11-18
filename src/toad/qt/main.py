@@ -19,6 +19,7 @@ from ui_theme.scheme import ColourScheme
 from toad.client.connection import ProcessRemoteCoreConnection, RemoteCoreConnection
 from toad.application_lifetime import ApplicationStart
 from toad.qt.theme import current_scheme
+from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.window import QtToadApp
 from toad.render_backend import Renderer
 from toad.render_in_thread import InThreadRenderer
@@ -59,6 +60,7 @@ async def open_app(connection: RemoteCoreConnection, project: Checkout, scheme: 
     sidebar observing."""
     set_base_config_type(QtClientSettings)
     use_symbol_fallbacks(QApplication.instance())
+    FingerScrolling.install(QApplication.instance(), FingerScrollGesture.of_platform())
     app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme)
     # The loop outlives the window: closing it starts the shared client shutdown, which
     # runs on this loop, so Qt must not stop the loop when the last window closes.

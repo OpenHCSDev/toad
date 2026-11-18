@@ -47,7 +47,6 @@ from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
-from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from ui_theme.clock import AnimationClock
 from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour
 from ui_theme.wal import WalFile
@@ -830,7 +829,7 @@ class KeptLines(TreeItemRows[tuple[type, str]]):
         self.close()
 
 
-class ConversationRows(RowTree, TouchScrolled, QTreeWidget):
+class ConversationRows(RowTree, QTreeWidget):
     """A tree of Toad's conversation rows in the theme's sidebar tones, every other row a
     step off: pyqt-reactive's preview delegate paints each row's unread badge and label with
     its summary under it in muted text; a tap activates the line."""
