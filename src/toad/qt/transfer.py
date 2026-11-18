@@ -16,7 +16,6 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QFormLayout,
     QLabel,
     QLineEdit,
     QVBoxLayout,
@@ -65,11 +64,9 @@ class QtTransferDialog(TransferForm, QDialog):
         header = QLabel(self.heading)
         header.setStyleSheet("font-weight: bold;")
         layout.addWidget(header)
-        form = QFormLayout()
-        form.setSpacing(UiGap.normal)
-        for label, widget in self.rows():
-            form.addRow(label, widget)
-        layout.addLayout(form)
+        for widget in self.fields():
+            layout.addWidget(widget)
+        layout.addStretch(1)
         self._error = QLabel("")
         self._error.setWordWrap(True)
         self._error.setStyleSheet("color: palette(link-visited);")
@@ -83,8 +80,8 @@ class QtTransferDialog(TransferForm, QDialog):
         layout.addWidget(buttons)
 
     @abstractmethod
-    def rows(self) -> tuple[tuple[str, QWidget], ...]:
-        """The form's fields as label and widget, top to bottom."""
+    def fields(self) -> tuple[QWidget, ...]:
+        """The form's fields, top to bottom; placeholders say what each asks for, as in Textual."""
 
     def show_error(self, text: str) -> None:
         self._error.setText(text)
@@ -97,7 +94,7 @@ class QtTransferDialog(TransferForm, QDialog):
 class QtWireExportDialog(WireExportForm, QtTransferDialog):
     request_kind = WireExportRequest
 
-    def rows(self) -> tuple[tuple[str, QWidget], ...]:
+    def fields(self) -> tuple[QWidget, ...]:
         self._destination = _line(self.default_destination, self.destination_placeholder)
         self._format = _choices(self.format_options())
         self._format.setCurrentIndex(self._format.findData(self.default_format))
@@ -106,8 +103,7 @@ class QtWireExportDialog(WireExportForm, QtTransferDialog):
         self._scope.setCurrentIndex(self._scope.findData(self.default_scope))
         self._target = _line(placeholder=self.target_placeholder)
         self._limit = _line(self.limit_default, self.limit_placeholder)
-        return (("Destination:", self._destination), ("Format:", self._format), ("Scope:", self._scope),
-                ("Target:", self._target), ("Byte limit:", self._limit))
+        return self._destination, self._format, self._scope, self._target, self._limit
 
     def _format_changed(self, _index: int) -> None:
         self._destination.setText(self.destination_for_format(self._destination.text(), self.chosen_format()))
@@ -131,14 +127,13 @@ class QtWireExportDialog(WireExportForm, QtTransferDialog):
 class QtThreadImportDialog(ThreadImportForm, QtTransferDialog):
     request_kind = ThreadImportRequest
 
-    def rows(self) -> tuple[tuple[str, QWidget], ...]:
+    def fields(self) -> tuple[QWidget, ...]:
         self._harness = _choices(self.harness_options())
         self._source = _line(placeholder=self.source_placeholder)
         self._name = _line(placeholder=self.name_placeholder)
         self._session = _line(placeholder=self.session_placeholder)
         self._worktree = _line(placeholder=self.worktree_placeholder)
-        return (("Harness:", self._harness), ("Source:", self._source), ("New name:", self._name),
-                ("Session ID:", self._session), ("Worktree:", self._worktree))
+        return self._harness, self._source, self._name, self._session, self._worktree
 
     def source_text(self) -> str:
         return self._source.text()
