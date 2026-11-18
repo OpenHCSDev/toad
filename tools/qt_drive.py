@@ -48,7 +48,7 @@ from toad.client.local_connection import select_connection
 from toad.client.line_blocks import LineLink
 from toad.qt.client_start import open_app
 from toad.qt.glyph_fonts import install_glyph_fonts
-from toad.qt.theme import current_scheme
+from toad.qt.theme import current_scheme, offered_schemes
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling, TouchAsMouse
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
@@ -981,6 +981,7 @@ class ShippedScenario(Scenario):
         app = self.app
         await self.listed()
         self.report("1-welcome")
+        await self.step("1-themes", self.apply_offered_themes)
         for command, label in ApplicationAction.menu(app):
             if isinstance(command, self.creates):
                 continue
@@ -1006,6 +1007,22 @@ class ShippedScenario(Scenario):
         self.close_dialogs()
         if self.faults:
             raise AssertionError(f"{len(self.faults)} fault(s) on the shipped app:\n" + "\n".join(self.faults))
+
+    async def apply_offered_themes(self) -> None:
+        """The app started with its saved theme (shipped_run saves one Qt does not offer); then
+        every scheme Qt offers is applied in turn through the `ui.theme` effect a start applies.
+        A scheme that fails to draw is shown and saved as an error file, which fails the run."""
+        settings = self.app.saved_settings
+        started = self.app.settings.ui.theme
+        if started in offered_schemes(os.environ):
+            self.faults.append(f"1-themes: started on {started!r}, which Qt offers; shipped_run saves one it does not")
+        applied = []
+        for name in offered_schemes(os.environ):
+            settings.set(SETTINGS.ui.theme, name)
+            await asyncio.sleep(0.05)
+            applied.append(name)
+        settings.set(SETTINGS.ui.theme, started)
+        self.report("1-themes", started=started, applied=applied)
 
     async def open_details(self) -> None:
         self.page.thread_activity.toggle()

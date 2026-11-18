@@ -1,4 +1,4 @@
-"""The colour schemes `ui.theme` names on Qt: the ones Textual's colours offer."""
+"""The colour schemes `ui.theme` names on Qt: the catalog's schemes Qt can draw."""
 
 from __future__ import annotations
 
@@ -10,8 +10,13 @@ from ui_theme.wal import WalFile
 
 
 def offered_schemes(environment: Mapping[str, str]) -> dict[str, ColourScheme]:
-    """ui_theme's catalog, and pywal's palette once pywal has written it, by name."""
-    offered = {scheme.name: scheme for scheme in SCHEMES}
+    """ui_theme's catalog, and pywal's palette once pywal has written it, by name.
+
+    A scheme drawn in the terminal's own colours (`ColourScheme.from_terminal`: ansi-dark,
+    ansi-light) is offered only where a terminal answers its palette; Qt has no terminal to
+    ask, so it never offers one. A saved `ui.theme` naming one (the TUI chose it in the shared
+    toad.json) takes `follow_theme`'s not-offered path: a warning, and the current scheme kept."""
+    offered = {scheme.name: scheme for scheme in SCHEMES if not scheme.from_terminal}
     wal = WalFile.directory(environment) / WalFile.NAME
     if wal.is_file():
         scheme = WalFile.read(wal).scheme
