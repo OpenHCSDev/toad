@@ -5,12 +5,9 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from functools import cache, cached_property
-from importlib import import_module
-from pkgutil import walk_packages
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Annotated
 
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from objectstate import mark_ui_hidden_config
 from textual.binding import BindingsMap
@@ -18,7 +15,6 @@ from textual.dom import DOMNode
 from formbridge.key_declarations import KeyDeclaration, KeyInvocation
 from textual.screen import ModalScreen
 
-import toad
 from toad.key_modes import KeyMode
 from toad.menus import MenuCommand
 from toad.setting_declarations import Effect, FamilyChoices
@@ -29,15 +25,6 @@ if TYPE_CHECKING:
     from formbridge.forms.declared_fields import DeclaredField
 
     from toad.app import ToadApp
-
-
-@cache
-def discover() -> None:
-    """Acquire producer modules once; their own family registries retain membership."""
-    DeclaredFamily.discover_package(toad)
-    for module in walk_packages(toad.__path__, toad.__name__ + "."):
-        if module.ispkg:
-            DeclaredFamily.discover_package(import_module(module.name))
 
 
 class KeymapRefused(ValueError):
@@ -153,9 +140,12 @@ class KeymapCatalog:
 
     @classmethod
     def capture(cls, modes: tuple[type[KeyMode], ...]) -> KeymapCatalog:
-        """The catalog of the classes declared now. Reading those declarations is a class walk;
-        building their bindings is not, so it runs once per distinct set of declarations."""
-        discover()
+        """The catalog of the classes declared now: the declarations a frontend has loaded
+        register themselves, and nothing here imports more (a package walk imported every toad
+        module on Qt, `toad.cli` and `click` included, and crashed the phone's DM view). A
+        frontend whose keyed screens open lazily imports them first (`toad.app`). Reading those
+        declarations is a class walk; building their bindings is not, so it runs once per
+        distinct set of declarations."""
         return cls.of(tuple(modes), DOMNode.descendants(), tuple(ApplicationAction.declarations()))
 
     @classmethod
@@ -196,8 +186,8 @@ class KeymapCatalog:
     ) -> KeymapCatalog:
         """One mode's catalog, a function of the declarations it is given, so a context or action
         declared later is a different argument and never a stale answer. Families a context's
-        keymap_claims reads for itself (Menu reads MenuCommand's members) are settled by
-        discover(), which capture runs first and which imports every toad module."""
+        keymap_claims reads for itself (Menu reads MenuCommand's members) are the members the
+        frontend has loaded."""
         native_mode = mode.binding_mode()
         application = tuple(BindingsMap(
             binding for declaration in actions

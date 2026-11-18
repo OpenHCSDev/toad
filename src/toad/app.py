@@ -575,3 +575,10 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def follow_line_renderer(self) -> None:
         self.colours.refresh_line_renderer()
         self.theme_changed_signal.publish(self.current_theme)
+
+
+# Screens that declare keys but open lazily: loaded with the app, after it (they import from
+# it), so the keymap catalog lists their keys before they first open. The catalog reads
+# loaded declarations; it walks no package.
+from toad.screens import keymap, mcp_decision, permissions, settings  # noqa: E402, F401
+from toad.widgets import context_explorer  # noqa: E402, F401
