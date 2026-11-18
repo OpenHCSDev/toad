@@ -4,16 +4,14 @@ peer with its status and Toad's activity sweep while the peer works."""
 
 from __future__ import annotations
 
-from array import array
-from bisect import bisect_left
 from collections.abc import Callable
 from time import monotonic
 
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QImage, QPainter
+from PySide6.QtCore import QPointF, Qt, QTimer
+from PySide6.QtGui import QColor, QLinearGradient, QPainter, QPolygonF
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.effects import ACTIVITY_SWEEP
@@ -75,8 +73,19 @@ class ChannelActivity(ChannelActivityTitle, QLabel):
 
 
 class ActivitySweep(QWidget):
-    """Toad's activity sweep: the shared ACTIVITY_SWEEP ribbon sampled across the strip,
-    each sample's two stops blended and drawn as tall as the ribbon is thick there."""
+    """Toad's activity sweep: the shared ACTIVITY_SWEEP ribbon drawn across the strip as one
+    filled outline, its colours a gradient sampled from the ribbon and its height the
+    ribbon's thickness, tapered at both tails as `Ribbon.sample` says.
+
+    The effect's shape, colours and timing are shared with Textual; how often it is drawn is
+    each toolkit's own. A terminal draws whole cells, so the effect's 20 frames a second already
+    move the band a cell at a time; Qt draws pixels, and at 20 a second the band jumped about
+    6 px a frame on the phone and looked laggy (Tristan, 2026-11-18). Qt draws at the screen's
+    refresh rate, and each frame is 33 ribbon samples and one antialiased fill in Qt, where it
+    was a Python sample and a pixel write per column."""
+
+    samples = 32
+    """Points along the ribbon: each gives a gradient stop and the outline's half-height."""
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
@@ -86,13 +95,14 @@ class ActivitySweep(QWidget):
         # One text row, always reserved, as Textual's throbber row: only its paint changes.
         self.setFixedHeight(self.fontMetrics().lineSpacing())
         self.timer = QTimer(self)
-        self.timer.setInterval(int(1000 / ACTIVITY_SWEEP.frames_per_second))
         self.timer.timeout.connect(self.update)
 
     def sweep(self, working: bool) -> None:
         self.working = working
         if working:
-            self.timer.start()
+            screen = self.screen()
+            rate = screen.refreshRate() if screen is not None else 0.0
+            self.timer.start(max(8, round(1000 / (rate if rate >= 20 else 60))))
         else:
             self.timer.stop()
         self.update()
@@ -101,51 +111,29 @@ class ActivitySweep(QWidget):
         if not self.working:
             return
         frame = ACTIVITY_SWEEP.frame(monotonic() - self.started)
-        scheme = self.renderer.scheme
-        # The ribbon is sampled once per logical pixel and Qt scales the image onto the
-        # whole strip. The image used to be tagged with the device pixel ratio, which drew
-        # it at 1/ratio of the strip: on a Pixel 8a (2.625) the sweep ran across the first
-        # 38% of the row and its band never passed it.
         width, height = self.width(), self.height()
-        if width <= 0 or height <= 0:
+        if width <= 0 or height <= 0 or frame.end <= frame.start:
             return
-        # The ribbon inks one run of columns (`Ribbon.sample` is zero outside its ends), so
-        # only that run is sampled: the inked columns are contiguous.
-        first = max(0, int(frame.start * width))
-        last = min(width, int(frame.end * width) + 1)
-        x0, pixels, bars = -1, array("I"), []
-        for x in range(first, last):
-            start, end, amount, thickness = frame.sample((x + 0.5) / width)
-            if thickness <= 0:
-                if bars:
-                    break
-                continue
-            x0 = x if x0 < 0 else x0
+        scheme = self.renderer.scheme
+        left, right = frame.start * width, frame.end * width
+        gradient = QLinearGradient(left, 0.0, right, 0.0)
+        upper, lower = [], []
+        for step in range(self.samples + 1):
+            place = step / self.samples
+            x = left + (right - left) * place
+            # The ribbon's ends sample as no ink; their colour is the one just inside.
+            inside = frame.start + (frame.end - frame.start) * min(max(place, 1e-6), 1 - 1e-6)
+            start, end, amount, _ = frame.sample(inside)
             ink = start.rgb(scheme).blend(end.rgb(scheme), amount)
-            pixels.append((0xFF << 24) | (ink.red << 16) | (ink.green << 8) | ink.blue)
-            bars.append(max(1, round(height * thickness)))
-        if not bars:
-            return
-        image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
-        image.fill(0)
-        row_stride = image.bytesPerLine() // 4
-        # Flat: CPython memoryviews cannot index a multi-dimensional row (`buf[y]`).
-        buf = memoryview(image.bits()).cast("I")
-        # Each column's ink is centred and its height rises to the body and falls again
-        # (the taper is a smoothstep), so a row's ink is one run of columns around the
-        # tallest: one slice write per row, found by bisecting the rising and falling sides,
-        # not one Python write per pixel.
-        peak = bars.index(max(bars))
-        rising, falling = bars[:peak + 1], bars[peak:]
-        for y in range((height - bars[peak]) // 2, (height - bars[peak]) // 2 + bars[peak]):
-            def inks(bar: int, y: int = y) -> bool:
-                return (height - bar) // 2 <= y < (height - bar) // 2 + bar
-            left = bisect_left(rising, True, key=inks)
-            right = peak + bisect_left(falling, True, key=lambda bar: not inks(bar))
-            offset = y * row_stride + x0 + left
-            buf[offset:offset + right - left] = pixels[left:right]
+            gradient.setColorAt(place, QColor(ink.red, ink.green, ink.blue))
+            half = height * frame.sample(x / width)[3] / 2
+            upper.append(QPointF(x, height / 2 - half))
+            lower.append(QPointF(x, height / 2 + half))
         painter = QPainter(self)
-        painter.drawImage(self.rect(), image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(gradient)
+        painter.drawPolygon(QPolygonF(upper + lower[::-1]))
         painter.end()
 
 
