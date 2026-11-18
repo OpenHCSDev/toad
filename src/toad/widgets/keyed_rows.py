@@ -18,8 +18,8 @@ class WidgetKeyedRows[KeyT](KeyedRows[KeyT]):
     def row_attached(self, row: Widget) -> bool:
         return row.is_attached
 
-    def mount_row(self, row: Widget) -> None:
-        self.member_container.mount(row)
+    def mount_rows(self, rows: Iterable[Widget]) -> None:
+        self.member_container.mount_all(rows)
 
     def order_rows(self, position: Callable[[object], int]) -> None:
         self.member_container.sort_children(key=position)
