@@ -1,11 +1,11 @@
 [Unit]
-Description=Toad browser workspace (loopback backend for tailnet-only Serve)
+Description=Toad browser workspace (tailnet owner-only Serve)
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/home/ts
-ExecStart=/home/ts/.local/share/agent-comms/current/bin/python -c "from textual_serve.server import Server; Server('/home/ts/bin/toad-comms', host='127.0.0.1', port=8040, public_url='https://desktop.tail553874.ts.net:8443').serve()"
+ExecStart=/home/ts/bin/toad serve-tailnet 8443 acp agent-comms-acp
 UnsetEnvironment=PYTHONPATH NO_COLOR TOAD_VALIDATION
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
