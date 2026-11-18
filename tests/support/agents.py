@@ -148,7 +148,7 @@ def queued_session_response(session: str, *, next_owner: bool = False):
     from agent_comms.execution.child_process import ProcessIdentity
     from agent_comms.nominal.field_codec import InputId
     from agent_comms.registry.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
-    from agent_comms.text_route_update import encode_updates
+    from agent_comms.execution.session_updates import encode_updates
 
     generation = 2 if next_owner else 1
     scope = LiveQueueScope(

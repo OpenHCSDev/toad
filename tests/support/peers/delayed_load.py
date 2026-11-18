@@ -23,7 +23,7 @@ from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
     TranscriptSnapshotUpdate,
 )
-from agent_comms.text_route_update import encode_updates
+from agent_comms.execution.session_updates import encode_updates
 from agent_comms.execution.session_file import RegistrySessionLocation
 from base import Peer
 

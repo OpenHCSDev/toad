@@ -156,7 +156,8 @@ class HelperSpawner:
         and one that does starts its own tracker on demand."""
         os.environ.clear()
         os.environ.update(environment)
-        moved = [fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 1024) for fd in received]
+        # Preserve every source before restoring targets, without assuming a file limit.
+        moved = [fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, max(numbers) + 1) for fd in received]
         for fd in received:
             os.close(fd)
         for fd, number in zip(moved, numbers):
