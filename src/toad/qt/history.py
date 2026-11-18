@@ -22,7 +22,7 @@ from weakref import WeakSet
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QRect, Qt, QTimer, Signal
 from PySide6.QtGui import QFont, QFontMetrics
-from PySide6.QtWidgets import QPushButton, QWidget
+from PySide6.QtWidgets import QPushButton, QScroller, QWidget
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.fragments import EvidencedFragment, HistoryFragment, MembershipText, Shown, WireMessage
@@ -489,6 +489,20 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         self._settle_timer.setSingleShot(True)
         self._settle_timer.timeout.connect(self._settle)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
+        # Touch-down scroll throttle: QScroller emits valueChanged at touch rate
+        # (90Hz on Pixel 8a, up to 240Hz on higher-rate panels) while the finger
+        # is dragging. The post-scroll chain (`respond_to_scroll` →
+        # `lookahead.observe` + `request_preparation` + `tail_follow_changed` +
+        # `_after_jump_bar_change → refresh_bindings`) is sized for frame-rate
+        # inertia ticks, not touch rate. Track QScroller's Dragging state and
+        # skip `respond_to_scroll` while the finger is down; `_on_scroller_state`
+        # fires it once when the drag ends (and Scrolling/Inactive ticks still
+        # run it as before). Leaves at_end/follows_tail transitions in `scrolled`
+        # alone — those are cheap and only do work when the state actually flips.
+        self._scroller_dragging = False
+        self._drag_skipped_ticks = 0
+        _scroller = QScroller.scroller(self.viewport())
+        _scroller.stateChanged.connect(self._on_scroller_state)
         # The floating "jump to latest" button: child of the window (not the viewport), so
         # QScroller's gesture grab on the viewport (from TouchScrolled) can't swallow the
         # tap and prevent `clicked` from firing on Android. Positioned over the viewport
@@ -771,7 +785,14 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         """The reader moved: join or leave the end, then delegate the post-anchor response
         (lookahead, settle timer, preparation, tail-follow) to the shared template on
         `JumpsToLatest.respond_to_scroll` — same gate Textual uses, so no-travel ticks
-        from QScroller don't restart the settle timer during Android touch scrolls."""
+        from QScroller don't restart the settle timer during Android touch scrolls.
+
+        Touch-down throttle: while QScroller is in Dragging state the finger is
+        tracking the viewport and valueChanged fires at touch rate. The
+        post-scroll chain is deferred until drag ends; `_on_scroller_state`
+        fires `respond_to_scroll` once on the transition out of Dragging. The
+        at_end/follows_tail transitions here stay — they're cheap state flips
+        and consumers (jump bar + anchor) need to see them during drag."""
         if self._restoring:
             return
         if self.at_end and not self.follows_tail:
@@ -780,7 +801,26 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
             self.release_anchor()
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
+        if self._scroller_dragging:
+            self._drag_skipped_ticks += 1
+            return
         self.respond_to_scroll(value)
+
+    def _on_scroller_state(self, state) -> None:
+        """Track QScroller state transitions. On the drag → not-drag edge, flush the
+        post-scroll work `scrolled` skipped while the finger was down, using the
+        current scrollbar position. Prints the skipped-tick count once per drag so
+        the perf win is visible in logcat."""
+        was_dragging = self._scroller_dragging
+        self._scroller_dragging = (state == QScroller.State.Dragging)
+        if was_dragging and not self._scroller_dragging:
+            print(
+                f"QtHistoryWindow drag ended: skipped {self._drag_skipped_ticks} "
+                f"respond_to_scroll ticks during drag",
+                flush=True,
+            )
+            self._drag_skipped_ticks = 0
+            self.respond_to_scroll(self.verticalScrollBar().value())
 
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         """A wheel at an edge with nowhere left to scroll still asks for the next page."""
