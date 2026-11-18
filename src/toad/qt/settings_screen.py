@@ -2,12 +2,11 @@
 
 Pages, search, open-edit registration, finish and discard are inherited from the parent
 Textual's `SettingsScreen` inherits; the forms are `toad.qt.forms.QtFormView`. Closing
-sends the typed edits and the app saves them (`ClientApplication.settings_closed`).
+sends the typed edits and writes the settings file.
 """
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal
@@ -65,10 +64,13 @@ class QtSettingsScreen(SettingsEditing, QDialog):
         return QtFormView
 
     def closeEvent(self, event) -> None:  # noqa: N802 (Qt override)
+        """Send the typed edits and write the file now. Qt also closes this dialog while the
+        application quits, after its loop has stopped: an async save started here would
+        never run (and would hold asyncio's shutdown), so the write is synchronous."""
         self.finish()
         self.stop_editing()
         for form in self.pages.values():
             form.leave_state()
-        asyncio.ensure_future(self.app.settings_closed())
+        self.edited_settings.save_sync()
         self.closed.emit()
         super().closeEvent(event)

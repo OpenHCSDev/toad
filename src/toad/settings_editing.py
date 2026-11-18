@@ -2,8 +2,8 @@
 settings' state, a search across every page, edits flushed before a save, and discard.
 
 Textual's `SettingsScreen` and Qt's `QtSettingsScreen` add only their native layout,
-tabs and keys. After either screen closes, the app saves through
-`ClientApplication.settings_closed`.
+tabs and keys, and save the file once the screen closes (Textual awaits the save in its
+worker; Qt writes synchronously, since Qt may close the dialog after its loop has stopped).
 """
 
 from __future__ import annotations

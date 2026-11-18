@@ -275,8 +275,9 @@ class QtValueView(ValueFields, QtFieldView, shows=(ParameterInfo,)):
         self.help = QLabel(notes)
         self.help.setWordWrap(True)
         self.help.setEnabled(False)
-        self.help.setVisible(bool(notes))
         self.widget = _stacked(self.title, self.help, self.editor.widget)
+        # Only after the holder parents it: showing an unparented label opens a top-level window.
+        self.help.setVisible(bool(notes))
 
     def mark(self, changed: bool) -> None:
         self.title.setText(self.field.label + self.changed_mark(changed))

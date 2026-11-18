@@ -128,6 +128,9 @@ from toad.menus import MenuCommand, MenuConversation, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
+# Imported at load, not in open_transfer: this declares the Transfer members the shared
+# TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
+from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.thinking_animator import QtThinkingAnimator
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
@@ -1920,8 +1923,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
 
     async def edit_settings(self) -> None:
         """Qt override of `ClientApplication.edit_settings`: the settings screen both
-        frontends inherit (`SettingsEditing`), drawn in Qt; it saves on close through
-        `ClientApplication.settings_closed`, as Textual's does."""
+        frontends inherit (`SettingsEditing`), drawn in Qt; it writes the settings file
+        when it closes, as Textual's does."""
         from toad.qt.settings_screen import QtSettingsScreen
         dialog = QtSettingsScreen(self, self)
         dialog.show()
@@ -1939,7 +1942,6 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         """Qt override of `ClientApplication.open_transfer`: the Qt member of the shared
         transfer-form family that composes `kind`; its submit calls
         `start_transfer_task(request, selected)`, so one task per kind supersedes a repeat."""
-        from toad.qt.transfer import QtTransferDialog
         access = self.coordination_access
         selected = access.selected(access.observation.observed().root)
         QtTransferDialog.for_kind(kind)(self, selected, parent=self).show()
