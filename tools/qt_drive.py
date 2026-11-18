@@ -185,27 +185,36 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         channel it belongs to, and any one opens it."""
         await self.listed()
         if name.startswith("#"):
-            await self.channel_listed(name)
+            await self.channel_row(name)
             await self.expand(name)
-            await self.open(self.channel_row(name), name)
+            await self.open(await self.channel_row(name), name)
         else:
-            pending, rows = list(self.app.sidebar.items()), []
-            while pending:
-                item = pending.pop()
-                rows.append(item)
-                pending.extend(item.child(index) for index in range(item.childCount()))
-            await self.open(next(row for row in rows if isinstance(row, ConversationRow)
-                                 and row.target.name == name), name)
+            await self.open(await self.found(lambda row: isinstance(row, ConversationRow)
+                                             and row.target.name == name, name), name)
         await asyncio.sleep(2.0)
 
-    async def channel_listed(self, name: str) -> None:
-        """The sidebar lists this channel: the welcome's first rows can come before it."""
-        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == name
-                                for row in self.app.sidebar.items()), name)
+    async def found(self, wanted, label: str, rows=None, tenths: int = 200):
+        """The first sidebar row that is `wanted`, waited for: the sidebar is a live list,
+        filled from observations that can arrive after the step that reads it (the welcome's
+        first rows come before the channels). It is read again every tenth of a second
+        through the loop the scenario's steps run on, until the deadline, and then the drive
+        fails naming the missing row and every row listed. `rows` reads the rows to search,
+        every row nested under every channel unless it is given."""
+        read = rows or (lambda: self.rows(self.app.sidebar.items()))
+        present: list = []
+        for _ in range(tenths):
+            present = list(read())
+            for row in present:
+                if wanted(row):
+                    return row
+            await asyncio.sleep(0.1)
+        listed = ", ".join(f"{row.drawn[1] or row.key!r}" for row in present) or "nothing"
+        raise LookupError(f"the sidebar lists no {label} after {tenths / 10:.1f} s; it lists: {listed}")
 
-    def channel_row(self, name: str) -> ConversationRow:
-        return next(row for row in self.app.sidebar.items()
-                    if isinstance(row, ConversationRow) and row.target.name == name)
+    async def channel_row(self, name: str) -> ConversationRow:
+        """The channel's top-level row, once the sidebar lists it."""
+        return await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name == name,
+                                f"channel {name}", rows=self.app.sidebar.items)
 
     def rows(self, items):
         """Every sidebar row, threads nested under their channels included."""
@@ -222,13 +231,16 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
                 found.setdefault(row.key, row)
         return list(found.values())
 
-    def thread_row(self) -> ConversationRow:
+    async def thread_row(self) -> ConversationRow:
         """The first thread nested under a channel, as the Textual sidebar nests them."""
-        for channel in self.app.sidebar.items():
-            if isinstance(channel, ConversationRow) and channel.childCount():
-                self.app.sidebar.expandItem(channel)
-                return channel.child(0)
-        raise LookupError("no channel lists a thread")
+        channel = await self.found(lambda row: isinstance(row, ConversationRow) and row.childCount() > 0,
+                                   "channel with a thread under it", rows=self.app.sidebar.items)
+        self.app.sidebar.expandItem(channel)
+        return channel.child(0)
+
+    async def listed_thread(self, key: str) -> ConversationRow:
+        """The thread row for `key`, once the sidebar lists it."""
+        return await self.found(lambda row: row.key == key, f"thread {key}", rows=self.thread_rows)
 
     async def live_native_thread_rows(self) -> list[ConversationRow]:
         """The listed threads a running native runtime owns, as Core presents each owner
@@ -261,9 +273,8 @@ class TabsScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("#comms")
-        tops = list(app.sidebar.items())
-        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
-        peer = self.thread_row()
+        comms = await self.channel_row("#comms")
+        peer = await self.thread_row()
         app.open_row(comms)
         await until(lambda: self.page is not app.workspace_sessions.home and self.page.messages.model_rows.rowCount(), "#comms")
         self.report("1-comms")
@@ -292,6 +303,7 @@ class ActivityScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
+        await self.found(lambda row: True, "thread row", rows=self.thread_rows)
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
         children = self.thread_rows()
         working = [row for row in children if rows[row.key].status.is_working()]
@@ -377,7 +389,7 @@ class SurroundScenario(Scenario):
             # both frontends' prompts read.
             app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named(mode))
         # The welcome answers before the sidebar has drawn its thread rows.
-        await until(self.thread_rows, "sidebar thread rows")
+        await self.found(lambda row: True, "thread row", rows=self.thread_rows)
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
         children = self.thread_rows()
         print("working:", [row.key for row in children if rows[row.key].status.is_working()], flush=True)
@@ -445,7 +457,7 @@ class QueueScenario(SurroundScenario):
         app = self.app
         app.resize(int(os.environ.get("WIDTH", self.width)), 915)
         wanted = os.environ["PEER"]
-        peer = next(row for row in self.thread_rows() if row.key == wanted)
+        peer = await self.listed_thread(wanted)
         home = app.workspace_sessions.home
         app.open_row(peer)
         await until(lambda: self.page is not home and getattr(self.page, "composer", None) is not None, "composer")
@@ -472,7 +484,7 @@ class DraftScenario(SurroundScenario):
         app = self.app
         app.resize(int(os.environ.get("WIDTH", self.width)), 915)
         wanted = os.environ["PEER"]
-        peer = next(row for row in self.thread_rows() if row.key == wanted)
+        peer = await self.listed_thread(wanted)
         home = app.workspace_sessions.home
         app.open_row(peer)
         await until(lambda: self.page is not home and getattr(self.page, "composer", None) is not None, "composer")
@@ -646,8 +658,7 @@ class HistoryScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("#comms")
-        comms = next(row for row in app.sidebar.items()
-                     if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        comms = await self.channel_row("#comms")
         app.open_row(comms)
         await until(lambda: self.page is not app.workspace_sessions.home
                     and self.page.messages.model_rows.rowCount(), "#comms rows")
@@ -819,6 +830,7 @@ class FeedbackScenario(Scenario):
 
         reader.read = slow_read
         try:
+            await self.found(lambda row: True, "thread row", rows=self.thread_rows)
             threads = self.thread_rows()
             app.open_row(next((row for row in threads if row.target.name == "scratch-live-pipeline"), threads[0]))
             await until(lambda: isinstance(self.page, QtOpeningSessionView), "opening view", tenths=50)
@@ -832,7 +844,7 @@ class FeedbackScenario(Scenario):
         await asyncio.sleep(1.0)
         self.report("2-opened", waiting=app.float_layer.isVisible())
         # 2. #comms' first page: its wait floats over the history until the first rows are drawn.
-        app.open_row(self.channel_row("#comms"))
+        app.open_row(await self.channel_row("#comms"))
         seen: list[tuple[bool, str]] = []
         for _ in range(60):
             await asyncio.sleep(0.05)
@@ -1019,7 +1031,7 @@ class ComposerScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("Threads")
-        await self.open(self.channel_row("#any"), "#any")
+        await self.open(await self.channel_row("#any"), "#any")
         composer = self.page.composer
         self.report("1-any", placeholder=composer.editor.placeholderText(),
                     activity=[line.text() for line in self.page.activity])
@@ -1150,7 +1162,7 @@ class CommandScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("Threads")
-        await self.open(self.channel_row("#any"), "#any")
+        await self.open(await self.channel_row("#any"), "#any")
         composer = self.page.composer
         await self.type("/")
         await until(lambda: composer.offers.offers, "command offers", tenths=300)
@@ -1164,7 +1176,7 @@ class CommandScenario(Scenario):
         await until(lambda: any("current target" in notice for notice in app.float_layer.shown_notices()),
                     "refused", tenths=100)
         self.report("3-refused", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
-        await self.open(self.channel_row("#comms"), "#comms")
+        await self.open(await self.channel_row("#comms"), "#comms")
         await self.send("/rename-tag")
         await until(self.forms, "form", tenths=150)
         form = self.forms()[0]
@@ -1239,7 +1251,7 @@ class PersistScenario(Scenario):
         app = self.app
         await self.listed()
         await self.expand("#any")
-        await self.open(self.thread_rows()[0], "first thread")
+        await self.open(await self.found(lambda row: True, "thread row", rows=self.thread_rows), "first thread")
         await self.open_named("#comms")
         app.show_sidebar()
         await asyncio.sleep(0.5)
@@ -1295,7 +1307,7 @@ class RestoredScenario(Scenario):
             await app.select_session(app.tab_order.home)
             app.show_sidebar()
             await self.expand("#any")
-            row = next(row for row in self.thread_rows() if row.key == restored_thread.key.name)
+            row = await self.listed_thread(restored_thread.key.name)
             tree = row.treeWidget()
             tree.scrollToItem(row)
             await asyncio.sleep(0.5)
@@ -1359,8 +1371,7 @@ class PlacementScenario(Scenario):
         app.resize(self.width, 915)
         await self.settle()
         await self.expand("#comms", "Threads")
-        tops = list(app.sidebar.items())
-        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        comms = await self.channel_row("#comms")
         home = app.workspace_sessions.home
         app.open_row(comms)
         await self.opened(home)
@@ -1407,7 +1418,7 @@ class PlacementScenario(Scenario):
         # A DM: its own bar heading and its own, independent view settings. The
         # sidebar may have re-rendered after the pane toggles, so re-fetch the
         # peer row from the current tree instead of reusing the stale handle.
-        peer = self.thread_row()
+        peer = await self.thread_row()
         app.open_row(peer)
         await self.opened(comms_view)
         dm_view = app.workspace_sessions.selected
@@ -1528,8 +1539,7 @@ class SlideScenario(Scenario):
         print("  opening slide frame gaps ms:", [round(gap * 1000, 1) for gap in gaps],
               "max", round(max(gaps, default=0) * 1000, 1), flush=True)
         await self.expand("#comms")
-        tops = list(app.sidebar.items())
-        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        comms = await self.channel_row("#comms")
         app.open_row(comms)
         await until(lambda: app.tabs.count() == 1, "#comms tab")
         await asyncio.sleep(0.5)
@@ -1549,7 +1559,7 @@ class SlideScenario(Scenario):
             grew.append(app.tabs.tabRect(app.tabs.count() - 1).width())
             started.append(time.perf_counter())
         TabGrowth.apply_amount = widened
-        app.open_row(self.thread_row())
+        app.open_row(await self.thread_row())
         await until(lambda: app.tabs.count() == 2, "second tab")
         await until(lambda: not app.tabs.growing, "tab grown", tenths=50)
         TabGrowth.apply_amount = growing
@@ -1674,10 +1684,10 @@ class ChromeScenario(Scenario):
         app.resize(self.width, self.height)
         await asyncio.sleep(0.5)
         app.show_sidebar()
-        await self.channel_listed("#comms")
+        await self.channel_row("#comms")
         await self.expand("#comms")
         self.report("1-welcome", **self.geometry())
-        comms = self.channel_row("#comms")
+        comms = await self.channel_row("#comms")
         home = app.workspace_sessions.home
         app.open_row(comms)
         await until(lambda: self.page is not home and self.page.content_ready.is_set(), "#comms")
@@ -1698,7 +1708,7 @@ class ChromeScenario(Scenario):
         override.reset()
         # Step 7 reads the thread's configure form, which Core offers only a live native owner.
         native = await self.live_native_thread_rows()
-        peer = native[0] if native else self.thread_row()
+        peer = native[0] if native else await self.thread_row()
         before = self.page
         app.open_row(peer)
         await until(lambda: self.page is not before, "thread")
@@ -1783,8 +1793,8 @@ class WaveScenario(Scenario):
         await asyncio.sleep(1.0)
         tree = app.sidebar
         name = os.environ.get("TOAD_WAVE_THREAD")
-        row = self.thread_row() if not name else next(
-            line for line in self.rows(tree.items()) if isinstance(line, ConversationRow) and line.key == name)
+        row = await self.thread_row() if not name else await self.found(
+            lambda line: isinstance(line, ConversationRow) and line.key == name, f"thread {name}")
         tree.scrollToItem(row)
         await asyncio.sleep(0.5)
         cells = int(os.environ.get("TOAD_WAVE_CELLS", "0"))
@@ -1851,12 +1861,11 @@ class ArrivalScenario(Scenario):
         app.resize(self.width, 915)
         target = os.environ.get("TARGET", "#scratch")
         if target.startswith("#"):
-            await self.channel_listed(target)
+            await self.channel_row(target)
             await self.expand(target)
-            app.open_row(self.channel_row(target))
+            app.open_row(await self.channel_row(target))
         else:
-            await until(lambda: any(row.key == target for row in self.thread_rows()), target)
-            app.open_row(next(row for row in self.thread_rows() if row.key == target))
+            app.open_row(await self.listed_thread(target))
         for tick in range(120):
             page = self.page
             rows = page.messages.model_rows.rowCount() if hasattr(page, "messages") else None
@@ -2262,23 +2271,24 @@ class ActionsScenario(FrameScenario):
         probe.REPORT_SECONDS = 1e9  # one summary per action, written by `action`
         self.install_timings()
         await self.listed()
-        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == "#comms"
-                                for row in app.sidebar.items()), "#comms row")
+        await self.channel_row("#comms")
         app.show_sidebar()
         await asyncio.sleep(2.0)
         home = app.workspace_sessions.home
-        await self.action(probe, "open #comms (tap its row, cold)", lambda: self.tap_row(self.channel_row("#comms")))
+        comms = await self.channel_row("#comms")
+        await self.action(probe, "open #comms (tap its row, cold)", lambda: self.tap_row(comms))
         await until(lambda: self.page is not home, "#comms open")
         if any(isinstance(row, ConversationRow) and row.target.name == "#scratch" for row in app.sidebar.items()):
             before = self.page
+            scratch = await self.channel_row("#scratch")
             await self.action(probe, "open #scratch (a second channel, cold)",
-                              lambda: self.tap_row(self.channel_row("#scratch")))
+                              lambda: self.tap_row(scratch))
             await until(lambda: self.page is not before, "#scratch open")
-        group = next(row for row in app.sidebar.items()
-                     if isinstance(row, ConversationRow) and row.childCount() and not row.isExpanded())
+        group = await self.found(lambda row: isinstance(row, ConversationRow) and row.childCount()
+                                 and not row.isExpanded(), "closed channel group", rows=app.sidebar.items)
         await self.action(probe, f"expand channel group {group.key}", lambda: app.sidebar.expandItem(group))
-        thread = next(row for row in self.rows(app.sidebar.items())
-                      if isinstance(row, ConversationRow) and row.key == "scratch-live-pipeline")
+        thread = await self.found(lambda row: isinstance(row, ConversationRow) and row.key == "scratch-live-pipeline",
+                                  "thread scratch-live-pipeline")
         before = self.page
         await self.action(probe, "open thread scratch-live-pipeline (tap its row, cold)", lambda: self.tap_row(thread))
         await until(lambda: self.page is not before, "thread open")
@@ -2319,8 +2329,8 @@ class GoalScenario(Scenario):
         app = self.app
         app.resize(self.width, 915)
         await self.expand("Threads")
-        row = next(row for row in self.rows(app.sidebar.items())
-                   if isinstance(row, ConversationRow) and row.target.name == self.peer)
+        row = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name == self.peer,
+                               f"thread {self.peer}")
         home = app.workspace_sessions.home
         app.open_row(row)
         await until(lambda: self.page is not home and self.bar() is not None, "dm")
@@ -2590,14 +2600,13 @@ class FingerScenario(Scenario):
         app.resize(412, 640)
         await asyncio.sleep(0.5)
         app.show_sidebar()
-        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == "#comms"
-                                for row in app.sidebar.items()), "#comms listed", tenths=200)
+        await self.channel_row("#comms")
         await self.expand("#comms", "#any")
         await self.exercise("1-welcome-sidebar")
         # A tap on a sidebar row still opens it: the scroller holds the press back, then
         # delivers it when the finger lifts without dragging.
         tree = app.sidebar
-        comms = self.channel_row("#comms")
+        comms = await self.channel_row("#comms")
         tree.scrollToItem(comms)
         await asyncio.sleep(0.3)
         home = app.workspace_sessions.home
