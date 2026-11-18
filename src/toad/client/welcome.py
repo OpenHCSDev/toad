@@ -5,9 +5,11 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from agent_comms.ui_model.sidebar import SidebarModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 
 from toad.constants import ALL_COMMS_TARGET
+from toad.setting_choices import UnreadCount
+from toad.sidebar_rows import ChannelLineText
 
 
 class WelcomeBanner:
@@ -46,6 +48,14 @@ class ChannelListing(WelcomeListing):
 
     def keys(self, model: SidebarModel) -> tuple[str, ...]:
         return tuple(model.channels.rows)
+
+    @staticmethod
+    def line_text(channel: ChannelRowModel, counts: type[UnreadCount]) -> ChannelLineText:
+        """A channel on the welcome: its name with the unread badge after it, and no line
+        under it; the sidebar's channel line carries the summary."""
+        badge = counts.badge(channel.unread)
+        return ChannelLineText("", f"{channel.label()} {badge}" if badge else channel.label(), "",
+                               channel.tooltip())
 
 
 class ThreadListing(WelcomeListing):

@@ -16,7 +16,7 @@ from textual.content import Content
 
 from toad.channel_activity_dispatch import ChannelActivityCompute
 from toad.client.connection import CoordinationAccess
-from toad.keyed_rows import KeyedRows
+from toad.widgets.keyed_rows import WidgetKeyedRows
 from toad.sidebar_changes import SidebarChange
 from toad.sidebar_contracts import ActivityRows
 from toad.sidebar_model_view import SidebarModelView
@@ -38,7 +38,7 @@ class PeerStatus(ThreadReferenceReader[StatusThread]):
         return NoStatusThread()
 
 
-class ChannelActivity(ChannelActivityCompute, SidebarModelView, ActivityRows, KeyedRows[ThreadIncarnation], VerticalGroup):
+class ChannelActivity(ChannelActivityCompute, SidebarModelView, ActivityRows, WidgetKeyedRows[ThreadIncarnation], VerticalGroup):
     DEFAULT_CSS = """
     ChannelActivity {
         height: auto;

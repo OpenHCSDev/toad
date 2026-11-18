@@ -15,7 +15,7 @@ from textual.widget import Widget
 from textual.worker import Worker
 
 from toad.app_node import ToadNode
-from toad.client.bus_submission import SubmissionView
+from toad.client.bus_submission import ConversationSubmission, SubmissionView
 from toad.client.prompt_composer import ComposerStatus
 from toad.client.submission import MessageDestination
 from toad.widgets.flash import Flash
@@ -69,7 +69,7 @@ class DeliveryFailureView(ComposerStatus, SubmissionView, ToadNode, Widget):
         InputHistoryRecord.run_on(self, partial(self.input_histories.prompt.record, text))
 
     def run_submission(self, send: Callable[[], Awaitable[None]]) -> Worker[None]:
-        return self.run_worker(send, group="conversation-submission")
+        return self.run_worker(send, group=ConversationSubmission.group)
 
     def submissions_changed(self) -> None:
         if (prompt := self.query_one_optional(Prompt)) is not None:

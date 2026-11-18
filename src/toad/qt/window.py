@@ -70,7 +70,7 @@ from toad.client.bus_selection import (
     TailnetAnswer,
 )
 from toad.client.offered_action import OfferedAction
-from toad.client.bus_submission import BusSubmissions, SubmissionView, TypedText
+from toad.client.bus_submission import BusSubmissions, ConversationSubmission, SubmissionView, TypedText
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.client.connection import (
     CoreConnection,
@@ -86,6 +86,9 @@ from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
 from toad.client.line_blocks import LineLink, MutedRole
 from toad.client.welcome import ChannelListing, ThreadListing, WelcomeBanner
+from toad.keyed_rows import KeyedRows
+from toad.setting_choices import UnreadCount
+from toad.sidebar_rows import ChannelLineText, ChannelRowFace, ThreadLineText, ThreadRowFace
 from toad.client.referenced_core import ReferencedCore
 from toad.client.submission import MessageDestination
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
@@ -156,10 +159,6 @@ from toad.work_preparation import PreparationRuntime
 
 class ConversationOpen(OperationKind, ExclusiveKind):
     """Opens a tapped row's conversation in its tab; a newer tap supersedes the running one."""
-
-
-class MessageSend(OperationKind):
-    """Sends one message; sends run side by side and are never superseded."""
 
 
 class CommandRead(OperationKind, ExclusiveKind):
@@ -322,47 +321,6 @@ class ConversationRow(SidebarItem):
         super().placed()
         self.setExpanded(self.target.expanded_by_default)
 
-    @classmethod
-    def channel(cls, name: str, channel, *, badge: str) -> ConversationRow:
-        row = cls(channel_target(name))
-        row.draw(badge, channel.label(), channel.summary(), channel.tooltip())
-        return row
-
-    @classmethod
-    def thread(cls, name: str, thread, *, pinned: bool = False,
-               pending_detail: str | None = None, badge: str) -> ConversationRow:
-        """Thread rows (CLI inbox, mailbox) open as `KnownThreadTarget` so the tap
-        routes through `thread_navigation.open` → `MailboxTab` → agent-bound view,
-        mirroring Textual's `comms_sidebar.ThreadRow` at `widgets/comms_sidebar.py:242`
-        which also carries the incarnation so no round-trip to Core is needed before
-        the tab mounts.
-
-        `pinned` and `pending_detail` match the arguments Textual passes at
-        `comms_sidebar.py:165` (pinned from `channel.pinned_members`) and
-        `comms_sidebar.py:243` (pending_detail from `app.thread_actions.pending`).
-        The shared `ThreadRowModel.tooltip(pinned, pending_detail)` owns how both
-        flow into the hover text; the label gets a `"* "` prefix when pinned,
-        matching `ChannelRowModel.label` which also prefixes its own name."""
-        row = cls(KnownThreadTarget(name, thread.incarnation))
-        row.draw_thread(thread, pinned=pinned, pending_detail=pending_detail, badge=badge)
-        return row
-
-    def draw_thread(self, thread, *, pinned: bool = False,
-                    pending_detail: str | None = None, badge: str) -> None:
-        """Repaint this row from a `ThreadRowModel`, honoring pin and pending-action.
-        Shared with the initial construction path above so every thread-row draw —
-        first paint, `sync_members` reconcile, `repaint_members` refresh — goes
-        through the same pin/pending-aware assembly. `badge` comes from the caller
-        (`app.settings.sidebar.unread_counts.badge(thread.unread)`) so this view
-        honors the user's shown-unread-count preference, the same way Textual
-        does at `widgets/comms_sidebar.py:244`."""
-        label = f"{'* ' if pinned else ''}{thread.label}"
-        summary = pending_detail if pending_detail is not None else thread.summary
-        self.draw(
-            badge, label, summary,
-            thread.tooltip(pinned=pinned, pending_detail=pending_detail),
-        )
-
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
 
@@ -378,7 +336,35 @@ class ConversationRow(SidebarItem):
         )
 
 
-class ChannelLine(ConversationRow):
+class ThreadLine(ThreadRowFace, ConversationRow):
+    """A thread's line: the shared thread line text (`ThreadRowFace`) in the tree's two
+    rows. It opens as a `KnownThreadTarget`, carrying the birth, as Textual's ThreadRow does."""
+
+    @classmethod
+    def of(cls, name: str, thread, *, pinned: bool, action_status: str | None,
+           counts: type[UnreadCount]) -> ThreadLine:
+        line = cls(KnownThreadTarget(name, thread.incarnation))
+        line.present_thread(thread, pinned=pinned, action_status=action_status, counts=counts)
+        return line
+
+    def show_thread_text(self, text: ThreadLineText) -> None:
+        self.draw(text.badge, text.pin + text.name, text.detail, text.tooltip)
+
+
+class ChannelEntry(ChannelRowFace, ConversationRow):
+    """A channel's line: the shared channel line text (`ChannelRowFace`)."""
+
+    @classmethod
+    def of(cls, name: str, channel, *, counts: type[UnreadCount]) -> ChannelEntry:
+        line = cls(channel_target(name))
+        line.present_channel(channel, counts=counts)
+        return line
+
+    def show_channel_text(self, text: ChannelLineText) -> None:
+        self.draw(text.badge, text.label, text.summary, text.tooltip)
+
+
+class ChannelLine(ChannelEntry):
     """A channel line in the Channels sidebar: its first row is a `HeaderLineControl` (the
     name elided before the channel's order), so the tree's own text draws only the summary
     beneath it."""
@@ -432,25 +418,25 @@ from toad.qt.metrics import UiGap
 
 
 class QtChannelListing(ChannelListing):
-    def keep(self, lines: KeptLines, model: SidebarModel,
-             badge_of: Callable[[object], str]) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel, app: QtToadApp) -> None:
         for name in self.listed(model):
-            channel = model.channels.rows[name]
-            lines.keep(ConversationRow.channel(name, channel, badge=badge_of(channel.unread)))
+            line = ChannelEntry(channel_target(name))
+            line.show_channel_text(self.line_text(model.channels.rows[name], app.settings.sidebar.unread_counts))
+            lines.keep(line)
 
 
 class QtThreadListing(ThreadListing):
-    def keep(self, lines: KeptLines, model: SidebarModel,
-             badge_of: Callable[[object], str]) -> None:
+    def keep(self, lines: KeptLines, model: SidebarModel, app: QtToadApp) -> None:
         for name in self.listed(model):
-            thread = model.threads.rows[name]
-            lines.keep(ConversationRow.thread(name, thread, badge=badge_of(thread.unread)))
+            lines.keep(ThreadLine.of(name, model.threads.rows[name], pinned=False,
+                                     action_status=app.thread_actions.pending.get(name),
+                                     counts=app.settings.sidebar.unread_counts))
 
 
 class WelcomeContent:
     """What the welcome lists above its buses: nothing until the bus answers."""
 
-    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
+    def draw(self, top: KeptLines) -> None:
         pass
 
 
@@ -472,14 +458,10 @@ class ListedModel(WelcomeContent):
         default_factory=lambda: (QtChannelListing(), QtThreadListing())
     )
 
-    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
-        """`badge_of` is the caller's resolved `settings.sidebar.unread_counts.badge`
-        classmethod; the listing passes each row's `unread` through it so the welcome
-        honors the shown-unread-count preference the same way Textual does at
-        `widgets/comms_sidebar.py:80`."""
+    def draw(self, top: KeptLines) -> None:
         for listing in self.listings:
             with top.group(OpenSection(listing.TITLE)) as lines:
-                listing.keep(lines, self.model, badge_of)
+                listing.keep(lines, self.model, self.app)
 
 
 @dataclass(frozen=True)
@@ -488,17 +470,17 @@ class ListedFailure(WelcomeContent):
 
     observed: FailedObservation
 
-    def draw(self, top: KeptLines, badge_of: Callable[[object], str]) -> None:
+    def draw(self, top: KeptLines) -> None:
         top.keep(UnavailableSection(self.observed))
 
 
-class Banner(QWidget):
+class Banner(WelcomeBanner, QWidget):
     """Toad's banner, filling the width it is given in whole characters, as the terminal
     draws it: each character in its own cell of the grid. Android's monospace font has no
     box-drawing glyphs, and the fallback's glyphs are wider, so text drawn as a run slid
     every row off the blocks above it. It takes the width and never asks for one."""
 
-    LINES = WelcomeBanner.TEXT.splitlines()
+    LINES = WelcomeBanner.TEXT.splitlines()  # the shared banner, as Textual's WelcomeTitle draws it
     COLUMNS = max(map(len, LINES))
 
     def __init__(self, colour: str) -> None:
@@ -713,12 +695,7 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         self.rows.redraw(partial(self.draw_lines, rows))
 
     def draw_lines(self, buses: tuple[PickerRow, ...], top: KeptLines) -> None:
-        # `settings.sidebar.unread_counts` is a `ShownUnreadCount` family member whose
-        # `.badge(unread)` classmethod honors the user's preference (always show, hide
-        # counts, hide badges). The welcome content and bus rows pass each row's
-        # `unread` through this so Qt matches Textual's behavior (`widgets/comms_sidebar.py:80`).
-        badge_of = self.host.settings.sidebar.unread_counts.badge
-        self.content.draw(top, badge_of)
+        self.content.draw(top)
         with top.group(OpenSection(self.BUSES)) as section:
             for choice in buses:
                 section.keep(BusRow(choice))
@@ -882,7 +859,7 @@ class HeaderLineControl(QWidget):
         event.ignore()
 
 
-class QtChannelGroup(ChannelGroupRows):
+class QtChannelGroup(ChannelGroupRows, KeyedRows[str]):
     """One channel's section in the Qt sidebar, backed by its persistent `ConversationRow`
     item. Implements the `ChannelGroupRows` contract so `ChangedChannels` and
     `ChangedThreads` dispatch directly through `GroupedSidebar.apply_comms` without a full
@@ -894,8 +871,8 @@ class QtChannelGroup(ChannelGroupRows):
         self.name = name
         self.row = row
         self.channel: ChannelRowModel | None = None
-        # Per-member thread rows this group currently shows, by thread key.
-        self.member_rows: dict[str, ConversationRow] = {}
+        # Per-member thread rows this group currently shows, by thread key (KeyedRows.rows).
+        self.rows: dict[str, ThreadLine] = {}
         # Per-channel sort state, shared with Textual's `ChannelSortChoice` via
         # `SortControlBase`. The Qt widget owns its own menu + write path; Textual
         # renders the same state through a header-row segment. `present` pushes
@@ -922,8 +899,7 @@ class QtChannelGroup(ChannelGroupRows):
         channel-change path can sync them without touching unrelated threads."""
         previous = self.channel
         self.channel = channel
-        badge = self.sidebar.window.settings.sidebar.unread_counts.badge(channel.unread)
-        self.row.draw(badge, channel.label(), channel.summary(), channel.tooltip())
+        self.row.present_channel(channel, counts=self.sidebar.window.settings.sidebar.unread_counts)
         # Keep the per-channel sort-control state in sync with the observed order,
         # matching Textual `ChannelGroup.present` (widgets/comms_sidebar.py:141).
         self.sort_choice.update_order(channel.order)
@@ -932,69 +908,52 @@ class QtChannelGroup(ChannelGroupRows):
         return previous.pinned_members ^ channel.pinned_members
 
     def sync_members(self, changed: frozenset[str]) -> None:
-        """Reconcile this channel's thread rows against the model: add missing, remove
-        stale, update rows whose key is in ``changed`` or whose model row moved."""
-        model_state = self.sidebar.model_state
-        if not model_state.shows_model():
-            return
-        threads = model_state.shown.threads.rows
-        channel_row = model_state.shown.channels.rows.get(self.name)
-        if channel_row is None:
-            return
-        wanted = tuple(channel_row.members)
-        wanted_set = frozenset(wanted)
-        # Drop member rows the channel no longer lists.
-        for name in list(self.member_rows):
-            if name not in wanted_set:
-                item = self.member_rows.pop(name)
-                index = self.row.indexOfChild(item)
-                if index >= 0:
-                    self.row.takeChild(index)
-        # Add/update in the model's order. A row whose name is in ``changed`` repaints;
-        # a row at the wrong position moves without a rebuild.
-        pending = self.sidebar.window.thread_actions.pending
-        badge_of = self.sidebar.window.settings.sidebar.unread_counts.badge
-        for index, name in enumerate(wanted):
-            thread = threads.get(name)
-            if thread is None:
-                continue
-            pinned = name in channel_row.pinned_members
-            pending_detail = pending.get(name)
-            existing = self.member_rows.get(name)
-            if existing is None:
-                item = ConversationRow.thread(name, thread, pinned=pinned,
-                                              pending_detail=pending_detail,
-                                              badge=badge_of(thread.unread))
-                self.row.insertChild(index, item)
-                self.member_rows[name] = item
-            else:
-                if name in changed:
-                    existing.draw_thread(thread, pinned=pinned, pending_detail=pending_detail,
-                                         badge=badge_of(thread.unread))
-                current_index = self.row.indexOfChild(existing)
-                if current_index != index:
-                    self.row.takeChild(current_index)
-                    self.row.insertChild(index, existing)
+        """Reconcile this channel's thread rows against the model through the shared
+        `KeyedRows.reconcile_keys`, as Textual's ChannelGroup does."""
+        if self.sidebar.model_state.shows_model():
+            self.reconcile_keys(self.member_keys, changed=changed)
 
     def repaint_members(self, names: frozenset[str]) -> None:
         """Repaint any of this group's shown rows whose thread key is in ``names``.
         Membership changes come through ``sync_members`` instead."""
-        model_state = self.sidebar.model_state
-        if not model_state.shows_model():
+        if self.sidebar.model_state.shows_model():
+            for name in self.rows.keys() & names:
+                self.update_row(name, self.rows[name])
+
+    # KeyedRows: which rows exist and how each paints
+
+    def should_mount(self, key: str) -> bool:
+        return key in self.sidebar.model_state.shown.threads.rows
+
+    def create_row(self, key: str) -> ThreadLine:
+        return ThreadLine(KnownThreadTarget(key, self.sidebar.model_state.shown.threads.rows[key].incarnation))
+
+    def update_row(self, key: str, row: ThreadLine) -> None:
+        shown = self.sidebar.model_state.shown
+        thread = shown.threads.rows.get(key)
+        if thread is None:
             return
-        threads = model_state.shown.threads.rows
-        channel_row = model_state.shown.channels.rows.get(self.name)
-        pinned_members = channel_row.pinned_members if channel_row is not None else frozenset()
-        pending = self.sidebar.window.thread_actions.pending
-        badge_of = self.sidebar.window.settings.sidebar.unread_counts.badge
-        for name in self.member_rows.keys() & names:
-            thread = threads.get(name)
-            if thread is None:
-                continue
-            self.member_rows[name].draw_thread(
-                thread, pinned=name in pinned_members, pending_detail=pending.get(name),
-                badge=badge_of(thread.unread),
-            )
+        channel = shown.channels.rows.get(self.name)
+        row.present_thread(thread, pinned=channel is not None and key in channel.pinned_members,
+                           action_status=self.sidebar.window.thread_actions.pending.get(key),
+                           counts=self.sidebar.window.settings.sidebar.unread_counts)
+
+    # KeyedRows: the channel's tree item is the container
+
+    def member_order(self) -> Iterator[ThreadLine]:
+        return (self.row.child(index) for index in range(self.row.childCount()))
+
+    def row_attached(self, row: ThreadLine) -> bool:
+        return row.parent() is self.row
+
+    def mount_row(self, row: ThreadLine) -> None:
+        self.row.addChild(row)
+
+    def order_rows(self, position) -> None:
+        self.row.addChildren(sorted(self.row.takeChildren(), key=position))
+
+    def retire_row(self, row: ThreadLine) -> None:
+        self.row.removeChild(row)
 
 
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
@@ -1133,7 +1092,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         threads = model.threads.rows
         matches = self.filter.matches
         pending = self.window.thread_actions.pending
-        badge_of = self.window.settings.sidebar.unread_counts.badge
+        counts = self.window.settings.sidebar.unread_counts
         for name, channel in model.channels.rows.items():
             # A channel stays visible if its name matches OR any of its member thread
             # names do; hiding a channel whose only match is a buried thread would also
@@ -1142,15 +1101,10 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             if not matches(name) and not members_shown:
                 continue
             pinned_members = channel.pinned_members
-            with top.group(ChannelLine.channel(name, channel, badge=badge_of(channel.unread))) as group:
+            with top.group(ChannelLine.of(name, channel, counts=counts)) as group:
                 for member in members_shown:
-                    thread = threads[member]
-                    group.keep(ConversationRow.thread(
-                        member, thread,
-                        pinned=member in pinned_members,
-                        pending_detail=pending.get(member),
-                        badge=badge_of(thread.unread),
-                    ))
+                    group.keep(ThreadLine.of(member, threads[member], pinned=member in pinned_members,
+                                             action_status=pending.get(member), counts=counts))
 
     def _refresh_status_only(self) -> None:
         """Update just the status row at the top of the tree in place, without touching
@@ -1194,7 +1148,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             for child_index in range(item.childCount()):
                 child = item.child(child_index)
                 if isinstance(child, ConversationRow):
-                    group.member_rows[child.key] = child
+                    group.rows[child.key] = child
             rebuilt[name] = group
         self.groups = rebuilt
 
@@ -1472,7 +1426,7 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
         """A bus message is delivered as soon as it is sent, so every action sends it; an
         empty send-now has no held queue here to flush."""
         if text.text.strip():
-            self.app.run_operation(MessageSend, partial(self.start_send, text))
+            self.app.run_operation(ConversationSubmission, partial(self.start_send, text))
 
     async def start_send(self, text: TypedText) -> None:
         if await CommandCatalog.execute(text.text, self):
@@ -1515,7 +1469,7 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
         """The Qt composer recalls no earlier input, so there is no history to keep."""
 
     def run_submission(self, send: Callable[[], Awaitable[None]]) -> None:
-        self.app.run_operation(MessageSend, send)
+        self.app.run_operation(ConversationSubmission, send)
 
     def submissions_changed(self) -> None:
         self.composer.show_submitting()

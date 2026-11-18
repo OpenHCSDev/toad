@@ -14,7 +14,7 @@ from textual.containers import VerticalGroup
 from textual.content import Content
 from textual.widgets import Collapsible, Static
 
-from toad.keyed_rows import KeyedRows
+from toad.widgets.keyed_rows import WidgetKeyedRows
 from toad.native_style import AutoHeight, Borderless, NoMargin, NoPadding
 
 
@@ -27,7 +27,7 @@ class DisclosureContents(AutoHeight, Collapsible.Contents):
 
 
 class DeclaredDisclosure(
-    KeyedRows[DisclosureKey],
+    WidgetKeyedRows[DisclosureKey],
     MroDispatch,
     Borderless,
     AutoHeight,
