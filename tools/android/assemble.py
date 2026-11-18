@@ -9,6 +9,12 @@ folder toolchain.sh fills (sdk/, wheels/); PROFILE is the UI profile the phone h
 copied in and never committed. Packages built by python-for-android recipes and the PySide6
 wheels are left to the build; every other package ships as source, with its bytecode.
 
+The app folder is reused between builds, so this script owns its whole set of entries: the
+closure's packages and modules and the entries app_folder.py declares. Everything else is a
+leftover of an older build and is removed first (a package that left the closure kept
+shipping as stale source: 2026-11-18, watchdog), and the folder is checked to hold exactly
+that set once it is laid out.
+
 The bytecode is compiled here because the phone would otherwise compile every module the
 first time it starts after each install: an install unpacks the app folder afresh, so the
 bytecode the last start wrote is gone, and compiling the client's modules adds about six
@@ -32,6 +38,7 @@ import py_compile
 
 import certifi
 import PySide6
+from app_folder import excluded_files, excluded_folders, stale
 from recipe_built import SPEC, import_names, python_optimize
 from ui_theme.wal import WalFile
 
@@ -40,20 +47,22 @@ HERE = Path(__file__).resolve().parent
 app.mkdir(parents=True, exist_ok=True)
 
 built_by_recipes = import_names()
-# A source copy of a recipe package left in the app folder shadows the build's compiled one.
-for name in built_by_recipes:
-    for stale in (app / name, app / f"{name}.py"):
-        if stale.is_dir():
-            shutil.rmtree(stale)
-        elif stale.exists():
-            stale.unlink()
+closure = {name: Path(entry["root"]) for name, entry in json.loads(closure_file.read_text()).items()
+           if name not in built_by_recipes}
+closure_names = {root.name for root in closure.values()}
+# Neither the closure's nor declared: a package that left the closure, or a recipe package's
+# source copy, which would shadow the build's compiled one. The top-level modules' bytecode is
+# compiled afresh below, so a module that left keeps none.
+for leftover in [*stale(app, closure_names), app / "__pycache__"]:
+    if leftover.is_dir():
+        shutil.rmtree(leftover)
+    elif leftover.exists():
+        leftover.unlink()
+    print(f"removed {leftover.name}")
 # Hidden directories are build state (the native Pi agent under _native), not package code.
 ignore = shutil.ignore_patterns("*.so", "*.pyd", "__pycache__", "*.pyc", "tests", "test", ".*")
 shipped = []
-for name, entry in json.loads(closure_file.read_text()).items():
-    if name in built_by_recipes:
-        continue
-    root = Path(entry["root"])
+for name, root in closure.items():
     target = app / root.name
     if target.exists():
         shutil.rmtree(target) if target.is_dir() else target.unlink()
@@ -97,6 +106,8 @@ with zipfile.ZipFile(wheel) as archive:
     keepalive=HERE / "keepalive",
     jars=app / "jar" / "PySide6" / "jar",
     icon=Path(PySide6.__file__).parent / "scripts" / "deploy_lib" / "pyside_icon.jpg",
+    exclude_dirs=excluded_folders(),
+    exclude_files=excluded_files(),
 ))
 spec = ConfigParser()
 spec.read(app / "buildozer.spec")
@@ -107,4 +118,7 @@ with zipfile.ZipFile(app / "keepalive.aar", "w") as aar:
                  .substitute(minapi=spec["app"]["android.minapi"], api=spec["app"]["android.api"]))
     aar.writestr("classes.jar", b"PK\x05\x06" + bytes(18))  # an empty jar: the code is java/
     aar.writestr("R.txt", "")
-print(f"app folder {app}: main.py, profile.json, cacert.pem, keepalive.aar, buildozer.spec from {wheel.name}")
+left = stale(app, closure_names)
+if left:
+    sys.exit(f"error: the app folder holds entries neither the closure's nor declared (app_folder.py): {[path.name for path in left]}")
+print(f"app folder {app}: the closure's {len(closure_names)} packages and modules, and the declared entries; buildozer.spec from {wheel.name}")
