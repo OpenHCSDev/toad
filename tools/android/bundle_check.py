@@ -32,6 +32,7 @@ from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 
+from app_folder import declared
 from recipe_built import import_names, python_optimize
 
 ENTRY = "toad.qt.android"
@@ -195,12 +196,13 @@ optimize = python_optimize()
 # Bytecode the phone's interpreter does not look for is shipped dead weight, and a module
 # without the bytecode it looks for is compiled at every start after an install.
 tag = sys.implementation.cache_tag + (f".opt-{optimize}" if optimize else "")
-# The shipped packages: not the entry script, which runs as source, nor the build's own state.
-packages = [entry for entry in app.iterdir() if not entry.name.startswith(".") and entry.name != "bin"]
+# The shipped packages: the closure's, not the entries app_folder.py declares (the entry
+# script runs as source).
+packages = [entry for entry in app.iterdir() if not declared(entry.name)]
 sources = [source for entry in packages
            for source in (entry.rglob("*.py") if entry.is_dir() else [entry] if entry.suffix == ".py" else [])]
-uncompiled = [source for source in sources if source.name != "main.py"
-              and not (source.parent / "__pycache__" / f"{source.stem}.{tag}.pyc").is_file()]
+uncompiled = [source for source in sources
+              if not (source.parent / "__pycache__" / f"{source.stem}.{tag}.pyc").is_file()]
 if uncompiled:
     print(f"error: {len(uncompiled)} shipped module(s) without {tag}.pyc, e.g. {uncompiled[0]}")
     sys.exit(1)
