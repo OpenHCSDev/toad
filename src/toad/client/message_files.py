@@ -33,6 +33,7 @@ from agent_comms.messaging.message_files import (
     MessageFileContent,
 )
 from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsMessageFilesTool,
