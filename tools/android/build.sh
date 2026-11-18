@@ -14,6 +14,11 @@ set -euo pipefail
 if [ $# -ne 4 ]; then sed -n '2,12p' "$0"; exit 2; fi
 RUNTIME=$(realpath "$1"); TOOLCHAIN=$(realpath "$2"); APP=$(realpath -m "$3"); PROFILE=$(realpath "$4")
 HERE=$(cd "$(dirname "$0")" && pwd)
+# One build at a time in APP: buildozer rewrites APP's dist while it packages it, so a second
+# build started meanwhile removes files from under the first. A second build waits here.
+mkdir -p "$APP"
+exec 9>"$APP/.build.lock"
+flock -n 9 || { echo "== waiting for the build already running in $APP"; flock 9; }
 "$HERE/check.sh" "$RUNTIME" "$TOOLCHAIN" "$APP" "$PROFILE"
 echo "== build"
 cd "$APP"
