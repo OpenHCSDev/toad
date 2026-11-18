@@ -96,7 +96,8 @@ class RelationshipSort(RelationshipOrder, SortControl[ThreadSort]):
         async def write(order: type[ThreadSort]):
             service = await tree.relationship_source(identity)
             if (
-                generation != tree._generation
+                service is None
+                or generation != tree._generation
                 or identity != tree.thread_identity
             ):
                 return
@@ -296,9 +297,12 @@ class ThreadCommsSidebar(
         self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
 
 
-    async def relationship_source(self, identity: ThreadIdentity) -> Observing:
-        access = self.app.coordination_access
-        return await self.app.preparation.run_thread(lambda: access.observing(identity.root_path))
+    async def relationship_source(self, identity: ThreadIdentity) -> Observing | None:
+        return await self.observed_source(self.app.coordination_access, self.app.preparation,
+                                          identity.root_path)
+
+    def show_source_unavailable(self, text: str) -> None:
+        self.query_one(RelationshipContext).update(Content(text), layout=False)
 
 
     def compose(self):
@@ -440,7 +444,7 @@ class ThreadCommsSidebar(
     async def _refresh_owner(self, identity: ThreadIdentity, generation):
         try:
             service = await self.relationship_source(identity)
-            if generation != self._generation or not self.is_attached:
+            if service is None or generation != self._generation or not self.is_attached:
                 return
             owner = identity.thread_name()
             revision = await asyncio.to_thread(service.wire_revision)
@@ -559,6 +563,8 @@ class ThreadCommsSidebar(
             return
         identity = self.thread_identity
         service = await self.relationship_source(identity)
+        if service is None:
+            return
         snapshot = await asyncio.to_thread(service.relationships, identity.thread_name())
         if (
             generation != self._generation

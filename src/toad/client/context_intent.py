@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 
+from toad.client.panel_source import PanelSource
+
 if TYPE_CHECKING:
     from textual.worker import Worker
 
@@ -62,7 +64,7 @@ class ContextTreeIntent:
         return True
 
 
-class ContextInspectionReader:
+class ContextInspectionReader(PanelSource):
     """The context explorer's reading state, as both frontends hold it: Textual's
     `ContextExplorer` and Qt's `QtContextExplorer` inherit this. It keeps the per-thread
     intents store, the current `InspectionState`, and each step a read moves that state
