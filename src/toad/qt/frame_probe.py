@@ -8,8 +8,9 @@ for the process. It measures two things and writes a summary line every few seco
 - **stalls**: a 10 ms timer's lateness. Every tick that arrives more than a frame late is
   time the event loop spent elsewhere, so the largest lateness is the worst stall a
   scroll or an animation suffered;
-- **key latency**: from a key press reaching the application to the next paint of the
-  widget it was delivered to, which is when the typed glyph is on screen.
+- **key latency**: from a key press or a soft keyboard's input-method event reaching the
+  application to the next paint of the widget it was delivered to, which is when the typed
+  glyph is on screen.
 
 The probe only observes; nothing reads its numbers back into the app.
 """
@@ -30,6 +31,7 @@ class FrameProbe(QObject):
     INTERVAL_MS = 10
     REPORT_SECONDS = 5.0
     STALL_BUCKETS = (16, 33, 50, 100, 200, 500, 1000)
+    INPUT_EVENTS = (QEvent.Type.KeyPress, QEvent.Type.InputMethod)
 
     def __init__(self, application: QApplication, sink: Path) -> None:
         super().__init__(application)
@@ -81,7 +83,9 @@ class FrameProbe(QObject):
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         kind = event.type()
-        if kind is QEvent.Type.KeyPress and isinstance(watched, QWidget):
+        # A hardware key arrives as a key press; a phone's soft keyboard as an input-method
+        # event (each letter grows the word being composed, and a space commits it).
+        if kind in self.INPUT_EVENTS and isinstance(watched, QWidget):
             self.pending_keys.setdefault(id(watched), time.perf_counter())
         elif kind is QEvent.Type.Paint and self.pending_keys:
             # A text edit paints through its viewport, a child of the widget the key reached.

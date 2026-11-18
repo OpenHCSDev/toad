@@ -23,7 +23,7 @@ from typing import ClassVar
 
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
-from PySide6.QtGui import QKeyEvent, QMouseEvent
+from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QMouseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -1601,6 +1601,27 @@ class FrameScenario(Scenario):
             await asyncio.sleep(0.12)
         await asyncio.sleep(0.6)
         typed = editor.toPlainText()
+        editor.clear()
+        await asyncio.sleep(0.5)
+        # As a phone's soft keyboard types: each letter replaces the word being composed
+        # (preedit), and a space commits the word.
+        await self.phase(probe, "soft-keyboard typing scratch-live-pipeline")
+        end = time.perf_counter() + (self.phase_seconds if self.wants("typing") else 0)
+        word, index = "", 0
+        while time.perf_counter() < end:
+            char = text[index % len(text)]
+            if char == " ":
+                event = QInputMethodEvent("", [])
+                event.setCommitString(word + " ")
+                word = ""
+            else:
+                word += char
+                event = QInputMethodEvent(word, [])
+            QApplication.postEvent(editor, event)
+            index += 1
+            await asyncio.sleep(0.12)
+        await asyncio.sleep(0.6)
+        typed += editor.toPlainText()
         editor.clear()
         for label, values in sorted(self.timings.items()):
             values.sort()
