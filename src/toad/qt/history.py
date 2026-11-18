@@ -261,6 +261,15 @@ class HistoryRows(QAbstractListModel):
     def row_of(self, key) -> int:
         return self._rows.get(key, -1)
 
+    def changed(self, fragments: tuple[HistoryFragment, ...]) -> None:
+        """These rows' fragments now show differently (`request_show` changes a fragment in
+        place, so `show` sees the same object): each is told to the view as a data change,
+        which drops its kept height, so it is measured again in its new look."""
+        for fragment in fragments:
+            if (row := self.row_of(fragment.key)) >= 0:
+                index = self.index(row, 0)
+                self.dataChanged.emit(index, index)
+
 
 class ArrivalFade(WidgetAnimation):
     """Rows that arrived together, rising as the TUI's `ARRIVAL` cascade raises them: each fades
@@ -371,6 +380,8 @@ class HistoryRowDelegate(RowDocumentDelegate):
         """Rows draw with these names from now on; rows prepared before are stale."""
         self.renderer = self.app_renderer.with_links(links)
         self.links_revision += 1
+        # Every row's key names the links it was drawn with: none keeps its height.
+        self.forget_row_sizes()
 
     def restyle(self) -> None:
         """The app's renderer took a new scheme or diff marks: rows draw by it from now on,
@@ -668,6 +679,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         update cost the whole history's measurement while the new looks were not even ready."""
         changed = tuple(fragment for fragment, shown in changes if fragment.request_show(shown))
         if changed:
+            self.window.model_rows.changed(changed)
             self.repaint(continuing=changed)
 
     def repaint(self, fragments: tuple[HistoryFragment, ...] = (), *, continuing=()) -> None:
