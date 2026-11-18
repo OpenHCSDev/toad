@@ -23,7 +23,7 @@ from typing import ClassVar
 
 import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
-from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QMouseEvent
+from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -821,15 +821,49 @@ class ShippedScenario(Scenario):
                 dialog.close()
 
     async def press_bound_keys(self, label: str) -> None:
-        """Every bound action key whose widget is shown, as if pressed."""
-        pressed = []
-        for bound in tuple(self.app.action_keys.bound.values()):
-            if bound.shortcut.parent().isVisible() and bound.shortcut.keys():
-                pressed.append(type(bound.action).__name__)
-                bound.shortcut.activated.emit()
-                await asyncio.sleep(0.05)
-        await asyncio.sleep(0.5)
-        self.report(label, pressed=sorted(pressed))
+        """Every key a live shortcut answers, pressed as a real key event with focus in the
+        view's composer and again on its history, as a person would press it. Before each
+        press the history is off its tail and the composer holds a draft, so the actions
+        answering it are available. Qt's focus routing and key competition then decide what
+        runs (`ActionKeys.resolve`); each press must run exactly one action and raise nothing."""
+        keys = self.app.action_keys
+        page = self.page
+        self.app.show()
+        self.app.activateWindow()
+        targets = {"composer": page.composer.editor, "history": page.messages}
+        results = []
+        for where, target in targets.items():
+            answered: dict[str, QKeySequence] = {}
+            for bound in tuple(keys.bound.values()):
+                parent = bound.shortcut.parent()
+                if parent.isVisible() and (parent is target or parent.isAncestorOf(target)):
+                    for sequence in bound.shortcut.keys():
+                        answered.setdefault(sequence.toString(), sequence)
+            for spelling, sequence in sorted(answered.items()):
+                # Off the tail where the history is long enough to leave it.
+                page.messages.scroll_y = 0
+                await asyncio.sleep(0.3)
+                page.composer.editor.setPlainText("drafted by the shipped run")
+                target.setFocus()
+                await asyncio.sleep(0.1)
+                if not (target is QApplication.focusWidget() or target.isAncestorOf(QApplication.focusWidget())):
+                    self.faults.append(f"{label} {where}: focus did not reach {type(target).__name__}")
+                    break
+                # What the declared order runs here: the first available answering action,
+                # or nothing when none is available.
+                expected = [type(bound.action).__name__ for bound in keys.order([sequence])
+                            if bound.available()][:1]
+                del keys.ran[:]
+                combination = sequence[0]
+                QTest.keyClick(target, combination.key(), combination.keyboardModifiers())
+                await asyncio.sleep(0.3)
+                ran = [type(action).__name__ for action in keys.ran]
+                results.append(f"{where}:{spelling}->{'+'.join(ran) or 'none available'}")
+                if ran != expected:
+                    self.faults.append(f"{label} {where}: {spelling} ran {ran or 'nothing'}; "
+                                       f"the declared order runs {expected or 'nothing (none available)'}")
+        page.composer.editor.clear()
+        self.report(label, pressed=results)
 
     async def run(self) -> None:
         app = self.app
@@ -851,6 +885,12 @@ class ShippedScenario(Scenario):
         await self.step("4-thread", lambda: self.open_named("scratch-live-pipeline"))
         await self.step("4-thread-details", self.open_details)
         await self.press_bound_keys("4-thread-keys")
+        # The reader keys (ctrl+d, ctrl+u, G) are declared for the vim modes only: press every
+        # key again in vim normal mode, as a person choosing that keyboard mode would.
+        app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named("vim_normal"))
+        await asyncio.sleep(0.5)
+        await self.press_bound_keys("5-thread-vim-keys")
+        app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named("standard"))
         self.close_dialogs()
         if self.faults:
             raise AssertionError(f"{len(self.faults)} fault(s) on the shipped app:\n" + "\n".join(self.faults))

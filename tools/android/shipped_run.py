@@ -105,7 +105,8 @@ class ScratchBus:
             raise RuntimeError("the TLS front did not start")
         profile = self.work / "profile.json"
         run(self.runtime / "bin" / "agent-comms-connector", "grant-ui", "--root", self.root,
-            "--endpoint", f"https://localhost:{front}/mcp", "--profile", profile, env={**env, "HOME": str(self.home)})
+            "--endpoint", f"https://localhost:{front}/mcp", "--profile", profile, "--access", "ui_access",
+            env={**env, "HOME": str(self.home)})
         return profile
 
     def stop(self) -> None:

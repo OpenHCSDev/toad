@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QKeyEvent, QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QWidget
 
 from toad.keymap import KeymapRow
@@ -38,14 +38,6 @@ def _qt_sequence(key: str) -> QKeySequence:
     if len(spelling) == 1 and spelling.isalpha() and spelling.isupper():
         return QKeySequence(f"Shift+{spelling}")
     return QKeySequence(spelling)
-
-
-def _fire(action: Any, context: Any) -> None:
-    """Run ``action.apply(context)`` when the action is available there. Only actions whose
-    declared capability the context has are bound (`ActionKeys.bind_family`), so a failure
-    here is a real fault and reaches Qt's logger."""
-    if action.available(context):
-        action.apply(context)
 
 
 @dataclass(frozen=True)
@@ -69,6 +61,9 @@ class ActionKeys:
     def __init__(self, settings: Callable[[], Any]) -> None:
         self.settings = settings
         self.bound: dict[int, BoundAction] = {}
+        self.ran: list[object] = []
+        """Every action a key press ran, in order; the shipped gate reads it to require that
+        each press runs exactly one."""
 
     def keys(self, action: object) -> list[QKeySequence]:
         """``action``'s declared keys in the current key mode, after the user's remap."""
@@ -84,33 +79,51 @@ class ActionKeys:
         shortcut = QShortcut(widget)
         shortcut.setContext(scope)
         shortcut.setKeys(self.keys(action))
-        shortcut.activated.connect(fire)
-        shortcut.activatedAmbiguously.connect(lambda: self.resolve(shortcut))
         key = id(shortcut)
         self.bound[key] = BoundAction(shortcut, action, fire, context)
+        shortcut.activated.connect(lambda: self.run((self.bound[key],)))
+        shortcut.activatedAmbiguously.connect(lambda: self.resolve(shortcut))
         shortcut.destroyed.connect(lambda: self.bound.pop(key))
         return shortcut
 
     def resolve(self, pressed: QShortcut) -> None:
         """Several live shortcuts on the focus path answer the pressed key: run the one
-        Textual's binding order picks. Priority actions are tried first from the outermost
-        widget in, then the rest from the focused widget out; the first available runs."""
+        Textual's binding order picks (`order`)."""
+        self.run(self.order(pressed.keys()))
+
+    def order(self, keys: list[QKeySequence]) -> tuple[BoundAction, ...]:
+        """The live shortcuts on the focus path answering ``keys``, in Textual's binding order:
+        priority actions from the outermost widget in, then the rest from the focus out."""
         chain: list[QWidget] = []
         widget = QApplication.focusWidget()
         while widget is not None:
             chain.append(widget)
             widget = widget.parentWidget()
-        keys = set(key.toString() for key in pressed.keys())
+        pressed = set(key.toString() for key in keys)
         answering = [bound for bound in self.bound.values()
                      if bound.shortcut.isEnabled() and bound.shortcut.parent() in chain
-                     and keys & set(key.toString() for key in bound.shortcut.keys())]
+                     and pressed & set(key.toString() for key in bound.shortcut.keys())]
         depth = {id(widget): index for index, widget in enumerate(chain)}
         priority = sorted((bound for bound in answering if bound.action.priority),
                           key=lambda bound: -depth[id(bound.shortcut.parent())])
         rest = sorted((bound for bound in answering if not bound.action.priority),
                       key=lambda bound: depth[id(bound.shortcut.parent())])
-        for bound in (*priority, *rest):
+        return (*priority, *rest)
+
+    def claims(self, event: QKeyEvent) -> bool:
+        """Whether an available priority action on the focus path answers this key event.
+        A text control otherwise takes Enter, Shift+Enter or Ctrl+Y for its own editing before
+        any shortcut sees them; Textual's prompt bindings are `priority` and beat its text
+        area, so an editor gives such a key up (`ComposerEditor.event`)."""
+        pressed = QKeySequence(event.keyCombination())
+        return any(bound.action.priority and bound.available() for bound in self.order([pressed]))
+
+    def run(self, candidates: tuple[BoundAction, ...]) -> None:
+        """Run the first candidate whose action is available where it is bound. An action
+        runs only when available, so its ``apply`` raising is a real fault."""
+        for bound in candidates:
             if bound.available():
+                self.ran.append(bound.action)
                 bound.fire()
                 return
 
@@ -125,7 +138,7 @@ class ActionKeys:
             if not action_cls.runs_on(context):
                 continue
             action = action_cls()
-            shortcuts.append(self.bind(widget, action, lambda _a=action: _fire(_a, context), scope, context))
+            shortcuts.append(self.bind(widget, action, lambda _a=action: _a.apply(context), scope, context))
         return shortcuts
 
     def follow(self) -> None:
