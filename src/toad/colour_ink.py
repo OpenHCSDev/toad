@@ -9,10 +9,13 @@ resolved colour's `.ansi`.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from rich.style import Style
-from textual.app import App
 from textual.color import Color
+
+if TYPE_CHECKING:
+    from textual.app import App
 
 
 @dataclass(frozen=True)

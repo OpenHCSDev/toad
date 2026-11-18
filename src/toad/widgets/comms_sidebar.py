@@ -40,7 +40,8 @@ from toad.client.session_tracker import SidebarSelection
 from toad.widgets.selection import HoverSelection
 from toad.client.application_actions import NewSessionControl
 from toad.widget_actions import OpensSelected
-from toad.widgets.session_sort import ChannelListSort, CommsSortChoice, ThreadSortForm
+from toad.client.sort_control import ThreadSortForm
+from toad.widgets.session_sort import ChannelListSort, CommsSortChoice
 from toad.widgets.sidebar_tree import (
     ActiveSegment,
     DetailedRow,

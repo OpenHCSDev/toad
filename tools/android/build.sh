@@ -14,17 +14,7 @@ set -euo pipefail
 if [ $# -ne 4 ]; then sed -n '2,12p' "$0"; exit 2; fi
 RUNTIME=$(realpath "$1"); TOOLCHAIN=$(realpath "$2"); APP=$(realpath -m "$3"); PROFILE=$(realpath "$4")
 HERE=$(cd "$(dirname "$0")" && pwd)
-CHECKOUT=$(cd "$HERE/../.." && pwd)
-RT="$RUNTIME/bin/python"
-SITE=$("$RT" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
-mkdir -p "$APP"
-
-echo "== closure ($(git -C "$CHECKOUT" log -1 --format='%h %s'))"
-(cd "$CHECKOUT" && PYTHONPATH=src timeout 120 "$RT" "$HERE/closure.py" "$APP/closure.json")
-echo "== assemble"
-timeout 300 "$RT" "$HERE/assemble.py" "$APP/closure.json" "$APP" "$TOOLCHAIN" "$PROFILE"
-echo "== shipped app check (no site-packages)"
-timeout 180 "$RT" "$HERE/bundle_check.py" "$APP" "$SITE"
+"$HERE/check.sh" "$RUNTIME" "$TOOLCHAIN" "$APP" "$PROFILE"
 echo "== build"
 cd "$APP"
 VIRTUAL_ENV="$TOOLCHAIN/venv314" PATH="$TOOLCHAIN/venv314/bin:$PATH" \

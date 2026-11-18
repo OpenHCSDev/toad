@@ -10,6 +10,13 @@ KNOWN_COPIES is the debt on main when this ratchet landed. It only shrinks:
 A second rule: every class under toad.qt inherits at least one frontend-neutral toad
 ancestor, or is listed in QT_ONLY with the toolkit-only fact that keeps it out of the shared
 code. KNOWN_BARE is the bare debt when that rule landed; like KNOWN_COPIES it only shrinks.
+"Frontend-neutral" means by what a module loads, not only where it sits: a toad module outside
+toad.qt/widgets/screens counts as neutral only if importing it, in a fresh interpreter, loads no
+toad.widgets/toad.screens module and none of Textual's app/widget/screen/container modules
+(#2069 reached Textual's app host from Qt, and the APK build broke). KNOWN_UI_LOADING lists the
+modules Qt inherited from that did so when the rule landed, each with its chain; it only shrinks.
+A third rule: no toad.qt module imports a toad.widgets/toad.screens module at module level;
+KNOWN_QT_FRONTEND_IMPORTS only shrinks.
 Run with an interpreter that has PySide6 (the agent-comms runtime):
   QT_QPA_PLATFORM=offscreen PYTHONPATH=src <runtime>/bin/python tools/qt_inherit_ratchet.py
 Every Qt PR pastes this tool's output.
@@ -17,10 +24,18 @@ Every Qt PR pastes this tool's output.
 
 from __future__ import annotations
 
+import ast
+import hashlib
 import importlib
+import importlib.util
 import inspect
+import json
 import pkgutil
+import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
+from functools import cache
+from pathlib import Path
 
 KNOWN_COPIES = {
 }
@@ -119,11 +134,142 @@ KNOWN_BARE = frozenset({
 })
 
 FRONTEND_PREFIXES = ("toad.qt", "toad.widgets", "toad.screens")
+# Textual itself ships in the APK and its content, styles and bindings are used toolkit-neutrally;
+# what drags a frontend in is Toad's Textual packages and Textual's app/widget/screen chain.
+UI_MODULES = ("toad.widgets", "toad.screens", "textual.widgets", "textual.screen", "textual.app",
+              "textual.containers")
+
+# Run in a fresh interpreter per module: import it, and report every module that import loaded
+# with the module whose import statement loaded it.
+PROBE = r"""
+import builtins, json, sys
+loaded_by = {}
+real_import = builtins.__import__
+def traced(name, globals=None, locals=None, fromlist=(), level=0):
+    importer = (globals or {}).get("__name__", "?")
+    before = set(sys.modules)
+    try:
+        return real_import(name, globals, locals, fromlist, level)
+    finally:
+        for new in set(sys.modules) - before:
+            loaded_by.setdefault(new, importer)
+builtins.__import__ = traced
+before = set(sys.modules)
+__import__(sys.argv[1])
+print(json.dumps({name: loaded_by.get(name) for name in set(sys.modules) - before}))
+"""
+
+
+def ui_module(name: str) -> bool:
+    return any(name == prefix or name.startswith(prefix + ".") for prefix in UI_MODULES)
+
+
+def ui_chain(module: str) -> tuple[str, ...]:
+    """The import chain from `module` to the first frontend UI module importing it loads, measured
+    as the sys.modules delta of a fresh interpreter; () when it loads none."""
+    result = subprocess.run([sys.executable, "-c", PROBE, module], capture_output=True, text=True,
+                            timeout=180, check=False)
+    if result.returncode:
+        raise RuntimeError(f"importing {module} failed:\n{result.stderr[-2000:]}")
+    loaded_by: dict[str, str | None] = json.loads(result.stdout.strip().splitlines()[-1])
+    offending = sorted(name for name in loaded_by if ui_module(name))
+    if not offending:
+        return ()
+    chain = [min(offending, key=lambda name: name.count("."))]
+    while chain[-1] != module and loaded_by.get(chain[-1]) and len(chain) < 60:
+        chain.append(loaded_by[chain[-1]])
+    return tuple(reversed(chain))
+
+
+def source_digest() -> str:
+    digest = hashlib.sha256()
+    for path in sorted(Path("src").rglob("*.py")):
+        digest.update(str(path).encode())
+        digest.update(path.read_bytes())
+    digest.update(PROBE.encode())
+    digest.update(repr(UI_MODULES).encode())
+    return digest.hexdigest()[:24]
+
+
+@cache
+def ui_chains(modules: frozenset[str]) -> dict[str, tuple[str, ...]]:
+    """`ui_chain` for each module, probed in parallel and cached on disk per source tree."""
+    store = Path.home() / ".cache" / "toad-qt-ratchet" / f"{source_digest()}.json"
+    known: dict[str, list[str]] = json.loads(store.read_text()) if store.exists() else {}
+    missing = sorted(modules - set(known))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for module, chain in zip(missing, pool.map(ui_chain, missing)):
+            known[module] = list(chain)
+    store.parent.mkdir(parents=True, exist_ok=True)
+    store.write_text(json.dumps(known))
+    return {module: tuple(known[module]) for module in modules}
+
+
+# Shared-looking modules (outside toad.qt/widgets/screens) that Qt classes inherit from and whose
+# import loads Textual's app or widget chain, when this rule landed; each with its chain. It only
+# shrinks: hoist the shared part into a module that loads none, then delete the line.
+KNOWN_UI_LOADING: dict[str, str] = {
+    'toad.client.block_menu':
+        'toad.keymap -> toad.key_modes -> toad.neovim_editing -> textual.app',
+    'toad.client.history_rows_view':
+        'toad.transcript_publication -> toad.session_scope -> toad.widgets.side_bar -> toad.widgets.comms_menu -> textual.view -> textual.app',
+    'toad.client.keymap_browser':
+        'toad.key_modes -> toad.neovim_editing -> textual.app',
+    'toad.client.prompt_stack':
+        'toad.key_modes -> toad.neovim_editing -> textual.app',
+    'toad.client.session_sources':
+        'toad.transcript_publication -> toad.session_scope -> toad.widgets.side_bar -> toad.widgets.comms_menu -> textual.view -> textual.app',
+    'toad.client.thread_binding_dispatch':
+        'toad.transcript_publication -> toad.session_scope -> toad.widgets.side_bar -> toad.widgets.comms_menu -> textual.view -> textual.app',
+    'toad.client.transcript_fragments':
+        'toad.widgets',
+    'toad.question_actions':
+        'toad.widget_actions -> textual.widgets._text_area -> textual.screen -> textual.widgets._toast -> textual.containers',
+    'toad.sidebar_model_view':
+        'textual.widgets',
+    'toad.view_actions':
+        'toad.widget_actions -> textual.widgets._text_area -> textual.screen -> textual.widgets._toast -> textual.containers',
+    'toad.widget_view':
+        'textual.view -> textual.app',
+}
+
+KNOWN_QT_FRONTEND_IMPORTS: dict[str, str] = {
+}
+
+
+def candidate_modules() -> frozenset[str]:
+    """Every module outside the frontend packages that a Qt class inherits a class from."""
+    return frozenset(
+        ancestor.__module__
+        for path, cls in classes_under("toad").items() if path.startswith("toad.qt.")
+        for ancestor in cls.__mro__[1:]
+        if ancestor.__module__.startswith("toad.") and not ancestor.__module__.startswith(FRONTEND_PREFIXES))
 
 
 def neutral(cls: type) -> bool:
-    """A toad class that belongs to neither frontend: where shared behaviour lives."""
-    return cls.__module__.startswith("toad.") and not cls.__module__.startswith(FRONTEND_PREFIXES)
+    """A toad class that belongs to neither frontend: where shared behaviour lives. Its module
+    is outside toad.qt/widgets/screens, and importing it loads no Textual app or widget chain
+    (#2069's Qt transfer dialogs reached Textual's app host, and the APK build broke)."""
+    module = cls.__module__
+    if not module.startswith("toad.") or module.startswith(FRONTEND_PREFIXES):
+        return False
+    return module in KNOWN_UI_LOADING or not ui_chains(candidate_modules()).get(module, ())
+
+
+def qt_frontend_imports() -> dict[str, str]:
+    """A toad.qt module's own module-level imports of toad.widgets/toad.screens modules (#2069
+    was one: toad.qt.transfer imported the Textual transfer widgets for their request kinds)."""
+    found: dict[str, str] = {}
+    for info in pkgutil.walk_packages(importlib.import_module("toad.qt").__path__, "toad.qt."):
+        tree = ast.parse(Path(importlib.util.find_spec(info.name).origin).read_text())
+        for node in tree.body:
+            if isinstance(node, ast.ImportFrom) and node.module and node.module.startswith(FRONTEND_PREFIXES[1:]):
+                found[info.name] = node.module
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name.startswith(FRONTEND_PREFIXES[1:]):
+                        found[info.name] = alias.name
+    return found
 
 
 def classes_under(package_name: str) -> dict[str, type]:
@@ -174,6 +320,24 @@ def bare() -> frozenset[str]:
 
 
 def main() -> int:
+    chains = ui_chains(candidate_modules())
+    loading = {module: chain for module, chain in chains.items() if chain}
+    new_loading = sorted(set(loading) - set(KNOWN_UI_LOADING))
+    cleared = sorted(set(KNOWN_UI_LOADING) - set(loading))
+    for module in new_loading:
+        print(f"NEW UI LOAD {module} is inherited by Qt and its import loads {' -> '.join(loading[module])}: "
+              "move the shared part to a module that loads no Textual app or widget chain")
+    for module in cleared:
+        print(f"CLEARED    {module} no longer loads Textual's app or widget chain: delete its KNOWN_UI_LOADING line")
+    print(f"shared-looking modules loading Textual UI: {len(loading)} (ratchet baseline {len(KNOWN_UI_LOADING)})")
+    direct = qt_frontend_imports()
+    new_direct = sorted(set(direct) - set(KNOWN_QT_FRONTEND_IMPORTS))
+    gone_direct = sorted(set(KNOWN_QT_FRONTEND_IMPORTS) - set(direct))
+    for module in new_direct:
+        print(f"NEW IMPORT {module} imports {direct[module]}: Qt takes shared behaviour from its neutral owner")
+    for module in gone_direct:
+        print(f"GONE       {module} no longer imports a Textual module: delete its KNOWN_QT_FRONTEND_IMPORTS line")
+    print(f"toad.qt modules importing toad.widgets/screens: {len(direct)} (ratchet baseline {len(KNOWN_QT_FRONTEND_IMPORTS)})")
     found_bare = bare()
     new_bare = sorted(found_bare - KNOWN_BARE)
     rooted = sorted(KNOWN_BARE - found_bare)
@@ -190,7 +354,7 @@ def main() -> int:
     for path in fixed:
         print(f"FIXED      {path} now shares an ancestor (or is gone): delete its KNOWN_COPIES line")
     print(f"parallel copies: {len(found)} (ratchet baseline {len(KNOWN_COPIES)})")
-    return 1 if new or fixed or new_bare or rooted else 0
+    return 1 if new or fixed or new_bare or rooted or new_loading or cleared or new_direct or gone_direct else 0
 
 
 if __name__ == "__main__":

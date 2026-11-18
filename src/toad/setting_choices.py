@@ -19,7 +19,6 @@ from textual.widget import Widget
 
 from toad.acp.status import ToolCallStatus
 from toad.client.platform import DesktopService, host
-from toad.widgets.future_text import FutureText
 
 
 @dataclass(frozen=True)
@@ -466,4 +465,6 @@ class QuotesLoading(LoadingStyle):
 
     @classmethod
     def widget(cls, screen):
+        from toad.widgets.future_text import FutureText
+
         return FutureText(Content(choice(cls.QUOTES)))

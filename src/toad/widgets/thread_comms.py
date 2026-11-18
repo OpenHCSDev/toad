@@ -48,7 +48,8 @@ from toad.widgets.checkbox import Checkbox
 from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.comms_sidebar import ThreadStatusRow
 from toad.client.sort_control import RelationshipOrder
-from toad.widgets.session_sort import SortControl, ThreadSortForm
+from toad.client.sort_control import ThreadSortForm
+from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import (
     SideBar,
     SidebarPanelHost,
