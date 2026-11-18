@@ -162,11 +162,24 @@ class ArrivalBurst:
         """The earlier messages whose head is scrolled above the top row, the most recent
         `shown` of them, under a count line; none for a burst of one, or once the reader is
         above the burst (no head is above the top row then). The top row's own message pins
-        its header as before and is not stacked twice."""
+        its header as before and is not stacked twice.
+
+        When the top row IS a header (pinned.headers empty), the burst message at that row
+        becomes the overlay's last line, so the overlay covers the flow's header with its
+        own copy and earlier messages stack above it — never A drawn over visible B."""
         if len(self.messages) < 2 or not pinned.width:
             return NO_STACK
         # The top row's own message by identity: messages from one sender to one destination in
         # the same second draw equal headers, and comparing headers left such a message out.
+        # When the top row IS that message's header (nothing pinned), the overlay would cover it:
+        # its header becomes the overlay's last line, drawn once, never an earlier one over it.
+        top_line: tuple[Divider, ...] = ()
+        if not pinned.headers:
+            at_top = next((message for message in self.messages
+                           if message.key.source == pinned.source), None)
+            if at_top is None:
+                return NO_STACK
+            top_line = (at_top.header,)
         above = [message for message in self.messages[:-1]
                  if message.key.source != pinned.source
                  and (top := window.message_top(message.key)) is not None and top < window.scroll_y]
@@ -174,7 +187,7 @@ class ArrivalBurst:
             return NO_STACK
         stacked = above[-self.shown:]
         count = Divider.titled(f"{len(self.messages)} new", MutedRole)
-        return StackedHeaders((count, *(message.header for message in stacked)),
+        return StackedHeaders((count, *(message.header for message in stacked), *top_line),
                               (above[0].key, *(message.key for message in stacked)))
 
 
