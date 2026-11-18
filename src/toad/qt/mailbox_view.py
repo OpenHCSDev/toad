@@ -94,9 +94,8 @@ class QtMailboxView(QtThreadView, SessionScope):
         # workspace lookups stay consistent through the swap; keep an empty default
         # until the swap sets it.
         self.id = ""
-        # The thread identity gets its real value from `bind_thread` below; the
-        # default here is NoThreadIdentity (SessionScope default) until bind lands.
-        self._identity: object | None = None
+        # `bind_thread` replaces this with the real ThreadIdentity.
+        self._identity: ThreadIdentity | NoThreadIdentity = NoThreadIdentity()
         # Matches Textual's MainScreen: `prepared.bind` lands on
         # `view.presentation.sources.load_plan` via `apply_native_load_plan`.
         self.presentation = _MailboxPresentation()
@@ -143,16 +142,10 @@ class QtMailboxView(QtThreadView, SessionScope):
         return UnopenedSessionDisposition()
 
     @property
-    def thread_identity(self) -> object:
-        """Returns the bound ThreadIdentity once `bind_thread` has been called;
-        before that, the `NoThreadIdentity` default so generic sidebar panels
-        reading `view.thread_identity` get a usable value. Mirrors
-        `MainScreen.bind_thread`'s `self._identity = ThreadIdentity(owner, root)`
-        pattern at `screens/main.py:386`, with the SessionScope default replicated
-        here because QtThreadView's bases do not declare a thread_identity owner."""
-        if self._identity is not None:
-            return self._identity
-        return NoThreadIdentity()
+    def thread_identity(self) -> ThreadIdentity | NoThreadIdentity:
+        """`NoThreadIdentity` until `bind_thread` sets the real one, as
+        `MainScreen.bind_thread` does at `screens/main.py:386`."""
+        return self._identity
 
     @property
     def origin(self) -> SessionOrigin:

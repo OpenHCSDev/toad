@@ -504,10 +504,9 @@ class QtThreadView(
         return self.messages
 
     @property
-    def contents(self) -> "QtBoundViewHost":
-        """`BoundViewHost.contents`: a `ChildrenOwner`. Self is the view widget
-        inheriting `QtChildrenOwner` through `QtBoundViewHost`; its `findChildren`
-        sees the whole tab including `message_history`."""
+    def contents(self) -> "QtThreadView":
+        """`BoundViewHost.contents`: the view widget itself holds the transcript blocks
+        (its `message_history`), so `BoundView.current` reads this view's attachment."""
         return self
 
     @property

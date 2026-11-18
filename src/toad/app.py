@@ -161,7 +161,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
             project_dir: Project directory.
             connection: Core transport selected by the launch owner.
         """
-        Renderer.prepare_spawn()
         self.preparation = PreparationRuntime(TextualRenderProcessPool(connection.helper_start))
         self.render_processes: Renderer = TextualPreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
@@ -381,7 +380,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     async def on_load(self) -> None:
         asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, self.exit)
         asyncio.get_running_loop().add_signal_handler(signal.SIGUSR1, self.relaunch)
-        self.preparation.renderer.start()
         self._prewarm_conversation_css()
         self._prewarm_core_modules()
         db = await self.get_db()
