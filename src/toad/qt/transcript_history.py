@@ -39,11 +39,11 @@ class QtTranscriptHistory(QtConversationHistory, CommittedHistoryBase, ReportsCo
 
     def _initial_page_source(self, prepared, app):
         """Bind a `SavedTranscript` over the view's `TranscriptPresentation`. The loader
-        callable is `view.transcript.get_transcript_page`; the fragment family is
+        source is `view.transcript`, its pages and their files; the fragment family is
         `QT_FRAGMENT_CLASSES` (Qt-flavored siblings of the canonical neutral family —
         same decode, Qt-flavored rendering, no data duplication)."""
         return SavedTranscript(
-            self.view.transcript.get_transcript_page,
+            self.view.transcript,
             prepared.page.after,
             app.preparation,
             fragments=QT_FRAGMENT_CLASSES,

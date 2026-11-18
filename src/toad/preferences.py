@@ -55,6 +55,7 @@ from toad.setting_choices import (
     TopNavigationBar,
 )
 from toad.setting_declarations import FamilyChoices, SettingsDeclaration
+from toad.client.message_files import FilePicker, WindowFilePicker
 from toad.client.prompt_composer import PromptSettingEffects
 from toad.client.view_settings import ConversationSettingsOwner, ViewSettingsOwner
 from toad.terminal_origin import TerminalLayout
@@ -89,6 +90,11 @@ class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsOwner,)):
         str, FieldLabel("Shell command symbol"), MinLen(1), PromptSettingEffects.apply_input_text,
     ] = "$"
     """Shown before a shell command."""
+
+    file_picker: Annotated[
+        type[FilePicker], FieldLabel("File picker"), FamilyChoices(FilePicker), WireName("file-picker"),
+    ] = WindowFilePicker
+    """What attaching a file to a message opens: the file dialog (on a phone, its own file picker) or the project path search."""
 
     delivery_preview: Annotated[
         bool, FieldLabel("Show delivery preview?"), PromptSettingEffects.apply_delivery_preview,

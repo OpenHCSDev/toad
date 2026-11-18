@@ -42,6 +42,7 @@ from toad.client.notification_status import (
     ShownFragment,
     UncheckedNotifications,
 )
+from toad.client.message_file_links import MessageFileLink, file_chips
 from toad.commit_claims import CommitClaim
 from toad.core.projection import MroProjection
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
@@ -104,6 +105,10 @@ class PartPosition(ABC):
     @abstractmethod
     def outgoing_sources(self, publication: PublishedSentMessage): ...
 
+    @abstractmethod
+    def file_blocks(self, links: tuple[MessageFileLink, ...]) -> tuple[LineBlock, ...]:
+        """The chips of the message's files; only the part carrying its status draws them."""
+
     def draw_divider(self, consumer, divider: Divider) -> None:
         """A message's first part draws its header; later parts draw none."""
         consumer.blocks.append(divider)
@@ -155,6 +160,9 @@ class LastPart(PartPosition):
     def outgoing_sources(self, publication: PublishedSentMessage):
         return (publication.reference,)
 
+    def file_blocks(self, links: tuple[MessageFileLink, ...]) -> tuple[LineBlock, ...]:
+        return file_chips(links)
+
 
 class InnerPart(PartPosition):
     __slots__ = ()
@@ -167,6 +175,9 @@ class InnerPart(PartPosition):
         return ()
 
     def outgoing_sources(self, publication: PublishedSentMessage):
+        return ()
+
+    def file_blocks(self, links: tuple[MessageFileLink, ...]) -> tuple[LineBlock, ...]:
         return ()
 
 
@@ -374,7 +385,32 @@ class HistoryFragment(CursorRest):
 
 
 @dataclass(kw_only=True)
-class BusMessageHistoryFragment(HistoryFragment):
+class MessageLines(HistoryFragment):
+    """A bus message drawn as lines: what leads it, its text, the chips of the files it
+    carries, then what trails it. `files` is what its page's read answered for it."""
+
+    files: tuple[MessageFileLink, ...] = ()
+
+    @property
+    def leading(self) -> tuple[LineBlock, ...]:
+        """Blocks above the message's own text."""
+        return ()
+
+    @abstractmethod
+    def text(self, shown) -> tuple[LineBlock, ...]:
+        """The message's own text."""
+
+    def trailing(self, shown) -> tuple[LineBlock, ...]:
+        """Blocks below the message's own text and files."""
+        return ()
+
+    def blocks(self, shown):
+        return (*self.leading, *self.text(shown), *self.part_position.file_blocks(self.files),
+                *self.trailing(shown))
+
+
+@dataclass(kw_only=True)
+class BusMessageHistoryFragment(MessageLines):
     """One bus-message builder: header, styled body and Core notification feedback."""
 
     shown: MessageShown = field(default_factory=MessageShown)
@@ -427,12 +463,9 @@ class BusMessageHistoryFragment(HistoryFragment):
     def trailing(self, shown):
         return self.part_position.status_blocks(shown, self.details_link)
 
-    def blocks(self, shown):
-        return (*self.leading, *self.text(shown), *self.trailing(shown))
-
 
 @dataclass(kw_only=True)
-class EvidencedFragment(DeclaredViews, HistoryFragment, ABC):
+class EvidencedFragment(DeclaredViews, MessageLines, ABC):
     """One wire message drawn as lines.
 
     `evidence` is Core's page whose display evidence can mark this message
@@ -465,21 +498,6 @@ class EvidencedFragment(DeclaredViews, HistoryFragment, ABC):
     def clipboard_text(self) -> str:
         return self.message.body
 
-    @property
-    def leading(self) -> tuple[LineBlock, ...]:
-        """Blocks above the message's own text."""
-        return ()
-
-    def trailing(self, shown: MessageShown) -> tuple[LineBlock, ...]:
-        """Blocks below the message's own text."""
-        return ()
-
-    @abstractmethod
-    def text(self, shown: MessageShown) -> tuple[LineBlock, ...]:
-        """The message's own text."""
-
-    def blocks(self, shown):
-        return (*self.leading, *self.text(shown), *self.trailing(shown))
 
 
 class MembershipText(EvidencedFragment):

@@ -21,6 +21,7 @@ from collections.abc import Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 from typing import ClassVar
 from weakref import WeakSet
 
@@ -1036,6 +1037,14 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
 
     def warn_link(self, text: str) -> None:
         self.history.view.flash_error(text)
+
+    def run_link(self, work: Callable[[], Awaitable[None]]) -> None:
+        self.history.run_worker(work)
+
+    def show_file(self, path: Path) -> None:
+        """A kept file opens in the application the system names for it."""
+        if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
+            self.warn_link(f"No application opens {path.name}; it is kept at {path}.")
 
     @handles(FragmentDetails)
     def toggle_details(self, link: FragmentDetails) -> None:

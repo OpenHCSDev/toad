@@ -55,15 +55,15 @@ class DeliveryFailureView(ComposerStatus, SubmissionView, ToadNode, Widget):
         if not area.disabled and self.screen.focused is None:
             self.screen.set_focus(area)
 
-    def delivery_unknown(self, description: str, body: str) -> None:
-        """The request may have reached Core. The owner sees whether it landed in this view,
-        so the draft comes back instead of waiting on an answer it cannot get."""
-        self.prompt.restore_draft(body)
-        self.feedback.flash(self.unknown_notice(description), style="error")
+    @property
+    def submission_composer(self):
+        """The prompt a returned draft goes back into. A send whose outcome is unknown comes
+        back too: the owner sees whether it landed in this view, rather than waiting on an
+        answer it cannot get."""
+        return self.prompt
 
-    def delivery_refused(self, description: str, body: str) -> None:
-        self.prompt.restore_draft(body)
-        self.feedback.flash(self.refusal_notice(description), style="error")
+    def show_send_failure(self, text: str) -> None:
+        self.feedback.flash(text, style="error")
 
     def record_input(self, text: str) -> None:
         InputHistoryRecord.run_on(self, partial(self.input_histories.prompt.record, text))
