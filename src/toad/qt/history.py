@@ -26,7 +26,6 @@ from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QTextDocument
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QWidget
-from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.core.projection import MroProjection
@@ -604,7 +603,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
         self.setVisible(shown)
 
 
-class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowView,
+class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, VirtualRowView,
                       ReaderPlacement, PagingWindow, OpensLineLinks, PinsMessageHeader):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
@@ -676,7 +675,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         _scroller = QScroller.scroller(self.viewport())
         _scroller.stateChanged.connect(self._on_scroller_state)
         # The floating "jump to latest" button: child of the window (not the viewport), so
-        # QScroller's gesture grab on the viewport (from TouchScrolled) can't swallow the
+        # QScroller's gesture grab on the viewport (from FingerScrolling) can't swallow the
         # tap and prevent `clicked` from firing on Android. Positioned over the viewport
         # by `_place_jump_bar`. Show/hide is driven by `tail_follow_changed` from `scrolled`.
         self.jump_bar = QtJumpBar(self, renderer)

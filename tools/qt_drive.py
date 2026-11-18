@@ -22,9 +22,10 @@ from collections.abc import Callable
 from typing import ClassVar
 
 import qasync
-from PySide6.QtCore import QEvent, QObject, QPoint, Qt
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
+from PySide6.QtGui import QMouseEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QStyleOptionViewItem, QApplication, QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
@@ -38,6 +39,7 @@ from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
 from toad.client.line_blocks import LineLink
 from toad.qt.main import current_scheme, open_app
+from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling, TouchAsMouse
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
 from toad.qt.goal import QtGoalBar, QtGoalHistory
@@ -60,6 +62,7 @@ from toad.sidebar_placement import (
 )
 from toad.client.history import ChannelDestination, WirePageBuffer
 from toad.qt.command_form import QtCommandDialog
+from toad.qt.keymap_screen import QtKeymapScreen
 from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.client.bus_submission import ConversationSubmission
@@ -105,6 +108,12 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
     """One walk through the client; its declared name is the command-line word."""
 
     summary: ClassVar[str]
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        """The drag this drive's scroll areas answer: this platform's, unless the walk is a
+        phone's."""
+        return FingerScrollGesture.of_platform()
 
     def __init__(self, app: QtToadApp, out: Path) -> None:
         self.app = app
@@ -1431,6 +1440,197 @@ class SettingsReadScenario(Scenario):
             print(f"{path.value}: read={shown(field.value)!r} "
                   f"draws={reading() if reading else '-'!r}", flush=True)
         app.grab().save(str(self.out / "settingsread-end.png"))
+class FingerScenario(Scenario):
+    summary = ("at a Pixel 8a's width with the phone's touch-as-mouse gesture: drag every visible "
+               "scroll area by finger on the welcome, sidebar, #comms, the multi-line composer, the "
+               "view-settings picker and its popup, and every menu dialog; tap a sidebar row and a "
+               "button inside a scrolled form")
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        return TouchAsMouse()
+
+    def __init__(self, app: QtToadApp, out: Path) -> None:
+        super().__init__(app, out)
+        self.tried: set[int] = set()
+        self.results: list[tuple[str, str, int, int, int]] = []
+
+    @staticmethod
+    def press(widget: QWidget, kind: QEvent.Type, point: QPoint, held: bool) -> None:
+        """One mouse event as Qt-for-Android synthesizes it from a finger."""
+        button = Qt.MouseButton.NoButton if kind == QEvent.Type.MouseMove else Qt.MouseButton.LeftButton
+        buttons = Qt.MouseButton.LeftButton if held else Qt.MouseButton.NoButton
+        QApplication.sendEvent(widget, QMouseEvent(kind, QPointF(point), QPointF(widget.mapToGlobal(point)),
+                                                   button, buttons, Qt.KeyboardModifier.NoModifier))
+
+    async def drag(self, widget: QWidget, start: QPoint, end: QPoint) -> None:
+        self.press(widget, QEvent.Type.MouseButtonPress, start, True)
+        await asyncio.sleep(0.016)
+        for step in range(1, 13):
+            at = start + (end - start) * step / 12
+            self.press(widget, QEvent.Type.MouseMove, QPoint(int(at.x()), int(at.y())), True)
+            await asyncio.sleep(0.016)
+        self.press(widget, QEvent.Type.MouseButtonRelease, end, False)
+        await asyncio.sleep(0.8)
+
+    async def tap(self, widget: QWidget, point: QPoint) -> None:
+        """A tap once the area under it has stopped moving: a tap on a list still flinging
+        stops the fling instead, as Android's own lists do."""
+        area = widget
+        while area is not None and not isinstance(area, QAbstractScrollArea):
+            area = area.parentWidget()
+        if area is not None:
+            await self.settled(lambda: QScroller.scroller(area.viewport()).state() == QScroller.State.Inactive)
+        self.press(widget, QEvent.Type.MouseButtonPress, point, True)
+        await asyncio.sleep(0.05)
+        self.press(widget, QEvent.Type.MouseButtonRelease, point, False)
+        await asyncio.sleep(0.6)
+
+    @staticmethod
+    async def settled(check, tenths: int = 50) -> bool:
+        for _ in range(tenths):
+            if check():
+                return True
+            await asyncio.sleep(0.1)
+        return False
+
+    def scrollable(self) -> list[QAbstractScrollArea]:
+        return [widget for widget in QApplication.allWidgets()
+                if isinstance(widget, QAbstractScrollArea) and widget.isVisible()
+                and widget.verticalScrollBar().maximum() > 0 and id(widget) not in self.tried]
+
+    async def exercise(self, step: str) -> None:
+        """Drag each scroll area not yet dragged up by most of its viewport, from its centre."""
+        shown = [f"{type(area).__name__}:{area.verticalScrollBar().maximum()}" for area in QApplication.allWidgets()
+                 if isinstance(area, QAbstractScrollArea) and area.isVisible() and id(area) not in self.tried]
+        print(f"  {step}: visible untried scroll areas {shown}", flush=True)
+        unheld = [type(area).__name__ for area in QApplication.allWidgets()
+                  if isinstance(area, QAbstractScrollArea) and area.isVisible()
+                  # Qt names a viewport with no grab CustomGesture; a grab registers its
+                  # own recognizer type above it.
+                  and QScroller.grabbedGesture(area.viewport()).value <= Qt.GestureType.CustomGesture.value]
+        print(f"  {step}: visible scroll areas without the finger grab: {unheld}", flush=True)
+        for area in self.scrollable():
+            self.tried.add(id(area))
+            bar, viewport = area.verticalScrollBar(), area.viewport()
+            bar.setValue(bar.minimum())
+            await asyncio.sleep(0.2)
+            before = bar.value()
+            height = viewport.height()
+            await self.drag(viewport, QPoint(viewport.width() // 2, int(height * 0.85)),
+                            QPoint(viewport.width() // 2, int(height * 0.15)))
+            await self.settled(lambda: QScroller.scroller(viewport).state() == QScroller.State.Inactive, tenths=50)
+            self.results.append((step, type(area).__name__, bar.maximum(), before, bar.value()))
+            print(f"  {step}: {type(area).__name__:28} range={bar.maximum():5} drag {before} -> {bar.value()} "
+                  f"{'SCROLLED' if bar.value() != before else 'STUCK'}", flush=True)
+            bar.setValue(before)
+        self.report(step)
+
+    def close_dialogs(self) -> None:
+        for widget in QApplication.topLevelWidgets():
+            if widget is not self.app and widget.isVisible():
+                widget.close()
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(412, 640)
+        await asyncio.sleep(0.5)
+        app.show_sidebar()
+        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == "#comms"
+                                for row in app.sidebar.items()), "#comms listed", tenths=200)
+        await self.expand("#comms", "#any")
+        await self.exercise("1-welcome-sidebar")
+        # A tap on a sidebar row still opens it: the scroller holds the press back, then
+        # delivers it when the finger lifts without dragging.
+        tree = app.sidebar
+        comms = self.channel_row("#comms")
+        tree.scrollToItem(comms)
+        await asyncio.sleep(0.3)
+        home = app.workspace_sessions.home
+        clicked: list[str] = []
+        tree.itemClicked.connect(lambda item: clicked.append(getattr(item, "key", "?")))
+        await self.tap(tree.viewport(), tree.visualItemRect(comms).center())
+        opened = await self.settled(lambda: self.page is not home)
+        print(f"  tap on the #comms row: clicked={clicked} {'OPENED' if opened else 'DID NOT OPEN'} "
+              f"{type(self.page).__name__}", flush=True)
+        if not opened:
+            app.open_row(comms)
+        await until(lambda: self.page is not home and getattr(self.page, "content_ready", None) is not None
+                    and self.page.content_ready.is_set(), "#comms", tenths=150)
+        await asyncio.sleep(1.5)
+        await self.exercise("2-history")
+        composer = self.page.composer.editor
+        composer.setPlainText("\n".join(f"line {line} of a long draft, never sent" for line in range(60)))
+        await asyncio.sleep(0.3)
+        await self.exercise("3-composer")
+        composer.clear()
+        app.toggle_pane(ThreadSidebarPlacement)
+        await asyncio.sleep(1.0)
+        picker = app.thread_pane.menu.picker
+        picker.showPopup()
+        await asyncio.sleep(0.5)
+        await self.exercise("4-picker-popup")
+        picker.hidePopup()
+        picker.setCurrentIndex(len(panel_specs_for_view(is_session=True)))
+        await asyncio.sleep(0.8)
+        await self.exercise("5-view-settings")
+        app.toggle_pane(ThreadSidebarPlacement)
+        await asyncio.sleep(0.3)
+        for command, label in ApplicationAction.menu(app):
+            if type(command) is QuitAction:
+                continue
+            try:
+                await command.apply(app)
+            except Exception as error:
+                print(f"  {label}: FAILED {type(error).__name__}: {error}", flush=True)
+                continue
+            await asyncio.sleep(3.0)
+            # A dialog on the phone is no larger than its screen (ScreenWideWindow).
+            for window in QApplication.topLevelWidgets():
+                if window is not self.app and window.isVisible():
+                    window.resize(min(window.width(), 412), min(window.height(), 640))
+            # The keymap opens filtered to the focused widget's keys; every key fills the table.
+            for screen in self.app.findChildren(QtKeymapScreen):
+                screen.focus_filter.setChecked(False)
+            await asyncio.sleep(0.5)
+            await self.exercise(f"6-{command.declared_name}")
+            if command.declared_name == "settings":
+                await self.tap_in_form()
+            self.close_dialogs()
+            await asyncio.sleep(0.3)
+        stuck = [result for result in self.results if result[3] == result[4]]
+        print(f"SUMMARY scrolled {len(self.results) - len(stuck)}/{len(self.results)}; "
+              f"stuck: {[(step, kind) for step, kind, *_ in stuck]}", flush=True)
+
+    async def tap_in_form(self) -> None:
+        """A tap on a button inside a finger-scrolled form still presses it, twice to leave
+        the setting as it was."""
+        for area in QApplication.allWidgets():
+            if not (isinstance(area, QAbstractScrollArea) and area.isVisible()
+                    and area.verticalScrollBar().maximum() > 0):
+                continue
+            buttons = [button for button in area.viewport().findChildren(QAbstractButton)
+                       if button.isVisible() and button.isEnabled() and button.isCheckable()
+                       and area.viewport().rect().contains(button.mapTo(area.viewport(), button.rect().center()))]
+            if not buttons:
+                continue
+            button = buttons[0]
+            # Where a finger presses the button: its own hit area (a check box's indicator).
+            spot = next(QPoint(x, y) for y in range(0, button.height(), 2) for x in range(0, button.width(), 2)
+                        if button.hitButton(QPoint(x, y)))
+            spot = QPoint(spot.x() + 3, spot.y() + 3)
+            clicks: list[bool] = []
+            button.clicked.connect(lambda checked=False: clicks.append(checked))
+            before = button.isChecked()
+            await self.tap(button, spot)
+            after = button.isChecked()
+            await self.tap(button, spot)
+            print(f"  tap on {type(button).__name__} {button.objectName() or button.toolTip()[:40]!r} in "
+                  f"{type(area).__name__}: checked {before} -> {after} -> {button.isChecked()}; "
+                  f"clicked signals {clicks}", flush=True)
+            return
+        print("  no checkable button visible in a scrolled form", flush=True)
 
 
 async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
@@ -1452,6 +1652,7 @@ def main(arguments: list[str]) -> None:
         raise SystemExit(f"usage: {arguments[0]} SCENARIO PROFILE OUTDIR\n{names}")
     scenario = Scenario.member_named(arguments[1])
     application = QApplication(arguments[:1])
+    FingerScrolling.install(application, scenario.finger_gesture())
     watch = StrayWindows()
     application.installEventFilter(watch)
     qasync.run(drive(scenario, Path(arguments[2]), Path(arguments[3])))

@@ -100,6 +100,10 @@ NOT_SIBLINGS = {
 QT_ONLY = {
     'toad.qt.android.SessionRecord': 'Android process lifecycle: Android kills a backgrounded app and destroys its activity without telling the process, so the next start reads this record',
     'toad.qt.android.SuspendedMemory': "Android suspend: bionic's M_PURGE returns freed allocator memory to the system",
+    'toad.qt.finger_scrolling.FingerScrollGesture': "what a drag on a Qt scroll area's viewport means per platform (QScroller's grab); the terminal scrolls the TUI",
+    'toad.qt.finger_scrolling.FingerScrolling': 'a QApplication event filter granting every QAbstractScrollArea the QScroller grab as Qt polishes it; Textual scrolls through the terminal',
+    'toad.qt.finger_scrolling.MouseAndWheel': 'the desktop member of FingerScrollGesture: no QScroller grab, so a mouse drag stays a selection',
+    'toad.qt.finger_scrolling.TouchAsMouse': "the Android member of FingerScrollGesture: QScroller's LeftMouseButtonGesture on Qt's touch-synthesized mouse",
     'toad.qt.history.HistoryRows': "QAbstractListModel exposing the shared fragments to Qt's list view; Textual has no item model",
     'toad.qt.main.EndRequest': "Qt 6's QEvent.Quit closes every window and leaves qasync's event loop inside one event; this event filter takes the request so the shared client shutdown runs on the loop first. Textual closes its client in App._close_all while its own loop still runs",
     'toad.qt.history.SourceTask': "an asyncio.Task on qasync's Qt event loop with the pager's wait() join; Textual runs workers",
