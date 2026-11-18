@@ -298,10 +298,15 @@ class KeymapCatalog:
 
 @Effect
 def apply_keymap(app: ToadApp, field: DeclaredField) -> None:
-    keymap = app.settings.ui.keymap
-    app.set_keymap(keymap.native())
-    if broken := keymap.broken:
-        app.show_error("Not applied (fix or reset it in the keymap screen): " + "; ".join(
+    app.set_keymap(app.settings.ui.keymap.native())
+
+
+def report_broken_keymap(app: ToadApp) -> None:
+    """Tell the user which saved shortcuts are not applied. Settings apply on Load, before a
+    screen can show a notice, so the app calls this once it is mounted; the keymap screen
+    lists the same entries for as long as they stay in the file."""
+    if broken := app.settings.ui.keymap.broken:
+        app.show_error("Not applied (listed in the keymap screen): " + "; ".join(
             f"{entry.remap.declaration} in {FamilyChoices(KeyMode).label(entry.remap.mode)}: "
             f"{entry.reason}" for entry in broken), "Keyboard shortcuts")
 
