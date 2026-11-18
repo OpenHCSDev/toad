@@ -30,10 +30,9 @@ from textual.geometry import Offset
 
 from toad.pointer_gesture import DRAGGING, NO_GESTURE, Gesture, GestureControl, PressedGesture
 
-# Qt has no cancelled mouse press. A release this far outside every widget ends the press in
-# the widget that took it (the window routes a release to its press's receiver), and no Qt
-# control counts a release outside itself as a click.
-_NOWHERE = QPointF(-1e5, -1e5)
+# Where a withheld release lands, in the coordinates of the widget it reaches (`_withheld`).
+_FAR_OFF = QPointF(-1e5, -1e5)
+
 
 
 class Press:
@@ -84,6 +83,9 @@ class FingerPress(QObject, GestureControl):
         self.gesture: Gesture = NO_GESTURE
         self.press: Press | None = None
         self.window: QWindow | None = None
+        # A release the window lets through, to be taken from the widget it reaches
+        # (`_withheld`): the press was held, or its tap claimed.
+        self.withholding = False
 
     @classmethod
     def install(cls, application: QApplication) -> FingerPress:
@@ -99,8 +101,14 @@ class FingerPress(QObject, GestureControl):
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         # A press is seen once, at its window, before Qt routes it down to a widget (and
         # before QScroller holds it back); a widget's copy of the same press is not counted.
-        if not isinstance(watched, QWindow) or not isinstance(event, QMouseEvent):
+        if not isinstance(event, QMouseEvent):
             return False
+        if not isinstance(watched, QWindow):
+            # The window has taken the event; only the widget is kept from it: a held press's
+            # moves are the menu's, and its release (or a claimed tap's) is no click.
+            if event.type() == QEvent.Type.MouseMove:
+                return self.press is not None and self.gesture.takes_pointer
+            return self.withholding and event.type() == QEvent.Type.MouseButtonRelease and self._withheld(watched, event)
         kind = event.type()
         if kind == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
             if self.press is None:
@@ -114,14 +122,15 @@ class FingerPress(QObject, GestureControl):
             if self.gesture is DRAGGING and pressed is not DRAGGING:
                 self.hold.stop()
                 self.drag_started.emit(self.press)
-            return self.gesture.takes_pointer
+            return False
         if kind == QEvent.Type.MouseButtonRelease and event.button() == Qt.MouseButton.LeftButton:
             gesture, press = self.gesture, self.press
             self.gesture = gesture.released(self, _offset(event))
             self._ended()
-            if gesture.takes_pointer or press.claimed:
-                self._cancel(event)
-                return True
+            self.window = None
+            # The window keeps the release, so Qt's own record of the pointer stays true; only
+            # the widget it reaches doesn't take it as a click.
+            self.withholding = gesture.takes_pointer or press.claimed
         return False
 
     def clicked(self) -> None:
@@ -161,12 +170,19 @@ class FingerPress(QObject, GestureControl):
         self.hold.stop()
         self.press = None
 
-    def _cancel(self, event: QMouseEvent) -> None:
-        """End the press in the widget that took it, without its click."""
-        window, self.window = self.window, None
-        cancel = QMouseEvent(QEvent.Type.MouseButtonRelease, _NOWHERE, _NOWHERE, window.mapToGlobal(_NOWHERE),
-                             Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, event.modifiers(), event.device())
-        QApplication.sendEvent(window, cancel)
+    def _withheld(self, widget: QObject, event: QMouseEvent) -> bool:
+        """The release of a held or claimed press, reaching the widget its press went to: Qt
+        has no cancelled mouse press, so the widget gets the release far off itself, which no
+        Qt control counts as a click, and its own press ends. Far off, because a widget that
+        ignores it passes it to its parent at the same place in the parent's coordinates (a
+        point just off a row's overlay would be on the row). (Replacing the window's release
+        instead leaves Qt routing the next right-click to the window itself.)"""
+        self.withholding = False
+        off = _FAR_OFF
+        QApplication.sendEvent(widget, QMouseEvent(
+            QEvent.Type.MouseButtonRelease, off, widget.mapToGlobal(off), Qt.MouseButton.LeftButton,
+            Qt.MouseButton.NoButton, event.modifiers(), event.device()))
+        return True
 
 
 def _offset(event: QMouseEvent) -> Offset:

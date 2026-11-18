@@ -524,14 +524,16 @@ class BusAddress(BusAddressEntry, QLineEdit):
 
 
 class HeldRowMenu(QObject):
-    """A tree line's held actions (SidebarItem.held_actions), offered where a mouse
-    right-clicks it or a finger is held on it (`FingerPress` delivers a held finger as the
-    same context-menu request), in the window's own panel, as its menu is (QtToadApp.offer)."""
+    """A tree line's menu (SidebarItem.menu_entries), offered where a mouse right-clicks it
+    or a finger is held on it (`FingerPress` delivers a held finger as the same context-menu
+    request), in the window's own panel, as its menu is (QtToadApp.offer). Every tree of
+    conversation rows has one: the welcome's and the sidebar's, as every Textual sidebar row
+    answers a right-click (`CommsRow.context_activation`). ``listing`` is what a row's
+    entries act through (its ``host`` window; the welcome's own rows reach the welcome)."""
 
-    def __init__(self, listing: Welcome) -> None:
-        super().__init__(listing)
-        self.listing = listing
-        rows = listing.rows
+    def __init__(self, rows: ConversationRows, listing) -> None:
+        super().__init__(rows)
+        self.rows, self.listing = rows, listing
         rows.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         rows.customContextMenuRequested.connect(self.offer)
 
@@ -541,7 +543,7 @@ class HeldRowMenu(QObject):
         (base rows adapt their `held_actions` via `MenuEntry.from_offered`, rich rows
         like `ConversationRow` return the shared `menu_entries_for_row` output
         directly)."""
-        rows = self.listing.rows
+        rows = self.rows
         item: SidebarItem | None = rows.itemAt(point)
         if item is None:
             return
@@ -617,7 +619,7 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         window.renderer.themed(self.project, lambda: self.project.setStyleSheet(window.renderer.color_style(MutedRole)))
         self.new_session_button = QtStartSessionButton(window, parent=self)
         self.rows = ConversationRows(window)
-        self.held_menu = HeldRowMenu(self)
+        self.held_menu = HeldRowMenu(self.rows, self)
         self.address = BusAddress(window)
         # Gesture hint line below the rows, mirroring Textual's WelcomeNote(HINTS)
         # at the tail of `WelcomeScreen.compose`. The content is owned per-frontend
@@ -1007,6 +1009,13 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         # tree. Textual's `SideBar` also owns one (same class, same match rule).
         self.filter: SidebarFilter = SidebarFilter()
         self.filter.subscribe(self._on_filter_changed)
+        # A row's menu on a right-click or a held finger, as the welcome's rows have it.
+        self.held_menu = HeldRowMenu(self, self)
+
+    @property
+    def host(self) -> QtToadApp:
+        """The window a row's menu entries act in (`HeldRowMenu`)."""
+        return self.window
 
     def _on_filter_changed(self, _value: str) -> None:
         """Re-present the whole tree so rows whose names newly stop (or newly start)

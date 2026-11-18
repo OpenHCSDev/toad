@@ -24,7 +24,7 @@ from textual.widgets import Static
 
 from toad.category_filter import CategoryFilterView
 from toad.client.connection import Observing
-from toad.client.relationship_row_menu import menu_entries_for_row
+from toad.client.relationship_row_menu import entry_target, menu_entries_for_row
 from toad.core import events as core_events
 from toad.native_style import (
     AutoHeight,
@@ -37,7 +37,7 @@ from toad.native_style import (
     OneRow,
     TransparentBackground,
 )
-from toad.navigation_target import NavigationTarget, SelectTarget, ThreadTarget
+from toad.navigation_target import NavigationTarget, SelectTarget
 from toad.session_scope import SessionScope
 from toad.sidebar_changes import SidebarChange
 from toad.sidebar_contracts import RelationshipMemberRows
@@ -64,13 +64,6 @@ from toad.widgets.sidebar_tree import (
 )
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.worker_group import WorkerGroup
-
-
-def entry_target(entry: RelationshipEntry) -> NavigationTarget:
-    person = entry.person
-    if person is None:
-        return NavigationTarget.named(entry.target)
-    return ThreadTarget(person.thread.name)
 
 
 class RelationshipRowPresentation(WorkerGroup):
