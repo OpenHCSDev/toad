@@ -78,5 +78,5 @@ class ObservedAgentBinding(AgentBoundConversation):
         self, callback: Callable[["AgentConnection", "AgentConnection"], None]
     ) -> Callable[[], None]:
         """Register a watcher fired on every agent-binding change; returns an unregister."""
-        descriptor = type(self).__dict__["agent_binding"]
-        return descriptor.watch(self, callback)
+        # Read from the class, the descriptor answers itself; it may be declared on any base.
+        return type(self).agent_binding.watch(self, callback)

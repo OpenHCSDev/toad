@@ -269,7 +269,7 @@ class ComposerEditor(QPlainTextEdit):
         # on the composer and fire through QShortcut regardless.
         offers = self.composer.offers
         key = event.key()
-        if (self.vim_enabled and not self.vim.inserting
+        if (self.vim_enabled and not self.vim.accepts_text
                 and not offers.isVisible() and key != Qt.Key.Key_Escape):
             apply_normal_key(self, self.vim, event)
             self.composer.refresh_editing_mode()
@@ -406,6 +406,14 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def refresh_editing_mode(self) -> None:
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, self.editor.hasFocus())
+        self.delivery_controls.setVisible(self.offers_send_now)
+
+    @property
+    def offers_send_now(self) -> bool:
+        """Textual's `SubmitNowAction.available`: the editor takes text (vim Normal does not)
+        with no offer list open (`PromptTextArea.submission_allowed`), and the shared answer."""
+        return (self.editor.editing_mode.accepts_text and not self.offers.isVisible()
+                and super().offers_send_now)
 
     def refresh_glyph(self) -> None:
         self.glyph.setText(self.prompt_symbol(self.text, False))
@@ -522,7 +530,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         if self.offers.isVisible():
             self.dismiss()
             return
-        if self.editor.vim_enabled and self.editor.vim.inserting:
+        if self.editor.vim_enabled and self.editor.vim.accepts_text:
             self.editor.vim.enter_normal()
             self.refresh_editing_mode()
             return

@@ -45,6 +45,7 @@ EXPLICIT_PAIRS = {
     "toad.qt.context_panel.QtContextExplorer": "toad.widgets.context_explorer.ContextExplorer",
     "toad.qt.session_panel.SessionPanel": "toad.widgets.session_thread_panels.SessionPanel",
     "toad.qt.sidebar_panel.QtSidebarSearch": "toad.widgets.side_bar.SidebarSearch",
+    "toad.qt.conversation.QtConversation": "toad.widgets.conversation.Conversation",
     "toad.qt.window.ConversationView": "toad.widgets.conversation.Conversation",
     "toad.qt.thread_view.QtThreadView": "toad.widgets.conversation.Conversation",
     # channels sidebar and chrome (regression guards)
@@ -114,7 +115,6 @@ KNOWN_BARE = frozenset({
     'toad.qt.sidebar_panel.QtSidebarShell',
     'toad.qt.team_board_screen.QtTeamMemberView',
     'toad.qt.window.ApplicationKeys',
-    'toad.qt.window.CommandRead',
     'toad.qt.window.MenuActionRun',
 })
 

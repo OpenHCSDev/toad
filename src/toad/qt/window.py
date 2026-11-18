@@ -20,10 +20,8 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
-from agent_comms.ui_model.message_category import all_categories
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
-from formbridge.operations import ExclusiveKind, OperationKind
-from toad.qt.submission_view import QtSubmissionView
+from formbridge.operations import OperationKind
 from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPainter, QShortcut
 from PySide6.QtWidgets import (
@@ -55,11 +53,8 @@ from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour
 from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame
-from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
-from toad.client.category_selection import CategorySelection
-from toad.client.view_settings import ConversationSettingsOwner
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
 from toad.client.bus_connect import BusConnectDecision
@@ -72,7 +67,7 @@ from toad.client.bus_selection import (
     TailnetAnswer,
 )
 from toad.client.offered_action import OfferedAction
-from toad.client.bus_submission import BusSubmissions, ConversationSubmission, SubmissionView, TypedText
+from toad.client.bus_submission import SubmissionView
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.client.connection import (
     CoreConnection,
@@ -82,7 +77,7 @@ from toad.client.connection import (
 )
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
-from toad.client.history import ChannelDestination, WireSource, WireView
+from toad.client.history import WireSource, WireView
 from toad.client.history_entry import HistorySessionEntry
 from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
@@ -109,7 +104,6 @@ from toad.sidebar_contracts import (
 from contextlib import nullcontext
 from toad.sidebar_model_view import SidebarStateMachine
 from toad.client.tab_identity.kinds import CommsTab
-from toad.command_catalog import CommandCatalog
 from toad.constants import WELCOME
 from toad.core import session_requests
 from toad.core.events import CoordinationObserved, TabHistoryChanged
@@ -124,12 +118,13 @@ from toad.navigation_target import (
 )
 from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.qt.action_shortcuts import bind_action_shortcuts
-from toad.qt.activity import ChannelActivity, PeerActivity, QtObservedSweep
+from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
-from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
+from toad.qt.composer import ChannelComposer, MessageComposer
+from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.client.transcript_fragments import TranscriptFragment
-from toad.qt.history import QtConversationHistory, QtHistoryNotifications, QtHistoryWindow, QtWireFragment
+from toad.qt.history import QtConversationHistory, QtWireFragment
 from toad.menus import MenuCommand, MenuConversation, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.client.relationship_row_menu import menu_entries_for_row
@@ -140,15 +135,11 @@ from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.name_wave import QtNameWaveDelegate, QtSessionTabBar
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
-from toad.qt.view_settings import QtViewSettings, capability_widgets
+from toad.qt.view_settings import capability_widgets
 from toad.qt.paste_profile import QtProfilePastePanel
 from agent_comms.messaging.display_references import ProjectReferences
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
-from toad.client.prompt_composer import ComposerStatus
-from toad.prompt_actions import SubmitInputAction
-from toad.client.prompt_stack import SuccessTone
-from toad.qt.prompt_stack import QtFlash
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, ThreadSettingsPane
 from toad.qt.side_bar import QtSideBar, QtWorkspaceChrome
@@ -161,16 +152,10 @@ from toad.sidebar_placement import (
     SidebarPlacement,
     ThreadSidebarPlacement,
 )
-from toad.status_thread import StatusThread, WorkingStatusOwner
-from toad.conversation_turn import ConversationTurn
-from toad.agent_binding import NoAgentConnection
+from toad.status_thread import StatusThread
 from toad.target_commands import TargetContext
 from toad.terminal_origin import TerminalOrigin
 from toad.work_preparation import PreparationRuntime
-
-
-class CommandRead(OperationKind, ExclusiveKind):
-    """Reads the conversation's command catalog for its composer; a newer read supersedes it."""
 
 
 class MenuActionRun(OperationKind):
@@ -1249,60 +1234,43 @@ class BusLabel(WelcomeLocation, ElidedLine):
         return app.coordination_access.connection.location
 
 
-class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, CategorySelection, ConversationSettingsOwner, ConversationViewNavigation, JumpsHistory, MenuConversation, Page, SessionScope, QtSubmissionView, WireView,
-                       QtHistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
-                       metaclass=PyQtWidgetMeta):
+class ConversationView(QtConversation, ConversationViewNavigation, JumpsHistory, MenuConversation, SessionScope,
+                       WireView, metaclass=PyQtWidgetMeta):
+    """One conversation tab, Textual's `CommsChatView`: a `QtConversation` whose history is
+    the conversation's wire, paged lazily by the pager Textual's channels use and drawn as
+    virtual rows, read again whenever Core's stores change; the composer and activity its
+    kind chooses, sending through the shared submissions to where its page source says.
+    Also a `MenuConversation`: a long-press or right-click on a message row opens the
+    shared block menu through the host's `offer` panel, iterating the `MenuCommand` family
+    on the fly."""
 
-    @property
-    def screen(self) -> WorkspaceFrame:
-        return self.window()
-
-    """One conversation tab: its history, paged lazily by the pager Textual's channels use
-    and drawn as virtual rows, read again whenever Core's stores change; the info row over
-    its thread's status; and the composer and activity its kind chooses, sending through
-    the shared submissions and running slash commands through the shared catalog as
-    Textual's conversation view does. It is a conversation view, so it runs the view
-    commands (ComposerHost brings the contract). Also a `MenuConversation`: a long-press
-    or right-click on a message row opens the shared block menu through the host's
-    `offer` panel, iterating the `MenuCommand` family on the fly."""
-
-    # Default until the live WireSource is wired in __init__: `BusSubmissions.queue_evidence`
-    # reads `self.view.queue_source`, so an unset attribute AttributeErrors the first paint.
-    # The Textual sibling (CommsChatView, widgets/comms_chat.py) carries the same default.
+    # Until the live WireSource is wired in __init__, as `CommsChatView` declares it: the
+    # wire is this view's queue, not its operational sources.
     queue_source: QueueSource = NoQueueSource()
 
     def __init__(self, app: QtToadApp, entry: QtHistorySessionEntry) -> None:
         super().__init__()
         self.app, self.entry = app, entry
-        self.submissions = BusSubmissions(self)
         self.content_ready = asyncio.Event()
-        # This view owns which message categories its transcript shows (`CategorySelection`);
-        # the history reads it through `selected_categories` and the comms panel writes it.
-        self.visible_categories = all_categories()
         # The fragment the viewer most recently long-pressed, if any; menu commands read
         # it to know which block they act on.
         self.held_fragment: QtWireFragment | None = None
         label = entry.unobserved_tab().label()
-        self.messages = QtHistoryWindow(app.renderer, self)
+        self._setup_conversation(app)
         self.messages.block_menu_requested.connect(self.open_block_menu)
         self.message_history = QtConversationHistory(self.messages, self, app)
         source = app.source()
-        # WireSource IS a BusQueueSource (client/history.py:372); storing it on
-        # self.queue_source lets BusSubmissions.queue_evidence read pending/queued/held
-        # state the same way CommsChatView does (widgets/comms_chat.py:124-129).
+        # WireSource IS a BusQueueSource (client/history.py): the submissions read its
+        # pending/queued/held state as `CommsChatView` does.
         wire = WireSource(
             source.root, self.conversation, source.project, entry.viewer, self.configuration_state.fields.ui.message_style(),
             access=app.coordination_access, core=source.core, fragments=QtWireFragment)
         self.queue_source = wire
         self.message_history.initialize_source(wire)
         self.message_history.observe_source()
-        # Textual's `CommsChatView.compose`: the flash under the window, the prompt (its
-        # info bar carries the thread status), then who is here, under the prompt.
-        self.feedback = QtFlash(app, app.renderer)
-        # Textual's `CommsChatView.throbber_above`: the sweep painting `working()` — an idle
-        # turn (no agent on a wire view), the peer's observed row, or the first page loading.
-        self.turns = ConversationTurn(lambda owner: self.sync_working(), lambda: NoAgentConnection().presentation.turns)
-        self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
+        # Textual's `CommsChatView.compose`: the flash under the window, the sweep painting
+        # `working()` (an idle turn, the peer's observed row, or the first page loading),
+        # the prompt (its info bar carries the thread status), then who is here.
         self.composer = self.conversation.prompt(self)
         self.composer.labelled(label)
         self.activity = tuple(self.conversation.compose_activity(self))
@@ -1327,8 +1295,7 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
         # whose `apply()` reaches chrome Qt doesn't carry stay silent via the
         # AttributeError guard in `bind_action_shortcuts`. This view implements
         # `JumpsHistory.back_to_bottom_windows`, so `BackToBottomAction.apply(self)`
-        # jumps the right window. Other ViewActions (`ShowSidebarAction`, …) will
-        # start firing on Qt the day ConversationView carries their contracts.
+        # jumps the right window.
         self._view_shortcuts = bind_action_shortcuts(self, ViewAction, self)
 
     @property
@@ -1360,15 +1327,9 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
         await self.content_ready.wait()
 
     def close_core_events(self) -> None:
-        for line in self.activity:
-            line.close_activity()
+        """The shared close, then the receipt stops following and the wire lets go."""
+        super().close_core_events()
         self.composer.receipt.stop()
-        # A command read in flight would hand its catalog to this composer after the tab's
-        # widgets are deleted (ComposerEditor, build26). Reads are exclusive across views, so
-        # the one running may be another tab's; that composer asks again on its next
-        # keystroke while it has no commands (Composer.refresh_offers).
-        self.app.cancel_operations(CommandRead)
-        self.app.coordination_access.stop_notifications(self)
         self.message_history.retire_source()
 
     async def retire_presentation(self) -> None:
@@ -1390,9 +1351,6 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
         self.messages.jump_to_latest()
         await self._refresh()
 
-    def dispatch_sync(self, event: object) -> None:
-        """Qt reads its label from the source's references on every refresh."""
-
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it, then the status beside it."""
         history = self.message_history
@@ -1412,20 +1370,18 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
         read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
         await self.refresh_composer(read_only)
         self.thread_status = await self.conversation.status_text(source, read_only=read_only)
-        self.composer.show_status(self.composed_status())
         await self.conversation.update_mentions(self, source)
 
     # The kind's composer and activity (ConversationActivity)
 
     def status_thread(self) -> StatusThread:
-        return self.conversation.status_thread(self.app.source().root, self.app.coordination_access)
+        """Peer status does not grant access to the peer's transcript: the page source
+        opens it, as Textual's `CommsChatView.status_thread`."""
+        return self.message_history.page_source.status_thread(self.app.coordination_access)
 
     def history_loading(self) -> bool:
         """As Textual's `CommsChatView`: the wire history is reading its first page."""
         return self.message_history.reading
-
-    def sync_working(self) -> None:
-        self.agent_activity.sync()
 
     def channel_prompt(self, placeholder: str) -> ChannelComposer:
         return ChannelComposer(self, self.app.renderer, placeholder)
@@ -1451,27 +1407,9 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
     # Commands the composer offers after a /
 
     async def command_target_context(self) -> TargetContext:
-        source = self.app.source()
-        return TargetContext.in_conversation(
-            self.app, source.root, self.conversation, self.entry.viewer, source.project, self.mode)
-
-    async def read_command_catalog(self) -> CommandCatalog:
-        return await CommandCatalog.read(self.app, (), self.command_target_context(), self.local_commands)
-
-    def update_slash_commands(self) -> None:
-        self.app.run_operation(CommandRead, self.read_commands)
-
-    async def read_commands(self) -> None:
-        self.composer.set_commands((await self.read_command_catalog()).commands)
-
-    def flash(self, text: str) -> None:
-        self.feedback.flash(text)
-
-    def flash_success(self, text: str) -> None:
-        self.feedback.flash(text, style=SuccessTone.declared_name)
-
-    def flash_error(self, text: str) -> None:
-        self.app.show_error(text, "Conversation")
+        """Commands address the conversation its page source reads, as Textual's
+        `CommsChatView.command_target_context`."""
+        return self.message_history.page_source.command_context(self)
 
     def ask(self, options, title: str = "", get_content=None, callback=None):
         """Show an inline question with these options, mirroring Textual's Conversation.ask.
@@ -1484,37 +1422,14 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
         self.question.update(ask)
         return ask
 
-    # Sending, through the shared submissions (SubmissionView)
-
-    def submit(self, text: TypedText, action: SubmitInputAction) -> None:
-        """A bus message is delivered as soon as it is sent, so every action sends it; an
-        empty send-now has no held queue here to flush."""
-        if text.text.strip():
-            self.app.run_operation(ConversationSubmission, partial(self.start_send, text))
-
-    async def start_send(self, text: TypedText) -> None:
-        if await CommandCatalog.execute(text.text, self):
-            return
-        root = self.app.source().root
-        await self.submissions.start_bus(text, ChannelDestination(root, self.conversation, self)).prepare()
-
-    def categories_changed(self) -> None:
-        self.message_history.apply_filter()
-
-    @property
-    def configuration_identity(self):
-        return self.entry.identity
-
-    @property
-    def configuration_settings(self):
-        return self.app.saved_settings
-
-    @property
-    def navigation_project(self):
-        return self.app.project_dir
+    def begin_submission(self, owner, submission):
+        """A channel or inbox message goes where this view's page source says, as
+        Textual's `CommsChatView.begin_submission`."""
+        return self.message_history.page_source.begin_submission(self, owner, submission)
 
     @property
     def coordination_root(self) -> str:
+        """The root the tab was opened on, as Textual's `CommsScreen.coordination_root`."""
         return self.entry.key.root
 
     @property
