@@ -98,7 +98,8 @@ class ActivitySweep(QWidget):
         image.fill(0)
         image.setDevicePixelRatio(self.devicePixelRatioF() or 1.0)
         row_stride = image.bytesPerLine() // 4
-        buf = memoryview(image.bits()).cast("I", shape=[height, row_stride])
+        # Flat: CPython memoryviews cannot index a multi-dimensional row (`buf[y]`).
+        buf = memoryview(image.bits()).cast("I")
         for x in range(width):
             start, end, amount, thickness = frame.sample((x + 0.5) / width)
             if thickness <= 0:
@@ -108,7 +109,7 @@ class ActivitySweep(QWidget):
             bar = max(1, round(height * thickness))
             top = (height - bar) // 2
             for y in range(top, top + bar):
-                buf[y][x] = pixel
+                buf[y * row_stride + x] = pixel
         painter = QPainter(self)
         painter.drawImage(0, 0, image)
         painter.end()

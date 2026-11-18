@@ -110,6 +110,21 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         return next(row for row in self.app.sidebar.items()
                     if isinstance(row, ConversationRow) and row.target.name == name)
 
+    def rows(self, items):
+        """Every sidebar row, threads nested under their channels included."""
+        for item in items:
+            yield item
+            yield from self.rows(item.child(index) for index in range(item.childCount()))
+
+    def thread_rows(self) -> list[ConversationRow]:
+        """Every thread row the sidebar lists, each once."""
+        threads = self.app.coordination_access.observation.observed().sidebar.threads.rows
+        found: dict[str, ConversationRow] = {}
+        for row in self.rows(self.app.sidebar.items()):
+            if isinstance(row, ConversationRow) and row.key in threads:
+                found.setdefault(row.key, row)
+        return list(found.values())
+
     def thread_row(self) -> ConversationRow:
         """The first thread nested under a channel, as the Textual sidebar nests them."""
         for channel in self.app.sidebar.items():
@@ -168,14 +183,13 @@ class ActivityScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
-        # Threads nest under their channels, as the Textual sidebar nests them.
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
-        children = [row for row in app.sidebar.items()
-                    if isinstance(row, ConversationRow) and row.key in rows]
+        children = self.thread_rows()
         working = [row for row in children if rows[row.key].status.is_working()]
         peer = (working or children)[0]
         app.open_row(peer)
-        await until(lambda: self.page is not app.workspace_sessions.home and self.page.composer is not None
+        await until(lambda: self.page is not app.workspace_sessions.home
+                    and getattr(self.page, "composer", None) is not None
                     and self.page.composer.info_bar.status.text(), "status")
         await asyncio.sleep(1.0)
         SurroundScenario.report_surround(self, "1-opened", peer=peer.key)
@@ -218,9 +232,8 @@ class SurroundScenario(Scenario):
         await self.listed()
         app = self.app
         app.resize(int(os.environ.get("WIDTH", self.width)), 915)
-        everyone = app._sidebar_thread_panel.invisibleRootItem()
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
-        children = [everyone.child(index) for index in range(everyone.childCount())]
+        children = self.thread_rows()
         print("working:", [row.key for row in children if rows[row.key].status.is_working()], flush=True)
         wanted = os.environ.get("PEER")
         peer = next((row for row in children if row.key == wanted), None) if wanted else None
@@ -688,11 +701,6 @@ class GoalScenario(Scenario):
 
     width: ClassVar[int] = 412
     peer: ClassVar[str] = "claude-a"
-
-    def rows(self, items):
-        for item in items:
-            yield item
-            yield from self.rows(item.child(index) for index in range(item.childCount()))
 
     def bar(self) -> QtGoalBar:
         return self.page.findChild(QtGoalBar)
