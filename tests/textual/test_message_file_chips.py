@@ -23,7 +23,7 @@ from toad.client.conversation import ChannelConversation
 from toad.client.history import WireSource
 from toad.client.history_preparation import OLDER_END, PageRequest
 from toad.client.line_blocks import Spans
-from toad.client.message_files import MessageFileLink
+from toad.client.message_file_links import MessageFileLink
 from toad.message_rows import IrcMessageStyle
 from toad.widgets.wire_history import WireFragment
 

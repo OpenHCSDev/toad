@@ -28,7 +28,7 @@ from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from agent_comms.storage.recorded_time import EventTime, RecordedEventTime, UnrecordedEventTime
 from metaclass_registry.mro_dispatch import handles
 
-from toad.client.message_files import FileReader
+from toad.client.message_file_links import FileReader
 from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
 from toad.client.line_blocks import (

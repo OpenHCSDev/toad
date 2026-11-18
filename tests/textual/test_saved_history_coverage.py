@@ -12,7 +12,7 @@ from agent_comms.registry.threads import NativeThread
 from support import journals
 
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
-from toad.client.message_files import NO_PAGE_FILES
+from toad.client.message_file_links import NO_PAGE_FILES
 from toad.screens.main import MainScreen
 from toad.client.tab_identity.kinds import MailboxTab
 from toad.widgets.agent_response import AgentResponse

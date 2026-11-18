@@ -13,7 +13,7 @@ from agent_comms.ui_model.message_category import (
 from support.journals import assistant_entry, user_entry, write_journal
 
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
-from toad.client.message_files import NO_PAGE_FILES
+from toad.client.message_file_links import NO_PAGE_FILES
 from toad.message_rows import MarkdownMessageStyle
 from toad.transcript_preparation import TranscriptPageRenderTask
 from toad.client.history_state import PreparedReplacementViewportRequest

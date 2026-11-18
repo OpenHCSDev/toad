@@ -4,7 +4,7 @@ from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.transcript.transcripts import TranscriptPage
 
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
-from toad.client.message_files import NO_PAGE_FILES
+from toad.client.message_file_links import NO_PAGE_FILES
 from toad.transcript_preparation import TranscriptPageRenderTask
 
 

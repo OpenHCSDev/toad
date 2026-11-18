@@ -11,7 +11,7 @@ from agent_comms.registry.threads import NativeThread
 from support.journals import assistant_entry, write_journal
 
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
-from toad.client.message_files import NO_PAGE_FILES
+from toad.client.message_file_links import NO_PAGE_FILES
 from toad.transcript_publication import (
     CLEAN_PUBLICATION,
     COMMIT_DEMAND,

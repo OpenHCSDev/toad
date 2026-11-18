@@ -28,7 +28,7 @@ from toad.widgets.conversation import Contents
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 from toad.widgets.transcript_history import LineHistory
-from toad.client.message_files import NO_PAGE_FILES
+from toad.client.message_file_links import NO_PAGE_FILES
 from toad.transcript_preparation import LoadedTranscriptPages, SavedTranscript, TranscriptPageRenderTask
 
 

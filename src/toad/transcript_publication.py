@@ -63,7 +63,7 @@ from toad.client.session_scope import SessionOrigin
 from toad.session_scope import SessionScope
 from toad.transcript_scope import NoTranscript, TranscriptScope
 from toad.entry_placement import ChronologicalEntry, EntryPlacement
-from toad.client.message_files import PageFiles
+from toad.client.message_file_links import PageFiles
 from toad.client.transcript_fragments import FragmentClasses, transcript_file_readers
 from toad.transcript_preparation import SavedSuffix, TranscriptPages
 from toad.client.prepared_pages import (

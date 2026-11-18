@@ -32,7 +32,7 @@ from toad.client.prepared_pages import (
     SourcePageWork,
     TranscriptNoProgress,
 )
-from toad.client.message_files import NO_PAGE_FILES, PageFiles
+from toad.client.message_file_links import NO_PAGE_FILES, PageFiles
 from toad.client.transcript_fragments import FragmentClasses, transcript_fragments
 from toad.render_backend import ContentAddressedRenderTask
 from toad.work_preparation import (

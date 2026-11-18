@@ -42,7 +42,7 @@ from toad.client.conversation_capabilities import (
 from toad.client.fragments import EvidencedFragment, FragmentKey, MessageShown
 from toad.client.history_preparation import HistorySourceSnapshot, PageRequest
 from toad.client.history_reads import NothingToRead, PaintedRead, ReadMarking, ReadWork
-from toad.client.message_files import PageFiles
+from toad.client.message_file_links import PageFiles
 from toad.client.history_state import (
     LatestReplacementViewportRequest,
     ReplacementViewportRequest,

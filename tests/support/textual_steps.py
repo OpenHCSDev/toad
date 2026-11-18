@@ -5,7 +5,7 @@ Each takes the ``TextualUi``. App-layer tests do not use these.
 
 from __future__ import annotations
 from toad.client.history_state import LiveTranscript, ProvisionalTranscript
-from toad.client.message_files import NO_PAGE_FILES
+from toad.client.message_file_links import NO_PAGE_FILES
 from toad.transcript_preparation import LoadedTranscriptPages, SavedTranscript, TranscriptPageRenderTask
 from toad.widgets.side_bar import ThreadSidebar
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES

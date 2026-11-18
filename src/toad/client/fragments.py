@@ -42,7 +42,7 @@ from toad.client.notification_status import (
     ShownFragment,
     UncheckedNotifications,
 )
-from toad.client.message_files import MessageFileLink, file_chips
+from toad.client.message_file_links import MessageFileLink, file_chips
 from toad.commit_claims import CommitClaim
 from toad.core.projection import MroProjection
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle

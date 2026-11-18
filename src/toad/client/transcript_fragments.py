@@ -44,7 +44,7 @@ from toad.client.fragments import (
     PartPosition,
     Shown,
 )
-from toad.client.message_files import NO_PAGE_FILES, FileReader, PageFiles
+from toad.client.message_file_links import NO_PAGE_FILES, FileReader, PageFiles
 from toad.message_rows import MessageRow
 from toad.client.line_blocks import (
     AgentRole,

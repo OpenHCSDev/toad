@@ -4,7 +4,7 @@ its channel, a direct message in the DM with the participant that is not the rea
 import pytest
 from agent_comms.messaging.messages import InfoKind, Message
 
-from toad.client.message_files import FileReader, file_size
+from toad.client.message_file_links import FileReader, file_size
 from toad.message_rows import MessageRow
 
 

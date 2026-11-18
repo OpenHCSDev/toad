@@ -23,7 +23,7 @@ from agent_comms.messaging.display_references import (
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.client.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
-from toad.client.message_files import MessageFileLink
+from toad.client.message_file_links import MessageFileLink
 from toad.navigation_target import NavigationTarget
 from toad.project_link import ProjectLink
 

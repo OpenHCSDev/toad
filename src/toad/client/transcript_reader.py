@@ -39,7 +39,7 @@ from agent_comms.ui_model.observation import (
     UnreadableHistory,
 )
 
-from toad.client.message_files import FileReader, PageFiles
+from toad.client.message_file_links import FileReader, PageFiles
 from toad.client.transcript_requests import TranscriptRequests
 
 

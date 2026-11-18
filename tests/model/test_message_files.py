@@ -8,13 +8,8 @@ from dataclasses import dataclass, field
 from agent_comms.messaging.message_files import MAX_MESSAGE_FILE_BYTES
 
 from toad.client.bus_submission import TypedText
-from toad.client.message_files import (
-    FilePicker,
-    MessagePromptComposer,
-    PathSearchFilePicker,
-    WindowFilePicker,
-    file_size,
-)
+from toad.client.message_files import FilePicker, MessagePromptComposer, PathSearchFilePicker, WindowFilePicker
+from toad.client.message_file_links import file_size
 
 
 @dataclass
