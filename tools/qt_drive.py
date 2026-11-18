@@ -25,8 +25,8 @@ from collections.abc import Callable
 from typing import ClassVar
 
 import qasync
-from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt, QTimer
-from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QTextDocument
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, QRect, Qt, QTimer
+from PySide6.QtGui import QContextMenuEvent, QImage, QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QTextDocument
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -84,10 +84,11 @@ from toad.setting_choices import CenterColumnAlignment
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
-from toad.qt.menu import QtMenuRow
+from toad.qt.menu import QtMenu, QtMenuRow
 from toad.qt.activity import ChannelActivity
 from toad import paths
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
+from toad.qt.channel_sort import QtChannelListSort
 from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
@@ -971,6 +972,130 @@ class MenuTextScenario(Scenario):
         self.report("1-menu", lines=len(lines), clipped=clipped[:6])
         assert lines, "the menu shows no lines"
         assert not clipped, f"{len(clipped)} menu lines drawn shorter than their font: {clipped[:3]}"
+
+
+def changed_outside(before: QImage, after: QImage, kept: QRect) -> int:
+    """How many pixels differ between two grabs of one window outside `kept`."""
+    before, after = (image.convertToFormat(QImage.Format.Format_RGB32) for image in (before, after))
+    width, height = before.width(), before.height()
+    if (width, height) != (after.width(), after.height()):
+        return width * height
+    left, right = max(0, kept.left()), min(width, kept.right() + 1)
+    changed = 0
+    for y in range(height):
+        a, b = before.constScanLine(y).tobytes(), after.constScanLine(y).tobytes()
+        if kept.top() <= y <= kept.bottom():
+            pairs = ((a[:left * 4], b[:left * 4]), (a[right * 4:], b[right * 4:]))
+        else:
+            pairs = ((a, b),)
+        for one, other in pairs:
+            if one != other:
+                changed += sum(1 for x in range(0, len(one), 4) if one[x:x + 4] != other[x:x + 4])
+    return changed
+
+
+class MenuFloatScenario(Scenario):
+    summary = ("every pop-up menu floats: the page keeps every pixel outside it, an outside tap "
+               "closes it without touching what was under it, Escape closes it; the composer's "
+               "buttons are the input box's one-line height; then quit with the menu open")
+
+    async def floats(self, opening, step: str, faults: list[str]) -> None:
+        """Open a menu, check nothing underneath moved, screenshot it."""
+        app, menu = self.app, self.app.menu_panel
+        menu.hide()
+        await asyncio.sleep(0.4)
+        for attempt in range(3):  # a live row may repaint between the grabs; retry such a race
+            before = app.grab().toImage()
+            opening()
+            QApplication.processEvents()
+            after = app.grab().toImage()
+            moved = changed_outside(before, after, menu.geometry())
+            if moved == 0 or attempt == 2:
+                break
+            menu.hide()
+            await asyncio.sleep(0.6)
+        self.report(step, shown=menu.isVisible(), geometry=menu.geometry().getRect(), moved_pixels=moved,
+                    rows=[row.label.text() for row in menu.findChildren(QtMenuRow)])
+        if not menu.isVisible():
+            faults.append(f"{step}: the menu did not open")
+        if moved:
+            faults.append(f"{step}: opening it changed {moved} pixels outside it")
+        if menu.parentWidget() is not app or menu.isWindow() or app.navigation.layout().indexOf(menu) != -1:
+            faults.append(f"{step}: the menu is not a free child of the window")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.open_named("#comms")
+        faults: list[str] = []
+        menu = app.menu_panel
+        # 1. The application menu, from its button.
+        await self.floats(app.menu.click, "1-app-menu", faults)
+        # 2. A tap outside closes it and the tap goes nowhere else.
+        tabs_before, page_before = self.tabs(), self.page
+        history = self.page.messages.viewport()
+        outside = next(QPoint(x, 12) for x in (history.width() - 12, 12)
+                       if not menu.geometry().contains(history.mapTo(app, QPoint(x, 12))))
+        QTest.mouseClick(history, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, outside)
+        await asyncio.sleep(0.3)
+        self.report("2-outside-tap", shown=menu.isVisible())
+        if menu.isVisible():
+            faults.append("2: an outside tap left the menu open")
+        if self.tabs() != tabs_before or self.page is not page_before:
+            faults.append("2: the outside tap also acted on what was under it")
+        # 3. Escape closes it.
+        app.menu.click()
+        await asyncio.sleep(0.3)
+        QTest.keyClick(app, Qt.Key.Key_Escape)
+        await asyncio.sleep(0.3)
+        self.report("3-escape", shown=menu.isVisible())
+        if menu.isVisible():
+            faults.append("3: Escape left the menu open")
+        # 4. A message's menu, where the row was pressed (a right-click; a held finger asks the same).
+        messages = self.page.messages
+        point = QPoint(messages.viewport().width() // 2, messages.viewport().height() // 2)
+
+        def right_click() -> None:
+            QApplication.sendEvent(messages.viewport(), QContextMenuEvent(
+                QContextMenuEvent.Reason.Mouse, point, messages.viewport().mapToGlobal(point)))
+        await self.floats(right_click, "4-message-menu", faults)
+        pressed = messages.viewport().mapTo(app, point)
+        if menu.isVisible() and not (menu.geometry().top() == pressed.y() + 1 or menu.geometry().bottom() == pressed.y() - 1):
+            faults.append(f"4: the message menu is not at the pressed row ({pressed.y()} vs {menu.geometry().getRect()})")
+        menu.hide()
+        # 5. A sort choice's menu, under its button.
+        sorts = app.findChildren(QtChannelListSort)
+        if sorts and not app.sidebar.isVisible():
+            app.show_sidebar()
+            await asyncio.sleep(0.5)
+        if sorts and sorts[0].isVisible():
+            await self.floats(sorts[0].click, "5-sort-menu", faults)
+            under = QtMenu.anchor_of(sorts[0])
+            if menu.isVisible() and under.bottom() + 1 != menu.geometry().top() and menu.geometry().bottom() + 1 != under.top():
+                faults.append(f"5: the sort menu is not at its button ({under.getRect()} vs {menu.geometry().getRect()})")
+            menu.hide()
+            app.hide_sidebar()
+            await asyncio.sleep(0.4)
+        else:
+            print("5-sort-menu: no visible channel-list sort button here; skipped", flush=True)
+        # 6. The composer's buttons, one line then three.
+        composer = self.page.composer
+        for lines in (1, 3):
+            await self.type("\n".join(["composer line"] * lines))
+            await asyncio.sleep(0.3)
+            frame, send = composer.frame.geometry(), composer.send_button.geometry()
+            self.report(f"6-composer-{lines}-lines", box=frame.getRect(), send=send.getRect())
+            if send.height() != composer.one_line_box_height():
+                faults.append(f"6: with {lines} line(s) the send button is {send.height()}px, the one-line box {composer.one_line_box_height()}px")
+            if send.bottom() != frame.bottom():
+                faults.append(f"6: with {lines} line(s) the send button's bottom {send.bottom()} is not the box's {frame.bottom()}")
+        composer.editor.clear()
+        # 7. Quit with the menu open: the drive's own close ends the app with it showing.
+        app.menu.click()
+        await asyncio.sleep(0.3)
+        self.report("7-open-at-quit", shown=menu.isVisible())
+        if faults:
+            raise AssertionError("menu_float faults:\n" + "\n".join(faults))
 
 
 class FeedbackScenario(Scenario):

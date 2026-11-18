@@ -343,7 +343,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.send_button = QPushButton(SubmitAction.title, self)
         self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
         self.send_button.clicked.connect(self.submit)
-        # The row's margins are the input box setting's frame margin (`place_input_box`).
+        # The row's margins are the input box setting's frame margin (`place_input_box`); every
+        # button beside the box is the box's one-line height, pinned to its bottom
+        # (`fit_buttons`).
         self.frame_row = frame_row = QHBoxLayout()
         frame_row.addWidget(self.frame, 1)
         frame_row.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignBottom)
@@ -387,6 +389,25 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         left, top, right, bottom = cells(box.label_padding)
         self.glyph.setContentsMargins(left, top, right, bottom)
         self.focus_changed(self.editor.hasFocus())
+        self.fit_buttons()
+
+    def one_line_box_height(self) -> int:
+        """The input box's height holding one line: the editor's one-line height, the box's
+        padding, and its border where it draws one."""
+        padding = self.frame.layout().contentsMargins()
+        border = 2 if self.settings.ui.input.box.bordered else 0
+        return self.editor_height(1) + padding.top() + padding.bottom() + border
+
+    def fit_buttons(self) -> None:
+        """Every button in the box's row (send, and any a composer adds beside it) is the
+        box's one-line height and at least as wide as tall: level with a one-line box, and
+        pinned to the bottom of a taller one (each is added bottom-aligned)."""
+        height = self.one_line_box_height()
+        for index in range(self.frame_row.count()):
+            button = self.frame_row.itemAt(index).widget()
+            if button is not None and button is not self.frame:
+                button.setFixedHeight(height)
+                button.setMinimumWidth(height)
 
     def update_prompt(self) -> None:
         """A leading symbol or the placeholder setting changed: draw both again."""
@@ -451,7 +472,11 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         lines = max(1, min(5, typed))
         self.editor.setVerticalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > 5 else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.editor.setFixedHeight(self.editor.fontMetrics().lineSpacing() * lines + 24)
+        self.editor.setFixedHeight(self.editor_height(lines))
+
+    def editor_height(self, lines: int) -> int:
+        """The editor's height showing `lines` lines."""
+        return self.editor.fontMetrics().lineSpacing() * lines + 24
 
     @property
     def text(self) -> str:
