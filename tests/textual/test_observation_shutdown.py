@@ -18,7 +18,7 @@ from agent_comms.ui_model.observation import (
     StopSidebar,
 )
 
-from toad.client.connection import LocalAnsweringReads
+from toad.client.local_connection import LocalAnsweringReads
 
 
 async def stopped(pid: int) -> None:
@@ -104,7 +104,8 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
         app, _pilot = ui.textual
         access = app.coordination_access
         previous_observer = access.observation.observed()
-        observing = await access.preparation.run_thread(access.open_selected, previous_observer.selection)
+        observing = await access.preparation.run_thread(
+            access.connection.open_selected, access, previous_observer.selection)
         await ui.step()
         # Retiring the old process must not publish its state over the new one.
         assert access.observation is observing

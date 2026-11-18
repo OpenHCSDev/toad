@@ -100,8 +100,10 @@ class SettingsScreen(SettingsEditing, PriorityActions, FormModal[None], Dismissi
         super().__init__()
         self.search = FormInput(placeholder="Search settings")
         self.build_pages()
-        for number, form in enumerate(self.pages.values()):
-            form.id = f"settings-page-{number}"
+        # The page switcher keeps every page mounted (hidden while another is shown), so
+        # every page is shown, and built, as the screen composes.
+        for number, page in enumerate(self.listed):
+            self.page(page).id = f"settings-page-{number}"
         self.listen(Tabs.TabActivated, self.page_chosen)
         self.search.listen(Input.Changed, self.searched)
         self.listen(events.Mount, self.opened)

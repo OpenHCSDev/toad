@@ -14,21 +14,6 @@ from toad.setting_choices import UnreadCount
 from toad.sidebar_rows import ChannelLineText
 
 
-class WelcomeBanner:
-    """The app's name, drawn large on the welcome."""
-
-    TEXT = "\n".join(
-        (
-            " ██████╗ ██████╗ ███╗   ███╗███╗   ███╗███████╗",
-            "██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔════╝",
-            "██║     ██║   ██║██╔████╔██║██╔████╔██║███████╗",
-            "██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║╚════██║",
-            "╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████║",
-            " ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝",
-        )
-    )
-
-
 class WelcomeListing:
     """Some of the sidebar model's rows, under a title. A plain parent: each frontend's
     section composes it with its own widget base and metaclass."""

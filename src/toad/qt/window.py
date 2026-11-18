@@ -23,8 +23,8 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
-from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, QPointF, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QFontMetricsF, QKeySequence, QPainter, QShortcut
+from PySide6.QtCore import QEvent, QMargins, QObject, QPoint, Qt, QTimer
+from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -34,7 +34,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
-    QSizePolicy,
     QStackedWidget,
     QToolButton,
     QTreeWidget,
@@ -85,8 +84,9 @@ from toad.client.history_entry import HistorySessionEntry
 from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
 from toad.client.line_blocks import LineLink, MutedRole
+from toad.qt.banner import Banner
 from toad.client.welcome import (
-    ChannelListing, ListedFailure, ListedModel, ThreadListing, WelcomeBanner, WelcomeContent, WelcomeLocation,
+    ChannelListing, ListedFailure, ListedModel, ThreadListing, WelcomeContent, WelcomeLocation,
 )
 from toad.client.name_wave import NameWave
 from toad.client.sidebar_lines import (
@@ -507,51 +507,6 @@ class QtThreadListing(ThreadListing):
             lines.keep(ThreadLine.of(name, model.threads.rows[name], pinned=False,
                                      action_status=app.thread_actions.pending.get(name),
                                      counts=app.settings.sidebar.unread_counts))
-
-
-class Banner(WelcomeBanner, QWidget):
-    """Toad's banner, filling the width it is given in whole characters, as the terminal
-    draws it: each character in its own cell of the grid. Android's monospace font has no
-    box-drawing glyphs, and the fallback's glyphs are wider, so text drawn as a run slid
-    every row off the blocks above it. It takes the width and never asks for one."""
-
-    LINES = WelcomeBanner.TEXT.splitlines()  # the shared banner, as Textual's WelcomeTitle draws it
-    COLUMNS = max(map(len, LINES))
-
-    def __init__(self, colour: str) -> None:
-        super().__init__()
-        self.colour = QColor(colour)
-        font = QFont("monospace")
-        font.setStyleHint(QFont.StyleHint.TypeWriter)
-        self.setFont(font)
-        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
-
-    def paint_in(self, colour: str) -> None:
-        self.colour = QColor(colour)
-        self.update()
-
-    def cell(self) -> float:
-        return self.contentsRect().width() / self.COLUMNS
-
-    def resizeEvent(self, event) -> None:
-        super().resizeEvent(event)
-        font = self.font()
-        advance = QFontMetricsF(font).horizontalAdvance("\u2588") / font.pointSizeF()
-        font.setPointSizeF(max(4.0, self.cell() / advance))
-        self.setFont(font)
-        self.setFixedHeight(round(len(self.LINES) * QFontMetricsF(font).height()))
-
-    def paintEvent(self, event) -> None:
-        painter = QPainter(self)
-        painter.setFont(self.font())
-        painter.setPen(self.colour)
-        metrics = QFontMetricsF(self.font())
-        cell, left, top = self.cell(), self.contentsRect().left(), self.contentsRect().top()
-        for row, line in enumerate(self.LINES):
-            baseline = top + row * metrics.height() + metrics.ascent()
-            for column, character in enumerate(line):
-                if not character.isspace():
-                    painter.drawText(QPointF(left + column * cell, baseline), character)
 
 
 class BusAddress(BusAddressEntry, QLineEdit):
@@ -1626,6 +1581,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
         self._animation_timer = QTimer(self)
         self._animation_timer.timeout.connect(self._tick_animation)
+        self._layout_pending = False
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
         # One background task per transfer kind, cancelled + replaced when the same
         # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
@@ -1798,7 +1754,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.mark_current()
 
     def mark_current(self) -> None:
-        modes = [tab.mode_name for tab in self.session_navigation.tabs]
+        modes = self.session_navigation.tab_modes
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
         self.present_panes()
@@ -1887,8 +1843,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def _bind_thread_pane(self) -> None:
         """The thread's settings follow the selected page: a conversation, or the welcome,
-        which is a `NoConversationView`."""
-        self.thread_pane.bind(self.workspace_sessions.selected)
+        which is a `NoConversationView`. A collapsed pane shows only its bar, so it follows the
+        welcome until it opens (opening it lays the panes out again, which binds the selected
+        page): binding a conversation lists its settings and binds its comms, plan and context
+        panels, work every tab open and switch paid for a pane nobody saw. Following the
+        welcome, not the last page, keeps no closed view behind the collapsed panels."""
+        sessions = self.workspace_sessions
+        collapsed = self.sidebar_layout.is_collapsed(ThreadSidebarPlacement)
+        self.thread_pane.bind(sessions.home if collapsed else sessions.selected)
 
     def present_panes(self) -> None:
         """Draw both sidebars from the one layout and place them; the thread's sidebar is
@@ -1899,8 +1861,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.chrome.arrange()
 
     def rearrange_sidebars(self) -> None:
-        """A move, float or toggle: lay the panes out again. SidebarLayout has already written
-        the arrangement into the settings the surface keeps."""
+        """A move, resize, float or fold: present the panes again, once per turn of the event
+        loop however many grip moves arrived in it. A fold can change what the thread pane
+        follows (`_bind_thread_pane`); a resize cannot, and binding the same view is free."""
+        if not self._layout_pending:
+            self._layout_pending = True
+            QTimer.singleShot(0, self, self._present_pending)
+
+    def _present_pending(self) -> None:
+        self._layout_pending = False
         self.present_panes()
 
     def show_sidebar(self) -> None:

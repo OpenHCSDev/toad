@@ -19,6 +19,7 @@ from toad.client.agents import read_agents
 from toad.app import ToadApp
 from toad.application_lifetime import TerminalApplicationLifetime
 from toad.client.connection import CoreConnection
+from toad.client.local_connection import select_connection
 from toad.launch_binding import AgentAttached, AgentBinding, NoAgent
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer
@@ -85,7 +86,7 @@ class DefaultCommandGroup(click.Group):
             return super().parse_args(ctx, args)
 
         # The launch's connection; apps receive this captured value.
-        ctx.obj = CoreConnection.select(args)
+        ctx.obj = select_connection(args)
         # Check if first arg is a known subcommand
         if not args or args[0] not in self.commands:
             # If not a subcommand, prepend the default command name
