@@ -23,7 +23,6 @@ import pkgutil
 import sys
 
 KNOWN_COPIES = {
-    "toad.qt.menu.QtMenu": "toad.widgets.menu.Menu",
     "toad.qt.window.BusAddress": "toad.screens.bus_choice.BusAddress",
 }
 

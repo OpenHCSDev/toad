@@ -1481,14 +1481,8 @@ class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, Categ
 
     def open_block_menu(self, fragment: QtWireFragment) -> None:
         self.held_fragment = fragment
-        entries = tuple(
-            MenuEntry(
-                label=_strip_menu_markup_shared(command.description),
-                run=partial(self._run_block_menu_command, command),
-                key_display=", ".join(type(command).default_keys()),
-            )
-            for command in _block_menu_commands(fragment)
-        )
+        entries = QtMenu.command_entries(_block_menu_commands(fragment), self.app.settings,
+                                         self._run_block_menu_command)
         if entries:
             self.app.offer_entries(entries)
 

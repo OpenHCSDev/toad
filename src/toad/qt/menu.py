@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.client.block_menu import BlockMenu
 from toad.client.menu_entry import MenuEntry
 from toad.qt.metrics import UiGap
 
@@ -55,8 +56,7 @@ class QtMenuRow(QWidget):
         key.setStyleSheet("font-weight: bold;")
         key.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         inner.addWidget(key)
-        text = entry.label if not entry.description else f"{entry.label} — {entry.description}"
-        label = QLabel(text, self._button)
+        label = QLabel(BlockMenu.row_text(entry), self._button)
         label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         inner.addWidget(label, 1)
 
@@ -64,7 +64,7 @@ class QtMenuRow(QWidget):
         self._chosen(self._entry)
 
 
-class QtMenu(QFrame):
+class QtMenu(BlockMenu, QFrame):
     """A column of MenuEntry rows. The container itself is a QFrame (not a top-level
     window — important on Qt-for-Android where every QWindow needs its own EGL surface
     and a floating menu would deadlock the compositor). Its visibility is managed by
