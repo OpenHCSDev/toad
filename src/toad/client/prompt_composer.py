@@ -13,6 +13,23 @@ from abc import abstractmethod
 from metaclass_registry import AbstractHooksMeta
 
 from toad.client.input_decision import InputDecision
+from toad.setting_declarations import EachOpenWidget
+
+
+class PromptSettingEffects:
+    """A prompt follows the input box settings: these are their effects on every open
+    prompt, Textual's `Prompt` and Qt's `Composer` alike. Each reads through the prompt's
+    own settings scope, so a view's override reaches only that view's prompt."""
+
+    @EachOpenWidget
+    def apply_input_layout(self) -> None:
+        """The input box setting changed: the prompt takes the room it now names."""
+        self.place_input_box()
+
+    @EachOpenWidget
+    def apply_input_text(self) -> None:
+        """The placeholder or a leading symbol changed: the prompt shows the new text."""
+        self.update_prompt()
 
 
 class PromptComposer(metaclass=AbstractHooksMeta):

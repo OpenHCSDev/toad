@@ -292,6 +292,16 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
         self.pages.setCurrentIndex(self.picker.currentIndex())
         self.picker.blockSignals(False)
 
+    def add_entries(self, entries: tuple[QtPanelEntry, ...]) -> None:
+        """List these entries after the current ones, keeping the current pick (Textual's
+        menu adds its loaded configuration actions this way)."""
+        self.entries += entries
+        self.picker.blockSignals(True)
+        for entry in entries:
+            self.picker.addItem(entry.spec.title)
+            self.pages.addWidget(self._page(entry))
+        self.picker.blockSignals(False)
+
     def _page(self, entry: QtPanelEntry) -> QWidget:
         page = QWidget(self.pages)
         page.setWindowFlags(Qt.WindowType.Widget)

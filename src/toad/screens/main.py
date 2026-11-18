@@ -39,7 +39,7 @@ from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 from toad.launch_binding import AgentBinding, NoAgent
-from toad.navigation_context import NavigationContext
+from toad.navigation_context import NavigationContext, ThreadViewNavigation
 from toad.navigation_target import (
     DirectTarget,
     FeedTarget,
@@ -314,7 +314,7 @@ class GoHomeAction(MainAction):
         await context.app.select_session(context.app.tab_order.home)
 
 
-class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
+class MainScreen(ThreadViewNavigation, CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
                  SidebarSessionView[SessionThreadSidebar], ToadNode,
                  actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
@@ -556,15 +556,13 @@ class MainScreen(CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc
     _last_dm_target: str | None = None
 
     @property
-    def navigation_target(self) -> NavigationTarget:
-        return ThreadTarget(self.thread_identity.thread_name())
+    def navigation_mode(self) -> str:
+        assert self.id is not None
+        return self.id
 
     @property
-    def navigation_context(self) -> NavigationContext:
-        assert self.id is not None
-        return NavigationContext(
-            self.app, self.id, self.project_path, self.thread_identity.thread_name()
-        )
+    def navigation_project(self):
+        return self.project_path
 
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target

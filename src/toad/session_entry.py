@@ -52,7 +52,7 @@ class TextualHistorySessionEntry(TextualSessionEntry, HistorySessionEntry, shows
         key = self.key
         return CommsScreen(
             project_path=self.project,
-            me=self.viewer,
+            identity=self.viewer_identity,
             conversation=key.conversation,
             wire_root=key.root,
         )

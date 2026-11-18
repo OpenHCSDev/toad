@@ -282,14 +282,10 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         path = SavedSettings.path()
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
 
-        def applied(field: DeclaredField) -> None:
-            if (effect := field.metadata(Effect)) is not None:
-                effect.apply(self, field)
-
         def report(error: AtomicWriteError) -> None:
             self.show_error(error, "Settings")
 
-        return SavedSettings(raw, applied=applied, report_error=report)
+        return SavedSettings(raw, applied=self.apply_setting_effect, report_error=report)
 
     # Textual overrides of the hamburger capabilities declared on ClientApplication.
     # The default notice stays on the base so a Qt frontend still gets the menu item.

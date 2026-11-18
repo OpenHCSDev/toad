@@ -102,6 +102,14 @@ class ClientApplication(BusPickerHost, NavigationHost):
         from toad.preferences import SavedSettings
         return SavedSettings()
 
+    def apply_setting_effect(self, field) -> None:
+        """An app-wide setting changed: its `Effect` repaints the open widgets it reaches,
+        each reading through its nearest settings scope (a view's override still wins).
+        A frontend whose settings file applies effects passes this as `applied`."""
+        from toad.setting_declarations import Effect
+        if (effect := field.metadata(Effect)) is not None:
+            effect.apply(self, field)
+
     @property
     def settings(self) -> "ToadSettings":
         """The settings in use, to read from; `saved_settings` changes and saves them."""

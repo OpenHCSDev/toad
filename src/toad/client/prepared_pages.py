@@ -498,6 +498,14 @@ class ReplaceablePageSource(PreparedPageSource):
         """Whether this reader reads a conversation from ``root``; a closed one reads none."""
         return False
 
+    def style_differs(self, style) -> bool:
+        """Whether the messages are drawn in a style other than ``style``: a source that
+        draws no bus messages (a closed or saved transcript) has none to restyle."""
+        return False
+
+    async def restyle_to(self, history, style) -> None:
+        """Draw the bus messages in ``style``; a source drawing none has nothing to do."""
+
 
 class SavedHistory(ReplaceablePageSource):
     """Prepared pages for a snapshot; storage and work limits belong to the runtime.

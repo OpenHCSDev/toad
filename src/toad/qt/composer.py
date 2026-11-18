@@ -36,7 +36,7 @@ from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.commands import ConversationCommands
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
-from toad.client.prompt_composer import MessagePromptComposer
+from toad.client.prompt_composer import MessagePromptComposer, PromptSettingEffects
 from toad.client.condensed_path import home_relative
 from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -291,7 +291,7 @@ class ComposerEditor(QPlainTextEdit):
         super().keyPressEvent(event)
 
 
-class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, DismissibleContract, QWidget,
+class Composer(PromptSettingEffects, MessagePromptComposer, MentionEditor, SubmitsContract, DismissibleContract, QWidget,
                metaclass=PyQtWidgetMeta):
     """A conversation's composer, Textual's message prompt drawn natively: the offer list,
     the queue summary and delivery controls, the framed ``❯`` editor, then its info bar
@@ -326,15 +326,14 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         self.editor.setPalette(palette)
         self.offers.setStyleSheet(host.app.theme.color_scheme.styles.generate_list_widget_style())
         self.glyph = QLabel()
-        self.glyph.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}; padding: 0 4px")
+        self.glyph.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}")
         self.frame = QFrame()
         self.frame.setObjectName("prompt-frame")
         frame = QHBoxLayout(self.frame)
-        frame.setContentsMargins(UiGap.normal, UiGap.normal, UiGap.normal, UiGap.normal)
         frame.setSpacing(0)
         frame.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
         frame.addWidget(self.editor, 1)
-        self.info_bar = QtInfoBar(host.app, renderer, self)
+        self.info_bar = QtInfoBar(host, renderer, self)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
         self.submitting = QtQueueSummary(self)
         self.delivery_controls = QtDeliveryControls(self)
@@ -343,8 +342,8 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
         self.send_button = QPushButton(SubmitAction.title, self)
         self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
         self.send_button.clicked.connect(self.submit)
-        frame_row = QHBoxLayout()
-        frame_row.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.tight)
+        # The row's margins are the input box setting's frame margin (`place_input_box`).
+        self.frame_row = frame_row = QHBoxLayout()
         frame_row.addWidget(self.frame, 1)
         frame_row.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignBottom)
         layout = QVBoxLayout(self)
@@ -361,14 +360,36 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
             layout.addWidget(line)
         # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
-        self.focus_changed(False)
+        self.place_input_box()
         self.refresh_glyph()
         self.fit_height()
         self.show_submitting()
 
     @property
     def settings(self):
-        return self.host.app.settings
+        """The settings of the view this composer sits in: its override, else the app's."""
+        return self.host.configuration_state.fields
+
+    def place_input_box(self) -> None:
+        """The input box setting's room, in cells, as Textual's `PromptContainer` and
+        `PromptLabel` read it: the frame's margin and padding, the label's padding, and a
+        border only where the box draws one."""
+        box = self.settings.ui.input.box
+        metrics = self.fontMetrics()
+        cell, line = metrics.averageCharWidth(), metrics.lineSpacing()
+
+        def cells(spacing):
+            return spacing.left * cell, spacing.top * line, spacing.right * cell, spacing.bottom * line
+
+        self.frame_row.setContentsMargins(*cells(box.frame_margin))
+        self.frame.layout().setContentsMargins(*cells(box.frame_padding))
+        left, top, right, bottom = cells(box.label_padding)
+        self.glyph.setContentsMargins(left, top, right, bottom)
+        self.focus_changed(self.editor.hasFocus())
+
+    def update_prompt(self) -> None:
+        """A leading symbol changed: draw the glyph again."""
+        self.refresh_glyph()
 
     @property
     def submissions(self) -> BusSubmissions:
@@ -377,9 +398,11 @@ class Composer(MessagePromptComposer, MentionEditor, SubmitsContract, Dismissibl
     def focus_changed(self, focused: bool) -> None:
         """The frame's border follows focus (Textual's `PromptContainer.border`), and the
         badge shows the editing mode only while focused."""
-        colour = PrimaryColour if focused else MutedColour
+        colour = self.renderer.theme(PrimaryColour if focused else MutedColour)
         self.frame.setStyleSheet(
-            f"#prompt-frame {{ border: 1px solid {self.renderer.theme(colour)}; border-radius: 2px }}")
+            f"#prompt-frame {{ border: 1px solid {colour}; border-radius: 2px }}"
+            if self.settings.ui.input.box.bordered
+            else "#prompt-frame { border: none }")
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, focused)
 
     def refresh_editing_mode(self) -> None:

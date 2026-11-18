@@ -57,6 +57,22 @@ class ViewSettingsOwner:
         for path, _parameter in ParameterFormService().parameters_for_state(state):
             yield state.field(path.value)
 
+    def configuration_actions(self) -> tuple:
+        """The backend operations that configure this view's subject (a thread's model,
+        thinking level, service tier for its next turn), as (context, action, fields).
+        Reads Core: run it off the UI loop."""
+        entries = []
+        for context in self.navigation_target.configuration_contexts(self):
+            for action in context.available_actions():
+                for configuration in action.declaration.configuration_actions(action):
+                    entries.append((context, configuration, configuration.editable_fields))
+        return tuple(entries)
+
+    @staticmethod
+    def action_panel(action) -> PanelSpec:
+        """The settings pane entry a configuration action is listed under."""
+        return PanelSpec(title=action.label, flex=True)
+
     @staticmethod
     def field_panel(field: ObjectSettingField) -> PanelSpec:
         """The settings pane entry a field is listed under."""

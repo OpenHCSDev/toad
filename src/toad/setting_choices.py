@@ -214,11 +214,13 @@ class InputBox(DeclaredChoice, affix="InputBox"):
     agent_info_padding: ClassVar[Spacing] = Spacing(0, 1, 0, 1)
     frame_margin: ClassVar[Spacing] = Spacing(0, 0, 0, 0)
     frame_padding: ClassVar[Spacing] = Spacing(0, 0, 0, 0)
+    bordered: ClassVar[bool] = False
+    """Whether a rounded border is drawn around the text and its label."""
 
     @classmethod
     def frame_border(cls, colour: Color) -> Edges:
         """The edges drawn around the text and its label."""
-        return Edges(*(("", TRANSPARENT),) * 4)
+        return Edges(*((("round", colour) if cls.bordered else ("", TRANSPARENT)),) * 4)
 
     @classmethod
     def info_bar_margin(cls, footer: bool) -> Spacing:
@@ -233,10 +235,7 @@ class NormalInputBox(TitledChoice, InputBox):
     title = "Normal (bordered and padded)"
     frame_margin = Spacing(0, 1, 0, 1)
     frame_padding = Spacing(0, 1, 0, 0)
-
-    @classmethod
-    def frame_border(cls, colour: Color) -> Edges:
-        return Edges(*(("round", colour),) * 4)
+    bordered = True
 
     @classmethod
     def info_bar_margin(cls, footer: bool) -> Spacing:
@@ -264,18 +263,23 @@ class ColumnAlignment(DeclaredChoice, affix="ColumnAlignment"):
 
     horizontal: ClassVar[AlignHorizontal]
     """The session contents declare this alignment for the conversation column."""
+    share: ClassVar[float]
+    """How much of the free width lies before the column."""
 
 
 class LeftColumnAlignment(ColumnAlignment):
     horizontal = "left"
+    share = 0.0
 
 
 class CenterColumnAlignment(ColumnAlignment):
     horizontal = "center"
+    share = 0.5
 
 
 class RightColumnAlignment(ColumnAlignment):
     horizontal = "right"
+    share = 1.0
 
 
 class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):

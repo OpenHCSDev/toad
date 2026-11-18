@@ -173,6 +173,16 @@ class PagingWindow(ReaderWindow):
     max_scroll_y: float
     lookahead: DirectionalPreparation
     presentation_budget: PresentationBudget
+    configuration_state: object
+    """The settings of the view this window reads in: its override, else the app's."""
+
+    def apply_buffer_viewports(self) -> None:
+        """The history buffer setting changed: prepare and keep that many viewports on
+        both sides of the reader (the `history_buffer_viewports` effect)."""
+        value = self.configuration_state.fields.ui.history_buffer_viewports
+        if value != self.presentation_budget.buffer_viewports:
+            self.presentation_budget = replace(self.presentation_budget, buffer_viewports=value)
+            self.request_preparation()
 
     @abstractmethod
     def check_follow(self) -> None:

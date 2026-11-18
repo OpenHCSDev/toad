@@ -106,6 +106,10 @@ class SessionScope:
     def close_configuration(self) -> None:
         """A view without its own settings holds no configuration to close."""
 
+    def configuration_actions(self) -> tuple:
+        """A view without a configurable subject offers no configuration operations."""
+        return ()
+
     @property
     def bound_agent(self) -> AgentConnection:
         """The agent this view presents. A view with none (the welcome, a DM's

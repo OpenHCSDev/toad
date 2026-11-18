@@ -38,6 +38,8 @@ from toad.conversation_submission import ConversationSubmissions
 from toad.client.session_sources import SessionSources, SourcedConversation
 from toad.client.category_selection import CategorySelection
 from toad.client.view_settings import ConversationSettingsOwner
+from toad.qt.view_settings import QtViewSettings
+from toad.navigation_context import ThreadViewNavigation
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.observed_field import ObservedField
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
@@ -73,10 +75,12 @@ if TYPE_CHECKING:
 
 
 class QtThreadView(
+    QtViewSettings,
     CategorySelection,
     WorkingStatusOwner,
     ComposerStatus,
     ConversationSettingsOwner,
+    ThreadViewNavigation,
     ObservedAgentBinding,
     ConversationThreadReadMixin,
     ThreadBindingDispatch,
@@ -244,7 +248,7 @@ class QtThreadView(
         # `view.transcript.get_transcript_page`, same page type
         # (`PreparedTranscriptPage`). Tool calls, sent messages, Claude chunks and
         # context events all feed in through this one source.
-        self.messages = QtHistoryWindow(app.renderer)
+        self.messages = QtHistoryWindow(app.renderer, self)
         # `TranscriptPresentation` first: `QtTranscriptHistory._initial_page_source`
         # reads `self.view.transcript.get_transcript_page` during construction to
         # build its `SavedTranscript`, so the attribute has to exist before the
@@ -498,10 +502,18 @@ class QtThreadView(
     def configuration_settings(self):
         return self.app.saved_settings
 
-    def settings_widgets(self, widget_type):
-        """A changed override reaches the open widgets of a Textual capability; a Qt view
-        holds none of Textual's widgets, so no `Effect` has one to repaint here."""
-        return ()
+    @property
+    def navigation_mode(self) -> str:
+        return self.mode
+
+    @property
+    def navigation_project(self):
+        return self.app.project_dir
+
+    @property
+    def coordination_root(self) -> str | None:
+        return self.thread_identity.wire_root()
+
 
     @property
     def is_attached(self) -> bool:

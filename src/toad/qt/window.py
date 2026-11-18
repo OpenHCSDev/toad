@@ -111,6 +111,7 @@ from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sidebar_panels import PanelSpec
+from toad.navigation_context import ConversationViewNavigation
 from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
 )
@@ -129,6 +130,7 @@ from toad.qt.menu import QtMenu
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.thinking_animator import QtThinkingAnimator
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
+from toad.qt.view_settings import QtViewSettings, capability_widgets
 from toad.qt.paste_profile import QtProfilePastePanel
 from agent_comms.messaging.display_references import ProjectReferences
 from toad.markdown_links import LinkContext
@@ -1195,7 +1197,7 @@ class BusLabel(ElidedLine):
         self.setToolTip(f"{prefix}{location}")
 
 
-class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, ConversationSettingsOwner, JumpsHistory, MenuConversation, Page, SessionScope, QtSubmissionView, WireView,
+class ConversationView(QtViewSettings, WorkingStatusOwner, ComposerStatus, CategorySelection, ConversationSettingsOwner, ConversationViewNavigation, JumpsHistory, MenuConversation, Page, SessionScope, QtSubmissionView, WireView,
                        QtHistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
                        metaclass=PyQtWidgetMeta):
 
@@ -1229,7 +1231,7 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
         # it to know which block they act on.
         self.held_fragment: QtWireFragment | None = None
         label = entry.unobserved_tab().label()
-        self.messages = QtHistoryWindow(app.renderer)
+        self.messages = QtHistoryWindow(app.renderer, self)
         self.messages.block_menu_requested.connect(self.open_block_menu)
         self.message_history = QtConversationHistory(self.messages, self, app)
         source = app.source()
@@ -1237,7 +1239,7 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
         # self.queue_source lets BusSubmissions.queue_evidence read pending/queued/held
         # state the same way CommsChatView does (widgets/comms_chat.py:124-129).
         wire = WireSource(
-            source.root, self.conversation, source.project, entry.viewer, app.settings.ui.message_style(),
+            source.root, self.conversation, source.project, entry.viewer, self.configuration_state.fields.ui.message_style(),
             access=app.coordination_access, core=source.core, fragments=QtWireFragment)
         self.queue_source = wire
         self.message_history.initialize_source(wire)
@@ -1455,10 +1457,19 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Co
     def configuration_settings(self):
         return self.app.saved_settings
 
-    def settings_widgets(self, widget_type):
-        """A changed override reaches the open widgets of a Textual capability; a Qt view
-        holds none of Textual's widgets, so no `Effect` has one to repaint here."""
-        return ()
+    @property
+    def navigation_project(self):
+        return self.app.project_dir
+
+    @property
+    def coordination_root(self) -> str:
+        return self.entry.key.root
+
+    @property
+    def thread_identity(self):
+        """The viewer on this conversation's wire, as Textual's `CommsScreen` acts."""
+        return self.entry.viewer_identity
+
 
     # Block menu — MenuConversation implementation
     #

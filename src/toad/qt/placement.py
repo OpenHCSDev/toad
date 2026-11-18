@@ -13,7 +13,10 @@ overflow rather than widening the window.
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
+
+from agent_comms.cli_support.cli_failures import CLI_FAILURES
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFormLayout, QFrame, QLabel, QScrollArea, QWidget
@@ -24,7 +27,8 @@ from toad.client.session_scope import NoConversationView
 from toad.client.session_tracker import SidebarState
 from toad.client.settings_schema import ObjectSettingRow
 from toad.client.sidebar_filter import SidebarFilter
-from toad.client.sidebar_panels import ObjectPropertiesPanel
+from toad.client.sidebar_panels import ActionPropertiesPanel, ObjectPropertiesPanel
+from toad.qt.command_form import QtCommandForm
 from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
@@ -82,6 +86,25 @@ class QtObjectProperties(ObjectPropertiesPanel, QScrollArea, metaclass=PyQtWidge
             form.addRow(label, QtSettingsEditor.for_row(row, app, rows))
         self.setWidget(rows)
 
+    def release_page(self) -> None:
+        """The view this page edited is no longer bound."""
+        self.deleteLater()
+
+
+class QtActionProperties(ActionPropertiesPanel, QtCommandForm):
+    """One backend configuration operation as a settings-pane page, as Textual's
+    `ActionProperties`: the embedded command form, submitting through the shared writer."""
+
+    def __init__(self, host, context, definition, fields, parent: QWidget | None = None) -> None:
+        self.context = context
+        super().__init__(host, definition, context.title, fields, context.observed.core, parent)
+        self.open_draft()
+
+    def dismiss_control(self) -> None:
+        """An embedded form discards its draft without closing the view, as Textual's does."""
+        for path in self.state.parameters:
+            self.state.reset_parameter(path)
+
 
 class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, metaclass=PyQtWidgetMeta):
     """The open view's sidebar content, as Textual's `ThreadSidebar`: the search over its
@@ -113,6 +136,10 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
             QtPanelEntry(spec.panel, bodies[spec.key], controls.get(spec.key, ()), type(bodies[spec.key]))
             for spec in panel_specs_for_view(is_session=True))
         self._view = NoConversationView()
+        # The entries built for the bound view (its settings and actions), released when the
+        # view changes; the roster panels follow every view.
+        self._view_entries: tuple[QtPanelEntry, ...] = ()
+        self._actions_task: asyncio.Task | None = None
 
     def bind(self, view) -> None:
         """Follow the view the tab now shows: a conversation, or the welcome, whose
@@ -126,7 +153,35 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         self._plan_panel.bind(view)
         self._context_panel.bind(view)
         if not listed:
-            self.menu.show_entries(self.thread_entries(view))
+            self._release_view_entries()
+            entries = self.thread_entries(view)
+            self._view_entries = entries[len(self._roster):]
+            self.menu.show_entries(entries)
+            self._actions_task = asyncio.ensure_future(self._load_actions(view))
+
+    async def _load_actions(self, view) -> None:
+        """The view's backend configuration operations, read off the UI loop and listed after
+        its settings, as Textual's `PanelMenu.load_configuration` lists them."""
+        try:
+            declarations = await self.app.preparation.run_thread(view.configuration_actions)
+        except CLI_FAILURES as error:
+            self.app.show_error(error, "Object settings")
+            return
+        if view is not self._view:
+            return
+        actions = tuple(
+            QtPanelEntry(view.action_panel(action), QtActionProperties(self.app, context, action, fields),
+                         (), action.declaration)
+            for context, action, fields in declarations)
+        self._view_entries += actions
+        self.menu.add_entries(actions)
+
+    def _release_view_entries(self) -> None:
+        if self._actions_task is not None:
+            self._actions_task.cancel()
+        for entry in self._view_entries:
+            entry.widget.release_page()
+        self._view_entries = ()
 
     def roster_entries(self) -> tuple[QtPanelEntry, ...]:
         return self._roster

@@ -540,6 +540,11 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         return shiboken6.isValid(self) and self.parent() is not None
 
     @property
+    def configuration_state(self):
+        """The settings of the view this window reads in (its override, else the app's)."""
+        return self._scope.configuration_state
+
+    @property
     def screen(self) -> WorkspaceFrame:
         """Qt's workspace frame is the top-level `QtToadApp` (which inherits
         `QtWorkspaceFrame`). Qt widgets reach it through `window()`, not through a
@@ -547,12 +552,15 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         replaced here."""
         return self.window()
 
-    def __init__(self, renderer: QtLineRenderer, parent: QWidget | None = None) -> None:
+    def __init__(self, renderer: QtLineRenderer, scope, parent: QWidget | None = None) -> None:
         super().__init__(HistoryRowDelegate(renderer), parent)
+        self._scope = scope
         self.model_rows = HistoryRows()
         self.setModel(self.model_rows)
         self.histories: WeakSet = WeakSet()
         self.history_lock = asyncio.Lock()
+        # The view's settings are read once it is shown (`QtViewSettings`): a thread view
+        # is built before its tab is listed, which names the settings it reads.
         self.presentation_budget = PresentationBudget()
         self.lookahead = DirectionalPreparation(self)
         self.reader_position = TailPosition()
