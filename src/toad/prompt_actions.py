@@ -72,6 +72,7 @@ class SubmitInputAction(PromptAction, declared_name=None):
 
 class SubmitAction(SubmitInputAction):
     """Send the prompt to the agent."""
+    saved_key = "PromptSubmitAction"  # toad.widget_actions.SubmitAction is saved as SubmitAction
     keys = {TextEntryMode: ("enter",)}
     title = "Send"
     key_display = "⏎"

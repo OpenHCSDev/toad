@@ -3,7 +3,14 @@ import pytest
 from textual.widget import Widget
 
 from toad.application_actions import HelpQuitAction
-from toad.client.application_actions import KeymapAction, TeamAction
+from toad.client.application_actions import (
+    DeclaredAction,
+    DuplicateSavedKey,
+    KeymapAction,
+    TeamAction,
+)
+from toad.prompt_actions import SubmitAction as PromptSubmit
+from toad.widget_actions import SubmitAction as WidgetSubmit
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.keymap import Keymap, KeymapCatalog, KeymapRow
 from toad.preferences import SETTINGS, SavedSettings
@@ -89,13 +96,44 @@ def test_a_saved_keymap_follows_its_declaration_when_the_class_moves_module():
     assert SavedSettings(settings.document()).current.ui.keymap == settings.current.ui.keymap
 
 
-def test_an_unknown_or_ambiguous_saved_declaration_is_refused_by_name():
+def test_every_command_has_its_own_saved_name_and_old_paths_are_never_guessed():
     catalog = KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
-    with pytest.raises(ValueError, match="Unknown keyboard invocation 'toad.nowhere.Nonexistent'"):
-        catalog.resolve("toad.nowhere.Nonexistent")
-    # Two declarations are called SubmitAction: the bare name names neither and is never guessed.
-    with pytest.raises(ValueError, match="could name any of"):
-        catalog.resolve("SubmitAction")
-    assert catalog.resolve("prompt_actions.SubmitAction").endswith("prompt_actions.SubmitAction")
+    assert len(catalog.saved_names) == len(catalog.invocations)
     for reference in catalog.invocations:
         assert catalog.resolve(catalog.spelling(reference)) == reference
+    # Two declarations are classes named SubmitAction; each saves under its own name, and an
+    # old file's exact module path still finds its own class.
+    assert catalog.spelling(WidgetSubmit.identity()) == "SubmitAction"
+    assert catalog.spelling(PromptSubmit.identity()) == "PromptSubmitAction"
+    assert catalog.resolve("toad.prompt_actions.SubmitAction") == PromptSubmit.identity()
+    # A moved path that matches both by class name alone names neither, and is refused by name.
+    with pytest.raises(ValueError, match="could name any of"):
+        catalog.resolve("toad.somewhere_else.SubmitAction")
+    with pytest.raises(ValueError, match="Unknown keyboard invocation 'toad.nowhere.Nonexistent'"):
+        catalog.resolve("toad.nowhere.Nonexistent")
+
+
+def test_a_second_declaration_saved_under_a_taken_name_fails_as_its_class_is_created():
+    class ProbeAction(DeclaredAction[object], affix="Probe"):
+        """A family of its own, so the refused member below joins no real registry."""
+
+    with pytest.raises(DuplicateSavedKey, match="'KeymapAction'.*already names"):
+        class KeymapClashProbe(ProbeAction):
+            saved_key = "KeymapAction"
+
+            def apply(self, context: object) -> None: ...
+
+
+def test_one_broken_saved_entry_is_kept_and_reported_while_the_rest_apply():
+    saved = {"ui": {"keymap": {"bindings": [
+        {"declaration": "KeymapAction", "mode": "standard", "keys": ["f1"]},
+        {"declaration": "toad.nowhere.Gone", "mode": "standard", "keys": ["f9"]},
+    ]}}}
+    settings = SavedSettings(saved)
+    keymap = settings.current.ui.keymap
+    (broken,) = keymap.broken
+    assert broken.remap.declaration == "toad.nowhere.Gone" and "Unknown keyboard invocation" in broken.reason
+    assert keymap.native() == {KeymapRow.of(KeymapAction(), Standard).binding_id: "f1"}
+    # Never silently dropped: the entry is written back as it was saved.
+    written = [entry["declaration"] for entry in settings.document()["ui"]["keymap"]["bindings"]]
+    assert written == ["KeymapAction", "toad.nowhere.Gone"]

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import re
-import sys
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from functools import cache, cached_property
@@ -16,14 +15,14 @@ from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from objectstate import mark_ui_hidden_config
 from textual.binding import BindingsMap
 from textual.dom import DOMNode
-from formbridge.key_declarations import KeyInvocation
+from formbridge.key_declarations import KeyDeclaration, KeyInvocation
 from textual.screen import ModalScreen
 
 import toad
 from toad.key_modes import KeyMode
 from toad.menus import MenuCommand
 from toad.setting_declarations import Effect, FamilyChoices
-from toad.client.application_actions import ApplicationAction
+from toad.client.application_actions import ApplicationAction, KeyFamilyMeta
 from toad.widget_actions import DeclaredWidgetActions
 
 if TYPE_CHECKING:
@@ -51,15 +50,20 @@ class KeyInvocationId(NominalText):
 
 
 class KeyInvocationSpelling(NominalSpelling[KeyInvocationId]):
-    """A saved keymap names a command by its declaration, not by the module it lives in:
-    moving a class between modules must not unbind a user's keys. The catalog owns both
-    directions (`KeymapCatalog.resolve` / `KeymapCatalog.spelling`)."""
+    """A saved keymap entry names its command by the saved name its declaration owns (see
+    `KeyFamilyMeta`), not by the module it lives in. Decoding never refuses the settings
+    file: an entry no declaration answers keeps its saved text, is not applied, and is
+    reported and listed as broken (`Keymap.broken`) — never silently dropped."""
 
     spelling = re.compile(r".+")
 
     @classmethod
     def from_text(cls, value: str) -> KeyInvocationId:
-        return KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode))).resolve(value)
+        catalog = KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
+        try:
+            return catalog.resolve(value)
+        except KeymapRefused:
+            return KeyInvocationId(value)
 
     @classmethod
     def encode(cls, value: object) -> str:
@@ -68,41 +72,34 @@ class KeyInvocationSpelling(NominalSpelling[KeyInvocationId]):
 
 
 @dataclass(frozen=True)
-class SpelledIdentity:
-    """A command identity read as its `:`-joined dotted parts, each split at the dots. The
-    part after a part's module is its qualname; comparing tails of parts is how a saved
-    spelling finds its declaration wherever that declaration's module now is."""
+class LegacyDeclaration:
+    """A declared class as a pre-saved-name keymap spelled it, `module.qualname`, read from
+    the class itself: the qualname is its own, so a moved module only shortens the match."""
 
-    parts: tuple[tuple[str, ...], ...]
+    identity: KeyInvocationId
+    module: tuple[str, ...]
+    qualname: str
 
-    @classmethod
-    def of(cls, text: str) -> SpelledIdentity:
-        return cls(tuple(tuple(part.split(".")) for part in text.split(":")))
-
-    def qualname_lengths(self) -> tuple[int, ...]:
-        """How many trailing names of each part are its qualname: everything after the longest
-        prefix that is an imported module (a catalog identity's declarations are imported)."""
-        return tuple(next((len(part) - cut for cut in range(len(part) - 1, 0, -1)
-                           if ".".join(part[:cut]) in sys.modules), len(part))
-                     for part in self.parts)
-
-    def shared_tail(self, other: SpelledIdentity, minimum: tuple[int, ...]) -> int | None:
-        """Total trailing names this spelling shares with `other`, part by part; None unless
-        every part shares at least its `minimum` (the other's qualname)."""
-        if len(self.parts) != len(other.parts):
+    def shared_module(self, saved: str) -> int | None:
+        """How many trailing module names the saved path shares with this class's module;
+        None unless the saved path ends in exactly this class's qualname."""
+        head, dot, tail = saved.rpartition("." + self.qualname)
+        if tail or not dot:
             return None
-        total = 0
-        for mine, theirs, least in zip(self.parts, other.parts, minimum):
-            shared = 0
-            while shared < min(len(mine), len(theirs)) and mine[-1 - shared] == theirs[-1 - shared]:
-                shared += 1
-            if shared < least:
-                return None
-            total += shared
-        return total
+        names = tuple(head.split(".")) if head else ()
+        shared = 0
+        while (shared < min(len(names), len(self.module))
+               and names[-1 - shared] == self.module[-1 - shared]):
+            shared += 1
+        return shared
 
-    def tail(self, lengths: tuple[int, ...]) -> str:
-        return ":".join(".".join(part[-length:]) for part, length in zip(self.parts, lengths))
+
+@dataclass(frozen=True)
+class BrokenRemap:
+    """A saved keymap entry no declaration answers: kept in the file, never applied."""
+
+    remap: KeyRemap
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -241,45 +238,56 @@ class KeymapCatalog:
             raise KeymapRefused(f"Unknown keyboard invocation {reference!r}") from None
 
     @cached_property
-    def spelled(self) -> Mapping[KeyInvocationId, tuple[SpelledIdentity, tuple[int, ...]]]:
-        """Each declared identity split into names, with each part's qualname length."""
-        return MappingProxyType({reference: (identity, identity.qualname_lengths())
-                                 for reference in self.invocations
-                                 for identity in (SpelledIdentity.of(reference),)})
+    def saved_names(self) -> Mapping[str, KeyInvocationId]:
+        """Each command by the name a keymap saves it under: a toad declaration's registered
+        saved name (unique by construction, `KeyFamilyMeta`), any other command's identity."""
+        return MappingProxyType({self.spelling(reference): reference
+                                 for reference in self.invocations})
+
+    @cached_property
+    def legacy(self) -> tuple[LegacyDeclaration, ...]:
+        """The declared classes a keymap saved before saved names existed could name, read
+        from each class's own module and qualname, never from what happens to be imported."""
+        declared = {KeyDeclaration.qualified(cls): cls
+                    for cls in (*KeyFamilyMeta.saved_members(), *KeyDeclaration._declared)}
+        return tuple(LegacyDeclaration(KeyInvocationId(identity), tuple(cls.__module__.split(".")),
+                                       cls.__qualname__)
+                     for identity, cls in declared.items() if identity in self.invocations)
 
     def resolve(self, saved: str) -> KeyInvocationId:
-        """The declared command a saved spelling names: the one sharing the longest tail with
-        it, covering at least its whole qualname. A module path that moved, or the short
-        spelling `spelling` writes, still finds its command; a tie or no match refuses."""
-        wanted = SpelledIdentity.of(saved)
-        scored = [(shared, reference) for reference, (identity, least) in self.spelled.items()
-                  for shared in (wanted.shared_tail(identity, least),) if shared is not None]
+        """The command a saved keymap entry names. A saved name or a current identity answers
+        directly. An older file's `module.qualname` of a declaration that has since moved finds
+        the declaration with that qualname whose module shares the most trailing names with
+        it; a tie or no match refuses by name."""
+        if saved in self.invocations:
+            return KeyInvocationId(saved)
+        if saved in self.saved_names:
+            return self.saved_names[saved]
+        scored = [(shared, declaration.identity) for declaration in self.legacy
+                  for shared in (declaration.shared_module(saved),) if shared is not None]
         if not scored:
             raise KeymapRefused(f"Unknown keyboard invocation {saved!r}")
         best = max(shared for shared, _ in scored)
-        chosen = [reference for shared, reference in scored if shared == best]
+        chosen = sorted(identity for shared, identity in scored if shared == best)
         if len(chosen) > 1:
             raise KeymapRefused(f"Keyboard invocation {saved!r} could name any of "
-                                f"{', '.join(sorted(chosen))}; spell its module too")
+                                f"{', '.join(chosen)}")
         return chosen[0]
 
     def spelling(self, reference: KeyInvocationId) -> str:
-        """The shortest tail of the identity that `resolve` maps back to it alone: the bare
-        qualname unless another declaration shares it, then with its module's last names."""
-        self.require(reference)
-        identity, least = self.spelled[reference]
-        lengths = least
-        while True:
-            text = identity.tail(lengths)
-            try:
-                if self.resolve(text) == reference:
-                    return text
-            except KeymapRefused:
-                pass
-            grown = tuple(min(length + 1, len(part)) for length, part in zip(lengths, identity.parts))
-            if grown == lengths:
-                return str(reference)
-            lengths = grown
+        """What a keymap saves for a command: its declaration's saved name; a command toad
+        does not declare keeps its identity; an entry no command answers keeps its text."""
+        return KeyFamilyMeta.saved_name_of(reference) or str(reference)
+
+    def problem(self, reference: KeyInvocationId) -> str | None:
+        """Why a saved entry is not applied, or None when a command answers it."""
+        if reference in self.invocations:
+            return None
+        try:
+            self.resolve(reference)
+        except KeymapRefused as refusal:
+            return str(refusal)
+        return None
 
     def defaults(self, row: KeymapRow) -> tuple[str, ...]:
         return self.default_keys[row.declaration, row.mode]
@@ -290,7 +298,12 @@ class KeymapCatalog:
 
 @Effect
 def apply_keymap(app: ToadApp, field: DeclaredField) -> None:
-    app.set_keymap(app.settings.ui.keymap.native())
+    keymap = app.settings.ui.keymap
+    app.set_keymap(keymap.native())
+    if broken := keymap.broken:
+        app.show_error("Not applied (fix or reset it in the keymap screen): " + "; ".join(
+            f"{entry.remap.declaration} in {FamilyChoices(KeyMode).label(entry.remap.mode)}: "
+            f"{entry.reason}" for entry in broken), "Keyboard shortcuts")
 
 
 @mark_ui_hidden_config
@@ -307,8 +320,18 @@ class Keymap:
         """Each remap's keys by its binding id: every lookup reads this one map."""
         return MappingProxyType({remap.binding_id: remap.keys for remap in self.bindings})
 
+    @cached_property
+    def broken(self) -> tuple[BrokenRemap, ...]:
+        """Saved entries no declared command answers: kept, reported, never applied."""
+        catalog = KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
+        return tuple(BrokenRemap(remap, reason) for remap in self.bindings
+                     for reason in (catalog.problem(remap.declaration),) if reason is not None)
+
     def native(self) -> dict[str, str]:
-        return {binding_id: ",".join(keys) for binding_id, keys in self.overrides.items()}
+        """The overrides to apply: every entry a declared command answers."""
+        broken = {entry.remap.binding_id for entry in self.broken}
+        return {binding_id: ",".join(keys) for binding_id, keys in self.overrides.items()
+                if binding_id not in broken}
 
     def keys_for(self, row: KeymapRow, defaults: tuple[str, ...]) -> tuple[str, ...]:
         """The preference alone selects an override; its caller owns the default scope."""

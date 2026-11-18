@@ -168,7 +168,24 @@ class KeymapBrowserState:
 
     # ---- row views ----
 
+    def broken_rows(self) -> tuple[KeymapRow, ...]:
+        """Saved entries no command answers, listed first with why: shown, never applied."""
+        return tuple(
+            KeymapRow(
+                title=f"Broken: {entry.remap.declaration} — {entry.reason}",
+                dim=False,
+                cells=tuple(
+                    KeymapCell(keys=(", ".join(entry.remap.keys) or "—") + " (not applied)"
+                               if mode is entry.remap.mode else "", conflict=True)
+                    for mode in self.modes),
+            )
+            for entry in self.app.settings.ui.keymap.broken
+        )
+
     def rows(self) -> tuple[KeymapRow, ...]:
+        return (*self.broken_rows(), *self.declared_rows())
+
+    def declared_rows(self) -> tuple[KeymapRow, ...]:
         keymap = self.app.settings.ui.keymap
         conflicts = {
             row.binding_id
@@ -196,9 +213,11 @@ class KeymapBrowserState:
     # ---- selection / per-cell display ----
 
     def select(self, row_index: int, column_index: int) -> KeymapSelection | None:
-        """`row_index` indexes `visible_declarations`; `column_index` 0 is the
-        title (no selection), 1..len(modes) are modes."""
-        if column_index <= 0 or row_index >= len(self.visible_declarations):
+        """`row_index` indexes `rows()`: the broken entries first (not editable), then
+        `visible_declarations`; `column_index` 0 is the title (no selection), 1..len(modes)
+        are modes."""
+        row_index -= len(self.app.settings.ui.keymap.broken)
+        if column_index <= 0 or not 0 <= row_index < len(self.visible_declarations):
             return None
         declaration = self.visible_declarations[row_index]
         mode = self.modes[column_index - 1]

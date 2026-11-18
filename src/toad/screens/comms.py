@@ -84,6 +84,8 @@ class MessageStyleAction(ViewAction):
 
 
 class FocusPromptAction(ViewAction):
+    # toad.widgets.conversation.FocusPromptAction is saved as FocusPromptAction.
+    saved_key = "CommsFocusPromptAction"
 
     def apply(self, context: CommsScreen) -> None:
         if chat := context.query_one_optional(CommsChatView):

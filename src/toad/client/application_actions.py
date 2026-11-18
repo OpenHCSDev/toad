@@ -28,8 +28,62 @@ from toad.session_navigation import ChannelsReveal
 Context = TypeVar("Context")
 
 
+class DuplicateSavedKey(TypeError):
+    """Two key declarations would be saved under one name: raised as the second class is
+    created, so the clash fails at import in development and CI, never in a user's toad.json."""
+
+
 class KeyFamilyMeta(FamilyMeta, KeyDeclarationType):
-    """A named command family whose classes declare native key overlap."""
+    """A named command family whose classes declare native key overlap.
+
+    Each member is also the owner of the name a saved keymap stores for it: its class name,
+    unless a member whose class name another declaration already uses declares `saved_key`
+    in its own body. Names are unique by construction — a second member saved under one
+    name raises `DuplicateSavedKey` while it is being created — and none names a module,
+    so moving a declaration between modules never unbinds a user's keys."""
+
+    _saved: ClassVar[dict[str, type]] = {}
+    _saved_by_identity: ClassVar[dict[str, str]] = {}
+
+    def __init__(cls, name: str, bases: tuple[type, ...], namespace: dict[str, object],
+                 **options: object) -> None:
+        super().__init__(name, bases, namespace, **options)
+        if inspect.isabstract(cls) or cls.declared_name is None:
+            return  # a family root or abstract layer: never a saved keymap entry
+        key = cls.saved_key_name()
+        held = KeyFamilyMeta._saved.get(key)
+        if held is not None and (held.__module__, held.__qualname__) != (cls.__module__, cls.__qualname__):
+            raise DuplicateSavedKey(
+                f"{cls.__module__}.{cls.__qualname__} would be saved in keymaps as {key!r}, "
+                f"which already names {held.__module__}.{held.__qualname__}; declare "
+                f"`saved_key` in its class body")
+        foreign = next((declared for declared in KeyDeclaration._declared
+                        if declared.__qualname__ == key and not isinstance(declared, KeyFamilyMeta)
+                        and not inspect.isabstract(declared)), None)
+        if foreign is not None:
+            raise DuplicateSavedKey(
+                f"{cls.__module__}.{cls.__qualname__} would be saved in keymaps as {key!r}, "
+                f"the name of {foreign.__module__}.{foreign.__qualname__}; declare `saved_key`")
+        KeyFamilyMeta._saved[key] = cls
+        KeyFamilyMeta._saved_by_identity[KeyDeclaration.qualified(cls)] = key
+
+    def saved_key_name(cls) -> str:
+        """The name this member is saved under: declared in its own body, else its class."""
+        return cast(str, vars(cls).get("saved_key", cls.__qualname__))
+
+    @staticmethod
+    def saved_name_of(identity: str) -> str | None:
+        """The saved name of the toad declaration with this identity; None for a command toad
+        does not declare (a Textual binding, a formbridge key), which is saved by identity."""
+        return KeyFamilyMeta._saved_by_identity.get(identity)
+
+    @staticmethod
+    def saved_member(name: str) -> type | None:
+        return KeyFamilyMeta._saved.get(name)
+
+    @staticmethod
+    def saved_members() -> tuple[type, ...]:
+        return tuple(KeyFamilyMeta._saved.values())
 
 
 class DeclaredAction(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
