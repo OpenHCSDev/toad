@@ -219,7 +219,9 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
                   f"{len(errors)} error file(s)); TOAD_SHIPPED_KEEP=1 keeps its scratch folder", file=sys.stderr)
             return 1
         print("shipped app ran every view kind and bound key on a scratch bus")
-        fault = fault_trace_failure(out / "state", shipped, recipes)
+        # The deliberate crash runs the app directly (shipped_fault), not through qt_drive, so its
+        # trace is under the kept state, not qt_drive's OUTDIR.
+        fault = fault_trace_failure(work / "kept" / "state", shipped, recipes)
         if fault:
             print(f"error: the shipped app's fault trace: {fault}", file=sys.stderr)
             return 1
