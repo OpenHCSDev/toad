@@ -10,8 +10,10 @@ composer with its draft.
 
 from __future__ import annotations
 
+import asyncio
 import mimetypes
 from abc import abstractmethod
+from pathlib import Path
 
 from agent_comms.messaging.message_files import MAX_MESSAGE_FILE_BYTES, FileUpload
 from formbridge.operations import ExclusiveKind, OperationKind
@@ -75,9 +77,11 @@ class AttachedFileChip:
 
     @property
     def caption(self) -> str:
+        """Named apart from the toolkits' own: Textual's Button renders `label`."""
         return self.composer.chip_label(self.composer.attached_files[self.position])
 
     def take_off(self) -> None:
+        """Named apart from the toolkits' own: Textual's `Widget.remove` leaves the DOM."""
         self.composer.detach_file(self.position)
 
 
@@ -117,6 +121,21 @@ class MessagePromptComposer(PromptComposer):
         """The most bytes a picker reads of one file: one past what still fits, so an
         oversized file is refused below without being read whole."""
         return MAX_MESSAGE_FILE_BYTES - sum(upload.size for upload in self.attached_files) + 1
+
+    async def attach_path(self, path: Path) -> None:
+        """A picker chose a file on this machine: read at most `read_limit` of it and attach it."""
+        limit = self.read_limit
+
+        def read() -> bytes:
+            with path.open("rb") as source:
+                return source.read(limit)
+
+        try:
+            content = await asyncio.to_thread(read)
+        except OSError as error:
+            self.show_failure(f"{path.name} not attached: {error.strerror or error}")
+            return
+        self.file_picked(path.name, content)
 
     def file_picked(self, name: str, content: bytes, mime_type: str = "") -> None:
         """A picker returned a file: attach it, or say why it cannot go with this message."""

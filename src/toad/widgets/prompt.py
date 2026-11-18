@@ -35,7 +35,7 @@ from textual.geometry import Spacing
 from textual.reactive import Initialize, Required, var
 from textual.strip import Strip
 from textual.style import Style
-from textual.widgets import Label, OptionList, TextArea
+from textual.widgets import Button, Label, OptionList, TextArea
 from textual.widgets.option_list import Option, OptionListComponent
 from textual.widgets.text_area import Selection, TextAreaComponent
 from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, PromptToneColour, SecondaryColour
@@ -46,7 +46,8 @@ from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.client.input_decision import InputAccepted, InputDecision, RefusalFeedback
-from toad.client.message_files import MessagePromptComposer
+from toad.client.message_files import AttachedFileChip, MessagePromptComposer
+from toad.screens.file_picker import FileBrowserScreen, PathSearchScreen
 from toad.client.prompt_composer import PromptComposer
 from toad.client.prompt_stack import EditingModeBadge
 from toad.client.queue_inspection import QueueDeliveryControls
@@ -76,7 +77,7 @@ from toad.native_style import (
 )
 from toad.tone_paint import TonePaint
 from toad.path_complete import AnyPath, CompletingEditor, DirectoriesOnly, FilesOnly, PathComplete
-from toad.prompt_actions import PromptAction, SubmitInputAction, SubmitNowAction
+from toad.prompt_actions import MessageAction, PromptAction, SubmitInputAction, SubmitNowAction
 from toad.app_node import ToadNode
 from toad.prompt_cursor import (
     CommandText,
@@ -692,7 +693,7 @@ See on-screen instructions for details.
             self.input_cursor.changed(previous_selection, selection)
 
 
-class MessageTextArea(PromptTextArea):
+class MessageTextArea(PromptTextArea, actions=(MessageAction,)):
     @property
     def can_enter_shell(self) -> bool:
         return False
@@ -786,6 +787,10 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             editor.history.checkpoint()
             editor.insert(suffix, editor.document.end, maintain_selection_offset=True)
             editor.history.checkpoint()
+
+    def show_failure(self, text: str) -> None:
+        """Where this prompt's conversation tells a send failure."""
+        self.conversation.show_send_failure(text)
 
     def watch_agent_binding(self) -> None:
         if self.is_mounted:
@@ -1064,9 +1069,14 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         yield ModeSwitcher()
         yield ModeInfo("mode")
 
+    def compose_attached(self) -> ComposeResult:
+        """What the message being written carries; an agent prompt carries nothing."""
+        return ()
+
     def compose(self) -> ComposeResult:
         yield from self.compose_completions()
         yield from self.compose_delivery_controls()
+        yield from self.compose_attached()
         with PromptContainer():
             yield PromptQuestion()
             with TextPrompt():
@@ -1102,8 +1112,32 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         raise SkipAction()
 
 
+class FileChip(AttachedFileChip, Button):
+    """One attached file as Textual draws it; pressing it takes the file off the message."""
+
+    def __init__(self, composer: MessagePromptComposer, position: int) -> None:
+        self.show_file(composer, position)
+        super().__init__(f"{self.caption} ✕", compact=True, tooltip="Remove from this message")
+
+    @on(Button.Pressed)
+    def pressed(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.take_off()
+
+
+class AttachedFiles(containers.HorizontalGroup):
+    """The files the message being written carries, as chips above the text."""
+
+    def show(self, composer: MessagePromptComposer) -> None:
+        self.remove_children()
+        self.mount_all(FileChip(composer, position) for position in range(len(composer.attached_files)))
+        self.display = bool(composer.attached_files)
+
+
 class MessagePrompt(MessagePromptComposer, Prompt):
     TEXT_AREA_CLASS = MessageTextArea
+
+    attached = getters.query_one(AttachedFiles)
 
     def __init__(self, *, placeholder: str | None = None, **kwargs):
         self.simple_placeholder = placeholder
@@ -1142,6 +1176,21 @@ class MessagePrompt(MessagePromptComposer, Prompt):
     def compose_completions(self) -> ComposeResult:
         if (popup := SlashComplete.for_prompt(self)) is not None:
             yield popup
+
+    def compose_attached(self) -> ComposeResult:
+        files = AttachedFiles()
+        files.display = False
+        yield files
+
+    def pick_in_window(self) -> None:
+        """A terminal's window is a file browser over the whole disk, opened at the project."""
+        self.app.push_screen(FileBrowserScreen(self, self.project_path.path))
+
+    def pick_by_path_search(self) -> None:
+        self.app.push_screen(PathSearchScreen(self, self.project_path.path))
+
+    def show_attached(self) -> None:
+        self.attached.show(self)
 
 
 class MailboxPrompt(MessagePrompt):
