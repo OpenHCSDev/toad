@@ -18,7 +18,7 @@ from toad.client.coordination_panel import read_coordination_state
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
 from agent_comms.display_order import ThreadSort
-from agent_comms.transport.tools.sidebar import CommsSortChannelTool
+from toad.client.sort_control import ChannelMemberOrder
 from textual.geometry import Region
 from textual.widget import Widget
 from textual.reactive import reactive
@@ -94,7 +94,7 @@ class ChannelSortSegment(ActiveSegment):
 CHANNEL_SORT = ChannelSortSegment()
 
 
-class ChannelSortChoice(CommsSortChoice[ThreadSort]):
+class ChannelSortChoice(ChannelMemberOrder, CommsSortChoice[ThreadSort]):
     """A channel's member order, presented by its header line's order stretch."""
 
     def __init__(self, row: ChannelHeaderRow):
@@ -109,8 +109,6 @@ class ChannelSortChoice(CommsSortChoice[ThreadSort]):
     def sort_anchor(self) -> Region:
         return self.row.segment_region(CHANNEL_SORT)
 
-    def order_request(self, order: type[ThreadSort]) -> CommsSortChannelTool:
-        return CommsSortChannelTool(name=self.row.target_name, order=order)
 
 
 class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
@@ -302,7 +300,7 @@ class NewSessionButton(
     can_focus = True
 
     def __init__(self) -> None:
-        super().__init__("+ New Session")
+        super().__init__(NewThreadAction.row_label)
 
     @property
     def primary_activation(self):

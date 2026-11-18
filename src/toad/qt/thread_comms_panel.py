@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 from toad.client.relationship_tree_state import RelationshipTreeState
 from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.qt.metrics import UiGap
@@ -85,7 +86,7 @@ class QtRelationshipSort(QToolButton):
         asyncio.ensure_future(panel.write_order(self._groups, order))
 
 
-class QtThreadCommsPanel(QWidget):
+class QtThreadCommsPanel(ThreadSidebarPanelBody, QWidget):
     spec_key: ClassVar[str] = "comms"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""

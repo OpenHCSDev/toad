@@ -35,7 +35,7 @@ from toad.qt.main import current_scheme, open_app
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
 from toad.qt.goal import QtGoalBar, QtGoalHistory
-from toad.qt.placement import QtPlacementControl
+from toad.qt.side_bar import QtSidebarAction
 from toad.sidebar_layout import DirectionalSidebarPlacementAction, FloatSidebarPlacementAction
 from toad.sidebar_placement import (
     BottomSidebarEdge,
@@ -110,6 +110,14 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         return next(row for row in self.app.sidebar.items()
                     if isinstance(row, ConversationRow) and row.target.name == name)
 
+    def thread_row(self) -> ConversationRow:
+        """The first thread nested under a channel, as the Textual sidebar nests them."""
+        for channel in self.app.sidebar.items():
+            if isinstance(channel, ConversationRow) and channel.childCount():
+                self.app.sidebar.expandItem(channel)
+                return channel.child(0)
+        raise LookupError("no channel lists a thread")
+
     def offered(self, count: int) -> list[str]:
         return [offer.layout.name.text for offer in self.page.composer.offers.offers[:count]]
 
@@ -131,9 +139,7 @@ class TabsScenario(Scenario):
         await self.expand("#comms")
         tops = list(app.sidebar.items())
         comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
-        # Flat thread list moved to QtThreadPanel sibling panel (see window.py);
-        # grab the first thread row from that panel.
-        peer = next(iter(app._sidebar_thread_panel.items()))
+        peer = self.thread_row()
         app.open_row(comms)
         await until(lambda: self.page is not app.workspace_sessions.home and self.page.messages.model_rows.rowCount(), "#comms")
         self.report("1-comms")
@@ -162,10 +168,10 @@ class ActivityScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
-        # Flat thread list moved to QtThreadPanel sibling panel (see window.py).
-        everyone = app._sidebar_thread_panel.invisibleRootItem()
+        # Threads nest under their channels, as the Textual sidebar nests them.
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
-        children = [everyone.child(index) for index in range(everyone.childCount())]
+        children = [row for row in app.sidebar.items()
+                    if isinstance(row, ConversationRow) and row.key in rows]
         working = [row for row in children if rows[row.key].status.is_working()]
         peer = (working or children)[0]
         app.open_row(peer)
@@ -415,26 +421,25 @@ class PlacementScenario(Scenario):
                 if widget.isVisible() and widget.minimumSizeHint().width() > self.width]
         return [f"{width} {type(widget).__name__}" for width, widget in sorted(wide, key=lambda pair: -pair[0])]
 
-    def where(self, pane) -> str:
-        parent = pane.parentWidget()
-        for name, dock in self.app._docks.items():
-            if parent is dock:
-                return name
-        if parent is self.app.float_layer:
-            return "float"
-        return "down"
+    def where(self, side) -> str:
+        """Where the side sits in the chrome, and whether its pane shows."""
+        if side.isHidden():
+            return "absent"
+        box = side.geometry()
+        return (f"{box.x()},{box.y()} {box.width()}x{box.height()} "
+                f"{'folded' if side.collapsed else 'open'}")
 
     def placement(self, identity) -> str:
         placed = self.app.sidebar_layout.get(identity)
         return placed.side.declared_name + ("/float" if placed.floating else "")
 
-    def move_control(self, pane, edge: type[SidebarEdge]) -> QtPlacementControl:
-        return next(control for control in pane._controls
+    def move_control(self, pane, edge: type[SidebarEdge]) -> QtSidebarAction:
+        return next(control for control in pane._actions
                     if isinstance(control.action, DirectionalSidebarPlacementAction)
                     and control.action.direction is edge)
 
-    def float_control(self, pane) -> QtPlacementControl:
-        return next(control for control in pane._controls
+    def float_control(self, pane) -> QtSidebarAction:
+        return next(control for control in pane._actions
                     if isinstance(control.action, FloatSidebarPlacementAction))
 
     async def settle(self) -> None:
@@ -443,7 +448,6 @@ class PlacementScenario(Scenario):
     async def opened(self, before) -> None:
         home = self.app.workspace_sessions.home
         await until(lambda: self.page is not before and self.page is not home, "conversation")
-        await until(self.page.content_ready.is_set, "content")
         await self.settle()
 
     async def run(self) -> None:
@@ -454,22 +458,20 @@ class PlacementScenario(Scenario):
         await self.expand("#comms", "Threads")
         tops = list(app.sidebar.items())
         comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
-        peer = tops[-1].child(0)
         home = app.workspace_sessions.home
         app.open_row(comms)
         await self.opened(home)
-        pane = app.channels_pane
-        # The bar is only its toggle and heading; the move arrows and Float live in the pane,
-        # as the Textual sidebar draws them. Prove the structure from the widget tree.
+        pane = app.channels_side
+        # The strip is only the edge's toggle text; the move arrows and Float live in the
+        # content, as the Textual sidebar draws them. Prove the structure from the widget tree.
         self.report("1-structure",
-                    channels_bar=app.channels_bar._title.text(),
-                    bar_controls=len(app.channels_bar.findChildren(QtPlacementControl)),
-                    pane_controls=len(pane.findChildren(QtPlacementControl)),
-                    pane_actions=[control.action.name for control in pane._controls],
-                    thread_bar=app.thread_bar._title.text(), too_wide=self.too_wide())
+                    channels_bar=pane.toggle.text().replace("\n", ""),
+                    pane_actions=[control.action.name for control in pane._actions],
+                    thread_bar=app.thread_side.toggle.text().replace("\n", ""),
+                    too_wide=self.too_wide())
         # Open the channels pane, then move it top, bottom and float it from the pane's own
         # controls: each relocates the one pane over the shared SidebarLayout.
-        app.toggle_pane(ChannelsSidebarPlacement)
+        app.show_sidebar()
         await self.settle()
         self.report("2-shown", placement=self.placement(ChannelsSidebarPlacement), at=self.where(pane))
         self.move_control(pane, TopSidebarEdge).click()
@@ -483,7 +485,7 @@ class PlacementScenario(Scenario):
         self.report("5-float", placement=self.placement(ChannelsSidebarPlacement),
                     at=self.where(pane), float_label=self.float_control(pane).text(), too_wide=self.too_wide())
         self.float_control(pane).click()
-        app.toggle_pane(ChannelsSidebarPlacement)
+        app.hide_sidebar()
         await self.settle()
         # The thread bar opens the open conversation's view settings. Toggle one category and
         # read it back off the view: the pane writes the view's own selection, no second copy.
@@ -495,26 +497,77 @@ class PlacementScenario(Scenario):
         app.thread_pane._category_filter._checks[category].click()
         await self.settle()
         comms_after = set(comms_view.visible_categories)
-        self.report("6-comms-settings", toggled=category.label, where=self.where(app.thread_settings),
+        self.report("6-comms-settings", toggled=category.label, where=self.where(app.thread_side),
                     categories=[control.text() for control in app.thread_pane._category_filter._checks.values()],
                     before_shown=before, after_shown=len(comms_after),
                     category_shown=(category in comms_after), too_wide=self.too_wide())
         # A DM: its own bar heading and its own, independent view settings. The
         # sidebar may have re-rendered after the pane toggles, so re-fetch the
         # peer row from the current tree instead of reusing the stale handle.
-        tops = list(app.sidebar.items())
-        peer = tops[-1].child(0)
+        peer = self.thread_row()
         app.open_row(peer)
         await self.opened(comms_view)
         dm_view = app.workspace_sessions.selected
-        self.report("7-dm-open", thread_heading=app.thread_bar._title.text(),
+        self.report("7-dm-open", thread_heading=app.thread_side.toggle.text().replace("\n", ""),
                     dm_shown=len(set(dm_view.visible_categories)))
         app.thread_pane._category_filter._checks[category].click()
         await self.settle()
         self.report("8-dm-settings", toggled=category.label,
                     dm_category_shown=(category in dm_view.visible_categories),
-                    comms_still=(category in comms_after), where=self.where(app.thread_settings),
+                    comms_still=(category in comms_after), where=self.where(app.thread_side),
                     too_wide=self.too_wide())
+
+
+class ChromeScenario(Scenario):
+    summary = ("the sidebar and tab chrome at a Pixel 8a's width: the channels pane open beside "
+               "the welcome, then #comms and one of its threads open; print each surface's geometry")
+
+    width: ClassVar[int] = 412
+    height: ClassVar[int] = 915
+
+    def geometry(self) -> dict[str, object]:
+        """Where each chrome surface sits in window pixels, so the TUI's column split can be
+        read against it: the channels pane, both bars, and the conversation page."""
+        app = self.app
+        def box(widget: QWidget) -> str:
+            if not widget.isVisible():
+                return "hidden"
+            corner = widget.mapTo(app, widget.rect().topLeft())
+            return f"{corner.x()},{corner.y()} {widget.width()}x{widget.height()}"
+        return dict(channels=box(app.channels_side), channels_strip=box(app.channels_side.toggle),
+                    thread=box(app.thread_side), pages=box(app.workspace_sessions.pages),
+                    cells=app.chrome.cells(), tabs=box(app.tabs))
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(self.width, self.height)
+        await asyncio.sleep(0.5)
+        app.show_sidebar()
+        await self.expand("#comms")
+        self.report("1-welcome", **self.geometry())
+        comms = self.channel_row("#comms")
+        home = app.workspace_sessions.home
+        app.open_row(comms)
+        await until(lambda: self.page is not home and self.page.content_ready.is_set(), "#comms")
+        await asyncio.sleep(1.5)
+        self.report("2-channel", **self.geometry())
+        peer = self.thread_row()
+        before = self.page
+        app.open_row(peer)
+        await until(lambda: self.page is not before, "thread")
+        await asyncio.sleep(1.5)
+        self.report("3-thread", peer=peer.key, **self.geometry())
+        app.toggle_pane(ThreadSidebarPlacement)
+        await asyncio.sleep(1.0)
+        self.report("4-thread-pane", **self.geometry())
+
+
+class WideScenario(ChromeScenario):
+    summary = "the chrome scenario at a desktop window's width"
+
+    width: ClassVar[int] = 1400
+    height: ClassVar[int] = 900
 
 
 class GoalScenario(Scenario):

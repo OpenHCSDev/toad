@@ -11,12 +11,13 @@ from typing import ClassVar
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
+from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 from toad.client.coordination_panel import read_coordination_state
 from toad.thread_identity import NoThreadIdentity, SessionIdentity
 from toad.qt.metrics import UiGap
 
 
-class QtCoordinationStatus(QWidget):
+class QtCoordinationStatus(ThreadSidebarPanelBody, QWidget):
     spec_key: ClassVar[str] = "coordination"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — matches the TUI
     `SessionPanel.spec_key` convention so both frontends declare the same identity."""

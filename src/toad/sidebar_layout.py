@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, replace
 from typing import Protocol
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry import AbstractHooksMeta
-from textual.geometry import Region, Size, Spacing
+from textual.geometry import Offset, Region, Size, Spacing
 
 from toad.sidebar_placement import (
     ActiveSidebarPlacement,
@@ -19,6 +19,7 @@ from toad.sidebar_placement import (
     SidebarGeometry,
     SidebarPlacement,
 )
+from toad.client.sidebar_panels import PanelSpec
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
 
 
@@ -179,6 +180,180 @@ class SidebarControlsOwner:
         directions = layout.directions(identity)
         for control in controls:
             control.action.present(control, placement, directions)
+
+
+class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
+    """One sidebar as a frontend presents it: Textual's SideBar and Qt's QtSideBar both
+    inherit this. A surface names its placement role and whether it is folded to its toggle;
+    the chrome arrangement reads only these two to place it, and the surface's own parts
+    (toggle strip, resize handle, content) sit where its edge's owners put them."""
+
+    @property
+    @abstractmethod
+    def placement_identity(self) -> type[SidebarPlacement]:
+        """The placement role this surface draws."""
+
+    @property
+    @abstractmethod
+    def collapsed(self) -> bool:
+        """Whether the surface shows only its toggle strip."""
+
+    @property
+    @abstractmethod
+    def sidebar_layout(self) -> SidebarLayout:
+        """The one placement owner this surface's controls write."""
+
+    @abstractmethod
+    def arranged(self) -> None:
+        """The placement changed: lay the workspace out again."""
+
+    @property
+    def placement(self) -> SidebarPlacement:
+        return self.sidebar_layout.get(self.placement_identity)
+
+    def resize_to(self, percentage: int) -> None:
+        """The extent slider or resize handle asks for a new extent."""
+        if self.sidebar_layout.resize(self.placement_identity, percentage):
+            self.arranged()
+
+    def apply_placement_action(self, action: SidebarPlacementAction) -> None:
+        """An arrow or Float pressed: the action applies to the one layout."""
+        action.apply(self.sidebar_layout, self.placement_identity)
+        self.arranged()
+
+    def present_extent_track(self, track: SidebarExtentTrack) -> None:
+        """The extent slider reads this placement's extent, reversed on a trailing edge."""
+        placement = self.placement
+        track.reversed = placement.side.sign < 0
+        track.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
+                        placement.extent_percent)
+
+    def dragged_percent(self, start_percent: int, delta: Offset, viewport_extent: int) -> int:
+        """The extent a resize-handle drag of ``delta`` asks for, from ``start_percent``,
+        across a workspace ``viewport_extent`` long on the placement's axis."""
+        edge = self.placement.side
+        return start_percent + round(100 * edge.sign * edge.coordinate(delta) / max(1, viewport_extent))
+
+    @staticmethod
+    def surface_parts(edge: type[SidebarEdge], size: Size) -> SurfaceParts:
+        """Where a surface's toggle strip, resize handle and content go inside its own region,
+        in cells. Both sit on the conversation-facing side (the edge's opposite), as Textual
+        docks SideBarToggle and SidebarResizeHandle; the content keeps the edge's
+        ``content_padding`` clear of them."""
+        inner = edge.opposite()
+        cross = size.width
+        toggle = inner.region(size, SidebarGeometry(0, edge.collapsed_extent, 0, cross), Spacing())
+        handle = inner.region(size, SidebarGeometry(edge.collapsed_extent, 1, 0, cross), Spacing())
+        content = Region(0, 0, size.width, size.height).shrink(edge.content_padding())
+        return SurfaceParts(toggle, handle, content)
+
+
+@dataclass(frozen=True, slots=True)
+class SurfaceParts:
+    toggle: Region
+    handle: Region
+    content: Region
+
+
+class SidebarToggleFace(metaclass=AbstractHooksMeta):
+    """A sidebar's toggle strip as a frontend draws it — Textual's SideBarToggle, Qt's
+    QtSideBarToggle. The edge owns the strip's text (its arrows around the heading); the
+    face only shows what this computes, so the two frontends' strips read the same."""
+
+    @abstractmethod
+    def show_toggle(self, text: str, tooltip: str) -> None:
+        """Draw the strip's text and hover text."""
+
+    def present_toggle(self, collapsed: bool, edge: type[SidebarEdge], heading: str) -> None:
+        self.show_toggle(edge.toggle_text(collapsed, heading),
+                         "Expand sidebar" if collapsed else "Collapse sidebar")
+
+
+class SidebarExtentTrack:
+    """The extent slider's value and the track it draws: Textual's SidebarSlider and Qt's
+    QtSidebarSlider both inherit it, so the percentage, the thumb's cell and the value a
+    pointer at one cell picks are owned once. A trailing-edge sidebar reverses the track so
+    its thumb moves the way its wall-facing edge does."""
+
+    label_cells = 4
+
+    def start_track(self, minimum: int, maximum: int, value: int) -> None:
+        """Each frontend's constructor calls this once beside its own widget's."""
+        self.minimum = minimum
+        self.maximum = maximum
+        self.value = value
+        self.reversed = False
+
+    @property
+    def track_tooltip(self) -> str:
+        return f"Drag or use ←/→ to resize ({self.minimum}–{self.maximum}% of the placement axis)"
+
+    def set_range(self, minimum: int, maximum: int, value: int) -> None:
+        self.minimum, self.maximum = minimum, max(minimum, maximum)
+        self.value = max(self.minimum, min(self.maximum, value))
+
+    def track_text(self, width: int) -> str:
+        """The track ``width`` cells wide: the percentage, then a line with the thumb."""
+        label = f"{self.value:2d}%"
+        track = max(1, width - len(label) - 1)
+        ratio = (self.value - self.minimum) / max(1, self.maximum - self.minimum)
+        if self.reversed:
+            ratio = 1 - ratio
+        thumb = round(ratio * (track - 1))
+        line = "".join("●" if index == thumb else "─" for index in range(track))
+        return f"{line} {label}" if self.reversed else f"{label} {line}"
+
+    def value_at(self, x: int, width: int, reverse: bool) -> int:
+        """The value a pointer ``x`` cells into a ``width``-cell track picks."""
+        label_width = 0 if reverse else self.label_cells
+        track = max(1, width - self.label_cells)
+        ratio = max(0.0, min(1.0, (x - label_width) / max(1, track - 1)))
+        if reverse:
+            ratio = 1 - ratio
+        return round(self.minimum + ratio * (self.maximum - self.minimum))
+
+    def stepped(self, direction: int) -> int:
+        if self.reversed:
+            direction = -direction
+        return max(self.minimum, min(self.maximum, self.value + direction))
+
+
+CHANNELS_PANEL = PanelSpec(title="Channels", flex=True)
+"""The Channels sidebar's one panel: the channel groups with their threads nested under
+each. Textual's ChannelsSidebar and Qt's channels surface both declare exactly this."""
+
+
+@dataclass(frozen=True, slots=True)
+class ChromeArrangement[Bar]:
+    content: Region
+    """The conversation's region: the viewport less every pushing sidebar's gutter."""
+    gutter: Spacing
+    bars: dict[Bar, Region]
+    """Each presented sidebar's region; a floating one overlays the content."""
+
+
+class SidebarChromeArrangement[Bar: SidebarSurface](ABC):
+    """Where the conversation and each presented sidebar go in one viewport, in cells. Textual's
+    WorkspaceChrome and Qt's QtWorkspaceChrome both inherit this, so at any viewport the two
+    frontends dock, push and float the same sidebars in the same regions: the one
+    SidebarLayout resolves them."""
+
+    @property
+    @abstractmethod
+    def sidebar_layout(self) -> SidebarLayout: ...
+
+    @abstractmethod
+    def presented_sidebars(self) -> tuple[Bar, ...]: ...
+
+    def arrange_chrome(self, viewport: Size) -> ChromeArrangement[Bar]:
+        bars = self.presented_sidebars()
+        resolved = self.sidebar_layout.resolve(
+            viewport, {bar.placement_identity: bar.collapsed for bar in bars})
+        gutter = resolved.gutter
+        content = Region(gutter.left, gutter.top, max(0, viewport.width - gutter.width),
+                         max(0, viewport.height - gutter.height))
+        return ChromeArrangement(content, gutter,
+                                 {bar: resolved.bars[bar.placement_identity] for bar in bars})
 
 
 @dataclass(frozen=True, slots=True)

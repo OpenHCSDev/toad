@@ -63,10 +63,12 @@ from toad.sidebar_layout import (
     DirectionalSidebarPlacementAction,
     FloatSidebarPlacementAction,
     PlacementControl,
-    SidebarControlsOwner,
+    SidebarExtentTrack,
     SidebarLayout,
     SidebarPlacementAction,
     SidebarShift,
+    SidebarSurface,
+    SidebarToggleFace,
 )
 from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, SidebarPlacement, ThreadSidebarPlacement
 from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
@@ -310,6 +312,7 @@ class ToggleSidebarAction(WidgetAction):
 
 
 class SideBarToggle(
+    SidebarToggleFace,
     MutedText,
     CenteredContent,
     HoverSelection,
@@ -357,10 +360,11 @@ class SideBarToggle(
         edge.size_toggle(self)
         self.styles.dock = edge.opposite().dock
         self.offset = edge.control_offset(0 if collapsed else 1)
-        text = edge.toggle_text(collapsed, self.heading)
+        self.present_toggle(collapsed, edge, self.heading)
+
+    def show_toggle(self, text: str, tooltip: str) -> None:
         if self.content != text:
             self.update(text, layout=False)
-        tooltip = "Expand sidebar" if collapsed else "Collapse sidebar"
         if self.tooltip != tooltip:
             self.tooltip = tooltip
 
@@ -630,6 +634,7 @@ class CapturedDrag:
 
 
 class SidebarSlider(
+    SidebarExtentTrack,
     MutedText,
     OneRow,
     FillWidth,
@@ -653,48 +658,25 @@ class SidebarSlider(
 
     def __init__(self, minimum: int, maximum: int, value: int) -> None:
         super().__init__()
-        self.minimum = minimum
-        self.maximum = maximum
-        self.value = value
-        self.reversed = False
-        self.tooltip = f"Drag or use ←/→ to resize ({minimum}–{maximum}% of the placement axis)"
+        self.start_track(minimum, maximum, value)
+        self.tooltip = self.track_tooltip
 
     def set_range(self, minimum: int, maximum: int, value: int) -> None:
-        self.minimum, self.maximum = minimum, max(minimum, maximum)
-        self.value = max(self.minimum, min(self.maximum, value))
+        super().set_range(minimum, maximum, value)
         self.refresh()
 
     def render(self) -> str:
-        label = f"{self.value:2d}%"
-        track = max(1, self.size.width - len(label) - 1)
-        ratio = (self.value - self.minimum) / max(1, self.maximum - self.minimum)
-        if self.reversed:
-            ratio = 1 - ratio
-        thumb = round(ratio * (track - 1))
-        line = "".join("●" if index == thumb else "─" for index in range(track))
-        return f"{line} {label}" if self.reversed else f"{label} {line}"
+        return self.track_text(self.size.width)
 
     def drag_to(self, position: Offset) -> None:
-        x = position.x - self._drag_origin_x
-        width = self._drag_width
-        reverse = self._drag_reversed
-        label_width = 4
-        track = max(1, width - label_width)
-        if reverse:
-            label_width = 0
-        ratio = max(0.0, min(1.0, (x - label_width) / max(1, track - 1)))
-        if reverse:
-            ratio = 1 - ratio
-        value = round(self.minimum + ratio * (self.maximum - self.minimum))
+        value = self.value_at(position.x - self._drag_origin_x, self._drag_width, self._drag_reversed)
         if value != self.value:
             self.value = value
             self.refresh()
             self.post_message(self.Changed(self, value))
 
     def step_horizontal(self, direction: int) -> None:
-        if self.reversed:
-            direction = -direction
-        value = max(self.minimum, min(self.maximum, self.value + direction))
+        value = self.stepped(direction)
         if value != self.value:
             self.value = value
             self.refresh()
@@ -801,11 +783,9 @@ class SidebarResizeHandle(
         controls.display = not controls.display
 
     def drag_to(self, position: Offset) -> None:
-        edge = self._drag_edge
-        delta = edge.sign * edge.coordinate(position - self._start_point)
-        self.query_ancestor(SideBar).resize_to(
-            self._start_percent + round(100 * delta / max(1, self._drag_viewport))
-        )
+        bar = self.query_ancestor(SideBar)
+        bar.resize_to(bar.dragged_percent(self._start_percent, position - self._start_point,
+                                          self._drag_viewport))
 
     def resize_by(self, direction: Offset) -> None:
         bar = self.query_ancestor(SideBar)
@@ -930,7 +910,7 @@ class SidebarLayoutActions(AutoHeight, FillWidth, HiddenOverflow, containers.Gri
 
 
 class SideBar(
-    SidebarControlsOwner,
+    SidebarSurface,
     HiddenOverflow,
     FillHeight,
     AutoWidth,
@@ -1044,10 +1024,6 @@ class SideBar(
     @cached_property
     def split_handle(self) -> BandSplitHandle:
         return BandSplitHandle()
-
-    @property
-    def placement(self) -> SidebarPlacement:
-        return self.app.sidebar_layout.get(self.placement_identity)
 
     @property
     def panels_loaded(self) -> bool:
@@ -1191,9 +1167,7 @@ class SideBar(
             handle.display = not self.collapsed
             self.split_handle.display = current.presentation.leads_band
             if self.panels_loaded:
-                slider.reversed = edge.sign < 0
-                slider.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
-                                 placement.extent_percent)
+                self.present_extent_track(slider)
                 self.present_placement_controls(self.layout_controls.query(SidebarAction),
                                                 self.app.sidebar_layout, self.placement_identity)
         if slider.value != placement.extent_percent:
@@ -1201,9 +1175,9 @@ class SideBar(
             slider.refresh()
         return True
 
-    def resize_to(self, percentage: int) -> None:
-        if self.app.sidebar_layout.resize(self.placement_identity, percentage):
-            self.arranged()
+    @property
+    def sidebar_layout(self) -> SidebarLayout:
+        return self.app.sidebar_layout
 
     def arranged(self) -> None:
         """Lay the workspace out again and save the arrangement for the next start."""
@@ -1219,9 +1193,7 @@ class SideBar(
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
         event.stop()
-        app = self.app
-        event.action.apply(app.sidebar_layout, self.placement_identity)
-        self.arranged()
+        self.apply_placement_action(event.action)
 
     def restore_navigation(self) -> bool:
         changed = self._presented_collapsed != self.collapsed

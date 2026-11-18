@@ -42,7 +42,7 @@ class QtSidebarPanelFrame(QFrame):
     collapse_changed = Signal(bool)
 
     def __init__(self, spec: PanelSpec, body: QWidget, state: SidebarState,
-                 parent: QWidget | None = None) -> None:
+                 parent: QWidget | None = None, *, header_control: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setObjectName("QtSidebarPanelFrame")
@@ -65,6 +65,11 @@ class QtSidebarPanelFrame(QFrame):
         header_row.setSpacing(UiGap.normal)
         header_row.addWidget(self._chevron)
         header_row.addWidget(self._title, 1)
+        # The control Textual's panel declares beside its title (`SideBar.Panel.header_control`),
+        # such as the Channels panel's channel order.
+        if header_control is not None:
+            header_control.setParent(self._header)
+            header_row.addWidget(header_control)
         self._body.setParent(self)
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)

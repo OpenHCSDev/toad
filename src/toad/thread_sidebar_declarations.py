@@ -3,14 +3,15 @@
 (`qt/placement.py`) read from this single declaration, so a new panel added here appears
 on both frontends automatically — no hand-rolled mirror, no drift.
 
-Each frontend supplies its own rendering for a given panel key: Textual's subclass links
-back here through `spec_key`; Qt looks up the spec by key when composing its sidebar
-sections. A Qt rendering is only available for keys whose Qt widget has been ported;
-for the rest Qt shows a header + placeholder until the per-panel port follow-up lands.
+Each frontend renders a panel through a class inheriting `ThreadSidebarPanelBody`: Textual's
+`SessionPanel` members and Qt's panel widgets each name their spec by `spec_key`, checked
+against this roster when the class is created. Qt composes every spec in the roster from its
+bodies and fails loud on a spec with none.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
@@ -59,3 +60,21 @@ def spec_for(key: str) -> ThreadSidebarPanelSpec:
         if spec.key == key:
             return spec
     raise KeyError(f"No thread sidebar panel declared for key {key!r}")
+
+
+class ThreadSidebarPanelBody:
+    """One thread-sidebar panel as a frontend renders it: Textual's `SessionPanel` family and
+    each Qt panel widget inherit this. The class names its roster entry by `spec_key`, and
+    the entry owns the heading, id, collapsed and flex defaults both read. A class declaring
+    a key the roster lacks fails at class creation."""
+
+    spec_key: ClassVar[str]
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        if "spec_key" in vars(cls):
+            spec_for(cls.spec_key)
+
+    @classmethod
+    def spec(cls) -> ThreadSidebarPanelSpec:
+        return spec_for(cls.spec_key)

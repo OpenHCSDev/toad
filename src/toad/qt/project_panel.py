@@ -18,6 +18,7 @@ from typing import ClassVar
 from PySide6.QtCore import QModelIndex, Qt, QTimer
 from PySide6.QtWidgets import QFileSystemModel, QTreeView, QVBoxLayout, QWidget
 
+from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 from toad.client.project_tree_intent import (
     NO_TREE_INTENT,
     ProjectTreeIntent,
@@ -26,7 +27,7 @@ from toad.client.project_tree_intent import (
 from toad.client.project_view import ProjectView
 
 
-class QtProjectPanel(ProjectView, QWidget):
+class QtProjectPanel(ThreadSidebarPanelBody, ProjectView, QWidget):
     spec_key: ClassVar[str] = "project"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""

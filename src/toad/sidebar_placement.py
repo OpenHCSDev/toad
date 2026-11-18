@@ -89,24 +89,6 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     @abstractmethod
-    def title_rotation_degrees(cls) -> int:
-        """How far to rotate the bar's heading so it reads along the bar's long axis:
-        zero for a horizontal (top/bottom) strip, a right angle for a vertical column."""
-
-    @classmethod
-    @abstractmethod
-    def pane_bar_axis(cls) -> str:
-        """How a sidebar's pane and its toggle bar stack within the dock: 'row' means
-        side-by-side on one horizontal line (width edges: pane and bar are columns in a
-        row); 'column' means stacked vertically (height edges: pane above/below its bar).
-
-        Docks are always arranged as a horizontal line of sidebars (sidebars sharing an
-        edge sit next to each other). A 'row' edge flattens its pane/bar pair directly
-        into that line; a 'column' edge wraps its pair in a vertical group before
-        joining the line."""
-
-    @classmethod
-    @abstractmethod
     def control_offset(cls, distance: int) -> Offset: ...
 
     @classmethod
@@ -138,9 +120,6 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
 class LeadingSidebarEdge:
     sign = 1
-    bar_leading: ClassVar[bool] = True
-    """Leading edges (left, top) put the bar on the workspace-wall side of the pane: the
-    bar is placed FIRST in the dock's sidebar line so it ends up against the wall."""
 
     @classmethod
     def origin(cls, viewport: int, offset: int, extent: int) -> int:
@@ -149,9 +128,6 @@ class LeadingSidebarEdge:
 
 class TrailingSidebarEdge:
     sign = -1
-    bar_leading: ClassVar[bool] = False
-    """Trailing edges (right, bottom) put the bar on the workspace-wall side of the pane:
-    the bar is placed AFTER the pane so it ends up against the wall."""
 
     @classmethod
     def origin(cls, viewport: int, offset: int, extent: int) -> int:
@@ -169,19 +145,6 @@ class WidthSidebarEdge(SidebarEdge):
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
         return WidthSidebarEdge
-
-    @classmethod
-    def title_rotation_degrees(cls) -> int:
-        """A left or right bar is a vertical column, so its heading is rotated to read
-        along the column — book-spine orientation, bottom-to-top."""
-        return -90
-
-    @classmethod
-    def pane_bar_axis(cls) -> str:
-        """Width edges (left, right) run pane and bar side-by-side on the same horizontal
-        line as the dock's own sidebar sequence, so the pair flattens straight into the
-        dock's layout."""
-        return "row"
 
     @classmethod
     def extent(cls, size: Size) -> int:
@@ -249,19 +212,6 @@ class HeightSidebarEdge(SidebarEdge):
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
         return HeightSidebarEdge
-
-    @classmethod
-    def title_rotation_degrees(cls) -> int:
-        """A top or bottom bar is a horizontal strip, so its heading reads along the
-        strip as-is, no rotation."""
-        return 0
-
-    @classmethod
-    def pane_bar_axis(cls) -> str:
-        """Height edges (top, bottom) run pane and bar as a vertical stack, which is
-        perpendicular to the dock's own horizontal sidebar sequence. Each sidebar needs
-        its own vertical group before joining the dock's row of sidebars."""
-        return "column"
 
     @classmethod
     def extent(cls, size: Size) -> int:
@@ -412,15 +362,6 @@ class SidebarPlacement(DeclaredFamily, affix="SidebarPlacement"):
         """What the bar's toggle names, given the titles of the tabs being viewed: its scope."""
         return cls.scope
 
-    @property
-    def arrangement(self) -> type[PlacementArrangement]:
-        """Which PlacementArrangement family member answers layout questions for this
-        placement — a DockedPlacementArrangement when docked, FloatingPlacementArrangement
-        when floating. Callers delegate every layout branch (which dock to join, whether
-        the bar leads the pane, what axis the pane/bar pair takes) through the arrangement
-        instead of inspecting ``floating`` / ``side.sign`` / ``side.dock`` directly."""
-        return FloatingPlacementArrangement if self.floating else DockedPlacementArrangement
-
 
 class ActiveSidebarPlacement(SidebarPlacement, declared_name=None):
     """The sidebar roles a current view can actually own."""
@@ -446,110 +387,6 @@ class ThreadSidebarPlacement(ActiveSidebarPlacement):
 
 class ObjectSidebarPlacement(SidebarPlacement):
     """Read already-saved third-bar positions; no current view owns this role."""
-
-
-class PlacementArrangement(DeclaredFamily, affix="PlacementArrangement"):
-    """How a sidebar's pane and its toggle bar arrange themselves in the window chrome:
-    the pane either docks into one of the edge-named docks (``DockedPlacementArrangement``),
-    floats over the conversation on the float layer (``FloatingPlacementArrangement``),
-    or splits — bar stays on its edge dock while the pane floats over the conversation
-    (``BarDockedPaneFloatingArrangement``, the narrow-viewport answer where a docked
-    pane would push the transcript to zero width). Both frontends read these answers
-    through the same family, so no window code branches on ``placement.floating`` or
-    ``placement.side.sign`` — the arrangement answers directly."""
-
-    @classmethod
-    @abstractmethod
-    def dock_key(cls, side: type[SidebarEdge]) -> str | None:
-        """The host key naming the dock this arrangement puts the PANE into, or ``None``
-        for a pane that joins the float layer instead. See also ``bar_dock_key`` — the
-        bar's target can differ from the pane's."""
-
-    @classmethod
-    def bar_dock_key(cls, side: type[SidebarEdge]) -> str | None:
-        """The host key naming the dock this arrangement puts the BAR into, or ``None``
-        for a bar that joins the float layer. Defaults to the pane's dock — most
-        arrangements co-locate bar and pane; ``BarDockedPaneFloatingArrangement``
-        overrides to split them."""
-        return cls.dock_key(side)
-
-    @classmethod
-    @abstractmethod
-    def bar_first(cls, side: type[SidebarEdge]) -> bool:
-        """Whether the toggle bar leads the pane along its container (``[bar, pane]``
-        rather than ``[pane, bar]``)."""
-
-    @classmethod
-    @abstractmethod
-    def pane_bar_axis(cls, side: type[SidebarEdge]) -> str:
-        """How pane and bar stack inside their sidebar group when they share a target:
-        ``'row'`` (side-by-side) or ``'column'`` (stacked vertically). When the bar and
-        pane live in different targets (``bar_dock_key != dock_key``), this answers each
-        target's own single-widget axis."""
-
-
-class DockedPlacementArrangement(PlacementArrangement):
-    """A pane docked on its edge's dock, next to the other sidebars sharing that edge."""
-
-    @classmethod
-    def dock_key(cls, side: type[SidebarEdge]) -> str | None:
-        return side.dock
-
-    @classmethod
-    def bar_first(cls, side: type[SidebarEdge]) -> bool:
-        return side.bar_leading
-
-    @classmethod
-    def pane_bar_axis(cls, side: type[SidebarEdge]) -> str:
-        return side.pane_bar_axis()
-
-
-class FloatingPlacementArrangement(PlacementArrangement):
-    """A pane floating over the conversation on the float layer: the pair is always a
-    vertical column (bar above pane) regardless of the side the placement normally occupies,
-    because the float overlay is itself a single column at the bottom of the conversation."""
-
-    @classmethod
-    def dock_key(cls, side: type[SidebarEdge]) -> str | None:
-        return None
-
-    @classmethod
-    def bar_first(cls, side: type[SidebarEdge]) -> bool:
-        return True
-
-    @classmethod
-    def pane_bar_axis(cls, side: type[SidebarEdge]) -> str:
-        return "column"
-
-
-class BarDockedPaneFloatingArrangement(PlacementArrangement):
-    """Bar stays on its edge dock; pane floats over the conversation on the float layer.
-    The narrow-viewport answer where a fully docked pane would push the transcript +
-    composer column to zero width (Pixel 8a at 1080px: a ~900px natural-sizeHint pane
-    column leaves 0 for pages). Promoting the whole thing to ``FloatingPlacementArrangement``
-    isn't right either — that moves the toggle bar off its edge and onto the float overlay,
-    so the user loses the always-visible toggle. Splitting bar (edge) from pane (float)
-    keeps the toggle where muscle-memory finds it while releasing the transcript width."""
-
-    @classmethod
-    def dock_key(cls, side: type[SidebarEdge]) -> str | None:
-        return None  # pane goes to float layer
-
-    @classmethod
-    def bar_dock_key(cls, side: type[SidebarEdge]) -> str | None:
-        return side.dock  # bar stays on its edge dock
-
-    @classmethod
-    def bar_first(cls, side: type[SidebarEdge]) -> bool:
-        # Bar is alone in its edge dock; axis irrelevant for a single widget, but the
-        # bar's own placement along its edge follows the same bar-leading rule as a
-        # fully-docked arrangement.
-        return side.bar_leading
-
-    @classmethod
-    def pane_bar_axis(cls, side: type[SidebarEdge]) -> str:
-        # Pane alone in float layer: column orientation matches float overlay convention.
-        return "column"
 
 
 @dataclass

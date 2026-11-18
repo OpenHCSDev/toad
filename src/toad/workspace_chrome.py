@@ -21,6 +21,7 @@ from toad.tone_paint import TonePaint
 from toad.layout_preferences import FollowsLayoutPreferences
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
+from toad.sidebar_layout import SidebarChromeArrangement, SidebarLayout
 from toad.sidebar_placement import SidebarEdge
 
 if TYPE_CHECKING:
@@ -49,7 +50,11 @@ class WorkspaceBody(Horizontal):
     """The row the sidebars and the session share, between the navigation bar and the footer."""
 
 
-class WorkspaceChrome(VerticalLayout):
+class WorkspaceChrome(SidebarChromeArrangement[SideBar], VerticalLayout):
+    @property
+    def sidebar_layout(self) -> SidebarLayout:
+        return self.app.sidebar_layout
+
     def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.navigation = WorkspaceHeader()
@@ -92,9 +97,9 @@ class WorkspaceChrome(VerticalLayout):
         self, parent: Widget, children: list[Widget], size: Size, greedy: bool = True
     ) -> ArrangeResult:
         """Place chrome and conversation directly in the native layout pass."""
-        layout = self.app.sidebar_layout
-        bars = self.presented_sidebars()
-        resolved = layout.resolve(size, {bar.placement_identity: bar.collapsed for bar in bars})
+        layout = self.sidebar_layout
+        resolved = self.arrange_chrome(size)
+        bars = tuple(resolved.bars)
         # A session-owned sidebar means its SessionBody clears both gutters.
         # Textual arranges one layer at a time: children is only that layer,
         # not the parent's complete set of sidebar resources.
@@ -117,7 +122,7 @@ class WorkspaceChrome(VerticalLayout):
         order = {identity: index for index, identity in enumerate(layout.ordered())}
         for bar in bars:
             if bar in children:
-                geometry = resolved.bars[bar.placement_identity]
+                geometry = resolved.bars[bar]
                 placements.append(
                     WidgetPlacement(
                         geometry.reset_offset,

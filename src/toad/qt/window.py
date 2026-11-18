@@ -58,7 +58,7 @@ from toad.qt.workspace_frame import QtWorkspaceFrame
 from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
-from toad.client.application_actions import ApplicationAction, NewSessionAction
+from toad.client.application_actions import ApplicationAction, NewSessionAction, NewThreadAction
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
     BusChoice,
@@ -123,25 +123,20 @@ from toad.menus import MenuCommand, MenuConversation, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
-from toad.qt.project_panel import QtProjectPanel
-from toad.qt.channel_sort import QtChannelSortControl
+from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.thinking_animator import QtThinkingAnimator
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
-from toad.qt.sidebar_scroll import QtSidebarScrollIndicator
-from toad.widgets.session_sort import ThreadSortForm
 from toad.qt.paste_profile import QtProfilePastePanel
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
-from toad.qt.placement import SessionArrangementStore, SidebarPane, SidebarToggle, ThreadSettingsPane
+from toad.qt.placement import SessionArrangementStore, ThreadSettingsPane
+from toad.qt.side_bar import QtSideBar, QtWorkspaceChrome
 from toad.qt.question import QtQuestion
 from toad.view_actions import ViewAction
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
-from toad.sidebar_layout import SidebarControlsOwner, SidebarLayout
+from toad.sidebar_layout import CHANNELS_PANEL, SidebarLayout
 from toad.sidebar_placement import (
-    BarDockedPaneFloatingArrangement,
     ChannelsSidebarPlacement,
-    DockedPlacementArrangement,
-    PlacementArrangement,
     SidebarPlacement,
     ThreadSidebarPlacement,
 )
@@ -291,6 +286,11 @@ class ConversationRow(SidebarItem):
         self.key = target.name
         self.target = target
 
+    def placed(self) -> None:
+        """A new channel line opens as its target opens by default (the feed does), as the
+        Textual sidebar's ChannelGroup does."""
+        self.setExpanded(self.target.expanded_by_default)
+
     @classmethod
     def channel(cls, name: str, channel, *, badge: str) -> ConversationRow:
         row = cls(channel_target(name))
@@ -345,6 +345,41 @@ class ConversationRow(SidebarItem):
             copy=host.copy_to_clipboard,
             open_callback=lambda: host.open_row(self),
         )
+
+
+class ChannelLine(ConversationRow):
+    """A channel line in the Channels sidebar: its first row is a `HeaderLineControl` (the
+    name elided before the channel's order), so the tree's own text draws only the summary
+    beneath it."""
+
+    header: HeaderLineControl | None = None
+    header_text = ""
+
+    def draw(self, badge: str, label: str, summary: str, tooltip: str) -> None:
+        text = (badge, label, summary, tooltip)
+        if text == self.drawn:
+            return
+        self.drawn = text
+        self.header_text = f"{badge} {label}" if badge else label
+        self.setData(0, LAYOUT_ROLE, StyledTextLayout(
+            name=Segment(""), detail_line=summary, multiline=True))
+        self.setToolTip(0, tooltip)
+        if self.header is not None:
+            self.header.title.setText(self.header_text)
+
+
+class NewSessionRow(SidebarItem):
+    """The Channels sidebar's first line, as Textual's `NewSessionButton`: a tap starts a
+    thread in the selected project through the shared `NewThreadAction`."""
+
+    key = NewThreadAction.row_label
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.draw("", NewThreadAction.row_label, "", "Start a thread in the selected project")
+
+    def activate(self, window: QtToadApp) -> None:
+        window.run_operation(MenuActionRun, partial(NewThreadAction().apply, window))
 
 
 class BusRow(SidebarItem):
@@ -665,7 +700,7 @@ class Welcome(Page, BusListing, QWidget):
                 section.keep(BusRow(choice))
 
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
-        window.hide_sidebar()
+        """The welcome leaves the sidebar as the user left it, as Textual's welcome does."""
 
 
 class KeptLines:
@@ -722,24 +757,14 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         scheme = window.theme.color_scheme
         self.setHeaderHidden(True)
         self.setIndentation(10)
-        # Two columns: 0 for the row's text layout (through the multiline delegate),
-        # 1 for inline widgets like the per-channel sort control that `QtChannelGroup`
-        # pins via `tree.setItemWidget(row, 1, sort_choice)`. Column 1 stays unused on
-        # rows that don't need it (thread rows, status rows) — Qt renders it as empty
-        # space. `setItemDelegateForColumn(0, delegate)` keeps the multiline delegate
-        # off column 1, so cells there use the default delegate and don't reach into
-        # LAYOUT_ROLE/SCOPE_SCHEME_ROLE data that only column 0 carries.
-        self.setColumnCount(2)
+        # One column: a line's text spans the row, as Textual's rows do. A channel line's
+        # order control lies over the right end of its first line (`HeaderLineControl`).
+        self.setColumnCount(1)
         self.setStyleSheet(scheme.styles.generate_tree_widget_style())
         self.setItemDelegateForColumn(0, MultilinePreviewItemDelegate(
             scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text), self))
-        # Column 1 fits the inline widget (sort toolbutton) with no extra space; column 0
-        # takes the remainder so row text keeps its full width when no widget is pinned.
-        header = self.header()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setStretchLastSection(False)
+        self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         # Alternating row backgrounds come from the shared `generate_tree_widget_style`
         # stylesheet, which already declares `alternate-background-color:
         # {cs.alternate_row_bg}` from the scheme. The sidebar tree enables Qt's
@@ -752,9 +777,6 @@ class ConversationRows(TouchScrolled, QTreeWidget):
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)
-        # Bottom-right scroll-position percentage, mirroring Textual's sidebar
-        # indicator (the "36%" in the TUI reference). Hides when nothing scrolls.
-        self.scroll_indicator = QtSidebarScrollIndicator(self)
 
     def activate(self, item: SidebarItem) -> None:
         item.activate(self.window)
@@ -777,6 +799,29 @@ class NoopNavigation(NavigationRefresh):
         return
 
 
+class HeaderLineControl(QWidget):
+    """A channel line's first row: its name, elided before the control that ends the row,
+    as Textual's header line ends in its `ChannelSortSegment`. Presses beside the control
+    pass through to the tree, so the line still opens."""
+
+    def __init__(self, control: QWidget) -> None:
+        super().__init__()
+        self.setWindowFlags(Qt.WindowType.Widget)
+        self.title = ElidedLine("")
+        self.title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(UiGap.normal, 0, 0, 0)
+        row.setSpacing(UiGap.normal)
+        row.addWidget(self.title, 1, Qt.AlignmentFlag.AlignTop)
+        row.addWidget(control, 0, Qt.AlignmentFlag.AlignTop)
+
+    def mousePressEvent(self, event) -> None:  # type: ignore[override]
+        event.ignore()
+
+    def mouseReleaseEvent(self, event) -> None:  # type: ignore[override]
+        event.ignore()
+
+
 class QtChannelGroup(ChannelGroupRows):
     """One channel's section in the Qt sidebar, backed by its persistent `ConversationRow`
     item. Implements the `ChannelGroupRows` contract so `ChangedChannels` and
@@ -795,17 +840,13 @@ class QtChannelGroup(ChannelGroupRows):
         # `SortControlBase`. The Qt widget owns its own menu + write path; Textual
         # renders the same state through a header-row segment. `present` pushes
         # `channel.order` into it so `sort_label` / `sort_tooltip` stay in sync.
-        self.sort_choice = QtChannelSortControl(sidebar.window, ThreadSortForm, name)
-        # Pin the sort toolbutton on column 1 of the channel header row so the user
-        # sees + taps it. `ConversationRows` runs with `setColumnCount(2)` and a
-        # ResizeToContents section for column 1; the button appears to the right of
-        # the channel label. `setItemWidget` requires the item to already be in the
-        # tree — on the construction paths used today (`top.group(...)` places the
-        # row before this init runs; `_rebind_groups_from_tree` iterates existing
-        # tree children) that is always true, so a guard here would only mask a
-        # construction-order bug. Let Qt's own assertion fire if someone adds an
-        # out-of-order path.
-        sidebar.setItemWidget(row, 1, self.sort_choice)
+        self.sort_choice = QtChannelSortControl(sidebar.window, name)
+        # The order sits at the right end of the channel's first line, as Textual's
+        # `ChannelSortSegment` ends the header line. `setItemWidget` requires the item
+        # to already be in the tree, which both construction paths guarantee.
+        row.header = HeaderLineControl(self.sort_choice)
+        row.header.title.setText(row.header_text)
+        sidebar.setItemWidget(row, 0, row.header)
 
     @property
     def member_keys(self):
@@ -911,8 +952,6 @@ class QtSidebarSearch(QWidget):
     subscriber re-presents. The name `QtSidebarSearch` stays for now to avoid
     churn in callers; the class is the shell, not just the input."""
 
-    CONVERSATIONS_PANEL = PanelSpec(title="Conversations", flex=True, id="conversations")
-
     def __init__(self, sidebar: "Sidebar", parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
@@ -922,10 +961,12 @@ class QtSidebarSearch(QWidget):
         self.search_input.setClearButtonEnabled(True)
         self.search_input.setText(sidebar.filter.text)
         self.search_input.textChanged.connect(self._on_text_changed)
+        self.channel_sort = QtChannelListSort(sidebar.window)
         # The tree is one panel in the multi-panel shell. Future listings become
         # siblings (project files, buses, etc.) each with their own `PanelSpec`.
         self.conversations_panel = QtSidebarPanelFrame(
-            self.CONVERSATIONS_PANEL, sidebar, sidebar.window.sidebar_state, parent=self,
+            CHANNELS_PANEL, sidebar, sidebar.window.sidebar_state, parent=self,
+            header_control=self.channel_sort,
         )
         self.panels: list[QtSidebarPanelFrame] = [self.conversations_panel]
         layout = QVBoxLayout(self)
@@ -935,18 +976,6 @@ class QtSidebarSearch(QWidget):
         for panel in self.panels:
             layout.addWidget(panel, self._panel_stretch(panel))
             panel.collapse_changed.connect(lambda _, p=panel: self._restretch_panel(p))
-
-    def add_panel(self, spec: PanelSpec, body: QWidget) -> QtSidebarPanelFrame:
-        """Append a sibling panel to the shell. Follow-up PRs call this to lift the
-        project panel (and anything else) out of the conversations tree into its
-        own collapsible frame keyed by its own spec."""
-        panel = QtSidebarPanelFrame(spec, body, self.sidebar.window.sidebar_state, parent=self)
-        self.panels.append(panel)
-        layout = self.layout()
-        if isinstance(layout, QVBoxLayout):
-            layout.addWidget(panel, self._panel_stretch(panel))
-            panel.collapse_changed.connect(lambda _, p=panel: self._restretch_panel(p))
-        return panel
 
     def _panel_stretch(self, panel: QtSidebarPanelFrame) -> int:
         """A flex panel only owns a stretch slot while its body is visible. When it
@@ -966,42 +995,6 @@ class QtSidebarSearch(QWidget):
 
     def _on_text_changed(self, value: str) -> None:
         self.sidebar.filter.text = value
-
-
-class QtThreadPanel(ConversationRows):
-    """The flat thread listing shown as a sibling panel to the channels tree in the
-    multi-panel sidebar shell. The channels panel (`Sidebar` / `draw_lines`) renders
-    channel groups + their member threads; this panel renders the FLAT list of every
-    thread the observation knows about — matches Textual's `SideBarCollapsible` siblings
-    where channels and threads live in different collapsible panels. Both panels read
-    the same `SidebarModel` + shared `SidebarFilter`, and `Sidebar.present` triggers
-    this panel's redraw on the same tick so the two trees stay in step."""
-
-    THREADS_PANEL: ClassVar[PanelSpec] = PanelSpec(title="Threads", flex=True, id="sidebar-threads")
-
-    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
-        super().__init__(window)
-        if parent is not None:
-            self.setParent(parent)
-
-    def present(self, model: SidebarModel) -> None:
-        """Redraw the flat thread list from `model.threads.rows`. Filter + pending-detail
-        + unread-badge formatting come from the same owners `Sidebar.draw_lines` reads,
-        so the two panels can't disagree on which thread rows show."""
-        sidebar = self.window.sidebar
-        matches = sidebar.filter.matches
-        pending = self.window.thread_actions.pending
-        badge_of = self.window.settings.sidebar.unread_counts.badge
-        threads = model.threads.rows
-        def draw(top: KeptLines) -> None:
-            for name, thread in threads.items():
-                if not matches(name):
-                    continue
-                top.keep(ConversationRow.thread(
-                    name, thread, pending_detail=pending.get(name),
-                    badge=badge_of(thread.unread),
-                ))
-        self.redraw(draw)
 
 
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
@@ -1089,36 +1082,25 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             else:
                 self.groups = {}
         if model is not None:
-            # Refresh the flat threads sibling panel on the same tick as the channels
-            # tree, so the two panels can't show stale rows relative to each other.
-            # Partial updates (ChangedChannels/ChangedThreads) touch channel members
-            # in place and leave the flat list unchanged — those cases skip the panel
-            # refresh too.
-            if change is None or not change.partial_update:
-                self.window._sidebar_thread_panel.present(model)
+            self.window.sidebar_search.channel_sort.update_order(model.observation.channel_order())
             self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
             # Register every working thread row with the shared pulse animator
             # so its text foreground sine-waves while the agent is busy — Qt's
             # port of Textual's NAME_WAVE effect
             # (ui_theme.effects.NAME_WAVE wired into comms_sidebar.ThreadRow).
-            # Walks both trees because the flat-threads panel renders the same
-            # threads a second time; a stale working row in either place would
-            # look unresponsive.
             working_names = {name for name, thread in model.threads.rows.items()
                              if thread.status.is_working()}
             working_items: list[QTreeWidgetItem] = []
             if working_names:
-                for tree in (self, self.window._sidebar_thread_panel):
-                    root = tree.invisibleRootItem()
-                    stack = [root]
-                    while stack:
-                        node = stack.pop()
-                        for index in range(node.childCount()):
-                            child = node.child(index)
-                            stack.append(child)
-                            if isinstance(child, ConversationRow) and child.key in working_names:
-                                working_items.append(child)
+                stack = [self.invisibleRootItem()]
+                while stack:
+                    node = stack.pop()
+                    for index in range(node.childCount()):
+                        child = node.child(index)
+                        stack.append(child)
+                        if isinstance(child, ConversationRow) and child.key in working_names:
+                            working_items.append(child)
             self.window.thinking_animator.set_working_items(working_items)
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
@@ -1147,6 +1129,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         return nullcontext()
 
     def draw_lines(self, model: SidebarModel, top: KeptLines) -> None:
+        top.keep(NewSessionRow())
         threads = model.threads.rows
         matches = self.filter.matches
         pending = self.window.thread_actions.pending
@@ -1159,7 +1142,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             if not matches(name) and not members_shown:
                 continue
             pinned_members = channel.pinned_members
-            with top.group(ConversationRow.channel(name, channel, badge=badge_of(channel.unread))) as group:
+            with top.group(ChannelLine.channel(name, channel, badge=badge_of(channel.unread))) as group:
                 for member in members_shown:
                     thread = threads[member]
                     group.keep(ConversationRow.thread(
@@ -1168,9 +1151,6 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
                         pending_detail=pending.get(member),
                         badge=badge_of(thread.unread),
                     ))
-        # The flat thread listing moved to `QtThreadPanel` as a sibling panel in the
-        # multi-panel shell (`QtSidebarSearch`). `Sidebar.present` triggers that panel's
-        # redraw on the same tick so both trees refresh together.
 
     def _refresh_status_only(self) -> None:
         """Update just the status row at the top of the tree in place, without touching
@@ -1209,6 +1189,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
                 continue
             group = QtChannelGroup(self, name, item)
             group.channel = channel_models[name]
+            group.sort_choice.update_order(group.channel.order)
             # Index the thread children the wholesale redraw just placed.
             for child_index in range(item.childCount()):
                 child = item.child(child_index)
@@ -1741,109 +1722,29 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # content so the input is visible at the top of the pane, mirroring Textual's
         # `SideBar._compose_shell` which also stacks `SidebarSearch` over its panels.
         self.sidebar_search = QtSidebarSearch(self.sidebar, parent=self)
-        # Project files live in their own sibling collapsible panel in the shell —
-        # one `QtSidebarPanelFrame` per content, keyed to the shared
-        # `SidebarState.panels_collapsed` owner, same pattern Textual uses with
-        # `SideBarCollapsible` siblings in `SideBar._compose_shell`. Starts
-        # collapsed so phones that don't need the project tree aren't crowded.
-        self._sidebar_project_panel = QtProjectPanel(self.project_dir.path, parent=self.sidebar_search)
-        self.sidebar_search.add_panel(
-            PanelSpec(title="Project", flex=True, collapsed=True, id="sidebar-project"),
-            self._sidebar_project_panel,
-        )
-        # The flat thread listing lives in its own sibling panel next to the channels
-        # tree — mirrors Textual's `SideBarCollapsible` pair where channels and threads
-        # are separate panels users can collapse independently. `Sidebar.present`
-        # pushes updates into this panel on every wholesale redraw.
-        self._sidebar_thread_panel = QtThreadPanel(self, parent=self.sidebar_search)
-        self.sidebar_search.add_panel(
-            QtThreadPanel.THREADS_PANEL, self._sidebar_thread_panel,
-        )
         self.thread_pane = ThreadSettingsPane(parent=self,
                                               project_path=self.project_dir.path)
-        self.channels_pane = SidebarPane(self.sidebar_layout, ChannelsSidebarPlacement,
-                                         self.sidebar_search, SidebarControlsOwner,
-                                         applied=self.rearrange_sidebars,
-                                         parent=self)
-        self.thread_settings = SidebarPane(self.sidebar_layout, ThreadSidebarPlacement,
-                                           self.thread_pane, SidebarControlsOwner,
-                                           applied=self.rearrange_sidebars,
-                                           parent=self)
-        # Paint the panes with the scheme's sidebar tone. Without this, the panes
-        # inherit the parent QWidget's default colour (Qt doesn't auto-fill a QWidget's
-        # Window role unless asked), so the themed sidebar surface never reaches the
-        # bar. The shared style targets `#SidebarPane` set by formbridge's constructor.
-        _pane_qss = self.theme.color_scheme.styles.generate_sidebar_pane_style()
-        self.channels_pane.setStyleSheet(_pane_qss)
-        self.thread_settings.setStyleSheet(_pane_qss)
-        self._panes: dict[type[SidebarPlacement], SidebarPane] = {
-            ChannelsSidebarPlacement: self.channels_pane,
-            ThreadSidebarPlacement: self.thread_settings,
-        }
-        # Pane open/closed state lives on `self.sidebar_layout` — the single owner both
-        # frontends consult via `is_collapsed` / `set_collapsed`. Before this landed, Qt
-        # held its own `_pane_open: dict` that drifted from SidebarLayout's view, which
-        # produced the "weird square of nothing" and "wrong bar expands vertically" bugs.
-        # A pane docks on any edge the family offers, or floats over the conversation. The
-        # float layer is a child of the centre, raised over the pages when a pane floats.
-        # Each dock owns the toggle bar and the pane for its edge: a single stack of toggle
-        # then pane (leading edges) or pane then toggle (trailing edges), so the bar ends up
-        # on the wall wherever the user moves the sidebar.
-        self.top_dock, self.bottom_dock = self._dock(), self._dock()
-        self.left_dock, self.right_dock = self._dock(), self._dock()
-        self._docks = {"top": self.top_dock, "bottom": self.bottom_dock,
-                       "left": self.left_dock, "right": self.right_dock}
-        # Parent arg is load-bearing on Qt-for-Android: a parentless QWidget created during
-        # QtToadApp.__init__ becomes its own top-level window with its own EGL surface, and
-        # the pending surface acquisition recurses into the deadlock protector during the
-        # first-paint flush (SIGABRT, matching PR #1885's root cause). Every QWidget created
-        # here is a child of self; naming self as parent keeps them off the top-level list.
-        self.center = QWidget(self)
-        grid = QGridLayout(self.center)
-        grid.setContentsMargins(0, 0, 0, 0)
-        grid.setSpacing(0)
-        grid.addWidget(self.top_dock, 0, 1)
-        grid.addWidget(self.left_dock, 1, 0)
-        grid.addWidget(self.workspace_sessions.pages, 1, 1)
-        grid.addWidget(self.right_dock, 1, 2)
-        grid.addWidget(self.bottom_dock, 2, 1)
-        grid.setRowStretch(1, 1)
-        grid.setColumnStretch(1, 1)
-        # The float layer sits over the pages. Without an opaque background it leaks the
-        # conversation's pixels through gaps between the pane's own widgets, which is what
-        # made the history look garbled when a sidebar was lifted off a dock onto the float.
-        # The stylesheet below paints an opaque plate over the pane's own widgets. We can't
-        # use setAutoFillBackground(True) here: Qt-for-Android forces a separate backing
-        # store for an autofilled widget, and flushing it during the center's repaint
-        # recurses into QAndroidPlatformOpenGLWindow::eglSurface() and trips the deadlock
-        # protector (SIGABRT, 2026-11-17 Pixel 8a tombstone). Stylesheet styling paints
-        # through the parent's backing store instead, which is what Android needs.
-        self.float_layer = QWidget(self.center)
-        self.float_layer.setStyleSheet(self.theme.color_scheme.styles.generate_frame_style())
-        self._float_layout = QVBoxLayout(self.float_layer)
-        self._float_layout.setContentsMargins(0, 0, 0, 0)
-        self.float_layer.hide()
-        # Two toggle bars side by side above the tabs: an arrow and the heading, as Toad draws
-        # them. The move arrows and Float live in the panes, not on these bars.
-        self.channels_bar = SidebarToggle(
-            self.sidebar_layout, ChannelsSidebarPlacement,
+        # The pages and both sidebars live in one chrome that places them where the shared
+        # SidebarChromeArrangement resolves them, as Textual's WorkspaceChrome does: a docked
+        # sidebar pushes the pages, a floating one lies over them, a folded one is its strip.
+        # Parent self throughout: a parentless QWidget on Qt-for-Android becomes its own
+        # top-level window with its own EGL surface (PR #1885's SIGABRT).
+        self.chrome = QtWorkspaceChrome(self.sidebar_layout, self.workspace_sessions.pages,
+                                        available=self._pane_available, parent=self)
+        self.channels_side = QtSideBar(
+            self.sidebar_layout, ChannelsSidebarPlacement, self.sidebar_search,
             heading=partial(self._pane_heading, ChannelsSidebarPlacement),
-            shown=partial(self.pane_open, ChannelsSidebarPlacement),
             toggled=partial(self.toggle_pane, ChannelsSidebarPlacement),
-            parent=self)
-        self.thread_bar = SidebarToggle(
-            self.sidebar_layout, ThreadSidebarPlacement,
+            arranged=self.rearrange_sidebars, parent=self.chrome)
+        self.thread_side = QtSideBar(
+            self.sidebar_layout, ThreadSidebarPlacement, self.thread_pane,
             heading=partial(self._pane_heading, ThreadSidebarPlacement),
-            shown=partial(self.pane_open, ThreadSidebarPlacement),
             toggled=partial(self.toggle_pane, ThreadSidebarPlacement),
-            parent=self)
-        # The toggle bars live wherever their sidebar is placed, not in the bottom chrome:
-        # _layout_panes re-parents each bar into its pane's dock, before or after the pane
-        # depending on whether the edge is leading (left, top) or trailing (right, bottom).
-        self._bars: dict[type[SidebarPlacement], SidebarToggle] = {
-            ChannelsSidebarPlacement: self.channels_bar,
-            ThreadSidebarPlacement: self.thread_bar,
-        }
+            arranged=self.rearrange_sidebars, parent=self.chrome)
+        self.chrome.sidebars = (self.channels_side, self.thread_side)
+        styles = self.theme.color_scheme.styles
+        for side in self.chrome.sidebars:
+            side.setStyleSheet(styles.generate_sidebar_pane_style() + styles.generate_sidebar_bar_style())
         # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
         self.menu = self.bar_button("≡", "Menu", self.show_menu)
         self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
@@ -1897,10 +1798,14 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         chrome_layout.addLayout(bar)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
-        layout.addWidget(self.center, 1)
-        layout.addWidget(chrome)
+        # The navigation bar sits above or below the conversation row as the shared
+        # `ui.navigation_bar` setting places it — the one Textual's WorkspaceHeader reads.
+        for widget in self.settings.ui.navigation_bar.around(chrome, self.chrome):
+            layout.addWidget(widget, 1 if widget is self.chrome else 0)
         self.fit_screen()
-        # The welcome lists the channels and threads, so both panes start down.
+        # The channels sidebar opens as the shared `sidebar.hide` setting says, as Textual's
+        # ChannelsSidebar mounts; the thread sidebar starts folded, as Textual's ThreadSidebar.
+        self.sidebar_layout.set_collapsed(ChannelsSidebarPlacement, self.settings.sidebar.hide)
         self.rearrange_sidebars()
         self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
@@ -1962,8 +1867,9 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.tabs.blockSignals(True)
         while self.tabs.count():
             self.tabs.removeTab(0)
+        badge = self.settings.sidebar.unread_counts.badge
         for tab in self.session_navigation.tabs:
-            self.tabs.addTab(tab.label())
+            self.tabs.addTab(tab.label() + tab.unread_suffix(badge))
         self.tabs.blockSignals(False)
         self.mark_current()
 
@@ -1972,25 +1878,6 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
         self.present_panes()
-
-    # The two panes sit behind their bars above the tabs, as on Toad's phone layout: a bar
-    # shows or hides its pane and moves or floats it, over the shared SidebarLayout.
-
-    def _dock(self) -> QWidget:
-        # Parent self so the dock is a child of QtToadApp from creation, not a top-level
-        # QWindow on Android — see the EGL deadlock note on `self.center` above.
-        #
-        # Every dock uses QHBoxLayout: sidebars sharing one edge sit next to each other
-        # along a horizontal line rather than stacking. The edge's own `pane_bar_axis`
-        # decides whether each sidebar is flattened into that line (width edges — pane
-        # and bar are both columns) or wrapped in a QVBoxLayout group first (height
-        # edges — pane and bar stack vertically within the group).
-        dock = QWidget(self)
-        inner = QHBoxLayout(dock)
-        inner.setContentsMargins(0, 0, 0, 0)
-        inner.setSpacing(0)
-        dock.hide()
-        return dock
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:
         """Read through SidebarLayout — the single collapsed-state owner. A collapsed
@@ -2012,10 +1899,9 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         return identity.heading(self._viewed_titles())
 
     def _viewed_titles(self) -> Iterator[str]:
-        if self._conversation_open():
-            index = self.tabs.currentIndex()
-            if index >= 0:
-                yield self.tabs.tabText(index)
+        """The viewed tab's title, as Textual's `SideBar.heading` reads it."""
+        mode = self.selected_mode
+        return (tab.title for tab in self.session_navigation.tabs if tab.mode_name == mode)
 
     def _bind_thread_pane(self) -> None:
         """The thread's settings follow the open conversation; the welcome is the only other
@@ -2023,214 +1909,13 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         selected = self.workspace_sessions.selected
         self.thread_pane.bind(selected if self._conversation_open() else None)
 
-    # Below this, a docked pane would push the transcript + composer column to zero
-    # width on the dominant portrait phone (1080px). The promotion to
-    # BarDockedPaneFloatingArrangement keeps the toggle bar on its edge so muscle
-    # memory finds it while releasing the pane to the float overlay.
-    _NARROW_VIEWPORT_WIDTH = 900
-
-    def _effective_arrangement(self, placement: SidebarPlacement) -> type[PlacementArrangement]:
-        """The arrangement actually used to lay this placement out, after viewport-width
-        promotion. A naturally-docked placement promotes to
-        ``BarDockedPaneFloatingArrangement`` when the viewport is narrower than
-        ``_NARROW_VIEWPORT_WIDTH`` — floating placements are honoured as the user chose."""
-        base = placement.arrangement
-        if base is DockedPlacementArrangement and self.width() < self._NARROW_VIEWPORT_WIDTH:
-            return BarDockedPaneFloatingArrangement
-        return base
-
-    def _layout_for_key(self, key: str | None):
-        """Resolve an arrangement dock key to its layout container: ``None`` → the float
-        layer; any other key → the matching edge dock's layout."""
-        return self._float_layout if key is None else self._docks[key].layout()
-
-    def _target_layout(self, placement: SidebarPlacement):
-        """Where a pane goes for its placement: the arrangement names its dock by key, or
-        None for a floating pane that joins the float layer. Routes through
-        ``_effective_arrangement`` so a narrow viewport's promotion applies. For an
-        arrangement that splits bar from pane, this returns the PANE's target — the bar's
-        target is ``_bar_target_layout``."""
-        key = self._effective_arrangement(placement).dock_key(placement.side)
-        return self._layout_for_key(key)
-
-    def _bar_target_layout(self, placement: SidebarPlacement):
-        """Where the bar goes for its placement. ``DockedPlacementArrangement`` and
-        ``FloatingPlacementArrangement`` co-locate bar with pane (same answer as
-        ``_target_layout``); ``BarDockedPaneFloatingArrangement`` keeps the bar on its
-        edge dock while the pane floats."""
-        key = self._effective_arrangement(placement).bar_dock_key(placement.side)
-        return self._layout_for_key(key)
-
-    def _empty(self, layout) -> None:
-        # Park widgets on self (QtToadApp) rather than orphaning them. Qt-for-Android gives
-        # any parent-less QWidget its own top-level QWindow + EGL surface, and the second
-        # EGL allocation races QtAndroidAccessibility::runInObjectContext() for the
-        # eglSurface() mutex and trips the deadlock protector (SIGABRT a second after
-        # ApplicationActive). Parenting them to self keeps them as child widgets.
-        #
-        # Nested layouts (the QVBoxLayout groups `_arrange_sidebar` builds for top/bottom
-        # edges) need recursive draining: `takeAt(0).widget()` returns None for a layout
-        # item, so without this recursion the widgets inside those groups are left
-        # managed by the stale group until the next `addWidget` reparents them — which
-        # leaked the group's cached sizeHint into the dock across tab switches.
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.setParent(self)
-                continue
-            sub = item.layout()
-            if sub is not None:
-                self._empty(sub)
-
-    def _layout_panes(self) -> None:
-        for dock in self._docks.values():
-            self._empty(dock.layout())
-        self._empty(self._float_layout)
-        # Reparent bars to self before the next pass rehomes them atomically — keeps them
-        # children of QtToadApp throughout, never top-level QWindows.
-        for identity, bar in self._bars.items():
-            bar.setParent(self)
-        for identity, pane in self._panes.items():
-            bar = self._bars[identity]
-            if not self._pane_available(identity):
-                pane.setParent(self)
-                pane.hide()
-                bar.hide()
-                continue
-            placement = self.sidebar_layout.get(identity)
-            # The PlacementArrangement family (DockedPlacementArrangement for docked,
-            # FloatingPlacementArrangement for floating, BarDockedPaneFloatingArrangement
-            # for narrow-viewport promotion where the bar stays on edge and the pane
-            # overlays) answers bar-first and axis polymorphically — no `floating` /
-            # `side.sign` branch in window code.
-            arrangement = self._effective_arrangement(placement)
-            bar_first = arrangement.bar_first(placement.side)
-            bar_target = self._bar_target_layout(placement)
-            pane_target = self._target_layout(placement)
-            bar.show()
-            if self.pane_open(identity):
-                pane.show()
-                if bar_target is pane_target:
-                    self._arrange_sidebar(bar_target, placement, bar, pane, bar_first=bar_first)
-                else:
-                    # Bar and pane land in separate targets
-                    # (BarDockedPaneFloatingArrangement). Bar joins its edge dock alone;
-                    # pane joins the float layer alone.
-                    self._arrange_sidebar(bar_target, placement, bar, pane=None, bar_first=bar_first)
-                    self._arrange_sidebar(pane_target, placement, bar=None, pane=pane, bar_first=bar_first)
-            else:
-                pane.setParent(self)
-                pane.hide()
-                # No pane to place; bar goes to its own target either way.
-                self._arrange_sidebar(bar_target, placement, bar, pane=None, bar_first=bar_first)
-        for dock in self._docks.values():
-            dock.setVisible(dock.layout().count() > 0)
-        # QGridLayout on `self.center` caches column/row sizeHints, and a dock's own
-        # resize (when its own layout shrinks after a pane became unavailable, or grew
-        # when it became available again) does not always propagate up to the grid's
-        # cached cell sizes in Qt-for-Android. Without this invalidate, closing a
-        # conversation tab leaves the center column still sized for the old dock extents,
-        # so the inter-widget spacing between center and docks goes stale until the next
-        # resize event. Textual does not share this quirk — it uses TCSS, not a Qt grid.
-        self.center.layout().invalidate()
-
-    def _arrange_sidebar(self, target, placement, bar, pane, *, bar_first: bool) -> None:
-        """Add this sidebar's widgets to its target container. The arrangement answers
-        the pane/bar axis polymorphically — 'row' means the pair joins the line directly
-        (adjacent columns within the dock), 'column' means wrap in a QVBoxLayout first
-        (pair stacks vertically inside a cell). FloatingPlacementArrangement answers
-        'column' regardless of the side it normally occupies.
-
-        Either (but not both) of ``bar`` and ``pane`` may be ``None``:
-        - bar=None: pane-only. The split-routing path from ``BarDockedPaneFloatingArrangement``
-          calls this to put the pane alone on the float layer; the bar was already placed
-          by a sibling call into the edge dock.
-        - pane=None: bar-only. Either the pane is closed, or the arrangement split pane
-          to a different target.
-
-        The pane gets stretch=1 so it absorbs growth when its sidebar group shares the
-        dock with a collapsed sibling; the bar gets stretch=0 so a bar-only group does
-        not vertically expand to match the sibling's open pane. A bar-only group pads
-        itself with a stretch on the wall-facing end so the bar stays pinned to the wall
-        and the group's excess space is empty, not bar."""
-        assert bar is not None or pane is not None, "arrange_sidebar needs at least one widget"
-        if bar is None:
-            widgets = (pane,)
-        elif pane is None:
-            widgets = (bar,)
-        else:
-            widgets = (bar, pane) if bar_first else (pane, bar)
-        axis = self._effective_arrangement(placement).pane_bar_axis(placement.side)
-        if axis == "row":
-            for widget in widgets:
-                target.addWidget(widget, 1 if widget is pane else 0)
-            return
-        group = QVBoxLayout()
-        group.setContentsMargins(0, 0, 0, 0)
-        group.setSpacing(0)
-        if pane is None:
-            # Bar-only group: add a stretch on the wall-facing end so the bar stays pinned
-            # to its wall and the excess space is empty, not bar. `bar_first=True` means
-            # the bar's wall is the LEADING end (top for TopSidebarEdge), so the empty
-            # space goes AFTER the bar; otherwise the bar's wall is the TRAILING end
-            # (bottom for BottomSidebarEdge) and the empty space goes BEFORE it.
-            if bar_first:
-                group.addWidget(bar, 0)
-                group.addStretch(1)
-            else:
-                group.addStretch(1)
-                group.addWidget(bar, 0)
-        elif bar is None:
-            # Pane-only group (split routing): pane fills its target alone.
-            group.addWidget(pane, 1)
-        else:
-            for widget in widgets:
-                group.addWidget(widget, 1 if widget is pane else 0)
-        target.addLayout(group, 1 if pane is not None else 0)
-        self.reposition_float()
-
-    def reposition_float(self) -> None:
-        """The float layer holds whatever pane floats, raised over the lower part of the
-        conversation. An empty layer stays hidden. Either way, the workspace repaints so a
-        reflow does not leave stale pixels from the layer's previous rectangle on the
-        conversation under it."""
-        empty = self._float_layout.count() == 0
-        if empty:
-            self.float_layer.hide()
-        else:
-            rect = self.center.rect()
-            height = max(1, int(rect.height() * 0.45))
-            self.float_layer.setGeometry(0, rect.height() - height, rect.width(), height)
-            self.float_layer.raise_()
-            self.float_layer.show()
-        self.workspace_sessions.pages.update()
-        self.center.update()
-
-    def resizeEvent(self, event) -> None:  # type: ignore[override]
-        super().resizeEvent(event)
-        self.reposition_float()
-        # Crossing ``_NARROW_VIEWPORT_WIDTH`` changes the effective arrangement for any
-        # naturally-docked placement; relay the panes so promotion to
-        # ``BarDockedPaneFloatingArrangement`` (or demotion back to
-        # ``DockedPlacementArrangement``) actually takes effect. Guard on the threshold
-        # so ordinary resize ticks don't thrash the layout.
-        old = event.oldSize().width() if event.oldSize().isValid() else -1
-        new = self.width()
-        narrow = self._NARROW_VIEWPORT_WIDTH
-        if old >= 0 and (old < narrow) != (new < narrow):
-            self._layout_panes()
-
     def present_panes(self) -> None:
-        """Lay the panes out for their placements and draw both bars and their controls; the
-        thread's bar shows only while a conversation is open."""
-        self._layout_panes()
+        """Draw both sidebars from the one layout and place them; the thread's sidebar is
+        presented only while a conversation is open."""
         self._bind_thread_pane()
-        self.thread_bar.setVisible(self._conversation_open())
-        self.channels_bar.present()
-        self.thread_bar.present()
-        for pane in self._panes.values():
-            pane.present()
+        for side in self.chrome.sidebars:
+            side.present()
+        self.chrome.arrange()
 
     def rearrange_sidebars(self) -> None:
         """A move, float or toggle: lay the panes out again. SidebarLayout has already written
@@ -2428,7 +2113,6 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         `QtWelcomeOrigin` whose `thread_identity` is observed off the thread so the
         navigator's `origin.current` check can match it."""
         await target.open(context)
-        self.hide_sidebar()
 
     @property
     def selected_mode(self) -> str:
