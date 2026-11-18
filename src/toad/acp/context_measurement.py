@@ -7,6 +7,7 @@ from math import floor
 from typing import NamedTuple
 
 from agent_comms.execution.context_reading import ContextReading, UnmeasuredContext
+from format_currency import format_currency
 from rich.text import Text as RichText
 
 
@@ -20,8 +21,6 @@ class Cost(NamedTuple):
         return f"{self:}"
 
     def __format__(self, _specifier: str) -> str:
-        from format_currency import format_currency
-
         amount, currency = self
         currency_text = format_currency(amount, currency_code=currency).replace(" ", "")
         return currency_text

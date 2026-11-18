@@ -1,4 +1,11 @@
-from typing import Literal, NamedTuple
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal, NamedTuple
+
+if TYPE_CHECKING:
+    from textual.widget import Widget
 
 
 """
@@ -20,3 +27,17 @@ class Answer(NamedTuple):
         Literal["allow_once", "allow_always", "reject_once", "reject_always"] | None
     ) = None
     """Enumeration to potentially influence UI"""
+
+
+type Options = list[Answer]
+
+
+@dataclass
+class Ask:
+    """A question for the user, as either frontend's question control shows it: the text, the
+    answers to choose from, optional content shown with it, and who hears the answer."""
+
+    question: str
+    options: Options
+    get_content: Callable[[], Widget] | None = None
+    callback: Callable[[Answer], None] | None = None

@@ -35,7 +35,7 @@ from toad.widget_contracts import DismissibleContract
 from toad.qt.metrics import UiGap
 
 if TYPE_CHECKING:
-    from toad.widgets.question import Ask
+    from toad.answer import Ask
 
 
 class QtQuestion(QuestionContext, QFrame, DismissibleContract):
