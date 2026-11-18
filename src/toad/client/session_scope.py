@@ -71,6 +71,14 @@ class SessionScope:
         raise NotImplementedError
 
     @property
+    def operational_binding(self):
+        """The agent this session runs: a view with no agent (welcome, a channel, a CLI
+        inbox) has none. Textual's `MainScreen` answers its presentation's binding, Qt's
+        conversation views their `agent_binding`."""
+        from toad.agent_binding import NoAgentConnection
+        return NoAgentConnection()
+
+    @property
     def category_selection(self) -> CategorySelection:
         """The categories this view's transcript shows. A view without a transcript filters
         nothing; a view that filters inherits `CategorySelection`, which answers itself."""

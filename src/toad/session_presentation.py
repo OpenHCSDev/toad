@@ -27,7 +27,6 @@ from toad.client.history_pager import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.client.session_sources import MailboxSources, SessionSources
 from toad.widgets.prompt import Prompt
-from toad.acp.agent import Agent
 from toad.core import events as core_events
 from toad.transcript_publication import SessionTranscriptPresentation
 
@@ -155,27 +154,6 @@ class OperationalSessionSources(SessionSources):
     def prompt(self, conversation: Conversation):
 
         return Prompt(project=conversation.project_path, submissions=conversation.submissions)
-
-    def create_agent(self, conversation: Conversation) -> None:
-        """The unbound state requests a new operational connection."""
-
-        agent = Agent(
-            conversation.project_path.path,
-            conversation.launch.require_agent(),
-            conversation._agent_session_id,
-            conversation._session_pk,
-            app_events=conversation.app.events,
-            transcripts=conversation.app.coordination_access.transcripts,
-        )
-        agent.session.load_plan = self.load_plan
-        conversation._native_agent_started_here = True
-        conversation.bind_agent(agent)
-        agent.controller.start_operation(
-            agent.start(conversation.app.session_navigation.processes)
-        )
-        conversation.publish_core(
-            core_events.SessionSubtitleChanged(conversation.agent_title)
-        )
 
     def attach_started(self, screen: MainScreen, plan) -> None:
         """An explicit Start action may attach the same retained view to its new owner."""

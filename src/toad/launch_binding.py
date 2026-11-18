@@ -15,17 +15,37 @@ from toad.agent_binding import AgentConnection
 from toad.client.agent_schema import AgentDefinition
 from toad.core import session_requests
 from toad.core.events import CoreEventStream
+from toad.surface_binding import SurfaceBinding
 from toad.thread_identity import SessionIdentity
 from toad.transcript_scope import TranscriptScope
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 
 
 class AgentConversation(metaclass=AbstractHooksMeta):
     """What a launch's agent binding does to the conversation it builds: hand it the launch,
-    resume a named session, and start its session."""
+    resume a named session, and start its session. Every frontend's agent conversation
+    inherits the chain (launch → unbound start → its sources create the agent); each answers
+    only how it defers the start, shows a view without an agent, and receives the agent's
+    events (`agent_surface`)."""
 
-    @abstractmethod
-    def attach_launch(self, launch: AgentBinding) -> None: ...
+    launch: AgentBinding
+    _agent_session_id: AcpSessionId | NoAcpSessionId
+
+    def attach_launch(self, launch: AgentBinding) -> None:
+        """Selection changes write the conversation's launch at its owner."""
+        self.launch = launch
+
+    def resume_agent_session(self, session_id: AcpSessionId) -> None:
+        self._agent_session_id = session_id
+
+    def start_native_session(self) -> None:
+        self.agent_binding.start_session(self)
+
+    def start_unbound_session(self) -> None:
+        self.launch.start_unbound(self)
+
+    def _start_agent(self) -> None:
+        self.operational_sources.start_agent(self)
 
     @abstractmethod
     def present_without_agent(self) -> None:
@@ -36,10 +56,9 @@ class AgentConversation(metaclass=AbstractHooksMeta):
         """Start the attached agent once the frame is presented."""
 
     @abstractmethod
-    def resume_agent_session(self, session_id: AcpSessionId) -> None: ...
-
-    @abstractmethod
-    def start_native_session(self) -> None: ...
+    def agent_surface(self, events: CoreEventStream) -> SurfaceBinding:
+        """How this view receives its bound agent's events and presents its tools,
+        permissions and terminals."""
 
 
 class AgentOrigin(metaclass=AbstractHooksMeta):

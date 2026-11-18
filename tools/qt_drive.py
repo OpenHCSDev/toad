@@ -1077,6 +1077,52 @@ class LiveTurnScenario(Scenario):
                     rows=view.messages.model_rows.rowCount())
 
 
+class AgentSessionScenario(Scenario):
+    summary = ("start an agent session from the launch's attached agent (the stub ACP peer named "
+               "by TOAD_STUB_AGENT: no model), send a prompt, answer its permission question, and "
+               "read its reply, thought, tool call and terminal output as live rows; run it against "
+               "a scratch bus, never a live one")
+
+    def live_rows(self) -> list[tuple[str, str]]:
+        rows = self.page.messages.model_rows
+        tail = [rows.index(row).data(HistoryRows.FRAGMENT) for row in range(rows.rowCount())]
+        return [(type(fragment.events[0]).__name__, fragment.events[0].text)
+                for fragment in tail if isinstance(fragment, QtLiveFragment)]
+
+    def shown(self, marker: str) -> bool:
+        return any(marker in text for _kind, text in self.live_rows())
+
+    async def run(self) -> None:
+        import shlex
+        from toad.client.agent_schema import AgentDefinition
+        from toad.launch_binding import AgentAttached
+        from toad.qt.acp_tab import QtAcpSessionView
+
+        stub = AgentDefinition.decode({
+            "name": "Stub", "identity": "stub-peer", "short_name": "stub", "protocol": "acp",
+            "run_command": {"*": shlex.join((sys.executable, os.environ["TOAD_STUB_AGENT"]))}})
+        app = self.app
+        await app.session_navigation.start_agent_session(AgentAttached(stub), app.project_dir)
+        await until(lambda: isinstance(self.page, QtAcpSessionView), "agent session tab")
+        view = self.page
+        await until(lambda: view.agent_binding.ready, "agent ready", tenths=600)
+        await until(lambda: view.composer is not None, "composer")
+        self.report("1-agent-ready", agent=view.agent_binding.get_info(),
+                    identity=view.identity_line.text())
+        await self.type("hello stub")
+        view.composer.send()
+        await until(lambda: self.shown("STUB_TOOL_OUTPUT"), "reply, thought and tool call", tenths=300)
+        await until(lambda: view.question.isVisible(), "permission question", tenths=300)
+        self.report("2-permission-asked", live=self.live_rows(), question=view.question._title.text())
+        allow = next(button for button in view.question.findChildren(QPushButton) if button.text() == "Allow")
+        allow.click()
+        await until(lambda: self.shown("STUB_DONE"), "turn finished", tenths=300)
+        await asyncio.sleep(1.0)
+        self.report("3-turn-over", live=self.live_rows(),
+                    question_visible=view.question.isVisible(),
+                    busy=view.turns.owner.busy)
+
+
 class CommandScenario(Scenario):
     summary = ("run /copy in #any through the shared command catalog, then a refused /copy, "
                "then open #comms' /rename-tag form, fill it and cancel it: nothing is applied, "

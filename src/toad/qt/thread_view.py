@@ -29,6 +29,7 @@ from toad.qt.conversation import QtConversation
 from toad.qt.goal import QtGoalBar
 from toad.qt.history import QT_FRAGMENT_CLASSES
 from toad.qt.prompt_stack import QtInputDeliveryDetails, QtSessionDetails
+from toad.qt.question import QtQuestion
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.target_commands import TargetContext
 from toad.transcript_publication import BoundView
@@ -164,6 +165,10 @@ class QtThreadView(
             app.show_error(error, "Composer mount failed")
             return
         self._composer_slot.addWidget(self.composer)
+        # Under the composer, as on a channel: the question an agent asks (a permission, a
+        # confirmation), hidden until asked.
+        self.question = QtQuestion(app, self)
+        self._composer_slot.addWidget(self.question)
         self.composer.labelled(self.composer_label)
         self.sync_status()
 

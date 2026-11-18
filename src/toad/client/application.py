@@ -37,6 +37,7 @@ from toad.client.bus_selection import (
     TailnetAnswer,
     TailnetUnanswered,
 )
+from toad.client.agent_processes import AgentProcesses
 from toad.client.connection import CoreConnection
 from toad.client.db import DB
 from toad.client.input_attention import InputAttention
@@ -322,6 +323,11 @@ class ClientApplication(BusPickerHost, NavigationHost):
 
     lifetime_kind: ClassVar[type[ApplicationLifetime]] = ApplicationLifetime
     """What this frontend's start, background and end do; the terminal app adds its own."""
+
+    @cached_property
+    def agent_processes(self) -> AgentProcesses:
+        """Whether this platform runs agent processes: a desktop does, Android does not."""
+        return AgentProcesses.of_platform()
 
     @cached_property
     def sidebar_layout(self) -> SidebarLayout:

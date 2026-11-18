@@ -72,10 +72,20 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
     def preview_dimensions(self) -> tuple[int, int] | None:
         return None
 
+    @property
+    def row_markdown(self) -> str:
+        """This output as Markdown, for a frontend that draws a tool call as one text row
+        (Qt's live tool row). A part with no text to show answers nothing."""
+        return ""
+
 
 @dataclass(frozen=True)
 class TextToolOutputPart(ToolOutputPart):
     text: str
+
+    @property
+    def row_markdown(self) -> str:
+        return f"```\n{self.text.rstrip()}\n```"
 
     def permission_preview(self) -> ToolOutputPart:
         # Permission questions interpret all text as Markdown, independent of
@@ -133,6 +143,10 @@ class AnsiTextToolOutputPart(SpecificTextToolOutputPart):
 
 
 class MarkdownToolOutputPart(SpecificTextToolOutputPart):
+    @property
+    def row_markdown(self) -> str:
+        return self.text
+
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None and "\x1b" not in text and (

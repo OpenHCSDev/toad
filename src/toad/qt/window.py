@@ -110,7 +110,7 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core import session_requests
 from toad.core.events import CoordinationObserved, TabHistoryChanged
-from toad.launch_binding import NoAgent
+from toad.launch_binding import AgentBinding, NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
@@ -1387,17 +1387,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         `CommsChatView.command_target_context`."""
         return self.message_history.page_source.command_context(self)
 
-    def ask(self, options, title: str = "", get_content=None, callback=None):
-        """Show an inline question with these options, mirroring Textual's Conversation.ask.
-
-        A `toad.answer.Ask` is passed to the mounted `QtQuestion`, which pops up
-        under the composer with an option button per answer and fires `callback(answer)`
-        when the user picks. Returns the Ask for the backend to track."""
-        from toad.answer import Ask
-        ask = Ask(title, options, get_content, callback)
-        self.question.update(ask)
-        return ask
-
     def begin_submission(self, owner, submission):
         """A channel or inbox message goes where this view's page source says, as
         Textual's `CommsChatView.begin_submission`."""
@@ -1563,13 +1552,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     session_entries = QtSessionEntry
 
     def __init__(self, connection: RemoteCoreConnection, project: Checkout,
-                 preparation: PreparationRuntime, scheme: ColourScheme) -> None:
+                 preparation: PreparationRuntime, scheme: ColourScheme,
+                 launch: AgentBinding = NoAgent()) -> None:
         super().__init__(project, preparation, scheme)
         # Walk Core's declaration catalog once up front (shared with the Textual app
         # via CorePrewarm): a cold first tab otherwise imports every agent_comms
         # module under the GIL on its first wire revision / action menu.
         self._prewarm_core_modules()
-        self.initialize_client(NoAgent(), connection)
+        # The launch's agent, as Textual's `-a`: New Session starts its session.
+        self.initialize_client(launch, connection)
         self.input_attention = QtWindowAttention(self)
         self.action_keys = ActionKeys(lambda: self.settings)
         # Until a conversation reads Core's display references, bodies link the project's files.

@@ -35,6 +35,7 @@ from toad.agent_binding import AgentConnection
 from toad.app_node import ToadNode
 from toad.command_target_scope import CommandTargetScope
 from toad.core import events as core_events
+from toad.session_titles import SessionTitles
 from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
@@ -314,7 +315,7 @@ class GoHomeAction(MainAction):
         await context.app.select_session(context.app.tab_order.home)
 
 
-class MainScreen(ThreadViewNavigation, CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
+class MainScreen(SessionTitles, ThreadViewNavigation, CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
                  SidebarSessionView[SessionThreadSidebar], ToadNode,
                  actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
@@ -641,27 +642,10 @@ class MainScreen(ThreadViewNavigation, CommandTargetScope, NativeMethodKeys, Hid
     def on_session_tabs_changed(self, event: core_events.ThreadRowsChanged) -> None:
         self.update_title()
 
-    @handles(core_events.SessionTitleChanged)
-    def on_session_title_changed(self, event: core_events.SessionTitleChanged) -> None:
-        """The user or the agent process named this session; the tab keeps it."""
-        if self.id is not None:
-            self.app.session_tracker.name_session(self.session_details.identity, event.name)
-
-    @handles(core_events.SessionThreadTitle)
-    def on_session_thread_title(self, event: core_events.SessionThreadTitle) -> None:
-        """The thread presented a title; an authored name keeps the tab's label."""
-        if (details := self.app.session_tracker.get_session(self.session_details.identity)) is not None:
-            if details.update_thread_title(event.title):
-                self.app.session_tracker.events.publish(
-                    SessionChangedEvent(self.session_details.identity)
-                )
-
-    @handles(core_events.SessionSubtitleChanged)
-    def on_session_subtitle_changed(self, event: core_events.SessionSubtitleChanged) -> None:
-        if self.id is not None:
-            self.app.session_tracker.update_session(
-                self.session_details.identity, subtitle=event.subtitle
-            )
+    @property
+    def named_session(self):
+        """`SessionTitles`: this screen names its session once it is mounted under an id."""
+        return self.session_details if self.id is not None else None
 
     @handles(core_events.SessionPathChanged)
     def on_session_path_changed(self, event: core_events.SessionPathChanged) -> None:
