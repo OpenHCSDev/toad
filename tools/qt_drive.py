@@ -26,7 +26,7 @@ import qasync
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
 from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QFileDialog, QLabel, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QFileDialog, QLabel, QLineEdit, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 from agent_comms.registry.thread_presentation import LiveThreadOwnerBinding
@@ -1031,8 +1031,13 @@ class AttachScenario(Scenario):
         await until(lambda: any(dialog.isVisible() for dialog in self.app.findChildren(QFileDialog)),
                     "file dialog", tenths=50)
         (dialog,) = [dialog for dialog in self.app.findChildren(QFileDialog) if dialog.isVisible()]
-        dialog.selectFile(str(picked))
-        dialog.accept()
+        # As a person picks it: the path typed into the dialog's file name field, then Enter.
+        # (QFileDialog.selectFile leaves a field that has focus as it is.)
+        (field,) = dialog.findChildren(QLineEdit)
+        field.setFocus()
+        field.setText(str(picked))
+        QTest.keyClick(field, Qt.Key.Key_Return)
+        await asyncio.sleep(1.0)
         await until(lambda: composer.attached_files, "attached file", tenths=50)
         chips = [chip.text() for chip in composer.attached_row.findChildren(QPushButton)]
         self.report("1-attached", chips=chips, sha256=hashlib.sha256(picked.read_bytes()).hexdigest())
