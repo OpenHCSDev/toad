@@ -28,9 +28,14 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
             self.start_operation(self.terminals.attach(self.surface))
 
     def owns_terminal_projection(self, binding, projection):
-        if self.surface is not binding or self.terminals is not projection.controller:
+        return self.owns_terminal(binding, projection.controller, projection.terminal_id,
+                                  projection.execution)
+
+    def owns_terminal(self, binding, controller, terminal_id, execution):
+        """Same surface, same controller lifetime, and the address still names `execution`."""
+        if self.surface is not binding or self.terminals is not controller:
             return False
-        return self.terminals.owns_projection(projection.terminal_id, projection.execution)
+        return self.terminals.owns_projection(terminal_id, execution)
 
     def replace_terminal_session(self):
         previous = self.terminals

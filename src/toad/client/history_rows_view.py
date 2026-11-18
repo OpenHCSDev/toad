@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Iterable, Sequence
-from functools import cached_property
+from functools import cached_property, partial
 from typing import ClassVar
 
 from toad.transcript_publication import TaskPublicationWork
@@ -85,11 +85,20 @@ class AsyncioPublications:
     def _workers(self) -> dict[str, asyncio.Task]:
         return {}
 
-    def run_worker(self, work: Callable[[], Awaitable[object]], *, group: str, exclusive: bool) -> asyncio.Task:
+    def run_worker(self, work: Callable[[], Awaitable[object]], *, group: str, exclusive: bool = False) -> asyncio.Task:
         """Textual's `run_worker` on the asyncio loop: an exclusive worker cancels the one
         running in its group."""
         if exclusive and (running := self._workers.get(group)) is not None:
             running.cancel()
         task = asyncio.ensure_future(work())
         self._workers[group] = task
+        task.add_done_callback(partial(self.worker_finished, group))
         return task
+
+    def worker_finished(self, group: str, task: asyncio.Task) -> None:
+        """A failed worker is shown and saved, as a failed Textual worker ends that app with
+        its traceback; the task is no longer held, so nothing keeps its error unread."""
+        if self._workers.get(group) is task:
+            del self._workers[group]
+        if not task.cancelled() and (error := task.exception()) is not None:
+            self.app.show_error(error, f"{group.capitalize()} failed")

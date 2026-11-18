@@ -98,6 +98,11 @@ NOT_SIBLINGS = {
 }
 
 QT_ONLY = {
+    'toad.qt.conversation.ComposerPlaceholder': "a Qt composer's place held before it is built: Qt builds a view's widgets in "
+        "its constructor, so a composer built there holds the view's first frame (and on Android races the first frame's EGL "
+        "setup); Textual composes a screen's widgets and mounts them after its first frame, so it has no placeholder to hold",
+    'toad.qt.widget_animation.WidgetAnimation': "a clock target's life bound to its Qt widget's C++ lifetime (destroyed signal, shiboken validity); a Textual widget is a Python object the clock can always ask",
+    'toad.qt.history.ArrivalFade': "a burst's rows painted at the ARRIVAL cascade's frame as QPainter opacity; Textual paints the same frame into its strips (TranscriptHistory.arrivals_began), and both read the cascade from toad.frame_presentation",
     'toad.qt.action_shortcuts.BoundAction': "a live QShortcut and the action it answers: Qt fires neither of two shortcuts sharing a key (activatedAmbiguously), so ActionKeys keeps each to apply the declared binding order; Textual walks its binding chain itself",
     'toad.qt.splash.QtSplash': "Qt's first frame, painted from Qt and the theme before the client's modules import: a terminal draws Textual's first frame as soon as App.run starts, with the client already imported in the same process, so the TUI has no window to show before its app exists",
     'toad.qt.splash.StepAside': "an application event filter that closes the first frame when Qt shows the client's window: QEvent.Show on a top-level QWidget has no Textual counterpart",
@@ -118,8 +123,8 @@ QT_ONLY = {
     'toad.qt.host.ScreenWideWindow': "a Qt top-level window clamped to the Android screen's available width (screen less system bars)",
     'toad.qt.metrics.UiGap': 'Qt pixel spacing tokens; Textual spaces in cells through its CSS',
     'toad.qt.action_shortcuts.ActionKeys': "Qt has no binding map: it installs a QShortcut per action and sets its keys again when ui.key_mode or ui.keymap changes; Textual's App binds the same catalog keys through its BindingsMap and set_keymap",
-    'toad.qt.window.HeldRowMenu': "Qt TapAndHold gesture and context-menu event filter on the tree's viewport; the entries come from each row's shared menu_entries",
-    'toad.qt.window.SwallowsRelease': 'a Qt event filter that eats the one mouse release ending a held finger, so the hold does not also tap the row',
+    'toad.qt.window.HeldRowMenu': "connects the Qt tree's customContextMenuRequested (a right-click, or a held finger FingerPress delivers as one) to the panel; the entries come from each row's shared menu_entries",
+    'toad.qt.finger_press.Press': "one Qt press: the QWidget under it, its global QPointF and whether a touch screen made it, and a tap consumer's claim",
 }
 
 KNOWN_BARE = frozenset({

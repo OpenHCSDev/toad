@@ -1,9 +1,12 @@
 """Drive the Qt client offscreen against a live bus and print what it shows.
 
-    QT_QPA_PLATFORM=offscreen PYTHONPATH=src python tools/qt_drive.py SCENARIO PROFILE OUTDIR
+    QT_QPA_PLATFORM=offscreen PYTHONPATH=src python tools/qt_drive.py SCENARIO OUTDIR --comms-profile PROFILE
+    QT_QPA_PLATFORM=offscreen PYTHONPATH=src python tools/qt_drive.py SCENARIO OUTDIR --comms-root ROOT
 
-PROFILE is a UI profile (~/.local/state/agent-comms/ui-profiles/NAME.json); OUTDIR gets a
-screenshot per step. Each scenario opens the client exactly as `toad.qt.client_start.serve` does
+The Core is selected as `toad.qt.main` selects it: PROFILE is a UI profile
+(~/.local/state/agent-comms/ui-profiles/NAME.json), ROOT a bus root this machine opens
+directly (the connection agent processes start under); OUTDIR gets a screenshot per step.
+Each scenario opens the client exactly as `toad.qt.client_start.serve` does
 and prints the state a reader would see, so two runs (before and after a change) compare
 line by line. This is the real-application check for the phone client; tests cannot see
 what the window draws.
@@ -23,8 +26,8 @@ from collections.abc import Callable
 from typing import ClassVar
 
 import qasync
-from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt
-from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent
+from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt, QTimer
+from PySide6.QtGui import QInputMethodEvent, QKeyEvent, QKeySequence, QMouseEvent, QTextDocument
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QAbstractButton, QAbstractScrollArea, QDialog, QFileDialog, QLabel, QLineEdit, QScroller, QStyleOptionViewItem, QApplication, QPushButton, QWidget
 
@@ -35,17 +38,20 @@ from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.message_category import MessageCategory
 from objectstate import DottedFieldPath
 from toad.qt.frame_probe import FrameProbe, ProbedApplication
+from toad.client.application import BusDiscovery
 from toad.client.application_actions import (
     ApplicationAction, NewSessionAction, NewThreadAction, QuitAction, SettingsAction,
 )
 from toad.qt.settings_screen import QtSettingsScreen
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
-from toad.client.connection import RemoteCoreConnection
+from toad.client.connection import CoreConnection
+from toad.client.local_connection import select_connection
 from toad.client.line_blocks import LineLink
 from toad.qt.client_start import open_app
 from toad.qt.glyph_fonts import install_glyph_fonts
-from toad.qt.theme import current_scheme
+from toad.qt.theme import current_scheme, offered_schemes
+from toad.qt.finger_press import FingerPress
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling, TouchAsMouse
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
@@ -78,8 +84,11 @@ from toad.client.bus_submission import ConversationSubmission
 from toad.setting_choices import CenterColumnAlignment
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.client.input_modality import KeyboardInput, TouchInput
-from toad.qt.float_layer import QtNoticeCard
+from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
 from toad.qt.menu import QtMenuRow
+from toad.qt.activity import ChannelActivity
+from toad import paths
+from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.qt.window import ConversationRow, ConversationView, MenuActionRun, QtToadApp
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
@@ -132,6 +141,10 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         phone's."""
         return FingerScrollGesture.of_platform()
 
+    @classmethod
+    def before_open(cls) -> None:
+        """Run before the client opens, to watch what it does from its first frame."""
+
     def __init__(self, app: QtToadApp, out: Path) -> None:
         self.app = app
         self.out = out
@@ -182,31 +195,36 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         channel it belongs to, and any one opens it."""
         await self.listed()
         if name.startswith("#"):
-            await self.channel_listed(name)
+            await self.channel_row(name)
             await self.expand(name)
-            await self.open(self.channel_row(name), name)
+            await self.open(await self.channel_row(name), name)
         else:
-            await until(lambda: self.named_rows(name), name)
-            await self.open(self.named_rows(name)[0], name)
+            await self.open(await self.found(lambda row: isinstance(row, ConversationRow)
+                                             and row.target.name == name, name), name)
         await asyncio.sleep(2.0)
 
-    def named_rows(self, name: str) -> list[ConversationRow]:
-        """The sidebar rows opening this thread: one under each channel it belongs to."""
-        pending, rows = list(self.app.sidebar.items()), []
-        while pending:
-            item = pending.pop()
-            rows.append(item)
-            pending.extend(item.child(index) for index in range(item.childCount()))
-        return [row for row in rows if isinstance(row, ConversationRow) and row.target.name == name]
+    async def found(self, wanted, label: str, rows=None, tenths: int = 200):
+        """The first sidebar row that is `wanted`, waited for: the sidebar is a live list,
+        filled from observations that can arrive after the step that reads it (the welcome's
+        first rows come before the channels). It is read again every tenth of a second
+        through the loop the scenario's steps run on, until the deadline, and then the drive
+        fails naming the missing row and every row listed. `rows` reads the rows to search,
+        every row nested under every channel unless it is given."""
+        read = rows or (lambda: self.rows(self.app.sidebar.items()))
+        present: list = []
+        for _ in range(tenths):
+            present = list(read())
+            for row in present:
+                if wanted(row):
+                    return row
+            await asyncio.sleep(0.1)
+        listed = ", ".join(f"{row.drawn[1] or row.key!r}" for row in present) or "nothing"
+        raise LookupError(f"the sidebar lists no {label} after {tenths / 10:.1f} s; it lists: {listed}")
 
-    async def channel_listed(self, name: str) -> None:
-        """The sidebar lists this channel: the welcome's first rows can come before it."""
-        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == name
-                                for row in self.app.sidebar.items()), name)
-
-    def channel_row(self, name: str) -> ConversationRow:
-        return next(row for row in self.app.sidebar.items()
-                    if isinstance(row, ConversationRow) and row.target.name == name)
+    async def channel_row(self, name: str) -> ConversationRow:
+        """The channel's top-level row, once the sidebar lists it."""
+        return await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name == name,
+                                f"channel {name}", rows=self.app.sidebar.items)
 
     def rows(self, items):
         """Every sidebar row, threads nested under their channels included."""
@@ -223,13 +241,16 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
                 found.setdefault(row.key, row)
         return list(found.values())
 
-    def thread_row(self) -> ConversationRow:
+    async def thread_row(self) -> ConversationRow:
         """The first thread nested under a channel, as the Textual sidebar nests them."""
-        for channel in self.app.sidebar.items():
-            if isinstance(channel, ConversationRow) and channel.childCount():
-                self.app.sidebar.expandItem(channel)
-                return channel.child(0)
-        raise LookupError("no channel lists a thread")
+        channel = await self.found(lambda row: isinstance(row, ConversationRow) and row.childCount() > 0,
+                                   "channel with a thread under it", rows=self.app.sidebar.items)
+        self.app.sidebar.expandItem(channel)
+        return channel.child(0)
+
+    async def listed_thread(self, key: str) -> ConversationRow:
+        """The thread row for `key`, once the sidebar lists it."""
+        return await self.found(lambda row: row.key == key, f"thread {key}", rows=self.thread_rows)
 
     async def live_native_thread_rows(self) -> list[ConversationRow]:
         """The listed threads a running native runtime owns, as Core presents each owner
@@ -262,9 +283,8 @@ class TabsScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("#comms")
-        tops = list(app.sidebar.items())
-        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
-        peer = self.thread_row()
+        comms = await self.channel_row("#comms")
+        peer = await self.thread_row()
         app.open_row(comms)
         await until(lambda: self.page is not app.workspace_sessions.home and self.page.messages.model_rows.rowCount(), "#comms")
         self.report("1-comms")
@@ -293,6 +313,7 @@ class ActivityScenario(Scenario):
     async def run(self) -> None:
         await self.listed()
         app = self.app
+        await self.found(lambda row: True, "thread row", rows=self.thread_rows)
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
         children = self.thread_rows()
         working = [row for row in children if rows[row.key].status.is_working()]
@@ -303,6 +324,103 @@ class ActivityScenario(Scenario):
                     and self.page.composer.info_bar.status.text(), "status")
         await asyncio.sleep(1.0)
         SurroundScenario.report_surround(self, "1-opened", peer=peer.key)
+
+
+class ParticipantSteps(Scenario, declared_name=None):
+    """A finger tapping a channel's `N active` line and a thread row the way a phone can,
+    and every notice the client posts from its first frame, so a step can fail on one."""
+
+    notices: ClassVar[list[tuple[str, str]]]
+
+    @classmethod
+    def before_open(cls) -> None:
+        cls.notices = []
+        posted = QtFloatLayer.post
+
+        def recorded(layer, text: str, role, seconds: float) -> None:
+            cls.notices.append((role.name, text))
+            posted(layer, text, role, seconds)
+        QtFloatLayer.post = recorded
+
+    def failures_since(self, count: int) -> list[str]:
+        """The warning and error notices posted after the first ``count``."""
+        return [f"{role}: {text}" for role, text in self.notices[count:] if role in ("WARNING", "ERROR")]
+
+    def activity(self) -> ChannelActivity:
+        found = self.page.findChildren(ChannelActivity)
+        if not found:
+            raise LookupError(f"{type(self.page).__name__} shows no channel activity line")
+        return found[0]
+
+    async def finger_tap(self, widget: QWidget, point: QPoint) -> None:
+        FingerScenario.press(widget, QEvent.Type.MouseButtonPress, point, True)
+        await asyncio.sleep(0.05)
+        FingerScenario.press(widget, QEvent.Type.MouseButtonRelease, point, False)
+        await asyncio.sleep(0.8)
+
+    async def tap_activity(self, label: str) -> None:
+        """Open the channel's activity line, tap a listed member, and close it again."""
+        line = self.activity()
+        heading = QPoint(line.width() // 3, line.fontMetrics().height() // 2)
+        self.report(f"{label}-shown", text=self.activity_text(line), height=line.height())
+        await self.finger_tap(line, heading)
+        self.report(f"{label}-opened", open=line.shown.details_open, members=len(line.members),
+                    height=line.height())
+        if line.members:
+            await self.finger_tap(line, QPoint(heading.x(), line.height() - heading.y()))
+            self.report(f"{label}-member-tapped", open=line.shown.details_open)
+        if line.shown.details_open:
+            await self.finger_tap(line, heading)
+        self.report(f"{label}-closed", open=line.shown.details_open)
+
+    @staticmethod
+    def activity_text(line: ChannelActivity) -> str:
+        document = QTextDocument()
+        document.setHtml(line.text())
+        return document.toPlainText()
+
+    async def open_twice(self, row: ConversationRow) -> None:
+        """A row tapped twice, as a phone can deliver one tap, or a second tap while the
+        first opening mounts: both open from home, and the second lands on the same tab."""
+        self.app.open_row(row)
+        await asyncio.sleep(0.05)
+        self.app.open_row(row)
+        await until(lambda: getattr(self.page, "thread_identity", None) is not None
+                    and self.page.thread_identity.thread_name() == row.target.name, row.target.name)
+        await asyncio.sleep(3.0)
+        named = sum(row.target.name in tab for tab in self.tabs())
+        if named != 1:
+            raise AssertionError(f"{row.target.name} is open in {named} tabs after a double tap")
+
+
+class ParticipantsScenario(ParticipantSteps):
+    summary = ("at a Pixel 8a's width, by finger: tap #comms' and a second channel's `N active` "
+               "line open, a listed member, and closed; open a thread, then tap a thread row twice "
+               "as a phone can; fails on any warning or error notice, and on one that saved no file")
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        return TouchAsMouse()
+
+    async def run(self) -> None:
+        await self.open_named("#comms")
+        await self.tap_activity("1-comms")
+        other = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name.startswith("#")
+                                 and row.target.name != "#comms", "a second channel", rows=self.app.sidebar.items)
+        await self.open(other, other.target.name)
+        await self.tap_activity("2-channel")
+        peer = await self.thread_row()
+        await self.open(peer, peer.target.name)
+        await self.open_named("#comms")
+        await self.open_twice(peer)
+        self.report("3-double-tap", tabs=self.tabs())
+        saved = [*paths.get_errors().iterdir(), *paths.get_warnings().iterdir()]
+        print("notices:", self.notices, "saved:", sorted(path.name for path in saved), flush=True)
+        failures = self.failures_since(0)
+        if len(saved) < len(failures):
+            raise AssertionError(f"{len(failures)} warning/error notice(s) but {len(saved)} saved: {failures}")
+        if failures:
+            raise AssertionError(f"{len(failures)} warning/error notice(s): {failures}")
 
 
 class SurroundScenario(Scenario):
@@ -378,7 +496,7 @@ class SurroundScenario(Scenario):
             # both frontends' prompts read.
             app.saved_settings.set(SETTINGS.ui.key_mode, KeyMode.member_named(mode))
         # The welcome answers before the sidebar has drawn its thread rows.
-        await until(self.thread_rows, "sidebar thread rows")
+        await self.found(lambda row: True, "thread row", rows=self.thread_rows)
         rows = app.coordination_access.observation.observed().sidebar.threads.rows
         children = self.thread_rows()
         print("working:", [row.key for row in children if rows[row.key].status.is_working()], flush=True)
@@ -446,7 +564,7 @@ class QueueScenario(SurroundScenario):
         app = self.app
         app.resize(int(os.environ.get("WIDTH", self.width)), 915)
         wanted = os.environ["PEER"]
-        peer = next(row for row in self.thread_rows() if row.key == wanted)
+        peer = await self.listed_thread(wanted)
         home = app.workspace_sessions.home
         app.open_row(peer)
         await until(lambda: self.page is not home and getattr(self.page, "composer", None) is not None, "composer")
@@ -473,7 +591,7 @@ class DraftScenario(SurroundScenario):
         app = self.app
         app.resize(int(os.environ.get("WIDTH", self.width)), 915)
         wanted = os.environ["PEER"]
-        peer = next(row for row in self.thread_rows() if row.key == wanted)
+        peer = await self.listed_thread(wanted)
         home = app.workspace_sessions.home
         app.open_row(peer)
         await until(lambda: self.page is not home and getattr(self.page, "composer", None) is not None, "composer")
@@ -647,8 +765,7 @@ class HistoryScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("#comms")
-        comms = next(row for row in app.sidebar.items()
-                     if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        comms = await self.channel_row("#comms")
         app.open_row(comms)
         await until(lambda: self.page is not app.workspace_sessions.home
                     and self.page.messages.model_rows.rowCount(), "#comms rows")
@@ -712,6 +829,35 @@ class StickyScenario(Scenario):
         facts = self.pinned()
         self.report("2-header-on-top", **facts)
         assert not facts["shown"], "the message's own header is on the top row, yet a copy is pinned"
+
+
+class TallArrivalScenario(StickyScenario):
+    summary = ("open TARGET (#scratch) following its end; SENDER (scratch-live-pipeline) posts one "
+               "message taller than the window; once the window glides down into it, its header "
+               "must be pinned over the top row without the reader scrolling")
+
+    async def run(self) -> None:
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        target = os.environ.get("TARGET", "#scratch")
+        sender = os.environ.get("SENDER", "scratch-live-pipeline")
+        await self.open_named(target)
+        window = self.page.messages
+        await until(lambda: window.follows_tail, "following the end")
+        stamp = time.strftime("%H:%M:%S")
+        body = "\n".join(f"tall arrival {stamp} line {line}" for line in range(120))
+        process = await asyncio.create_subprocess_exec(
+            "agent-comms", "send", "--from", sender, "--to", target, "--type", "info", "--body", body,
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+        _, error = await process.communicate()
+        assert process.returncode == 0, error.decode(errors="replace")[-300:]
+        await until(lambda: any(f"tall arrival {stamp} line 119" in fragment.clipboard_text
+                                for fragment in window.model_rows.fragments), "the tall message's row")
+        await until(lambda: window.glide is None and window.follows_tail, "the glide landed on the end")
+        await asyncio.sleep(0.5)
+        facts = self.pinned()
+        self.report("1-tall-arrived", **facts)
+        assert facts["shown"], "a tall arrival fills the window, yet its header is not pinned"
+        assert sender in facts["text"], f"pinned {facts['text']!r} is not {sender}'s header"
 
 
 class EscapeScenario(Scenario):
@@ -799,6 +945,35 @@ class MenuScenario(Scenario):
         self.report("3-notice", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
 
 
+class MenuTextScenario(Scenario):
+    summary = ("open the menu at WIDTH (412) and fail when any of its lines is drawn in less height "
+               "than its font's full height: the descenders of a description line were cut on the phone")
+
+    async def run(self) -> None:
+        from pyqt_reactive.widgets.fitted_text import FittedText
+        self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
+        await self.listed()
+        self.app.menu_panel.input_modality = TouchInput  # the phone's: each description is a second line
+        self.app.menu.click()
+        await asyncio.sleep(0.5)
+        lines = [line for row in self.app.menu_panel.findChildren(QtMenuRow)
+                 for line in row.findChildren(FittedText)]
+        clipped = [(line.text()[:30], line.contentsRect().height(), line.fontMetrics().height())
+                   for line in lines if line.contentsRect().height() < line.fontMetrics().height()]
+        if lines:
+            line = lines[0]
+            button = line.parentWidget()
+            print("line geometry:", dict(height=line.height(), contents=line.contentsRect().height(),
+                  margins=(line.contentsMargins().top(), line.contentsMargins().bottom()),
+                  minimum=line.minimumSizeHint().height(), button=button.height(),
+                  button_minimum=button.minimumHeight(), panel_sheet=self.app.menu_panel.styleSheet()[:300],
+                  app_sheet_label=[rule[:120] for rule in QApplication.instance().styleSheet().split("}") if "QLabel" in rule][:4]),
+                  flush=True)
+        self.report("1-menu", lines=len(lines), clipped=clipped[:6])
+        assert lines, "the menu shows no lines"
+        assert not clipped, f"{len(clipped)} menu lines drawn shorter than their font: {clipped[:3]}"
+
+
 class FeedbackScenario(Scenario):
     summary = ("the reader's feedback at a Pixel 8a's width: the wait a slow thread open shows in place, "
                "#comms' first page loading, an operation's wait floating over the page, a notice that "
@@ -820,6 +995,7 @@ class FeedbackScenario(Scenario):
 
         reader.read = slow_read
         try:
+            await self.found(lambda row: True, "thread row", rows=self.thread_rows)
             threads = self.thread_rows()
             app.open_row(next((row for row in threads if row.target.name == "scratch-live-pipeline"), threads[0]))
             await until(lambda: isinstance(self.page, QtOpeningSessionView), "opening view", tenths=50)
@@ -833,7 +1009,7 @@ class FeedbackScenario(Scenario):
         await asyncio.sleep(1.0)
         self.report("2-opened", waiting=app.float_layer.isVisible())
         # 2. #comms' first page: its wait floats over the history until the first rows are drawn.
-        app.open_row(self.channel_row("#comms"))
+        app.open_row(await self.channel_row("#comms"))
         seen: list[tuple[bool, str]] = []
         for _ in range(60):
             await asyncio.sleep(0.05)
@@ -889,7 +1065,7 @@ class FeedbackScenario(Scenario):
             app.menu_panel.hide()
 
 
-class ShippedScenario(Scenario):
+class ShippedScenario(ParticipantSteps):
     summary = ("open every view kind the phone has and press every bound key, failing on any "
                "exception: tools/android/shipped_run.py runs it on the shipped bundle")
 
@@ -976,6 +1152,7 @@ class ShippedScenario(Scenario):
         app = self.app
         await self.listed()
         self.report("1-welcome")
+        await self.step("1-themes", self.apply_offered_themes)
         for command, label in ApplicationAction.menu(app):
             if isinstance(command, self.creates):
                 continue
@@ -990,7 +1167,12 @@ class ShippedScenario(Scenario):
         await self.step("3-channel", lambda: self.open_named("#comms"))
         await self.step("3-channel-attach", self.open_attach)
         await self.press_bound_keys("3-channel-keys")
+        await self.noticeless("3-channel-activity", lambda: self.tap_activity("3-channel-activity"))
         await self.step("4-thread", lambda: self.open_named("scratch-live-pipeline"))
+        thread = await self.found(lambda row: isinstance(row, ConversationRow)
+                                  and row.target.name == "scratch-live-pipeline", "thread scratch-live-pipeline")
+        await self.step("4-thread-from-channel", lambda: self.open_named("#comms"))
+        await self.noticeless("4-thread-tapped-twice", lambda: self.open_twice(thread))
         await self.step("4-thread-details", self.open_details)
         await self.step("4-thread-attach", self.open_attach)
         await self.press_bound_keys("4-thread-keys")
@@ -1015,6 +1197,28 @@ class ShippedScenario(Scenario):
         await asyncio.sleep(0.3)
         if self.page.composer.attached_files:
             raise AssertionError("closing the picker attached a file")
+
+    async def apply_offered_themes(self) -> None:
+        """The app started with its saved theme (shipped_run saves one Qt does not offer); then
+        every scheme Qt offers is applied in turn through the `ui.theme` effect a start applies.
+        A scheme that fails to draw is shown and saved as an error file, which fails the run."""
+        settings = self.app.saved_settings
+        started = self.app.settings.ui.theme
+        if started in offered_schemes(os.environ):
+            self.faults.append(f"1-themes: started on {started!r}, which Qt offers; shipped_run saves one it does not")
+        applied = []
+        for name in offered_schemes(os.environ):
+            settings.set(SETTINGS.ui.theme, name)
+            await asyncio.sleep(0.05)
+            applied.append(name)
+        settings.set(SETTINGS.ui.theme, started)
+        self.report("1-themes", started=started, applied=applied)
+
+    async def noticeless(self, label: str, run) -> None:
+        """A step that must post no warning or error notice."""
+        posted = len(self.notices)
+        await self.step(label, run)
+        self.faults.extend(f"{label}: {failure}" for failure in self.failures_since(posted))
 
     async def open_details(self) -> None:
         self.page.thread_activity.toggle()
@@ -1074,7 +1278,7 @@ class ComposerScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("Threads")
-        await self.open(self.channel_row("#any"), "#any")
+        await self.open(await self.channel_row("#any"), "#any")
         composer = self.page.composer
         self.report("1-any", placeholder=composer.editor.placeholderText(),
                     activity=[line.text() for line in self.page.activity])
@@ -1136,6 +1340,56 @@ class LiveTurnScenario(Scenario):
                     rows=view.messages.model_rows.rowCount())
 
 
+class AgentSessionScenario(Scenario):
+    summary = ("over --comms-root, start an agent session on the tests' scripted ACP peer (no "
+               "model), send it support.agents.FULL_TURN (the TUI's test_full_agent_turn), answer "
+               "its permission question, and read its reply, thought, tool call and terminal "
+               "output as live rows; run it on a scratch root, never a live one")
+
+    def live_rows(self) -> list[tuple[str, str]]:
+        rows = self.page.messages.model_rows
+        tail = [rows.index(row).data(HistoryRows.FRAGMENT) for row in range(rows.rowCount())]
+        # A live row's position is negative (`QtLiveBlock`); the text is what the row draws.
+        return [(type(fragment.events[0]).__name__,
+                 " / ".join(block.selection_text for block in fragment.line_blocks))
+                for fragment in tail if fragment is not None and fragment.events
+                and fragment.events[0].position < 0]
+
+    def shown(self, marker: str) -> bool:
+        """The marker in a row the agent's turn drew: the prompt's own row names them all."""
+        return any(marker in text for kind, text in self.live_rows() if kind != "UserTranscript")
+
+    async def run(self) -> None:
+        sys.path.insert(0, str(PROJECT / "tests"))
+        from support.agents import FULL_TURN, peer, script
+        from toad.launch_binding import AgentAttached
+        from toad.qt.acp_tab import QtAcpSessionView
+
+        project = self.out / "project"
+        project.mkdir(exist_ok=True)
+        app = self.app
+        await app.session_navigation.start_agent_session(AgentAttached(peer("scripted")), Checkout(project))
+        await until(lambda: isinstance(self.page, QtAcpSessionView), "agent session tab")
+        view = self.page
+        await until(lambda: view.agent_binding.ready, "agent ready", tenths=600)
+        await until(lambda: view.composer is not None, "composer")
+        self.report("1-agent-ready", agent=view.agent_binding.get_info(),
+                    identity=view.identity_line.text())
+        await self.type(script(*FULL_TURN))
+        view.composer.send()
+        await until(lambda: self.shown("TURN_TOOL"), "reply, thought and tool call", tenths=300)
+        await until(lambda: view.question.isVisible(), "permission question", tenths=300)
+        self.report("2-permission-asked", live=self.live_rows(), question=view.question._title.text())
+        allow = next(button for button in view.question.findChildren(QPushButton) if button.text() == "Allow")
+        allow.click()
+        await until(lambda: self.shown("TURN_TERMINAL_OUTPUT"), "terminal output", tenths=300)
+        await until(lambda: self.shown("TURN_DONE") and not view.turns.owner.busy, "turn finished", tenths=300)
+        await asyncio.sleep(1.0)
+        self.report("3-turn-over", live=self.live_rows(),
+                    question_visible=view.question.isVisible(),
+                    busy=view.turns.owner.busy)
+
+
 class CommandScenario(Scenario):
     summary = ("run /copy in #any through the shared command catalog, then a refused /copy, "
                "then open #comms' /rename-tag form, fill it and cancel it: nothing is applied, "
@@ -1155,7 +1409,7 @@ class CommandScenario(Scenario):
         await self.listed()
         app = self.app
         await self.expand("Threads")
-        await self.open(self.channel_row("#any"), "#any")
+        await self.open(await self.channel_row("#any"), "#any")
         composer = self.page.composer
         await self.type("/")
         await until(lambda: composer.offers.offers, "command offers", tenths=300)
@@ -1169,7 +1423,7 @@ class CommandScenario(Scenario):
         await until(lambda: any("current target" in notice for notice in app.float_layer.shown_notices()),
                     "refused", tenths=100)
         self.report("3-refused", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
-        await self.open(self.channel_row("#comms"), "#comms")
+        await self.open(await self.channel_row("#comms"), "#comms")
         await self.send("/rename-tag")
         await until(self.forms, "form", tenths=150)
         form = self.forms()[0]
@@ -1244,7 +1498,7 @@ class PersistScenario(Scenario):
         app = self.app
         await self.listed()
         await self.expand("#any")
-        await self.open(self.thread_rows()[0], "first thread")
+        await self.open(await self.found(lambda row: True, "thread row", rows=self.thread_rows), "first thread")
         await self.open_named("#comms")
         app.show_sidebar()
         await asyncio.sleep(0.5)
@@ -1300,7 +1554,7 @@ class RestoredScenario(Scenario):
             await app.select_session(app.tab_order.home)
             app.show_sidebar()
             await self.expand("#any")
-            row = next(row for row in self.thread_rows() if row.key == restored_thread.key.name)
+            row = await self.listed_thread(restored_thread.key.name)
             tree = row.treeWidget()
             tree.scrollToItem(row)
             await asyncio.sleep(0.5)
@@ -1364,8 +1618,7 @@ class PlacementScenario(Scenario):
         app.resize(self.width, 915)
         await self.settle()
         await self.expand("#comms", "Threads")
-        tops = list(app.sidebar.items())
-        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        comms = await self.channel_row("#comms")
         home = app.workspace_sessions.home
         app.open_row(comms)
         await self.opened(home)
@@ -1412,7 +1665,7 @@ class PlacementScenario(Scenario):
         # A DM: its own bar heading and its own, independent view settings. The
         # sidebar may have re-rendered after the pane toggles, so re-fetch the
         # peer row from the current tree instead of reusing the stale handle.
-        peer = self.thread_row()
+        peer = await self.thread_row()
         app.open_row(peer)
         await self.opened(comms_view)
         dm_view = app.workspace_sessions.selected
@@ -1533,8 +1786,7 @@ class SlideScenario(Scenario):
         print("  opening slide frame gaps ms:", [round(gap * 1000, 1) for gap in gaps],
               "max", round(max(gaps, default=0) * 1000, 1), flush=True)
         await self.expand("#comms")
-        tops = list(app.sidebar.items())
-        comms = next(row for row in tops if isinstance(row, ConversationRow) and row.target.name == "#comms")
+        comms = await self.channel_row("#comms")
         app.open_row(comms)
         await until(lambda: app.tabs.count() == 1, "#comms tab")
         await asyncio.sleep(0.5)
@@ -1554,7 +1806,7 @@ class SlideScenario(Scenario):
             grew.append(app.tabs.tabRect(app.tabs.count() - 1).width())
             started.append(time.perf_counter())
         TabGrowth.apply_amount = widened
-        app.open_row(self.thread_row())
+        app.open_row(await self.thread_row())
         await until(lambda: app.tabs.count() == 2, "second tab")
         await until(lambda: not app.tabs.growing, "tab grown", tenths=50)
         TabGrowth.apply_amount = growing
@@ -1679,10 +1931,10 @@ class ChromeScenario(Scenario):
         app.resize(self.width, self.height)
         await asyncio.sleep(0.5)
         app.show_sidebar()
-        await self.channel_listed("#comms")
+        await self.channel_row("#comms")
         await self.expand("#comms")
         self.report("1-welcome", **self.geometry())
-        comms = self.channel_row("#comms")
+        comms = await self.channel_row("#comms")
         home = app.workspace_sessions.home
         app.open_row(comms)
         await until(lambda: self.page is not home and self.page.content_ready.is_set(), "#comms")
@@ -1703,7 +1955,7 @@ class ChromeScenario(Scenario):
         override.reset()
         # Step 7 reads the thread's configure form, which Core offers only a live native owner.
         native = await self.live_native_thread_rows()
-        peer = native[0] if native else self.thread_row()
+        peer = native[0] if native else await self.thread_row()
         before = self.page
         app.open_row(peer)
         await until(lambda: self.page is not before, "thread")
@@ -1788,8 +2040,8 @@ class WaveScenario(Scenario):
         await asyncio.sleep(1.0)
         tree = app.sidebar
         name = os.environ.get("TOAD_WAVE_THREAD")
-        row = self.thread_row() if not name else next(
-            line for line in self.rows(tree.items()) if isinstance(line, ConversationRow) and line.key == name)
+        row = await self.thread_row() if not name else await self.found(
+            lambda line: isinstance(line, ConversationRow) and line.key == name, f"thread {name}")
         tree.scrollToItem(row)
         await asyncio.sleep(0.5)
         cells = int(os.environ.get("TOAD_WAVE_CELLS", "0"))
@@ -1831,6 +2083,515 @@ class WaveScenario(Scenario):
             await asyncio.sleep(2.0)
             self.report("5-tab", waving_tabs=[mode for mode, wave in app.tabs.waves.items()
                                               if wave.wave_running()])
+
+
+class ArrivalScenario(Scenario):
+    summary = ("open TARGET (#scratch, or a scratch thread such as scratch-live-pipeline), send 3 "
+               "messages from the composer while a scratch sender (SENDER) posts 3 into it; log every "
+               "row-model update (keys and "
+               "message text added and removed) and sample the composer's queue rows every 16 ms; "
+               "report a message that leaves the rows and comes back, or a reflow of the queue rows")
+
+    width: ClassVar[int] = 412
+
+    @staticmethod
+    def label(fragment) -> str:
+        """What a reader sees of the row, and which row it is: a message whose row is replaced
+        under a new key shows up as its text leaving and coming back."""
+        text = " ".join(fragment.clipboard_text.split())[:48]
+        return f"{text} #{hash(fragment.key) & 0xffff:04x}"
+
+    async def run(self) -> None:
+        from toad.qt.history import HistoryRows
+        await self.listed()
+        app = self.app
+        app.resize(self.width, 915)
+        target = os.environ.get("TARGET", "#scratch")
+        if target.startswith("#"):
+            await self.channel_row(target)
+            await self.expand(target)
+            app.open_row(await self.channel_row(target))
+        else:
+            app.open_row(await self.listed_thread(target))
+        for tick in range(120):
+            page = self.page
+            rows = page.messages.model_rows.rowCount() if hasattr(page, "messages") else None
+            if tick % 4 == 0:
+                print(f"opening t={tick / 2:.1f}s page={type(page).__name__} rows={rows}", flush=True)
+            if rows:
+                break
+            await asyncio.sleep(0.5)
+        await asyncio.sleep(2.0)
+        view = self.page
+        rows: list[str] = []
+        updates: list[tuple[float, tuple, tuple]] = []
+        started = time.monotonic()
+        original = HistoryRows.show
+
+        first_shown: dict[str, float] = {}  # a row's full text, when it first showed
+        # When Core's revisions reach this app: the pace a burst can show at, at best.
+        from toad.client.connection import CoordinationAccess
+        revisions: list[float] = []
+        observed = CoordinationAccess.revision_observed
+
+        def revision_arrived(access, result, observing):
+            revisions.append(time.monotonic() - started)
+            return observed(access, result, observing)
+        CoordinationAccess.revision_observed = revision_arrived
+
+        def recorded(model, fragments):
+            before = {self.label(fragment) for fragment in model.fragments}
+            original(model, fragments)
+            for fragment in model.fragments:
+                first_shown.setdefault(fragment.clipboard_text, time.monotonic() - started)
+            after = {self.label(fragment) for fragment in model.fragments}
+            if model is not view.messages.model_rows:
+                print(f"show on another model: {type(model).__name__} rows={len(model.fragments)}", flush=True)
+            if before != after:
+                updates.append((time.monotonic() - started, tuple(sorted(after - before)),
+                                tuple(sorted(before - after))))
+        HistoryRows.show = recorded
+        stamp = time.strftime("%H:%M:%S")
+        # A row drawn plain before its styled formatting landed: counted per arriving message.
+        from pyqt_reactive.widgets.virtual_rows import PlainRow
+        delegate = view.messages.rows
+        plain: dict[str, int] = {}
+        original_formatting = getattr(type(delegate), "styled_formatting", None) or (
+            lambda rows, key, fragment, font, width: rows.keyed_formatting(
+                key, fragment.clipboard_text, rows.rendering(fragment, font, width)))
+
+        def watched(rows, key, fragment, font, width):
+            formatting = original_formatting(rows, key, fragment, font, width)
+            if isinstance(formatting, PlainRow) and stamp in fragment.clipboard_text:
+                label = " ".join(fragment.clipboard_text.split())[:48]
+                plain[label] = plain.get(label, 0) + 1
+            return formatting
+        type(delegate).styled_formatting = watched
+        risen: list[tuple[float, float]] = []
+        composer = view.composer
+        samples: list[tuple[float, bool, int, bool, int, str]] = []
+        scrolls: list[tuple[float, float]] = []
+
+        def sample() -> None:
+            window = view.messages
+            rising = getattr(window, "arrival_opacity", lambda key: None)  # absent before the fade
+            opacities = [opacity for fragment in window.model_rows.fragments
+                         if (opacity := rising(fragment.key)) is not None]
+            if opacities:
+                risen.append((round(time.monotonic() - started, 2), round(min(opacities), 2)))
+            scrolls.append((time.monotonic() - started, window.scroll_y))
+            samples.append((time.monotonic() - started, composer.submitting.isVisible(),
+                            composer.submitting.height(), composer.delivery_controls.isVisible(),
+                            view.messages.viewport().height(), composer.submitting.text()[:40]))
+        from PySide6.QtCore import QTimer
+        timer = QTimer()
+        timer.setInterval(16)
+        timer.timeout.connect(sample)
+        timer.start()
+        # The other party: in a channel, a scratch thread posting to it; in a thread's view, the
+        # thread itself replying to the user, the messages that view exists to show.
+        sender, recipient = (("scratch-live-pipeline", target) if target.startswith("#")
+                             else (target, "user"))
+        sender = os.environ.get("SENDER", sender)
+        refused: list[str] = []
+        posted: dict[int, float] = {}  # when each post's send returned, s after start
+        burst = int(os.environ.get("BURST", "3"))  # how many the sender posts at once
+
+        async def post(index: int) -> None:
+            # Under a CPU-throttled drive, the sender runs in a scope of its own (SENDER_SCOPE=1):
+            # its process start would otherwise spend the app's quota.
+            outside = ("systemd-run", "--user", "--scope", "-q") if os.environ.get("SENDER_SCOPE") else ()
+            process = await asyncio.create_subprocess_exec(
+                *outside, "agent-comms", "send", "--from", sender, "--to", recipient, "--type", "info",
+                "--body", f"arrival reply {index} {stamp}",
+                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+            _, error = await process.communicate()
+            posted[index] = time.monotonic() - started
+            if process.returncode:  # A refused post is a failed walk, never a quiet one.
+                refused.append(error.decode(errors="replace").strip()[-200:])
+        # How long each arrival-handling call holds the loop: the pager's publish into the rows,
+        # a relayout when a row's look lands, and the arrival repaint.
+        from toad.qt.history import QtConversationHistory as History, QtHistoryWindow as Window
+        held: dict[str, list[float]] = {}
+        timed = [(Window, "show_pages"), (Window, "rows_changed"), (Window, "show_draft"),
+                 (Window, "keep_reader"), (History, "repaint")]
+        originals = [(owner, name, getattr(owner, name)) for owner, name in timed]
+
+        def timing(name, call):
+            def wrapper(*arguments, **options):
+                begun, worked = time.perf_counter(), time.thread_time()
+                try:
+                    return call(*arguments, **options)
+                finally:
+                    held.setdefault(name, []).append(((time.perf_counter() - begun) * 1000,
+                                                      (time.thread_time() - worked) * 1000))
+            return wrapper
+        for owner, name, call in originals:
+            setattr(owner, name, timing(name, call))
+        scrolled_up = bool(os.environ.get("SCROLLED"))
+        window = view.messages
+        if scrolled_up:
+            # A reader scrolled up: arrivals must not move what they read, and the jump bar shows.
+            window.scroll_y = max(0, window.scroll_y - 300)
+            await asyncio.sleep(0.5)
+            top = window.indexAt(window.viewport().rect().topLeft())
+            reading = (self.label(top.data(HistoryRows.FRAGMENT)), window.visualRect(top).top())
+        posts = [asyncio.ensure_future(post(index)) for index in range(burst)]
+        for index in range(0 if scrolled_up else 3):
+            composer.editor.setPlainText(f"arrival send {index} {stamp}")
+            composer.submit()
+            await asyncio.sleep(0.25)
+        await asyncio.gather(*posts)
+        if refused:
+            raise RuntimeError(f"the scratch sender's posts were refused: {refused}")
+        await asyncio.sleep(8.0)
+        print("final rows:", view.messages.model_rows.rowCount(),
+              [self.label(f) for f in view.messages.model_rows.fragments][-8:], flush=True)
+        timer.stop()
+        HistoryRows.show = original
+        type(delegate).styled_formatting = original_formatting
+        appeared: dict[str, list[str]] = {}
+        for at, added, removed in updates:
+            for text in added:
+                appeared.setdefault(text, []).append(f"+{at:.2f}")
+            for text in removed:
+                appeared.setdefault(text, []).append(f"-{at:.2f}")
+            print(f"update {at:6.2f}s +{list(added)} -{list(removed)}", flush=True)
+        by_text: dict[str, list[str]] = {}
+        for label, marks in appeared.items():
+            by_text.setdefault(label.rsplit(" #", 1)[0], []).extend(f"{mark}{label[-5:]}" for mark in marks)
+        # Each posted message's wait: from its send returning to its row first showing.
+        shown_at = {index: min((at for text, at in first_shown.items()
+                                if f"arrival reply {index} {stamp}" in text), default=None)
+                    for index in posted}
+        print("posted at (s):", sorted(round(at, 2) for at in posted.values()), flush=True)
+        print("revisions arrived (s):", [round(at, 2) for at in revisions if at > min(posted.values(), default=0) - 1], flush=True)
+        CoordinationAccess.revision_observed = observed
+        print("shown at (s):", sorted(round(at, 2) for at in shown_at.values() if at is not None), flush=True)
+        waits = sorted(round(shown_at[index] - posted[index], 2) for index in posted if shown_at[index] is not None)
+        print(f"burst of {burst}: {len(waits)} shown; wait from send to row (s): "
+              f"median {waits[len(waits) // 2] if waits else None}, max {waits[-1] if waits else None}; "
+              f"never shown {[index for index in posted if shown_at[index] is None]}", flush=True)
+        # A message that leaves the rows after it showed, or shows under two keys, flickers.
+        flicker = {text: sorted(marks, key=lambda mark: float(mark[1:].split("#")[0]))
+                   for text, marks in by_text.items() if stamp in text and len(marks) > 1}
+        toggles = [(round(at, 2), shown, height, controls, viewport, text)
+                   for (at, shown, height, controls, viewport, text), previous in zip(samples[1:], samples)
+                   if (shown, height, controls, viewport, text) != previous[1:]]
+        # A queue row hidden and shown again within a second is the pop out and in.
+        hidden = [at for (at, shown, *_), previous in zip(samples[1:], samples) if previous[1] and not shown]
+        reshown = [at for (at, shown, *_), previous in zip(samples[1:], samples) if shown and not previous[1]]
+        flips = [(round(a, 2), round(b, 2)) for a in hidden for b in reshown if 0 < b - a < 1.0]
+        print("queue first/last sample:", samples[:1], samples[-1:], flush=True)
+        print("queue/viewport changes (t, summary shown, summary h, controls shown, viewport h):", flush=True)
+        for change in toggles:
+            print("  ", change, flush=True)
+        if scrolled_up:
+            row = window.model_rows.row_of(next(f.key for f in window.model_rows.fragments
+                                                  if self.label(f) == reading[0]))
+            print("scrolled reader: row", reading, "is now at", window.visualRect(window.model_rows.index(row, 0)).top(),
+                  "jump bar shown:", window.jump_bar.jump_shown, "following:", window.follows_tail, flush=True)
+        jumps = [round(after - before, 1) for (_, before), (_, after) in zip(scrolls, scrolls[1:])
+                 if after != before]
+        print("rise (t, least opacity of the rising rows):", risen[:6], "...", risen[-3:], flush=True)
+        print("scroll steps while following (px per 16 ms):", jumps, flush=True)
+        for owner, name, call in originals:
+            setattr(owner, name, call)
+        # Wall time includes a CPU quota's freezes; thread CPU time is the work itself.
+        print("arrival handling per call (calls, wall max ms, CPU median ms, CPU max ms):",
+              {name: (len(times), round(max(wall for wall, _ in times), 1),
+                      round(sorted(cpu for _, cpu in times)[len(times) // 2], 1), round(max(cpu for _, cpu in times), 1))
+               for name, times in held.items()}, flush=True)
+        # The 16 ms sampler is late by however long the loop was held: the longest stall.
+        gaps = sorted(round((after[0] - before[0]) * 1000) for before, after in zip(samples, samples[1:]))
+        print("loop gaps ms (p50, p95, max):", gaps[len(gaps) // 2], gaps[int(len(gaps) * 0.95)], gaps[-1], flush=True)
+        near = [round((after[0] - before[0]) * 1000) for before, after in zip(samples, samples[1:])
+                if any(at - 0.05 <= after[0] <= at + 0.5 for at, _, _ in updates)]
+        print("longest stall within 0.5 s of a history update (ms):", max(near, default=0),
+              "elsewhere:", max((round((after[0] - before[0]) * 1000) for before, after in zip(samples, samples[1:])
+                                 if not any(at - 0.05 <= after[0] <= at + 0.5 for at, _, _ in updates)), default=0),
+              flush=True)
+        print("longest gaps (ended at s, ms):", sorted(((round(after[0], 2), round((after[0] - before[0]) * 1000))
+                                                      for before, after in zip(samples, samples[1:])),
+                                                     key=lambda gap: -gap[1])[:6], flush=True)
+        self.report("arrival", updates=len(updates), longest_stall_ms=gaps[-1], flicker=flicker, plain_first_draws=plain, queue_hide_then_show=flips,
+                    queue_changes=len(toggles), largest_scroll_step=max(map(abs, jumps), default=0))
+
+
+class CliSyncScenario(Scenario):
+    summary = ("open TARGET (a Claude Code session's thread) and follow TRANSCRIPT (that session's "
+               "JSONL, what its CLI shows) for DURATION seconds; every SYNCPROBE-<stamp>-<name> "
+               "token is timed when the CLI's transcript gains it and when the Qt view's rows first "
+               "show it, and the window is recorded every FRAME_MS ms; prints the lag per token")
+
+    token = r"SYNCPROBE-\d+-[A-Za-z]+\d*"
+    width: ClassVar[int] = 412
+
+    def shown_texts(self) -> list[str]:
+        """Every row the reader's view holds, saved or still live: the model's own fragments."""
+        from toad.qt.history import HistoryRows
+        rows = self.page.messages.model_rows
+        return [rows.index(row).data(HistoryRows.FRAGMENT).clipboard_text for row in range(rows.rowCount())]
+
+    async def run(self) -> None:
+        import json
+        import re
+        from PySide6.QtCore import QTimer
+        target = os.environ["TARGET"]
+        transcript = Path(os.environ["TRANSCRIPT"])
+        duration = float(os.environ.get("DURATION", "240"))
+        frame_ms = int(os.environ.get("FRAME_MS", "200"))
+        self.app.resize(self.width, 915)
+        await self.listed()
+        await self.open(await self.found(lambda row: isinstance(row, ConversationRow)
+                                         and target in (row.key, row.target.name),
+                                         f"thread {target}", rows=self.thread_rows), target)
+        self.report("1-opened", rows=self.page.messages.model_rows.rowCount())
+        pattern = re.compile(self.token)
+        cli: dict[str, tuple[float, str]] = {}
+        qt: dict[str, float] = {}
+        frames = self.out / "frames"
+        frames.mkdir(exist_ok=True)
+        source = transcript.open("rb")
+        source.seek(0, os.SEEK_END)
+        pending = b""
+        frame = 0
+        print(f"following {transcript} from byte {source.tell()}; recording every {frame_ms} ms", flush=True)
+        # Core asked directly each second, beside the observation the view follows: a token Core
+        # serves on asking but the view has not shown is held in the push, not in Core's read.
+        import threading
+        from agent_comms.nominal.field_codec import FieldCodec
+        from agent_comms.transport.tools.reads import TranscriptPageRead
+        core_seen: dict[str, float] = {}
+        reading = threading.Event()
+        reading.set()
+        asked = self.app.coordination_access.open_current().core
+
+        def ask_core() -> None:
+            while reading.is_set():
+                begun = time.time()
+                try:
+                    text = json.dumps(FieldCodec.encode(asked.call(TranscriptPageRead(thread=target))))
+                except Exception as error:  # a failed read is printed, never a quiet gap
+                    print(f"core read failed: {error!r}"[:200], flush=True)
+                    text = ""
+                for name in set(pattern.findall(text)) - core_seen.keys():
+                    core_seen[name] = begun
+                    print(f"core  {name} at {begun:.3f} (read took {time.time() - begun:.2f}s)", flush=True)
+                time.sleep(max(0.0, 1.0 - (time.time() - begun)))
+        asker = threading.Thread(target=ask_core, daemon=True)
+        asker.start()
+
+        def poll() -> None:
+            nonlocal pending
+            now = time.time()
+            pending += source.read()
+            *lines, pending = pending.split(b"\n")
+            for line in lines:
+                tokens = set(pattern.findall(line.decode(errors="replace")))
+                if not tokens:
+                    continue
+                written = json.loads(line).get("timestamp", "")
+                for name in tokens - cli.keys():
+                    cli[name] = (now, written)
+                    print(f"cli   {name} at {now:.3f} (line stamped {written})", flush=True)
+            for text in self.shown_texts():
+                for name in set(pattern.findall(text)) - qt.keys():
+                    qt[name] = now
+                    print(f"qt    {name} at {now:.3f}", flush=True)
+
+        def record() -> None:
+            nonlocal frame
+            stamp = time.strftime("%H%M%S", time.localtime()) + f"{time.time() % 1:.2f}"[1:]
+            self.app.grab().save(str(frames / f"{frame:05d}-{stamp}.jpg"), "JPG", 70)
+            frame += 1
+        timers = []
+        for interval, call in ((50, poll), (frame_ms, record)):
+            timer = QTimer()
+            timer.setInterval(interval)
+            timer.timeout.connect(call)
+            timer.start()
+            timers.append(timer)
+        started = time.monotonic()
+        while time.monotonic() - started < duration:
+            ends = [name for name in cli if name.endswith("-END")]
+            if ends and ends[0] in qt:
+                await asyncio.sleep(2.0)
+                break
+            await asyncio.sleep(0.25)
+        for timer in timers:
+            timer.stop()
+        reading.clear()
+        poll()
+        rows = []
+        for name in sorted(cli, key=lambda name: cli[name][0]):
+            seen, written = cli[name]
+            lag = None if name not in qt else round((qt[name] - seen) * 1000)
+            served = None if name not in core_seen else round((core_seen[name] - seen) * 1000)
+            rows.append({"token": name, "cli": round(seen, 3), "line_timestamp": written,
+                         "core": core_seen.get(name), "core_ms": served,
+                         "qt": qt.get(name), "lag_ms": lag})
+            print(f"lag {name}: core {'never' if served is None else f'{served} ms'}, "
+                  f"view {'never shown' if lag is None else f'{lag} ms'}", flush=True)
+        only_qt = sorted(set(qt) - set(cli))
+        (self.out / "sync.json").write_text(json.dumps({"tokens": rows, "qt_only": only_qt}, indent=1))
+        lags = sorted(row["lag_ms"] for row in rows if row["lag_ms"] is not None)
+        if lags:
+            print(f"lag over {len(lags)} tokens: min {lags[0]} ms, median {lags[len(lags) // 2]} ms, "
+                  f"max {lags[-1]} ms; {len(rows) - len(lags)} never shown; {frame} frames", flush=True)
+        self.report("2-done", tokens=len(rows), shown=len(lags))
+
+
+class IdleScenario(Scenario):
+    summary = ("sit on the welcome sidebar for SETTLE seconds, then open TARGET (#channel or "
+               "thread) and sit for DURATION seconds, touching nothing; every 5 s print this "
+               "process's CPU use and its busiest threads, the UI's own cost of following the bus")
+
+    @staticmethod
+    def thread_ticks() -> dict[str, int]:
+        """CPU ticks per thread name, from /proc: utime + stime."""
+        ticks: dict[str, int] = {}
+        for task in Path("/proc/self/task").iterdir():
+            try:
+                stat = (task / "stat").read_text()
+            except OSError:
+                continue
+            name = stat[stat.index("(") + 1:stat.rindex(")")]
+            fields = stat[stat.rindex(")") + 2:].split()
+            ticks[name] = ticks.get(name, 0) + int(fields[11]) + int(fields[12])
+        return ticks
+
+    async def sample(self, label: str, seconds: float) -> list[float]:
+        hertz = os.sysconf("SC_CLK_TCK")
+        shares: list[float] = []
+        ended = time.monotonic() + seconds
+        while time.monotonic() < ended:
+            wall, cpu, before = time.monotonic(), time.process_time(), self.thread_ticks()
+            await asyncio.sleep(5.0)
+            share = 100 * (time.process_time() - cpu) / (time.monotonic() - wall)
+            shares.append(share)
+            after = self.thread_ticks()
+            busiest = sorted(((after[name] - before.get(name, 0)) / hertz / 5 * 100, name)
+                             for name in after)[-3:]
+            waves = self.waves
+            print(f"{label} cpu {share:5.1f}%  busiest: "
+                  + ", ".join(f"{name} {percent:.0f}%" for percent, name in reversed(busiest))
+                  + f"  wave: {waves['frames'] / 5:.0f} row repaints/s over {len(waves['rows'])} rows, "
+                  f"{waves['moved'] / 5:.0f}/s moved the band", flush=True)
+            waves.update(frames=0, moved=0, rows=set())
+        return shares
+
+    async def run(self) -> None:
+        settle = float(os.environ.get("SETTLE", "60"))
+        duration = float(os.environ.get("DURATION", "120"))
+        target = os.environ["TARGET"]
+        # Each sidebar wave frame repaints its row; a frame whose band covers the same cells as
+        # the last one paints the same pixels. Counted, so the sample says what the clock costs.
+        waves = {"frames": 0, "moved": 0, "rows": set()}
+        spans: dict[int, object] = {}
+        original = ConversationRow.repaint
+
+        def counted(row) -> None:
+            span = row.wave_span()
+            waves["frames"] += 1
+            waves["rows"].add(id(row))
+            if spans.get(id(row)) != span:
+                waves["moved"] += 1
+                spans[id(row)] = span
+            original(row)
+        ConversationRow.repaint = counted
+        self.waves = waves
+        await self.listed()
+        home = await self.sample("home", settle)
+        await self.open_named(target)
+        self.report("1-opened", rows=self.page.messages.model_rows.rowCount())
+        opened = await self.sample(target, duration)
+        for label, shares in (("home", home), (target, opened)):
+            ordered = sorted(shares)
+            print(f"{label}: median {ordered[len(ordered) // 2]:.1f}% cpu, max {ordered[-1]:.1f}% "
+                  f"over {len(shares) * 5} s", flush=True)
+        self.report("2-done", rows=self.page.messages.model_rows.rowCount())
+
+
+class PeerProfileScenario(Scenario):
+    summary = ("ask PEER (a tailnet machine, at ADDRESS) for a UI profile as the app's own "
+               "bus picker does, replacing the profile held for it; prints what the peer answered")
+
+    async def run(self) -> None:
+        from agent_comms.transport.tailnet_buses import NamedHost, TailnetPeer
+        from agent_comms.transport.tailnet_profiles import TailnetProfiles
+        await self.listed()
+        found = NamedHost(peer=TailnetPeer(name=os.environ["PEER"], address=os.environ["ADDRESS"], online=True))
+        asked = await asyncio.to_thread(self.app.hold_peer_profile, found)
+        print(f"peer answered: {type(asked).__name__}; held at {TailnetProfiles.path_for(found)}", flush=True)
+
+
+class DeliveryPreviewScenario(Scenario):
+    summary = ("open TARGET (#scratch), send 2 messages with ui.input.delivery_preview on, then 2 with "
+               "it off, turning it off and on live: the queue rows show only while it is on, the info "
+               "bar's held count only while it is off, and the history keeps its height while it is off")
+
+    width: ClassVar[int] = 412
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(self.width, 915)
+        await self.open_named(os.environ.get("TARGET", "#scratch"))
+        view = self.page
+        composer = view.composer
+        samples: list[tuple[bool, bool, bool, int, str]] = []
+
+        def sample() -> None:
+            samples.append((composer.submitting.isVisible(), composer.delivery_controls.isVisible(),
+                            composer.held.isVisible(), view.messages.viewport().height(), composer.held.text()))
+        from PySide6.QtCore import QTimer
+        timer = QTimer()
+        timer.setInterval(16)
+        timer.timeout.connect(sample)
+        stamp = time.strftime("%H:%M:%S")
+
+        async def send(phase: str) -> list[tuple[bool, bool, bool, int, str]]:
+            samples.clear()
+            timer.start()
+            for index in range(2):
+                composer.editor.setPlainText(f"delivery preview {phase} {index} {stamp}")
+                composer.submit()
+                await asyncio.sleep(0.1)
+            await asyncio.sleep(6.0)
+            timer.stop()
+            return list(samples)
+
+        def setting(shown: bool) -> None:
+            app.saved_settings.set(SETTINGS.ui.input.delivery_preview, shown)
+        faults: list[str] = []
+        try:
+            setting(True)
+            await asyncio.sleep(0.5)
+            on = await send("on")
+            self.report("1-preview-on", summary_shown=any(s for s, *_ in on),
+                        held_shown=any(h for _, _, h, *_ in on))
+            if any(h for _, _, h, *_ in on):
+                faults.append("the held count showed while the preview was on")
+            setting(False)
+            await asyncio.sleep(0.5)
+            off = await send("off")
+            heights = sorted({height for *_, height, _ in off})
+            self.report("2-preview-off", summary_shown=any(s for s, *_ in off),
+                        controls_shown=any(c for _, c, *_ in off), held=sorted({text for *_, text in off} - {""}),
+                        viewport_heights=heights)
+            if any(s or c for s, c, *_ in off):
+                faults.append("a queue row showed while the preview was off")
+            if len(heights) > 1:
+                faults.append(f"the history changed height while the preview was off: {heights}")
+            setting(True)
+            await asyncio.sleep(0.5)
+            self.report("3-preview-on-again", held_shown=composer.held.isVisible())
+            if composer.held.isVisible():
+                faults.append("the held count stayed after the preview came back")
+        finally:
+            setting(True)
+        if faults:
+            raise AssertionError("; ".join(faults))
 
 
 class FrameScenario(Scenario):
@@ -1895,6 +2656,54 @@ class FrameScenario(Scenario):
                     timed(qt_history.QtHistoryWindow, name, f"window.{name}")
             timed(qt_history.HistoryRows, "show", "rows.show")
             timed(virtual_rows.RowDocumentDelegate, "_row_prepared", "delegate._row_prepared")
+        if os.environ.get("FRAME_TIME_OPEN"):
+            # What opening a page costs, by owner (tools only).
+            from objectstate.lazy_factory import LazyDataclassFactory
+            from pyqt_reactive.widgets import virtual_rows
+            from toad import object_configuration
+            from toad.qt import history as qt_history
+            def timed_open(owner, attribute, label):
+                original = owner.__dict__[attribute]
+                wrap = type(original) if isinstance(original, (staticmethod, classmethod)) else None
+                function = original.__func__ if wrap else original
+                def wrapper(*args, **kwargs):
+                    started = time.perf_counter()
+                    try:
+                        return function(*args, **kwargs)
+                    finally:
+                        timings.setdefault(label, []).append((time.perf_counter() - started) * 1000)
+                setattr(owner, attribute, wrap(wrapper) if wrap else wrapper)
+            timed_open(object_configuration.ObjectConfiguration, "__init__", "open.view_configuration")
+            timed_open(LazyDataclassFactory, "make_lazy_simple", "open.lazy_type")
+            # A settings write, and its two registry-wide parts.
+            from objectstate import ObjectStateRegistry
+            from toad.preferences import SavedSettings
+            timed_open(SavedSettings, "set", "write.settings_set")
+            timed_open(ObjectStateRegistry, "_record_snapshot_internal", "write.snapshot")
+            timed_open(ObjectStateRegistry, "invalidate_by_type_and_scope", "write.invalidate")
+            delegate = virtual_rows.RowDocumentDelegate
+            for name in ("sizeHint", "row_document", "measured_height", "_row_prepared", "_rows_prepared",
+                         "_update_viewport"):
+                if name in delegate.__dict__:
+                    timed_open(delegate, name, f"rows.{name}")
+            for name in ("rows_changed", "show_pages"):
+                timed_open(qt_history.QtHistoryWindow, name, f"window.{name}")
+            for name in ("new_document", "final_document"):
+                if name in delegate.__dict__:
+                    timed_open(delegate, name, f"rows.{name}")
+            for name in ("fragment_height", "block_row"):
+                timed_open(qt_history.HistoryRowDelegate, name, f"history.{name}")
+            # The composer's mount after the first paint, and whether its placeholder held its height.
+            from toad.qt.conversation import QtConversation
+            timed_open(QtConversation, "mount_composer", "open.composer_mount")
+            remember = QtConversation.remember_composer_height
+
+            def compared(view, composer) -> None:
+                placeholder = view.composer_heights.get(type(view), view.estimated_composer_height())
+                print(f"  composer {type(view).__name__}: placeholder {placeholder}px, built {composer.sizeHint().height()}px (given {composer.height()}px)",
+                      flush=True)
+                remember(view, composer)
+            QtConversation.remember_composer_height = compared
         self.timings = timings
 
     def write_timings(self, probe) -> None:
@@ -2017,6 +2826,9 @@ class ActionsScenario(FrameScenario):
         await asyncio.sleep(self.settle)
         probe.sink.write(f"action {name}: trigger_returned_ms={took:.0f}\n")
         probe.report(time.perf_counter())
+        # The owners' calls this action made, then a fresh count for the next one.
+        self.write_timings(probe)
+        self.timings.clear()
 
     async def run(self) -> None:
         app = self.app
@@ -2026,23 +2838,24 @@ class ActionsScenario(FrameScenario):
         probe.REPORT_SECONDS = 1e9  # one summary per action, written by `action`
         self.install_timings()
         await self.listed()
-        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == "#comms"
-                                for row in app.sidebar.items()), "#comms row")
+        await self.channel_row("#comms")
         app.show_sidebar()
         await asyncio.sleep(2.0)
         home = app.workspace_sessions.home
-        await self.action(probe, "open #comms (tap its row, cold)", lambda: self.tap_row(self.channel_row("#comms")))
+        comms = await self.channel_row("#comms")
+        await self.action(probe, "open #comms (tap its row, cold)", lambda: self.tap_row(comms))
         await until(lambda: self.page is not home, "#comms open")
         if any(isinstance(row, ConversationRow) and row.target.name == "#scratch" for row in app.sidebar.items()):
             before = self.page
+            scratch = await self.channel_row("#scratch")
             await self.action(probe, "open #scratch (a second channel, cold)",
-                              lambda: self.tap_row(self.channel_row("#scratch")))
+                              lambda: self.tap_row(scratch))
             await until(lambda: self.page is not before, "#scratch open")
-        group = next(row for row in app.sidebar.items()
-                     if isinstance(row, ConversationRow) and row.childCount() and not row.isExpanded())
+        group = await self.found(lambda row: isinstance(row, ConversationRow) and row.childCount()
+                                 and not row.isExpanded(), "closed channel group", rows=app.sidebar.items)
         await self.action(probe, f"expand channel group {group.key}", lambda: app.sidebar.expandItem(group))
-        thread = next(row for row in self.rows(app.sidebar.items())
-                      if isinstance(row, ConversationRow) and row.key == "scratch-live-pipeline")
+        thread = await self.found(lambda row: isinstance(row, ConversationRow) and row.key == "scratch-live-pipeline",
+                                  "thread scratch-live-pipeline")
         before = self.page
         await self.action(probe, "open thread scratch-live-pipeline (tap its row, cold)", lambda: self.tap_row(thread))
         await until(lambda: self.page is not before, "thread open")
@@ -2083,8 +2896,8 @@ class GoalScenario(Scenario):
         app = self.app
         app.resize(self.width, 915)
         await self.expand("Threads")
-        row = next(row for row in self.rows(app.sidebar.items())
-                   if isinstance(row, ConversationRow) and row.target.name == self.peer)
+        row = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name == self.peer,
+                               f"thread {self.peer}")
         home = app.workspace_sessions.home
         app.open_row(row)
         await until(lambda: self.page is not home and self.bar() is not None, "dm")
@@ -2257,6 +3070,174 @@ class SettingsReadScenario(Scenario):
             print(f"{path.value}: read={shown(field.value)!r} "
                   f"draws={reading() if reading else '-'!r}", flush=True)
         app.grab().save(str(self.out / "settingsread-end.png"))
+class HoldScenario(Scenario):
+    summary = ("at a Pixel 8a's size, with real touch through the window and the phone's touch-as-mouse "
+               "gesture: hold a finger on a sidebar channel, on a history row and on a tab; each that "
+               "offers a menu on right-click opens the same menu, and letting go doesn't also tap it. A "
+               "hold then a drag scrolls with no menu, and a tap still opens a row")
+
+    @classmethod
+    def finger_gesture(cls) -> FingerScrollGesture:
+        return TouchAsMouse()
+
+    def __init__(self, app: QtToadApp, out: Path) -> None:
+        super().__init__(app, out)
+        self.finger = QTest.createTouchDevice()
+        self.faults: list[str] = []
+
+    async def touch(self, widget: QWidget, point: QPoint, held_ms: int, moves: tuple[int, ...] = ()) -> None:
+        """A finger down at `point` (in `widget`), held for `held_ms`, moved up by each of
+        `moves` pixels a frame apart, then lifted, through the window as Android delivers it."""
+        window = widget.window()
+        handle, at = window.windowHandle(), widget.mapTo(window, point)
+        await self.dispatched(lambda: QTest.touchEvent(handle, self.finger).press(0, at).commit())
+        await asyncio.sleep(held_ms / 1000)
+        for step in moves:
+            at = at - QPoint(0, step)
+            await self.dispatched(lambda: QTest.touchEvent(handle, self.finger).move(0, at).commit())
+            await asyncio.sleep(0.016)
+        await self.dispatched(lambda: QTest.touchEvent(handle, self.finger).release(0, at).commit())
+        await asyncio.sleep(0.6)
+
+    @staticmethod
+    async def dispatched(deliver) -> None:
+        """Deliver input through the window from Qt's own dispatch, as the platform does: the
+        window processes Qt's events at once, which from inside this scenario's asyncio task
+        would enter the loop's other tasks within it."""
+        done = asyncio.get_running_loop().create_future()
+
+        def run() -> None:
+            deliver()
+            done.set_result(None)
+
+        QTimer.singleShot(0, run)
+        await done
+
+    def menu(self) -> list[str]:
+        """The menu the window shows, row by row, or nothing when it is closed."""
+        panel = self.app.menu_panel
+        return [row.label.text() for row in panel.findChildren(QtMenuRow)] if panel.isVisible() else []
+
+    def close_menu(self) -> None:
+        self.app.menu_panel.hide()
+
+    async def right_click(self, widget: QWidget, point: QPoint) -> list[str]:
+        """A mouse's right button at `point`, through the window, where Qt turns it into the
+        context-menu request (a widget-level click skips that)."""
+        window = widget.window()
+        handle, at = window.windowHandle(), widget.mapTo(window, point)
+        await self.dispatched(lambda: QTest.mouseClick(handle, Qt.MouseButton.RightButton,
+                                                       Qt.KeyboardModifier.NoModifier, at))
+        await asyncio.sleep(0.4)
+        clicked = self.menu()
+        self.close_menu()
+        return clicked
+
+    def expect(self, step: str, fact: bool, said: str) -> None:
+        if not fact:
+            self.faults.append(f"{step}: {said}")
+
+    async def held_menu(self, step: str, widget: QWidget, point: QPoint) -> None:
+        """A hold opens the menu a right-click opens there, and its release taps nothing."""
+        page = self.page
+        # The right-click first: what a mouse offers there before any finger has touched. When
+        # a menu panel moves the layout under a held finger, Qt routes the next mouse
+        # right-click to the widget that was under that point (Qt's own state, with or without
+        # FingerPress), which a phone, having no mouse, never meets.
+        clicked = await self.right_click(widget, point)
+        # The menu panel sits in the window's layout: the rows return to where they were
+        # only once it is gone.
+        await asyncio.sleep(0.4)
+        await self.touch(widget, point, 1100)
+        held = self.menu()
+        self.report(step, menu=held)
+        self.close_menu()
+        await asyncio.sleep(0.4)
+        self.expect(step, bool(held), "a held finger opened no menu")
+        self.expect(step, held == clicked, f"the hold's menu {held} is not the right-click's {clicked}")
+        self.expect(step, self.page is page, f"letting go opened {type(self.page).__name__}")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        await self.open_named("#comms")
+        tree = app.sidebar
+        await self.expand("#comms")
+        # 1. A sidebar row that isn't open: the hold offers its menu, and letting go doesn't open it.
+        other = await self.found(lambda row: isinstance(row, ConversationRow) and row.target.name != "#comms"
+                                 and not tree.visualItemRect(row).isEmpty(), "another listed row")
+        held_on: list[str] = []
+        FingerPress.install(QApplication.instance()).long_pressed.connect(
+            lambda press: held_on.append(type(press.target).__name__))
+        clicked: list[str] = []
+        tree.itemClicked.connect(lambda item: clicked.append(item.key))
+        # A channel's line has its order control drawn over it: the hold lands on that overlay.
+        await self.held_menu("1-sidebar-row", tree.viewport(), tree.visualItemRect(other).center())
+        # 1b. A thread's line, which has no control drawn over it.
+        thread = await self.found(lambda row: isinstance(row, ConversationRow) and row.parent() is not None
+                                  and not tree.visualItemRect(row).isEmpty(), "a listed thread line")
+        await self.held_menu("1b-thread-line", tree.viewport(), tree.visualItemRect(thread).center())
+        print(f"1-sidebar: held on {held_on}; rows a release clicked {clicked}", flush=True)
+        self.expect("1-sidebar", not clicked, f"letting go of a hold clicked {clicked}")
+        # 2. A message row in the history: its block menu.
+        # A point a third down the rows: a long row's centre can lie off the page, the sticky
+        # header covers the top and the floating "back to bottom" bar the bottom, and a hold on
+        # either is that control's own press.
+        history = self.page.messages
+        viewport = history.viewport()
+        on_row = QPoint(viewport.width() // 4, viewport.height() // 3)
+        self.expect("2-history-row", history.indexAt(on_row).isValid(), "no message row under the held point")
+        requested: list[str] = []
+        history.block_menu_requested.connect(lambda fragment: requested.append(type(fragment).__name__))
+        await self.held_menu("2-history-row", viewport, on_row)
+        print(f"2-history-row: block menu asked for {requested}", flush=True)
+        # 3. A tab offers no menu on right-click: a hold there stays the tab's press.
+        tabs = app.tabs
+        await self.touch(tabs, tabs.tabRect(0).center(), 1100)
+        self.report("3-tab", menu=self.menu())
+        self.expect("3-tab", not self.menu(), f"a tab offered a menu {self.menu()} a right-click doesn't")
+        self.close_menu()
+        # 4. A hold that then drags scrolls the history, and opens no menu.
+        bar = history.verticalScrollBar()
+        bar.setValue(bar.maximum())
+        await asyncio.sleep(0.4)
+        before = bar.value()
+        viewport = history.viewport()
+        await self.touch(viewport, QPoint(viewport.width() // 2, int(viewport.height() * 0.3)), 300,
+                         moves=(-24,) * 14)
+        await asyncio.sleep(1.0)
+        self.report("4-hold-then-drag", scrolled=(before, bar.value()), menu=self.menu())
+        self.expect("4-hold-then-drag", bar.value() != before, "the drag after a short hold didn't scroll")
+        self.expect("4-hold-then-drag", not self.menu(), f"the drag opened a menu {self.menu()}")
+        self.close_menu()
+        # 5. A tap still opens a row.
+        page = self.page
+        await self.touch(tree.viewport(), tree.visualItemRect(other).center(), 60)
+        await until(lambda: self.page is not page and not isinstance(self.page, QtOpeningSessionView), "tapped row")
+        self.report("5-tap-opens")
+        # 6. A thread's Comms rows (the thread pane) offer Open / Copy, as Textual's do.
+        await self.open_named("scratch-live-pipeline")
+        # A phone's pane gives the Comms tree under its category toggles little room: a
+        # taller window shows its rows.
+        app.resize(412, 1600)
+        app.thread_side.toggle_pane()
+        await asyncio.sleep(1.0)
+        picker = app.thread_pane.menu.picker
+        picker.setCurrentIndex([picker.itemText(index) for index in range(picker.count())].index("Comms"))
+        panel: QtThreadCommsPanel = app.thread_pane._comms_panel
+        comms = panel._tree
+
+        def entry_rows():
+            return [item for item in comms.findItems("", Qt.MatchFlag.MatchContains | Qt.MatchFlag.MatchRecursive)
+                    if panel._row_entry(item) is not None
+                    and comms.viewport().rect().contains(comms.visualItemRect(item).center())]
+
+        await until(lambda: comms.isVisible() and entry_rows(), "a Comms relationship row")
+        await self.held_menu("6-comms-row", comms.viewport(), comms.visualItemRect(entry_rows()[0]).center())
+        if self.faults:
+            raise AssertionError("\n".join(self.faults))
+
+
 class FingerScenario(Scenario):
     summary = ("at a Pixel 8a's width with the phone's touch-as-mouse gesture: drag every visible "
                "scroll area by finger on the welcome, sidebar, #comms, the multi-line composer, the "
@@ -2354,14 +3335,13 @@ class FingerScenario(Scenario):
         app.resize(412, 640)
         await asyncio.sleep(0.5)
         app.show_sidebar()
-        await until(lambda: any(isinstance(row, ConversationRow) and row.target.name == "#comms"
-                                for row in app.sidebar.items()), "#comms listed", tenths=200)
+        await self.channel_row("#comms")
         await self.expand("#comms", "#any")
         await self.exercise("1-welcome-sidebar")
         # A tap on a sidebar row still opens it: the scroller holds the press back, then
         # delivers it when the finger lifts without dragging.
         tree = app.sidebar
-        comms = self.channel_row("#comms")
+        comms = await self.channel_row("#comms")
         tree.scrollToItem(comms)
         await asyncio.sleep(0.3)
         home = app.workspace_sessions.home
@@ -2450,10 +3430,10 @@ class FingerScenario(Scenario):
         print("  no checkable button visible in a scrolled form", flush=True)
 
 
-async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
+async def drive(scenario: type[Scenario], connection: CoreConnection, out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     WirePageBuffer.mark_page = record_mark
-    app = await open_app(RemoteCoreConnection.read(profile), Checkout(PROJECT), current_scheme(os.environ))
+    app = await open_app(connection, Checkout(PROJECT), current_scheme(os.environ))
     try:
         await scenario(app, out).run()
     finally:
@@ -2463,17 +3443,40 @@ async def drive(scenario: type[Scenario], profile: Path, out: Path) -> None:
         await app.close_client()
 
 
+def time_settings_writes() -> None:
+    """FRAME_TIME_WRITES: each settings write's time, with the registered states and how many
+    a write left changed for its snapshot (tools only)."""
+    from objectstate import ObjectStateRegistry
+    from toad.preferences import SavedSettings
+    write = SavedSettings.set
+
+    def timed(self, path, value) -> None:
+        states = len(ObjectStateRegistry._states)
+        started = time.perf_counter()
+        try:
+            write(self, path, value)
+        finally:
+            took = (time.perf_counter() - started) * 1000
+            print(f"  settings write {path}: {took:.1f} ms, {states} states", flush=True)
+    SavedSettings.set = timed
+
+
 def main(arguments: list[str]) -> None:
-    if len(arguments) != 4:
+    own = arguments[1:]
+    connection = select_connection(own) if len(own) == 4 else None
+    if connection is None or len(own) != 2:
         names = "\n".join(f"  {member.declared_name:10} {member.summary}" for member in Scenario.members_with(Scenario))
-        raise SystemExit(f"usage: {arguments[0]} SCENARIO PROFILE OUTDIR\n{names}")
-    scenario = Scenario.member_named(arguments[1])
+        raise SystemExit(f"usage: {arguments[0]} SCENARIO OUTDIR (--comms-profile PROFILE | --comms-root ROOT)\n{names}")
+    scenario = Scenario.member_named(own[0])
+    if os.environ.get("FRAME_TIME_WRITES"):
+        time_settings_writes()
     application = FrameProbe.application(arguments[:1])
     install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())
     watch = StrayWindows()
     application.installEventFilter(watch)
-    qasync.run(drive(scenario, Path(arguments[2]), Path(arguments[3])))
+    scenario.before_open()
+    qasync.run(drive(scenario, connection, Path(own[1])))
 
 
 if __name__ == "__main__":

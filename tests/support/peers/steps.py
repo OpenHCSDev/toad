@@ -5,6 +5,7 @@
 - ``{"wait": "name"}`` waits until the test releases ``name`` (``Workspace.release``).
 - ``{"ask": "title", "options": ["Allow", "Reject"]}`` asks the user for permission.
 - ``{"permission": {"toolCall": {...}, "options": [...]}}`` asks with an ACP request as given.
+- ``{"terminal": ["echo", "text"]}`` runs that command in a client terminal shown in a tool call.
 
 Any step may carry ``"session"``: the session id it acts under, instead of the peer's own.
 Each step answers with its outcome; an ask's is the permission outcome as the pipe carries it.
@@ -16,7 +17,10 @@ from dataclasses import dataclass, replace
 import json
 from typing import ClassVar, Literal, Self
 
-from acp.schema import AllowedOutcome, PermissionOption, RequestPermissionResponse, ToolCallUpdate
+from acp.schema import (
+    AllowedOutcome, PermissionOption, RequestPermissionResponse, TerminalToolCallContent, ToolCallProgress,
+    ToolCallStart, ToolCallUpdate,
+)
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter
 
 OptionKind = Literal["allow_once", "allow_always", "reject_once", "reject_always"]
@@ -170,6 +174,31 @@ class PermissionStep(AsksPermission, key="permission"):
     def from_raw(cls, value: object, raw: dict) -> Self:
         request = PermissionRequestShape.model_validate(value)
         return cls(tool_call=request.tool_call, options=tuple(request.options))
+
+
+@dataclass(frozen=True, kw_only=True)
+class TerminalStep(PeerStep, key="terminal"):
+    """Run a command in a terminal the client owns, shown as an execute tool call until it exits."""
+
+    argv: tuple[str, ...]
+
+    @classmethod
+    def from_raw(cls, value: object, raw: dict) -> Self:
+        return cls(argv=tuple(TypeAdapter(list[str]).validate_python(value)))
+
+    async def perform(self, peer, session_id: str) -> object:
+        session = self.session_for(session_id)
+        terminal = await peer.connection.create_terminal(
+            session_id=session, command=self.argv[0], args=list(self.argv[1:]), cwd=str(peer.project))
+        call = f"scripted-terminal-{terminal.terminal_id}"
+        await peer.connection.session_update(session_id=session, update=ToolCallStart(
+            session_update="tool_call", tool_call_id=call, title=" ".join(self.argv), kind="execute",
+            status="in_progress", content=[TerminalToolCallContent(type="terminal", terminal_id=terminal.terminal_id)]))
+        exit_status = await peer.connection.wait_for_terminal_exit(session_id=session, terminal_id=terminal.terminal_id)
+        await peer.connection.session_update(session_id=session, update=ToolCallProgress(
+            session_update="tool_call_update", tool_call_id=call, status="completed"))
+        peer.record(terminal_exit=exit_status.exit_code)
+        return exit_status.model_dump(mode="json", by_alias=True, exclude_none=True)
 
 
 class PermissionRequestShape(BaseModel):

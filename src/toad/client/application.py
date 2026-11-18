@@ -37,6 +37,7 @@ from toad.client.bus_selection import (
     TailnetAnswer,
     TailnetUnanswered,
 )
+from toad.client.agent_processes import AgentProcesses
 from toad.client.connection import CoreConnection
 from toad.client.db import DB
 from toad.client.input_attention import InputAttention
@@ -125,10 +126,20 @@ class ClientApplication(BusPickerHost, NavigationHost):
 
     def apply_setting_effect(self, field) -> None:
         """An app-wide setting changed: its `Effect` repaints the open widgets it reaches,
-        each reading through its nearest settings scope (a view's override still wins)."""
+        each reading through its nearest settings scope (a view's override still wins).
+
+        One setting's effect failing does not stop the others: `SavedSettings.apply_all` runs
+        every setting through here as the app starts, and a single raise there would leave the
+        app unable to open (2026-11-18: a saved theme Qt could not draw stopped the phone app at
+        every launch). The failure is shown and saved by the app's error owner (`show_error`,
+        which writes it to logs/errors), titled by the setting, and the setting's value stays."""
         from toad.setting_declarations import Effect
-        if (effect := field.metadata(Effect)) is not None:
+        if (effect := field.metadata(Effect)) is None:
+            return
+        try:
             effect.apply(self, field)
+        except Exception as error:
+            self.show_error(error, f"Setting {field.path.value}")
 
     @abstractmethod
     def settings_widgets(self, widget_type: type) -> Iterable:
@@ -322,6 +333,11 @@ class ClientApplication(BusPickerHost, NavigationHost):
 
     lifetime_kind: ClassVar[type[ApplicationLifetime]] = ApplicationLifetime
     """What this frontend's start, background and end do; the terminal app adds its own."""
+
+    @property
+    def agent_processes(self) -> AgentProcesses:
+        """Whether agent processes start here: the Core connection decides."""
+        return self.coordination_access.connection.agent_processes
 
     @cached_property
     def sidebar_layout(self) -> SidebarLayout:

@@ -160,7 +160,7 @@ class NativeSessionEntry(SessionEntry):
         plan = ExistingOwnerPlan.from_binding(binding)
         if not plan.available:
             return
-        await source.presentation.operational_binding.reconnect_session(
+        await source.operational_binding.reconnect_session(
             source, plan.require_plan()
         )
 

@@ -138,7 +138,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             process
             for member in self.members
             if (source := member.source(self)) is not None
-            for process in source.presentation.operational_binding.borrowed_processes()
+            for process in source.operational_binding.borrowed_processes()
         )
 
     def get(self, mode: str | None) -> SessionEntry | None:

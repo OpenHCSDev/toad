@@ -147,7 +147,16 @@ class ApplicationLifetime:
         ApplicationLifetime._startup_hook = ApplicationLifetime._startup_hook.notify(self)
         await self.restore_workspace()
         self.started()
+        self.prepare_view_settings()
         self.settle_heap()
+
+    def prepare_view_settings(self) -> None:
+        """The class setup every view's configuration needs, done once the first frame and
+        the restored tabs are up, before the heap settles (so it is frozen with them), and
+        not on the reader's first tap of a view."""
+        from toad.object_configuration import ObjectConfiguration
+
+        ObjectConfiguration.prepare_settings_type(self.app.saved_settings)
 
     @staticmethod
     def settle_heap() -> None:

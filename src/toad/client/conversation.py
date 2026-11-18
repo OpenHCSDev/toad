@@ -140,6 +140,8 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     def activity_title(members) -> str:
         """The collapsed activity line under the composer: how many members are active and
         the first two of them."""
+        if not members:
+            return "0 active"
         names = ", ".join(row.name for row in members[:2])
         remaining = f" +{len(members) - 2}" if len(members) > 2 else ""
         return f"{len(members)} active · {names}{remaining}"

@@ -200,15 +200,7 @@ from toad.turn_presentation import TurnPresentation
 from toad.widgets.transcript_lines import LineTarget
 
 
-AUTO_SESSION_TITLE_MAX_LENGTH = 50
-
-
-def make_session_title(prompt: str) -> str:
-    """Create a compact deterministic title from a session's first prompt."""
-    title = " ".join(prompt.split())
-    if len(title) > AUTO_SESSION_TITLE_MAX_LENGTH:
-        title = title[: AUTO_SESSION_TITLE_MAX_LENGTH - 1].rstrip() + "…"
-    return title
+from toad.session_titles import FirstPromptTitle
 
 
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
@@ -852,22 +844,6 @@ class ConversationSessionBinding(
         for history in self.contents.line_histories():
             history.state.resume_if_parked(history)
 
-    def attach_launch(self, launch: AgentBinding) -> None:
-        """Selection changes write the conversation's launch at its owner."""
-        self.launch = launch
-
-    def resume_agent_session(self, session_id: AcpSessionId) -> None:
-        self._agent_session_id = session_id
-
-    def start_native_session(self) -> None:
-        self.agent_binding.start_session(self)
-
-    @abstractmethod
-    def start_unbound_session(self) -> None: ...
-
-    @abstractmethod
-    def _start_agent(self) -> None: ...
-
     @work
     async def session_ready(self) -> None:
         """The agent (or the shell) can take input; page publication owns the splash."""
@@ -947,6 +923,7 @@ class ConversationSessionBinding(
 
 from toad.client.agent_schema import Command
 from toad.agent_surface import AttachedSurfaceBinding
+from toad.agent_turn_events import AgentTurnEvents
 from toad.catalog_actions import CatalogCommandAction
 from toad.commit_claims import StartedInputClaim
 from toad.client.db import DB
@@ -972,7 +949,9 @@ class SourcesScope(DOMNode):
     def initial_editing_mode(self) -> EditingMode: ...
 
 
-class Conversation(ColumnLayout,
+class Conversation(AgentTurnEvents,
+    FirstPromptTitle,
+    ColumnLayout,
     GoalView[GoalSession],
     TranscriptView,
     FollowsLayoutPreferences,
@@ -1007,9 +986,6 @@ class Conversation(ColumnLayout,
         self.goal_source.presentation_changed(self.goal_observation)
         self.dispatch_sync(presentation)
 
-    def start_unbound_session(self) -> None:
-        self.launch.start_unbound(self)
-
     def defer_agent_start(self) -> None:
         self.screen.frame_presentation.defer(self, self._start_agent)
 
@@ -1017,8 +993,14 @@ class Conversation(ColumnLayout,
         self.show_agent_info(self.operational_sources.agent_info(self))
         self.session_ready()
 
-    def _start_agent(self) -> None:
-        self.operational_sources.start_agent(self)
+    def consumed(self, message: CoreEventMessage) -> None:
+        """The conversation handled the agent's publication; it stops bubbling here."""
+        message.stop()
+
+    def agent_surface(self, events):
+        """Textual receives its agent's events through its message pump and mounts their
+        widgets (`AttachedSurfaceBinding`)."""
+        return AttachedSurfaceBinding(self, events)
 
     def transcript_changed(self) -> None:
         self.operational_sources.external_transcript_changed(self)
@@ -1391,21 +1373,6 @@ class Conversation(ColumnLayout,
         self._auto_title_eligible = False
         await self._apply_session_name(name)
 
-    async def auto_name_from_prompt(self, prompt: str) -> None:
-        """A guess from the first prompt stands in until the thread presents its own title.
-
-        It is not the user's label and not the thread's name: publishing it as an
-        authored title made every later presented title lose, and naming the
-        coordination thread after a prompt left sessions stuck under a guess long
-        after they had moved on.
-        """
-        if not self._auto_title_eligible:
-            return
-        self._auto_title_eligible = False
-        if not self.agent_binding.automatic_titles:
-            return
-        self.publish_core(core_events.SessionThreadTitle(make_session_title(prompt)))
-
     @handles(core_events.SessionInfoUpdate)
     async def on_session_info_update(self, event: core_events.SessionInfoUpdate) -> None:
         self._auto_title_eligible = False
@@ -1419,7 +1386,7 @@ class Conversation(ColumnLayout,
         self.prompt.sync_session()
         for details in self.query(OperationalSessionDetails):
             details.sync_turn()
-        self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
+        self.app.show_error(event.message, "Agent failure")
 
         self.launch.publish_usage(
             self.app.application.usage.publish,
@@ -1641,16 +1608,6 @@ class Conversation(ColumnLayout,
     async def on_mcp_client_stopped(self, event: core_events.McpClientStopped) -> None:
         await self._clear_mcp_live()
 
-    @on(core_events.Update)
-    @handles(core_events.Update)
-    async def on_acp_agent_message(self, event: core_events.Update, message: CoreEventMessage) -> None:
-        message.stop()
-        if not self.agent_binding.matches_agent(message.publisher):
-            return
-        if self.turns.owner.busy:
-            self.turns.describe("Writing response…")
-        await self.output.append(event.stream, event.text)
-
     async def present_started_input(self, started) -> None:
 
         self.output.boundary()
@@ -1673,17 +1630,6 @@ class Conversation(ColumnLayout,
         # The event bubbles from a history inside this conversation; the screen stops it.
         self.transcript.source_work_finished(self)
 
-    @handles(core_events.Thinking)
-    async def on_acp_agent_thinking(self, event: core_events.Thinking) -> None:
-        self.turns.describe("Thinking…")
-        await self.output.append(event.stream, event.text)
-
-    @handles(core_events.RequestPermission)
-    async def on_acp_request_permission(self, event: core_events.RequestPermission, message: CoreEventMessage) -> None:
-        for request in message.publisher.permissions.pending:
-            self.request_permissions(request)
-        self.output.boundary()
-
     @handles(core_events.Plan)
     async def on_acp_plan(self, event: core_events.Plan) -> None:
 
@@ -1693,18 +1639,6 @@ class Conversation(ColumnLayout,
             current_plan.entries = event.entries
         else:
             await self.post(ConversationPlan(event.entries))
-
-    @handles(core_events.ToolCall)
-    async def on_acp_tool_call_update(
-        self, event: core_events.ToolCall, message: CoreEventMessage
-    ) -> None:
-        await message.publisher.controller.surface.present_tool(message, self)
-
-    @handles(core_events.AvailableCommandsUpdate)
-    async def on_acp_available_commands_update(
-        self, event: core_events.AvailableCommandsUpdate
-    ) -> None:
-        self.update_slash_commands()
 
     async def set_mode(self, mode_id: str | None) -> None:
         if mode_id is None:

@@ -95,6 +95,20 @@ def script(*steps: dict) -> str:
     return json.dumps(list(steps))
 
 
+FULL_TURN = (
+    {"say": "TURN_REPLY one two three"},
+    {"update": {"sessionUpdate": "agent_thought_chunk", "content": {"type": "text", "text": "TURN_THOUGHT"}}},
+    {"update": {"sessionUpdate": "tool_call", "toolCallId": "turn-read", "title": "TURN_TOOL read", "kind": "read",
+                "status": "completed",
+                "content": [{"type": "content", "content": {"type": "text", "text": "TURN_TOOL_OUTPUT"}}]}},
+    {"ask": "TURN_PERMISSION"},
+    {"terminal": ["echo", "TURN_TERMINAL_OUTPUT"]},
+    {"say": "TURN_DONE"},
+)
+"""One turn of every kind of agent output: a reply, a thought, a tool call, a permission
+question, a terminal; the TUI test and the Qt drive (``qt_drive.py agent_session``) send it alike."""
+
+
 class PendingAnswer:
     """One SDK request whose answer the test supplies later."""
 
@@ -124,3 +138,24 @@ class PendingConnection:
 
     async def close(self):
         pass
+
+
+def queued_session_response(session: str, *, next_owner: bool = False):
+    """A session answer whose queue already holds two accepted prompts, as a live agent's
+    ``QueueChangedUpdate`` reports them."""
+    from acp.schema import NewSessionResponse
+    from agent_comms.acp_extension import AvailableQueueProjection, LiveQueueScope, QueueChangedUpdate, QueueItem
+    from agent_comms.execution.child_process import ProcessIdentity
+    from agent_comms.nominal.field_codec import InputId
+    from agent_comms.registry.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
+    from agent_comms.text_route_update import encode_updates
+
+    generation = 2 if next_owner else 1
+    scope = LiveQueueScope(
+        session_id=AcpSessionId(session),
+        claimed_identity=ClaimedIdentity(RecordedThreadIncarnation(session, 1000.0), generation),
+        owner=ProcessIdentity(1234, 1),
+    )
+    items = (QueueItem(InputId("a" * 32), "same text"), QueueItem(InputId("b" * 32), "same text"))
+    return NewSessionResponse(
+        sessionId=session, _meta=encode_updates(QueueChangedUpdate(scope, generation, AvailableQueueProjection(items))))

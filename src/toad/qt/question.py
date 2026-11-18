@@ -132,6 +132,11 @@ class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
         self.hide()
         self.attention.release(self)
 
+    def withdraw(self, ask: Ask) -> None:
+        """Its asker withdrew `ask`: tuck away only if it is still the one shown."""
+        if self._ask is ask:
+            self.retract()
+
     def dismiss_control(self) -> None:
         """A cross-toolkit consumer can dismiss the question panel the same way as any other
         DismissibleContract — retracting the Ask and tucking the panel away."""

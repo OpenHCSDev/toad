@@ -72,16 +72,17 @@ class QtMenuRow(QWidget):
         self.label = ElidedLine(menu.row_text(entry))
         self.label.setParent(self._button)
         text.addWidget(self.label)
-        lines = 1
         if entry.description and not menu.input_modality.describes_inline():
             description = ElidedLine(entry.description)
             description.setParent(self._button)
             description.setEnabled(False)  # the theme's muted text, as a secondary line
             text.addWidget(description)
-            lines = 2
         inner.addLayout(text, 1)
-        margins = inner.contentsMargins()
-        height = lines * self.fontMetrics().lineSpacing() + margins.top() + margins.bottom()
+        # The row is as tall as its lines need, as the layout measures them (each line's own
+        # minimum, margins included), never less than a touch target. An explicit minimum
+        # overrides the layout's own: one summed from line spacing gave each line 12 px of a
+        # 17 px font and cut every descender on the phone (`qt_drive menu_text`).
+        height = inner.totalMinimumSize().height()
         self._button.setMinimumHeight(max(44, menu.input_modality.row_height, height))
 
     def _fire(self) -> None:

@@ -1,6 +1,6 @@
 """Measure scrolling cost in the Qt conversation tab, offscreen, on the live bus.
 
-    QT_QPA_PLATFORM=offscreen PYTHONPATH=src:tools python tools/qt_scroll_profile.py \
+    QT_QPA_PLATFORM=offscreen PYTHONPATH=src python -m tools.qt_scroll_profile \
         PROFILE OUTDIR [--profile]
 
 Opens #comms exactly as the client does, loads several older pages, then drives the
@@ -43,7 +43,7 @@ from toad.qt.client_start import open_app
 from toad.qt.glyph_fonts import install_glyph_fonts
 from toad.qt.theme import current_scheme
 
-from qt_drive import ConversationRow, until
+from tools.qt_drive import ConversationRow, until
 
 PROJECT = Path(__file__).resolve().parents[1]
 WIDTH, HEIGHT = 412, 915  # the Pixel 8a at its device pixel ratio

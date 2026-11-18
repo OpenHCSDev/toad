@@ -36,10 +36,9 @@ class AgentBase(AgentConnection):
     ready = False
 
     def attach_view(self, view) -> None:
-        from toad.agent_surface import AttachedSurfaceBinding
         from toad.core.events import SessionAgentAttached
 
-        self.attach_surface(AttachedSurfaceBinding(view, self.events))
+        self.attach_surface(view.agent_surface(self.events))
         view.publish_core(SessionAgentAttached())
 
     def matches_agent(self, agent) -> bool:

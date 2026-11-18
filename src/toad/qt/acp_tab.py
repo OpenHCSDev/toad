@@ -1,33 +1,22 @@
-"""The Qt phone's Claude-CLI session tab: shows a saved ACP session's transcript and takes
-new prompts to its bound agent.
+"""Qt's agent session tab: Textual's `MainScreen` + `Conversation` for one ACP session.
 
-Textual's CLI-session view (``toad.screens.main.MainScreen`` + ``toad.widgets.conversation.Conversation``)
-is a ~2k-line Screen that owns the agent binding, the composer, the transcript and a full
-session presentation. The Qt phone ships the read half plus a working composer: a saved
-transcript rendered through the shared pager, Qt's row delegate and the Qt fragment flavors
-declared in ``toad.qt.history.QT_FRAGMENT_CLASSES``, and a ``Composer`` wired to publish
-``UserInputSubmitted`` into Core's event stream the same way Textual's prompt does from
-``widgets/conversation.py:901-904``. Any backend that is listening for the event picks it up
-and submits through its own ``ConversationSubmissions`` family; if nothing is listening the
-composer flashes a visible submitting status so the dead branch is loud, not silent.
+The tab is an `AgentConversation`: when it is first shown, its launch attaches to it
+(`AgentBinding.attach_to`), and an attached agent starts through the chain every frontend
+inherits — the unbound view's sources create the agent (`SessionSources.create_agent`), the
+agent attaches this view's surface (`agent_surface`), and its turn arrives through the shared
+handlers (`AgentTurnEvents`) as live rows. A saved session reopens its agent's session; a
+platform that cannot spawn agent processes never attaches one (`AgentProcesses`).
 
-The live-presentation lifecycle (agent reconnection, queue summary, receipt follow-through)
-is a next-fork cut. What this tab gives is: typing a message in the Qt APK produces a
-``UserInputSubmitted`` in Core with the same body shape Textual's prompt produces, and the
-composer visibly reflects the pending send until the view's ``submissions_changed`` is
-called by its ``BusSubmissions``.
-
-``QtNativeSessionEntry`` is the Qt counterpart of ``TextualNativeSessionEntry`` in
-``toad.session_entry``: it shows ``SessionTabIdentity`` (``AcpTab`` + ``MailboxTab``) and
-its ``session_view`` returns this widget. The existing Qt entry for ``CommsTab`` stays with
-wire bus conversations in ``ConversationView``.
+``QtNativeSessionEntry`` is the Qt counterpart of ``TextualNativeSessionEntry``: it shows
+``SessionTabIdentity`` (``AcpTab`` + ``MailboxTab``) and builds this view.
 """
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
+from agent_comms.nominal.field_codec import NoAcpSessionId
+from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -35,27 +24,25 @@ from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
 from toad.agent_binding import AgentConnection
-from toad.client.bus_submission import TypedText
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.tab_identity.kinds import CommsTab
-from toad.transcript_scope import TranscriptScope
-
-from toad.launch_binding import AgentBinding
+from toad.core import events as core_events
+from toad.core.input_events import UserInputSubmitted
+from toad.launch_binding import AgentBinding, AgentConversation, AgentOrigin
 from toad.qt.composer import ProjectComposer
+from toad.qt.metrics import UiGap
 from toad.qt.thread_view import QtThreadView
 from toad.qt.window import QtSessionEntry
-from toad.slash_command import SlashCommand
-
+from toad.session_titles import FirstPromptTitle, SessionTitles
 from toad.thread_identity import NoThreadIdentity
-from toad.qt.metrics import UiGap
+from toad.transcript_scope import TranscriptScope
 
 if TYPE_CHECKING:
     from agent_comms.projects.checkouts import Checkout
 
     from toad.agent import AgentBase
-    from toad.client.session_tracker import SessionDetails
     from toad.qt.window import QtToadApp
 
 
@@ -75,32 +62,14 @@ def _toad_app() -> QtToadApp:
 
 class QtAcpSessionView(
     QtThreadView,
+    AgentConversation,
+    AgentOrigin,
+    SessionTitles,
+    FirstPromptTitle,
     metaclass=PyQtWidgetMeta,
 ):
-    """A Qt Claude-CLI session tab.
-
-    What this renders today: the bound session's identity line, the transcript through Qt's
-    existing history window using ``QT_FRAGMENT_CLASSES`` so tool-call, context, bus-message
-    and sent-message fragments all appear as their Qt siblings, and a Qt ``Composer``
-    (``Composer`` from ``toad.qt.composer`` — the same widget ``ConversationView`` uses for
-    bus threads). ``submit`` publishes ``UserInputSubmitted`` into Core's event stream the
-    way Textual's ``Prompt.send`` does at ``widgets/conversation.py:901-904``; a listening
-    backend ``Conversation`` catches it through ``on_user_input_submitted`` and routes
-    through its ``ConversationSubmissions`` family. The composer is also a ``ComposerHost``
-    via ``MessageDestination`` so slash commands and @-mentions can fill in once
-    ``update_slash_commands`` / ``set_mention_candidates`` are wired by the surrounding
-    session lifecycle.
-
-    Still waiting on the full ``widgets/conversation.Conversation`` lifecycle port
-    (``agent_binding: var[AgentConnection]`` + ``OperationalSessionSources``): live
-    reconnect, receipt notification follow (needs transcript-reload hook to call
-    ``self.composer.receipt.follow`` the way ``ConversationView._refresh_source`` does
-    at ``src/toad/qt/window.py:910``), real ``CommandCatalog.read`` slash commands and
-    mention candidates (need ``agent.presentation.commands`` which only exists after
-    ``agent_binding.start_session``), and a session-scoped thread sidebar pane. The
-    global thread-sidebar placement (``ThreadSidebarPlacement`` on ``QtToadApp``) is
-    already shared with every tab.
-    """
+    """One agent session's tab: its identity line, the transcript through Qt's history
+    window, the agent's live turn as rows, and the operational composer."""
 
     # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
     # class is instantiable; `_setup_prompt_stack` assigns the real widgets.
@@ -122,15 +91,17 @@ class QtAcpSessionView(
         # the theme, renderer and Core event stream.
         self.app = app
         self.project = project
-        self._agent_binding = binding
+        self.project_path = project
+        self.launch = binding
+        self._agent_session_id = NoAcpSessionId()
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
-        # Shared transcript stack: QtHistoryWindow + TranscriptPresentation +
-        # QtTranscriptHistory + QtAgentActivity, plus the ThreadBindingDispatch state
-        # and session_details slot. Lives on `QtThreadView`; same base `QtMailboxView`
-        # uses, so neither view carries a parallel copy. See `QtThreadView._setup_transcript`.
+        self._native_agent_started_here = False
+        self._attached = False
+        # As Textual's Conversation: a session with no saved agent session guesses its title
+        # from its first prompt (`FirstPromptTitle`; a resumed one keeps the saved name).
+        self._auto_title_eligible = True
         self._setup_transcript(app)
-        # Layout: an identity line on top, the history below, the composer at the bottom.
         self.identity_line = ElidedLine(f"ACP session #{session_pk}")
         self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         app.renderer.themed(self.identity_line, lambda: self.identity_line.setStyleSheet(
@@ -145,41 +116,120 @@ class QtAcpSessionView(
         layout.addWidget(self.messages, 1)
         # Under the transcript, Textual's order: flash, sweep, status, goal, prompt. A
         # binding with no `ThreadIncarnation` has no goal owner, so no goal bar.
-        self._composer_label = "agent"
-        incarnation = self._agent_binding.initial_identity(NoThreadIdentity()).optional_thread_incarnation()
+        self._composer_label = binding.selected_agent("agent", lambda agent: agent.name)
+        incarnation = binding.initial_identity(NoThreadIdentity()).optional_thread_incarnation()
         self._setup_prompt_stack(app, layout, incarnation)
-        # Live reconnect hook: when the agent-binding changes (first attach or a real
-        # reconnect), re-project state via ``apply_bound_agent`` and show the connected
-        # notice once the new agent is ready. Textual's ``watch_agent_binding`` does the
-        # same work through its reactive system; here it's an ``ObservedField`` watcher.
         self.on_agent_binding_change(self._on_agent_binding_change)
 
-    # ---- AgentBoundConversation hooks ----
+    # ---- AgentOrigin: what the launch reads of the session it attaches to ----
+
+    @property
+    def is_current(self) -> bool:
+        return self.is_current_session
+
+    # ---- AgentConversation: the launch's agent starts here ----
+
+    def defer_agent_start(self) -> None:
+        """Start the attached agent once Qt has shown the tab (Textual waits for the
+        presented frame the same way)."""
+        QTimer.singleShot(0, self._start_agent)
+
+    def present_without_agent(self) -> None:
+        self.show_agent_info(self.operational_sources.agent_info(self))
+        self.session_ready()
+
+    def show_agent_info(self, text: str) -> None:
+        """The identity line and composer name the agent, as Textual's info bar does."""
+        self.identity_line.setText(f"ACP session #{self._session_pk} · {text}")
+        self._composer_label = text
+        self.on_composer("label", lambda composer: composer.labelled(text))
+
+    @property
+    def agent_title(self) -> str:
+        """The session's display name, as Textual's `Conversation.agent_title` reads its
+        scope's: the tab's name once it has one, else the agent's."""
+        if self.session_details is not None and self.session_details.name.display:
+            return self.session_details.name.display
+        return self.launch.selected_agent("agent", lambda agent: agent.name)
+
+    def session_ready(self) -> None:
+        """The agent can take input: its welcome shows once, then the launch's first
+        prompt is sent (Textual's `Conversation.session_ready`)."""
+        if self._native_agent_started_here:
+            self._native_agent_started_here = False
+            welcome = self.launch.selected_agent(None, lambda agent: agent.welcome)
+            if welcome:
+                self.run_worker(lambda: self.present_help_note(welcome), group="welcome")
+        if self.agent_binding.configuration.model.requires_selection:
+            self.flash("Choose a model to start")
+            return
+        prompt, self._initial_prompt = self._initial_prompt, None
+        if prompt:
+            event = UserInputSubmitted(prompt, shell=False)
+            self.run_worker(lambda: self.submissions.submit(event), group="submit", exclusive=False)
+
+    # ---- The bound agent ----
+
+    @property
+    def named_session(self):
+        """`SessionTitles`: this tab names its session once the tracker gave it one."""
+        return self.session_details
 
     def _on_agent_binding_change(
-        self, _before: "AgentConnection", after: "AgentConnection"
+        self, _before: AgentConnection, after: AgentConnection
     ) -> None:
         if after.ready:
             self.apply_bound_agent(after)  # type: ignore[arg-type]
-            self.agent_connected(after)  # type: ignore[arg-type]
+
+    @handles(core_events.AgentReady)
+    async def on_agent_ready(self, event: core_events.AgentReady, message) -> None:
+        """As Textual's `Conversation.on_agent_ready`: a first connect announces the agent;
+        every ready re-reads its state and thread, and takes input."""
+        if not event.reconnected:
+            self.agent_binding.connected(self)
+        self.apply_bound_agent(self.agent_binding)  # type: ignore[arg-type]
+        self.session_ready()
+        self.arm_thread_read()
+        self.refresh_thread_status()
 
     def apply_bound_agent(self, agent: AgentBase) -> None:
         """As Textual's `Conversation.apply_bound_agent`: the status thread and working
         answer, the agent's name on the identity line and composer, and its context
         measurement as the info bar's status."""
         super().apply_bound_agent(agent)
-        info = agent.get_info()
-        self.identity_line.setText(f"ACP session #{self._session_pk} · {info}")
-        self._composer_label = info
-        if self.composer is not None:
-            self.composer.labelled(info)
+        self.show_agent_info(agent.get_info())
         self.thread_status = agent.context_measurement.status()
 
     def agent_connected(self, agent: AgentBase) -> None:
         """Flash the connected notice, as Textual's `Conversation.agent_connected`. Qt sends
         no usage report: that delivery is the terminal app's (it reports the terminal program
-        and size, and loads httpx), and this call raised AttributeError on every connect."""
+        and size, and loads httpx)."""
         self.flash_success(f"{agent.get_info()} connected")
+
+    async def agent_turn_over(self, stop_reason) -> None:
+        """The turn ended: its live output settles and the next turn starts on a fresh
+        block; a stop reason with a note says why."""
+        self.turns.finish_client()
+        await self.output.settle()
+        self.output.boundary()
+        if stop_reason.note:
+            await self.present_help_note(
+                stop_reason.note.replace("$AGENT", (self.agent_title or "agent").title()))
+        if self.app.settings.notifications.turn_over:
+            self.app.input_attention.notify(
+                f"{self.agent_title} has finished working", title="Waiting for input",
+                sound="turn-over")
+
+    async def submission_request_failed(self, error, text: str) -> None:
+        """The prompt never reached the agent: it goes back into the composer and the error
+        shows under the turn."""
+        self.turns.finish_client()
+        if self.composer is not None:
+            self.composer.restore_draft(text)
+        await self.present_error_note("Internal error", str(error) or "no details were provided")
+
+    def jump_to_latest(self) -> None:
+        self.messages.jump_to_latest()
 
     def composer_class(self) -> type[ProjectComposer]:
         """Textual's `OperationalSessionSources.prompt`: the operational prompt."""
@@ -194,37 +244,29 @@ class QtAcpSessionView(
         """Session mode is owned by the session identity when a SessionDetails has been
         set; before that, derive the fallback mode from the session pk — never cache it."""
         if self.session_details is not None:
-            return self.session_details.identity.mode
+            return self.session_details.mode_name
         return f"acp:{self._session_pk}"
 
     @property
     def thread_identity(self):
-        """Read the binding's current initial identity fresh each access — a cached
-        `_identity` captured at __init__ goes stale if the binding is later re-bound
-        to a different identity (apply_bound_agent updates the visible labels but
-        a cache here would not update)."""
-        return self._agent_binding.initial_identity(NoThreadIdentity())
+        """The launch's current initial identity, read fresh on each access."""
+        return self.launch.initial_identity(NoThreadIdentity())
 
     @property
     def origin(self) -> SessionOrigin:
-        # The real origin wires the agent binding and view; until that lands, the no-op
-        # origin reports mode-only, which the sidebar + tab-order already handle.
         return NoSessionOrigin(self.mode)
 
     def transcript_scope(self) -> TranscriptScope:
-        """The transcript scope this view is bound to — the one `BoundView.thread_scope`
-        reads on bind to wire `thread_observed` into Core's observation. Textual's
-        `Conversation.transcript_scope` goes through `query_ancestor(SessionScope).origin.
-        transcript_scope()`; on Qt the identity owns the scope directly, so this is a
-        straight delegation."""
+        """The transcript scope this view is bound to: the identity owns it directly."""
         return self.thread_identity.transcript_scope()
 
-    # is_attached, is_leaving, is_current_session, thread_presented live on `QtThreadView`.
-
     def shown(self, window, visited) -> None:  # type: ignore[override]
-        """Selected: record the visit, let the history reload."""
+        """Selected: record the visit, and the first time, attach the launch's agent."""
         if self.session_details is not None:
             visited(self.session_details.identity)
+        if not self._attached:
+            self._attached = True
+            self.launch.attach_to(self, self)
         self.reload()
 
     def reload(self) -> None:
@@ -233,7 +275,7 @@ class QtAcpSessionView(
 
 
 class QtNativeSessionEntry(QtSessionEntry, NativeSessionEntry, shows=(SessionTabIdentity,)):
-    """Qt entry for a Claude-CLI session tab (``AcpTab``, ``MailboxTab``). Keeps
+    """Qt entry for an agent session tab (``AcpTab``, ``MailboxTab``). Keeps
     ``shows=(CommsTab,)`` separate so bus conversations continue to route through
     ``ConversationView`` and its ``WireSource`` wiring."""
 
@@ -248,5 +290,4 @@ class QtNativeSessionEntry(QtSessionEntry, NativeSessionEntry, shows=(SessionTab
         return QtAcpSessionView(_toad_app(), project, binding, session_pk, initial_prompt)
 
 
-# Re-export CommsTab-shape so any importer that needs to disambiguate has one name.
 __all__ = ("QtAcpSessionView", "QtNativeSessionEntry", "CommsTab")

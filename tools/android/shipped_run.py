@@ -14,6 +14,10 @@ and the phone's DM view died on `No module named 'click'`). This runs it. Exit 0
   and a `#comms` channel message, served by RUNTIME's connector on a loopback port with a
   throwaway TLS front (the client speaks only HTTPS) and a scratch UI grant. HOME points at
   the scratch folder for the connector, so no live grant or bus is read or written.
+- The app starts with `ui.theme` saved as a scheme Qt does not offer (`ansi-dark`, drawn in the
+  terminal's own colours, which Qt has no terminal to ask): the shared toad.json can hold the
+  TUI's choice, and a phone that saved one died at every launch (2026-11-18). It must open with
+  the not-offered warning, and the scenario then applies every scheme Qt offers in turn.
 - The scenario opens the welcome, every menu action that changes nothing (settings and each
   of its pages, the keymap, the transfer dialogs, channels, direct messages, the bus switcher,
   team), the channel, the CLI thread with its session details, and presses every bound action
@@ -22,6 +26,7 @@ and the phone's DM view died on `No module named 'click'`). This runs it. Exit 0
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import socket
@@ -35,6 +40,8 @@ from recipe_built import import_names, python_optimize
 HERE = Path(__file__).resolve().parent
 CHECKOUT = HERE.parent.parent
 THREAD, PEER, CHANNEL = "scratch-live-pipeline", "scratch-peer", "comms"
+# Drawn in the terminal's own colours: the TUI offers it, Qt does not.
+UNOFFERED_THEME = "ansi-dark"
 
 
 def free_port() -> int:
@@ -129,7 +136,7 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
         "enter()\n"
         f"os.environ['SSL_CERT_FILE'] = {str(trust)!r}\n"
         "os.environ['QT_QPA_PLATFORM'] = 'offscreen'\n"
-        f"sys.argv = ['qt_drive.py', 'shipped', {str(profile)!r}, {str(out)!r}]\n"
+        f"sys.argv = ['qt_drive.py', 'shipped', {str(out)!r}, '--comms-profile', {str(profile)!r}]\n"
         f"runpy.run_path({str(CHECKOUT / 'tools' / 'qt_drive.py')!r}, run_name='__main__')\n"
     )
     # -B: the app folder ships the bytecode assemble.py compiled; this run writes none beside it.
@@ -137,6 +144,44 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
     return subprocess.run([sys.executable, "-S", "-B", "-c", code], capture_output=True, text=True,
                           timeout=600, cwd=recipes, check=False,
                           env=os.environ | {"PYTHONOPTIMIZE": str(python_optimize())})
+
+
+def shipped_fault(app: Path, recipes: Path, crash: bool) -> subprocess.CompletedProcess:
+    """The shipped interpreter's fault trace (toad.fatal_trace): Android's entry opens it first
+    thing, so a native crash leaves every thread's stack under the state's errors folder.
+    `crash` faults the process on purpose; otherwise it exits cleanly, which leaves no file."""
+    code = (
+        "import faulthandler, sys\n"
+        f"sys.path[:0] = [{str(app)!r}, {str(recipes)!r}]\n"
+        "from toad.qt.android_app import enter\n"
+        "enter()\n"
+        "import toad.qt.android, toad.qt.main\n"
+        "from toad.fatal_trace import FatalTrace\n"
+        "missing = [entry.__name__ for entry in (toad.qt.android, toad.qt.main) if 'FatalTrace' not in entry.main.__code__.co_names]\n"
+        "missing and sys.exit(f'error: entries that do not open the fault trace: {missing}')\n"
+        "FatalTrace.enabled()\n"
+        + ("faulthandler._sigsegv()\n" if crash else "")
+    )
+    return subprocess.run([sys.executable, "-S", "-B", "-c", code], capture_output=True, text=True,
+                          timeout=120, cwd=recipes, check=False,
+                          env=os.environ | {"PYTHONOPTIMIZE": str(python_optimize()), "QT_QPA_PLATFORM": "offscreen"})
+
+
+def fault_trace_failure(state: Path, app: Path, recipes: Path) -> str | None:
+    """Why the fault trace would not catch a native crash on the phone, or None."""
+    clean = shipped_fault(app, recipes, crash=False)
+    left = sorted(state.rglob("errors/fatal*.txt"))
+    if clean.returncode != 0 or left:
+        return f"a clean run exited {clean.returncode} and left {[path.name for path in left]}: {clean.stderr[-2000:]}"
+    crashed = shipped_fault(app, recipes, crash=True)
+    traces = sorted(state.rglob("errors/fatal*.txt"))
+    text = traces[-1].read_text() if traces else ""
+    if crashed.returncode != -11 or "Segmentation fault" not in text or "Current thread" not in text:
+        return (f"a faulted run exited {crashed.returncode} with {len(traces)} trace file(s): "
+                f"{text[-1000:] or crashed.stderr[-2000:]}")
+    for trace in traces:
+        trace.unlink()
+    return None
 
 
 def main(runtime: Path, app: Path, site_packages: Path) -> int:
@@ -154,6 +199,9 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
             for candidate in site_packages.glob(f"{name}*"):
                 if not (recipes / candidate.name).exists():
                     (recipes / candidate.name).symlink_to(candidate)
+        settings = work / "kept" / "config" / "toad" / "toad.json"
+        settings.parent.mkdir(parents=True)
+        settings.write_text(json.dumps({"ui": {"theme": UNOFFERED_THEME}}))
         trust = work / "trust.pem"
         trust.write_text((app / "cacert.pem").read_text() + (work / "cert.pem").read_text())
         out = work / "out"
@@ -169,6 +217,11 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
                   f"{len(errors)} error file(s)); TOAD_SHIPPED_KEEP=1 keeps its scratch folder", file=sys.stderr)
             return 1
         print("shipped app ran every view kind and bound key on a scratch bus")
+        fault = fault_trace_failure(work / "kept" / "state", shipped, recipes)
+        if fault:
+            print(f"error: the shipped app's fault trace: {fault}", file=sys.stderr)
+            return 1
+        print("a native crash in the shipped app leaves every thread's stack under its errors folder")
         return 0
     finally:
         bus.stop()

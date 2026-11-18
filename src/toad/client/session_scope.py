@@ -15,6 +15,7 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.nominal.field_codec import AcpSessionId
 from metaclass_registry import AbstractHooksMeta
 
+from toad.agent_binding import NoAgentConnection
 from toad.project_path_owner import CheckoutRoot
 from toad.transcript_scope import NoTranscript, TranscriptScope
 
@@ -69,6 +70,13 @@ class SessionScope:
     @property
     def origin(self) -> SessionOrigin:
         raise NotImplementedError
+
+    @property
+    def operational_binding(self):
+        """The agent this session runs: a view with no agent (welcome, a channel, a CLI
+        inbox) has none. Textual's `MainScreen` answers its presentation's binding, Qt's
+        conversation views their `agent_binding`."""
+        return NoAgentConnection()
 
     @property
     def category_selection(self) -> CategorySelection:
@@ -171,6 +179,20 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope, CheckoutRoot):
     def agent_for_opening[Binding](self, default: Binding) -> Binding:
         """A project origin with no launch of its own opens views with the app's binding."""
         return default
+
+    def opening_standing(self, selected_mode: str) -> str:
+        """What must not change while a thread opened from here is prepared: a view opens
+        what it was asked for only while it is still the tab shown."""
+        return selected_mode
+
+
+class HomeSessionOrigin(ProjectSessionOrigin):
+    """Home, the welcome: every row and link opens from here whichever tab is shown
+    (`TargetOpen`), so another tab being selected meanwhile, as a second tap's opening is,
+    leaves its openings current. Textual's `WelcomeScreen` and Qt's `QtWelcomeOrigin`."""
+
+    def opening_standing(self, selected_mode: str) -> str:
+        return ""
 
 
 class NoConversationView(SessionScope):

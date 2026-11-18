@@ -97,6 +97,12 @@ class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsOwner,)):
     ] = WindowFilePicker
     """What attaching a file to a message opens: the file dialog (on a phone, its own file picker) or the project path search."""
 
+    delivery_preview: Annotated[
+        bool, FieldLabel("Show delivery preview?"), PromptSettingEffects.apply_delivery_preview,
+        WireName("delivery-preview"),
+    ] = True
+    """The rows above the prompt that list messages still submitting, queued or held at their recipients, with Send now. Disable to keep the history its full height: the info bar then shows only how many are held, and selecting it opens the queue."""
+
 
 @dataclass(frozen=True)
 class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsOwner,)):

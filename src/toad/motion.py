@@ -19,6 +19,12 @@ _TAB_DURATION = 0.15
 _TAB_FPS = 60
 TAB_OPEN = Transition(Amount, 0.0, 1.0, _TAB_DURATION, _TAB_FPS)
 TAB_CLOSE = Transition(Amount, 1.0, 0.0, _TAB_DURATION, _TAB_FPS)
+# A reader following the end glides down to rows that arrived, over the time the first of them
+# takes to fade in (``ARRIVAL``'s `NEW_TEXT`), instead of jumping their whole height at once.
+FOLLOW_ARRIVAL = Transition(Amount, 0.0, 1.0, 0.25, 60)
+# A row under the composer (the queue summary, the delivery controls) opens or closes its height
+# instead of appearing in one frame and pushing the history up.
+ROW_REVEAL = Transition(Amount, 0.0, 1.0, _TAB_DURATION, _TAB_FPS)
 
 
 def animations_enabled() -> bool:

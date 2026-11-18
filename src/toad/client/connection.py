@@ -95,6 +95,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.client.agent_processes import AgentProcesses, NoAgentProcesses
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.client.bus_selection import ProfileArgument
 from toad.client.host import CommsHost
@@ -200,8 +201,16 @@ class CoreConnection(ABC):
     helper_start: ClassVar[HelperStart] = SpawnedHelper()
     """How this launch starts its local route observer and its render workers."""
 
+    agent_processes: ClassVar[AgentProcesses]
+    """Whether an agent process starts under this connection: only beside a local route
+    (`LocalCoreConnection`, in `toad.client.local_connection`)."""
+
     def open_access(self, app: CommsHost) -> CoordinationAccess:
         return CoordinationAccess(app, self)
+
+    @abstractmethod
+    def chosen(self, arguments: list[str]) -> CoreConnection:
+        """The connection a bus the owner chose names, read by this connection's kind."""
 
     def close(self) -> None:
         """Release connection-owned work after its observations and reads end."""
@@ -258,6 +267,8 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
 
     Read replies decode where they arrive, as on Android, which has no interpreter to spawn."""
 
+    agent_processes: ClassVar[AgentProcesses] = NoAgentProcesses()
+
     @classmethod
     def startup(cls, arguments: list[str]) -> RemoteCoreConnection:
         index = arguments.index(cls.argument)
@@ -270,6 +281,10 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
     @property
     def location(self) -> str:
         return str(self.endpoint.url)
+
+    def chosen(self, arguments: list[str]) -> RemoteCoreConnection:
+        """Read by this same member: desktop keeps decoding in a process, Android in place."""
+        return type(self).startup(arguments)
 
     def route_selection(self) -> RouteSelection:
         raise RemoteRouteNotSelectable(
@@ -334,6 +349,10 @@ class ObservationRetry:
     LONGEST: ClassVar[float] = 30.0
     losses: int = 0
     due: float = 0.0
+    # When the last result reached the UI (monotonic), so an outage can say how long the UI
+    # had gone without one: a relay that ends because its reader took nothing for its write
+    # deadline reads differently from a connector that went away.
+    last_arrival: float | None = None
 
     def lost(self, now: float) -> None:
         self.losses += 1
@@ -348,6 +367,17 @@ class ObservationRetry:
 
     def recovered(self) -> None:
         self.losses, self.due = 0, 0.0
+
+    def arrived(self, now: float) -> None:
+        """A result reached the UI: the outage, if any, is over."""
+        self.recovered()
+        self.last_arrival = now
+
+    def quiet_note(self, now: float) -> str:
+        """How long before ``now`` the UI last received a result, for the outage's report."""
+        if self.last_arrival is None:
+            return "No observation result had reached the UI yet."
+        return f"The last observation result reached the UI {now - self.last_arrival:.1f} s before this."
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -762,7 +792,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
 
     def receive(self, result: Observed):
         if self.is_current():
-            self.access.retry.recovered()
+            self.access.retry.arrived(time.monotonic())
             self.access.dispatch_sync(result, self)
 
     def tell(self, wanted) -> None:
@@ -785,6 +815,7 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         if self.is_current():
             self.failed(error, self.opened_selection())
             if self.access.retry.began():
+                error.add_note(self.access.retry.quiet_note(time.monotonic()))
                 self.access.app.report_fatal(error)
 
     def views_changed(self, event=None, subscription=None):

@@ -348,6 +348,17 @@ class WorkingTranscript(SuspendedTranscript):
         self.reader_revision = owner.window.scroll_revision
         # The screen asked for rows beyond an edge while this work held the source.
         self.edges_wait = False
+        # Work handed over while this held the source, run once it ends (`owed`).
+        self.owed: dict[object, Callable[[], Awaitable[object]]] = {}
+
+    def schedule_work(self, owner, work) -> SourceWork:
+        """Work arriving while this holds the source runs once it ends, once per kind: a
+        refresh reads everything new, so two owed refreshes are one. Returned as deferred, it
+        was dropped by callers that never retried, and a burst's last messages stayed unread
+        until something else changed (a phone-speed burst left 6 of 20 undrawn)."""
+        key = (work.func, work.args) if isinstance(work, partial) else work
+        self.owed[key] = work
+        return DEFERRED_WORK
 
     def rows_published(self, owner) -> None:
         self.source.rows_published(owner)

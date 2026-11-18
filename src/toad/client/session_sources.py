@@ -16,7 +16,9 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.thread_presentation import EnsuringSessionLoadPlan
 
+from toad.acp.agent import Agent
 from toad.agent_binding import NoAgentConnection
+from toad.core import events as core_events
 from toad.client.connection import Observing
 from toad.client.conversation_sources import ConversationSources
 from toad.client.goal_source import CommsGoalSource
@@ -69,6 +71,36 @@ class SessionSources(ConversationSources, NativeQueueSource):
 
     def start_agent(self, conversation) -> None:
         conversation.agent_binding.start_agent(self, conversation)
+
+    def create_agent(self, conversation) -> None:
+        """The unbound view starts a new operational agent for its launch, where this
+        platform runs agent processes; where it does not, the view opens without one and
+        says why."""
+        conversation.app.agent_processes.start(
+            partial(self.spawn_agent, conversation),
+            partial(self.agent_refused, conversation))
+
+    def agent_refused(self, conversation, reason: str) -> None:
+        conversation.feedback.flash(reason)
+        conversation.present_without_agent()
+
+    def spawn_agent(self, conversation) -> None:
+        """The launch's agent, resuming the view's session when it names one, borrowing the
+        processes other sessions already run."""
+        app = conversation.app
+        agent = Agent(
+            conversation.project_path.path,
+            conversation.launch.require_agent(),
+            conversation._agent_session_id,
+            conversation._session_pk,
+            app_events=app.events,
+            transcripts=app.coordination_access.transcripts,
+        )
+        agent.session.load_plan = self.load_plan
+        conversation._native_agent_started_here = True
+        conversation.bind_agent(agent)
+        agent.controller.start_operation(agent.start(app.session_navigation.processes))
+        conversation.publish_core(core_events.SessionSubtitleChanged(conversation.agent_title))
 
     def goal_source(self, conversation) -> GoalSource:
         """An operational view's goal is its agent's."""
@@ -127,3 +159,9 @@ class SourcedConversation:
     def begin_submission(self, owner, submission):
         """Where this view's input goes: its operational sources answer for agent and CLI views."""
         return self.operational_sources.begin_submission(owner, submission)
+
+    def external_transcript_changed(self) -> None:
+        """Core published this thread's CLI drafts or finished items: its sources read them,
+        shown or parked. Both toolkits route `ExternalTranscriptChanged` here; a view that
+        waited for a status change instead held a CLI's newest item until its next one."""
+        self.operational_sources.external_transcript_changed(self)

@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import os
 from time import time
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass
 from typing import ClassVar, Self
 from functools import partial
@@ -75,7 +75,6 @@ from toad.client.connection import (
     CoreConnection,
     FailedObservation,
     Observing,
-    RemoteCoreConnection,
 )
 from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
@@ -109,10 +108,10 @@ from toad.sidebar_model_view import SidebarStateMachine
 from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core import session_requests
-from toad.core.events import CoordinationObserved, TabHistoryChanged
-from toad.launch_binding import NoAgent
+from toad.core.events import CoordinationObserved, ExternalTranscriptChanged, TabHistoryChanged
+from toad.launch_binding import AgentBinding, NoAgent
 from toad.navigation_context import NoNavigationOwner
-from toad.client.session_scope import ProjectSessionOrigin
+from toad.client.session_scope import HomeSessionOrigin
 from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sidebar_panels import PanelSpec
 from toad.navigation_context import ConversationViewNavigation
@@ -381,7 +380,7 @@ class ConversationRow(NameWave, TargetLine, SidebarItem):
 
     def repaint(self) -> None:
         tree = self.treeWidget()
-        if tree is not None:
+        if tree is not None and self.wave_moved(self.wave_span()):
             tree.viewport().update(tree.visualItemRect(self))
 
     def wave_span(self) -> tuple[int, int] | None:
@@ -524,41 +523,19 @@ class BusAddress(BusAddressEntry, QLineEdit):
         self.clear()
 
 
-class SwallowsRelease(QObject):
-    """Eats the one release that ends a held finger, then goes: the finger was holding the
-    row for its actions, so letting go must not also tap it and open that bus."""
-
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if event.type() == QEvent.Type.MouseButtonRelease:
-            watched.removeEventFilter(self)
-            self.deleteLater()
-            return True
-        return False
-
-
 class HeldRowMenu(QObject):
-    """A tree line's held actions (SidebarItem.held_actions), offered where a finger is held
-    on it or a mouse right-clicks it (a phone has no right button), in the window's own
-    panel, as its menu is (QtToadApp.offer)."""
+    """A tree line's menu (SidebarItem.menu_entries), offered where a mouse right-clicks it
+    or a finger is held on it (`FingerPress` delivers a held finger as the same context-menu
+    request), in the window's own panel, as its menu is (QtToadApp.offer). Every tree of
+    conversation rows has one: the welcome's and the sidebar's, as every Textual sidebar row
+    answers a right-click (`CommsRow.context_activation`). ``listing`` is what a row's
+    entries act through (its ``host`` window; the welcome's own rows reach the welcome)."""
 
-    def __init__(self, listing: Welcome) -> None:
-        super().__init__(listing)
-        self.listing = listing
-        rows = listing.rows
+    def __init__(self, rows: ConversationRows, listing) -> None:
+        super().__init__(rows)
+        self.rows, self.listing = rows, listing
         rows.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         rows.customContextMenuRequested.connect(self.offer)
-        rows.viewport().grabGesture(Qt.GestureType.TapAndHoldGesture)
-        rows.viewport().installEventFilter(self)
-
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if event.type() == QEvent.Type.Gesture:
-            held = event.gesture(Qt.GestureType.TapAndHoldGesture)
-            if held is not None and held.state() == Qt.GestureState.GestureFinished:
-                viewport = self.listing.rows.viewport()
-                viewport.installEventFilter(SwallowsRelease(viewport))
-                self.offer(viewport.mapFromGlobal(held.position().toPoint()))
-                return True
-        return False
 
     def offer(self, point: QPoint) -> None:
         """``point`` is in the tree's viewport, where QAbstractScrollArea reports it.
@@ -566,7 +543,7 @@ class HeldRowMenu(QObject):
         (base rows adapt their `held_actions` via `MenuEntry.from_offered`, rich rows
         like `ConversationRow` return the shared `menu_entries_for_row` output
         directly)."""
-        rows = self.listing.rows
+        rows = self.rows
         item: SidebarItem | None = rows.itemAt(point)
         if item is None:
             return
@@ -575,13 +552,13 @@ class HeldRowMenu(QObject):
             self.listing.host.offer_entries(entries)
 
 
-class QtWelcomeOrigin(ProjectSessionOrigin):
+class QtWelcomeOrigin(HomeSessionOrigin):
     """Standalone origin for Qt's welcome tab: Qt's `Welcome` widget cannot inherit
     `ProjectSessionOrigin` itself because `SessionOrigin`'s `AbstractHooksMeta` clashes
     with QWidget's shiboken6 metaclass, so the origin is a sibling object the window
     hands to `thread_navigation.open` through `QtWorkspaceViews.origin(WELCOME)`.
 
-    Textual's `WelcomeScreen` (`screens/welcome.py:234`) inherits `ProjectSessionOrigin`
+    Textual's `WelcomeScreen` (`screens/welcome.py:234`) inherits `HomeSessionOrigin`
     directly because its widget metaclass does not clash."""
 
     is_attached: bool = True
@@ -642,7 +619,7 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         window.renderer.themed(self.project, lambda: self.project.setStyleSheet(window.renderer.color_style(MutedRole)))
         self.new_session_button = QtStartSessionButton(window, parent=self)
         self.rows = ConversationRows(window)
-        self.held_menu = HeldRowMenu(self)
+        self.held_menu = HeldRowMenu(self.rows, self)
         self.address = BusAddress(window)
         # Gesture hint line below the rows, mirroring Textual's WelcomeNote(HINTS)
         # at the tail of `WelcomeScreen.compose`. The content is owned per-frontend
@@ -723,21 +700,23 @@ class TreeItemRows[KeyT](KeyedRows[KeyT]):
         return row.parent() is self.parent or (row.parent() is None and row.treeWidget() is not None
                                                and self.parent is row.treeWidget().invisibleRootItem())
 
-    def mount_row(self, row: QTreeWidgetItem) -> None:
-        """A new line joins, then takes its place: its text fitted, a working thread's
-        line waving."""
-        self.parent.addChild(row)
-        row.placed()
+    def mount_rows(self, rows: Iterable[QTreeWidgetItem]) -> None:
+        """Register the selected native children, then publish each line's placement."""
+        rows = tuple(rows)
+        self.parent.addChildren(rows)
+        for row in rows:
+            row.placed()
 
     def order_rows(self, position) -> None:
         """Move only the lines out of place, each where it belongs, reopening its groups."""
         for index, row in enumerate(sorted(self.member_order(), key=position)):
             if self.parent.child(index) is not row:
-                opened = [group for group in row.subtree() if group.isExpanded()]
+                states = [(group, group.isExpanded(), group.isSelected()) for group in row.subtree()]
                 self.parent.takeChild(self.parent.indexOfChild(row))
                 self.parent.insertChild(index, row)
-                for group in opened:
-                    group.setExpanded(True)
+                for group, opened, selected in states:
+                    group.setExpanded(opened)
+                    group.setSelected(selected)
 
     def retire_row(self, row: QTreeWidgetItem) -> None:
         for line in row.subtree():
@@ -1030,6 +1009,13 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
         # tree. Textual's `SideBar` also owns one (same class, same match rule).
         self.filter: SidebarFilter = SidebarFilter()
         self.filter.subscribe(self._on_filter_changed)
+        # A row's menu on a right-click or a held finger, as the welcome's rows have it.
+        self.held_menu = HeldRowMenu(self, self)
+
+    @property
+    def host(self) -> QtToadApp:
+        """The window a row's menu entries act in (`HeldRowMenu`)."""
+        return self.window
 
     def _on_filter_changed(self, _value: str) -> None:
         """Re-present the whole tree so rows whose names newly stop (or newly start)
@@ -1203,8 +1189,8 @@ class BusLabel(WelcomeLocation, ElidedLine):
     """Where the bus this window reads lives, as its connection names it, prefixed with
     the agent binding's `welcome_prefix` so the line reads the same way Textual's does
     at `screens/welcome.py:256` — `f"{agent_binding.welcome_prefix}{location}"`. A Qt
-    client is always remote, so its own launch directory (on the phone, /data/data/…/app)
-    says nothing about the Core it shows; the connection's location does.
+    client's own launch directory (on the phone, /data/data/…/app) says nothing about the
+    Core it shows; the connection's location does.
 
     `welcome_prefix` is empty for `NoAgent` so a connection without an attached agent
     reads as before. With `AgentAttached`, the line reads e.g. `claude · <location>`."""
@@ -1261,8 +1247,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         # Textual's `CommsChatView.compose`: the flash under the window, the sweep painting
         # `working()` (an idle turn, the peer's observed row, or the first page loading),
         # the prompt (its info bar carries the thread status), then who is here.
-        self.composer = self.conversation.prompt(self)
-        self.composer.labelled(label)
         self.activity = tuple(self.conversation.compose_activity(self))
         # The inline consent prompt ("did you mean it?", edit/clear confirmations) — hidden
         # until the conversation asks, mounted below the composer so the picks sit where
@@ -1274,7 +1258,8 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         layout.addWidget(self.messages, 1)
         layout.addWidget(self.feedback)
         layout.addWidget(self.agent_activity)
-        layout.addWidget(self.composer)
+        self.reserve_composer(layout, lambda: self.conversation.prompt(self),
+                              lambda composer: composer.labelled(label))
         layout.addWidget(self.question)
         # Under the prompt, not over it: who is here is reference (Textual's
         # `CommsChatView.compose` yields the kind's activity after the prompt).
@@ -1303,10 +1288,10 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         await self.content_ready.wait()
 
     def close_core_events(self) -> None:
-        """The shared close, then the receipt stops following and the wire lets go."""
+        """The shared close (its history lets go of the wire), then the receipt stops following."""
         super().close_core_events()
-        self.composer.receipt.stop()
-        self.message_history.retire_source()
+        if self.composer is not None:
+            self.composer.receipt.stop()
 
     async def retire_presentation(self) -> None:
         """The history lets go of its page reader; its rows go with the widgets."""
@@ -1336,13 +1321,14 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         finally:
             self.content_ready.set()
         self.submissions.settle()
-        self.composer.receipt.follow(str(source.root), next((
+        followed = (str(source.root), next((
             references for fragment in reversed(history.fragments) if (references := fragment.sent_references)), ()),
             history.pages[-1].prepared.page.source.selection.notification_identity)
+        self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
         self.refresh_thread_status()
         self.sync_working()
         label = self.conversation.label(source.references())
-        self.composer.labelled(label)
+        self.on_composer("label", lambda composer: composer.labelled(label))
         read_only = await asyncio.to_thread(self.conversation.read_only, source.core)
         await self.refresh_composer(read_only)
         self.thread_status = await self.conversation.status_text(source, read_only=read_only)
@@ -1377,8 +1363,8 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
 
     async def update_channel_mentions(self, source: ReferencedCore) -> None:
         answer = await self.app.coordination_access.current_sidebar()
-        self.composer.set_mention_candidates(
-            await self.app.preparation.run_thread(self.conversation.mention_candidates, answer))
+        candidates = await self.app.preparation.run_thread(self.conversation.mention_candidates, answer)
+        self.on_composer("mentions", lambda composer: composer.set_mention_candidates(candidates))
 
     # Commands the composer offers after a /
 
@@ -1386,17 +1372,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         """Commands address the conversation its page source reads, as Textual's
         `CommsChatView.command_target_context`."""
         return self.message_history.page_source.command_context(self)
-
-    def ask(self, options, title: str = "", get_content=None, callback=None):
-        """Show an inline question with these options, mirroring Textual's Conversation.ask.
-
-        A `toad.answer.Ask` is passed to the mounted `QtQuestion`, which pops up
-        under the composer with an option button per answer and fires `callback(answer)`
-        when the user picks. Returns the Ask for the backend to track."""
-        from toad.answer import Ask
-        ask = Ask(title, options, get_content, callback)
-        self.question.update(ask)
-        return ask
 
     def begin_submission(self, owner, submission):
         """A channel or inbox message goes where this view's page source says, as
@@ -1528,7 +1503,16 @@ class QtWorkspaceViews(WorkspaceViews):
     def detach(self, identity: str) -> ConversationView | None:
         return self.views.pop(identity, None)
 
+    def external_transcript_changed(self) -> None:
+        """Every open view reads its CLI items, shown or parked, as Textual's screens do: a
+        parked view that waited would draw what it missed as one burst on return."""
+        for view in tuple(self.views.values()):
+            view.external_transcript_changed()
+
     async def finish(self, view: ConversationView) -> None:
+        # As Textual's `Conversation` unmount: the view's agent leaves its surface and stops
+        # before the widgets it draws into are deleted.
+        await view.operational_binding.retire_surface(view)
         view.close_configuration()
         self.pages.removeWidget(view)
         view.deleteLater()
@@ -1556,20 +1540,22 @@ class QtWorkspaceViews(WorkspaceViews):
 
 
 class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
-    """The shared client application on Qt, over the Core a UI profile names: the threads,
+    """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
 
     session_entries = QtSessionEntry
 
-    def __init__(self, connection: RemoteCoreConnection, project: Checkout,
-                 preparation: PreparationRuntime, scheme: ColourScheme) -> None:
+    def __init__(self, connection: CoreConnection, project: Checkout,
+                 preparation: PreparationRuntime, scheme: ColourScheme,
+                 launch: AgentBinding = NoAgent()) -> None:
         super().__init__(project, preparation, scheme)
         # Walk Core's declaration catalog once up front (shared with the Textual app
         # via CorePrewarm): a cold first tab otherwise imports every agent_comms
         # module under the GIL on its first wire revision / action menu.
         self._prewarm_core_modules()
-        self.initialize_client(NoAgent(), connection)
+        # The launch's agent, as Textual's `-a`: New Session starts its session.
+        self.initialize_client(launch, connection)
         self.input_attention = QtWindowAttention(self)
         self.action_keys = ActionKeys(lambda: self.settings)
         # Until a conversation reads Core's display references, bodies link the project's files.
@@ -1680,6 +1666,10 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.sidebar_layout.set_collapsed(ChannelsSidebarPlacement, self.settings.sidebar.hide)
         self.rearrange_sidebars()
         self.changes = self.coordination_access.events.subscribe(CoordinationObserved, self.stores_changed)
+        # CLI drafts and finished items change no thread status, so `CoordinationObserved`
+        # never carries them: without this a CLI's newest item waited for its next one.
+        self.transcripts = self.coordination_access.events.subscribe(
+            ExternalTranscriptChanged, self.external_transcript_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
         self.shortcuts = ShortcutLifecycle[ApplicationKeys](QApplication.instance())
@@ -1695,9 +1685,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.input_attention.attach()
 
     def connection_for(self, choice: BusChoice) -> CoreConnection:
-        """The profile a chosen bus names, read by the member this window launched with, so
-        desktop keeps decoding in a process and Android in place."""
-        return type(self.coordination_access.connection).startup(list(choice.arguments(())))
+        """The connection a chosen bus names, read by the connection this window runs on
+        (`CoreConnection.chosen`)."""
+        return self.coordination_access.connection.chosen(list(choice.arguments(())))
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
         button = QToolButton(self)
@@ -1721,6 +1711,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
         self.workspace_sessions.home.project.present(self)
         self.workspace_sessions.selected.reload()
+
+    def external_transcript_changed(self, event: ExternalTranscriptChanged, subscription: object) -> None:
+        self.workspace_sessions.external_transcript_changed()
 
     def history_changed(self, *event: object) -> None:
         """Back and forward are live exactly when the visit history has a step that way."""
@@ -1892,6 +1885,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     async def start_frontend(self) -> None:
         await self.coordination_access.follow_sidebar(self.sidebar)
         await self.application.start()
+
+    @property
+    def app_focus(self) -> bool:
+        """Textual's `App.app_focus`: whether the desktop has this app in front, which the
+        notification policy (`notifications.system`) reads before a desktop notification."""
+        return QApplication.applicationState() == Qt.ApplicationState.ApplicationActive
 
     def application_state_changed(self, state: Qt.ApplicationState) -> None:
         if state in (Qt.ApplicationState.ApplicationSuspended, Qt.ApplicationState.ApplicationHidden,
