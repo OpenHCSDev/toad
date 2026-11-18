@@ -803,18 +803,30 @@ class QtStickyHeader(HeaderPin, QWidget):
         self.history_window = window
         self.documents: tuple[QTextDocument, ...] = ()
         self.drawn: tuple = ()
+        # Each pinned header's laid-out document, while the pin's width, font, link context and
+        # renderer stay the same.
+        self.laid_out: dict[Divider, QTextDocument] = {}
+        self.layout_context: tuple = ()
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.hide()
 
     def draw_pinned(self, headers: tuple[Divider, ...], x: int, width: int) -> None:
-        """Every scroll offset pins; only different headers, column, font or link context lay
-        them out again."""
+        """Every scroll offset pins; only different headers, column, font, link context or
+        renderer (a theme) lay anything out again, and then only the headers not already laid
+        out: a burst's stack changes as each head glides past the top, and laying every stacked
+        header out again from its html (its theme's colours resolved span by span) was a third
+        of the phone's UI thread during a burst (2026-11-18)."""
         window = self.history_window
-        drawn = (headers, x, width, window.font().key(), window.rows.links_revision)
+        context = (width, window.font().key(), window.rows.links_revision, id(window.rows.renderer))
+        drawn = (headers, x, context)
         if drawn == self.drawn:
             return
         self.drawn = drawn
-        self.documents = tuple(window.rows.header_document(header, window.font(), width) for header in headers)
+        kept = self.laid_out if context == self.layout_context else {}
+        self.layout_context = context
+        self.laid_out = {header: kept.get(header) or window.rows.header_document(header, window.font(), width)
+                         for header in headers}
+        self.documents = tuple(self.laid_out[header] for header in headers)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not self.stacked.keys)
         self.resize(width, sum(int(document.size().height()) for document in self.documents))
         self.move(window.viewport().mapTo(window, QPoint(x, 0)))
