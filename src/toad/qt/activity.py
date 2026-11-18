@@ -10,9 +10,9 @@ from time import monotonic
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPainter
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.effects import ACTIVITY_SWEEP
 
@@ -20,7 +20,8 @@ from toad.client.application import ClientApplication
 from toad.client.connection import CoordinationAccess
 from toad.channel_activity_dispatch import ChannelActivityTitle
 from toad.client.conversation import ConversationKind
-from toad.client.line_blocks import MutedRole
+from toad.client.fragments import Shown
+from toad.client.line_blocks import NO_LINK, MutedRole
 from toad.client.prompt_stack import ObservedSweep
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
@@ -40,11 +41,17 @@ class ActivityLine(ElidedLine):
         """Nothing observed; nothing to stop."""
 
 
-class ChannelActivity(ChannelActivityTitle, ActivityLine):
-    """The shared channel activity title as one line; it follows every change to the rows."""
+class ChannelActivity(ChannelActivityTitle, QLabel):
+    """The shared channel activity title as a disclosure, as Textual's collapsed
+    ChannelActivity draws it: `▶ N active · names`; a tap opens one `▶ name` row per active
+    member. Both rows are the shared `Shown.summary` blocks the transcript's ▶ rows use."""
 
     def __init__(self, app: ClientApplication, renderer: QtLineRenderer, conversation: ConversationKind) -> None:
-        super().__init__(renderer)
+        super().__init__()
+        self.renderer = renderer
+        self.shown = Shown()
+        self.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
+        self.setTextFormat(Qt.TextFormat.RichText)
         self.activity_conversation = conversation
         self.activity_model: SidebarModel = app.coordination_access.observation.observed().sidebar
         self.activity_model.channels.subscribe(self.rows_changed)
@@ -52,7 +59,13 @@ class ChannelActivity(ChannelActivityTitle, ActivityLine):
         self.rows_changed(())
 
     def rows_changed(self, changes: object) -> None:
-        self.setText(self.activity_title)
+        heading = self.shown.summary(self.activity_title, MutedRole, NO_LINK)
+        members = (Shown().summary(member.name, MutedRole, NO_LINK) for member in self.members)
+        self.setText(self.renderer.html((heading, *(members if self.shown.details_open else ()))))
+
+    def mousePressEvent(self, event) -> None:  # type: ignore[override]
+        self.shown = self.shown.toggled()
+        self.rows_changed(())
 
     def close_activity(self) -> None:
         self.activity_model.channels.unsubscribe(self.rows_changed)

@@ -66,10 +66,6 @@ class SessionView(
         return self.app.workspace_sessions.owns(self) and self.screen.is_current
 
     @property
-    def coordination_root(self) -> str | None:
-        return self._identity.wire_root()
-
-    @property
     def origin(self) -> SessionOrigin:
         """What a session or history requested from this view starts from."""
         return NoSessionOrigin(str(self))

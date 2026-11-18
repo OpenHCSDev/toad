@@ -10,7 +10,7 @@ from html import escape
 from pygments.lexers import get_lexer_by_name
 from pygments.token import _TokenType
 from pygments.util import ClassNotFound
-from PySide6.QtGui import QFont, QFontMetricsF
+from PySide6.QtGui import QColor, QFont, QFontMetricsF
 from rich.style import Style
 from rich.syntax import ANSI_DARK, ANSI_LIGHT
 from ui_theme.colour import require_terminal_palette
@@ -38,7 +38,7 @@ from toad.client.line_blocks import (
 from toad.client.line_painting import LineBlockPainter, LinkPresentation
 from toad.markdown_links import LinkContext, MessageMarkdownParser
 from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
-from toad.patch import Patch
+from toad.patch import DiffMarks, Patch
 from toad.rich_preparation import RichTextBody, palette_colour
 
 
@@ -80,9 +80,10 @@ QT_LINK_MARKUP = QtLinkMarkup()
 class QtLineRenderer(LineBlockPainter[str]):
     """Each shared block as a fragment of Qt rich text; Markdown through the shared parser."""
 
-    def __init__(self, scheme: ColourScheme, links: LinkContext) -> None:
+    def __init__(self, scheme: ColourScheme, links: LinkContext, diff_marks: DiffMarks) -> None:
         self.scheme = scheme
         self.links = links
+        self.diff_marks = diff_marks
         # HTML emission only; a source line break stays a line, as Rich draws soft breaks.
         self.markdown = MarkdownIt("gfm-like", {"breaks": True, "highlight": self.highlight})
         self.markdown.renderer.rules["link_open"] = self.link_open
@@ -122,13 +123,17 @@ class QtLineRenderer(LineBlockPainter[str]):
     def highlight(self, code: str, language: str, attributes: str) -> str:
         """A fenced block in its language's colours, as Toad highlights code; an unknown
         language or a bare fence stays plain."""
+        spans = self.code_spans(code, language)
+        return f"<pre>{spans}</pre>" if spans else ""
+
+    def code_spans(self, code: str, language: str) -> str:
+        """Code in its language's colours; "" when the language is unknown."""
         try:
-            lexer = get_lexer_by_name(language)
+            lexer = get_lexer_by_name(language, stripnl=False, ensurenl=False)
         except ClassNotFound:
             return ""
-        spans = "".join(f'<span style="{self.token_css(token)}">{escape(text)}</span>'
-                        for token, text in lexer.get_tokens(code))
-        return f"<pre>{spans}</pre>"
+        return "".join(f'<span style="{self.token_css(token)}">{escape(text)}</span>'
+                       for token, text in lexer.get_tokens(code))
 
     def colour(self, role: type[LineRole]) -> str:
         return self.theme(role.colour)
@@ -233,8 +238,17 @@ class QtLineRenderer(LineBlockPainter[str]):
     @handles(Patch)
     def patch(self, block: Patch) -> str:
         groups = self.styled("…\n", MutedRole).join(
-            "".join(self.styled(text + "\n", role) for text, role in group) for group in block.unified_lines)
-        return f'<p>{self.styled(block.title, MutedRole)}</p><pre>{groups}</pre>'
+            "".join(self.patch_line(gutter, code, role, block.language) for gutter, code, role in group)
+            for group in block.unified_lines(self.diff_marks))
+        return f'<p style="white-space:pre">{self.styled(block.title, MutedRole)}</p><pre>{groups}</pre>'
+
+    def patch_line(self, gutter: str, code: str, role: type[LineRole], language: str) -> str:
+        """One diff row on its role's tint, its code in its language's colours."""
+        tint = QColor(self.colour(role))
+        tint.setAlphaF(role.background_tint)
+        background = f"rgba({tint.red()},{tint.green()},{tint.blue()},{tint.alphaF():.2f})"
+        return (f'<span style="background-color:{background}">{self.styled(gutter, role.gutter())}'
+                f'{self.code_spans(code, language) or self.styled(code, role)}</span>\n')
 
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> str:

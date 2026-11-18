@@ -20,12 +20,17 @@ from functools import partial
 from weakref import WeakSet
 
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
-from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QRect, Qt, QTimer, Signal
-from PySide6.QtGui import QFont, QFontMetrics
-from PySide6.QtWidgets import QPushButton, QScroller, QWidget
+from metaclass_registry.mro_dispatch import handles
+from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
+from PySide6.QtGui import QDesktopServices, QFont, QFontMetrics
+from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QWidget
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
-from toad.client.fragments import EvidencedFragment, HistoryFragment, MembershipText, Shown, WireMessage
+from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
+from toad.core.projection import MroProjection
+from toad.link_opening import OpensLineLinks
+from toad.navigation_target import NavigationTarget
+from toad.project_link import ExternalProjectLink, ProjectFileLink, ProjectLink
 from toad.client.history import ReadMarkedHistory
 from toad.client.history_notifications import OneHistoryNotifications, SourceNotifications
 from toad.client.history_pager import (
@@ -454,6 +459,22 @@ class QtHistoryNotifications(OneHistoryNotifications):
         self.app.coordination_access.stop_notifications(self)
 
 
+class QtLinkPreview(MroProjection[None]):
+    """A tapped project link in Qt: an address opens in the system browser; a file has no
+    Qt preview view, and the reader is told so."""
+
+    @handles(ExternalProjectLink)
+    def address(self, link: ExternalProjectLink, window: QtHistoryWindow) -> None:
+        QDesktopServices.openUrl(QUrl(link.href))
+
+    @handles(ProjectFileLink)
+    def file(self, link: ProjectFileLink, window: QtHistoryWindow) -> None:
+        window.warn_link(f"{link.href} has no Qt preview view.")
+
+
+QT_LINK_PREVIEW = QtLinkPreview()
+
+
 @dataclass(frozen=True)
 class QtTopRow:
     """The row under a Qt window's top edge: Qt keeps its reader by scroll row."""
@@ -493,7 +514,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
 
 
 class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowView,
-                      ReaderPlacement, PagingWindow):
+                      ReaderPlacement, PagingWindow, OpensLineLinks):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
     contract: reaching the top reads older pages, the bottom newer ones, End and the
@@ -609,7 +630,56 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
                 if held is not None and held.state() == Qt.GestureState.GestureFinished:
                     self._emit_block_menu_at(self.viewport().mapFromGlobal(held.position().toPoint()))
                     return True
+            elif event.type() == QEvent.Type.MouseButtonPress:
+                self._pressed_at = event.position().toPoint()
+            elif event.type() == QEvent.Type.MouseButtonRelease and self._tapped(event.position().toPoint()):
+                href = self.anchor_at(event.position().toPoint())
+                if href:
+                    self.open_link(href)
+                    return True
         return super().eventFilter(obj, event)
+
+    _pressed_at: QPoint | None = None
+
+    def _tapped(self, point: QPoint) -> bool:
+        """A release where the press was, not the end of a drag the scroller moved."""
+        pressed, self._pressed_at = self._pressed_at, None
+        return pressed is not None and (point - pressed).manhattanLength() <= QApplication.startDragDistance()
+
+    def anchor_at(self, point: QPoint) -> str:
+        """The href of the link drawn at `point` (viewport coordinates), or "" over plain text."""
+        index = self.indexAt(point)
+        if not index.isValid():
+            return ""
+        rect = self.visualRect(index)
+        document = self.rows.row_document(index, self.font(), rect.width())
+        return document.documentLayout().anchorAt(QPointF(point - rect.topLeft()))
+
+    # The shared link handlers (`OpensLineLinks`) open through this app and warn on this view.
+
+    @property
+    def app(self):
+        return self.history.app
+
+    def select_target(self, target: NavigationTarget) -> None:
+        self.app.open_target(target)
+
+    def select_historical(self, name: str, source: str) -> None:
+        self.warn_link(f"@{name}'s recorded identity in {source} has no Qt view.")
+
+    def preview_link(self, link: ProjectLink) -> None:
+        QT_LINK_PREVIEW.project_value(link, self)
+
+    def warn_link(self, text: str) -> None:
+        self.history.view.flash_error(text)
+
+    @handles(FragmentDetails)
+    def toggle_details(self, link: FragmentDetails) -> None:
+        """A tap on a ▶ row opens or closes that fragment's details, as Textual's page does."""
+        for fragment in self.model_rows.fragments:
+            if fragment.key == link.key:
+                self.history.run_worker(lambda: self.history._show([(fragment, fragment.shown.toggled())]))
+                return
 
     def _emit_block_menu_at(self, point: QPoint) -> None:
         """Right-click or long-press at ``point`` (viewport coordinates): emit the

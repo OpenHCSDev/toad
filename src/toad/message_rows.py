@@ -24,7 +24,7 @@ from agent_comms.messaging.channel_targets import (
 from agent_comms.messaging.historical_views import HistorySource
 from agent_comms.messaging.messages import Message
 from agent_comms.messaging.routing import MessageRoute
-from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from agent_comms.storage.recorded_time import EventTime, RecordedEventTime, UnrecordedEventTime
 from metaclass_registry.mro_dispatch import handles
 
@@ -233,8 +233,9 @@ class MarkdownWireBody(WireBody):
         return MarkdownBody(self.text, bar=self.bar)
 
 
-class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
-    """How a message's own text is laid out under its header."""
+class WireMessageStyle(DeclaredChoice, affix="MessageStyle"):
+    """How a message's own text is laid out under its header: a conversation tab opens in
+    the style `ConversationUiSettings.message_style` names, in every frontend."""
 
     def body(self, row: MessageRow, text: str) -> tuple[LineBlock, ...]:
         return (self.body_type(row, text),)
@@ -247,8 +248,10 @@ class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
         """What copying a message drawn in this style gives."""
 
 
-class IrcMessageStyle(WireMessageStyle):
+class IrcMessageStyle(TitledChoice, WireMessageStyle):
     """Inline-formatted text as one wrapped paragraph."""
+
+    title = "IRC lines"
 
     body_type = InlineWireBody
 
@@ -259,8 +262,10 @@ class IrcMessageStyle(WireMessageStyle):
         return f"{row.route_text}: {row.text}"
 
 
-class MarkdownMessageStyle(WireMessageStyle):
+class MarkdownMessageStyle(TitledChoice, WireMessageStyle):
     """The same inline links, laid out as Markdown beside a bar."""
+
+    title = "Markdown beside a bar"
 
     body_type = MarkdownWireBody
 

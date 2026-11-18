@@ -20,6 +20,8 @@ from pathlib import Path
 from typing import ClassVar
 
 import qasync
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QPushButton, QWidget
 
 from agent_comms.messaging.channel_targets import ChannelTarget
@@ -31,6 +33,7 @@ from toad.client.application_actions import ApplicationAction, QuitAction
 from toad.client.bus_submission import TypedText
 from toad.client.conversation import ChannelConversation
 from toad.client.connection import RemoteCoreConnection
+from toad.client.line_blocks import LineLink
 from toad.qt.main import current_scheme, open_app
 from toad.goal_interactions.controls import CollapseInteraction, HistoryInteraction
 from pyqt_reactive.widgets.fitted_text import WrappedText
@@ -49,6 +52,7 @@ from toad.sidebar_placement import (
 )
 from toad.client.history import ChannelDestination, WirePageBuffer
 from toad.qt.command_form import QtCommandForm
+from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import panel_specs_for_view
 from toad.qt.window import ConversationRow, MessageSend, QtToadApp
 
@@ -106,9 +110,28 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         """Open a sidebar row and wait for its conversation to draw."""
         before = self.page
         self.app.open_row(row)
+        # The opening view stands in until the conversation's own view replaces it.
         await until(lambda: self.page is not before and self.page is not self.app.workspace_sessions.home
+                    and not isinstance(self.page, QtOpeningSessionView)
                     and self.page.messages.model_rows.rowCount(), label)
         await asyncio.sleep(1.5)
+
+    async def open_named(self, name: str) -> None:
+        """Open a #channel or a thread from its sidebar row; a thread row sits under each
+        channel it belongs to, and any one opens it."""
+        await self.listed()
+        if name.startswith("#"):
+            await self.expand(name)
+            await self.open(self.channel_row(name), name)
+        else:
+            pending, rows = list(self.app.sidebar.items()), []
+            while pending:
+                item = pending.pop()
+                rows.append(item)
+                pending.extend(item.child(index) for index in range(item.childCount()))
+            await self.open(next(row for row in rows if isinstance(row, ConversationRow)
+                                 and row.target.name == name), name)
+        await asyncio.sleep(2.0)
 
     def channel_row(self, name: str) -> ConversationRow:
         return next(row for row in self.app.sidebar.items()
@@ -282,22 +305,7 @@ class TranscriptScenario(Scenario):
                "print each fragment's blocks; screenshot closed, opened and at the newest header")
 
     async def run(self) -> None:
-        await self.listed()
-        app = self.app
-        name = os.environ.get("TOAD_DRIVE_THREAD", "personal-model-curation")
-        if name.startswith("#"):
-            await self.expand(name)
-            await self.open(self.channel_row(name), name)
-        else:
-            # A thread row sits under each channel it belongs to; any one opens the thread.
-            pending, rows = list(app.sidebar.items()), []
-            while pending:
-                item = pending.pop()
-                rows.append(item)
-                pending.extend(item.child(index) for index in range(item.childCount()))
-            await self.open(next(row for row in rows if isinstance(row, ConversationRow)
-                                 and row.target.name == name), name)
-        await asyncio.sleep(2.0)
+        await self.open_named(os.environ.get("TOAD_DRIVE_THREAD", "personal-model-curation"))
         window = self.page.messages
         fragments = window.model_rows.fragments
         for fragment in fragments[-25:]:
@@ -320,12 +328,96 @@ class TranscriptScenario(Scenario):
         for fragment in opened[-3:]:
             fragment.request_show(fragment.shown.toggled())
         window.show_pages()
+        # The newest message whose header names TOAD_DRIVE_HEADER (any header by default).
+        named = os.environ.get("TOAD_DRIVE_HEADER", "")
         headed = max(row for row, fragment in enumerate(fragments)
-                     if any(type(block).__name__ == "Divider" for block in fragment.line_blocks))
+                     if any(type(block).__name__ == "Divider" and named in block.label for block in fragment.line_blocks))
         last = window.model_rows.index(headed)
         window.scrollTo(last, window.ScrollHint.PositionAtTop)
         await asyncio.sleep(1.5)
         self.report("3-newest-header", rows=len(fragments))
+
+
+class SurveyScenario(Scenario):
+    summary = "open every thread in turn; print the block kinds its rows draw with details open"
+
+    async def run(self) -> None:
+        await self.listed()
+        pending, names = list(self.app.sidebar.items()), []
+        while pending:
+            item = pending.pop()
+            pending.extend(item.child(index) for index in range(item.childCount()))
+            if isinstance(item, ConversationRow) and not item.target.name.startswith("#"):
+                names.append(item.target.name)
+        only = set(filter(None, os.environ.get("TOAD_DRIVE_THREADS", "").split(",")))
+        for name in dict.fromkeys(name for name in names if not only or name in only):
+            try:
+                await self.open_named(name)
+            except Exception as error:  # a thread that cannot open is reported, never skipped silently
+                print(f"survey {name}: cannot open: {error!r}", flush=True)
+                continue
+            fragments = self.page.messages.model_rows.fragments
+            kinds = sorted({type(block).__name__ for fragment in fragments
+                            for block in fragment.blocks(fragment.shown.toggled())})
+            parts = sorted({type(part).__name__ for fragment in fragments
+                            for part in getattr(fragment, "output_parts", ())})
+            print(f"survey {name}: rows={len(fragments)} kinds={kinds} tool parts={parts}", flush=True)
+
+
+class ToolDetailScenario(Scenario):
+    summary = ("open TOAD_DRIVE_THREAD, read older pages until a tool call whose details draw "
+               "TOAD_DRIVE_BLOCK (Patch or RichTextBody), open it at the top, screenshot")
+
+    async def run(self) -> None:
+        await self.open_named(os.environ.get("TOAD_DRIVE_THREAD", "claude-a"))
+        wanted = os.environ.get("TOAD_DRIVE_BLOCK", "Patch")
+        window = self.page.messages
+
+        def found():
+            return next((fragment for fragment in reversed(window.model_rows.fragments) if fragment.has_details
+                         and any(type(block).__name__ == wanted
+                                 for block in fragment.blocks(fragment.shown.toggled()))), None)
+
+        for _ in range(30):
+            if found() is not None:
+                break
+            before = window.model_rows.fragments[0].key
+            window.scroll_y = 0
+            await until(lambda: window.model_rows.fragments[0].key != before, "older page", tenths=60)
+            await asyncio.sleep(0.5)
+        fragment = found()
+        if fragment is None:
+            raise LookupError(f"no tool call in reach draws {wanted}")
+        window.toggle_details(fragment.details_link)
+        await until(lambda: fragment.shown.details_open, "details open")
+        await asyncio.sleep(1.0)
+        window.scrollTo(window.model_rows.index(window.model_rows.row_of(fragment.key)), window.ScrollHint.PositionAtTop)
+        await asyncio.sleep(1.5)
+        self.report("1-open", key=str(fragment.key)[:80], blocks=[type(block).__name__ for block in fragment.line_blocks])
+
+
+class LinkScenario(Scenario):
+    summary = ("open TOAD_DRIVE_THREAD, find the drawn link naming TOAD_DRIVE_LINK on screen, "
+               "tap it, and report the tab it opened")
+
+    async def run(self) -> None:
+        await self.open_named(os.environ.get("TOAD_DRIVE_THREAD", "opus-personal-model"))
+        wanted = os.environ.get("TOAD_DRIVE_LINK", "claude-cloud-pm-run11")
+        window = self.page.messages
+        viewport = window.viewport()
+        point = next((QPoint(x, y) for y in range(0, viewport.height(), 3) for x in range(0, viewport.width(), 3)
+                      if wanted in repr(self.decoded(window.anchor_at(QPoint(x, y))))), None)
+        if point is None:
+            raise LookupError(f"no drawn link names {wanted}")
+        self.report("1-before", link=repr(self.decoded(window.anchor_at(point)))[:120], at=(point.x(), point.y()))
+        QTest.mouseClick(viewport, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, point)
+        await until(lambda: any(wanted in tab for tab in self.tabs()), f"tab for {wanted}")
+        await asyncio.sleep(2.0)
+        self.report("2-opened")
+
+    @staticmethod
+    def decoded(href: str):
+        return LineLink.from_href(href) if href else None
 
 
 class HistoryScenario(Scenario):
