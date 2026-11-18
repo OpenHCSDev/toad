@@ -24,12 +24,10 @@ from agent_comms.registry.relationships import (
 from agent_comms.registry.relationships import SortableRelationshipGroup
 from PySide6.QtCore import Qt
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
-from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QCheckBox,
     QHBoxLayout,
     QLabel,
-    QMenu,
     QToolButton,
     QTreeWidget,
     QTreeWidgetItem,

@@ -811,7 +811,8 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
     # Emitted when the viewer right-clicks or long-presses a message row; carries the
     # fragment under that point. Consumers (ConversationView) build a block menu from
     # the shared `MenuCommand` family and offer it through the host's offer panel.
-    block_menu_requested = Signal(object, name="blockMenuRequested")
+    #: The row's fragment, and where it was pressed in the window's coordinates.
+    block_menu_requested = Signal(object, QPoint, name="blockMenuRequested")
 
     history: QtConversationHistory
     # `scroll_revision` + `history_change` are declared on JumpsToLatest (shared with Textual).
@@ -1060,7 +1061,7 @@ class QtHistoryWindow(ReaderWindow, WorkspaceHosted, VirtualRowView,
         fragment = self.model_rows.data(index, HistoryRows.FRAGMENT)
         if fragment is None:
             return
-        self.block_menu_requested.emit(fragment)
+        self.block_menu_requested.emit(fragment, self.viewport().mapTo(self.window(), point))
 
     # Geometry, in pixels
 

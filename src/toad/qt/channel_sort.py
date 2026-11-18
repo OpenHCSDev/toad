@@ -4,7 +4,8 @@ channel's member order.
 Both inherit `SortControlBase` (the current form, label and tooltip) and `CommsSortWrite`
 (the request each order is stored by, written through the observed Core) — the same two
 owners Textual's `ChannelListSort` and `ChannelSortChoice` inherit — so the two frontends
-label and write an order identically. This module adds only the QToolButton and its menu.
+label and write an order identically. This module adds only the QToolButton; its choices
+open in the window's one pop-up menu (`QtMenu`).
 """
 
 from __future__ import annotations
@@ -15,56 +16,54 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QMenu, QToolButton, QWidget
+from PySide6.QtWidgets import QToolButton, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from agent_comms.display_order import ChannelSort, DisplayOrder, ThreadSort
+from toad.client.menu_entry import MenuEntry
 from toad.client.sort_control import ChannelListOrder, ChannelMemberOrder, ChannelSortForm, CommsSortWrite, SortControlBase, ThreadSortForm
+
+from toad.qt.menu import QtMenu
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
 class QtSortButton[Order: DisplayOrder](SortControlBase[Order], QToolButton, metaclass=PyQtWidgetMeta):
-    """A sort choice as a one-line button whose menu lists its form's orders, then any
-    settings it toggles; a pick hands the order to `write_picked`, and only the observation
-    that follows repaints the label."""
+    """A sort choice as a one-line button whose tap lists its form's orders, then any
+    settings it toggles, in the window's pop-up menu under the button; a pick hands the
+    order to `write_picked`, and only the observation that follows repaints the label."""
 
     def __init__(self, form_type, scope: str, parent: QWidget | None = None) -> None:
         super().__init__(form_type=form_type, scope=scope, parent=parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setAutoRaise(True)
-        self.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        # The label already ends in the shared "▾"; Qt's own menu arrow would draw a second.
-        self.setStyleSheet("QToolButton { padding: 0px; border: none; }"
-                           "QToolButton::menu-indicator { image: none; width: 0px; }")
+        # The label already ends in the shared "▾".
+        self.setStyleSheet("QToolButton { padding: 0px; border: none; }")
         # One text line tall, as Textual's one-row segment.
         self.setFixedHeight(self.fontMetrics().lineSpacing())
         self._form_type = form_type
-        menu = QMenu(self)
-        menu.aboutToShow.connect(self._fill)
-        self.setMenu(menu)
-        self._fill()
+        self.clicked.connect(self.open_choices)
         self.sort_changed()
 
     def visibility_fields(self):
         """Settings the menu toggles beside the orders, as Textual's `SortChoice` lists them."""
         return ()
 
-    def _fill(self) -> None:
-        menu = self.menu()
-        menu.clear()
+    def choice_entries(self) -> tuple[MenuEntry, ...]:
+        """The orders, then the settings this choice toggles, each with its current mark."""
         choices = self._form_type.choices
-        for order in choices.choices():
-            action = QAction(choices.label(order), menu)
-            action.triggered.connect(partial(self._picked, order))
-            menu.addAction(action)
-        for path in self.visibility_fields():
-            field = path.bind(self.saved_settings().state)
-            action = QAction(f"{'✓' if field.value else '○'} {field.label}", menu)
-            action.triggered.connect(partial(self._toggle_visibility, path))
-            menu.addAction(action)
+        orders = tuple(MenuEntry(label=choices.label(order), run=partial(self._picked, order))
+                       for order in choices.choices())
+        toggles = tuple(
+            MenuEntry(label=f"{'✓' if field.value else '○'} {field.label}",
+                      run=partial(self._toggle_visibility, path))
+            for path in self.visibility_fields()
+            for field in (path.bind(self.saved_settings().state),))
+        return orders + toggles
+
+    def open_choices(self) -> None:
+        QtMenu.of(self).show_entries(self.choice_entries(), QtMenu.anchor_of(self))
 
     def saved_settings(self):
         raise NotImplementedError(f"{type(self).__name__} toggles no settings")
