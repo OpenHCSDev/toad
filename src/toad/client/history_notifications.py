@@ -109,6 +109,22 @@ class HistoryNotifications(NotificationSubscriber):
             await target.reload_notification_source()
 
 
+class OneHistoryNotifications(HistoryNotifications):
+    """A view that draws one history, its `message_history`, read from the app's bus: that
+    history is the one target, and it is on screen when it can draw."""
+
+    def notification_targets(self) -> tuple[SourceNotifications, ...]:
+        return (self.message_history,)
+
+    @property
+    def can_draw_on_screen(self) -> bool:
+        return self.message_history.can_draw_on_screen
+
+    @property
+    def notification_root(self) -> str:
+        return str(self.app.source().root)
+
+
 class SourceNotifications:
     notification_view: HistoryNotifications
 

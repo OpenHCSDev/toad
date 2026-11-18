@@ -27,7 +27,7 @@ from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.fragments import EvidencedFragment, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.client.history import ReadMarkedHistory
-from toad.client.history_notifications import SourceNotifications
+from toad.client.history_notifications import OneHistoryNotifications, SourceNotifications
 from toad.client.history_pager import (
     ConversationPager,
     DirectionalPreparation,
@@ -45,7 +45,7 @@ from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
 from toad.qt.action_shortcuts import bind_action_shortcuts
 from toad.reader_actions import ReaderAction
-from toad.view_actions import BackToBottomAction
+from toad.view_actions import LatestJumpBar
 from toad.client.transcript_fragments import (
     BusMessageFragment,
     ContextTranscriptFragment,
@@ -57,6 +57,7 @@ from toad.client.transcript_fragments import (
 from toad.history_jump import JumpsToLatest
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
+from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.transcript_filter import FilterState
 from ui_theme.scheme import ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
@@ -193,10 +194,21 @@ class HistoryRowDelegate(RowDocumentDelegate):
     (dividers fill it); a row paints its plain text until then. A painted row tells the
     window, which marks what the reader saw."""
 
-    def __init__(self, scheme: ColourScheme) -> None:
+    ROW_PADDING = 0
+    """The blocks own their spacing (`Gap`), as Textual's rows do: the parts of one message
+    meet, so its accent bar runs unbroken from part to part."""
+
+    def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
-        self.renderer = QtLineRenderer(scheme)
-        """Draws on the pool thread only: the renderer keeps the width it last drew at."""
+        self.renderer = renderer
+        """Replaced, never mutated, when the link context settles: a preparation already on
+        the pool keeps the binding it was handed."""
+        self.links_revision = 0
+
+    def link(self, links: LinkContext) -> None:
+        """Rows draw with these names from now on; rows prepared before are stale."""
+        self.renderer = self.renderer.with_links(links)
+        self.links_revision += 1
 
     def preparation_key(self, index: QModelIndex, font: QFont, width: int):
         return self.fragment_key(index.data(HistoryRows.FRAGMENT), font, width)
@@ -205,14 +217,16 @@ class HistoryRowDelegate(RowDocumentDelegate):
         return self.rendering(index.data(HistoryRows.FRAGMENT), font, width)
 
     def fragment_key(self, fragment: HistoryFragment, font: QFont, width: int):
-        """A fragment's row as shown, in this font at this width: dividers fill the width."""
-        return (fragment.key, fragment.shown), font.family(), font.pointSize(), width
+        """A fragment's row as shown, with these links, in this font at this width: dividers
+        fill the width."""
+        return (fragment.key, fragment.shown), self.links_revision, font.family(), font.pointSize(), width
 
     def rendering(self, fragment: HistoryFragment, font: QFont, width: int) -> Callable[[], RowFormatting]:
-        return partial(self.html, fragment.line_blocks, width, QFont(font))
+        return partial(self.html, self.renderer, fragment.line_blocks, width, QFont(font))
 
-    def html(self, blocks, width: int, font: QFont) -> RowFormatting:
-        return HtmlRow(self.renderer.at_width(width - 8, font).html(blocks))
+    @staticmethod
+    def html(renderer: QtLineRenderer, blocks, width: int, font: QFont) -> RowFormatting:
+        return HtmlRow(renderer.at_width(width - 8, font).html(blocks))
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared
@@ -271,6 +285,9 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self.pages = deque([QtPage(prepared, self)])
         self.filter = FilterState.for_selection(self)
         window.history = self
+        # A failed read raises through the loop's exception handler, never into a dropped task.
+        self.run_worker(partial(window.acquire_links, app)).add_done_callback(
+            lambda task: task.cancelled() or task.result())
 
     def _initial_page_source(self, prepared, app):
         """The page source this history binds at construction. `QtConversationHistory`
@@ -412,6 +429,31 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         super().close()
 
 
+class QtHistoryNotifications(OneHistoryNotifications):
+    """Every Qt view that draws a `QtConversationHistory` (a wire tab, a mailbox, an ACP
+    transcript) on the Qt event loop, so a sent message's status and "N read" line resolve."""
+
+    notification_work = NoTask()
+
+    def report_queue_evidence(self) -> None:
+        """Qt shows no queue evidence beside the conversation."""
+
+    def run_notification_work(self, work: Awaitable[None]) -> None:
+        self.notification_work.cancel()
+        self.notification_work = asyncio.ensure_future(work)
+
+    def check_notifications_after_refresh(self) -> None:
+        QTimer.singleShot(0, self.check_notifications)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        QTimer.singleShot(0, self.check_notifications)
+
+    def hideEvent(self, event) -> None:  # type: ignore[override]
+        super().hideEvent(event)
+        self.app.coordination_access.stop_notifications(self)
+
+
 @dataclass(frozen=True)
 class QtTopRow:
     """The row under a Qt window's top edge: Qt keeps its reader by scroll row."""
@@ -420,19 +462,13 @@ class QtTopRow:
         return RowPosition(window.scroll_y)
 
 
-class QtJumpBar(QPushButton):
-    """A floating "back to bottom" button over the history's viewport: shown while the reader
-    has scrolled off the tail, hidden once the end is in view. Clicking it jumps the window
-    back to the latest row. The Textual sibling is `JumpBar`/`BackToBottom` in
-    `src/toad/widgets/conversation.py`; both backends drive the same visibility contract
-    (`JumpsToLatest.can_jump_to_latest`)."""
+class QtJumpBar(LatestJumpBar, QPushButton):
+    """The shared `LatestJumpBar` as a floating button over the history's viewport; clicking
+    it jumps the window back to the latest row. Text and border take PrimaryColour, as
+    Textual's `BackToBottom` takes `PrimaryText`."""
 
     def __init__(self, parent: QWidget, scheme: ColourScheme) -> None:
-        # Label mirrors the Textual sibling: single source is the BackToBottomAction
-        # declaration (title + key_display). Textual uses the same two attributes in
-        # widgets/conversation.py's Window.__init__. Text and border take PrimaryColour
-        # to match Textual's PrimaryText mixin on BackToBottom.
-        super().__init__(f"{BackToBottomAction.title}  ↓ {BackToBottomAction.key_display}", parent)
+        super().__init__(self.label, parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         primary = PrimaryColour.rgb(scheme).hex
@@ -447,6 +483,13 @@ class QtJumpBar(QPushButton):
             "}"
         )
         self.hide()
+
+    @property
+    def jump_shown(self) -> bool:
+        return self.isVisible()
+
+    def show_jump(self, shown: bool) -> None:
+        self.setVisible(shown)
 
 
 class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowView,
@@ -473,8 +516,8 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         replaced here."""
         return self.window()
 
-    def __init__(self, scheme: ColourScheme, parent: QWidget | None = None) -> None:
-        super().__init__(HistoryRowDelegate(scheme), parent)
+    def __init__(self, renderer: QtLineRenderer, parent: QWidget | None = None) -> None:
+        super().__init__(HistoryRowDelegate(renderer), parent)
         self.model_rows = HistoryRows()
         self.setModel(self.model_rows)
         self.histories: WeakSet = WeakSet()
@@ -507,7 +550,7 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         # QScroller's gesture grab on the viewport (from TouchScrolled) can't swallow the
         # tap and prevent `clicked` from firing on Android. Positioned over the viewport
         # by `_place_jump_bar`. Show/hide is driven by `tail_follow_changed` from `scrolled`.
-        self.jump_bar = QtJumpBar(self, scheme)
+        self.jump_bar = QtJumpBar(self, renderer.scheme)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.viewport().installEventFilter(self)
         # Block menu: right-click (desktop) and long-press (Android) on a message row
@@ -524,6 +567,11 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         # `action_page_up` / `jump_to_latest` on this window).
         self._reader_shortcuts = bind_action_shortcuts(self, ReaderAction, self)
 
+    async def acquire_links(self, app) -> None:
+        """The names this conversation's bodies link through; the rows draw again with them."""
+        self.rows.link(await LinkContext.observed(app.renderer.links.root, app.coordination_access))
+        self.show_pages()
+
     def action_page_down(self) -> None:
         """Move the reader one page toward the latest message (Textual's `ReaderAction`
         family calls the Textual-named `action_page_down` on the window; Qt exposes the
@@ -536,14 +584,6 @@ class QtHistoryWindow(JumpsToLatest, WorkspaceHosted, TouchScrolled, VirtualRowV
         Textual's `PageUpAction`."""
         bar = self.verticalScrollBar()
         bar.setValue(max(bar.minimum(), bar.value() - self.viewport().height()))
-
-    # `can_jump_to_latest` body (returns `not self.follows_tail`) is shared on JumpsToLatest.
-
-    def _jump_bar_shown(self) -> bool:
-        return self.jump_bar.isVisible()
-
-    def _set_jump_bar_shown(self, shown: bool) -> None:
-        self.jump_bar.setVisible(shown)
 
     def _after_jump_bar_change(self, shown: bool) -> None:
         if shown:

@@ -84,8 +84,10 @@ class QtMailboxView(QtThreadView, SessionScope):
 
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()
-        self.setWindowFlags(Qt.WindowType.Widget)
+        # The app first: changing the window flags hides the widget, and the hide answers
+        # through `QtHistoryNotifications.hideEvent`, which reads it.
         self.app = app
+        self.setWindowFlags(Qt.WindowType.Widget)
         self.project = project
         self.thread_incarnation = thread_incarnation
         self.root = root

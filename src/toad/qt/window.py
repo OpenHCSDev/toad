@@ -80,7 +80,6 @@ from toad.client.conversation import ConversationKind
 from toad.client.conversation_capabilities import ConversationSource
 from toad.client.history import ChannelDestination, WireSource, WireView
 from toad.client.history_entry import HistorySessionEntry
-from toad.client.history_notifications import HistoryNotifications
 from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
 from toad.client.line_blocks import LineLink, MutedRole
@@ -118,7 +117,7 @@ from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerHost, MessageComposer
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.client.transcript_fragments import TranscriptFragment
-from toad.qt.history import NoTask, QtConversationHistory, QtHistoryWindow, QtWireFragment
+from toad.qt.history import QtConversationHistory, QtHistoryNotifications, QtHistoryWindow, QtWireFragment
 from toad.menus import MenuCommand, MenuConversation, standard_commands
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.client.relationship_row_menu import menu_entries_for_row
@@ -127,6 +126,8 @@ from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.thinking_animator import QtThinkingAnimator
 from toad.qt.sidebar_panel import QtSidebarPanelFrame
 from toad.qt.paste_profile import QtProfilePastePanel
+from agent_comms.messaging.display_references import ProjectReferences
+from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import SessionArrangementStore, ThreadSettingsPane
@@ -1232,7 +1233,7 @@ class BusLabel(ElidedLine):
 
 
 class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, SessionScope, SubmissionView, WireView,
-                       HistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
+                       QtHistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
                        metaclass=PyQtWidgetMeta):
 
     @property
@@ -1258,7 +1259,6 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
         self.app, self.entry = app, entry
         self.submissions = BusSubmissions(self)
         self.content_ready = asyncio.Event()
-        self.notification_work: asyncio.Task | NoTask = NoTask()
         # This view owns which message categories its transcript shows; the history reads the
         # selection through `selected_categories` and the thread settings pane writes it.
         self.visible_categories = all_categories()
@@ -1266,7 +1266,7 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
         # it to know which block they act on.
         self.held_fragment: QtWireFragment | None = None
         label = entry.unobserved_tab().label()
-        self.messages = QtHistoryWindow(app.renderer.scheme)
+        self.messages = QtHistoryWindow(app.renderer)
         self.messages.block_menu_requested.connect(self.open_block_menu)
         self.message_history = QtConversationHistory(self.messages, self, app)
         source = app.source()
@@ -1340,37 +1340,6 @@ class ConversationView(JumpsHistory, MenuConversation, Page, StatusOwner, Sessio
         """Whether this tab is still open on this conversation, read from this root."""
         return (self.app.workspace_sessions.views.get(self.mode) is self and conversation == self.conversation
                 and Path(root) == Path(self.app.source().root))
-
-    # Core's notification answers for the messages this tab shows
-
-    def notification_targets(self) -> tuple[QtConversationHistory, ...]:
-        return (self.message_history,)
-
-    @property
-    def can_draw_on_screen(self) -> bool:
-        return self.message_history.can_draw_on_screen
-
-    @property
-    def notification_root(self) -> str:
-        return str(self.app.source().root)
-
-    def report_queue_evidence(self) -> None:
-        """Qt shows no queue evidence beside the conversation."""
-
-    def run_notification_work(self, work: Awaitable[None]) -> None:
-        self.notification_work.cancel()
-        self.notification_work = asyncio.ensure_future(work)
-
-    def check_notifications_after_refresh(self) -> None:
-        QTimer.singleShot(0, self.check_notifications)
-
-    def showEvent(self, event) -> None:  # type: ignore[override]
-        super().showEvent(event)
-        QTimer.singleShot(0, self.check_notifications)
-
-    def hideEvent(self, event) -> None:  # type: ignore[override]
-        super().hideEvent(event)
-        self.app.coordination_access.stop_notifications(self)
 
     async def wait_content_ready(self) -> None:
         await self.content_ready.wait()
@@ -1695,7 +1664,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self._prewarm_core_modules()
         self.initialize_client(NoAgent(), connection)
         self.setWindowTitle("Toad")
-        self.renderer = QtLineRenderer(scheme)
+        # Until a conversation reads Core's display references, bodies link the project's files.
+        self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()))
         # One shared animator pulses every sidebar row whose thread is working —
         # Qt's equivalent of Textual's per-row NAME_WAVE effect
         # (ui_theme.effects.NAME_WAVE / widgets/comms_sidebar.ThreadRow). The

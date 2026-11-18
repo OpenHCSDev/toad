@@ -184,6 +184,57 @@ class ActivityScenario(Scenario):
                     rows=view.messages.model_rows.rowCount())
 
 
+class TranscriptScenario(Scenario):
+    summary = ("open the thread or #channel named by TOAD_DRIVE_THREAD; paint every row opened; "
+               "print each fragment's blocks; screenshot closed, opened and at the newest header")
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        name = os.environ.get("TOAD_DRIVE_THREAD", "personal-model-curation")
+        if name.startswith("#"):
+            await self.expand(name)
+            await self.open(self.channel_row(name), name)
+        else:
+            # A thread row sits under each channel it belongs to; any one opens the thread.
+            pending, rows = list(app.sidebar.items()), []
+            while pending:
+                item = pending.pop()
+                rows.append(item)
+                pending.extend(item.child(index) for index in range(item.childCount()))
+            await self.open(next(row for row in rows if isinstance(row, ConversationRow)
+                                 and row.target.name == name), name)
+        await asyncio.sleep(2.0)
+        window = self.page.messages
+        fragments = window.model_rows.fragments
+        for fragment in fragments[-25:]:
+            kinds = [type(block).__name__ for block in fragment.line_blocks]
+            print(f"  {type(fragment).__name__:32} {kinds}", flush=True)
+        self.report("1-opened", rows=len(fragments), links=window.rows.links_revision,
+                    references=type(window.rows.renderer.links.references).__name__)
+        # Every fragment opened, painted by the window's own renderer: an expanded tool call
+        # draws the diff and terminal-output blocks a collapsed one never reaches.
+        renderer = window.rows.renderer.at_width(window.viewport().width(), window.font())
+        opened = [fragment for fragment in fragments if fragment.has_details]
+        drawn = {type(block).__name__ for fragment in opened
+                 for block in fragment.blocks(fragment.shown.toggled()) if renderer.html((block,))}
+        print(f"opened {len(opened)} fragments; painted block kinds {sorted(drawn)}", flush=True)
+        for fragment in opened[-3:]:
+            fragment.request_show(fragment.shown.toggled())
+        window.show_pages()
+        await asyncio.sleep(1.5)
+        self.report("2-details-open", rows=len(fragments))
+        for fragment in opened[-3:]:
+            fragment.request_show(fragment.shown.toggled())
+        window.show_pages()
+        headed = max(row for row, fragment in enumerate(fragments)
+                     if any(type(block).__name__ == "Divider" for block in fragment.line_blocks))
+        last = window.model_rows.index(headed)
+        window.scrollTo(last, window.ScrollHint.PositionAtTop)
+        await asyncio.sleep(1.5)
+        self.report("3-newest-header", rows=len(fragments))
+
+
 class HistoryScenario(Scenario):
     summary = ("open #comms; report the rows loaded; scroll to the top until no older page "
                "arrives, reporting each; then return to the end and report that it follows the newest")

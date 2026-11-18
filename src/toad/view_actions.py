@@ -13,6 +13,8 @@ it cannot import from here.
 
 from __future__ import annotations
 
+from abc import abstractmethod
+
 
 from formbridge.key_declarations import TextEntryMode
 from textual.widget import Widget
@@ -61,3 +63,24 @@ class BackToBottomAction(ViewAction):
     def apply(self, context: JumpsHistory) -> None:
         for window in context.back_to_bottom_windows[:1]:
             window.jump_to_latest()
+
+
+class LatestJumpBar:
+    """The control a history window floats over its foot while the reader is off the tail.
+
+    Its words are `BackToBottomAction`'s own declaration: what the action does, then the key
+    that does it. The window decides when it shows (`JumpsToLatest.tail_follow_changed`);
+    each toolkit's bar only paints that. A plain mixin, as `JumpsToLatest` is: Textual's
+    widget metaclass refuses an `ABC` base and Qt's shiboken metaclass clashes with one.
+    """
+
+    label = f"{BackToBottomAction.title}\n↓ {BackToBottomAction.key_display} ↓"
+
+    @property
+    @abstractmethod
+    def jump_shown(self) -> bool:
+        """Whether the bar is drawn now."""
+
+    @abstractmethod
+    def show_jump(self, shown: bool) -> None:
+        """Draw the bar, or stop drawing it."""

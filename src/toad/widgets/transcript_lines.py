@@ -35,6 +35,7 @@ from ui_theme.scheme import MutedColour, ThemeColour
 
 from toad.client.prepared_pages import MeasuresFragments
 from toad.core.projection import MroProjection
+from toad.client.line_painting import LineBlockPainter, LinkPresentation
 from toad.client.line_blocks import (
     Body,
     Divider,
@@ -127,7 +128,7 @@ class LineTheme:
         )
 
 
-class LinkStyle(MroProjection[Style]):
+class LinkStyle(LinkPresentation[Style]):
     """The style that makes text run a link's action when clicked; text that leads nowhere is plain."""
 
     @handles(LineLink)
@@ -430,7 +431,7 @@ class StyledPatch(Patch, PreparedBlock):
     after_text: dict[int, Text] = field()
 
 
-class RichLineRenderer(MroProjection[None]):
+class RichLineRenderer(LineBlockPainter[None]):
     """Paint each primitive through its most-specific declared renderer."""
 
     def __init__(self, theme: LineTheme, width: int = 1) -> None:
@@ -465,12 +466,7 @@ class RichLineRenderer(MroProjection[None]):
         layout = PatchLayout(patch, self.width, self.theme.diff)
         painter = PatchPainter(layout, self.theme)
         console, muted = self.console, self.theme.style(MutedRole)
-        title = patch.after_path or patch.before_path or "Edit"
-        if patch.before_path != patch.after_path:
-            title = f"{patch.before_path} → {patch.after_path}"
-        self.output.append(
-            (Segment(_fit(f"{title} (+{patch.additions}, −{patch.deletions})", self.width), muted),)
-        )
+        self.output.append((Segment(_fit(patch.title, self.width), muted),))
         for group_index, group in enumerate(patch.row_groups(layout.rows)):
             if group_index:
                 self.output.append((Segment("…", muted),))
@@ -547,7 +543,7 @@ class RichLineRenderer(MroProjection[None]):
         self.body(Body(block.text, bar=block.bar))
 
     @handles(SpanColumns)
-    def columns(self, block: SpanColumns) -> None:
+    def span_columns(self, block: SpanColumns) -> None:
         self.prepared_columns(SpanColumnLayout(block, self.theme))
 
     @handles(SpanColumnLayout)
@@ -878,8 +874,7 @@ class TranscriptLinesRenderTask(MroProjection[LineBlock], ReusableRenderTask[Lin
 
     @handles(WireBody)
     def wire_body(self, block: WireBody) -> LineBlock:
-        prepared = block.prepare(self.context.for_source(block.row.message.history_source))
-        return self.project_value(prepared)
+        return self.project_value(block.prepared_in(self.context))
 
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> StyledBody:

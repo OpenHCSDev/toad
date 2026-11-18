@@ -1,8 +1,9 @@
 """Toad's line blocks as Qt rich text: the blocks RichLineRenderer paints for Textual,
-in the same roles and the same theme colours."""
+in the same roles and the same theme colours, through the same `LineBlockPainter` contract."""
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from html import escape
 
@@ -23,15 +24,22 @@ from toad.client.line_blocks import (
     Divider,
     Gap,
     LineBlock,
+    LineLink,
     LineRole,
+    MarkdownBody,
+    MutedRole,
     NoBar,
+    NoLink,
     Span,
     SpanColumns,
     Spans,
     Summary,
 )
-from toad.core.projection import MroProjection
+from toad.client.line_painting import LineBlockPainter, LinkPresentation
+from toad.markdown_links import LinkContext, MessageMarkdownParser
 from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
+from toad.patch import Patch
+from toad.rich_preparation import RichTextBody, palette_colour
 
 
 @dataclass(frozen=True)
@@ -53,42 +61,63 @@ class PixelRoom(LineRoom):
         return self.rule(spans) >= 2
 
 
-class QtLineRenderer(MroProjection[str]):
-    """Each block through its most specific declared painter, as a fragment of Qt rich text."""
+class QtLinkMarkup(LinkPresentation[tuple[str, str]]):
+    """The anchor around linked text, as Textual's `LinkStyle` gives it a click action."""
 
-    def __init__(self, scheme: ColourScheme) -> None:
+    @handles(LineLink)
+    def linked(self, link: LineLink, colour: str) -> tuple[str, str]:
+        decoration = "underline" if link.underlined else "none"
+        return f'<a href="{escape(link.encoded_href)}" style="color:{colour};text-decoration:{decoration}">', "</a>"
+
+    @handles(NoLink)
+    def plain(self, link: NoLink, colour: str) -> tuple[str, str]:
+        return "", ""
+
+
+QT_LINK_MARKUP = QtLinkMarkup()
+
+
+class QtLineRenderer(LineBlockPainter[str]):
+    """Each shared block as a fragment of Qt rich text; Markdown through the shared parser."""
+
+    def __init__(self, scheme: ColourScheme, links: LinkContext) -> None:
         self.scheme = scheme
-        self.markdown = MarkdownIt("commonmark", {"breaks": True, "highlight": self.highlight})
+        self.links = links
+        # HTML emission only; a source line break stays a line, as Rich draws soft breaks.
+        self.markdown = MarkdownIt("gfm-like", {"breaks": True, "highlight": self.highlight})
+        self.markdown.renderer.rules["link_open"] = self.link_open
         self.terminal = scheme.terminal.resolve(require_terminal_palette)
         # Toad draws code in the terminal palette through Rich's ANSI syntax theme.
         self.syntax = ANSI_DARK if scheme.dark else ANSI_LIGHT
         self.width = 0.0
         self.font = QFont()
 
-    def at_width(self, width: float, font: QFont) -> QtLineRenderer:
-        """Dividers fill this many pixels of this font, as RichLineRenderer fills its cells.
-
-        Returns a shallow-copied binding, not `self`, so that concurrent callers
-        at different widths (e.g. row preparations racing across a sidebar bar
-        toggle changing viewport width) don't clobber each other's divider
-        width/font while `divider()` reads them. The copy shares scheme, markdown,
-        terminal, syntax references (immutable); only width/font differ."""
-        import copy
+    def bound(self, **fields) -> QtLineRenderer:
+        """A copy for one pool preparation, so concurrent widths and link contexts don't clash."""
         bound = copy.copy(self)
-        bound.width = width
-        bound.font = font
+        bound.__dict__.update(fields)
         return bound
+
+    def at_width(self, width: float, font: QFont) -> QtLineRenderer:
+        """Dividers fill this many pixels of this font, as RichLineRenderer fills its cells."""
+        return self.bound(width=width, font=font)
+
+    def with_links(self, links: LinkContext) -> QtLineRenderer:
+        return self.bound(links=links)
 
     def token_style(self, token: _TokenType) -> Style:
         """The nearest declared ancestor's style: Rich's theme names token families."""
         return next((self.syntax[kind] for kind in (token, *token.split()[::-1]) if kind in self.syntax), Style())
 
-    def token_css(self, token: _TokenType) -> str:
-        style = self.token_style(token)
-        css = ([f"color:{self.terminal.ansi[style.color.number].hex}"]
-               if style.color is not None and style.color.number is not None else [])
+    def style_css(self, style: Style) -> str:
+        colour = palette_colour(style, self.terminal.ansi)
+        css = [f"color:{colour}"] * (colour is not None)
         css += ["font-weight:bold"] * bool(style.bold) + ["font-style:italic"] * bool(style.italic)
+        css += ["text-decoration:underline"] * bool(style.underline)
         return ";".join(css)
+
+    def token_css(self, token: _TokenType) -> str:
+        return self.style_css(self.token_style(token))
 
     def highlight(self, code: str, language: str, attributes: str) -> str:
         """A fenced block in its language's colours, as Toad highlights code; an unknown
@@ -119,10 +148,24 @@ class QtLineRenderer(MroProjection[str]):
         return f'<span style="{";".join(css)}">{escape(text)}</span>'
 
     def span(self, span: Span, role: type[LineRole]) -> str:
-        return self.styled(span.text, role)
+        """A span in a role, inside its link's anchor when it leads somewhere."""
+        start, end = QT_LINK_MARKUP.project_value(span.link, self.colour(role))
+        return f"{start}{self.styled(span.text, role)}{end}"
+
+    def link_open(self, tokens, index: int, options, env) -> str:
+        link = tokens[index].attrs["href"].target
+        return QT_LINK_MARKUP.project_value(link, self.colour(QT_LINK_MARKUP.markdown_role))[0]
 
     def html(self, blocks: tuple[LineBlock, ...]) -> str:
         return "".join(self.project_value(block) for block in blocks)
+
+    def barred(self, text: str, bar: type[LineRole]) -> str:
+        """Content behind its accent bar, as Textual's `_body_rows` prefixes each row."""
+        if bar is NoBar:
+            return text
+        return (f'<table width="100%" cellspacing="0" cellpadding="0"><tr>'
+                f'<td width="3" style="background-color:{self.colour(bar)}"></td>'
+                f'<td style="padding-left:8px">{text}</td></tr></table>')
 
     @handles(Divider)
     def divider(self, block: Divider) -> str:
@@ -131,7 +174,8 @@ class QtLineRenderer(MroProjection[str]):
         bold = QFont(self.font)
         bold.setBold(True)
         room = PixelRoom(QFontMetricsF(bold), self.width)
-        groups = DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
+        groups = [row for group in DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
+                  for row in room.wrapped(group)]
         rows = "<br>".join(f'{self.styled("─" * max(room.rule(group), 0), block.role)} '
                            f'<b>{self.title(group, block)}</b> '
                            f'{self.styled("─" * max(room.rule(group), 0), block.role)}'
@@ -161,17 +205,39 @@ class QtLineRenderer(MroProjection[str]):
 
     @handles(Spans)
     def spans(self, block: Spans) -> str:
-        return "<p>" + "".join(self.span(span, span.role) for span in block.spans) + "</p>"
+        return ('<p style="white-space:pre-wrap">'
+                + "".join(self.span(span, span.role) for span in block.spans) + "</p>")
 
     @handles(WireBody)
     def wire_body(self, block: WireBody) -> str:
-        return self.body(Body(block.text, bar=block.bar))
+        return self.project_value(block.prepared_in(self.links))
 
     @handles(Body)
     def body(self, block: Body) -> str:
-        text = f'<div style="color:{self.colour(block.role)}">{self.markdown.render(block.text)}</div>'
-        if block.bar is NoBar:
-            return text
-        return (f'<table width="100%" cellspacing="0" cellpadding="0"><tr>'
-                f'<td width="3" style="background-color:{self.colour(block.bar)}"></td>'
-                f'<td style="padding-left:8px">{text}</td></tr></table>')
+        """Plain text, as written."""
+        return self.coloured(f'<p style="white-space:pre-wrap">{escape(block.text)}</p>', block)
+
+    @handles(MarkdownBody)
+    def markdown_body(self, block: MarkdownBody) -> str:
+        """Markdown or code: the block's own `prepare` hands its Markdown source to `marked`."""
+        return block.prepare(self.marked)
+
+    def marked(self, block: Body) -> str:
+        """Markdown through the shared parser: paths, @mentions and links resolved."""
+        tokens = MessageMarkdownParser(self.links).parse(block.text)
+        return self.coloured(self.markdown.renderer.render(tokens, self.markdown.options, {}), block)
+
+    def coloured(self, html: str, block: Body) -> str:
+        return self.barred(f'<div style="color:{self.colour(block.role)}">{html}</div>', block.bar)
+
+    @handles(Patch)
+    def patch(self, block: Patch) -> str:
+        groups = self.styled("…\n", MutedRole).join(
+            "".join(self.styled(text + "\n", role) for text, role in group) for group in block.unified_lines)
+        return f'<p>{self.styled(block.title, MutedRole)}</p><pre>{groups}</pre>'
+
+    @handles(RichTextBody)
+    def rich_text(self, block: RichTextBody) -> str:
+        text = "".join(f'<span style="{self.style_css(segment.style or Style())}">{escape(segment.text)}</span>'
+                       for segment in block.segments)
+        return self.barred(f'<pre style="color:{self.colour(block.role)}">{text}</pre>', block.bar)
