@@ -1504,6 +1504,10 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
 
         The at_end/follows_tail transitions are immediate — they are cheap state flips
         and consumers (jump bar + anchor) need to see them during every touch tick."""
+        # Every offset pins, the window's own as well as the reader's: a glide down into a tall
+        # arrival moves the top row into it, and skipping the window's own offsets left the
+        # arrival's header unpinned and its burst unstacked (Tristan, Android, 2026-11-18).
+        self._schedule_scroll_frame()
         if self._restoring:
             return
         if self.at_end and not self.follows_tail:
@@ -1512,18 +1516,25 @@ class QtHistoryWindow(FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView
             self.release_anchor()
         elif not self.follows_tail:
             self.reader_position = RowPosition(value)
+        self._reader_scrolled = True
+
+    _reader_scrolled = False
+
+    def _schedule_scroll_frame(self) -> None:
         if not self._scroll_frame_pending:
             self._scroll_frame_pending = True
             interval = max(1, round(frame_interval(QWidget.screen(self)) * 1000))
             self._scroll_frame_timer.start(interval)
 
     def _scroll_frame(self) -> None:
-        """One display frame's scroll response: repin, velocity, page requests, tail-follow.
-        Runs at frame rate regardless of input rate — the same cadence as the TUI."""
+        """One display frame's scroll response: the pin for every offset, and the reader's
+        response (velocity, page requests, tail-follow) when the reader moved. Runs at frame
+        rate regardless of input rate — the same cadence as the TUI."""
         self._scroll_frame_pending = False
-        value = self.verticalScrollBar().value()
         self.repin_header()
-        self.respond_to_scroll(value)
+        if self._reader_scrolled:
+            self._reader_scrolled = False
+            self.respond_to_scroll(self.verticalScrollBar().value())
 
     _flinging = False
 
