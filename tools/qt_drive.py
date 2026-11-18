@@ -865,6 +865,44 @@ async def record_mark(buffer: WirePageBuffer, page) -> None:
     MARKED.append(page)
 
 
+class PersistScenario(Scenario):
+    """First half of a close/open check: open a thread and a channel, move the channels bar,
+    then end as the app ends. `restored`, run next in a fresh process over the same
+    XDG_STATE_HOME/XDG_CONFIG_HOME, reads back what came back."""
+
+    summary = "open scratch-live-pipeline and #comms, move the channels bar to the bottom, then quit"
+
+    async def run(self) -> None:
+        app = self.app
+        await self.open_named("scratch-live-pipeline")
+        await self.open_named("#comms")
+        app.show_sidebar()
+        await asyncio.sleep(0.5)
+        next(control for control in app.channels_side._actions
+             if isinstance(control.action, DirectionalSidebarPlacementAction)
+             and control.action.direction is BottomSidebarEdge).click()
+        await asyncio.sleep(0.5)
+        app.hide_sidebar()
+        await asyncio.sleep(0.5)
+        placed = app.sidebar_layout.get(ChannelsSidebarPlacement)
+        self.report("1-before-close", selected=app.tabs.tabText(app.tabs.currentIndex()),
+                    channels_bar=placed.side.declared_name, roster=[i.mode_name for i in app.tab_order.names])
+
+
+class RestoredScenario(Scenario):
+    """Second half: what a fresh start over the saved state shows before anything is touched."""
+
+    summary = "report the tabs, selection and channels-bar placement a fresh start restored"
+
+    async def run(self) -> None:
+        app = self.app
+        await self.listed()
+        await asyncio.sleep(3.0)
+        placed = app.sidebar_layout.get(ChannelsSidebarPlacement)
+        self.report("1-after-open", selected=app.tabs.tabText(app.tabs.currentIndex()),
+                    channels_bar=placed.side.declared_name, roster=[i.mode_name for i in app.tab_order.names])
+
+
 class PlacementScenario(Scenario):
     summary = ("move and float the channels bar, then change the view settings for #comms and "
                "a DM through the thread bar; list anything too wide for a Pixel 8a")

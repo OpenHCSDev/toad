@@ -17,7 +17,7 @@ from toad.navigation_preparation import NavigationReader
 from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.client.session_scope import SessionOrigin, SessionScope
 from toad.client.session_tracker import SessionTracker
-from toad.client.tab_identity import TabIdentity
+from toad.client.tab_identity import TabIdentity, TabNotDrawnHere
 
 if TYPE_CHECKING:
     from toad.navigation_preparation import ThreadNavigationRequest
@@ -34,7 +34,10 @@ class SessionEntries(DeclaredViews):
 
     @classmethod
     def declared_for(cls, identity: TabIdentity) -> Callable[..., Self]:
-        return cls.showing(identity.declarations())
+        try:
+            return cls.showing(identity.declarations())
+        except LookupError as missing:
+            raise TabNotDrawnHere(identity) from missing
 
 
 class WorkspaceViews(metaclass=AbstractHooksMeta):

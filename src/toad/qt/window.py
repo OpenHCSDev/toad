@@ -147,12 +147,12 @@ from agent_comms.messaging.display_references import ProjectReferences
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
-from toad.qt.placement import SessionArrangementStore, ThreadSettingsPane
+from toad.qt.placement import ThreadSettingsPane
 from toad.qt.side_bar import QtSideBar, QtWorkspaceChrome
 from toad.qt.question import QtQuestion
 from toad.view_actions import ViewAction
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
-from toad.sidebar_layout import CHANNELS_PANEL, SidebarLayout
+from toad.sidebar_layout import CHANNELS_PANEL
 from toad.sidebar_placement import (
     ChannelsSidebarPlacement,
     SidebarPlacement,
@@ -160,7 +160,6 @@ from toad.sidebar_placement import (
 )
 from toad.status_thread import StatusThread
 from toad.target_commands import TargetContext
-from toad.terminal_origin import TerminalOrigin
 from toad.work_preparation import PreparationRuntime
 
 
@@ -1628,10 +1627,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # Populated by `start_transfer_task`; the dict is the live registry.
         self._transfer_tasks: dict[str, "asyncio.Task[None]"] = {}
         self.workspace_sessions = QtWorkspaceViews(self)
-        # SidebarLayout is the one owner of the move and float policy; the phone hands it a
-        # session store, where the Textual workspace hands it the saved settings. Same policy,
-        # same placement model, a store each frontend owns.
-        self.sidebar_layout = SidebarLayout(SessionArrangementStore(), TerminalOrigin.of())
         # Each sidebar is a toggle bar and the pane it opens. The channels-and-threads list and
         # the open thread's view settings are the two panes' content; the move and float
         # controls live inside the pane, from the shared family. The channels sidebar is always
@@ -1659,12 +1654,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             self.sidebar_layout, ChannelsSidebarPlacement, self.sidebar_search,
             heading=partial(self._pane_heading, ChannelsSidebarPlacement),
             toggled=partial(self.toggle_pane, ChannelsSidebarPlacement),
-            arranged=self.rearrange_sidebars, parent=self.chrome)
+            laid_out=self.rearrange_sidebars, client=self, parent=self.chrome)
         self.thread_side = QtSideBar(
             self.sidebar_layout, ThreadSidebarPlacement, self.thread_pane,
             heading=partial(self._pane_heading, ThreadSidebarPlacement),
             toggled=partial(self.toggle_pane, ThreadSidebarPlacement),
-            arranged=self.rearrange_sidebars, parent=self.chrome)
+            laid_out=self.rearrange_sidebars, client=self, parent=self.chrome)
         self.chrome.sidebars = (self.channels_side, self.thread_side)
         # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
         self.menu = self.bar_button("≡", "Menu", self.show_menu)
@@ -1744,12 +1739,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         """The profile a chosen bus names, read by the member this window launched with, so
         desktop keeps decoding in a process and Android in place."""
         return type(self.coordination_access.connection).startup(list(choice.arguments(())))
-
-    async def open_saved_tabs(self) -> None:
-        """The saved roster is read so tabs this app cannot draw yet stay saved; the sidebar
-        and welcome bind the observation the connection serves."""
-        await self.tab_order.load()
-        await self.coordination_access.follow_sidebar(self.sidebar)
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
         button = QToolButton(self)
@@ -1915,7 +1904,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def rearrange_sidebars(self) -> None:
         """A move, float or toggle: lay the panes out again. SidebarLayout has already written
-        the arrangement to this session's store."""
+        the arrangement into the settings the surface keeps."""
         self.present_panes()
 
     def show_sidebar(self) -> None:
@@ -1927,10 +1916,22 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.present_panes()
 
     def begin_frontend(self) -> None:
-        """The window opens as the platform opens windows, then the saved tabs, as the start
-        a bus switch waits for."""
+        """The window opens as the platform opens windows; then the sidebar and welcome bind
+        the observation the connection serves, and the shared start reopens the saved tabs,
+        as the start a bus switch waits for. Moving to the background keeps the settings in
+        use, since Android may end a backgrounded app without a quit."""
         host.open_window(self)
-        self.run_operation(ApplicationStart, self.open_saved_tabs)
+        QApplication.instance().applicationStateChanged.connect(self.application_state_changed)
+        self.run_operation(ApplicationStart, self.start_frontend)
+
+    async def start_frontend(self) -> None:
+        await self.coordination_access.follow_sidebar(self.sidebar)
+        await self.application.start()
+
+    def application_state_changed(self, state: Qt.ApplicationState) -> None:
+        if state in (Qt.ApplicationState.ApplicationSuspended, Qt.ApplicationState.ApplicationHidden,
+                     Qt.ApplicationState.ApplicationInactive):
+            self.application.backgrounded()
 
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
         """Route the answer to every registered `BusListing`. The welcome is always
