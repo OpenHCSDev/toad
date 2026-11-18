@@ -7,7 +7,7 @@ two frontends disagreed by construction. This class is the single owner of the
 match decision and the current text; Textual's `SideBar.search` reactive and
 Qt's `QLineEdit` both write through it, and every listing (Textual's
 `SidebarGroup.sync_members`, Qt's `Sidebar.draw_lines`)
-reads through `matches` instead of comparing text itself. A new frontend never
+reads through `matching` (which ranks what `matches`) instead of comparing text itself. A new frontend never
 reimplements the match rule; it hands the filter a row name and asks.
 
 The class is toolkit-neutral (no Textual, no Qt, no reactive); subscribers are a
@@ -18,7 +18,7 @@ the shared owner to its reactive watchers.
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 from metaclass_registry import AbstractHooksMeta
 
@@ -65,6 +65,22 @@ class SidebarFilter:
         if not self._text:
             return True
         return self._text.casefold() in name.casefold()
+
+    def matching[T](self, items: Iterable[T], name: Callable[[T], str] = str) -> tuple[T, ...]:
+        """The listing both frontends draw: the ``items`` whose ``name`` matches, the name
+        typed exactly first, then names that start with it, then the rest, each in the
+        order given. Typing `claude-a` puts the live `claude-a` above every `claude-a…`
+        fork it is a prefix of."""
+        listed = [item for item in items if self.matches(name(item))]
+        if not self._text:
+            return tuple(listed)
+        typed = self._text.casefold()
+
+        def rank(item: T) -> int:
+            folded = name(item).casefold()
+            return 0 if folded == typed else 1 if folded.startswith(typed) else 2
+
+        return tuple(sorted(listed, key=rank))
 
 
 class SidebarSearchField(metaclass=AbstractHooksMeta):

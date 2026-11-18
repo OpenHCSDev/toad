@@ -52,6 +52,7 @@ from toad.core.events import SessionSelected
 from toad.native_style import EllipsisOverflow, NoWrap, PointerCursor, TwoRows
 from toad.no_worker import NoWorker
 from toad.widgets.side_bar import SideBar
+from toad.client.sidebar_filter import SidebarFilter
 from textual import on
 from ui_theme.effects import NEW_MESSAGE
 
@@ -264,7 +265,7 @@ class RowReconciliation:
     """One sync's model membership and transferable native rows, never a retained cache."""
 
     def __init__(self, tree: TargetTree) -> None:
-        demand = Counter(key for key in tree.member_keys if tree.matches(key))
+        demand = Counter(tree.filter.matching(tree.member_keys))
         self.listed = frozenset(demand)
         self.sources = {}
         requests = {}
@@ -462,11 +463,11 @@ class SidebarGroup[RowT: "ListedRow"](MemberGroupLine, MemberRows[str], TargetRo
     @property
     def matching_keys(self):
         tree = self.reconciliation_tree
-        return tuple(key for key in self.member_keys if tree.matches(key))
+        return tree.filter.matching(self.member_keys)
 
     @property
     def members_visible(self):
-        return self.expanded or bool(self.reconciliation_tree.search)
+        return self.expanded or bool(self.reconciliation_tree.filter.text)
 
     @RowReconciliation.sync
     def reconcile_rows(self, *, changed: frozenset[str]):
@@ -481,7 +482,7 @@ class SidebarGroup[RowT: "ListedRow"](MemberGroupLine, MemberRows[str], TargetRo
             return ()
         keys = self.matching_keys
         tree = self.reconciliation_tree
-        self.set_display_constraint("sidebar-search", bool(keys) or not tree.search)
+        self.set_display_constraint("sidebar-search", bool(keys) or not tree.filter.text)
         self.member_container.set_display_constraint("members", self.members_visible)
         self._rows_pending = False
         self._step_full = False
@@ -514,7 +515,9 @@ class SearchFollower:
         )
 
     def _apply_search(self, value: str) -> None:
-        self.search = value.casefold()
+        # The sidebar wrote ``value`` into its filter first (`SideBar.watch_search` runs
+        # before watchers); the tree lists through that one owner.
+        self.filter = self.query_ancestor(SideBar).filter
         with self.reconcile_members():
             for group in self.navigation_groups:
                 group.sync_members(frozenset(group.member_keys))
@@ -525,10 +528,9 @@ class TargetTree(LineMenuTree, RowTree, HiddenActions, VisibleActions, StepsVert
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
-    search = ""
-
-    def matches(self, key: str) -> bool:
-        return self.search in key.casefold()
+    # The sidebar's search (`SidebarFilter`), which a searching tree takes from its sidebar
+    # (`SearchFollower`); a tree outside one lists every row, in model order.
+    filter: SidebarFilter = SidebarFilter()
 
     def preserve_reader(self, placements: list[WidgetPlacement]) -> None:
         """A sidebar viewport may retain its reader across a native relayout."""

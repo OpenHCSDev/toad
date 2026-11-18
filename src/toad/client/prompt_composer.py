@@ -36,8 +36,9 @@ class PromptSettingEffects:
 
     @EachOpenWidget
     def apply_delivery_preview(self) -> None:
-        """The delivery preview was turned on or off: the prompt shows its queue rows, or
-        drops them for the held count, at once."""
+        """The delivery preview was turned on or off: the prompt reads it again and shows its
+        queue rows, or drops them for the held count, at once."""
+        self.kept_delivery_preview = None
         self.sync_queue()
 
 
@@ -45,6 +46,11 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     """A conversation's composer: its submission owner, queue and leading glyph."""
 
     submissions: object | None
+    kept_delivery_preview: bool | None = None
+    """The delivery-preview setting as this prompt last read it, until it changes
+    (`PromptSettingEffects.apply_delivery_preview`): a queue sync reads it several times, and
+    each read resolved it through the settings scope again (~8% of the phone's main thread
+    during a burst of arrivals, 2026-11-18)."""
     queue_summary_lines: ClassVar[int] = 3
     """The queue summary's most lines; a longer one is cut there, so its wrapping never
     pushes the history further."""
@@ -90,7 +96,9 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     def shows_delivery_preview(self) -> bool:
         """The `ui.input.delivery_preview` setting: the queue rows above the prompt, or only
         the held count in the info bar."""
-        return self.settings.ui.input.delivery_preview
+        if self.kept_delivery_preview is None:
+            self.kept_delivery_preview = bool(self.settings.ui.input.delivery_preview)
+        return self.kept_delivery_preview
 
     @property
     def shows_delivery_controls(self) -> bool:

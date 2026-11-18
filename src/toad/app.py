@@ -42,6 +42,7 @@ from toad.core import events as core_events
 from toad.core import input_events
 from toad.widgets.file_viewer import ImageViewer
 from toad.launch_binding import AgentBinding
+from toad.launch_opening import LaunchOpening, NoLaunchOpening
 from toad.native_style import TransparentBackground
 from toad.neovim_editing import HostsNeovim
 from formbridge.forms.declared_fields import DeclaredField
@@ -136,6 +137,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         project_dir: Checkout,
         connection: CoreConnection,
         agent_session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId(),
+        opening: LaunchOpening = NoLaunchOpening(),
     ) -> None:
         """Toad app.
 
@@ -148,7 +150,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         self.render_processes: Renderer = TextualPreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
-        self.initialize_client(agent_binding, connection, agent_session_id)
+        self.initialize_client(agent_binding, connection, agent_session_id, opening)
         self.clipboard_transport = Clipboard.for_platform()
         self.input_attention = TerminalAttention(self)
         self._mode_switch_lock = asyncio.Lock()

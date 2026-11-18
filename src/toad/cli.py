@@ -18,7 +18,7 @@ from toad.client.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.application_lifetime import TerminalApplicationLifetime
 from toad.client.connection import CoreConnection
-from toad.client.local_connection import select_connection
+from toad.client.local_connection import ClientLaunch
 from toad.launch_binding import AgentAttached, AgentBinding, LaunchAgentRefused
 from toad.preferences import SavedSettings
 from toad.web_server import ToadWebServer
@@ -67,8 +67,8 @@ class DefaultCommandGroup(click.Group):
         if "--version" in args or "-v" in args:
             return super().parse_args(ctx, args)
 
-        # The launch's connection; apps receive this captured value.
-        ctx.obj = select_connection(args)
+        # The launch's connection and the conversation it opens; apps receive this captured value.
+        ctx.obj = ClientLaunch.startup(args)
         # Check if first arg is a known subcommand
         if not args or args[0] not in self.commands:
             # If not a subcommand, prepend the default command name
@@ -119,18 +119,20 @@ def main(ctx, version):
 @click.argument("project_dir", metavar="PATH", required=True)
 @click.option("-a", "--agent", metavar="AGENT", default="")
 @click.pass_obj
-def run(connection: CoreConnection, project_dir: str, agent: str = "1"):
-    """Run an installed agent."""
+def run(launch: ClientLaunch, project_dir: str, agent: str = "1"):
+    """Run an installed agent. `--open NAME` (a thread, or #channel) opens that conversation
+    once the saved tabs are back."""
 
     project = FieldCodec.decode(Checkout, project_dir).resolved(strict=True)
 
 
 
-    binding = asyncio.run(get_agent_binding(connection, agent))
+    binding = asyncio.run(get_agent_binding(launch.connection, agent))
     app = ToadApp(
         agent_binding=binding,
         project_dir=project,
-        connection=connection,
+        connection=launch.connection,
+        opening=launch.opening,
     )
     run_terminal(app)
 
@@ -157,7 +159,7 @@ def run(connection: CoreConnection, project_dir: str, agent: str = "1"):
 @click.option("-d", "--project-dir", "project_option", metavar="PATH", default=None)
 @click.pass_obj
 def acp(
-    connection: CoreConnection,
+    launch: ClientLaunch,
     command: str,
     title: str | None,
     project_dir: str | None,
@@ -191,8 +193,9 @@ def acp(
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
         project_dir=FieldCodec.decode(Checkout, project_dir).resolved(strict=True),
-        connection=connection,
+        connection=launch.connection,
         agent_session_id=session_id,
+        opening=launch.opening,
     )
     run_terminal(app)
 
@@ -237,7 +240,7 @@ def replay(path: str) -> None:
     "serve",
     context_settings={"allow_interspersed_args": False},
 )
-@click.option("-p", "--port", metavar="PORT", default=8000, type=int)
+@click.option("-p", "--port", metavar="PORT", default=8000, type=click.IntRange(1, 65535))
 @click.option(
     "-H",
     "--host",
@@ -247,26 +250,42 @@ def replay(path: str) -> None:
 )
 @click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
 def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
-    """Serve a Toad command line in a web browser.
+    """Serve a Toad command line in a web browser on this machine.
 
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
     `toad serve acp agent-comms-acp`.
     """
+    from toad.web_server import LocalBrowserAuthentication, LocalBrowserEndpoint
+
+    ToadWebServer.run_toad(
+        LocalBrowserAuthentication(LocalBrowserEndpoint(host, port)), toad_args
+    )
 
 
-    command = shlex.join([sys.executable, "-m", "toad", *toad_args])
-    server = ToadWebServer(command, host=host, port=port, title="Toad")
-    TerminalApplicationLifetime.set_process_title("toad serve")
-    server.serve()
+@main.command(
+    "serve-tailnet",
+    context_settings={"allow_interspersed_args": False},
+)
+@click.argument("https_port", metavar="PORT", type=click.IntRange(1, 65535))
+@click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
+def serve_tailnet(https_port: int, toad_args: tuple[str, ...]) -> None:
+    """Serve a Toad command line to this machine's tailnet owner only.
+
+    Listens on an owner-only unix socket for `tailscale serve --https=PORT`, which
+    supplies each caller's tailnet login.
+    """
+    from toad.web_server import TailnetBrowserAuthentication
+
+    ToadWebServer.run_toad(TailnetBrowserAuthentication.from_status(https_port), toad_args)
 
 
 @main.command("about")
 @click.pass_obj
-def show_about(connection: CoreConnection) -> None:
+def show_about(launch: ClientLaunch) -> None:
     """Show about information."""
 
 
-    print(about.render(connection.location))
+    print(about.render(launch.connection.location))
 
 
 if __name__ == "__main__":
