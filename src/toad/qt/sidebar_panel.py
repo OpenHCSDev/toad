@@ -17,9 +17,9 @@ panel keyed by the same title stays in sync between frontends.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from functools import partial
+from functools import cached_property, partial
 
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
@@ -238,15 +238,85 @@ class QtSidebarPanels(SidebarPanelColumn["QtPanelEntry"], QScrollArea, metaclass
         self._column.setStretch(self._column.count() - 1, 0 if claimed else 1)
 
 
-@dataclass(frozen=True, eq=False)
-class QtPanelEntry:
-    """One entry of a `QtPanelMenu`: its panel spec, the widget the page shows, the controls
-    the page sets above it (Textual's `SideBar.Panel.header_control`), and what names it."""
+class PanelEntry:
+    """One entry of a `QtPanelMenu` or a panel column: its panel spec, the widget its page
+    shows, the controls the page sets above it (Textual's `SideBar.Panel.header_control`),
+    and what names it."""
 
     spec: PanelSpec
     widget: QWidget
     controls: tuple[QWidget, ...]
     identity: object
+
+    def built(self) -> bool:
+        """Whether the page's widget exists yet."""
+        return True
+
+    def release_page(self) -> None:
+        """The view this entry's page edited is no longer bound."""
+        if self.built():
+            self.widget.release_page()
+
+
+@dataclass(frozen=True, eq=False)
+class QtPanelEntry(PanelEntry):
+    """An entry whose widget exists from the start: a pane's own panels."""
+
+    spec: PanelSpec
+    widget: QWidget
+    controls: tuple[QWidget, ...]
+    identity: object
+
+
+@dataclass(frozen=True, eq=False)
+class DeferredPanelEntry(PanelEntry):
+    """An entry whose widget is built the first time its page is shown. A viewed object
+    lists one page per setting and the menu shows one at a time, so building every form
+    when a tab opens cost the open itself (seconds on a phone) for pages nobody picked."""
+
+    spec: PanelSpec
+    build: Callable[[], QWidget]
+    controls: tuple[QWidget, ...]
+    identity: object
+
+    @cached_property
+    def widget(self) -> QWidget:
+        return self.build()
+
+    def built(self) -> bool:
+        return "widget" in vars(self)
+
+
+class QtPanelPage(QWidget):
+    """One entry's page in a `QtPanelMenu`: its controls over its widget. The controls are
+    placed when the page is made; the widget when the page is first shown (`fill`)."""
+
+    def __init__(self, entry: PanelEntry, parent: QWidget) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
+        self.entry = entry
+        self.filled = False
+        self.column = QVBoxLayout(self)
+        self.column.setContentsMargins(0, 0, 0, 0)
+        self.column.setSpacing(0)
+        if entry.controls:
+            row = QHBoxLayout()
+            row.setContentsMargins(0, 0, 0, 0)
+            row.addStretch(1)
+            for control in entry.controls:
+                control.setParent(self)
+                row.addWidget(control)
+                control.show()
+            self.column.addLayout(row)
+
+    def fill(self) -> None:
+        if self.filled:
+            return
+        self.filled = True
+        widget = self.entry.widget
+        widget.setParent(self)
+        self.column.addWidget(widget, 1)
+        widget.show()
 
 
 class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMeta):
@@ -277,7 +347,7 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
         self.picker.blockSignals(True)
         self.picker.clear()
         for entry in self.entries:
-            for widget in (entry.widget, *entry.controls):
+            for widget in ((entry.widget,) if entry.built() else ()) + entry.controls:
                 widget.hide()
                 widget.setParent(self)
         while self.pages.count():
@@ -289,7 +359,7 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
             self.picker.addItem(entry.spec.title)
             self.pages.addWidget(self._page(entry))
         self.picker.setCurrentIndex(entries.index(self.initial_entry()))
-        self.pages.setCurrentIndex(self.picker.currentIndex())
+        self.show_page(self.picker.currentIndex())
         self.picker.blockSignals(False)
 
     def add_entries(self, entries: tuple[QtPanelEntry, ...]) -> None:
@@ -302,27 +372,15 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
             self.pages.addWidget(self._page(entry))
         self.picker.blockSignals(False)
 
-    def _page(self, entry: QtPanelEntry) -> QWidget:
-        page = QWidget(self.pages)
-        page.setWindowFlags(Qt.WindowType.Widget)
-        column = QVBoxLayout(page)
-        column.setContentsMargins(0, 0, 0, 0)
-        column.setSpacing(0)
-        if entry.controls:
-            row = QHBoxLayout()
-            row.setContentsMargins(0, 0, 0, 0)
-            row.addStretch(1)
-            for control in entry.controls:
-                control.setParent(page)
-                row.addWidget(control)
-                control.show()
-            column.addLayout(row)
-        entry.widget.setParent(page)
-        column.addWidget(entry.widget, 1)
-        entry.widget.show()
-        return page
+    def _page(self, entry: PanelEntry) -> QtPanelPage:
+        return QtPanelPage(entry, self.pages)
+
+    def show_page(self, index: int) -> None:
+        """Show this entry's page, its widget built and placed the first time it is shown."""
+        self.pages.widget(index).fill()
+        self.pages.setCurrentIndex(index)
 
     def _picked(self, index: int) -> None:
         entry = self.entries[index]
-        self.pages.setCurrentIndex(index)
+        self.show_page(index)
         self.remember_entry(entry)

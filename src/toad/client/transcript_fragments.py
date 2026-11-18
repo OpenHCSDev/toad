@@ -203,9 +203,21 @@ class TranscriptFragment(HistoryFragment):
         return tuple(budget.split(source))
 
     def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
-        """The header to pin over the window's top row, which is `row` of block `block`."""
-        consumed = self.consumed
-        return consumed.header if (block, row) > (consumed.header_end - 1, 0) else ()
+        """The header to pin over the window's top row, which is `row` of block `block`: once
+        the header's last block has its first row above the top row."""
+        return self.pinned_dividers if (block, row) > (self.header_blocks - 1, 0) else ()
+
+    @property
+    def header_blocks(self) -> int:
+        """How many of this fragment's leading line blocks its header is. Only those decide
+        the pin (`sticky_header`): a top row in any later block pins the same header, so a
+        frontend locating the top row need not measure past them."""
+        return self.consumed.header_end
+
+    @property
+    def pinned_dividers(self) -> tuple[Divider, ...]:
+        """The header a top row past the header blocks pins."""
+        return self.consumed.header
 
     @cached_property
     def consumed(self) -> FragmentLineConsumer:
@@ -268,10 +280,15 @@ class BusMessageFragment(BusMessageHistoryFragment, TranscriptFragment):
     def block_menu(self):
         return message_menu(self.row)
 
-    def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
-        """Every part of a message pins its header once the header's first row is above the top
-        row, which is `row` of block `block`; a later part draws no header, so it always pins."""
-        return (self.row.header,) if (block, row) > (len(self.leading) - 1, 0) else ()
+    @property
+    def header_blocks(self) -> int:
+        """Every part of a message pins its header once its leading blocks' first row is above
+        the top row; a later part has no leading blocks, so it always pins."""
+        return len(self.leading)
+
+    @property
+    def pinned_dividers(self) -> tuple[Divider, ...]:
+        return (self.row.header,)
 
 
 @dataclass(kw_only=True)

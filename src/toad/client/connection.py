@@ -1172,6 +1172,10 @@ class CoordinationAccess(MroDispatch):
                  for key in keys if (scope, key) in self.notification_known}
         return next(CheckedNotifications.for_references(references, known), UncheckedNotifications())
 
+    def shows_notifications(self, view: NotificationSubscriber) -> bool:
+        """Whether `view` is showing a read."""
+        return view in self.notification_views
+
     def stop_notifications(self, view: NotificationSubscriber) -> bool:
         """Whether `view` was showing a read."""
         shown = view in self.notification_views

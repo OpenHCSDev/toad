@@ -12,6 +12,7 @@ overflow rather than widening the window.
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 from pathlib import Path
 
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
@@ -31,7 +32,7 @@ from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.forms import QtObjectFieldView, QtObjectFormView
-from toad.qt.sidebar_panel import QtPanelEntry, QtPanelMenu, QtSidebarShell
+from toad.qt.sidebar_panel import DeferredPanelEntry, QtPanelEntry, QtPanelMenu, QtSidebarShell
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ThreadSidebarContents, panel_specs_for_view
@@ -153,8 +154,8 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         if view is not self._view:
             return
         actions = tuple(
-            QtPanelEntry(view.action_panel(action), QtActionProperties(self.app, context, action, fields),
-                         (), action.declaration)
+            DeferredPanelEntry(view.action_panel(action), partial(QtActionProperties, self.app, context, action, fields),
+                               (), action.declaration)
             for context, action, fields in declarations)
         self._view_entries += actions
         self.menu.add_entries(actions)
@@ -163,7 +164,7 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         if self._actions_task is not None:
             self._actions_task.cancel()
         for entry in self._view_entries:
-            entry.widget.release_page()
+            entry.release_page()
         self._view_entries = ()
 
     def roster_entries(self) -> tuple[QtPanelEntry, ...]:
@@ -171,7 +172,8 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
 
     def setting_entries(self, view) -> tuple[QtPanelEntry, ...]:
         return tuple(
-            QtPanelEntry(view.field_panel(field), QtObjectProperties(field, self.app.renderer), (), field.path)
+            DeferredPanelEntry(view.field_panel(field), partial(QtObjectProperties, field, self.app.renderer),
+                               (), field.path)
             for field in view.configuration_fields())
 
     def present(self) -> None:

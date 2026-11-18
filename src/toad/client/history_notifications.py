@@ -54,10 +54,21 @@ class HistoryNotifications(NotificationSubscriber):
 
     # Core feedback for every visible bus message, native or wire.
 
+    checked_references: tuple[MessageReference, ...] | None = None
+    """The visible messages the last check asked about. A check runs on every scrolled frame;
+    while the same messages are visible and no rows were published since, the read it would
+    build is the one already shown, so it is not built again."""
+
     def check_notifications(self) -> None:
         fragments = self.notification_targets() if self.can_draw_on_screen else ()
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
+        # The connection still showing a read for this view is checked too: a hide stops the
+        # read without passing through here.
+        if (references == self.checked_references
+                and self.app.coordination_access.shows_notifications(self) == bool(references)):
+            return
+        self.checked_references = references
         if self.subscribe_notifications(references):
             # Only a changed set of visible messages changes the queue evidence.
             self.report_queue_evidence()
@@ -144,6 +155,8 @@ class SourceNotifications:
 
     def rows_published(self) -> None:
         super().rows_published()
+        # Published rows can carry a fresh display cut for the same messages: read anew.
+        self.notification_view.checked_references = None
         self.notification_view.check_notifications_after_refresh()
 
     def prepare_viewport(self) -> None:

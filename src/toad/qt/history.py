@@ -19,13 +19,14 @@ from collections.abc import Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import partial
+from typing import ClassVar
 from weakref import WeakSet
 
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QTextDocument
-from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QWidget
+from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.core.projection import MroProjection
@@ -174,6 +175,10 @@ class HistoryRows(QAbstractListModel):
     """The shown fragments of a history's loaded pages, one row each."""
 
     FRAGMENT = Qt.ItemDataRole.UserRole
+    ROLE_ANSWERS: ClassVar[dict[int, Callable[[HistoryFragment], object]]] = {
+        FRAGMENT: lambda fragment: fragment,
+        Qt.ItemDataRole.DisplayRole: lambda fragment: fragment.clipboard_text,
+    }
 
     def __init__(self) -> None:
         super().__init__()
@@ -183,9 +188,11 @@ class HistoryRows(QAbstractListModel):
         return 0 if parent.isValid() else len(self.fragments)
 
     def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole):  # type: ignore[override]
-        """The fragment itself, or its plain text to display; a row answers no other role."""
-        fragment = self.fragments[index.row()]
-        return {self.FRAGMENT: fragment, Qt.ItemDataRole.DisplayRole: fragment.clipboard_text}.get(role)
+        """The fragment itself, or its plain text to display; a row answers no other role.
+        Only the asked role's answer is read: Qt asks a row for many roles each time it sizes
+        or paints it, and the plain text is built from the message, not stored."""
+        answer = self.ROLE_ANSWERS.get(role)
+        return None if answer is None else answer(self.fragments[index.row()])
 
     def show(self, fragments: tuple[HistoryFragment, ...]) -> None:
         self.beginResetModel()
@@ -248,19 +255,29 @@ class HistoryRowDelegate(RowDocumentDelegate):
         row measurement caches this by key and width, so a pager summing its rows' pixels
         every scrolled frame lays each row out once, not afresh on every frame."""
         key = self.fragment_key(fragment, font, width)
-        formatting = self.keyed_formatting(key, fragment.clipboard_text, self.rendering(fragment, font, width))
+        # The formatting is asked for only when the height is not yet measured at this width.
+        formatting = PreparedOnFill(lambda: self.keyed_formatting(key, fragment.clipboard_text,
+                                                                  self.rendering(fragment, font, width)))
         return self.measured_height(key, font, width, formatting)
 
     def block_row(self, fragment: HistoryFragment, font: QFont, width: int, y: int) -> tuple[int, int]:
         """Which of `fragment`'s line blocks its row draws at pixel `y`, and which line of that
         block: the unit the fragment's own header decision (`sticky_header`) reads. A block's
-        height is its own rows laid out at this width, cached as the row's height is."""
+        height is its own rows laid out at this width, cached as the row's height is. Only the
+        header blocks are measured: past them the pin is the same in every block
+        (`header_blocks`), so a `y` below them answers the first block after them."""
         blocks = fragment.line_blocks
         line = QFontMetrics(font).lineSpacing() or 1
+        key = self.fragment_key(fragment, font, width)
         top = 0
+        decided = fragment.header_blocks
         for index, block in enumerate(blocks):
-            height = self.measured_height((self.fragment_key(fragment, font, width), index), font, width,
-                                          self.html(self.renderer, (block,), width, font))
+            if index == decided and index < len(blocks) - 1:
+                return index, 0
+            # The pin asks on every scroll offset: a block's html is built only when its height
+            # is not yet measured at this width, not on every frame that reads the height.
+            height = self.measured_height((key, index), font, width,
+                                          PreparedOnFill(partial(self.html, self.renderer, (block,), width, font)))
             if y < top + height or index == len(blocks) - 1:
                 return index, max(0, int((y - top) // line))
             top += height
@@ -272,9 +289,27 @@ class HistoryRowDelegate(RowDocumentDelegate):
         self.html(self.renderer, (header,), width, font).fill(document)
         return document
 
+    def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:  # type: ignore[override]
+        """A history row's style option is the view's own: the row's document draws its text,
+        and the model answers no styling role. Qt's default reads the row's display text into
+        the option on every paint and size, which built the plain text each time; the plain
+        text is read only where it is drawn (`row_text`, while the row is being prepared)."""
+        option.index = index
+
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
         super().paint(painter, option, index)
         self.view.row_painted(index.data(HistoryRows.FRAGMENT), option.rect)
+
+
+@dataclass(frozen=True)
+class PreparedOnFill(RowFormatting):
+    """A row's formatting prepared only when a document is filled from it: a measurement that
+    answers from its cache never fills, so it never pays for the preparation."""
+
+    prepare: Callable[[], RowFormatting]
+
+    def fill(self, document: QTextDocument) -> None:
+        self.prepare().fill(document)
 
 
 class NoTask:
