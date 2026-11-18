@@ -17,9 +17,12 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QVBoxLayout,
     QWidget,
 )
+
+from pyqt_reactive.widgets.fitted_text import ElidedLine
 
 from toad.client.block_menu import BlockMenu
 from toad.client.input_modality import InputModality, KeyboardInput, TouchInput
@@ -32,48 +35,57 @@ def platform_input() -> type[InputModality]:
     return TouchInput if QGuiApplication.platformName() == "android" else KeyboardInput
 
 
-class QtMenuRow(QFrame):
+class QtMenuRow(QWidget):
     """One menu row: a bold key column (when the menu's modality shows keys) and a label
-    column that fills the rest, with the description inline or on its own line as the
-    modality says. The whole row is the tap target, not just the text, so a fat-fingered
-    tap on the phone still counts; it is as tall as its wrapped text and never shorter than
-    the modality's tap target. A release inside the row runs the entry."""
+    column that fills the rest. Under touch the description is a second line elided to the
+    row's width; under keys it follows the label. A click fires the entry's action; the
+    whole row is the clickable target, so a fat-fingered tap on the phone still counts.
+
+    The labels are laid over a QPushButton. A QFrame row whose own area was the target, with
+    wrapping text (QLabel word wrap, then WrappedText), was tried (2026-11-18): after the
+    panel opened over two tabs, qasync's loop ran no callbacks once the window closed, and
+    this button row did not. The cause inside the QFrame row is not established."""
 
     def __init__(self, entry: MenuEntry, menu: QtMenu, chosen: Callable[[MenuEntry], None],
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
-        self.setObjectName("menu-row")
-        self.setStyleSheet("#menu-row:hover { background: palette(midlight); }")
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self._entry = entry
         self._chosen = chosen
-        self.setMinimumHeight(max(44, menu.input_modality.row_height))
-        row = QHBoxLayout(self)
-        row.setContentsMargins(UiGap.dialog, UiGap.tight, UiGap.dialog, UiGap.tight)
-        row.setSpacing(UiGap.dialog)
+        self._button = QPushButton(self)
+        self._button.setFlat(True)
+        self._button.clicked.connect(self._fire)
+        outer = QHBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+        outer.addWidget(self._button)
+        inner = QHBoxLayout(self._button)
+        inner.setContentsMargins(UiGap.dialog, UiGap.tight, UiGap.dialog, UiGap.tight)
+        inner.setSpacing(UiGap.dialog)
         if keys := menu.row_keys(entry):
-            key = QLabel(keys, self)
+            key = QLabel(keys, self._button)
             key.setStyleSheet("font-weight: bold;")
             key.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-            row.addWidget(key)
+            inner.addWidget(key)
         text = QVBoxLayout()
         text.setSpacing(0)
-        self.label = QLabel(menu.row_text(entry), self)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.label.setWordWrap(True)
+        self.label = ElidedLine(menu.row_text(entry))
+        self.label.setParent(self._button)
         text.addWidget(self.label)
+        lines = 1
         if entry.description and not menu.input_modality.describes_inline():
-            description = QLabel(entry.description, self)
-            description.setWordWrap(True)
+            description = ElidedLine(entry.description)
+            description.setParent(self._button)
             description.setEnabled(False)  # the theme's muted text, as a secondary line
             text.addWidget(description)
-        row.addLayout(text, 1)
+            lines = 2
+        inner.addLayout(text, 1)
+        margins = inner.contentsMargins()
+        height = lines * self.fontMetrics().lineSpacing() + margins.top() + margins.bottom()
+        self._button.setMinimumHeight(max(44, menu.input_modality.row_height, height))
 
-    def mouseReleaseEvent(self, event) -> None:  # noqa: N802 - Qt virtual method name
-        if self.rect().contains(event.position().toPoint()):
-            self._chosen(self._entry)
-        super().mouseReleaseEvent(event)
+    def _fire(self) -> None:
+        self._chosen(self._entry)
 
 
 class QtMenu(BlockMenu, QFrame):
