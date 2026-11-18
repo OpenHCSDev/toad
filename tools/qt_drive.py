@@ -1524,6 +1524,76 @@ class SlideScenario(Scenario):
         self.report("7-tab-closed")
 
 
+class DragSpeedScenario(Scenario):
+    summary = ("open #comms at a Pixel 8a's width, then drag the channels pane's resize handle "
+               "40 moves out and back; print each move's handling time and the event loop's time "
+               "to settle after it, and the hottest functions (TOAD_DRAG_PROFILE=1)")
+
+    width: ClassVar[int] = 412
+
+    @staticmethod
+    def move(widget: QWidget, kind: QEvent.Type, at: QPoint, screen: QPoint, held: bool) -> None:
+        QApplication.sendEvent(widget, QMouseEvent(
+            kind, QPointF(at), QPointF(screen), Qt.MouseButton.LeftButton,
+            Qt.MouseButton.LeftButton if held else Qt.MouseButton.NoButton,
+            Qt.KeyboardModifier.NoModifier))
+
+    async def run(self) -> None:
+        await self.listed()
+        app = self.app
+        app.resize(self.width, 915)
+        await self.open_named("#comms")
+        app.show_sidebar()
+        await asyncio.sleep(1.0)
+        pane = app.channels_side
+        handle = pane.handle
+        start = handle.rect().center()
+        origin = handle.mapToGlobal(start)
+        horizontal = pane.placement.side.coordinate(Offset(1, 0)) != 0
+        step = QPoint(4, 0) if horizontal else QPoint(0, 4)
+        sign = pane.placement.side.sign
+        path = [step * (sign * index) for index in range(1, 21)]
+        path += list(reversed(path[:-1])) + [QPoint(0, 0)]
+        profile = None
+        if os.environ.get("TOAD_DRAG_PROFILE"):
+            import cProfile
+            profile = cProfile.Profile()
+        handled: list[float] = []
+        late: list[float] = []
+        self.move(handle, QEvent.Type.MouseButtonPress, start, origin, True)
+        if profile is not None:
+            profile.enable()
+        for travel in path:
+            began = time.perf_counter()
+            self.move(handle, QEvent.Type.MouseMove, start + travel, origin + travel, True)
+            handled.append(time.perf_counter() - began)
+            # One frame for the loop to draw the move and run what it started; how late the
+            # loop gives control back is what a finger feels as lag.
+            frame = time.perf_counter()
+            await asyncio.sleep(0.016)
+            late.append(time.perf_counter() - frame - 0.016)
+        released = time.perf_counter()
+        self.move(handle, QEvent.Type.MouseButtonRelease, start, origin, False)
+        release = time.perf_counter() - released
+        await asyncio.sleep(0.3)
+        if profile is not None:
+            profile.disable()
+
+        def summary(samples: list[float]) -> str:
+            ordered = sorted(samples)
+            ms = [value * 1000 for value in ordered]
+            return (f"median {ms[len(ms) // 2]:.1f} ms, p95 {ms[int(len(ms) * 0.95) - 1]:.1f} ms, "
+                    f"max {ms[-1]:.1f} ms over {len(ms)} moves")
+        print("  move handled:", summary(handled), flush=True)
+        print("  loop late after a move:", summary(late), flush=True)
+        print(f"  release: {release * 1000:.1f} ms", flush=True)
+        if profile is not None:
+            import pstats
+            stats = pstats.Stats(profile)
+            stats.sort_stats("cumulative").print_stats(40)
+        self.report("1-dragged", pane=f"{pane.placement.extent_percent}%")
+
+
 class ChromeScenario(Scenario):
     summary = ("the sidebar and tab chrome at a Pixel 8a's width: the channels pane open beside "
                "the welcome, then #comms and one of its threads open; print each surface's geometry")
