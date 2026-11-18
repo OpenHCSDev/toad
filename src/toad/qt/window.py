@@ -1519,9 +1519,6 @@ class QtWorkspaceViews(WorkspaceViews):
         # As Textual's `Conversation` unmount: the view's agent leaves its surface and stops
         # before the widgets it draws into are deleted.
         await view.operational_binding.retire_surface(view)
-        # As Textual's widget teardown (`_message_pump_closing`): its receivers and its
-        # history's reads end before the widgets they write into are deleted.
-        view.close_core_events()
         view.close_configuration()
         self.pages.removeWidget(view)
         view.deleteLater()
