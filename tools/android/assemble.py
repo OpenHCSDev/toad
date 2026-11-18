@@ -1,4 +1,4 @@
-"""Lay out the APK's app folder: the Python closure as source, the entry point, the files
+"""Lay out the APK's app folder: the Python closure as source and compiled bytecode, the entry point, the files
 toad.qt.android reads beside it, and buildozer.spec filled in from buildozer.spec.in.
 
     python tools/android/assemble.py CLOSURE.json APP TOOLCHAIN PROFILE
@@ -7,7 +7,16 @@ Run with the interpreter the closure came from: the CA bundle is its certifi's, 
 PySide6's and the theme its pywal cache, read through ui_theme's WalFile. TOOLCHAIN is the
 folder toolchain.sh fills (sdk/, wheels/); PROFILE is the UI profile the phone holds first,
 copied in and never committed. Packages built by python-for-android recipes and the PySide6
-wheels are left to the build; every other package ships as source.
+wheels are left to the build; every other package ships as source, with its bytecode.
+
+The bytecode is compiled here because the phone would otherwise compile every module the
+first time it starts after each install: an install unpacks the app folder afresh, so the
+bytecode the last start wrote is gone, and compiling the client's modules adds about six
+seconds at a phone's speed to that start. It is compiled as the phone runs Python
+(at the optimization level the APK's activity sets, `recipe_built.python_optimize`), and never checked against its
+source: an install unpacks source and bytecode together, so they cannot disagree, while a
+timestamp check would refuse every file (unpacking gives each a new modification time) and
+a hash check would read and hash every source at every start.
 """
 import json
 import os
@@ -18,9 +27,12 @@ from configparser import ConfigParser
 from pathlib import Path
 from string import Template
 
+import compileall
+import py_compile
+
 import certifi
 import PySide6
-from recipe_built import SPEC, import_names
+from recipe_built import SPEC, import_names, python_optimize
 from ui_theme.wal import WalFile
 
 closure_file, app, toolchain, profile = (Path(argument).resolve() for argument in sys.argv[1:5])
@@ -37,6 +49,7 @@ for name in built_by_recipes:
             stale.unlink()
 # Hidden directories are build state (the native Pi agent under _native), not package code.
 ignore = shutil.ignore_patterns("*.so", "*.pyd", "__pycache__", "*.pyc", "tests", "test", ".*")
+shipped = []
 for name, entry in json.loads(closure_file.read_text()).items():
     if name in built_by_recipes:
         continue
@@ -49,7 +62,16 @@ for name, entry in json.loads(closure_file.read_text()).items():
     else:
         shutil.copy2(root, target)
     print(f"{name:26} {sum(1 for _ in target.rglob('*.py')) if target.is_dir() else 1} files")
+    shipped.append(target)
 
+# The shipped packages only: the app folder also holds the build's own state (.buildozer).
+compiled = {"quiet": 1, "optimize": python_optimize(),
+            "invalidation_mode": py_compile.PycInvalidationMode.UNCHECKED_HASH}
+for target in shipped:
+    if target.is_dir():
+        compileall.compile_dir(target, workers=1, **compiled)
+    elif target.suffix == ".py":
+        compileall.compile_file(target, **compiled)
 shutil.copy2(HERE / "main.py", app / "main.py")
 held = app / "profile.json"
 if profile != held:

@@ -472,6 +472,13 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         observed = self.app.coordination_access.observation
         return self.app.tab_order.project(observed.tabs(self))
 
+    @property
+    def tab_modes(self) -> tuple[str, ...]:
+        """The open tabs' modes in tab order. A tab's mode is its identity's, so this reads no
+        tab's label: `tabs` projects every label from the observed references."""
+        open_identities = {entry.identity for entry in self.members}
+        return tuple(identity.mode_name for identity in self.app.tab_order.names if identity in open_identities)
+
     async def close(self, mode: str) -> None:
         await self.close_many((mode,))
 

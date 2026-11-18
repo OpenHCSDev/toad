@@ -7,7 +7,7 @@ the app makes at run time by name (2026-11-18: the keymap's package walk importe
 and the phone's DM view died on `No module named 'click'`). This runs it. Exit 0 when the
 `shipped` qt_drive scenario passes; non-zero, with the failure, otherwise.
 
-- The app runs on an interpreter with no site-packages: APP (assembled by assemble.py) and the
+- The app runs on an interpreter with no site-packages, at the APK's optimization level: APP (assembled by assemble.py) and the
   recipe-built packages from SITE_PACKAGES only, entered as the APK enters (android_app.enter),
   from a copy of APP in a scratch folder, since the app keeps its state beside its folder.
 - The bus is a scratch one: a fresh root seeded with a CLI thread, a peer, a direct message
@@ -30,7 +30,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from recipe_built import import_names
+from recipe_built import import_names, python_optimize
 
 HERE = Path(__file__).resolve().parent
 CHECKOUT = HERE.parent.parent
@@ -132,8 +132,11 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
         f"sys.argv = ['qt_drive.py', 'shipped', {str(profile)!r}, {str(out)!r}]\n"
         f"runpy.run_path({str(CHECKOUT / 'tools' / 'qt_drive.py')!r}, run_name='__main__')\n"
     )
-    return subprocess.run([sys.executable, "-S", "-c", code], capture_output=True, text=True,
-                          timeout=600, cwd=recipes, check=False)
+    # -B: the app folder ships the bytecode assemble.py compiled; this run writes none beside it.
+    # It runs at the APK's optimization level, so it loads that bytecode, as the phone does.
+    return subprocess.run([sys.executable, "-S", "-B", "-c", code], capture_output=True, text=True,
+                          timeout=600, cwd=recipes, check=False,
+                          env=os.environ | {"PYTHONOPTIMIZE": str(python_optimize())})
 
 
 def main(runtime: Path, app: Path, site_packages: Path) -> int:

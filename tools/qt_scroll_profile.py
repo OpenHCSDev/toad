@@ -39,7 +39,9 @@ from PySide6.QtWidgets import QApplication
 from agent_comms.projects.checkouts import Checkout
 from toad.client.connection import RemoteCoreConnection
 from toad.client.history import WirePageBuffer
-from toad.qt.main import current_scheme, open_app
+from toad.qt.client_start import open_app
+from toad.qt.glyph_fonts import install_glyph_fonts
+from toad.qt.theme import current_scheme
 
 from qt_drive import ConversationRow, until
 
@@ -270,7 +272,7 @@ def main(arguments: list[str]) -> None:
     args = [a for a in arguments[1:] if not a.startswith("--")]
     if len(args) != 2:
         raise SystemExit(f"usage: {arguments[0]} PROFILE OUTDIR [--profile]")
-    QApplication(arguments[:1])
+    install_glyph_fonts(QApplication(arguments[:1]))  # the entry's splash registers them; this profile has none
     qasync.run(run(Path(args[0]), Path(args[1]), "--profile" in arguments))
 
 
