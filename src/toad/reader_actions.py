@@ -5,7 +5,7 @@ Declared where every reader imports them (Textual's `HistoryWindow`, Qt's
 backends implement (`action_page_down`, `action_page_up`, `jump_to_latest`), so each
 backend binds the family's keys through its own binding mechanism — Textual through
 the Action/BindingsMap path in `widget_actions`, Qt through `QShortcut` driven by
-`toad.qt.action_shortcuts.bind_action_shortcuts`.
+`toad.qt.action_shortcuts.ActionKeys.bind_family`.
 
 `VimMode` is a Textual type used only as a dict key (mode marker). The import does not
 fire Textual behaviour at load time, and both backends have Textual installed as a

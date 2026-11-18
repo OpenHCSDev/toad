@@ -4,6 +4,7 @@ in the same roles and the same theme colours, through the same `LineBlockPainter
 from __future__ import annotations
 
 import copy
+from collections.abc import Callable
 from dataclasses import dataclass
 from html import escape
 
@@ -11,6 +12,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.token import _TokenType
 from pygments.util import ClassNotFound
 from PySide6.QtGui import QColor, QFont, QFontMetricsF
+from PySide6.QtWidgets import QWidget
 from rich.style import Style
 from rich.syntax import ANSI_DARK, ANSI_LIGHT
 from ui_theme.colour import require_terminal_palette
@@ -81,17 +83,40 @@ class QtLineRenderer(LineBlockPainter[str]):
     """Each shared block as a fragment of Qt rich text; Markdown through the shared parser."""
 
     def __init__(self, scheme: ColourScheme, links: LinkContext, diff_marks: DiffMarks) -> None:
-        self.scheme = scheme
         self.links = links
-        self.diff_marks = diff_marks
+        self.followers: list[Callable[[], None]] = []
+        """What repaints when this renderer's scheme or diff marks change (`follows_theme`)."""
         # HTML emission only; a source line break stays a line, as Rich draws soft breaks.
         self.markdown = MarkdownIt("gfm-like", {"breaks": True, "highlight": self.highlight})
         self.markdown.renderer.rules["link_open"] = self.link_open
+        self.follow(scheme, diff_marks)
+        self.width = 0.0
+        self.font = QFont()
+
+    def follow(self, scheme: ColourScheme, diff_marks: DiffMarks) -> None:
+        """Draw under this scheme with these diff marks from now on (`ui.theme`, `diff`).
+        The app's renderer is the one its widgets hold; a preparation already on the pool
+        keeps the copy it was handed (`bound`)."""
+        self.scheme = scheme
+        self.diff_marks = diff_marks
         self.terminal = scheme.terminal.resolve(require_terminal_palette)
         # Toad draws code in the terminal palette through Rich's ANSI syntax theme.
         self.syntax = ANSI_DARK if scheme.dark else ANSI_LIGHT
-        self.width = 0.0
-        self.font = QFont()
+        for repaint in tuple(self.followers):
+            repaint()
+
+    def themed(self, widget: QWidget, paint: Callable[[], None]) -> None:
+        """``paint`` draws ``widget``'s own colours from this renderer's scheme: now, and
+        again each time the scheme changes. Colours set once keep the scheme they were
+        built in."""
+        paint()
+        self.follows_theme(widget, paint)
+
+    def follows_theme(self, widget: QWidget, repaint: Callable[[], None]) -> None:
+        """``repaint`` runs each time `ui.theme` or the `diff` settings change this renderer
+        (`follow`), until ``widget`` goes."""
+        self.followers.append(repaint)
+        widget.destroyed.connect(lambda: self.followers.remove(repaint))
 
     def bound(self, **fields) -> QtLineRenderer:
         """A copy for one pool preparation, so concurrent widths and link contexts don't clash."""

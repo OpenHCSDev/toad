@@ -94,9 +94,9 @@ class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], QtSortButton[Ord
     def __init__(self, app: QtToadApp, form_type, scope: str, parent: QWidget | None = None) -> None:
         self._app = app
         super().__init__(form_type, scope, parent)
-        scheme = app.theme.color_scheme
-        self.setStyleSheet(self.styleSheet()
-                           + f"QToolButton {{ background-color: {scheme.to_hex(scheme.panel_bg)}; }}")
+        plain = self.styleSheet()
+        app.renderer.themed(self, lambda: self.setStyleSheet(
+            plain + f"QToolButton {{ background-color: {app.theme.color_scheme.to_hex(app.theme.color_scheme.panel_bg)}; }}"))
 
     def saved_settings(self):
         return self._app.saved_settings

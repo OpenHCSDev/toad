@@ -11,9 +11,10 @@ built again (switch_bus).
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from abc import abstractmethod
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Iterable
 from functools import partial
 from typing import TYPE_CHECKING
 
@@ -37,6 +38,7 @@ from toad.client.bus_selection import (
 )
 from toad.client.connection import CoreConnection
 from toad.client.db import DB
+from toad.client.input_attention import InputAttention
 from toad.client.resource_release import AsyncResourceRelease
 from toad.client.session_tracker import OpenTab, SessionTracker, SidebarState
 from toad.client.tab_order import TabOrder
@@ -78,6 +80,9 @@ class ClientApplication(BusPickerHost, NavigationHost):
     colour-system construction; that assignment flows through the setter here.
     """
 
+    input_attention: InputAttention
+    """The title that blinks while input is required; each frontend sets its own."""
+
     @property
     def saved_settings(self) -> "SavedSettings":
         """The settings holder this launch reads and writes. Lazily opened on first
@@ -97,18 +102,57 @@ class ClientApplication(BusPickerHost, NavigationHost):
         ObjectStateRegistry.register(value.state)
 
     def open_settings(self) -> "SavedSettings":
-        """Settings held by this app alone; a frontend with a settings file opens it
-        instead by overriding this method."""
+        """The settings file every frontend reads at launch and writes on a change; each
+        change applies its `Effect` through `apply_setting_effect`, so a setting changed in
+        either frontend's settings screen repaints what it reaches at once. A frontend
+        applies them all once its widgets exist (`SavedSettings.apply_all`)."""
         from toad.preferences import SavedSettings
-        return SavedSettings()
+        path = SavedSettings.path()
+        raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
+        return SavedSettings(raw, applied=self.apply_setting_effect, report_error=self.settings_not_saved)
+
+    def settings_not_saved(self, error: Exception) -> None:
+        self.show_error(error, "Settings")
 
     def apply_setting_effect(self, field) -> None:
         """An app-wide setting changed: its `Effect` repaints the open widgets it reaches,
-        each reading through its nearest settings scope (a view's override still wins).
-        A frontend whose settings file applies effects passes this as `applied`."""
+        each reading through its nearest settings scope (a view's override still wins)."""
         from toad.setting_declarations import Effect
         if (effect := field.metadata(Effect)) is not None:
             effect.apply(self, field)
+
+    @abstractmethod
+    def settings_widgets(self, widget_type: type) -> Iterable:
+        """This app's open widgets composing ``widget_type``, a capability a setting's
+        `Effect` reaches (`Effect.open_widgets`) to repaint by the changed setting."""
+
+    @abstractmethod
+    def follow_wheel_scroll_rows(self) -> None:
+        """A mouse wheel notch now scrolls `ui.wheel_scroll_rows` rows."""
+
+    @abstractmethod
+    def follow_theme(self) -> None:
+        """Draw everything in the `ui.theme` scheme now named."""
+
+    @abstractmethod
+    def follow_key_mode(self) -> None:
+        """Every input editor and key binding follows the `ui.key_mode` now chosen."""
+
+    @abstractmethod
+    def follow_keymap(self) -> None:
+        """Every command answers the keys `ui.keymap` now gives it (its defaults otherwise)."""
+
+    @abstractmethod
+    def follow_line_renderer(self) -> None:
+        """The `diff` settings changed: lines draw by them from now on, open ones again."""
+
+    def update_show_sessions(self) -> None:
+        """The session tabs show as `ui.sessions_bar` says for this many open tabs."""
+        self.show_session_tabs(self.settings.ui.sessions_bar.shown(len(self.open_tabs)))
+
+    @abstractmethod
+    def show_session_tabs(self, shown: bool) -> None:
+        """Show or hide the session tabs; the open tabs draw with the current unread badge."""
 
     @property
     def settings(self) -> "ToadSettings":

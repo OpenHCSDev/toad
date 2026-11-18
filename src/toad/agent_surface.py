@@ -169,14 +169,14 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         if not request.watch(self, screen.retire):
             return
         try:
-            app.terminal_attention.require(screen)
-            app.terminal_attention.notify(
+            app.input_attention.require(screen)
+            app.input_attention.notify(
                 f"{view.agent_title} would like to write files", title="Permissions request", sound="question"
             )
             result = await app.push_screen_wait(screen, mode=view.screen.id)
             request.answer(self, result)
         finally:
-            app.terminal_attention.release(screen)
+            app.input_attention.release(screen)
 
     @handles(InlinePermissionPresentation)
     async def show_inline_permission(

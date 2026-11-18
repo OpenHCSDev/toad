@@ -7,13 +7,14 @@ Ask to this widget, mounted as the conversation view's bottom-dock over the comp
 
 `QuestionContext` is the toolkit-neutral owner (plain mixin in `toad/question_actions.py`);
 `QuestionAction` and its `SelectKindAction` family declare the keys and `apply()` bodies both
-backends share. Qt iterates the family through `bind_action_shortcuts(SelectKindAction)` —
+backends share. Qt iterates the family through `ActionKeys.bind_family(SelectKindAction)` —
 every `AllowOnceAction` / `AllowAlwaysAction` / `RejectOnceAction` / `RejectAlwaysAction`
 member fires on its own declared key, same as Textual, with no hand-rolled roster here.
 """
 
 from __future__ import annotations
 
+from functools import partial
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
@@ -28,7 +29,7 @@ from PySide6.QtWidgets import (
 )
 
 from toad.answer import Answer
-from toad.qt.action_shortcuts import bind_action_shortcuts
+from toad.client.input_attention import InputAttention
 from toad.question_actions import QuestionContext, SelectKindAction
 from toad.widget_contracts import DismissibleContract
 from toad.qt.metrics import UiGap
@@ -43,10 +44,15 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
     the user picks or the question is retracted.
     """
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, app, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self._ask: Ask | None = None
+        # An open question requires input: the window title blinks while one waits, as
+        # Textual's prompt question blinks the terminal title (`InputAttention`).
+        self.app = app
+        self.attention: InputAttention = app.input_attention
+        self.destroyed.connect(partial(self.attention.release, self))
         # Parent self — a parentless QLabel on Qt-for-Android becomes a top-level window
         # with its own EGL surface and can recurse into the deadlock protector during
         # the first-paint flush of the conversation view (same shape as PR #1885).
@@ -111,11 +117,12 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
         # Declared-key family: every SelectKindAction member (AllowOnceAction / AllowAlwaysAction
         # / RejectOnceAction / RejectAlwaysAction) binds its own TextEntryMode keys; `available`
         # silently skips the kinds this Ask doesn't offer. Same source of truth as Textual.
-        self._shortcuts = bind_action_shortcuts(
+        self._shortcuts = self.app.action_keys.bind_family(
             self, SelectKindAction, self,
             scope=Qt.ShortcutContext.WindowShortcut,
         )
         self.show()
+        self.attention.require(self)
         if self._buttons:
             self._buttons[0].setFocus()
 
@@ -123,6 +130,7 @@ class QtQuestion(QuestionContext, QFrame, DismissibleContract):
         self._clear_options()
         self._ask = None
         self.hide()
+        self.attention.release(self)
 
     def dismiss_control(self) -> None:
         """A cross-toolkit consumer can dismiss the question panel the same way as any other

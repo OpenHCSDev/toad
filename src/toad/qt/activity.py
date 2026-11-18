@@ -36,7 +36,7 @@ class ActivityLine(ElidedLine):
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
-        self.setStyleSheet(renderer.color_style(MutedRole))
+        renderer.themed(self, lambda: self.setStyleSheet(renderer.color_style(MutedRole)))
         self.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
 
     def close_activity(self) -> None:

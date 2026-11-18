@@ -1,23 +1,23 @@
-"""Drive an Action family's declared keys through Qt's `QShortcut`.
+"""Drive declared actions' keys through Qt's `QShortcut`, as Textual's bindings drive them.
 
-An `Action` family declares `keys: Mapping[InputMode, tuple[str, ...]]` toolkit-neutrally.
-Textual's path consumes those keys through its Binding/BindingsMap dispatch. Qt doesn't
-have that machinery, so we iterate the family here and install one `QShortcut` per
-declared key, each firing the action's `.apply(context)` with the passed-in context.
-
-Mode filtering (`VimMode` / `TextEntryMode`) is a Textual input-dispatch concept; Qt's
-shortcuts fire on the whole widget scope. We flatten across modes and bind every key
-each action declares.
+An action's keys are its row in the shared keymap catalog for the current `ui.key_mode`,
+with `ui.keymap`'s remap: the keys Textual binds (`KeymapCatalog.effective`). `ActionKeys`
+installs one `QShortcut` per action with those keys, firing ``.apply(context)`` (or the
+callback a composer gives), and sets every live shortcut's keys again when either setting
+changes, so a remap or a new key mode reaches Qt at once.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable
 from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QWidget
+
+from toad.key_modes import KeyMode
+from toad.keymap import KeymapCatalog, KeymapRow
 
 
 def _qt_sequence(key: str) -> QKeySequence:
@@ -53,32 +53,47 @@ def _fire(action: Any, context: Any) -> None:
     # Let it reach Qt's logger alongside every other real fault.
 
 
-def bind_action_shortcuts(widget: QWidget, family: type, context: Any,
-                          scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut,
-                          ) -> list[QShortcut]:
-    """Install a `QShortcut` for every key every member of `family` declares.
+class ActionKeys:
+    """Every live action shortcut and the keys it answers. ``settings`` reads the app's
+    settings, whose `ui.key_mode` and `ui.keymap` choose the keys."""
 
-    Each shortcut fires the member's ``.apply(context)``. Returns the shortcut list so
-    the caller can keep a reference (Qt disconnects shortcuts whose owner goes).
+    def __init__(self, settings: Callable[[], Any]) -> None:
+        self.settings = settings
+        self.bound: dict[int, tuple[QShortcut, object]] = {}
 
-    Actions whose ``available(context)`` or ``apply(context)`` raises AttributeError or
-    NotImplementedError are silently skipped — a Textual-only sibling (`ShowSidebarAction`
-    reaching into `context.app.workspace_chrome.channels`) can coexist in the family
-    loop with a Qt-usable one (`BackToBottomAction` reading `context.back_to_bottom_windows`).
-    """
-    shortcuts: list[QShortcut] = []
-    for action_cls in family.members_with(family):
-        action = action_cls()
-        for keys in action_cls.keys.values():
-            for key in keys:
-                shortcut = QShortcut(_qt_sequence(key), widget)
-                shortcut.setContext(scope)
-                shortcut.activated.connect(lambda _a=action, _c=context: _fire(_a, _c))
-                shortcuts.append(shortcut)
-    return shortcuts
+    def keys(self, action: object) -> list[QKeySequence]:
+        ui = self.settings().ui
+        catalog = KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode)))
+        return [_qt_sequence(key) for key in catalog.effective(KeymapRow.of(action, ui.key_mode), ui.keymap)]
 
+    def bind(self, widget: QWidget, action: object, fire: Callable[[], None],
+             scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut) -> QShortcut:
+        """One shortcut on ``widget`` answering ``action``'s keys, running ``fire``."""
+        shortcut = QShortcut(widget)
+        shortcut.setContext(scope)
+        shortcut.setKeys(self.keys(action))
+        shortcut.activated.connect(fire)
+        key = id(shortcut)
+        self.bound[key] = (shortcut, action)
+        shortcut.destroyed.connect(lambda: self.bound.pop(key))
+        return shortcut
 
-def flatten_keys(action_cls: type) -> Iterable[str]:
-    """Every key string the action declares across every mode."""
-    for keys in action_cls.keys.values():
-        yield from keys
+    def bind_family(self, widget: QWidget, family: type, context: Any,
+                    scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut,
+                    ) -> list[QShortcut]:
+        """A shortcut for every member of ``family``, firing its ``.apply(context)``.
+
+        Actions whose ``available(context)`` or ``apply(context)`` raises AttributeError are
+        skipped when pressed: a Textual-only sibling (`ShowSidebarAction` reaching into
+        `context.app.workspace_chrome.channels`) can coexist in the family with a Qt-usable
+        one (`BackToBottomAction` reading `context.back_to_bottom_windows`)."""
+        shortcuts = []
+        for action_cls in family.members_with(family):
+            action = action_cls()
+            shortcuts.append(self.bind(widget, action, lambda _a=action: _fire(_a, context), scope))
+        return shortcuts
+
+    def follow(self) -> None:
+        """`ui.key_mode` or `ui.keymap` changed: every live shortcut answers its new keys."""
+        for shortcut, action in tuple(self.bound.values()):
+            shortcut.setKeys(self.keys(action))

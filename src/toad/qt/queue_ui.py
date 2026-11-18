@@ -38,7 +38,7 @@ class QtActivatedText(ActivatesContract, WrappedText):
     def __init__(self, composer: "Composer", text: str = "") -> None:
         super().__init__(text)
         self.composer = composer
-        self.setStyleSheet(composer.renderer.color_style(MutedRole))
+        composer.renderer.themed(self, lambda: self.setStyleSheet(composer.renderer.color_style(MutedRole)))
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.MouseButton.LeftButton:
@@ -113,7 +113,7 @@ class QtQueueInspection(QueueInspectionOwner, QDialog, metaclass=PyQtWidgetMeta)
         layout.addWidget(note)
         self.error = QLabel("", self)
         self.error.setWordWrap(True)
-        self.error.setStyleSheet(renderer.color_style(FailureRole))
+        renderer.themed(self.error, lambda: self.error.setStyleSheet(renderer.color_style(FailureRole)))
         self.error.hide()
         layout.addWidget(self.error)
         buttons = QDialogButtonBox(self)

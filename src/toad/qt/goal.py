@@ -157,13 +157,10 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         self._goal_execution: GoalExecutionControls = IdleGoalExecution()
         self.collapsed = False
         self.is_attached = False
-        muted = renderer.color_style(MutedRole)
         self.header = ElidedLine()
         self.standby = ElidedLine()
-        self.standby.setStyleSheet(muted)
         self.objective = WrappedText()
         self.progress = WrappedText()
-        self.progress.setStyleSheet(muted)
         # Parent self so the document stays a child from creation, not a top-level QWindow
         # on Qt-for-Android (prevents the EGL deadlock protector shape PR #1885 fixed).
         self.document = QScrollArea(self)
@@ -177,18 +174,16 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         document.addWidget(self.progress)
         document.addStretch(1)
         self.document.setWidget(body)
-        secondary = renderer.theme(SecondaryColour)
         self.actions = tuple(QtGoalControl(interaction, self) for interaction in self.goal_interactions())
         controls = QHBoxLayout()
         controls.setContentsMargins(0, 0, 0, 0)
         controls.setSpacing(UiGap.frame)
         for control in self.actions:
-            control.setStyleSheet(f"QToolButton {{ color: {secondary}; border: none; padding: 0 }}")
             controls.addWidget(control)
         controls.addStretch(1)
         self.setObjectName("goal-bar")
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet(f"#goal-bar {{ border-top: 1px solid {secondary} }}")
+        renderer.themed(self, partial(self.paint_colours, renderer))
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.loose, UiGap.tight, UiGap.loose, UiGap.tight)
         layout.setSpacing(0)
@@ -198,6 +193,17 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         layout.addLayout(controls)
         self.present_goal_document(self._goal_display)
         self.present_state()
+
+    def paint_colours(self, renderer: QtLineRenderer) -> None:
+        """The standby and progress lines muted, the controls and the bar's top border in the
+        secondary colour, under the renderer's current scheme."""
+        muted = renderer.color_style(MutedRole)
+        secondary = renderer.theme(SecondaryColour)
+        self.standby.setStyleSheet(muted)
+        self.progress.setStyleSheet(muted)
+        for control in self.actions:
+            control.setStyleSheet(f"QToolButton {{ color: {secondary}; border: none; padding: 0 }}")
+        self.setStyleSheet(f"#goal-bar {{ border-top: 1px solid {secondary} }}")
 
     @property
     def coordination(self) -> CoordinationAccess:

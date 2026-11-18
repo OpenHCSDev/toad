@@ -9,6 +9,7 @@ QtWorkspaceViews draws its view, a Qt ConversationView.
 from __future__ import annotations
 
 import asyncio
+import os
 from time import time
 from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import dataclass
@@ -49,6 +50,8 @@ from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextL
 from pyqt_reactive.widgets.shared.touch_scrolled import TouchScrolled
 from ui_theme.clock import AnimationClock
 from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour
+from ui_theme.wal import WalFile
+from pyqt_reactive.theming import ColorScheme
 
 from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
@@ -117,10 +120,10 @@ from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
 )
 from toad.history_jump import JumpsHistory, JumpsToLatest
-from toad.qt.action_shortcuts import bind_action_shortcuts
+from toad.qt.action_shortcuts import ActionKeys
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
-from toad.qt.composer import ChannelComposer, MessageComposer
+from toad.qt.composer import ChannelComposer, ComposerEditor, MessageComposer
 from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.client.transcript_fragments import TranscriptFragment
@@ -136,6 +139,9 @@ from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.name_wave import QtNameWaveDelegate, QtSessionTabBar
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
 from toad.qt.view_settings import capability_widgets
+from toad.qt.attention import QtWindowAttention
+from toad.qt.theme import offered_schemes
+from toad.client.view_layout import LayoutFollower
 from toad.qt.paste_profile import QtProfilePastePanel
 from agent_comms.messaging.display_references import ProjectReferences
 from toad.markdown_links import LinkContext
@@ -520,6 +526,10 @@ class Banner(WelcomeBanner, QWidget):
         self.setFont(font)
         self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
 
+    def paint_in(self, colour: str) -> None:
+        self.colour = QColor(colour)
+        self.update()
+
     def cell(self) -> float:
         return self.contentsRect().width() / self.COLUMNS
 
@@ -671,9 +681,10 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         super().__init__()
         self.host = window
         self.banner = Banner(window.renderer.theme(PrimaryColour))
+        window.renderer.follows_theme(self.banner, lambda: self.banner.paint_in(window.renderer.theme(PrimaryColour)))
         self.project = BusLabel(window)
         self.project.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.project.setStyleSheet(window.renderer.color_style(MutedRole))
+        window.renderer.themed(self.project, lambda: self.project.setStyleSheet(window.renderer.color_style(MutedRole)))
         self.new_session_button = QtStartSessionButton(window, parent=self)
         self.rows = ConversationRows(window)
         self.held_menu = HeldRowMenu(self)
@@ -686,7 +697,7 @@ class Welcome(Page, BusListing, NoConversationView, QWidget):
         self.hints = QLabel(_strip_menu_markup_shared(window.welcome_hints), self)
         self.hints.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.hints.setWordWrap(True)
-        self.hints.setStyleSheet(window.renderer.color_style(MutedRole))
+        window.renderer.themed(self.hints, lambda: self.hints.setStyleSheet(window.renderer.color_style(MutedRole)))
         layout = QVBoxLayout(self)
         layout.addSpacing(24)
         layout.addWidget(self.banner)
@@ -828,7 +839,6 @@ class ConversationRows(RowTree, TouchScrolled, QTreeWidget):
     def __init__(self, window: QtToadApp) -> None:
         super().__init__()
         self.window = window
-        scheme = window.theme.color_scheme
         self.setHeaderHidden(True)
         cell = self.fontMetrics().averageCharWidth()
         # Members indent as Textual's `SidebarMembers` do (`RowTree.member_indent` cells).
@@ -836,15 +846,7 @@ class ConversationRows(RowTree, TouchScrolled, QTreeWidget):
         # One column: a line's text spans the row, as Textual's rows do. A channel line's
         # order control lies over the right end of its first line (`HeaderLineControl`).
         self.setColumnCount(1)
-        # The scrollbar is `RowTree.scrollbar_cells` wide, as Textual's sidebar viewport
-        # draws it: a narrow sidebar keeps its text width.
-        bar = self.scrollbar_cells * cell
-        self.setStyleSheet(scheme.styles.generate_tree_widget_style()
-                           + f"QScrollBar:vertical {{ width: {bar}px; }}"
-                           f"QScrollBar:horizontal {{ height: {bar}px; }}")
-        self.setItemDelegateForColumn(0, QtNameWaveDelegate(
-            QColor(window.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
-            scheme.to_qcolor(scheme.selection_text), self))
+        window.renderer.themed(self, self.paint_colours)
         self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         # Alternating row backgrounds come from the shared `generate_tree_widget_style`
         # stylesheet, which already declares `alternate-background-color:
@@ -858,6 +860,23 @@ class ConversationRows(RowTree, TouchScrolled, QTreeWidget):
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         self.itemClicked.connect(self.activate)
+
+    def paint_colours(self) -> None:
+        """The tree's stylesheet and its line delegate's colours, under the current scheme.
+        The scrollbar is `RowTree.scrollbar_cells` wide, as Textual's sidebar viewport draws
+        it: a narrow sidebar keeps its text width."""
+        window = self.window
+        scheme = window.theme.color_scheme
+        bar = self.scrollbar_cells * self.fontMetrics().averageCharWidth()
+        self.setStyleSheet(scheme.styles.generate_tree_widget_style()
+                           + f"QScrollBar:vertical {{ width: {bar}px; }}"
+                           f"QScrollBar:horizontal {{ height: {bar}px; }}")
+        previous = self.itemDelegateForColumn(0)
+        self.setItemDelegateForColumn(0, QtNameWaveDelegate(
+            QColor(window.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
+            scheme.to_qcolor(scheme.selection_text), self))
+        if previous is not None:
+            previous.deleteLater()
 
     def activate(self, item: SidebarItem) -> None:
         item.activate(self.window)
@@ -1277,7 +1296,7 @@ class ConversationView(QtConversation, ConversationViewNavigation, JumpsHistory,
         # The inline consent prompt ("did you mean it?", edit/clear confirmations) — hidden
         # until the conversation asks, mounted below the composer so the picks sit where
         # the next message would be typed, mirroring Textual's Prompt.ask.
-        self.question = QtQuestion(self)
+        self.question = QtQuestion(self.app, self)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -1293,10 +1312,10 @@ class ConversationView(QtConversation, ConversationViewNavigation, JumpsHistory,
         # Every `ViewAction` subclass binds through the shared family loop. A new
         # subclass adds a key automatically — no edit here — and Textual-only siblings
         # whose `apply()` reaches chrome Qt doesn't carry stay silent via the
-        # AttributeError guard in `bind_action_shortcuts`. This view implements
+        # AttributeError guard in `ActionKeys.bind_family`. This view implements
         # `JumpsHistory.back_to_bottom_windows`, so `BackToBottomAction.apply(self)`
         # jumps the right window.
-        self._view_shortcuts = bind_action_shortcuts(self, ViewAction, self)
+        self._view_shortcuts = self.app.action_keys.bind_family(self, ViewAction, self)
 
     @property
     def back_to_bottom_windows(self) -> tuple[JumpsToLatest, ...]:
@@ -1579,7 +1598,7 @@ class QtWorkspaceViews(WorkspaceViews):
         old.deleteLater()
 
 
-class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
+class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core a UI profile names: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
@@ -1594,7 +1613,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # module under the GIL on its first wire revision / action menu.
         self._prewarm_core_modules()
         self.initialize_client(NoAgent(), connection)
-        self.setWindowTitle("Toad")
+        self.input_attention = QtWindowAttention(self)
+        self.action_keys = ActionKeys(lambda: self.settings)
         # Until a conversation reads Core's display references, bodies link the project's files.
         self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()),
                                        self.settings.diff.marks)
@@ -1646,9 +1666,6 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
             toggled=partial(self.toggle_pane, ThreadSidebarPlacement),
             arranged=self.rearrange_sidebars, parent=self.chrome)
         self.chrome.sidebars = (self.channels_side, self.thread_side)
-        styles = self.theme.color_scheme.styles
-        for side in self.chrome.sidebars:
-            side.setStyleSheet(styles.generate_sidebar_pane_style() + styles.generate_sidebar_bar_style())
         # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
         self.menu = self.bar_button("≡", "Menu", self.show_menu)
         self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
@@ -1657,7 +1674,6 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # shared tab order, which the bar then draws again.
         self.tabs = QtSessionTabBar(self.animation_clock, QColor(self.renderer.theme(AccentColour)),
                                     self.theme.color_scheme.to_qcolor(self.theme.color_scheme.text_primary))
-        self.tabs.setStyleSheet(self.theme.color_scheme.styles.generate_tab_widget_style())
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
         self.tabs.setUsesScrollButtons(True)
@@ -1672,8 +1688,7 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         bar.addWidget(self.tabs, 1)
         # The bar row is Toad's header band: a frame in the theme's header tone, with the
         # latest notice over it.
-        chrome = QFrame(self)
-        chrome.setStyleSheet(self.theme.color_scheme.styles.generate_frame_style())
+        self.navigation = chrome = QFrame(self)
         chrome_layout = QVBoxLayout(chrome)
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
@@ -1701,12 +1716,10 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.profile_paste_panel = QtProfilePastePanel(self)
         chrome_layout.addWidget(self.profile_paste_panel)
         chrome_layout.addLayout(bar)
+        self.renderer.themed(self, self.paint_chrome_colours)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
-        # The navigation bar sits above or below the conversation row as the shared
-        # `ui.navigation_bar` setting places it — the one Textual's WorkspaceHeader reads.
-        for widget in self.settings.ui.navigation_bar.around(chrome, self.chrome):
-            layout.addWidget(widget, 1 if widget is self.chrome else 0)
+        self.apply_layout_preferences()
         self.fit_screen()
         # The channels sidebar opens as the shared `sidebar.hide` setting says, as Textual's
         # ChannelsSidebar mounts; the thread sidebar starts folded, as Textual's ThreadSidebar.
@@ -1722,6 +1735,10 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.winId()
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
         self.fit_safe_area(self.windowHandle().safeAreaMargins())
+        # The saved settings drawn now the widgets exist, as Textual's `on_load` applies them
+        # all; from here each change applies its `Effect` (`ClientApplication.open_settings`).
+        self.saved_settings.apply_all()
+        self.input_attention.attach()
 
     def connection_for(self, choice: BusChoice) -> CoreConnection:
         """The profile a chosen bus names, read by the member this window launched with, so
@@ -1796,6 +1813,68 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         mode = self.selected_mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
         self.present_panes()
+        self.input_attention.update()
+
+    def paint_chrome_colours(self) -> None:
+        """The sidebars, the tab bar and the navigation band in the current scheme's styles."""
+        scheme = self.theme.color_scheme
+        for side in self.chrome.sidebars:
+            side.setStyleSheet(scheme.styles.generate_sidebar_pane_style() + scheme.styles.generate_sidebar_bar_style())
+        self.tabs.setStyleSheet(scheme.styles.generate_tab_widget_style())
+        self.tabs.accent, self.tabs.ink = QColor(self.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary)
+        self.tabs.update()
+        self.navigation.setStyleSheet(scheme.styles.generate_frame_style())
+        self.status_line.color_scheme = scheme
+
+    def settings_widgets(self, widget_type: type) -> list:
+        return capability_widgets(self, widget_type)
+
+    def apply_layout_preferences(self) -> None:
+        """The navigation bar sits above or below the conversation row as `ui.navigation_bar`
+        places it, the setting Textual's `WorkspaceHeader` follows."""
+        layout = self.layout()
+        for index, widget in enumerate(self.settings.ui.navigation_bar.around(self.navigation, self.chrome)):
+            layout.removeWidget(widget)
+            layout.insertWidget(index, widget, 1 if widget is self.chrome else 0)
+
+    def follow_theme(self) -> None:
+        """Draw in the `ui.theme` scheme, among those Textual's colours offer; a name not
+        offered (pywal's before pywal writes its palette) keeps the scheme in use, with
+        Textual's warning."""
+        name = self.settings.ui.theme
+        offered = offered_schemes(os.environ)
+        if name not in offered:
+            self.show_warning(f"Theme {name!r} is not available"
+                              + (f": pywal has not written {WalFile.directory(os.environ) / WalFile.NAME}"
+                                 if name == WalFile.SCHEME else ""), "Theme")
+            return
+        self.restyle(offered[name])
+
+    def follow_line_renderer(self) -> None:
+        self.restyle(self.renderer.scheme)
+
+    def restyle(self, scheme: ColourScheme) -> None:
+        """Every colour from ``scheme`` and the `diff` settings: the palette and stylesheet
+        pyqt-reactive applies to the whole application, then the renderer every widget
+        holds, which repaints each widget's own colours (`QtLineRenderer.themed`)."""
+        self.theme.apply_color_scheme(ColorScheme.from_theme(scheme))
+        self.renderer.follow(scheme, self.settings.diff.marks)
+
+    def follow_wheel_scroll_rows(self) -> None:
+        QApplication.setWheelScrollLines(self.settings.ui.wheel_scroll_rows)
+
+    def follow_key_mode(self) -> None:
+        for editor in capability_widgets(self, ComposerEditor):
+            editor.follow_key_mode()
+            editor.composer.refresh_editing_mode()
+        self.action_keys.follow()
+
+    def follow_keymap(self) -> None:
+        self.action_keys.follow()
+
+    def show_session_tabs(self, shown: bool) -> None:
+        self.paint_tabs()
+        self.tabs.setVisible(shown)
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:
         """Read through SidebarLayout — the single collapsed-state owner. A collapsed
@@ -1878,6 +1957,7 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         self.bus_switcher.show_switcher()
 
     async def close_native_views(self) -> None:
+        self.input_attention.close()
         self.shortcuts.close()
         await self.session_navigation.close_views()
 
@@ -2049,10 +2129,6 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
 
     async def step_to(self, mode: str) -> None:
         self.switch(mode, lambda identity: None)
-
-    def update_show_sessions(self) -> None:
-        """The open tabs changed: the bar draws them again."""
-        self.paint_tabs()
 
     def make_opening_view(self, request, origin, identity):
         """Qt's thread-navigation opening placeholder: a `QtOpeningSessionView` (not

@@ -327,8 +327,10 @@ class QtFormView(FieldForm):
         layout.addStretch(1)
 
     def theme(self, renderer: QtLineRenderer) -> None:
-        """Colour what the shared family declares a colour for, from the app's scheme."""
-        self.body.setStyleSheet(f"#{GROUP_HEADING} {{ color: {renderer.theme(GroupFields.heading_colour)} }}")
+        """Colour what the shared family declares a colour for, from the app's scheme, now
+        and whenever the scheme changes."""
+        renderer.themed(self.body, lambda: self.body.setStyleSheet(
+            f"#{GROUP_HEADING} {{ color: {renderer.theme(GroupFields.heading_colour)} }}"))
 
     @cached_property
     def widget(self) -> QScrollArea:
