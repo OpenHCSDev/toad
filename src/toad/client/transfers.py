@@ -33,9 +33,9 @@ class TransferProgress:
 
 class Transfer(DeclaredFamily, affix="Request"):
     """One transfer kind the application offers. Members declare a title and a way to
-    execute the operation; each frontend provides its own dialog (Textual: `dialog()`
-    on the member returns a `TransferDialog`; Qt: `qt_dialog_for(kind, selected)` in
-    `toad.qt.transfer`)."""
+    execute the operation. Each frontend's dialog for a kind is the member of its
+    transfer-form family (`toad.client.transfer_forms.TransferForm.for_kind`) that
+    composes it."""
 
     title: ClassVar[str]
 

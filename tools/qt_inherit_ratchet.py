@@ -25,9 +25,6 @@ import sys
 KNOWN_COPIES = {
     "toad.qt.keymap_screen.QtKeymapScreen": "toad.screens.keymap.KeymapScreen",
     "toad.qt.menu.QtMenu": "toad.widgets.menu.Menu",
-    "toad.qt.transfer.QtThreadImportDialog": "toad.widgets.comms_transfer.ThreadImportDialog",
-    "toad.qt.transfer.QtTransferDialog": "toad.widgets.comms_transfer.TransferDialog",
-    "toad.qt.transfer.QtWireExportDialog": "toad.widgets.comms_transfer.WireExportDialog",
     "toad.qt.window.BusAddress": "toad.screens.bus_choice.BusAddress",
 }
 

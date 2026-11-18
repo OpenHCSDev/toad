@@ -1940,15 +1940,13 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         dialog.show()
 
     def open_transfer(self, kind) -> None:
-        """Qt override of `ClientApplication.open_transfer`. Opens the shared-UX
-        Qt dialog registered for `kind` in `toad.qt.transfer._QT_DIALOGS`; the
-        dialog's submit path calls `start_transfer_task(request, selected)` so
-        one running task per kind supersedes repeat submissions."""
-        from toad.qt.transfer import qt_dialog_for
+        """Qt override of `ClientApplication.open_transfer`: the Qt member of the shared
+        transfer-form family that composes `kind`; its submit calls
+        `start_transfer_task(request, selected)`, so one task per kind supersedes a repeat."""
+        from toad.qt.transfer import QtTransferDialog
         access = self.coordination_access
         selected = access.selected(access.observation.observed().root)
-        dialog = qt_dialog_for(kind, self, selected, parent=self)
-        dialog.show()
+        QtTransferDialog.for_kind(kind)(self, selected, parent=self).show()
 
     def start_transfer_task(self, request, selected) -> None:
         """Qt analog of Textual's `run_worker(..., exclusive=True)`: cancel any

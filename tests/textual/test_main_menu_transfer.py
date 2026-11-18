@@ -19,16 +19,18 @@ from support.workspace import Workspace
 from toad.screens.bus_choice import BusChoices
 from toad.client.application_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
-from toad.widgets.comms_transfer import (
-    CancelExportButton,
+from toad.client.transfer_forms import (
     ChannelScopeInput,
     EverythingScopeInput,
+    JsonlFormatInput,
+    TextFormatInput,
+)
+from toad.widgets.comms_transfer import (
+    CancelExportButton,
     ExportPath,
     ExportScopeChoice,
     ImportName,
     ImportSource,
-    JsonlFormatInput,
-    TextFormatInput,
     ThreadImportDialog,
     WireExportDialog,
     WireExportProgressView,

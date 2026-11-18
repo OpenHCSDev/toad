@@ -1,21 +1,17 @@
-"""Qt's transfer dialogs — the frontend half of `toad.client.transfers`.
+"""Qt's transfer dialogs: the shared transfer forms (`toad.client.transfer_forms`) drawn in Qt.
 
-Opened by `QtToadApp.open_transfer(kind)` (which overrides the `ClientApplication`
-stub); the hamburger menu's `TransferMenuAction` fires that capability once per
-declared `Transfer` member. Both frontends share `toad.client.transfers.Transfer`
-+ `TransferRequest`; Textual's per-kind dialogs live in
-`toad.widgets.comms_transfer`, Qt's live here. The submit path builds the typed
-request from field values and routes back through `QtToadApp.start_transfer_task`
-so one running task per kind supersedes repeat submissions.
+Heading, fields, placeholders, defaults, choices and how the answers become the typed
+request are inherited from the forms Textual's `TransferDialog`s inherit. This module adds
+only Qt widgets, reading them, and how a request leaves: back through
+`TransferHost.start_transfer_task`, so one running task per kind supersedes a repeat.
+`QtToadApp.open_transfer` finds a kind's dialog with `QtTransferDialog.for_kind`.
 """
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from abc import abstractmethod
+from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -27,47 +23,38 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from agent_comms.importing import ThreadImported
-from agent_comms.installer.harness_install import Harness
-from agent_comms.messaging.exporting import (
-    FullLimit,
-    MaxBytesLimit,
-    WireExportProvenance,
-)
-from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.registry.thread_management import ImportDirectory
-from agent_comms.registry.thread_text import ExpectedSession
-from ui_theme.scheme import ErrorColour
-
+from toad.client.transfer_forms import ExportFormatInput, ExportScopeInput, ThreadImportForm, TransferForm, WireExportForm
 from toad.client.transfers import Transfer, TransferHost
 from toad.qt.metrics import UiGap
-from toad.widgets.comms_transfer import (
-    ExportFormatInput,
-    ExportScopeInput,
-    ThreadImportRequest,
-    WireExportRequest,
-)
+from toad.widgets.comms_transfer import ThreadImportRequest, WireExportRequest
 
 if TYPE_CHECKING:
+    from agent_comms.installer.harness_install import Harness
+
     from toad.client.connection import CapturedSource
 
 
-class QtTransferDialog(QDialog):
-    """Shared frame for Qt transfer dialogs: heading on top, a form (QFormLayout)
-    of field widgets, an inline error line, and OK/Cancel buttons. Subclasses
-    override `_build_form()` to populate fields and `_compose()` to assemble the
-    typed request from them. Submits route back through the host via
-    `host.start_transfer_task(request, selected)`."""
+def _line(text: str = "", placeholder: str = "") -> QLineEdit:
+    line = QLineEdit(text)
+    line.setPlaceholderText(placeholder)
+    return line
 
-    heading: ClassVar[str]
-    submit_label: ClassVar[str]
-    kind: ClassVar[type[Transfer]]
 
-    def __init__(self, host: TransferHost, selected: CapturedSource,
-                 parent: QWidget | None = None) -> None:
+def _choices(options) -> QComboBox:
+    combo = QComboBox()
+    for label, value in options:
+        combo.addItem(label, value)
+    return combo
+
+
+class QtTransferDialog(TransferForm, QDialog):
+    """The frame every Qt transfer dialog shares: heading, the form's rows, an error
+    line, and submit/cancel buttons."""
+
+    def __init__(self, host: TransferHost, selected: CapturedSource, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._host = host
-        self._selected = selected
+        self.begin(selected)
         self.setWindowTitle(self.heading)
         self.setModal(True)
         self.resize(560, 400)
@@ -75,199 +62,95 @@ class QtTransferDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
         layout.setSpacing(UiGap.normal)
-
         header = QLabel(self.heading)
         header.setStyleSheet("font-weight: bold;")
         layout.addWidget(header)
-
-        self._form = QFormLayout()
-        self._form.setSpacing(UiGap.normal)
-        self._build_form(self._form)
-        layout.addLayout(self._form)
-
+        form = QFormLayout()
+        form.setSpacing(UiGap.normal)
+        for label, widget in self.rows():
+            form.addRow(label, widget)
+        layout.addLayout(form)
         self._error = QLabel("")
         self._error.setWordWrap(True)
-        # ErrorColour is a scheme role; the actual hex comes from the host's
-        # colour scheme — read at build time so dialog theme matches the rest.
-        scheme = getattr(host, "renderer", None)
-        if scheme is not None and hasattr(scheme, "scheme"):
-            self._error.setStyleSheet(f"color: {ErrorColour.rgb(scheme.scheme).hex};")
+        self._error.setStyleSheet("color: palette(link-visited);")
         layout.addWidget(self._error)
-
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok,
-        )
-        ok_button = buttons.button(QDialogButtonBox.StandardButton.Ok)
-        ok_button.setText(self.submit_label)
-        ok_button.setDefault(True)
-        buttons.accepted.connect(self._on_accept)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok)
+        ok = buttons.button(QDialogButtonBox.StandardButton.Ok)
+        ok.setText(self.submit_label)
+        ok.setDefault(True)
+        buttons.accepted.connect(self.confirm_request)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    def _build_form(self, form: QFormLayout) -> None:
-        """Subclasses add fields via `form.addRow(label, widget)`."""
-        raise NotImplementedError
+    @abstractmethod
+    def rows(self) -> tuple[tuple[str, QWidget], ...]:
+        """The form's fields as label and widget, top to bottom."""
 
-    def _compose(self) -> Transfer:
-        """Build and return the typed request from field values. Raise ValueError
-        on invalid input; the message is shown in the dialog's error line."""
-        raise NotImplementedError
+    def show_error(self, text: str) -> None:
+        self._error.setText(text)
 
-    def _on_accept(self) -> None:
-        try:
-            request = self._compose()
-        except (TypeError, ValueError) as error:
-            self._error.setText(str(error) or "Invalid input.")
-            return
-        self._host.start_transfer_task(request, self._selected)
+    def submit(self, request: Transfer) -> None:
+        self._host.start_transfer_task(request, self.selected)
         self.accept()
 
 
-class QtWireExportDialog(QtTransferDialog):
-    """Export wire history — destination, format, scope, optional per-target
-    narrowing, byte ceiling. Mirrors Textual's `WireExportDialog` fields."""
+class QtWireExportDialog(WireExportForm, QtTransferDialog):
+    request_kind = WireExportRequest
 
-    heading = "Export wire history"
-    submit_label = "Export"
-    kind = WireExportRequest
-
-    def __init__(self, host: TransferHost, selected: CapturedSource,
-                 parent: QWidget | None = None) -> None:
-        self._destination_stem = (
-            selected.root / "exports"
-            / f"wire-{datetime.now(UTC):%Y%m%d-%H%M%S-%f}"
-        )
-        super().__init__(host, selected, parent)
-
-    def _build_form(self, form: QFormLayout) -> None:
-        self._format = QComboBox()
-        for choice in ExportFormatInput.members_with(ExportFormatInput):
-            self._format.addItem(choice.label, choice)
+    def rows(self) -> tuple[tuple[str, QWidget], ...]:
+        self._destination = _line(self.default_destination, self.destination_placeholder)
+        self._format = _choices(self.format_options())
+        self._format.setCurrentIndex(self._format.findData(self.default_format))
         self._format.currentIndexChanged.connect(self._format_changed)
-
-        self._destination = QLineEdit()
-        self._destination.setPlaceholderText("Destination path")
-        self._destination.setText(
-            str(self._current_format().destination(self._destination_stem)),
-        )
-
-        self._scope = QComboBox()
-        for choice in ExportScopeInput.members_with(ExportScopeInput):
-            self._scope.addItem(choice.label, choice)
-
-        self._target = QLineEdit()
-        self._target.setPlaceholderText("#channel or first,second (for DM)")
-
-        self._limit = QLineEdit()
-        self._limit.setText("5242880")
-        self._limit.setPlaceholderText("Max bytes; empty = full")
-
-        form.addRow("Destination:", self._destination)
-        form.addRow("Format:", self._format)
-        form.addRow("Scope:", self._scope)
-        form.addRow("Target:", self._target)
-        form.addRow("Byte limit:", self._limit)
-
-    def _current_format(self) -> type[ExportFormatInput]:
-        return self._format.currentData()
-
-    def _current_scope(self) -> type[ExportScopeInput]:
-        return self._scope.currentData()
+        self._scope = _choices(self.scope_options())
+        self._scope.setCurrentIndex(self._scope.findData(self.default_scope))
+        self._target = _line(placeholder=self.target_placeholder)
+        self._limit = _line(self.limit_default, self.limit_placeholder)
+        return (("Destination:", self._destination), ("Format:", self._format), ("Scope:", self._scope),
+                ("Target:", self._target), ("Byte limit:", self._limit))
 
     def _format_changed(self, _index: int) -> None:
-        """Mirror Textual's `WireExportDialog.format_changed`: when the user
-        hasn't typed over the default destination, swap it to the new format's
-        default so the extension matches the chosen format."""
-        defaults = {
-            str(choice.destination(self._destination_stem))
-            for choice in ExportFormatInput.members_with(ExportFormatInput)
-        }
-        if self._destination.text() in defaults:
-            self._destination.setText(
-                str(self._current_format().destination(self._destination_stem)),
-            )
+        self._destination.setText(self.destination_for_format(self._destination.text(), self.chosen_format()))
 
-    def _compose(self) -> WireExportRequest:
-        path = self._destination.text().strip()
-        if not path:
-            raise ValueError("Choose an output path.")
-        target = self._target.text().strip()
-        scope = self._current_scope().parse(target)
-        limit_text = self._limit.text().strip()
-        limit = MaxBytesLimit(int(limit_text)) if limit_text else FullLimit()
-        return WireExportRequest(
-            Path(path).expanduser(),
-            self._current_format().format(),
-            scope,
-            limit,
-        )
+    def destination_text(self) -> str:
+        return self._destination.text()
+
+    def target_text(self) -> str:
+        return self._target.text()
+
+    def limit_text(self) -> str:
+        return self._limit.text()
+
+    def chosen_format(self) -> type[ExportFormatInput]:
+        return self._format.currentData()
+
+    def chosen_scope(self) -> type[ExportScopeInput]:
+        return self._scope.currentData()
 
 
-class QtThreadImportDialog(QtTransferDialog):
-    """Import a stopped, resumable thread from a harness session (OpenCode,
-    Codex, Pi, Claude Code). Mirrors Textual's `ThreadImportDialog` fields."""
+class QtThreadImportDialog(ThreadImportForm, QtTransferDialog):
+    request_kind = ThreadImportRequest
 
-    heading = "Thread Import — stored harness session"
-    submit_label = "Import stopped thread"
-    kind = ThreadImportRequest
+    def rows(self) -> tuple[tuple[str, QWidget], ...]:
+        self._harness = _choices(self.harness_options())
+        self._source = _line(placeholder=self.source_placeholder)
+        self._name = _line(placeholder=self.name_placeholder)
+        self._session = _line(placeholder=self.session_placeholder)
+        self._worktree = _line(placeholder=self.worktree_placeholder)
+        return (("Harness:", self._harness), ("Source:", self._source), ("New name:", self._name),
+                ("Session ID:", self._session), ("Worktree:", self._worktree))
 
-    def _build_form(self, form: QFormLayout) -> None:
-        self._harness = QComboBox()
-        for harness in Harness.members_with(Harness):
-            self._harness.addItem(harness.declared_name, harness)
+    def source_text(self) -> str:
+        return self._source.text()
 
-        self._source = QLineEdit()
-        self._source.setPlaceholderText("Source JSON, database or rollout JSONL")
+    def name_text(self) -> str:
+        return self._name.text()
 
-        self._name = QLineEdit()
-        self._name.setPlaceholderText("New thread name")
+    def session_text(self) -> str:
+        return self._session.text()
 
-        self._session = QLineEdit()
-        self._session.setPlaceholderText("Session ID (OpenCode database only)")
+    def worktree_text(self) -> str:
+        return self._worktree.text()
 
-        self._worktree = QLineEdit()
-        self._worktree.setPlaceholderText("Project directory override (optional)")
-
-        form.addRow("Harness:", self._harness)
-        form.addRow("Source:", self._source)
-        form.addRow("New name:", self._name)
-        form.addRow("Session ID:", self._session)
-        form.addRow("Worktree:", self._worktree)
-
-    def _compose(self) -> ThreadImportRequest:
-        source = self._source.text().strip()
-        name = self._name.text().strip()
-        if not source or not name:
-            raise ValueError("A source and a new thread name are required.")
-        return ThreadImportRequest(
-            Path(source).expanduser(),
-            self._harness.currentData(),
-            name,
-            FieldCodec.decode(ExpectedSession, self._session.text().strip() or None),
-            FieldCodec.decode(ImportDirectory, self._worktree.text().strip() or None),
-        )
-
-
-# Per-kind Qt dialog registry: Transfer family grows by declaration, and so do
-# these. Keeping the registry close to the dialog classes (built via
-# QtTransferDialog.__init_subclass__ registration) keeps the mapping declarative
-# instead of a hand-maintained table.
-_QT_DIALOGS: dict[type[Transfer], type[QtTransferDialog]] = {
-    WireExportRequest: QtWireExportDialog,
-    ThreadImportRequest: QtThreadImportDialog,
-}
-
-
-def qt_dialog_for(kind: type[Transfer], host: TransferHost,
-                  selected: CapturedSource,
-                  parent: QWidget | None = None) -> QtTransferDialog:
-    """Build the Qt dialog registered for `kind`, raising loudly if no dialog
-    is registered — a silent no-op would give the user a dead menu item."""
-    try:
-        cls = _QT_DIALOGS[kind]
-    except KeyError as error:
-        raise NotImplementedError(
-            f"No Qt dialog registered for transfer kind {kind.declared_name!r}. "
-            f"Register one in toad.qt.transfer._QT_DIALOGS.",
-        ) from error
-    return cls(host, selected, parent)
+    def chosen_harness(self) -> type[Harness]:
+        return self._harness.currentData()
