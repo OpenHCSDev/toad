@@ -137,13 +137,7 @@ from toad.qt.question import QtQuestion
 from toad.view_actions import ViewAction
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import SidebarControlsOwner, SidebarLayout
-from toad.sidebar_placement import (
-    ChannelsSidebarPlacement,
-    FloatingPlacementArrangement,
-    PlacementArrangement,
-    SidebarPlacement,
-    ThreadSidebarPlacement,
-)
+from toad.sidebar_placement import ChannelsSidebarPlacement, SidebarPlacement, ThreadSidebarPlacement
 from toad.status_thread import StatusOwner
 from toad.target_commands import TargetContext
 from toad.terminal_origin import TerminalOrigin
@@ -2022,27 +2016,11 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         selected = self.workspace_sessions.selected
         self.thread_pane.bind(selected if self._conversation_open() else None)
 
-    # A docked pane whose natural width approaches the viewport leaves no room for the
-    # conversation column — on a phone-sized viewport (Pixel 8a ~412dp), both pane
-    # natural widths together overflow the grid and squeeze col 1 to zero, so the
-    # transcript + composer disappear. The float arrangement already exists for this
-    # case; promote any docked placement to floating when the viewport is narrower than
-    # NARROW_VIEWPORT_PX so the pane overlays the conversation instead of crowding it.
-    NARROW_VIEWPORT_PX: ClassVar[int] = 900
-
-    def _effective_arrangement(self, placement: SidebarPlacement) -> type[PlacementArrangement]:
-        """The PlacementArrangement that should actually drive layout for this pane now.
-        Normally the placement's stored arrangement; on a narrow viewport a docked one
-        promotes to FloatingPlacementArrangement so the conversation keeps its space."""
-        if self.width() < self.NARROW_VIEWPORT_PX:
-            return FloatingPlacementArrangement
-        return placement.arrangement
-
     def _target_layout(self, placement: SidebarPlacement):
         """Where a pane goes for its placement: the arrangement names its dock by key, or
         None for a floating pane that joins the float layer. No branch on `floating` /
         `side.dock` here — the PlacementArrangement family answers directly."""
-        key = self._effective_arrangement(placement).dock_key(placement.side)
+        key = placement.arrangement.dock_key(placement.side)
         return self._float_layout if key is None else self._docks[key].layout()
 
     def _empty(self, layout) -> None:
@@ -2086,10 +2064,8 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
             # The PlacementArrangement family (DockedPlacementArrangement for docked,
             # FloatingPlacementArrangement for floating) answers bar-first and axis
             # polymorphically — no `placement.floating or placement.side.sign == 1`
-            # branch in window code. `_effective_arrangement` promotes a docked
-            # placement to floating on a narrow viewport so the pane overlays the
-            # conversation instead of pushing it off-screen.
-            arrangement = self._effective_arrangement(placement)
+            # branch in window code.
+            arrangement = placement.arrangement
             bar_first = arrangement.bar_first(placement.side)
             target = self._target_layout(placement)
             bar.show()
@@ -2170,15 +2146,6 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         super().resizeEvent(event)
-        # A rotation or window resize may cross the narrow-viewport threshold, flipping
-        # which arrangement `_effective_arrangement` picks. Rerun the pane layout so the
-        # pane rehomes between the dock and the float layer accordingly.
-        old_size = event.oldSize()
-        if old_size.isValid():
-            crossed = ((old_size.width() < self.NARROW_VIEWPORT_PX)
-                       != (event.size().width() < self.NARROW_VIEWPORT_PX))
-            if crossed:
-                self.present_panes()
         self.reposition_float()
 
     def present_panes(self) -> None:
