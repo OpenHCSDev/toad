@@ -98,6 +98,7 @@ NOT_SIBLINGS = {
 }
 
 QT_ONLY = {
+    'toad.qt.history.ArrivalFade': "a burst's rows painted at the ARRIVAL cascade's frame as QPainter opacity; Textual paints the same frame into its strips (TranscriptHistory.arrivals_began), and both read the cascade from toad.frame_presentation",
     'toad.qt.action_shortcuts.BoundAction': "a live QShortcut and the action it answers: Qt fires neither of two shortcuts sharing a key (activatedAmbiguously), so ActionKeys keeps each to apply the declared binding order; Textual walks its binding chain itself",
     'toad.qt.splash.QtSplash': "Qt's first frame, painted from Qt and the theme before the client's modules import: a terminal draws Textual's first frame as soon as App.run starts, with the client already imported in the same process, so the TUI has no window to show before its app exists",
     'toad.qt.splash.StepAside': "an application event filter that closes the first frame when Qt shows the client's window: QEvent.Show on a top-level QWidget has no Textual counterpart",

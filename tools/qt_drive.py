@@ -1828,6 +1828,203 @@ class WaveScenario(Scenario):
                                               if wave.wave_running()])
 
 
+class ArrivalScenario(Scenario):
+    summary = ("open TARGET (#scratch, or a scratch thread such as scratch-live-pipeline), send 3 "
+               "messages from the composer while a scratch sender (SENDER) posts 3 into it; log every "
+               "row-model update (keys and "
+               "message text added and removed) and sample the composer's queue rows every 16 ms; "
+               "report a message that leaves the rows and comes back, or a reflow of the queue rows")
+
+    width: ClassVar[int] = 412
+
+    @staticmethod
+    def label(fragment) -> str:
+        """What a reader sees of the row, and which row it is: a message whose row is replaced
+        under a new key shows up as its text leaving and coming back."""
+        text = " ".join(fragment.clipboard_text.split())[:48]
+        return f"{text} #{hash(fragment.key) & 0xffff:04x}"
+
+    async def run(self) -> None:
+        from toad.qt.history import HistoryRows
+        await self.listed()
+        app = self.app
+        app.resize(self.width, 915)
+        target = os.environ.get("TARGET", "#scratch")
+        if target.startswith("#"):
+            await self.channel_listed(target)
+            await self.expand(target)
+            app.open_row(self.channel_row(target))
+        else:
+            await until(lambda: any(row.key == target for row in self.thread_rows()), target)
+            app.open_row(next(row for row in self.thread_rows() if row.key == target))
+        for tick in range(120):
+            page = self.page
+            rows = page.messages.model_rows.rowCount() if hasattr(page, "messages") else None
+            if tick % 4 == 0:
+                print(f"opening t={tick / 2:.1f}s page={type(page).__name__} rows={rows}", flush=True)
+            if rows:
+                break
+            await asyncio.sleep(0.5)
+        await asyncio.sleep(2.0)
+        view = self.page
+        rows: list[str] = []
+        updates: list[tuple[float, tuple, tuple]] = []
+        started = time.monotonic()
+        original = HistoryRows.show
+
+        def recorded(model, fragments):
+            before = {self.label(fragment) for fragment in model.fragments}
+            original(model, fragments)
+            after = {self.label(fragment) for fragment in model.fragments}
+            if model is not view.messages.model_rows:
+                print(f"show on another model: {type(model).__name__} rows={len(model.fragments)}", flush=True)
+            if before != after:
+                updates.append((time.monotonic() - started, tuple(sorted(after - before)),
+                                tuple(sorted(before - after))))
+        HistoryRows.show = recorded
+        stamp = time.strftime("%H:%M:%S")
+        # A row drawn plain before its styled formatting landed: counted per arriving message.
+        from pyqt_reactive.widgets.virtual_rows import PlainRow
+        delegate = view.messages.rows
+        plain: dict[str, int] = {}
+        original_formatting = getattr(type(delegate), "styled_formatting", None) or (
+            lambda rows, key, fragment, font, width: rows.keyed_formatting(
+                key, fragment.clipboard_text, rows.rendering(fragment, font, width)))
+
+        def watched(rows, key, fragment, font, width):
+            formatting = original_formatting(rows, key, fragment, font, width)
+            if isinstance(formatting, PlainRow) and stamp in fragment.clipboard_text:
+                label = " ".join(fragment.clipboard_text.split())[:48]
+                plain[label] = plain.get(label, 0) + 1
+            return formatting
+        type(delegate).styled_formatting = watched
+        risen: list[tuple[float, float]] = []
+        composer = view.composer
+        samples: list[tuple[float, bool, int, bool, int, str]] = []
+        scrolls: list[tuple[float, float]] = []
+
+        def sample() -> None:
+            window = view.messages
+            rising = getattr(window, "arrival_opacity", lambda key: None)  # absent before the fade
+            opacities = [opacity for fragment in window.model_rows.fragments
+                         if (opacity := rising(fragment.key)) is not None]
+            if opacities:
+                risen.append((round(time.monotonic() - started, 2), round(min(opacities), 2)))
+            scrolls.append((time.monotonic() - started, window.scroll_y))
+            samples.append((time.monotonic() - started, composer.submitting.isVisible(),
+                            composer.submitting.height(), composer.delivery_controls.isVisible(),
+                            view.messages.viewport().height(), composer.submitting.text()[:40]))
+        from PySide6.QtCore import QTimer
+        timer = QTimer()
+        timer.setInterval(16)
+        timer.timeout.connect(sample)
+        timer.start()
+        sender = os.environ.get("SENDER", "scratch-live-pipeline" if target.startswith("#") else "scratch-arrival-sender")
+
+        async def post(index: int) -> None:
+            # Under a CPU-throttled drive, the sender runs in a scope of its own (SENDER_SCOPE=1):
+            # its process start would otherwise spend the app's quota.
+            outside = ("systemd-run", "--user", "--scope", "-q") if os.environ.get("SENDER_SCOPE") else ()
+            process = await asyncio.create_subprocess_exec(
+                *outside, "agent-comms", "send", "--from", sender, "--to", target, "--type", "info",
+                "--body", f"arrival reply {index} {stamp}",
+                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+            await process.wait()
+        # How long each arrival-handling call holds the loop: the pager's publish into the rows,
+        # a relayout when a row's look lands, and the arrival repaint.
+        from toad.qt.history import QtConversationHistory as History, QtHistoryWindow as Window
+        held: dict[str, list[float]] = {}
+        timed = [(Window, "show_pages"), (Window, "rows_changed"), (Window, "show_draft"),
+                 (Window, "keep_reader"), (History, "repaint")]
+        originals = [(owner, name, getattr(owner, name)) for owner, name in timed]
+
+        def timing(name, call):
+            def wrapper(*arguments, **options):
+                begun, worked = time.perf_counter(), time.thread_time()
+                try:
+                    return call(*arguments, **options)
+                finally:
+                    held.setdefault(name, []).append(((time.perf_counter() - begun) * 1000,
+                                                      (time.thread_time() - worked) * 1000))
+            return wrapper
+        for owner, name, call in originals:
+            setattr(owner, name, timing(name, call))
+        scrolled_up = bool(os.environ.get("SCROLLED"))
+        window = view.messages
+        if scrolled_up:
+            # A reader scrolled up: arrivals must not move what they read, and the jump bar shows.
+            window.scroll_y = max(0, window.scroll_y - 300)
+            await asyncio.sleep(0.5)
+            top = window.indexAt(window.viewport().rect().topLeft())
+            reading = (self.label(top.data(HistoryRows.FRAGMENT)), window.visualRect(top).top())
+        posts = [asyncio.ensure_future(post(index)) for index in range(3)]
+        for index in range(0 if scrolled_up else 3):
+            composer.editor.setPlainText(f"arrival send {index} {stamp}")
+            composer.submit()
+            await asyncio.sleep(0.25)
+        await asyncio.gather(*posts)
+        await asyncio.sleep(8.0)
+        print("final rows:", view.messages.model_rows.rowCount(),
+              [self.label(f) for f in view.messages.model_rows.fragments][-8:], flush=True)
+        timer.stop()
+        HistoryRows.show = original
+        type(delegate).styled_formatting = original_formatting
+        appeared: dict[str, list[str]] = {}
+        for at, added, removed in updates:
+            for text in added:
+                appeared.setdefault(text, []).append(f"+{at:.2f}")
+            for text in removed:
+                appeared.setdefault(text, []).append(f"-{at:.2f}")
+            print(f"update {at:6.2f}s +{list(added)} -{list(removed)}", flush=True)
+        by_text: dict[str, list[str]] = {}
+        for label, marks in appeared.items():
+            by_text.setdefault(label.rsplit(" #", 1)[0], []).extend(f"{mark}{label[-5:]}" for mark in marks)
+        # A message that leaves the rows after it showed, or shows under two keys, flickers.
+        flicker = {text: sorted(marks, key=lambda mark: float(mark[1:].split("#")[0]))
+                   for text, marks in by_text.items() if stamp in text and len(marks) > 1}
+        toggles = [(round(at, 2), shown, height, controls, viewport, text)
+                   for (at, shown, height, controls, viewport, text), previous in zip(samples[1:], samples)
+                   if (shown, height, controls, viewport, text) != previous[1:]]
+        # A queue row hidden and shown again within a second is the pop out and in.
+        hidden = [at for (at, shown, *_), previous in zip(samples[1:], samples) if previous[1] and not shown]
+        reshown = [at for (at, shown, *_), previous in zip(samples[1:], samples) if shown and not previous[1]]
+        flips = [(round(a, 2), round(b, 2)) for a in hidden for b in reshown if 0 < b - a < 1.0]
+        print("queue first/last sample:", samples[:1], samples[-1:], flush=True)
+        print("queue/viewport changes (t, summary shown, summary h, controls shown, viewport h):", flush=True)
+        for change in toggles:
+            print("  ", change, flush=True)
+        if scrolled_up:
+            row = window.model_rows.row_of(next(f.key for f in window.model_rows.fragments
+                                                  if self.label(f) == reading[0]))
+            print("scrolled reader: row", reading, "is now at", window.visualRect(window.model_rows.index(row, 0)).top(),
+                  "jump bar shown:", window.jump_bar.jump_shown, "following:", window.follows_tail, flush=True)
+        jumps = [round(after - before, 1) for (_, before), (_, after) in zip(scrolls, scrolls[1:])
+                 if after != before]
+        print("rise (t, least opacity of the rising rows):", risen[:6], "...", risen[-3:], flush=True)
+        print("scroll steps while following (px per 16 ms):", jumps, flush=True)
+        for owner, name, call in originals:
+            setattr(owner, name, call)
+        # Wall time includes a CPU quota's freezes; thread CPU time is the work itself.
+        print("arrival handling per call (calls, wall max ms, CPU median ms, CPU max ms):",
+              {name: (len(times), round(max(wall for wall, _ in times), 1),
+                      round(sorted(cpu for _, cpu in times)[len(times) // 2], 1), round(max(cpu for _, cpu in times), 1))
+               for name, times in held.items()}, flush=True)
+        # The 16 ms sampler is late by however long the loop was held: the longest stall.
+        gaps = sorted(round((after[0] - before[0]) * 1000) for before, after in zip(samples, samples[1:]))
+        print("loop gaps ms (p50, p95, max):", gaps[len(gaps) // 2], gaps[int(len(gaps) * 0.95)], gaps[-1], flush=True)
+        near = [round((after[0] - before[0]) * 1000) for before, after in zip(samples, samples[1:])
+                if any(at - 0.05 <= after[0] <= at + 0.5 for at, _, _ in updates)]
+        print("longest stall within 0.5 s of a history update (ms):", max(near, default=0),
+              "elsewhere:", max((round((after[0] - before[0]) * 1000) for before, after in zip(samples, samples[1:])
+                                 if not any(at - 0.05 <= after[0] <= at + 0.5 for at, _, _ in updates)), default=0),
+              flush=True)
+        print("longest gaps (ended at s, ms):", sorted(((round(after[0], 2), round((after[0] - before[0]) * 1000))
+                                                      for before, after in zip(samples, samples[1:])),
+                                                     key=lambda gap: -gap[1])[:6], flush=True)
+        self.report("arrival", updates=len(updates), longest_stall_ms=gaps[-1], flicker=flicker, plain_first_draws=plain, queue_hide_then_show=flips,
+                    queue_changes=len(toggles), largest_scroll_step=max(map(abs, jumps), default=0))
+
+
 class FrameScenario(Scenario):
     summary = ("frame budget: the GUI thread's stalls and key-to-paint latency (toad.qt.frame_probe) "
                "while idle with the sidebar's waves running, while scrolling #comms, and while typing "
