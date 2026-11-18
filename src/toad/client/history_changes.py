@@ -233,9 +233,13 @@ class PinsMessageHeader:
         """Pin from where the reader is now. The window calls this on every scroll offset and
         every committed geometry change: a reflow, a filter, replaced rows or a restored tab can
         change the top row's message at an unchanged offset. Only the reader scrolls a window up:
-        following, gliding and placing an arrival move it down or keep it (`layout_scroll`)."""
+        following, gliding and placing an arrival move it down or keep it (`layout_scroll`).
+        The burst ends when the reader leaves the end, not when the window's offset falls: rows
+        above that shrink (a receipt, the queue rows closing) clamp the offset up while the reader
+        still follows, and ending the burst there emptied it before it could stack."""
         burst = self.arrival_burst
-        if burst.messages and self.scroll_y < self.pinned_scroll_y and not self._restoring:
+        if (burst.messages and not self.follows_tail and self.scroll_y < self.pinned_scroll_y
+                and not self._restoring):
             burst = self.arrival_burst = NO_BURST
         self.pinned_scroll_y = self.scroll_y
         pinned = self.top_message_header()
