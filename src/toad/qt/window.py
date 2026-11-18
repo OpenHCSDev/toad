@@ -58,6 +58,7 @@ from toad.flash_host import FlashHost
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.category_selection import CategorySelection
+from toad.client.view_settings import ConversationSettingsOwner
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
 from toad.client.bus_connect import BusConnectDecision
@@ -105,7 +106,7 @@ from toad.message_rows import MarkdownMessageStyle
 from toad.launch_binding import NoAgent
 from toad.navigation_context import NoNavigationOwner
 from toad.client.session_scope import ProjectSessionOrigin
-from toad.client.sidebar_filter import SidebarFilter, SidebarSearchField
+from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sidebar_panels import PanelSpec
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
@@ -125,7 +126,7 @@ from toad.client.relationship_row_menu import menu_entries_for_row
 from toad.qt.menu import QtMenu
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.qt.thinking_animator import QtThinkingAnimator
-from toad.qt.sidebar_panel import QtSidebarPanelFrame
+from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
 from toad.qt.paste_profile import QtProfilePastePanel
 from agent_comms.messaging.display_references import ProjectReferences
 from toad.markdown_links import LinkContext
@@ -997,72 +998,6 @@ class QtChannelGroup(ChannelGroupRows):
             )
 
 
-class QtSidebarSearch(SidebarSearchField, QLineEdit, metaclass=PyQtWidgetMeta):
-    """The sidebar's search input, as Textual's `SidebarSearch`: its text is the sidebar's
-    `SidebarFilter` text, and Escape clears it."""
-
-    def __init__(self, search: SidebarFilter, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Widget)
-        self.setPlaceholderText(self.search_placeholder)
-        self.setText(search.text)
-        self.textChanged.connect(lambda text: setattr(search, "text", text))
-
-    def show_search(self, text: str) -> None:
-        self.setText(text)
-
-    def keyPressEvent(self, event) -> None:  # type: ignore[override]
-        if event.key() == Qt.Key.Key_Escape and self.text():
-            event.accept()
-            self.clear_search()
-            return
-        super().keyPressEvent(event)
-
-
-class QtSidebarShell(QWidget):
-    """The channels sidebar's content, as Textual's `SideBar._compose_shell`: the search input
-    over its panels. The Channels sidebar declares one panel (`CHANNELS_PANEL`) with the
-    channel order in its header; its collapsed state is the shared `SidebarState`'s."""
-
-    def __init__(self, sidebar: "Sidebar", parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Widget)
-        self.sidebar = sidebar
-        self.search_input = QtSidebarSearch(sidebar.filter, self)
-        self.channel_sort = QtChannelListSort(sidebar.window)
-        self.channels_panel = QtSidebarPanelFrame(
-            CHANNELS_PANEL, sidebar, sidebar.window.sidebar_state, parent=self,
-            header_control=self.channel_sort,
-        )
-        self.panels: list[QtSidebarPanelFrame] = [self.channels_panel]
-        layout = QVBoxLayout(self)
-        # No inset: Textual's sidebar content runs to the strip, and a narrow sidebar
-        # needs every column for its names.
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(UiGap.normal)
-        layout.addWidget(self.search_input)
-        for panel in self.panels:
-            layout.addWidget(panel, self._panel_stretch(panel))
-            panel.collapse_changed.connect(lambda _, p=panel: self._restretch_panel(p))
-
-    def _panel_stretch(self, panel: QtSidebarPanelFrame) -> int:
-        """A flex panel only owns a stretch slot while its body is visible. When it
-        collapses, the slot drops to 0 so the frame shrinks to its header row instead
-        of pinning the full sidebar height with an empty column — the "can't bring
-        the bars down" behaviour this fixes."""
-        return 1 if panel.spec.flex and not panel.is_collapsed() else 0
-
-    def _restretch_panel(self, panel: QtSidebarPanelFrame) -> None:
-        layout = self.layout()
-        if not isinstance(layout, QVBoxLayout):
-            return
-        index = layout.indexOf(panel)
-        if index < 0:
-            return
-        layout.setStretch(index, self._panel_stretch(panel))
-
-
-
 class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     @property
@@ -1148,7 +1083,7 @@ class Sidebar(WorkspaceHosted, SidebarStateMachine, ConversationRows):
             else:
                 self.groups = {}
         if model is not None:
-            self.window.sidebar_search.channel_sort.update_order(model.observation.channel_order())
+            self.window.channel_sort.update_order(model.observation.channel_order())
             self.window.workspace_sessions.home.present(model)
             self.window.paint_tabs()
             # Register every working thread row with the shared pulse animator
@@ -1297,7 +1232,7 @@ class BusLabel(ElidedLine):
         self.setToolTip(f"{prefix}{location}")
 
 
-class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, JumpsHistory, MenuConversation, Page, SessionScope, SubmissionView, WireView,
+class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, ConversationSettingsOwner, JumpsHistory, MenuConversation, Page, SessionScope, SubmissionView, WireView,
                        QtHistoryNotifications, ComposerHost, WorkspaceHosted, FlashHost, QWidget,
                        metaclass=PyQtWidgetMeta):
 
@@ -1564,6 +1499,19 @@ class ConversationView(WorkingStatusOwner, ComposerStatus, CategorySelection, Ju
     def categories_changed(self) -> None:
         self.message_history.apply_filter()
 
+    @property
+    def configuration_identity(self):
+        return self.entry.identity
+
+    @property
+    def configuration_settings(self):
+        return self.app.saved_settings
+
+    def settings_widgets(self, widget_type):
+        """A changed override reaches the open widgets of a Textual capability; a Qt view
+        holds none of Textual's widgets, so no `Effect` has one to repaint here."""
+        return ()
+
     def record_input(self, text: str) -> None:
         """The Qt composer recalls no earlier input, so there is no history to keep."""
 
@@ -1694,6 +1642,7 @@ class QtWorkspaceViews(WorkspaceViews):
         return self.views.pop(identity, None)
 
     async def finish(self, view: ConversationView) -> None:
+        view.close_configuration()
         self.pages.removeWidget(view)
         view.deleteLater()
 
@@ -1762,8 +1711,12 @@ class QtToadApp(ClientApplication, CorePrewarm, QtWorkspaceFrame, QtCommsHost, S
         # into the sidebar's shared `SidebarFilter`; the pane takes the wrapper as its
         # content so the input is visible at the top of the pane, mirroring Textual's
         # `SideBar._compose_shell` which also stacks `SidebarSearch` over its panels.
-        self.sidebar_search = QtSidebarShell(self.sidebar, parent=self)
-        self.thread_pane = ThreadSettingsPane(parent=self,
+        self.channel_sort = QtChannelListSort(self)
+        self.sidebar_search = QtSidebarShell(
+            self.sidebar.filter,
+            QtSidebarPanels(self.sidebar_state, (QtPanelEntry(CHANNELS_PANEL, self.sidebar, (self.channel_sort,), CHANNELS_PANEL.title),)),
+            parent=self)
+        self.thread_pane = ThreadSettingsPane(self, parent=self,
                                               project_path=self.project_dir.path)
         # The pages and both sidebars live in one chrome that places them where the shared
         # SidebarChromeArrangement resolves them, as Textual's WorkspaceChrome does: a docked

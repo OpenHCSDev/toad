@@ -17,7 +17,16 @@ whether a panel is open, so the two frontends can never disagree about its state
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from metaclass_registry import AbstractHooksMeta
+
+if TYPE_CHECKING:
+    from formbridge.forms.declared_fields import DeclaredField
+
+    from toad.client.session_tracker import SidebarState
 
 
 @dataclass(frozen=True)
@@ -26,3 +35,82 @@ class PanelSpec:
     flex: bool = False
     collapsed: bool = False
     id: str | None = None
+
+
+class PanelMenuModel[Entry]:
+    """A sidebar whose panels are shown one at a time, picked from a list: Textual's
+    `PanelMenu` and Qt's `QtPanelMenu` both inherit this. The entries come from the viewed
+    object in its order; the pick opens on the entry the sidebar's `SidebarState` last
+    remembered, else the first, and each pick is remembered there."""
+
+    entries: tuple[Entry, ...]
+    navigation: "SidebarState"
+
+    @abstractmethod
+    def entry_identity(self, entry: Entry) -> object:
+        """What names this entry across lazy realizations of its panel."""
+
+    def initial_entry(self) -> Entry:
+        remembered = self.navigation.panel_identity
+        return next((entry for entry in self.entries if self.entry_identity(entry) == remembered),
+                    self.entries[0])
+
+    def remember_entry(self, entry: Entry) -> None:
+        self.navigation.panel_identity = self.entry_identity(entry)
+
+
+class ObjectPropertiesPanel:
+    """One setting of the viewed object as a settings-pane entry: Textual's `ObjectProperties`
+    and Qt's `QtObjectProperties` both inherit this. The field's path names the entry."""
+
+    field: "DeclaredField"
+
+    @property
+    def panel_identity(self) -> object:
+        return self.field.path
+
+
+class SidebarPanelCollapse(metaclass=AbstractHooksMeta):
+    """A collapsible sidebar panel's open state, kept in its sidebar's `SidebarState` under
+    the panel's title: Textual's `SideBarCollapsible` and Qt's `QtSidebarPanelFrame` both
+    inherit this, so both frontends read and write the one record."""
+
+    @property
+    @abstractmethod
+    def panel_title(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def panel_state(self) -> "SidebarState": ...
+
+    def stored_collapsed(self, default: bool) -> bool:
+        return self.panel_state.is_panel_collapsed(self.panel_title, default)
+
+    def record_collapsed(self, collapsed: bool) -> None:
+        self.panel_state.set_panel_collapsed(self.panel_title, collapsed)
+
+
+class SidebarPanelColumn[Entry](metaclass=AbstractHooksMeta):
+    """A sidebar's scrolling column of collapsible panels: Textual's `SidebarViewport` and
+    Qt's `QtSidebarPanels` both inherit this. Each entry becomes one collapsible framing its
+    panel, opened as the sidebar's `SidebarState` last left it (else as the panel declares);
+    an open flex panel takes the column's spare room."""
+
+    @abstractmethod
+    def entry_panel(self, entry: Entry) -> PanelSpec:
+        """The panel spec an entry declares."""
+
+    @abstractmethod
+    def panel_frame(self, entry: Entry, collapsed: bool):
+        """This frontend's collapsible around the entry's panel, opened or not."""
+
+    def panel_frames(self, entries, navigation: "SidebarState") -> tuple:
+        frames = []
+        for entry in entries:
+            panel = self.entry_panel(entry)
+            frames.append(self.panel_frame(entry, navigation.is_panel_collapsed(panel.title, panel.collapsed)))
+        return tuple(frames)
+
+    @staticmethod
+    def claims_room(panel: PanelSpec, collapsed: bool) -> bool:
+        return panel.flex and not collapsed

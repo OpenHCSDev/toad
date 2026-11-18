@@ -1,6 +1,5 @@
 """A viewed object's state and its two presentations, inherited by files and conversations."""
 from functools import cached_property
-from formbridge.forms.parameter_form_service import ParameterFormService
 from metaclass_registry.mro_dispatch import handles
 from textual import events, on, work
 from textual.geometry import Region
@@ -9,10 +8,10 @@ from toad.core.events import ConfigurationChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.object_configuration import ObjectFieldView, ObjectFormView
 from toad.native_style import FillHeight
-from toad.object_configuration import ObjectConfiguration
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.forms.presentation import FormModal
 from toad.client.session_tracker import SidebarState
+from toad.client.sidebar_panels import ObjectPropertiesPanel
 from toad.settings_scope import ViewSettingsScope
 from toad.thread_actions import ThreadAction
 from toad.widgets.acting_button import DismissButton
@@ -30,16 +29,12 @@ from toad.widgets.side_bar import (
 
 
 
-class ObjectProperties(FillHeight, SidebarPanelWidget):
+class ObjectProperties(ObjectPropertiesPanel, FillHeight, SidebarPanelWidget):
     """One declared settings entry; its form is built when that entry is opened."""
 
     def __init__(self, field):
         super().__init__()
         self.field = field
-
-    @property
-    def panel_identity(self):
-        return self.field.path
 
     def compose(self):
         self.form = ObjectFormView(self.field.state, [ObjectFieldView.from_field(self.field)])
@@ -119,19 +114,20 @@ class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
 
 
 class ConfiguredView(ViewSettingsScope):
-    @cached_property
-    def configuration_state(self) -> ObjectConfiguration:
-        identity = self.app.session_navigation.get(self.id).identity
-        return ObjectConfiguration(identity, self.app.saved_settings,
-                                   self.app.saved_settings.path().parent, self)
+    @property
+    def configuration_identity(self):
+        return self.app.session_navigation.get(self.id).identity
+
+    @property
+    def configuration_settings(self):
+        return self.app.saved_settings
 
     @property
     def configuration_panels(self):
-        state = self.configuration_state
-        for path, parameter in ParameterFormService().parameters_for_state(state):
-            field = state.field(path.value)
-            yield SideBar.Panel(title=field.label, widget=ObjectProperties(field),
-                                id=f"settings-{path.value}", flex=True)
+        for field in self.configuration_fields():
+            panel = self.field_panel(field)
+            yield SideBar.Panel(title=panel.title, widget=ObjectProperties(field),
+                                id=panel.id, flex=panel.flex)
 
     @cached_property
     def _thread_sidebar_state(self):

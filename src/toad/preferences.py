@@ -56,14 +56,14 @@ from toad.setting_choices import (
 )
 from toad.setting_declarations import FamilyChoices, SettingsDeclaration
 from toad.setting_widget import PromptSettingEffects
-from toad.settings_scope import ConversationSettingsScope, ViewSettingsScope
+from toad.client.view_settings import ConversationSettingsOwner, ViewSettingsOwner
 from toad.terminal_origin import TerminalLayout
 from toad.version import CheckedVersionMonitor, VersionMonitor
 from toad.client.history_pager import PresentationBudget
 
 
 @dataclass(frozen=True)
-class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsScope,)):
+class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsOwner,)):
     box: Annotated[
         type[InputBox], FieldLabel("Layout"), FamilyChoices(InputBox),
         PromptSettingEffects.apply_input_layout,
@@ -92,7 +92,7 @@ class InputSettings(SettingsDeclaration, scopes=(ConversationSettingsScope,)):
 
 
 @dataclass(frozen=True)
-class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsScope,)):
+class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsOwner,)):
     column: Annotated[bool, FieldLabel("Enable column?"), effects.conversation_layout] = False
     """Enable for a fixed column size. Disable to use the full screen width."""
     column_width: Annotated[
@@ -115,7 +115,7 @@ class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsScope,)):
 
 
 @dataclass(frozen=True)
-class ConversationUiSettings(ViewUiSettings, scopes=(ConversationSettingsScope,)):
+class ConversationUiSettings(ViewUiSettings, scopes=(ConversationSettingsOwner,)):
     history_buffer_viewports: Annotated[
         int,
         FieldLabel("History buffer in message-area heights"),
@@ -262,13 +262,13 @@ class SidebarArrangements(SettingsDeclaration):
 
 
 @dataclass(frozen=True)
-class AgentSettings(SettingsDeclaration, scopes=(ConversationSettingsScope,)):
+class AgentSettings(SettingsDeclaration, scopes=(ConversationSettingsOwner,)):
     thoughts: Annotated[bool, FieldLabel("Agent thoughts"), effects.visibility] = True
     """Show agent's 'thoughts' in the conversation?"""
 
 
 @dataclass(frozen=True)
-class ToolsSettings(SettingsDeclaration, scopes=(ConversationSettingsScope,)):
+class ToolsSettings(SettingsDeclaration, scopes=(ConversationSettingsOwner,)):
     expand: Annotated[
         type[Expansion], FieldLabel("Tool call expand"), FamilyChoices(Expansion)
     ] = FailExpansion

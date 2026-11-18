@@ -91,6 +91,14 @@ class SessionScope:
     def sidebar_thread_identity(self) -> object:
         return self.thread_identity
 
+    def configuration_fields(self):
+        """The settings this view's settings pane lists: none for a view without its own
+        (the welcome, an opening view); a `ViewSettingsOwner` lists its configuration's."""
+        return ()
+
+    def close_configuration(self) -> None:
+        """A view without its own settings holds no configuration to close."""
+
     @property
     def bound_agent(self) -> AgentConnection:
         """The agent this view presents. A view with none (the welcome, a DM's

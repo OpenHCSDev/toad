@@ -88,3 +88,15 @@ class PlanDisplayState:
             return False
         prior = self.previous_statuses.get(entry.content)
         return prior is not None and not prior.complete
+
+
+class PlanView:
+    """The agent's plan as a frontend lists it: Textual's `Plan` and Qt's `QtPlan` both
+    inherit this. An empty plan says so; each entry is its status marker, then its text,
+    struck through once complete and shown as strongly as its status says."""
+
+    empty_plan_text = "No plan yet"
+
+    @staticmethod
+    def plan_rows(entries) -> tuple[tuple[str, PlanItem], ...]:
+        return tuple((entry.status.marker(), entry) for entry in entries)

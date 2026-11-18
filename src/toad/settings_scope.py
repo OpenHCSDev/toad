@@ -3,6 +3,8 @@ from abc import abstractmethod
 from objectstate import ObjectState
 from textual.dom import DOMNode
 
+from toad.client.view_settings import ConversationSettingsOwner, ViewSettingsOwner
+
 
 class SettingsReader(DOMNode):
     @property
@@ -28,7 +30,7 @@ class SettingsScope(SettingsReader):
         return self.walk_children(widget_type)
 
 
-class ViewSettingsScope(SettingsScope):
+class ViewSettingsScope(ViewSettingsOwner, SettingsScope):
     """A file, thread or channel owns its display overrides."""
 
     @property
@@ -40,7 +42,7 @@ class ViewSettingsScope(SettingsScope):
         return ()
 
 
-class ConversationSettingsScope(ViewSettingsScope):
+class ConversationSettingsScope(ConversationSettingsOwner, ViewSettingsScope):
     """A thread or channel additionally owns conversation and composer settings."""
 
 

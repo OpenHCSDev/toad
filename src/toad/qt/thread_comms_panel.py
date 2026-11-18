@@ -23,6 +23,7 @@ from agent_comms.registry.relationships import (
 )
 from agent_comms.registry.relationships import SortableRelationshipGroup
 from PySide6.QtCore import Qt
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -38,7 +39,8 @@ from PySide6.QtWidgets import (
 
 from toad.qt.session_panel import SessionPanel
 from toad.client.category_selection import CategorySelection
-from toad.client.relationship_tree_state import RelationshipTreeState
+from toad.client.relationship_tree_state import RelationshipPanel, RelationshipTreeState
+from toad.client.sidebar_filter import SidebarFilter
 from toad.client.sort_control import RelationshipOrder
 from toad.qt.channel_sort import QtSortButton
 from toad.widgets.session_sort import ThreadSortForm
@@ -58,7 +60,7 @@ class QtRelationshipSort(RelationshipOrder, QtSortButton[ThreadSort]):
         await self._panel.write_order(order)
 
 
-class QtThreadCommsPanel(SessionPanel, QWidget):
+class QtThreadCommsPanel(RelationshipPanel, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
     spec_key: ClassVar[str] = "comms"
     """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
     `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
@@ -69,24 +71,26 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
     State (group-expansion, selection) is kept per `SessionIdentity` in the shared
     `RelationshipTreeState` so a reopened tab restores its prior view."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, search: SidebarFilter, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
+        # The thread sidebar's search narrows the relationship rows, as Textual's
+        # `ThreadCommsSidebar` follows its sidebar's search (`SearchFollower`).
+        self._search = search
+        search.subscribe(lambda _text: self.present())
         self._states: dict[SessionIdentity, RelationshipTreeState] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._refresh_task: asyncio.Task | None = None
         column = QVBoxLayout(self)
         column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
         column.setSpacing(UiGap.normal)
-        header = QHBoxLayout()
-        header.setContentsMargins(0, 0, 0, 0)
         self._context = QLabel("", self)
         self._context.setWordWrap(True)
         self._context.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        header.addWidget(self._context, 1)
-        self._sort = QtRelationshipSort(self)
-        header.addWidget(self._sort)
-        column.addLayout(header)
+        column.addWidget(self._context)
+        # The relationship order sits on the panel's page header, as Textual's
+        # `CommsSessionPanel.make_header` puts `RelationshipSort` there.
+        self.sort = QtRelationshipSort(self)
         # One toggle per message category under the context line, as Textual's
         # `ThreadCommsSidebar` composes its `MessageFilter`s: each writes the bound view's
         # `CategorySelection`, and a view that filters nothing hides them.
@@ -124,19 +128,15 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
         asyncio.ensure_future(self._refresh())
 
     @property
-    def _thread_identity(self) -> SessionIdentity:
+    def thread_identity(self) -> SessionIdentity:
         return self._view.thread_identity
-
-    @property
-    def _state(self) -> RelationshipTreeState:
-        return self._states.setdefault(self._thread_identity, RelationshipTreeState())
 
     async def _refresh(self) -> None:
         if self._refresh_task is not None and not self._refresh_task.done():
             return
         self._refresh_task = asyncio.current_task()
         try:
-            identity = self._thread_identity
+            identity = self.thread_identity
             root = identity.root_path
             if root is None:
                 self._context.setText("No thread root")
@@ -147,10 +147,10 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
                 return
             access = app.coordination_access
             service = await app.preparation.run_thread(lambda: access.observing(root))
-            if identity != self._thread_identity:
+            if identity != self.thread_identity:
                 return
             snapshot = await app.preparation.run_thread(service.relationships, identity.thread_name())
-            if identity != self._thread_identity:
+            if identity != self.thread_identity:
                 return
             self._apply(snapshot)
         finally:
@@ -166,14 +166,11 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
 
     def _apply(self, snapshot: ThreadCommsSnapshot) -> None:
         self._snapshot = snapshot
-        suffix = " · recent window" if snapshot.history_limited else ""
-        self._context.setText(f"For @{snapshot.owner}{suffix}")
-        self._context.setToolTip(
-            f"{snapshot.incoming_basis}\nLatest {snapshot.history_messages} wire messages"
-        )
-        self._sort.update_groups(snapshot.sortable_groups)
+        self._context.setText(self.context_title(snapshot) + self.context_note(snapshot))
+        self._context.setToolTip(self.context_tooltip(snapshot))
+        self.sort.update_groups(snapshot.sortable_groups)
         self._tree.clear()
-        state = self._state
+        state = self.view_state
         for group in snapshot.groups:
             group_type = type(group)
             top = QTreeWidgetItem(self._tree, [group_type.title])
@@ -185,7 +182,8 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
                 empty = QTreeWidgetItem(top, [group_type.empty_text])
                 empty.setFlags(empty.flags() & ~Qt.ItemFlag.ItemIsSelectable)
             for entry in entries:
-                self._add_entry_item(top, entry)
+                if self._search.matches(entry.target):
+                    self._add_entry_item(top, entry)
 
     def _add_entry_item(self, parent_item: QTreeWidgetItem, entry: RelationshipEntry) -> None:
         display = entry.target if entry.available else f"{entry.target} (unavailable)"
@@ -197,12 +195,12 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
     def _item_expanded(self, item: QTreeWidgetItem) -> None:
         group_type = item.data(0, Qt.ItemDataRole.UserRole)
         if RelationshipGroup.is_group_type(group_type):
-            self._state.expanded[group_type] = True
+            self.view_state.expanded[group_type] = True
 
     def _item_collapsed(self, item: QTreeWidgetItem) -> None:
         group_type = item.data(0, Qt.ItemDataRole.UserRole)
         if RelationshipGroup.is_group_type(group_type):
-            self._state.expanded[group_type] = False
+            self.view_state.expanded[group_type] = False
 
     async def write_order(self, order: type[ThreadSort]) -> None:
         """`QtRelationshipSort`'s pick: every sortable group of the snapshot shown takes the
@@ -210,13 +208,13 @@ class QtThreadCommsPanel(SessionPanel, QWidget):
         snapshot = self._snapshot
         if snapshot is None:
             raise ValueError("Relationship ordering is not available yet")
-        identity = self._thread_identity
+        identity = self.thread_identity
         app = self._app()
         access = app.coordination_access
         service = await app.preparation.run_thread(lambda: access.observing(identity.root_path))
         try:
-            await self._sort.write_relationship_order(
+            await self.sort.write_relationship_order(
                 app.preparation, service, identity, snapshot.sortable_groups, order)
         finally:
-            if identity == self._thread_identity:
+            if identity == self.thread_identity:
                 self.present()

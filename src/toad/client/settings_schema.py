@@ -166,6 +166,35 @@ class SettingsPageSchema:
         return self.page.title
 
 
+def leaf_fields[Field: DeclaredField](root: Field) -> Iterator[Field]:
+    """Every leaf field below ``root`` (``root`` itself when it is one), of ``root``'s own
+    field type, so a view's fields stay the view's."""
+    state = root.state
+    if state.has_parameter_descendants(root.path.value):
+        for path, _parameter in ParameterFormService().parameters_for_state(state, root.path.value):
+            yield from leaf_fields(type(root)(state, path))
+        return
+    yield root
+
+
+@dataclass(frozen=True)
+class ObjectSettingRow(SettingsRowSchema):
+    """One setting of a viewed object: an edit goes through the view's configuration
+    (`ObjectSettingField.edit`: the view's override, or the app default where the view may
+    not override it), as Textual's object form writes it."""
+
+    @classmethod
+    def rows(cls, field: DeclaredField, saved: SavedSettings) -> tuple[ObjectSettingRow, ...]:
+        return tuple(cls(field=leaf, kind=SettingsRowKind.for_field(leaf), saved=saved)
+                     for leaf in leaf_fields(field))
+
+    def write(self, value: object) -> None:
+        self.field.edit(value)
+
+    def toggle(self) -> None:
+        self.field.edit(not self.field.value)
+
+
 class SettingsSchema:
     """The pages and rows of the running app's SavedSettings, read as plain data."""
 
@@ -190,15 +219,8 @@ class SettingsSchema:
 
     def _leaves(self, root: DeclaredField) -> Iterator[SettingsRowSchema]:
         """Every leaf below `root` (including `root` itself if it is a leaf)."""
-        state = root.state
-        if state.has_parameter_descendants(root.path.value):
-            for path, _parameter in ParameterFormService().parameters_for_state(
-                state, root.path.value
-            ):
-                yield from self._leaves(DeclaredField(state, path))
-            return
-        kind = SettingsRowKind.for_field(root)
-        yield SettingsRowSchema(field=root, kind=kind, saved=self.saved)
+        for leaf in leaf_fields(root):
+            yield SettingsRowSchema(field=leaf, kind=SettingsRowKind.for_field(leaf), saved=self.saved)
 
     def discard(self) -> None:
         self.saved.discard()

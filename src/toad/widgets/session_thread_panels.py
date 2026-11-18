@@ -48,9 +48,9 @@ class SessionPanel[W: SidebarPanelWidget](ThreadSidebarPanelBody, DeclaredFamily
         return None
 
     def compose_panel(self, screen: MainScreen) -> SideBar.Panel:
-        return SideBar.Panel(title=self.spec().heading, widget=self.make_widget(screen),
-                             flex=self.flex, collapsed=self.collapsed,
-                             id=self.panel_id or f"{self.declared_name}-panel",
+        panel = self.spec().panel
+        return SideBar.Panel(title=panel.title, widget=self.make_widget(screen),
+                             flex=panel.flex, collapsed=panel.collapsed, id=panel.id,
                              header_control=self.make_header())
 
     def capture(self, widget: W) -> None:

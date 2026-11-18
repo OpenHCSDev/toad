@@ -78,7 +78,7 @@ class RelationshipRowPresentation(WorkerGroup):
     exclusive = True
 
 
-from toad.client.relationship_tree_state import RelationshipTreeState  # noqa: E402
+from toad.client.relationship_tree_state import RelationshipPanel, RelationshipTreeState  # noqa: E402
 
 
 class RelationshipSort(RelationshipOrder, SortControl[ThreadSort]):
@@ -270,6 +270,7 @@ class RelationshipRows(RelationshipMemberRows, SidebarGroup[RelationshipRow]):
 
 
 class ThreadCommsSidebar(
+    RelationshipPanel,
     AutoHeight,
     ShowsThreadIdentity,
     SidebarModelView,
@@ -294,11 +295,6 @@ class ThreadCommsSidebar(
         self._states = states if states is not None else {}
         self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
 
-    @property
-    def view_state(self):
-        return self._states.setdefault(
-            self.thread_identity, RelationshipTreeState()
-        )
 
     async def relationship_source(self, identity: ThreadIdentity) -> Observing:
         access = self.app.coordination_access
@@ -468,15 +464,12 @@ class ThreadCommsSidebar(
             context = self.query_one(RelationshipContext)
             context.update(
                 Content.assemble(
-                    (f"For @{snapshot.owner}", "bold"),
-                    " · recent window" if snapshot.history_limited else "",
+                    (self.context_title(snapshot), "bold"),
+                    self.context_note(snapshot),
                 ),
                 layout=False,
             )
-            context.tooltip = (
-                snapshot.incoming_basis
-                + f"\nLatest {snapshot.history_messages} wire messages"
-            )
+            context.tooltip = self.context_tooltip(snapshot)
             control = self.query_ancestor(SidebarPanelHost).query_one_optional(
                 RelationshipSort
             )

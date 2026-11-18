@@ -14,7 +14,7 @@ from ui_theme.scheme import PrimaryColour
 
 from toad.block_navigation import ConversationBlock
 from toad.native_style import AutoHeight, PrimaryText, RightPadding
-from toad.plan import PlanDisplayState, PlanItem, PlanStatus
+from toad.plan import PlanDisplayState, PlanItem, PlanStatus, PlanView
 from toad.widgets.strike_text import StrikeText
 from textual.widget import Widget
 
@@ -38,9 +38,9 @@ class PlanStatusCell(Widget):
 class PlanMarker(PrimaryText, PlanStatusCell, Static):
     ALLOW_SELECT = False
 
-    def __init__(self, status: type[PlanStatus]) -> None:
+    def __init__(self, status: type[PlanStatus], marker: str) -> None:
         self.status = status
-        super().__init__(Content(status.marker()))
+        super().__init__(Content(marker))
 
 
 class PlanText(PrimaryText, PlanStatusCell, StrikeText):
@@ -51,6 +51,7 @@ class PlanText(PrimaryText, PlanStatusCell, StrikeText):
 
 
 class Plan(
+    PlanView,
     RightPadding,
     AutoHeight,
     ConversationBlock,
@@ -80,11 +81,11 @@ class Plan(
 
     def compose(self) -> ComposeResult:
         if not self.entries:
-            yield NoPlan("No plan yet")
+            yield NoPlan(self.empty_plan_text)
             return
-        for entry in self.entries:
+        for marker, entry in self.plan_rows(self.entries):
             status = entry.status
-            yield PlanMarker(status)
+            yield PlanMarker(status, marker)
             yield (text := PlanText(entry))
             if status.complete:
                 text.complete(animated=self._state.newly_complete(entry))

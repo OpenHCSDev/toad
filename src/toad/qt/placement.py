@@ -16,24 +16,29 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QFrame, QGroupBox, QScrollArea,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import QFormLayout, QFrame, QLabel, QScrollArea, QWidget
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from toad.client.context_intent import ContextTreeIntent
+from toad.client.session_scope import NoConversationView
+from toad.client.session_tracker import SidebarState
+from toad.client.settings_schema import ObjectSettingRow
+from toad.client.sidebar_filter import SidebarFilter
+from toad.client.sidebar_panels import ObjectPropertiesPanel
 from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
+from toad.qt.settings_screen import QtSettingsEditor
+from toad.qt.sidebar_panel import QtPanelEntry, QtPanelMenu, QtSidebarShell
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.sidebar_layout import ArrangementStore
 from toad.terminal_origin import TerminalLayout
 from toad.thread_identity import SessionIdentity
-from toad.thread_sidebar_declarations import (
-    THREAD_SIDEBAR_PANELS, ThreadSidebarPanelBody, ThreadSidebarPanelSpec, panel_specs_for_view,
-)
+from toad.thread_sidebar_declarations import ThreadSidebarContents, panel_specs_for_view
 from toad.qt.metrics import UiGap
 
-__all__ = ["SessionArrangementStore", "ThreadSettingsPane"]
+__all__ = ["QtObjectProperties", "SessionArrangementStore", "ThreadSettingsPane"]
 
 
 class SessionArrangementStore(ArrangementStore):
@@ -52,88 +57,84 @@ class SessionArrangementStore(ArrangementStore):
         self._terminals = terminals
 
 
-class ThreadSettingsPane(QWidget):
-    """The open thread's sidebar content. Composes one section per panel in the shared
-    roster (`toad.thread_sidebar_declarations.THREAD_SIDEBAR_PANELS`) so the Qt sidebar
-    reflects the same structure Textual's `SessionThreadSidebar` composes — no hand-rolled
-    mirror of the panel list, one source of truth. Each roster entry's body is the Qt
-    panel whose `spec_key` names it; a roster entry with no body raises KeyError here.
+class QtObjectProperties(ObjectPropertiesPanel, QScrollArea, metaclass=PyQtWidgetMeta):
+    """One setting of the viewed object as a settings-pane page, as Textual's
+    `ObjectProperties`: each leaf of the field is a row the shared settings editors draw,
+    writing through the view's configuration (`ObjectSettingRow`). The rows scroll when
+    they outgrow the sidebar."""
 
-    `bind(view)` routes the conversation's view at every section that reads or writes it.
-    """
-
-    def __init__(self, parent: QWidget | None = None, *, project_path: Path) -> None:
+    def __init__(self, field, app, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.setSpacing(0)
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        outer.addWidget(scroll, 1)
-        self._content = QWidget(scroll)
-        self._content.setWindowFlags(Qt.WindowType.Widget)
-        column = QVBoxLayout(self._content)
-        column.setContentsMargins(0, 0, 0, 0)
-        column.setSpacing(UiGap.normal)
-        self._coordination_status = QtCoordinationStatus(self._content)
-        self._comms_panel = QtThreadCommsPanel(self._content)
-        self._plan_panel = QtPlan(self._content)
-        self._project_panel = QtProjectPanel(project_path, parent=self._content)
-        # Shared per-thread context intents — survives widget retirement, matches
-        # Textual's `ContextSessionPanel.intents`.
-        self._context_intents: dict[SessionIdentity, ContextTreeIntent] = {}
-        self._context_panel = QtContextExplorer(self._context_intents, self._content)
-        # One widget per spec.key: each Qt panel class declares its own `spec_key`
-        # ClassVar (same convention Textual's `SessionPanel.spec_key` uses). The
-        # dispatch in `_panel_body` reads this map instead of restating a chain of
-        # `if spec.key == "...": return self._x_panel`.
-        panels: tuple[ThreadSidebarPanelBody, ...] = (
-            self._coordination_status,
-            self._comms_panel,
-            self._plan_panel,
-            self._context_panel,
-            self._project_panel,
-        )
-        self._bodies_by_key: dict[str, QWidget] = {
-            panel.spec_key: panel for panel in panels
-        }
-        self._section_bodies: dict[str, QWidget] = {}
-        # The session view is the default; a conversation / DM tab trims the roster via
-        # `bind_view_kind` when its ACP tab calls in. Both views carry Coordination and
-        # Comms; session view adds Plan, Project, Context.
-        for spec in panel_specs_for_view(is_session=True):
-            section = QGroupBox(spec.heading, self._content)
-            section_layout = QVBoxLayout(section)
-            section_layout.setContentsMargins(0, UiGap.tight, 0, 0)
-            section_layout.setSpacing(0)
-            body = self._panel_body(spec, section)
-            section_layout.addWidget(body)
-            self._section_bodies[spec.key] = body
-            # A spec that declares flex=True fills the remaining vertical space
-            # (Textual reads the same flag from the shared roster); without a
-            # stretch factor QVBoxLayout would hand it only its sizeHint.
-            column.addWidget(section, 1 if spec.flex else 0)
-        # Add a terminal stretch only when nothing above already stretches, so a
-        # flex=True section (Project) can fill the pane without a competing
-        # empty stretch below taking half the space.
-        if not any(spec.flex for spec in panel_specs_for_view(is_session=True)):
-            column.addStretch(1)
-        scroll.setWidget(self._content)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.field = field
+        rows = QWidget(self)
+        rows.setWindowFlags(Qt.WindowType.Widget)
+        form = QFormLayout(rows)
+        form.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
+        form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
+        form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapAllRows)
+        for row in ObjectSettingRow.rows(field, app.saved_settings):
+            label = QLabel(row.label, rows)
+            label.setWordWrap(True)
+            label.setToolTip(row.help)
+            form.addRow(label, QtSettingsEditor.for_row(row, app, rows))
+        self.setWidget(rows)
 
-    def _panel_body(self, spec: ThreadSidebarPanelSpec, parent: QWidget) -> QWidget:
-        """The Qt panel whose `spec_key` names this roster entry. An entry with no Qt body
-        is a missing port, and building the pane fails on it."""
-        return self._bodies_by_key[spec.key]
+
+class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, metaclass=PyQtWidgetMeta):
+    """The open view's sidebar content, as Textual's `ThreadSidebar`: the search over its
+    panels, one picked at a time (`QtPanelMenu`). The entries are the shared roster
+    (`THREAD_SIDEBAR_PANELS`, each drawn by the Qt panel whose `spec_key` names it) and then
+    each of the view's own settings (`ViewSettingsOwner.configuration_fields`), as
+    `ThreadSidebar.panel_entries` lists them: a setting declared once shows on both frontends
+    with no Qt code. The search filters the panels' rows (the Comms relationships)."""
+
+    def __init__(self, app, parent: QWidget | None = None, *, project_path: Path) -> None:
+        self.app = app
+        search = SidebarFilter()
+        self.menu = QtPanelMenu(SidebarState())
+        super().__init__(search, self.menu, parent)
+        self._coordination_status = QtCoordinationStatus(self)
+        self._comms_panel = QtThreadCommsPanel(search, self)
+        self._plan_panel = QtPlan(self)
+        self._project_panel = QtProjectPanel(project_path, parent=self)
+        # Shared per-thread context intents — survive widget retirement, as Textual's
+        # `ContextSessionPanel.intents`.
+        self._context_intents: dict[SessionIdentity, ContextTreeIntent] = {}
+        self._context_panel = QtContextExplorer(self._context_intents, self)
+        bodies = {panel.spec_key: panel for panel in (
+            self._coordination_status, self._comms_panel, self._plan_panel,
+            self._context_panel, self._project_panel)}
+        controls = {QtThreadCommsPanel.spec_key: (self._comms_panel.sort,)}
+        # A roster entry with no Qt body is a missing port: building the pane fails on it.
+        self._roster = tuple(
+            QtPanelEntry(spec.panel, bodies[spec.key], controls.get(spec.key, ()), type(bodies[spec.key]))
+            for spec in panel_specs_for_view(is_session=True))
+        self._view = NoConversationView()
 
     def bind(self, view) -> None:
         """Follow the view the tab now shows: a conversation, or the welcome, whose
-        `NoConversationView` answers absent members. Every panel takes the view as it is."""
+        `NoConversationView` answers absent members. Every panel takes the view as it is,
+        and the view's own settings follow the roster. The entries are listed again only
+        when the view changes: the window re-binds the same view on every layout pass."""
+        listed = view is self._view
+        self._view = view
         self._coordination_status.identity_changed(view.thread_identity)
         self._comms_panel.bind(view)
         self._plan_panel.bind(view)
         self._context_panel.bind(view)
+        if not listed:
+            self.menu.show_entries(self.thread_entries(view))
+
+    def roster_entries(self) -> tuple[QtPanelEntry, ...]:
+        return self._roster
+
+    def setting_entries(self, view) -> tuple[QtPanelEntry, ...]:
+        return tuple(
+            QtPanelEntry(view.field_panel(field), QtObjectProperties(field, self.app), (), field.path)
+            for field in view.configuration_fields())
 
     def present(self) -> None:
         self._comms_panel.present()

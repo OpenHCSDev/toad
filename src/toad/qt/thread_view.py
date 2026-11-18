@@ -34,6 +34,7 @@ from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.category_selection import CategorySelection
+from toad.client.view_settings import ConversationSettingsOwner
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.observed_field import ObservedField
 from toad.client.resource_release import ResourceRelease
@@ -69,6 +70,7 @@ class QtThreadView(
     CategorySelection,
     WorkingStatusOwner,
     ComposerStatus,
+    ConversationSettingsOwner,
     ObservedAgentBinding,
     ConversationThreadReadMixin,
     ThreadBindingDispatch,
@@ -493,6 +495,19 @@ class QtThreadView(
 
     def categories_changed(self) -> None:
         self.message_history.apply_filter()
+
+    @property
+    def configuration_identity(self):
+        return self.app.session_navigation.get(self.mode).identity
+
+    @property
+    def configuration_settings(self):
+        return self.app.saved_settings
+
+    def settings_widgets(self, widget_type):
+        """A changed override reaches the open widgets of a Textual capability; a Qt view
+        holds none of Textual's widgets, so no `Effect` has one to repaint here."""
+        return ()
 
     @property
     def is_attached(self) -> bool:
