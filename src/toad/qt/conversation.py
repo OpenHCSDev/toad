@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+from collections.abc import Callable
 
 import shiboken6
 from textual.content import Content
@@ -23,14 +24,15 @@ import shiboken6
 from agent_comms.registry.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.message_category import all_categories
 from metaclass_registry.mro_dispatch import MroDispatch
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QWidget
+from PySide6.QtCore import QEvent, QObject, Qt, QTimer
+from PySide6.QtWidgets import QBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.agent_turn_events import AgentTurnEvents
 from toad.answer import Ask
 from toad.qt.agent_surface import QtSurfaceBinding, subscribe_agent
+from toad.qt.metrics import UiGap
 from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.bus_submission import TypedText
 from toad.client.category_selection import CategorySelection
@@ -65,6 +67,24 @@ from toad.view_actions import ViewAction
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
+
+
+class ComposerPlaceholder(QWidget):
+    """A view's composer until it is built (`QtConversation.reserve_composer`): as tall as
+    that kind's composer last was, so nothing moves when it arrives. A tap or the focus on
+    it builds the composer at once and hands it the focus."""
+
+    def __init__(self, view: QtConversation, height: int) -> None:
+        super().__init__()
+        self.view = view
+        self.setFixedHeight(height)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+    def mousePressEvent(self, event) -> None:  # type: ignore[override]
+        self.view.mount_composer(focus=True)
+
+    def focusInEvent(self, event) -> None:  # type: ignore[override]
+        self.view.mount_composer(focus=True)
 
 
 class QtConversation(
@@ -104,7 +124,12 @@ class QtConversation(
     _unpublished_presentation: ThreadPresentation = NoThreadPresentation()
     """An observed presentation whose transcript refresh waits for this view to be shown."""
     composer: Composer | None = None
-    """Textual's prompt; a thread view mounts it one Qt tick after construction."""
+    """Textual's prompt, built just after the view's history first paints
+    (`reserve_composer`); None until then."""
+    composer_heights: dict[type, int] = {}
+    """Each view kind's composer height when it was last built: the placeholder's height, so
+    nothing moves when the composer arrives. Shared by every view of the kind."""
+    _composer_reserved: tuple | None = None
     activity: tuple[QWidget, ...]
     """The rows under the transcript that observe Core, each closed with the view."""
 
@@ -124,6 +149,9 @@ class QtConversation(
         self.feedback = QtFlash(app, app.renderer)
         self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
         self.submissions = ConversationSubmissions(self)
+        # What the composer is told before it is built, the latest of each kind, told at
+        # its mount (`on_composer`).
+        self._composer_applies: dict[str, Callable[[Composer], None]] = {}
         # Every conversation answers the workspace's `ViewAction` keys, as Textual's
         # `WorkspaceFrame` does for whichever conversation it shows: each member whose
         # declared capability this view has binds through the shared family loop, so
@@ -137,11 +165,83 @@ class QtConversation(
         (`JumpsHistory`): `BackToBottomAction.apply(self)` jumps it to its latest row."""
         return (self.messages,) if self.messages.can_jump_to_latest else ()
 
+    # ---- The composer: built once the view's history has painted ----
+
+    def reserve_composer(self, layout: QBoxLayout, build: Callable[[], Composer],
+                         mounted: Callable[[Composer], None]) -> None:
+        """The composer's place in `layout`, held by a placeholder as tall as this kind's
+        composer last was. The composer is built just after the history first paints, so
+        opening a view draws its history without waiting for the composer (a channel's took
+        170 ms of a 491 ms open at a phone's speed), and a view never shown (a restored tab
+        in the background) builds none until it is. On Qt-for-Android this also keeps
+        ``QPlainTextEdit`` out of the first frame's EGL setup, which it deadlocks against
+        (``QtAndroidAccessibility``). `mounted` places what goes with it."""
+        placeholder = ComposerPlaceholder(self, self.composer_heights.get(type(self), self.estimated_composer_height()))
+        layout.addWidget(placeholder)
+        self._composer_reserved = (layout, placeholder, build, mounted)
+        self.messages.viewport().installEventFilter(self)
+
+    def estimated_composer_height(self) -> int:
+        """Before any composer of this kind was built: its editor (one line and the padding
+        `Composer.fit_height` gives it) over its info bar (a line and its margin)."""
+        line = self.fontMetrics().lineSpacing()
+        return (line + 24) + (line + UiGap.tight)
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # type: ignore[override]
+        if (event.type() == QEvent.Type.Paint and self._composer_reserved is not None
+                and watched is self.messages.viewport()):
+            watched.removeEventFilter(self)
+            QTimer.singleShot(0, self.mount_composer)
+        return super().eventFilter(watched, event)
+
+    def mount_composer(self, focus: bool = False) -> None:
+        """Build the reserved composer in its placeholder's place, then tell it what it was
+        told meanwhile. Touching the placeholder mounts it at once, with the focus, so
+        typing never waits. A failed mount is loud: a silently missing composer is how the
+        mailbox view first shipped."""
+        reserved, self._composer_reserved = self._composer_reserved, None
+        if reserved is None or not shiboken6.isValid(self):
+            return
+        layout, placeholder, build, mounted = reserved
+        self.messages.viewport().removeEventFilter(self)
+        try:
+            composer = build()
+        except Exception as error:
+            self.app.show_error(error, "Composer mount failed")
+            return
+        layout.replaceWidget(placeholder, composer)
+        placeholder.deleteLater()
+        self.composer = composer
+        mounted(composer)
+        applies, self._composer_applies = self._composer_applies, {}
+        for apply in applies.values():
+            apply(composer)
+        if focus:
+            composer.editor.setFocus()
+        QTimer.singleShot(0, partial(self.remember_composer_height, composer))
+
+    def remember_composer_height(self, composer: Composer) -> None:
+        """The height the composer asks for, not the room it was given: a view whose
+        transcript is not laid out yet lets it stretch."""
+        if shiboken6.isValid(composer):
+            self.composer_heights[type(self)] = composer.sizeHint().height()
+
+    def on_composer(self, kind: str, apply: Callable[[Composer], None]) -> None:
+        """Tell the composer something: now once it is built, else at its mount, where only
+        the latest of each `kind` is told (a label, a status, the mention candidates)."""
+        if self.composer is not None:
+            apply(self.composer)
+        else:
+            self._composer_applies[kind] = apply
+
     def close_core_events(self) -> None:
         """The view's subscriptions end, the rows under the transcript stop observing, and
         a command read in flight is dropped: it would hand its catalog to a deleted
         composer. Reads are exclusive across views, so the one running may be another
-        tab's; that composer asks again on its next keystroke (`Composer.refresh_offers`)."""
+        tab's; that composer asks again on its next keystroke (`Composer.refresh_offers`).
+        A composer not built yet never will be."""
+        self._composer_reserved = None
+        self._composer_applies.clear()
         super().close_core_events()
         for row in self.activity:
             row.close_activity()
@@ -172,9 +272,8 @@ class QtConversation(
         self.sync_status()
 
     def sync_status(self) -> None:
-        """The info bar shows `ComposerStatus.composed_status()` once the composer exists."""
-        if self.composer is not None:
-            self.composer.show_status(self.composed_status())
+        """The info bar shows `ComposerStatus.composed_status()`, once the composer exists."""
+        self.on_composer("status", lambda composer: composer.show_status(self.composed_status()))
 
     def present_thread_status(self) -> None:
         """A native agent reports its configuration through ACP (Textual's
@@ -239,8 +338,7 @@ class QtConversation(
 
     async def read_commands(self) -> None:
         catalog = await self.read_command_catalog()
-        if self.composer is not None:
-            self.composer.set_commands(catalog.commands)
+        self.on_composer("commands", lambda composer: composer.set_commands(catalog.commands))
 
     async def read_command_catalog(self) -> CommandCatalog:
         """Textual's `Conversation.read_command_catalog`: the bound agent's advertised

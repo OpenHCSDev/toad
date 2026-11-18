@@ -24,8 +24,7 @@ class QtSubmissionView(SubmissionView):
     async def refresh_composer(self, read_only: bool) -> None:
         """Hold the composer with the destination's read-only reason, or release it."""
         self.composer_block = MessageDestination.read_only_reason if read_only else ""
-        if self.composer is not None:
-            self.composer.hold(self.composer_block)
+        self.on_composer("hold", lambda composer: composer.hold(self.composer_block))
 
     def draws_user_message(self, reference) -> bool:
         return self.message_history.draws(reference)

@@ -2337,6 +2337,22 @@ class FrameScenario(Scenario):
                     timed_open(delegate, name, f"rows.{name}")
             for name in ("rows_changed", "show_pages"):
                 timed_open(qt_history.QtHistoryWindow, name, f"window.{name}")
+            for name in ("new_document", "final_document"):
+                if name in delegate.__dict__:
+                    timed_open(delegate, name, f"rows.{name}")
+            for name in ("fragment_height", "block_row"):
+                timed_open(qt_history.HistoryRowDelegate, name, f"history.{name}")
+            # The composer's mount after the first paint, and whether its placeholder held its height.
+            from toad.qt.conversation import QtConversation
+            timed_open(QtConversation, "mount_composer", "open.composer_mount")
+            remember = QtConversation.remember_composer_height
+
+            def compared(view, composer) -> None:
+                placeholder = view.composer_heights.get(type(view), view.estimated_composer_height())
+                print(f"  composer {type(view).__name__}: placeholder {placeholder}px, built {composer.sizeHint().height()}px (given {composer.height()}px)",
+                      flush=True)
+                remember(view, composer)
+            QtConversation.remember_composer_height = compared
         self.timings = timings
 
     def write_timings(self, probe) -> None:

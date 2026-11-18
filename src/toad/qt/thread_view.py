@@ -14,6 +14,8 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from agent_comms.messaging.channel_targets import CommandTarget
+from functools import partial
+
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -141,10 +143,8 @@ class QtThreadView(
         """Mount, under the transcript, the rows Textual's `Conversation.compose` yields
         after its window, in its order: flash, sweep, session status, goal bar, prompt.
 
-        The composer mounts one Qt event-loop tick later: on Qt-for-Android, mounting
-        ``QPlainTextEdit`` during ``__init__`` races ``QtAndroidAccessibility`` with the
-        first-paint EGL setup and deadlocks the window. Its slot is reserved here so it
-        lands in order."""
+        The composer is built once the transcript has painted (`reserve_composer`); its
+        slot is reserved here so it lands in order, with the question under it."""
         self.thread_activity = QtSessionDetails(self, app.renderer)
         self.goal_bar = None if incarnation is None else QtGoalBar(app, app.renderer, incarnation)
         self.activity = tuple(row for row in (self.thread_activity, self.goal_bar) if row is not None)
@@ -154,22 +154,15 @@ class QtThreadView(
             layout.addWidget(row)
         layout.addLayout(self._composer_slot)
         self.refresh_thread_status()
-        QTimer.singleShot(0, lambda: self._mount_composer(app))
+        self.reserve_composer(self._composer_slot, lambda: self.composer_class()(self, app.renderer),
+                              partial(self._composer_mounted, app))
 
-    def _mount_composer(self, app: "QtToadApp") -> None:
-        """Deferred composer mount; see `_setup_prompt_stack`. A failed mount is loud:
-        a silently-missing composer is how the mailbox view first shipped."""
-        try:
-            self.composer = self.composer_class()(self, app.renderer)
-        except Exception as error:
-            app.show_error(error, "Composer mount failed")
-            return
-        self._composer_slot.addWidget(self.composer)
+    def _composer_mounted(self, app: "QtToadApp", composer: Composer) -> None:
         # Under the composer, as on a channel: the question an agent asks (a permission, a
         # confirmation), hidden until asked.
         self.question = QtQuestion(app, self)
         self._composer_slot.addWidget(self.question)
-        self.composer.labelled(self.composer_label)
+        composer.labelled(self.composer_label)
         self.sync_status()
 
     async def command_target_context(self) -> TargetContext:
