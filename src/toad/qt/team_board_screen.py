@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import time
 from functools import partial
-from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -41,18 +40,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from agent_comms.team.team_hud import TeamHud
 from toad.client.subscribers import CallbackSubscription
 from toad.client.team_board import TeamBoardState
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
-
-if TYPE_CHECKING:
-    from agent_comms.team.team_hud import TeamHud
-
-    from toad.qt.window import QtToadApp
-
+from toad.qt.window import QtToadApp
 
 class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
     """Modal team board dialog.
@@ -108,11 +103,11 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
             self.observe_core_callback(
                 self.coordination.events, TeamHudFailed,
                 self._on_hud_failed, factory=CallbackSubscription)
-            self.coordination.show_team(self, True)
+            self.coordination.show_team(self, True, self.state.selection)
 
     def closeEvent(self, event) -> None:  # type: ignore[override]
         if self._attached:
-            self.coordination.show_team(self, False)
+            self.coordination.show_team(self, False, self.state.selection)
             self.close_core_events()
             self._attached = False
         super().closeEvent(event)

@@ -10,8 +10,8 @@ from agent_comms.task_attachments.disclosure_text import (
     DisclosureKey,
     ViewTable,
 )
+from rich.text import Text
 from textual import on
-from textual.content import Content
 from textual.events import Resize
 from textual.style import Style
 from textual.widgets import DataTable
@@ -78,7 +78,7 @@ class SelectedTableRecord[R](TableSelection[R]):
         table.move_cursor(row=table.get_row_index(native), animate=False, scroll=False)
 
 
-class DeclaredTable[R](OpensSelected, DataTable[Content]):
+class DeclaredTable[R](OpensSelected, DataTable[Text]):
     """Core owns columns and measurement; DataTable owns rows, geometry and repaint."""
 
     def __init__(self, source: ViewTable[R]) -> None:
@@ -124,12 +124,12 @@ class DeclaredTable[R](OpensSelected, DataTable[Content]):
         available = self.size.width - self.scrollbar_size_vertical
         layout = self.source.layout(available - self.cell_padding * 2 * len(self.source.columns))
         widths = layout.widths(max(1, available - self.cell_padding * 2 * len(layout.columns)))
-        self.show_header = layout.show_header
+        self.show_header = bool(layout.header_rows())
         rows = []
         for record, texts in zip(entities.values(), layout.texts):
             colour = self.app.colours.colour(self.row_tone(record))
             style = Style(background=colour, foreground=colour.get_contrast_text())
-            rows.append(tuple(Content(text).stylize(style) for text in texts))
+            rows.append(tuple(Text(text, style=style.rich_style, overflow="fold") for text in texts))
         columns_changed = tuple((column.key.value, column.width) for column in self.ordered_columns) != tuple(
             (column.name, width) for column, width in zip(layout.columns, widths)
         )

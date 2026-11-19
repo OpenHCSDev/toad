@@ -15,7 +15,9 @@ from agent_comms.task_attachments.disclosure_text import (
 from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
 from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.team.team_hud import (
+    AllTeamBoards,
     CodexUsage,
+    NamedTeamBoards,
     TeamFrame,
     TeamHud,
     TeamPlan,
@@ -23,7 +25,7 @@ from agent_comms.team.team_hud import (
 )
 from agent_comms.team.team_hud_records import HudRecord, Teammate
 from agent_comms.team.vibe_check import OverloadDegradation
-from agent_comms.ui_model.observation import ObserveTeamHud
+from agent_comms.ui_model.observation import ObserveTeamHud, StopTeamHud
 from agent_comms.ui_model.teammate_state import Detached, Moving, PendingClock
 from support.workspace import Workspace
 from textual.widgets import Button, Static
@@ -96,10 +98,11 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         await ui.until(lambda: table.selected == selected(unit), why="the actual unit to acquire a native row")
         table.focus()
         await pilot.press("enter")
-        await ui.until_shows(Detached.action)
+        await ui.until(lambda: " ".join(Detached.action.split()) in " ".join(" ".join(strip.text for strip in table.render_lines(table.size.region)).split()),
+                       why="the complete action across wrapped table rows")
         # There is no registered unit behind this published fixture. Its real
         # original-detail refusal must remain visible while observation recovers.
-        await ui.until_shows("Original details unavailable:")
+        await ui.until_shows("Could not read the records behind")
         assert str(view.heading.render()) == "Team claude-code"
         strip = str(view.status.render())
         assert "Load: 0" in strip and "Forks: 1" in strip
@@ -141,7 +144,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
                        why="changed strikes to invalidate the real selected card")
         await ui.until(lambda: len([event for event in events if event.state is WorkerState.PENDING]) == 1,
                        why="one new original-detail worker for the changed card")
-        await ui.until_shows("Original details unavailable:")
+        await ui.until_shows("Could not read the records behind")
         assert not notice.display
         assert rows.query_one(TeamFrameView) is view
         assert view.query_one(TeamTable) is table and table.has_focus
@@ -168,6 +171,30 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         await pilot.press("escape")
         await ui.step()
         assert app.screen is not page
+
+
+async def test_visible_team_pages_share_exact_recipient_interest(workspace: Workspace) -> None:
+    async with workspace.app() as ui:
+        app, _pilot = ui.textual
+        first = TeamPage("first")
+        await app.push_screen(first)
+        access = app.coordination_access
+        assert access.team_interest == ObserveTeamHud(NamedTeamBoards(frozenset(("first",))))
+        second = TeamPage("second")
+        await app.push_screen(second)
+        assert access.team_interest == ObserveTeamHud(NamedTeamBoards(frozenset(("first", "second"))))
+        full = TeamPage()
+        await app.push_screen(full)
+        assert access.team_interest == ObserveTeamHud(AllTeamBoards())
+        await app.pop_screen()
+        await ui.step()
+        assert access.team_interest == ObserveTeamHud(NamedTeamBoards(frozenset(("first", "second"))))
+        await app.pop_screen()
+        await ui.step()
+        assert access.team_interest == ObserveTeamHud(NamedTeamBoards(frozenset(("first",))))
+        await app.pop_screen()
+        await ui.step()
+        assert access.team_interest == StopTeamHud()
 
 
 async def test_a_heartbeat_with_no_frames_still_says_it_is_waiting(workspace: Workspace) -> None:
@@ -280,7 +307,7 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
             await ui.until(lambda: disclosure.body.display, why="the scalar/class/family body to expand")
             assert str(disclosure.body.render()) == disclosed.summary
             assert disclosed.summary in str(disclosure.title)
-        assert DisclosureText.describe(Detached).summary == Detached.declared_name
+        assert DisclosureText.describe(Detached).summary == Detached.display_label()
         assert not str(disclosure.body.render()).startswith("<class ")
 
         source = DisclosureText.describe(hud.units[0])
