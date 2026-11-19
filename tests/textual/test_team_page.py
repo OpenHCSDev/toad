@@ -1,12 +1,11 @@
 """Textual-facing: retain the real team page across Core frame replacements."""
 
 import json
-from dataclasses import dataclass, replace
-from pathlib import Path
+from dataclasses import replace
 
 from PySide6.QtWidgets import QApplication, QWidget
 from agent_comms.nominal.text_digest import TextDigest
-from agent_comms.registry.thread_identity import RecordedThreadIncarnation, ThreadIncarnation
+from agent_comms.registry.thread_identity import RecordedThreadIncarnation
 from agent_comms.storage.recorded_time import RecordedEventTime
 from agent_comms.task_attachments.disclosure_text import (
     DisclosureEntry,
@@ -21,7 +20,8 @@ from agent_comms.task_attachments.team_pings import (
     RulePing,
     TeamUpdateNotice,
 )
-from agent_comms.team.board_actions import BoardActionApplied, BoardActionOffer
+from agent_comms.team import judge
+from agent_comms.team.order import TeamVerbActionOffer
 from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.team.team_hud import (
     AllTeamBoards,
@@ -60,29 +60,17 @@ from toad.widgets.declared_disclosure import DeclaredDisclosure
 from toad.widgets.declared_table import EmptyTableSelection, SelectedTableRecord
 
 
-@dataclass(frozen=True)
-class VisibleBoardActionOffer(BoardActionOffer):
-    observation: TextDigest
-    recipient: ThreadIncarnation
-
-    @property
-    def label(self) -> str:
-        return "Apply board fix"
-
-    @property
-    def words(self) -> tuple[str, ...]:
-        return ("probe", self.observation.value)
-
-    def execute(self, root: Path, actor: str) -> BoardActionApplied:
-        return BoardActionApplied((f"applied for {actor}",))
-
-
 def selected(record: HudRecord) -> SelectedTableRecord[HudRecord]:
     return SelectedTableRecord(DisclosureText.describe(record).sequence_key, record)
 
 
-def with_board_action(hud: TeamHud) -> tuple[TeamHud, VisibleBoardActionOffer]:
-    offer = VisibleBoardActionOffer(TextDigest.of("board source"), hud.teammate)
+def with_board_action(hud: TeamHud) -> tuple[TeamHud, TeamVerbActionOffer]:
+    offer = TeamVerbActionOffer(
+        judge.PromoteVerb,
+        ("--problem", "P1"),
+        TextDigest.of("board source"),
+        hud.teammate,
+    )
     ping = RulePing(
         ServicePassFailing,
         offer.observation,
