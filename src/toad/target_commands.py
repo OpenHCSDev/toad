@@ -109,7 +109,7 @@ class BoardCommand:
             offer
             for packet in hud.packets
             for ping in packet.handled
-            for offer in ping.board_actions()
+            for offer in ping.board_actions(hud.teammate)
         )
         return tuple(cls(offer) for offer in offers)
 
