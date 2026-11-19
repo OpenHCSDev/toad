@@ -4,6 +4,7 @@ from agent_comms.execution.pi_vocabulary import HighThinkingLevel
 from support.native import native_session
 
 from toad.core import input_events
+from toad.widgets.model_switcher import FinishSessionSettings, SessionModelEditor
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.prompt import AgentInfo
 
@@ -23,7 +24,10 @@ async def test_thinking_level_changes_during_a_turn_and_survives_reattaching(wor
         undo = view.prompt.prompt_text_area.history
         assert await pilot.click(view.prompt.query_one(AgentInfo))
         picker = view.prompt.model_switcher
-        await ui.until(lambda: picker.search_input.has_focus, why="the model picker")
+        await ui.until(
+            lambda: picker.query_one(SessionModelEditor).search_input.has_focus,
+            why="the model picker",
+        )
         await ui.press("down", "enter")
         await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the thinking menu")
 
@@ -36,6 +40,8 @@ async def test_thinking_level_changes_during_a_turn_and_survives_reattaching(wor
                        seconds=15, why="the thinking level on the owner")
         await ui.until(lambda: agent.configuration.thinking.current == "high", seconds=15,
                        why="the thinking level in the agent's configuration")
+        assert await pilot.click(picker.query_one(FinishSessionSettings))
+        await ui.until(lambda: not picker.is_open, why="Done to close the live settings")
         assert native.executing, "The picker waited for the turn to finish"
         assert not provider.released.is_set(), "The picker released the held model reply"
         provider.release()

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Self
 
-from textual import events, work
+from textual import containers, events, work
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar
+from textual.widgets import Button
 
 from toad.acp.agent_configuration import (
     AdvertisedChoices,
@@ -17,7 +18,16 @@ from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
-from toad.native_style import ScreenOverlay
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    DockedBottom,
+    FillHeight,
+    ScreenOverlay,
+    SideMargin,
+    StableGutter,
+)
+from toad.widgets.acting_button import DismissButton
 from toad.widgets.model_selection import (
     ModelSelection,
     SelectionBounds,
@@ -60,7 +70,7 @@ class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationS
         self.configuration_changed()
 
     def connect_provider(self) -> None:
-        self.query_ancestor(SessionForm).prompt.publish_core(input_events.ProviderLogin())
+        self.query_ancestor(SessionForm).publish_core(input_events.ProviderLogin())
 
     def dismiss_control(self) -> None:
         self.query_ancestor(SessionForm).dismiss_control()
@@ -99,11 +109,11 @@ class SessionForm(CoreEventReceiver, InlineFormView):
             field = self.values[path].field
             setting = field.metadata(AdvertisedSetting).setting
             if field.value != setting.current:
-                self.prompt.publish_core(setting.selection_event(field.value))
+                self.publish_core(setting.selection_event(field.value))
 
 
-class PopupSessionForm(SessionForm):
-    """The popup adds dismissal to the same advertised settings form."""
+class PopupSessionForm(FillHeight, StableGutter, SessionForm):
+    """The bounded popup scrolls its live advertised settings above its controls."""
 
     @classmethod
     def settings(cls, configuration):
@@ -117,7 +127,28 @@ class PopupSessionForm(SessionForm):
         self.query_ancestor(ModelSwitcher).dismiss_control()
 
 
-class ModelSwitcher(SelectionBounds, ScreenOverlay, InfoPopup):
+class SessionSettingsButtons(DockedBottom, AutoHeight, containers.Horizontal):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 3
+        self.styles.align_horizontal = "center"
+
+
+class SessionSettingsButton(AutoWidth, SideMargin, Button):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_width = 12
+
+
+class FinishSessionSettings(DismissButton, SessionSettingsButton):
+    """Close the panel after its live settings have been chosen."""
+
+
+class ModelSwitcher(
+    SelectionBounds,
+    ScreenOverlay,
+    InfoPopup,
+):
     """Every advertised session field, edited through the shared form machinery."""
 
     height = Scalar.from_number(24)
@@ -127,6 +158,8 @@ class ModelSwitcher(SelectionBounds, ScreenOverlay, InfoPopup):
     def compose_content(self) -> ComposeResult:
         self.form = PopupSessionForm.for_prompt(self.prompt)
         yield self.form
+        with SessionSettingsButtons():
+            yield FinishSessionSettings("Done", variant="primary")
 
     def configuration_changed(self) -> None:
         if self.is_mounted and self.is_open:

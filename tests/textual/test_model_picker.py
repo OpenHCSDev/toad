@@ -15,7 +15,7 @@ from toad.acp.status import EndTurnStopReason
 from toad.command_catalog import CommandCatalog
 from toad.client.db import DB
 from toad.widgets.model_selection import ClearModelSearchAction
-from toad.widgets.model_switcher import SessionModelEditor
+from toad.widgets.model_switcher import FinishSessionSettings, SessionModelEditor
 from toad.widgets.prompt import AgentInfo
 
 GLM = "openrouter/z-ai/glm-5.3-flash"
@@ -108,9 +108,12 @@ async def choose_gpt(picker):
     assert picker.ids()[0] == GPT
     await picker.ui.press("enter")
     await picker.ui.until(lambda: picker.agent.configuration.model.current == GPT, why="the model change")
+    assert picker.widget.is_open, "The live settings stay open for related choices"
     async def first():
         return (await picker.recents())[0] == GPT
     await picker.ui.until(first, why="the chosen model first in recent models")
+    assert await picker.pilot.click(picker.widget.query_one(FinishSessionSettings))
+    await picker.ui.until(lambda: not picker.widget.is_open, why="Done to close the settings")
 
 
 async def open_by_clicking_the_model(picker):
@@ -199,15 +202,20 @@ async def test_the_picker_stays_inside_the_screen_when_it_is_resized(workspace):
             assert widget.region.x >= 0 and widget.region.right <= width
             assert widget.region.y >= 0 and widget.region.bottom <= height
             assert picker.selection.search_input.region.y < picker.selection.option_list.region.y
+            done = widget.query_one(FinishSessionSettings)
+            assert done.region.y >= widget.region.y and done.region.bottom <= widget.region.bottom
+        options = picker.selection.option_list
+        assert options.max_scroll_y > 0, "The long catalogue must scroll inside its own list"
+        assert options.scrollbar_gutter.width > 0, "The scrollable catalogue must reserve a visible gutter"
 
 
 async def test_a_model_the_agent_refuses_is_not_applied_or_recorded(workspace):
     async with picker_session(workspace) as picker:
         await choose_gpt(picker)
         await picker.open_with_command()
-        await picker.ui.press(*"unavailable", "enter")
+        async with picker.ui.reporting_error():
+            await picker.ui.press(*"unavailable", "enter")
         await picker.ui.until(lambda: picker.agent.calls[-1] == "test/unavailable", why="the refused request")
-        await picker.ui.step()
         assert picker.agent.configuration.model.current == GPT
         assert "test/unavailable" not in await picker.recents()
 

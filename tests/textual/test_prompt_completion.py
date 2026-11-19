@@ -192,6 +192,8 @@ async def test_file_search_inserts_a_path_and_follows_picker_focus_resize_and_ca
 
 
 async def test_model_picker_selects_through_the_agent_and_keeps_the_draft(workspace):
+    from toad.widgets.model_switcher import FinishSessionSettings, SessionModelEditor
+
     async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
         _app, pilot = ui.textual
         view, prompt, agent = await ready_prompt(workspace, ui)
@@ -199,17 +201,25 @@ async def test_model_picker_selects_through_the_agent_and_keeps_the_draft(worksp
         prompt.text = "Unfinished draft"
         assert await pilot.click(prompt.query_one(AgentInfo))
         picker = prompt.model_switcher
-        await ui.until(lambda: picker.is_open and picker.search_input.has_focus, why="the model picker")
+        await ui.until(
+            lambda: picker.is_open and picker.query_one(SessionModelEditor).search_input.has_focus,
+            why="the model picker",
+        )
         assert not paths.is_open and not slash.is_open
         await ui.press(*"second")
         await ui.until(lambda: painted_text(picker, "Local second"), why="the model in the picker")
         await ui.press("enter")
         await ui.until(lambda: view.agent_binding.configuration.model.current == "local/second", why="the selected model")
         assert {"config_id": "model", "value": "local/second"} in wire_records(workspace)
+        assert picker.is_open
+        assert await pilot.click(picker.query_one(FinishSessionSettings))
         await ui.until(lambda: not picker.is_open and prompt.prompt_text_area.has_focus, why="the picker closed")
         assert prompt.text == "Unfinished draft"
         assert await pilot.click(prompt.query_one(AgentInfo))
-        await ui.until(lambda: picker.search_input.has_focus, why="the picker reopened")
+        await ui.until(
+            lambda: picker.query_one(SessionModelEditor).search_input.has_focus,
+            why="the picker reopened",
+        )
         await ui.press("escape")
         await ui.until(lambda: not picker.is_open and prompt.prompt_text_area.has_focus, why="the picker dismissed")
 
