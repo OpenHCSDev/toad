@@ -363,7 +363,7 @@ class TeamActionButton(ActingButton):
 
     async def act(self) -> None:
         result = await asyncio.to_thread(
-            self.command.execute, self.app.coordination_access.connection,
+            self.command.execute, self.app.coordination_access.open_current().core,
         )
         self.app.notify("\n".join(result.lines), title=self.command.label, markup=False)
 

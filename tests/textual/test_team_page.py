@@ -1,11 +1,13 @@
 """Textual-facing: retain the real team page across Core frame replacements."""
 
 import json
-from dataclasses import replace
+from dataclasses import dataclass, replace
+from pathlib import Path
+from types import SimpleNamespace
 
 from PySide6.QtWidgets import QApplication, QWidget
 from agent_comms.nominal.text_digest import TextDigest
-from agent_comms.registry.thread_identity import RecordedThreadIncarnation
+from agent_comms.registry.thread_identity import RecordedThreadIncarnation, ThreadIncarnation
 from agent_comms.storage.recorded_time import RecordedEventTime
 from agent_comms.task_attachments.disclosure_text import (
     DisclosureEntry,
@@ -19,9 +21,9 @@ from agent_comms.task_attachments.team_pings import (
     NewAlarms,
     RulePing,
     TeamUpdateNotice,
+    TeamUpdateStore,
 )
-from agent_comms.team import judge
-from agent_comms.team.order import TeamVerbActionOffer
+from agent_comms.team.board_actions import BoardActionApplied, BoardActionOffer
 from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.team.team_hud import (
     AllTeamBoards,
@@ -64,13 +66,9 @@ def selected(record: HudRecord) -> SelectedTableRecord[HudRecord]:
     return SelectedTableRecord(DisclosureText.describe(record).sequence_key, record)
 
 
-def with_board_action(hud: TeamHud) -> tuple[TeamHud, TeamVerbActionOffer]:
-    offer = TeamVerbActionOffer(
-        judge.PromoteVerb,
-        ("--problem", "P1"),
-        TextDigest.of("board source"),
-        hud.teammate,
-    )
+def with_board_action(
+    hud: TeamHud, offer: BoardActionOffer,
+) -> TeamHud:
     ping = RulePing(
         ServicePassFailing,
         offer.observation,
@@ -78,7 +76,7 @@ def with_board_action(hud: TeamHud) -> tuple[TeamHud, TeamVerbActionOffer]:
         offers=(offer,),
     )
     packet = TeamUpdateNotice(hud.teammate, (ping,))
-    return replace(hud, packets=(packet,)), offer
+    return replace(hud, packets=(packet,))
 
 
 def row_maps_cohere(table: TeamTable) -> bool:
@@ -292,14 +290,40 @@ async def test_a_refresh_right_after_a_key_keeps_the_key(workspace: Workspace) -
         assert table.selected == selected(second)
 
 
-async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(workspace: Workspace, monkeypatch) -> None:
-    first, offer = with_board_action(published_hud())
-    second = replace(first, teammate=RecordedThreadIncarnation("other", 4.0))
+async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(
+    workspace: Workspace, monkeypatch, request,
+) -> None:
+    recipient = workspace.thread("board-recipient").incarnation
+    dispatched: list[str] = []
+
+    @dataclass(frozen=True)
+    class ClickProbeOffer(BoardActionOffer):
+        observation: TextDigest
+        recipient: ThreadIncarnation
+
+        @property
+        def label(self) -> str:
+            return "Apply board fix"
+
+        @property
+        def words(self) -> tuple[str, ...]:
+            return ("probe", self.observation.value)
+
+        def execute(self, root: Path, actor: str) -> BoardActionApplied:
+            dispatched.append(actor)
+            return BoardActionApplied((f"applied for {actor}",))
+
+    request.addfinalizer(ClickProbeOffer.withdraw)
+    offer = ClickProbeOffer(TextDigest.of("board source"), recipient)
+    first = with_board_action(replace(published_hud(), teammate=recipient), offer)
+    TeamUpdateStore.record(workspace.comms.root, first.packets[0])
+    second = replace(first, teammate=RecordedThreadIncarnation("other", 4.0), packets=())
     initial = TeamBoardCut((first, second), frozenset((first.teammate, second.teammate)))
     changed = replace(first, units=())
     update = TeamBoardCut((changed, second), frozenset((first.teammate,)))
     async with workspace.app() as ui:
         app, _pilot = ui.textual
+        qt_core = app.coordination_access.open_current().core
         page = TeamPage()
         await app.push_screen(page)
         await ui.step()
@@ -309,6 +333,8 @@ async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(worksp
         unchanged_view = page.rows[second.teammate]
         action_button = changed_view.actions.query_one(TeamActionButton)
         assert str(action_button.label) == offer.label
+        action_button.press()
+        await ui.until(lambda: dispatched == [recipient.name], why="the UI offer to execute in Core")
         await ui.until(
             lambda: bool(unchanged_view.query(TeamTable)),
             why="the unchanged recipient table to mount",
@@ -327,7 +353,9 @@ async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(worksp
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     qt = QApplication.instance() or QApplication([])
     parent = QWidget()
-    parent.coordination_access = app.coordination_access
+    parent.coordination_access = SimpleNamespace(
+        open_current=lambda: SimpleNamespace(core=qt_core),
+    )
     screen = QtTeamBoardScreen(parent)
     screen._on_hud_changed(TeamHudChanged(initial))
     changed_tab = screen.members[first.teammate]

@@ -149,7 +149,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
             view = self.members.get(key)
             if view is None:
                 view = QtTeamMemberView(
-                    self.state, hud, self.coordination.connection, self,
+                    self.state, hud, self.coordination.open_current().core, self,
                 )
                 self.members[key] = view
                 self.tabs.insertTab(index, view, hud.teammate.name)
