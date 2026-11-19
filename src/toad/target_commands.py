@@ -10,6 +10,9 @@ from typing import Self
 from agent_comms.projects.checkouts import Checkout
 
 from agent_comms.cli_verbs.cli_command import TargetAction
+from agent_comms.team.board_actions import BoardActionApplied, BoardActionOffer
+from agent_comms.transport.request import CoreAccess
+from agent_comms.transport.tools.orders import CommsBoardActionTool
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 
 from toad.client.commands import (
@@ -90,6 +93,21 @@ class ThreadCommand(ContextualCommand):
 
     def execute(self, ctx):
         ThreadAction.collect(ctx, self.definition)
+
+
+@dataclass(frozen=True)
+class BoardCommand:
+    """One Core-owned rule action projected identically by Textual and Qt."""
+
+    offer: BoardActionOffer
+
+    @property
+    def label(self) -> str:
+        return self.offer.label
+
+    def execute(self, core: CoreAccess) -> BoardActionApplied:
+        return core.call(CommsBoardActionTool(offer=self.offer))
+
 
 class ViewCommand(ContextualCommand, SlashCommand, ViewLocalCommand):
     @classmethod
