@@ -489,6 +489,23 @@ class PriorityActions(ActionPresentation,
     """The selected actions take precedence over focused controls."""
 
 
+class CyclesFocusedControl(
+    PriorityActions,
+    CyclesFocus,
+    scopes={PriorityActions: (FocusAction,)},
+):
+    """A focused control executes the focus keys its shared capability declares."""
+
+    @on(events.Key)
+    async def cycle_focus_key(self, event: events.Key) -> None:
+        for declaration in FocusAction.members_with(FocusAction):
+            for binding in self.active_declared_bindings(declaration):
+                if binding.key == event.key:
+                    event.stop()
+                    await binding.run(self.app, self)
+                    return
+
+
 class HiddenActions(ActionPresentation,
                     fields=(FieldCodec.field_plan(Binding, "show"),), combine=hide):
     """The selected actions stay out of the footer."""

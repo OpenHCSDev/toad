@@ -42,6 +42,7 @@ from toad.native_style import (
 )
 from toad.widget_actions import (
     Activates,
+    CyclesFocusedControl,
     DismissibleControl,
     ForwardsCursor,
     PriorityActions,
@@ -115,6 +116,10 @@ class ClearModelSearchAction(WidgetAction):
 class ModelCount(MutedText, OneRow, SidePadding, Static):
 
     """Its look is its bases."""
+
+
+class ModelSearchInput(CyclesFocusedControl, Input):
+    """Search text owns Tab traversal to the popup's next declared control."""
 
 
 class ModelOptionList(
@@ -224,7 +229,7 @@ class ModelSelection(
     def connect_provider(self) -> None: ...
 
     def compose_content(self) -> ComposeResult:
-        yield Input(placeholder=f"Search {self.choice_name} or providers…", compact=True)
+        yield ModelSearchInput(placeholder=f"Search {self.choice_name} or providers…", compact=True)
         yield ModelCount("", markup=False)
         options = ModelOptionList()
         options.can_focus = False

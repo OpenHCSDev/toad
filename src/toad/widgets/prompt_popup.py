@@ -148,7 +148,8 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
         self.call_later(self.close_if_unfocused)
 
     def close_if_unfocused(self) -> None:
-        if not self.has_focus_within:
+        focused = self.screen.focused
+        if focused is None or self not in focused.ancestors_with_self:
             self.is_open = False
 
 

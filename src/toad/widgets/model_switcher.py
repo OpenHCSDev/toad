@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Self
 
-from textual import containers, events, work
+from textual import containers, events, on, work
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar
+from textual.view import FILL
 from textual.widgets import Button
 
 from toad.acp.agent_configuration import (
@@ -22,7 +23,7 @@ from toad.native_style import (
     AutoHeight,
     AutoWidth,
     DockedBottom,
-    FillHeight,
+    HiddenOverflow,
     ScreenOverlay,
     SideMargin,
     StableGutter,
@@ -84,7 +85,7 @@ class SessionForm(CoreEventReceiver, InlineFormView):
 
     @classmethod
     def settings(cls, configuration):
-        return tuple(configuration.selections.values())
+        return configuration.picker_settings
 
     @classmethod
     def for_prompt(cls, prompt):
@@ -112,12 +113,10 @@ class SessionForm(CoreEventReceiver, InlineFormView):
                 self.publish_core(setting.selection_event(field.value))
 
 
-class PopupSessionForm(FillHeight, StableGutter, SessionForm):
+class PopupSessionForm(StableGutter, SessionForm):
     """The bounded popup scrolls its live advertised settings above its controls."""
 
-    @classmethod
-    def settings(cls, configuration):
-        return configuration.picker_settings
+    height = FILL
 
     def open_model(self, editor):
         if self.query_ancestor(ModelSwitcher).is_open:
@@ -125,6 +124,10 @@ class PopupSessionForm(FillHeight, StableGutter, SessionForm):
 
     def dismiss_control(self):
         self.query_ancestor(ModelSwitcher).dismiss_control()
+
+    @on(events.DescendantFocus)
+    def reveal_focused_setting(self, event: events.DescendantFocus) -> None:
+        self.scroll_to_widget(event.widget, animate=False, immediate=True)
 
 
 class SessionSettingsButtons(DockedBottom, AutoHeight, containers.Horizontal):
@@ -146,6 +149,7 @@ class FinishSessionSettings(DismissButton, SessionSettingsButton):
 
 class ModelSwitcher(
     SelectionBounds,
+    HiddenOverflow,
     ScreenOverlay,
     InfoPopup,
 ):
@@ -153,7 +157,6 @@ class ModelSwitcher(
 
     height = Scalar.from_number(24)
     width = Scalar.from_number(84)
-    overflow_y = "auto"
 
     def compose_content(self) -> ComposeResult:
         self.form = PopupSessionForm.for_prompt(self.prompt)

@@ -5,17 +5,34 @@ import subprocess
 import sys
 from contextlib import asynccontextmanager
 
-from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
+from acp.schema import (
+    SessionConfigOptionSelect,
+    SessionConfigSelectOption,
+    SetSessionConfigOptionResponse,
+)
 from support.agents import AppAgents, command
-
+from textual import events
+from textual.pilot import _get_mouse_message_arguments
 
 from formbridge.key_declarations import TextEntryMode
 from toad.acp.agent import Agent
+from toad.acp.agent_configuration import (
+    AdvertisedSetting,
+    ModelConfigurationSetting,
+    ServiceTierConfigurationSetting,
+    ThinkingConfigurationSetting,
+)
 from toad.acp.status import EndTurnStopReason
 from toad.command_catalog import CommandCatalog
 from toad.client.db import DB
+from toad.forms.editors import ChoicesEditor
 from toad.widgets.model_selection import ClearModelSearchAction
-from toad.widgets.model_switcher import FinishSessionSettings, SessionModelEditor
+from toad.widgets.model_switcher import (
+    FinishSessionSettings,
+    PopupSessionForm,
+    SessionForm,
+    SessionModelEditor,
+)
 from toad.widgets.prompt import AgentInfo
 
 GLM = "openrouter/z-ai/glm-5.3-flash"
@@ -33,8 +50,49 @@ def catalogue():
         SessionConfigSelectOption(value="test/unavailable", name="Unavailable model"),
     )}
     models.update({f"test/model-{n:04}": SessionConfigSelectOption(value=f"test/model-{n:04}", name=f"Model {n:04}")
-                   for n in range(1000)})
+                   for n in range(439)})
     return models
+
+
+def advertised_settings(models, model=GLM, thinking_level="low", service_tier="standard"):
+    """The test agent's actual ACP declaration; field order comes from this response."""
+    return [
+        SessionConfigOptionSelect(
+            id="thinking_level", name="Thinking level", category="thought_level", type="select",
+            current_value=thinking_level, options=[
+                SessionConfigSelectOption(value="low", name="Low"),
+                SessionConfigSelectOption(value="high", name="High"),
+            ],
+        ),
+        SessionConfigOptionSelect(
+            id="service_tier", name="Service tier", category="service_tier", type="select",
+            current_value=service_tier, options=[
+                SessionConfigSelectOption(value="standard", name="Standard"),
+                SessionConfigSelectOption(value="priority", name="Priority"),
+            ],
+        ),
+        SessionConfigOptionSelect(
+            id="model", name="Model", category="model", type="select",
+            current_value=model, options=list(models.values()),
+        ),
+    ]
+
+
+class PickerRpc:
+    """The ACP boundary used by ordinary advertised-setting edits."""
+
+    def __init__(self, agent):
+        self.agent = agent
+
+    async def set_config_option(self, config_id, session_id, value):
+        self.agent.config_calls.append((config_id, value))
+        self.agent.values[config_id] = value
+        return SetSessionConfigOptionResponse(
+            config_options=advertised_settings(self.agent.models, **self.agent.values)
+        )
+
+    async def close(self):
+        pass
 
 
 class PickerAgent(Agent):
@@ -43,16 +101,22 @@ class PickerAgent(Agent):
     def __init__(self, *args, models, **kwargs):
         super().__init__(*args, **kwargs)
         self.calls = []
-        self.configuration.receive([SessionConfigOptionSelect(
-            id='model', name='Model', category='model', type='select',
-            current_value=next(iter(models)), options=list(models.values()))])
+        self.config_calls = []
+        self.models = models
+        self.values = {
+            "model": next(iter(models)),
+            "thinking_level": "low",
+            "service_tier": "standard",
+        }
+        self.process.connection = PickerRpc(self)
+        self.configuration.receive(advertised_settings(models, **self.values))
 
     async def set_model(self, model_id):
         self.calls.append(model_id)
         if model_id == "test/unavailable":
             return "Model unavailable"
-        self.configuration.receive([self.configuration.model.option.model_copy(
-            update={'current_value': model_id})])
+        self.values["model"] = model_id
+        self.configuration.receive(advertised_settings(self.models, **self.values))
         return None
 
 
@@ -79,6 +143,32 @@ class Picker:
 
     async def recents(self):
         return await self.db.recent_models(SCOPE)
+
+    def setting_editor(self, kind):
+        return next(
+            row.editor
+            for row in self.widget.form.values.values()
+            if isinstance(row.field.metadata(AdvertisedSetting).setting, kind)
+        )
+
+    async def focus_with_tab(self, target):
+        visited = []
+        for _ in range(12):
+            if target.has_focus_within:
+                return
+            await self.ui.press("tab")
+            focused = self.ui.app.focused
+            visited.append(None if focused is None else type(focused).__name__)
+        raise AssertionError(
+            f"Tab never reached {type(target).__name__}; focus sequence={visited}"
+        )
+
+    async def wheel_down(self, target):
+        arguments = _get_mouse_message_arguments(
+            target, (target.size.width - 1, min(2, target.size.height - 1))
+        )
+        await self.ui.app._post_message_and_wait(events.MouseScrollDown(**arguments))
+        await self.ui.step()
 
 
 @asynccontextmanager
@@ -191,6 +281,113 @@ async def test_choosing_another_model_applies_it_and_makes_it_the_most_recent(wo
         await picker.open_with_command()
         await picker.ui.until(lambda: picker.selection.recent_ids[0] == GPT, why="the chosen model first in the picker")
         assert picker.ids()[0] == GPT
+
+
+async def test_model_settings_remain_reachable_after_scrolling_the_catalogue(workspace):
+    async with picker_session(workspace) as picker:
+        await picker.ui.resize(80, 18)
+        await picker.open_with_command()
+        assert len(picker.ids()) == 444
+        configuration = picker.agent.configuration
+        assert SessionForm.settings(configuration) == PopupSessionForm.settings(configuration)
+        assert [
+            type(row.field.metadata(AdvertisedSetting).setting)
+            for row in picker.widget.form.values.values()
+        ] == [
+            ModelConfigurationSetting,
+            ThinkingConfigurationSetting,
+            ServiceTierConfigurationSetting,
+        ]
+        assert picker.selection.current == configuration.model.current
+
+        options = picker.selection.option_list
+        before = options.scroll_y
+        await picker.wheel_down(options)
+        assert options.scroll_y > before, "The pointer must scroll the bounded catalogue"
+
+        picker.selection.search_input.clear()
+        await picker.ui.press(*"gpt 5.4", "enter")
+        await picker.ui.until(
+            lambda: picker.agent.configuration.model.current == GPT,
+            why="the model selection",
+        )
+        await picker.ui.until(
+            lambda: picker.widget.form.represents(picker.agent.configuration),
+            why="the dependent settings rebuild",
+        )
+
+        await picker.ui.until(
+            lambda: bool(picker.selection.recent_ids),
+            why="the rebuilt model editor's recent choices",
+        )
+        thinking = picker.setting_editor(ThinkingConfigurationSetting)
+        service = picker.setting_editor(ServiceTierConfigurationSetting)
+        done = picker.widget.query_one(FinishSessionSettings)
+        assert isinstance(thinking, ChoicesEditor) and isinstance(service, ChoicesEditor)
+        await picker.ui.until(
+            lambda: thinking.is_mounted and service.is_mounted and done.is_mounted,
+            why="every advertised setting and Done to mount",
+        )
+        await picker.ui.step()
+
+        await picker.focus_with_tab(thinking)
+        await picker.ui.press("enter")
+        await picker.ui.until(lambda: thinking.expanded, why="the keyboard-opened thinking choices")
+        await picker.ui.press("down", "enter")
+        await picker.ui.until(
+            lambda: ("thinking_level", "high") in picker.agent.config_calls,
+            why="the thinking setting request",
+        )
+        await picker.ui.until(
+            lambda: picker.agent.configuration.thinking.current == "high",
+            why="the keyboard-selected thinking level",
+        )
+        await picker.ui.until(
+            lambda: picker.widget.form.represents(picker.agent.configuration),
+            why="the form after the thinking selection",
+        )
+
+        service = picker.setting_editor(ServiceTierConfigurationSetting)
+        assert isinstance(service, ChoicesEditor)
+        await picker.ui.until(lambda: service.is_mounted, why="the Service tier field to mount")
+        form = picker.widget.query_one(PopupSessionForm)
+        scrollbar = form.vertical_scrollbar
+        await picker.ui.until_clickable(
+            scrollbar,
+            (0, scrollbar.size.height - 2),
+            why="the settings-form scrollbar",
+        )
+        for _ in range(8):
+            assert await picker.pilot.click(
+                scrollbar, offset=(0, scrollbar.size.height - 2)
+            )
+        await picker.pilot.click(service, offset=(service.size.width - 2, 1))
+        await picker.ui.until(lambda: service.expanded, why="the pointer-opened service choices")
+        await picker.ui.click("Priority")
+        await picker.ui.until(
+            lambda: picker.agent.configuration.setting(ServiceTierConfigurationSetting).current
+                    == "priority",
+            why="the pointer-selected service tier",
+        )
+        await picker.ui.until(
+            lambda: picker.widget.form.represents(picker.agent.configuration),
+            why="the form after the service-tier selection",
+        )
+
+        done = picker.widget.query_one(FinishSessionSettings)
+        await picker.focus_with_tab(done)
+        await picker.ui.press("enter")
+        await picker.ui.until(lambda: not picker.widget.is_open, why="keyboard Done")
+
+        await picker.open_with_command()
+        done = picker.widget.query_one(FinishSessionSettings)
+        assert await picker.pilot.click(done)
+        await picker.ui.until(lambda: not picker.widget.is_open, why="pointer Done")
+        assert picker.agent.values == {
+            "model": GPT,
+            "thinking_level": "high",
+            "service_tier": "priority",
+        }
 
 
 async def test_the_picker_stays_inside_the_screen_when_it_is_resized(workspace):
