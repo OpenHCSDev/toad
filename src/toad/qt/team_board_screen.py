@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from agent_comms.team.team_hud import TeamHud
+from agent_comms.team.team_hud import TeamBoardCut, TeamHud
 from toad.client.subscribers import CallbackSubscription
 from toad.client.team_board import TeamBoardState
 from toad.core.events import TeamHudChanged, TeamHudFailed
@@ -58,6 +58,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
     one shared method — not a per-frontend branch."""
 
     def __init__(self, app: "QtToadApp", team_name: str = "") -> None:
+        self.members = {}
         super().__init__()
         self.setParent(app)
         self.setWindowTitle("Team")
@@ -113,30 +114,49 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
         super().closeEvent(event)
 
     def _on_hud_changed(self, event: TeamHudChanged) -> None:
-        self.state.apply_hud_change(event.huds)
+        TeamBoardState.apply_update(self.state, event.cut)
 
     def _on_hud_failed(self, event: TeamHudFailed) -> None:
         self.state.apply_hud_failure(event.error)
 
-    def _state_changed(self) -> None:
-        """TeamBoardState observer: rebuild tabs + error/empty visibility."""
+    def _state_changed(self, cut: TeamBoardCut | None) -> None:
+        """Reconcile only identities named by Core's atomic publication."""
         if self.state.last_error is not None:
-            message = ' '.join(str(self.state.last_error).splitlines())
+            message = " ".join(str(self.state.last_error).splitlines())
             self.error_label.setText(f"Team rows unavailable: {message}")
             self.error_label.setVisible(True)
         else:
             self.error_label.setVisible(False)
-
-        huds = self.state.huds
+        huds = {hud.teammate: hud for hud in self.state.huds}
         self.empty_label.setVisible(not huds)
         self.tabs.setVisible(bool(huds))
-
-        # Rebuild tabs in-place. Teams are small (few members); the heartbeat
-        # doesn't fire often enough for incremental diffing to matter.
-        self.tabs.clear()
-        for hud in huds:
-            tab = QtTeamMemberView(self.state, hud, self)
-            self.tabs.addTab(tab, hud.teammate.name)
+        current = self.tabs.currentWidget()
+        for key in tuple(self.members):
+            if key in huds:
+                continue
+            view = self.members.pop(key)
+            index = self.tabs.indexOf(view)
+            if index >= 0:
+                self.tabs.removeTab(index)
+            view.deleteLater()
+        changed = cut.changed if cut is not None else frozenset()
+        for index, (key, hud) in enumerate(huds.items()):
+            view = self.members.get(key)
+            if view is None:
+                view = QtTeamMemberView(self.state, hud, self)
+                self.members[key] = view
+                self.tabs.insertTab(index, view, hud.teammate.name)
+            else:
+                if key in changed:
+                    view.present(hud)
+                existing = self.tabs.indexOf(view)
+                if existing != index:
+                    self.tabs.removeTab(existing)
+                    self.tabs.insertTab(index, view, hud.teammate.name)
+                else:
+                    self.tabs.setTabText(index, hud.teammate.name)
+        if current is not None and self.tabs.indexOf(current) >= 0:
+            self.tabs.setCurrentWidget(current)
 
 
 class QtTeamMemberView(QWidget):
@@ -148,8 +168,14 @@ class QtTeamMemberView(QWidget):
     the table rows as children. The SAME filter helper powers Textual's
     `TeamFrameView.filtered_sections`."""
 
+    def present(self, hud: TeamHud) -> None:
+        self.hud = hud
+        self._render()
+
     def __init__(self, state: TeamBoardState, hud: "TeamHud",
                  parent: QWidget | None = None) -> None:
+        self.groups = {}
+        self.rows = {}
         super().__init__(parent)
         self.state = state
         self.hud = hud
@@ -189,14 +215,50 @@ class QtTeamMemberView(QWidget):
 
     def _render(self) -> None:
         self.status.setText(self.hud.status_strip(time.time()))
-        self.tree.clear()
         shown = self.state.filter_hud_sections(
             self.hud, self.filter_input.text(), self.needs_hand_check.isChecked())
-        for group, section in shown.items():
-            heading_item = QTreeWidgetItem([section.heading()])
-            for table in section.tables:
-                for record, cells in zip(table.records, table.texts):
-                    row_text = " │ ".join(cells)
-                    heading_item.addChild(QTreeWidgetItem([row_text]))
-            self.tree.addTopLevelItem(heading_item)
-            heading_item.setExpanded(True)
+        for group in tuple(self.groups):
+            if group in shown:
+                continue
+            item = self.groups.pop(group)
+            index = self.tree.indexOfTopLevelItem(item)
+            if index >= 0:
+                self.tree.takeTopLevelItem(index)
+            for key in tuple(self.rows):
+                if key[0] is group:
+                    del self.rows[key]
+        for group_index, (group, section) in enumerate(shown.items()):
+            heading = self.groups.get(group)
+            if heading is None:
+                heading = QTreeWidgetItem([section.heading()])
+                self.groups[group] = heading
+                self.tree.insertTopLevelItem(group_index, heading)
+                heading.setExpanded(True)
+            else:
+                heading.setText(0, section.heading())
+                existing = self.tree.indexOfTopLevelItem(heading)
+                if existing != group_index:
+                    self.tree.takeTopLevelItem(existing)
+                    self.tree.insertTopLevelItem(group_index, heading)
+            desired = [((group, key), " │ ".join(cells)) for table in section.tables
+                       for (key, _record), cells in zip(table.entities.items(), table.texts)]
+            desired_keys = {key for key, _text in desired}
+            for key in tuple(self.rows):
+                if key[0] is not group or key in desired_keys:
+                    continue
+                row = self.rows.pop(key)
+                existing = heading.indexOfChild(row)
+                if existing >= 0:
+                    heading.takeChild(existing)
+            for row_index, (key, text) in enumerate(desired):
+                row = self.rows.get(key)
+                if row is None:
+                    row = QTreeWidgetItem([text])
+                    self.rows[key] = row
+                    heading.insertChild(row_index, row)
+                else:
+                    row.setText(0, text)
+                    existing = heading.indexOfChild(row)
+                    if existing != row_index:
+                        heading.takeChild(existing)
+                        heading.insertChild(row_index, row)

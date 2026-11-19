@@ -6,7 +6,7 @@ family, after the history, as Textual's `CliDraft` draws it; no draft draws noth
 
 from __future__ import annotations
 
-from agent_comms.execution.transcript_sources import DraftRow
+from agent_comms.execution.transcript_sources import DraftFold
 from agent_comms.transcript.transcript_drafts import NoDraft
 from metaclass_registry.mro_dispatch import handles
 
@@ -15,8 +15,8 @@ from toad.core.projection import MroProjection
 
 
 class DraftFragments(MroProjection[tuple[TranscriptFragment, ...]]):
-    @handles(DraftRow)
-    def draft(self, draft: DraftRow, identity, classes: FragmentClasses) -> tuple[TranscriptFragment, ...]:
+    @handles(DraftFold)
+    def draft(self, draft: DraftFold, identity, classes: FragmentClasses) -> tuple[TranscriptFragment, ...]:
         return FragmentPlan.for_draft(draft, identity, classes).fragments()
 
     @handles(NoDraft)

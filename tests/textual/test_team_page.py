@@ -3,6 +3,7 @@
 import json
 from dataclasses import replace
 
+from PySide6.QtWidgets import QApplication, QWidget
 from agent_comms.registry.thread_identity import RecordedThreadIncarnation
 from agent_comms.storage.recorded_time import RecordedEventTime
 from agent_comms.task_attachments.disclosure_text import (
@@ -18,7 +19,8 @@ from agent_comms.team.team_hud import (
     AllTeamBoards,
     CodexUsage,
     NamedTeamBoards,
-    TeamFrame,
+    TeamBoardCut,
+    TeamBoardPublicationStore,
     TeamHud,
     TeamPlan,
     UnreadableUsage,
@@ -33,6 +35,7 @@ from textual.worker import Worker, WorkerState
 
 from toad.client.connection import FailedObservation, UnselectedRoute
 from toad.core.events import TeamHudChanged
+from toad.qt.team_board_screen import QtTeamBoardScreen
 from toad.screens.team import (
     HudError,
     HudRows,
@@ -71,8 +74,8 @@ def published_hud() -> TeamHud:
 async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Workspace) -> None:
     hud = published_hud()
     unit, = hud.units
-    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
-    frame, = TeamFrame.matching_in(workspace.comms.root)
+    TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (hud,))
+    frame, = TeamBoardPublicationStore.matching_in(workspace.comms.root)
     written = json.loads(frame.read_text())
     unreadable = json.dumps({**written, "field_from_a_newer_build": []})
     frame.write_text(unreadable)
@@ -88,7 +91,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
             "Waiting for the team heartbeat.",
         ]
 
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
+        TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (hud,))
         await ui.until_shows("Team claude-code")
         assert not notice.display
         last_good = tuple(rows.children)
@@ -139,7 +142,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
             hud, units=(replace(unit, strikes=2),),
             forks=(RecordedThreadIncarnation("recovered", 3.0),),
         )
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (repaired,))
+        TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (repaired,))
         await ui.until(lambda: view.details.selection == selected(repaired.units[0]),
                        why="changed strikes to invalidate the real selected card")
         await ui.until(lambda: len([event for event in events if event.state is WorkerState.PENDING]) == 1,
@@ -203,7 +206,7 @@ async def test_a_heartbeat_with_no_frames_still_says_it_is_waiting(workspace: Wo
         page = TeamPage()
         await app.push_screen(page)
         await ui.step()
-        app.coordination_access.events.publish(TeamHudChanged(()))
+        app.coordination_access.events.publish(TeamHudChanged(TeamBoardCut()))
         await ui.step()
         rows = page.query_one(HudRows).query(Static)
         assert [str(row.render()) for row in rows] == ["Waiting for the team heartbeat."]
@@ -213,7 +216,7 @@ async def test_a_refresh_right_after_a_key_keeps_the_key(workspace: Workspace) -
     hud = published_hud()
     first, = hud.units
     second = replace(first, unit=RecordedThreadIncarnation("second-worker", 3.0))
-    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, second)),))
+    TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, second)),))
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         page = TeamPage()
@@ -231,12 +234,59 @@ async def test_a_refresh_right_after_a_key_keeps_the_key(workspace: Workspace) -
         assert table.selected == selected(second)
 
 
+async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(workspace: Workspace, monkeypatch) -> None:
+    first = published_hud()
+    second = replace(first, teammate=RecordedThreadIncarnation("other", 4.0))
+    initial = TeamBoardCut((first, second), frozenset((first.teammate, second.teammate)))
+    changed = replace(first, units=())
+    update = TeamBoardCut((changed, second), frozenset((first.teammate,)))
+    async with workspace.app() as ui:
+        app, _pilot = ui.textual
+        page = TeamPage()
+        await app.push_screen(page)
+        await ui.step()
+        app.coordination_access.events.publish(TeamHudChanged(initial))
+        await ui.until(lambda: len(page.rows) == 2, why="both teammate views to mount")
+        changed_view = page.rows[first.teammate]
+        unchanged_view = page.rows[second.teammate]
+        await ui.until(
+            lambda: bool(unchanged_view.query(TeamTable)),
+            why="the unchanged recipient table to mount",
+        )
+        unchanged_table = unchanged_view.query_one(TeamTable)
+        unchanged_table.focus()
+        await ui.until(lambda: unchanged_table.has_focus, why="the unchanged table to focus")
+        selected_before = unchanged_table.selected
+        app.coordination_access.events.publish(TeamHudChanged(update))
+        await ui.until(lambda: page.rows[first.teammate].hud == changed, why="the changed recipient to update")
+        assert page.rows[first.teammate] is changed_view
+        assert page.rows[second.teammate] is unchanged_view
+        assert unchanged_view.query_one(TeamTable) is unchanged_table
+        assert unchanged_table.has_focus and unchanged_table.selected == selected_before
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    qt = QApplication.instance() or QApplication([])
+    parent = QWidget()
+    screen = QtTeamBoardScreen(parent)
+    screen._on_hud_changed(TeamHudChanged(initial))
+    changed_tab = screen.members[first.teammate]
+    unchanged_tab = screen.members[second.teammate]
+    screen.tabs.setCurrentWidget(unchanged_tab)
+    screen._on_hud_changed(TeamHudChanged(update))
+    assert screen.members[first.teammate] is changed_tab
+    assert screen.members[second.teammate] is unchanged_tab
+    assert screen.tabs.currentWidget() is unchanged_tab
+    assert changed_tab.hud == changed and unchanged_tab.hud == second
+    screen.close()
+    parent.close()
+    qt.quit()
+
+
 async def test_selection_survives_filter_clear_refill_group_move_and_resize(workspace: Workspace) -> None:
     hud = published_hud()
     first, = hud.units
     second = replace(first, unit=RecordedThreadIncarnation("second-worker", 3.0))
     hud = replace(hud, units=(first, second))
-    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
+    TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (hud,))
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         page = TeamPage()
@@ -279,7 +329,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         table.move_cursor(row=1, animate=False)
         await ui.until(lambda: view.selected == selected(second), why="the second semantic identity to be selected again")
         moved = replace(second, state=Moving)
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, moved)),))
+        TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, moved)),))
         await ui.until(lambda: view.selected == selected(moved), why="the original selection to move between groups")
         await ui.until(lambda: any(native.selected == selected(moved) for native in view.query(TeamTable)),
                        why="the target group to resolve the same semantic key")
@@ -289,9 +339,9 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
                        why="native focus to follow its selected semantic record", seconds=2)
         assert view.details.selection == selected(moved)
         assert all(row_maps_cohere(native) for native in view.query(TeamTable))
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=()),))
+        TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=()),))
         await ui.until(lambda: view.selected == EmptyTableSelection(), why="an actually empty frame")
-        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
+        TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (hud,))
         await ui.until(lambda: view.selected == selected(first), why="a later frame to refill the original records")
 
 

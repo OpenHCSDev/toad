@@ -21,58 +21,44 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 
 from agent_comms.task_attachments.disclosure_text import ViewTable
-from agent_comms.team.team_hud import TeamBoardSelection, TeamHud
+from agent_comms.team.team_hud import TeamBoardCut, TeamBoardSelection, TeamHud
 from agent_comms.team.team_hud_records import HudRecord, HudSection
 from agent_comms.ui_model.hud_groups import HudGroup
 
 
 @dataclass
 class TeamBoardState:
-    """Shared owner of the live team heartbeat view.
-
-    `team_name_filter` is the optional single-teammate restriction passed at
-    screen open (empty = show all). The state is updated in-place through
-    `apply_hud_change` / `apply_hud_failure`, which the frontend's own Core
-    subscription routes to; observers added via `observe` fire after each
-    transition so the widget can re-render.
-    """
+    """Toolkit-neutral owner of the selected live board value."""
 
     team_name_filter: str = ""
     huds: tuple[TeamHud, ...] = ()
     last_error: Exception | None = None
-    _observers: list[Callable[[], None]] = field(default_factory=list)
+    _observers: list[Callable[[TeamBoardCut | None], None]] = field(default_factory=list)
 
     @property
     def selection(self) -> TeamBoardSelection:
-        """Carry the page's user filter into Core's recipient-selection contract."""
         return TeamBoardSelection.named(self.team_name_filter)
 
-    def observe(self, callback: Callable[[], None]) -> None:
-        """Register a callback fired after each state transition."""
+    def observe(self, callback: Callable[[TeamBoardCut | None], None]) -> None:
         self._observers.append(callback)
 
-    def apply_hud_change(self, huds: tuple[TeamHud, ...]) -> None:
-        """Replace the current frame, filtered by `team_name_filter`, clearing
-        any prior error."""
+    def apply_update(self, cut: TeamBoardCut) -> TeamBoardCut:
         selection = self.selection
-        self.huds = tuple(hud for hud in huds if selection.includes(hud.teammate))
+        selected = TeamBoardCut(
+            tuple(hud for hud in cut.huds if selection.includes(hud.teammate)),
+            frozenset(owner for owner in cut.changed if selection.includes(owner)),
+        )
+        self.huds = selected.huds
         self.last_error = None
-        self._notify()
+        self._notify(selected)
+        return selected
 
     def apply_hud_failure(self, error: Exception) -> None:
-        """Record that the latest frame failed to arrive; the frontend shows
-        the error and keeps the last good `huds`."""
         self.last_error = error
-        self._notify()
+        self._notify(None)
 
     def filter_hud_sections(self, hud: TeamHud, text: str,
                             needs_hand_only: bool) -> dict[type[HudGroup], HudSection]:
-        """The per-member filter Textual's `TeamFrameView.filtered_sections`
-        previously held, hoisted so Qt applies the same gates.
-
-        For each `HudSection` in `hud.groups`, keep only the records whose row
-        text contains `text` (case-insensitive) and — when `needs_hand_only`
-        is True — whose `.needs_hand()` is true."""
         folded = text.casefold()
         shown: dict[type[HudGroup], HudSection] = {}
         for section in hud.groups:
@@ -85,6 +71,6 @@ class TeamBoardState:
             shown[section.group] = HudSection(section.group, tuple(tables))
         return shown
 
-    def _notify(self) -> None:
-        for obs in self._observers:
-            obs()
+    def _notify(self, cut: TeamBoardCut | None) -> None:
+        for observer in self._observers:
+            observer(cut)

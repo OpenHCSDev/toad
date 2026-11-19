@@ -26,7 +26,7 @@ from agent_comms.coordination.errors import (
 from agent_comms.execution.child_process import join_retirement
 from agent_comms.execution.transcript_sources import (
     AtFrontier,
-    DraftRow,
+    DraftFold,
     LatestPage,
     PageLimit,
     PagePosition,
@@ -263,7 +263,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
             self.owner.current_read = Published(snapshot.identity)
         return True
 
-    def show_draft(self, draft: DraftRow | NoDraft, identity: TranscriptReadIdentity) -> None:
+    def show_draft(self, draft: DraftFold | NoDraft, identity: TranscriptReadIdentity) -> None:
         self.binding.view.show_draft(draft, identity)
 
     @handles(TranscriptSnapshotUpdate)

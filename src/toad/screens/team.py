@@ -432,13 +432,16 @@ class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
             view.display = False
         for section in self.hud.alarms:
             self.alarms[section.group].present(section, now)
+        previous = self.shown
         self.shown = self.filtered_sections()
         records = {key: record for section in self.shown.values() for table in section.tables
                    for key, record in table.entities.items()}
         self.selected = TableSelection[HudRecord].from_records(records, self.selected.key)
         self.details.present(self.selected)
         keys = tuple(self.shown)
-        self.reconcile_keys(keys, changed=frozenset(keys))
+        changed = frozenset(key for key in previous.keys() | self.shown.keys()
+                            if previous.get(key) != self.shown.get(key))
+        self.reconcile_keys(keys, changed=changed)
         if focused:
             self.call_after_refresh(self.focus_selection)
 
@@ -520,10 +523,10 @@ class TeamPage(ShadedScreen, CenteredScreen, WidgetKeyedRows[ThreadIncarnation],
         error = self.query_one(HudError)
         error.update("")
         error.display = False
-        self.state.apply_hud_change(event.huds)
-        keys = tuple(hud.teammate for hud in self.state.huds)
-        self.reconcile_keys(keys, changed=frozenset(keys))
-        self.query_one(HudEmpty).display = not self.state.huds
+        cut = TeamBoardState.apply_update(self.state, event.cut)
+        keys = tuple(hud.teammate for hud in cut.huds)
+        self.reconcile_keys(keys, changed=cut.changed)
+        self.query_one(HudEmpty).display = not cut.huds
 
     @handles(TeamHudFailed)
     def hud_failed(self, event: TeamHudFailed) -> None:
