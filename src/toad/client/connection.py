@@ -1003,7 +1003,7 @@ class CoordinationAccess(MroDispatch):
 
     @handles(TeamHudObserved)
     def team_hud_observed(self, result: TeamHudObserved, observed: Observing) -> None:
-        self.events.publish(TeamHudChanged(result.huds))
+        self.events.publish(TeamHudChanged(result.cut))
 
     @handles(TeamHudUnreadable)
     def team_hud_unreadable(self, result: TeamHudUnreadable, observed: Observing) -> None:

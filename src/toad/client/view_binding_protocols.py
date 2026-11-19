@@ -14,9 +14,11 @@ from abc import abstractmethod
 from collections.abc import Awaitable, Callable, Iterable, Sequence
 from typing import TYPE_CHECKING, ClassVar
 
+from agent_comms.execution.transcript_sources import DraftFold
+
 
 if TYPE_CHECKING:
-    from agent_comms.execution.transcript_sources import DraftRow, TranscriptCursor
+    from agent_comms.execution.transcript_sources import TranscriptCursor
     from agent_comms.transcript.transcript_drafts import NoDraft
     from agent_comms.transcript.transcripts import TranscriptReadIdentity
     from toad.client.prepared_pages import PreparedPageSource, PreparedTranscriptPage
@@ -91,7 +93,7 @@ class BoundViewHost:
         """Whether any of these blocks is on screen now."""
 
     @abstractmethod
-    def show_draft(self, draft: "DraftRow | NoDraft", identity: "TranscriptReadIdentity") -> None:
+    def show_draft(self, draft: "DraftFold | NoDraft", identity: "TranscriptReadIdentity") -> None:
         """Draw the thread's in-progress CLI draft after the history, or clear it."""
 
     @abstractmethod

@@ -2,7 +2,7 @@
 
 from functools import partial
 
-from agent_comms.execution.transcript_sources import DraftRow
+from agent_comms.execution.transcript_sources import DraftFold
 from agent_comms.transcript.transcript_drafts import NoDraft
 from agent_comms.transcript.transcripts import TranscriptReadIdentity
 from metaclass_registry.mro_dispatch import handles
@@ -38,8 +38,8 @@ class CliDraftRender(WorkerGroup):
 class DraftRender(MroProjection[None]):
     """A shown draft is drawn; with no draft there is nothing to draw."""
 
-    @handles(DraftRow)
-    def shown(self, draft: DraftRow, widget: CliDraft) -> None:
+    @handles(DraftFold)
+    def shown(self, draft: DraftFold, widget: CliDraft) -> None:
         CliDraftRender.run_on(widget, widget._draw)
 
     @handles(NoDraft)
@@ -56,7 +56,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
 
     def __init__(self):
         super().__init__()
-        self.draft: DraftRow | NoDraft = NoDraft()
+        self.draft: DraftFold | NoDraft = NoDraft()
         self._lines: BlockLines = NoStyledLines()
         self._plan = FragmentPlan()
         self._rows: RowAcquisition = NoRows()
@@ -77,7 +77,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self._lines = NoStyledLines(self._width)
         self.display = False
 
-    def show(self, draft: DraftRow, identity: TranscriptReadIdentity) -> None:
+    def show(self, draft: DraftFold, identity: TranscriptReadIdentity) -> None:
         if draft == self.draft:
             return
         self._plan = FragmentPlan.for_draft(draft, identity, TEXTUAL_FRAGMENT_CLASSES)
@@ -144,8 +144,8 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
 class DraftPresentation(MroProjection[None]):
     """The CLI draft row draws a native draft and clears when Core reports none."""
 
-    @handles(DraftRow)
-    def draft(self, draft: DraftRow, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
+    @handles(DraftFold)
+    def draft(self, draft: DraftFold, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
         widget.show(draft, identity)
 
     @handles(NoDraft)
