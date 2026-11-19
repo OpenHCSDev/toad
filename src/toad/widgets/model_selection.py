@@ -34,9 +34,11 @@ from toad.native_style import (
     NoWrap,
     OneRow,
     PointerCursor,
+    ScrollsVertically,
     SecondaryText,
     SidePadding,
     SpacedAround,
+    StableGutter,
 )
 from toad.widget_actions import (
     Activates,
@@ -115,7 +117,17 @@ class ModelCount(MutedText, OneRow, SidePadding, Static):
     """Its look is its bases."""
 
 
-class ModelOptionList(Borderless, AutoHeight, NoPadding, NoWrap, EllipsisOverflow, PaddedOptionRows, SelectionOptionList):
+class ModelOptionList(
+    StableGutter,
+    ScrollsVertically,
+    Borderless,
+    AutoHeight,
+    NoPadding,
+    NoWrap,
+    EllipsisOverflow,
+    PaddedOptionRows,
+    SelectionOptionList,
+):
     native_components = {
         OptionListComponent.OPTION_HIGHLIGHTED: (
             NativeDeclaration.of(Styles.background, Variable(BlockCursorBackgroundColour.name)),

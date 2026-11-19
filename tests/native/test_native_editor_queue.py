@@ -7,7 +7,7 @@ from support.native import native_session
 from toad.acp.agent_configuration import AdvertisedSetting, ThinkingConfigurationSetting
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import channel_target
-from toad.widgets.model_switcher import SessionModelEditor
+from toad.widgets.model_switcher import FinishSessionSettings, SessionModelEditor
 from toad.widgets.prompt import AgentInfo, QueueSummary
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -107,6 +107,8 @@ async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_ed
             why="the thinking level",
         )
         assert comms.registry.require("beta").thinking_level is HighThinkingLevel
+        assert await pilot.click(popup.query_one(FinishSessionSettings))
+        await ui.until(lambda: not popup.is_open, why="Done to close the live settings")
 
         user = comms.messaging.user_identity(Checkout(native.project)).name
         await channel_target("#team").open(
