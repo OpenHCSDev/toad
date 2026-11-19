@@ -1304,13 +1304,13 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         revision = self.app.coordination_access.revision
         if revision.changed_since(RosterView(), self._config_revision):
             self._config_revision = revision
-            asyncio.ensure_future(self._refresh_thread_config())
+            self.deliver(self._refresh_thread_config)
 
     _config_revision: ReadState = NoRevision()
 
     def thread_presented(self, presentation) -> None:
         super().thread_presented(presentation)
-        asyncio.ensure_future(self._refresh_thread_config())
+        self.deliver(self._refresh_thread_config)
 
     async def _refresh_thread_config(self) -> None:
         """Read compose access, status, label and mentions — facts that change when thread
