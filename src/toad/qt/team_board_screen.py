@@ -13,7 +13,7 @@ Layout:
   - bottom: Close button
 
 Each `QtTeamMemberView` renders one teammate:
-  - heading ("Team <name>") + status strip from `hud.status_strip(now)`
+  - heading ("Board for <name>") + status strip from `hud.status_strip(now)`
   - filter QLineEdit + "Needs hand" QCheckBox
   - QTreeWidget of sections → tables → records, using
     `TeamBoardState.filter_hud_sections` for the per-member filter (the SAME
@@ -22,6 +22,7 @@ Each `QtTeamMemberView` renders one teammate:
 
 from __future__ import annotations
 
+import asyncio
 import time
 from functools import partial
 
@@ -33,6 +34,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QPushButton,
     QTabWidget,
     QTreeWidget,
     QTreeWidgetItem,
@@ -40,7 +42,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from agent_comms.team.board_actions import BoardActionOffer
 from agent_comms.team.team_hud import TeamBoardCut, TeamHud
+from agent_comms.transport.request import CoreAccess
 from toad.client.subscribers import CallbackSubscription
 from toad.client.team_board import TeamBoardState
 from toad.core.events import TeamHudChanged, TeamHudFailed
@@ -48,6 +52,7 @@ from toad.qt.core_events import QtCoreObserver
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
 from toad.qt.window import QtToadApp
+from toad.target_commands import BoardCommand
 
 class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
     """Modal team board dialog.
@@ -143,7 +148,9 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
         for index, (key, hud) in enumerate(huds.items()):
             view = self.members.get(key)
             if view is None:
-                view = QtTeamMemberView(self.state, hud, self)
+                view = QtTeamMemberView(
+                    self.state, hud, self.coordination.open_current().core, self,
+                )
                 self.members[key] = view
                 self.tabs.insertTab(index, view, hud.teammate.name)
             else:
@@ -172,19 +179,21 @@ class QtTeamMemberView(QWidget):
         self.hud = hud
         self._render()
 
-    def __init__(self, state: TeamBoardState, hud: "TeamHud",
+    def __init__(self, state: TeamBoardState, hud: "TeamHud", core: CoreAccess,
                  parent: QWidget | None = None) -> None:
         self.groups = {}
         self.rows = {}
+        self.action_buttons: dict[BoardActionOffer, QPushButton] = {}
         super().__init__(parent)
         self.state = state
         self.hud = hud
+        self.core = core
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.normal, UiGap.normal, UiGap.normal, UiGap.normal)
         layout.setSpacing(UiGap.tight)
 
-        self.heading = QLabel(f"Team {hud.teammate.name}", self)
+        self.heading = QLabel(f"Board for {hud.teammate.name}", self)
         font = self.heading.font()
         font.setBold(True)
         self.heading.setFont(font)
@@ -193,6 +202,10 @@ class QtTeamMemberView(QWidget):
         self.status = QLabel("", self)
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
+
+        self.actions = QHBoxLayout()
+        self.actions.setSpacing(UiGap.tight)
+        layout.addLayout(self.actions)
 
         controls = QHBoxLayout()
         controls.setSpacing(UiGap.normal)
@@ -213,8 +226,36 @@ class QtTeamMemberView(QWidget):
 
         self._render()
 
+    def _apply_board_command(self, command: BoardCommand, _checked: bool = False) -> None:
+        asyncio.ensure_future(self._run_board_command(command))
+
+    async def _run_board_command(self, command: BoardCommand) -> None:
+        try:
+            result = await asyncio.to_thread(command.execute, self.core)
+        except Exception as error:
+            self.status.setText(str(error))
+            return
+        self.status.setText("\n".join(result.lines))
+
+    def _render_actions(self) -> None:
+        commands = {command.offer: command for command in BoardCommand.for_hud(self.hud)}
+        for offer in tuple(self.action_buttons):
+            if offer in commands:
+                continue
+            button = self.action_buttons.pop(offer)
+            self.actions.removeWidget(button)
+            button.deleteLater()
+        for offer, command in commands.items():
+            if offer in self.action_buttons:
+                continue
+            button = QPushButton(command.label, self)
+            button.clicked.connect(partial(self._apply_board_command, command))
+            self.action_buttons[offer] = button
+            self.actions.addWidget(button)
+
     def _render(self) -> None:
         self.status.setText(self.hud.status_strip(time.time()))
+        self._render_actions()
         shown = self.state.filter_hud_sections(
             self.hud, self.filter_input.text(), self.needs_hand_check.isChecked())
         for group in tuple(self.groups):

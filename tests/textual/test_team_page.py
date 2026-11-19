@@ -1,10 +1,13 @@
 """Textual-facing: retain the real team page across Core frame replacements."""
 
 import json
-from dataclasses import replace
+from dataclasses import dataclass, replace
+from pathlib import Path
+from types import SimpleNamespace
 
 from PySide6.QtWidgets import QApplication, QWidget
-from agent_comms.registry.thread_identity import RecordedThreadIncarnation
+from agent_comms.nominal.text_digest import TextDigest
+from agent_comms.registry.thread_identity import RecordedThreadIncarnation, ThreadIncarnation
 from agent_comms.storage.recorded_time import RecordedEventTime
 from agent_comms.task_attachments.disclosure_text import (
     DisclosureEntry,
@@ -13,7 +16,14 @@ from agent_comms.task_attachments.disclosure_text import (
     RecordKey,
     StructuredText,
 )
-from agent_comms.task_attachments.team_pings import AlarmSection, NewAlarms, RulePing
+from agent_comms.task_attachments.team_pings import (
+    AlarmSection,
+    NewAlarms,
+    RulePing,
+    TeamUpdateNotice,
+    TeamUpdateStore,
+)
+from agent_comms.team.board_actions import BoardActionApplied, BoardActionOffer
 from agent_comms.team.standing_rules import ServicePassFailing
 from agent_comms.team.team_hud import (
     AllTeamBoards,
@@ -30,6 +40,8 @@ from agent_comms.team.vibe_check import OverloadDegradation
 from agent_comms.ui_model.observation import ObserveTeamHud, StopTeamHud
 from agent_comms.ui_model.teammate_state import Detached, Moving, PendingClock
 from support.workspace import Workspace
+from textual import events
+from textual.pilot import _get_mouse_message_arguments
 from textual.widgets import Button, Static
 from textual.worker import Worker, WorkerState
 
@@ -39,6 +51,7 @@ from toad.qt.team_board_screen import QtTeamBoardScreen
 from toad.screens.team import (
     HudError,
     HudRows,
+    TeamActionButton,
     TeamAlarm,
     TeamFrameView,
     TeamGroup,
@@ -51,6 +64,19 @@ from toad.widgets.declared_table import EmptyTableSelection, SelectedTableRecord
 
 def selected(record: HudRecord) -> SelectedTableRecord[HudRecord]:
     return SelectedTableRecord(DisclosureText.describe(record).sequence_key, record)
+
+
+def with_board_action(
+    hud: TeamHud, offer: BoardActionOffer,
+) -> TeamHud:
+    ping = RulePing(
+        ServicePassFailing,
+        offer.observation,
+        text="Apply the retained board fix",
+        offers=(offer,),
+    )
+    packet = TeamUpdateNotice(hud.teammate, (ping,))
+    return replace(hud, packets=(packet,))
 
 
 def row_maps_cohere(table: TeamTable) -> bool:
@@ -92,13 +118,15 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         ]
 
         TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (hud,))
-        await ui.until_shows("Team claude-code")
+        await ui.until_shows("Board for claude-code")
         assert not notice.display
         last_good = tuple(rows.children)
         view = rows.query_one(TeamFrameView)
         await ui.until(lambda: bool(view.query(TeamTable)), why="the grouped native table to mount")
         table = view.query_one(TeamTable)
         await ui.until(lambda: table.selected == selected(unit), why="the actual unit to acquire a native row")
+        assert all(not cell.style for key in table.entity_keys.values()
+                   for cell in table.get_row(key))
         table.focus()
         await pilot.press("enter")
         await ui.until(lambda: " ".join(Detached.action.split()) in " ".join(" ".join(strip.text for strip in table.render_lines(table.size.region)).split()),
@@ -106,7 +134,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         # There is no registered unit behind this published fixture. Its real
         # original-detail refusal must remain visible while observation recovers.
         await ui.until_shows("Could not read the records behind")
-        assert str(view.heading.render()) == "Team claude-code"
+        assert str(view.heading.render()) == "Board for claude-code"
         strip = str(view.status.render())
         assert "Load: 0" in strip and "Forks: 1" in strip
         assert hud.usage.line() in strip
@@ -176,6 +204,34 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         assert app.screen is not page
 
 
+async def test_thirty_team_board_wheels_move_only_down(workspace: Workspace) -> None:
+    hud = published_hud()
+    huds = tuple(
+        replace(
+            hud,
+            teammate=RecordedThreadIncarnation(f"wheel-{index:02}", 10.0 + index),
+        )
+        for index in range(40)
+    )
+    TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), huds)
+    async with workspace.app() as ui:
+        app, _pilot = ui.textual
+        page = TeamPage()
+        await app.push_screen(page)
+        rows = page.query_one(HudRows)
+        await ui.until(lambda: rows.max_scroll_y > 0, why="the fixed team board to overflow")
+        arguments = _get_mouse_message_arguments(
+            rows, (3, 3), button=0, shift=False, meta=False, control=False,
+        )
+        offsets = [float(rows.scroll_y)]
+        for _ in range(30):
+            await app._post_message_and_wait(events.MouseScrollDown(**arguments))
+            await ui.step()
+            offsets.append(float(rows.scroll_y))
+        assert offsets[-1] > offsets[0]
+        assert offsets == sorted(offsets)
+
+
 async def test_visible_team_pages_share_exact_recipient_interest(workspace: Workspace) -> None:
     async with workspace.app() as ui:
         app, _pilot = ui.textual
@@ -234,14 +290,40 @@ async def test_a_refresh_right_after_a_key_keeps_the_key(workspace: Workspace) -
         assert table.selected == selected(second)
 
 
-async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(workspace: Workspace, monkeypatch) -> None:
-    first = published_hud()
-    second = replace(first, teammate=RecordedThreadIncarnation("other", 4.0))
+async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(
+    workspace: Workspace, monkeypatch, request,
+) -> None:
+    recipient = workspace.thread("board-recipient").incarnation
+    dispatched: list[str] = []
+
+    @dataclass(frozen=True)
+    class ClickProbeOffer(BoardActionOffer):
+        observation: TextDigest
+        recipient: ThreadIncarnation
+
+        @property
+        def label(self) -> str:
+            return "Apply board fix"
+
+        @property
+        def words(self) -> tuple[str, ...]:
+            return ("probe", self.observation.value)
+
+        def execute(self, root: Path, actor: str) -> BoardActionApplied:
+            dispatched.append(actor)
+            return BoardActionApplied((f"applied for {actor}",))
+
+    request.addfinalizer(ClickProbeOffer.withdraw)
+    offer = ClickProbeOffer(TextDigest.of("board source"), recipient)
+    first = with_board_action(replace(published_hud(), teammate=recipient), offer)
+    TeamUpdateStore.record(workspace.comms.root, first.packets[0])
+    second = replace(first, teammate=RecordedThreadIncarnation("other", 4.0), packets=())
     initial = TeamBoardCut((first, second), frozenset((first.teammate, second.teammate)))
     changed = replace(first, units=())
     update = TeamBoardCut((changed, second), frozenset((first.teammate,)))
     async with workspace.app() as ui:
         app, _pilot = ui.textual
+        qt_core = app.coordination_access.open_current().core
         page = TeamPage()
         await app.push_screen(page)
         await ui.step()
@@ -249,6 +331,10 @@ async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(worksp
         await ui.until(lambda: len(page.rows) == 2, why="both teammate views to mount")
         changed_view = page.rows[first.teammate]
         unchanged_view = page.rows[second.teammate]
+        action_button = changed_view.actions.query_one(TeamActionButton)
+        assert str(action_button.label) == offer.label
+        action_button.press()
+        await ui.until(lambda: dispatched == [recipient.name], why="the UI offer to execute in Core")
         await ui.until(
             lambda: bool(unchanged_view.query(TeamTable)),
             why="the unchanged recipient table to mount",
@@ -261,19 +347,25 @@ async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(worksp
         await ui.until(lambda: page.rows[first.teammate].hud == changed, why="the changed recipient to update")
         assert page.rows[first.teammate] is changed_view
         assert page.rows[second.teammate] is unchanged_view
+        assert changed_view.actions.query_one(TeamActionButton) is action_button
         assert unchanged_view.query_one(TeamTable) is unchanged_table
         assert unchanged_table.has_focus and unchanged_table.selected == selected_before
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     qt = QApplication.instance() or QApplication([])
     parent = QWidget()
+    parent.coordination_access = SimpleNamespace(
+        open_current=lambda: SimpleNamespace(core=qt_core),
+    )
     screen = QtTeamBoardScreen(parent)
     screen._on_hud_changed(TeamHudChanged(initial))
     changed_tab = screen.members[first.teammate]
     unchanged_tab = screen.members[second.teammate]
+    action_button = changed_tab.action_buttons[offer]
     screen.tabs.setCurrentWidget(unchanged_tab)
     screen._on_hud_changed(TeamHudChanged(update))
     assert screen.members[first.teammate] is changed_tab
     assert screen.members[second.teammate] is unchanged_tab
+    assert changed_tab.action_buttons[offer] is action_button
     assert screen.tabs.currentWidget() is unchanged_tab
     assert changed_tab.hud == changed and unchanged_tab.hud == second
     screen.close()
