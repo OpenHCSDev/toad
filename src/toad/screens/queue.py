@@ -63,7 +63,7 @@ class QueueInspection(QueueInspectionOwner, ShadedScreen, CenteredScreen, Source
 
     def compose(self) -> ComposeResult:
         with QueuePanel():
-            yield Static(self.title)
+            yield Static(self.heading)
             with VerticalScroll():
                 details = ToolContent()
                 details.update((self.details_block(),))

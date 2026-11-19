@@ -161,7 +161,7 @@ from toad.transcript_publication import (
     WindowPublicationWork,
 )
 from toad.transcript_scope import TranscriptScope, TranscriptView
-from toad.view_actions import LatestJumpBar
+from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.cli_draft import DRAFT_PRESENTATION, CliDraft
 from toad.widgets.committed_presentation import protected_blocks
@@ -469,6 +469,7 @@ class BackToBottom(PrimaryText, CenteredText, AutoWidth, AutoHeight, SidePadding
 
 
 class Window(
+    ShowsLatestJumpBar,
     RightPadding,
     StableGutter,
     CoreEventReceiver,

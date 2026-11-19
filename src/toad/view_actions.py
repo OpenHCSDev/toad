@@ -19,7 +19,7 @@ from abc import abstractmethod
 from formbridge.key_declarations import TextEntryMode
 
 from toad.app_node import ToadNode
-from toad.history_jump import JumpsHistory
+from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.widget_actions import WidgetAction
 
 
@@ -66,7 +66,7 @@ class LatestJumpBar:
     """The control a history window floats over its foot while the reader is off the tail.
 
     Its words are `BackToBottomAction`'s own declaration: what the action does, then the key
-    that does it. The window decides when it shows (`JumpsToLatest.tail_follow_changed`);
+    that does it. The window decides when it shows (`ShowsLatestJumpBar.tail_follow_changed`);
     each toolkit's bar only paints that. A plain mixin, as `JumpsToLatest` is: Textual's
     widget metaclass refuses an `ABC` base and Qt's shiboken metaclass clashes with one.
     """
@@ -81,3 +81,27 @@ class LatestJumpBar:
     @abstractmethod
     def show_jump(self, shown: bool) -> None:
         """Draw the bar, or stop drawing it."""
+
+
+class ShowsLatestJumpBar(JumpsToLatest):
+    """A conversation viewport that actually owns its toolkit jump bar."""
+
+    jump_bar: LatestJumpBar
+    """The toolkit's bar, declared in `view_actions` beside the action it names."""
+
+    def _after_jump_bar_change(self, shown: bool) -> None:
+        """Backend-specific follow-up once the bar's visibility has changed; override as needed."""
+
+    def tail_follow_changed(self) -> None:
+        """Show the jump bar while the reader is off the tail, hide it once the end is in view.
+
+        Every scroll offset reaches here, so an unchanged state is no change: the footer
+        would otherwise re-project bindings per frame. The bar paints the toolkit, and
+        `_after_jump_bar_change` is the window's hook for anything downstream (refresh
+        bindings, reposition the floating button).
+        """
+        jump = self.can_jump_to_latest
+        if self.jump_bar.jump_shown == jump:
+            return
+        self.jump_bar.show_jump(jump)
+        self._after_jump_bar_change(jump)

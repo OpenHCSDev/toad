@@ -31,7 +31,7 @@ class QueueInspectionOwner(metaclass=AbstractHooksMeta):
 
     refusals = (QueueActionRefused, RequestError, RelationViolationError,
                 RouteChangedError, UnregisteredThreadError)
-    title: ClassVar[str] = "Queue and delivery"
+    heading: ClassVar[str] = "Queue and delivery"
     unavailable_note: ClassVar[str] = (
         "Editing, deleting and reordering individual queued messages isn't available here.")
 

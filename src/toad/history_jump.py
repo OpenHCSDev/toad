@@ -14,13 +14,8 @@ Both backends' concrete windows list one of these beside their own toolkit widge
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
 
 from toad.client.history_changes import NO_HISTORY_CHANGE, HistoryChange, NoHistoryChange
-
-if TYPE_CHECKING:
-    from toad.view_actions import LatestJumpBar
-
 
 class JumpsToLatest:
     """A scrolling window that can be put back at its latest entry.
@@ -55,25 +50,8 @@ class JumpsToLatest:
     def jump_to_latest(self) -> None:
         """Put this window back at its latest entry."""
 
-    jump_bar: LatestJumpBar
-    """The toolkit's bar, declared in `view_actions` beside the action it names."""
-
-    def _after_jump_bar_change(self, shown: bool) -> None:
-        """Backend-specific follow-up once the bar's visibility has changed; override as needed."""
-
     def tail_follow_changed(self) -> None:
-        """Show the jump bar while the reader is off the tail, hide it once the end is in view.
-
-        Every scroll offset reaches here, so an unchanged state is no change: the footer
-        would otherwise re-project bindings per frame. The bar paints the toolkit, and
-        `_after_jump_bar_change` is the window's hook for anything downstream (refresh
-        bindings, reposition the floating button).
-        """
-        jump = self.can_jump_to_latest
-        if self.jump_bar.jump_shown == jump:
-            return
-        self.jump_bar.show_jump(jump)
-        self._after_jump_bar_change(jump)
+        """A tail transition has no extra display unless the window declares one."""
 
     def respond_to_scroll(self, position: float) -> None:
         """Shared post-anchor response to a scroll offset. Both backends' native scroll
@@ -94,7 +72,7 @@ class FollowsTail(JumpsToLatest):
 
     Joining or leaving is one change of the reader's follow intent: it counts as a reader
     move (`scroll_revision`, unless the window is moving itself), the window applies it in its
-    toolkit (`apply_anchor`), and the jump bar shows or hides from the result. Each window
+    toolkit (`apply_anchor`), and the window's declared follow-up sees the result. Each window
     lists this before its toolkit's scroll base, so this `anchor` answers in both frontends
     ahead of Textual's own `Widget.anchor`, and a window supplies only `apply_anchor`.
 

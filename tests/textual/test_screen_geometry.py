@@ -94,6 +94,7 @@ async def test_queue_details_are_a_centred_85_by_75_percent_panel_its_scroll_fil
         await ui.step()
         screen = ui.app.screen
         panel, scroll, actions = screen.query_one(QueuePanel), screen.query_one(VerticalScroll), screen.query_one(QueueActions)
+        await ui.until(lambda: bool(panel.region), why="the queue panel native placement")
         assert_centred_panel(panel, 85, 30)
         facts = {"panel": panel.content_region, "scroll": scroll.region, "actions": actions.region}
         assert actions.region.bottom == inner_bottom(panel), facts

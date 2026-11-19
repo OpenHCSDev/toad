@@ -21,7 +21,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 
 from agent_comms.task_attachments.disclosure_text import ViewTable
-from agent_comms.team.team_hud import TeamHud
+from agent_comms.team.team_hud import TeamBoardSelection, TeamHud
 from agent_comms.team.team_hud_records import HudRecord, HudSection
 from agent_comms.ui_model.hud_groups import HudGroup
 
@@ -42,6 +42,11 @@ class TeamBoardState:
     last_error: Exception | None = None
     _observers: list[Callable[[], None]] = field(default_factory=list)
 
+    @property
+    def selection(self) -> TeamBoardSelection:
+        """Carry the page's user filter into Core's recipient-selection contract."""
+        return TeamBoardSelection.named(self.team_name_filter)
+
     def observe(self, callback: Callable[[], None]) -> None:
         """Register a callback fired after each state transition."""
         self._observers.append(callback)
@@ -49,9 +54,8 @@ class TeamBoardState:
     def apply_hud_change(self, huds: tuple[TeamHud, ...]) -> None:
         """Replace the current frame, filtered by `team_name_filter`, clearing
         any prior error."""
-        self.huds = tuple(hud for hud in huds
-                          if not self.team_name_filter
-                          or hud.teammate.name == self.team_name_filter)
+        selection = self.selection
+        self.huds = tuple(hud for hud in huds if selection.includes(hud.teammate))
         self.last_error = None
         self._notify()
 

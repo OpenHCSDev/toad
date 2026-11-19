@@ -508,11 +508,11 @@ class TeamPage(ShadedScreen, CenteredScreen, WidgetKeyedRows[ThreadIncarnation],
     def on_mount(self) -> None:
         access = self.app.coordination_access
         self.subscribe_core(access.events)
-        access.show_team(self, True)
+        access.show_team(self, True, self.state.selection)
 
     @on(Unmount)
     def on_unmount(self) -> None:
-        self.app.coordination_access.show_team(self, False)
+        self.app.coordination_access.show_team(self, False, self.state.selection)
         self.close_core_events()
 
     @handles(TeamHudChanged)

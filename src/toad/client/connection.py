@@ -30,6 +30,7 @@ from agent_comms.execution.child_process import (
     join_retirement,
 )
 from agent_comms.execution.remote_core_process import ProcessRemoteCoreAccess
+from agent_comms.team.team_hud import NamedTeamBoards, TeamBoardSelection
 from agent_comms.transport.remote_core import RemoteCoreAccess
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.installer.active_route import CommsRoute
@@ -945,7 +946,7 @@ class CoordinationAccess(MroDispatch):
         self.notification_known: dict[tuple[ReadNotifications, tuple[int, str]], tuple[MessageNotification, ...]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
         # Open team pages; the heartbeat's frames are observed only while one is shown.
-        self.team_pages: WeakSet = WeakSet()
+        self.team_pages: WeakKeyDictionary[object, TeamBoardSelection] = WeakKeyDictionary()
         self.team_interest: ObserveTeamHud | StopTeamHud = StopTeamHud()
 
     @property
@@ -1157,17 +1158,20 @@ class CoordinationAccess(MroDispatch):
             observed.observe_sidebar(wanted)
 
     def update_team_interest(self) -> None:
-        wanted = ObserveTeamHud() if self.team_pages else StopTeamHud()
+        selection: TeamBoardSelection = NamedTeamBoards(frozenset())
+        for page_selection in tuple(self.team_pages.values()):
+            selection = selection.combined(page_selection)
+        wanted = ObserveTeamHud(selection) if self.team_pages else StopTeamHud()
         if wanted != self.team_interest:
             self.team_interest = wanted
             self.observation.observed().observe_team(wanted)
 
-    def show_team(self, page: object, shown: bool) -> None:
+    def show_team(self, page: object, shown: bool, selection: TeamBoardSelection) -> None:
         """A team page started or stopped showing the heartbeat's frames."""
         if shown:
-            self.team_pages.add(page)
+            self.team_pages[page] = selection
         else:
-            self.team_pages.discard(page)
+            self.team_pages.pop(page, None)
         self.update_team_interest()
 
     async def follow_sidebar(self, view: SidebarSubscriber[Observing, FailedObservation]) -> None:
