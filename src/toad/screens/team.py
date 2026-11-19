@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
 
 from agent_comms.coordination.errors import DeferredRead, ReadAgain
@@ -22,6 +23,7 @@ from agent_comms.task_attachments.disclosure_text import (
     WarningTone,
 )
 from agent_comms.task_attachments.team_pings import AlarmGroup, AlarmSection
+from agent_comms.team.board_actions import BoardActionOffer
 from agent_comms.team.team_hud import TeamHud
 from agent_comms.team.team_hud_records import HudRecord, HudSection, Teammate
 from agent_comms.transport.tools.reads import TeammateRead
@@ -52,6 +54,7 @@ from toad.app_node import ToadNode
 from toad.client.team_board import TeamBoardState
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.core_event_carrier import CoreEventReceiver
+from toad.target_commands import BoardCommand
 from toad.widgets.keyed_rows import WidgetKeyedRows
 from toad.native_style import (
     AutoHeight,
@@ -351,6 +354,54 @@ class TeamFilter(FillWidth, Input):
     """Its look is its bases."""
 
 
+class TeamActionButton(ActingButton):
+    """Apply one source-bound Core offer; the button owns no parser or registry."""
+
+    def __init__(self, command: BoardCommand) -> None:
+        self.command = command
+        super().__init__(command.label, compact=True)
+
+    async def act(self) -> None:
+        result = await asyncio.to_thread(
+            self.command.execute, self.app.coordination_access.connection,
+        )
+        self.app.notify("\n".join(result.lines), title=self.command.label, markup=False)
+
+
+class TeamActions(WidgetKeyedRows[BoardActionOffer], HorizontalGroup):
+    """Keep unchanged action buttons while one recipient frame changes."""
+
+    def __init__(self, hud: TeamHud) -> None:
+        self.commands = {
+            command.offer: command for command in BoardCommand.for_hud(hud)
+        }
+        super().__init__()
+
+    @property
+    def member_container(self) -> TeamActions:
+        return self
+
+    @property
+    def rows(self) -> dict[BoardActionOffer, TeamActionButton]:
+        return {button.command.offer: button for button in self.query_children(TeamActionButton)}
+
+    def create_row(self, key: BoardActionOffer) -> TeamActionButton:
+        return TeamActionButton(self.commands[key])
+
+    def update_row(self, key: BoardActionOffer, row: TeamActionButton) -> None:
+        return None
+
+    @on(Mount)
+    def on_mount(self) -> None:
+        self.reconcile_keys(tuple(self.commands), changed=frozenset())
+
+    def present(self, hud: TeamHud) -> None:
+        commands = BoardCommand.for_hud(hud)
+        self.commands = {command.offer: command for command in commands}
+        if self.is_attached:
+            self.reconcile_keys(tuple(self.commands), changed=frozenset())
+
+
 class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     """Keep native groups, filters, selection and original details across frame replacement.
 
@@ -365,6 +416,7 @@ class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         self.shown: dict[type[HudGroup], HudSection] = {}
         self.heading = TeamHeading("", markup=False)
         self.status = TeamLoad("", markup=False)
+        self.actions = TeamActions(hud)
         self.groups = VerticalGroup()
         self.filter = TeamFilter(placeholder="Filter team records")
         self.needs_hand = Checkbox("Needs hand")
@@ -376,6 +428,7 @@ class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     def compose(self) -> ComposeResult:
         yield self.heading
         yield self.status
+        yield self.actions
         with HorizontalGroup():
             yield self.filter
             yield self.needs_hand
@@ -414,6 +467,7 @@ class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
 
     def present(self, hud: TeamHud) -> None:
         self.hud = hud
+        self.actions.present(hud)
         self.call_after_refresh(self.render_frame)
 
     def focus_selection(self) -> None:
@@ -425,7 +479,7 @@ class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
 
     def render_frame(self) -> None:
         focused = any(table.has_focus for table in self.query(TeamTable))
-        self.heading.update(f"Team {self.hud.teammate.name}")
+        self.heading.update(f"Board for {self.hud.teammate.name}")
         now = time.time()
         self.status.update(self.hud.status_strip(now))
         for view in self.alarms.values():
