@@ -13,10 +13,8 @@ from agent_comms.task_attachments.disclosure_text import (
 from rich.text import Text
 from textual import on
 from textual.events import Resize
-from textual.style import Style
 from textual.widgets import DataTable
 from textual.widgets._data_table import RowKey
-from ui_theme.scheme import ForegroundColour, ThemeColour
 
 from toad.widget_actions import OpensSelected
 
@@ -93,9 +91,6 @@ class DeclaredTable[R](OpensSelected, DataTable[Text]):
         # supplied by a parent's Mount before its child's Mount has run.
         self.call_after_refresh(self.reconcile_source)
 
-    def row_tone(self, record: R) -> type[ThemeColour]:
-        return ForegroundColour
-
     def selection_changed(self) -> None:
         """The actual selected source record changed during reconciliation."""
 
@@ -125,11 +120,8 @@ class DeclaredTable[R](OpensSelected, DataTable[Text]):
         layout = self.source.layout(available - self.cell_padding * 2 * len(self.source.columns))
         widths = layout.widths(max(1, available - self.cell_padding * 2 * len(layout.columns)))
         self.show_header = bool(layout.header_rows())
-        rows = []
-        for record, texts in zip(entities.values(), layout.texts):
-            colour = self.app.colours.colour(self.row_tone(record))
-            style = Style(background=colour, foreground=colour.get_contrast_text())
-            rows.append(tuple(Text(text, style=style.rich_style, overflow="fold") for text in texts))
+        rows = [tuple(Text(text, overflow="fold") for text in texts)
+                for texts in layout.texts]
         columns_changed = tuple((column.key.value, column.width) for column in self.ordered_columns) != tuple(
             (column.name, width) for column, width in zip(layout.columns, widths)
         )

@@ -99,6 +99,8 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         await ui.until(lambda: bool(view.query(TeamTable)), why="the grouped native table to mount")
         table = view.query_one(TeamTable)
         await ui.until(lambda: table.selected == selected(unit), why="the actual unit to acquire a native row")
+        assert all(not cell.style for key in table.entity_keys.values()
+                   for cell in table.get_row(key))
         table.focus()
         await pilot.press("enter")
         await ui.until(lambda: " ".join(Detached.action.split()) in " ".join(" ".join(strip.text for strip in table.render_lines(table.size.region)).split()),
