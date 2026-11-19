@@ -14,13 +14,14 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import TypeVar
 
 from agent_comms.execution import launch_root
-from agent_comms.execution.child_process import HelperStart
+from agent_comms.execution.child_process import HelperStart, ProcessName
 from agent_comms.execution.launch_runtime import ThreadLaunch
 
 from toad.render_backend import Renderer, RenderTask
 from toad.work_preparation import PreparedValue
 
 Result = TypeVar("Result")
+RENDER_WORKER_PROCESS = ProcessName("toad-render")
 
 
 def _initialize_worker() -> None:
@@ -32,6 +33,7 @@ def _initialize_worker() -> None:
     implementations remain owned by those tasks, rather than Markdown startup.
     No notification or rendering job is made.
     """
+    RENDER_WORKER_PROCESS.publish()
     ThreadLaunch.strip(os.environ)
     from toad import render_tasks  # noqa: F401 -- declare worker rendering capabilities
     from toad.acp import (
