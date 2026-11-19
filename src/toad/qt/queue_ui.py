@@ -200,12 +200,12 @@ class QtQueueInspection(PresentedWindow, QueueInspectionOwner, QDialog, metaclas
     def __init__(self, submissions: "ConversationSubmissions", renderer: "QtLineRenderer",
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle(self.title)
+        self.setWindowTitle(self.heading)
         self.inspect_submissions(submissions)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
         layout.setSpacing(UiGap.frame)
-        heading = QLabel(self.title, self)
+        heading = QLabel(self.heading, self)
         heading.setStyleSheet("font-weight: bold;")
         layout.addWidget(heading)
         # A bus-only submissions owner has no queue evidence: there is no queue to detail.
