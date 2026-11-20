@@ -254,10 +254,6 @@ class QtConversation(
         self.app.coordination_access.stop_notifications(self)
         self.message_history.retire_source()
 
-    def history_loading(self) -> bool:
-        """As Textual's `Conversation`: only wire histories page in under a loading row."""
-        return False
-
     def sync_working(self) -> None:
         """Textual's `Conversation.sync_working`: the sweep reads the one `working()` answer."""
         self.agent_activity.sync()
@@ -400,17 +396,6 @@ class QtConversation(
 
     # ---- The thread-binding chain ----
 
-    @property
-    def thread_scope(self) -> TranscriptScope:
-        """Textual's `Conversation.thread_scope`: the scope the transcript is bound to;
-        `NoTranscript` while unbound and on a wire view, which publishes no transcript."""
-        return self.transcript.binding.thread_scope
-
-    def status_thread(self) -> StatusThread:
-        """`ConversationThreadReadMixin.consume_thread_presentation` opens the thread's
-        status by this name, as Textual's `Conversation.status_thread`."""
-        return self.thread_scope.status_thread(self.app.coordination_access)
-
     def thread_presented(self, presentation: ThreadPresentation) -> None:
         """A settled member owns whether this view has source work to publish, as
         Textual's `Conversation.thread_presented`."""
@@ -418,11 +403,6 @@ class QtConversation(
         self.refresh_thread_status()
         self.present_thread_status()
         self.dispatch_sync(presentation)
-
-    def transcript_changed(self) -> None:
-        """The thread's source changed outside this view: its sources say what to read
-        again, as Textual's `Conversation.transcript_changed`."""
-        self.operational_sources.external_transcript_changed(self)
 
     # ---- The Qt widget answers ----
 
