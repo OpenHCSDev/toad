@@ -35,10 +35,10 @@ if TYPE_CHECKING:
     from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
     from toad.acp.agent_controller import AgentController
 
+    from toad.client.submission import SubmissionStart
     from toad.conversation_submission import (
         AgentInputSubmission,
         ConversationSubmissions,
-        SubmissionStart,
     )
     from toad.screens.main import MainScreen
     from toad.session_observation import SessionObservation

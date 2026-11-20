@@ -29,7 +29,7 @@ from toad.commit_claims import CommitClaim, SnapshotPresentation
 from toad.core.source_events import TranscriptCoverage
 
 if TYPE_CHECKING:
-    from toad.forms.presentation import EntryPlacement
+    from toad.entry_placement import EntryPlacement
 
 
 class CommittedHistoryBase(SnapshotPresentation, ResumesSource, CoveredHistory[PreparedPageSource]):

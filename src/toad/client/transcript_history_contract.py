@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 if TYPE_CHECKING:
     from toad.client.history_coverage import HistoryCoverage
     from toad.client.prepared_pages import PreparedPageSource
-    from toad.core.events import InputStartedUpdate
-    from toad.transcript_messages import PublishedSentMessage
+    from agent_comms.acp_extension import InputStartedUpdate
+    from agent_comms.messaging.sent_message import PublishedSentMessage
 
 
 @runtime_checkable
