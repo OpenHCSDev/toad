@@ -71,7 +71,9 @@ class SessionScope:
 
     @property
     def origin(self) -> SessionOrigin:
-        raise NotImplementedError
+        """The session this view belongs to. A view of a conversation, a mailbox or an agent
+        tab belongs to none, and says so by its mode; a session's own view is its origin."""
+        return NoSessionOrigin(self.mode)
 
     @property
     def operational_binding(self):
@@ -146,16 +148,17 @@ class SessionScope:
         nothing."""
 
     async def wait_content_ready(self) -> None:
-        """Opening a tab returns once its content has loaded."""
-        raise NotImplementedError
+        """Opening a tab returns once its content has loaded. A view composed with its
+        content, or one that draws it as it arrives, is ready once shown; a view that loads
+        first waits here."""
 
     def close_core_events(self) -> None:
         """End the view's Core subscriptions before its tab entry is forgotten."""
         raise NotImplementedError
 
     async def retire_presentation(self) -> None:
-        """Let go of what the view drew before the tab it returns to is shown."""
-        raise NotImplementedError
+        """Let go of what the view drew before the tab it returns to is shown. A view that
+        keeps nothing beside the rows it shows has nothing to let go of."""
 
 
 class BoundSources(SessionScope):

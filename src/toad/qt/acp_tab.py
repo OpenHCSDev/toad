@@ -25,7 +25,7 @@ from ui_theme.scheme import ForegroundColour
 
 from toad.agent_binding import AgentConnection
 from toad.client.session_entry import NativeSessionEntry
-from toad.client.session_scope import NoSessionOrigin, SessionOrigin
+from toad.client.session_scope import BoundSources
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.tab_identity.kinds import CommsTab
 from toad.core import events as core_events
@@ -66,6 +66,7 @@ class QtAcpSessionView(
     AgentOrigin,
     SessionTitles,
     FirstPromptTitle,
+    BoundSources,
     metaclass=PyQtWidgetMeta,
 ):
     """One agent session's tab: its identity line, the transcript through Qt's history
@@ -248,10 +249,6 @@ class QtAcpSessionView(
         """The launch's current initial identity, read fresh on each access."""
         return self.launch.initial_identity(NoThreadIdentity())
 
-    @property
-    def origin(self) -> SessionOrigin:
-        return NoSessionOrigin(self.mode)
-
     def transcript_scope(self) -> TranscriptScope:
         """The transcript scope this view is bound to: the identity owns it directly."""
         return self.thread_identity.transcript_scope()
@@ -264,10 +261,6 @@ class QtAcpSessionView(
             self._attached = True
             self.launch.attach_to(self, self)
         self.reload()
-
-    def reload(self) -> None:
-        """A transcript's source is live-bound by ``NativeSessionEntry.__call__``; if no
-        source has been initialised, the history window just stays empty."""
 
 
 class QtNativeSessionEntry(QtSessionEntry, NativeSessionEntry, shows=(SessionTabIdentity,)):

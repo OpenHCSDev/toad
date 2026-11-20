@@ -130,3 +130,38 @@ def test_the_surface_a_view_lends_its_agent_holds_the_view_weakly_on_both_fronte
     assert surface.target is None
     surface.close()
     assert subscription.closed
+
+
+def test_a_view_with_nothing_to_wait_for_retire_or_reload_inherits_that_and_its_origin():
+    from toad.client.session_scope import NoSessionOrigin, SessionScope
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.mailbox_view import QtMailboxView
+    from toad.qt.opening_view import QtOpeningSessionView
+    from toad.qt.page import Page
+    from toad.qt.window import ConversationView
+    from toad.screens.session_view import SessionView
+
+    _owned_by(SessionScope, "wait_content_ready", QtMailboxView, QtOpeningSessionView, SessionView)
+    _owned_by(SessionScope, "retire_presentation", QtMailboxView, QtOpeningSessionView)
+    _owned_by(SessionScope, "origin", QtMailboxView, QtAcpSessionView, ConversationView)
+    _owned_by(Page, "reload", QtMailboxView, QtOpeningSessionView, QtAcpSessionView)
+
+    class Channel(SessionScope):
+        mode = "comms:#scratch"
+
+    origin = Channel().origin
+    assert isinstance(origin, NoSessionOrigin) and origin.view == "comms:#scratch"
+
+
+def test_the_qt_agent_tab_is_a_session_scope_as_the_mailbox_view_is():
+    """Navigation asks every view it opens to take a load plan, wait for its content and
+    retire its presentation; the Qt agent tab answered none of them."""
+    from toad.client.session_scope import BoundSources, SessionScope
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.mailbox_view import QtMailboxView
+
+    for view in (QtAcpSessionView, QtMailboxView):
+        assert issubclass(view, BoundSources)
+        assert view.apply_native_load_plan is BoundSources.apply_native_load_plan
+        assert view.wait_content_ready is SessionScope.wait_content_ready
+        assert view.retire_presentation is SessionScope.retire_presentation
