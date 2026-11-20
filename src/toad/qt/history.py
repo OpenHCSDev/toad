@@ -1402,12 +1402,9 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     def apply_anchor(self, anchor: bool) -> None:
         self._anchored = anchor
-        if anchor:
-            self.reader_position = self.reader_position.joined_tail()
-            # A publication restoring a following reader (`FollowTailCommit.restore_reader`)
-            # glides to rows that just arrived; a running glide lands on the end itself.
-            if self.gliding_to_end():
-                return
+        # A publication restoring a following reader (`FollowTailCommit.restore_reader`)
+        # glides to rows that just arrived; a running glide lands on the end itself.
+        if anchor and not self.gliding_to_end():
             try:
                 with self.layout_scroll():
                     self.follow_end()
@@ -1416,12 +1413,6 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
                 # scrollToBottom() inside follow_end hits the dead C++ widget.
                 # Nothing to scroll; the user already closed the view.
                 return
-        else:
-            self.reader_position = ReaderPosition.of(self)
-
-    def release_anchor(self) -> None:
-        if self.follows_tail:
-            self.anchor(False)
 
     def jump_to_latest(self) -> None:
         """`JumpsToLatest.jump_to_latest` is abstract; the QtJumpBar click is wired to this
@@ -1431,14 +1422,6 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         which scrolls the viewport to the latest row, mirroring Textual's
         `WindowAction.scroll_end` path."""
         self.anchor(True)
-
-    def check_follow(self) -> bool:
-        if not self.follows_tail or self.gliding_to_end():
-            return False
-        previous = self.scroll_y
-        with self.layout_scroll():
-            self.scroll_y = self.tail_scroll_y
-        return previous != self.scroll_y
 
     @asynccontextmanager
     async def tree_change(self):
@@ -1700,8 +1683,3 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     def drawn_pages(self) -> Iterator[QtPage]:
         return (page for history in self.histories for page in history.pages if page.display)
 
-    def message_too_tall(self, height: int) -> bool:
-        return height > self.viewport_rows
-
-    def message_head_hidden(self, height: int, head_y: int) -> bool:
-        return self.message_too_tall(height) and head_y < 0

@@ -57,7 +57,8 @@ def test_both_frontends_windows_inherit_the_change_and_keep_only_their_native_st
     from toad.widgets.history_anchor import HistoryWindow
 
     for window in (HistoryWindow, QtHistoryWindow):
-        for shared in ("preserve_history", "layout_scroll", "place_reader"):
+        for shared in ("preserve_history", "layout_scroll", "place_reader", "check_follow", "release_anchor",
+                       "message_too_tall", "message_head_hidden"):
             assert getattr(window, shared) is getattr(ReaderPlacement, shared), (window, shared)
         assert window.keep_reader is JumpsToLatest.keep_reader, window
         for native in ("tree_change", "request_reader_layout"):

@@ -196,10 +196,6 @@ class PagingWindow(ReaderWindow):
             self.request_preparation()
 
     @abstractmethod
-    def check_follow(self) -> None:
-        """Follow the end again when the reader has scrolled back to it."""
-
-    @abstractmethod
     def tree_change(self):
         """An async context holding this window's native rows while a change is made to them:
         Textual's tree lock; Qt's rows, read again from the pages as it ends."""
@@ -269,6 +265,38 @@ class ReaderPlacement:
         """One native destination's row capacity and bounded fragment budget."""
         return (self.presentation_budget.runway_rows(self.viewport_rows),
                 self.lookahead.destination_batch(budget, self.viewport_rows))
+
+    def check_follow(self) -> bool:
+        """Keep a following reader on the tail, unless a change is open (its own layout
+        places them); True when that scrolled the window."""
+        return self.history_change.check_follow(self)
+
+    def gliding_to_end(self) -> bool:
+        """Whether a glide owns the way to the tail. A window whose toolkit animates its own
+        scroll (Textual) has none."""
+        return False
+
+    def release_anchor(self) -> None:
+        """The reader stops following the tail, and whatever travel was under way ends
+        where they are."""
+        if self.follows_tail:
+            self.end_travel()
+            self.anchor(False)
+
+    def end_travel(self) -> None:
+        """The reader's travel ends where they are. A window that scrolls at once (Qt) has
+        no destination ahead of it."""
+
+    content_top = 0
+    """The viewport's first row in the window's own coordinates."""
+
+    def message_too_tall(self, height: int) -> bool:
+        """A message taller than the viewport needs its head placed; a short one stays put."""
+        return height > self.content_rows
+
+    def message_head_hidden(self, height: int, head_y: int) -> bool:
+        """A tall message whose head row is above the viewport needs its head placed."""
+        return self.message_too_tall(height) and head_y < self.content_top
 
     @contextmanager
     def layout_scroll(self):
