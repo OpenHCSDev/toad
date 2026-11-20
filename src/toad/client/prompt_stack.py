@@ -68,9 +68,9 @@ class FlashNotice(metaclass=AbstractHooksMeta):
     and hide it again after `duration` seconds, or the `ui.flash_duration` setting."""
 
     @property
-    @abstractmethod
     def settings(self):
         """The settings whose `ui.flash_duration` bounds a flash with no duration."""
+        return self.app.settings
 
     def flash(self, content, *, duration: float | None = None, style: str = DefaultTone.declared_name) -> None:
         self.stop_flash_timer()

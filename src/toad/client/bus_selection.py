@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from abc import (
     ABC,
     abstractmethod,
@@ -254,8 +255,9 @@ class BusListing:
         raise NotImplementedError
 
     def held_rows(self) -> tuple[PickerRow, ...]:
-        """What this machine knows without asking anyone: instant."""
-        raise NotImplementedError
+        """What this machine knows without asking anyone, instantly: its own bus and the
+        remote profiles it holds. The tailnet's reported peers are merged in by `listed()`."""
+        return BusChoice.offered(time.time())
 
     def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
         """Draw ``rows`` in place of the ones shown."""

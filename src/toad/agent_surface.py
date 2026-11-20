@@ -3,7 +3,6 @@
 from contextlib import AsyncExitStack
 from functools import partial
 from typing import TYPE_CHECKING
-from weakref import ref
 
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
@@ -13,7 +12,7 @@ from toad.permission_presentation import (
     InlinePermissionPresentation,
 )
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
-from toad.surface_binding import SurfaceBinding
+from toad.surface_binding import ViewSurfaceBinding
 
 if TYPE_CHECKING:
     from textual.message import Message
@@ -33,10 +32,9 @@ if TYPE_CHECKING:
     from toad.widgets.terminal_tool import TerminalTool
 
 
-class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
+class AttachedSurfaceBinding(ViewSurfaceBinding, MroDispatch):
     def __init__(self, target: Conversation, events: CoreEventStream):
-        self._target = ref(target)
-        self.subscription = target.subscribe_core(events)
+        self.lend(target, target.subscribe_core(events))
 
     def prepare(self, controller: AgentController) -> None:
         app = self.target.app
@@ -107,10 +105,6 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
                     return
             if self.owns_publication(message, target):
                 retirement.pop_all()
-
-    def sync_queue(self) -> None:
-        if (target := self.target) is not None:
-            target.submissions.publish_pending()
 
     def prepare_terminal(self, state: TerminalState) -> None:
         target = self.target
@@ -210,16 +204,6 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     def schedule_terminal_presentation(self, controller: OperationalTerminalOwner):
         if (target := self.target) is not None:
             target.call_later(controller.start_terminal_presentation, target)
-
-    def close(self) -> None:
-        if (target := self.target) is not None:
-            target.retire_core(self.subscription)
-        else:
-            self.subscription.close()
-
-    @property
-    def target(self):
-        return self._target()
 
     def post(self, message: Message):
         target = self.target

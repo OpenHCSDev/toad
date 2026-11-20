@@ -60,10 +60,6 @@ class QtFlash(FlashNotice, ElidedLine, metaclass=PyQtWidgetMeta):
         self.timer.timeout.connect(self.hide_flash)
         self.hide()
 
-    @property
-    def settings(self):
-        return self.app.settings
-
     def show_flash(self, content, tone: type[FlashTone]) -> None:
         scheme = self.renderer.scheme
         ink = tone.colour.rgb(scheme)
@@ -131,10 +127,6 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.inspect_action.setStyleSheet(
             f"QToolButton {{ color: {self.renderer.theme(AccentColour)}; text-decoration: underline; border: none }}")
         self.paint_title()
-
-    @property
-    def coordination(self):
-        return self.app.coordination_access
 
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)

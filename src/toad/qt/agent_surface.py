@@ -13,7 +13,6 @@ import inspect
 from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
-from weakref import ref
 
 from acp import schema
 from agent_comms.nominal.field_codec import FieldCodec, ToolCallId
@@ -28,7 +27,8 @@ from toad.permission_presentation import DiffPermissionPresentation, InlinePermi
 from toad.qt.history import QtToolTranscriptFragment
 from toad.qt.live_turn import QtLiveBlock
 from toad.tool_output import TextToolOutputPart, ToolOutput
-from toad.surface_binding import SurfaceBinding
+from toad.client.fragments import GrowsInPlace
+from toad.surface_binding import ViewSurfaceBinding
 
 if TYPE_CHECKING:
     from toad.core.events import CoreEventStream
@@ -60,15 +60,9 @@ class AgentEventSubscription(CallbackSubscription):
 
 
 @dataclass(kw_only=True)
-class QtLiveToolFragment(QtToolTranscriptFragment):
+class QtLiveToolFragment(GrowsInPlace, QtToolTranscriptFragment):
     """A live tool call's row, drawn as a saved one is (`AgentActivityPresentation.tool`: the
     title and status, details behind the disclosure); its revision keys the row cache."""
-
-    live_revision: int = 0
-
-    @property
-    def revision(self) -> int:
-        return self.live_revision
 
 
 class QtLiveToolRow(QtLiveBlock):
@@ -154,28 +148,19 @@ class QtTerminalBlock(QtLiveToolRow):
         self.redraw()
 
 
-class QtSurfaceBinding(SurfaceBinding, MroDispatch):
+class QtSurfaceBinding(ViewSurfaceBinding, MroDispatch):
     """The surface a Qt conversation lends its bound agent."""
 
     def __init__(self, target: QtConversation, events: CoreEventStream) -> None:
-        self._target = ref(target)
-        self.subscription = target.subscribe_agent(events)
+        self.lend(target, target.subscribe_agent(events))
         self.tools: dict[str, QtToolBlock] = {}
         self.terminals: dict[str, QtTerminalBlock] = {}
-
-    @property
-    def target(self):
-        return self._target()
 
     def owns_publication(self, message, target) -> bool:
         return (self.owns(target)
                 and target.agent_binding.matches_agent(message.publisher)
                 and message.publisher.controller.surface is self
                 and message.publisher.tools.presentation(message.event) is not None)
-
-    def sync_queue(self) -> None:
-        if (target := self.target) is not None:
-            target.submissions.publish_pending()
 
     async def present_tool(self, message, target) -> None:
         if not self.owns_publication(message, target):
@@ -238,12 +223,6 @@ class QtSurfaceBinding(SurfaceBinding, MroDispatch):
     def post(self, message) -> bool:
         """Qt delivers the agent's stream through `subscribe_agent`, not posted messages."""
         return False
-
-    def close(self) -> None:
-        if (target := self.target) is not None:
-            target.retire_core(self.subscription)
-        else:
-            self.subscription.close()
 
 
 def subscribe_agent(observer, events: CoreEventStream):

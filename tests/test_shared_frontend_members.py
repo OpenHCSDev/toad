@@ -73,3 +73,60 @@ def test_settings_agentless_presentation_and_source_refresh_are_the_shared_owner
     for row in (QtStatusLine, QtInfoBar):
         _owned_by(QtSettingVisibility, "show_setting", row)
         _owned_by(QtSettingVisibility, "showEvent", row)
+
+
+def test_flash_coordination_held_rows_and_live_revision_are_the_shared_owners():
+    from toad.client.bus_selection import BusListing
+    from toad.client.fragments import GrowsInPlace
+    from toad.client.prompt_stack import FlashNotice
+    from toad.qt.agent_surface import QtLiveToolFragment
+    from toad.qt.bus_switcher import QtBusSwitcher
+    from toad.qt.live_turn import QtLiveFragment
+    from toad.qt.prompt_stack import QtFlash, QtSessionDetails
+    from toad.screens.bus_choice import ListsBuses
+    from toad.status_thread import ObservedActivity
+    from toad.widgets.flash import Flash
+    from toad.widgets.observed_thread_activity import ObservedThreadActivity
+
+    _owned_by(FlashNotice, "settings", Flash, QtFlash)
+    _owned_by(ObservedActivity, "coordination", ObservedThreadActivity, QtSessionDetails)
+    _owned_by(BusListing, "held_rows", ListsBuses, QtBusSwitcher)
+    _owned_by(GrowsInPlace, "revision", QtLiveFragment, QtLiveToolFragment)
+    # The counter, not the event count, keys a live row.
+    assert QtLiveFragment(events=(), live_revision=3).revision == 3
+
+
+def test_the_surface_a_view_lends_its_agent_holds_the_view_weakly_on_both_frontends():
+    from toad.agent_surface import AttachedSurfaceBinding
+    from toad.qt.agent_surface import QtSurfaceBinding
+    from toad.surface_binding import ViewSurfaceBinding
+
+    for member in ("target", "sync_queue", "close"):
+        _owned_by(ViewSurfaceBinding, member, AttachedSurfaceBinding, QtSurfaceBinding)
+
+    class View:
+        retired = None
+
+        def retire_core(self, subscription) -> None:
+            self.retired = subscription
+
+    class Subscription:
+        closed = False
+
+        def close(self) -> None:
+            self.closed = True
+
+    class Lent(ViewSurfaceBinding):
+        def post(self, message) -> bool:
+            return False
+
+    view, subscription, surface = View(), Subscription(), Lent()
+    surface.lend(view, subscription)
+    assert surface.target is view and surface.owns(view)
+    surface.close()
+    assert view.retired is subscription and not subscription.closed
+    # A view that is gone is no target; closing then releases the subscription itself.
+    del view
+    assert surface.target is None
+    surface.close()
+    assert subscription.closed

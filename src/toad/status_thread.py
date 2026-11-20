@@ -151,7 +151,7 @@ class ObservedActivity(CoreObserver, ActivityView):
     @property
     def coordination(self):
         """The coordination access whose events and open-thread rows this view reads."""
-        raise NotImplementedError
+        return self.app.coordination_access
 
     def start_observing(self) -> None:
         """The view is shown: observe its thread and show its row."""

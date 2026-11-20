@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import itertools
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from agent_comms.transcript.transcript_events import (
@@ -22,6 +22,7 @@ from agent_comms.transcript.transcript_events import (
     UserTranscript,
 )
 
+from toad.client.fragments import GrowsInPlace
 from toad.client.transcript_fragments import TranscriptFragment
 from toad.turn_presentation import LiveBlock
 
@@ -32,14 +33,8 @@ _serials = itertools.count(1)
 
 
 @dataclass(kw_only=True)
-class QtLiveFragment(TranscriptFragment):
+class QtLiveFragment(GrowsInPlace, TranscriptFragment):
     """A live block's row: one transcript event that grows in place."""
-
-    live_revision: int = field(default=0)
-
-    @property
-    def revision(self) -> int:
-        return self.live_revision
 
 
 class QtLiveBlock(LiveBlock):

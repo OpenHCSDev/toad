@@ -1,6 +1,8 @@
 """Native surface behavior borrowed by agent and shell operational owners."""
 
 from abc import abstractmethod
+from weakref import ref
+
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 
@@ -49,6 +51,29 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
 
     def close(self) -> None:
         """An absent frontend has no subscription to release."""
+
+
+class ViewSurfaceBinding(SurfaceBinding):
+    """The surface a frontend's view lends its bound agent: it holds the view weakly, so a
+    closed view is no target, and the view's subscription to the agent's stream."""
+
+    def lend(self, target, subscription) -> None:
+        self._target = ref(target)
+        self.subscription = subscription
+
+    @property
+    def target(self):
+        return self._target()
+
+    def sync_queue(self) -> None:
+        if (target := self.target) is not None:
+            target.submissions.publish_pending()
+
+    def close(self) -> None:
+        if (target := self.target) is not None:
+            target.retire_core(self.subscription)
+        else:
+            self.subscription.close()
 
 
 class DetachedSurfaceBinding(SurfaceBinding):

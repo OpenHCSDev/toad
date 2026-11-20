@@ -8,7 +8,6 @@ refuse.
 
 from __future__ import annotations
 
-import time
 
 from formbridge.key_declarations import TextEntryMode
 from textual import on
@@ -25,7 +24,7 @@ from toad.client.sidebar_lines import BusChoiceLine
 from ui_theme.scheme import PrimaryColour
 
 from toad.client.bus_selection import (
-    BusAddressEntry, BusChoice, BusListing, BusPickerHost, BusSwitcherPrompt, PickerRow, TailnetAnswer,
+    BusAddressEntry, BusListing, BusPickerHost, BusSwitcherPrompt, PickerRow, TailnetAnswer,
 )
 from toad.native_style import AutoHeight, FillWidth
 from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
@@ -112,9 +111,6 @@ class ListsBuses(BusListing, Widget):
 
     def picker_host(self) -> BusPickerHost:
         return self.app
-
-    def held_rows(self) -> tuple[PickerRow, ...]:
-        return BusChoice.offered(time.time())
 
     def bus_rows(self) -> BusRows:
         """The rows as they stand now, to compose."""
