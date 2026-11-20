@@ -51,7 +51,9 @@ from toad.client.prepared_pages import (
     PreparedTranscriptPage,
     _DrawingStopped,
 )
-from toad.client.reader_position import LatestPosition, ReaderWindow
+from toad.client.reader_position import (
+    UNSHOWN_READER, FragmentNotLoaded, LatestPosition, ReaderPage, ReaderPosition, ReaderWindow,
+)
 from toad.client.resource_release import ResourceRelease
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.transcript_filter import FilterState
@@ -337,6 +339,17 @@ class ReaderPlacement:
                 await shown.enter_async_context(self.history_change.opened(self))
                 yield
 
+    def reader_for_layout(self) -> ReaderPosition:
+        """The kept position as this layout can place it; a window the layout does not draw places none."""
+        if not self.shown:
+            return UNSHOWN_READER
+        self.reader_position = self.reader_position.for_layout(self, self.reader_position)
+        return self.reader_position
+
+    def place_layout_reader(self) -> bool:
+        """After a layout: put the reader back on the kept position; True when that scrolled."""
+        return self.reader_for_layout().placed_by_layout(self)
+
     def place_reader(self) -> bool:
         """Put the reader on the kept position in the layout just made; True when that scrolled the window.
 
@@ -417,9 +430,27 @@ class HistoryPager(ResumesSource):
                                 selected: frozenset[type[MessageCategory]], target: MeasuresFragments) -> None:
         """Render fragments against the native destination before they are measured."""
 
-    @abstractmethod
+    def page_holding(self, key: FragmentKey) -> ReaderPage:
+        """The loaded page holding this source occurrence; absence is an invalid request."""
+        for page in self.pages:
+            if any(candidate.key == key for candidate in page.prepared.fragments_in_range):
+                return page
+        raise FragmentNotLoaded("No loaded page holds the requested fragment")
+
     def hold_arrival(self, arrivals: tuple[HistoryFragment, ...]) -> None:
-        """Hold rows that arrive below a following reader until they are drawn."""
+        """The latest shown arriving message places a following reader, from its head when it is
+        taller than the window: a burst shows its most recent message, and the pin stacks the
+        others' headers (`ArrivalBurst`)."""
+        window = self.window
+        if not window.shown:
+            return
+        shown = [fragment for fragment in arrivals
+                 if fragment.shown_in(self.page_holding(fragment.key).visible_categories)]
+        if not shown:
+            return
+        latest = shown[-1].source_identity
+        head = next(fragment for fragment in shown if fragment.source_identity == latest)
+        window.reader_position = window.reader_position.arrived(self.page_holding(head.key), head.key)
 
     @abstractmethod
     def _update_edges(self) -> None:

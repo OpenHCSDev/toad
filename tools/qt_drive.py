@@ -977,8 +977,10 @@ class JumpBackScenario(Scenario):
 
 class TallArrivalScenario(StickyScenario):
     summary = ("open TARGET (#scratch) following its end; SENDER (scratch-live-pipeline) posts one "
-               "message taller than the window; once the window glides down into it, its header "
-               "must be pinned over the top row without the reader scrolling")
+               "message taller than the window; the reader must be put on its head, on the window's "
+               "top row, and stop following, as in the TUI (`ArrivalPosition`): not glided to its "
+               "bottom (Tristan: a large message \"comes in in one shot and it scrolls to the bottom "
+               "of the message\")")
 
     async def run(self) -> None:
         self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
@@ -994,14 +996,23 @@ class TallArrivalScenario(StickyScenario):
             stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
         _, error = await process.communicate()
         assert process.returncode == 0, error.decode(errors="replace")[-300:]
-        await until(lambda: any(f"tall arrival {stamp} line 119" in fragment.clipboard_text
-                                for fragment in window.model_rows.fragments), "the tall message's row")
-        await until(lambda: window.glide is None and window.follows_tail, "the glide landed on the end")
+
+        def arrived():
+            return next((fragment for fragment in window.model_rows.fragments
+                         if f"tall arrival {stamp} line 119" in fragment.clipboard_text), None)
+
+        await until(lambda: arrived() is not None, "the tall message's row")
+        await until(lambda: window.glide is None, "no glide left running")
         await asyncio.sleep(0.5)
-        facts = self.pinned()
+        rows = window.model_rows.fragments
+        head = arrived().message_head(rows)
+        top = window.message_top(head.key)
+        facts = dict(following=window.follows_tail, head_from_top_px=None if top is None else top - window.scroll_y,
+                     jumpable=window.can_jump_to_latest, viewport=window.viewport_rows, **self.pinned())
         self.report("1-tall-arrived", **facts)
-        assert facts["shown"], "a tall arrival fills the window, yet its header is not pinned"
-        assert sender in facts["text"], f"pinned {facts['text']!r} is not {sender}'s header"
+        assert not window.follows_tail, "a tall arrival leaves the reader following its bottom"
+        assert top is not None and abs(top - window.scroll_y) <= 1, (
+            f"the tall arrival's head is {facts['head_from_top_px']} px from the window's top row")
 
 
 class EscapeScenario(Scenario):
