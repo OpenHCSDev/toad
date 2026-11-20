@@ -258,6 +258,11 @@ class ReaderPosition(ABC):
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
+    def joins_tail(self, window: ReaderWindow) -> bool:
+        """Whether placing this puts the reader on the latest row: a window with its own way
+        there (Qt's glide) takes it only then."""
+        return False
+
     def arrived(self, page: ReaderPage, key: FragmentKey) -> ReaderPosition:
         """The position after a message arrived at the followed end: only following hands it the reader."""
         return self
@@ -331,6 +336,9 @@ class TailPosition(ReaderPosition):
         if not window.follows_tail:
             window.anchor()
         window.scroll_y = window.tail_scroll_y
+        return True
+
+    def joins_tail(self, window: ReaderWindow) -> bool:
         return True
 
     def revealed(self, window: ReaderWindow) -> None:
@@ -509,6 +517,10 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
     def tall(self, window: ReaderWindow) -> bool:
         """Whether the message is taller than the window, in the layout just made."""
         return window.message_too_tall(self.page.drawn_height(self.location().location().fragment))
+
+    def joins_tail(self, window: ReaderWindow) -> bool:
+        """An arrival not drawn yet, or one that fits in the window, follows the tail."""
+        return not (self.laid_out(window) and self.tall(window))
 
     def place(self, window: ReaderWindow) -> bool:
         if self.tall(window):

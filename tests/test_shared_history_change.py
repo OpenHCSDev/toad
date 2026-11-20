@@ -58,7 +58,7 @@ def test_both_frontends_windows_inherit_the_change_and_keep_only_their_native_st
 
     for window in (HistoryWindow, QtHistoryWindow):
         for shared in ("preserve_history", "layout_scroll", "place_reader", "check_follow", "release_anchor",
-                       "message_too_tall", "message_head_hidden"):
+                       "message_too_tall", "message_head_hidden", "place_layout_reader", "reader_for_layout"):
             assert getattr(window, shared) is getattr(ReaderPlacement, shared), (window, shared)
         assert window.keep_reader is JumpsToLatest.keep_reader, window
         for native in ("tree_change", "request_reader_layout"):
@@ -78,4 +78,14 @@ def test_a_qt_row_under_the_top_edge_names_the_readers_message_and_how_far_into_
     rect = SimpleNamespace(top=lambda: 500, height=lambda: 240)
     window = SimpleNamespace(scroll_y=1000, visualRect=lambda index: rect,
                              model_rows=SimpleNamespace(index=lambda row, column: (row, column)))
-    assert QtRowLocation(7).destination(window, position.fraction) == 1000 + 500 + 60
+    assert QtRowLocation(7, fragment).destination(window, position.fraction) == 1000 + 500 + 60
+
+
+def test_both_frontends_histories_place_an_arrival_through_the_shared_pager():
+    from toad.client.history_pager import HistoryPager
+    from toad.qt.history import QtConversationHistory
+    from toad.widgets.transcript_history import LineHistory
+
+    for history in (LineHistory, QtConversationHistory):
+        for shared in ("hold_arrival", "page_holding"):
+            assert getattr(history, shared) is getattr(HistoryPager, shared), (history, shared)

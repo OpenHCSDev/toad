@@ -190,6 +190,11 @@ class QtPage(ReaderPage):
     def drawn_height(self, fragment: HistoryFragment) -> int:
         return self.history.fragment_height(fragment)
 
+    @property
+    def visible_categories(self):
+        """The categories this page shows: Qt filters a history's pages together."""
+        return self.history.selected_categories
+
     def fragment_row(self, key, block: int) -> FragmentLocation:
         return self.history.window.fragment_location(key)
 
@@ -679,9 +684,6 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
             for key, formatting in prepared:
                 rows.adopt(key, formatting)
 
-    def hold_arrival(self, arrivals: tuple[HistoryFragment, ...]) -> None:
-        """Qt holds no rows below a following reader: arrivals rise where `repaint` names them."""
-
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
         """A status change repaints only the rows it changed. A row's cache key carries how
         its fragment is shown, so the repaint asks the delegate for the new look, which keeps
@@ -872,6 +874,7 @@ class QtRowLocation(FragmentLocation):
     holds is laid out; a message with no row is `UnloadedFragment`."""
 
     row: int
+    fragment: HistoryFragment
 
     def location(self) -> FragmentLocation:
         return self
@@ -1152,6 +1155,10 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
             return False
         self._arrived = ()
         self.executeDelayedItemsLayout()
+        if not self.reader_position.joins_tail(self):
+            # An arrival taller than the window is read from its head: layout places it there
+            # (`ArrivalPosition`), and a glide still running stops with the following.
+            return False
         tail = self.tail_scroll_y
         start = max(0, tail - sum(self.visualRect(model_rows.index(row, 0)).height() for row in rows))
         if self.glide is not None:
@@ -1392,7 +1399,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     def fragment_location(self, key) -> FragmentLocation:
         row = self.model_rows.row_of(key)
-        return QtRowLocation(row) if row >= 0 else UnloadedFragment()
+        return QtRowLocation(row, self.model_rows.fragments[row]) if row >= 0 else UnloadedFragment()
 
     # The reader
 
@@ -1461,7 +1468,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         self.scheduleDelayedItemsLayout()
         self.executeDelayedItemsLayout()
         if not (self.follows_tail and self.gliding_to_end()):
-            self.place_reader()
+            self.place_layout_reader()
         self.history_change.finish_layout(answered)
         self.repin_header()
 
@@ -1675,7 +1682,8 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         return iter(())
 
     def holds(self, item) -> bool:
-        return False
+        """Whether `item` is a page this window draws."""
+        return any(item is page for page in self.drawn_pages())
 
     def row_of(self, item) -> int:
         raise LookupError(item)

@@ -45,7 +45,6 @@ from toad.client.reader_position import (
     ParkedPosition,
     ReaderPosition,
     TailPosition,
-    UNSHOWN_READER,
 )
 
 
@@ -278,17 +277,6 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         """The widgets the kept position is measured from: layout places them even off screen."""
         return self.reader_for_layout().bodies(self)
-
-    def reader_for_layout(self) -> ReaderPosition:
-        """The kept position as this layout can place it; a window the layout does not draw places none."""
-        if not self.shown:
-            return UNSHOWN_READER
-        self.reader_position = self.reader_position.for_layout(self, self.reader_position)
-        return self.reader_position
-
-    def place_layout_reader(self) -> bool:
-        """After a layout: put the reader back on the kept position; True when that scrolled."""
-        return self.reader_for_layout().placed_by_layout(self)
 
     def shift_travel(self, rows: float, destination: float) -> None:
         """A running scroll animation and its target move by the rows layout moved the reader."""
