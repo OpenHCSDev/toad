@@ -401,21 +401,11 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
             self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
             self.scroll_target_y = self.scroll_y
             self._anchor_released = False
-            # A reader cannot move a window they cannot see: a parked place stays.
-            if self.shown:
-                self.reader_position = self.reader_position.joined_tail()
         # Textual's own anchor: the next one after the shared step in this window's MRO.
         super(FollowsTail, self).anchor(anchor)
-        if not anchor and self.shown and not self._restoring:
-            self.reader_position = self.reader_position.left_tail(self)
 
-    def release_anchor(self) -> None:
-        if not self.follows_tail:
-            return
+    def end_travel(self) -> None:
         self.scroll_target_y = self.scroll_y
-        # Stop native following, rather than leaving a released native anchor
-        # which can silently rejoin at a mounted page edge.
-        self.anchor(False)
 
     @property
     def row_holders(self) -> tuple[UnrisenRows, ...]:
@@ -455,13 +445,9 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
                    self.scrollable_content_region.height)
         return max(0, self.max_scroll_y - held)
 
-    def message_too_tall(self, height: int) -> bool:
-        """A message taller than the viewport needs its head placed; a short one stays put."""
-        return height > self.scrollable_content_region.height
-
-    def message_head_hidden(self, height: int, head_y: int) -> bool:
-        """A tall message whose head row is above the viewport needs its head placed."""
-        return self.message_too_tall(height) and head_y < self.scrollable_content_region.y
+    @property
+    def content_top(self) -> int:
+        return self.scrollable_content_region.y
 
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
@@ -514,9 +500,6 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
             self.rejoin_reached_tail()
             self.request_preparation()
         return changed
-
-    def check_follow(self) -> bool:
-        return self.history_change.check_follow(self)
 
     def visible_history_items(self, items: Iterable[Widget]):
         """Borrow this window's clipped cohort from the original native scene."""

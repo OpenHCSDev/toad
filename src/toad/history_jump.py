@@ -74,8 +74,9 @@ class FollowsTail(JumpsToLatest):
     """The one place a history window's reader joins or leaves its tail.
 
     Joining or leaving is one change of the reader's follow intent: it counts as a reader
-    move (`scroll_revision`, unless the window is moving itself), the window applies it in its
-    toolkit (`apply_anchor`), and the window's declared follow-up sees the result. Each window
+    move (`scroll_revision`, unless the window is moving itself), the kept reader position
+    joins or leaves the tail with it, the window applies it in its toolkit (`apply_anchor`),
+    and the window's declared follow-up sees the result. Each window
     lists this before its toolkit's scroll base, so this `anchor` answers in both frontends
     ahead of Textual's own `Widget.anchor`, and a window supplies only `apply_anchor`.
 
@@ -89,11 +90,20 @@ class FollowsTail(JumpsToLatest):
             raise TypeError(f"{cls.__qualname__} redefines FollowsTail.anchor; "
                             "a window supplies apply_anchor, its toolkit's own move, instead")
 
+    shown = True
+    """Whether the window is drawn. A reader cannot move a window they cannot see: its kept
+    place stays (Textual's covered screens). Qt lays a hidden window out like a shown one."""
+
     def anchor(self, anchor: bool = True) -> None:
         changed = self.follows_tail != anchor
         if not self._restoring and changed:
             self.scroll_revision += 1
+        if anchor and self.shown:
+            self.reader_position = self.reader_position.joined_tail()
         self.apply_anchor(anchor)
+        # Layout releasing the anchor to place a kept position keeps that position.
+        if not anchor and self.shown and not self._restoring:
+            self.reader_position = self.reader_position.left_tail(self)
         if changed:
             self.tail_follow_changed()
 

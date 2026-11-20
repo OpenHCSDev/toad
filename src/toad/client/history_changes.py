@@ -299,8 +299,9 @@ class NoHistoryChange:
         return ReaderPosition.of(window)
 
     def check_follow(self, window: HistoryWindow) -> bool:
-        """Keep a following reader on the tail; True when that scrolled the window."""
-        if not window.follows_tail:
+        """Keep a following reader on the tail; True when that scrolled the window. A glide
+        to the tail owns the way there."""
+        if not window.follows_tail or window.gliding_to_end():
             return False
         previous = window.scroll_y
         with window.layout_scroll():
