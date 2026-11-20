@@ -72,7 +72,10 @@ class AgentConnection(GoalSource):
 
     @property
     def readiness_decision(self) -> InputDecision:
-        return InputAccepted() if self.ready else self.readiness_refusal
+        ordinary = InputAccepted() if self.ready else self.readiness_refusal
+        return self.session_disposition.present(
+            ordinary, lambda status: self.readiness_refusal
+        )
 
     @property
     def committed_native_output(self) -> CommitSource:
