@@ -92,8 +92,14 @@ class DiscardAction(SettingsAction):
         context.discard()
 
 
-class SettingsScreen(SettingsEditing, PriorityActions, FormModal[None], DismissibleScreen[None], ToadNode,
-                     actions=(SettingsAction,), scopes={PriorityActions: (DismissAction,)}):
+class SettingsScreen(
+    SettingsEditing,
+    PriorityActions,
+    FormModal[None],
+    DismissibleScreen[None],
+    actions=(SettingsAction,),
+    scopes={PriorityActions: (DismissAction,)},
+):
     align_horizontal = "right"
     align_vertical = "top"
 

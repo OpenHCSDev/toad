@@ -76,7 +76,6 @@ from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.answer import Answer
-from toad.app_node import ToadNode
 from toad.block_navigation import (
     AbsentEntry,
     BlockCursor,
@@ -953,7 +952,8 @@ class SourcesScope(DOMNode):
     def initial_editing_mode(self) -> EditingMode: ...
 
 
-class Conversation(AgentTurnEvents,
+class Conversation(
+    AgentTurnEvents,
     FirstPromptTitle,
     ColumnLayout,
     GoalView[GoalSession],
@@ -963,7 +963,6 @@ class Conversation(AgentTurnEvents,
     ConversationCommsHandlers,
     NativeMethodKeys,
     ConversationSessionBinding,
-    ToadNode,
     MenuConversation,
     AgentConversationCommands,
     FlashHost,

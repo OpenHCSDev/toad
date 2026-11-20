@@ -5,7 +5,6 @@ Text appends coalesce while styling; resizing never requests source styling.
 
 from __future__ import annotations
 
-from textual.widget import Widget
 
 from toad.block_content import SelectsSource
 from toad.client.line_blocks import Body, MarkdownBody, LineBlock, LineRole, NoBar, TextRole
@@ -14,7 +13,7 @@ from toad.widgets.linked_rows import ReferenceRendering
 from toad.widgets.styled_rows import StyledRows
 
 
-class LineMarkdown(SelectsSource, AutoHeight, StyledRows, ReferenceRendering, Widget):
+class LineMarkdown(SelectsSource, AutoHeight, StyledRows, ReferenceRendering):
     """Draw the declared body; selection copies the original source text."""
 
     def __init__(self, text: str = "", *, role: type[LineRole] = TextRole,

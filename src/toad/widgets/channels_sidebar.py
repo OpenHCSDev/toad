@@ -180,5 +180,5 @@ class ChannelsSidebar(SideBar, actions=(SoleNewSessionAction, SoleIrcAction)):
             self.banner.stop_effect()
 
 
-class ChannelsSlot(StartsHidden, Widget):
+class ChannelsSlot(StartsHidden):
     """A tab declares where shared navigation belongs; it owns no channel rows."""

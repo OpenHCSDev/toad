@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from agent_comms.projects.checkouts import Checkout
 
-from toad.app_node import ToadNode
 from toad.client.session_scope import HomeSessionOrigin
 from toad.navigation_context import HomeNavigation
 from toad.navigation_target import FeedTarget, NavigationTarget
@@ -26,7 +25,6 @@ class WelcomeScreen(
     HomeNavigation,
     HomeSessionOrigin,
     SessionView,
-    ToadNode,
     can_focus=False,
 ):
     def __init__(self) -> None:

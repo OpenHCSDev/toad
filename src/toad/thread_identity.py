@@ -123,7 +123,7 @@ class NoThreadIdentity(SessionIdentity):
 
 
 @dataclass(frozen=True)
-class NamedThreadIdentity(SessionIdentity, ABC):
+class NamedThreadIdentity(SessionIdentity):
     def bind_initial_identity(self, details: SessionDetails) -> None:
         details.bind_initial_identity(self.thread_name())
 

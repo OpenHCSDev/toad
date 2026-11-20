@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 import asyncio
 
 import shiboken6
-from abc import ABC
 from collections import deque
 from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
@@ -88,7 +87,7 @@ if TYPE_CHECKING:
     from toad.qt.live_turn import QtLiveBlock
 
 
-class QtWireFragment(EvidencedFragment, TranscriptFragment, ABC):
+class QtWireFragment(EvidencedFragment, TranscriptFragment):
     """A wire message drawn by Qt, and the root of Qt's wire fragments: a message's role
     selects the member declared under it. Also a `TranscriptFragment`, so a transcript
     source feeding this family decodes the same shape Textual's `WireFragment` does in

@@ -16,7 +16,6 @@ from textual.events import Mount
 from textual.widgets import Static
 from textual.worker import WorkerCancelled
 
-from toad.app_node import ToadNode
 from toad.constants import WELCOME
 from toad.client.conversation_capabilities import ConversationNavigation
 from toad.client.conversation import ConversationKind
@@ -92,8 +91,16 @@ class FocusPromptAction(ViewAction):
             chat.prepare_prompt()
 
 
-class CommsScreen(ConversationViewNavigation, ConversationNavigation, TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[ThreadSidebar], ToadNode, can_focus=False,
-                  actions=(ViewAction, ReturnToViewAction, CloseViewAction)):
+class CommsScreen(
+    ConversationViewNavigation,
+    ConversationNavigation,
+    TogglesIrc,
+    CyclesSessions,
+    CheckoutRoot,
+    SidebarSessionView[ThreadSidebar],
+    can_focus=False,
+    actions=(ViewAction, ReturnToViewAction, CloseViewAction),
+):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
