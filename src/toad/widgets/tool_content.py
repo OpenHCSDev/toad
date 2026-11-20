@@ -6,6 +6,7 @@ from toad.native_style import AutoHeight
 from toad.client.line_blocks import LineBlock
 from toad.widgets.linked_rows import HorizontalRows, ReferenceRendering, selection_painted
 from toad.widgets.styled_rows import StyledRows
+from toad.widgets.transcript_lines import Lines
 
 
 class ToolContent(
@@ -26,6 +27,10 @@ class ToolContent(
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.blocks: tuple[LineBlock, ...] = ()
+
+    def layout_extent(self, lines: Lines) -> tuple[int, ...]:
+        """Horizontal tool output owns its scrollable width as well as its height."""
+        return lines.height, lines.content_width
 
     def styled_blocks(self) -> tuple[LineBlock, ...]:
         return self.blocks

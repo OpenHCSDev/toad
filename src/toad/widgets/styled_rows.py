@@ -48,6 +48,10 @@ class StyledRows(RestylesOnTheme, LinkedRows, ToadNode, Widget):
     def styled_blocks(self) -> tuple[LineBlock, ...]:
         """The semantic rows the next render styles."""
 
+    def layout_extent(self, lines: Lines) -> tuple[int, ...]:
+        """Dimensions these rows own in their parent's layout."""
+        return (lines.height,)
+
     @property
     def rows_ready(self) -> bool:
         """Whether the drawn rows are the render worker's for the current blocks.
@@ -98,7 +102,7 @@ class StyledRows(RestylesOnTheme, LinkedRows, ToadNode, Widget):
             after = self._lines(width)
             # Width 0 is a body never measured yet (no height, so never placed): only layout
             # can give it the width its rows need, so an unmeasured body always asks for one.
-            self.refresh(layout=not width or (before.height, before.content_width) != (after.height, after.content_width))
+            self.refresh(layout=not width or self.layout_extent(before) != self.layout_extent(after))
             if blocks == self.styled_blocks():
                 return
             await asyncio.sleep(self.RESTYLE_INTERVAL)
