@@ -241,18 +241,11 @@ class CommsChatView(WireConversationView):
         """DM/channel history belongs to WireHistory, not a native transcript."""
         return NoTranscript()
 
-    def status_thread(self) -> StatusThread:
-        """Peer status does not grant access to the peer's full transcript."""
-        return self.message_history.page_source.status_thread(self.app.coordination_access)
-
     async def _refresh(self) -> SourceWork:
         history = self.message_history
         if not self.is_attached:
             return DEFERRED_WORK
         return history.page_source.schedule_refresh(self)
-
-    def history_loading(self) -> bool:
-        return self.message_history.reading
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work.
@@ -335,15 +328,8 @@ class CommsChatView(WireConversationView):
         for prompt in self.query(ChannelPrompt):
             prompt.set_mention_candidates(mentions)
 
-    async def command_target_context(self):
-        return self.message_history.page_source.command_context(self)
-
     def queue_controls_changed(self) -> None:
         """A message view has no goal bar to redraw."""
-
-    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart:
-        """A channel or inbox message goes where this view's message source says."""
-        return self.message_history.page_source.begin_submission(self, owner, submission)
 
     async def show_sent(self, sent: MessageReference) -> None:
         """Follow the conversation's end and read it now; the queue entry retires once `sent` is drawn."""

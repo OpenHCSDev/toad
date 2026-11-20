@@ -1183,8 +1183,8 @@ class BusLabel(WelcomeLocation, ElidedLine):
         return app.coordination_access.connection.location
 
 
-class ConversationView(QtConversation, ConversationViewNavigation, MenuConversation, SessionScope,
-                       WireView, NavigationOwner, metaclass=PyQtWidgetMeta):
+class ConversationView(WireView, QtConversation, ConversationViewNavigation, MenuConversation, SessionScope,
+                       NavigationOwner, metaclass=PyQtWidgetMeta):
     """One conversation tab, Textual's `CommsChatView`: a `QtConversation` whose history is
     the conversation's wire, paged lazily by the pager Textual's channels use and drawn as
     virtual rows, read again whenever Core's stores change; the composer and activity its
@@ -1328,15 +1328,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
 
     # The kind's composer and activity (ConversationActivity)
 
-    def status_thread(self) -> StatusThread:
-        """Peer status does not grant access to the peer's transcript: the page source
-        opens it, as Textual's `CommsChatView.status_thread`."""
-        return self.message_history.page_source.status_thread(self.app.coordination_access)
-
-    def history_loading(self) -> bool:
-        """As Textual's `CommsChatView`: the wire history is reading its first page."""
-        return self.message_history.reading
-
     def channel_prompt(self, placeholder: str) -> ChannelComposer:
         return ChannelComposer(self, self.app.renderer, placeholder)
 
@@ -1359,16 +1350,6 @@ class ConversationView(QtConversation, ConversationViewNavigation, MenuConversat
         self.on_composer("mentions", lambda composer: composer.set_mention_candidates(candidates))
 
     # Commands the composer offers after a /
-
-    async def command_target_context(self) -> TargetContext:
-        """Commands address the conversation its page source reads, as Textual's
-        `CommsChatView.command_target_context`."""
-        return self.message_history.page_source.command_context(self)
-
-    def begin_submission(self, owner, submission):
-        """A channel or inbox message goes where this view's page source says, as
-        Textual's `CommsChatView.begin_submission`."""
-        return self.message_history.page_source.begin_submission(self, owner, submission)
 
     @property
     def coordination_root(self) -> str:
