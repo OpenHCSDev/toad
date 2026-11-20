@@ -31,9 +31,9 @@ class SettingsEditing(LazyPages[FormPage, FieldForm]):
     term: str = ""
 
     @property
-    @abstractmethod
     def edited_settings(self) -> SavedSettings:
         """The settings this screen edits: the app's saved settings."""
+        return self.app.saved_settings
 
     @classmethod
     @abstractmethod

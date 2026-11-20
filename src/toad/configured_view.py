@@ -111,10 +111,6 @@ class ConfiguredView(ViewSettingsScope):
         return self.app.session_navigation.get(self.id).identity
 
     @property
-    def configuration_settings(self):
-        return self.app.saved_settings
-
-    @property
     def configuration_panels(self):
         for field in self.configuration_fields():
             panel = self.field_panel(field)

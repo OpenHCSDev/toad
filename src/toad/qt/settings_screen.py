@@ -83,10 +83,6 @@ class QtSettingsScreen(PresentedWindow, SettingsEditing, QDialog):
         self.frames[page].layout().addWidget(form.widget)
         return form
 
-    @property
-    def edited_settings(self):
-        return self.app.saved_settings
-
     @classmethod
     def form_type(cls):
         return QtFormView

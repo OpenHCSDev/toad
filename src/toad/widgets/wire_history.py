@@ -120,9 +120,6 @@ class WireHistory[ViewT: WireConversationView](AwaitsFirstPage, VisibleReadMarki
     def withdraw_view(self) -> None:
         self.view.display = False
 
-    async def refresh_source(self) -> None:
-        await self.view._refresh()
-
     def watch_reading(self, _reading: bool) -> None:
         self.view.sync_working()
 

@@ -21,6 +21,7 @@ from toad.sidebar_placement import (
     SidebarPlacement,
 )
 from toad.client.sidebar_panels import PanelSpec
+from toad.pointer_gesture import GestureControl
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
 
 if TYPE_CHECKING:
@@ -318,11 +319,14 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
         return SurfaceParts(toggle, handle, content)
 
 
-class SidebarResizeGrip(metaclass=AbstractHooksMeta):
+class SidebarResizeGrip(GestureControl, metaclass=AbstractHooksMeta):
     """The line between a sidebar's content and its toggle strip: Textual's
     `SidebarResizeHandle` and Qt's `QtSidebarResizeHandle` both inherit this. A drag resizes
     the sidebar from the extent it had when the drag began; a press without a drag shows or
-    hides the slider and placement actions."""
+    hides the slider and placement actions.
+
+    It is the control the shared pointer gesture drives: a frontend's leaf only says where
+    its press was (`begin_grip`) and feeds the gesture its native events."""
 
     grip_tooltip = "Drag to resize; drag to the edge to fold"
 
@@ -335,10 +339,12 @@ class SidebarResizeGrip(metaclass=AbstractHooksMeta):
     def grip_viewport_extent(self) -> int:
         """The workspace's length on the sidebar's axis, in the units drags arrive in."""
 
-    def begin_grip(self) -> None:
-        """A press: the pane's extent now is what a fold on release restores. A folded pane is
-        held from nothing, so dragging its strip outward opens it as far as the pointer goes."""
+    def begin_grip(self, origin: Offset) -> None:
+        """A press at `origin`: the pane's extent now is what a fold on release restores. A
+        folded pane is held from nothing, so dragging its strip outward opens it as far as the
+        pointer goes."""
         surface = self.grip_surface
+        self._grip_origin = origin
         self._grip_restore = surface.placement.extent_percent
         self._grip_start = 0 if surface.collapsed else self._grip_restore
         self._grip_percent = self._grip_start
@@ -351,6 +357,15 @@ class SidebarResizeGrip(metaclass=AbstractHooksMeta):
     def end_grip(self) -> None:
         """A drag let go: released at the wall the pane folds and keeps its pre-drag extent."""
         self.grip_surface.extent_released(self._grip_percent, self._grip_restore)
+
+    def drag_to(self, position: Offset) -> None:
+        self.drag_grip(position - self._grip_origin)
+
+    def dragged(self) -> None:
+        self.end_grip()
+
+    def clicked(self) -> None:
+        self.grip_clicked()
 
     def grip_clicked(self) -> None:
         self.grip_surface.toggle_controls()

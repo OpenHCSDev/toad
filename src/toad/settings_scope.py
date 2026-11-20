@@ -3,22 +3,14 @@ from abc import abstractmethod
 from objectstate import ObjectState
 from textual.dom import DOMNode
 
-from toad.client.view_settings import ConversationSettingsOwner, ViewSettingsOwner
+from toad.client.view_settings import ConversationSettingsOwner, SettingsReading, ViewSettingsOwner
 
 
-class SettingsReader(DOMNode):
+class SettingsReader(SettingsReading, DOMNode):
     @property
     def configuration_scope(self) -> SettingsScope:
         return next((node for node in self.walk_ancestors(with_self=True)
                      if isinstance(node, SettingsScope)), self.app)
-
-    @property
-    def configuration_state(self) -> ObjectState:
-        return self.configuration_scope.configuration_state
-
-    @property
-    def settings(self):
-        return self.configuration_state.fields
 
 
 class SettingsScope(SettingsReader):

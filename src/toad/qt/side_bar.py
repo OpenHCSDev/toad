@@ -156,7 +156,6 @@ class QtGripPointer(GestureControl):
         self.setWindowFlags(Qt.WindowType.Widget)
         self._surface = surface
         self._gesture: Gesture = NO_GESTURE
-        self._origin = Offset()
 
     @property
     def grip_surface(self) -> QtSideBar:
@@ -171,21 +170,12 @@ class QtGripPointer(GestureControl):
         point = event.globalPosition().toPoint()
         return Offset(point.x(), point.y())
 
-    def drag_to(self, position: Offset) -> None:
-        self.drag_grip(position - self._origin)
-
-    def clicked(self) -> None:
-        self.grip_clicked()
-
-    def dragged(self) -> None:
-        self.end_grip()
-
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.MouseButton.LeftButton:
             event.accept()
-            self._origin = self._position(event)
-            self._gesture = PressedGesture(self._origin)
-            self.begin_grip()
+            origin = self._position(event)
+            self._gesture = PressedGesture(origin)
+            self.begin_grip(origin)
 
     def mouseMoveEvent(self, event) -> None:  # type: ignore[override]
         if self._gesture.holds_pointer:

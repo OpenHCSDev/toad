@@ -142,16 +142,17 @@ class FragmentLocation(ABC):
     @abstractmethod
     def location(self) -> FragmentLocation: ...
 
-    @abstractmethod
     def tooltip(self) -> str | None:
-        """Textual's tooltip for the pointer over this location; None shows none."""
+        """The tooltip for the pointer over this location; None shows none."""
+        return None
 
-    @abstractmethod
     def selected_by(self, cursor) -> bool:
         """Rest `cursor` here; whether there was a fragment to rest on."""
+        return False
 
-    @abstractmethod
-    def bodies(self) -> tuple[object, ...]: ...
+    def bodies(self) -> tuple[object, ...]:
+        """The widgets a terminal draws this occurrence with; a location with none has none."""
+        return ()
 
     @abstractmethod
     def for_layout(self, window: ReaderWindow, position: ReaderPosition) -> ReaderPosition: ...
@@ -173,15 +174,6 @@ class UnloadedFragment(FragmentLocation):
 
     def location(self) -> FragmentLocation:
         raise FragmentNotLoaded("The source fragment has no drawn location")
-
-    def tooltip(self) -> str | None:
-        return None
-
-    def selected_by(self, cursor) -> bool:
-        return False
-
-    def bodies(self) -> tuple[object, ...]:
-        return ()
 
     def for_layout(self, window: ReaderWindow, position: ReaderPosition) -> ReaderPosition:
         return position.without_holder(window)

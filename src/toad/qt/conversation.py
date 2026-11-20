@@ -463,10 +463,6 @@ class QtConversation(
         return self.app.session_navigation.get(self.mode).identity
 
     @property
-    def configuration_settings(self):
-        return self.app.saved_settings
-
-    @property
     def navigation_project(self):
         return self.app.project_dir
 

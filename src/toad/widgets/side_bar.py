@@ -606,17 +606,7 @@ class SideBarToggle(
         return bar.placement.side.extent(bar.query_ancestor(Widget).content_size)
 
     def drag_start(self, event: events.MouseDown) -> None:
-        self._start_point = event.screen_offset
-        self.begin_grip()
-
-    def drag_to(self, position: Offset) -> None:
-        self.drag_grip(position - self._start_point)
-
-    def dragged(self) -> None:
-        self.end_grip()
-
-    def clicked(self) -> None:
-        self.grip_clicked()
+        self.begin_grip(event.screen_offset)
 
 
 class SidebarSlider(
@@ -779,13 +769,6 @@ class SidebarResizeHandle(
         bar = self.grip_surface
         return bar.placement.side.extent(bar.query_ancestor(Widget).content_size)
 
-    def clicked(self) -> None:
-        """A click, not a drag, shows or hides the bar's placement buttons and extent slider."""
-        self.grip_clicked()
-
-    def drag_to(self, position: Offset) -> None:
-        self.drag_grip(position - self._start_point)
-
     def resize_by(self, direction: Offset) -> None:
         bar = self.query_ancestor(SideBar)
         placement = bar.placement
@@ -798,11 +781,7 @@ class SidebarResizeHandle(
         self.resize_by(Offset(0, direction))
 
     def drag_start(self, event: events.MouseDown) -> None:
-        self._start_point = event.screen_offset
-        self.begin_grip()
-
-    def dragged(self) -> None:
-        self.end_grip()
+        self.begin_grip(event.screen_offset)
 
 
 class BandSplitHandle(
