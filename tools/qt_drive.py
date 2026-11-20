@@ -3751,6 +3751,9 @@ class HistoryScrollBackScenario(Scenario):
 
         def counted_relayout():
             counts["full_relayouts"] += 1
+            # Who asked: each cause is a line of its own, so a change is read against its cause.
+            cause = f"relayout_by:{sys._getframe(1).f_code.co_name}"
+            counts[cause] = counts.get(cause, 0) + 1
             return relayout()
         window.rows_changed = counted_relayout
         history = self.page.message_history
