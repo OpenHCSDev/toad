@@ -125,7 +125,21 @@ class RowReveal(WidgetAnimation, TransitionTarget):
         self.row.setVisible(self.opening)
 
 
-class QtQueueSummary(QtActivatedText):
+class QtOpensQueue(QtActivatedText):
+    """Muted text that opens the queue inspection when pressed, hidden until it has words:
+    the summary strip and the info bar's held count."""
+
+    def __init__(self, composer: Composer) -> None:
+        super().__init__(composer)
+        self.setToolTip("Show queued messages and delivery status.")
+        self.hide()
+
+    def activate(self) -> None:
+        """What the shared ``ActivatesContract`` calls: open the queue menu."""
+        self.composer.open_queue_menu()
+
+
+class QtQueueSummary(QtOpensQueue):
     """The queue summary; a press opens the queue inspection, as Textual's ``QueueSummary``.
 
     It wraps as Textual's ``AutoHeight`` summary does, to the same most lines
@@ -138,9 +152,7 @@ class QtQueueSummary(QtActivatedText):
     def __init__(self, composer: Composer) -> None:
         super().__init__(composer)
         self.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
-        self.setToolTip("Show queued messages and delivery status.")
         self.reveal: RowReveal | None = None
-        self.hide()
 
     def heightForWidth(self, width: int) -> int:  # noqa: N802 - Qt virtual method name
         margins = self.contentsMargins()
@@ -154,28 +166,16 @@ class QtQueueSummary(QtActivatedText):
             RowReveal.resized(self, before, self.composer)
         RowReveal.toggle(self, bool(text), self.composer)
 
-    def activate(self) -> None:
-        """What the shared ``ActivatesContract`` calls — open the queue menu."""
-        self.composer.open_queue_menu()
 
-
-class QtQueueHint(QtActivatedText):
+class QtQueueHint(QtOpensQueue):
     """Textual's ``QueueHint``: the held count in the info bar while the delivery preview is
     off. A few words in a row that is always there, so the history never moves for it; a
     press opens the queue inspection, as the summary's does."""
-
-    def __init__(self, composer: Composer) -> None:
-        super().__init__(composer)
-        self.setToolTip("Show queued messages and delivery status.")
-        self.hide()
 
     def refresh(self, text: str) -> None:
         if text != self.text():
             self.setText(text)
         self.setVisible(bool(text))
-
-    def activate(self) -> None:
-        self.composer.open_queue_menu()
 
 
 class QtDeliveryControls(QueueDeliveryControls, QWidget, metaclass=PyQtWidgetMeta):

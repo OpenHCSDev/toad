@@ -200,9 +200,6 @@ class QtSurfaceBinding(ViewSurfaceBinding, MroDispatch):
 
         request.watch(self, retire)
 
-    def permission_changed(self, view) -> None:
-        """Qt binds no permission keys beyond the question's own."""
-
     def publish_terminal(self, controller, terminal_id, execution) -> bool:
         target = self.target
         if target is None or not controller.owner.owns_terminal(self, controller, terminal_id, execution):
@@ -216,9 +213,6 @@ class QtSurfaceBinding(ViewSurfaceBinding, MroDispatch):
             target.messages.show_live(block)
         execution.attach(block)
         return True
-
-    def prepare_terminal(self, state) -> None:
-        """A row has no character grid: the terminal keeps its configured size."""
 
     def post(self, message) -> bool:
         """Qt delivers the agent's stream through `subscribe_agent`, not posted messages."""

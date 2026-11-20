@@ -16,9 +16,11 @@ from typing import TYPE_CHECKING
 from agent_comms.messaging.channel_targets import CommandTarget
 from functools import partial
 
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from pyqt_reactive.widgets.fitted_text import ElidedLine
+from ui_theme.scheme import ForegroundColour
 
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.client.draft_fragments import DRAFT_FRAGMENTS
@@ -30,6 +32,7 @@ from toad.qt.composer import Composer
 from toad.qt.conversation import QtConversation
 from toad.qt.goal import QtGoalBar
 from toad.qt.history import QT_FRAGMENT_CLASSES
+from toad.qt.metrics import UiGap
 from toad.qt.prompt_stack import QtInputDeliveryDetails, QtSessionDetails
 from toad.qt.question import QtQuestion
 from toad.qt.transcript_history import QtTranscriptHistory
@@ -38,6 +41,7 @@ from toad.transcript_publication import BoundView
 
 if TYPE_CHECKING:
     from toad.client.session_tracker import SessionDetails
+    from toad.transcript_scope import TranscriptScope
     from toad.qt.window import QtToadApp
 
 
@@ -51,37 +55,28 @@ class QtThreadView(
 ):
     """A `QtConversation` showing one bound thread's transcript.
 
-    Subclasses MUST assign `self.app` before calling `self._setup_transcript(app)`, and
-    answer `thread_identity`, `mode`, `origin` and `transcript_scope`.
+    Subclasses MUST assign `self.app` before calling `self._lay_out_thread(...)`, and
+    answer `thread_identity` and `mode`.
 
     The transcript stack (`message_history` over `transcript`), the `BoundViewHost`
-    contract and the thread's rows under the transcript (`_setup_prompt_stack`) are owned
-    here, so the two thread-bound views share one implementation.
+    contract, the column (`_lay_out_thread`: title, transcript, then the thread's rows
+    under it) and the transcript scope are owned here, so the two thread-bound views share
+    one implementation.
     """
 
     # ---- Shared contract: the rows Textual's `Conversation.compose` mounts for a thread ----
     #
     # Under the transcript Textual yields `Flash`, then its `PromptStack`: the activity
     # sweep (`throbber_above`), the session-status disclosure (`thread_activity`), the
-    # goal bar and the prompt (with its info bar). `_setup_prompt_stack` mounts the Qt
-    # sibling of each in that order. Each is an abstract property so a subclass that
-    # omits one fails at instantiation (`TypeError` listing every missing name); the
-    # subclass satisfies it with a class-level `None` and the base assigns the widget.
+    # goal bar and the prompt (with its info bar). `_lay_out_thread` builds the Qt sibling
+    # of each in that order; until it has, the view has none of them.
 
-    @property
-    @abstractmethod
-    def identity_line(self) -> QWidget:
-        """The banner / title row every thread view shows at the top of its layout."""
-
-    @property
-    @abstractmethod
-    def thread_activity(self) -> QtSessionDetails:
-        """Textual's `OperationalSessionDetails`: ``▶ <status> · …`` over its details."""
-
-    @property
-    @abstractmethod
-    def goal_bar(self) -> QtGoalBar | None:
-        """Textual's `GoalBar`; `None` for a view with no managed thread to own a goal."""
+    identity_line: ElidedLine | None = None
+    """The title row every thread view shows at the top of its column."""
+    thread_activity: QtSessionDetails | None = None
+    """Textual's `OperationalSessionDetails`: ``▶ <status> · …`` over its details."""
+    goal_bar: QtGoalBar | None = None
+    """Textual's `GoalBar`; `None` for a view with no managed thread to own a goal."""
 
     @abstractmethod
     def composer_class(self) -> type[Composer]:
@@ -104,9 +99,34 @@ class QtThreadView(
         QtInputDeliveryDetails(
             self, self.app.renderer, self.thread_activity.overview(), DeliveryView()).open()
 
+    def _lay_out_thread(self, app: QtToadApp, title: str, incarnation) -> None:
+        """Build the view's column: `title` centred over the transcript, and under it the
+        rows of `_setup_prompt_stack` for `incarnation` (None for a view with no managed
+        thread, which has no goal bar). Call from the subclass `__init__` after
+        `super().__init__()` and after assigning `self.app`."""
+        self._setup_transcript(app)
+        self.identity_line = ElidedLine(title)
+        self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        app.renderer.themed(self.identity_line, lambda: self.identity_line.setStyleSheet(
+            f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};"))
+        info = QHBoxLayout()
+        info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
+        info.addWidget(self.identity_line, 1)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addLayout(info)
+        layout.addWidget(self.messages, 1)
+        # Under the transcript, Textual's order: flash, sweep, status, goal, prompt.
+        self._setup_prompt_stack(app, layout, incarnation)
+
+    def transcript_scope(self) -> TranscriptScope:
+        """The transcript scope this view is bound to: its thread identity owns it.
+        `BoundView.thread_scope` reads it on bind to observe the thread."""
+        return self.thread_identity.transcript_scope()
+
     def _setup_transcript(self, app: QtToadApp) -> None:
-        """Build the conversation and its transcript stack. Call from the subclass
-        `__init__` after `super().__init__()` and after assigning `self.app`.
+        """Build the conversation and its transcript stack, as `_lay_out_thread` does first.
 
         `TranscriptPresentation` (made by `_setup_conversation`) comes before
         `QtTranscriptHistory`: the history reads `view.transcript.get_transcript_page`

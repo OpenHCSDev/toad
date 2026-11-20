@@ -21,19 +21,12 @@ import asyncio
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
-from pyqt_reactive.widgets.fitted_text import ElidedLine
-from ui_theme.scheme import ForegroundColour
 
 from toad.acp.agent_session import UnopenedSessionDisposition
-from toad.agent_binding import AgentConnection, NoAgentConnection
-from toad.client.observed_field import ObservedField
 from toad.client.session_scope import BoundSources
 from toad.qt.composer import MailboxComposer
 from toad.qt.thread_view import QtThreadView
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
-from toad.transcript_scope import TranscriptScope
-from toad.qt.metrics import UiGap
 
 
 class QtMailboxView(QtThreadView, BoundSources):
@@ -56,12 +49,6 @@ class QtMailboxView(QtThreadView, BoundSources):
     Shares the transcript stack with `QtAcpSessionView` through `QtThreadView`.
     """
 
-    # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
-    # class is instantiable; `__init__` assigns the real widgets.
-    identity_line: ElidedLine = None  # type: ignore[assignment]
-    thread_activity = None
-    goal_bar = None
-
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()
         # The app first: changing the window flags hides the widget, and the hide answers
@@ -77,22 +64,7 @@ class QtMailboxView(QtThreadView, BoundSources):
         self.id = ""
         # `bind_thread` replaces this with the real ThreadIdentity.
         self._identity: ThreadIdentity | NoThreadIdentity = NoThreadIdentity()
-        # The shared transcript stack: `messages`, `transcript`, `message_history`.
-        self._setup_transcript(app)
-        self.identity_line = ElidedLine(f"Mailbox: {thread_incarnation.name}")
-        self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        app.renderer.themed(self.identity_line, lambda: self.identity_line.setStyleSheet(
-            f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};"))
-        info = QHBoxLayout()
-        info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
-        info.addWidget(self.identity_line, 1)
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addLayout(info)
-        layout.addWidget(self.messages, 1)
-        # Under the transcript, Textual's order: flash, sweep, status, goal, prompt.
-        self._setup_prompt_stack(app, layout, thread_incarnation)
+        self._lay_out_thread(app, f"Mailbox: {thread_incarnation.name}", thread_incarnation)
 
     def composer_class(self) -> type[MailboxComposer]:
         """Textual's `MailboxSessionSources.prompt`: a `MailboxPrompt`."""
@@ -127,11 +99,6 @@ class QtMailboxView(QtThreadView, BoundSources):
         """`NoThreadIdentity` until `bind_thread` sets the real one, as
         `MainScreen.bind_thread` does at `screens/main.py:386`."""
         return self._identity
-
-    def transcript_scope(self) -> TranscriptScope:
-        """The transcript scope this view is bound to — the one `BoundView.thread_scope`
-        reads on bind to wire `thread_observed` into Core's observation."""
-        return self.thread_identity.transcript_scope()
 
     # ---- session_navigation.bind_opened hooks ----
 

@@ -165,3 +165,25 @@ def test_the_qt_agent_tab_is_a_session_scope_as_the_mailbox_view_is():
         assert view.apply_native_load_plan is BoundSources.apply_native_load_plan
         assert view.wait_content_ready is SessionScope.wait_content_ready
         assert view.retire_presentation is SessionScope.retire_presentation
+
+
+def test_the_qt_thread_views_share_their_column_scope_wave_and_queue_rows():
+    from toad.client.project_view import ProjectView
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.agent_surface import QtSurfaceBinding
+    from toad.qt.mailbox_view import QtMailboxView
+    from toad.qt.name_wave import QtClockedWave, QtTabWave
+    from toad.qt.project_panel import QtProjectPanel
+    from toad.qt.queue_ui import QtOpensQueue, QtQueueHint, QtQueueSummary
+    from toad.qt.thread_view import QtThreadView
+    from toad.qt.window import ConversationRow
+    from toad.surface_binding import SurfaceBinding
+
+    for member in ("_lay_out_thread", "transcript_scope", "identity_line", "thread_activity", "goal_bar"):
+        _owned_by(QtThreadView, member, QtAcpSessionView, QtMailboxView)
+    for member in ("permission_changed", "prepare_terminal"):
+        _owned_by(SurfaceBinding, member, QtSurfaceBinding)
+    _owned_by(ProjectView, "refresh_if_visible", QtProjectPanel)
+    for member in ("wave_running", "start_wave", "stop_wave"):
+        _owned_by(QtClockedWave, member, QtTabWave, ConversationRow)
+    _owned_by(QtOpensQueue, "activate", QtQueueSummary, QtQueueHint)

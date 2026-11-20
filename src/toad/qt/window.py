@@ -89,7 +89,6 @@ from toad.client.platform import host
 from toad.client.line_blocks import LineLink, MutedRole
 from toad.qt.banner import Banner
 from toad.client.welcome import WelcomeLocation
-from toad.client.name_wave import NameWave
 from toad.client.sidebar_lines import (
     BusChoiceLine, DetailedLine, HeaderLine, LineMenuTree, MemberGroupLine, RowTree, SidebarStatusLine, TargetLine,
     WelcomeSectionLine,
@@ -141,7 +140,7 @@ from toad.qt.menu import QtMenu
 from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.motion import animations_enabled
-from toad.qt.name_wave import QtNameWaveDelegate, QtSessionTabBar
+from toad.qt.name_wave import QtClockedWave, QtNameWaveDelegate, QtSessionTabBar
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
 from toad.qt.view_settings import capability_widgets
 from toad.qt.attention import QtWindowAttention
@@ -323,7 +322,7 @@ class StatusSection(SidebarStatusLine, SidebarSection):
         self.draw("", title, detail, text)
 
 
-class ConversationRow(NameWave, TargetLine, SidebarItem):
+class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
     """A row that opens its target through the target's own polymorphic `open(context)`.
 
     `target` is a `NavigationTarget` (not specifically a `HistoryRouted`) because threads
@@ -339,7 +338,6 @@ class ConversationRow(NameWave, TargetLine, SidebarItem):
         super().__init__()
         self.key = target.name
         self.target = target
-        self.animation = None
 
     def placed(self) -> None:
         """A new channel line opens as its target opens by default (the feed does), as the
@@ -358,16 +356,8 @@ class ConversationRow(NameWave, TargetLine, SidebarItem):
 
     # NameWave, on the app's clock; the row is the animation's target.
 
-    def wave_running(self) -> bool:
-        return self.animation is not None
-
-    def start_wave(self) -> None:
-        self.animation = self.treeWidget().window.animation_clock.start(self.name_wave, self)
-
-    def stop_wave(self) -> None:
-        if self.animation is not None:
-            self.animation.stop()
-            self.animation = None
+    def wave_clock(self):
+        return self.treeWidget().window.animation_clock
 
     @property
     def animation_visible(self) -> bool:
