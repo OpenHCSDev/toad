@@ -62,7 +62,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
     this to `TeamBoardState.team_name_filter`, so the apply-side filter is
     one shared method — not a per-frontend branch."""
 
-    def __init__(self, app: "QtToadApp", team_name: str = "") -> None:
+    def __init__(self, app: QtToadApp, team_name: str = "") -> None:
         self.members = {}
         super().__init__()
         self.setParent(app)
@@ -179,7 +179,7 @@ class QtTeamMemberView(QWidget):
         self.hud = hud
         self._render()
 
-    def __init__(self, state: TeamBoardState, hud: "TeamHud", core: CoreAccess,
+    def __init__(self, state: TeamBoardState, hud: TeamHud, core: CoreAccess,
                  parent: QWidget | None = None) -> None:
         self.groups = {}
         self.rows = {}

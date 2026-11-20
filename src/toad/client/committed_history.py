@@ -41,7 +41,7 @@ class CommittedHistoryBase(SnapshotPresentation, ResumesSource, CoveredHistory[P
 
     conversation_order = 0
 
-    def prepare_post(self, placement: "EntryPlacement") -> None:
+    def prepare_post(self, placement: EntryPlacement) -> None:
         self.conversation_order = placement.live_order - 1
 
     @property

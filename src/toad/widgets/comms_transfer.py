@@ -173,7 +173,7 @@ class ImportWorktree(TextField):
     """The imported thread's project directory."""
 
 
-class ExportFormatChoice(ChoiceField[type["ExportFormatInput"]]):
+class ExportFormatChoice(ChoiceField[type[ExportFormatInput]]):
     """The export's file format; choosing one moves a default destination with it."""
 
     @on(Select.Changed)
@@ -182,7 +182,7 @@ class ExportFormatChoice(ChoiceField[type["ExportFormatInput"]]):
         self.query_ancestor(WireExportDialog).format_changed()
 
 
-class ExportScopeChoice(ChoiceField[type["ExportScopeInput"]]):
+class ExportScopeChoice(ChoiceField[type[ExportScopeInput]]):
     """What the export reads."""
 
 

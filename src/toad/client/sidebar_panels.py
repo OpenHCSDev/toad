@@ -46,7 +46,7 @@ class PanelMenuModel[Entry](LazyPages[Entry, object]):
     remembered, else the first, and each pick is remembered there."""
 
     entries: tuple[Entry, ...]
-    navigation: "SidebarState"
+    navigation: SidebarState
 
     @abstractmethod
     def realize_page(self, entry: Entry):
@@ -69,7 +69,7 @@ class ObjectPropertiesPanel:
     """One setting of the viewed object as a settings-pane entry: Textual's `ObjectProperties`
     and Qt's `QtObjectProperties` both inherit this. The field's path names the entry."""
 
-    field: "DeclaredField"
+    field: DeclaredField
 
     @property
     def panel_identity(self) -> object:
@@ -87,7 +87,7 @@ class SidebarPanelCollapse(metaclass=AbstractHooksMeta):
 
     @property
     @abstractmethod
-    def panel_state(self) -> "SidebarState": ...
+    def panel_state(self) -> SidebarState: ...
 
     def stored_collapsed(self, default: bool) -> bool:
         return self.panel_state.is_panel_collapsed(self.panel_title, default)
@@ -110,7 +110,7 @@ class SidebarPanelColumn[Entry](metaclass=AbstractHooksMeta):
     def panel_frame(self, entry: Entry, collapsed: bool):
         """This frontend's collapsible around the entry's panel, opened or not."""
 
-    def panel_frames(self, entries, navigation: "SidebarState") -> tuple:
+    def panel_frames(self, entries, navigation: SidebarState) -> tuple:
         frames = []
         for entry in entries:
             panel = self.entry_panel(entry)

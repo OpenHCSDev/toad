@@ -37,6 +37,6 @@ class Page:
     def external_transcript_changed(self) -> None:
         """A page showing no thread's transcript has no CLI items to read."""
 
-    def shown(self, window: "QtToadApp", visited: "Callable[[CommsTab], object]") -> None:
+    def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
         """Selected: read again; a tab passes its identity to the visit history."""
         self.reload()

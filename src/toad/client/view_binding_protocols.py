@@ -52,11 +52,11 @@ class BoundViewHost:
 
     @property
     @abstractmethod
-    def transcript_history(self) -> "TranscriptHistoryContract":
+    def transcript_history(self) -> TranscriptHistoryContract:
         """The single transcript-page-producing child `BoundView` drives."""
 
     @abstractmethod
-    def query_ancestor(self, kind: type["SessionScope"]) -> "SessionScope":
+    def query_ancestor(self, kind: type[SessionScope]) -> SessionScope:
         """The enclosing `SessionScope`; `LookupError` when the view has none."""
 
     @property
@@ -68,7 +68,7 @@ class BoundViewHost:
     # ---- the thread ----
 
     @abstractmethod
-    def thread_observed(self, event: "ThreadRowsChanged") -> None:
+    def thread_observed(self, event: ThreadRowsChanged) -> None:
         """The observed thread's rows changed: consume its presentation and publish its
         source. `BoundView.observe_thread` subscribes exactly this method."""
 
@@ -93,27 +93,27 @@ class BoundViewHost:
         """Whether any of these blocks is on screen now."""
 
     @abstractmethod
-    def show_draft(self, draft: "DraftFold | NoDraft", identity: "TranscriptReadIdentity") -> None:
+    def show_draft(self, draft: DraftFold | NoDraft, identity: TranscriptReadIdentity) -> None:
         """Draw the thread's in-progress CLI draft after the history, or clear it."""
 
     @abstractmethod
-    def empty_history(self) -> "TranscriptHistoryContract":
+    def empty_history(self) -> TranscriptHistoryContract:
         """A new history with no source pages yet, for a replaced source."""
 
     @abstractmethod
     def later_history(
-        self, page: "PreparedTranscriptPage", source: "PreparedPageSource", conversation_order: int
-    ) -> "TranscriptHistoryContract":
+        self, page: PreparedTranscriptPage, source: PreparedPageSource, conversation_order: int
+    ) -> TranscriptHistoryContract:
         """A history continuing after an entry placed into this one."""
 
     @abstractmethod
     def mount_history(
-        self, history: "TranscriptHistoryContract", *, before: "TranscriptHistoryContract | None" = None
+        self, history: TranscriptHistoryContract, *, before: TranscriptHistoryContract | None = None
     ) -> Awaitable[None]:
         """Draw this history among the blocks (after them, or before `before`)."""
 
     @abstractmethod
-    def remove_history(self, history: "TranscriptHistoryContract") -> Awaitable[None]:
+    def remove_history(self, history: TranscriptHistoryContract) -> Awaitable[None]:
         """Stop drawing a replaced history."""
 
     # ---- the native loop ----
@@ -136,11 +136,11 @@ class BoundViewHost:
         when the view stopped running before it did."""
 
     @abstractmethod
-    def start_publication(self, task: Callable[[], Awaitable[object]], *, exclusive: bool) -> "PublicationWork":
+    def start_publication(self, task: Callable[[], Awaitable[object]], *, exclusive: bool) -> PublicationWork:
         """Run a publication on the native loop; an exclusive one supersedes its kind."""
 
     @abstractmethod
-    def cancel_publications(self) -> tuple["PublicationWork", ...]:
+    def cancel_publications(self) -> tuple[PublicationWork, ...]:
         """Cancel this view's running publications and return them to join."""
 
     @abstractmethod

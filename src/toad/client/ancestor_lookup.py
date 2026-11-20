@@ -19,7 +19,7 @@ T = TypeVar("T")
 class AncestorChain(Protocol):
     """A widget that can walk to its parent widget."""
 
-    def parent_widget(self) -> "AncestorChain | None":
+    def parent_widget(self) -> AncestorChain | None:
         """The widget containing this one, or None at the root."""
 
 

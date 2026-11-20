@@ -54,7 +54,7 @@ class QtBusSwitcher(BusListing, QFrame):
     through the shared `BusListing.redraw`/`KeptLines` flow Welcome uses.
     """
 
-    def __init__(self, window: "QtToadApp") -> None:
+    def __init__(self, window: QtToadApp) -> None:
         super().__init__(window)
         self.setWindowFlags(Qt.WindowType.Widget)
         self._host = window
@@ -114,7 +114,7 @@ class QtBusSwitcher(BusListing, QFrame):
         BusRow = self._BusRow
         KeptLines = self._KeptLines
         OpenSection = self._OpenSection
-        def draw(top: "KeptLines") -> None:
+        def draw(top: KeptLines) -> None:
             with top.group(OpenSection(self.buses_title)) as section:
                 for choice in rows:
                     section.keep(BusRow(choice))

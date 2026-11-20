@@ -1347,7 +1347,7 @@ class PanelPicker(OneRow, FillWidth, widgets.Select):
     """One compact selector over the entries supplied by the viewed object."""
 
 
-class PanelMenu(PanelMenuModel["SideBar.Panel"], FillHeight, containers.Vertical):
+class PanelMenu(PanelMenuModel[SideBar.Panel], FillHeight, containers.Vertical):
     """Discover once from the owner; mount each original panel only when selected."""
 
     def __init__(self, entries, navigation: SidebarState, scope: ViewSettingsScope):
@@ -1416,7 +1416,7 @@ class PanelMenu(PanelMenuModel["SideBar.Panel"], FillHeight, containers.Vertical
             entry.widget.finish()
 
 
-class ThreadSidebar(ThreadSidebarContents["SideBar.Panel"], SideBar):
+class ThreadSidebar(ThreadSidebarContents[SideBar.Panel], SideBar):
     placement_type = ThreadSidebarPlacement
 
     def panel_entries(self):

@@ -20,7 +20,7 @@ class QtBoundViewHost(BoundViewHost):
     """The shared host contract's tree members on a Qt widget, walking `QWidget.parent()`
     where Textual walks its DOM. Mixed into QWidget subclasses only."""
 
-    def query_ancestor(self, kind: type["SessionScope"]) -> "SessionScope":
+    def query_ancestor(self, kind: type[SessionScope]) -> SessionScope:
         for ancestor in self.ancestors:
             if isinstance(ancestor, kind):
                 return ancestor

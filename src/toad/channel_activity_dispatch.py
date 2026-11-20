@@ -57,7 +57,7 @@ class ChannelActivityCompute(ChannelActivityTitle):
     # Attributes the host must provide. Declared here for type/clarity; host
     # classes assign them in __init__ or inherit them from their own bases.
     view: object
-    model_state: "SidebarModelState"
+    model_state: SidebarModelState
     references: ReferenceContext
 
     @property
