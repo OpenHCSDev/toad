@@ -64,6 +64,18 @@ class CopiedText(MroProjection[str]):
 COPIED_TEXT = CopiedText()
 
 
+@dataclass(kw_only=True)
+class GrowsInPlace:
+    """A live block's fragment: one event that grows where it is, so its own counter, not
+    its event count, says when the same fragment draws differently."""
+
+    live_revision: int = 0
+
+    @property
+    def revision(self) -> int:
+        return self.live_revision
+
+
 @dataclass(frozen=True, kw_only=True)
 class Shown(ShownFragment):
     """What a reader chose about one drawn fragment."""

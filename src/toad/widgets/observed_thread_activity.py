@@ -26,10 +26,6 @@ class ObservedThreadActivity(ObservedActivity, CoreEventReceiver, ToadNode, Widg
     class Changed(Message):
         """The observed row changed; the view repaints what derives from it."""
 
-    @property
-    def coordination(self):
-        return self.app.coordination_access
-
     @on(Mount)
     def on_mount(self) -> None:
         self.start_observing()

@@ -57,10 +57,6 @@ class Flash(FlashNotice, OneRow, FillWidth, NoWrap, EllipsisOverflow, Static, To
         super().apply_native_layout()
         self.styles.text_align = "center"
 
-    @property
-    def settings(self):
-        return self.app.settings
-
     def show_flash(self, content: str | Content, tone: type[FlashTone]) -> None:
         self.display = False
         self.update(content)

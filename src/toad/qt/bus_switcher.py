@@ -20,7 +20,6 @@ Tailnet answers reach the panel through `QtToadApp.register_bus_listing` /
 
 from __future__ import annotations
 
-import time
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
@@ -33,7 +32,6 @@ from PySide6.QtWidgets import (
 )
 
 from toad.client.bus_selection import (
-    BusChoice,
     BusListing,
     BusPickerHost,
     BusSwitcherPrompt,
@@ -100,11 +98,6 @@ class QtBusSwitcher(BusListing, QFrame):
 
     def picker_host(self) -> BusPickerHost:
         return self._host
-
-    def held_rows(self) -> tuple[PickerRow, ...]:
-        """This machine's own bus and the remote profiles it holds; the merge with the
-        tailnet's reported peers happens in `BusListing.listed()`."""
-        return BusChoice.offered(time.time())
 
     def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
         """Redraw the tree with these rows under a single "Buses" section — mirrors
