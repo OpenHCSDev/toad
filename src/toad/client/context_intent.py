@@ -34,7 +34,7 @@ class ContextTreeIntent:
     """
 
     expanded: set[str] = field(default_factory=set)
-    selected: "ContextNode | None" = None
+    selected: ContextNode | None = None
     query: str = ""
     cursor: ContextManifestCursor = LATEST_CONTEXT
 
@@ -45,14 +45,14 @@ class ContextTreeIntent:
     def search_current(self, query: str, selected) -> bool:
         return self.query == query and self.selected is selected
 
-    def rebind(self, original: "ContextNode", model: "ContextNode") -> None:
+    def rebind(self, original: ContextNode, model: ContextNode) -> None:
         if self.selected is original:
             self.selected = model
 
     def restore_detail(
         self,
         resolve,
-        show_detail: "Callable[[ContextNode], Worker[None]]",
+        show_detail: Callable[[ContextNode], Worker[None]],
     ) -> bool:
         if self.selected is None:
             return False
@@ -70,7 +70,7 @@ class ContextInspectionReader(PanelSource):
     intents store, the current `InspectionState`, and each step a read moves that state
     through; the frontend owns only when it reads and how it draws."""
 
-    def start_inspection(self, intents: "dict[SessionIdentity, ContextTreeIntent]") -> None:
+    def start_inspection(self, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
         """Each frontend's constructor calls this once beside its widget's own."""
         from toad.core.context_inspection import DetachedInspection
         self._intents = intents
@@ -81,11 +81,11 @@ class ContextInspectionReader(PanelSource):
         """The viewed thread's intent, kept across widget retirements."""
         return self._intents.setdefault(self.thread_identity, ContextTreeIntent())
 
-    def inspect_identity(self, identity: "SessionIdentity") -> None:
+    def inspect_identity(self, identity: SessionIdentity) -> None:
         """A new thread starts its own inspection."""
         self.state = identity.inspection_state()
 
-    def observe_revision(self, revision) -> "InspectionState":
+    def observe_revision(self, revision) -> InspectionState:
         """Mark the coordination revision this read observes; returns the state before it."""
         previous = self.state
         self.state = previous.observe(revision)

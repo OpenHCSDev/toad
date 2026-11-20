@@ -300,7 +300,7 @@ class HistoryFragment(CursorRest):
     def key(self) -> FragmentKey:
         return FragmentKey(self.source_identity, self.part_position.index)
 
-    def message_head(self, fragments: Iterable["HistoryFragment"]) -> "HistoryFragment":
+    def message_head(self, fragments: Iterable[HistoryFragment]) -> HistoryFragment:
         """The first part of this fragment's message among ``fragments`` in order: where a
         tap on any of its parts brings the reader (both frontends' clicked-head reveal)."""
         return next((part for part in fragments if part.source_identity == self.source_identity), self)

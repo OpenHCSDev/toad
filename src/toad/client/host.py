@@ -183,7 +183,7 @@ class CommsHost:
         """Native clipboard effect."""
         raise NotImplementedError
 
-    def offer_bus_connect(self, decision: "BusConnectDecision") -> None:
+    def offer_bus_connect(self, decision: BusConnectDecision) -> None:
         """Present a structured bus-connect remediation. The default collapses the decision
         into the existing warning banner so a frontend that has not overridden this still
         says something; a native frontend (QtToadApp, Textual's splash) renders the summary

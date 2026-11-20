@@ -31,27 +31,27 @@ if TYPE_CHECKING:
 class AgentBoundConversation(ABC):
     """A conversation view that binds to exactly one agent connection."""
 
-    def bind_agent(self, agent: "AgentConnection") -> None:
+    def bind_agent(self, agent: AgentConnection) -> None:
         """Attach this view to an agent connection as its presenter."""
         self._store_agent_binding(agent)
         agent.attach_view(self)
 
     @property
     @abstractmethod
-    def bound_agent(self) -> "AgentConnection":
+    def bound_agent(self) -> AgentConnection:
         """The agent on this view: its live connection, or `NoAgentConnection` before one
         is bound."""
 
     @abstractmethod
-    def _store_agent_binding(self, agent: "AgentConnection") -> None:
+    def _store_agent_binding(self, agent: AgentConnection) -> None:
         """Persist the agent reference on the view; backends use their own storage."""
 
     @abstractmethod
-    def apply_bound_agent(self, agent: "AgentBase") -> None:
+    def apply_bound_agent(self, agent: AgentBase) -> None:
         """Project `agent`'s model/context/goal state onto the bound view."""
 
     @abstractmethod
-    def agent_connected(self, agent: "AgentBase") -> None:
+    def agent_connected(self, agent: AgentBase) -> None:
         """Flash a connection notice and record a usage milestone."""
 
 
@@ -63,19 +63,19 @@ class ObservedAgentBinding(AgentBoundConversation):
     inherit this mixin yet.
     """
 
-    agent_binding: ObservedField["AgentConnection"]
+    agent_binding: ObservedField[AgentConnection]
     """Override on each subclass — placeholder for the ObservedField descriptor."""
 
-    def _store_agent_binding(self, agent: "AgentConnection") -> None:
+    def _store_agent_binding(self, agent: AgentConnection) -> None:
         self.agent_binding = agent  # type: ignore[assignment]
 
     @property
-    def bound_agent(self) -> "AgentConnection":
+    def bound_agent(self) -> AgentConnection:
         """The stored `agent_binding`: `NoAgentConnection` until a live agent binds."""
         return self.agent_binding
 
     def on_agent_binding_change(
-        self, callback: Callable[["AgentConnection", "AgentConnection"], None]
+        self, callback: Callable[[AgentConnection, AgentConnection], None]
     ) -> Callable[[], None]:
         """Register a watcher fired on every agent-binding change; returns an unregister."""
         # Read from the class, the descriptor answers itself; it may be declared on any base.

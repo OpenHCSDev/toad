@@ -95,7 +95,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
     """The title that blinks while input is required; each frontend sets its own."""
 
     @property
-    def saved_settings(self) -> "SavedSettings":
+    def saved_settings(self) -> SavedSettings:
         """The settings holder this launch reads and writes. Lazily opened on first
         access so Qt (which has no pre-constructor settings hook) doesn't need to
         know to allocate it; Textual's `ThemedApp.__init__` sets it eagerly for the
@@ -106,13 +106,13 @@ class ClientApplication(BusPickerHost, NavigationHost):
         return self._saved_settings
 
     @saved_settings.setter
-    def saved_settings(self, value: "SavedSettings") -> None:
+    def saved_settings(self, value: SavedSettings) -> None:
         if getattr(self, '_saved_settings', None) is value:
             return
         self._saved_settings = value
         ObjectStateRegistry.register(value.state)
 
-    def open_settings(self) -> "SavedSettings":
+    def open_settings(self) -> SavedSettings:
         """The settings file every frontend reads at launch and writes on a change; each
         change applies its `Effect` through `apply_setting_effect`, so a setting changed in
         either frontend's settings screen repaints what it reaches at once. A frontend
@@ -176,7 +176,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
         """Show or hide the session tabs; the open tabs draw with the current unread badge."""
 
     @property
-    def settings(self) -> "ToadSettings":
+    def settings(self) -> ToadSettings:
         """The settings in use, to read from; `saved_settings` changes and saves them."""
         return self.saved_settings.current
 

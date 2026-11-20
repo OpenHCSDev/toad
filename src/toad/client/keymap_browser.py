@@ -125,7 +125,7 @@ class KeymapRefusedResult(KeymapResult):
 class KeymapBrowserState:
     """UX state for the keymap browser. Instantiated once per browser-open."""
 
-    def __init__(self, app: "ClientApplication", focused_ids: frozenset[KeyInvocationId]) -> None:
+    def __init__(self, app: ClientApplication, focused_ids: frozenset[KeyInvocationId]) -> None:
         self.app = app
         self.focused_ids = focused_ids
         self.mode_choices = FamilyChoices(KeyMode)
@@ -279,7 +279,7 @@ class KeymapBrowsing:
 
     state: KeymapBrowserState
 
-    def begin_browsing(self, app: "ClientApplication", focused: frozenset[KeyInvocationId]) -> None:
+    def begin_browsing(self, app: ClientApplication, focused: frozenset[KeyInvocationId]) -> None:
         self.state = KeymapBrowserState(app, focused)
 
     @abstractmethod

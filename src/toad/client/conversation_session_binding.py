@@ -31,13 +31,13 @@ if TYPE_CHECKING:
 class ConversationSessionBinding(Protocol):
     """A conversation view that binds to and observes one agent session."""
 
-    def bind_agent(self, agent: "AgentConnection") -> None:
+    def bind_agent(self, agent: AgentConnection) -> None:
         """Attach this view to an agent connection as its presenter."""
 
-    def apply_bound_agent(self, agent: "AgentBase") -> None:
+    def apply_bound_agent(self, agent: AgentBase) -> None:
         """Project `agent`'s model/context/goal state onto the bound view."""
 
-    def agent_connected(self, agent: "AgentBase") -> None:
+    def agent_connected(self, agent: AgentBase) -> None:
         """Flash a connection notice and record a usage milestone."""
 
     def arm_thread_read(self) -> None:
@@ -46,20 +46,20 @@ class ConversationSessionBinding(Protocol):
     def consume_thread_presentation(self) -> None:
         """Consume this thread's one observed presentation."""
 
-    def thread_observed(self, event: "core_events.ThreadRowsChanged") -> None:
+    def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
         """Handle an external coordination-observed thread row change."""
 
-    def thread_presented(self, presentation: "ThreadPresentation") -> None:
+    def thread_presented(self, presentation: ThreadPresentation) -> None:
         """Project a newly-presented thread's transcript onto this view."""
 
-    def _publish_thread_source(self, presentation: "ThreadPresentation") -> None:
+    def _publish_thread_source(self, presentation: ThreadPresentation) -> None:
         """Route one observed thread presentation to the transcript source."""
 
-    async def _thread_view_selected(self, event: "core_events.SessionSelected") -> None:
+    async def _thread_view_selected(self, event: core_events.SessionSelected) -> None:
         """Refresh status when this view's session becomes the selected one."""
 
     async def _thread_route_observed(
-        self, event: "core_events.ObservedServiceChanged"
+        self, event: core_events.ObservedServiceChanged
     ) -> None:
         """Refresh status when the observed-service routing changes."""
 

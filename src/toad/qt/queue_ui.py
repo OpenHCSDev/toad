@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 class QtActivatedText(ActivatesContract, WrappedText):
     """Muted text a press activates (Textual's ``Activates`` + ``SecondaryText``); it wraps."""
 
-    def __init__(self, composer: "Composer", text: str = "") -> None:
+    def __init__(self, composer: Composer, text: str = "") -> None:
         super().__init__(text)
         self.composer = composer
         composer.renderer.themed(self, lambda: self.setStyleSheet(composer.renderer.color_style(MutedRole)))
@@ -78,7 +78,7 @@ class RowReveal(WidgetAnimation, TransitionTarget):
         self.start_transition(clock, ROW_REVEAL)
 
     @classmethod
-    def toggle(cls, row: QWidget, wanted: bool, composer: "Composer") -> None:
+    def toggle(cls, row: QWidget, wanted: bool, composer: Composer) -> None:
         """Show or hide `row` as the shared queue state says, moving only when that changes."""
         running = row.reveal
         if (running.opening if running is not None else not row.isHidden()) == wanted:
@@ -95,7 +95,7 @@ class RowReveal(WidgetAnimation, TransitionTarget):
             row.setVisible(wanted)
 
     @classmethod
-    def resized(cls, row: QWidget, before: int, composer: "Composer") -> None:
+    def resized(cls, row: QWidget, before: int, composer: Composer) -> None:
         """A shown row whose contents changed its height moves from `before`, the height it
         showed, to its new one; a reveal already running turns toward the new height there."""
         clock = composer.host.app.animation_clock
@@ -135,7 +135,7 @@ class QtQueueSummary(QtActivatedText):
     line and back in one frame. Without the cap every longer preview grew the strip again, and
     every frame of that growth resized and repainted the history above."""
 
-    def __init__(self, composer: "Composer") -> None:
+    def __init__(self, composer: Composer) -> None:
         super().__init__(composer)
         self.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         self.setToolTip("Show queued messages and delivery status.")
@@ -164,7 +164,7 @@ class QtQueueHint(QtActivatedText):
     off. A few words in a row that is always there, so the history never moves for it; a
     press opens the queue inspection, as the summary's does."""
 
-    def __init__(self, composer: "Composer") -> None:
+    def __init__(self, composer: Composer) -> None:
         super().__init__(composer)
         self.setToolTip("Show queued messages and delivery status.")
         self.hide()
@@ -181,7 +181,7 @@ class QtQueueHint(QtActivatedText):
 class QtDeliveryControls(QueueDeliveryControls, QWidget, metaclass=PyQtWidgetMeta):
     """Textual's ``DeliveryControls`` row; `QueueDeliveryControls` owns its text."""
 
-    def __init__(self, composer: "Composer") -> None:
+    def __init__(self, composer: Composer) -> None:
         super().__init__(composer)
         self.setWindowFlags(Qt.WindowType.Widget)
         row = QHBoxLayout(self)
@@ -197,7 +197,7 @@ class QtQueueInspection(PresentedWindow, QueueInspectionOwner, QDialog, metaclas
     """Textual's ``QueueInspection`` as a dialog; `QueueInspectionOwner` owns the reading,
     the actions and how they settle."""
 
-    def __init__(self, submissions: "ConversationSubmissions", renderer: "QtLineRenderer",
+    def __init__(self, submissions: ConversationSubmissions, renderer: QtLineRenderer,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.heading)

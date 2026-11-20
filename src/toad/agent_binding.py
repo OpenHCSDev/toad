@@ -53,7 +53,7 @@ class AgentConnection(GoalSource):
     ready: bool
     session_disposition: SessionDisposition
     automatic_titles = True
-    controller: "AgentController | None" = None
+    controller: AgentController | None = None
     """The ACP controller, when this connection is to a live ACP agent. Unbound
     connections (NoAgentConnection) and non-ACP backends leave the default None, so
     consumers like QtPlan can read `agent.controller` as a declared attribute instead

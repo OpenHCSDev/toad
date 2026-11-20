@@ -104,7 +104,7 @@ class QtThreadView(
         QtInputDeliveryDetails(
             self, self.app.renderer, self.thread_activity.overview(), DeliveryView()).open()
 
-    def _setup_transcript(self, app: "QtToadApp") -> None:
+    def _setup_transcript(self, app: QtToadApp) -> None:
         """Build the conversation and its transcript stack. Call from the subclass
         `__init__` after `super().__init__()` and after assigning `self.app`.
 
@@ -115,7 +115,7 @@ class QtThreadView(
         self._setup_conversation(app)
         # `NativeSessionEntry.__call__` writes this on tabs that go through the
         # entry; mailbox opens through `replace_opening_view` instead.
-        self.session_details: "SessionDetails | None" = None
+        self.session_details: SessionDetails | None = None
         # `QtTranscriptHistory` mirrors Textual's `TranscriptHistory` — same
         # `CommittedHistoryBase` + `ReportsCoveredPages` bases, same `SavedTranscript`
         # source over `view.transcript.get_transcript_page`, same page type
@@ -140,7 +140,7 @@ class QtThreadView(
         for row in self.activity:
             row.mount()
 
-    def _setup_prompt_stack(self, app: "QtToadApp", layout: QVBoxLayout, incarnation) -> None:
+    def _setup_prompt_stack(self, app: QtToadApp, layout: QVBoxLayout, incarnation) -> None:
         """Mount, under the transcript, the rows Textual's `Conversation.compose` yields
         after its window, in its order: flash, sweep, session status, goal bar, prompt.
 
@@ -158,7 +158,7 @@ class QtThreadView(
         self.reserve_composer(self._composer_slot, lambda: self.composer_class()(self, app.renderer),
                               partial(self._composer_mounted, app))
 
-    def _composer_mounted(self, app: "QtToadApp", composer: Composer) -> None:
+    def _composer_mounted(self, app: QtToadApp, composer: Composer) -> None:
         # Under the composer, as on a channel: the question an agent asks (a permission, a
         # confirmation), hidden until asked.
         self.question = QtQuestion(app, self)
