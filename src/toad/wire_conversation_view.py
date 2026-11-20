@@ -7,7 +7,7 @@ from toad.session_scope import SessionScope
 from toad.widgets.conversation import Conversation
 
 
-class WireConversationView(Conversation, WireView):
+class WireConversationView(WireView, Conversation):
     """The existing conversation widget supplies the native view behavior."""
 
     @property

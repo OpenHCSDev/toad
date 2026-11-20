@@ -20,9 +20,13 @@ def test_both_conversations_read_their_scope_status_and_loading_from_the_shared_
         assert not hasattr(conversation, "transcript_changed"), conversation
 
 
-def test_a_wire_view_still_answers_status_and_loading_from_its_page_source():
+def test_both_wire_views_answer_sends_commands_status_and_loading_from_the_shared_wire_view():
+    from toad.client.history import WireView
     from toad.qt.window import ConversationView
     from toad.widgets.comms_chat import CommsChatView
 
     for view in (CommsChatView, ConversationView):
-        assert "status_thread" in vars(view) and "history_loading" in vars(view), view
+        for member in ("begin_submission", "command_target_context", "status_thread", "history_loading"):
+            assert getattr(view, member) is getattr(WireView, member), (view, member)
+        # The conversation's dispatch still answers; the wire view only names it.
+        assert "dispatch_sync" not in vars(WireView)

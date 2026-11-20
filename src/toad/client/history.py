@@ -1,6 +1,7 @@
 """A channel or direct conversation's history as every frontend reads it: which painted messages
 wait to be marked read, and the acknowledgement that marks them."""
 import asyncio
+from collections.abc import Callable
 from functools import partial
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
@@ -248,10 +249,30 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
 class WireView(ConversationActivity):
     """A frontend's view of one wire conversation, as its page source, its sends and its
     commands address it. A plain parent: each toolkit's widget metaclass would conflict
-    with ABCMeta."""
+    with ABCMeta.
+
+    Listed before the frontend's conversation class: a conversation answers these for a
+    thread's transcript and its sources, and a wire view's page source answers them
+    instead."""
 
     conversation: ConversationKind
     message_history: ReadMarkedHistory
+
+    def begin_submission(self, owner, submission):
+        """A channel or inbox message goes where this view's page source says."""
+        return self.message_history.page_source.begin_submission(self, owner, submission)
+
+    async def command_target_context(self):
+        """Commands address the conversation this view's page source reads."""
+        return self.message_history.page_source.command_context(self)
+
+    def status_thread(self):
+        """Peer status does not grant access to the peer's transcript: the page source opens it."""
+        return self.message_history.page_source.status_thread(self.app.coordination_access)
+
+    def history_loading(self) -> bool:
+        """The wire history is reading its first page."""
+        return self.message_history.reading
 
     @property
     @abstractmethod
@@ -275,9 +296,9 @@ class WireView(ConversationActivity):
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and the view's status beside it."""
 
-    @abstractmethod
-    def dispatch_sync(self, event: object) -> None:
-        """Hand the view the references its label and commands are read from."""
+    dispatch_sync: Callable[[object], None]
+    """Hand the view the references its label and commands are read from: its
+    conversation's dispatch answers."""
 
 
 @dataclass(frozen=True)
