@@ -196,6 +196,17 @@ class ClientApplication(BusPickerHost, NavigationHost):
         resolves to this, so `SettingsReader`-based widgets reach the same object."""
         return self.saved_settings.state
 
+    def _make_render_processes(self):
+        """The renderer every frontend submits preparation work to. The default wraps this
+        launch's shared `PreparationRuntime`; a frontend whose consumer owns per-thread
+        context (Textual's message pump and Worker) overrides this to wrap it so detached
+        work never borrows those contexts. Hoisting the attribute here so both frontends
+        answer `app.render_processes` the same way, replacing the Qt app that had none and
+        the TUI app that set its own (`ToadApp.__init__`, which `WireHistory` and the draft
+        renderer already submitted through)."""
+        from toad.render_backend import PreparedRenderer
+        return PreparedRenderer(self.preparation)
+
     def initialize_client(
         self,
         agent_binding: AgentBinding,
@@ -210,6 +221,7 @@ class ClientApplication(BusPickerHost, NavigationHost):
         for its workers' startup (3.7 s on desktop Qt, which never started it). The native
         constructor runs before a terminal captures stderr, which spawn bookkeeping needs."""
         self.preparation.renderer.start()
+        self.render_processes = self._make_render_processes()
         self.events = core_events.CoreEventStream(self)
         self.navigation_reader = NavigationReader()
         self.agent_binding = agent_binding

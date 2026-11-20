@@ -20,6 +20,8 @@ Result = TypeVar("Result")
 class InThreadRenderer(Renderer):
     """Run render tasks in-thread on the owning loop; no child processes."""
 
+    needs_submission = False
+
     def __init__(self) -> None:
         super().__init__()
         self._closed = False

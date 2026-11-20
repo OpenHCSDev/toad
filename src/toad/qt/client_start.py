@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -28,8 +27,8 @@ from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.window import QtToadApp
 from toad.render_backend import Renderer
+
 from toad.render_in_thread import InThreadRenderer
-from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
 
 if TYPE_CHECKING:
@@ -38,10 +37,14 @@ if TYPE_CHECKING:
 
 
 def _renderer_for_platform(connection: CoreConnection) -> Renderer:
-    """A ProcessPool on hosts that fork, an in-thread renderer on Android's Python."""
-    if hasattr(sys, "getandroidapilevel"):
-        return InThreadRenderer()
-    return RenderProcessPool(connection.helper_start)
+    """Qt's row preparation carries `QFont` and the `QtLineRenderer`'s `QColor` theme,
+    which `multiprocessing` cannot pickle across a process pool: desktop Qt uses the same
+    in-thread renderer Android uses, so `app.render_processes` is the shared submission
+    owner on both platforms and the task its workers run is the same. Rendering in another
+    process on desktop requires a Qt-free renderer (hex colours, a toolkit-neutral font
+    metric) and stands as follow-on work for `QtLineRenderer`."""
+    _ = connection
+    return InThreadRenderer()
 
 
 @dataclass(frozen=True)

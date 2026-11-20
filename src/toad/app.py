@@ -147,7 +147,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
             connection: Core transport selected by the launch owner.
         """
         self.preparation = PreparationRuntime(TextualRenderProcessPool(connection.helper_start))
-        self.render_processes: Renderer = TextualPreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.initialize_client(agent_binding, connection, agent_session_id, opening)
@@ -209,6 +208,11 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
             self.coordination_access.selection.root, running,
         ).proceed(lambda: running, lambda runtime: runtime)))
 
+
+    def _make_render_processes(self):
+        """Textual-owning wrapper: a Textual consumer owns its message pump and Worker,
+        so detached work never borrows those contexts (`TextualOwners`)."""
+        return TextualPreparedRenderer(self.preparation)
 
     async def _close_all(self) -> None:
         # View release can fail. The application still owns its observation
