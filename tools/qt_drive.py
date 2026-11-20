@@ -4483,6 +4483,51 @@ def time_settings_writes() -> None:
     SavedSettings.set = timed
 
 
+class ThreadSendScenario(Scenario):
+    summary = ("open TARGET (a thread) and send one message; fail unless the view takes input "
+               "before the send, the composer shows no failure or refusal, and the message is "
+               "drawn (Tristan, Pixel 8a: a send to a live thread came back 'No agent is connected "
+               "to this tab': a native thread through a UI profile was bound as an agent session)")
+
+    async def run(self) -> None:
+        self.app.resize(412, 915)
+        await self.open_named(os.environ.get("TARGET", "CLM-ref2"))
+        view = self.page
+        composer = view.composer
+        said: list[str] = []
+        for owner, name in ((composer, "show_failure"), (composer, "refuse_input"), (view, "flash"),
+                            (view, "flash_error")):
+            if not hasattr(owner, name):
+                continue
+            original = getattr(owner, name)
+            setattr(owner, name, lambda text, *rest, original=original, name=name:
+                    (said.append(f"{name}: {text}"), original(text, *rest))[1])
+        decision = view.submissions.input_decision
+        self.report(
+            "before-send", view=[base.__name__ for base in type(view).__mro__[:6]],
+            composer=type(composer).__name__, submissions=type(view.submissions).__name__,
+            decision=type(decision).__name__,
+            refusal=None if decision.allows else decision.message,
+            held=composer.editor.isReadOnly(), block=view.composer_block,
+            placeholder=composer.editor.placeholderText())
+        marker = f"send-probe-{time.strftime('%H%M%S')}"
+        composer.editor.setPlainText(marker)
+        composer.submit()
+        rows = view.messages.model_rows
+        drawn = lambda: any(fragment is not None and marker in fragment.clipboard_text  # noqa: E731
+                            for fragment in rows.fragments)
+        for _ in range(200):
+            if drawn() or said:
+                break
+            await asyncio.sleep(0.1)
+        await asyncio.sleep(1.0)
+        self.report("after-send", drawn=drawn(), said=said, draft=composer.editor.toPlainText())
+        if not decision.allows or said or not drawn():
+            raise AssertionError(
+                f"the send to a live thread did not go through: decision={type(decision).__name__} "
+                f"said={said} drawn={drawn()}")
+
+
 def main(arguments: list[str]) -> None:
     own = arguments[1:]
     connection = select_connection(own) if len(own) == 4 else None

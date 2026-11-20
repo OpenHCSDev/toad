@@ -391,6 +391,12 @@ class Observation(ABC):
     def observed(self):
         return self
 
+    @property
+    def agent_processes(self) -> AgentProcesses:
+        """Whether an agent process may start beside the Core this observation reaches: the
+        connection it was opened through decides (a local bus root does, a UI profile does not)."""
+        return self.access.connection.agent_processes
+
     def queue_observing(self) -> Observing:
         raise RouteChangedError("The queue's original Core source is unavailable")
 

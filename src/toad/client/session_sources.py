@@ -22,7 +22,7 @@ from toad.core import events as core_events
 from toad.client.connection import Observing
 from toad.client.conversation_sources import ConversationSources
 from toad.client.goal_source import CommsGoalSource
-from toad.client.input_decision import InputDecision
+from toad.client.input_decision import InputAccepted, InputDecision
 from toad.goal_controls import GoalSource
 from toad.submission_queue import BusQueueSource, NativeQueueSource, QueueSource
 from toad.transcript_publication import CanonicalSourcePublication
@@ -140,6 +140,12 @@ class MailboxSources(MailboxSent, BusQueueSource, SessionSources):
         """A CLI thread's input is a message to its inbox, queued like a prompt."""
         view = owner.view
         return view.thread_scope.begin_mailbox(owner, submission, view, self)
+
+    def input_decision(self, conversation) -> InputDecision:
+        """A message to the inbox needs no agent on this tab: `begin_mailbox` refuses the send
+        it cannot make. Inherited from the session sources, this answered "No agent is
+        connected to this tab" for every mailbox."""
+        return InputAccepted()
 
     async def mailbox_sent(self, view: TranscriptView, sent: MessageReference) -> None:
         """Follow the transcript's end; the inbox message shows once the thread records it."""
