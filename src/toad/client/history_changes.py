@@ -3,7 +3,7 @@
 Both backends read a `TopPage` to find the reader, a `PinnedHeader` to draw the sticky
 header over the top row, and open a `HistoryChange` to batch the layouts around a row
 shift. The classes stay toolkit-neutral; the window they reference supplies its own
-toolkit's refresh and attach checks.
+toolkit's layout (`request_reader_layout`), row count (`geometry_revision`) and attach checks.
 """
 
 from __future__ import annotations
@@ -324,16 +324,16 @@ class NoHistoryChange:
         screen = window.screen
         window.keep_reader()
         change = window.history_change = HistoryChange()
-        geometry = window._geometry_revision
+        geometry = window.geometry_revision
         drawn = False
         try:
             try:
                 yield
             finally:
                 # An unchanged page or already-live body needs no other layout.
-                if window._geometry_revision != geometry:
+                if window.geometry_revision != geometry:
                     change.request_layout(window)
-            if window._geometry_revision == geometry:
+            if window.geometry_revision == geometry:
                 # No row moved: a position kept for this change is where the reader is.
                 drawn = True
                 return
@@ -371,7 +371,7 @@ class HistoryChange:
         self.layout_requests += 1
         self.laid_out = False
         self.layout_ready.clear()
-        window.refresh(layout=True)
+        window.request_reader_layout()
 
     def finish_layout(self, answered: int) -> None:
         """A layout that started after `answered` requests has finished.

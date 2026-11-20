@@ -10,7 +10,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections import deque
 from collections.abc import Awaitable, Callable, Iterable
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, fields, replace
 from functools import partial
 from math import ceil
@@ -200,8 +200,9 @@ class PagingWindow(ReaderWindow):
         """Follow the end again when the reader has scrolled back to it."""
 
     @abstractmethod
-    def preserve_history(self):
-        """An async context in which pages change while the reader's row stays put."""
+    def tree_change(self):
+        """An async context holding this window's native rows while a change is made to them:
+        Textual's tree lock; Qt's rows, read again from the pages as it ends."""
 
     @abstractmethod
     def request_preparation(self) -> None:
@@ -268,6 +269,45 @@ class ReaderPlacement:
         """One native destination's row capacity and bounded fragment budget."""
         return (self.presentation_budget.runway_rows(self.viewport_rows),
                 self.lookahead.destination_batch(budget, self.viewport_rows))
+
+    @contextmanager
+    def layout_scroll(self):
+        """Scrolling inside is layout keeping the reader in place, not the reader moving.
+
+        The reader's own travel is moved by the same rows, so it continues from the new
+        place: the read-ahead's measure, and whatever the toolkit has under way
+        (`shift_travel`).
+        """
+        restoring, previous, destination = self._restoring, self.scroll_y, self.scroll_target_y
+        self._restoring = True
+        try:
+            yield
+        finally:
+            try:
+                if not restoring:
+                    if rows := self.scroll_y - previous:
+                        self.shift_travel(rows, destination)
+                    self.lookahead.relocated(rows)
+            finally:
+                self._restoring = restoring
+
+    def shift_travel(self, rows: float, destination: float) -> None:
+        """Layout moved the reader `rows` while they were travelling to `destination`. A
+        window that scrolls at once (Qt) has no travel under way."""
+
+    @asynccontextmanager
+    async def preserve_history(self):
+        """Change what this window draws with the reader kept on their message.
+
+        One change (`history_change`) is open while the window's native rows are held
+        for it (`tree_change`), and stays open past that hold until the layout that shows
+        it has put the reader back: a change entered inside another joins it, and a layout
+        cannot finish while the rows are held.
+        """
+        async with AsyncExitStack() as shown:
+            async with self.tree_change():
+                await shown.enter_async_context(self.history_change.opened(self))
+                yield
 
     def place_reader(self) -> bool:
         """Put the reader on the kept position in the layout just made; True when that scrolled the window.

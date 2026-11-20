@@ -25,9 +25,8 @@ class JumpsToLatest:
     - ``scroll_revision`` ticks once per scroll motion the window applies; consumers
       compare their stored revision against this window's to learn whether what they
       measured still stands.
-    - ``history_change`` tracks whether the scroll underway is a pagination load (a
-      change in the history's content). Owned by the shared pager state machine;
-      Textual drives it today, Qt inherits the carrier for later wiring.
+    - ``history_change`` is the change open over what the window draws, or none
+      (`toad.client.history_changes`). Each backend's ``preserve_history`` opens it.
     - ``can_jump_to_latest`` derives from ``follows_tail``: both backends had the same
       one-liner body. The derivation lives here; subclasses declare ``follows_tail``
       in whatever shape their anchor keeps.
@@ -35,6 +34,10 @@ class JumpsToLatest:
 
     scroll_revision: int = 0
     history_change: HistoryChange | NoHistoryChange = NO_HISTORY_CHANGE
+
+    def keep_reader(self) -> None:
+        """What this window draws is about to change: layout keeps the reader where they are now."""
+        self.screen.reader_kept(self)
 
     @property
     @abstractmethod
