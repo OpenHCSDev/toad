@@ -1243,11 +1243,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
     def mode(self) -> str:
         return self.entry.mode
 
-    @property
-    def origin(self) -> SessionOrigin:
-        """A conversation tab belongs to no session, so it has no session transcript."""
-        return NoSessionOrigin(self.mode)
-
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
         visited(self.entry.identity)
         self.reload()

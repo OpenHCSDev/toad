@@ -22,7 +22,12 @@ check=$(mktemp -d)
 trap 'git worktree remove --force "$check" >/dev/null 2>&1 || true' EXIT
 for attempt in 1 2 3 4 5 6 7; do
     head=$(git ls-remote origin "refs/pull/$pr/head" | cut -f1)
-    [ -n "$head" ] || { echo "REFUSED: #$pr has no refs/pull/$pr/head on origin" >&2; exit 1; }
+    if [ -z "$head" ]; then
+        # A PR opened seconds ago has no ref yet (#2163 was refused for this): read it again.
+        [ "$attempt" = 7 ] && { echo "REFUSED: #$pr has no refs/pull/$pr/head on origin" >&2; exit 1; }
+        sleep 5
+        continue
+    fi
     git fetch -q origin main "refs/pull/$pr/head"
     git merge-base --is-ancestor origin/main "$head" && break
     if [ "$attempt" = 7 ]; then

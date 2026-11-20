@@ -28,7 +28,7 @@ from ui_theme.scheme import ForegroundColour
 from toad.acp.agent_session import UnopenedSessionDisposition
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.observed_field import ObservedField
-from toad.client.session_scope import BoundSources, NoSessionOrigin, SessionOrigin
+from toad.client.session_scope import BoundSources
 from toad.qt.composer import MailboxComposer
 from toad.qt.thread_view import QtThreadView
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
@@ -128,13 +128,6 @@ class QtMailboxView(QtThreadView, BoundSources):
         `MainScreen.bind_thread` does at `screens/main.py:386`."""
         return self._identity
 
-    @property
-    def origin(self) -> SessionOrigin:
-        """Mailbox view has no live agent binding of its own; sidebar + tab-order
-        already handle a no-op origin by mode. Mirrors `QtAcpSessionView.origin`
-        at `qt/acp_tab.py:380`."""
-        return NoSessionOrigin(self.mode)
-
     def transcript_scope(self) -> TranscriptScope:
         """The transcript scope this view is bound to — the one `BoundView.thread_scope`
         reads on bind to wire `thread_observed` into Core's observation."""
@@ -173,13 +166,7 @@ class QtMailboxView(QtThreadView, BoundSources):
         `self.transcript.get_transcript_page`; the live page restore drives
         through the pager without extra async work here."""
 
-    async def wait_content_ready(self) -> None:
-        """The first page publishes through `BoundView` once the view mounts."""
-
     # ---- SessionScope lifecycle ----
-
-    async def retire_presentation(self) -> None:
-        """A history-rows view keeps no native presentation beside its history."""
 
     def belongs_to_wire(self, root) -> bool:
         return self.root == str(root)
@@ -193,11 +180,6 @@ class QtMailboxView(QtThreadView, BoundSources):
         if self.session_details is not None:
             visited(self.session_details.identity)
         self.reload()
-
-    def reload(self) -> None:
-        """`QtToadApp.stores_changed` calls `selected.reload()` on every revision
-        tick. The message_history re-reads through its pager on the next tick;
-        no extra work needed here today."""
 
     def opening_failed(self, error: Exception) -> None:
         """If the opening path somehow fails AFTER the swap, surface the error

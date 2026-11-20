@@ -85,20 +85,9 @@ class QtOpeningSessionView(Page, SessionScope, QWidget):
     def close_core_events(self) -> None:
         """Opening view has no Core subscriptions; nothing to close."""
 
-    async def wait_content_ready(self) -> None:
-        """The opening view IS the loading state — it's always 'ready' to be shown."""
-
-    async def retire_presentation(self) -> None:
-        """No presentation to let go of."""
-
     def belongs_to_wire(self, root) -> bool:
         """Opening view is wire-agnostic until it's replaced by the bound view."""
         return False
-
-    def reload(self) -> None:
-        """`QtToadApp.stores_changed` calls `selected.reload()` on every revision
-        tick. Opening view has no content to reload — the bound view's own
-        `reload` fires once `prepared.bind` swaps it in."""
 
     def shown(self, window, visited) -> None:
         """`QtWorkspaceViews.select` calls `page.shown(app, visited)` when a page
