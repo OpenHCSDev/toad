@@ -72,12 +72,6 @@ class QtProjectPanel(ThreadSidebarPanelBody, ProjectView, QWidget):
     # --- ProjectView overrides (toolkit-neutral base; widgets.project_panel
     # mirrors these on the Textual side) ---
 
-    def refresh_if_visible(self) -> None:
-        # QFileSystemModel polls the filesystem through a native watcher; the
-        # tree repaints itself. Nothing to do here on an explicit visibility
-        # request.
-        pass
-
     def invalidate(self) -> None:
         # Force the model to re-read the root the next time it is shown.
         self._model.setRootPath("")

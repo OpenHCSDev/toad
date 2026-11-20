@@ -63,23 +63,36 @@ class QtNameWaveDelegate(BandCells, MultilinePreviewItemDelegate):
         return PreparedTextLayout((waved, *rest), prepared.size, prepared.line_guides)
 
 
-class QtTabWave(NameWave):
-    """One tab title's wave, on the app's clock; the tab bar repaints the tab with it."""
+class QtClockedWave(NameWave):
+    """A name wave on the app's animation clock: the animation it holds is the running wave.
+    A leaf says which clock that is and what a frame repaints."""
 
-    def __init__(self, bar: QtSessionTabBar, mode: str) -> None:
-        self.bar, self.mode = bar, mode
-        self.animation = None
+    animation = None
+
+    def wave_clock(self):
+        """The app's animation clock, as this wave's owner reaches it."""
+        raise NotImplementedError
 
     def wave_running(self) -> bool:
         return self.animation is not None
 
     def start_wave(self) -> None:
-        self.animation = self.bar.clock.start(self.name_wave, self)
+        self.animation = self.wave_clock().start(self.name_wave, self)
 
     def stop_wave(self) -> None:
         if self.animation is not None:
             self.animation.stop()
             self.animation = None
+
+
+class QtTabWave(QtClockedWave):
+    """One tab title's wave, on the app's clock; the tab bar repaints the tab with it."""
+
+    def __init__(self, bar: QtSessionTabBar, mode: str) -> None:
+        self.bar, self.mode = bar, mode
+
+    def wave_clock(self):
+        return self.bar.clock
 
     @property
     def animation_visible(self) -> bool:

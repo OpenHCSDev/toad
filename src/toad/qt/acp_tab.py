@@ -17,11 +17,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.nominal.field_codec import NoAcpSessionId
 from metaclass_registry.mro_dispatch import handles
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
+from PySide6.QtCore import QTimer
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
-from pyqt_reactive.widgets.fitted_text import ElidedLine
-from ui_theme.scheme import ForegroundColour
 
 from toad.agent_binding import AgentConnection
 from toad.client.session_entry import NativeSessionEntry
@@ -32,12 +29,10 @@ from toad.core import events as core_events
 from toad.core.input_events import UserInputSubmitted
 from toad.launch_binding import AgentBinding, AgentConversation, AgentOrigin
 from toad.qt.composer import ProjectComposer
-from toad.qt.metrics import UiGap
 from toad.qt.thread_view import QtThreadView
 from toad.qt.window import QtSessionEntry
 from toad.session_titles import FirstPromptTitle, SessionTitles
 from toad.thread_identity import NoThreadIdentity
-from toad.transcript_scope import TranscriptScope
 
 if TYPE_CHECKING:
     from agent_comms.projects.checkouts import Checkout
@@ -72,12 +67,6 @@ class QtAcpSessionView(
     """One agent session's tab: its identity line, the transcript through Qt's history
     window, the agent's live turn as rows, and the operational composer."""
 
-    # Class-level defaults satisfy `QtThreadView`'s abstract properties so this
-    # class is instantiable; `_setup_prompt_stack` assigns the real widgets.
-    identity_line: ElidedLine = None  # type: ignore[assignment]
-    thread_activity = None
-    goal_bar = None
-
     def __init__(
         self,
         app: QtToadApp,
@@ -102,24 +91,10 @@ class QtAcpSessionView(
         # As Textual's Conversation: a session with no saved agent session guesses its title
         # from its first prompt (`FirstPromptTitle`; a resumed one keeps the saved name).
         self._auto_title_eligible = True
-        self._setup_transcript(app)
-        self.identity_line = ElidedLine(f"ACP session #{session_pk}")
-        self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        app.renderer.themed(self.identity_line, lambda: self.identity_line.setStyleSheet(
-            f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};"))
-        info = QHBoxLayout()
-        info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
-        info.addWidget(self.identity_line, 1)
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addLayout(info)
-        layout.addWidget(self.messages, 1)
-        # Under the transcript, Textual's order: flash, sweep, status, goal, prompt. A
-        # binding with no `ThreadIncarnation` has no goal owner, so no goal bar.
         self._composer_label = binding.selected_agent("agent", lambda agent: agent.name)
-        incarnation = binding.initial_identity(NoThreadIdentity()).optional_thread_incarnation()
-        self._setup_prompt_stack(app, layout, incarnation)
+        # A binding with no `ThreadIncarnation` has no goal owner, so no goal bar.
+        self._lay_out_thread(app, f"ACP session #{session_pk}",
+                             binding.initial_identity(NoThreadIdentity()).optional_thread_incarnation())
         self.on_agent_binding_change(self._on_agent_binding_change)
 
     # ---- AgentOrigin: what the launch reads of the session it attaches to ----
@@ -248,10 +223,6 @@ class QtAcpSessionView(
     def thread_identity(self):
         """The launch's current initial identity, read fresh on each access."""
         return self.launch.initial_identity(NoThreadIdentity())
-
-    def transcript_scope(self) -> TranscriptScope:
-        """The transcript scope this view is bound to: the identity owns it directly."""
-        return self.thread_identity.transcript_scope()
 
     def shown(self, window, visited) -> None:  # type: ignore[override]
         """Selected: record the visit, and the first time, attach the launch's agent."""
