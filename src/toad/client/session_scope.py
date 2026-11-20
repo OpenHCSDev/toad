@@ -20,6 +20,8 @@ from toad.project_path_owner import CheckoutRoot
 from toad.transcript_scope import NoTranscript, TranscriptScope
 
 if TYPE_CHECKING:
+    from toad.client.conversation_sources import ConversationSources
+    from toad.client.session_sources import MailboxSources
     from toad.agent_binding import AgentConnection
     from toad.client.category_selection import CategorySelection
 
@@ -134,18 +136,14 @@ class SessionScope:
         return False
 
     def apply_external_mailbox_sources(self) -> None:
-        """`ExternalThreadNavigation.bind(screen)` calls this; Textual's MainScreen
-        overrides to assign `self.presentation.sources = MailboxSessionSources()`
-        (which drags in the whole Textual-widget pyramid: session_presentation →
-        widgets.conversation → widgets.prompt → path_filter → pathspec). Qt views
-        have no `presentation.sources` contract today, so the default is a no-op.
-        Pushing the assignment into a polymorphic method keeps the import chain
-        out of the Qt bind path — same pattern as `make_opening_view`."""
+        """`ExternalThreadNavigation.bind` calls this on the view it opens. A view that
+        presents a conversation (`BoundSources`) takes its mailbox sources; a view with no
+        sources (the welcome, an opening view) has none to change."""
 
     def apply_native_load_plan(self, plan) -> None:
-        """`NativeThreadNavigation.bind(screen)` calls this; Textual's MainScreen
-        overrides to assign `self.presentation.sources.load_plan = plan`. Qt views
-        have no sources container today, so the default is a no-op."""
+        """`NativeThreadNavigation.bind` calls this on the view it opens. A view that presents
+        a conversation (`BoundSources`) gives its sources the plan; a view with none keeps
+        nothing."""
 
     async def wait_content_ready(self) -> None:
         """Opening a tab returns once its content has loaded."""
@@ -158,6 +156,30 @@ class SessionScope:
     async def retire_presentation(self) -> None:
         """Let go of what the view drew before the tab it returns to is shown."""
         raise NotImplementedError
+
+
+class BoundSources(SessionScope):
+    """A view thread navigation binds: it holds the sources its conversation reads its queue
+    and starts its submissions through, and the navigation's bind changes them. Both hooks
+    are decided here, once. A frontend says only where the sources are kept
+    (`operational_sources`: Textual's screen keeps them on its presentation, Qt's view on
+    itself)."""
+
+    operational_sources: ConversationSources
+
+    def mailbox_sources(self) -> MailboxSources:
+        """The sources of a thread whose input goes to Core's inbox. A frontend whose
+        mailbox adds to them (Textual's, its prompt) answers its own."""
+        from toad.client.session_sources import MailboxSources
+        return MailboxSources()
+
+    def apply_external_mailbox_sources(self) -> None:
+        """The opened thread takes its input through Core's inbox, not an agent session."""
+        self.operational_sources = self.mailbox_sources()
+
+    def apply_native_load_plan(self, plan) -> None:
+        """The opened thread's session resumes from `plan`."""
+        self.operational_sources.load_plan = plan
 
 
 class ProjectSessionOrigin(SessionOrigin, SessionScope, CheckoutRoot):

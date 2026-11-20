@@ -33,6 +33,7 @@ from textual.widgets import (
 from toad.acp.agent_session import SessionDisposition
 from toad.agent_binding import AgentConnection
 from toad.app_node import ToadNode
+from toad.client.session_scope import BoundSources
 from toad.command_target_scope import CommandTargetScope
 from toad.core import events as core_events
 from toad.session_titles import SessionTitles
@@ -315,7 +316,7 @@ class GoHomeAction(MainAction):
         await context.app.select_session(context.app.tab_order.home)
 
 
-class MainScreen(SessionTitles, ThreadViewNavigation, CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
+class MainScreen(SessionTitles, ThreadViewNavigation, BoundSources, CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
                  SidebarSessionView[SessionThreadSidebar], ToadNode,
                  actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
@@ -324,6 +325,10 @@ class MainScreen(SessionTitles, ThreadViewNavigation, CommandTargetScope, Native
     @property
     def operational_sources(self) -> OperationalSessionSources:
         return self.presentation.sources
+
+    @operational_sources.setter
+    def operational_sources(self, sources: OperationalSessionSources) -> None:
+        self.presentation.sources = sources
 
     @property
     def operational_binding(self) -> AgentConnection:
@@ -388,16 +393,11 @@ class MainScreen(SessionTitles, ThreadViewNavigation, CommandTargetScope, Native
         with self.changing_identity():
             self._identity = ThreadIdentity(owner, root)
 
-    def apply_external_mailbox_sources(self) -> None:
-        """Textual override of the polymorphic hook on SessionScope. Imports the
-        Textual-widget pyramid locally so a Qt frontend's call to the default
-        (no-op) implementation doesn't drag it in."""
+    def mailbox_sources(self) -> MailboxSessionSources:
+        """Textual's mailbox sources, imported here so the bind path of a frontend without
+        Textual's widgets never loads them."""
         from toad.session_presentation import MailboxSessionSources
-        self.presentation.sources = MailboxSessionSources()
-
-    def apply_native_load_plan(self, plan) -> None:
-        """Textual override: assign the load plan onto the Textual sources."""
-        self.presentation.sources.load_plan = plan
+        return MailboxSessionSources()
 
     def identity_changed(self, previous) -> None:
         if self.id is not None:
