@@ -56,6 +56,29 @@ class ViewLabel(NameWave, Animated[Band], Static):
     def stop_wave(self) -> None:
         self.stop_effect(self.name_wave)
 
+    def wave_span(self) -> tuple[int, int] | None:
+        """The wave's cells in this terminal row, or none while idle."""
+        return (
+            self.band_cells(self.effect_frame(self.name_wave), self.size.width)
+            if self.wave_running()
+            else None
+        )
+
+    def repaint_wave(self) -> None:
+        """Paint the rows this view's name occupies."""
+        self.repaint_lines()
+
+    def redraw(self) -> None:
+        """A wave repaints only when its band reaches different terminal cells."""
+        wave_only = self.wave_running() and not any(
+            self.effect_phase(fade).in_motion for fade in self.text_fades
+        )
+        if wave_only:
+            if self.wave_moved(self.wave_span()):
+                self.repaint_wave()
+            return
+        super().redraw()
+
     def activity_content(self, label: Content, busy: bool, *, prefix: Content) -> Content:
         """The row's own label, working or not: the typed status starts the wave without
         changing the label or firing a content fade. The shared app clock owns its frames."""
