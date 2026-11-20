@@ -435,22 +435,31 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
     def block_row(self, fragment: HistoryFragment, font: QFont, width: int, y: int) -> tuple[int, int]:
         """Which of `fragment`'s line blocks its row draws at pixel `y`, and which line of that
-        block: the unit the fragment's own header decision (`sticky_header`) reads. A block's
-        height is its own rows laid out at this width, cached as the row's height is. Only the
-        header blocks are measured: past them the pin is the same in every block
-        (`header_blocks`), so a `y` below them answers the first block after them."""
+        block: the unit the fragment's own header decision (`sticky_header`) reads.
+
+        A block's height is estimated from its `selection_text` wrapped at this width. The pin
+        runs on every scroll offset, and building each block's html on the main thread the
+        first time stalled the UI during scroll-back (231 rows loaded held the UI thread for
+        seconds of main-thread html work, `qt/history.py` was the top time owner of
+        `tools/qt_scroll_profile`, 2026-11-20). The estimate is close enough for the pin:
+        the row's real document lands through the delegate's worker-prepared queue when the
+        row becomes visible, and the next frame reads the drawn height.
+
+        Past `header_blocks` the pin is the same in every block, so a `y` below them answers
+        the first block after them without iterating further.
+        """
         blocks = fragment.line_blocks
-        line = QFontMetrics(font).lineSpacing() or 1
-        key = self.fragment_key(fragment, font, width)
+        metrics = QFontMetrics(font)
+        line = metrics.lineSpacing() or 1
+        per_line = max(1, (width - 8) // max(1, metrics.averageCharWidth()))
         top = 0
         decided = fragment.header_blocks
         for index, block in enumerate(blocks):
             if index == decided and index < len(blocks) - 1:
                 return index, 0
-            # The pin asks on every scroll offset: a block's html is built only when its height
-            # is not yet measured at this width, not on every frame that reads the height.
-            height = self.measured_height((key, index), font, width,
-                                          PreparedOnFill(partial(self.html, self.renderer, (block,), width, font)))
+            text = block.selection_text
+            rows = sum(max(1, (len(segment) + per_line - 1) // per_line) for segment in text.split("\n")) if text else 1
+            height = rows * line
             if y < top + height or index == len(blocks) - 1:
                 return index, max(0, int((y - top) // line))
             top += height
