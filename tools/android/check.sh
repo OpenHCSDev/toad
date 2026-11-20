@@ -12,6 +12,13 @@
 # imports a static read cannot see. First, every emoji-default symbol must carry U+FE0E
 # (glyph_check.py), or it draws as a coloured picture. Exits non-zero on any finding.
 # Arguments are build.sh's; APP is filled here, so a gate passes a scratch folder.
+#
+# The shipped-app check and run are the slow part, and they answer for a tree, a runtime and a
+# profile, not for a folder: the merge gate runs them on a PR's head and the build that follows
+# the merge would run them again on the same tree. A pass is remembered under
+# ~/.cache/toad/shipped-app-check and the same tree is not checked twice; APP is still
+# assembled, since the build needs it. A checkout with uncommitted changes under src or tools
+# is always checked.
 set -euo pipefail
 if [ $# -ne 4 ]; then sed -n '2,10p' "$0"; exit 2; fi
 RUNTIME=$(realpath "$1"); TOOLCHAIN=$(realpath "$2"); APP=$(realpath -m "$3"); PROFILE=$(realpath "$4")
@@ -20,6 +27,11 @@ CHECKOUT=$(cd "$HERE/../.." && pwd)
 RT="$RUNTIME/bin/python"
 SITE=$("$RT" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 mkdir -p "$APP"
+PASSED=""
+if [ -z "$(git -C "$CHECKOUT" status --porcelain -- src tools)" ]; then
+  KEY=$( { git -C "$CHECKOUT" rev-parse 'HEAD^{tree}'; echo "$RUNTIME"; echo "$TOOLCHAIN"; sha256sum < "$PROFILE"; } | sha256sum | cut -c1-32)
+  PASSED="${XDG_CACHE_HOME:-$HOME/.cache}/toad/shipped-app-check/$KEY"
+fi
 echo "== emoji-default symbols carry U+FE0E (text presentation)"
 (cd "$CHECKOUT" && "$RT" tools/glyph_check.py | tail -1)
 echo "== closure ($(git -C "$CHECKOUT" log -1 --format='%h %s'))"
@@ -36,7 +48,15 @@ for planted in "${PLANTED[@]}"; do
   if [ -e "$planted" ]; then echo "error: assemble.py left the stale $planted in the app folder"; exit 1; fi
 done
 echo "assemble removed every planted leftover"
+if [ -n "$PASSED" ] && [ -e "$PASSED" ]; then
+  echo "== shipped app check and run: this tree already passed ($(cat "$PASSED")); not run again"
+  exit 0
+fi
 echo "== shipped app check (no site-packages)"
 timeout 180 "$RT" "$HERE/bundle_check.py" "$APP" "$SITE"
 echo "== shipped app run (scratch bus, no site-packages)"
 (cd "$HERE" && timeout 900 "$RT" "$HERE/shipped_run.py" "$RUNTIME" "$APP" "$SITE")
+if [ -n "$PASSED" ]; then
+  mkdir -p "$(dirname "$PASSED")"
+  echo "$(git -C "$CHECKOUT" log -1 --format='%h') on $(date -Is)" > "$PASSED"
+fi
