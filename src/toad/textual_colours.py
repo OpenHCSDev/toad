@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import lru_cache, partial
@@ -188,7 +188,7 @@ class FullInk(BlockInk):
     GLYPHS = " █"
 
 
-class PaletteState(AnsiPalette, ABC):
+class PaletteState(AnsiPalette):
     def refresh_colours(self, colours: TextualColours) -> None:
         """Native colours already in the stylesheet need no RGB replacement."""
 

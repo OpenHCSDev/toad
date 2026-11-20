@@ -363,7 +363,7 @@ class HeaderButton(
         look = (HeaderButtonLook, DisabledHeaderButtonLook)[self.is_disabled]
         return (*super().native_declarations(), *look.declared_theme())
 
-class TabHistoryButton(HeaderButton, ToadNode):
+class TabHistoryButton(HeaderButton):
     """Back or forward through visited tabs."""
 
     direction: ClassVar[int]

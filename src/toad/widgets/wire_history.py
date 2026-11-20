@@ -1,6 +1,5 @@
 """A channel or direct conversation drawn by the line history, with its read marks."""
 
-from abc import ABC
 from bisect import bisect_right
 from dataclasses import dataclass
 
@@ -28,7 +27,7 @@ from toad.wire_conversation_view import WireConversationView
 
 
 @dataclass(kw_only=True)
-class WireFragment(EvidencedFragment, TranscriptFragment, ABC):
+class WireFragment(EvidencedFragment, TranscriptFragment):
     """A wire message drawn by Textual, and the root of Textual's wire fragments: a message's
     role selects the member declared under it."""
 

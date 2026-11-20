@@ -3,7 +3,6 @@ import os.path
 from textual.geometry import Size
 from textual.reactive import reactive
 from textual.content import Content
-from textual.widget import Widget
 
 from toad.client.condensed_path import condense_path, home_relative
 from toad.native_style import OneRow
@@ -11,7 +10,7 @@ from textual.events import Resize
 from textual import on
 
 
-class CondensedPath(OneRow, Widget):
+class CondensedPath(OneRow):
     path = reactive("")
     display_path = reactive("")
 

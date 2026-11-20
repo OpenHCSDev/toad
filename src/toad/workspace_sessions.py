@@ -175,11 +175,6 @@ class WarmParkedSource(BoundWorkspaceSource):
     def current(self, view):
         return False
 
-    async def retire(self):
-        """A warm-parked tab does a full retire when evicted."""
-        await self.view.retire_presentation()
-        return ParkedWorkspaceSource(self.view)
-
     async def park_for_switch(self):
         """Already parked warm — nothing to tear down."""
         return self

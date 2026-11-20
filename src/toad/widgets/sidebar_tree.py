@@ -139,7 +139,7 @@ class TitleSegment(HeaderSegment):
 TITLE = TitleSegment()
 
 
-class DetailedRow(DetailedLine, TwoRows, NoWrap, EllipsisOverflow, Widget):
+class DetailedRow(DetailedLine, TwoRows, NoWrap, EllipsisOverflow):
     """A sidebar row whose second line is its own quieter detail, indented under the title
     (the shared `DetailedLine`, which Qt's `SidebarItem` draws too).
 

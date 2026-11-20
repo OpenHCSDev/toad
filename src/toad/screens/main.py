@@ -32,7 +32,6 @@ from textual.widgets import (
 
 from toad.acp.agent_session import SessionDisposition
 from toad.agent_binding import AgentConnection
-from toad.app_node import ToadNode
 from toad.client.session_scope import BoundSources
 from toad.command_target_scope import CommandTargetScope
 from toad.core import events as core_events
@@ -316,9 +315,22 @@ class GoHomeAction(MainAction):
         await context.app.select_session(context.app.tab_order.home)
 
 
-class MainScreen(SessionTitles, ThreadViewNavigation, BoundSources, CommandTargetScope, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SourcesScope,
-                 SidebarSessionView[SessionThreadSidebar], ToadNode,
-                 actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
+class MainScreen(
+    SessionTitles,
+    ThreadViewNavigation,
+    BoundSources,
+    CommandTargetScope,
+    NativeMethodKeys,
+    HiddenActions,
+    TogglesIrc,
+    CyclesSessions,
+    ViewSessionOrigin,
+    SourcesScope,
+    SidebarSessionView[SessionThreadSidebar],
+    actions=(MainAction,),
+    scopes={HiddenActions: (SessionNavigationAction,)},
+    can_focus=False,
+):
     footer_compact = True
     presentation: OperationalSessionPresentation
 

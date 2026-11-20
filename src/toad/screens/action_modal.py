@@ -17,7 +17,6 @@ from toad.catalog_actions import CatalogCommandAction
 from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
-from toad.app_node import ToadNode
 from textual.events import Mount
 from textual import on
 
@@ -39,7 +38,7 @@ class OkButton(ActionButton):
     """Closes the modal with the command's return code once it has finished."""
 
 
-class ActionModal(CenteredScreen, CoreEventReceiver, DismissibleScreen[int], ToadNode):
+class ActionModal(CenteredScreen, CoreEventReceiver, DismissibleScreen[int]):
     """Executes an action command."""
 
     command_pane = getters.query_one(CommandPane)

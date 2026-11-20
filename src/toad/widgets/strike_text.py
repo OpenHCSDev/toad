@@ -2,7 +2,6 @@ from time import monotonic
 from typing import ClassVar
 
 from textual.css.native import DeclaresTheme, NativeDeclaration
-from textual.widget import Widget
 
 from textual.content import Content
 from textual.reactive import reactive
@@ -25,7 +24,7 @@ class Complete(PrimaryText, Completion):
     text_style = "strike"
 
 
-class StrikeText(AutoHeight, Widget):
+class StrikeText(AutoHeight):
     strike_time: reactive[float | None] = reactive(None)
     completion: type[Completion] = Incomplete
 

@@ -55,7 +55,6 @@ from toad.widgets.sidebar_tree import (
 )
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
-from toad.app_node import ToadNode
 from textual import on
 from toad.native_style import (
     AutoHeight,
@@ -214,7 +213,14 @@ class ChannelHeaderRow(ChannelRowFace, DetailedRow, GroupHeaderLine, ChannelRow)
         return self.with_detail(line)
 
 
-class ThreadStatusRow(ThreadRowFace, MutedText, DetailedRow, NoPadding, PointerCursor, ListedRow, ToadNode):
+class ThreadStatusRow(
+    ThreadRowFace,
+    MutedText,
+    DetailedRow,
+    NoPadding,
+    PointerCursor,
+    ListedRow,
+):
     """Thread rows show activity through their glyph and summary, not held ink."""
 
     def __init__(self, *args, **kwargs):

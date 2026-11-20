@@ -178,7 +178,6 @@ class TranscriptPageView(
     PointerRows[FragmentLocation],
     ReferenceRendering,
     HorizontalRows,
-    Widget,
     ReaderPage,
 ):
     """One transcript page, drawn as its loaded fragments' prepared lines.

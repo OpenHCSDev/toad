@@ -1,7 +1,7 @@
 """Input permission and its explanation are the same decision."""
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import ClassVar
@@ -18,7 +18,7 @@ class RefusalFeedback:
         raise NotImplementedError
 
 
-class InputDecision(DeclaredFamily, ABC):
+class InputDecision(DeclaredFamily):
     """Whether the user's input is accepted or refused, and why.
 
     The native editor supplies how a refusal is shown (RefusalFeedback) and

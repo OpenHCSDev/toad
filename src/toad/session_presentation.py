@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionSurfaceSlot(StartsHidden, Widget):
+class SessionSurfaceSlot(StartsHidden):
     """The session's stable placement for its accepted native presentation."""
 
 
