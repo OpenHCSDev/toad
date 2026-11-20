@@ -266,16 +266,9 @@ class ThreadStatusRow(ThreadRowFace, MutedText, DetailedRow, NoPadding, PointerC
         self.stop_effect()
         self.thread_row = None
 
-    def redraw(self) -> None:
-        # The name wave paints only the label line (ViewLabel.render_line, y == 0). A finished
-        # effect stays in self.effects, so ask each effect whether it is still in motion.
-        # While the wave is the only one moving, repaint its line; a moving text fade paints every line.
-        wave_only = self.effect_phase(self.name_wave).in_motion and not any(
-            self.effect_phase(fade).in_motion for fade in self.text_fades)
-        if wave_only:
-            self.repaint_region(Region(0, 0, self.size.width, 1))
-            return
-        super().redraw()
+    def repaint_wave(self) -> None:
+        """The name wave paints only this two-row view's label line."""
+        self.repaint_region(Region(0, 0, self.size.width, 1))
 
 
 class ThreadRow(ThreadStatusRow):
