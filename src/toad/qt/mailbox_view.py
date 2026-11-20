@@ -28,19 +28,18 @@ from ui_theme.scheme import ForegroundColour
 from toad.acp.agent_session import UnopenedSessionDisposition
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.client.observed_field import ObservedField
-from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.client.session_scope import BoundSources, NoSessionOrigin, SessionOrigin
 from toad.qt.composer import MailboxComposer
 from toad.qt.thread_view import QtThreadView
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
-from toad.client.session_sources import MailboxSources
 from toad.transcript_scope import TranscriptScope
 from toad.qt.metrics import UiGap
 
 
-class QtMailboxView(QtThreadView, SessionScope):
+class QtMailboxView(QtThreadView, BoundSources):
     """Qt bound view for a thread opened through `thread_navigation.open`.
 
-    Inherits `SessionScope` for its toolkit-neutral defaults (`bound_agent -> None`,
+    Inherits `BoundSources` (a `SessionScope`) for its toolkit-neutral defaults (`bound_agent -> None`,
     `thread_identity -> NoThreadIdentity`, etc.) — `QtThreadView` itself does not
     carry SessionScope because `QtAcpSessionView` provides those defaults through
     `ObservedAgentBinding` instead; both arrangements leave the view with a usable
@@ -165,18 +164,6 @@ class QtMailboxView(QtThreadView, SessionScope):
         """`ThreadNavigation.bind(screen)` calls `screen.use_mailbox()`; Textual
         toggles MainScreen's content-mode here. Qt's mailbox view is permanently
         in mailbox mode; nothing to flip."""
-
-    def apply_native_load_plan(self, plan) -> None:
-        """`NativeThreadNavigation.bind(screen)` calls `screen.apply_native_load_plan(plan)`.
-        Textual assigns `self.presentation.sources.load_plan = plan` which feeds the
-        resumable-session restore. Qt keeps the same assignment shape so Core's
-        bind logic reads the plan on the view's sources."""
-        self.operational_sources.load_plan = plan
-
-    def apply_external_mailbox_sources(self) -> None:
-        """A CLI thread's input goes to Core's inbox and queues there: the shared
-        `MailboxSources` Textual's `MailboxSessionSources` extends."""
-        self.operational_sources = MailboxSources()
 
     # ---- Content lifecycle ----
 
