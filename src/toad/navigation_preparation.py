@@ -15,6 +15,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.threads import ConversationPreparation, Thread
 from agent_comms.projects.checkouts import Checkout
 
+from toad.client.agent_processes import AgentProcesses
 from toad.client.conversation import CommsViewKey
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.client.tab_identity import SessionTabIdentity
@@ -145,9 +146,8 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         )
         if existing is not None:
             return ExistingThreadNavigation(self.root, thread, project, existing)
-        return thread.prepare_conversation(
-            ThreadConversationPreparation(self.root, thread, project, snapshot)
-        )
+        return thread.prepare_conversation(ThreadConversationPreparation(
+            self.root, thread, project, snapshot, self.observed.agent_processes))
 
 
 @dataclass(frozen=True)
@@ -156,11 +156,21 @@ class ThreadConversationPreparation(ConversationPreparation):
     thread: Thread
     project: Checkout
     snapshot: RegistrySnapshot
+    agents: AgentProcesses
 
     def external(self) -> ThreadNavigation:
         return ExternalThreadNavigation(self.root, self.thread, self.project)
 
     def native(self) -> ThreadNavigation:
+        """A native thread's view holds its agent's session where this client starts agents.
+        Through a connection that starts none (a UI profile: the phone, a remote terminal) it
+        can hold no session, so its input reaches the thread as an external thread's does,
+        through Core's inbox. Bound as a session it kept the agent's sources with no agent,
+        and every send to a live thread came back "No agent is connected to this tab"
+        (Tristan, Pixel 8a, 2026-11-20)."""
+        return self.agents.start(self.session, lambda _reason: self.external())
+
+    def session(self) -> ThreadNavigation:
         binding = self.thread.owner_binding(self.snapshot)
         plan = ExistingOwnerPlan.from_binding(binding)
         if not plan.available:
