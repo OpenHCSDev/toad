@@ -282,10 +282,17 @@ class HistoryFragment(CursorRest):
     has_details: ClassVar[bool] = False
 
     @property
-    def revision(self) -> int:
-        """What makes the same fragment draw differently: a saved fragment or a draft grows
-        only by events. A live block that grows in place overrides it."""
-        return len(self.events)
+    def revision(self):
+        """What makes the same fragment draw differently.
+
+        A draft's ordered appends may fold into one text event, so its event count can stay
+        one while the visible text grows.  The source text is already the drawing authority;
+        carry it in the render key instead of inventing a second draft counter.  A live block
+        that grows in place overrides this with its own counter.
+        """
+        return len(self.events), tuple(
+            text for event in self.events if (text := COPIED_TEXT.project_value(event))
+        )
 
     @property
     def body_text(self) -> str:

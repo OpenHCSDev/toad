@@ -44,3 +44,15 @@ def test_every_part_of_one_long_event_shares_its_source_identity():
     assert {part.source_identity for part in long_parts} == {long_parts[0].source_identity}
     assert long_parts[0].source_identity != built[0].source_identity
     assert len({fragment.key for fragment in built}) == len(built)
+
+
+def test_folded_draft_text_changes_its_render_revision():
+    """Several draft appends fold into one event; event count is not a render revision."""
+    prefix, complete = (
+        fragments(AssistantTranscript(text, position=9, timestamp=0.0))[0]
+        for text in ("I’ll check because a", "I’ll check because a draft keeps growing")
+    )
+
+    assert len(prefix.events) == len(complete.events) == 1
+    assert prefix.key == complete.key
+    assert prefix.revision != complete.revision
