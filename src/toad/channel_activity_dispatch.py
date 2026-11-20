@@ -23,7 +23,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import SidebarModel
     from toad.client.conversation import ConversationKind
-    from toad.client.observation import Observing
+    from toad.client.connection import Observing
     from toad.sidebar_model_view import SidebarModelState
 
 

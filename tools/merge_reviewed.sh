@@ -36,6 +36,8 @@ echo "ratchet on #$pr @ ${head:0:9}:"
 ( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/qt_inherit_ratchet.py 2>&1 | grep -v propagateSizeHints )
 echo "shadow check on #$pr @ ${head:0:9}:"
 ( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/shadow_check.py 2>&1 | grep -v propagateSizeHints )
+echo "type-only imports on #$pr @ ${head:0:9}:"
+( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/guarded_imports.py 2>&1 | grep -v propagateSizeHints )
 echo "APK shipped-app check on #$pr @ ${head:0:9}:"
 ( cd "$check" && tools/android/check.sh "$runtime" "$toolchain" "$check/.apk-check" "$profile" 2>&1 \
     | grep -E '^(==|shipped app|function-local|NEW|GONE|error:|Traceback|  File|[A-Za-z]+Error)' )

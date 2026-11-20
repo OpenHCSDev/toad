@@ -22,9 +22,10 @@ from toad.acp.comms_updates import ThreadRead
 
 
 if TYPE_CHECKING:
-    from toad.ac_runtime.agents import AgentBase, AgentConnection
-    from toad.client.conversation_sources import ThreadPresentation
-    from toad.coordination_events import core_events
+    from toad.agent import AgentBase
+    from toad.agent_binding import AgentConnection
+    from agent_comms.registry.thread_presentation import ThreadPresentation
+    from toad.core import events as core_events
 
 
 @runtime_checkable
