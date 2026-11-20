@@ -14,6 +14,7 @@ from toad.client.subscribers import CoreObserver, ThreadCallbackSubscription
 from toad.core.events import ThreadRowsChanged
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from toad.conversation_turn import ConversationTurn
 
 
@@ -197,9 +198,9 @@ class ThreadStatusOwner(StatusOwner):
         """Observed work cannot settle an independently owned ACP request."""
         return self.thread_activity.working
 
-    @abstractmethod
-    def status_thread(self) -> StatusThread:
-        ...
+    status_thread: Callable[[], StatusThread]
+    """The thread status this view reads: a transcript view's scope opens it
+    (`TranscriptView.status_thread`), a wire view's page source."""
 
     def refresh_thread_status(self) -> None:
         self.status_thread().refresh(self)
@@ -214,9 +215,10 @@ class WorkingStatusOwner(ThreadStatusOwner):
 
     turns: ConversationTurn
 
-    @abstractmethod
     def history_loading(self) -> bool:
-        """Whether saved history is still loading into the transcript."""
+        """Whether this view's history is reading its first page: only a wire history pages
+        in under a loading row, and its view answers for it."""
+        return False
 
     def working(self) -> bool:
         return self.turns.owner.busy or self._observed_working or self.history_loading()

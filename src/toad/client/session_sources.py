@@ -150,7 +150,7 @@ class MailboxSources(MailboxSent, BusQueueSource, SessionSources):
     async def mailbox_sent(self, view: TranscriptView, sent: MessageReference) -> None:
         """Follow the transcript's end; the inbox message shows once the thread records it."""
         view.follow_latest()
-        view.transcript_changed()
+        view.external_transcript_changed()
 
 
 class SourcedConversation:

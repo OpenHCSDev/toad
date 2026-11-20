@@ -57,17 +57,18 @@ class TranscriptView(CoreObserver):
     thread_status: str
 
     @property
-    @abstractmethod
     def thread_scope(self) -> TranscriptScope:
-        """The transcript scope this view is bound to now."""
+        """The scope this view's transcript is bound to now: `NoTranscript` while unbound,
+        and on a wire view, which publishes no transcript."""
+        return self.transcript.binding.thread_scope
+
+    def status_thread(self) -> StatusThread:
+        """The status of the thread this view shows, as its scope opens it."""
+        return self.thread_scope.status_thread(self.app.coordination_access)
 
     def follow_latest(self) -> None:
         """Show the transcript's end."""
         self.window.jump_to_latest()
-
-    @abstractmethod
-    def transcript_changed(self) -> None:
-        """The transcript's source changed outside this view: read it again."""
 
 
 class MailboxSent(ABC):

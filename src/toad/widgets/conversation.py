@@ -633,9 +633,6 @@ class ConversationSessionBinding(
         return self.query_ancestor(SessionScope).origin.transcript_scope()
 
     @abstractmethod
-    def status_thread(self) -> StatusThread: ...
-
-    @abstractmethod
     def thread_presented(self, presentation: ThreadPresentation) -> None: ...
 
     @handles(NoThreadPresentation)
@@ -976,15 +973,6 @@ class Conversation(AgentTurnEvents,
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
 
-    @property
-    def thread_scope(self) -> TranscriptScope:
-        return self.transcript.binding.thread_scope
-
-    def status_thread(self) -> StatusThread:
-        return self.thread_scope.status_thread(
-            self.app.coordination_access
-        )
-
     def thread_presented(self, presentation: ThreadPresentation) -> None:
         """A settled member owns whether this view has source work to publish."""
         self.thread_presentation = presentation
@@ -1008,9 +996,6 @@ class Conversation(AgentTurnEvents,
         """Textual receives its agent's events through its message pump and mounts their
         widgets (`AttachedSurfaceBinding`)."""
         return AttachedSurfaceBinding(self, events)
-
-    def transcript_changed(self) -> None:
-        self.operational_sources.external_transcript_changed(self)
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""
@@ -1187,10 +1172,6 @@ class Conversation(AgentTurnEvents,
                 async with asyncio.timeout(2):
                     await self._shell.change_directory(str(path))
         await self.agent_binding.project_changed(path.path)
-
-    def history_loading(self) -> bool:
-        """Whether this view's history is reading its first page; only wire histories page in."""
-        return False
 
     def sync_working(self) -> None:
         self.throbber_above.sync()
