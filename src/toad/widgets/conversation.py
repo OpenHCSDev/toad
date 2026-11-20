@@ -984,10 +984,6 @@ class Conversation(AgentTurnEvents,
     def defer_agent_start(self) -> None:
         self.screen.frame_presentation.defer(self, self._start_agent)
 
-    def present_without_agent(self) -> None:
-        self.show_agent_info(self.operational_sources.agent_info(self))
-        self.session_ready()
-
     def consumed(self, message: CoreEventMessage) -> None:
         """The conversation handled the agent's publication; it stops bubbling here."""
         message.stop()

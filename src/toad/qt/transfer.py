@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
 )
 
 from toad.client.transfer_forms import ExportFormatInput, ExportScopeInput, ThreadImportForm, TransferForm, WireExportForm
-from toad.client.transfers import ThreadImportRequest, Transfer, TransferHost, WireExportRequest
+from toad.client.transfers import Transfer, TransferHost
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
 
@@ -92,8 +92,6 @@ class QtTransferDialog(PresentedWindow, TransferForm, QDialog):
 
 
 class QtWireExportDialog(WireExportForm, QtTransferDialog):
-    request_kind = WireExportRequest
-
     def fields(self) -> tuple[QWidget, ...]:
         self._destination = _line(self.default_destination, self.destination_placeholder)
         self._format = _choices(self.format_options())
@@ -125,8 +123,6 @@ class QtWireExportDialog(WireExportForm, QtTransferDialog):
 
 
 class QtThreadImportDialog(ThreadImportForm, QtTransferDialog):
-    request_kind = ThreadImportRequest
-
     def fields(self) -> tuple[QWidget, ...]:
         self._harness = _choices(self.harness_options())
         self._source = _line(placeholder=self.source_placeholder)

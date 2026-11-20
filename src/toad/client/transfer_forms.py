@@ -29,9 +29,10 @@ from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.registry.thread_management import ImportDirectory
 from agent_comms.registry.thread_text import ExpectedSession
 
+from toad.client.transfers import ThreadImportRequest, Transfer, WireExportRequest
+
 if TYPE_CHECKING:
     from toad.client.connection import CapturedSource
-    from toad.client.transfers import Transfer
 
 
 # What an export's choices offer.
@@ -110,8 +111,8 @@ class TransferForm:
     """One transfer's input form. A frontend dialog inherits a member and supplies the
     native reads below, `show_error`, and `submit` (how the request leaves the dialog).
 
-    `request_kind` is the `Transfer` member the form composes; each frontend dialog
-    names it, so this module needs none of the members' frontend hooks.
+    `request_kind` is the `Transfer` member the form composes; each form names it, and
+    every frontend's dialog for the form inherits it.
     """
 
     heading: ClassVar[str]
@@ -127,7 +128,7 @@ class TransferForm:
             for member in family.__subclasses__():
                 yield from members(member)
         for member in members(cls):
-            if vars(member).get("request_kind") is kind:
+            if getattr(member, "request_kind", None) is kind:
                 return member
         raise LookupError(f"No {cls.__name__} composes {kind.declared_name}")
 
@@ -161,6 +162,7 @@ class WireExportForm(TransferForm):
 
     heading = "Export wire history (not a Pi session)"
     submit_label = "Export"
+    request_kind = WireExportRequest
     default_format: ClassVar[type[ExportFormatInput]] = JsonlFormatInput
     default_scope: ClassVar[type[ExportScopeInput]] = EverythingScopeInput
     destination_placeholder = "Destination path"
@@ -223,6 +225,7 @@ class ThreadImportForm(TransferForm):
 
     heading = "Thread Import: a stored harness session"
     submit_label = "Import stopped thread"
+    request_kind = ThreadImportRequest
     source_placeholder = "Source JSON, database or rollout JSONL"
     name_placeholder = "New thread name"
     session_placeholder = "Session ID (OpenCode database only)"

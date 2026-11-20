@@ -45,10 +45,8 @@ from toad.client.transfer_forms import (
 )
 from toad.client.transfers import (
     CancellableExportProgress,
-    ThreadImportRequest,
     Transfer,
     TransferHost,
-    WireExportRequest,
 )
 from toad.native_style import (
     CenteredChildren,
@@ -306,8 +304,6 @@ class WireExportProgressView(CancellableExportProgress, WidgetView, ToadNode, Ve
 
 
 class WireExportDialog(WireExportForm, TransferDialog):
-    request_kind = WireExportRequest
-
     @cached_property
     def destination_input(self) -> Input:
         return ExportPath(self.default_destination, placeholder=self.destination_placeholder)
@@ -352,8 +348,6 @@ class WireExportDialog(WireExportForm, TransferDialog):
 
 
 class ThreadImportDialog(ThreadImportForm, TransferDialog):
-    request_kind = ThreadImportRequest
-
     @cached_property
     def harness_select(self) -> Select[type[Harness]]:
         options = list(self.harness_options())

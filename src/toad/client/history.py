@@ -176,9 +176,9 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
     def withdraw_view(self) -> None:
         """The route no longer reads this conversation: stop showing it."""
 
-    @abstractmethod
     async def refresh_source(self) -> None:
         """Read the conversation again, as the view reads it now."""
+        await self.view._refresh()
 
     def retain_painted(self, fragment: EvidencedFragment) -> None:
         """Keep actual painted evidence until its original page is acknowledged."""

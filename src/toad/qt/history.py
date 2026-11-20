@@ -32,6 +32,7 @@ from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices,
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
+from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
 from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
 from toad.core.projection import MroProjection
@@ -764,9 +765,6 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     def withdraw_view(self) -> None:
         self.view.hide()
 
-    async def refresh_source(self) -> None:
-        await self.view._refresh()
-
     def close(self) -> None:
         self.attached = False
         super().close()
@@ -878,15 +876,6 @@ class QtRowLocation(FragmentLocation):
 
     def location(self) -> FragmentLocation:
         return self
-
-    def tooltip(self) -> str | None:
-        return None
-
-    def selected_by(self, cursor) -> bool:
-        return False
-
-    def bodies(self) -> tuple[object, ...]:
-        return ()
 
     def for_layout(self, window: QtHistoryWindow, position: ReaderPosition) -> ReaderPosition:
         return position
@@ -1014,7 +1003,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
 
 
 class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView,
-                      ReaderPlacement, PagingWindow, OpensLineLinks, PinsMessageHeader):
+                      ReaderPlacement, PagingWindow, OpensLineLinks, PinsMessageHeader, SettingsReading):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
     contract: reaching the top reads older pages, the bottom newer ones, End and the
@@ -1037,11 +1026,6 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         return shiboken6.isValid(self) and self.parent() is not None
 
     @property
-    def configuration_state(self):
-        """The settings of the view this window reads in (its override, else the app's)."""
-        return self._scope.configuration_state
-
-    @property
     def screen(self) -> WorkspaceFrame:
         """Qt's workspace frame is the top-level `QtToadApp` (which inherits
         `QtWorkspaceFrame`). Qt widgets reach it through `window()`, not through a
@@ -1051,7 +1035,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     def __init__(self, renderer: QtLineRenderer, scope, parent: QWidget | None = None) -> None:
         super().__init__(HistoryRowDelegate(renderer), parent)
-        self._scope = scope
+        self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
         renderer.follows_theme(self, self.restyle_rows)
         self.model_rows = HistoryRows()
@@ -1130,7 +1114,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     @property
     def animation_clock(self):
-        return self._scope.app.animation_clock
+        return self.configuration_scope.app.animation_clock
 
     def arrive(self, keys: tuple) -> None:
         """Rows `keys` just arrived: they fade in row after row, and a reader following the

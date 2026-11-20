@@ -119,10 +119,6 @@ class SettingsScreen(SettingsEditing, PriorityActions, FormModal[None], Dismissi
                 yield from self.pages.values()
         yield ToadFooter()
 
-    @property
-    def edited_settings(self):
-        return self.app.saved_settings
-
     @classmethod
     def form_type(cls):
         return FormView

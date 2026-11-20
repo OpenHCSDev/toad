@@ -49,9 +49,10 @@ class AgentConversation(metaclass=AbstractHooksMeta):
     def _start_agent(self) -> None:
         self.operational_sources.start_agent(self)
 
-    @abstractmethod
     def present_without_agent(self) -> None:
         """No agent to start: show the shell's info and take input."""
+        self.show_agent_info(self.operational_sources.agent_info(self))
+        self.session_ready()
 
     @abstractmethod
     def defer_agent_start(self) -> None:

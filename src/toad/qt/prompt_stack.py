@@ -37,6 +37,7 @@ from toad.client.prompt_stack import (
     SessionStatusTitle,
     SettingVisible,
 )
+from toad.client.view_settings import SettingsReading
 from toad.client.session_history_details import SessionHistoryDetails
 from toad.client.subscribers import CallbackSubscription
 from toad.private_native_cursor import HiddenCursorStatus
@@ -226,18 +227,9 @@ class QtInputDeliveryDetails(PresentedWindow, DeliveryDetailsPage, QDialog, meta
         layout.addWidget(buttons)
 
 
-class QtStatusLine(SettingVisible, ElidedLine, setting="ui.status_line", metaclass=PyQtWidgetMeta):
-    """The info bar's status, right-aligned in the secondary ink, as Textual's `StatusLine`."""
-
-    def __init__(self, scope, renderer: QtLineRenderer) -> None:
-        super().__init__()
-        self._scope = scope
-        self.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        renderer.themed(self, lambda: self.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}"))
-
-    @property
-    def configuration_state(self):
-        return self._scope.configuration_state
+class QtSettingVisibility(SettingVisible, SettingsReading):
+    """A Qt row the shared `SettingVisible` setting shows when the row is shown, as Textual's
+    `SettingVisibility` applies it on mount. The row is handed the view it sits in."""
 
     def show_setting(self, visible: bool) -> None:
         self.setVisible(visible)
@@ -245,6 +237,16 @@ class QtStatusLine(SettingVisible, ElidedLine, setting="ui.status_line", metacla
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)
         self.apply_setting_visibility()
+
+
+class QtStatusLine(QtSettingVisibility, ElidedLine, setting="ui.status_line", metaclass=PyQtWidgetMeta):
+    """The info bar's status, right-aligned in the secondary ink, as Textual's `StatusLine`."""
+
+    def __init__(self, scope, renderer: QtLineRenderer) -> None:
+        super().__init__()
+        self.configuration_scope = scope
+        self.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        renderer.themed(self, lambda: self.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}"))
 
     def present_status(self, status) -> None:
         text = str(status)
@@ -266,7 +268,7 @@ class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
         self.setText(label)
 
 
-class QtInfoBar(SettingVisible, QWidget, setting="ui.info_bar", metaclass=PyQtWidgetMeta):
+class QtInfoBar(QtSettingVisibility, QWidget, setting="ui.info_bar", metaclass=PyQtWidgetMeta):
     """Under the prompt frame: the composer's directory (a CLI thread's), the status line and
     the editing-mode badge, in Textual's `InfoBar` order."""
 
@@ -275,7 +277,7 @@ class QtInfoBar(SettingVisible, QWidget, setting="ui.info_bar", metaclass=PyQtWi
         # own EGL surface, which deadlocks Android's accessibility bridge (SIGABRT "Failed
         # to acquire deadlock protector … eglSurface()").
         super().__init__(parent)
-        self._scope = scope
+        self.configuration_scope = scope
         self.path = ElidedLine()
         renderer.themed(self.path, lambda: self.path.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}"))
         self.path.hide()
@@ -290,19 +292,6 @@ class QtInfoBar(SettingVisible, QWidget, setting="ui.info_bar", metaclass=PyQtWi
         layout.addStretch(0)
         layout.addWidget(self.status)
         layout.addWidget(self.badge)
-
-
-    @property
-    def configuration_state(self):
-        """The settings of the view this bar sits in: its override, else the app's."""
-        return self._scope.configuration_state
-
-    def show_setting(self, visible: bool) -> None:
-        self.setVisible(visible)
-
-    def showEvent(self, event) -> None:  # type: ignore[override]
-        super().showEvent(event)
-        self.apply_setting_visibility()
 
     def show_path(self, path: str) -> None:
         self.path.setText(path)

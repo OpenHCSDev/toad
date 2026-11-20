@@ -24,6 +24,22 @@ if TYPE_CHECKING:
     from toad.preferences import SavedSettings
 
 
+class SettingsReading:
+    """Something that reads the settings of the view it sits in: that view's overrides, else
+    the app's. A frontend says which scope that is: Textual finds it among the widget's
+    ancestors (`SettingsReader`), a Qt widget is handed it when it is built."""
+
+    configuration_scope: ViewSettingsOwner
+
+    @property
+    def configuration_state(self):
+        return self.configuration_scope.configuration_state
+
+    @property
+    def settings(self):
+        return self.configuration_state.fields
+
+
 class ViewSettingsOwner:
     """A file, thread or channel owns its display overrides.
 
@@ -39,9 +55,9 @@ class ViewSettingsOwner:
         """The tab this view's overrides are saved under."""
 
     @property
-    @abstractmethod
     def configuration_settings(self) -> SavedSettings:
         """The app-wide settings this view's overrides inherit from."""
+        return self.app.saved_settings
 
     @cached_property
     def configuration_state(self) -> ObjectConfiguration:

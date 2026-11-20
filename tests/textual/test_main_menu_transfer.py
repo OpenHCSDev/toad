@@ -25,6 +25,7 @@ from toad.client.transfer_forms import (
     JsonlFormatInput,
     TextFormatInput,
 )
+from toad.client.transfers import WireExportRequest
 from toad.widgets.comms_transfer import (
     CancelExportButton,
     ExportPath,
@@ -34,7 +35,6 @@ from toad.widgets.comms_transfer import (
     ThreadImportDialog,
     WireExportDialog,
     WireExportProgressView,
-    WireExportRequest,
 )
 from toad.widgets.side_bar import (
     BackTabButton,

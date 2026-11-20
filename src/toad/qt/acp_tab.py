@@ -134,10 +134,6 @@ class QtAcpSessionView(
         presented frame the same way)."""
         QTimer.singleShot(0, self._start_agent)
 
-    def present_without_agent(self) -> None:
-        self.show_agent_info(self.operational_sources.agent_info(self))
-        self.session_ready()
-
     def show_agent_info(self, text: str) -> None:
         """The identity line and composer name the agent, as Textual's info bar does."""
         self.identity_line.setText(f"ACP session #{self._session_pk} · {text}")
