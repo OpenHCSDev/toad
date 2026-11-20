@@ -67,8 +67,8 @@ class QtWorkspaceFrame(JumpsHistory):
         return root == self.project_dir.path
 
     def reader_kept(self, window: JumpsToLatest) -> None:
-        """No reader-position bookkeeping on Qt today: QtHistoryWindow owns its own
-        anchor through follows_tail / release_anchor."""
+        """Qt lays a window out in one step: no layout is paused between its steps for a
+        kept reader to replace."""
 
 
 def _check_protocol() -> None:

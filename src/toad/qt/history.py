@@ -20,7 +20,7 @@ from collections import deque
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
-from functools import partial
+from functools import cached_property, partial
 from pathlib import Path
 from typing import ClassVar
 from weakref import WeakSet
@@ -56,7 +56,10 @@ from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHe
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
-from toad.client.reader_position import FragmentLocation, ReaderPage, RowPosition, TailPosition
+from toad.client.reader_position import (
+    FragmentLocation, FragmentPosition, ReaderPage, ReaderPosition, RowPosition, TailPosition,
+    UnloadedFragment,
+)
 from toad.qt.float_layer import QtFloatLayer
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
@@ -830,7 +833,7 @@ QT_LINK_PREVIEW = QtLinkPreview()
 
 @dataclass(frozen=True)
 class QtTopRow(TopPage):
-    """No row under a Qt window's top edge: Qt keeps its reader by scroll row."""
+    """No row under a Qt window's top edge: only the scroll offset is known."""
 
     def reader_position(self, window: QtHistoryWindow) -> RowPosition:
         return RowPosition(window.scroll_y)
@@ -838,12 +841,62 @@ class QtTopRow(TopPage):
 
 @dataclass(frozen=True)
 class QtRowUnderTop(QtTopRow):
-    """A fragment's row holds the top edge; its fragment decides the pinned header."""
+    """A fragment's row holds the top edge, `into` pixels of its `height` above it. The reader
+    is on that message, as Textual's `PageBelowTop` names them, and its fragment decides the
+    pinned header."""
 
-    under: FragmentRowUnderTop
+    window: QtHistoryWindow
+    fragment: HistoryFragment
+    left: int
+    width: int
+    into: int
+    height: int
+
+    @cached_property
+    def under(self) -> FragmentRowUnderTop:
+        """The block and line on the top edge, worked out when a header is pinned: every
+        scroll offset names the reader's message, and only a display frame pins."""
+        block, row = self.window.rows.block_row(self.fragment, self.window.font(), self.width, self.into)
+        return FragmentRowUnderTop(self.fragment, block, row, self.left, self.width)
+
+    def reader_position(self, window: QtHistoryWindow) -> FragmentPosition:
+        return FragmentPosition(self.fragment.key, self.into / self.height, self.height, block=0)
 
     def pinned_header(self, window: QtHistoryWindow) -> PinnedHeader:
         return self.under.pinned_header()
+
+
+@dataclass(frozen=True)
+class QtRowLocation(FragmentLocation):
+    """A message's row in a Qt window. Qt lays every row out in one step, so a row the model
+    holds is laid out; a message with no row is `UnloadedFragment`."""
+
+    row: int
+
+    def location(self) -> FragmentLocation:
+        return self
+
+    def tooltip(self) -> str | None:
+        return None
+
+    def selected_by(self, cursor) -> bool:
+        return False
+
+    def bodies(self) -> tuple[object, ...]:
+        return ()
+
+    def for_layout(self, window: QtHistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return position
+
+    def laid_out(self, window: QtHistoryWindow) -> bool:
+        return True
+
+    def destination(self, window: QtHistoryWindow, fraction: float) -> float:
+        rect = window.visualRect(window.model_rows.index(self.row, 0))
+        return window.scroll_y + rect.top() + round(fraction * rect.height())
+
+    def find_in(self, pages, position: FragmentPosition) -> FragmentLocation:
+        return self
 
 
 class QtStickyHeader(HeaderPin, QWidget):
@@ -972,7 +1025,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     block_menu_requested = Signal(object, QPoint, name="blockMenuRequested")
 
     history: QtConversationHistory
-    # `scroll_revision` + `history_change` are declared on JumpsToLatest (shared with Textual).
+    # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
     @property
     def is_attached(self) -> bool:
@@ -1016,6 +1069,9 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         self._settle_timer.setSingleShot(True)
         self._settle_timer.timeout.connect(self._settle)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
+        for changed in (self.model_rows.rowsInserted, self.model_rows.rowsRemoved,
+                        self.model_rows.dataChanged, self.model_rows.modelReset):
+            changed.connect(self.rows_moved)
         # Frame-rate coalescing: QScroller fires valueChanged at touch rate (90Hz
         # on Pixel 8a, up to 240Hz). The post-scroll chain (repin_header,
         # lookahead, page requests, tail-follow) runs once per display frame —
@@ -1335,7 +1391,8 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         return self.model_rows.fragments[top.row():last + 1]
 
     def fragment_location(self, key) -> FragmentLocation:
-        raise LookupError(key)
+        row = self.model_rows.row_of(key)
+        return QtRowLocation(row) if row >= 0 else UnloadedFragment()
 
     # The reader
 
@@ -1360,7 +1417,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
                 # Nothing to scroll; the user already closed the view.
                 return
         else:
-            self.reader_position = RowPosition(self.scroll_y)
+            self.reader_position = ReaderPosition.of(self)
 
     def release_anchor(self) -> None:
         if self.follows_tail:
@@ -1383,66 +1440,54 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
             self.scroll_y = self.tail_scroll_y
         return previous != self.scroll_y
 
-    @contextmanager
-    def layout_scroll(self) -> Iterator[None]:
-        """Scrolling inside is the window keeping the reader in place, not the reader moving."""
-        restoring = self._restoring
-        previous = self.scroll_y
-        self._restoring = True
-        try:
-            yield
-        finally:
-            if not restoring:
-                self.lookahead.relocated(self.scroll_y - previous)
-            self._restoring = restoring
-
     @asynccontextmanager
-    async def preserve_history(self):
-        """Pages change inside; then the rows are read again from the pages, and the reader
-        stays on the row it was reading, or at the end when following it. If the widget
-        has been torn down, the Qt reads raise RuntimeError; yield as a no-op so the
-        page-change work still runs but the reader-restore is skipped on a dead view."""
-        try:
-            key, offset = self.reader_place()
-        except RuntimeError:
-            yield
-            return
+    async def tree_change(self):
+        """Qt's rows are read again from the pages once the change to them is made; a window
+        torn down meanwhile has none to read."""
         try:
             yield
         finally:
-            self.show_pages()
-            self.keep_reader(key, offset)
+            if self.is_attached:
+                self.show_rows()
 
-    def reader_place(self) -> tuple[object, int]:
-        """The viewport's top row and its offset, where a relayout puts the reader back."""
-        top = self.indexAt(self.viewport().rect().topLeft())
-        if not top.isValid():
-            return None, 0
-        return top.data(HistoryRows.FRAGMENT).key, self.visualRect(top).top()
-
-    def show_pages(self) -> None:
+    def show_rows(self) -> None:
         """Read the rows again from the history's shown pages, then the draft after them."""
         history = self.history
         self.model_rows.show(tuple(fragment for page in history.pages if page.display
                                    for fragment in page.shown_fragments) + self.draft
                              + tuple(block.fragment() for block in self.live_blocks))
-        self.lay_out_now()
-        self.repin_header()
 
-    def lay_out_now(self) -> None:
-        """One layout now, and none left pending: a model insert or removal schedules Qt's own,
-        which a direct `doItemsLayout` would leave to run a second time on the next turn."""
+    def show_pages(self) -> None:
+        """The rows as the pages show them now, laid out with the reader kept on their message."""
+        self.show_rows()
+        self.request_reader_layout()
+
+    def rows_moved(self, *_changed) -> None:
+        """The model's rows changed: a change open over this window needs a layout to show it."""
+        self.geometry_revision += 1
+
+    geometry_revision = 0
+
+    def request_reader_layout(self) -> None:
+        """Qt has no later frame to lay out in: one layout now, and none left pending (a model
+        insert or removal schedules Qt's own, which a direct `doItemsLayout` would leave to
+        run a second time on the next turn). It puts the reader back on the message they
+        were reading and answers the change that asked for it, as Textual's screen does
+        around each of its layouts. A glide to the end owns the way there."""
+        answered = self.history_change.layout_requests
         self.scheduleDelayedItemsLayout()
         self.executeDelayedItemsLayout()
+        if not (self.follows_tail and self.gliding_to_end()):
+            self.place_reader()
+        self.history_change.finish_layout(answered)
+        self.repin_header()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
         """Core's CLI draft as rows after the history (none clears it); the reader keeps their place."""
         if not fragments and not self.draft:
             return
-        key, offset = self.reader_place()
         self.draft = fragments
         self.show_pages()
-        self.keep_reader(key, offset)
 
     def show_live(self, block: QtLiveBlock) -> None:
         """A turn's live block as a row after the history and the draft."""
@@ -1451,9 +1496,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     def live_changed(self) -> None:
         """A live block grew or left: read the rows again, following the end if the reader was."""
-        key, offset = self.reader_place()
         self.show_pages()
-        self.keep_reader(key, offset)
 
     def drop_live(self, block: QtLiveBlock) -> None:
         if block in self.live_blocks:
@@ -1472,30 +1515,13 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         self.rows_changed()
 
     def rows_changed(self) -> None:
-        """Prepared rows changed height: lay them out again, keeping the reader's row.
-        If the widget has been torn down, Qt reads raise RuntimeError; skip the
-        reader-restore and the viewport update — there is no viewer to serve."""
+        """Prepared rows changed height: lay them out again; the layout keeps the reader's
+        message. A window torn down has no viewer to serve (its Qt reads raise RuntimeError)."""
         try:
-            key, offset = self.reader_place()
-            self.lay_out_now()
-            self.keep_reader(key, offset)
-            self.repin_header()
+            self.request_reader_layout()
             self.viewport().update()
         except RuntimeError:
             return
-
-    def keep_reader(self, key, offset: int) -> None:
-        """After a layout: at the end when following it, else the row `key` back at `offset`."""
-        if self.follows_tail and self.gliding_to_end():
-            return
-        with self.layout_scroll():
-            if self.follows_tail:
-                self.follow_end()
-            elif (row := self.model_rows.row_of(key)) >= 0:
-                moved = self.visualRect(self.model_rows.index(row, 0)).top() - offset
-                self.scroll_y = self.scroll_y + moved
-        if not self.follows_tail:
-            self.reader_position = RowPosition(self.scroll_y)
 
     def scrolled(self, value: int) -> None:
         """The reader moved: join or leave the end, and schedule the full response on the
@@ -1508,6 +1534,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         # arrival moves the top row into it, and skipping the window's own offsets left the
         # arrival's header unpinned and its burst unstacked (Tristan, Android, 2026-11-18).
         self._schedule_scroll_frame()
+        moved, self._scrolled_to = value - self._scrolled_to, value
         if self._restoring:
             return
         if self.at_end and not self.follows_tail:
@@ -1515,10 +1542,13 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         elif not self.at_end and self.follows_tail:
             self.release_anchor()
         elif not self.follows_tail:
-            self.reader_position = RowPosition(value)
+            # The message under the top edge now; while a change is open, the kept one moves
+            # with the reader (`HistoryChange.moved`).
+            self.reader_position = self.reader_position.moved(self, moved)
         self._reader_scrolled = True
 
     _reader_scrolled = False
+    _scrolled_to = 0
 
     def _schedule_scroll_frame(self) -> None:
         if not self._scroll_frame_pending:
@@ -1625,9 +1655,6 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     def after_source_presented(self, callback, *arguments) -> None:
         QTimer.singleShot(0, partial(callback, *arguments))
 
-    def request_reader_layout(self) -> None:
-        self.place_reader()
-
     # The reader window contract's measurements Qt keeps by row instead
 
     def top_page(self) -> QtTopRow:
@@ -1640,9 +1667,10 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         if not top.isValid():
             return QtTopRow()
         rect = self.visualRect(top)
-        fragment = top.data(HistoryRows.FRAGMENT)
-        block, row = self.rows.block_row(fragment, self.font(), rect.width(), -rect.top())
-        return QtRowUnderTop(FragmentRowUnderTop(fragment, block, row, rect.left(), rect.width()))
+        if rect.height() <= 0:
+            return QtTopRow()
+        return QtRowUnderTop(self, top.data(HistoryRows.FRAGMENT), rect.left(), rect.width(), -rect.top(),
+                             rect.height())
 
     def live_message_header(self) -> PinnedHeader:
         """Qt draws no live blocks: the draft is rows, so a row under the top edge pins."""

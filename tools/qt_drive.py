@@ -2677,7 +2677,7 @@ class ArrivalScenario(Scenario):
         from toad.qt.history import QtConversationHistory as History, QtHistoryWindow as Window
         held: dict[str, list[float]] = {}
         timed = [(Window, "show_pages"), (Window, "rows_changed"), (Window, "show_draft"),
-                 (Window, "keep_reader"), (History, "repaint")]
+                 (Window, "request_reader_layout"), (History, "repaint")]
         originals = [(owner, name, getattr(owner, name)) for owner, name in timed]
 
         def timing(name, call):

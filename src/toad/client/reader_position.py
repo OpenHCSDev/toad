@@ -76,6 +76,12 @@ class ReaderWindow:
     @abstractmethod
     def scroll_revision(self) -> int: ...
 
+    @property
+    @abstractmethod
+    def geometry_revision(self) -> int:
+        """Counts every change to where this window's rows are: a change that leaves it as
+        it was moved none, and needs no layout to show it."""
+
     @abstractmethod
     def top_page(self): ...
 

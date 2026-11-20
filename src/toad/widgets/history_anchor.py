@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Iterable, Iterator
-from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property, partial
 from typing import TYPE_CHECKING
@@ -123,7 +123,7 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
     _restoring = False
     reader_position: ReaderPosition = TailPosition()
     """The position held during history changes and across tab returns."""
-    # `scroll_revision` + `history_change` are declared on JumpsToLatest (shared with Qt).
+    # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Qt).
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -261,10 +261,6 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         """Every transcript page mounted in this window; a page adds itself when it mounts."""
         return WeakSet()
 
-    def keep_reader(self) -> None:
-        """What this window draws is about to change: layout keeps the reader where they are now."""
-        self.screen.reader_kept(self)
-
     def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""
         self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
@@ -294,30 +290,10 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         """After a layout: put the reader back on the kept position; True when that scrolled."""
         return self.reader_for_layout().placed_by_layout(self)
 
-    @contextmanager
-    def layout_scroll(self):
-        """Scrolling inside is layout keeping the reader in place, not the reader moving.
-
-        A running scroll animation and the measured travel are shifted by the
-        same rows, so the reader's own movement continues from the new place.
-        """
-        restoring = self._restoring
-        previous = self.scroll_y
-        destination = self.scroll_target_y
-        self._restoring = True
-        try:
-            yield
-        finally:
-            try:
-                if not restoring:
-                    if rows := self.scroll_y - previous:
-                        self.app.animator.transform_running_animation(
-                            self, "scroll_y", lambda value: value + rows,
-                        )
-                        self.scroll_target_y = destination + rows
-                    self.lookahead.relocated(rows)
-            finally:
-                self._restoring = restoring
+    def shift_travel(self, rows: float, destination: float) -> None:
+        """A running scroll animation and its target move by the rows layout moved the reader."""
+        self.app.animator.transform_running_animation(self, "scroll_y", lambda value: value + rows)
+        self.scroll_target_y = destination + rows
 
     def retire_presentation_wait(self) -> None:
         """Release a change whose scene no longer promises another frame."""
@@ -570,26 +546,18 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         self.scroll_to(y=destination, animate=False, immediate=True)
 
     @asynccontextmanager
-    async def preserve_history(self):
-        """Change what this window draws with the reader kept on their row.
-
-        The scope holds the window's tree lock for the change, then waits for
-        the layout that shows it.
-        """
+    async def tree_change(self):
+        """This window's tree lock for the change. Layout requests held under it become
+        actionable only once it releases, so the screen is woken then, before the change
+        waits for that layout."""
         screen = self.screen
-        async with AsyncExitStack() as shown:
-            try:
-                async with self.lock:
-                    # Take the tree lock before joining a change already open:
-                    # its layout cannot finish while this one holds the tree.
-                    await shown.enter_async_context(self._history_change())
-                    yield
-            finally:
-                # Held layout requests become actionable only after the outer
-                # tree lock releases. Wake the screen before waiting for that layout.
-                if not self.lock.is_locked:
-                    screen.check_idle()
+        try:
+            async with self.lock:
+                yield
+        finally:
+            if not self.lock.is_locked:
+                screen.check_idle()
 
-    def _history_change(self):
-        """One change and the layout that shows it; a change inside another joins it."""
-        return self.history_change.opened(self)
+    @property
+    def geometry_revision(self) -> int:
+        return self._geometry_revision
