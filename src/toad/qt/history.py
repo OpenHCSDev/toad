@@ -17,7 +17,7 @@ import asyncio
 import shiboken6
 from abc import ABC
 from collections import deque
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
@@ -77,6 +77,7 @@ from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
 from toad.qt.lines import QtLineRenderer
+from toad.render_backend import RenderTask
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
 from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
@@ -546,6 +547,29 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
 
 @dataclass(frozen=True)
+class QtHistoryRowBatchRenderTask(RenderTask[tuple[tuple, ...]]):
+    """One page of rows the shared pager asks be prepared ahead of drawing them, submitted
+    through the launch's `app.render_processes` so both frontends submit the same way (the
+    Textual client already did, `ToadApp.render_processes` wrapping its process pool; the
+    Qt client now shares that owner, wrapping its in-thread renderer). Each job carries
+    the key the delegate caches under and the callable `RowDocumentDelegate.rendering`
+    returns for that row (an html build over its line blocks at its width and font).
+
+    The result is a tuple of `(key, formatting)` pairs the caller adopts into the
+    delegate's cache; `_row_prepared` lays rows out once for the batch, so a page of
+    arrivals is one layout.
+    """
+
+    jobs: tuple[tuple[Hashable, Callable[[], RowFormatting]], ...]
+
+    def execute(self) -> tuple[tuple[Hashable, RowFormatting], ...]:
+        return tuple((key, prepare()) for key, prepare in self.jobs)
+
+    def result_size(self, result: tuple[tuple[Hashable, RowFormatting], ...]) -> int:
+        return 64 * (len(result) + 1)
+
+
+@dataclass(frozen=True)
 class PreparedOnFill(RowFormatting):
     """A row's formatting prepared only when a measurement needs it: one that answers from its
     cache never resolves it, so it never pays for the preparation. What it resolves to may be
@@ -675,12 +699,12 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         rows, font, width = window.rows, window.font(), window.viewport_width()
         if width <= 0:
             return  # Not laid out yet: the first paint prepares them at the real width.
-        jobs = [(key, rows.rendering(fragment, font, width)) for fragment in fragments
-                if fragment.shown_in(selected)
-                and not rows.is_prepared(key := rows.fragment_key(fragment, font, width))]
+        jobs = tuple((key, rows.rendering(fragment, font, width)) for fragment in fragments
+                     if fragment.shown_in(selected)
+                     and not rows.is_prepared(key := rows.fragment_key(fragment, font, width)))
         if not jobs:
             return
-        prepared = await asyncio.to_thread(lambda: [(key, prepare()) for key, prepare in jobs])
+        prepared = await self.view.app.render_processes.submit(QtHistoryRowBatchRenderTask(jobs))
         if current():
             for key, formatting in prepared:
                 rows.adopt(key, formatting)
