@@ -1041,7 +1041,12 @@ class Runway(OffScreenRunway):
 
 
 class PreparationDemand(ABC):
-    """One scroll intent; its cases own prediction and incoming travel."""
+    """One scroll intent; its cases own prediction and incoming travel.
+
+    Every ordinary intent fills the runway declared by ``PresentationBudget``.
+    Members differ only in what extends that runway and which edge may satisfy
+    it.  Settling input removes velocity; it does not revoke the buffer.
+    """
 
     @abstractmethod
     def rows(self, horizon: float) -> float: ...
@@ -1050,14 +1055,17 @@ class PreparationDemand(ABC):
         return MovingPreparation(travel, elapsed)
 
     def accepts_result(self, end: PageEnd) -> bool:
-        """A running read may finish after input settles; it starts no next read."""
+        """Whether this edge can satisfy the intent; stationary accepts either edge."""
         return True
 
     def read_rows(
         self, preparation: DirectionalPreparation, history: HistoryPager, end: PageEnd, runway: Runway,
     ) -> int:
-        """Stationary input never requests another source page."""
-        return 0
+        """Rows this edge still owes the shared prepared runway."""
+        if not self.accepts_result(end):
+            return 0
+        ahead = preparation.ahead_rows(preparation.window.viewport_rows)
+        return max(0, ceil(ahead) - end.rows_toward(runway))
 
     def source_read(self) -> None:
         """Only a bounded destination counts the pages its request read."""
@@ -1103,12 +1111,6 @@ class MovingPreparation(PreparationDemand):
 
     def accepts_result(self, end: PageEnd) -> bool:
         return end.accepts_velocity(self.velocity)
-
-    def read_rows(self, preparation: DirectionalPreparation, history: HistoryPager, end: PageEnd, runway: Runway) -> int:
-        if not self.accepts_result(end):
-            return 0
-        ahead = preparation.ahead_rows(preparation.window.viewport_rows)
-        return max(0, ceil(ahead) - end.rows_toward(runway))
 
     def prepare_ahead(self, preparation: DirectionalPreparation, history, page, end: PageEnd) -> None:
         if self.accepts_result(end):
