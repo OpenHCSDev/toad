@@ -383,11 +383,15 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             layout.addWidget(line)
         # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
-        # The top-level window is the viewport Android resizes above its keyboard.  Follow
-        # that resize as well as text changes, so an already-long draft gives room back to
-        # history when the keyboard appears.
+        # The top-level window is the shared layout viewport. Android can keep that native
+        # window at the physical screen size while occluding its bottom with the IME, even
+        # under ADJUST_RESIZE, so the input method's own rectangle is the authority for the
+        # visible part. Follow both facts: desktop resize and Android keyboard geometry.
         self._viewport_window = host.app
         self._viewport_window.installEventFilter(self)
+        self._input_method = QGuiApplication.inputMethod()
+        self._input_method.keyboardRectangleChanged.connect(self.fit_height)
+        self._input_method.visibleChanged.connect(self.fit_height)
         self.place_input_box()
         self.refresh_glyph()
         self.fit_height()
@@ -523,11 +527,27 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         typed = self.editor.visual_line_count()
         margin = 2 * self.document_margin()
         lines = self.visible_editor_lines(
-            typed, self._viewport_window.height(), self.editor.fontMetrics().lineSpacing(), margin
+            typed, self.visible_viewport_height(), self.editor.fontMetrics().lineSpacing(), margin
         )
         self.editor.setVerticalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > lines else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.editor.setFixedHeight(self.editor_height(lines))
+
+    def visible_viewport_height(self) -> int:
+        """The window height not hidden by the platform input method.
+
+        ``QInputMethod.keyboardRectangle`` is expressed in window coordinates. On Android
+        the QWidget can retain its full-screen height while the keyboard covers its bottom;
+        treating that covered region as viewport made the shared 50% editor limit consume
+        nearly the whole visible app. Desktop keyboards expose no intersecting rectangle.
+        """
+        viewport = self._viewport_window.rect()
+        covered = (
+            viewport.intersected(self._input_method.keyboardRectangle().toRect()).height()
+            if self._input_method.isVisible()
+            else 0
+        )
+        return max(1, viewport.height() - covered)
 
     def eventFilter(self, watched, event) -> bool:  # type: ignore[override]
         if watched is self._viewport_window and event.type() == QEvent.Type.Resize:

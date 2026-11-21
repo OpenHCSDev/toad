@@ -150,6 +150,12 @@ class QtMailboxView(QtThreadView, BoundSources):
         """
         if self.session_details is not None:
             visited(self.session_details.identity)
+        # A restored mailbox mounts while it replaces its hidden opening page.  Its
+        # UnreadTranscript has already retained the latest-page request, but the pager
+        # cannot admit that work until this destination is visible.  Showing the page is
+        # the missing destination boundary: resume the request the pager owns instead of
+        # waiting for an unrelated send to schedule another preparation frame.
+        self.messages.request_preparation()
         self.reload()
         self.publish_selected_thread()
 
