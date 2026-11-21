@@ -69,11 +69,11 @@ def test_qt_row_batch_is_data_only_at_the_process_boundary() -> None:
         DiffSettings(),
         80,
     )
-    task = QtHistoryRowBatchRenderTask((("row", preparation),))
+    task = QtHistoryRowBatchRenderTask((preparation,))
 
     restored = pickle.loads(pickle.dumps(task, protocol=5))
 
-    assert restored.execute()[0][1].html.startswith("<p")
+    assert restored.execute()[0].html.startswith("<p")
 
 
 def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:

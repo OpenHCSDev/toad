@@ -551,25 +551,25 @@ class QtRowPreparation:
 
 
 @dataclass(frozen=True)
-class QtHistoryRowBatchRenderTask(RenderTask[tuple[tuple, ...]]):
-    """One page of rows the shared pager asks be prepared ahead of drawing them, submitted
-    through the launch's `app.render_processes` so both frontends submit the same way (the
-    Textual client already did, `ToadApp.render_processes` wrapping its process pool; the
-    Qt client now shares that owner, wrapping its in-thread renderer). Each job carries
-    the key the delegate caches under and the callable `RowDocumentDelegate.rendering`
-    returns for that row (an html build over its line blocks at its width and font).
+class QtHistoryRowBatchRenderTask(RenderTask[tuple[RowFormatting, ...]]):
+    """Rows the shared pager asks be prepared ahead of drawing them, submitted through the
+    launch's `app.render_processes` as Textual's `TranscriptLinesBatchRenderTask` is.
 
-    The result is a tuple of `(key, formatting)` pairs the caller adopts into the
-    delegate's cache; `_row_prepared` lays rows out once for the batch, so a page of
-    arrivals is one layout.
+    The task carries each row's presentation declarations and nothing else; its result is
+    one formatting per row, in order. Which cache key a formatting lands under is the
+    delegate's own fact and never crosses the process boundary: a key that went to a worker
+    and came back was a copy that no longer matched the one the delegate asks under, so
+    every prepared row was dropped, rendered again inside the UI process, measured as an
+    estimate and laid out again when that second render landed (a 229-row scroll-back:
+    490 rows rendered twice, about 130 whole layouts).
     """
 
-    jobs: tuple[tuple[Hashable, QtRowPreparation], ...]
+    rows: tuple[QtRowPreparation, ...]
 
-    def execute(self) -> tuple[tuple[Hashable, RowFormatting], ...]:
-        return tuple((key, preparation.render()) for key, preparation in self.jobs)
+    def execute(self) -> tuple[RowFormatting, ...]:
+        return tuple(preparation.render() for preparation in self.rows)
 
-    def result_size(self, result: tuple[tuple[Hashable, RowFormatting], ...]) -> int:
+    def result_size(self, result: tuple[RowFormatting, ...]) -> int:
         return 64 * (len(result) + 1)
 
 
@@ -703,14 +703,15 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         rows, font, width = window.rows, window.font(), window.viewport_width()
         if width <= 0:
             return  # Not laid out yet: the first paint prepares them at the real width.
-        jobs = tuple((key, rows.row_preparation(fragment.line_blocks, font, width)) for fragment in fragments
-                     if fragment.shown_in(selected)
-                     and not rows.is_prepared(key := rows.fragment_key(fragment, font, width)))
-        if not jobs:
+        waiting = tuple((key, fragment) for fragment in fragments
+                        if fragment.shown_in(selected)
+                        and not rows.is_prepared(key := rows.fragment_key(fragment, font, width)))
+        if not waiting:
             return
-        prepared = await self.view.app.render_processes.submit(QtHistoryRowBatchRenderTask(jobs))
+        prepared = await self.view.app.render_processes.submit(QtHistoryRowBatchRenderTask(tuple(
+            rows.row_preparation(fragment.line_blocks, font, width) for _key, fragment in waiting)))
         if current():
-            for key, formatting in prepared:
+            for (key, _fragment), formatting in zip(waiting, prepared, strict=True):
                 rows.adopt(key, formatting)
 
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
