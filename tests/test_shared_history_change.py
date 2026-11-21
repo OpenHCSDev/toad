@@ -103,8 +103,9 @@ def test_a_paused_source_observes_the_scope_its_pager_view_owns():
         yield
 
     access = object()
+    view = SimpleNamespace(thread_scope=SimpleNamespace(observe=observe))
     owner = SimpleNamespace(
-        view=SimpleNamespace(thread_scope=SimpleNamespace(observe=observe)),
+        view=view,
         app=SimpleNamespace(coordination_access=access),
     )
     waiting = WaitingSourceWork(owner, object(), lambda: None, object())
@@ -112,4 +113,4 @@ def test_a_paused_source_observes_the_scope_its_pager_view_owns():
     with waiting.observe():
         pass
 
-    assert observed == [(owner, access, waiting.resume)]
+    assert observed == [(view, access, waiting.resume)]

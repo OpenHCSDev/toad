@@ -326,8 +326,8 @@ class WaitingSourceWork[Owner, Snapshot, Result]:
         # pager to walk a Textual ancestor happened to work there, but a Qt history is
         # not a widget; on a cold Android read the unavailable-source path crashed here
         # before it could subscribe and resume.  Read the declared owner directly.
-        scope = self.owner.view.thread_scope
-        with scope.observe(self.owner, self.owner.app.coordination_access, self.resume):
+        view = self.owner.view
+        with view.thread_scope.observe(view, self.owner.app.coordination_access, self.resume):
             yield self
 
     def resume(self, _event: object) -> None:
