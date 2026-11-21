@@ -1484,7 +1484,13 @@ class QtWorkspaceViews(WorkspaceViews):
         when the opening placeholder transitions into the real bound view
         (Qt analogue of Textual's MainScreen handling both phases on one
         instance). The caller is responsible for setting `new.id = old.id`
-        before this runs."""
+        before this runs.
+
+        This is only the structural replacement.  The replacement is not a
+        visible conversation yet: `ThreadNavigator.mount` still has to bind
+        its sources and thread.  Its `_prepare_content` method publishes the
+        first selected frame after those facts exist.
+        """
         mode = old.mode
         index = self.pages.indexOf(old)
         was_current = self.pages.currentWidget() is old
@@ -1497,12 +1503,6 @@ class QtWorkspaceViews(WorkspaceViews):
             self.views[mode] = new
         if was_current:
             self.pages.setCurrentWidget(new)
-            # The placeholder was selected before the bound page existed.  Replacing the
-            # current native widget is therefore the bound page's first ``shown`` boundary;
-            # QStackedWidget does not replay the earlier selection for its replacement.
-            # This is the same tab, not a new visit, so publish visibility without adding a
-            # second history entry.
-            new.shown(self.app, lambda _identity: None)
         old.deleteLater()
 
 

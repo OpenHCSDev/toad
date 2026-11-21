@@ -130,10 +130,19 @@ class QtMailboxView(QtThreadView, BoundSources):
     # ---- Content lifecycle ----
 
     async def _prepare_content(self) -> None:
-        """`ThreadOpening.mount` awaits this after bind. The transcript's
-        `_initial_page_source` built in `_setup_transcript` already reads from
-        `self.transcript.get_transcript_page`; the live page restore drives
-        through the pager without extra async work here."""
+        """Publish the first selected frame after navigation has bound this view.
+
+        The opening placeholder may already be selected when it is replaced,
+        but replacing the widget is not a visibility transition for the new
+        conversation: at that point `ThreadNavigator.mount` has not yet called
+        `prepared.bind` or `bind_opened`.  Publishing there sent the first
+        reload to an unbound transcript and left saved history unread until a
+        later message happened to refresh it.  This hook runs after both binds,
+        so the same `shown` transition used by later tab selections owns the
+        initial publication too.
+        """
+        if self.app.workspace_sessions.selected is self:
+            self.shown(self.app, lambda _identity: None)
 
     # ---- SessionScope lifecycle ----
 
