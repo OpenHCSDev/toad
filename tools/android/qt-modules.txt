@@ -1,1 +1,1 @@
-Widgets,QuickWidgets,Quick,Qml,Network,Gui,Core
+Widgets,Gui,Core

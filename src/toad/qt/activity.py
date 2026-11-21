@@ -5,14 +5,12 @@ peer with its status and Toad's activity sweep while the peer works."""
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
-from PySide6.QtCore import QUrl, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
-from PySide6.QtQuickWidgets import QQuickWidget
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QLabel, QProgressBar, QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.effects import ACTIVITY_SWEEP
 
@@ -72,43 +70,39 @@ class ChannelActivity(ChannelActivityTitle, QLabel):
         self.activity_model.threads.unsubscribe(self.rows_changed)
 
 
-class ActivitySweep(QQuickWidget):
+class ActivitySweep(QProgressBar):
     """Toad's activity sweep: the shared ACTIVITY_SWEEP ribbon drawn across the strip as one
-    native Qt Quick scene. Python publishes only the working transition; Qt's render loop
-    owns every frame and GPU composition after that.
-
-    The QML receives the effect's declared period, breathing period and width bounds, so the
-    native presenter derives its motion from ACTIVITY_SWEEP instead of restating another
-    animation in Python."""
+    native Qt style animation. Python publishes only the working transition; Qt's C++ style
+    owns every frame after that. Android cannot embed a Quick scene in its Widgets surface:
+    its Quick child becomes a second full-screen surface and covers the application black."""
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
         self.renderer = renderer
         self.working = False
-        self.setResizeMode(QQuickWidget.ResizeMode.SizeRootObjectToView)
-        self.setClearColor(Qt.GlobalColor.transparent)
-        self.setSource(QUrl.fromLocalFile(str(Path(__file__).with_name("activity_sweep.qml"))))
-        if self.rootObject() is None:
-            raise RuntimeError(f"Qt Quick activity sweep did not load: {self.errors()}")
+        self.setTextVisible(False)
+        self.setRange(0, 1)
+        self.setValue(0)
         self.setFixedHeight(self.fontMetrics().lineSpacing())
-        root = self.rootObject()
-        root.setProperty("travelDuration", round(ACTIVITY_SWEEP.period * 1000))
-        root.setProperty("breathingDuration", round(ACTIVITY_SWEEP.breathing_period * 1000))
-        root.setProperty("minimumWidth", ACTIVITY_SWEEP.minimum_width)
-        root.setProperty("maximumWidth", ACTIVITY_SWEEP.maximum_width)
         renderer.themed(self, self.follow_theme)
 
     def follow_theme(self) -> None:
-        root = self.rootObject()
-        for name, tone in zip(("primary", "accent", "secondary"), ACTIVITY_SWEEP.stops):
+        colours = []
+        for tone in ACTIVITY_SWEEP.stops:
             ink = tone.rgb(self.renderer.scheme)
-            root.setProperty(name, QColor(ink.red, ink.green, ink.blue).name())
+            colours.append(QColor(ink.red, ink.green, ink.blue).name())
+        self.setStyleSheet(
+            "QProgressBar { border: 0; background: transparent; }"
+            "QProgressBar::chunk { border: 0; "
+            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 {colours[0]},"
+            f"stop:0.5 {colours[1]},stop:1 {colours[2]}); }}"
+        )
 
     def sweep(self, working: bool) -> None:
         if working == self.working:
             return
         self.working = working
-        self.rootObject().setProperty("running", working)
+        self.setRange(0, 0) if working else self.setRange(0, 1)
 
 
 class QtObservedSweep(ObservedSweep, ActivitySweep):
