@@ -92,4 +92,5 @@ class QtOpeningSessionView(Page, SessionScope, QWidget):
     def shown(self, window, visited) -> None:
         """`QtWorkspaceViews.select` calls `page.shown(app, visited)` when a page
         becomes the current widget. Opening view has no visit identity to record;
-        the bound view's own `shown` fires once it's mounted."""
+        `QtWorkspaceViews.swap_page` shows the bound replacement if this placeholder
+        was current."""
