@@ -51,7 +51,7 @@ from toad.client.history_pager import (
     ReaderPlacement,
     Runway,
 )
-from toad.client.line_blocks import Divider, LineBlock
+from toad.client.line_blocks import BlockPreparation, Divider
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
@@ -536,10 +536,9 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
 
 @dataclass(frozen=True)
-class QtRowPreparation:
+class QtRowPreparation(BlockPreparation):
     """One Qt row's immutable presentation declarations, safe across either transport."""
 
-    blocks: tuple[LineBlock, ...]
     scheme: ColourScheme
     links: LinkContext
     diff: DiffSettings

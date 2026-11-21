@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import ClassVar, Self
 from urllib.parse import quote, unquote
 
@@ -512,3 +512,16 @@ class MessageBody(Body):
 
 class MarkdownMessageBody(MessageBody, MarkdownBody):
     """Message separation and Markdown preparation are independent capabilities."""
+
+
+@dataclass(frozen=True)
+class BlockPreparation:
+    """One row's blocks as a render worker receives them: data only, with what its source
+    retains. A frontend adds what styles them (Textual's line theme; Qt's scheme, links, diff
+    settings and width in cells)."""
+
+    blocks: tuple[LineBlock, ...]
+    retained_bytes: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "retained_bytes", 256 + sum(block.retained_bytes for block in self.blocks))
