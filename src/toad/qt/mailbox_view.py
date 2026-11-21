@@ -62,8 +62,10 @@ class QtMailboxView(QtThreadView, BoundSources):
         # workspace lookups stay consistent through the swap; keep an empty default
         # until the swap sets it.
         self.id = ""
-        # `bind_thread` replaces this with the real ThreadIdentity.
-        self._identity: ThreadIdentity | NoThreadIdentity = NoThreadIdentity()
+        # The navigation result already owns the real identity.  History construction reads
+        # it to choose ``UnreadTranscript``; pretending to be unbound until ``bind_opened``
+        # made the empty page look already published and no first-page read was scheduled.
+        self._identity: ThreadIdentity | NoThreadIdentity = ThreadIdentity(thread_incarnation, root)
         self._lay_out_thread(app, f"Mailbox: {thread_incarnation.name}", thread_incarnation)
 
     def composer_class(self) -> type[MailboxComposer]:

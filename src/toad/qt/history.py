@@ -684,7 +684,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self._read_task: asyncio.Task | NoTask = NoTask()
         self._read_ahead: asyncio.Task | NoTask = NoTask()
         prepared = self.empty_page()
-        super().__init__(source_state=LiveTranscript(),
+        super().__init__(source_state=self.initial_state(view),
                          page_source=self._initial_page_source(prepared, app))
         self.budget = self.DEFAULT_BUDGET
         self._fragment_budget = self.budget.max_items

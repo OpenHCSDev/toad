@@ -9,7 +9,7 @@ source.exclude_dirs = ${exclude_dirs}
 source.exclude_patterns = ${exclude_files}
 source.include_exts = py,pyc,png,jpg,kv,atlas,qml,js,json,toml,css,md,sha256,txt,tcss,pem,ttf
 services = toadrender:toad/android_render_service.py
-version = 0.6
+version = 0.7
 requirements = python3,shiboken6,PySide6,pydantic-core==2.46.5,tree-sitter==0.26.0,tree-sitter-python==0.25.0
 orientation = portrait
 fullscreen = 0

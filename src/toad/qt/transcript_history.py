@@ -32,6 +32,16 @@ class QtTranscriptHistory(QtConversationHistory, CommittedHistoryBase, ReportsCo
     only the page-view container (`QtPage`) and renderer differ."""
 
     @classmethod
+    def initial_state(cls, view):
+        """Start a bound thread unread, so mounting requests its first saved page.
+
+        ``LiveTranscript`` means a page has already been published and its ``mounted``
+        transition deliberately does nothing.  A restored Qt mailbox used that state for
+        an empty page, so only a later send's explicit refresh made history appear.
+        """
+        return view.thread_identity.transcript_state()
+
+    @classmethod
     def empty_page(cls):
         """Transcript pages, not wire pages. Mirrors Textual's
         `TranscriptHistory.empty_page` so the history starts at the right page type."""

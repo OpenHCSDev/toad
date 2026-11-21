@@ -8,6 +8,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
+from math import ceil
 from typing import ClassVar
 
 from agent_comms.messaging.mentions import MentionCandidate
@@ -217,6 +218,10 @@ class ComposerEditor(QPlainTextEdit):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.follow_key_mode()
+
+    def visual_line_count(self) -> int:
+        """Lines Qt actually laid out, including soft wraps inside one text block."""
+        return max(1, ceil(self.document().size().height()))
 
     def follow_key_mode(self) -> None:
         """Modal input follows `ui.key_mode`, the setting Textual's prompt reads: a modal key
@@ -512,7 +517,10 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def fit_height(self) -> None:
         """Grow under the shared viewport limit, then scroll inside the editor."""
-        typed = self.editor.document().blockCount()
+        # QPlainTextDocumentLayout's height is the visual line count.  ``blockCount`` is
+        # only the number of explicit newlines, so one long phone-width paragraph stayed a
+        # one-line editor while Qt wrapped five lines of text underneath it.
+        typed = self.editor.visual_line_count()
         margin = 2 * self.document_margin()
         lines = self.visible_editor_lines(
             typed, self._viewport_window.height(), self.editor.fontMetrics().lineSpacing(), margin

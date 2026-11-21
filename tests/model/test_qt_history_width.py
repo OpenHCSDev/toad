@@ -12,6 +12,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from toad.markdown_links import LinkContext
+from toad.client.line_blocks import Span, Summary, ToolArgumentRole, ToolVerbRole
 from toad.patch import (
     DiffSettings,
     NoWrapMode,
@@ -91,6 +92,20 @@ def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
     assert HistoryRowDelegate.document_size(wrapped, 200).width() == 200
     assert HistoryRowDelegate.document_size(intrinsic, 200).width() > 200
     app.quit()
+
+
+def test_qt_tool_summary_is_clipped_by_the_shared_summary_owner() -> None:
+    line_renderer = renderer(DiffSettings()).at_width(20)
+    summary = Summary(
+        (Span("Run", ToolVerbRole), Span(" " + "argument" * 20, ToolArgumentRole)),
+        kept=(Span(" · done"),),
+    )
+
+    html = line_renderer.html((summary,))
+
+    assert "argumentargument" not in html
+    assert "…" in html
+    assert " · done" in html
 
 
 def test_intrinsic_tool_output_gives_the_shared_history_a_horizontal_range(monkeypatch) -> None:
