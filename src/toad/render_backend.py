@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import pickle
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from contextvars import Context, ContextVar, copy_context
@@ -25,6 +26,12 @@ from toad.work_preparation import (
 )
 
 ResultT = TypeVar("ResultT")
+
+
+def capture_submitted(submission: bytes) -> PreparedValue:
+    """Run the serialized task carried by any renderer process transport."""
+    task: RenderTask = pickle.loads(submission)
+    return task.capture_result()
 
 class RenderExecution(ABC, Generic[ResultT]):
     _matches_result: ClassVar[Callable[[object], bool]]

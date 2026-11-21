@@ -3,23 +3,19 @@ in the same roles and the same theme colours, through the same `LineBlockPainter
 
 from __future__ import annotations
 
-import copy
 from collections.abc import Callable
-from dataclasses import dataclass
 from html import escape
-
-from pygments.lexers import get_lexer_by_name
-from pygments.token import _TokenType
-from pygments.util import ClassNotFound
-from PySide6.QtGui import QColor, QFont, QFontMetricsF
-from PySide6.QtWidgets import QWidget
-from rich.style import Style
-from rich.syntax import ANSI_DARK, ANSI_LIGHT
-from ui_theme.colour import require_terminal_palette
 
 from markdown_it import MarkdownIt
 from metaclass_registry.mro_dispatch import handles
-from toad.core.projection import MroProjection
+from pygments.lexers import get_lexer_by_name
+from pygments.token import _TokenType
+from pygments.util import ClassNotFound
+from PySide6.QtWidgets import QWidget
+from rich.cells import cell_len
+from rich.style import Style
+from rich.syntax import ANSI_DARK, ANSI_LIGHT
+from ui_theme.colour import require_terminal_palette
 from ui_theme.scheme import ColourScheme, RuleColour, ThemeColour
 
 from toad.client.line_blocks import (
@@ -39,8 +35,9 @@ from toad.client.line_blocks import (
     Summary,
 )
 from toad.client.line_painting import LineBlockPainter, LinkPresentation
+from toad.core.projection import MroProjection
 from toad.markdown_links import LinkContext, MessageMarkdownParser
-from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
+from toad.message_rows import CellRoom, DIVIDER_TIME, WireBody
 from toad.patch import (
     DiffSettings,
     NoPatchCell,
@@ -50,25 +47,6 @@ from toad.patch import (
     UnifiedRows,
 )
 from toad.rich_preparation import RichTextBody, palette_colour
-
-
-@dataclass(frozen=True)
-class PixelRoom(LineRoom):
-    """A divider line in a Qt view: its width in pixels of the divider's bold font, keeping room
-    for a short rule on each side."""
-
-    metrics: QFontMetricsF
-    width: float
-
-    def advance(self, spans: tuple[Span, ...]) -> float:
-        return self.metrics.horizontalAdvance("  " + "".join(span.text for span in spans) + "  ")
-
-    def rule(self, spans: tuple[Span, ...]) -> int:
-        """Rule characters for each side of these spans; under two, the line has no room for rules."""
-        return int((self.width - self.advance(spans)) / 2 / self.metrics.horizontalAdvance("─"))
-
-    def fits(self, spans: tuple[Span, ...]) -> bool:
-        return self.rule(spans) >= 2
 
 
 class QtLinkMarkup(LinkPresentation[tuple[str, str]]):
@@ -98,8 +76,7 @@ class QtLineRenderer(LineBlockPainter[str]):
         self.markdown = MarkdownIt("gfm-like", {"breaks": True, "highlight": self.highlight})
         self.markdown.renderer.rules["link_open"] = self.link_open
         self.follow(scheme, diff)
-        self.width = 0.0
-        self.font = QFont()
+        self.width = 1
 
     def follow(self, scheme: ColourScheme, diff: DiffSettings) -> None:
         """Draw under this scheme with these diff settings from now on (`ui.theme`, `diff`).
@@ -136,14 +113,18 @@ class QtLineRenderer(LineBlockPainter[str]):
         widget.destroyed.connect(lambda: self.followers.remove(repaint))
 
     def bound(self, **fields) -> QtLineRenderer:
-        """A copy for one pool preparation, so concurrent widths and link contexts don't clash."""
-        bound = copy.copy(self)
+        """An independent data renderer for one preparation.
+
+        Constructing it from declarations instead of copying the live renderer keeps
+        followers, widgets and Markdown parser state out of the process boundary.
+        """
+        bound = type(self)(self.scheme, self.links, self.diff)
         bound.__dict__.update(fields)
         return bound
 
-    def at_width(self, width: float, font: QFont) -> QtLineRenderer:
-        """Dividers fill this many pixels of this font, as RichLineRenderer fills its cells."""
-        return self.bound(width=width, font=font)
+    def at_width(self, width: int) -> QtLineRenderer:
+        """Draw at this many monospace cells, the same width authority Textual uses."""
+        return self.bound(width=max(1, width))
 
     def with_links(self, links: LinkContext) -> QtLineRenderer:
         return self.bound(links=links)
@@ -220,9 +201,7 @@ class QtLineRenderer(LineBlockPainter[str]):
         A terminal can only draw its rule in whole `─` cells; Qt draws each side as a real line
         reaching the edge, so every rule spans the full width whatever the title's length.
         The title's cell takes its content's width and the side cells share the rest."""
-        bold = QFont(self.font)
-        bold.setBold(True)
-        room = PixelRoom(QFontMetricsF(bold), self.width)
+        room = CellRoom(self.width)
         groups = [row for group in DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
                   for row in room.wrapped(group)]
         colour = self.theme(RuleColour)
@@ -282,23 +261,19 @@ class QtLineRenderer(LineBlockPainter[str]):
 
     @handles(Patch)
     def patch(self, block: Patch) -> str:
-        longest = max((self.font_metrics.horizontalAdvance(line.expandtabs(4))
-                       for line in (*block.before.values(), *block.after.values())), default=0.0)
-        gutter = self.font_metrics.horizontalAdvance("0" * (2 * block.number_width + 6))
-        rows = self.diff.view.rows_at(round(self.width), round(2 * (longest + gutter)))
+        longest = max((cell_len(line.expandtabs(4))
+                       for line in (*block.before.values(), *block.after.values())), default=0)
+        required = 2 * (longest + block.number_width + 4) + 3
+        rows = self.diff.view.rows_at(self.width, required)
         return QtPatchPainter(self, block).project_value(rows)
 
     def patch_line(self, gutter: str, code: str, role: type[LineRole], language: str) -> str:
         """One diff row on its role's tint, its code in its language's colours."""
-        tint = QColor(self.colour(role))
-        tint.setAlphaF(role.background_tint)
-        background = f"rgba({tint.red()},{tint.green()},{tint.blue()},{tint.alphaF():.2f})"
+        colour = self.colour(role).lstrip("#")
+        red, green, blue = (int(colour[index:index + 2], 16) for index in (0, 2, 4))
+        background = f"rgba({red},{green},{blue},{role.background_tint:.2f})"
         return (f'<span style="background-color:{background}">{self.styled(gutter, role.gutter())}'
                 f'{self.code_spans(code, language) or self.styled(code, role)}</span>\n')
-
-    @property
-    def font_metrics(self) -> QFontMetricsF:
-        return QFontMetricsF(self.font)
 
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> str:

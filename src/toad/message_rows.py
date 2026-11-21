@@ -27,6 +27,7 @@ from agent_comms.messaging.routing import MessageRoute
 from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from agent_comms.storage.recorded_time import EventTime, RecordedEventTime, UnrecordedEventTime
 from metaclass_registry.mro_dispatch import handles
+from rich.cells import cell_len
 
 from toad.client.message_file_links import FileReader
 from toad.core.projection import MroProjection
@@ -98,6 +99,16 @@ class LineRoom(ABC):
                     row = ()
                 row = (*row, piece)
         return (*rows, row)
+
+
+@dataclass(frozen=True)
+class CellRoom(LineRoom):
+    """A divider line measured in terminal cells, shared by every monospace frontend."""
+
+    width: int
+
+    def fits(self, spans: tuple[Span, ...]) -> bool:
+        return sum(cell_len(span.text) for span in spans) <= max(1, self.width - 8)
 
 
 class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):

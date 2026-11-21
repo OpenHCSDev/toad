@@ -11,24 +11,23 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import qasync
-from PySide6.QtCore import QEvent, QObject
-from PySide6.QtWidgets import QApplication
-
 from agent_comms.projects.checkouts import Checkout
 from objectstate import set_base_config_type
+from PySide6.QtCore import QEvent, QObject
+from PySide6.QtGui import QGuiApplication
+from PySide6.QtWidgets import QApplication
 from ui_theme.scheme import ColourScheme
 
+from toad.application_lifetime import ApplicationStart
 from toad.client.connection import CoreConnection
 from toad.launch_binding import AgentBinding
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
-from toad.application_lifetime import ApplicationStart
 from toad.qt.finger_press import FingerPress
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.window import QtToadApp
 from toad.render_backend import Renderer
-
-from toad.render_in_thread import InThreadRenderer
+from toad.render_socket_service import AndroidRenderService
 from toad.work_preparation import PreparationRuntime
 
 if TYPE_CHECKING:
@@ -37,14 +36,15 @@ if TYPE_CHECKING:
 
 
 def _renderer_for_platform(connection: CoreConnection) -> Renderer:
-    """Qt's row preparation carries `QFont` and the `QtLineRenderer`'s `QColor` theme,
-    which `multiprocessing` cannot pickle across a process pool: desktop Qt uses the same
-    in-thread renderer Android uses, so `app.render_processes` is the shared submission
-    owner on both platforms and the task its workers run is the same. Rendering in another
-    process on desktop requires a Qt-free renderer (hex colours, a toolkit-neutral font
-    metric) and stands as follow-on work for `QtLineRenderer`."""
-    _ = connection
-    return InThreadRenderer()
+    """The platform's real process primitive behind one renderer contract.
+
+    Qt row work is data-only. Desktop uses CPython's process pool; Android, which
+    has no ``_multiprocessing``, uses the app's p4a Python service process.
+    """
+    if QGuiApplication.platformName() == "android":
+        return AndroidRenderService()
+    from toad.render_processes import RenderProcessPool
+    return RenderProcessPool(connection.helper_start)
 
 
 @dataclass(frozen=True)

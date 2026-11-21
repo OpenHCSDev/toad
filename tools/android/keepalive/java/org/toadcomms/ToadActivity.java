@@ -10,6 +10,7 @@ import android.system.Os;
 import android.view.WindowManager;
 import org.kivy.android.PythonActivity;
 import org.qtproject.qt.android.QtActivityResults;
+import org.toadcomms.toadcomms.ServiceToadrender;
 
 /**
  * The APK's activity (buildozer.spec's android.entrypoint): python-for-android's Qt activity,
@@ -68,6 +69,13 @@ public class ToadActivity extends PythonActivity {
             requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATIONS_ASKED);
         }
         startForegroundService(new Intent(this, ConnectedService.class));
+        ServiceToadrender.start(this, "");
+    }
+
+    @Override
+    public void onDestroy() {
+        ServiceToadrender.stop(this);
+        super.onDestroy();
     }
 
     /** Every activity start passes here (the two-argument form calls this one); a file

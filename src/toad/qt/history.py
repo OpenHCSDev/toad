@@ -28,7 +28,7 @@ from weakref import WeakSet
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QSize, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QPixmap, QTextDocument
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QTextDocument
 from PySide6.QtWidgets import QAbstractItemView, QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
@@ -52,7 +52,7 @@ from toad.client.history_pager import (
     ReaderPlacement,
     Runway,
 )
-from toad.client.line_blocks import Divider
+from toad.client.line_blocks import Divider, LineBlock
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
@@ -61,9 +61,6 @@ from toad.client.reader_position import (
     FragmentLocation, FragmentPosition, ReaderPage, ReaderPosition, RowPosition, TailPosition,
     UnloadedFragment,
 )
-from toad.qt.float_layer import QtFloatLayer
-from toad.reader_actions import ReaderAction
-from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
 from toad.client.transcript_fragments import (
     BusMessageFragment,
     ContextTranscriptFragment,
@@ -76,13 +73,17 @@ from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
+from toad.qt.float_layer import QtFloatLayer
 from toad.qt.lines import QtLineRenderer
+from toad.patch import DiffSettings
+from toad.reader_actions import ReaderAction
+from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
+from toad.qt.widget_animation import WidgetAnimation, frame_interval
 from toad.render_backend import RenderTask
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
 from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
-from toad.qt.widget_animation import WidgetAnimation, frame_interval
-from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour, SurfaceHoverColour
+from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 if TYPE_CHECKING:
     from toad.qt.live_turn import QtLiveBlock
@@ -419,11 +420,24 @@ class HistoryRowDelegate(RowDocumentDelegate):
         return shown, self.links_revision, font.family(), font.pointSize(), width
 
     def rendering(self, fragment: HistoryFragment, font: QFont, width: int) -> Callable[[], RowFormatting]:
-        return partial(self.html, self.renderer, fragment.line_blocks, width, QFont(font))
+        return self.row_preparation(fragment.line_blocks, font, width).render
+
+    def row_preparation(self, blocks, font: QFont, width: int) -> QtRowPreparation:
+        """Data-only row work: Qt measures its monospace cell once; the worker owns HTML."""
+        cell = max(1.0, QFontMetricsF(font).averageCharWidth())
+        cells = max(1, int((width - 8) / cell))
+        return QtRowPreparation(
+            blocks=blocks,
+            scheme=self.renderer.scheme,
+            links=self.renderer.links,
+            diff=self.renderer.diff,
+            width=cells,
+        )
 
     @staticmethod
     def html(renderer: QtLineRenderer, blocks, width: int, font: QFont) -> RowFormatting:
-        return HtmlRow(renderer.at_width(width - 8, font).html(blocks))
+        cell = max(1.0, QFontMetricsF(font).averageCharWidth())
+        return HtmlRow(renderer.at_width(max(1, int((width - 8) / cell))).html(blocks))
 
     @staticmethod
     def document_size(document: QTextDocument, available: int) -> QSize:
@@ -577,6 +591,21 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
 
 @dataclass(frozen=True)
+class QtRowPreparation:
+    """One Qt row's immutable presentation declarations, safe across either transport."""
+
+    blocks: tuple[LineBlock, ...]
+    scheme: ColourScheme
+    links: LinkContext
+    diff: DiffSettings
+    width: int
+
+    def render(self) -> RowFormatting:
+        renderer = QtLineRenderer(self.scheme, self.links, self.diff).at_width(self.width)
+        return HtmlRow(renderer.html(self.blocks))
+
+
+@dataclass(frozen=True)
 class QtHistoryRowBatchRenderTask(RenderTask[tuple[tuple, ...]]):
     """One page of rows the shared pager asks be prepared ahead of drawing them, submitted
     through the launch's `app.render_processes` so both frontends submit the same way (the
@@ -590,10 +619,10 @@ class QtHistoryRowBatchRenderTask(RenderTask[tuple[tuple, ...]]):
     arrivals is one layout.
     """
 
-    jobs: tuple[tuple[Hashable, Callable[[], RowFormatting]], ...]
+    jobs: tuple[tuple[Hashable, QtRowPreparation], ...]
 
     def execute(self) -> tuple[tuple[Hashable, RowFormatting], ...]:
-        return tuple((key, prepare()) for key, prepare in self.jobs)
+        return tuple((key, preparation.render()) for key, preparation in self.jobs)
 
     def result_size(self, result: tuple[tuple[Hashable, RowFormatting], ...]) -> int:
         return 64 * (len(result) + 1)
@@ -729,7 +758,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         rows, font, width = window.rows, window.font(), window.viewport_width()
         if width <= 0:
             return  # Not laid out yet: the first paint prepares them at the real width.
-        jobs = tuple((key, rows.rendering(fragment, font, width)) for fragment in fragments
+        jobs = tuple((key, rows.row_preparation(fragment.line_blocks, font, width)) for fragment in fragments
                      if fragment.shown_in(selected)
                      and not rows.is_prepared(key := rows.fragment_key(fragment, font, width)))
         if not jobs:

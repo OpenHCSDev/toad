@@ -1,19 +1,31 @@
 """Qt history derives horizontal extent and diff layout from the shared declarations."""
 
 import os
+import pickle
 from pathlib import Path
 from types import SimpleNamespace
 
 from agent_comms.messaging.display_references import ProjectReferences
+from pyqt_reactive.widgets.virtual_rows import VirtualRowView
 from PySide6.QtGui import QFont, QTextDocument
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from toad.markdown_links import LinkContext
-from toad.patch import DiffSettings, NoWrapMode, SplitDiff, UnifiedDiff, WrapModeEnabled, parse_patch
-from pyqt_reactive.widgets.virtual_rows import VirtualRowView
-
-from toad.qt.history import HistoryRowDelegate, HistoryRows
+from toad.patch import (
+    DiffSettings,
+    NoWrapMode,
+    SplitDiff,
+    UnifiedDiff,
+    WrapModeEnabled,
+    parse_patch,
+)
+from toad.qt.history import (
+    HistoryRowDelegate,
+    HistoryRows,
+    QtHistoryRowBatchRenderTask,
+    QtRowPreparation,
+)
 from toad.qt.lines import QtLineRenderer
 from toad.qt.theme import current_scheme
 
@@ -23,7 +35,7 @@ def renderer(settings: DiffSettings) -> QtLineRenderer:
         current_scheme(os.environ),
         LinkContext(Path.cwd(), ProjectReferences()),
         settings,
-    ).at_width(200, QFont("monospace", 10))
+    ).at_width(80)
 
 
 def test_qt_diff_uses_the_shared_view_and_wrap_families(monkeypatch) -> None:
@@ -45,6 +57,22 @@ def test_qt_diff_uses_the_shared_view_and_wrap_families(monkeypatch) -> None:
     assert split.count("<tr>") == 1
     assert "white-space:pre-wrap" in split
     app.quit()
+
+
+def test_qt_row_batch_is_data_only_at_the_process_boundary() -> None:
+    patch = parse_patch("--- a/x.py\n+++ b/x.py\n@@ -1 +1 @@\n-old\n+new\n")
+    preparation = QtRowPreparation(
+        (patch,),
+        current_scheme(os.environ),
+        LinkContext(Path.cwd(), ProjectReferences()),
+        DiffSettings(),
+        80,
+    )
+    task = QtHistoryRowBatchRenderTask((("row", preparation),))
+
+    restored = pickle.loads(pickle.dumps(task, protocol=5))
+
+    assert restored.execute()[0][1].html.startswith("<p")
 
 
 def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:

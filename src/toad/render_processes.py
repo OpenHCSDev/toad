@@ -8,7 +8,6 @@ constructing a pool starts no processes.
 
 import asyncio
 import os
-import pickle
 from collections.abc import Awaitable, Callable
 from concurrent.futures import ProcessPoolExecutor
 from typing import TypeVar
@@ -17,7 +16,7 @@ from agent_comms.execution import launch_root
 from agent_comms.execution.child_process import HelperStart, ProcessName
 from agent_comms.execution.launch_runtime import ThreadLaunch
 
-from toad.render_backend import Renderer, RenderTask
+from toad.render_backend import Renderer, RenderTask, capture_submitted
 from toad.work_preparation import PreparedValue
 
 Result = TypeVar("Result")
@@ -40,12 +39,6 @@ def _initialize_worker() -> None:
         sdk_boundary,  # noqa: F401 -- declare worker ingress capabilities
     )
     launch_root.started()
-
-
-def capture_submitted(submission: bytes) -> PreparedValue:
-    """Run a pickled render task in this worker."""
-    task: RenderTask = pickle.loads(submission)
-    return task.capture_result()
 
 
 class RenderProcessPool(Renderer):
