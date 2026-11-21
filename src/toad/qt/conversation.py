@@ -152,7 +152,8 @@ class QtConversation(
         # Where input and queue go; the opener swaps in mailbox sources for a CLI thread.
         self.operational_sources = SessionSources()
         self.feedback = QtFlash(app, app.renderer)
-        self.agent_activity = QtObservedSweep(self.working, renderer=app.renderer)
+        self.agent_activity = QtObservedSweep(
+            self.working, renderer=app.renderer, clock=app.animation_clock)
         self.submissions = ConversationSubmissions(self)
         # What the composer is told before it is built, the latest of each kind, told at
         # its mount (`on_composer`).

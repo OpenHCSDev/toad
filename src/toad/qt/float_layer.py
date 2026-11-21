@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.theming import ColorScheme, StatusColorRole
 from pyqt_reactive.widgets.status_line import NoticeLine
+from ui_theme.clock import AnimationClock
 
 from toad.client.pending import PendingWork, ShowsPending
 from toad.qt.activity import ActivitySweep
@@ -26,7 +27,8 @@ class QtPendingIndicator(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
     reader sees the UI is alive. Hidden until the shared delay passes; cleared when the last
     work it shows ends."""
 
-    def __init__(self, renderer: QtLineRenderer, parent: QWidget | None = None) -> None:
+    def __init__(self, renderer: QtLineRenderer, clock: AnimationClock,
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.waiting: list[type[PendingWork]] = []
@@ -37,7 +39,7 @@ class QtPendingIndicator(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setWordWrap(True)
         layout.addWidget(self.label)
-        self.sweep = ActivitySweep(renderer)
+        self.sweep = ActivitySweep(renderer, clock)
         self.sweep.setParent(self)
         layout.addWidget(self.sweep)
         self.hide()
@@ -103,7 +105,8 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
     #: The most notices shown at once; an older one gives way to a newer one.
     MOST = 3
 
-    def __init__(self, scheme: ColorScheme, renderer: QtLineRenderer, window: QWidget) -> None:
+    def __init__(self, scheme: ColorScheme, renderer: QtLineRenderer,
+                 clock: AnimationClock, window: QWidget) -> None:
         super().__init__(window)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.scheme = scheme
@@ -113,7 +116,7 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
         layout.setContentsMargins(UiGap.dialog, UiGap.dialog, UiGap.dialog, UiGap.dialog)
         layout.setSpacing(UiGap.tight)
         layout.addLayout(self.notices)
-        self.pending = QtPendingIndicator(renderer, self)
+        self.pending = QtPendingIndicator(renderer, clock, self)
         self.pending.setAutoFillBackground(True)
         layout.addWidget(self.pending)
         self.follow_scheme(scheme)

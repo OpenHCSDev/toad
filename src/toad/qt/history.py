@@ -805,7 +805,8 @@ class QtWireHistory(AwaitsFirstPage, QtConversationHistory):
 
     def __init__(self, window: QtHistoryWindow, view, app) -> None:
         super().__init__(window, view, app)
-        self.waiting = QtFloatLayer(app.theme.color_scheme, app.renderer, window)
+        self.waiting = QtFloatLayer(
+            app.theme.color_scheme, app.renderer, app.animation_clock, window)
         QTimer.singleShot(int(self.waiting.pending_delay * 1000), self.waiting, self.show_first_page)
 
     def show_first_page(self) -> None:

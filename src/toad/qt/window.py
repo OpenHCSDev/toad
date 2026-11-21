@@ -1540,7 +1540,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._layout_pending = False
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
         # Notices and the work the reader waits on float over the pages, never in their layout.
-        self.float_layer = QtFloatLayer(self.theme.color_scheme, self.renderer, self)
+        self.float_layer = QtFloatLayer(
+            self.theme.color_scheme, self.renderer, self.animation_clock, self)
         # One background task per transfer kind, cancelled + replaced when the same
         # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
         # Populated by `start_transfer_task`; the dict is the live registry.
@@ -2158,7 +2159,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         keep `toad.qt.window` import-light at module load. Textual's override lives at
         `src/toad/app.ToadApp.make_opening_view`."""
         from toad.qt.opening_view import QtOpeningSessionView
-        return QtOpeningSessionView(request.target, self.renderer)
+        return QtOpeningSessionView(request.target, self.renderer, self.animation_clock)
 
     def thread_view(self, prepared):
         """The `QtMailboxView` a sidebar open swaps in, bound to the thread as Textual's

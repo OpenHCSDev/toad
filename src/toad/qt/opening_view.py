@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from ui_theme.clock import AnimationClock
 
 from toad.client.pending import ThreadOpening
 from toad.client.session_scope import SessionScope
@@ -32,7 +33,7 @@ class QtOpeningSessionView(Page, SessionScope, QWidget):
     `ThreadOpening` flow to drive it before `prepared.bind(view)` replaces the content.
     """
 
-    def __init__(self, title: str, renderer: QtLineRenderer) -> None:
+    def __init__(self, title: str, renderer: QtLineRenderer, clock: AnimationClock) -> None:
         super().__init__()
         self.setWindowFlags(Qt.WindowType.Widget)
         self.id = ""  # workspace_sessions.prepare assigns the real mode name on mount
@@ -43,7 +44,7 @@ class QtOpeningSessionView(Page, SessionScope, QWidget):
         # Textual's opening screen shows `ThreadLoading` swept in the theme's colours; Qt
         # shows the same words with Toad's activity sweep, once the shared delay passes so
         # a fast open never flashes it.
-        self.pending = QtPendingIndicator(renderer, self)
+        self.pending = QtPendingIndicator(renderer, clock, self)
         self._label = QLabel(self)
         self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._label.setWordWrap(True)

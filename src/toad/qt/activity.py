@@ -9,10 +9,12 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QLabel, QProgressBar, QVBoxLayout, QWidget
+from PySide6.QtGui import QColor, QLinearGradient, QPainter
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
-from ui_theme.effects import ACTIVITY_SWEEP
+from ui_theme.clock import Animation, AnimationClock
+from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
+from ui_theme.scheme import BackgroundColour
 
 from toad.client.application import ClientApplication
 from toad.client.connection import CoordinationAccess
@@ -25,6 +27,7 @@ from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.status_thread import ObservedActivity
 from toad.qt.metrics import UiGap
+from toad.qt.widget_animation import WidgetAnimation
 
 
 class ActivityLine(ElidedLine):
@@ -70,39 +73,64 @@ class ChannelActivity(ChannelActivityTitle, QLabel):
         self.activity_model.threads.unsubscribe(self.rows_changed)
 
 
-class ActivitySweep(QProgressBar):
-    """Toad's activity sweep: the shared ACTIVITY_SWEEP ribbon drawn across the strip as one
-    native Qt style animation. Python publishes only the working transition; Qt's C++ style
-    owns every frame after that. Android cannot embed a Quick scene in its Widgets surface:
-    its Quick child becomes a second full-screen surface and covers the application black."""
+class ActivitySweep(WidgetAnimation, QWidget):
+    """The shared activity ribbon painted by Qt.
 
-    def __init__(self, renderer: QtLineRenderer) -> None:
+    ``ACTIVITY_SWEEP`` owns its cadence and every frame's position, width, taper and
+    palette, exactly as it does for Textual's ``AboveThrobber``.  Qt contributes only
+    the native paint.  An indeterminate ``QProgressBar`` used to replace that frame with
+    a platform-style chunk: it both looked different and drove Android's whole Widgets
+    backing store continuously.
+    """
+
+    effect = ACTIVITY_SWEEP
+
+    def __init__(self, renderer: QtLineRenderer, clock: AnimationClock) -> None:
         super().__init__()
         self.renderer = renderer
         self.working = False
-        self.setTextVisible(False)
-        self.setRange(0, 1)
-        self.setValue(0)
+        self.animation: Animation[Ribbon] | None = None
+        self.clock = clock
         self.setFixedHeight(self.fontMetrics().lineSpacing())
-        renderer.themed(self, self.follow_theme)
-
-    def follow_theme(self) -> None:
-        colours = []
-        for tone in ACTIVITY_SWEEP.stops:
-            ink = tone.rgb(self.renderer.scheme)
-            colours.append(QColor(ink.red, ink.green, ink.blue).name())
-        self.setStyleSheet(
-            "QProgressBar { border: 0; background: transparent; }"
-            "QProgressBar::chunk { border: 0; "
-            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 {colours[0]},"
-            f"stop:0.5 {colours[1]},stop:1 {colours[2]}); }}"
-        )
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
+        WidgetAnimation.bind_widget(self, self, clock)
+        renderer.themed(self, self.update)
 
     def sweep(self, working: bool) -> None:
         if working == self.working:
             return
         self.working = working
-        self.setRange(0, 0) if working else self.setRange(0, 1)
+        if working:
+            self.animation = self.animation or self.clock.start(self.effect, self)
+        elif self.animation is not None:
+            self.animation.stop()
+            self.animation = None
+        self.update()
+
+    def repaint(self) -> None:
+        """A shared clock tick invalidates this strip; Qt schedules its native paint."""
+        self.update()
+
+    def paintEvent(self, event) -> None:  # type: ignore[override]
+        painter = QPainter(self)
+        background = BackgroundColour.rgb(self.renderer.scheme)
+        painter.fillRect(event.rect(), QColor(background.hex))
+        if self.animation is None:
+            return
+        frame = self.animation.frame()
+        gradient = QLinearGradient(0, 0, self.width(), 0)
+        # Qt interpolates these samples on the GPU/native paint path.  The samples come
+        # from Ribbon.sample itself, so Qt owns no second taper, palette order or phase.
+        steps = 8 * len(frame.stops)
+        span = frame.end - frame.start
+        positions = {0.0, 1.0}
+        positions.update(frame.start + span * step / steps for step in range(steps + 1))
+        for position in sorted(max(0.0, min(1.0, place)) for place in positions):
+            start, end, amount, height = frame.sample(position)
+            ink = start.rgb(self.renderer.scheme).blend(end.rgb(self.renderer.scheme), amount)
+            colour = background.blend(ink, height)
+            gradient.setColorAt(position, QColor(colour.hex))
+        painter.fillRect(self.rect(), gradient)
 
 
 class QtObservedSweep(ObservedSweep, ActivitySweep):
