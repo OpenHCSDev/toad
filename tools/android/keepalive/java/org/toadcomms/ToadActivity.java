@@ -10,7 +10,6 @@ import android.system.Os;
 import android.view.WindowManager;
 import org.kivy.android.PythonActivity;
 import org.qtproject.qt.android.QtActivityResults;
-import org.toadcomms.toadcomms.ServiceToadrender;
 
 /**
  * The APK's activity (buildozer.spec's android.entrypoint): python-for-android's Qt activity,
@@ -68,13 +67,26 @@ public class ToadActivity extends PythonActivity {
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATIONS_ASKED);
         }
-        startForegroundService(new Intent(this, ConnectedService.class));
-        ServiceToadrender.start(this, "");
+        ToadRenderService.start(this, "");
+    }
+
+    /** The keep-alive may start only while this activity is actually in the foreground.
+     *  Android rejects a foreground-service launch from onCreate when a cold launch occurs
+     *  while the device is dozing. That refusal is about the optional keep-alive, not the
+     *  window or renderer, so it must not abort either one. */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        try {
+            startForegroundService(new Intent(this, ConnectedService.class));
+        } catch (android.app.ForegroundServiceStartNotAllowedException refused) {
+            android.util.Log.w("toadcomms", "ConnectedService refused while activity resumed", refused);
+        }
     }
 
     @Override
     public void onDestroy() {
-        ServiceToadrender.stop(this);
+        ToadRenderService.stop(this);
         super.onDestroy();
     }
 
