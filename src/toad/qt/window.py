@@ -1497,6 +1497,12 @@ class QtWorkspaceViews(WorkspaceViews):
             self.views[mode] = new
         if was_current:
             self.pages.setCurrentWidget(new)
+            # The placeholder was selected before the bound page existed.  Replacing the
+            # current native widget is therefore the bound page's first ``shown`` boundary;
+            # QStackedWidget does not replay the earlier selection for its replacement.
+            # This is the same tab, not a new visit, so publish visibility without adding a
+            # second history entry.
+            new.shown(self.app, lambda _identity: None)
         old.deleteLater()
 
 

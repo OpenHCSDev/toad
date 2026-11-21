@@ -46,6 +46,15 @@ class ThreadBindingDispatch:
 
     @handles(core_events.SessionSelected)
     async def _thread_view_selected(self, event: core_events.SessionSelected) -> None:
+        self.publish_selected_thread()
+
+    def publish_selected_thread(self) -> None:
+        """Publish the presentation held for the page that is actually selected.
+
+        A selection event and a native page becoming visible are two ways the same fact
+        reaches a frontend.  Restored Qt pages can become visible before their event
+        subscription exists, so their ``shown`` boundary calls this same procedure.
+        """
         if not self.is_current_session:
             return
         self.refresh_thread_status()
