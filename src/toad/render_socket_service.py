@@ -17,8 +17,7 @@ from pathlib import Path
 from struct import Struct
 from typing import TypeVar
 
-from toad.render_backend import Renderer, RenderTask
-from toad.render_processes import capture_submitted
+from toad.render_backend import Renderer, RenderTask, capture_submitted
 from toad.work_preparation import PreparedValue
 
 Result = TypeVar("Result")

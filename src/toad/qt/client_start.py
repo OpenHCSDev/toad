@@ -27,7 +27,6 @@ from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.window import QtToadApp
 from toad.render_backend import Renderer
-from toad.render_processes import RenderProcessPool
 from toad.render_socket_service import AndroidRenderService
 from toad.work_preparation import PreparationRuntime
 
@@ -44,6 +43,7 @@ def _renderer_for_platform(connection: CoreConnection) -> Renderer:
     """
     if QGuiApplication.platformName() == "android":
         return AndroidRenderService()
+    from toad.render_processes import RenderProcessPool
     return RenderProcessPool(connection.helper_start)
 
 
