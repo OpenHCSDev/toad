@@ -8,6 +8,7 @@ source.dir = .
 source.exclude_dirs = ${exclude_dirs}
 source.exclude_patterns = ${exclude_files}
 source.include_exts = py,pyc,png,jpg,kv,atlas,qml,js,json,toml,css,md,sha256,txt,tcss,pem,ttf
+services = toadrender:toad/android_render_service.py
 version = 0.1
 requirements = python3,shiboken6,PySide6,pydantic-core==2.46.5,tree-sitter==0.26.0,tree-sitter-python==0.25.0
 orientation = portrait
@@ -27,7 +28,9 @@ p4a.commit = 58d21141f17c889bf8585f5665921d72028f8831
 android.permissions = android.permission.WRITE_EXTERNAL_STORAGE, android.permission.INTERNET
 android.add_jars = ${jars}/Qt6Android.jar,${jars}/Qt6AndroidBindings.jar
 # The activity starts the in-process keep-alive service; keepalive/ owns both, and its
-# manifest reaches the APK as an AAR from the app folder's libs (assemble.py).
+# manifest reaches the APK as an AAR from the app folder's libs (assemble.py). It also
+# starts p4a's generated renderer service, Android's separate-process equivalent of
+# the desktop renderer pool.
 android.entrypoint = org.toadcomms.ToadActivity
 android.add_src = ${keepalive}/java
 android.add_aars = ${app}/keepalive.aar
