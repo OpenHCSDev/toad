@@ -15,7 +15,10 @@ from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItem
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 
+from ui_theme.effects import Band
+
 from toad.client.name_wave import BandCells, NameWave
+from toad.client.platform import host
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 
 
@@ -68,21 +71,36 @@ class QtClockedWave(NameWave):
     A leaf says which clock that is and what a frame repaints."""
 
     animation = None
+    static = False
 
     def wave_clock(self):
         """The app's animation clock, as this wave's owner reaches it."""
         raise NotImplementedError
 
     def wave_running(self) -> bool:
-        return self.animation is not None
+        return self.static or self.animation is not None
 
     def start_wave(self) -> None:
-        self.animation = self.wave_clock().start(self.name_wave, self)
+        if host.key == "android":
+            self.static = True
+            self.repaint()
+        else:
+            self.animation = self.wave_clock().start(self.name_wave, self)
 
     def stop_wave(self) -> None:
+        self.static = False
         if self.animation is not None:
             self.animation.stop()
             self.animation = None
+        self.repaint()
+
+    def wave_frame(self) -> Band:
+        """The animated band, or Android's static full-name working accent."""
+        if self.static:
+            return Band(self.name_wave.colour, 0.0, 1.0)
+        if self.animation is None:
+            raise RuntimeError("An idle name has no working frame")
+        return self.animation.frame()
 
 
 class QtTabWave(QtClockedWave):
@@ -233,7 +251,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
             painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
             rect = self.style().subElementRect(QStyle.SubElement.SE_TabBarTabText, option, self)
             shown = self.fontMetrics().elidedText(text, Qt.TextElideMode.ElideRight, rect.width())
-            start, end = self.band_cells(wave.animation.frame(), len(shown) + 2 * self.padding_cells)
+            start, end = self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
             ink = QTextLayout.FormatRange()
             ink.start, ink.length = 0, len(shown)
             plain = QTextCharFormat()

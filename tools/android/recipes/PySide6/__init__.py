@@ -1,6 +1,6 @@
 # Copyright (C) 2023 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-"""pyside6-android-deploy's PySide6 recipe for the Widgets, Gui and Core modules, reading its
+"""pyside6-android-deploy's PySide6 recipe for the Qt modules Toad imports, reading its
 wheel from the toolchain's wheels/ (beside the SDK, as tools/android/toolchain.sh lays it out)
 instead of a path written in."""
 from __future__ import annotations
@@ -28,7 +28,10 @@ class PySideRecipe(PythonRecipe):
     depends = ["shiboken6"]
     call_hostpython_via_targetpython = False
     install_in_hostpython = False
-    modules = ("QtWidgets", "QtGui", "QtCore")
+    modules = tuple(
+        f"Qt{module}"
+        for module in (Path(__file__).parents[2] / "qt-modules.txt").read_text().strip().split(",")
+    )
 
     @property
     def wheel_path(self) -> Path:
@@ -48,7 +51,8 @@ class PySideRecipe(PythonRecipe):
         lib_dir = Path(f"{self.ctx.get_python_install_dir(arch.arch)}/PySide6/Qt/lib")
         info("Copying Qt libraries to be loaded on startup")
         shutil.copytree(lib_dir, libs, dirs_exist_ok=True)
-        shutil.copyfile(lib_dir.parent.parent / "libpyside6.abi3.so", libs / "libpyside6.abi3.so")
+        for binding_library in lib_dir.parent.parent.glob("libpyside6*.so"):
+            shutil.copyfile(binding_library, libs / binding_library.name)
         for module in self.modules:
             shutil.copyfile(lib_dir.parent.parent / f"{module}.abi3.so", libs / f"{module}.abi3.so")
 

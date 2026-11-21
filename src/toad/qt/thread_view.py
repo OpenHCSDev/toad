@@ -31,7 +31,7 @@ from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer
 from toad.qt.conversation import QtConversation
 from toad.qt.goal import QtGoalBar
-from toad.qt.history import QT_FRAGMENT_CLASSES
+from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
 from toad.qt.metrics import UiGap
 from toad.qt.prompt_stack import QtInputDeliveryDetails, QtSessionDetails
 from toad.qt.question import QtQuestion

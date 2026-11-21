@@ -24,7 +24,7 @@ from toad.client.fragments import Shown
 from toad.client.subscribers import CallbackSubscription
 from toad.core.events import CoreEvent
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
-from toad.qt.history import QtToolTranscriptFragment
+from toad.qt.transcript_fragments import QtToolTranscriptFragment
 from toad.qt.live_turn import QtLiveBlock
 from toad.tool_output import TextToolOutputPart, ToolOutput
 from toad.client.fragments import GrowsInPlace

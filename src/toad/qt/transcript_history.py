@@ -21,7 +21,8 @@ from __future__ import annotations
 from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_coverage import ReportsCoveredPages
 from toad.client.prepared_pages import PreparedTranscriptPage, UnreadTranscriptPage
-from toad.qt.history import QT_FRAGMENT_CLASSES, QtConversationHistory
+from toad.qt.history import QtConversationHistory
+from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
 from toad.transcript_preparation import SavedTranscript
 
 
