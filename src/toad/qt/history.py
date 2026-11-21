@@ -52,7 +52,7 @@ from toad.client.history_pager import (
     ReaderPlacement,
     Runway,
 )
-from toad.client.line_blocks import Divider
+from toad.client.line_blocks import Divider, LineBlock
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
@@ -425,7 +425,7 @@ class HistoryRowDelegate(RowDocumentDelegate):
     def row_preparation(self, blocks, font: QFont, width: int) -> QtRowPreparation:
         """Data-only row work: Qt measures its monospace cell once; the worker owns HTML."""
         cell = max(1.0, QFontMetricsF(font).averageCharWidth())
-        cells = max(1, round((width - 8) / cell))
+        cells = max(1, int((width - 8) / cell))
         return QtRowPreparation(
             blocks=blocks,
             scheme=self.renderer.scheme,
@@ -437,7 +437,7 @@ class HistoryRowDelegate(RowDocumentDelegate):
     @staticmethod
     def html(renderer: QtLineRenderer, blocks, width: int, font: QFont) -> RowFormatting:
         cell = max(1.0, QFontMetricsF(font).averageCharWidth())
-        return HtmlRow(renderer.at_width(max(1, round((width - 8) / cell))).html(blocks))
+        return HtmlRow(renderer.at_width(max(1, int((width - 8) / cell))).html(blocks))
 
     @staticmethod
     def document_size(document: QTextDocument, available: int) -> QSize:
@@ -594,7 +594,7 @@ class HistoryRowDelegate(RowDocumentDelegate):
 class QtRowPreparation:
     """One Qt row's immutable presentation declarations, safe across either transport."""
 
-    blocks: tuple
+    blocks: tuple[LineBlock, ...]
     scheme: ColourScheme
     links: LinkContext
     diff: DiffSettings
