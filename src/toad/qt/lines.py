@@ -37,7 +37,7 @@ from toad.client.line_blocks import (
 from toad.client.line_painting import LineBlockPainter, LinkPresentation
 from toad.core.projection import MroProjection
 from toad.markdown_links import LinkContext, MessageMarkdownParser
-from toad.message_rows import DIVIDER_TIME, WireBody
+from toad.message_rows import CellRoom, DIVIDER_TIME, WireBody
 from toad.patch import (
     DiffSettings,
     NoPatchCell,
@@ -47,7 +47,6 @@ from toad.patch import (
     UnifiedRows,
 )
 from toad.rich_preparation import RichTextBody, palette_colour
-from toad.widgets.transcript_lines import CellRoom
 
 
 class QtLinkMarkup(LinkPresentation[tuple[str, str]]):

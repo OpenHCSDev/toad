@@ -55,7 +55,7 @@ from toad.client.line_blocks import (
 from toad.link_click import OpenLineLink
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
-from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
+from toad.message_rows import CellRoom, DIVIDER_TIME, WireBody
 from toad.patch import (
     DiffSettings,
     NoPatchCell,
@@ -141,16 +141,6 @@ class LinkStyle(LinkPresentation[Style]):
 
 
 LINK_STYLE = LinkStyle()
-
-
-@dataclass(frozen=True)
-class CellRoom(LineRoom):
-    """A divider line in a terminal: its width in cells, less the rule's ends."""
-
-    width: int
-
-    def fits(self, spans: tuple[Span, ...]) -> bool:
-        return sum(cell_len(span.text) for span in spans) <= max(1, self.width - 8)
 
 
 def _fit(text: str, width: int) -> str:
