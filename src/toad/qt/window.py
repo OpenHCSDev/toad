@@ -1522,7 +1522,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.action_keys = ActionKeys(lambda: self.settings)
         # Until a conversation reads Core's display references, bodies link the project's files.
         self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()),
-                                       self.settings.diff.marks)
+                                       self.settings.diff)
         # Notices and the work the reader waits on float over the pages, never in their layout.
         self.float_layer = QtFloatLayer(self.theme.color_scheme, self.renderer, self)
         # The one animation clock every effect's frames come from (ui_theme's
@@ -1834,7 +1834,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         pyqt-reactive applies to the whole application, then the renderer every widget
         holds, which repaints each widget's own colours (`QtLineRenderer.themed`)."""
         self.theme.apply_color_scheme(ColorScheme.from_theme(scheme))
-        self.renderer.follow(scheme, self.settings.diff.marks)
+        self.renderer.follow(scheme, self.settings.diff)
 
     def follow_wheel_scroll_rows(self) -> None:
         QApplication.setWheelScrollLines(self.settings.ui.wheel_scroll_rows)
