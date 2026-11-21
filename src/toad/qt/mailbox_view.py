@@ -62,8 +62,10 @@ class QtMailboxView(QtThreadView, BoundSources):
         # workspace lookups stay consistent through the swap; keep an empty default
         # until the swap sets it.
         self.id = ""
-        # `bind_thread` replaces this with the real ThreadIdentity.
-        self._identity: ThreadIdentity | NoThreadIdentity = NoThreadIdentity()
+        # The navigation result already owns the real identity.  History construction reads
+        # it to choose ``UnreadTranscript``; pretending to be unbound until ``bind_opened``
+        # made the empty page look already published and no first-page read was scheduled.
+        self._identity: ThreadIdentity | NoThreadIdentity = ThreadIdentity(thread_incarnation, root)
         self._lay_out_thread(app, f"Mailbox: {thread_incarnation.name}", thread_incarnation)
 
     def composer_class(self) -> type[MailboxComposer]:
@@ -128,28 +130,24 @@ class QtMailboxView(QtThreadView, BoundSources):
     # ---- Content lifecycle ----
 
     async def _prepare_content(self) -> None:
-        """`ThreadOpening.mount` awaits this after bind. The transcript's
-        `_initial_page_source` built in `_setup_transcript` already reads from
-        `self.transcript.get_transcript_page`; the live page restore drives
-        through the pager without extra async work here."""
+        """Publish the first selected frame after navigation has bound this view.
+
+        The opening placeholder may already be selected when it is replaced,
+        but replacing the widget is not a visibility transition for the new
+        conversation: at that point `ThreadNavigator.mount` has not yet called
+        `prepared.bind` or `bind_opened`.  Publishing there sent the first
+        reload to an unbound transcript and left saved history unread until a
+        later message happened to refresh it.  This hook runs after both binds,
+        so the same `shown` transition used by later tab selections owns the
+        initial publication too.
+        """
+        if self.app.workspace_sessions.selected is self:
+            self.shown(self.app, lambda _identity: None)
 
     # ---- SessionScope lifecycle ----
 
     def belongs_to_wire(self, root) -> bool:
         return self.root == str(root)
-
-    # ---- Qt page lifecycle ----
-
-    def shown(self, window, visited) -> None:
-        """Publish whenever this page becomes current, by selection or placeholder swap.
-
-        Record the visit when the caller supplies one and the session tracker has registered
-        an identity, then publish a presentation retained before this bound page existed.
-        """
-        if self.session_details is not None:
-            visited(self.session_details.identity)
-        self.reload()
-        self.publish_selected_thread()
 
     def opening_failed(self, error: Exception) -> None:
         """If the opening path somehow fails AFTER the swap, surface the error

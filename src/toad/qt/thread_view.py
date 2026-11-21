@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messaging.channel_targets import CommandTarget
 from functools import partial
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
@@ -31,7 +31,7 @@ from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer
 from toad.qt.conversation import QtConversation
 from toad.qt.goal import QtGoalBar
-from toad.qt.history import QT_FRAGMENT_CLASSES
+from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
 from toad.qt.metrics import UiGap
 from toad.qt.prompt_stack import QtInputDeliveryDetails, QtSessionDetails
 from toad.qt.question import QtQuestion
@@ -142,23 +142,44 @@ class QtThreadView(
         # (`PreparedTranscriptPage`). Tool calls, sent messages, Claude chunks and
         # context events all feed in through this one source.
         self.message_history = QtTranscriptHistory(self.messages, self, app)
-        # Qt has no mount event: the view mounts one event-loop tick later, after the
-        # opener has bound its identity (`session_navigation.bind_opened`).
-        QTimer.singleShot(0, self._mount_transcript)
 
     def _mount_transcript(self) -> None:
-        """Bind the transcript and mount its history, in the order Textual's mounts run:
+        """Bind the transcript once and mount its history, in Textual's mount order:
         `Conversation.on_mount` binds, then `TranscriptHistory.on_mount` observes the source
         and lets the history's state schedule its first page through `BoundView`.
 
-        Binding observes the view's thread scope, so it waits for the mount: a mailbox view
-        learns its thread in `bind_thread`, after construction."""
+        The selected-page lifecycle calls this after navigation has attached the Qt widget
+        and bound a mailbox identity.  The binding itself is the mounted-state authority:
+        restored selections do not mount a second history."""
+        if self.transcript.binding.matches(self):
+            return
         if not self.is_attached:
             return
         self.transcript.bind(self)
         self.attach_history(self.message_history)
         for row in self.activity:
             row.mount()
+
+    def activate_selected_thread(self) -> None:
+        """Activate state specific to a selected thread kind.
+
+        A mailbox has no native agent to attach.  The ACP member overrides this one
+        difference; mounting, refreshing and publishing remain one inherited lifecycle.
+        """
+
+    def shown(self, window, visited) -> None:
+        """Attach and publish the selected thread through one nominal lifecycle.
+
+        A zero-delay timer cannot represent attachment: on Android it could run before the
+        restored widget had a parent, return, and leave history blank until a later message
+        caused another publication.  Page selection is the actual attachment boundary.
+        """
+        if self.session_details is not None:
+            visited(self.session_details.identity)
+        self._mount_transcript()
+        self.activate_selected_thread()
+        self.reload()
+        self.publish_selected_thread()
 
     def _setup_prompt_stack(self, app: QtToadApp, layout: QVBoxLayout, incarnation) -> None:
         """Mount, under the transcript, the rows Textual's `Conversation.compose` yields

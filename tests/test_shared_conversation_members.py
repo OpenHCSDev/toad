@@ -16,6 +16,7 @@ def test_both_conversations_read_their_scope_status_and_loading_from_the_shared_
         assert conversation.status_thread is TranscriptView.status_thread, conversation
         assert conversation.history_loading is WorkingStatusOwner.history_loading, conversation
         assert conversation.external_transcript_changed is SourcedConversation.external_transcript_changed
+        assert conversation.reload is SourcedConversation.reload
         # One name for "the thread's source changed outside this view".
         assert not hasattr(conversation, "transcript_changed"), conversation
 

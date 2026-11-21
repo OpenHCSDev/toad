@@ -131,7 +131,8 @@ from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerEditor, MessageComposer
 from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
-from toad.qt.history import QtWireFragment, QtWireHistory
+from toad.qt.history import QtWireHistory
+from toad.qt.transcript_fragments import QtWireFragment
 from toad.menus import MenuCommand, MenuConversation
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.qt.menu import QtMenu
@@ -372,9 +373,9 @@ class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
     def wave_span(self) -> tuple[int, int] | None:
         """The band's cells over the line's width in cells, as Textual's row paints it."""
         tree = self.treeWidget()
-        if self.animation is None or tree is None:
+        if not self.wave_running() or tree is None:
             return None
-        return self.band_cells(self.animation.frame(), tree.line_width(self) // tree.fontMetrics().averageCharWidth())
+        return self.band_cells(self.wave_frame(), tree.line_width(self) // tree.fontMetrics().averageCharWidth())
 
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
@@ -1484,7 +1485,13 @@ class QtWorkspaceViews(WorkspaceViews):
         when the opening placeholder transitions into the real bound view
         (Qt analogue of Textual's MainScreen handling both phases on one
         instance). The caller is responsible for setting `new.id = old.id`
-        before this runs."""
+        before this runs.
+
+        This is only the structural replacement.  The replacement is not a
+        visible conversation yet: `ThreadNavigator.mount` still has to bind
+        its sources and thread.  Its `_prepare_content` method publishes the
+        first selected frame after those facts exist.
+        """
         mode = old.mode
         index = self.pages.indexOf(old)
         was_current = self.pages.currentWidget() is old
@@ -1497,12 +1504,6 @@ class QtWorkspaceViews(WorkspaceViews):
             self.views[mode] = new
         if was_current:
             self.pages.setCurrentWidget(new)
-            # The placeholder was selected before the bound page existed.  Replacing the
-            # current native widget is therefore the bound page's first ``shown`` boundary;
-            # QStackedWidget does not replay the earlier selection for its replacement.
-            # This is the same tab, not a new visit, so publish visibility without adding a
-            # second history entry.
-            new.shown(self.app, lambda _identity: None)
         old.deleteLater()
 
 
@@ -1529,8 +1530,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # Until a conversation reads Core's display references, bodies link the project's files.
         self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()),
                                        self.settings.diff)
-        # Notices and the work the reader waits on float over the pages, never in their layout.
-        self.float_layer = QtFloatLayer(self.theme.color_scheme, self.renderer, self)
         # The one animation clock every effect's frames come from (ui_theme's
         # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
         self._animation_timer = QTimer(self)
@@ -1540,6 +1539,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._animation_timer.timeout.connect(self._tick_animation)
         self._layout_pending = False
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
+        # Notices and the work the reader waits on float over the pages, never in their layout.
+        self.float_layer = QtFloatLayer(self.theme.color_scheme, self.renderer, self)
         # One background task per transfer kind, cancelled + replaced when the same
         # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
         # Populated by `start_transfer_task`; the dict is the live registry.

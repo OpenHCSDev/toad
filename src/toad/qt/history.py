@@ -25,7 +25,6 @@ from pathlib import Path
 from typing import ClassVar
 from weakref import WeakSet
 
-from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QTextDocument
@@ -34,7 +33,7 @@ from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDel
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
-from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
+from toad.client.fragments import FragmentDetails, HistoryFragment, Shown
 from toad.core.projection import MroProjection
 from toad.link_opening import OpensLineLinks
 from toad.navigation_target import NavigationTarget
@@ -61,14 +60,6 @@ from toad.client.reader_position import (
     FragmentLocation, FragmentPosition, ReaderPage, ReaderPosition, RowPosition, TailPosition,
     UnloadedFragment,
 )
-from toad.client.transcript_fragments import (
-    BusMessageFragment,
-    ContextTranscriptFragment,
-    FragmentClasses,
-    SentMessageFragment,
-    ToolTranscriptFragment,
-    TranscriptFragment,
-)
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.widget_view import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
@@ -79,6 +70,15 @@ from toad.patch import DiffSettings
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
 from toad.qt.widget_animation import WidgetAnimation, frame_interval
+from toad.qt.transcript_fragments import (
+    QT_FRAGMENT_CLASSES,
+    QtContextTranscriptFragment,
+    QtMembershipFragment,
+    QtMessageFragment,
+    QtSentMessageFragment,
+    QtToolTranscriptFragment,
+    QtWireFragment,
+)
 from toad.render_backend import RenderTask
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
@@ -87,61 +87,6 @@ from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, Pr
 
 if TYPE_CHECKING:
     from toad.qt.live_turn import QtLiveBlock
-
-
-class QtWireFragment(EvidencedFragment, TranscriptFragment):
-    """A wire message drawn by Qt, and the root of Qt's wire fragments: a message's role
-    selects the member declared under it. Also a `TranscriptFragment`, so a transcript
-    source feeding this family decodes the same shape Textual's `WireFragment` does in
-    `src/toad/widgets/wire_history.py:30`."""
-
-
-class QtMembershipFragment(MembershipText, QtWireFragment, shows=(Membership,)):
-    """Someone joined or left, drawn by Qt."""
-
-
-class QtMessageFragment(WireMessage, BusMessageFragment, QtWireFragment,
-                        shows=(ConversationRole, NoticeRole)):
-    """A bus message drawn by Qt. Also a `BusMessageFragment`, so the same type answers whether
-    it was decoded from a wire read or from a transcript event — same bridge Textual's
-    `MessageFragment` makes at `src/toad/widgets/wire_history.py:50`."""
-
-
-class QtToolTranscriptFragment(ToolTranscriptFragment):
-    """A tool call drawn by Qt: the canonical blocks derivation is enough; the row delegate
-    paints through `line_blocks`, so Qt adds no row acquisition. Textual's sibling in
-    `toad.widgets.transcript_fragments.ToolTranscriptFragment` layers on row acquisition."""
-
-
-class QtContextTranscriptFragment(ContextTranscriptFragment):
-    """The coordination context an agent was given, drawn by Qt."""
-
-
-@dataclass(kw_only=True)
-class QtSentMessageFragment(SentMessageFragment, EvidencedFragment):
-    """A sent bus message drawn by Qt — the Qt flavor Qt's QtPage uses as
-    `sent_message` in `QT_FRAGMENT_CLASSES`. Also an `EvidencedFragment` so
-    `QtHistoryWindow.row_painted → self.history.retain_painted(fragment)` can
-    read `fragment.evidence` without `AttributeError`. The client's bare
-    `SentMessageFragment` lacks that field; Textual pairs it with its own
-    EvidencedFragment-bearing bases at `widgets/transcript_fragments.py:170`.
-    `@dataclass(kw_only=True)` so EvidencedFragment's `evidence` field
-    actually lands on the instance; without it the two bases' dataclass
-    declarations don't combine and `fragment.evidence` raises AttributeError."""
-    evidence: object | None = None
-
-
-QT_FRAGMENT_CLASSES = FragmentClasses(
-    transcript=TranscriptFragment,
-    context=QtContextTranscriptFragment,
-    bus_message=QtMessageFragment,
-    sent_message=QtSentMessageFragment,
-    tool=QtToolTranscriptFragment,
-)
-"""The Qt flavor of the shared fragment family. A render pipeline that reaches Qt (a future
-Qt entry for `AcpTab`/`MailboxTab`) passes this to `transcript_fragments(..., classes=...)`;
-the current CommsTab path still goes through `WireSource` with the Qt wire fragments, since
-bus messages have no transcript builder in the loop."""
 
 
 class QtPage(ReaderPage):
@@ -684,7 +629,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self._read_task: asyncio.Task | NoTask = NoTask()
         self._read_ahead: asyncio.Task | NoTask = NoTask()
         prepared = self.empty_page()
-        super().__init__(source_state=LiveTranscript(),
+        super().__init__(source_state=self.initial_state(view),
                          page_source=self._initial_page_source(prepared, app))
         self.budget = self.DEFAULT_BUDGET
         self._fragment_budget = self.budget.max_items

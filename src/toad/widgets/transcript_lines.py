@@ -499,14 +499,10 @@ class RichLineRenderer(LineBlockPainter[None]):
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:
-        room = max(0, self.width - sum(cell_len(span.text) for span in block.kept))
-        row: list[Segment] = []
-        for span in block.spans:
-            text = _fit(span.text, room)
-            room -= cell_len(text)
-            row.append(Segment(text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link)))
-        row.extend(Segment(span.text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link)) for span in block.kept)
-        self.output.append(tuple(row))
+        self.output.append(tuple(
+            Segment(span.text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link))
+            for span in block.fitted(self.width)
+        ))
 
     @handles(Spans)
     def spans(self, block: Spans) -> None:

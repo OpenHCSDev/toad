@@ -221,8 +221,9 @@ class QtLineRenderer(LineBlockPainter[str]):
     @handles(Summary)
     def summary(self, block: Summary) -> str:
         """One row: the kept spans' room is reserved and the rest elides at the row's end."""
-        return ('<p style="white-space:pre">' + "".join(self.span(span, span.role) for span in block.spans)
-                + "".join(self.span(span, span.role) for span in block.kept) + "</p>")
+        return ('<p style="white-space:pre">'
+                + "".join(self.span(span, span.role) for span in block.fitted(self.width))
+                + "</p>")
 
     @handles(SpanColumns)
     def span_columns(self, block: SpanColumns) -> str:

@@ -5,14 +5,12 @@ peer with its status and Toad's activity sweep while the peer works."""
 from __future__ import annotations
 
 from collections.abc import Callable
-from time import monotonic
-
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
-from PySide6.QtCore import QPointF, Qt, QTimer
-from PySide6.QtGui import QColor, QLinearGradient, QPainter, QPolygonF
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QLabel, QProgressBar, QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.effects import ACTIVITY_SWEEP
 
@@ -25,7 +23,6 @@ from toad.client.line_blocks import NO_LINK, MutedRole
 from toad.client.prompt_stack import ObservedSweep
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
-from toad.qt.widget_animation import frame_interval
 from toad.status_thread import ObservedActivity
 from toad.qt.metrics import UiGap
 
@@ -73,68 +70,39 @@ class ChannelActivity(ChannelActivityTitle, QLabel):
         self.activity_model.threads.unsubscribe(self.rows_changed)
 
 
-class ActivitySweep(QWidget):
+class ActivitySweep(QProgressBar):
     """Toad's activity sweep: the shared ACTIVITY_SWEEP ribbon drawn across the strip as one
-    filled outline, its colours a gradient sampled from the ribbon and its height the
-    ribbon's thickness, tapered at both tails as `Ribbon.sample` says.
-
-    The effect's shape, colours and timing are shared with Textual; how often it is drawn is
-    each toolkit's own. A terminal draws whole cells, so the effect's 20 frames a second already
-    move the band a cell at a time; Qt draws pixels, and at 20 a second the band jumped about
-    6 px a frame on the phone and looked laggy (Tristan, 2026-11-18). Qt draws at the screen's
-    refresh rate, and each frame is 33 ribbon samples and one antialiased fill in Qt, where it
-    was a Python sample and a pixel write per column."""
-
-    samples = 32
-    """Points along the ribbon: each gives a gradient stop and the outline's half-height."""
+    native Qt style animation. Python publishes only the working transition; Qt's C++ style
+    owns every frame after that. Android cannot embed a Quick scene in its Widgets surface:
+    its Quick child becomes a second full-screen surface and covers the application black."""
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
         self.renderer = renderer
         self.working = False
-        self.started = monotonic()
-        # One text row, always reserved, as Textual's throbber row: only its paint changes.
+        self.setTextVisible(False)
+        self.setRange(0, 1)
+        self.setValue(0)
         self.setFixedHeight(self.fontMetrics().lineSpacing())
-        self.timer = QTimer(self)
-        self.timer.setTimerType(Qt.TimerType.PreciseTimer)
-        self.timer.timeout.connect(self.update)
+        renderer.themed(self, self.follow_theme)
+
+    def follow_theme(self) -> None:
+        colours = []
+        for tone in ACTIVITY_SWEEP.stops:
+            ink = tone.rgb(self.renderer.scheme)
+            colours.append(QColor(ink.red, ink.green, ink.blue).name())
+        self.setStyleSheet(
+            "QProgressBar { border: 0; background: transparent; }"
+            "QProgressBar::chunk { border: 0; "
+            f"background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 {colours[0]},"
+            f"stop:0.5 {colours[1]},stop:1 {colours[2]}); }}"
+        )
 
     def sweep(self, working: bool) -> None:
+        if working == self.working:
+            return
         self.working = working
-        if working:
-            self.timer.start(max(1, round(frame_interval(self.screen()) * 1000)))
-        else:
-            self.timer.stop()
-        self.update()
-
-    def paintEvent(self, event) -> None:
-        if not self.working:
-            return
-        frame = ACTIVITY_SWEEP.frame(monotonic() - self.started)
-        width, height = self.width(), self.height()
-        if width <= 0 or height <= 0 or frame.end <= frame.start:
-            return
-        scheme = self.renderer.scheme
-        left, right = frame.start * width, frame.end * width
-        gradient = QLinearGradient(left, 0.0, right, 0.0)
-        upper, lower = [], []
-        for step in range(self.samples + 1):
-            place = step / self.samples
-            x = left + (right - left) * place
-            # The ribbon's ends sample as no ink; their colour is the one just inside.
-            inside = frame.start + (frame.end - frame.start) * min(max(place, 1e-6), 1 - 1e-6)
-            start, end, amount, _ = frame.sample(inside)
-            ink = start.rgb(scheme).blend(end.rgb(scheme), amount)
-            gradient.setColorAt(place, QColor(ink.red, ink.green, ink.blue))
-            half = height * frame.sample(x / width)[3] / 2
-            upper.append(QPointF(x, height / 2 - half))
-            lower.append(QPointF(x, height / 2 + half))
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(gradient)
-        painter.drawPolygon(QPolygonF(upper + lower[::-1]))
-        painter.end()
+        self.setRange(0, 0) if working else self.setRange(0, 1)
 
 
 class QtObservedSweep(ObservedSweep, ActivitySweep):

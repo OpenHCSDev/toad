@@ -94,17 +94,22 @@ if wal.is_file():
 
 sdk = toolchain / "sdk"
 wheel = next((toolchain / "wheels").glob(f"pyside6-{PySide6.__version__}-*android_aarch64.whl"))
+qt_modules = (HERE / "qt-modules.txt").read_text().strip().split(",")
 with zipfile.ZipFile(wheel) as archive:
     for member in archive.namelist():
         if member.startswith("PySide6/jar/") and member.endswith(".jar"):
             archive.extract(member, app / "jar")
+jars = ["Qt6Android.jar", "Qt6AndroidBindings.jar"]
+if any(module.startswith(("Quick", "Qml")) for module in qt_modules):
+    jars.append("Qt6AndroidQuick.jar")
 (app / "buildozer.spec").write_text(Template(SPEC.read_text()).substitute(
     app=app,
     sdk=sdk,
     ndk=max((sdk / "ndk").iterdir()),
     recipes=HERE / "recipes",
     keepalive=HERE / "keepalive",
-    jars=app / "jar" / "PySide6" / "jar",
+    jars=",".join(str(app / "jar" / "PySide6" / "jar" / jar) for jar in jars),
+    qt_modules=",".join(qt_modules),
     icon=Path(PySide6.__file__).parent / "scripts" / "deploy_lib" / "pyside_icon.jpg",
     exclude_dirs=excluded_folders(),
     exclude_files=excluded_files(),
