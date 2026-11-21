@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import asyncio
+from math import ceil
 
 import shiboken6
 from collections import deque
@@ -26,9 +27,9 @@ from weakref import WeakSet
 
 from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
-from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QPainter, QPixmap, QTextDocument
-from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
+from PySide6.QtWidgets import QAbstractItemView, QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
@@ -423,6 +424,36 @@ class HistoryRowDelegate(RowDocumentDelegate):
     @staticmethod
     def html(renderer: QtLineRenderer, blocks, width: int, font: QFont) -> RowFormatting:
         return HtmlRow(renderer.at_width(width - 8, font).html(blocks))
+
+    @staticmethod
+    def document_size(document: QTextDocument, available: int) -> QSize:
+        """The document owns its horizontal extent.
+
+        Wrapped bodies remain at the viewport width. ``pre`` blocks (diffs, code and
+        tool output) report their intrinsic width, which is what gives the shared
+        history view one horizontal scrollbar instead of clipping each preview.
+        """
+        return QSize(max(available, ceil(document.idealWidth()), ceil(document.size().width())),
+                     ceil(document.size().height()))
+
+    def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument:
+        # A wide row's paint rect is its intrinsic extent. Layout still uses the
+        # viewport width, or wrapped prose would stop wrapping after scrolling code.
+        width = self.view.viewport_width() or option.rect.width()
+        return self.row_document(index, option.font, width)
+
+    def sizeHint(self, option, index) -> QSize:  # type: ignore[override]
+        opt = QStyleOptionViewItem(option)
+        self.initStyleOption(opt, index)
+        width = self.view.viewport_width() or self.available_width(opt)
+        opt.rect.setWidth(width)
+        # pyqt-reactive owns the cached height at the layout width. Horizontal
+        # extent is a separate derived answer; storing it in the same QSize made
+        # its row-size cache mistake content width for a new layout width.
+        height = super().sizeHint(opt, index).height()
+        document = self.final_document(index, opt.font, width)
+        extent = width if document is None else self.document_size(document, width).width()
+        return QSize(extent, height)
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared
@@ -1058,6 +1089,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     def __init__(self, renderer: QtLineRenderer, scope, parent: QWidget | None = None) -> None:
         super().__init__(HistoryRowDelegate(renderer), parent)
+        self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
         renderer.follows_theme(self, self.restyle_rows)

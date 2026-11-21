@@ -19,6 +19,7 @@ from ui_theme.colour import require_terminal_palette
 
 from markdown_it import MarkdownIt
 from metaclass_registry.mro_dispatch import handles
+from toad.core.projection import MroProjection
 from ui_theme.scheme import ColourScheme, RuleColour, ThemeColour
 
 from toad.client.line_blocks import (
@@ -40,7 +41,14 @@ from toad.client.line_blocks import (
 from toad.client.line_painting import LineBlockPainter, LinkPresentation
 from toad.markdown_links import LinkContext, MessageMarkdownParser
 from toad.message_rows import DIVIDER_TIME, LineRoom, WireBody
-from toad.patch import DiffMarks, Patch
+from toad.patch import (
+    DiffSettings,
+    NoPatchCell,
+    Patch,
+    PatchCell,
+    SplitRows,
+    UnifiedRows,
+)
 from toad.rich_preparation import RichTextBody, palette_colour
 
 
@@ -82,23 +90,23 @@ QT_LINK_MARKUP = QtLinkMarkup()
 class QtLineRenderer(LineBlockPainter[str]):
     """Each shared block as a fragment of Qt rich text; Markdown through the shared parser."""
 
-    def __init__(self, scheme: ColourScheme, links: LinkContext, diff_marks: DiffMarks) -> None:
+    def __init__(self, scheme: ColourScheme, links: LinkContext, diff: DiffSettings) -> None:
         self.links = links
         self.followers: list[Callable[[], None]] = []
         """What repaints when this renderer's scheme or diff marks change (`follows_theme`)."""
         # HTML emission only; a source line break stays a line, as Rich draws soft breaks.
         self.markdown = MarkdownIt("gfm-like", {"breaks": True, "highlight": self.highlight})
         self.markdown.renderer.rules["link_open"] = self.link_open
-        self.follow(scheme, diff_marks)
+        self.follow(scheme, diff)
         self.width = 0.0
         self.font = QFont()
 
-    def follow(self, scheme: ColourScheme, diff_marks: DiffMarks) -> None:
-        """Draw under this scheme with these diff marks from now on (`ui.theme`, `diff`).
+    def follow(self, scheme: ColourScheme, diff: DiffSettings) -> None:
+        """Draw under this scheme with these diff settings from now on (`ui.theme`, `diff`).
         The app's renderer is the one its widgets hold; a preparation already on the pool
         keeps the copy it was handed (`bound`)."""
         self.scheme = scheme
-        self.diff_marks = diff_marks
+        self.diff = diff
         self.terminal = scheme.terminal.resolve(require_terminal_palette)
         # Toad draws code in the terminal palette through Rich's ANSI syntax theme.
         self.syntax = ANSI_DARK if scheme.dark else ANSI_LIGHT
@@ -274,10 +282,11 @@ class QtLineRenderer(LineBlockPainter[str]):
 
     @handles(Patch)
     def patch(self, block: Patch) -> str:
-        groups = self.styled("…\n", MutedRole).join(
-            "".join(self.patch_line(gutter, code, role, block.language) for gutter, code, role in group)
-            for group in block.unified_lines(self.diff_marks))
-        return f'<p style="white-space:pre">{self.styled(block.title, MutedRole)}</p><pre>{groups}</pre>'
+        longest = max((self.font_metrics.horizontalAdvance(line.expandtabs(4))
+                       for line in (*block.before.values(), *block.after.values())), default=0.0)
+        gutter = self.font_metrics.horizontalAdvance("0" * (2 * block.number_width + 6))
+        rows = self.diff.view.rows_at(round(self.width), round(2 * (longest + gutter)))
+        return QtPatchPainter(self, block).project_value(rows)
 
     def patch_line(self, gutter: str, code: str, role: type[LineRole], language: str) -> str:
         """One diff row on its role's tint, its code in its language's colours."""
@@ -287,8 +296,74 @@ class QtLineRenderer(LineBlockPainter[str]):
         return (f'<span style="background-color:{background}">{self.styled(gutter, role.gutter())}'
                 f'{self.code_spans(code, language) or self.styled(code, role)}</span>\n')
 
+    @property
+    def font_metrics(self) -> QFontMetricsF:
+        return QFontMetricsF(self.font)
+
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> str:
         text = "".join(f'<span style="{self.style_css(segment.style or Style())}">{escape(segment.text)}</span>'
                        for segment in block.segments)
         return self.barred(f'<pre style="color:{self.colour(block.role)}">{text}</pre>', block.bar)
+
+
+class QtPatchSide(MroProjection[str]):
+    """One declared side of a Qt diff row: code, or the absent member."""
+
+    def __init__(self, renderer: QtLineRenderer, patch: Patch) -> None:
+        self.renderer, self.patch = renderer, patch
+
+    @handles(PatchCell)
+    def cell(self, cell: PatchCell, gutter: str) -> str:
+        return self.renderer.patch_line(gutter, cell.selected().expandtabs(4), cell.role, self.patch.language)
+
+    @handles(NoPatchCell)
+    def absent(self, cell: NoPatchCell, gutter: str) -> str:
+        return self.renderer.styled(gutter + " ", MutedRole)
+
+
+class QtPatchPainter(MroProjection[str]):
+    """The shared diff-row family drawn in Qt, under the same view and wrap declarations as Textual."""
+
+    def __init__(self, renderer: QtLineRenderer, patch: Patch) -> None:
+        self.renderer, self.patch = renderer, patch
+        self.side = QtPatchSide(renderer, patch)
+
+    @property
+    def white_space(self) -> str:
+        return self.renderer.diff.wrap.css_white_space
+
+    def table(self, body: str) -> str:
+        title = self.renderer.styled(self.patch.title, MutedRole)
+        return (f'<p style="white-space:{self.white_space}">{title}</p>'
+                f'<table cellspacing="0" cellpadding="0" style="white-space:{self.white_space}">{body}</table>')
+
+    @handles(UnifiedRows)
+    def unified(self, rows: UnifiedRows) -> str:
+        width = self.patch.number_width
+        groups = []
+        for group in self.patch.row_groups(rows):
+            rendered = []
+            for before, after in group:
+                cell = before.otherwise(after)
+                gutter = f"{before.label:>{width}} {after.label:>{width}} {self.renderer.diff.marks.prefix(cell.role)}"
+                rendered.append(f'<tr><td>{self.side.project_value(cell, gutter)}</td></tr>')
+            groups.append("".join(rendered))
+        separator = f'<tr><td>{self.renderer.styled("…", MutedRole)}</td></tr>'
+        return self.table(separator.join(groups))
+
+    @handles(SplitRows)
+    def split(self, rows: SplitRows) -> str:
+        width = self.patch.number_width
+        groups = []
+        for group in self.patch.row_groups(rows):
+            rendered = []
+            for before, after in group:
+                left = f"{before.label:>{width}} {self.renderer.diff.marks.prefix(before.role)}"
+                right = f"{after.label:>{width}} {self.renderer.diff.marks.prefix(after.role)}"
+                rendered.append(f'<tr><td>{self.side.project_value(before, left)}</td>'
+                                f'<td>{self.side.project_value(after, right)}</td></tr>')
+            groups.append("".join(rendered))
+        separator = (f'<tr><td>{self.renderer.styled("…", MutedRole)}</td>'
+                     f'<td>{self.renderer.styled("…", MutedRole)}</td></tr>')
+        return self.table(separator.join(groups))

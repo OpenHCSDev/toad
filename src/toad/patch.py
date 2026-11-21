@@ -29,6 +29,7 @@ class PatchSide:
     """One side of a diff row: a numbered line, or no line on that side."""
 
     label = ""
+    role: type[LineRole] = TextRole
 
     def selected(self) -> str:
         """The text copied from this side; a side with no line copies nothing."""
@@ -163,6 +164,7 @@ class AutoDiff(TitledChoice, DiffMode):
 
 class WrapMode(DeclaredChoice, affix="Mode"):
     enabled = False
+    css_white_space = "pre"
 
     @classmethod
     def fitted_width(cls, available: int, content: int) -> int:
@@ -176,6 +178,7 @@ class NoWrapMode(TitledChoice, WrapMode, declared_name="no-wrap"):
 class WrapModeEnabled(TitledChoice, WrapMode, declared_name="wrap"):
     title = "Wrap long lines"
     enabled = True
+    css_white_space = "pre-wrap"
 
     @classmethod
     def fitted_width(cls, available: int, content: int) -> int:
