@@ -45,7 +45,7 @@ public class ToadActivity extends PythonActivity {
     public void onCreate(Bundle savedInstanceState) {
         // The composer is part of the app's visible window, not a surface the keyboard may
         // cover. Resizing the window leaves Qt's layout in charge: history gives up height,
-        // while Composer keeps its declared one-to-five-line editor and then scrolls within it.
+        // while Composer derives its shared viewport limit and then scrolls within it.
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         // Qt's accessibility bridge stays off: any enabled accessibility service (on this
         // phone, Fluid Navigation Gestures; TalkBack is off) makes Qt's QtAccessibilityDelegate

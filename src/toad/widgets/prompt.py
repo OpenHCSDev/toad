@@ -475,7 +475,7 @@ See on-screen instructions for details.
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
-        self.styles.max_height = "50vh"
+        self.styles.max_height = f"{PromptComposer.maximum_editor_viewport_percent}vh"
 
     def refuse_input(self, message: str) -> None:
         self.app.bell()

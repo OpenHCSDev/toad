@@ -54,6 +54,13 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     queue_summary_lines: ClassVar[int] = 3
     """The queue summary's most lines; a longer one is cut there, so its wrapping never
     pushes the history further."""
+    maximum_editor_viewport_percent: ClassVar[int] = 50
+    """The visible viewport the editor may occupy before its own scrolling takes over.
+
+    Textual expresses this as ``vh`` and Qt resolves it to native pixels after Android's
+    keyboard resizes the window.  It is one layout fact, not a terminal percentage beside
+    a phone-only line count.
+    """
     # The surface the composer's area is painted on, a tier off the transcript above it.
     area_tone: ClassVar[type[ThemeColour]] = PromptToneColour
     # The delivery and queue lines' band over that area, and the field typed into, a tier off
@@ -65,6 +72,20 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     @abstractmethod
     def settings(self):
         """The settings whose `ui.input` symbols lead the input."""
+
+    @classmethod
+    def visible_editor_lines(
+        cls, typed_lines: int, viewport_height: int, line_height: int, vertical_room: int = 0
+    ) -> int:
+        """Lines shown before the editor scrolls, under the shared viewport limit.
+
+        ``vertical_room`` is native room inside the editor that is not a text line (Qt's
+        document margins).  Borders and the rest of the composer remain outside this editor
+        limit in both frontends.
+        """
+        available = viewport_height * cls.maximum_editor_viewport_percent // 100 - vertical_room
+        limit = max(1, available // max(1, line_height))
+        return min(max(1, typed_lines), limit)
 
     @property
     def operational_submissions(self):
