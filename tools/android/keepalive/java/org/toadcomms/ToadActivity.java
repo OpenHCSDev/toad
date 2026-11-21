@@ -73,7 +73,7 @@ public class ToadActivity extends PythonActivity {
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         ServiceToadrender.stop(this);
         super.onDestroy();
     }
