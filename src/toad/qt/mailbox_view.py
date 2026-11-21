@@ -150,16 +150,6 @@ class QtMailboxView(QtThreadView, BoundSources):
         """
         if self.session_details is not None:
             visited(self.session_details.identity)
-        # Visibility is the mailbox's native mount boundary.  The construction timer is
-        # only an event-loop convenience and can precede parenting on Android; finish the
-        # idempotent transcript mount here before asking its pager to draw.
-        self._mount_transcript()
-        # A restored mailbox mounts while it replaces its hidden opening page.  Its
-        # UnreadTranscript has already retained the latest-page request, but the pager
-        # cannot admit that work until this destination is visible.  Showing the page is
-        # the missing destination boundary: resume the request the pager owns instead of
-        # waiting for an unrelated send to schedule another preparation frame.
-        self.messages.request_preparation()
         self.reload()
         self.publish_selected_thread()
 

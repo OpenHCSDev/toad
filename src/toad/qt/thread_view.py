@@ -143,10 +143,7 @@ class QtThreadView(
         # context events all feed in through this one source.
         self.message_history = QtTranscriptHistory(self.messages, self, app)
         # Qt has no mount event: the view mounts one event-loop tick later, after the
-        # opener has bound its identity (`session_navigation.bind_opened`).  A mailbox
-        # also calls this from its real shown boundary: on Qt-for-Android a zero-delay
-        # timer may run while its replacement widget is still parentless, and showing
-        # that same widget must finish the mount rather than wait for a later message.
+        # opener has bound its identity (`session_navigation.bind_opened`).
         QTimer.singleShot(0, self._mount_transcript)
 
     def _mount_transcript(self) -> None:
@@ -156,7 +153,7 @@ class QtThreadView(
 
         Binding observes the view's thread scope, so it waits for the mount: a mailbox view
         learns its thread in `bind_thread`, after construction."""
-        if self.transcript.binding.matches(self) or not self.is_attached:
+        if not self.is_attached:
             return
         self.transcript.bind(self)
         self.attach_history(self.message_history)

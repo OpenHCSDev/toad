@@ -20,7 +20,6 @@ from toad.client.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCove
 from toad.client.history_preparation import NEWER_END, OLDER_END, PageRequest
 from toad.client.resource_release import ResourceRelease
 from toad.client.subscribers import CoreObserver
-from toad.transcript_scope import TranscriptView
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
@@ -323,7 +322,11 @@ class WaitingSourceWork[Owner, Snapshot, Result]:
 
     @contextmanager
     def observe(self):
-        scope = self.owner.query_ancestor(TranscriptView).thread_scope
+        # The pager's view owns the transcript scope in every frontend.  Asking the
+        # pager to walk a Textual ancestor happened to work there, but a Qt history is
+        # not a widget; on a cold Android read the unavailable-source path crashed here
+        # before it could subscribe and resume.  Read the declared owner directly.
+        scope = self.owner.view.thread_scope
         with scope.observe(self.owner, self.owner.app.coordination_access, self.resume):
             yield self
 
