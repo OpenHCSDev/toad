@@ -6,8 +6,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from agent_comms.messaging.display_references import ProjectReferences
-from pyqt_reactive.widgets.virtual_rows import VirtualRowView
-from PySide6.QtGui import QFont, QTextDocument
+from pyqt_reactive.widgets.virtual_rows import HtmlRow, VirtualRowView
+from PySide6.QtGui import QFont
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
@@ -77,21 +77,25 @@ def test_qt_row_batch_is_data_only_at_the_process_boundary() -> None:
 
 
 def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
+    """A row's extent is what its document came out as when it was laid out: wrapped prose
+    stays at the layout width, a `pre` block reports its own. The delegate keeps it with the
+    height, so the size hint that reads it lays nothing out."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
+    delegate = HistoryRowDelegate(renderer(DiffSettings()))
+    view = VirtualRowView(delegate)
+    font = QFont()
+    try:
+        delegate.measured_height("wrapped", font, 200, HtmlRow('<p style="white-space:pre-wrap">' + "x" * 200 + "</p>"))
+        delegate.measured_height("intrinsic", font, 200, HtmlRow("<pre>" + "x" * 200 + "</pre>"))
 
-    wrapped = QTextDocument()
-    wrapped.setDocumentMargin(0)
-    wrapped.setTextWidth(200)
-    wrapped.setHtml('<p style="white-space:pre-wrap">' + "x" * 200 + "</p>")
-    intrinsic = QTextDocument()
-    intrinsic.setDocumentMargin(0)
-    intrinsic.setTextWidth(200)
-    intrinsic.setHtml("<pre>" + "x" * 200 + "</pre>")
-
-    assert HistoryRowDelegate.document_size(wrapped, 200).width() == 200
-    assert HistoryRowDelegate.document_size(intrinsic, 200).width() > 200
-    app.quit()
+        assert delegate.row_extent("wrapped", 200) == 200
+        assert delegate.row_extent("intrinsic", 200) > 200
+        assert delegate.row_extent("not laid out", 200) == 200
+    finally:
+        delegate.cleanup()
+        view.deleteLater()
+        app.quit()
 
 
 def test_qt_tool_summary_is_clipped_by_the_shared_summary_owner() -> None:

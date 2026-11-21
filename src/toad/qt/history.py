@@ -13,7 +13,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import asyncio
-from math import ceil
 
 import shiboken6
 from collections import deque
@@ -384,17 +383,6 @@ class HistoryRowDelegate(RowDocumentDelegate):
         cell = max(1.0, QFontMetricsF(font).averageCharWidth())
         return HtmlRow(renderer.at_width(max(1, int((width - 8) / cell))).html(blocks))
 
-    @staticmethod
-    def document_size(document: QTextDocument, available: int) -> QSize:
-        """The document owns its horizontal extent.
-
-        Wrapped bodies remain at the viewport width. ``pre`` blocks (diffs, code and
-        tool output) report their intrinsic width, which is what gives the shared
-        history view one horizontal scrollbar instead of clipping each preview.
-        """
-        return QSize(max(available, ceil(document.idealWidth()), ceil(document.size().width())),
-                     ceil(document.size().height()))
-
     def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument:
         # A wide row's paint rect is its intrinsic extent. Layout still uses the
         # viewport width, or wrapped prose would stop wrapping after scrolling code.
@@ -406,13 +394,14 @@ class HistoryRowDelegate(RowDocumentDelegate):
         self.initStyleOption(opt, index)
         width = self.view.viewport_width() or self.available_width(opt)
         opt.rect.setWidth(width)
-        # pyqt-reactive owns the cached height at the layout width. Horizontal
-        # extent is a separate derived answer; storing it in the same QSize made
-        # its row-size cache mistake content width for a new layout width.
+        # pyqt-reactive owns the height at the layout width and, apart from it, how wide the
+        # row's content came out when it was laid out (`row_extent`): `pre` blocks (diffs, code,
+        # tool output) do not wrap, which is what gives the history one horizontal scrollbar
+        # instead of clipping each preview. Asking lays nothing out. Building each row's
+        # document here to ask it laid out every row a layout touched, away from the reader
+        # too, and queued the ones not prepared yet for a render inside this process.
         height = super().sizeHint(opt, index).height()
-        document = self.final_document(index, opt.font, width)
-        extent = width if document is None else self.document_size(document, width).width()
-        return QSize(extent, height)
+        return QSize(self.row_extent(self.preparation_key(index, opt.font, width), width), height)
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared
