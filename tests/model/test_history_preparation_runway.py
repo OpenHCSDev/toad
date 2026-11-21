@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from types import SimpleNamespace
 
 from toad.client.history_pager import (
-    DirectionalPreparation,
     NEWER_END,
     OLDER_END,
+    DirectionalPreparation,
     PresentationBudget,
     Runway,
 )
