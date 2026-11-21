@@ -378,6 +378,11 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             layout.addWidget(line)
         # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
+        # The top-level window is the viewport Android resizes above its keyboard.  Follow
+        # that resize as well as text changes, so an already-long draft gives room back to
+        # history when the keyboard appears.
+        self._viewport_window = host.app
+        self._viewport_window.installEventFilter(self)
         self.place_input_box()
         self.refresh_glyph()
         self.fit_height()
@@ -506,12 +511,21 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         return label
 
     def fit_height(self) -> None:
-        """Grow with the message up to five lines, as Textual's prompt grows."""
+        """Grow under the shared viewport limit, then scroll inside the editor."""
         typed = self.editor.document().blockCount()
-        lines = max(1, min(5, typed))
+        margin = 2 * self.document_margin()
+        lines = self.visible_editor_lines(
+            typed, self._viewport_window.height(), self.editor.fontMetrics().lineSpacing(), margin
+        )
         self.editor.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > 5 else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > lines else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.editor.setFixedHeight(self.editor_height(lines))
+
+    def eventFilter(self, watched, event) -> bool:  # type: ignore[override]
+        if watched is self._viewport_window and event.type() == QEvent.Type.Resize:
+            # Run after Qt has propagated the new top-level geometry through its layouts.
+            QTimer.singleShot(0, self.fit_height)
+        return super().eventFilter(watched, event)
 
     TOUCH_ROOM: ClassVar[int] = 16
     """Room the box adds around its text for a finger, split evenly above and below."""
