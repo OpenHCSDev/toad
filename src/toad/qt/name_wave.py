@@ -18,7 +18,6 @@ from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 from ui_theme.effects import Band
 
 from toad.client.name_wave import BandCells, NameWave
-from toad.client.platform import host
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 
 
@@ -71,33 +70,25 @@ class QtClockedWave(NameWave):
     A leaf says which clock that is and what a frame repaints."""
 
     animation = None
-    static = False
 
     def wave_clock(self):
         """The app's animation clock, as this wave's owner reaches it."""
         raise NotImplementedError
 
     def wave_running(self) -> bool:
-        return self.static or self.animation is not None
+        return self.animation is not None
 
     def start_wave(self) -> None:
-        if host.key == "android":
-            self.static = True
-            self.repaint()
-        else:
-            self.animation = self.wave_clock().start(self.name_wave, self)
+        self.animation = self.wave_clock().start(self.name_wave, self)
 
     def stop_wave(self) -> None:
-        self.static = False
         if self.animation is not None:
             self.animation.stop()
             self.animation = None
         self.repaint()
 
     def wave_frame(self) -> Band:
-        """The animated band, or Android's static full-name working accent."""
-        if self.static:
-            return Band(self.name_wave.colour, 0.0, 1.0)
+        """The shared name-wave band at the app clock's current frame."""
         if self.animation is None:
             raise RuntimeError("An idle name has no working frame")
         return self.animation.frame()
