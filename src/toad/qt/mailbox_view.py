@@ -149,19 +149,6 @@ class QtMailboxView(QtThreadView, BoundSources):
     def belongs_to_wire(self, root) -> bool:
         return self.root == str(root)
 
-    # ---- Qt page lifecycle ----
-
-    def shown(self, window, visited) -> None:
-        """Publish whenever this page becomes current, by selection or placeholder swap.
-
-        Record the visit when the caller supplies one and the session tracker has registered
-        an identity, then publish a presentation retained before this bound page existed.
-        """
-        if self.session_details is not None:
-            visited(self.session_details.identity)
-        self.reload()
-        self.publish_selected_thread()
-
     def opening_failed(self, error: Exception) -> None:
         """If the opening path somehow fails AFTER the swap, surface the error
         on the identity line so the user sees why nothing loaded. Normally the

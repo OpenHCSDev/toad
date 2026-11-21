@@ -181,7 +181,9 @@ def test_the_qt_thread_views_share_their_column_scope_wave_and_queue_rows():
     from toad.qt.window import ConversationRow
     from toad.surface_binding import SurfaceBinding
 
-    for member in ("_lay_out_thread", "transcript_scope", "identity_line", "thread_activity", "goal_bar"):
+    for member in (
+        "_lay_out_thread", "transcript_scope", "shown", "identity_line", "thread_activity", "goal_bar"
+    ):
         _owned_by(QtThreadView, member, QtAcpSessionView, QtMailboxView)
     for member in ("permission_changed", "prepare_terminal"):
         _owned_by(SurfaceBinding, member, QtSurfaceBinding)
