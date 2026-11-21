@@ -132,7 +132,8 @@ def test_the_surface_a_view_lends_its_agent_holds_the_view_weakly_on_both_fronte
     assert subscription.closed
 
 
-def test_a_view_with_nothing_to_wait_for_retire_or_reload_inherits_that_and_its_origin():
+def test_a_view_with_nothing_to_wait_for_or_retire_inherits_that_and_its_origin():
+    from toad.client.session_sources import SourcedConversation
     from toad.client.session_scope import NoSessionOrigin, SessionScope
     from toad.qt.acp_tab import QtAcpSessionView
     from toad.qt.mailbox_view import QtMailboxView
@@ -144,7 +145,8 @@ def test_a_view_with_nothing_to_wait_for_retire_or_reload_inherits_that_and_its_
     _owned_by(SessionScope, "wait_content_ready", QtMailboxView, QtOpeningSessionView, SessionView)
     _owned_by(SessionScope, "retire_presentation", QtMailboxView, QtOpeningSessionView)
     _owned_by(SessionScope, "origin", QtMailboxView, QtAcpSessionView, ConversationView)
-    _owned_by(Page, "reload", QtMailboxView, QtOpeningSessionView, QtAcpSessionView)
+    _owned_by(Page, "reload", QtOpeningSessionView)
+    _owned_by(SourcedConversation, "reload", QtMailboxView, QtAcpSessionView)
 
     class Channel(SessionScope):
         mode = "comms:#scratch"

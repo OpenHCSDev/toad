@@ -171,3 +171,14 @@ class SourcedConversation:
         shown or parked. Both toolkits route `ExternalTranscriptChanged` here; a view that
         waited for a status change instead held a CLI's newest item until its next one."""
         self.operational_sources.external_transcript_changed(self)
+
+    def reload(self) -> None:
+        """Read the conversation source when any revision it depends on advances.
+
+        A bus delivery and an external/native transcript append are different revision
+        sources for the same conversation.  The window deliberately reports both through
+        its page ``reload`` boundary; deriving that boundary from the conversation's one
+        source refresh keeps restore, selection, sends and later deliveries on the same
+        publication path.
+        """
+        self.external_transcript_changed()
