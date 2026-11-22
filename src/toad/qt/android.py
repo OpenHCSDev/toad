@@ -22,9 +22,12 @@ import sys
 import threading
 import time
 import traceback
+from collections.abc import Iterator
 
+from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QFont, QGuiApplication
+from PySide6.QtWidgets import QApplication, QWidget
 
 from toad import paths
 from toad.fatal_trace import FatalTrace
@@ -32,6 +35,7 @@ from toad.qt.android_app import KEPT
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.splash import QtSplash
 from toad.qt.theme import current_scheme
+
 
 class SessionRecord:
     """The states Android moved this run of the app through, one line each, kept so the next
@@ -130,11 +134,47 @@ def whole_pixel_ratio() -> None:
     scrolled paints covered over 90% of the viewport and 992 under 20%, one in eight.
 
     Rounded, the ratio is 3. Qt puts the remainder into the screen's logical DPI (72 becomes
-    63), so text sized in points keeps its physical size and as many characters fit a line;
-    lengths written in pixels (margins, rules) grow by a seventh. It is read when the
-    application is made, so this runs first. The frame probe's `display` line records the
-    ratio and the logical DPI the window got."""
+    63), so text sized in points keeps its physical size and as many characters fit a line
+    (`fonts_in_points` puts Android's fonts in points); lengths written in pixels (margins,
+    rules) grow by a seventh. It is read when the application is made, so this runs first.
+    The frame probe's `display` line records the ratio and the logical DPI the window got."""
     QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.Round)
+
+
+def qt_widget_classes() -> Iterator[str]:
+    """The name of every widget class Qt itself defines, the names it keeps a class's font
+    under. They are read from the module by name: PySide makes a class when it is first asked
+    for, so the classes already made are only the ones something has used."""
+    for name in dir(QtWidgets):
+        made = getattr(QtWidgets, name)
+        if isinstance(made, type) and issubclass(made, QWidget):
+            yield name
+
+
+def fonts_in_points() -> None:
+    """Put the fonts Android's theme gave the application in points, at the same number.
+
+    Qt's Android theme sizes its fonts in pixels, the system's size divided by the screen's
+    own ratio (2.625 on a Pixel 8a), whatever ratio Qt draws at: drawn at 3
+    (`whole_pixel_ratio`) the same pixel count came out a seventh bigger (the phone's
+    `display` line, 2026-11-22: `ratio=3.000 logical_dpi=63.0 font=-1.0pt`, a pixel-sized
+    font). A size in points follows the logical DPI, where Qt put the difference: 16 points
+    at 63 DPI is 14 of Qt's pixels, 42 of the screen's, what 16 pixels were at 2.625. At a
+    ratio that was whole already the DPI is 72, and a point is a pixel.
+
+    Setting the application's font drops the fonts the theme gave single widget classes, so
+    those are read first and set again, in points too."""
+    def in_points(font: QFont) -> QFont:
+        if font.pixelSize() > 0:
+            font.setPointSizeF(font.pixelSize())
+        return font
+
+    default = QApplication.font()
+    of_class = {name: QApplication.font(name) for name in qt_widget_classes()}
+    QApplication.setFont(in_points(QFont(default)))
+    for name, font in of_class.items():
+        if font != default:
+            QApplication.setFont(in_points(font), name)
 
 
 def main() -> None:
@@ -145,6 +185,7 @@ def main() -> None:
     # exists (tools/android/keepalive ToadActivity.onCreate sets QT_ANDROID_DISABLE_ACCESSIBILITY):
     # Qt reads it from Java while the activity is created, before this Python runs.
     application = FrameProbe.application(sys.argv[:1])
+    fonts_in_points()
     session = SessionRecord(time.time())
     application.applicationStateChanged.connect(session.changed)
     memory = SuspendedMemory()
