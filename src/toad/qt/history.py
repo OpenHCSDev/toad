@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 import asyncio
 
 import shiboken6
-from collections import deque
+from collections import OrderedDict, deque
 from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
@@ -47,6 +47,7 @@ from toad.client.history_pager import (
     DirectionalPreparation,
     DrawsBusMessages,
     NativePager,
+    NativePresentation,
     OffScreenRunway,
     PagingWindow,
     PresentationBudget,
@@ -334,8 +335,10 @@ class HistoryRowDelegate(RowDocumentDelegate):
     """The blocks own their spacing (`Gap`), as Textual's rows do: the parts of one message
     meet, so its accent bar runs unbroken from part to part."""
 
-    def __init__(self, renderer: QtLineRenderer) -> None:
+    def __init__(self, renderer: QtLineRenderer, pictures: RowPictures) -> None:
         super().__init__()
+        self.pictures = pictures
+        """The app's drawn rows (`RowPictures`), shared by every history it has open."""
         # Each drawn row's last prepared look (`styled_formatting`), by `row_identity`.
         self.last_shown: dict = {}
         self.app_renderer = renderer
@@ -344,8 +347,6 @@ class HistoryRowDelegate(RowDocumentDelegate):
         """Replaced, never mutated, when the link context settles or the app's renderer
         restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
-        # A rising row's picture while it fades in, by fragment key: (look, pixmap).
-        self.fading: dict = {}
 
     def link(self, links: LinkContext) -> None:
         """Rows draw with these names from now on; rows prepared before are stale."""
@@ -497,39 +498,112 @@ class HistoryRowDelegate(RowDocumentDelegate):
         self._row_prepared(key, formatting)
 
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
+        """A row is drawn from its picture (`row_picture`): a scroll moves the same rows a few
+        pixels a frame, and laying a row's rich text out and drawing every glyph again each
+        frame was most of the phone's work while scrolling. A rising row's fade paints the
+        same picture at that frame's opacity."""
         fragment = index.data(HistoryRows.FRAGMENT)
         opacity = self.view.arrival_opacity(fragment.key) if self.view.arrivals else None
-        if opacity is None:
-            self.fading.pop(fragment.key, None)
+        picture = self.row_picture(painter, option, index, fragment.key, kept=opacity is not None)
+        if picture is None:
             super().paint(painter, option, index)
         else:
             painter.save()
-            painter.setOpacity(opacity)
-            painter.drawPixmap(option.rect.topLeft(), self.fading_picture(painter, option, index, fragment.key))
+            if opacity is not None:
+                painter.setOpacity(opacity)
+            painter.drawPixmap(option.rect.topLeft(), picture)
             painter.restore()
         self.view.row_painted(fragment, option.rect)
 
-    def fading_picture(self, painter: QPainter, option, index, key) -> QPixmap:
-        """A rising row drawn once into a picture, which each frame of its fade paints at that
-        frame's opacity: its look does not change while it rises, and laying its rich text out
-        and drawing every glyph again each frame was most of a burst's repaint on the phone
-        (2026-11-18). A new width, height, pixel ratio or document draws it again."""
+    def release_documents(self) -> None:
+        """Pictures are drawn from documents and hold them: they go with them (Android
+        suspending the app, a new width)."""
+        super().release_documents()
+        self.pictures.clear()
+
+    def row_picture(self, painter: QPainter, option, index, key, *, kept: bool) -> QPixmap | None:
+        """The row drawn once into a picture, which every later frame paints. A new width,
+        height, pixel ratio or document draws it again. None for a row that paints itself:
+        one still being prepared (it draws its plain text for a frame or two), or one whose
+        picture alone would take most of what all the pictures may hold; a rising row
+        (`kept`) always has one, as its fade repaints it every frame."""
         ratio = painter.device().devicePixelRatioF()
         rect = option.rect
         local = QStyleOptionViewItem(option)
         local.rect = QRect(0, 0, rect.width(), rect.height())
-        look = (rect.width(), rect.height(), ratio, id(self.painted_document(index, local)))
-        kept = self.fading.get(key)
-        if kept is not None and kept[0] == look:
-            return kept[1]
-        picture = QPixmap(max(1, round(rect.width() * ratio)), max(1, round(rect.height() * ratio)))
+        document = self.painted_document(index, local)
+        if document is None and not kept:
+            return None
+        look = (rect.width(), rect.height(), ratio)
+        # A row is its document; one still being prepared has none, and is this view's row.
+        key = id(document) if document is not None else (id(self), key)
+        picture = self.pictures.kept(key, look, document)
+        if picture is not None:
+            return picture
+        size = QSize(max(1, round(rect.width() * ratio)), max(1, round(rect.height() * ratio)))
+        if not kept and not self.pictures.holds(size):
+            return None
+        picture = QPixmap(size)
         picture.setDevicePixelRatio(ratio)
         picture.fill(Qt.GlobalColor.transparent)
         drawing = QPainter(picture)
         super().paint(drawing, local, index)
         drawing.end()
-        self.fading[key] = (look, picture)
+        self.pictures.keep(key, look, document, picture)
         return picture
+
+
+class RowPictures(NativePresentation):
+    """Drawn rows kept as pictures, the most recently painted last to go: the paint bytes
+    Qt's histories retain (`NativePresentation.retained_paint_bytes`), within the app's one
+    limit on retained prepared work (`PreparationRuntime.max_bytes`), so the rows around
+    the reader scroll as pictures and neither a long history nor many open tabs hold a
+    picture for every row. Textual retains its rows as the lines its worker finished; a
+    row's pixels are what Qt has finished when its document is drawn."""
+
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
+        # By the row's document (a row still being prepared: its fragment key):
+        # (look, document, picture). Holding the document keeps the one the picture was
+        # drawn from alive, so its identity cannot pass to a new document.
+        self.rows: OrderedDict = OrderedDict()
+        self.bytes = 0
+
+    @property
+    def retained_paint_bytes(self) -> int:
+        return self.bytes
+
+    @staticmethod
+    def weight(size: QSize) -> int:
+        return size.width() * size.height() * 4
+
+    def holds(self, size: QSize) -> bool:
+        """Whether a picture this size is worth keeping: one row may not take a quarter of
+        the limit, or a very long message would push every other row's picture out."""
+        return self.weight(size) <= self.limit // 4
+
+    def kept(self, key, look, document) -> QPixmap | None:
+        entry = self.rows.get(key)
+        if entry is None or entry[0] != look or entry[1] is not document:
+            return None
+        self.rows.move_to_end(key)
+        return entry[2]
+
+    def keep(self, key, look, document, picture: QPixmap) -> None:
+        self.drop(key)
+        self.rows[key] = (look, document, picture)
+        self.bytes += self.weight(picture.size())
+        while self.bytes > self.limit and len(self.rows) > 1:
+            self.drop(next(iter(self.rows)))
+
+    def drop(self, key) -> None:
+        entry = self.rows.pop(key, None)
+        if entry is not None:
+            self.bytes -= self.weight(entry[2].size())
+
+    def clear(self) -> None:
+        self.rows.clear()
+        self.bytes = 0
 
 
 @dataclass(frozen=True)
@@ -1059,8 +1133,9 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         replaced here."""
         return self.window()
 
-    def __init__(self, renderer: QtLineRenderer, scope, parent: QWidget | None = None) -> None:
-        super().__init__(HistoryRowDelegate(renderer), parent)
+    def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, scope,
+                 parent: QWidget | None = None) -> None:
+        super().__init__(HistoryRowDelegate(renderer, pictures), parent)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
@@ -1192,8 +1267,6 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     def arrival_landed(self, fade: ArrivalFade) -> None:
         if fade in self.arrivals:
             self.arrivals.remove(fade)
-        for key in fade.positions:
-            self.rows.fading.pop(key, None)
 
     def arrival_opacity(self, key) -> float | None:
         """How far the row `key` has risen, while it is still rising."""

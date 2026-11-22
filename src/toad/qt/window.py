@@ -131,7 +131,7 @@ from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, ComposerEditor, MessageComposer
 from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
-from toad.qt.history import QtWireHistory
+from toad.qt.history import QtWireHistory, RowPictures
 from toad.qt.transcript_fragments import QtWireFragment
 from toad.menus import MenuCommand, MenuConversation
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
@@ -1530,6 +1530,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # Until a conversation reads Core's display references, bodies link the project's files.
         self.renderer = QtLineRenderer(scheme, LinkContext(project.path.resolve(), ProjectReferences()),
                                        self.settings.diff)
+        self.row_pictures = RowPictures(self.preparation.max_bytes)
+        """The rows every open history has drawn, kept as pictures within the app's limit."""
         # The one animation clock every effect's frames come from (ui_theme's
         # `AnimationClock`, as Textual's colours own theirs), on one Qt timer.
         self._animation_timer = QTimer(self)

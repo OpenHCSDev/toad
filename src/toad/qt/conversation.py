@@ -141,7 +141,7 @@ class QtConversation(
     def _setup_conversation(self, app) -> None:
         """What `Conversation.compose` makes for every conversation: the window, the
         transcript presentation, the flash, the activity sweep and the submissions."""
-        self.messages = QtHistoryWindow(app.renderer, self)
+        self.messages = QtHistoryWindow(app.renderer, app.row_pictures, self)
         self.transcript = TranscriptPresentation()
         # The categories this view's history shows (`CategorySelection`); the history reads
         # them through `selected_categories` from its first page.
