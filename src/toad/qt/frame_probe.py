@@ -35,7 +35,9 @@ names the Python. It is what a profiler would say, on a phone that has none.
 And one `spent` line: the span's costliest outermost Qt events, each as
 `Type/ReceiverClass deliveries x total ms`, then every paint event's count and time. Qt paints
 a window's widgets and shows the frame inside the `UpdateRequest` it delivers to the window, so
-that row's time less the paints' is what showing the frames cost.
+that row's time less the paints' is what showing the frames cost. A `frames` line splits
+the frames by how much of the window the box around their paints covers (`FRAME_SIZES`), each
+with its mean time and its mean time without the paints.
 
 The probe only observes; nothing reads its numbers back into the app.
 """
@@ -49,7 +51,7 @@ import threading
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QEvent, QObject, Qt, QTimer
+from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
 from PySide6.QtWidgets import QApplication, QWidget
 
 from toad import paths
@@ -95,6 +97,10 @@ class FrameProbe(QObject):
         self.costs: dict[tuple, list] = {}
         # Every paint event delivered, at any depth: how many, and their time.
         self.paints = [0, 0.0]
+        # The frames shown, by how much of the window the box around their paints covers:
+        # each size's frames, their whole time and the time of their paints.
+        self.frames = [[0, 0.0, 0.0] for _size in self.FRAME_SIZES]
+        self.frame_box, self.frame_paint_ms, self.frame_window = QRect(), 0.0, 1
 
     def ticked(self) -> None:
         now = time.perf_counter()
@@ -124,10 +130,40 @@ class FrameProbe(QObject):
         for line in self.sampler.taken():
             self.sink.write(f"{time.time():.3f} hot {line}\n")
         self.sink.write(f"{time.time():.3f} {self.spent_line()}\n")
+        self.sink.write(f"{time.time():.3f} {self.frames_line()}\n")
         self.window_start = now
         self.reset()
 
     COSTLIEST = 6
+    FRAME_SIZES = ((0.1, "small"), (0.5, "mid"), (2.0, "large"))
+    """A frame's size is the share of its window the box around everything it painted covers:
+    under a tenth, under half, or more. Qt uploads that box to the GPU to show the frame, so
+    two small paints far apart (a tab title, a ribbon at the bottom) make a large frame."""
+
+    def painted(self, widget: QWidget, event: QEvent, took_ms: float) -> None:
+        """A widget painted inside the frame being shown."""
+        # Qt's own answer: some Toad widgets keep the app in an attribute named `window`.
+        window = QWidget.window(widget)
+        self.frame_box = self.frame_box.united(QRect(widget.mapTo(window, event.rect().topLeft()), event.rect().size()))
+        self.frame_window = max(1, window.width() * window.height())
+        self.frame_paint_ms += took_ms
+
+    def frame_shown(self, took_ms: float) -> None:
+        """A window's UpdateRequest ended: the frame it painted and showed."""
+        share = self.frame_box.width() * self.frame_box.height() / self.frame_window
+        size = next(index for index, (under, _name) in enumerate(self.FRAME_SIZES) if share < under)
+        frames = self.frames[size]
+        frames[0] += 1
+        frames[1] += took_ms
+        frames[2] += self.frame_paint_ms
+        self.frame_box, self.frame_paint_ms = QRect(), 0.0
+
+    def frames_line(self) -> str:
+        """Each frame size's count, mean time and the mean time left once its paints are
+        taken out: what showing a frame of that size cost."""
+        return "frames " + " | ".join(
+            f"{name} {count}x {took / count:.1f}ms show {(took - painted) / count:.1f}ms" if count else f"{name} 0x"
+            for (_under, name), (count, took, painted) in zip(self.FRAME_SIZES, self.frames))
 
     def spent(self, kind: QEvent.Type, receiver: QObject, took_ms: float) -> None:
         """An outermost event was delivered: its whole time, nested events included."""
@@ -218,8 +254,12 @@ class ProbedApplication(QApplication):
             if kind is QEvent.Type.Paint:
                 probe.paints[0] += 1
                 probe.paints[1] += took
+                if isinstance(receiver, QWidget):
+                    probe.painted(receiver, event, took)
             if not ProbedApplication.depth:
                 probe.spent(kind, receiver, took)
+                if kind is QEvent.Type.UpdateRequest:
+                    probe.frame_shown(took)
             if took > probe.SLOW_MS:
                 name = receiver.objectName() if isinstance(receiver, QObject) else ""
                 probe.slow(took, f"event={kind.name} receiver={type(receiver).__name__}"

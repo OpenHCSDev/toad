@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from time import time
+from time import perf_counter, time
 from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass
 from typing import ClassVar, Self
@@ -140,7 +140,7 @@ from toad.qt.menu import QtMenu
 # TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
 from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
-from toad.motion import animations_enabled
+from toad.motion import AmbientBudget, animations_enabled
 from toad.qt.name_wave import QtClockedWave, QtNameWaveDelegate, QtSessionTabBar
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
 from toad.qt.view_settings import capability_widgets
@@ -1541,6 +1541,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._animation_timer.timeout.connect(self._tick_animation)
         self._layout_pending = False
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
+        self.ambient_budget = AmbientBudget(self.animation_clock)
         # Notices and the work the reader waits on float over the pages, never in their layout.
         self.float_layer = QtFloatLayer(
             self.theme.color_scheme, self.renderer, self.animation_clock, self)
@@ -1762,6 +1763,18 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def _tick_animation(self) -> None:
         self.animation_clock.tick()
+
+    def event(self, event: QEvent) -> bool:  # type: ignore[override]
+        """Qt paints this window's widgets and shows the frame inside the UpdateRequest it
+        delivers to it: how long that delivery holds the thread is what a frame costs here,
+        which the ambient motion's budget is told (`AmbientBudget`)."""
+        if event.type() is not QEvent.Type.UpdateRequest:
+            return super().event(event)
+        began = perf_counter()
+        try:
+            return super().event(event)
+        finally:
+            self.ambient_budget.frame_shown(perf_counter() - began)
 
     def follow_display(self, *_changed) -> None:
         """The clock's frame interval is the screen's this window is on: it follows the window to
