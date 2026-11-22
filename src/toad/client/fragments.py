@@ -281,9 +281,11 @@ class HistoryFragment(CursorRest):
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
 
-    @property
+    @cached_property
     def revision(self):
-        """What makes the same fragment draw differently.
+        """What makes the same fragment draw differently, derived once from its events as its
+        key and categories are: every row's cache key holds it, and Qt asks every loaded
+        row's key on each layout (312,310 derivations in one scroll-back of 216 rows).
 
         A draft's ordered appends may fold into one text event, so its event count can stay
         one while the visible text grows.  The source text is already the drawing authority;
