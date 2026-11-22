@@ -113,8 +113,6 @@ from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core import session_requests
 from toad.core.events import CoordinationObserved, ExternalTranscriptChanged, TabHistoryChanged
-from agent_comms.messaging.revision_views import RosterView
-from agent_comms.presentation import NoRevision, ReadState
 from toad.launch_binding import AgentBinding, NoAgent
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
 from toad.navigation_context import HomeNavigation, NavigationOwner
@@ -1261,31 +1259,20 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
     def reload(self) -> None:
         self.message_history.page_source.schedule_refresh(self)
 
-    async def _refresh_source(self) -> None:
-        """Read what changed in the conversation and draw it, then the status beside it."""
+    def source_read(self) -> None:
+        self.content_ready.set()
+
+    def source_drawn(self) -> None:
+        """The receipt follows what this read sent and saw; the thread's status and working
+        mark are read beside it."""
         history = self.message_history
-        source = self.app.source()
-        try:
-            await history.read_changes()
-        finally:
-            self.content_ready.set()
-        self.submissions.settle()
-        followed = (str(source.root), history.last_sent_references,
+        followed = (str(self.app.source().root), history.last_sent_references,
             history.pages[-1].prepared.page.source.selection.notification_identity)
         self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
         self.refresh_thread_status()
         self.sync_working()
-        # Thread config (compose, label, status, mentions) is read on the first refresh and when
-        # the roster moved, the roster owner's own signal: channels get no thread_presented.
-        revision = self.app.coordination_access.revision
-        if revision.changed_since(RosterView(), self._config_revision):
-            self._config_revision = revision
-            self.deliver(self._refresh_thread_config)
 
-    _config_revision: ReadState = NoRevision()
-
-    def thread_presented(self, presentation) -> None:
-        super().thread_presented(presentation)
+    def read_thread_config(self) -> None:
         self.deliver(self._refresh_thread_config)
 
     async def _refresh_thread_config(self) -> None:

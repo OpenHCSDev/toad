@@ -37,6 +37,13 @@ class QtCoreObserver(QtDeliveryReceiver, CoreObserverDispatch, AppScoped):
         self.deliver(partial(subscription.consume, self, QtPublication(event, subscription)))
         return True
 
+    def post_core_event(self, event: CoreEvent, subscription: Subscription) -> bool:
+        """An event of a stream this view hears whole (`subscribe_core`: its own history's)
+        reaches the handlers the view declares for it, after the deliveries before it. A view
+        that declares none for the event hears nothing, as a Textual view lets it pass."""
+        self.deliver(partial(self.dispatch, event, QtPublication(event, subscription)))
+        return True
+
     def delivery_failed(self, error: Exception) -> None:
         self.app.report_fatal(error)
 

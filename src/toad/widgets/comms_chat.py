@@ -1,8 +1,6 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
-from agent_comms.messaging.revision_views import RosterView
-from agent_comms.presentation import NoRevision, ReadState
 
 import re
 from functools import partial
@@ -26,8 +24,6 @@ from toad.client.submission import SubmissionStart
 from toad.client.conversation import ConversationKind
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.core import events as core_events
-from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.core_event_carrier import CoreEventMessage
 from toad.client.referenced_core import ReferencedCore
 from toad.session_scope import SessionScope
 from toad.status_thread import StatusThread
@@ -79,8 +75,6 @@ class CommsChatView(WireConversationView):
         super().__init__(project_path, transcript=transcript)
         self.conversation = conversation
         self._me = me
-        # The observer's announcement the last refresh began from.
-        self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.input_scope}")
         self.message_contents = Contents()
@@ -163,40 +157,6 @@ class CommsChatView(WireConversationView):
         await super()._command_source_changed(event)
         self.refresh_identity()
 
-    @handles(TranscriptSourceWorkFinished)
-    async def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
-        """Reconcile an observation which arrived during this source's work."""
-        super().on_transcript_source_work_finished(event, message)
-        history = self.message_history
-        source = history.page_source
-        access = self.app.coordination_access
-        if message.publisher is not history:
-            return
-        self.submissions.settle()
-        if (not history.state.accepts_source_work
-                or not source.uses_observation(access.observation.observed())):
-            return
-        if self._refreshed_from != access.revision:
-            # The observer announced a change while this work ran. The history
-            # may have read it from the stores already; mention completion
-            # reads the observer's snapshot, which only now shows it.
-            await self._refresh()
-            return
-        if source.revision.matches_stores(access.revision):
-            return
-        snapshot = history.source_snapshot()
-        if not snapshot.current(history):
-            return
-        # A read can also be newer than the observer's last announcement. Their
-        # file revisions are identities, not an ordering: ask the service
-        # itself before reading again, rather than rereading an already
-        # current page until the observer's next tick.
-        revision = await source.read_revision()
-        if (source is history.page_source and snapshot.current(history)
-                and source.uses_observation(access.observation.observed())
-                and not source.revision.matches_stores(revision)):
-            await self._refresh()
-
     def prepare_prompt(self) -> None:
         """Apply comms prompt state after a mode becomes active."""
         prompt = self.query_one_optional(Prompt)
@@ -240,27 +200,9 @@ class CommsChatView(WireConversationView):
         """DM/channel history belongs to WireHistory, not a native transcript."""
         return NoTranscript()
 
-    async def _refresh_source(self) -> None:
-        """Read what changed in the conversation and draw it: the history's source work.
-        Thread-config reads (compose, status, mentions, label) are driven by
-        thread_presented, not by every bus message."""
-        history = self.message_history
-        announced = self.app.coordination_access.revision
-        await history.read_changes()
-        self._refreshed_from = announced
-        self.submissions.settle()
-        # Thread config (compose, label, status, mentions) is read on the first refresh and when
-        # the roster moved, the roster owner's own signal: channels get no thread_presented.
-        if announced.changed_since(RosterView(), self._config_revision):
-            self._config_revision = announced
-            self.run_worker(self._refresh_thread_config, group=self.LABELS_GROUP)
-
-    _config_revision: ReadState = NoRevision()
-
     LABELS_GROUP = "chat-labels"
 
-    def thread_presented(self, presentation) -> None:
-        super().thread_presented(presentation)
+    def read_thread_config(self) -> None:
         self.run_worker(self._refresh_thread_config, group=self.LABELS_GROUP)
 
     async def _refresh_thread_config(self) -> None:

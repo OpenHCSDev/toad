@@ -4338,8 +4338,11 @@ class HoldScenario(Scenario):
         await self.touch(tree.viewport(), tree.visualItemRect(other).center(), 60)
         await until(lambda: self.page is not page and not isinstance(self.page, QtOpeningSessionView), "tapped row")
         self.report("5-tap-opens")
-        # 6. A thread's Comms rows (the thread pane) offer Open / Copy, as Textual's do.
-        await self.open_named("scratch-live-pipeline")
+        # 6. A thread's Comms rows (the thread pane) offer Open / Copy, as Textual's do. The
+        # thread must have relationships on the bus driven (HOLD_THREAD names another): on
+        # the live bus the default went quiet, and the step timed out with nothing said.
+        related = os.environ.get("HOLD_THREAD", "scratch-live-pipeline")
+        await self.open_named(related)
         # A phone's pane gives the Comms tree under its category toggles little room: a
         # taller window shows its rows.
         app.resize(412, 1600)
@@ -4355,7 +4358,12 @@ class HoldScenario(Scenario):
                     if panel._row_entry(item) is not None
                     and comms.viewport().rect().contains(comms.visualItemRect(item).center())]
 
-        await until(lambda: comms.isVisible() and entry_rows(), "a Comms relationship row")
+        try:
+            await until(lambda: comms.isVisible() and entry_rows(), "a Comms relationship row")
+        except TimeoutError:
+            shown = [item.text(0) for item in comms.findItems("", Qt.MatchFlag.MatchContains | Qt.MatchFlag.MatchRecursive)]
+            raise SystemExit(f"hold: {related!r} shows no relationship row to hold (its Comms pane reads {shown}); "
+                             "name a thread that has one with HOLD_THREAD") from None
         await self.held_menu("6-comms-row", comms.viewport(), comms.visualItemRect(entry_rows()[0]).center())
         if self.faults:
             raise AssertionError("\n".join(self.faults))

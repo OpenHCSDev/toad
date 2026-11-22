@@ -15,6 +15,10 @@ from collections.abc import Awaitable, Callable, Iterable, Sequence
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.execution.transcript_sources import DraftFold
+from metaclass_registry.mro_dispatch import handles
+
+from toad.core.events import Publication
+from toad.core.source_events import TranscriptSourceWorkFinished
 
 
 if TYPE_CHECKING:
@@ -36,6 +40,14 @@ class BoundViewHost:
     MAX_LIVE_BLOCKS: ClassVar[int]
     """How many live blocks may stand before a refresh commits them into history. A view
     that draws no live blocks sets 1: every refresh commits."""
+
+    @handles(TranscriptSourceWorkFinished)
+    def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: Publication) -> None:
+        """One of this view's histories released its source: the transcript publishes what
+        waited for that (`TranscriptPresentation.retry`). Declared here for every frontend:
+        Textual's conversation declared it and Qt's thread views did not, so a Qt thread's
+        publication that had waited on a page read waited for the next unrelated event."""
+        self.transcript.source_work_finished(self)
 
     # ---- the tree ----
 

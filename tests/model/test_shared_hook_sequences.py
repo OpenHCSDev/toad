@@ -291,3 +291,161 @@ def test_the_shared_group_contract_does_not_stand_between_a_group_and_its_own_an
     assert "accepts_members" not in vars(ChannelGroupRows)
     after = ChannelGroup.__mro__[ChannelGroup.__mro__.index(ChannelGroup) + 1:]
     assert next(owner for owner in after if "accepts_members" in vars(owner)).__name__ == SidebarGroup.__name__
+
+
+def test_every_view_a_frontend_makes_hears_its_historys_finished_source_work():
+    """The shared pager publishes that its source work finished. A thread view retries the
+    publication that waited for it and a channel view reconciles an observation that arrived
+    during it, in both frontends: Qt's history published the event to nobody."""
+    from toad.core.source_events import TranscriptSourceWorkFinished
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.mailbox_view import QtMailboxView
+    from toad.qt.window import ConversationView
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.conversation import Conversation
+
+    def owners(view: type) -> dict[str, str]:
+        return {name: next(owner.__name__ for owner in view.__mro__ if name in vars(owner))
+                for name in view.handler_names_for(TranscriptSourceWorkFinished)}
+
+    retries = {"on_transcript_source_work_finished": "BoundViewHost"}
+    reconciles = {"reconcile_finished_source_work": "WireView"}
+    assert owners(Conversation) == owners(QtAcpSessionView) == owners(QtMailboxView) == retries
+    assert owners(ConversationView) == reconciles
+    assert owners(CommsChatView) == reconciles | retries
+
+
+def test_qts_history_publishes_to_its_view_which_hears_it_on_its_loop_with_the_history_as_publisher():
+    from toad.client.subscribers import CoreObserver
+    from toad.core.source_events import TranscriptSourceWorkFinished
+    from toad.core_event_carrier import CoreEventReceiver
+    from toad.qt.core_events import QtCoreObserver, QtPublication
+    from toad.qt.history import QtConversationHistory
+
+    # One way to hear a stream whole, for both frontends' views.
+    assert CoreEventReceiver.subscribe_core is CoreObserver.subscribe_core is QtCoreObserver.subscribe_core
+
+    heard, queued = [], []
+
+    class View(CoreObserver):
+        deliver = queued.append
+        post_core_event = QtCoreObserver.post_core_event
+
+        async def dispatch(self, event, message):
+            heard.append((event, message.publisher, type(message)))
+
+    class History:
+        publish_core = QtConversationHistory.publish_core
+        core_publications = QtConversationHistory.core_publications
+
+        def __init__(self, view) -> None:
+            self.view = view
+
+    QtConversationHistory.core_publications.__set_name__(History, "core_publications")
+    history = History(View())
+    event = TranscriptSourceWorkFinished()
+    history.publish_core(event)
+
+    assert heard == [] and len(queued) == 1  # on the view's loop, after the deliveries before it
+    asyncio.run(queued[0]())
+    assert heard == [(event, history, QtPublication)]
+
+
+def test_a_thread_views_transcript_retries_when_a_history_releases_its_source():
+    retried = []
+    view = BoundViewHost.__new__(type("View", (BoundViewHost,), {}))
+    view.transcript = SimpleNamespace(source_work_finished=retried.append)
+    view.on_transcript_source_work_finished(object(), object())
+    assert retried == [view]
+
+
+class _Revision:
+    def __init__(self, roster_moved: bool = False) -> None:
+        self.roster_moved = roster_moved
+
+    def changed_since(self, view, held) -> bool:
+        return self.roster_moved
+
+
+def _wire_view(heard: list, revision, **history):
+    class View(WireView):
+        mode = "comms"
+        is_attached = True
+
+        def shows(self, root, conversation) -> bool:
+            return True
+
+        def read_thread_config(self) -> None:
+            heard.append("config")
+
+        def source_read(self) -> None:
+            heard.append("read ended")
+
+        def source_drawn(self) -> None:
+            heard.append("drawn")
+
+        async def _refresh(self):
+            heard.append("refresh")
+
+    view = View.__new__(View)
+    view.app = SimpleNamespace(coordination_access=SimpleNamespace(revision=revision, **history.pop("access", {})))
+    view.submissions = SimpleNamespace(settle=lambda: heard.append("settled"))
+    view.message_history = SimpleNamespace(**history)
+    return view
+
+
+def test_a_wire_views_refresh_reads_then_settles_then_draws_then_reads_config_when_the_roster_moved():
+    heard: list = []
+
+    async def read_changes() -> None:
+        heard.append("read")
+
+    announced = _Revision(roster_moved=True)
+    view = _wire_view(heard, announced, read_changes=read_changes)
+    asyncio.run(view._refresh_source())
+    assert heard == ["read", "read ended", "settled", "drawn", "config"]
+    assert view._refreshed_from is announced and view._config_revision is announced
+
+    heard.clear()
+    still = _Revision()
+    view.app.coordination_access.revision = still
+    asyncio.run(view._refresh_source())
+    assert heard == ["read", "read ended", "settled", "drawn"] and view._config_revision is announced
+
+
+def test_a_wire_views_failed_read_still_ends_the_read_and_draws_nothing():
+    heard: list = []
+
+    async def read_changes() -> None:
+        raise OSError("bus gone")
+
+    view = _wire_view(heard, _Revision(roster_moved=True), read_changes=read_changes)
+    try:
+        asyncio.run(view._refresh_source())
+    except OSError:
+        pass
+    assert heard == ["read ended"] and view._refreshed_from is None
+
+
+def test_a_wire_view_reads_again_when_the_observer_announced_during_its_historys_work():
+    heard: list = []
+    began_from, now = _Revision(), _Revision()
+    source = SimpleNamespace(uses_observation=lambda observed: True)
+    history = dict(page_source=source, state=SimpleNamespace(accepts_source_work=True),
+                   access=dict(observation=SimpleNamespace(observed=lambda: "observed")))
+    view = _wire_view(heard, now, **history)
+    view._refreshed_from = began_from
+
+    # Another history's work is not this view's to reconcile.
+    asyncio.run(view.reconcile_finished_source_work(object(), SimpleNamespace(publisher=object())))
+    assert heard == []
+
+    asyncio.run(view.reconcile_finished_source_work(object(), SimpleNamespace(publisher=view.message_history)))
+    assert heard == ["settled", "refresh"]
+
+    # Nothing was announced since the refresh began, and the stores are what was read: no read.
+    heard.clear()
+    view._refreshed_from = now
+    source.revision = SimpleNamespace(matches_stores=lambda revision: True)
+    asyncio.run(view.reconcile_finished_source_work(object(), SimpleNamespace(publisher=view.message_history)))
+    assert heard == ["settled"]
