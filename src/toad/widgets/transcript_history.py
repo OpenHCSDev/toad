@@ -8,7 +8,7 @@ from collections import deque
 from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from itertools import accumulate, chain, islice
+from itertools import accumulate, chain
 from typing import TYPE_CHECKING, ClassVar, Final
 from weakref import ref
 
@@ -545,27 +545,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     def resume_source(self) -> None:
         super().resume_source()
         self.filter.overlay.resume_source()
-
-    async def prepare_fragments(self, fragments: tuple[TranscriptFragment, ...],
-                                current: Callable[[], bool], *,
-                                selected: frozenset[type[MessageCategory]],
-                                target: LineHistory | Contents) -> None:
-        """Render against the native destination, including before history is mounted."""
-        width, theme = target.line_width, self.app.colours.line_theme
-        if width <= 0:
-            return
-        pending = (waiting for fragment in fragments if fragment.shown_in(selected)
-                   for waiting in fragment.lines_for(width, theme).unstyled(fragment))
-        while current():
-            batch = tuple(islice(pending, self.budget.batch_items))
-            if not batch:
-                return
-            ready = await TranscriptLinesBatchRenderTask.render_for(target,
-                (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
-            if not current():
-                return
-            for fragment, (task, lines) in zip(batch, ready):
-                task.hold(target, fragment, lines)
 
     @property
     def line_width(self) -> int:

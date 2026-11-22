@@ -14,6 +14,7 @@ from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.errors import RouteChangedError
+from agent_comms.execution.child_process import HelperStart, SpawnedHelper
 from agent_comms.execution.launch_root import LaunchRoot
 from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.execution.root_runtime import RootRuntime
@@ -39,7 +40,6 @@ from toad.client.connection import (
     CoreConnection,
     FailedObservation,
     Observing,
-    ProcessRemoteCoreConnection,
     RemoteCoreConnection,
     SelectedRoute,
     UnselectedRoute,
@@ -55,7 +55,7 @@ def select_connection(arguments: list[str]) -> CoreConnection:
     absent, while a broken route still refuses.
     """
     if RemoteCoreConnection.argument in arguments:
-        return ProcessRemoteCoreConnection.startup(arguments)
+        return RemoteCoreConnection.startup(arguments)
     return LocalCoreConnection.from_launch(LaunchRoot.startup(
         arguments, lambda: LaunchRoot.from_path(CommsRoute.current().root)))
 
@@ -79,6 +79,10 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
     """A local connection inherits the selected root and its launch behavior."""
 
     agent_processes: ClassVar[AgentProcesses] = SpawnsAgentProcesses()
+
+    helper_start: ClassVar[HelperStart] = SpawnedHelper()
+    """A local connection also starts its route observer, which is a process of its own: its
+    member starts interpreters, beyond the workers every connection gets."""
 
     def chosen(self, arguments: list[str]) -> CoreConnection:
         """Read as a launch reads its arguments: a profile is remote, a root this machine's."""

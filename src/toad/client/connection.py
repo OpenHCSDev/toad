@@ -25,13 +25,12 @@ from weakref import WeakKeyDictionary, WeakSet
 from agent_comms.messaging.message_files import FileUpload
 from agent_comms.errors import RouteChangedError
 from agent_comms.execution.child_process import (
-    HelperStart,
-    SpawnedHelper,
+    Platform,
+    WorkerStart,
     join_retirement,
 )
 from agent_comms.execution.remote_core_process import ProcessRemoteCoreAccess
 from agent_comms.team.team_hud import NamedTeamBoards, TeamBoardSelection
-from agent_comms.transport.remote_core import RemoteCoreAccess
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.installer.active_route import CommsRoute
 from agent_comms.installer.route_selection import RouteSelection
@@ -199,8 +198,10 @@ class CurrentObservation(CapturedSource):
 class CoreConnection(ABC):
     """The selected Core transport: it owns its route selection and opens its observation."""
 
-    helper_start: ClassVar[HelperStart] = SpawnedHelper()
-    """How this launch starts its local route observer and its render workers."""
+    helper_start: ClassVar[WorkerStart] = Platform.current().worker_start()
+    """How this launch gets its worker processes (render workers, a remote Core's read
+    workers): the platform's member, fresh interpreters on a desktop and forks of the
+    application on Android."""
 
     agent_processes: ClassVar[AgentProcesses]
     """Whether an agent process starts under this connection: only beside a local route
@@ -263,10 +264,11 @@ class RemoteRouteNotSelectable(RuntimeError):
 
 
 @dataclass(frozen=True)
-class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
+class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnection):
     """The owner's UI profile is the remote connection: Core answers through the connector.
 
-    Read replies decode where they arrive, as on Android, which has no interpreter to spawn."""
+    Its reads and their replies' decoding run in worker processes on every platform, so the
+    UI's interpreter stays free for frames."""
 
     agent_processes: ClassVar[AgentProcesses] = NoAgentProcesses()
 
@@ -284,7 +286,7 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
         return str(self.endpoint.url)
 
     def chosen(self, arguments: list[str]) -> RemoteCoreConnection:
-        """Read by this same member: desktop keeps decoding in a process, Android in place."""
+        """A chosen bus is read by this same member."""
         return type(self).startup(arguments)
 
     def route_selection(self) -> RouteSelection:
@@ -322,12 +324,6 @@ class RemoteCoreConnection(ProfileArgument, RemoteCoreAccess, CoreConnection):
         except (OSError, ValueError, RuntimeError) as error:
             return access.observation.failed(error, UnselectedRoute())
         return access.observe_remote(self, Path(served.root))
-
-
-@dataclass(frozen=True)
-class ProcessRemoteCoreConnection(ProcessRemoteCoreAccess, RemoteCoreConnection):
-    """Decodes Core's read replies in a spawned child, so the desktop UI's interpreter stays
-    free for frames."""
 
 
 @dataclass(frozen=True)

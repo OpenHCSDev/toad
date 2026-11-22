@@ -1,5 +1,5 @@
-"""The bus the APK serves: the held profile for the endpoint it was built for, over the
-connection that decodes in place. Loaded after the first frame (`toad.qt.android.load_client`)."""
+"""The bus the APK serves: the held profile for the endpoint it was built for. Loaded after
+the first frame (`toad.qt.android.load_client`)."""
 
 from __future__ import annotations
 

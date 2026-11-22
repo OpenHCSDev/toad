@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import pickle
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
@@ -111,45 +110,12 @@ class ReusableRenderTask(SerializedStorage[ResultT], ContentAddressedRenderTask[
     """Content-addressed work whose independent deliveries decode serialized data."""
 
 
-class RendererSpawn(ABC):
-    @staticmethod
-    def start_workers(executor) -> None:
-        """Start the owned pool without occupying a work slot with a dummy job.
-
-        ProcessPoolExecutor has no public prestart operation. Its original
-        launch hook starts the configured workers before the manager thread;
-        submission, worker replacement and shutdown remain executor-owned.
-        """
-        try:
-            executor._launch_processes()
-            executor._start_executor_manager_thread()
-        except BaseException:
-            executor.shutdown(wait=True, cancel_futures=True)
-            raise
-
-    @staticmethod
-    def prepare_spawn() -> None:
-        """Initialize POSIX spawn bookkeeping before a UI captures stderr.
-
-        Python 3.14's resource tracker inherits stderr's file descriptor on
-        first startup. Textual captures can report -1 instead of raising
-        UnsupportedOperation, which is invalid in spawn's pass-fd list. An
-        application calls this before entering terminal mode; CPU worker
-        creation remains lazy. The tracker is multiprocessing-owned and is
-        shared with any other process pools in this interpreter.
-        """
-        if os.name == "posix":
-            from multiprocessing import resource_tracker
-
-            resource_tracker.ensure_running()
-
-class Renderer(RendererSpawn):
+class Renderer(ABC):
     def __init__(self) -> None:
         self._submissions: set[asyncio.Task] = set()
 
     def start(self) -> None:
-        """Begin owned startup; remote clients retain on-demand connection."""
-        self.prepare_spawn()
+        """Begin owned startup: a member that owns worker processes acquires them here."""
 
     def native_owners(self) -> tuple[ContextVar, ...]:
         """The context variables naming the frontend's native owner of the waiting work.

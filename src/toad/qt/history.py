@@ -58,7 +58,7 @@ from toad.client.line_blocks import BlockPreparation, Divider
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
-from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
+from toad.client.prepared_pages import ClosedHistory, MeasuresFragments, PreparedTranscriptPage
 from toad.client.reader_position import (
     FragmentLocation, FragmentPosition, ReaderPage, ReaderPosition, RowPosition, TailPosition,
     UnloadedFragment,
@@ -675,7 +675,8 @@ class SourceTask(asyncio.Task):
         await asyncio.gather(self, return_exceptions=True)
 
 
-class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHistory, ConversationPager, NativePager):
+class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHistory, ConversationPager,
+                            MeasuresFragments, NativePager):
     """A wire conversation's pages, read marks and message statuses in a Qt window: the
     shared pager, read marking and notifications, answering their hooks with the window's
     rows and the Qt event loop."""
@@ -764,25 +765,25 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     def fragment_height(self, fragment: HistoryFragment) -> int:
         return self.window.fragment_height(fragment)
 
-    async def prepare_fragments(self, fragments, current, *, selected, target) -> None:
-        """Styled before drawn, as the shared pager asks (`ReaderPage.acquire`): each shown
-        fragment's row is formatted at the window's width and font before the pager publishes
-        it. A row first drawn plain and then rewrapped when its styled formatting landed moved
-        every row under it, which on the phone read as a message snapping in, out and back."""
+    @property
+    def measurable(self) -> bool:
+        """Not laid out yet: the first paint prepares its rows at the real width."""
+        return self.window.viewport_width() > 0
+
+    def unprepared(self, fragment: HistoryFragment) -> tuple[object, ...]:
+        """The fragment's row at the window's width and font, unless the delegate holds it."""
         window = self.window
         rows, font, width = window.rows, window.font(), window.viewport_width()
-        if width <= 0:
-            return  # Not laid out yet: the first paint prepares them at the real width.
-        waiting = tuple((key, fragment) for fragment in fragments
-                        if fragment.shown_in(selected)
-                        and not rows.is_prepared(key := rows.fragment_key(fragment, font, width)))
-        if not waiting:
-            return
-        prepared = await self.view.app.render_processes.submit(QtHistoryRowBatchRenderTask(tuple(
-            rows.row_preparation(fragment.line_blocks, font, width) for _key, fragment in waiting)))
-        if current():
-            for (key, _fragment), formatting in zip(waiting, prepared, strict=True):
-                rows.adopt(key, formatting)
+        key = rows.fragment_key(fragment, font, width)
+        return () if rows.is_prepared(key) else ((key, rows.row_preparation(fragment.line_blocks, font, width)),)
+
+    async def render_rows(self, waiting):
+        return await self.view.app.render_processes.submit(
+            QtHistoryRowBatchRenderTask(tuple(preparation for _key, preparation in waiting)))
+
+    def hold_row(self, waiting, row) -> None:
+        key, _preparation = waiting
+        self.window.rows.adopt(key, row)
 
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
         """A status change repaints only the rows it changed. A row's cache key carries how
