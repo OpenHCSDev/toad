@@ -117,9 +117,9 @@ class KeymapScreen(KeymapBrowsing, ShadedScreen, CenteredScreen, DismissibleScre
 
     # The native reads and writes `KeymapBrowsing` asks for.
 
-    def selected(self):
+    def selected_cell(self) -> tuple[int, int]:
         row, column = self.query_one(KeymapTable).cursor_coordinate
-        return self.state.select(row, column)
+        return row, column
 
     def typed_keys(self) -> str:
         return self.query_one(KeymapKeys).value

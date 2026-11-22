@@ -9,7 +9,7 @@ from textual.widgets import Static
 from textual.timer import Timer
 
 from toad.app_node import ToadNode
-from toad.client.prompt_stack import FlashNotice, FlashTone
+from toad.flash_host import FlashNotice, FlashTone
 from toad.native_style import EllipsisOverflow, FillWidth, NoWrap, OneRow
 
 

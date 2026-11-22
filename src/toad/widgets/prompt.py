@@ -802,13 +802,12 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         reference = f'@"{path}"' if any((char.isspace() for char in str(path))) else f'@{path}'
         return ' ' + reference + ' '
 
-    def restore_draft(self, text: str) -> None:
-        """Recover local input as an edit of the retained document and undo history."""
-        if suffix := self.restored_suffix(self.text, text):
-            editor = self.prompt_text_area
-            editor.history.checkpoint()
-            editor.insert(suffix, editor.document.end, maintain_selection_offset=True)
-            editor.history.checkpoint()
+    def append_to_draft(self, suffix: str) -> None:
+        """An edit of the retained document, between two checkpoints of its undo history."""
+        editor = self.prompt_text_area
+        editor.history.checkpoint()
+        editor.insert(suffix, editor.document.end, maintain_selection_offset=True)
+        editor.history.checkpoint()
 
     def show_failure(self, text: str) -> None:
         """Where this prompt's conversation tells a send failure."""

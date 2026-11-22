@@ -91,8 +91,8 @@ class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
 
     # The native reads and writes `KeymapBrowsing` asks for.
 
-    def selected(self):
-        return self.state.select(self.table.currentRow(), self.table.currentColumn())
+    def selected_cell(self) -> tuple[int, int]:
+        return self.table.currentRow(), self.table.currentColumn()
 
     def typed_keys(self) -> str:
         return self.keys.text()

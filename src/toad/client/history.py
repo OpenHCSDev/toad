@@ -288,9 +288,16 @@ class WireView(ConversationActivity):
     def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
         """Whether this view is still open on this conversation, read from this root."""
 
-    @abstractmethod
     async def show_sent(self, sent: MessageReference) -> None:
-        """A message this view sent was accepted: draw it."""
+        """A message this view sent was accepted: follow the conversation's end and read it
+        now; the queue entry retires once `sent` is drawn. (Each frontend's view wrote these
+        two steps itself, on the same window under two names.)"""
+        self.window.jump_to_latest()
+        await self._refresh()
+
+    @abstractmethod
+    async def _refresh(self):
+        """Ask the page source for a read of what changed, as this view's source work."""
 
     @abstractmethod
     async def _refresh_source(self) -> None:

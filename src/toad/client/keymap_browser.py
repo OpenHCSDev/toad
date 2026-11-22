@@ -282,9 +282,13 @@ class KeymapBrowsing:
     def begin_browsing(self, app: ClientApplication, focused: frozenset[KeyInvocationId]) -> None:
         self.state = KeymapBrowserState(app, focused)
 
-    @abstractmethod
     def selected(self) -> KeymapSelection | None:
         """The mode cell the native table has selected, as the state reads it."""
+        return self.state.select(*self.selected_cell())
+
+    @abstractmethod
+    def selected_cell(self) -> tuple[int, int]:
+        """The row and column the native table's cursor is on."""
 
     @abstractmethod
     def typed_keys(self) -> str: ...

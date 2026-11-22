@@ -149,9 +149,21 @@ class BoundViewHost:
 
     # ---- what a publication tells the view ----
 
-    @abstractmethod
     def history_painted(self) -> None:
-        """A publication painted the history: retire loading paint, settle submissions."""
+        """A publication painted the history. One sequence for every frontend: the view does
+        what is its own (`view_painted`), the application hears a history is displayed (the
+        process's heap freezes at the first), and submissions waiting on drawn rows settle.
+
+        Each frontend's view wrote this sequence itself until 2026-11-22, and Qt's had no
+        `history_displayed` in it: its heap was never frozen after startup, and nothing said
+        so until the two overrides were compared (NRA's sibling-override-step finding)."""
+        self.view_painted()
+        self.app.history_displayed()
+        self.submissions.settle()
+
+    def view_painted(self) -> None:
+        """What this frontend's view does of its own once its history is painted: nothing,
+        unless it drew something while the history loaded or tells an ancestor."""
 
     @abstractmethod
     def refresh_session_summary(self) -> None:

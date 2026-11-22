@@ -71,8 +71,12 @@ def test_both_frontends_and_the_shared_reader_tell_the_one_heap():
     from toad.qt.thread_view import QtThreadView
     from toad.widgets.conversation import Conversation
 
+    from toad.client.view_binding_protocols import BoundViewHost
+
+    # One sequence, the shared host's: neither frontend's view can leave the step out.
     for view in (QtThreadView, Conversation):
-        assert "history_displayed()" in inspect.getsource(view.history_painted), view
+        assert view.history_painted is BoundViewHost.history_painted, view
+    assert "self.app.history_displayed()" in inspect.getsource(BoundViewHost.history_painted)
     assert "HEAP.history_displayed()" in inspect.getsource(ClientApplication.history_displayed)
     assert "HEAP.reader_moved()" in inspect.getsource(DirectionalPreparation._moved)
     assert "HEAP.reader_still()" in inspect.getsource(DirectionalPreparation.settle)

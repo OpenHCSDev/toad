@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 from agent_comms.messaging.channel_targets import ChannelTarget
 
+from toad.client.conversation_capabilities import ConversationActivity
 from toad.client.conversation import ChannelConversation
 from formbridge.publications import Subscription
 from toad.client.resource_release import ResourceRelease
@@ -39,11 +40,13 @@ def test_channel_mentions_check_the_root_of_the_core_they_read() -> None:
             ),
             preparation=SimpleNamespace(run_thread=run_thread),
         ),
-        query=lambda _kind: (SimpleNamespace(set_mention_candidates=offered.append),),
+        show_mention_candidates=offered.append,
     )
     core = SimpleNamespace(root=Path("/core/root"))
 
-    asyncio.run(CommsChatView.update_channel_mentions(view, core))
+    # The sequence is the shared owner's; a frontend's view only shows what it read.
+    assert CommsChatView.update_channel_mentions is ConversationActivity.update_channel_mentions
+    asyncio.run(ConversationActivity.update_channel_mentions(view, core))
 
     assert roots == [Path("/core/root")]
     assert offered == [("#comms",)]

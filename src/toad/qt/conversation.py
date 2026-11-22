@@ -40,7 +40,6 @@ from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.history_rows_view import AsyncioPublications
 from toad.client.observed_field import ObservedField
 from toad.client.prompt_composer import ComposerStatus
-from toad.client.prompt_stack import ErrorTone, SuccessTone
 from toad.client.session_sources import SessionSources, SourcedConversation
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.view_settings import ConversationSettingsOwner
@@ -348,15 +347,6 @@ class QtConversation(
         return await CommandCatalog.read(
             self.app, self.agent_binding.presentation.commands, self.command_target_context(),
             self.local_commands)
-
-    def flash(self, text: str) -> None:
-        self.feedback.flash(text)
-
-    def flash_success(self, text: str) -> None:
-        self.feedback.flash(text, style=SuccessTone.declared_name)
-
-    def flash_error(self, text: str) -> None:
-        self.feedback.flash(text, style=ErrorTone.declared_name)
 
     # ---- TurnPresentation: the shared turn code's blocks, as history rows ----
 

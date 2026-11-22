@@ -160,9 +160,14 @@ class PromptComposer(metaclass=AbstractHooksMeta):
     def show_failure(self, text: str) -> None:
         """Say, under the input, why something typed or attached did not go."""
 
-    @abstractmethod
     def restore_draft(self, text: str) -> None:
         """Join returned text to what is typed (`restored_suffix`)."""
+        if suffix := self.restored_suffix(self.text, text):
+            self.append_to_draft(suffix)
+
+    @abstractmethod
+    def append_to_draft(self, suffix: str) -> None:
+        """Put `suffix` at the end of what is typed, as an edit the reader can undo."""
 
     def restore(self, draft) -> None:
         """A send that did not land comes back as the draft."""

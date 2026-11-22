@@ -1081,11 +1081,9 @@ class Conversation(
     def current_publication(self):
         return get_current_worker()
 
-    def history_painted(self) -> None:
+    def view_painted(self) -> None:
         self.retire_loading_splash()
-        self.app.history_displayed()
         self.query_ancestor(SessionView).history_painted()
-        self.submissions.settle()
 
     def refresh_session_summary(self) -> None:
         self.query_one(SessionDetails)._refresh_summary()
@@ -1338,7 +1336,7 @@ class Conversation(
         """Menu and keyboard interruption share the live terminal's eligibility."""
         if self.terminal_action_state:
             await self.shell.interrupt()
-            self.feedback.flash("Command interrupted", style="success")
+            self.flash_success("Command interrupted")
 
     @property
     def cursor_block(self) -> ConversationEntry | AbsentEntry:
@@ -1679,14 +1677,9 @@ class Conversation(
         self.prompt.ask(ask)
         return ask
 
-    def flash(self, text: str) -> None:
-        self.feedback.flash(Content(text))
-
-    def flash_success(self, text: str) -> None:
-        self.feedback.flash(Content(text), style=SuccessFlash.declared_name)
-
-    def flash_error(self, text: str) -> None:
-        self.feedback.flash(Content(text), style=ErrorFlash.declared_name)
+    def flash_content(self, text: str) -> Content:
+        """As plain content: a `Static` given a string reads markup in it."""
+        return Content(text)
 
     def open_team(self, teammate: str) -> None:
         self.app.push_screen(TeamPage(teammate))
@@ -2160,18 +2153,15 @@ class Conversation(
             await self.mount(menu)
             menu.focus()
 
-    def copy_block_to_clipboard(self) -> None:
-        cursor = self.navigation.cursor
-        if text := cursor.get_clipboard_text():
-            self.app.copy_to_clipboard(text)
-            self.feedback.flash("Copied to clipboard")
+    def block_clipboard_text(self) -> str:
+        return self.navigation.cursor.get_clipboard_text()
 
-    def copy_block_to_prompt(self) -> None:
-        cursor = self.navigation.cursor
-        if text := cursor.get_prompt_text():
-            self.prompt.append(text)
-            self.feedback.flash("Copied to prompt")
-            self.focus_prompt()
+    def block_prompt_text(self) -> str:
+        return self.navigation.cursor.get_prompt_text()
+
+    def append_to_prompt(self, text: str) -> None:
+        self.prompt.append(text)
+        self.focus_prompt()
 
     def maximize_block(self) -> None:
         cursor = self.navigation.cursor
