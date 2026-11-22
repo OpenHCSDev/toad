@@ -435,13 +435,18 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
     def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument:
         # A wide row's paint rect is its intrinsic extent. Layout still uses the
         # viewport width, or wrapped prose would stop wrapping after scrolling code.
-        width = self.view.viewport_width() or option.rect.width()
-        return self.row_document(index, option.font, width)
+        return self.row_document(index, option.font, self.layout_width(option.rect.width()))
 
     def available_width(self, option: QStyleOptionViewItem) -> int:
         """Rows are laid out at the viewport's width: a wide row's own rect is its extent,
         and wrapped prose laid out at that would stop wrapping."""
-        return self.view.viewport_width() or super().available_width(option)
+        return self.layout_width(super().available_width(option))
+
+    def layout_width(self, extent: int) -> int:
+        """The width a row is laid out and prepared at: the viewport's, whatever the row's
+        own extent came out as (a row with an unwrapped block is wider). `extent` only
+        before the view has a viewport."""
+        return self.view.viewport_width() or extent
 
     def hinted(self, key, size: QSize) -> QSize:
         """A row takes its height at the layout width and, across, how wide its content came
@@ -1887,8 +1892,10 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         rect = self.visualRect(top)
         if rect.height() <= 0:
             return QtTopRow()
-        return QtRowUnderTop(self, top.data(HistoryRows.FRAGMENT), rect.left(), rect.width(), -rect.top(),
-                             rect.height())
+        # The row's layout width, not its extent: a row with an unwrapped block is wider than
+        # the viewport, its header is not, and the pin draws that header.
+        return QtRowUnderTop(self, top.data(HistoryRows.FRAGMENT), rect.left(),
+                             self.rows.layout_width(rect.width()), -rect.top(), rect.height())
 
     def live_message_header(self) -> PinnedHeader:
         """Qt draws no live blocks: the draft is rows, so a row under the top edge pins."""
