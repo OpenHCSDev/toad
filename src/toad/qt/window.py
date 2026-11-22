@@ -1275,21 +1275,12 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
     def read_thread_config(self) -> None:
         self.deliver(self._refresh_thread_config)
 
-    async def _refresh_thread_config(self) -> None:
-        """Read compose access, status, label and mentions — facts that change when thread
-        config changes (ThreadsObserved), not on every bus message."""
-        source = self.app.source()
+    async def thread_label_read(self) -> None:
         # The label reads Core's thread references: off the GUI loop, as compose access is.
         # Read on the loop it held a tab's opening for 104 ms on the desktop (frame probe).
-        preparation = self.app.preparation
-        references = await preparation.run_thread(source.references)
+        references = await self.app.preparation.run_thread(self.app.source().references)
         label = self.conversation.label(references)
         self.on_composer("label", lambda composer: composer.labelled(label))
-        compose = await preparation.run_thread(self.conversation.compose_access, source.core)
-        await self.refresh_composer(compose)
-        self.thread_status = await preparation.run_thread(
-            partial(self.conversation.status_text, source, read_only=compose.read_only))
-        await self.conversation.update_mentions(self, source)
 
     # The kind's composer and activity (ConversationActivity)
 

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import ClassVar
 
-from agent_comms.coordination.errors import ReadAgain
+from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
 from agent_comms.messaging.historical_views import (
     ConversationObservation,
     ConversationRevision,
@@ -346,8 +346,48 @@ class WireView(ConversationActivity):
 
     @abstractmethod
     def read_thread_config(self) -> None:
-        """Start reading the thread's compose access, label, status and mentions on this
-        frontend's loop; a read already running is replaced or followed, as the loop does."""
+        """Start `_refresh_thread_config` on this frontend's loop; a read already running is
+        replaced or followed, as the loop does."""
+
+    async def _refresh_thread_config(self) -> None:
+        """Read the thread's compose access, mentions and status: facts that change when its
+        config changes (ThreadsObserved), not on every bus message. Every step is fenced: a
+        view whose source was replaced meanwhile, or a read Core asks to repeat, shows nothing
+        of it. (Each frontend's view wrote this sequence; Qt's had neither fence and read the
+        page source's three answers by hand.)"""
+        history = self.message_history
+        source = history.page_source
+        snapshot = history.source_snapshot()
+        if not await history.source_is_current(snapshot):
+            return
+        await self.thread_label_read()
+        compose = await source.compose_access()
+        if not await history.source_is_current(snapshot):
+            return
+        await self.refresh_composer(compose)
+        try:
+            await source.update_mentions(self)
+            if not await history.source_is_current(snapshot):
+                return
+            self.mentions_read()
+            status = await source.status_text(read_only=compose.read_only)
+        except (CoordinationReadUnavailable, ReadAgain):
+            return
+        if not await history.source_is_current(snapshot):
+            return
+        self.thread_status = status
+        self.thread_status_shown()
+
+    async def thread_label_read(self) -> None:
+        """The conversation's own label, where a frontend draws it from this read (Qt's
+        composer label); Textual draws its label as the page source's identity changes."""
+
+    def mentions_read(self) -> None:
+        """The mention roster is current: a frontend marks what it shows (Textual's history
+        is marked visible once the roster is drawn)."""
+
+    def thread_status_shown(self) -> None:
+        """The status line changed: a frontend that follows the end keeps it in view."""
 
     def thread_presented(self, presentation) -> None:
         super().thread_presented(presentation)

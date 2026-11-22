@@ -616,3 +616,71 @@ def test_closing_a_qt_history_stops_the_rows_its_delegate_is_still_rendering():
     # The workers' rows must not land in a delegate Qt is about to delete: a render that
     # finished after its tab closed raised "QTimer already deleted" into the event loop.
     assert stopped == ["source", "cleanup"] and history.attached is False
+
+
+def refreshing_view(*, current: list[bool], status=None):
+    """A WireView with a recording page source; `current` answers each source_is_current in turn."""
+    import asyncio
+
+    from toad.client.history import WireView
+
+    seen: list[str] = []
+    answers = iter(current)
+
+    async def source_is_current(snapshot):
+        return next(answers, True)
+
+    async def compose_access():
+        seen.append("compose")
+        return SimpleNamespace(read_only=False)
+
+    async def update_mentions(view):
+        seen.append("mentions")
+
+    async def status_text(*, read_only):
+        if isinstance(status, Exception):
+            raise status
+        seen.append("status")
+        return "status line"
+
+    history = SimpleNamespace(
+        page_source=SimpleNamespace(compose_access=compose_access, update_mentions=update_mentions,
+                                    status_text=status_text),
+        source_snapshot=lambda: "snapshot", source_is_current=source_is_current)
+
+    async def refresh_composer(self, compose):
+        seen.append("composer")
+
+    async def thread_label_read(self):
+        seen.append("label")
+
+    members = {"__abstractmethods__": frozenset(), "message_history": history,
+               "refresh_composer": refresh_composer, "thread_label_read": thread_label_read,
+               "mentions_read": lambda self: seen.append("mentions-read"),
+               "thread_status_shown": lambda self: seen.append("status-shown"), "thread_status": ""}
+    view = object.__new__(type("View", (WireView,), members))
+    asyncio.run(view._refresh_thread_config())
+    return view, seen
+
+
+def test_the_thread_config_refresh_draws_each_answer_in_order_and_shows_the_status():
+    view, seen = refreshing_view(current=[])
+
+    assert seen == ["label", "compose", "composer", "mentions", "mentions-read", "status", "status-shown"]
+    assert view.thread_status == "status line"
+
+
+def test_a_source_replaced_during_the_thread_config_refresh_shows_nothing_more():
+    # Fenced after the label read's snapshot check, then after compose access: the third check fails.
+    view, seen = refreshing_view(current=[True, True, False])
+
+    assert seen == ["label", "compose", "composer", "mentions"]
+    assert view.thread_status == ""
+
+
+def test_a_read_core_asks_to_repeat_shows_no_status():
+    from agent_comms.coordination.errors import ReadAgain
+
+    view, seen = refreshing_view(current=[], status=ReadAgain("again"))
+
+    assert "status-shown" not in seen and view.thread_status == ""

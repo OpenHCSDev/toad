@@ -6,7 +6,6 @@ import re
 from functools import partial
 from pathlib import Path
 
-from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
 from agent_comms.messaging.display_references import (
     CurrentDisplayReferences,
     ReferenceContext,
@@ -205,29 +204,10 @@ class CommsChatView(WireConversationView):
     def read_thread_config(self) -> None:
         self.run_worker(self._refresh_thread_config, group=self.LABELS_GROUP)
 
-    async def _refresh_thread_config(self) -> None:
-        """Read compose access, status, mentions and label — facts that change when thread
-        config changes (ThreadsObserved), not on every bus message."""
-        history = self.message_history
-        source = history.page_source
-        snapshot = history.source_snapshot()
-        if not await history.source_is_current(snapshot):
-            return
-        compose = await source.compose_access()
-        if not await history.source_is_current(snapshot):
-            return
-        await self.refresh_composer(compose)
-        try:
-            await source.update_mentions(self)
-            if not await history.source_is_current(snapshot):
-                return
-            self.call_after_refresh(history.mark_visible)
-            status = await source.status_text(read_only=compose.read_only)
-        except (CoordinationReadUnavailable, ReadAgain):
-            return
-        if not await history.source_is_current(snapshot) or self.conversation != self.conversation:
-            return
-        self.thread_status = status
+    def mentions_read(self) -> None:
+        self.call_after_refresh(self.message_history.mark_visible)
+
+    def thread_status_shown(self) -> None:
         if self.window.follows_tail:
             self.window.anchor()
 
