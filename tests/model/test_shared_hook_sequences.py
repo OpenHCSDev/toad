@@ -583,3 +583,20 @@ def test_a_view_that_navigates_nowhere_still_says_direct_messages_are_unavailabl
     owner = NoNavigationOwner(SimpleNamespace(show_info=lambda text, title: notices.append((text, title))))
     asyncio.run(owner.open_direct_messages())
     assert notices == [("Direct messages are unavailable from this view", "Direct messages")]
+
+
+def test_a_host_that_composes_no_loading_splash_has_nothing_to_retire():
+    from toad.client.history_state import UnboundTranscript
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.widgets.conversation import Conversation
+
+    # The transcript states ask every host to retire its splash when a local tab mounts:
+    # Qt's agent tab inherits the contract's "none composed" answer, Textual's removes its widget.
+    assert QtAcpSessionView.retire_loading_splash is BoundViewHost.retire_loading_splash
+    assert Conversation.retire_loading_splash is not BoundViewHost.retire_loading_splash
+
+    asked = []
+    host = SimpleNamespace(retire_loading_splash=lambda: asked.append("retired"))
+    owner = SimpleNamespace(view=host, call_after_refresh=lambda callback: callback())
+    UnboundTranscript().mounted(owner)
+    assert asked == ["retired"]
