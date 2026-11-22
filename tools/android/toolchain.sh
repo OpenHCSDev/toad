@@ -10,6 +10,7 @@ T=$(realpath -m "$1")
 : "${JAVA_HOME:=/usr/lib/jvm/java-17-openjdk}"
 export JAVA_HOME
 "$JAVA_HOME/bin/java" -version 2>&1 | grep -q '"17' || { echo "JDK 17 is needed at JAVA_HOME ($JAVA_HOME)"; exit 1; }
+command -v uv > /dev/null || { echo "uv is needed on PATH to make venv314"; exit 1; }
 mkdir -p "$T/wheels" "$T/sdk"
 cd "$T"
 for w in pyside6/pyside6-6.12.0-6.12.0-cp310-abi3-android_aarch64.whl shiboken6/shiboken6-6.12.0-6.12.0-cp310-abi3-android_aarch64.whl; do
@@ -24,5 +25,7 @@ fi
 SM=sdk/cmdline-tools/latest/bin/sdkmanager
 yes | timeout 300 "$SM" --sdk_root="$T/sdk" --licenses > /dev/null || true
 timeout 1800 "$SM" --sdk_root="$T/sdk" "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;28.2.13676358" | tail -3
-[ -x venv314/bin/buildozer ] || { uv venv -q --python 3.14 venv314 && uv pip install -q --python venv314/bin/python buildozer==1.6.0 cython==0.29.33 setuptools; }
+# buildozer installs python-for-android's build tools with `python -m pip`, so the venv is seeded with pip.
+[ -x venv314/bin/buildozer ] || { uv venv -q --seed --python 3.14 venv314 && uv pip install -q --python venv314/bin/python buildozer==1.6.0 cython==0.29.33 setuptools; }
+venv314/bin/python -m pip --version > /dev/null || uv pip install -q --python venv314/bin/python pip
 echo "toolchain ready: $T"
