@@ -54,8 +54,14 @@ class NavigationOwner:
     @abstractmethod
     def navigation_context(self) -> NavigationContext: ...
 
-    def remember_direct_target(self, target: str) -> None:
-        """Optional view-local return-to-DM intent."""
+    _last_direct: NavigationDestination | None = None
+    """The direct conversation this view last opened, for "open my last DM" (Ctrl+Shift+D)."""
+
+    def remember_direct_target(self, target: NavigationDestination) -> None:
+        """A direct conversation was selected in this view: it is the one the next
+        "open the last DM" returns to. (Textual's main screen kept the name and opened it;
+        Qt's views said the command was unavailable, with the same key bound.)"""
+        self._last_direct = target
 
     async def open_sidebar_target(self, target: NavigationDestination) -> None:
         target.selected(self)
@@ -67,10 +73,13 @@ class NavigationOwner:
         return self.navigation_context.app
 
     async def open_direct_messages(self) -> None:
-        """Open this view's direct-message destination when it has one."""
-        self.navigation_app.show_info(
-            "Direct messages are unavailable from this view", "Direct messages"
-        )
+        """Open the direct conversation this view last opened; say so when it has none."""
+        if self._last_direct is None:
+            self.navigation_app.show_info(
+                "Choose Direct messages from an agent's context menu", "Direct messages"
+            )
+            return
+        await self.open_sidebar_target(self._last_direct)
 
 
 class NavigationUnavailable(RuntimeError):

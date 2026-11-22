@@ -42,7 +42,6 @@ from toad.format_path import format_path
 from toad.launch_binding import AgentBinding, NoAgent
 from toad.navigation_context import NavigationContext, ThreadViewNavigation
 from toad.navigation_target import (
-    DirectTarget,
     FeedTarget,
     NavigationTarget,
     SelectTarget,
@@ -566,8 +565,6 @@ class MainScreen(
             self._identity = previous.with_session(event.session_id)
         await self.content.attached(self)
 
-    _last_dm_target: str | None = None
-
     @property
     def navigation_mode(self) -> str:
         assert self.id is not None
@@ -576,9 +573,6 @@ class MainScreen(
     @property
     def navigation_project(self):
         return self.project_path
-
-    def remember_direct_target(self, target: str) -> None:
-        self._last_dm_target = target
 
     def open_mcp_inventory(self) -> None:
         """Open an inert package-owned snapshot; never locate a source checkout."""
@@ -592,18 +586,6 @@ class MainScreen(
         """Open the IRC feed as a native Toad session."""
         if self.id is not None:
             await self.open_sidebar_target(FeedTarget())
-
-    async def open_direct_messages(self) -> None:
-        """Open the last-selected DM as a native Toad session."""
-        target = self._last_dm_target
-        if not target:
-            self.notify(
-                "Choose Direct messages from an agent's context menu",
-                title="Direct messages",
-            )
-            return
-        if target and self.id is not None:
-            await self.open_sidebar_target(DirectTarget(target))
 
     @handles(SelectTarget)
     async def on_comms_select_target(self, event: SelectTarget) -> None:
