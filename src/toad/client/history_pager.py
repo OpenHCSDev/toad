@@ -10,6 +10,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections import deque
 from collections.abc import Awaitable, Callable, Iterable
+from itertools import islice
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, fields, replace
 from functools import partial
@@ -49,6 +50,7 @@ from toad.client.prepared_pages import (
     MeasuresFragments,
     PreparedPageSource,
     PreparedTranscriptPage,
+    WHOLE_PAGE,
     _DrawingStopped,
 )
 from toad.client.reader_position import (
@@ -427,10 +429,29 @@ class HistoryPager(ResumesSource):
     def prepare_visible_pages(self) -> None:
         """Let the pages on screen consume the geometry just committed."""
 
-    @abstractmethod
     async def prepare_fragments(self, fragments: tuple[HistoryFragment, ...], current: Callable[[], bool], *,
                                 selected: frozenset[type[MessageCategory]], target: MeasuresFragments) -> None:
-        """Render fragments against the native destination before they are measured."""
+        """Render fragments against the native destination before they are measured, including
+        before history is mounted: a row first drawn plain and rewrapped when its styled rows
+        landed moves every row under it.
+
+        One loop for every frontend. The shown fragments still waiting at the destination's
+        measure are rendered a budget's batch at a time in the worker processes, and the work
+        stops between batches once it is no longer current (the reader moved on, the page was
+        replaced), so a superseded page costs at most the batch in flight."""
+        if not target.measurable:
+            return
+        waiting = (unit for fragment in fragments if fragment.shown_in(selected)
+                   for unit in target.unprepared(fragment))
+        while current():
+            batch = tuple(islice(waiting, self.budget.batch_items))
+            if not batch:
+                return
+            rows = await target.render_rows(batch)
+            if not current():
+                return
+            for unit, row in zip(batch, rows, strict=True):
+                target.hold_row(unit, row)
 
     def page_holding(self, key: FragmentKey) -> ReaderPage:
         """The loaded page holding this source occurrence; absence is an invalid request."""
@@ -905,10 +926,16 @@ class HistoryPager(ResumesSource):
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, end)
+            # The rows an edge still owes decide that it reads; what it read is published
+            # as the page it is, to the item limit. Topping the runway up by exactly what
+            # it owed published a row or two at a time (Qt: 121 rows in 91 publications,
+            # each one a layout of the reader's window), where a page is 40 messages.
+            # Rows arriving at a followed end are taken as the viewport needs them.
             await staged.prepare_rows(
                 self, current, target=self, selected=self.selected_categories, end=end,
                 boundary=end.edge_boundary(edge, local, staged),
-                rows_needed=max(1, missing), limit=self.fragment_limit)
+                rows_needed=max(1, missing) if followed_end else WHOLE_PAGE,
+                limit=self.fragment_limit)
             if not current():
                 return False
             async with window.history_lock:

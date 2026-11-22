@@ -927,3 +927,20 @@ class LineTarget(MeasuresFragments):
 
     def fragment_height(self, fragment) -> int:
         return fragment.lines_for(self.line_width, self.app.colours.line_theme).height
+
+    @property
+    def measurable(self) -> bool:
+        return self.line_width > 0
+
+    def unprepared(self, fragment) -> tuple[object, ...]:
+        return fragment.lines_for(self.line_width, self.app.colours.line_theme).unstyled(fragment)
+
+    async def render_rows(self, waiting):
+        """Each fragment's request and its styled lines, from one worker round trip."""
+        theme = self.app.colours.line_theme
+        return await TranscriptLinesBatchRenderTask.render_for(
+            self, (LinePreparation(fragment.line_blocks, theme) for fragment in waiting))
+
+    def hold_row(self, waiting, row) -> None:
+        task, lines = row
+        task.hold(self, waiting, lines)

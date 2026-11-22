@@ -64,7 +64,12 @@ class JumpsToLatest:
         even when no travel was recorded, which added per-tick work on top of Android's
         already-slow EGL backing-store flush).
         """
-        if self.lookahead.observe(position):
+        # An offset that changed while layout kept the reader in place (`layout_scroll`) is
+        # not the reader moving: that scope relocates the lookahead's measure by the same
+        # rows when it ends. Measured here as well, a page landing above the reader read as
+        # the reader travelling its whole height one way and back within a frame, a speed
+        # of thousands of viewports a second (Textual reported every offset; Qt did not).
+        if not self._restoring and self.lookahead.observe(position):
             self._schedule_settle()
         self.request_preparation()
         self.tail_follow_changed()

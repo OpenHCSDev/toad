@@ -4,16 +4,20 @@ Callables must be importable module-level functions; arguments and results must
 be picklable data, never widgets, apps, or core services. Spawn entry points must
 use the usual ``if __name__ == "__main__"`` guard. Importing this module or
 constructing a pool starts no processes.
+
+The workers are the platform's (``WorkerStart``): fresh interpreters on a desktop, forks of
+the application on Android. There is one pool on every platform; rendering never runs on a
+thread of the UI's interpreter.
 """
 
 import asyncio
 import os
 from collections.abc import Awaitable, Callable
-from concurrent.futures import ProcessPoolExecutor
 from typing import TypeVar
 
 from agent_comms.execution import launch_root
-from agent_comms.execution.child_process import HelperStart, ProcessName
+from agent_comms.execution.child_process import ProcessName, WorkerStart
+from agent_comms.execution.helper_workers import HelperWorkers
 from agent_comms.execution.launch_runtime import ThreadLaunch
 
 from toad.render_backend import Renderer, RenderTask, capture_submitted
@@ -55,7 +59,7 @@ class RenderProcessPool(Renderer):
     aclose call can await the same teardown.
     """
 
-    def __init__(self, start: HelperStart, max_workers: int = 2,
+    def __init__(self, start: WorkerStart, max_workers: int = 2,
                  max_pending: int = 4) -> None:
         super().__init__()
         self._start = start
@@ -64,7 +68,7 @@ class RenderProcessPool(Renderer):
                 raise ValueError(f"{name} must be a positive integer")
         self._max_workers = max_workers
         self._max_pending = max_pending
-        self._executor: ProcessPoolExecutor | None = None
+        self._executor: HelperWorkers | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
         self._pending: set[Awaitable[object]] = set()
         self._changed = asyncio.Event()
@@ -95,18 +99,16 @@ class RenderProcessPool(Renderer):
         """Acquire real workers when the application selects this renderer."""
         self.acquire_executor()
 
-    def acquire_executor(self) -> ProcessPoolExecutor:
-        """Acquire and return this pool's executor through its startup owner."""
+    def acquire_executor(self) -> HelperWorkers:
+        """Acquire and return this pool's workers through their start's owner. They exist
+        from here on: a pool started lazily by the first page read held every frontend's
+        first transcript blank for its workers' startup."""
         if self._closed:
             raise RuntimeError("RenderProcessPool is closed")
         if self._executor is None:
-            self.prepare_spawn()
-            self._executor = ProcessPoolExecutor(
-                max_workers=self._max_workers,
-                mp_context=self._start.context(),
-                initializer=_initialize_worker,
-            )
-            self.start_workers(self._executor)
+            self._start.prepare()
+            self._executor = self._start.workers(self._max_workers, _initialize_worker)
+            self._executor.start()
         return self._executor
 
     async def run[*Args, Value](self, function: Callable[[*Args], Value], *args: *Args) -> Value:

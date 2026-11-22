@@ -14,7 +14,6 @@ import qasync
 from agent_comms.projects.checkouts import Checkout
 from objectstate import set_base_config_type
 from PySide6.QtCore import QEvent, QObject
-from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication
 from ui_theme.scheme import ColourScheme
 
@@ -26,30 +25,12 @@ from toad.qt.finger_press import FingerPress
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.window import QtToadApp
-from toad.render_backend import Renderer
-from toad.render_fork import ForkedRenderer
+from toad.render_processes import RenderProcessPool
 from toad.work_preparation import PreparationRuntime
 
 if TYPE_CHECKING:
     # Android's start never loads the desktop's local connection.
     from toad.client.local_connection import ClientLaunch
-
-
-def _renderer_for_platform(connection: CoreConnection) -> Renderer:
-    """The platform's process primitive behind one renderer contract: rows are prepared in
-    another process, because a thread of this one takes turns with the UI for the
-    interpreter lock.
-
-    Desktop uses CPython's persistent process pool. Android has no ``_multiprocessing``,
-    and a p4a service is a fresh interpreter that imported the application again (minutes
-    on a phone, which once sent its rows back to a thread here). Its children are forked
-    from this process instead (``ForkedRenderer``): they carry the modules already loaded
-    and start in the time of a system call.
-    """
-    if QGuiApplication.platformName() == "android":
-        return ForkedRenderer()
-    from toad.render_processes import RenderProcessPool
-    return RenderProcessPool(connection.helper_start)
 
 
 @dataclass(frozen=True)
@@ -69,7 +50,7 @@ async def open_app(connection: CoreConnection, project: Checkout, scheme: Colour
     FingerPress.install(QApplication.instance())
     FrameProbe.start_if_requested(QApplication.instance())
     launch = await AgentBinding.launched(agent, connection.agent_processes)
-    app = QtToadApp(connection, project, PreparationRuntime(_renderer_for_platform(connection)), scheme,
+    app = QtToadApp(connection, project, PreparationRuntime(RenderProcessPool(connection.helper_start)), scheme,
                     launch, opening)
     # The loop outlives the window: closing it starts the shared client shutdown, which
     # runs on this loop, so Qt must not stop the loop when the last window closes.
@@ -113,8 +94,7 @@ async def serve(connection: CoreConnection, project: Checkout, scheme: ColourSch
                 agent: str = "", opening: LaunchOpening = NoLaunchOpening()) -> None:
     """Show the bus behind ``connection`` until Qt is asked to end, then end the way every
     end does: the window closes while its client still serves its views, then the shared
-    client shutdown, and qasync stops the loop when this returns. Desktop passes the
-    process-decoding member, Android the one decoding in place."""
+    client shutdown, and qasync stops the loop when this returns."""
     app = await open_app(connection, project, scheme, agent, opening)
     application = QApplication.instance()
     request = EndRequest(asyncio.get_running_loop().create_future())

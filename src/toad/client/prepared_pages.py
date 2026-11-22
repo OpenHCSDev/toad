@@ -3,8 +3,9 @@ sources every frontend reads, the ranges a view draws, and the work that prepare
 the UI thread. Nothing here draws or imports a toolkit."""
 
 import asyncio
+import sys
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field, replace
 from itertools import islice
 from pathlib import Path
@@ -47,13 +48,41 @@ from toad.work_preparation import (
 )
 
 
+WHOLE_PAGE = sys.maxsize
+"""Rows asked of a page whose every fragment is wanted, up to the item limit."""
+
+
 class MeasuresFragments:
     """Where fragments are measured: the rows a fragment takes there at the current width, in
-    that frontend's own unit. A mixin beside a native widget, so it declares its hook without
-    ABC's metaclass."""
+    that frontend's own unit. A mixin beside a native widget, so it declares its hooks without
+    ABC's metaclass.
+
+    It is also where a fragment's rows are prepared before they are measured: the pager's one
+    loop (`HistoryPager.prepare_fragments`) asks it which fragments still wait, has their rows
+    rendered in the worker processes a batch at a time, and hands each back to be held. What a
+    row is (styled terminal lines, a Qt row's formatting) is the destination's own."""
 
     @abstractmethod
     def fragment_height(self, fragment: HistoryFragment) -> int: ...
+
+    @property
+    @abstractmethod
+    def measurable(self) -> bool:
+        """Whether this destination has a width yet; before its first layout, nothing can
+        be prepared for it."""
+
+    @abstractmethod
+    def unprepared(self, fragment: HistoryFragment) -> tuple[object, ...]:
+        """The fragment as this destination will render it, when its rows at the current
+        measure are not held yet; nothing when they are."""
+
+    @abstractmethod
+    async def render_rows(self, waiting: tuple[object, ...]) -> Sequence[object]:
+        """One row per waiting fragment, rendered in the worker processes."""
+
+    @abstractmethod
+    def hold_row(self, waiting: object, row: object) -> None:
+        """Keep a rendered row as the fragment's rows at the measure it was rendered for."""
 
 
 class DrawnPage:

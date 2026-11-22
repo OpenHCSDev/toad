@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from agent_comms.execution.child_process import ForkedStart
 from agent_comms.execution.launch_runtime import ThreadLaunch
 from agent_comms.projects.checkouts import Checkout
 
@@ -91,6 +92,25 @@ async def test_workers_are_spawned_apart_from_the_parent_and_errors_propagate(mo
         with pytest.raises((AttributeError, TypeError, pickle.PicklingError)):
             await pool.run(lambda: os.getpid())
         assert (await pool.run(worker_info))[0] != os.getpid()
+
+
+async def test_the_same_pool_over_forked_workers_runs_apart_from_the_parent_and_errors_propagate():
+    """Android's member of the worker start: the pool's contract holds over forks of this process."""
+    pool = RenderProcessPool(ForkedStart(), max_workers=2)
+    try:
+        pool.start()
+        pid, _method, inherited = await pool.run(worker_info)
+        assert pid != os.getpid()
+        assert inherited == {}
+        with pytest.raises(ValueError, match="worker failure"):
+            await pool.run(fail)
+        with pytest.raises((AttributeError, TypeError, pickle.PicklingError)):
+            await pool.run(lambda: os.getpid())
+        workers = {(await pool.run(worker_info))[0] for _ in range(4)}
+        assert os.getpid() not in workers and len(workers) <= 2
+    finally:
+        await pool.aclose()
+    assert not any(Path(f"/proc/{worker}").exists() for worker in workers)
 
 
 async def test_canceled_waiter_retains_submission_capacity(tmp_path):

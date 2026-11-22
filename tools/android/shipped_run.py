@@ -141,9 +141,12 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
     )
     # -B: the app folder ships the bytecode assemble.py compiled; this run writes none beside it.
     # It runs at the APK's optimization level, so it loads that bytecode, as the phone does.
+    # The phone's workers are forks of the app (QT_DRIVE_PHONE_WORKERS): this run renders and
+    # reads through them, with only the modules the APK ships.
     return subprocess.run([sys.executable, "-S", "-B", "-c", code], capture_output=True, text=True,
                           timeout=600, cwd=recipes, check=False,
-                          env=os.environ | {"PYTHONOPTIMIZE": str(python_optimize())})
+                          env=os.environ | {"PYTHONOPTIMIZE": str(python_optimize()),
+                                            "QT_DRIVE_PHONE_WORKERS": "1"})
 
 
 def shipped_fault(app: Path, recipes: Path, crash: bool) -> subprocess.CompletedProcess:
