@@ -473,3 +473,35 @@ def test_a_name_wave_answers_its_cells_only_while_it_runs():
     assert line.wave_span() is None
     line.running = True
     assert line.wave_span() == (2, 5)
+
+
+def test_a_view_returns_to_the_direct_conversation_it_last_opened_in_both_frontends():
+    from toad.navigation_context import NavigationDestination, NavigationOwner
+    from toad.qt.mailbox_view import QtMailboxView
+    from toad.screens.main import MainScreen
+
+    notices, opened = [], []
+
+    class Destination(NavigationDestination):
+        def selected(self, owner) -> None:
+            owner.remember_direct_target(self)
+
+        async def open(self, context) -> str:
+            opened.append(context)
+            return "mode"
+
+    class Owner(NavigationOwner):
+        navigation_context = SimpleNamespace(app=SimpleNamespace(show_info=lambda text, title: notices.append((text, title))))
+
+    owner = Owner()
+    asyncio.run(owner.open_direct_messages())
+    assert notices == [("Choose Direct messages from an agent's context menu", "Direct messages")] and opened == []
+
+    asyncio.run(owner.open_sidebar_target(Destination()))
+    asyncio.run(owner.open_direct_messages())
+    assert len(opened) == 2  # the one chosen, then "open my last DM"
+
+    # The same answer in every view that navigates: neither frontend writes it again.
+    for view in (QtMailboxView, MainScreen):
+        assert view.open_direct_messages is NavigationOwner.open_direct_messages, view
+        assert view.remember_direct_target is NavigationOwner.remember_direct_target, view

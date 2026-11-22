@@ -212,7 +212,7 @@ class DirectTarget(HistoryRouted):
     history_kind = DmConversation
 
     def selected(self, owner: NavigationOwner) -> None:
-        owner.remember_direct_target(self.name)
+        owner.remember_direct_target(self)
 
 
 def channel_target(name: str) -> NavigationTarget:
