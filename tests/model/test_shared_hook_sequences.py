@@ -600,3 +600,19 @@ def test_a_host_that_composes_no_loading_splash_has_nothing_to_retire():
     owner = SimpleNamespace(view=host, call_after_refresh=lambda callback: callback())
     UnboundTranscript().mounted(owner)
     assert asked == ["retired"]
+
+
+def test_closing_a_qt_history_stops_the_rows_its_delegate_is_still_rendering():
+    from toad.qt.history import QtConversationHistory
+
+    stopped = []
+    # A concrete stand-in for the abstract history: close touches only its source and window.
+    window = SimpleNamespace(rows=SimpleNamespace(cleanup=lambda: stopped.append("cleanup")))
+    history_type = type("History", (QtConversationHistory,), {"__abstractmethods__": frozenset(), "window": window})
+    history = object.__new__(history_type)
+    history.page_source = SimpleNamespace(close=lambda: stopped.append("source"), through="through", runtime="runtime")
+    history.close()
+
+    # The workers' rows must not land in a delegate Qt is about to delete: a render that
+    # finished after its tab closed raised "QTimer already deleted" into the event loop.
+    assert stopped == ["source", "cleanup"] and history.attached is False
