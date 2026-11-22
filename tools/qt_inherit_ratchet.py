@@ -119,6 +119,7 @@ QT_ONLY = {
     'toad.qt.frame_probe.TimedHandles': "times each asyncio callback qasync runs from Qt timer events, naming a slow one's task; part of the Qt probe, which Textual's asyncio loop has no use for",
     'toad.qt.frame_probe.FrameProbe': "measures Qt's own event loop: a QTimer's lateness and Qt key-to-paint latency on the GUI thread; Textual's loop is asyncio's and has no Qt events",
     'toad.qt.history.HistoryRows': "QAbstractListModel exposing the shared fragments to Qt's list view; Textual has no item model",
+    'toad.qt.history.RenderedRow': "a pyqt-reactive HtmlRow as a render process returns it, with the rich text of the blocks Qt's pin lays out as documents of their own; Textual's worker returns styled lines, whose blocks are counted in cells with no second layout",
     'toad.qt.history.PreparedOnFill': "a pyqt-reactive RowFormatting that fills a QTextDocument only when Qt lays a row out; Textual draws line blocks, not documents",
     'toad.qt.client_start.EndRequest': "Qt 6's QEvent.Quit closes every window and leaves qasync's event loop inside one event; this event filter takes the request so the shared client shutdown runs on the loop first. Textual closes its client in App._close_all while its own loop still runs",
     'toad.qt.history.SourceTask': "an asyncio.Task on qasync's Qt event loop with the pager's wait() join; Textual runs workers",

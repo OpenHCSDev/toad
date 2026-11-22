@@ -5,7 +5,7 @@ the UI thread. Nothing here draws or imports a toolkit."""
 import asyncio
 import sys
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Iterable, Sequence
 from dataclasses import dataclass, field, replace
 from itertools import islice
 from pathlib import Path
@@ -52,15 +52,93 @@ WHOLE_PAGE = sys.maxsize
 """Rows asked of a page whose every fragment is wanted, up to the item limit."""
 
 
-class MeasuresFragments:
-    """Where fragments are measured: the rows a fragment takes there at the current width, in
-    that frontend's own unit. A mixin beside a native widget, so it declares its hooks without
-    ABC's metaclass.
+class HoldsRows:
+    """Where rows are rendered and kept: the worker processes render them, and the frontend
+    holds each as what it draws (styled terminal lines, a Qt row's formatting). A mixin beside
+    a native widget, so it declares its hooks without ABC's metaclass.
 
-    It is also where a fragment's rows are prepared before they are measured: the pager's one
-    loop (`HistoryPager.prepare_fragments`) asks it which fragments still wait, has their rows
-    rendered in the worker processes a batch at a time, and hands each back to be held. What a
-    row is (styled terminal lines, a Qt row's formatting) is the destination's own."""
+    Nothing else turns a row's blocks into what is drawn. A row the pager prepares ahead of the
+    reader (`HistoryPager.prepare_fragments`) and a row a view finds unprepared as it draws
+    (`RowsAsked`) go through the one loop here."""
+
+    @abstractmethod
+    async def render_rows(self, waiting: tuple[object, ...]) -> Sequence[object]:
+        """One row per waiting unit, rendered in the worker processes."""
+
+    @abstractmethod
+    def hold_row(self, waiting: object, row: object) -> None:
+        """Keep a rendered row as the unit's rows at the measure it was rendered for."""
+
+    async def render_and_hold(self, waiting: Iterable[object], batch: int,
+                           current: Callable[[], bool] = lambda: True) -> None:
+        """Render the waiting units, `batch` to a round trip, and hold each row. The work
+        stops between batches once it is no longer current (the reader moved on, the page was
+        replaced), so superseded work costs at most the batch in flight."""
+        waiting = iter(waiting)
+        while current():
+            units = tuple(islice(waiting, batch))
+            if not units:
+                return
+            rows = await self.render_rows(units)
+            if not current():
+                return
+            for unit, row in zip(units, rows, strict=True):
+                self.hold_row(unit, row)
+
+
+class RowsAsked:
+    """Rows a view asks for one at a time, each as it draws a row nothing prepared (an
+    arrival, a look that changed in place, a width nothing was prepared at): gathered for one
+    turn of the event loop, since a layout asks for many, then prepared together by their
+    holder's one loop. A view has no other way to get a row rendered, so none is rendered in
+    the process that draws."""
+
+    def __init__(self, holder: HoldsRows, batch: int) -> None:
+        self.holder, self.batch = holder, batch
+        self.waiting: list[object] = []
+        self.sending: asyncio.Handle | None = None
+        self.running: set[asyncio.Task[None]] = set()
+
+    def ask(self, unit: object) -> None:
+        self.waiting.append(unit)
+        if self.sending is None:
+            self.sending = asyncio.get_running_loop().call_soon(self.send)
+
+    def send(self) -> None:
+        self.sending = None
+        waiting, self.waiting = self.waiting, []
+        preparing = asyncio.ensure_future(self.holder.render_and_hold(waiting, self.batch))
+        self.running.add(preparing)
+        preparing.add_done_callback(self.sent)
+
+    def sent(self, preparing: asyncio.Task[None]) -> None:
+        """The rows landed, or their render failed. Nothing awaits these rows, so a failure is
+        raised here, into the loop's error report: rows left plain with no error were the
+        failure nobody saw."""
+        self.running.discard(preparing)
+        if not preparing.cancelled():
+            preparing.result()
+
+    def drop(self) -> None:
+        """Forget the rows asked for and not yet sent."""
+        self.waiting.clear()
+        if self.sending is not None:
+            self.sending.cancel()
+            self.sending = None
+
+    def stop(self) -> None:
+        """Nothing lands after this: the rows being rendered are let go."""
+        for preparing in tuple(self.running):
+            preparing.cancel()
+
+
+class MeasuresFragments(HoldsRows):
+    """Where fragments are measured: the rows a fragment takes there at the current width, in
+    that frontend's own unit.
+
+    It is also where a fragment's rows are prepared before they are measured: the pager's
+    loop (`HistoryPager.prepare_fragments`) asks it which fragments still wait and has them
+    rendered and held (`HoldsRows.render_and_hold`)."""
 
     @abstractmethod
     def fragment_height(self, fragment: HistoryFragment) -> int: ...
@@ -75,14 +153,6 @@ class MeasuresFragments:
     def unprepared(self, fragment: HistoryFragment) -> tuple[object, ...]:
         """The fragment as this destination will render it, when its rows at the current
         measure are not held yet; nothing when they are."""
-
-    @abstractmethod
-    async def render_rows(self, waiting: tuple[object, ...]) -> Sequence[object]:
-        """One row per waiting fragment, rendered in the worker processes."""
-
-    @abstractmethod
-    def hold_row(self, waiting: object, row: object) -> None:
-        """Keep a rendered row as the fragment's rows at the measure it was rendered for."""
 
 
 class DrawnPage:

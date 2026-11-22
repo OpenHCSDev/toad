@@ -20,7 +20,6 @@ from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
-from itertools import batched
 from math import copysign
 from pathlib import Path
 from typing import ClassVar
@@ -61,7 +60,9 @@ from toad.client.line_blocks import BlockPreparation, Divider
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
-from toad.client.prepared_pages import ClosedHistory, MeasuresFragments, PreparedTranscriptPage
+from toad.client.prepared_pages import (
+    ClosedHistory, HoldsRows, MeasuresFragments, PreparedTranscriptPage, RowsAsked,
+)
 from toad.client.reader_position import (
     FragmentLocation, FragmentPosition, ReaderPage, ReaderPosition, RowPosition, TailPosition,
     UnloadedFragment,
@@ -329,7 +330,7 @@ class HeadReveal(WidgetAnimation, TransitionTarget):
         self.animation.stop()
 
 
-class HistoryRowDelegate(RowDocumentDelegate):
+class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
     """Each fragment's line blocks as Qt rich text, rendered on the pool at the row's width
     (dividers fill it); a row paints its plain text until then. A painted row tells the
     window, which marks what the reader saw."""
@@ -371,10 +372,23 @@ class HistoryRowDelegate(RowDocumentDelegate):
     def preparation(self, index: QModelIndex, font: QFont, width: int) -> QtRowPreparation:
         return self.row_preparation(index.data(HistoryRows.FRAGMENT), font, width)
 
-    def row_preparer(self) -> ProcessRowPreparer:
+    def row_preparer(self) -> AskedRowPreparer:
         """History rows are prepared in the app's render processes and nowhere else: Python
         on a thread of this process takes turns with the frame for the interpreter."""
-        return ProcessRowPreparer(self._rows_prepared, self.processes)
+        return AskedRowPreparer(self, PresentationBudget.batch_items)
+
+    # HoldsRows: a unit is a row's key and its preparation.
+
+    async def render_rows(self, waiting):
+        """The one place a history row is sent to be rendered."""
+        return await self.processes.submit(
+            QtHistoryRowBatchRenderTask(tuple(preparation for _key, preparation in waiting)))
+
+    def hold_row(self, waiting, row: RenderedRow) -> None:
+        """The row takes its place in the cache, drawn or not yet, and is what the row lays
+        out from now on (`_row_prepared`)."""
+        key, _preparation = waiting
+        self._row_prepared(key, row)
 
     def fragment_key(self, fragment: HistoryFragment, font: QFont, width: int):
         """A fragment's row as shown, with these links, in this font at this width: dividers
@@ -413,7 +427,7 @@ class HistoryRowDelegate(RowDocumentDelegate):
             pinned=pinned,
         )
 
-    def prepared_look(self, key) -> QtRow | None:
+    def prepared_look(self, key) -> RenderedRow | None:
         """The row's prepared formatting under `key`, or the look it last showed while a new
         one is prepared; none for a row that never had one."""
         return self._prepared.get(key) or self._prepared.get(self.last_shown.get(self.row_identity(key)))
@@ -473,7 +487,7 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
     def header_document(self, header: Divider, font: QFont, width: int) -> QTextDocument | None:
         """A pinned header laid out as its row lays it out at this width, or none while it is
-        prepared. Its rich text came with its row (`QtRow.pinned`); a header no row brought
+        prepared. Its rich text came with its row (`RenderedRow.pinned`); a header no row brought
         in this look (the width or the links just changed) is prepared as a row is, in a
         render process, and the pin is drawn again when it lands."""
         key = self.header_key(header, font, width)
@@ -511,7 +525,7 @@ class HistoryRowDelegate(RowDocumentDelegate):
         (fragment_key, _shown, _revision), *drawn = key
         return fragment_key, *drawn
 
-    def _row_prepared(self, key, prepared: QtRow) -> None:
+    def _row_prepared(self, key, prepared: RenderedRow) -> None:
         super()._row_prepared(key, prepared)
         if key in self._prepared:
             self.last_shown[self.row_identity(key)] = key
@@ -521,18 +535,13 @@ class HistoryRowDelegate(RowDocumentDelegate):
                 # waits on none, and each part of a message brings the same one.
                 alone = self.header_shown(header), *look
                 if alone not in self._prepared:
-                    super()._row_prepared(alone, QtRow(html, (), ()))
+                    super()._row_prepared(alone, RenderedRow(html, (), ()))
         if len(self.last_shown) > 2 * self.MAX_PREPARED_ROWS:
             # Looks the prepared cache let go of name nothing to draw.
             self.last_shown = {row: shown for row, shown in self.last_shown.items() if shown in self._prepared}
 
     def is_prepared(self, key) -> bool:
         return key in self._prepared
-
-    def adopt(self, key, formatting: RowFormatting) -> None:
-        """A row's formatting prepared before the row was drawn takes its place in the cache, as
-        one prepared on the pool does when it lands."""
-        self._row_prepared(key, formatting)
 
     TILE = 1024
     """Pixels of a row's height one picture holds. A row is as tall as its message, and a
@@ -653,19 +662,19 @@ class QtRowPreparation(BlockPreparation):
     diff: DiffSettings
     width: int
     headed: int
-    """How many of the row's first blocks are also rendered each on its own (`QtRow.leading`)."""
+    """How many of the row's first blocks are also rendered each on its own (`RenderedRow.leading`)."""
     pinned: tuple[Divider, ...]
-    """The header the row pins, rendered on its own (`QtRow.pinned`): it need not be one of
+    """The header the row pins, rendered on its own (`RenderedRow.pinned`): it need not be one of
     the row's blocks (a later part of a message pins a header only its first part draws)."""
 
-    def render(self) -> QtRow:
+    def render(self) -> RenderedRow:
         html = QtLineRenderer(self.scheme, self.links, self.diff).at_width(self.width).html
-        return QtRow(html(self.blocks), tuple(html((block,)) for block in self.blocks[:self.headed]),
-                     tuple((header, html((header,))) for header in self.pinned))
+        return RenderedRow(html(self.blocks), tuple(html((block,)) for block in self.blocks[:self.headed]),
+                           tuple((header, html((header,))) for header in self.pinned))
 
 
 @dataclass(frozen=True)
-class QtRow(HtmlRow):
+class RenderedRow(HtmlRow):
     """A history row as a render process hands it back: everything the window reads of the
     row's rendering. The UI process renders nothing."""
 
@@ -676,59 +685,24 @@ class QtRow(HtmlRow):
     """Each header the row pins, and its rich text."""
 
 
-class ProcessRowPreparer(RowPreparer):
-    """Rows prepared in the app's render processes. The rows asked for in one turn of the
-    event loop (a layout asks many) go out together, a budget's batch to a task, so both
-    workers take some."""
+class AskedRowPreparer(RowsAsked, RowPreparer):
+    """pyqt-reactive's place for a row's preparation, answered by the shared `RowsAsked`: a
+    row the view draws unprepared is rendered by the worker processes and held by the
+    delegate, as a row the pager prepared is."""
 
-    def __init__(self, arrived, processes: Renderer) -> None:
-        super().__init__(arrived)
-        self.processes = processes
-        self.waiting: dict = {}
-        self.sending: asyncio.Handle | None = None
-        self.running: set[asyncio.Task] = set()
+    def __init__(self, rows: HistoryRowDelegate, batch: int) -> None:
+        RowsAsked.__init__(self, rows, batch)
+        RowPreparer.__init__(self, rows._rows_prepared)
 
     def prepare(self, key, work: QtRowPreparation) -> None:
-        self.waiting[key] = work
-        if self.sending is None:
-            self.sending = asyncio.get_running_loop().call_soon(self.send)
-
-    def send(self) -> None:
-        self.sending = None
-        waiting, self.waiting = tuple(self.waiting.items()), {}
-        for batch in batched(waiting, PresentationBudget.batch_items):
-            task = asyncio.ensure_future(self.deliver(batch))
-            self.running.add(task)
-            task.add_done_callback(self.delivered)
-
-    def delivered(self, task: asyncio.Task) -> None:
-        """A batch landed, or its render failed: the failure is raised here, into the loop's
-        error report, since nothing else awaits the batch and its rows would stay plain."""
-        self.running.discard(task)
-        if not task.cancelled():
-            task.result()
-
-    async def render(self, works: tuple[QtRowPreparation, ...]) -> tuple[QtRow, ...]:
-        """The one place a history row is sent to be rendered."""
-        return await self.processes.submit(QtHistoryRowBatchRenderTask(works))
-
-    async def deliver(self, batch) -> None:
-        rows = await self.render(tuple(work for _key, work in batch))
-        self.arrived([(key, row) for (key, _work), row in zip(batch, rows, strict=True)])
+        self.ask((key, work))
 
     def clear(self) -> None:
-        self.waiting.clear()
-        if self.sending is not None:
-            self.sending.cancel()
-            self.sending = None
-
-    def stop(self) -> None:
-        for task in tuple(self.running):
-            task.cancel()
+        self.drop()
 
 
 @dataclass(frozen=True)
-class QtHistoryRowBatchRenderTask(RenderTask[tuple[QtRow, ...]]):
+class QtHistoryRowBatchRenderTask(RenderTask[tuple[RenderedRow, ...]]):
     """Rows the shared pager asks be prepared ahead of drawing them, submitted through the
     launch's `app.render_processes` as Textual's `TranscriptLinesBatchRenderTask` is.
 
@@ -743,7 +717,7 @@ class QtHistoryRowBatchRenderTask(RenderTask[tuple[QtRow, ...]]):
 
     rows: tuple[QtRowPreparation, ...]
 
-    def execute(self) -> tuple[QtRow, ...]:
+    def execute(self) -> tuple[RenderedRow, ...]:
         return tuple(preparation.render() for preparation in self.rows)
 
     def result_size(self, result: tuple[RowFormatting, ...]) -> int:
@@ -885,11 +859,10 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         return () if rows.is_prepared(key) else ((key, rows.row_preparation(fragment, font, width)),)
 
     async def render_rows(self, waiting):
-        return await self.window.rows.preparer.render(tuple(preparation for _key, preparation in waiting))
+        return await self.window.rows.render_rows(waiting)
 
     def hold_row(self, waiting, row) -> None:
-        key, _preparation = waiting
-        self.window.rows.adopt(key, row)
+        self.window.rows.hold_row(waiting, row)
 
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
         """A status change repaints only the rows it changed. A row's cache key carries how
