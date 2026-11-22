@@ -18,6 +18,9 @@ and the phone's DM view died on `No module named 'click'`). This runs it. Exit 0
   terminal's own colours, which Qt has no terminal to ask): the shared toad.json can hold the
   TUI's choice, and a phone that saved one died at every launch (2026-11-18). It must open with
   the not-offered warning, and the scenario then applies every scheme Qt offers in turn.
+- Then qt_drive's `frame_work` scenario counts, on the same bus, the Python functions a frame
+  enters under each function Qt calls, and fails on an owner over tools/frame_work_baseline.json
+  (FRAME_WORK_REBASE=1 in the environment writes the baseline instead).
 - The scenario opens the welcome, every menu action that changes nothing (settings and each
   of its pages, the keymap, the transfer dialogs, channels, direct messages, the bus switcher,
   team), the channel, the CLI thread with its session details, and presses every bound action
@@ -126,9 +129,11 @@ class ScratchBus:
                 process.kill()
 
 
-def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) -> subprocess.CompletedProcess:
-    """qt_drive's `shipped` scenario on the shipped interpreter: no site-packages, the APK's
-    entry, the scratch bus's certificate trusted beside the bundle's own CA file."""
+def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path,
+               scenario: str = "shipped") -> subprocess.CompletedProcess:
+    """A qt_drive scenario (`shipped`, unless named) on the shipped interpreter: no
+    site-packages, the APK's entry, the scratch bus's certificate trusted beside the bundle's
+    own CA file."""
     code = (
         "import os, runpy, sys\n"
         f"sys.path[:0] = [{str(app)!r}, {str(recipes)!r}]\n"
@@ -136,7 +141,7 @@ def shipped_qt(app: Path, recipes: Path, trust: Path, profile: Path, out: Path) 
         "enter()\n"
         f"os.environ['SSL_CERT_FILE'] = {str(trust)!r}\n"
         "os.environ['QT_QPA_PLATFORM'] = 'offscreen'\n"
-        f"sys.argv = ['qt_drive.py', 'shipped', {str(out)!r}, '--comms-profile', {str(profile)!r}]\n"
+        f"sys.argv = ['qt_drive.py', {scenario!r}, {str(out)!r}, '--comms-profile', {str(profile)!r}]\n"
         f"runpy.run_path({str(CHECKOUT / 'tools' / 'qt_drive.py')!r}, run_name='__main__')\n"
     )
     # -B: the app folder ships the bytecode assemble.py compiled; this run writes none beside it.
@@ -229,6 +234,15 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
             print(f"error: the shipped app's fault trace: {fault}", file=sys.stderr)
             return 1
         print("a native crash in the shipped app leaves every thread's stack under its errors folder")
+        # What a frame does, counted on the same bus (qt_drive's `frame_work`): the same rows
+        # and views every time, so an owner's count moves only when its code does.
+        counted = shipped_qt(shipped, recipes, trust, profile, work / "frame-work", scenario="frame_work")
+        print(counted.stdout[counted.stdout.find("frame work:"):][-4000:])
+        if counted.returncode != 0:
+            print(counted.stderr[-4000:], file=sys.stderr)
+            print("error: a frame of the shipped app does more than tools/frame_work_baseline.json allows, "
+                  "or the count did not run", file=sys.stderr)
+            return 1
         return 0
     finally:
         bus.stop()
