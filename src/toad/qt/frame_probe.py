@@ -32,6 +32,11 @@ sample whose stack ends where Qt's event loop was entered is Qt's own time (wait
 painting and laying out in C++), so the line says whether a busy loop is Python or Qt, and
 names the Python. It is what a profiler would say, on a phone that has none.
 
+And one `spent` line: the span's costliest outermost Qt events, each as
+`Type/ReceiverClass deliveries x total ms`, then every paint event's count and time. Qt paints
+a window's widgets and shows the frame inside the `UpdateRequest` it delivers to the window, so
+that row's time less the paints' is what showing the frames cost.
+
 The probe only observes; nothing reads its numbers back into the app.
 """
 
@@ -86,6 +91,10 @@ class FrameProbe(QObject):
         self.buckets = [0] * len(self.STALL_BUCKETS)
         self.keys: list[float] = []
         self.gc_ms: list[float] = []
+        # Each outermost event's deliveries and their time, by event type and receiver class.
+        self.costs: dict[tuple, list] = {}
+        # Every paint event delivered, at any depth: how many, and their time.
+        self.paints = [0, 0.0]
 
     def ticked(self) -> None:
         now = time.perf_counter()
@@ -114,8 +123,29 @@ class FrameProbe(QObject):
                         f"worst_stall_ms={self.worst_ms:.1f} loop_busy={busy:.0f}% {stalls} {key_line} {pauses}\n")
         for line in self.sampler.taken():
             self.sink.write(f"{time.time():.3f} hot {line}\n")
+        self.sink.write(f"{time.time():.3f} {self.spent_line()}\n")
         self.window_start = now
         self.reset()
+
+    COSTLIEST = 6
+
+    def spent(self, kind: QEvent.Type, receiver: QObject, took_ms: float) -> None:
+        """An outermost event was delivered: its whole time, nested events included."""
+        cost = self.costs.get((kind, type(receiver)))
+        if cost is None:
+            cost = self.costs[kind, type(receiver)] = [0, 0.0]
+        cost[0] += 1
+        cost[1] += took_ms
+
+    def spent_line(self) -> str:
+        """Where the span's time went, by the event Qt delivered: the costliest outermost
+        events, each `Type/Receiver deliveries x total ms`, then every paint event's share.
+        Qt paints and shows a window inside the UpdateRequest it delivers to it, so that
+        row's time less the paints' is what showing the frame cost."""
+        costliest = sorted(self.costs.items(), key=lambda cost: -cost[1][1])[:self.COSTLIEST]
+        rows = " | ".join(f"{kind.name}/{receiver.__name__} {count}x {took:.0f}ms"
+                          for (kind, receiver), (count, took) in costliest)
+        return f"spent {rows or '(nothing)'} ; paints {self.paints[0]}x {self.paints[1]:.0f}ms"
 
     def slow(self, took_ms: float, what: str) -> None:
         """Work that held the thread past `SLOW_MS`, named."""
@@ -185,6 +215,11 @@ class ProbedApplication(QApplication):
         finally:
             ProbedApplication.depth -= 1
             took = (time.perf_counter() - started) * 1000.0
+            if kind is QEvent.Type.Paint:
+                probe.paints[0] += 1
+                probe.paints[1] += took
+            if not ProbedApplication.depth:
+                probe.spent(kind, receiver, took)
             if took > probe.SLOW_MS:
                 name = receiver.objectName() if isinstance(receiver, QObject) else ""
                 probe.slow(took, f"event={kind.name} receiver={type(receiver).__name__}"
