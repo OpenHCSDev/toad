@@ -34,7 +34,6 @@ from toad.status_thread import StatusThread
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.transcript_publication import ViewBinding
 from toad.transcript_scope import NoTranscript
-from toad.client.history_state import DEFERRED_WORK, SourceWork
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.conversation import (
@@ -240,12 +239,6 @@ class CommsChatView(WireConversationView):
     def transcript_scope(self) -> NoTranscript:
         """DM/channel history belongs to WireHistory, not a native transcript."""
         return NoTranscript()
-
-    async def _refresh(self) -> SourceWork:
-        history = self.message_history
-        if not self.is_attached:
-            return DEFERRED_WORK
-        return history.page_source.schedule_refresh(self)
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work.

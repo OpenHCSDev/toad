@@ -394,9 +394,13 @@ class ClientApplication(BusPickerHost, NavigationHost):
     async def close_native_views(self) -> None:
         """Close this frontend's views of the open tabs; the tabs stay saved."""
 
-    @abstractmethod
     async def close_rendering(self) -> None:
-        """Join this frontend's render work and stop its render processes."""
+        """Join this launch's render work and stop its render processes: the renderer every
+        frontend submits to (`render_processes`) ends its submissions, then the preparation
+        runtime under it closes. Textual's app closed the renderer; Qt's closed the runtime
+        directly and left the renderer's submissions open (2026-11-22: NRA's
+        sibling-override-step finding)."""
+        await self.render_processes.aclose()
 
     @abstractmethod
     def connection_for(self, choice: BusChoice) -> CoreConnection:

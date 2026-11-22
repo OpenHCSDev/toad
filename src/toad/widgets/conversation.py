@@ -17,7 +17,6 @@ import platformdirs
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
 from agent_comms.execution.transcript_sources import TranscriptCursor
-from agent_comms.messaging.channel_targets import CommandTarget
 from agent_comms.planning.goal_presentation import (
     GoalExecutionControls,
     IdleGoalExecution,
@@ -89,7 +88,7 @@ from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.conversation_sources import ConversationSources
 from toad.client.submission import SubmissionStart
 from toad.category_filter import CategoryFilterView
-from toad.command_catalog import CommandCatalog
+from toad.command_catalog import AddressesItsThread, ReadsCommandCatalog
 from toad.command_target_scope import CommandTargetScope
 from toad.conversation_actions import ConversationAction, WindowAction
 from toad.conversation_comms_handlers import ConversationCommsHandlers
@@ -148,9 +147,8 @@ from toad.session_scope import SessionScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.submission_queue import QueueSource
-from toad.client.commands import AgentConversationCommands, CommandContextChanged
+from toad.client.commands import AgentConversationCommands
 from toad.screens.team import TeamPage
-from toad.target_commands import TargetContext
 from toad.transcript_publication import (
     BoundView,
     ObservedSourcePublication,
@@ -964,6 +962,8 @@ class Conversation(
     NativeMethodKeys,
     ConversationSessionBinding,
     MenuConversation,
+    ReadsCommandCatalog,
+    AddressesItsThread,
     AgentConversationCommands,
     FlashHost,
     SourcedConversation,
@@ -1723,17 +1723,8 @@ class Conversation(
     def request_new_session(self, prompt: str) -> None:
         self.launch.request_new_session(self.app.session_navigation.events, self.working_directory, prompt)
 
-    async def command_target_context(self) -> TargetContext:
-        screen = self.query_ancestor(CommandTargetScope)
-        nav = screen.navigation_context
-        observed = self.app.coordination_access.observation.observed()
-        if not self.is_attached or screen.navigation_context != nav:
-            raise CommandContextChanged("Command view changed during discovery")
-        return screen.thread_identity.command_target(
-            lambda actor: TargetContext(
-                self.app, observed, CommandTarget.named(actor), actor, nav.project_path, nav.owner_mode
-            )
-        )
+    def command_target_scope(self) -> CommandTargetScope:
+        return self.query_ancestor(CommandTargetScope)
 
     @work(group="command-catalog", exclusive=True)
     async def update_slash_commands(self) -> None:
@@ -1751,21 +1742,8 @@ class Conversation(
         if self.is_attached and source.is_current:
             self.prompt.slash_commands = catalog.commands
 
-    async def read_command_catalog(self) -> CommandCatalog:
-        source = self.query_ancestor(NavigationScope).navigation_owner
-        navigation = source.navigation_context
-        agent = self.agent_binding
-        context = self.command_target_context()
-        catalog = await CommandCatalog.read(
-            self.app, agent.presentation.commands, context, self.local_commands
-        )
-        if (
-            not self.is_attached
-            or source.navigation_context != navigation
-            or agent is not self.agent_binding
-        ):
-            raise CommandContextChanged("Command view changed during discovery")
-        return catalog
+    def command_navigation(self):
+        return self.query_ancestor(NavigationScope).navigation_owner.navigation_context
 
     @handles(core_events.LinkContextChanged)
     async def _command_source_changed(self, event: core_events.LinkContextChanged) -> None:

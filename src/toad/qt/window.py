@@ -1273,9 +1273,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
     def reload(self) -> None:
         self.message_history.page_source.schedule_refresh(self)
 
-    async def _refresh(self):
-        return self.message_history.page_source.schedule_refresh(self)
-
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it, then the status beside it."""
         history = self.message_history
@@ -1989,9 +1986,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.input_attention.close()
         self.shortcuts.close()
         await self.session_navigation.close_views()
-
-    async def close_rendering(self) -> None:
-        await self.preparation.aclose()
 
     async def open_keymap_browser(self) -> None:
         """Qt override of `ClientApplication.open_keymap_browser`. Opens the

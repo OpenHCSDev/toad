@@ -13,7 +13,6 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-from agent_comms.messaging.channel_targets import CommandTarget
 from functools import partial
 
 from PySide6.QtCore import Qt
@@ -23,6 +22,7 @@ from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.scheme import ForegroundColour
 
 from agent_comms.ui_model.delivery import DeliveryView
+from toad.command_catalog import AddressesItsThread
 from toad.client.draft_fragments import DRAFT_FRAGMENTS
 from toad.client.history_rows_view import HistoryRowsBlocks, settled
 from toad.client.transcript_history_contract import TranscriptHistoryContract
@@ -36,7 +36,6 @@ from toad.qt.metrics import UiGap
 from toad.qt.prompt_stack import QtInputDeliveryDetails, QtSessionDetails
 from toad.qt.question import QtQuestion
 from toad.qt.transcript_history import QtTranscriptHistory
-from toad.target_commands import TargetContext
 from toad.transcript_publication import BoundView
 
 if TYPE_CHECKING:
@@ -46,6 +45,7 @@ if TYPE_CHECKING:
 
 
 class QtThreadView(
+    AddressesItsThread,
     QtConversation,
     ThreadViewNavigation,
     HistoryRowsBlocks,
@@ -207,15 +207,10 @@ class QtThreadView(
         composer.labelled(self.composer_label)
         self.sync_status()
 
-    async def command_target_context(self) -> TargetContext:
-        """Textual's `Conversation.command_target_context`: commands address this view's
-        thread, read on the observed root, in its navigation's project and tab."""
-        observed = self.app.coordination_access.observation.observed()
-        navigation = self.navigation_context
-        return self.thread_identity.command_target(
-            lambda actor: TargetContext(
-                self.app, observed, CommandTarget.named(actor), actor, navigation.project_path,
-                navigation.owner_mode))
+    def command_target_scope(self) -> QtThreadView:
+        """The view holds its own thread identity and navigation, where Textual's asks the
+        screen that presents it."""
+        return self
 
     # ---- BoundViewHost contract ----
 

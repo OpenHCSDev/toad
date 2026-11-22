@@ -45,8 +45,10 @@ from toad.client.history_preparation import HistorySourceSnapshot, PageRequest
 from toad.client.history_reads import NothingToRead, PaintedRead, ReadMarking, ReadWork
 from toad.client.message_file_links import PageFiles
 from toad.client.history_state import (
+    DEFERRED_WORK,
     LatestReplacementViewportRequest,
     ReplacementViewportRequest,
+    SourceWork,
 )
 from toad.client.prepared_pages import (
     PreparedTranscriptPage,
@@ -295,9 +297,13 @@ class WireView(ConversationActivity):
         self.window.jump_to_latest()
         await self._refresh()
 
-    @abstractmethod
-    async def _refresh(self):
-        """Ask the page source for a read of what changed, as this view's source work."""
+    async def _refresh(self) -> SourceWork:
+        """Ask the page source for a read of what changed, as this view's source work. A view
+        that is no longer attached has nothing to draw into: its read is deferred. (Textual's
+        view said so; Qt's scheduled the read for a view already torn down.)"""
+        if not self.is_attached:
+            return DEFERRED_WORK
+        return self.message_history.page_source.schedule_refresh(self)
 
     @abstractmethod
     async def _refresh_source(self) -> None:

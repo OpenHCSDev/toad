@@ -116,3 +116,123 @@ def test_neither_frontend_writes_these_sequences_itself():
     ):
         for view in classes:
             assert getattr(view, name) is getattr(owner, name), (view.__name__, name)
+
+
+def test_a_command_catalog_is_the_views_only_if_the_view_did_not_change_while_it_was_read(monkeypatch):
+    import pytest
+
+    from toad import command_catalog
+    from toad.client.commands import CommandContextChanged
+    from toad.command_catalog import ReadsCommandCatalog
+    from toad.qt.conversation import QtConversation
+    from toad.widgets.conversation import Conversation
+
+    for view in (Conversation, QtConversation):
+        assert view.read_command_catalog is ReadsCommandCatalog.read_command_catalog, view
+
+    async def target_context():
+        return None
+
+    def reading(change):
+        binding = SimpleNamespace(presentation=SimpleNamespace(commands=()))
+        view = SimpleNamespace(app=object(), agent_binding=binding, local_commands=object(), is_attached=True,
+                               navigation="channel", command_target_context=target_context)
+        view.command_navigation = lambda: view.navigation
+
+        async def read(app, advertised, context, local):
+            await context
+            change(view)
+            return "catalog"
+
+        monkeypatch.setattr(command_catalog.CommandCatalog, "read", read)
+        return ReadsCommandCatalog.read_command_catalog(view)
+
+    assert asyncio.run(reading(lambda view: None)) == "catalog"
+    for change in (
+        lambda view: setattr(view, "is_attached", False),
+        lambda view: setattr(view, "navigation", "another channel"),
+        lambda view: setattr(view, "agent_binding", SimpleNamespace(presentation=SimpleNamespace(commands=()))),
+    ):
+        with pytest.raises(CommandContextChanged):
+            asyncio.run(reading(change))
+
+
+def test_a_wire_views_refresh_is_deferred_once_the_view_is_detached():
+    from toad.client.history_state import DEFERRED_WORK
+    from toad.qt.window import ConversationView
+    from toad.widgets.comms_chat import CommsChatView
+
+    for view in (CommsChatView, ConversationView):
+        assert view._refresh is WireView._refresh, view
+    scheduled = []
+    history = SimpleNamespace(page_source=SimpleNamespace(schedule_refresh=lambda view: scheduled.append(view) or "work"))
+    attached = SimpleNamespace(is_attached=True, message_history=history)
+    detached = SimpleNamespace(is_attached=False, message_history=history)
+    assert asyncio.run(WireView._refresh(attached)) == "work"
+    assert asyncio.run(WireView._refresh(detached)) is DEFERRED_WORK
+    assert scheduled == [attached]
+
+
+def test_closing_rendering_closes_the_renderer_every_frontend_submits_to():
+    from toad.app import ToadApp
+    from toad.client.application import ClientApplication
+    from toad.qt.window import QtToadApp
+
+    for application in (ToadApp, QtToadApp):
+        assert application.close_rendering is ClientApplication.close_rendering, application
+    closed = []
+
+    async def aclose():
+        closed.append("renderer")
+
+    asyncio.run(ClientApplication.close_rendering(SimpleNamespace(render_processes=SimpleNamespace(aclose=aclose))))
+    assert closed == ["renderer"]
+
+
+def test_a_command_target_is_built_from_where_the_view_says_its_thread_and_navigation_are():
+    import pytest
+
+    from toad.client.commands import CommandContextChanged
+    from toad.client.history import WireView
+    from toad.command_catalog import AddressesItsThread
+    from toad.qt.thread_view import QtThreadView
+    from toad.qt.window import ConversationView
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.conversation import Conversation
+
+    for view in (Conversation, QtThreadView):
+        assert view.command_target_context is AddressesItsThread.command_target_context, view
+    # A wire view's commands address what its page source reads, in both frontends.
+    for view in (CommsChatView, ConversationView):
+        assert view.command_target_context is WireView.command_target_context, view
+    asked = []
+    scope = SimpleNamespace(
+        navigation_context=SimpleNamespace(project_path="/project", owner_mode="mode"),
+        thread_identity=SimpleNamespace(command_target=lambda build: asked.append(build) or "context"),
+    )
+    view = SimpleNamespace(
+        app=SimpleNamespace(coordination_access=SimpleNamespace(observation=SimpleNamespace(observed=lambda: "observed"))),
+        is_attached=True, command_target_scope=lambda: scope)
+    assert asyncio.run(AddressesItsThread.command_target_context(view)) == "context"
+    assert len(asked) == 1
+    view.is_attached = False
+    with pytest.raises(CommandContextChanged):
+        asyncio.run(AddressesItsThread.command_target_context(view))
+
+
+def test_no_view_or_application_a_frontend_makes_leaves_a_hook_abstract():
+    """A hoist adds an abstract hook, and a class that leaves one abstract cannot be made.
+    Qt's wire view was left without `command_target_scope` (2026-11-22): the shipped-app run
+    refused it and no unit test did, because none makes a view."""
+    import inspect
+
+    from toad.app import ToadApp
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.window import ConversationView, QtToadApp
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.conversation import Conversation
+
+    for made in (Conversation, CommsChatView, ToadApp, ConversationView, QtAcpSessionView, QtToadApp):
+        left = [name for name in dir(made)
+                if getattr(inspect.getattr_static(made, name, None), "__isabstractmethod__", False)]
+        assert not left, (made.__name__, left)

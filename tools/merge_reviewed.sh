@@ -31,6 +31,16 @@ trap 'git worktree remove --force "$check" >/dev/null 2>&1 || true' EXIT
 here=$(git rev-parse HEAD)
 for attempt in 1 2 3 4 5 6 7; do
     head=$(git ls-remote origin "refs/pull/$pr/head" | cut -f1)
+    # An amended push replaces the PR's head, and GitHub's pull ref names the commit before it
+    # for some seconds after its API names the new one. The commit before is no ancestor of
+    # this checkout, so the check below does not see it: #2197 and #2198 were each checked
+    # (and refused) at the head they had before their amend (2026-11-22).
+    named=$(gh pr view "$pr" --json headRefOid -q .headRefOid 2>/dev/null || true)
+    if [ -n "$head" ] && [ -n "$named" ] && [ "$head" != "$named" ]; then
+        [ "$attempt" = 7 ] && { echo "REFUSED: #$pr is at ${named:0:9} and refs/pull/$pr/head still names ${head:0:9}; run this again" >&2; exit 1; }
+        sleep 5
+        continue
+    fi
     # This checkout is ahead of the PR's ref: a push made seconds ago has not reached it, and
     # checking now would check (and then refuse to merge) the commit before it.
     if [ -n "$head" ] && [ "$head" != "$here" ] && git merge-base --is-ancestor "$head" "$here" 2>/dev/null; then
