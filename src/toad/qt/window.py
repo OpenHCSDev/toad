@@ -89,6 +89,7 @@ from toad.client.platform import host
 from toad.client.line_blocks import LineLink, MutedRole
 from toad.qt.banner import Banner
 from toad.client.welcome import WelcomeLocation
+from toad.client.sidebar_models import UnpaintedChannel
 from toad.client.sidebar_lines import (
     BusChoiceLine, DetailedLine, HeaderLine, LineMenuTree, MemberGroupLine, RowTree, SidebarStatusLine, TargetLine,
     WelcomeSectionLine,
@@ -825,7 +826,7 @@ class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
         self.sidebar = sidebar
         self.name = name
         self.row = row
-        self.channel: ChannelRowModel | None = None
+        self.channel: ChannelRowModel = UnpaintedChannel(name)
         # Per-member thread rows this group currently shows, by thread key (KeyedRows.rows).
         self.rows: dict[str, ThreadLine] = {}
         # Per-channel sort state, shared with Textual's `ChannelSortChoice` via
@@ -849,18 +850,9 @@ class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
         channel_row = model_state.shown.channels.rows.get(self.name)
         return channel_row.members if channel_row is not None else ()
 
-    def present(self, channel: ChannelRowModel) -> frozenset[str]:
-        """Repaint the channel header; return members whose pinned state changed so the
-        channel-change path can sync them without touching unrelated threads."""
-        previous = self.channel
-        self.channel = channel
-        self.row.present_channel(channel, counts=self.sidebar.window.settings.sidebar.unread_counts)
-        # Keep the per-channel sort-control state in sync with the observed order,
-        # matching Textual `ChannelGroup.present` (widgets/comms_sidebar.py:141).
-        self.sort_choice.update_order(channel.order)
-        if previous is None:
-            return frozenset()
-        return previous.pinned_members ^ channel.pinned_members
+    @property
+    def unread_counts(self):
+        return self.sidebar.window.settings.sidebar.unread_counts
 
     def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile this channel's thread rows against the model through the shared
@@ -868,12 +860,8 @@ class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
         if self.sidebar.model_state.shows_model():
             self.reconcile_keys(self.member_keys, changed=changed)
 
-    def repaint_members(self, names: frozenset[str]) -> None:
-        """Repaint any of this group's shown rows whose thread key is in ``names``.
-        Membership changes come through ``sync_members`` instead."""
-        if self.sidebar.model_state.shows_model():
-            for name in self.rows.keys() & names:
-                self.update_row(name, self.rows[name])
+    def accepts_members(self) -> bool:
+        return self.sidebar.model_state.shows_model()
 
     # KeyedRows: which rows exist and how each paints
 

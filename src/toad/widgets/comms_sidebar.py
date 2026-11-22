@@ -125,19 +125,18 @@ class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
     def sidebar(self) -> CommsSidebar:
         return self.query_ancestor(CommsSidebar)
 
-    def present(self, channel: ChannelRowModel) -> frozenset[str]:
-        """Paint the header and return members whose channel pin changed."""
-        previous, self.channel = self.channel, channel
+    @property
+    def unread_counts(self):
+        return self.app.settings.sidebar.unread_counts
+
+    def header_presented(self, previous: ChannelRowModel, channel: ChannelRowModel) -> None:
         row = self.row
-        row.present_channel(channel, counts=self.app.settings.sidebar.unread_counts)
         if row.is_mounted and (previous.active != channel.active or previous.unread != channel.unread):
             row.run_effect(NEW_MESSAGE)
-        self.sort_choice.update_order(channel.order)
         if (previous.unread != channel.unread or previous.order is not channel.order
                 or previous.summary() != channel.summary()):
             # The badge, the order and the detail line are painted stretches, not layout.
             row.refresh(layout=False)
-        return previous.pinned_members ^ channel.pinned_members
 
     def members_toggled(self) -> None:
         """The channel's open state is the sidebar navigation's, kept by name."""
@@ -171,20 +170,6 @@ class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
         if not self.member_container.is_attached:
             return  # A new group syncs once composed (on_mount).
         self.reconcile_rows(changed=changed)
-
-    def repaint_members(self, names: frozenset[str]) -> None:
-        """Repaint this group's shown rows among the changed threads ``names``.
-
-        Membership is the channel row's fact: added and removed threads change
-        its ``members`` and reach ``sync_members`` as a channel change.
-        """
-        if not self.accepts_members():
-            return
-        threads = self.sidebar.model_state.shown.threads.rows
-        shown = [(name, view) for name in names
-                 if (view := self.rows.get(name)) is not None and name in threads]
-        for name, view in shown:
-            self.show_member(name, view)
 
 
 class ChannelRow(ListedRow):

@@ -236,3 +236,58 @@ def test_no_view_or_application_a_frontend_makes_leaves_a_hook_abstract():
         left = [name for name in dir(made)
                 if getattr(inspect.getattr_static(made, name, None), "__isabstractmethod__", False)]
         assert not left, (made.__name__, left)
+
+
+def test_a_channel_header_is_presented_in_one_sequence_from_an_unpainted_channel():
+    from toad.client.sidebar_models import UnpaintedChannel
+    from toad.qt.window import QtChannelGroup
+    from toad.sidebar_contracts import ChannelGroupRows
+    from toad.widgets.comms_sidebar import ChannelGroup
+
+    for group in (ChannelGroup, QtChannelGroup):
+        assert group.present is ChannelGroupRows.present, group
+    heard = []
+    group = SimpleNamespace(
+        channel=UnpaintedChannel("#comms"), unread_counts="counts",
+        row=SimpleNamespace(present_channel=lambda channel, counts: heard.append(("row", channel.name, counts))),
+        sort_choice=SimpleNamespace(update_order=lambda order: heard.append(("order", order))),
+        header_presented=lambda previous, channel: heard.append(("frontend", type(previous).__name__, channel.name)),
+    )
+    shown = SimpleNamespace(name="#comms", order="by activity", pinned_members=frozenset({"claude-a"}))
+    assert ChannelGroupRows.present(group, shown) == frozenset({"claude-a"})
+    assert group.channel is shown
+    assert heard == [("row", "#comms", "counts"), ("order", "by activity"), ("frontend", "UnpaintedChannel", "#comms")]
+
+
+def test_changed_threads_repaint_only_the_rows_a_group_shows_and_the_model_has():
+    from toad.qt.window import QtChannelGroup
+    from toad.sidebar_contracts import ChannelGroupRows
+    from toad.widgets.comms_sidebar import ChannelGroup
+
+    for group in (ChannelGroup, QtChannelGroup):
+        assert group.repaint_members is ChannelGroupRows.repaint_members, group
+    painted = []
+    group = SimpleNamespace(
+        rows={"shown": "row of shown", "gone from the model": "row"},
+        sidebar=SimpleNamespace(model_state=SimpleNamespace(shown=SimpleNamespace(threads=SimpleNamespace(rows={"shown": 1, "not listed here": 2})))),
+        update_row=lambda name, row: painted.append((name, row)),
+        accepts_members=lambda: True,
+    )
+    ChannelGroupRows.repaint_members(group, frozenset({"shown", "gone from the model", "not listed here"}))
+    assert painted == [("shown", "row of shown")]
+    group.accepts_members = lambda: False
+    ChannelGroupRows.repaint_members(group, frozenset({"shown"}))
+    assert painted == [("shown", "row of shown")]
+
+
+def test_the_shared_group_contract_does_not_stand_between_a_group_and_its_own_answer():
+    """Textual's channel group narrows `SidebarGroup.accepts_members` with `super()`; a
+    declaration of it on the contract, which comes first in the group's order, is what that
+    `super()` would reach."""
+    from toad.sidebar_contracts import ChannelGroupRows
+    from toad.widgets.comms_sidebar import ChannelGroup
+    from toad.widgets.sidebar_tree import SidebarGroup
+
+    assert "accepts_members" not in vars(ChannelGroupRows)
+    after = ChannelGroup.__mro__[ChannelGroup.__mro__.index(ChannelGroup) + 1:]
+    assert next(owner for owner in after if "accepts_members" in vars(owner)).__name__ == SidebarGroup.__name__
