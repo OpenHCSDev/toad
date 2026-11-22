@@ -29,4 +29,5 @@ VIRTUAL_ENV="$TOOLCHAIN/venv314" PATH="$TOOLCHAIN/venv314/bin:$PATH" \
   timeout 3000 buildozer android debug > "$APP/build.log" 2>&1 || { tail -30 "$APP/build.log"; exit 1; }
 APK=$(ls -1t "$APP"/toadcomms-*-debug.apk | head -1)
 "$RUNTIME/bin/python" "$HERE/apk_python.py" "$APK" "$TOAD_ANDROID_PYTHON"
+"$RUNTIME/bin/python" "$HERE/apk_qt_libs.py" "$APK" "$TOOLCHAIN/qt"
 echo "$APK"

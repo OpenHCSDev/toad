@@ -24,7 +24,6 @@ import time
 import traceback
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QSurfaceFormat
 
 from toad import paths
 from toad.fatal_trace import FatalTrace
@@ -119,29 +118,9 @@ def load_client():
     return serve_held
 
 
-def show_frames_without_waiting() -> None:
-    """Ask Qt to show each frame of a widget window without waiting for the screen's refresh.
-
-    Measured on a Pixel 8a (frame probe, `frames` line, 2026-11-21): showing a frame holds
-    the GUI thread 13-21 ms whatever its size, a tenth of the window or all of it, so the
-    cost is per frame and not per pixel. Qt for Android shows a widget window by swapping an
-    EGL surface's buffers on that thread, and a swap at interval 1 can wait for the refresh;
-    its swap chain is made without the wait only when the window's requested format has
-    swap interval 0 (`QBackingStoreRhiSupport::swapChainForWindow`), read from the default
-    format when the window is made, so this runs before the application exists.
-
-    The probe's `display` line records the interval the surface was asked for and got, and
-    its `frames` line the cost: if a frame's show time does not fall with this, the wait
-    was not it and this goes."""
-    shown = QSurfaceFormat.defaultFormat()
-    shown.setSwapInterval(0)
-    QSurfaceFormat.setDefaultFormat(shown)
-
-
 def main() -> None:
     FatalTrace.enabled()  # before Qt: a native crash anywhere after this leaves every thread's stack
     _install_excepthook()
-    show_frames_without_waiting()
     # Qt's accessibility bridge is switched off by the APK's activity before Qt's layout
     # exists (tools/android/keepalive ToadActivity.onCreate sets QT_ANDROID_DISABLE_ACCESSIBILITY):
     # Qt reads it from Java while the activity is created, before this Python runs.

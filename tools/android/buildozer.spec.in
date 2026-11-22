@@ -26,6 +26,8 @@ p4a.branch = master
 p4a.commit = 58d21141f17c889bf8585f5665921d72028f8831
 android.permissions = android.permission.WRITE_EXTERNAL_STORAGE, android.permission.INTERNET
 android.add_jars = ${jars}
+# The toolchain's own builds of Qt libraries (tools/android/qt_libs.sh) go over the wheel's.
+android.add_libs_arm64_v8a = ${qt_libs}
 # The activity starts the in-process keep-alive service; keepalive/ owns it, and its
 # manifest reaches the APK as an AAR from the app folder's libs (assemble.py).
 android.entrypoint = org.toadcomms.ToadActivity

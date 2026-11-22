@@ -99,6 +99,12 @@ with zipfile.ZipFile(wheel) as archive:
     for member in archive.namelist():
         if member.startswith("PySide6/jar/") and member.endswith(".jar"):
             archive.extract(member, app / "jar")
+# The Qt libraries tools/android/qt_libs.sh built for this wheel's Qt version (its source plus
+# the upstream fixes that script names). A toolchain without them is not built from: the APK
+# would ship, unnoticed, the wheel's libraries those fixes are for.
+qt_libs = toolchain / "qt"
+if not (qt_libs / "BUILT").is_file() or not (qt_libs / "BUILT").read_text().startswith(f"qt {PySide6.__version__} + "):
+    sys.exit(f"error: {qt_libs} holds no Qt libraries built for Qt {PySide6.__version__}: run tools/android/qt_libs.sh {toolchain}")
 jars = ["Qt6Android.jar", "Qt6AndroidBindings.jar"]
 if any(module.startswith(("Quick", "Qml")) for module in qt_modules):
     jars.append("Qt6AndroidQuick.jar")
@@ -110,6 +116,7 @@ if any(module.startswith(("Quick", "Qml")) for module in qt_modules):
     keepalive=HERE / "keepalive",
     jars=",".join(str(app / "jar" / "PySide6" / "jar" / jar) for jar in jars),
     qt_modules=",".join(qt_modules),
+    qt_libs=qt_libs / "*.so",
     icon=Path(PySide6.__file__).parent / "scripts" / "deploy_lib" / "pyside_icon.jpg",
     exclude_dirs=excluded_folders(),
     exclude_files=excluded_files(),
