@@ -3627,9 +3627,9 @@ class SettingsSurface:
             "sidebar.show_stopped": lambda: app.coordination_access.sidebar_interest.show_stopped,
             "sidebar.show_archived": lambda: app.coordination_access.sidebar_interest.show_archived,
             "sidebar.unread_counts": lambda: [app.tabs.tabText(index) for index in range(app.tabs.count())],
-            "diff.view": lambda: (type(app.renderer.diff_marks).__name__, view.messages.rows.links_revision),
-            "diff.annotations": lambda: (type(app.renderer.diff_marks).__name__, view.messages.rows.links_revision),
-            "diff.wrap": lambda: (type(app.renderer.diff_marks).__name__, view.messages.rows.links_revision),
+            "diff.view": lambda: (type(app.renderer.diff.marks).__name__, view.messages.rows.links_revision),
+            "diff.annotations": lambda: (type(app.renderer.diff.marks).__name__, view.messages.rows.links_revision),
+            "diff.wrap": lambda: (type(app.renderer.diff.marks).__name__, view.messages.rows.links_revision),
             "ui.keymap.bindings": lambda: sorted(sequence.toString() for shortcut in view.messages._reader_shortcuts
                                                  for sequence in shortcut.keys()),
             "notifications.blink_title": lambda: type(app.input_attention.state).__name__,
