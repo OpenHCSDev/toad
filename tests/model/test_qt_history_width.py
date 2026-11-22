@@ -22,6 +22,7 @@ from toad.patch import (
     parse_patch,
 )
 from toad.qt.history import (
+    RowPictures,
     HistoryRowDelegate,
     HistoryRows,
     QtHistoryRowBatchRenderTask,
@@ -82,7 +83,7 @@ def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
     height, so the size hint that reads it lays nothing out."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
-    delegate = HistoryRowDelegate(renderer(DiffSettings()))
+    delegate = HistoryRowDelegate(renderer(DiffSettings()), RowPictures(2 ** 20))
     view = VirtualRowView(delegate)
     font = QFont()
     try:
@@ -123,7 +124,7 @@ def test_intrinsic_tool_output_gives_the_shared_history_a_horizontal_range(monke
         + "\n"
     )
     line_renderer = renderer(DiffSettings(view=UnifiedDiff, wrap=NoWrapMode))
-    delegate = HistoryRowDelegate(line_renderer)
+    delegate = HistoryRowDelegate(line_renderer, RowPictures(2 ** 20))
     view = VirtualRowView(delegate)
     # HistoryRowDelegate's paint hook belongs to QtHistoryWindow; this proof
     # exercises layout only through the generic virtual-row host.

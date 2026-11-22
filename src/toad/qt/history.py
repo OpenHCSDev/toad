@@ -47,6 +47,7 @@ from toad.client.history_pager import (
     DirectionalPreparation,
     DrawsBusMessages,
     NativePager,
+    NativePresentation,
     OffScreenRunway,
     PagingWindow,
     PresentationBudget,
@@ -334,8 +335,10 @@ class HistoryRowDelegate(RowDocumentDelegate):
     """The blocks own their spacing (`Gap`), as Textual's rows do: the parts of one message
     meet, so its accent bar runs unbroken from part to part."""
 
-    def __init__(self, renderer: QtLineRenderer) -> None:
+    def __init__(self, renderer: QtLineRenderer, pictures: RowPictures) -> None:
         super().__init__()
+        self.pictures = pictures
+        """The app's drawn rows (`RowPictures`), shared by every history it has open."""
         # Each drawn row's last prepared look (`styled_formatting`), by `row_identity`.
         self.last_shown: dict = {}
         self.app_renderer = renderer
@@ -344,7 +347,6 @@ class HistoryRowDelegate(RowDocumentDelegate):
         """Replaced, never mutated, when the link context settles or the app's renderer
         restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
-        self.pictures = ROW_PICTURES
 
     def link(self, links: LinkContext) -> None:
         """Rows draw with these names from now on; rows prepared before are stale."""
@@ -551,20 +553,25 @@ class HistoryRowDelegate(RowDocumentDelegate):
         return picture
 
 
-class RowPictures:
-    """Drawn rows kept as pictures, the most recently painted last to go, within one budget
-    of pixels for every history the app has open: about nine phone screens, so the rows
-    around the reader scroll as pictures and neither a long history nor many open tabs
-    hold a picture for every row."""
+class RowPictures(NativePresentation):
+    """Drawn rows kept as pictures, the most recently painted last to go: the paint bytes
+    Qt's histories retain (`NativePresentation.retained_paint_bytes`), within the app's one
+    limit on retained prepared work (`PreparationRuntime.max_bytes`), so the rows around
+    the reader scroll as pictures and neither a long history nor many open tabs hold a
+    picture for every row. Textual retains its rows as the lines its worker finished; a
+    row's pixels are what Qt has finished when its document is drawn."""
 
-    BYTES = 96 * 2 ** 20
-
-    def __init__(self) -> None:
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
         # By the row's document (a row still being prepared: its fragment key):
         # (look, document, picture). Holding the document keeps the one the picture was
         # drawn from alive, so its identity cannot pass to a new document.
         self.rows: OrderedDict = OrderedDict()
         self.bytes = 0
+
+    @property
+    def retained_paint_bytes(self) -> int:
+        return self.bytes
 
     @staticmethod
     def weight(size: QSize) -> int:
@@ -572,8 +579,8 @@ class RowPictures:
 
     def holds(self, size: QSize) -> bool:
         """Whether a picture this size is worth keeping: one row may not take a quarter of
-        the budget, or a very long message would push every other row's picture out."""
-        return self.weight(size) <= self.BYTES // 4
+        the limit, or a very long message would push every other row's picture out."""
+        return self.weight(size) <= self.limit // 4
 
     def kept(self, key, look, document) -> QPixmap | None:
         entry = self.rows.get(key)
@@ -586,7 +593,7 @@ class RowPictures:
         self.drop(key)
         self.rows[key] = (look, document, picture)
         self.bytes += self.weight(picture.size())
-        while self.bytes > self.BYTES and len(self.rows) > 1:
+        while self.bytes > self.limit and len(self.rows) > 1:
             self.drop(next(iter(self.rows)))
 
     def drop(self, key) -> None:
@@ -597,9 +604,6 @@ class RowPictures:
     def clear(self) -> None:
         self.rows.clear()
         self.bytes = 0
-
-
-ROW_PICTURES = RowPictures()
 
 
 @dataclass(frozen=True)
@@ -1129,8 +1133,9 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         replaced here."""
         return self.window()
 
-    def __init__(self, renderer: QtLineRenderer, scope, parent: QWidget | None = None) -> None:
-        super().__init__(HistoryRowDelegate(renderer), parent)
+    def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, scope,
+                 parent: QWidget | None = None) -> None:
+        super().__init__(HistoryRowDelegate(renderer, pictures), parent)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
