@@ -12,7 +12,6 @@ the UI retains its captured session, source and queue authority around those cal
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable, Iterable
 from functools import partial
 
@@ -65,10 +64,14 @@ class CoordinationTranscriptReader:
     ) -> StoredRead[ThreadPresentation]:
         """The stored-read owner classifies failures inside the read worker."""
         core = await self.core(root)
-        return await asyncio.to_thread(
+        return await self.access.preparation.run_thread(
             UnreadableHistory.outcome,
             partial(core.call, CommsThreadPresentationTool(thread=thread)),
         )
+
+    async def call(self, core, request):
+        """One blocking Core request, run through the preparation owner like every other."""
+        return await self.access.preparation.run_thread(core.call, request)
 
     async def page_files(
         self, page: TranscriptPage,

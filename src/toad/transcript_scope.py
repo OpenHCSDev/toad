@@ -236,8 +236,8 @@ class KnownTranscript(TranscriptScope):
         """A CLI thread shows the same Core configuration answer a DM shows."""
         try:
             observed = await access.preparation.run_thread(access.observing, self.root)
-            status = await self.mailbox_conversation().status_text(
-                observed, read_only=False
+            status = await access.preparation.run_thread(
+                partial(self.mailbox_conversation().status_text, observed, read_only=False)
             )
         except (CoordinationReadUnavailable, ReadAgain):
             # The next observed presentation reads the answer again.

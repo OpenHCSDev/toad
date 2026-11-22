@@ -1,7 +1,6 @@
 """Owner operations inherited by the operational ACP agent."""
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from functools import cache, partial
@@ -211,7 +210,7 @@ class OwnerRequests(CoordinationIdentity):
         coordination = captured.coordination
         core = await self.controller.transcripts.core(coordination.wire_root)
         captured.require()
-        result = await asyncio.to_thread(core.call, CommsOwnerRequestTool(
+        result = await self.controller.transcripts.call(core, CommsOwnerRequestTool(
             owner=coordination.thread, request=operation,
         ))
         captured.require()
@@ -253,7 +252,7 @@ class OwnerPrompts(CoordinationIdentity):
         core = await self.controller.transcripts.core(request.coordination.wire_root)
         request.require()
         claimed_identity = self.queue_attachment.input_identity(scope)
-        origin = await asyncio.to_thread(core.call, CommsCaptureHumanInputTool(
+        origin = await self.controller.transcripts.call(core, CommsCaptureHumanInputTool(
             claimed_identity=claimed_identity,
         ))
         request.require()
@@ -280,7 +279,7 @@ class OwnerWrites(CoordinationIdentity):
         request.require()
         core = await self.controller.transcripts.core(coordination.wire_root)
         request.require()
-        result = await asyncio.to_thread(core.call, CommsMoveThreadProjectTool(
+        result = await self.controller.transcripts.call(core, CommsMoveThreadProjectTool(
             owner=coordination.thread, path=path,
         ))
         request.require()
@@ -298,7 +297,7 @@ class OwnerWrites(CoordinationIdentity):
         request.require()
         core = await self.controller.transcripts.core(coordination.wire_root)
         request.require()
-        result = await asyncio.to_thread(core.call, CommsRenameManagedThreadTool(
+        result = await self.controller.transcripts.call(core, CommsRenameManagedThreadTool(
             thread=coordination.thread, display_name=display_name, owner=coordination.owner,
         ))
         request.require()

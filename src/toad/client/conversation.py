@@ -7,7 +7,6 @@ activity strip and prompt their view draws; each toolkit's view draws them.
 
 from __future__ import annotations
 
-import asyncio
 from abc import abstractmethod
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -126,7 +125,9 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     async def update_mentions(cls, view: ConversationActivity, source) -> None: ...
 
     @abstractmethod
-    async def status_text(self, source, *, read_only: bool) -> str: ...
+    def status_text(self, source, *, read_only: bool) -> str:
+        """The status line this conversation shows. Blocking (a direct message asks Core), so a
+        caller runs it on a worker through the preparation owner, as `compose_access`."""
 
     def activity_members(self, model: SidebarModel):
         return (self.destination(model.observation.thread_names()).name,)
@@ -218,7 +219,7 @@ class ChannelConversation(ConversationKind):
         channel = source.core.call(CommsChannelTool(name=target.name))
         return ResolvedConversation(source.registry_for(me).canonical_name(me), cls(ChannelTarget(channel.name)))
 
-    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
+    def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
         return self.read_only_reason if read_only else ""
 
     @property
@@ -308,13 +309,10 @@ class DmConversation(ConversationKind):
     async def update_mentions(cls, view: ConversationActivity, source: ReferencedCore) -> None:
         """Direct-message composers have no channel mention roster."""
 
-    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
+    def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
         """Core's configuration answer for the thread this DM names."""
-        def read():
-            thread = self.destination(source.references()).name
-            return source.core.call(CommsThreadConfigurationTool(thread=thread)).status_label
-
-        return await asyncio.to_thread(read)
+        thread = self.destination(source.references()).name
+        return source.core.call(CommsThreadConfigurationTool(thread=thread)).status_label
 
 
 class IrcConversation(ChannelConversation):

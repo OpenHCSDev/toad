@@ -58,7 +58,7 @@ class SavedSessionsAction(ViewAction):
 
     async def apply(self, context: CommsScreen) -> None:
         observed = context.app.coordination_access.observation.observed()
-        threads = await asyncio.to_thread(observed.historical_threads, AllHistoricalSenders())
+        threads = await context.app.preparation.run_thread(observed.historical_threads, AllHistoricalSenders())
         if not threads:
             context.notify("No preserved history sources are attached yet.")
             return
@@ -166,7 +166,7 @@ class CommsScreen(
     async def select_historical_identity(self, event: SelectHistoricalIdentity, message: CoreEventMessage) -> None:
         message.stop()
         observed = self.app.coordination_access.observation.observed()
-        threads = await asyncio.to_thread(
+        threads = await self.app.preparation.run_thread(
             observed.historical_threads, NamedHistoricalSender(event.name)
         )
         if not threads:

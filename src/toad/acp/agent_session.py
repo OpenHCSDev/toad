@@ -328,8 +328,8 @@ class AgentSession:
         self.reconnecting = True
         try:
             try:
-                await asyncio.to_thread(
-                    lambda: self.agent.controller.transcripts.access.selection)
+                access = self.agent.controller.transcripts.access
+                await access.preparation.run_thread(lambda: access.selection)
             except RouteChangedError as error:
                 self.startup_failed(f"Reconnect blocked before restart: {error}")
                 return

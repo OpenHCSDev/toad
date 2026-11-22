@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import time
 
 from agent_comms.coordination.errors import DeferredRead, ReadAgain
@@ -362,7 +361,7 @@ class TeamActionButton(ActingButton):
         super().__init__(command.label, compact=True)
 
     async def act(self) -> None:
-        result = await asyncio.to_thread(
+        result = await self.app.preparation.run_thread(
             self.command.execute, self.app.coordination_access.open_current().core,
         )
         self.app.notify("\n".join(result.lines), title=self.command.label, markup=False)

@@ -442,10 +442,10 @@ class ThreadCommsSidebar(
             if service is None or generation != self._generation or not self.is_attached:
                 return
             owner = identity.thread_name()
-            revision = await asyncio.to_thread(service.wire_revision)
+            revision = await self.app.preparation.run_thread(service.wire_revision)
             if revision == self._revision:
                 return
-            snapshot = await asyncio.to_thread(service.relationships, owner)
+            snapshot = await self.app.preparation.run_thread(service.relationships, owner)
             # Visibility admits new reads; parking does not revoke work already
             # owned by this retained panel. Identity changes and unmount do.
             if generation != self._generation or not self.is_attached:
@@ -560,7 +560,7 @@ class ThreadCommsSidebar(
         service = await self.relationship_source(identity)
         if service is None:
             return
-        snapshot = await asyncio.to_thread(service.relationships, identity.thread_name())
+        snapshot = await self.app.preparation.run_thread(service.relationships, identity.thread_name())
         if (
             generation != self._generation
             or not self.is_attached
