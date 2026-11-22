@@ -49,6 +49,12 @@ class BoundViewHost:
         publication that had waited on a page read waited for the next unrelated event."""
         self.transcript.source_work_finished(self)
 
+    def retire_loading_splash(self) -> None:
+        """Saved history painted, or failed, or there is none: the splash the view composed
+        while it waited goes. A view that composes none has nothing to retire. (Textual's
+        conversation composes one; the shared transcript states ask every host, and a Qt
+        agent tab raised `AttributeError` at mount: `UnboundTranscript.mounted`.)"""
+
     # ---- the tree ----
 
     @property

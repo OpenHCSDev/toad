@@ -69,6 +69,8 @@ echo "shadow check on #$pr @ ${head:0:9}:"
 ( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/shadow_check.py 2>&1 | grep -v propagateSizeHints )
 echo "type-only imports on #$pr @ ${head:0:9}:"
 ( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/guarded_imports.py 2>&1 | grep -v propagateSizeHints )
+echo "Qt agent session on a scratch bus on #$pr @ ${head:0:9}:"
+( cd "$check" && "${runtime}bin/python" tools/agent_session_check.py "$runtime" 2>&1 | grep -v propagateSizeHints; exit "${PIPESTATUS[0]}" )
 echo "APK shipped-app check on #$pr @ ${head:0:9}:"
 ( cd "$check" && tools/android/check.sh "$runtime" "$toolchain" "$check/.apk-check" "$profile" 2>&1 \
     | grep -E '^(==|shipped app|a native crash|frame work|[[:space:]]+[0-9.]+ a frame|function-local|NEW|GONE|error:|Traceback|  File|[A-Za-z]+Error)' )
