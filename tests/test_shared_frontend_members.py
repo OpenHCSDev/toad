@@ -78,7 +78,7 @@ def test_settings_agentless_presentation_and_source_refresh_are_the_shared_owner
 def test_flash_coordination_held_rows_and_live_revision_are_the_shared_owners():
     from toad.client.bus_selection import BusListing
     from toad.client.fragments import GrowsInPlace
-    from toad.client.prompt_stack import FlashNotice
+    from toad.flash_host import FlashNotice
     from toad.qt.agent_surface import QtLiveToolFragment
     from toad.qt.bus_switcher import QtBusSwitcher
     from toad.qt.live_turn import QtLiveFragment

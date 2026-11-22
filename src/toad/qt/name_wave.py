@@ -146,8 +146,8 @@ class QtTabWave(QtClockedWave):
     def animation_visible(self) -> bool:
         return self.bar.isVisible()
 
-    def wave_span(self) -> tuple[int, int] | None:
-        return self.bar.wave_span(self) if self.wave_running() else None
+    def wave_cells(self) -> tuple[int, int] | None:
+        return self.bar.wave_span(self)
 
     def repaint_wave(self) -> None:
         self.bar.repaint_tab(self.mode)

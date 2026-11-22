@@ -449,3 +449,27 @@ def test_a_wire_view_reads_again_when_the_observer_announced_during_its_historys
     source.revision = SimpleNamespace(matches_stores=lambda revision: True)
     asyncio.run(view.reconcile_finished_source_work(object(), SimpleNamespace(publisher=view.message_history)))
     assert heard == ["settled"]
+
+
+def test_a_name_wave_answers_its_cells_only_while_it_runs():
+    from toad.client.name_wave import NameWave
+    from toad.qt.name_wave import QtTabWave
+    from toad.qt.window import ConversationRow
+    from toad.widgets.selection import ViewLabel
+
+    for line in (ViewLabel, QtTabWave, ConversationRow):
+        assert line.wave_span is NameWave.wave_span, line
+
+    class Line(NameWave):
+        running = False
+
+        def wave_running(self) -> bool:
+            return self.running
+
+        def wave_cells(self):
+            return (2, 5)
+
+    line = Line()
+    assert line.wave_span() is None
+    line.running = True
+    assert line.wave_span() == (2, 5)

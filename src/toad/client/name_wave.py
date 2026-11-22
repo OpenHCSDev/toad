@@ -49,7 +49,13 @@ class NameWave(BandCells):
         return self.painted_span if self.wave_running() else None
 
     def wave_span(self) -> tuple[int, int] | None:
-        """The band's cells over this line now, or none while it does not wave."""
+        """The band's cells over this line now, or none while it does not wave. (Each line
+        wrote the idle check itself, three times; a line answers only its cells.)"""
+        return self.wave_cells() if self.wave_running() else None
+
+    def wave_cells(self) -> tuple[int, int] | None:
+        """The band's cells over this line while its wave runs, or none when it has no place
+        to draw them (a line whose tree is gone)."""
         raise NotImplementedError
 
     def repaint_wave(self) -> None:

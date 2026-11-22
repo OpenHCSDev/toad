@@ -379,10 +379,10 @@ class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
         if tree is not None:
             tree.viewport().update(tree.visualItemRect(self))
 
-    def wave_span(self) -> tuple[int, int] | None:
+    def wave_cells(self) -> tuple[int, int] | None:
         """The band's cells over the line's width in cells, as Textual's row paints it."""
         tree = self.treeWidget()
-        if not self.wave_running() or tree is None:
+        if tree is None:
             return None
         return self.band_cells(self.wave_frame(), tree.line_width(self) // tree.fontMetrics().averageCharWidth())
 
