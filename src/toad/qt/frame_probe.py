@@ -49,6 +49,7 @@ from __future__ import annotations
 import asyncio
 import gc
 import os
+import sys
 import threading
 import time
 from pathlib import Path
@@ -58,6 +59,7 @@ from PySide6.QtGui import QFontMetricsF, QImage
 from PySide6.QtWidgets import QApplication, QWidget
 
 from toad import paths
+from toad.frame_work import FrameWork
 from toad.stack_sampler import StackSampler
 
 
@@ -71,6 +73,7 @@ class FrameProbe(QObject):
     def __init__(self, application: QApplication, sink: Path) -> None:
         super().__init__(application)
         self.sink = sink.open("a", buffering=1)
+        self.work = FrameWork() if FrameWork.requested() else None
         self.timer = QTimer(self)
         self.timer.setTimerType(Qt.TimerType.PreciseTimer)
         self.timer.setInterval(self.INTERVAL_MS)
@@ -138,6 +141,9 @@ class FrameProbe(QObject):
         self.sink.write(f"{time.time():.3f} {self.spent_line()}\n")
         self.sink.write(f"{time.time():.3f} {self.frames_line()}\n")
         self.sink.write(f"{time.time():.3f} {self.loop_line()}\n")
+        if self.work is not None:
+            self.sink.write(f"{time.time():.3f} {self.work.line()}\n")
+            self.work.reset()
         self.window_start = now
         self.reset()
 
@@ -301,11 +307,16 @@ class ProbedApplication(QApplication):
         if probe is None:
             return super().notify(receiver, event)
         kind = event.type()
+        work = probe.work if kind is QEvent.Type.UpdateRequest and not ProbedApplication.depth else None
         started = time.perf_counter()
         ProbedApplication.depth += 1
+        if work is not None:
+            work.began(sys._getframe().f_code)
         try:
             return super().notify(receiver, event)
         finally:
+            if work is not None:
+                work.ended()
             ProbedApplication.depth -= 1
             took = (time.perf_counter() - started) * 1000.0
             if kind is QEvent.Type.Paint:

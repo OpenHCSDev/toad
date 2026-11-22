@@ -1,0 +1,7 @@
+{
+ "application_shortcuts.ApplicationShortcutFilter.eventFilter": 63.7,
+ "finger_press.FingerPress.eventFilter": 15.9,
+ "finger_scrolling.FingerScrolling.eventFilter": 47.8,
+ "fitted_text.FittedText.paintEvent": 17.0,
+ "list_item_delegate.MultilinePreviewItemDelegate.paint": 528.0
+}

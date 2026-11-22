@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import time
+import json
 import os
 import sys
 import traceback
@@ -157,6 +158,10 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
         """The drag this drive's scroll areas answer: this platform's, unless the walk is a
         phone's."""
         return FingerScrollGesture.of_platform()
+
+    counts_work: ClassVar[bool] = False
+    """Whether the walk counts what its frames do (`FrameWork`): its application is then the
+    probed one, which delivers each event through the counter."""
 
     @classmethod
     def before_open(cls) -> None:
@@ -3644,6 +3649,78 @@ class PaintClock(QObject):
         return False
 
 
+class FrameWorkScenario(Scenario):
+    summary = ("with #comms open beside the sidebar and every listed thread's name waving, count "
+               "what a frame does: under each function Qt calls (a paint, a delegate, an event "
+               "filter), the Python functions a frame enters. Fails on an owner doing more than "
+               "tools/frame_work_baseline.json allows, and on one doing so much less that the "
+               "baseline must come down (FRAME_WORK_REBASE=1 writes it; OUT/frame-work.json)")
+
+    counts_work = True
+    BASELINE: ClassVar[Path] = Path(__file__).with_name("frame_work_baseline.json")
+    SECONDS: ClassVar[float] = float(os.environ.get("FRAME_WORK_SECONDS", "5"))
+    NEW_OWNER: ClassVar[float] = 12.0
+    """The Python functions an owner the baseline does not name may enter in a frame: a frame
+    draws what was prepared when its data changed, and that takes a handful of calls. An
+    owner over it is either doing too much each time Qt enters it (a row laid out again to
+    be painted) or entered for things it does not handle (a filter on every event)."""
+    # The gate's scratch bus gives the same count to within 1% from run to run (2026-11-22,
+    # three runs: 528.0, 531.0, 531.0 for the sidebar's delegate), so the band is narrow.
+    OVER: ClassVar[float] = 1.05
+    UNDER: ClassVar[float] = 0.9
+    # The drive's and the probe's own handlers, and the enum values the probe's delivery
+    # reads: what they count is the measuring, not the app.
+    OWN: ClassVar[tuple[str, ...]] = ("frame_probe.", "qt_drive.", "enum.")
+
+    async def run(self) -> None:
+        app = self.app
+        app.resize(412, 915)
+        probe = ProbedApplication.probe
+        assert probe is not None and probe.work is not None, "the walk's application is the probed one"
+        probe.REPORT_SECONDS = 1e9
+        await self.listed()
+        await self.open_named("#comms")
+        app.show_sidebar()
+        await asyncio.sleep(1.0)
+        waving = [row for row in self.rows(app.sidebar.items()) if isinstance(row, ConversationRow)]
+        for row in waving:
+            row.follow_activity(True)
+        await asyncio.sleep(0.5)
+        probe.work.reset()
+        await asyncio.sleep(self.SECONDS)
+        frames = probe.work.frames
+        owners = {name: facts for name, facts in probe.work.measured().items() if not name.startswith(self.OWN)}
+        for row in waving:
+            row.follow_activity(False)
+        measured = {name: round(facts["entries_per_frame"] * facts["python_per_entry"], 1) for name, facts in owners.items()}
+        (self.out / "frame-work.json").write_text(json.dumps(owners, indent=1) + "\n")
+        print(f"frame work: {frames} frames, {len(waving)} names waving; Python functions entered in a frame, by owner:")
+        for name, python in sorted(measured.items(), key=lambda owner: -owner[1]):
+            facts = owners[name]
+            print(f"  {python:8.1f} a frame = {facts['entries_per_frame']:5.2f} entries x {facts['python_per_entry']:6.1f} "
+                  f"(+ {facts['c_per_entry']:6.1f} C calls)  {name}")
+        if not frames or not waving:
+            raise SystemExit(f"frame work: nothing was measured ({frames} frames, {len(waving)} names waving)")
+        if os.environ.get("FRAME_WORK_REBASE"):
+            self.BASELINE.write_text(json.dumps(
+                {name: python for name, python in measured.items() if python > self.NEW_OWNER}, indent=1, sort_keys=True) + "\n")
+            print(f"frame work: baseline written to {self.BASELINE}")
+            return
+        allowed = json.loads(self.BASELINE.read_text())
+        over = [f"{name}: {python} Python calls a frame, {allowed.get(name, self.NEW_OWNER)} allowed"
+                for name, python in measured.items() if python > allowed.get(name, self.NEW_OWNER) * self.OVER]
+        under = [f"{name}: {measured.get(name, 0.0)} a frame, baseline {was}"
+                 for name, was in allowed.items() if measured.get(name, 0.0) < was * self.UNDER]
+        if over:
+            raise SystemExit("frame work: an owner does more in a frame than the baseline allows (prepare it when its "
+                             "data changes, not when it is drawn; handle an event where it happens, not on every one):\n  "
+                             + "\n  ".join(over))
+        if under:
+            raise SystemExit(f"frame work: an owner does less than its baseline; lower {self.BASELINE.name} "
+                             "(FRAME_WORK_REBASE=1):\n  " + "\n  ".join(under))
+        print("frame work: within the baseline")
+
+
 class HistoryScrollBackScenario(Scenario):
     summary = ("at a Pixel 8a's size with the phone's touch-as-mouse gesture: read #comms idle, then "
                "drag its history back by finger to its start (or about 300 earlier rows); per older "
@@ -4578,6 +4655,8 @@ def main(arguments: list[str]) -> None:
         # where a desktop's are fresh interpreters. Measure what the phone runs.
         from agent_comms.execution.child_process import ForkedStart
         type(connection).helper_start = ForkedStart()
+    if scenario.counts_work:
+        os.environ.update(TOAD_FRAME_PROBE="1", TOAD_FRAME_WORK="1")
     application = FrameProbe.application(arguments[:1])
     install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())
