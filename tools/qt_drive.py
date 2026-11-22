@@ -698,7 +698,8 @@ class TranscriptScenario(Scenario):
                     references=type(window.rows.renderer.links.references).__name__)
         # Every fragment opened, painted by the window's own renderer: an expanded tool call
         # draws the diff and terminal-output blocks a collapsed one never reaches.
-        renderer = window.rows.renderer.at_width(window.viewport().width(), window.font())
+        renderer = window.rows.renderer.at_width(
+            window.viewport().width() // max(1, window.fontMetrics().averageCharWidth()))
         opened = [fragment for fragment in fragments if fragment.has_details]
         drawn = {type(block).__name__ for fragment in opened
                  for block in fragment.blocks(fragment.shown.toggled()) if renderer.html((block,))}
@@ -2217,6 +2218,9 @@ class SlideScenario(Scenario):
         await self.listed()
         app = self.app
         app.resize(self.width, 915)
+        # The welcome holds the whole window (`SidebarLayout.holds_alone`): there is no pane to
+        # fold beside a page until a tab is open. `SoleSidebarScenario` covers the welcome.
+        await self.open_named(os.environ.get("TARGET", "scratch-live-pipeline"))
         app.show_sidebar()
         await asyncio.sleep(0.6)
         await self.landed()
@@ -2268,6 +2272,10 @@ class SlideScenario(Scenario):
         PaneSlide.apply_amount = moving
         print("  opening slide frame gaps ms:", [round(gap * 1000, 1) for gap in gaps],
               "max", round(max(gaps, default=0) * 1000, 1), flush=True)
+        # The pane steps needed a page beside it; the tab animations start from the welcome.
+        app.close_index(app.tabs.currentIndex())
+        await until(lambda: app.tabs.count() == 0, "the tab the pane steps used closed")
+        await asyncio.sleep(0.5)
         await self.expand("#comms")
         comms = await self.channel_row("#comms")
         app.open_row(comms)

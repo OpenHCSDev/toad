@@ -986,6 +986,10 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     def close(self) -> None:
         self.attached = False
         super().close()
+        # Rows still rendering in the workers must not land in a delegate Qt is about to
+        # delete (`cleanup` stops and joins them; it ran for no history, so a render that
+        # finished after its tab closed raised "QTimer already deleted" into the loop).
+        self.window.rows.cleanup()
 
 
 class QtWireHistory(AwaitsFirstPage, QtConversationHistory):
