@@ -38,7 +38,8 @@ a window's widgets and shows the frame inside the `UpdateRequest` it delivers to
 that row's time less the paints' is what showing the frames cost. A `frames` line splits
 the frames by how much of the window the box around their paints covers (`FRAME_SIZES`), each
 with its mean time and its mean time without the paints. A `display` line, once for each
-window, says what its frames are drawn into and shown on.
+window, says what its frames are drawn into and shown on. A `loop` line names the costliest
+asyncio work the same way: each coroutine's steps and each plain callback's runs.
 
 The probe only observes; nothing reads its numbers back into the app.
 """
@@ -103,6 +104,8 @@ class FrameProbe(QObject):
         # The frames shown, by how much of the window the box around their paints covers:
         # each size's frames, their whole time and the time of their paints.
         self.frames = [[0, 0.0, 0.0] for _size in self.FRAME_SIZES]
+        # Each asyncio callback's runs and their time, by what it runs (`TimedHandles.runs`).
+        self.callbacks: dict[object, list] = {}
         self.frame_box, self.frame_paint_ms, self.frame_window = QRect(), 0.0, 1
 
     def ticked(self) -> None:
@@ -134,6 +137,7 @@ class FrameProbe(QObject):
             self.sink.write(f"{time.time():.3f} hot {line}\n")
         self.sink.write(f"{time.time():.3f} {self.spent_line()}\n")
         self.sink.write(f"{time.time():.3f} {self.frames_line()}\n")
+        self.sink.write(f"{time.time():.3f} {self.loop_line()}\n")
         self.window_start = now
         self.reset()
 
@@ -209,6 +213,29 @@ class FrameProbe(QObject):
         rows = " | ".join(f"{kind.name}/{receiver.__name__} {count}x {took:.0f}ms"
                           for (kind, receiver), (count, took) in costliest)
         return f"spent {rows or '(nothing)'} ; paints {self.paints[0]}x {self.paints[1]:.0f}ms"
+
+    def ran(self, what: object, took_ms: float) -> None:
+        """An asyncio callback ran on this thread: a coroutine's step, or a plain callback."""
+        cost = self.callbacks.get(what)
+        if cost is None:
+            cost = self.callbacks[what] = [0, 0.0]
+        cost[0] += 1
+        cost[1] += took_ms
+
+    @staticmethod
+    def named(what: object) -> str:
+        """A coroutine's code or a callback's function, by its qualified name."""
+        return getattr(what, "co_qualname", None) or getattr(what, "__qualname__", None) or type(what).__name__
+
+    def loop_line(self) -> str:
+        """The span's costliest asyncio work: each coroutine's steps (or plain callback's
+        runs) as `name runs x total ms`, and every callback's count and time. qasync runs
+        them from Qt timer events, which the `spent` line shows only as `Timer/_SimpleTimer`."""
+        costliest = sorted(self.callbacks.items(), key=lambda cost: -cost[1][1])[:self.COSTLIEST]
+        rows = " | ".join(f"{self.named(what)} {count}x {took:.0f}ms" for what, (count, took) in costliest)
+        runs = sum(count for count, _took in self.callbacks.values())
+        total = sum(took for _count, took in self.callbacks.values())
+        return f"loop {rows or '(nothing)'} ; callbacks {runs}x {total:.0f}ms"
 
     def slow(self, took_ms: float, what: str) -> None:
         """Work that held the thread past `SLOW_MS`, named."""
@@ -313,10 +340,22 @@ class TimedHandles:
                 run(handle)
             finally:
                 took = (time.perf_counter() - started) * 1000.0
+                probe.ran(cls.runs(handle), took)
                 if took > probe.SLOW_MS:
                     probe.slow(took, cls.describe(handle))
 
         asyncio.Handle._run = timed_run  # type: ignore[method-assign]
+
+    @staticmethod
+    def runs(handle: asyncio.Handle) -> object:
+        """What a handle runs, as one thing to count by: a task's step is its coroutine's
+        code (every task running the same coroutine function counts together), any other
+        callback is its function."""
+        callback = handle._callback  # the handle's own record of what it runs
+        task = getattr(callback, "__self__", None)
+        if isinstance(task, asyncio.Task):
+            return getattr(task.get_coro(), "cr_code", task)
+        return getattr(callback, "__func__", callback)
 
     @staticmethod
     def describe(handle: asyncio.Handle) -> str:

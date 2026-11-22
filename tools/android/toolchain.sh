@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Fill TOOLCHAIN with what build.sh needs: the Android SDK (cmdline tools, platform 35, build
 # tools, NDK r28c) under sdk/, the PySide6 and shiboken6 Android wheels under wheels/, and
-# buildozer in venv314/. Needs JDK 17 (JAVA_HOME) and uv. Rerunning skips what is there.
+# buildozer in venv314/, and the Qt libraries built here instead of taken from the wheel under
+# qt/ (qt_libs.sh). Needs JDK 17 (JAVA_HOME), uv, git and cmake. Rerunning skips what is there.
 #
 #   tools/android/toolchain.sh TOOLCHAIN
 set -euo pipefail
-if [ $# -ne 1 ]; then sed -n '2,6p' "$0"; exit 2; fi
+if [ $# -ne 1 ]; then sed -n '2,7p' "$0"; exit 2; fi
 T=$(realpath -m "$1")
 : "${JAVA_HOME:=/usr/lib/jvm/java-17-openjdk}"
 export JAVA_HOME
@@ -28,4 +29,5 @@ timeout 1800 "$SM" --sdk_root="$T/sdk" "platform-tools" "platforms;android-35" "
 # buildozer installs python-for-android's build tools with `python -m pip`, so the venv is seeded with pip.
 [ -x venv314/bin/buildozer ] || { uv venv -q --seed --python 3.14 venv314 && uv pip install -q --python venv314/bin/python buildozer==1.6.0 cython==0.29.33 setuptools; }
 venv314/bin/python -m pip --version > /dev/null || uv pip install -q --python venv314/bin/python pip
+"$(dirname "$0")/qt_libs.sh" "$T"
 echo "toolchain ready: $T"

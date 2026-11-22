@@ -19,6 +19,9 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$APP"
 exec 9>"$APP/.build.lock"
 flock -n 9 || { echo "== waiting for the build already running in $APP"; flock 9; }
+# The toolchain's Qt libraries are this checkout's (its commits and patches): built again when
+# they are not, which takes minutes, and one line when they are.
+"$HERE/qt_libs.sh" "$TOOLCHAIN"
 "$HERE/check.sh" "$RUNTIME" "$TOOLCHAIN" "$APP" "$PROFILE"
 # The APK's interpreter is the runtime's Python version: that runtime compiles the bytecode
 # it ships and runs every check above (tools/android/recipes/python3 reads this).
@@ -29,4 +32,5 @@ VIRTUAL_ENV="$TOOLCHAIN/venv314" PATH="$TOOLCHAIN/venv314/bin:$PATH" \
   timeout 3000 buildozer android debug > "$APP/build.log" 2>&1 || { tail -30 "$APP/build.log"; exit 1; }
 APK=$(ls -1t "$APP"/toadcomms-*-debug.apk | head -1)
 "$RUNTIME/bin/python" "$HERE/apk_python.py" "$APK" "$TOAD_ANDROID_PYTHON"
+"$RUNTIME/bin/python" "$HERE/apk_qt_libs.py" "$APK" "$TOOLCHAIN/qt"
 echo "$APK"

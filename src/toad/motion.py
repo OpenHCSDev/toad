@@ -35,36 +35,6 @@ SCROLLBAR_FADE = Transition(Amount, 1.0, 0.0, 0.3, _TAB_FPS)
 HEAD_REVEAL = Glide(Amount, 0.0, 1.0, 0.18)
 
 
-class AmbientBudget:
-    """How much of the thread that serves the reader its ambient motion may take.
-
-    A busy sweep and the waving names move for as long as any agent works. A frontend whose
-    frames cost that thread something tells this what each frame it showed cost; the clock
-    then affords ambient motion a frame only as often as keeps it within `SHARE` of the
-    thread (`AnimationClock.ambient_interval`). A Pixel 8a's widget window takes about 27 ms
-    to paint and show a frame, so its sweep and waves step about 5 times a second and leave
-    the thread to scrolling and keys; a desktop's 1 ms frame leaves them at their own 20.
-    Nothing is tuned per device, and a frame made cheaper speeds them up again by itself."""
-
-    SHARE = 0.15
-    NEWEST = 0.2
-    """The newest frame's weight in the running cost: a few frames move it, one does not."""
-    STEP = 0.02
-    """The interval moves in steps this long, so the clock's timer is not set again for each
-    frame's slightly different cost."""
-
-    def __init__(self, clock: AnimationClock) -> None:
-        self.clock = clock
-        self.cost = 0.0
-
-    def frame_shown(self, seconds: float) -> None:
-        """A frame was painted and shown, holding the thread for `seconds`."""
-        self.cost += self.NEWEST * (seconds - self.cost)
-        afforded = round(self.cost / self.SHARE / self.STEP) * self.STEP
-        if afforded != self.clock.ambient_interval:
-            self.clock.ambient_interval = afforded
-
-
 def animations_enabled() -> bool:
     """Whether this process animates: Textual's own animation level, which the TUI's clock
     already follows, so one environment setting turns motion off in both frontends."""
