@@ -198,8 +198,12 @@ class AutoDiff(TitledChoice, DiffMode):
 
 
 class WrapMode(DeclaredChoice, affix="Mode"):
+    """Whether a line of source that reaches the row's edge folds there, and how each
+    frontend spells that: Qt's rich text by CSS, a terminal's by Rich's overflow."""
+
     enabled = False
     css_white_space = "pre"
+    rich_overflow = "ignore"
 
     @classmethod
     def fitted_width(cls, available: int, content: int) -> int:
@@ -214,10 +218,20 @@ class WrapModeEnabled(TitledChoice, WrapMode, declared_name="wrap"):
     title = "Wrap long lines"
     enabled = True
     css_white_space = "pre-wrap"
+    rich_overflow = "fold"
 
     @classmethod
     def fitted_width(cls, available: int, content: int) -> int:
         return available
+
+
+PREFORMATTED: type[WrapMode] = WrapModeEnabled
+"""How source and terminal output inside a message are laid out, in both frontends: every
+space and line break kept, and a line that reaches the row's edge folded there. A fenced
+block and a tool's output are not the reader's choice the way a diff's layout is; the
+terminal always folded them (`StyledCodeBlock`, Rich's own wrapping of tool output), and
+Qt wrote both as a bare `pre`, which never folds, so one such row anywhere in the loaded
+history gave the whole of it a sideways range (2026-11-22)."""
 
 
 @dataclass(frozen=True)
@@ -230,8 +244,12 @@ class DiffSettings(SettingsDeclaration):
         type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode), changed
     ] = AutoDiff
     annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?"), changed] = False
-    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode), changed] = NoWrapMode
-    """If wrapping is disabled you can horizontal scroll with the trackpad or the mouse wheel plus shift."""
+    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode), changed] = WrapModeEnabled
+    """A diff's long lines fold at the row's edge unless the reader turns this off; then the
+    whole history scrolls sideways to them (trackpad, shift and the wheel, or a finger).
+    The default was off, written for a pointer with a separate sideways gesture: under a
+    finger any drag off the vertical moved a page of wrapped messages into empty space
+    beside them, for a diff that might not be on the screen (2026-11-22)."""
 
     @property
     def marks(self) -> DiffMarks:

@@ -73,7 +73,7 @@ from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
 from toad.qt.float_layer import QtFloatLayer
 from toad.qt.lines import QtLineRenderer
-from toad.patch import DiffSettings
+from toad.patch import PREFORMATTED, DiffSettings
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
 from toad.qt.widget_animation import WidgetAnimation, frame_interval
@@ -437,6 +437,15 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         # viewport width, or wrapped prose would stop wrapping after scrolling code.
         return self.row_document(index, option.font, self.layout_width(option.rect.width()))
 
+    PREFORMATTED_SHEET = f"pre {{ white-space: {PREFORMATTED.css_white_space}; }}"
+    """Every `pre` in a row, whoever wrote it (a highlighted fence, Markdown's own for an
+    unknown language, a tool's output), is laid out as the shared declaration says."""
+
+    def new_document(self, font: QFont, width: int) -> QTextDocument:
+        document = super().new_document(font, width)
+        document.setDefaultStyleSheet(self.PREFORMATTED_SHEET)
+        return document
+
     def available_width(self, option: QStyleOptionViewItem) -> int:
         """Rows are laid out at the viewport's width: a wide row's own rect is its extent,
         and wrapped prose laid out at that would stop wrapping."""
@@ -449,12 +458,20 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         return self.view.viewport_width() or extent
 
     def hinted(self, key, size: QSize) -> QSize:
-        """A row takes its height at the layout width and, across, how wide its content came
-        out when it was laid out (`row_extent`): `pre` blocks (diffs, code, tool output) do
-        not wrap, which is what gives the history one horizontal scrollbar instead of
-        clipping each preview. pyqt-reactive answers this from the row's kept key, so a
-        layout over every loaded row builds no row's key."""
-        return QSize(self.row_extent(key, size.width()), size.height())
+        """A row takes its height at the layout width and, across, what the reader's wrap
+        choice makes of how wide its content came out (`row_extent`): the layout width while
+        code wraps, and the content's own while it does not, which is what gives the history
+        one horizontal scrollbar for an unwrapped diff instead of clipping it.
+
+        The measured extent alone decided this, and a measurement holds Qt's rounding: a
+        header's table (rule, title, rule) gives its two rules the room left over rounded up
+        each, so half of all headers lay out one pixel wider than the width they were given.
+        One pixel made the history scrollable sideways, and QScroller lets a scrollable axis
+        be dragged past its edge: a finger moving across the page pulled every wrapped
+        message up to 129 px into empty space (2026-11-22). pyqt-reactive answers this from
+        the row's kept key, so a layout over every loaded row builds no row's key."""
+        layout = size.width()
+        return QSize(self.renderer.diff.wrap.fitted_width(layout, self.row_extent(key, layout)), size.height())
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared

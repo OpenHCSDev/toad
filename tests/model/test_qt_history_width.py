@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 from agent_comms.messaging.display_references import ProjectReferences
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, VirtualRowView
+from PySide6.QtCore import QSize
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication
 import pytest
@@ -90,8 +91,9 @@ def test_qt_row_batch_is_data_only_at_the_process_boundary() -> None:
 
 def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
     """A row's extent is what its document came out as when it was laid out: wrapped prose
-    stays at the layout width, a `pre` block reports its own. The delegate keeps it with the
-    height, so the size hint that reads it lays nothing out."""
+    stays at the layout width, and so does a `pre` block (source, a tool's output), which
+    folds there as the terminal's does; text declared not to wrap reports its own. The
+    delegate keeps it with the height, so the size hint that reads it lays nothing out."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
     delegate = HistoryRowDelegate(renderer(DiffSettings()), RowPictures(2 ** 20),
@@ -100,15 +102,52 @@ def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
     font = QFont()
     try:
         delegate.measured_height("wrapped", font, 200, HtmlRow('<p style="white-space:pre-wrap">' + "x" * 200 + "</p>"))
-        delegate.measured_height("intrinsic", font, 200, HtmlRow("<pre>" + "x" * 200 + "</pre>"))
+        delegate.measured_height("intrinsic", font, 200, HtmlRow('<p style="white-space:pre">' + "x" * 200 + "</p>"))
+        for name, source in (("source", "x" * 200), ("words", "word " * 60), ("coded", "<code>" + "x " * 150 + "</code>")):
+            delegate.measured_height(name, font, 200, HtmlRow(f"<pre>{source}</pre>"))
+            delegate.measured_height(name + " coloured", font, 200, HtmlRow(f'<pre style="color:#888888">{source}</pre>'))
 
         assert delegate.row_extent("wrapped", 200) == 200
         assert delegate.row_extent("intrinsic", 200) > 200
+        for name in ("source", "words", "coded"):
+            assert delegate.row_extent(name, 200) == 200, name
+            assert delegate.row_extent(name + " coloured", 200) == 200, name
         assert delegate.row_extent("not laid out", 200) == 200
     finally:
         delegate.cleanup()
         view.deleteLater()
         app.quit()
+
+
+def test_a_row_is_hinted_wider_than_the_window_only_while_code_does_not_wrap(monkeypatch) -> None:
+    """A header's table lays out a pixel wider than the width it is given at half of all
+    widths (Qt rounds its two rules up). While code wraps, as it does unless the reader says
+    otherwise, no row is hinted wider than the layout, so the history has no sideways range
+    for a finger to drag; with wrapping off, a row is hinted as wide as it came out."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    assert DiffSettings().wrap is WrapModeEnabled
+    header = renderer(DiffSettings()).html((Divider.titled("Agent · 2026-11-22 01:11:32", MutedRole),))
+    font = QFont()
+    hinted = {}
+    for settings in (DiffSettings(), DiffSettings(wrap=NoWrapMode)):
+        delegate = HistoryRowDelegate(renderer(settings), RowPictures(2 ** 20),
+                                      RenderProcessPool(CoreConnection.helper_start))
+        view = VirtualRowView(delegate)
+        try:
+            over = [width for width in range(300, 340)
+                    if delegate.measured_height(("header", width), font, width, HtmlRow(header)) and
+                    delegate.row_extent(("header", width), width) > width]
+            assert over, "this test needs a header Qt lays out wider than its width"
+            width = over[0]
+            height = delegate.measured_height(("header", width), font, width, HtmlRow(header))
+            hinted[settings.wrap] = delegate.hinted(("header", width), QSize(width, height)).width() - width
+        finally:
+            delegate.cleanup()
+            view.deleteLater()
+    app.quit()
+
+    assert hinted == {WrapModeEnabled: 0, NoWrapMode: 1}
 
 
 def test_qt_tool_summary_is_clipped_by_the_shared_summary_owner() -> None:
