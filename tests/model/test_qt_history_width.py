@@ -1,5 +1,6 @@
 """Qt history derives horizontal extent and diff layout from the shared declarations."""
 
+import asyncio
 import os
 import pickle
 from pathlib import Path
@@ -8,11 +9,12 @@ from types import SimpleNamespace
 from agent_comms.messaging.display_references import ProjectReferences
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, VirtualRowView
 from PySide6.QtGui import QFont
-from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
+import pytest
 
 from toad.markdown_links import LinkContext
-from toad.client.line_blocks import Span, Summary, ToolArgumentRole, ToolVerbRole
+from toad.client.connection import CoreConnection
+from toad.client.line_blocks import Divider, MutedRole, Span, Summary, ToolArgumentRole, ToolVerbRole
 from toad.patch import (
     DiffSettings,
     NoWrapMode,
@@ -30,6 +32,7 @@ from toad.qt.history import (
 )
 from toad.qt.lines import QtLineRenderer
 from toad.qt.theme import current_scheme
+from toad.render_processes import RenderProcessPool
 
 
 def renderer(settings: DiffSettings) -> QtLineRenderer:
@@ -69,12 +72,20 @@ def test_qt_row_batch_is_data_only_at_the_process_boundary() -> None:
         LinkContext(Path.cwd(), ProjectReferences()),
         DiffSettings(),
         80,
+        1,
+        (Divider.titled("claude-a", MutedRole),),
     )
     task = QtHistoryRowBatchRenderTask((preparation,))
 
     restored = pickle.loads(pickle.dumps(task, protocol=5))
 
-    assert restored.execute()[0].html.startswith("<p")
+    row, = pickle.loads(pickle.dumps(restored.execute(), protocol=5))
+    assert row.html.startswith("<p")
+    # The row comes back with everything the window reads of it: its first block alone, for
+    # the pin's measurement, and the header it pins, under the header the window asks by.
+    (leading,), ((header, pinned),) = row.leading, row.pinned
+    assert leading.startswith("<p") and "claude-a" in pinned
+    assert header == preparation.pinned[0] and hash(header) == hash(preparation.pinned[0])
 
 
 def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
@@ -83,7 +94,8 @@ def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
     height, so the size hint that reads it lays nothing out."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
-    delegate = HistoryRowDelegate(renderer(DiffSettings()), RowPictures(2 ** 20))
+    delegate = HistoryRowDelegate(renderer(DiffSettings()), RowPictures(2 ** 20),
+                                  RenderProcessPool(CoreConnection.helper_start))
     view = VirtualRowView(delegate)
     font = QFont()
     try:
@@ -114,6 +126,8 @@ def test_qt_tool_summary_is_clipped_by_the_shared_summary_owner() -> None:
 
 
 def test_intrinsic_tool_output_gives_the_shared_history_a_horizontal_range(monkeypatch) -> None:
+    """A history row is rendered by the app's render processes and by nothing in this process:
+    the row a view asks for goes to a worker, lands, and is laid out at its own extent."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
     patch = parse_patch(
@@ -124,33 +138,43 @@ def test_intrinsic_tool_output_gives_the_shared_history_a_horizontal_range(monke
         + "\n"
     )
     line_renderer = renderer(DiffSettings(view=UnifiedDiff, wrap=NoWrapMode))
-    delegate = HistoryRowDelegate(line_renderer, RowPictures(2 ** 20))
-    view = VirtualRowView(delegate)
-    # HistoryRowDelegate's paint hook belongs to QtHistoryWindow; this proof
-    # exercises layout only through the generic virtual-row host.
-    view.arrivals = None
-    view.row_painted = lambda *args: None
-    model = HistoryRows()
     fragment = SimpleNamespace(
         key="patch",
         shown="shown",
         revision=1,
         line_blocks=(patch,),
         clipboard_text="plain fallback",
+        header_blocks=0,
+        pinned_dividers=(),
     )
-    model.show((fragment,))
-    view.setModel(model)
-    view.resize(200, 200)
-    view.show()
-    app.processEvents()
-    delegate._thread_pool.waitForDone()
-    # Deliver the queued preparation signal and its one-frame layout timer.
-    QTest.qWait(25)
-    view.executeDelayedItemsLayout()
-    app.processEvents()
 
-    assert view.horizontalScrollBar().maximum() > 0
+    async def shown() -> None:
+        pool = RenderProcessPool(CoreConnection.helper_start, max_workers=1)
+        pool.start()
+        delegate = HistoryRowDelegate(line_renderer, RowPictures(2 ** 20), pool)
+        view = VirtualRowView(delegate)
+        # HistoryRowDelegate's paint hook belongs to QtHistoryWindow; this proof
+        # exercises layout only through the generic virtual-row host.
+        view.arrivals = None
+        view.row_painted = lambda *args: None
+        model = HistoryRows()
+        try:
+            # The worker is another process (spawned here), so this reaches only this one.
+            monkeypatch.setattr(QtLineRenderer, "html", lambda *args, **kwargs: pytest.fail(
+                "a history row was rendered in the UI process"))
+            model.show((fragment,))
+            view.setModel(model)
+            view.resize(200, 200)
+            view.show()
+            async with asyncio.timeout(60):
+                while not view.horizontalScrollBar().maximum():
+                    app.processEvents()  # the paint that asks, the one-frame layout timer
+                    view.executeDelayedItemsLayout()
+                    await asyncio.sleep(0.01)  # the worker's answer
+        finally:
+            delegate.cleanup()
+            view.deleteLater()
+            await pool.aclose()
 
-    delegate.cleanup()
-    view.close()
+    asyncio.run(shown())
     app.quit()

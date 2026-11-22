@@ -20,6 +20,7 @@ from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
+from itertools import batched
 from math import copysign
 from pathlib import Path
 from typing import ClassVar
@@ -31,7 +32,9 @@ from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices,
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
 )
-from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
+from pyqt_reactive.widgets.virtual_rows import (
+    HtmlRow, RowDocumentDelegate, RowFormatting, RowPreparer, VirtualRowView,
+)
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
@@ -82,7 +85,7 @@ from toad.qt.transcript_fragments import (
     QtToolTranscriptFragment,
     QtWireFragment,
 )
-from toad.render_backend import RenderTask
+from toad.render_backend import Renderer, RenderTask
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
 from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
@@ -335,8 +338,10 @@ class HistoryRowDelegate(RowDocumentDelegate):
     """The blocks own their spacing (`Gap`), as Textual's rows do: the parts of one message
     meet, so its accent bar runs unbroken from part to part."""
 
-    def __init__(self, renderer: QtLineRenderer, pictures: RowPictures) -> None:
+    def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, processes: Renderer) -> None:
         super().__init__()
+        self.processes = processes
+        """The app's render processes: the only place a row's blocks become rich text."""
         self.pictures = pictures
         """The app's drawn rows (`RowPictures`), shared by every history it has open."""
         # Each drawn row's last prepared look (`styled_formatting`), by `row_identity`.
@@ -363,34 +368,55 @@ class HistoryRowDelegate(RowDocumentDelegate):
     def preparation_key(self, index: QModelIndex, font: QFont, width: int):
         return self.fragment_key(index.data(HistoryRows.FRAGMENT), font, width)
 
-    def preparation(self, index: QModelIndex, font: QFont, width: int) -> Callable[[], RowFormatting]:
-        return self.rendering(index.data(HistoryRows.FRAGMENT), font, width)
+    def preparation(self, index: QModelIndex, font: QFont, width: int) -> QtRowPreparation:
+        return self.row_preparation(index.data(HistoryRows.FRAGMENT), font, width)
+
+    def row_preparer(self) -> ProcessRowPreparer:
+        """History rows are prepared in the app's render processes and nowhere else: Python
+        on a thread of this process takes turns with the frame for the interpreter."""
+        return ProcessRowPreparer(self._rows_prepared, self.processes)
 
     def fragment_key(self, fragment: HistoryFragment, font: QFont, width: int):
         """A fragment's row as shown, with these links, in this font at this width: dividers
         fill the width. A draft or live row grows, so its revision is part of the key."""
-        shown = fragment.key, fragment.shown, fragment.revision
+        return self.drawn_key((fragment.key, fragment.shown, fragment.revision), font, width)
+
+    def header_key(self, header: Divider, font: QFont, width: int):
+        """A pinned header on its own: prepared, kept and laid out as a row is."""
+        return self.drawn_key(self.header_shown(header), font, width)
+
+    @staticmethod
+    def header_shown(header: Divider) -> tuple:
+        """A header's place in a key, where a row's has its fragment, look and revision."""
+        return header, None, 0
+
+    def drawn_key(self, shown: tuple, font: QFont, width: int):
         return shown, self.links_revision, font.family(), font.pointSize(), width
 
-    def rendering(self, fragment: HistoryFragment, font: QFont, width: int) -> Callable[[], RowFormatting]:
-        return self.row_preparation(fragment.line_blocks, font, width).render
+    def row_preparation(self, fragment: HistoryFragment, font: QFont, width: int) -> QtRowPreparation:
+        """Data-only row work: Qt measures its monospace cell once; the worker owns HTML, of
+        the row, of each leading block the pin measures on its own (the header blocks and the
+        one after them) and of the header the row pins."""
+        return self.block_preparation(fragment.line_blocks, font, width,
+                                      headed=fragment.header_blocks + 1, pinned=fragment.pinned_dividers)
 
-    def row_preparation(self, blocks, font: QFont, width: int) -> QtRowPreparation:
-        """Data-only row work: Qt measures its monospace cell once; the worker owns HTML."""
+    def block_preparation(self, blocks, font: QFont, width: int, *, headed: int = 0,
+                          pinned: tuple[Divider, ...] = ()) -> QtRowPreparation:
         cell = max(1.0, QFontMetricsF(font).averageCharWidth())
-        cells = max(1, int((width - 8) / cell))
         return QtRowPreparation(
             blocks=blocks,
             scheme=self.renderer.scheme,
             links=self.renderer.links,
             diff=self.renderer.diff,
-            width=cells,
+            width=max(1, int((width - 8) / cell)),
+            headed=headed,
+            pinned=pinned,
         )
 
-    @staticmethod
-    def html(renderer: QtLineRenderer, blocks, width: int, font: QFont) -> RowFormatting:
-        cell = max(1.0, QFontMetricsF(font).averageCharWidth())
-        return HtmlRow(renderer.at_width(max(1, int((width - 8) / cell))).html(blocks))
+    def prepared_look(self, key) -> QtRow | None:
+        """The row's prepared formatting under `key`, or the look it last showed while a new
+        one is prepared; none for a row that never had one."""
+        return self._prepared.get(key) or self._prepared.get(self.last_shown.get(self.row_identity(key)))
 
     def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument:
         # A wide row's paint rect is its intrinsic extent. Layout still uses the
@@ -429,25 +455,30 @@ class HistoryRowDelegate(RowDocumentDelegate):
         blocks = fragment.line_blocks
         line = QFontMetrics(font).lineSpacing() or 1
         key = self.fragment_key(fragment, font, width)
+        prepared = self.prepared_look(key)
+        if prepared is None:
+            # A row drawn before its formatting arrived has no blocks to measure: its head.
+            return 0, 0
         top = 0
         decided = fragment.header_blocks
-        for index, block in enumerate(blocks):
+        for index, html in enumerate(prepared.leading):
             if index == decided and index < len(blocks) - 1:
                 return index, 0
-            # The pin asks on every scroll offset: a block's html is built only when its height
-            # is not yet measured at this width, not on every frame that reads the height.
-            height = self.measured_height((key, index), font, width,
-                                          PreparedOnFill(partial(self.html, self.renderer, (block,), width, font)))
+            # The pin asks on every scroll offset: a block is laid out once per look.
+            height = self.measured_height((key, index), font, width, HtmlRow(html))
             if y < top + height or index == len(blocks) - 1:
                 return index, max(0, int((y - top) // line))
             top += height
         return 0, 0
 
-    def header_document(self, header: Divider, font: QFont, width: int) -> QTextDocument:
-        """A message's header block laid out as its row lays it out at this width."""
-        document = self.new_document(font, width)
-        self.html(self.renderer, (header,), width, font).fill(document)
-        return document
+    def header_document(self, header: Divider, font: QFont, width: int) -> QTextDocument | None:
+        """A pinned header laid out as its row lays it out at this width, or none while it is
+        prepared. Its rich text came with its row (`QtRow.pinned`); a header no row brought
+        in this look (the width or the links just changed) is prepared as a row is, in a
+        render process, and the pin is drawn again when it lands."""
+        key = self.header_key(header, font, width)
+        formatting = self.keyed_formatting(key, "", self.block_preparation((header,), font, width))
+        return self.laid_out(key, font, width, formatting) if formatting.final else None
 
     def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:  # type: ignore[override]
         """A history row's style option is the view's own: the row's document draws its text,
@@ -466,8 +497,8 @@ class HistoryRowDelegate(RowDocumentDelegate):
         just after it lands (checking, then each recipient): each answer is a new key, and
         drawing the row as plain text until the answer was styled rewrapped it to another
         height and back, the message snapping in, out and in again."""
-        formatting = self.keyed_formatting(key, fragment.clipboard_text, self.rendering(fragment, font, width))
-        if isinstance(formatting, PlainRow):
+        formatting = self.keyed_formatting(key, fragment.clipboard_text, self.row_preparation(fragment, font, width))
+        if not formatting.final:
             shown = self.last_shown.get(self.row_identity(key))
             if shown in self._prepared:
                 return self._prepared[shown]
@@ -480,10 +511,17 @@ class HistoryRowDelegate(RowDocumentDelegate):
         (fragment_key, _shown, _revision), *drawn = key
         return fragment_key, *drawn
 
-    def _row_prepared(self, key, prepared: RowFormatting) -> None:
+    def _row_prepared(self, key, prepared: QtRow) -> None:
         super()._row_prepared(key, prepared)
         if key in self._prepared:
             self.last_shown[self.row_identity(key)] = key
+            _shown, *look = key
+            for header, html in prepared.pinned:
+                # The header this row pins is prepared with it, in the row's look: the pin
+                # waits on none, and each part of a message brings the same one.
+                alone = self.header_shown(header), *look
+                if alone not in self._prepared:
+                    super()._row_prepared(alone, QtRow(html, (), ()))
         if len(self.last_shown) > 2 * self.MAX_PREPARED_ROWS:
             # Looks the prepared cache let go of name nothing to draw.
             self.last_shown = {row: shown for row, shown in self.last_shown.items() if shown in self._prepared}
@@ -614,14 +652,83 @@ class QtRowPreparation(BlockPreparation):
     links: LinkContext
     diff: DiffSettings
     width: int
+    headed: int
+    """How many of the row's first blocks are also rendered each on its own (`QtRow.leading`)."""
+    pinned: tuple[Divider, ...]
+    """The header the row pins, rendered on its own (`QtRow.pinned`): it need not be one of
+    the row's blocks (a later part of a message pins a header only its first part draws)."""
 
-    def render(self) -> RowFormatting:
-        renderer = QtLineRenderer(self.scheme, self.links, self.diff).at_width(self.width)
-        return HtmlRow(renderer.html(self.blocks))
+    def render(self) -> QtRow:
+        html = QtLineRenderer(self.scheme, self.links, self.diff).at_width(self.width).html
+        return QtRow(html(self.blocks), tuple(html((block,)) for block in self.blocks[:self.headed]),
+                     tuple((header, html((header,))) for header in self.pinned))
 
 
 @dataclass(frozen=True)
-class QtHistoryRowBatchRenderTask(RenderTask[tuple[RowFormatting, ...]]):
+class QtRow(HtmlRow):
+    """A history row as a render process hands it back: everything the window reads of the
+    row's rendering. The UI process renders nothing."""
+
+    leading: tuple[str, ...]
+    """Each leading block's rich text alone, in order: what the pin measures to place the
+    window's top row among the row's header blocks."""
+    pinned: tuple[tuple[Divider, str], ...]
+    """Each header the row pins, and its rich text."""
+
+
+class ProcessRowPreparer(RowPreparer):
+    """Rows prepared in the app's render processes. The rows asked for in one turn of the
+    event loop (a layout asks many) go out together, a budget's batch to a task, so both
+    workers take some."""
+
+    def __init__(self, arrived, processes: Renderer) -> None:
+        super().__init__(arrived)
+        self.processes = processes
+        self.waiting: dict = {}
+        self.sending: asyncio.Handle | None = None
+        self.running: set[asyncio.Task] = set()
+
+    def prepare(self, key, work: QtRowPreparation) -> None:
+        self.waiting[key] = work
+        if self.sending is None:
+            self.sending = asyncio.get_running_loop().call_soon(self.send)
+
+    def send(self) -> None:
+        self.sending = None
+        waiting, self.waiting = tuple(self.waiting.items()), {}
+        for batch in batched(waiting, PresentationBudget.batch_items):
+            task = asyncio.ensure_future(self.deliver(batch))
+            self.running.add(task)
+            task.add_done_callback(self.delivered)
+
+    def delivered(self, task: asyncio.Task) -> None:
+        """A batch landed, or its render failed: the failure is raised here, into the loop's
+        error report, since nothing else awaits the batch and its rows would stay plain."""
+        self.running.discard(task)
+        if not task.cancelled():
+            task.result()
+
+    async def render(self, works: tuple[QtRowPreparation, ...]) -> tuple[QtRow, ...]:
+        """The one place a history row is sent to be rendered."""
+        return await self.processes.submit(QtHistoryRowBatchRenderTask(works))
+
+    async def deliver(self, batch) -> None:
+        rows = await self.render(tuple(work for _key, work in batch))
+        self.arrived([(key, row) for (key, _work), row in zip(batch, rows, strict=True)])
+
+    def clear(self) -> None:
+        self.waiting.clear()
+        if self.sending is not None:
+            self.sending.cancel()
+            self.sending = None
+
+    def stop(self) -> None:
+        for task in tuple(self.running):
+            task.cancel()
+
+
+@dataclass(frozen=True)
+class QtHistoryRowBatchRenderTask(RenderTask[tuple[QtRow, ...]]):
     """Rows the shared pager asks be prepared ahead of drawing them, submitted through the
     launch's `app.render_processes` as Textual's `TranscriptLinesBatchRenderTask` is.
 
@@ -636,7 +743,7 @@ class QtHistoryRowBatchRenderTask(RenderTask[tuple[RowFormatting, ...]]):
 
     rows: tuple[QtRowPreparation, ...]
 
-    def execute(self) -> tuple[RowFormatting, ...]:
+    def execute(self) -> tuple[QtRow, ...]:
         return tuple(preparation.render() for preparation in self.rows)
 
     def result_size(self, result: tuple[RowFormatting, ...]) -> int:
@@ -775,11 +882,10 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         window = self.window
         rows, font, width = window.rows, window.font(), window.viewport_width()
         key = rows.fragment_key(fragment, font, width)
-        return () if rows.is_prepared(key) else ((key, rows.row_preparation(fragment.line_blocks, font, width)),)
+        return () if rows.is_prepared(key) else ((key, rows.row_preparation(fragment, font, width)),)
 
     async def render_rows(self, waiting):
-        return await self.view.app.render_processes.submit(
-            QtHistoryRowBatchRenderTask(tuple(preparation for _key, preparation in waiting)))
+        return await self.window.rows.preparer.render(tuple(preparation for _key, preparation in waiting))
 
     def hold_row(self, waiting, row) -> None:
         key, _preparation = waiting
@@ -1029,11 +1135,16 @@ class QtStickyHeader(HeaderPin, QWidget):
         drawn = (headers, x, context)
         if drawn == self.drawn:
             return
-        self.drawn = drawn
         kept = self.laid_out if context == self.layout_context else {}
+        laid_out = {header: kept.get(header) or window.rows.header_document(header, window.font(), width)
+                    for header in headers}
+        if None in laid_out.values():
+            # A header still being prepared: the pin keeps what it draws and is asked again
+            # when the header lands (`QtHistoryWindow.rows_repainted`).
+            return
+        self.drawn = drawn
         self.layout_context = context
-        self.laid_out = {header: kept.get(header) or window.rows.header_document(header, window.font(), width)
-                         for header in headers}
+        self.laid_out = laid_out
         self.documents = tuple(self.laid_out[header] for header in headers)
         self.resize(width, sum(int(document.size().height()) for document in self.documents))
         self.move(window.viewport().mapTo(window, QPoint(x, 0)))
@@ -1136,7 +1247,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, scope,
                  parent: QWidget | None = None) -> None:
-        super().__init__(HistoryRowDelegate(renderer, pictures), parent)
+        super().__init__(HistoryRowDelegate(renderer, pictures, scope.app.render_processes), parent)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
@@ -1607,6 +1718,11 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     def restyle_rows(self) -> None:
         self.rows.restyle()
         self.rows_changed()
+
+    def rows_repainted(self) -> None:
+        """Prepared rows, or a header the pin waited on, landed at the height they had."""
+        super().rows_repainted()
+        self.repin_header()
 
     def rows_changed(self) -> None:
         """Prepared rows changed height: lay them out again; the layout keeps the reader's

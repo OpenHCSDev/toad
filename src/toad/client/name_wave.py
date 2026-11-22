@@ -42,6 +42,23 @@ class NameWave(BandCells):
         moved, self.painted_span = span != self.painted_span, span
         return moved
 
+    def wave_span(self) -> tuple[int, int] | None:
+        """The band's cells over this line now, or none while it does not wave."""
+        raise NotImplementedError
+
+    def repaint_wave(self) -> None:
+        """Paint the line this name occupies."""
+        raise NotImplementedError
+
+    def wave_frame_drawn(self) -> None:
+        """One frame of the wave reached this line: it is painted when the band covers
+        other cells than it last drew, and not otherwise. Every line that waves answers its
+        clock here; a line that painted on each frame (Qt's tab title did, and the whole tab
+        bar with it, 20 times a second for as long as a thread worked) redrew pixels that
+        had not changed."""
+        if self.wave_moved(self.wave_span()):
+            self.repaint_wave()
+
     def wave_running(self) -> bool:
         raise NotImplementedError
 
