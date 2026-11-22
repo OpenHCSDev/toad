@@ -112,13 +112,18 @@ class MessagePromptComposer(PromptComposer):
     def show_files_offered(self) -> None:
         """Offer Attach only while `takes_files`."""
 
+    def files_refused(self) -> bool:
+        """Whether this bus takes no files, having said so: the one refusal, for the attach
+        key before it opens a picker and for every file that arrives."""
+        if not self.takes_files:
+            self.show_failure(ComposeAccess.files_refused_reason)
+        return not self.takes_files
+
     def attach_file(self) -> None:
         """The attach action: the picker this composer's settings name opens, on a bus that
         takes files. A key pressed before the bus answered meets the reason instead."""
-        if not self.takes_files:
-            self.show_failure(ComposeAccess.files_refused_reason)
-            return
-        self.settings.ui.input.file_picker.open(self)
+        if not self.files_refused():
+            self.settings.ui.input.file_picker.open(self)
 
     @abstractmethod
     def pick_in_window(self) -> None:
@@ -154,7 +159,10 @@ class MessagePromptComposer(PromptComposer):
         self.file_picked(path.name, content)
 
     def file_picked(self, name: str, content: bytes, mime_type: str = "") -> None:
-        """A picker returned a file: attach it, or say why it cannot go with this message."""
+        """A file reached this message, from a picker or a paste: attach it, or say why it
+        cannot go. A bus that takes no files says so here, whichever way the file came."""
+        if self.files_refused():
+            return
         try:
             upload = FileUpload.of(
                 name, mime_type or mimetypes.guess_type(name)[0] or "application/octet-stream", content)
@@ -169,9 +177,6 @@ class MessagePromptComposer(PromptComposer):
         """A pasted image rides the message as a file and leaves nothing in the text. A
         message's readers are on other machines, where a path on this one names nothing:
         a screenshot pasted into #claude reached every teammate as one line of path."""
-        if not self.takes_files:
-            self.show_failure(ComposeAccess.files_refused_reason)
-            return ""
         self.file_picked(f"clipboard-{hashlib.sha256(data).hexdigest()[:12]}.png", data, "image/png")
         return ""
 
