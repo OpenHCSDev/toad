@@ -74,6 +74,10 @@ class FingerScrolling(QObject):
             self.gesture.grab(widget.viewport())
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if event.type() == QEvent.Type.Polish:
-            self.held(watched)
+        # Every event of the application passes here and only a scroll area's polish is
+        # ever acted on. What is watched is asked first: that is answered in C, where reading
+        # an event's type builds a Python enum member, and this ran three Python calls for
+        # each event of every widget (48 a frame in a window where nothing was polished).
+        if isinstance(watched, QAbstractScrollArea) and event.type() == QEvent.Type.Polish:
+            self.gesture.grab(watched.viewport())
         return False
