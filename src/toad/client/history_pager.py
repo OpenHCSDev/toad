@@ -10,7 +10,6 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections import deque
 from collections.abc import Awaitable, Callable, Iterable
-from itertools import islice
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, fields, replace
 from functools import partial
@@ -435,23 +434,14 @@ class HistoryPager(ResumesSource):
         before history is mounted: a row first drawn plain and rewrapped when its styled rows
         landed moves every row under it.
 
-        One loop for every frontend. The shown fragments still waiting at the destination's
-        measure are rendered a budget's batch at a time in the worker processes, and the work
-        stops between batches once it is no longer current (the reader moved on, the page was
-        replaced), so a superseded page costs at most the batch in flight."""
+        The shown fragments still waiting at the destination's measure go through the
+        destination's one loop (`HoldsRows.render_and_hold`), a budget's batch at a time."""
         if not target.measurable:
             return
-        waiting = (unit for fragment in fragments if fragment.shown_in(selected)
-                   for unit in target.unprepared(fragment))
-        while current():
-            batch = tuple(islice(waiting, self.budget.batch_items))
-            if not batch:
-                return
-            rows = await target.render_rows(batch)
-            if not current():
-                return
-            for unit, row in zip(batch, rows, strict=True):
-                target.hold_row(unit, row)
+        await target.render_and_hold(
+            (unit for fragment in fragments if fragment.shown_in(selected)
+             for unit in target.unprepared(fragment)),
+            self.budget.batch_items, current)
 
     def page_holding(self, key: FragmentKey) -> ReaderPage:
         """The loaded page holding this source occurrence; absence is an invalid request."""

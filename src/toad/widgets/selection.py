@@ -74,8 +74,7 @@ class ViewLabel(NameWave, Animated[Band], Static):
             self.effect_phase(fade).in_motion for fade in self.text_fades
         )
         if wave_only:
-            if self.wave_moved(self.wave_span()):
-                self.repaint_wave()
+            self.wave_frame_drawn()
             return
         super().redraw()
 

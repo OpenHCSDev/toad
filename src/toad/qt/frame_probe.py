@@ -25,6 +25,13 @@ naming what it was, so a stall in the summary has its cause beside it:
 A delivery that contains a slow callback, or a slow nested delivery, is written after it, so
 the innermost named work comes first.
 
+With each summary it writes two `hot` lines from `StackSampler`, a thread that reads the GUI
+thread's Python stack every few milliseconds: the functions it was most often in (`leaf`),
+and the innermost Toad function on the stack (`toad`), each as a share of the samples. A
+sample whose stack ends where Qt's event loop was entered is Qt's own time (waiting, or
+painting and laying out in C++), so the line says whether a busy loop is Python or Qt, and
+names the Python. It is what a profiler would say, on a phone that has none.
+
 The probe only observes; nothing reads its numbers back into the app.
 """
 
@@ -33,6 +40,7 @@ from __future__ import annotations
 import asyncio
 import gc
 import os
+import threading
 import time
 from pathlib import Path
 
@@ -40,6 +48,7 @@ from PySide6.QtCore import QEvent, QObject, Qt, QTimer
 from PySide6.QtWidgets import QApplication, QWidget
 
 from toad import paths
+from toad.stack_sampler import StackSampler
 
 
 class FrameProbe(QObject):
@@ -65,6 +74,7 @@ class FrameProbe(QObject):
         application.installEventFilter(self)
         ProbedApplication.probe = self
         TimedHandles.install(self)
+        self.sampler = StackSampler(threading.get_ident())
         self.timer.start()
         self.sink.write(f"{time.time():.3f} probe started interval_ms={self.INTERVAL_MS} "
                         f"slow_ms={self.SLOW_MS:.0f} events_timed={isinstance(application, ProbedApplication)}\n")
@@ -102,6 +112,8 @@ class FrameProbe(QObject):
                   if self.gc_ms else "gc=0")
         self.sink.write(f"{time.time():.3f} span={span:.1f}s ticks={self.ticks} "
                         f"worst_stall_ms={self.worst_ms:.1f} loop_busy={busy:.0f}% {stalls} {key_line} {pauses}\n")
+        for line in self.sampler.taken():
+            self.sink.write(f"{time.time():.3f} hot {line}\n")
         self.window_start = now
         self.reset()
 

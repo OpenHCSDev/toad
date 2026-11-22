@@ -85,7 +85,11 @@ class QtClockedWave(NameWave):
         if self.animation is not None:
             self.animation.stop()
             self.animation = None
-        self.repaint()
+        self.wave_frame_drawn()  # no band now: the idle line, if a band was drawn
+
+    def repaint(self) -> None:
+        """The clock's frame (`AnimationTarget.repaint`)."""
+        self.wave_frame_drawn()
 
     def wave_frame(self) -> Band:
         """The shared name-wave band at the app clock's current frame."""
@@ -107,8 +111,11 @@ class QtTabWave(QtClockedWave):
     def animation_visible(self) -> bool:
         return self.bar.isVisible()
 
-    def repaint(self) -> None:
-        self.bar.update()
+    def wave_span(self) -> tuple[int, int] | None:
+        return self.bar.wave_span(self) if self.wave_running() else None
+
+    def repaint_wave(self) -> None:
+        self.bar.repaint_tab(self.mode)
 
 
 class TabGrowth(TransitionTarget):
@@ -229,20 +236,43 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         for tab in tabs:
             self.waves.setdefault(tab.mode_name, QtTabWave(self, tab.mode_name)).follow_activity(tab.busy)
 
+    def tab_of(self, mode: str) -> int:
+        """The index of the tab showing ``mode``, or -1 when the bar shows none."""
+        return next((index for index in range(self.count()) if self.tabData(index) == mode), -1)
+
+    def repaint_tab(self, mode: str) -> None:
+        """Paint the one tab showing ``mode``; the others' pixels stand."""
+        index = self.tab_of(mode)
+        if index >= 0:
+            self.update(self.tabRect(index))
+
+    def shown_title(self, index: int) -> tuple[QStyleOptionTab, QRect, str]:
+        """A tab's style option, the rectangle its title draws in, and the title as it fits
+        there: what the paint draws, and what a wave's band is measured over."""
+        option = QStyleOptionTab()
+        self.initStyleOption(option, index)
+        rect = self.style().subElementRect(QStyle.SubElement.SE_TabBarTabText, option, self)
+        return option, rect, self.fontMetrics().elidedText(option.text, Qt.TextElideMode.ElideRight, rect.width())
+
+    def wave_span(self, wave: QtTabWave) -> tuple[int, int] | None:
+        """The band's cells over the title of the tab ``wave`` runs in, padding included."""
+        index = self.tab_of(wave.mode)
+        if index < 0:
+            return None
+        _option, _rect, shown = self.shown_title(index)
+        return self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
+
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QStylePainter(self)
         for index in range(self.count()):
-            option = QStyleOptionTab()
-            self.initStyleOption(option, index)
+            option, rect, shown = self.shown_title(index)
             wave = self.waves.get(self.tabData(index))
             if wave is None or not wave.wave_running():
                 painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
                 continue
-            text, option.text = option.text, ""
+            option.text = ""
             painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
-            rect = self.style().subElementRect(QStyle.SubElement.SE_TabBarTabText, option, self)
-            shown = self.fontMetrics().elidedText(text, Qt.TextElideMode.ElideRight, rect.width())
-            start, end = self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
+            start, end = self.wave_span(wave)
             ink = QTextLayout.FormatRange()
             ink.start, ink.length = 0, len(shown)
             plain = QTextCharFormat()

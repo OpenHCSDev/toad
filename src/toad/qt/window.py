@@ -365,9 +365,9 @@ class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
         tree = self.treeWidget()
         return tree is not None and tree.isVisible()
 
-    def repaint(self) -> None:
+    def repaint_wave(self) -> None:
         tree = self.treeWidget()
-        if tree is not None and self.wave_moved(self.wave_span()):
+        if tree is not None:
             tree.viewport().update(tree.visualItemRect(self))
 
     def wave_span(self) -> tuple[int, int] | None:

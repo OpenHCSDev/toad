@@ -861,9 +861,12 @@ class HeaderRuleScenario(Scenario):
                "conversation scrollbar Transient: report the viewport width and the bar over the "
                "text while scrolling and gone once still; then Hidden")
 
-    def rule_extent(self, header, width: int) -> tuple[int, int]:
-        """The leftmost and rightmost drawn pixel of the header laid out at ``width``."""
+    async def rule_extent(self, header, width: int) -> tuple[int, int]:
+        """The leftmost and rightmost drawn pixel of the header laid out at ``width``, once a
+        render process has prepared it at that width."""
         window = self.page.messages
+        await until(lambda: window.rows.header_document(header, window.font(), width) is not None,
+                    "the header prepared")
         document = window.rows.header_document(header, window.font(), width)
         image = QImage(width, max(1, int(document.size().height())), QImage.Format.Format_ARGB32)
         image.fill(Qt.GlobalColor.transparent)
@@ -892,7 +895,8 @@ class HeaderRuleScenario(Scenario):
         seen: dict[int, tuple] = {}
         for header in headers:
             title = "".join(span.text for span in header.spans)
-            seen.setdefault(len(title), (title, *self.rule_extent(header, width)))
+            if len(title) not in seen:
+                seen[len(title)] = (title, *await self.rule_extent(header, width))
         for length, (title, left, right) in sorted(seen.items())[:8]:
             print(f"rule: width={width} title_len={length} left={left} right={right} title={title[:40]!r}",
                   flush=True)
@@ -2627,16 +2631,13 @@ class ArrivalScenario(Scenario):
         HistoryRows.show = recorded
         stamp = time.strftime("%H:%M:%S")
         # A row drawn plain before its styled formatting landed: counted per arriving message.
-        from pyqt_reactive.widgets.virtual_rows import PlainRow
         delegate = view.messages.rows
         plain: dict[str, int] = {}
-        original_formatting = getattr(type(delegate), "styled_formatting", None) or (
-            lambda rows, key, fragment, font, width: rows.keyed_formatting(
-                key, fragment.clipboard_text, rows.rendering(fragment, font, width)))
+        original_formatting = type(delegate).styled_formatting
 
         def watched(rows, key, fragment, font, width):
             formatting = original_formatting(rows, key, fragment, font, width)
-            if isinstance(formatting, PlainRow) and stamp in fragment.clipboard_text:
+            if not formatting.final and stamp in fragment.clipboard_text:
                 label = " ".join(fragment.clipboard_text.split())[:48]
                 plain[label] = plain.get(label, 0) + 1
             return formatting
