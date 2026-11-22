@@ -14,6 +14,7 @@ A history draws the files under each message through toad.client.message_file_li
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import mimetypes
 from abc import abstractmethod
 from pathlib import Path
@@ -163,6 +164,16 @@ class MessagePromptComposer(PromptComposer):
             return
         self.attached_files = (*self.attached_files, upload)
         self.show_attached()
+
+    async def png_pasted(self, data: bytes) -> str:
+        """A pasted image rides the message as a file and leaves nothing in the text. A
+        message's readers are on other machines, where a path on this one names nothing:
+        a screenshot pasted into #claude reached every teammate as one line of path."""
+        if not self.takes_files:
+            self.show_failure(ComposeAccess.files_refused_reason)
+            return ""
+        self.file_picked(f"clipboard-{hashlib.sha256(data).hexdigest()[:12]}.png", data, "image/png")
+        return ""
 
     def detach_file(self, position: int) -> None:
         files = self.attached_files

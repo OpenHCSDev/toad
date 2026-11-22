@@ -580,10 +580,9 @@ See on-screen instructions for details.
         if self.shell_mode:
             self.notify('Leave shell mode to attach an image to a message.', title='Image attachment', severity='warning')
             return
-        path = await asyncio.to_thread(save_clipboard_png, data)
-        reference = f'@"{path}"' if any((char.isspace() for char in str(path))) else f'@{path}'
-        self._paste_clipboard_text(' ' + reference + ' ')
-        self.notify(f'PNG attached ({len(data):,} bytes). Enter sends it with your prompt.', title='Image attachment')
+        if (reference := await self.prompt.png_pasted(data)):
+            self._paste_clipboard_text(reference)
+            self.notify(f'PNG attached ({len(data):,} bytes). Enter sends it with your prompt.', title='Image attachment')
 
     async def paste_clipboard_text(self) -> None:
         text = (await self.app.clipboard_transport.paste(self.app)).text
@@ -795,6 +794,13 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     @property
     def active_popup(self) -> PromptPopup | None:
         return next((popup for popup in self.query(PromptPopup) if popup.is_open), None)
+
+    async def png_pasted(self, data: bytes) -> str:
+        """What a pasted image leaves in the text. A prompt goes to an agent that reads files
+        on this machine, so the image is kept here and the text names its path."""
+        path = await asyncio.to_thread(save_clipboard_png, data)
+        reference = f'@"{path}"' if any((char.isspace() for char in str(path))) else f'@{path}'
+        return ' ' + reference + ' '
 
     def restore_draft(self, text: str) -> None:
         """Recover local input as an edit of the retained document and undo history."""
