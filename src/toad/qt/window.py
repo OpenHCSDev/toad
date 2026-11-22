@@ -1281,12 +1281,14 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
         source = self.app.source()
         # The label reads Core's thread references: off the GUI loop, as compose access is.
         # Read on the loop it held a tab's opening for 104 ms on the desktop (frame probe).
-        references = await asyncio.to_thread(source.references)
+        preparation = self.app.preparation
+        references = await preparation.run_thread(source.references)
         label = self.conversation.label(references)
         self.on_composer("label", lambda composer: composer.labelled(label))
-        compose = await asyncio.to_thread(self.conversation.compose_access, source.core)
+        compose = await preparation.run_thread(self.conversation.compose_access, source.core)
         await self.refresh_composer(compose)
-        self.thread_status = await self.conversation.status_text(source, read_only=compose.read_only)
+        self.thread_status = await preparation.run_thread(
+            partial(self.conversation.status_text, source, read_only=compose.read_only))
         await self.conversation.update_mentions(self, source)
 
     # The kind's composer and activity (ConversationActivity)

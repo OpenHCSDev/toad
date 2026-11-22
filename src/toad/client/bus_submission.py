@@ -344,7 +344,7 @@ class BusSubmissionExecution(SubmissionExecution):
 
     async def commit(self, observed: Observing, draft: SubmittedText) -> DeliveryOutcome:
         view = self.owner.view
-        task = asyncio.create_task(asyncio.to_thread(
+        task = asyncio.create_task(view.app.preparation.run_thread(
             observed.send_user_message, self.destination.conversation.send_target(), draft.source_text,
             draft.files))
         try:

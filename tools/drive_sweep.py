@@ -34,18 +34,13 @@ sys.path.insert(0, str(ROOT / "tests"))
 from shipped_run import ScratchBus  # noqa: E402
 
 NEEDS_MORE_THAN_THE_SCRATCH_BUS: dict[str, str] = {
-    "arrival": "a registered scratch sender thread that may post",
     "cli_sync": "TRANSCRIPT: a native transcript file to sync",
     "command": "a conversation where a send is refused, as the live bus has",
     "draft": "waits up to DRAFT_WAIT (240 s) for Core to publish a CLI thread's in-progress draft: a thread mid-turn; times out by design on a scratch bus",
     "goal": "a thread with a goal set by its owner",
     "idle": "runs for DURATION seconds by design; longer than any sweep limit",
     "link": "a drawn link naming a live thread (claude-cloud-pm-run11)",
-    "older_bus": "a profile with its theme available (pywal colours): a blank home warns",
-    "participants": "a profile with its theme available (pywal colours): a blank home warns",
     "peer_profile": "ADDRESS: a peer's address to open its profile",
-    "tab_strip": "unknown: times out on three sidebar threads with the enriched bus too; not looked into",
-    "tall_arrival": "sends with a bare `agent-comms send` (no --root), so it posts to the default bus, not the scratch one",
     "tool_detail": "a thread with enough saved history to load an older page, holding tool calls",
 }
 
@@ -91,9 +86,37 @@ alone moves the row delegate from 112 to 249 calls a frame), the drive refuses b
 `SystemExit` out of a qasync task leaves the loop's executor threads running at exit (SIGABRT)."""
 
 
+def write_wal_palette(home: Path) -> None:
+    """pywal's `colors.json` in a scratch home. Toad's default theme is `wal`, which a blank home
+    has no file for: the app posts a "Theme 'wal' is not available" warning no real home shows,
+    and the drives that expect no warning (older_bus, participants) fail on it."""
+    import json
+
+    greys = [f"#{level:02x}{level:02x}{level:02x}" for level in range(0x10, 0x100, 0x10)]
+    palette = {f"color{index}": greys[index % len(greys)] for index in range(16)}
+    cache = home / ".cache" / "wal"
+    cache.mkdir(parents=True, exist_ok=True)
+    (cache / "colors.json").write_text(json.dumps({
+        "wallpaper": "", "alpha": "100",
+        "special": {"background": "#101010", "foreground": "#e0e0e0", "cursor": "#e0e0e0"},
+        "colors": palette}))
+
+
+ON_A_HOME_WITHOUT_PYWAL = frozenset({"shipped"})
+"""Drives that assert the start theme is one Qt does not offer: with a pywal file, `wal` is offered."""
+
+
 def scenario_names() -> list[str]:
     import qt_drive
     return sorted(member.declared_name for member in qt_drive.Scenario.members_with(qt_drive.Scenario))
+
+
+def keep_output(name: str, text: str) -> None:
+    """A drive's whole output, under DRIVE_SWEEP_OUT when that names a directory."""
+    where = os.environ.get("DRIVE_SWEEP_OUT")
+    if where:
+        Path(where).mkdir(parents=True, exist_ok=True)
+        (Path(where) / f"{name}.txt").write_text(text)
 
 
 def run_one(runtime: Path, name: str, seconds: int, template: Path | None = None) -> tuple[object, str]:
@@ -101,6 +124,8 @@ def run_one(runtime: Path, name: str, seconds: int, template: Path | None = None
         work = Path(scratch)
         bus = ScratchBus(runtime, work)
         bus.home.mkdir(parents=True)
+        if name not in ON_A_HOME_WITHOUT_PYWAL:
+            write_wal_palette(bus.home)
         if template is None or name in ON_THE_SEEDED_BUS:
             bus.seed()
         else:
@@ -114,17 +139,19 @@ def run_one(runtime: Path, name: str, seconds: int, template: Path | None = None
             "PYTHONPATH": os.pathsep.join(str(ROOT / part) for part in ("src", "tools", "tests")),
             "TARGET": "scratch-live-pipeline",
             "PEER": "scratch-peer",
+            "COMMS_ROOT": str(bus.root),
         }
-        try:
-            done = subprocess.run(
-                [str(runtime / "bin" / "python"), str(HERE / "qt_drive.py"), name, str(out), "--comms-root", str(bus.root)],
-                env=env, cwd=ROOT, capture_output=True, text=True, timeout=seconds)
-        except subprocess.TimeoutExpired:
+        # A drive past its time is stopped with SIGABRT under the fault handler, so what it was
+        # stuck in is every thread's stack in its output; `timeout` answers 124 for it.
+        done = subprocess.run(
+            ["timeout", "-s", "ABRT", str(seconds), str(runtime / "bin" / "python"), str(HERE / "qt_drive.py"),
+             name, str(out), "--comms-root", str(bus.root)],
+            env=env | {"PYTHONFAULTHANDLER": "1"}, cwd=ROOT, capture_output=True, text=True, timeout=seconds + 60)
+        if done.returncode == 124:
+            keep_output(name, done.stdout + done.stderr)
             return "TIMEOUT", ""
         text = done.stdout + done.stderr
-        if os.environ.get("DRIVE_SWEEP_OUT"):
-            Path(os.environ["DRIVE_SWEEP_OUT"]).mkdir(parents=True, exist_ok=True)
-            (Path(os.environ["DRIVE_SWEEP_OUT"]) / f"{name}.txt").write_text(text)
+        keep_output(name, text)
     lines = [line for line in text.splitlines()
              if line and not line.startswith((" ", "Traceback", "RuntimeWarning", "qt.")) and "propagateSizeHints" not in line
              and "handle = None" not in line]

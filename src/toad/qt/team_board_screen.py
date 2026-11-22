@@ -149,7 +149,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
             view = self.members.get(key)
             if view is None:
                 view = QtTeamMemberView(
-                    self.state, hud, self.coordination.open_current().core, self,
+                    self.state, hud, self.coordination.open_current().core, self.app.preparation, self,
                 )
                 self.members[key] = view
                 self.tabs.insertTab(index, view, hud.teammate.name)
@@ -179,7 +179,7 @@ class QtTeamMemberView(QWidget):
         self.hud = hud
         self._render()
 
-    def __init__(self, state: TeamBoardState, hud: TeamHud, core: CoreAccess,
+    def __init__(self, state: TeamBoardState, hud: TeamHud, core: CoreAccess, preparation,
                  parent: QWidget | None = None) -> None:
         self.groups = {}
         self.rows = {}
@@ -188,6 +188,7 @@ class QtTeamMemberView(QWidget):
         self.state = state
         self.hud = hud
         self.core = core
+        self.preparation = preparation
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.normal, UiGap.normal, UiGap.normal, UiGap.normal)
@@ -231,7 +232,7 @@ class QtTeamMemberView(QWidget):
 
     async def _run_board_command(self, command: BoardCommand) -> None:
         try:
-            result = await asyncio.to_thread(command.execute, self.core)
+            result = await self.preparation.run_thread(command.execute, self.core)
         except Exception as error:
             self.status.setText(str(error))
             return

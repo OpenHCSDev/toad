@@ -1097,14 +1097,14 @@ class TranscriptPresentation(TranscriptPages, EntryPlacement):
         paints and acknowledges its own cursor, so a stale one asks for nothing."""
         generation = self.generation
         try:
-            await asyncio.to_thread(acknowledge, through)
+            await self.binding.view.app.preparation.run_thread(acknowledge, through)
         except TranscriptChanged:
             if self.generation != generation:
                 return
             try:
                 fresh = await self.refresh_cursor()
                 if selected():
-                    await asyncio.to_thread(acknowledge, fresh)
+                    await self.binding.view.app.preparation.run_thread(acknowledge, fresh)
             except TranscriptChanged as error:
                 if selected():
                     self.require_commit()

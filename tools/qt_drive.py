@@ -212,6 +212,14 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
                     and self.page.messages.model_rows.rowCount(), label)
         await asyncio.sleep(1.5)
 
+    @staticmethod
+    def other_party(target: str) -> tuple[str, str]:
+        """(sender, recipient) of the messages a drive posts into the view it opened: in a channel,
+        a scratch thread posting to it; in a thread's view, the thread itself replying to the user,
+        the messages that view exists to show (a thread cannot message itself). SENDER overrides."""
+        sender, recipient = (("scratch-live-pipeline", target) if target.startswith("#") else (target, "user"))
+        return os.environ.get("SENDER", sender), recipient
+
     async def open_named(self, name: str) -> None:
         """Open a #channel or a thread from its sidebar row; a thread row sits under each
         channel it belongs to, and any one opens it."""
@@ -342,15 +350,28 @@ class TabStripScenario(Scenario):
         await self.listed()
         count = int(os.environ.get("COUNT", "6"))
         await self.expand("#comms")
-        await until(lambda: len(self.thread_rows()) >= 3, "three sidebar threads")
+        try:
+            await until(lambda: len(self.thread_rows()) >= 3, "three sidebar threads")
+        except TimeoutError:
+            observed = self.app.coordination_access.observation.observed().sidebar.threads.rows
+            raise TimeoutError(f"three sidebar threads: the sidebar listed {[row.key for row in self.thread_rows()]}"
+                               f" of the {sorted(observed)} Core presents") from None
         rows = self.thread_rows()[:count]
+        print(f"  tab strip: opening {[row.target.name for row in rows]}", flush=True)
         for row in rows:
             # Its own tab, found by title: the live sidebar can list a thread whose tab is
             # already open, so a running count of tabs is not what one open adds.
             app.open_row(row)
             name = row.target.name
-            await until(lambda: any(name in app.tabs.tabText(index) for index in range(app.tabs.count())),
-                        f"a tab for {name}")
+            try:
+                await until(lambda: any(name in app.tabs.tabText(index) for index in range(app.tabs.count())),
+                            f"a tab for {name}")
+            except TimeoutError:
+                titles = [app.tabs.tabText(index) for index in range(app.tabs.count())]
+                # Printed here: the exit that follows a failed drive can wait on a blocked worker.
+                print(f"  tab strip: no tab for {name} after its row opened; tabs are {titles}", flush=True)
+                raise
+            print(f"  tab strip: {name} opened, {app.tabs.count()} tabs", flush=True)
         assert app.tabs.count() >= min(count, len(rows)) - 1, f"only {app.tabs.count()} tabs opened"
         await asyncio.sleep(1.5)
         strip, tabs = app.tab_strip, app.tabs
@@ -995,17 +1016,18 @@ class TallArrivalScenario(StickyScenario):
     async def run(self) -> None:
         self.app.resize(int(os.environ.get("WIDTH", 412)), 915)
         target = os.environ.get("TARGET", "#scratch")
-        sender = os.environ.get("SENDER", "scratch-live-pipeline")
+        sender, recipient = self.other_party(target)
         await self.open_named(target)
         window = self.page.messages
         await until(lambda: window.follows_tail, "following the end")
         stamp = time.strftime("%H:%M:%S")
         body = "\n".join(f"tall arrival {stamp} line {line}" for line in range(120))
         process = await asyncio.create_subprocess_exec(
-            "agent-comms", "send", "--from", sender, "--to", target, "--type", "info", "--body", body,
-            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
-        _, error = await process.communicate()
-        assert process.returncode == 0, error.decode(errors="replace")[-300:]
+            "agent-comms", *cli_root(), "send", "--from", sender, "--to", recipient, "--type", "info", "--body", body,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        said, error = await process.communicate()
+        # The CLI reports a refusal as one JSON line on stdout: a send without its "id" is lost.
+        assert process.returncode == 0 and b'"id"' in said, (said + error).decode(errors="replace")[-300:]
 
         def arrived():
             return next((fragment for fragment in window.model_rows.fragments
@@ -2676,11 +2698,7 @@ class ArrivalScenario(Scenario):
         timer.setInterval(16)
         timer.timeout.connect(sample)
         timer.start()
-        # The other party: in a channel, a scratch thread posting to it; in a thread's view, the
-        # thread itself replying to the user, the messages that view exists to show.
-        sender, recipient = (("scratch-live-pipeline", target) if target.startswith("#")
-                             else (target, "user"))
-        sender = os.environ.get("SENDER", sender)
+        sender, recipient = self.other_party(target)
         refused: list[str] = []
         posted: dict[int, float] = {}  # when each post's send returned, s after start
         burst = int(os.environ.get("BURST", "3"))  # how many the sender posts at once
@@ -2690,7 +2708,7 @@ class ArrivalScenario(Scenario):
             # its process start would otherwise spend the app's quota.
             outside = ("systemd-run", "--user", "--scope", "-q") if os.environ.get("SENDER_SCOPE") else ()
             process = await asyncio.create_subprocess_exec(
-                *outside, "agent-comms", "send", "--from", sender, "--to", recipient, "--type", "info",
+                *outside, "agent-comms", *cli_root(), "send", "--from", sender, "--to", recipient, "--type", "info",
                 "--body", f"arrival reply {index} {stamp}",
                 stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
             _, error = await process.communicate()
@@ -4721,6 +4739,14 @@ class ThreadSendScenario(Scenario):
             raise AssertionError(
                 f"the send to a live thread did not go through: decision={type(decision).__name__} "
                 f"said={said} drawn={drawn()}")
+
+
+def cli_root() -> tuple[str, ...]:
+    """`--root` for an `agent-comms` call a drive makes as another party. A drive over `--comms-root`
+    posts to that bus (the sweep names it in COMMS_ROOT); with none named the CLI's installed route
+    is the bus the drive was pointed at, as when it runs against the live one."""
+    root = os.environ.get("COMMS_ROOT")
+    return ("--root", root) if root else ()
 
 
 def main(arguments: list[str]) -> None:

@@ -742,7 +742,7 @@ class WirePageBuffer(SavedHistory):
         return self.loader.conversation.seen_page(seen)
 
     async def mark_page(self, page: MessagePage) -> None:
-        await asyncio.to_thread(
+        await self.runtime.run_thread(
             self.loader.core.call, CommsMarkPageReadTool(page=page, worktree=self.loader.project))
 
     async def compose_access(self) -> ComposeAccess:
@@ -752,7 +752,8 @@ class WirePageBuffer(SavedHistory):
         await self.loader.conversation.update_mentions(view, self.loader)
 
     async def status_text(self, *, read_only):
-        return await self.loader.conversation.status_text(self.loader, read_only=read_only)
+        return await self.runtime.run_thread(
+            partial(self.loader.conversation.status_text, self.loader, read_only=read_only))
 
     def accepts(self, loader: WireSource, through) -> bool:
         # Earlier wire cuts stay valid while the bus grows.
