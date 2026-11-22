@@ -43,7 +43,7 @@ from toad.client.prompt_composer import ComposerStatus
 from toad.client.session_sources import SessionSources, SourcedConversation
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.view_settings import ConversationSettingsOwner
-from toad.command_catalog import CommandCatalog, CommandRead
+from toad.command_catalog import CommandRead, ReadsCommandCatalog
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn
 from toad.flash_host import FlashHost
@@ -104,6 +104,7 @@ class QtConversation(
     QtSubmissionView,
     Page,
     WorkspaceHosted,
+    ReadsCommandCatalog,
     ComposerHost,
     QtHistoryNotifications,
     FlashHost,
@@ -341,12 +342,8 @@ class QtConversation(
         catalog = await self.read_command_catalog()
         self.on_composer("commands", lambda composer: composer.set_commands(catalog.commands))
 
-    async def read_command_catalog(self) -> CommandCatalog:
-        """Textual's `Conversation.read_command_catalog`: the bound agent's advertised
-        commands with this view's local ones, applicable to its target context."""
-        return await CommandCatalog.read(
-            self.app, self.agent_binding.presentation.commands, self.command_target_context(),
-            self.local_commands)
+    def command_navigation(self):
+        return self.navigation_context
 
     # ---- TurnPresentation: the shared turn code's blocks, as history rows ----
 

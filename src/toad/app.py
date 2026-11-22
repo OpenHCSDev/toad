@@ -206,9 +206,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         """Textual closes its screens and widgets, which release their views."""
         await super()._close_all()
 
-    async def close_rendering(self) -> None:
-        await self.render_processes.aclose()
-
     async def close_background_render_tasks(self) -> None:
         """Join accepted render work even when an earlier release failed."""
         if self._background_render_tasks:

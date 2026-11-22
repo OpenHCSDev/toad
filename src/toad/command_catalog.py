@@ -1,10 +1,12 @@
 """One derived command view joins ACP advertisements and local declarations."""
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
 from functools import partial
 
 from agent_comms.errors import UnregisteredThreadError
+from agent_comms.messaging.channel_targets import CommandTarget
 from formbridge.operations import ExclusiveKind, OperationKind
 from toad.client.commands import (CommandContextChanged, CommandRefused, ConversationCommands, LocalCommand,
                                   ViewLocalCommand)
@@ -110,3 +112,51 @@ class CommandCatalog:
         except CommandRefused as refusal:
             conversation.flash_error(str(refusal))
             return True
+
+
+class ReadsCommandCatalog(ConversationCommands):
+    """A conversation that reads its command catalog: the bound agent's advertised commands
+    with the conversation's local ones, applicable to its target context.
+
+    One sequence for both frontends. The read asks Core and can take a while; the catalog is
+    this view's only if, when it ends, the view is still attached, still in the navigation it
+    was read in, and still bound to the agent it was read for. Textual's conversation made
+    that check after its read; Qt's made none and relied on cancelling the read when the
+    view closed, which says nothing of a view that stayed and changed (2026-11-22: NRA's
+    sibling-override-step finding)."""
+
+    async def read_command_catalog(self) -> CommandCatalog:
+        navigation, agent = self.command_navigation(), self.agent_binding
+        catalog = await CommandCatalog.read(
+            self.app, agent.presentation.commands, self.command_target_context(), self.local_commands)
+        if not self.is_attached or self.command_navigation() != navigation or agent is not self.agent_binding:
+            raise CommandContextChanged("Command view changed during discovery")
+        return catalog
+
+    @abstractmethod
+    def command_navigation(self) -> object:
+        """The navigation context this conversation's commands run in, read while attached."""
+
+
+class AddressesItsThread(ConversationCommands):
+    """A conversation bound to one thread: its commands address that thread. A wire view's
+    address whatever its page source reads (`WireView.command_target_context`), so it is
+    not one of these."""
+
+    async def command_target_context(self) -> TargetContext:
+        """Commands address this view's thread, read on the observed root, in its navigation's
+        project and tab; a view no longer attached has no thread to address. (Each frontend
+        built this itself; Qt's built it for a view already torn down.)"""
+        scope = self.command_target_scope()
+        navigation = scope.navigation_context
+        observed = self.app.coordination_access.observation.observed()
+        if not self.is_attached:
+            raise CommandContextChanged("Command view changed during discovery")
+        return scope.thread_identity.command_target(
+            lambda actor: TargetContext(
+                self.app, observed, CommandTarget.named(actor), actor, navigation.project_path, navigation.owner_mode))
+
+    @abstractmethod
+    def command_target_scope(self) -> object:
+        """What holds the thread identity and navigation context this view's commands address:
+        the view itself, or the ancestor that presents it."""
