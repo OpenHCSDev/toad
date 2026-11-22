@@ -15,21 +15,40 @@ from formbridge.key_declarations import KeyDeclarationType, KeyInvocation, TextE
 from textual.widget import Widget
 
 from toad.client.line_blocks import LineLink
+from toad.flash_host import FlashHost
 from toad.message_rows import MessageRow
 from toad.client.application_actions import KeyFamilyMeta
 
 
-class MenuConversation:
-    """What a block-menu command may ask of the conversation it was opened in."""
+class MenuConversation(FlashHost):
+    """What a block-menu command may ask of the conversation it was opened in. Copying is one
+    sequence in both frontends: the held block's text, where it goes, and the flash that
+    says so; a frontend answers which block is held and how its prompt takes text."""
 
     @abstractmethod
     def accepts_menu_owner(self, owner: Widget) -> bool: ...
 
-    @abstractmethod
-    def copy_block_to_clipboard(self) -> None: ...
+    def copy_block_to_clipboard(self) -> None:
+        if text := self.block_clipboard_text():
+            self.app.copy_to_clipboard(text)
+            self.flash("Copied to clipboard")
+
+    def copy_block_to_prompt(self) -> None:
+        if text := self.block_prompt_text():
+            self.append_to_prompt(text)
+            self.flash("Copied to prompt")
 
     @abstractmethod
-    def copy_block_to_prompt(self) -> None: ...
+    def block_clipboard_text(self) -> str:
+        """The text the held block copies to the clipboard; "" when no block is held."""
+
+    @abstractmethod
+    def block_prompt_text(self) -> str:
+        """The text the held block gives the prompt; "" when no block is held."""
+
+    @abstractmethod
+    def append_to_prompt(self, text: str) -> None:
+        """Put `text` in the prompt and the reader's cursor there."""
 
     @abstractmethod
     def export_block_to_svg(self) -> None: ...

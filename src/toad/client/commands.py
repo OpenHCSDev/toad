@@ -24,6 +24,7 @@ from metaclass_registry import AbstractHooksMeta
 
 from toad.client.connection import Observing
 from toad.client.host import CommsHost
+from toad.flash_host import FlashHost
 
 
 class CommandContextChanged(CancelledError):
@@ -96,8 +97,10 @@ class CommandRefused(ValueError):
     The catalog shows it under the prompt and keeps the text from being sent."""
 
 
-class ConversationCommands(metaclass=AbstractHooksMeta):
-    """What a command does to the conversation it runs in.
+class ConversationCommands(FlashHost, metaclass=AbstractHooksMeta):
+    """What a command does to the conversation it runs in, a `FlashHost`: a command's short
+    notice under the prompt is the conversation's flash (this declared the three flash
+    hooks again, abstract, beside `FlashHost`'s).
 
     Commands call only these and the conversation's host; each frontend's conversation
     inherits the contract it implements and owns how each hook happens on screen. A
@@ -117,16 +120,6 @@ class ConversationCommands(metaclass=AbstractHooksMeta):
 
     @abstractmethod
     def update_slash_commands(self) -> None: ...
-
-    @abstractmethod
-    def flash(self, text: str) -> None:
-        """Show a short notice under the prompt."""
-
-    @abstractmethod
-    def flash_success(self, text: str) -> None: ...
-
-    @abstractmethod
-    def flash_error(self, text: str) -> None: ...
 
 
 class TranscriptConversationCommands(ConversationCommands):

@@ -127,7 +127,7 @@ class Composer(MessagePromptComposer):
     def show_failure(self, text: str) -> None:
         self.failures.append(text)
 
-    def restore_draft(self, text: str) -> None: ...
+    def append_to_draft(self, suffix: str) -> None: ...
 
 
 def test_a_composer_on_an_older_bus_offers_no_attach_and_says_why() -> None:

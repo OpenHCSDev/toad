@@ -20,7 +20,6 @@ from abc import abstractmethod
 from collections.abc import Callable, Iterable
 from typing import ClassVar
 
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.thread_presentation import (
     SessionDisconnected,
     ThreadPresentationStatus,
@@ -32,68 +31,10 @@ from agent_comms.ui_model.status import ThreadStatusModel
 from metaclass_registry import AbstractHooksMeta
 from metaclass_registry.mro_dispatch import handles
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
-from ui_theme.scheme import ErrorColour, PrimaryColour, SuccessColour, ThemeColour, WarningColour
 
 from toad.client.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.core.projection import MroProjection
 from toad.key_modes import Standard
-
-
-class FlashTone(DeclaredFamily, affix="Tone"):
-    """A flash's semantic kind and the theme colour it is tinted with; callers name it."""
-
-    colour: ClassVar[type[ThemeColour]]
-
-
-class DefaultTone(FlashTone):
-    colour = PrimaryColour
-
-
-class SuccessTone(FlashTone):
-    colour = SuccessColour
-
-
-class WarningTone(FlashTone):
-    colour = WarningColour
-
-
-class ErrorTone(FlashTone):
-    colour = ErrorColour
-
-
-class FlashNotice(metaclass=AbstractHooksMeta):
-    """The transient one-row notice under the transcript.
-
-    `flash` is the one procedure: stop the running hide, show the content in its tone,
-    and hide it again after `duration` seconds, or the `ui.flash_duration` setting."""
-
-    @property
-    def settings(self):
-        """The settings whose `ui.flash_duration` bounds a flash with no duration."""
-        return self.app.settings
-
-    def flash(self, content, *, duration: float | None = None, style: str = DefaultTone.declared_name) -> None:
-        self.stop_flash_timer()
-        self.show_flash(content, FlashTone.member_named(style))
-        if duration is None:
-            duration = self.settings.ui.flash_duration
-        self.start_flash_timer(duration or 3)
-
-    @abstractmethod
-    def show_flash(self, content, tone: type[FlashTone]) -> None:
-        """Paint the content in the tone and show the row."""
-
-    @abstractmethod
-    def hide_flash(self) -> None:
-        """Hide the row without reserving its space."""
-
-    @abstractmethod
-    def stop_flash_timer(self) -> None:
-        """Cancel the pending hide of an earlier flash."""
-
-    @abstractmethod
-    def start_flash_timer(self, seconds: float) -> None:
-        """Call `hide_flash` after `seconds`."""
 
 
 class ObservedSweep:

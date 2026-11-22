@@ -128,7 +128,7 @@ from toad.navigation_target import (
 from toad.qt.action_shortcuts import ActionKeys
 from toad.qt.activity import ChannelActivity, PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
-from toad.qt.composer import ChannelComposer, ComposerEditor, MessageComposer
+from toad.qt.composer import ChannelComposer, Composer, ComposerEditor, MessageComposer
 from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import QtWireHistory, RowPictures
@@ -1276,11 +1276,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
     async def _refresh(self):
         return self.message_history.page_source.schedule_refresh(self)
 
-    async def show_sent(self, sent: MessageReference) -> None:
-        """Follow the conversation's end and read it now; the queue entry retires once `sent` is drawn."""
-        self.messages.jump_to_latest()
-        await self._refresh()
-
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it, then the status beside it."""
         history = self.message_history
@@ -1340,10 +1335,8 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
         self.thread_activity = PeerActivity(self.app, self.app.renderer, peer, self.sync_working)
         yield self.thread_activity
 
-    async def update_channel_mentions(self, source: ReferencedCore) -> None:
-        answer = await self.app.coordination_access.current_sidebar()
-        candidates = await self.app.preparation.run_thread(self.conversation.mention_candidates, answer)
-        self.on_composer("mentions", lambda composer: composer.set_mention_candidates(candidates))
+    def show_mention_candidates(self, mentions) -> None:
+        self.on_composer("mentions", lambda composer: composer.set_mention_candidates(mentions))
 
     # Commands the composer offers after a /
 
@@ -1384,19 +1377,21 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
     def accepts_menu_owner(self, owner: QWidget) -> bool:
         return self.held_fragment is not None
 
-    def copy_block_to_clipboard(self) -> None:
-        text = self.held_fragment.body_text if self.held_fragment is not None else ""
-        if text:
-            self.app.copy_to_clipboard(text)
-            self.app.show_info("Copied to clipboard", "Block")
+    def block_clipboard_text(self) -> str:
+        return self.held_fragment.body_text if self.held_fragment is not None else ""
 
-    def copy_block_to_prompt(self) -> None:
-        text = self.held_fragment.body_text if self.held_fragment is not None else ""
-        if text and hasattr(self, "composer") and hasattr(self.composer, "editor"):
-            cursor = self.composer.editor.textCursor()
-            cursor.insertText(text)
-            self.composer.editor.setFocus()
-            self.app.show_info("Copied to prompt", "Block")
+    def block_prompt_text(self) -> str:
+        return self.block_clipboard_text()
+
+    def append_to_prompt(self, text: str) -> None:
+        """Into the composer where its cursor is; a composer not built yet takes it at its
+        mount (`on_composer`), where this asked whether the view had one by attribute name."""
+        self.on_composer("block text", partial(self.type_in_composer, text))
+
+    @staticmethod
+    def type_in_composer(text: str, composer: Composer) -> None:
+        composer.editor.textCursor().insertText(text)
+        composer.editor.setFocus()
 
     def maximize_block(self) -> None:
         """Qt has no maximize mode yet; the command is offered but logs a notice."""

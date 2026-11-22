@@ -32,12 +32,11 @@ from toad.client.line_blocks import FailureRole, MutedRole
 from toad.client.prompt_stack import (
     DeliveryDetailsPage,
     EditingModeBadge,
-    FlashNotice,
-    FlashTone,
     SessionStatusTitle,
     SettingVisible,
 )
 from toad.client.view_settings import SettingsReading
+from toad.flash_host import FlashNotice, FlashTone
 from toad.client.session_history_details import SessionHistoryDetails
 from toad.client.subscribers import CallbackSubscription
 from toad.private_native_cursor import HiddenCursorStatus

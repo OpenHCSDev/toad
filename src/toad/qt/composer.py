@@ -672,11 +672,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.offers.show_offers("", ())
         self.editor.clearFocus()
 
-    def restore_draft(self, text: str) -> None:
-        """A send that did not land rejoins the draft as Textual's prompt rejoins it."""
-        if suffix := self.restored_suffix(self.text, text):
-            self.editor.moveCursor(QTextCursor.MoveOperation.End)
-            self.editor.insertPlainText(suffix)
+    def append_to_draft(self, suffix: str) -> None:
+        self.editor.moveCursor(QTextCursor.MoveOperation.End)
+        self.editor.insertPlainText(suffix)
 
     def show_failure(self, text: str) -> None:
         self.failure.setText(text)

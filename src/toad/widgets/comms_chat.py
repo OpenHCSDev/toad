@@ -310,17 +310,7 @@ class CommsChatView(WireConversationView):
         self.thread_activity = ConversationSessionDetails(peer)
         yield self.thread_activity
 
-    async def update_channel_mentions(self, source: ReferencedCore) -> None:
-        history = self.message_history
-        shown = history.source_snapshot()
-        conversation = self.conversation
-        access = self.app.coordination_access
-        answer = await access.current_sidebar()
-        if not access.observation.observes(source.root):
-            raise ValueError("Channel mentions belong to another Core root")
-        mentions = await self.app.preparation.run_thread(conversation.mention_candidates, answer)
-        if not await history.source_is_current(shown) or self.conversation != conversation:
-            return
+    def show_mention_candidates(self, mentions) -> None:
         # Mentions are read in the chat-labels worker, which runs after the drawing work
         # and can take seconds on a busy bus (the chat's refresh worker). The composer can be
         # removed in that window, and a view with no composer has nothing to tell: the
@@ -330,11 +320,6 @@ class CommsChatView(WireConversationView):
 
     def queue_controls_changed(self) -> None:
         """A message view has no goal bar to redraw."""
-
-    async def show_sent(self, sent: MessageReference) -> None:
-        """Follow the conversation's end and read it now; the queue entry retires once `sent` is drawn."""
-        self.window.jump_to_latest()
-        await self._refresh()
 
     def draws_user_message(self, sent) -> bool:
         return self.message_history.draws(sent)
