@@ -29,13 +29,49 @@ class MemberRows[Key](metaclass=AbstractHooksMeta):
 
 
 class ChannelGroupRows(MemberRows[str]):
-    """A channel group presents its model row and repaints changed thread members."""
+    """A channel group presents its model row and repaints changed thread members.
 
-    @abstractmethod
-    def present(self, channel: ChannelRowModel) -> frozenset[str]: ...
+    `channel` is the model row the group last presented: an `UnpaintedChannel` until the
+    first, in both frontends (Qt's group held `None` there and asked whether it had one)."""
 
+    channel: ChannelRowModel
+
+    def present(self, channel: ChannelRowModel) -> frozenset[str]:
+        """Paint the header and return the members whose channel pin changed. One sequence
+        for both frontends: the row paints the channel, the sort control takes its order,
+        and the frontend does what is its own with what changed (`header_presented`)."""
+        previous, self.channel = self.channel, channel
+        self.row.present_channel(channel, counts=self.unread_counts)
+        self.sort_choice.update_order(channel.order)
+        self.header_presented(previous, channel)
+        return previous.pinned_members ^ channel.pinned_members
+
+    @property
     @abstractmethod
-    def repaint_members(self, names: frozenset[str]) -> None: ...
+    def unread_counts(self):
+        """The `sidebar.unread_counts` setting the header's badge is drawn by."""
+
+    def header_presented(self, previous: ChannelRowModel, channel: ChannelRowModel) -> None:
+        """What this frontend does of its own once the header shows `channel`: nothing,
+        unless it animates a new message or repaints a painted stretch."""
+
+    def repaint_members(self, names: frozenset[str]) -> None:
+        """Repaint this group's shown rows among the changed threads `names`, from the model
+        the sidebar shows. Membership is the channel row's fact: added and removed threads
+        change its `members` and reach `sync_members` as a channel change. One sequence for
+        both frontends (`KeyedRows.update_row` paints a row in each)."""
+        if not self.accepts_members():
+            return
+        threads = self.sidebar.model_state.shown.threads.rows
+        for name in self.rows.keys() & names & threads.keys():
+            self.update_row(name, self.rows[name])
+
+    # `accepts_members` (whether this group's rows may be painted from the model now) is
+    # each frontend's group's own: Textual's `SidebarGroup` answers it for every group and
+    # `ChannelGroup` narrows that with `super()`. It is not declared here: this class comes
+    # before `SidebarGroup` in `ChannelGroup`'s order, so an abstract declaration here was
+    # what that `super()` reached, it answered nothing, and no member row was ever painted
+    # (2026-11-22, caught by tests/textual: "the CLI's row not reached").
 
 
 class RelationshipMemberRows(MemberRows[str]):
