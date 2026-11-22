@@ -58,6 +58,7 @@ from toad.client.reader_position import (
 from toad.client.resource_release import ResourceRelease
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.transcript_filter import FilterState
+from toad.heap import HEAP
 
 
 @dataclass(frozen=True)
@@ -1219,6 +1220,7 @@ class DirectionalPreparation:
         )
         self.demand = self.demand.moved(travel, elapsed)
         self.sampled_at = now
+        HEAP.reader_moved()
 
     def relocated(self, compensation: float) -> None:
         """Translate measured travel by the applied reader compensation.
@@ -1231,6 +1233,7 @@ class DirectionalPreparation:
     def settle(self) -> None:
         self.demand = StationaryPreparation()
         self.delivery_seconds = 0.0
+        HEAP.reader_still()
 
     def destination(self, rows: int, *, pages_read: int = 0) -> None:
         self.demand = DestinationPreparation(self.budget.runway_rows(rows), pages_read)
