@@ -37,7 +37,8 @@ And one `spent` line: the span's costliest outermost Qt events, each as
 a window's widgets and shows the frame inside the `UpdateRequest` it delivers to the window, so
 that row's time less the paints' is what showing the frames cost. A `frames` line splits
 the frames by how much of the window the box around their paints covers (`FRAME_SIZES`), each
-with its mean time and its mean time without the paints.
+with its mean time and its mean time without the paints. A `display` line, once for each
+window, says what its frames are drawn into and shown on.
 
 The probe only observes; nothing reads its numbers back into the app.
 """
@@ -52,6 +53,7 @@ import time
 from pathlib import Path
 
 from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
+from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QApplication, QWidget
 
 from toad import paths
@@ -76,6 +78,7 @@ class FrameProbe(QObject):
         self.window_start = self.last
         self.reset()
         self.pending_keys: dict[int, float] = {}
+        self.displayed: set[int] = set()
         self.collecting_since = 0.0
         gc.callbacks.append(self.collected)
         application.installEventFilter(self)
@@ -148,8 +151,11 @@ class FrameProbe(QObject):
         self.frame_window = max(1, window.width() * window.height())
         self.frame_paint_ms += took_ms
 
-    def frame_shown(self, took_ms: float) -> None:
+    def frame_shown(self, window: QObject, took_ms: float) -> None:
         """A window's UpdateRequest ended: the frame it painted and showed."""
+        if id(window) not in self.displayed and isinstance(window, QWidget):
+            self.displayed.add(id(window))
+            self.sink.write(f"{time.time():.3f} {self.display_line(window)}\n")
         share = self.frame_box.width() * self.frame_box.height() / self.frame_window
         size = next(index for index, (under, _name) in enumerate(self.FRAME_SIZES) if share < under)
         frames = self.frames[size]
@@ -157,6 +163,27 @@ class FrameProbe(QObject):
         frames[1] += took_ms
         frames[2] += self.frame_paint_ms
         self.frame_box, self.frame_paint_ms = QRect(), 0.0
+
+    @staticmethod
+    def display_line(window: QWidget) -> str:
+        """What a window's frames are drawn into and shown on, written once for each window:
+        the screen's refresh rate and depth, the swap interval its surface was asked for and
+        got, the surface's colour sizes, and the backing store Qt paints into (its pixel
+        format decides whether showing a frame converts the whole picture first)."""
+        handle = window.windowHandle()
+        if handle is None:
+            return f"display window={type(window).__name__} has no native window"
+        screen, asked, got = handle.screen(), handle.requestedFormat(), handle.format()
+        store = window.backingStore()
+        painted = store.paintDevice() if store is not None else None
+        pixels = "none" if painted is None else (
+            f"{painted.format().name if isinstance(painted, QImage) else type(painted).__name__} "
+            f"depth={painted.depth()} {painted.width()}x{painted.height()}")
+        return (f"display window={type(window).__name__} {window.width()}x{window.height()} "
+                f"ratio={window.devicePixelRatioF():.3f} screen={screen.refreshRate():.0f}Hz depth={screen.depth()} "
+                f"surface={handle.surfaceType().name} swap_interval asked={asked.swapInterval()} got={got.swapInterval()} "
+                f"rgba={got.redBufferSize()}/{got.greenBufferSize()}/{got.blueBufferSize()}/{got.alphaBufferSize()} "
+                f"backing_store={pixels}")
 
     def frames_line(self) -> str:
         """Each frame size's count, mean time and the mean time left once its paints are
@@ -259,7 +286,7 @@ class ProbedApplication(QApplication):
             if not ProbedApplication.depth:
                 probe.spent(kind, receiver, took)
                 if kind is QEvent.Type.UpdateRequest:
-                    probe.frame_shown(took)
+                    probe.frame_shown(receiver, took)
             if took > probe.SLOW_MS:
                 name = receiver.objectName() if isinstance(receiver, QObject) else ""
                 probe.slow(took, f"event={kind.name} receiver={type(receiver).__name__}"

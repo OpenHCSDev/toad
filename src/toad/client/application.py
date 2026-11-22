@@ -400,7 +400,12 @@ class ClientApplication(BusPickerHost, NavigationHost):
         once a second so a bus that drops (an install restarting Core, a network blip) or
         changes opens again on the next check and every subscribed view rebinds to it; then
         this frontend's own start, and one ask of the tailnet for its bus listings. Each frontend once wrote this sequence itself, and the Qt
-        copy left out the route check, so a dropped bus never came back on the phone."""
+        copy left out the route check, so a dropped bus never came back on the phone.
+
+        First, work on this loop that fails with nobody waiting for it is shown from now on
+        (`CommsHost.hear_lost_failures`), in both frontends: the Qt start alone asked for
+        it at first, and a frontend that does not ask keeps such failures to itself."""
+        self.hear_lost_failures()
         self.coordination_access.start()
         self.begin_frontend()
         self.discover_buses()

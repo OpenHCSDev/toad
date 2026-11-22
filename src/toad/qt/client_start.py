@@ -52,7 +52,6 @@ async def open_app(connection: CoreConnection, project: Checkout, scheme: Colour
     launch = await AgentBinding.launched(agent, connection.agent_processes)
     app = QtToadApp(connection, project, PreparationRuntime(RenderProcessPool(connection.helper_start)), scheme,
                     launch, opening)
-    app.hear_lost_failures()
     # The loop outlives the window: closing it starts the shared client shutdown, which
     # runs on this loop, so Qt must not stop the loop when the last window closes.
     QApplication.instance().setQuitOnLastWindowClosed(False)
