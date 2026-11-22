@@ -570,15 +570,6 @@ class QtWelcomeOrigin(HomeSessionOrigin, HomeNavigation):
     def coordination_root(self):
         return self.app.coordination_access.observation.observed().root
 
-    @property
-    def thread_identity(self):
-        from toad.thread_identity import ThreadIdentity
-        observed = self.app.coordination_access.observation.observed()
-        return ThreadIdentity(
-            observed.user_identity(self.project_path).incarnation,
-            str(observed.root),
-        )
-
 
 class Welcome(Page, NoConversationView, QWidget):
     """The home page: what the pages show while no tab is (the welcome mode, the origin new

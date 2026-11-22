@@ -108,6 +108,10 @@ class NoNavigationOwner(NavigationOwner):
         """A target asked of no navigating view is refused with a notice, not a traceback."""
         self.app.show_info("Nothing opens from this view", "Navigation")
 
+    async def open_direct_messages(self) -> None:
+        """No view here has a direct conversation to return to, nor ever opened one."""
+        self.app.show_info("Direct messages are unavailable from this view", "Direct messages")
+
 
 class HomeNavigation(NavigationOwner):
     """Home (the welcome, while no tab is open) navigates as the reader at home: the
@@ -118,6 +122,14 @@ class HomeNavigation(NavigationOwner):
     def navigation_context(self) -> NavigationContext:
         from toad.constants import WELCOME
         return NavigationContext(self.app, WELCOME, self.project_path, self.thread_identity.thread_name())
+
+    async def open_sidebar_target(self, target: NavigationDestination) -> None:
+        """Home reads who the reader is, off the loop, before it opens anything
+        (`HomeSessionOrigin.prepare_history_origin`, which every class of this family also
+        inherits: Textual's `WelcomeScreen` wrote this and Qt's origin did not, and read the
+        identity on the GUI thread instead)."""
+        await self.prepare_history_origin()
+        await super().open_sidebar_target(target)
 
 
 class ThreadViewNavigation:
