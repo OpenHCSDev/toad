@@ -56,13 +56,9 @@ class ViewLabel(NameWave, Animated[Band], Static):
     def stop_wave(self) -> None:
         self.stop_effect(self.name_wave)
 
-    def wave_span(self) -> tuple[int, int] | None:
-        """The wave's cells in this terminal row, or none while idle."""
-        return (
-            self.band_cells(self.effect_frame(self.name_wave), self.size.width)
-            if self.wave_running()
-            else None
-        )
+    def wave_cells(self) -> tuple[int, int] | None:
+        """The wave's cells in this terminal row."""
+        return self.band_cells(self.effect_frame(self.name_wave), self.size.width)
 
     def repaint_wave(self) -> None:
         """Paint the rows this view's name occupies."""
