@@ -54,7 +54,7 @@ import time
 from pathlib import Path
 
 from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
-from PySide6.QtGui import QImage
+from PySide6.QtGui import QFontMetricsF, QImage
 from PySide6.QtWidgets import QApplication, QWidget
 
 from toad import paths
@@ -171,8 +171,9 @@ class FrameProbe(QObject):
     @staticmethod
     def display_line(window: QWidget) -> str:
         """What a window's frames are drawn into and shown on, written once for each window:
-        the screen's refresh rate and depth, the swap interval its surface was asked for and
-        got, the surface's colour sizes, and the backing store Qt paints into (its pixel
+        its pixel ratio, the screen's logical DPI and the window font's size in points and
+        its line height in Qt's pixels, the screen's refresh rate and depth, the swap
+        interval its surface was asked for and got, the surface's colour sizes, and the backing store Qt paints into (its pixel
         format decides whether showing a frame converts the whole picture first)."""
         handle = window.windowHandle()
         if handle is None:
@@ -184,7 +185,9 @@ class FrameProbe(QObject):
             f"{painted.format().name if isinstance(painted, QImage) else type(painted).__name__} "
             f"depth={painted.depth()} {painted.width()}x{painted.height()}")
         return (f"display window={type(window).__name__} {window.width()}x{window.height()} "
-                f"ratio={window.devicePixelRatioF():.3f} screen={screen.refreshRate():.0f}Hz depth={screen.depth()} "
+                f"ratio={window.devicePixelRatioF():.3f} logical_dpi={screen.logicalDotsPerInch():.1f} "
+                f"font={window.font().pointSizeF():.1f}pt/{QFontMetricsF(window.font()).height():.2f}px "
+                f"screen={screen.refreshRate():.0f}Hz depth={screen.depth()} "
                 f"surface={handle.surfaceType().name} swap_interval asked={asked.swapInterval()} got={got.swapInterval()} "
                 f"rgba={got.redBufferSize()}/{got.greenBufferSize()}/{got.blueBufferSize()}/{got.alphaBufferSize()} "
                 f"backing_store={pixels}")

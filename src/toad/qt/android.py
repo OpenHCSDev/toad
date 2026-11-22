@@ -24,6 +24,7 @@ import time
 import traceback
 
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QGuiApplication
 
 from toad import paths
 from toad.fatal_trace import FatalTrace
@@ -118,9 +119,28 @@ def load_client():
     return serve_held
 
 
+def whole_pixel_ratio() -> None:
+    """Draw at a whole number of device pixels to each of Qt's, so a scroll moves pixels.
+
+    Qt scrolls a viewport by moving the pixels it already drew and painting the strip that
+    came into view, but only when the distance is a whole number of device pixels
+    (`QBackingStore::scroll`); otherwise it paints every scrolled row again. A Pixel 8a's
+    ratio is 2.625 (21/8), so seven scroll steps of eight repainted the whole message list:
+    measured on that ratio (2026-11-21, a finger drag back through #comms), 7720 of 8724
+    scrolled paints covered over 90% of the viewport and 992 under 20%, one in eight.
+
+    Rounded, the ratio is 3. Qt puts the remainder into the screen's logical DPI (72 becomes
+    63), so text sized in points keeps its physical size and as many characters fit a line;
+    lengths written in pixels (margins, rules) grow by a seventh. It is read when the
+    application is made, so this runs first. The frame probe's `display` line records the
+    ratio and the logical DPI the window got."""
+    QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.Round)
+
+
 def main() -> None:
     FatalTrace.enabled()  # before Qt: a native crash anywhere after this leaves every thread's stack
     _install_excepthook()
+    whole_pixel_ratio()
     # Qt's accessibility bridge is switched off by the APK's activity before Qt's layout
     # exists (tools/android/keepalive ToadActivity.onCreate sets QT_ANDROID_DISABLE_ACCESSIBILITY):
     # Qt reads it from Java while the activity is created, before this Python runs.
