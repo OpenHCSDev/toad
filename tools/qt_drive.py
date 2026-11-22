@@ -3649,6 +3649,19 @@ class PaintClock(QObject):
         return False
 
 
+class SidewaysTravel(QObject):
+    """How far a scroller moved a viewport's content sideways, past its edge included."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.moved = 0.0
+
+    def eventFilter(self, watched, event) -> bool:
+        if event.type() == QEvent.Type.Scroll:
+            self.moved = max(self.moved, abs(event.contentPos().x()), abs(event.overshootDistance().x()))
+        return False
+
+
 class FrameWorkScenario(Scenario):
     summary = ("with #comms open beside the sidebar and every listed thread's name waving, count "
                "what a frame does: under each function Qt calls (a paint, a delegate, an event "
@@ -3681,6 +3694,37 @@ class FrameWorkScenario(Scenario):
         image = tree.viewport().grab().toImage()
         return sum(1 for y in range(0, image.height(), 2) for x in range(0, image.width(), 2) if image.pixel(x, y) == accent)
 
+    async def dragged_sideways(self, window) -> None:
+        """A finger drawn across the history, under the settings a reader starts with: the
+        page stays where it is. Every wrapped message used to slide into empty space beside
+        it (2026-11-22: a header's table laid out one pixel too wide made the history
+        scrollable sideways, and a scrollable axis can be dragged past its edge)."""
+        viewport = window.viewport()
+        heard = SidewaysTravel()
+        viewport.installEventFilter(heard)
+        try:
+            y = viewport.height() // 2
+            for start, end in ((0.85, 0.15), (0.15, 0.85)):
+                began, ended = QPoint(int(viewport.width() * start), y), QPoint(int(viewport.width() * end), y + 24)
+                FingerScenario.press(viewport, QEvent.Type.MouseButtonPress, began, True)
+                await asyncio.sleep(0.016)
+                for step in range(1, 13):
+                    at = began + (ended - began) * step / 12
+                    FingerScenario.press(viewport, QEvent.Type.MouseMove, QPoint(int(at.x()), int(at.y())), True)
+                    await asyncio.sleep(0.016)
+                FingerScenario.press(viewport, QEvent.Type.MouseButtonRelease, ended, False)
+                await asyncio.sleep(0.6)
+        finally:
+            viewport.removeEventFilter(heard)
+        rows, sideways = window.model_rows.rowCount(), window.horizontalScrollBar().maximum()
+        print(f"frame work: a finger drawn across {rows} rows of history moved the page {heard.moved:.0f} px sideways "
+              f"(sideways range {sideways} px)")
+        if not rows:
+            raise SystemExit("frame work: the history has no rows to draw a finger across")
+        if heard.moved or sideways:
+            raise SystemExit(f"frame work: the history moves sideways under a finger while code wraps: {heard.moved:.0f} px, "
+                             f"range {sideways} px (a row hinted wider than the window: HistoryRowDelegate.hinted)")
+
     async def run(self) -> None:
         app = self.app
         app.resize(412, 915)
@@ -3710,6 +3754,7 @@ class FrameWorkScenario(Scenario):
         app.grab().save(str(self.out / "frame-work.png"))  # the names mid-wave, to look at
         for row in waving:
             row.follow_activity(False)
+        await self.dragged_sideways(self.page.messages)
         measured = {name: round(facts["entries_per_frame"] * facts["python_per_entry"], 1) for name, facts in owners.items()}
         (self.out / "frame-work.json").write_text(json.dumps(owners, indent=1) + "\n")
         print(f"frame work: {frames} frames, {len(waving)} names waving; Python functions entered in a frame, by owner:")

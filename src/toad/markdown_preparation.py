@@ -12,6 +12,7 @@ from rich.segment import Segment
 from rich.syntax import Syntax
 from toad.client.line_blocks import GreenTextRole
 from toad.markdown_links import MessageMarkdownParser, parse_markdown_syntax
+from toad.patch import PREFORMATTED
 from textual.events import Enter
 from textual import on
 from textual.events import Leave
@@ -24,7 +25,7 @@ class StyledCodeBlock(CodeBlock):
         syntax = Syntax(str(self.text).rstrip().expandtabs(4), self.lexer_name, theme=self.theme)
         self.text = syntax.highlight(syntax.code)
         self.text.rstrip()
-        self.text.overflow = "fold"
+        self.text.overflow = PREFORMATTED.rich_overflow
 
     def __rich_console__(self, console, options):
         yield Padding(self.text, 1, style=self.text.style)
