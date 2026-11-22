@@ -51,18 +51,31 @@ class ChannelActivity(ChannelActivityTitle, QLabel):
         super().__init__()
         self.renderer = renderer
         self.shown = Shown()
+        self.drawn: tuple = ()
+        """The blocks the label shows."""
         self.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
         self.setTextFormat(Qt.TextFormat.RichText)
         self.activity_conversation = conversation
         self.activity_model: SidebarModel = app.coordination_access.observation.observed().sidebar
         self.activity_model.channels.subscribe(self.rows_changed)
         self.activity_model.threads.subscribe(self.rows_changed)
+        renderer.themed(self, self.draw_again)
+
+    def draw_again(self) -> None:
+        """The scheme's colours are in the label's rich text: a scheme draws the blocks again."""
+        self.drawn = ()
         self.rows_changed(())
 
     def rows_changed(self, changes: object) -> None:
+        """Draw the title's blocks when they are other blocks than the label shows: the
+        sidebar's rows change many times a minute with the same members active, and each
+        change rendered the same line again and laid the label out again."""
         heading = self.shown.summary(self.activity_title, MutedRole, NO_LINK)
         members = (Shown().summary(member.name, MutedRole, NO_LINK) for member in self.members)
-        self.setText(self.renderer.html((heading, *(members if self.shown.details_open else ()))))
+        blocks = (heading, *(members if self.shown.details_open else ()))
+        if blocks != self.drawn:
+            self.drawn = blocks
+            self.setText(self.renderer.html(blocks))
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         self.shown = self.shown.toggled()
