@@ -4573,11 +4573,11 @@ def main(arguments: list[str]) -> None:
     if os.environ.get("FRAME_TIME_WRITES"):
         time_settings_writes()
     if os.environ.get("QT_DRIVE_PHONE_RENDERER"):
-        # The phone renders in a thread of this process (`InThreadRenderer`); a desktop
-        # drive uses a process pool. Measure what the phone runs.
+        # The phone prepares rows in children forked from its own process (`ForkedRenderer`);
+        # a desktop drive uses a process pool. Measure what the phone runs.
         from toad.qt import client_start
-        from toad.render_in_thread import InThreadRenderer
-        client_start._renderer_for_platform = lambda connection: InThreadRenderer()
+        from toad.render_fork import ForkedRenderer
+        client_start._renderer_for_platform = lambda connection: ForkedRenderer()
     application = FrameProbe.application(arguments[:1])
     install_glyph_fonts(application)  # the entry's splash registers them; this drive has none
     FingerScrolling.install(application, scenario.finger_gesture())
