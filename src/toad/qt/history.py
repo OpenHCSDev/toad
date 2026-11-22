@@ -398,19 +398,18 @@ class HistoryRowDelegate(RowDocumentDelegate):
         width = self.view.viewport_width() or option.rect.width()
         return self.row_document(index, option.font, width)
 
-    def sizeHint(self, option, index) -> QSize:  # type: ignore[override]
-        opt = QStyleOptionViewItem(option)
-        self.initStyleOption(opt, index)
-        width = self.view.viewport_width() or self.available_width(opt)
-        opt.rect.setWidth(width)
-        # pyqt-reactive owns the height at the layout width and, apart from it, how wide the
-        # row's content came out when it was laid out (`row_extent`): `pre` blocks (diffs, code,
-        # tool output) do not wrap, which is what gives the history one horizontal scrollbar
-        # instead of clipping each preview. Asking lays nothing out. Building each row's
-        # document here to ask it laid out every row a layout touched, away from the reader
-        # too, and queued the ones not prepared yet for a render inside this process.
-        height = super().sizeHint(opt, index).height()
-        return QSize(self.row_extent(self.preparation_key(index, opt.font, width), width), height)
+    def available_width(self, option: QStyleOptionViewItem) -> int:
+        """Rows are laid out at the viewport's width: a wide row's own rect is its extent,
+        and wrapped prose laid out at that would stop wrapping."""
+        return self.view.viewport_width() or super().available_width(option)
+
+    def hinted(self, key, size: QSize) -> QSize:
+        """A row takes its height at the layout width and, across, how wide its content came
+        out when it was laid out (`row_extent`): `pre` blocks (diffs, code, tool output) do
+        not wrap, which is what gives the history one horizontal scrollbar instead of
+        clipping each preview. pyqt-reactive answers this from the row's kept key, so a
+        layout over every loaded row builds no row's key."""
+        return QSize(self.row_extent(key, size.width()), size.height())
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared
