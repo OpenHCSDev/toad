@@ -74,5 +74,6 @@ class StackSampler(threading.Thread):
             return ()
 
         def shares(counts: Counter[str]) -> str:
-            return " ".join(f"{name}:{100 * count // samples}" for name, count in counts.most_common(self.NAMED))
+            # To a tenth: on a phone the Python that matters is many functions under 1% each.
+            return " ".join(f"{name}:{100 * count / samples:.1f}" for name, count in counts.most_common(self.NAMED))
         return (f"samples={samples} leaf% {shares(leaves)}", f"samples={samples} toad% {shares(within)}")
