@@ -61,6 +61,6 @@ echo "type-only imports on #$pr @ ${head:0:9}:"
 ( cd "$check" && QT_QPA_PLATFORM=offscreen PYTHONPATH=src "${runtime}bin/python" tools/guarded_imports.py 2>&1 | grep -v propagateSizeHints )
 echo "APK shipped-app check on #$pr @ ${head:0:9}:"
 ( cd "$check" && tools/android/check.sh "$runtime" "$toolchain" "$check/.apk-check" "$profile" 2>&1 \
-    | grep -E '^(==|shipped app|function-local|NEW|GONE|error:|Traceback|  File|[A-Za-z]+Error)' )
+    | grep -E '^(==|shipped app|a native crash|frame work|[[:space:]]+[0-9.]+ a frame|function-local|NEW|GONE|error:|Traceback|  File|[A-Za-z]+Error)' )
 gh pr merge "$pr" --squash --admin --match-head-commit "$head"
 gh pr view "$pr" --json state,mergeCommit -q '"#\(.number // "") \(.state) \(.mergeCommit.oid[0:9])"'
