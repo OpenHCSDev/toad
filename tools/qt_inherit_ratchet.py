@@ -141,7 +141,6 @@ KNOWN_BARE = frozenset({
     'toad.qt.composer.Offer',
     'toad.qt.composer_vim.ComposerVimMode',
     'toad.qt.goal.GoalPress',
-    'toad.qt.history.HistoryRowDelegate',
     'toad.qt.history.NoTask',
     'toad.qt.keymap_screen._KeymapSave',
     'toad.qt.client_start.QtClientSettings',
