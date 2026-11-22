@@ -1,0 +1,57 @@
+From 7020488d331a97ad8292606ca5c0cafafdcdbf31 Mon Sep 17 00:00:00 2001
+From: toolchain <toolchain@localhost>
+Date: Sat, 21 Nov 2026 23:42:30 -0500
+Subject: [PATCH] QBackingStoreDefaultCompositor: upload the dirty part in
+ place
+
+A partial update copied the dirty part of the backing store image to own it
+for the deferred upload. The upload is deferred only to the end of the frame
+that the same flush begins and ends, and the image is not painted before the
+flush returns, so the part can be read where it lies. A scroll's dirty part
+is the whole viewport: on a 1080x2400 window that copy was most of 10 MB a
+frame.
+
+The image is passed as a wrapper that does not own its data, with the dirty
+part as the source rectangle. Holding a reference to the data instead would
+keep it shared until the swap chain's next frame begins, and the next paint
+would detach the whole image.
+
+Not upstream. Toad carries it (tools/android/qt-patches).
+---
+ .../qbackingstoredefaultcompositor.cpp        | 22 +++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/src/gui/painting/qbackingstoredefaultcompositor.cpp b/src/gui/painting/qbackingstoredefaultcompositor.cpp
+index 265dd34d..fc74b37b 100644
+--- a/src/gui/painting/qbackingstoredefaultcompositor.cpp
++++ b/src/gui/painting/qbackingstoredefaultcompositor.cpp
+@@ -121,11 +121,25 @@ QRhiTexture *QBackingStoreDefaultCompositor::toTexture(const QImage &sourceImage
+         const QRect rect = dirtyRegion.boundingRect() & image.rect();
+         if (rect.isEmpty())
+             return m_texture.get();
+-        // The upload is deferred, so take ownership, but only of the dirty part
+-        QImage dirtyImage = image.copy(rect);
+-        if (needsConversion)
++        QRhiTextureSubresourceUploadDescription subresDesc;
++        if (needsConversion) {
++            // The upload is deferred, so take ownership, but only of the dirty part
++            QImage dirtyImage = image.copy(rect);
+             dirtyImage.convertTo(QImage::Format_RGBA8888);
+-        QRhiTextureSubresourceUploadDescription subresDesc(dirtyImage);
++            subresDesc.setImage(dirtyImage);
++        } else {
++            // The upload is deferred only to the end of the frame this flush begins and
++            // ends, and the caller's image is not painted before the flush returns, so
++            // the dirty part is read where it lies: no copy of it, and no reference to
++            // the image's data either, which would make the next paint detach (copy) the
++            // whole image. A backend that cannot read a part of a wider image (OpenGL ES
++            // 2 without GL_EXT_unpack_subimage) copies that part itself.
++            const QImage inPlace(image.constBits(), image.width(), image.height(),
++                                 image.bytesPerLine(), image.format());
++            subresDesc.setImage(inPlace);
++            subresDesc.setSourceTopLeft(rect.topLeft());
++            subresDesc.setSourceSize(rect.size());
++        }
+         subresDesc.setDestinationTopLeft(rect.topLeft());
+         QRhiTextureUploadDescription uploadDesc(QRhiTextureUploadEntry(0, 0, subresDesc));
+         resourceUpdates->uploadTexture(m_texture.get(), uploadDesc);

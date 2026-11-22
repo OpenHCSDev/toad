@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the Qt libraries the APK takes from here instead of from the PySide6 wheel, into
-# TOOLCHAIN/qt/: the wheel's Qt version plus the upstream commits listed in COMMITS, built as
-# Qt's official Android package is (its NDK, its options). The build copies them over the
+# TOOLCHAIN/qt/: the wheel's Qt version plus the upstream commits listed in COMMITS and then
+# the patches in qt-patches/, built as Qt's official Android package is (its NDK, its options). The build copies them over the
 # wheel's (buildozer.spec.in's android.add_libs_arm64_v8a) and fails unless the APK holds them
 # (apk_qt_libs.py). Needs what toolchain.sh needs (JDK 17, uv) and git, cmake. Rerunning
 # skips what is there; the first run compiles Qt's Gui library (about 15 minutes on 8 jobs).
@@ -15,9 +15,11 @@
 # throbber frame cost 13-21 ms whatever its size. The same code on a desktop
 # (QT_WIDGETS_RHI=1): a tiny frame costs 0.4 ms in a 1 MB window, 4.7 ms at 10 MB, 45 ms at
 # 41 MB. Qt fixed it as QTBUG-151881 on 2026-11-01 ("copy only the dirty part for upload"),
-# after 6.12.0 was released.
+# after 6.12.0 was released. A scroll's dirty part is the whole viewport, so that fix still
+# copies most of the window for each scrolled frame: qt-patches/0001 uploads the part where it
+# lies, with no copy. That one is ours, not Qt's.
 #
-# This goes when the PySide6 wheel's Qt carries COMMITS: delete this file, its call in
+# This goes when the PySide6 wheel's Qt carries COMMITS and the patches: delete this file, its call in
 # toolchain.sh, apk_qt_libs.py and its call in build.sh, and the spec's android.add_libs_arm64_v8a.
 set -euo pipefail
 if [ $# -ne 1 ]; then sed -n '2,9p' "$0"; exit 2; fi
@@ -31,7 +33,9 @@ WHEEL=$(ls "$T"/wheels/pyside6-*-android_aarch64.whl)
 VERSION=$(basename "$WHEEL" | cut -d- -f2)
 W=$(realpath -m "$T/qt-build"); mkdir -p "$W" "$T/qt"
 STAMP="$T/qt/BUILT"
-WANT="qt $VERSION + $COMMITS : $LIBRARIES"
+HERE=$(cd "$(dirname "$0")" && pwd)
+PATCHES=$(cat "$HERE"/qt-patches/*.patch | sha256sum | cut -c1-16)
+WANT="qt $VERSION + $COMMITS + patches $PATCHES : $LIBRARIES"
 if [ -f "$STAMP" ] && [ "$(head -1 "$STAMP")" = "$WANT" ] && (cd "$T/qt" && tail -n +2 BUILT | sha256sum -c --status); then
   echo "qt libraries: $WANT (already built)"; exit 0
 fi
@@ -42,12 +46,14 @@ cd "$W"
 [ -f "$T/sdk/ndk/$NDK_VERSION/source.properties" ] || timeout 1800 "$T/sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$T/sdk" "ndk;$NDK_VERSION" | tail -1
 NDK="$T/sdk/ndk/$NDK_VERSION"
 [ -d qtbase/.git ] || git clone -q --depth 1 --branch "v$VERSION" https://code.qt.io/qt/qtbase.git qtbase
+# The source is the release, then COMMITS, then the patches, laid down again each time: git
+# rewrites only the files that differ, so only those compile again.
+git -C qtbase checkout -q -f "v$VERSION"
 for commit in $COMMITS; do
-  if ! git -C qtbase log --format=%b "v$VERSION..HEAD" | grep -q "$commit"; then
-    git -C qtbase cat-file -e "$commit" 2> /dev/null || git -C qtbase fetch -q --shallow-since=2026-10-01 origin "${VERSION%.*}"
-    git -C qtbase -c user.name=toolchain -c user.email=toolchain@localhost cherry-pick -x "$commit" > /dev/null
-  fi
+  git -C qtbase cat-file -e "$commit" 2> /dev/null || git -C qtbase fetch -q --shallow-since=2026-10-01 origin "${VERSION%.*}"
+  git -C qtbase -c user.name=toolchain -c user.email=toolchain@localhost cherry-pick -x "$commit" > /dev/null
 done
+git -C qtbase -c user.name=toolchain -c user.email=toolchain@localhost am -q "$HERE"/qt-patches/*.patch
 # The options of Qt's own Android package (its config_qtbase.opt), minus what only its packaging
 # needs. QT_ALLOW_DOWNLOAD skips the configure-time check of Gradle's cache: the Java parts are
 # never built here.

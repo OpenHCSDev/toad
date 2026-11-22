@@ -19,6 +19,9 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$APP"
 exec 9>"$APP/.build.lock"
 flock -n 9 || { echo "== waiting for the build already running in $APP"; flock 9; }
+# The toolchain's Qt libraries are this checkout's (its commits and patches): built again when
+# they are not, which takes minutes, and one line when they are.
+"$HERE/qt_libs.sh" "$TOOLCHAIN"
 "$HERE/check.sh" "$RUNTIME" "$TOOLCHAIN" "$APP" "$PROFILE"
 # The APK's interpreter is the runtime's Python version: that runtime compiles the bytecode
 # it ships and runs every check above (tools/android/recipes/python3 reads this).
