@@ -3670,7 +3670,16 @@ class FrameWorkScenario(Scenario):
     UNDER: ClassVar[float] = 0.9
     # The drive's and the probe's own handlers, and the enum values the probe's delivery
     # reads: what they count is the measuring, not the app.
-    OWN: ClassVar[tuple[str, ...]] = ("frame_probe.", "qt_drive.", "enum.")
+    OWN: ClassVar[tuple[str, ...]] = ("frame_probe.", "frame_work.", "qt_drive.", "enum.")
+
+    LOOK_EVERY: ClassVar[float] = 0.25
+
+    @staticmethod
+    def accent_ink(tree: QWidget) -> int:
+        """How many of every fourth pixel of the sidebar's rows are in the wave's accent."""
+        accent = tree.itemDelegateForColumn(0).accent.rgb()
+        image = tree.viewport().grab().toImage()
+        return sum(1 for y in range(0, image.height(), 2) for x in range(0, image.width(), 2) if image.pixel(x, y) == accent)
 
     async def run(self) -> None:
         app = self.app
@@ -3687,9 +3696,18 @@ class FrameWorkScenario(Scenario):
             row.follow_activity(True)
         await asyncio.sleep(0.5)
         probe.work.reset()
-        await asyncio.sleep(self.SECONDS)
+        # The wave must still be drawn: a count falls furthest for a frame that stopped
+        # drawing (2026-11-22: a band clamped to nothing took the delegate from 98 calls a
+        # paint to 21 and every name's band off the screen). The tree is looked at through
+        # the walk, outside the counted frames.
+        looks = round(self.SECONDS / self.LOOK_EVERY)
+        inked = 0
+        for _look in range(looks):
+            await asyncio.sleep(self.LOOK_EVERY)
+            inked += self.accent_ink(waving[0].treeWidget()) > 0 if waving else 0
         frames = probe.work.frames
         owners = {name: facts for name, facts in probe.work.measured().items() if not name.startswith(self.OWN)}
+        app.grab().save(str(self.out / "frame-work.png"))  # the names mid-wave, to look at
         for row in waving:
             row.follow_activity(False)
         measured = {name: round(facts["entries_per_frame"] * facts["python_per_entry"], 1) for name, facts in owners.items()}
@@ -3701,6 +3719,9 @@ class FrameWorkScenario(Scenario):
                   f"(+ {facts['c_per_entry']:6.1f} C calls)  {name}")
         if not frames or not waving:
             raise SystemExit(f"frame work: nothing was measured ({frames} frames, {len(waving)} names waving)")
+        print(f"frame work: the wave's accent was on a name in {inked} of {looks} looks at the sidebar")
+        if not inked:
+            raise SystemExit("frame work: the names wave and none is drawn in the accent: the count is of frames that do not draw the wave")
         if os.environ.get("FRAME_WORK_REBASE"):
             self.BASELINE.write_text(json.dumps(
                 {name: python for name, python in measured.items() if python > self.NEW_OWNER}, indent=1, sort_keys=True) + "\n")

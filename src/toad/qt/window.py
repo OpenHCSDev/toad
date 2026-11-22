@@ -245,6 +245,16 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
         waving (`ConversationRow` waves while its thread works)."""
         return None
 
+    def wave_running(self) -> bool:
+        """Whether the line's name waves now: only a conversation's line ever does
+        (`ConversationRow`, whose wave answers this before the line does)."""
+        return False
+
+    def band_drawn(self) -> tuple[int, int] | None:
+        """The band's cells the line draws (`NameWave.band_drawn`): none, for a line that
+        never waves."""
+        return None
+
     def subtree(self) -> Iterator[SidebarItem]:
         """This line and every line under it."""
         yield self
