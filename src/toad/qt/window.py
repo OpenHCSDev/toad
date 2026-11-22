@@ -762,6 +762,15 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
     def items(self):
         return (self.topLevelItem(index) for index in range(self.topLevelItemCount()))
 
+    def retire_all(self) -> None:
+        """Every line stops what it runs before the tree is destroyed with its window: a line
+        that waves holds its place on the animation clock, which asks each one whether it is
+        visible, and a line deleted with its wave running answered "the C++ object is deleted"
+        into the clock on the way out."""
+        for item in self.items():
+            for line in item.subtree():
+                line.retired()
+
     def redraw(self, draw: Callable[[KeptLines], object]) -> None:
         """Draw every line again in place, by kind and key: a line still wanted keeps its
         item, so a finger on it still lands and a group keeps its open or closed state; a
@@ -1958,6 +1967,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.bus_switcher.show_switcher()
 
     async def close_native_views(self) -> None:
+        self.sidebar.retire_all()
         self.input_attention.close()
         self.shortcuts.close()
         await self.session_navigation.close_views()

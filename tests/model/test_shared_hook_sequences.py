@@ -505,3 +505,25 @@ def test_a_view_returns_to_the_direct_conversation_it_last_opened_in_both_fronte
     for view in (QtMailboxView, MainScreen):
         assert view.open_direct_messages is NavigationOwner.open_direct_messages, view
         assert view.remember_direct_target is NavigationOwner.remember_direct_target, view
+
+
+def test_closing_the_window_retires_every_sidebar_line_before_the_tree_is_destroyed():
+    from toad.qt.window import Sidebar
+
+    retired = []
+
+    class Line:
+        def __init__(self, name: str, *children: "Line") -> None:
+            self.name, self.children = name, children
+
+        def subtree(self):
+            yield self
+            for child in self.children:
+                yield from child.subtree()
+
+        def retired(self) -> None:
+            retired.append(self.name)
+
+    tree = SimpleNamespace(items=lambda: iter((Line("group", Line("a"), Line("b")), Line("status"))))
+    Sidebar.retire_all(tree)
+    assert retired == ["group", "a", "b", "status"]
