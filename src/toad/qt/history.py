@@ -1213,7 +1213,14 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     def is_attached(self) -> bool:
         """Whether the window is still in its view, as Textual's `Widget.is_attached`
         answers for `HistoryWindow`: `BoundView` publishes only into an attached window."""
-        return shiboken6.isValid(self) and self.parent() is not None
+        return not self.widget_gone and self.parent() is not None
+
+    @property
+    def widget_gone(self) -> bool:
+        """Whether Qt has destroyed this window's widget. Every Qt read of a destroyed widget
+        raises RuntimeError; a late task that may outlive the view asks this first, and no
+        code here catches that RuntimeError: caught, it hid every other one under it."""
+        return not shiboken6.isValid(self)
 
     @property
     def screen(self) -> WorkspaceFrame:
@@ -1509,17 +1516,12 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         return self.max_scroll_y
 
     def _safe_qt_read(self, read, default):
-        """Any attribute read that ultimately touches the shiboken-backed Qt
-        widget raises RuntimeError ("Internal C++ object (...) already
-        deleted") once the view has been torn down. Late pager tasks still
-        ask us for geometry, visibility and fragment heights after the view
-        closes; those should answer a benign default so the publish
-        short-circuits instead of flooding logcat. A live widget returns its
-        real value — same code path as before for all other callers."""
-        try:
-            return read()
-        except RuntimeError:
-            return default
+        """`read`'s answer from a window Qt still has; `default` from a destroyed one. Late
+        pager tasks still ask a closed view for geometry, visibility and fragment heights,
+        and a benign answer lets their publish stop short. Only that is answered for: this
+        used to catch every RuntimeError the read raised, so a failure inside a measurement
+        (any RuntimeError, from anywhere under it) came back as a height of 0."""
+        return default if self.widget_gone else read()
 
     def _viewport_height_safe(self) -> int:
         return self._safe_qt_read(lambda: self.viewport().height(), 0)
@@ -1580,11 +1582,10 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         )
 
     def visible_fragments(self) -> tuple[HistoryFragment, ...]:
-        try:
-            area = self.viewport().rect()
-            top, bottom = self.indexAt(area.topLeft()), self.indexAt(area.bottomLeft())
-        except RuntimeError:
+        if self.widget_gone:
             return ()
+        area = self.viewport().rect()
+        top, bottom = self.indexAt(area.topLeft()), self.indexAt(area.bottomLeft())
         if not top.isValid():
             return ()
         last = bottom.row() if bottom.isValid() else self.model_rows.rowCount() - 1
@@ -1604,15 +1605,10 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         self._anchored = anchor
         # A publication restoring a following reader (`FollowTailCommit.restore_reader`)
         # glides to rows that just arrived; a running glide lands on the end itself.
-        if anchor and not self.gliding_to_end():
-            try:
-                with self.layout_scroll():
-                    self.follow_end()
-            except RuntimeError:
-                # View torn down between scheduling and anchor() running —
-                # scrollToBottom() inside follow_end hits the dead C++ widget.
-                # Nothing to scroll; the user already closed the view.
-                return
+        # A view closed between scheduling this and its running has nothing to scroll.
+        if anchor and not self.widget_gone and not self.gliding_to_end():
+            with self.layout_scroll():
+                self.follow_end()
 
     def jump_to_latest(self) -> None:
         """`JumpsToLatest.jump_to_latest` is abstract; the QtJumpBar click is wired to this
@@ -1704,12 +1700,10 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     def rows_changed(self) -> None:
         """Prepared rows changed height: lay them out again; the layout keeps the reader's
-        message. A window torn down has no viewer to serve (its Qt reads raise RuntimeError)."""
-        try:
+        message. A destroyed window has no reader to serve."""
+        if not self.widget_gone:
             self.request_reader_layout()
             self.viewport().update()
-        except RuntimeError:
-            return
 
     def scrolled(self, value: int) -> None:
         """The reader moved: join or leave the end, and schedule the full response on the
@@ -1883,10 +1877,9 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     def top_page(self) -> QtTopRow:
         """The row under the viewport's top edge, with the block and line of its fragment
         there: Qt measures that by pixel, where Textual counts cells."""
-        try:
-            top = self.indexAt(self.viewport().rect().topLeft())
-        except RuntimeError:
+        if self.widget_gone:
             return QtTopRow()
+        top = self.indexAt(self.viewport().rect().topLeft())
         if not top.isValid():
             return QtTopRow()
         rect = self.visualRect(top)

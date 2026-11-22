@@ -33,6 +33,7 @@ from formbridge.publications import PublicationStream
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad import paths
+from toad.client.lost_failures import LostFailures
 from toad.client.session_projection import SessionCollection
 from toad.client.tab_identity import TabIdentity
 from toad.client.tab_order import TabOrder
@@ -174,6 +175,11 @@ class CommsHost:
         threading.Thread(
             target=post_crash_to_sink, args=(path, title, f"{title}: {text}"), daemon=True,
         ).start()
+
+    def hear_lost_failures(self) -> None:
+        """From now on, work on the running loop that fails with nobody waiting for it is
+        shown as any error is (`LostFailures`): saved, and a notice."""
+        LostFailures(self.show_error).hear(asyncio.get_running_loop())
 
     def log_error(self, text: str) -> None:
         """Write to the native error log; the user is not interrupted."""

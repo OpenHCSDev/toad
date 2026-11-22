@@ -265,6 +265,11 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QStylePainter(self)
         for index in range(self.count()):
+            if not self.tabRect(index).intersects(event.rect()):
+                # A wave repaints its own tab: the other tabs' titles were being measured
+                # and elided again for each of its frames (the paint's largest Python cost
+                # on a phone, 8% of the GUI thread's samples with a few tabs open).
+                continue
             option, rect, shown = self.shown_title(index)
             wave = self.waves.get(self.tabData(index))
             if wave is None or not wave.wave_running():
