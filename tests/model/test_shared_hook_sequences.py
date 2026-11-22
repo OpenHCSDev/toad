@@ -527,3 +527,59 @@ def test_closing_the_window_retires_every_sidebar_line_before_the_tree_is_destro
     tree = SimpleNamespace(items=lambda: iter((Line("group", Line("a"), Line("b")), Line("status"))))
     Sidebar.retire_all(tree)
     assert retired == ["group", "a", "b", "status"]
+
+
+def test_home_reads_who_the_reader_is_off_the_loop_once_before_it_opens_a_target():
+    from toad.client.session_scope import HomeSessionOrigin
+    from toad.navigation_context import HomeNavigation, NavigationDestination
+    from toad.qt.window import QtWelcomeOrigin
+    from toad.screens.welcome import WelcomeScreen
+    from toad.thread_identity import NoThreadIdentity
+
+    for home in (QtWelcomeOrigin, WelcomeScreen):
+        for name in ("prepare_history_origin", "read_history_identity", "thread_identity"):
+            owner = next(base for base in home.__mro__ if name in vars(base))
+            assert owner is HomeSessionOrigin, (home, name, owner)
+        assert next(base for base in home.__mro__ if "open_sidebar_target" in vars(base)) is HomeNavigation, home
+    # The one thing each frontend says: how it announces that home's identity was read.
+    assert "home_identity_read" in vars(WelcomeScreen) and "home_identity_read" not in vars(QtWelcomeOrigin)
+
+    steps, opened = [], []
+    async def run_thread(function, *arguments):
+        steps.append(("worker", function.__name__))
+        return function(*arguments)
+
+    observed = SimpleNamespace(root="root", user_identity=lambda project: SimpleNamespace(incarnation=SimpleNamespace(name="reader")))
+    app = SimpleNamespace(preparation=SimpleNamespace(run_thread=run_thread),
+                          coordination_access=SimpleNamespace(observation=SimpleNamespace(observed=lambda: observed)))
+
+    class Destination(NavigationDestination):
+        async def open(self, context) -> str:
+            steps.append(("open", context.identity if hasattr(context, "identity") else None))
+            opened.append(context)
+            return "mode"
+
+    class Home(HomeSessionOrigin, HomeNavigation):
+        project_path = "project"
+
+        def __init__(self) -> None:
+            self.app = app
+
+        @property
+        def navigation_context(self):
+            return SimpleNamespace(identity=self.thread_identity)
+
+    home = Home()
+    assert isinstance(home.thread_identity, NoThreadIdentity)  # nothing is read until a target opens
+    asyncio.run(home.open_sidebar_target(Destination()))
+    assert steps[0] == ("worker", "read_history_identity") and steps[1][0] == "open"
+    assert home.thread_identity.thread_name() == "reader"
+
+
+def test_a_view_that_navigates_nowhere_still_says_direct_messages_are_unavailable():
+    from toad.navigation_context import NoNavigationOwner
+
+    notices = []
+    owner = NoNavigationOwner(SimpleNamespace(show_info=lambda text, title: notices.append((text, title))))
+    asyncio.run(owner.open_direct_messages())
+    assert notices == [("Direct messages are unavailable from this view", "Direct messages")]

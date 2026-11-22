@@ -10,13 +10,11 @@ sidebar's targets open from.
 
 from __future__ import annotations
 
-from agent_comms.projects.checkouts import Checkout
-
 from toad.client.session_scope import HomeSessionOrigin
 from toad.navigation_context import HomeNavigation
-from toad.navigation_target import FeedTarget, NavigationTarget
+from toad.navigation_target import FeedTarget
 from toad.screens.session_view import SessionView
-from toad.thread_identity import ThreadIdentity
+from toad.thread_identity import SessionIdentity
 from toad.widget_actions import TogglesIrc
 
 
@@ -31,21 +29,9 @@ class WelcomeScreen(
         super().__init__()
         self.project_path = self.app.project_dir
 
-    def read_history_identity(self, project: Checkout) -> ThreadIdentity:
-        observed = self.app.coordination_access.observation.observed()
-        return ThreadIdentity(
-            observed.user_identity(project).incarnation, str(observed.root)
-        )
-
-    async def prepare_history_origin(self) -> None:
-        app = self.app
-        project = self.project_path
+    def home_identity_read(self, identity: SessionIdentity) -> None:
         with self.changing_identity():
-            self._identity = await app.preparation.run_thread(self.read_history_identity, project)
-
-    async def open_sidebar_target(self, target: NavigationTarget) -> None:
-        await self.prepare_history_origin()
-        await super().open_sidebar_target(target)
+            self._identity = identity
 
     async def toggle_irc(self) -> None:
         await self.open_sidebar_target(FeedTarget())

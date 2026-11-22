@@ -17,6 +17,7 @@ from metaclass_registry import AbstractHooksMeta
 
 from toad.agent_binding import NoAgentConnection
 from toad.project_path_owner import CheckoutRoot
+from toad.thread_identity import NoThreadIdentity, SessionIdentity, ThreadIdentity
 from toad.transcript_scope import NoTranscript, TranscriptScope
 
 if TYPE_CHECKING:
@@ -214,7 +215,34 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope, CheckoutRoot):
 class HomeSessionOrigin(ProjectSessionOrigin):
     """Home, the welcome: every row and link opens from here whichever tab is shown
     (`TargetOpen`), so another tab being selected meanwhile, as a second tap's opening is,
-    leaves its openings current. Textual's `WelcomeScreen` and Qt's `QtWelcomeOrigin`."""
+    leaves its openings current. Textual's `WelcomeScreen` and Qt's `QtWelcomeOrigin`.
+
+    Home acts as the reader, whose thread is the bus's user thread: a read of Core's whole
+    registry, which over a remote connection is megabytes and seconds. It is read once, off
+    the loop, before a target opens from here (`prepare_history_origin`), and kept; every
+    answer after that (`navigation_context`, `ThreadOrigin.capture` and its re-check when
+    the opening ends) reads the kept one. Qt's origin computed it on every read, on the GUI
+    thread: opening a thread from the welcome held the loop for a registry read, twice
+    (2026-11-22, a sampled stack of a long loop step)."""
+
+    _identity: SessionIdentity = NoThreadIdentity()
+
+    @property
+    def thread_identity(self) -> SessionIdentity:
+        return self._identity
+
+    def read_history_identity(self, project) -> ThreadIdentity:
+        """The reader's own thread on the bus observed now; blocks, so it runs on a worker."""
+        observed = self.app.coordination_access.observation.observed()
+        return ThreadIdentity(observed.user_identity(project).incarnation, str(observed.root))
+
+    async def prepare_history_origin(self) -> None:
+        identity = await self.app.preparation.run_thread(self.read_history_identity, self.project_path)
+        self.home_identity_read(identity)
+
+    def home_identity_read(self, identity: SessionIdentity) -> None:
+        """The reader's thread was read: it is home's identity."""
+        self._identity = identity
 
     def opening_standing(self, selected_mode: str) -> str:
         return ""
