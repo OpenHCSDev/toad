@@ -1737,8 +1737,8 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         further = abs(distance) - abs(self._overshoot)
         self._overshoot = distance
         if distance and further > 0:
-            rows = further / self._font_line_spacing()
-            self.lookahead.request_boundary(-rows if distance < 0 else rows)
+            # In this window's rows, which are pixels, as every other travel it reports.
+            self.lookahead.request_boundary(-further if distance < 0 else further)
 
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         """A wheel at an edge with nowhere left to scroll still asks for the next page."""

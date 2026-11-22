@@ -3,6 +3,7 @@ sources every frontend reads, the ranges a view draws, and the work that prepare
 the UI thread. Nothing here draws or imports a toolkit."""
 
 import asyncio
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field, replace
@@ -45,6 +46,10 @@ from toad.work_preparation import (
     WorkKey,
     WorkLane,
 )
+
+
+WHOLE_PAGE = sys.maxsize
+"""Rows asked of a page whose every fragment is wanted, up to the item limit."""
 
 
 class MeasuresFragments:

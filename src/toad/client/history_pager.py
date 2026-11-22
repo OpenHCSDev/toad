@@ -50,6 +50,7 @@ from toad.client.prepared_pages import (
     MeasuresFragments,
     PreparedPageSource,
     PreparedTranscriptPage,
+    WHOLE_PAGE,
     _DrawingStopped,
 )
 from toad.client.reader_position import (
@@ -925,10 +926,16 @@ class HistoryPager(ResumesSource):
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, end)
+            # The rows an edge still owes decide that it reads; what it read is published
+            # as the page it is, to the item limit. Topping the runway up by exactly what
+            # it owed published a row or two at a time (Qt: 121 rows in 91 publications,
+            # each one a layout of the reader's window), where a page is 40 messages.
+            # Rows arriving at a followed end are taken as the viewport needs them.
             await staged.prepare_rows(
                 self, current, target=self, selected=self.selected_categories, end=end,
                 boundary=end.edge_boundary(edge, local, staged),
-                rows_needed=max(1, missing), limit=self.fragment_limit)
+                rows_needed=max(1, missing) if followed_end else WHOLE_PAGE,
+                limit=self.fragment_limit)
             if not current():
                 return False
             async with window.history_lock:
