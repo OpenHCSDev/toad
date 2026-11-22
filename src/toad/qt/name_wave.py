@@ -8,7 +8,7 @@ while it runs. Nothing here keeps a period, a phase or a timer of its own.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, QRect, QSize, Qt
+from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
 from PySide6.QtGui import QColor, QFont, QPixmap, QTextCharFormat, QTextLayout
 from PySide6.QtWidgets import QLabel, QStyle, QStyleOptionTab, QStylePainter
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
@@ -21,48 +21,83 @@ from toad.client.name_wave import BandCells, NameWave
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 
 
-def waved_layout(text: str, font: QFont, formats, span: tuple[int, int], accent: QColor) -> QTextLayout:
-    """``text`` bold, with the characters in ``span`` in the accent over its own formats."""
-    bold = QFont(font)
-    bold.setBold(True)
-    layout = QTextLayout(text, bold)
-    start, end = (min(len(text), edge) for edge in span)
+def band_ink(span: tuple[int, int], length: int, accent: QColor) -> QTextLayout.FormatRange:
+    """The characters of ``span`` within a text ``length`` long, in the accent."""
+    start, end = (min(length, edge) for edge in span)
     band = QTextLayout.FormatRange()
     band.start, band.length = start, end - start
     ink = QTextCharFormat()
     ink.setForeground(accent)
     band.format = ink
-    layout.setFormats([*formats, band])
-    return layout
+    return band
 
 
 class QtNameWaveDelegate(BandCells, MultilinePreviewItemDelegate):
     """The sidebar's row delegate: a line whose thread works (`SidebarItem.wave_span`) draws
     its title bold with the band's cells in the accent, as Textual's `ViewLabel` paints its
-    first row. Other lines draw as pyqt-reactive prepares them."""
+    first row. Other lines draw as pyqt-reactive prepares them.
+
+    A frame of the wave changes which characters are in the accent and nothing else, so it
+    lays no text out: the bold title is laid out once for the row's prepared text
+    (`bold_titled`) and the band is ink drawn over it (`text_inks`). Laying the title out
+    again for each frame was half of a row's paint (profiled on the sidebar's delegate,
+    2026-11-22), and the sidebar's rows were 28% of a Pixel 8a's GUI thread while a fleet
+    worked."""
+
+    KEPT = 256
+    """How many rows' bold titles are kept; past it they are all dropped and made again."""
 
     def __init__(self, accent: QColor, *args) -> None:
         super().__init__(*args)
         self.accent = accent
+        # A row's prepared text and the same text with its title bold, by the prepared text's
+        # identity: pyqt-reactive hands the same prepared text back until the row's text,
+        # font or width changes, and a changed one is another object.
+        self.bold: dict[int, tuple[PreparedTextLayout, PreparedTextLayout, int]] = {}
+        # How many characters the title of the row being drawn has: the band is drawn within
+        # them. Set as the row's text is taken, which a paint does before it asks for the ink.
+        self.title_length = 0
 
     def _prepared_text(self, option, index) -> PreparedTextLayout:
         prepared = super()._prepared_text(option, index)
         item = self.parent().itemFromIndex(index)
-        span = item.wave_span() if item is not None else None
-        if span is None:
+        if item is None or not item.wave_running():
             return prepared
+        _prepared, titled, self.title_length = self.bold_titled(prepared)
+        return titled
+
+    def bold_titled(self, prepared: PreparedTextLayout) -> tuple[PreparedTextLayout, PreparedTextLayout, int]:
+        """``prepared``, the same text with its title bold on the lines the title already
+        had, and the title's length in characters."""
+        kept = self.bold.get(id(prepared))
+        if kept is not None and kept[0] is prepared:
+            return kept
+        if len(self.bold) >= self.KEPT:
+            self.bold.clear()
         title, *rest = prepared.paragraphs
-        waved = waved_layout(title.text(), title.font(), title.formats(), span, self.accent)
-        waved.setTextOption(title.textOption())
-        waved.beginLayout()
+        font = QFont(title.font())
+        font.setBold(True)
+        bold = QTextLayout(title.text(), font)
+        bold.setFormats(title.formats())
+        bold.setTextOption(title.textOption())
+        bold.beginLayout()
         for number in range(title.lineCount()):
-            line, laid = waved.createLine(), title.lineAt(number)
+            line, laid = bold.createLine(), title.lineAt(number)
             if not line.isValid():
                 break
             line.setLineWidth(laid.width())
             line.setPosition(laid.position())
-        waved.endLayout()
-        return PreparedTextLayout((waved, *rest), prepared.size, prepared.line_guides)
+        bold.endLayout()
+        kept = self.bold[id(prepared)] = (
+            prepared, PreparedTextLayout((bold, *rest), prepared.size, prepared.line_guides), len(title.text()))
+        return kept
+
+    def text_inks(self, index):
+        item = self.parent().itemFromIndex(index)
+        span = item.band_drawn() if item is not None else None
+        if span is None:
+            return ()
+        return ([band_ink(span, self.title_length, self.accent)],)
 
 
 class QtClockedWave(NameWave):
@@ -178,6 +213,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
     def __init__(self, clock, accent: QColor, ink: QColor) -> None:
         super().__init__()
         self.clock, self.accent, self.ink = clock, accent, ink
+        self.lines: dict[tuple[str, int], QTextLayout] = {}
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
 
@@ -278,16 +314,29 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
             option.text = ""
             painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
             start, end = self.wave_span(wave)
-            ink = QTextLayout.FormatRange()
-            ink.start, ink.length = 0, len(shown)
-            plain = QTextCharFormat()
-            plain.setForeground(self.ink)
-            ink.format = plain
-            layout = waved_layout(shown, self.font(), [ink], (max(0, start - self.padding_cells),
-                                                             max(0, end - self.padding_cells)), self.accent)
-            layout.beginLayout()
-            line = layout.createLine()
-            line.setLineWidth(rect.width())
-            layout.endLayout()
+            layout = self.bold_line(shown, rect.width())
+            line = layout.lineAt(0)
             top = rect.top() + (rect.height() - line.height()) / 2
-            layout.draw(painter, QPointF(rect.left() + (rect.width() - line.naturalTextWidth()) / 2, top))
+            painter.setPen(self.ink)
+            band = band_ink((max(0, start - self.padding_cells), max(0, end - self.padding_cells)), len(shown), self.accent)
+            layout.draw(painter, QPointF(rect.left() + (rect.width() - line.naturalTextWidth()) / 2, top), [band])
+
+    def bold_line(self, shown: str, width: int) -> QTextLayout:
+        """A working tab's title, bold, on one line ``width`` wide: laid out once for the
+        title and width, since a frame of its wave moves the band's ink and not the text."""
+        kept = self.lines.get((shown, width))
+        if kept is None:
+            if len(self.lines) >= QtNameWaveDelegate.KEPT:
+                self.lines.clear()
+            font = QFont(self.font())
+            font.setBold(True)
+            kept = self.lines[(shown, width)] = QTextLayout(shown, font)
+            kept.beginLayout()
+            kept.createLine().setLineWidth(width)
+            kept.endLayout()
+        return kept
+
+    def changeEvent(self, event) -> None:  # type: ignore[override]
+        if event.type() in (QEvent.Type.FontChange, QEvent.Type.StyleChange):
+            self.lines.clear()  # laid out in the font that just changed
+        super().changeEvent(event)

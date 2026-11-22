@@ -42,6 +42,12 @@ class NameWave(BandCells):
         moved, self.painted_span = span != self.painted_span, span
         return moved
 
+    def band_drawn(self) -> tuple[int, int] | None:
+        """The band's cells as the line last decided to draw them (`wave_frame_drawn`), or
+        none while it does not wave. What a paint draws: the band's place is worked out when
+        the clock's frame arrives, which is what repaints the line, and not again to paint."""
+        return self.painted_span if self.wave_running() else None
+
     def wave_span(self) -> tuple[int, int] | None:
         """The band's cells over this line now, or none while it does not wave."""
         raise NotImplementedError
