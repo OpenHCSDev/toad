@@ -245,8 +245,7 @@ class RendererWork(PreparationWork[ResultT]):
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[ResultT]:
-        submission = (await runtime.run_thread(lambda: self.submission)
-                      if runtime.renderer.needs_submission else b"")
+        submission = await runtime.run_thread(lambda: self.submission)
         prepared = await runtime.renderer.capture_submitted(self.task, submission)
         return await runtime.run_thread(self.task.finish_prepared, key, prepared)
 

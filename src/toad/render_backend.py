@@ -144,17 +144,6 @@ class RendererSpawn(ABC):
             resource_tracker.ensure_running()
 
 class Renderer(RendererSpawn):
-    needs_submission = True
-    """Whether this renderer carries bytes to a worker that must unpickle them. A
-    ProcessPool does, so pickling the task is work it needs; an in-thread renderer runs
-    the task's ``execute`` on the owning process, so pickling is wasted and the task's
-    ``capture_submitted`` ignores the bytes. Setting this False lets a work scheduler
-    skip the pickle whose only consumer is the serialised transport
-    (``RendererWork.execute``). Among other things this lets a Qt task carry ``QFont`` /
-    the ``QtLineRenderer`` through ``app.render_processes`` on Android and on desktop Qt
-    (where multiprocessing cannot pickle those types), which the submission owner now
-    shared with the Textual client already does."""
-
     def __init__(self) -> None:
         self._submissions: set[asyncio.Task] = set()
 
@@ -251,8 +240,7 @@ class Renderer(RendererSpawn):
     async def capture_submitted(
         self, task: RenderTask[ResultT], submission: bytes,
     ) -> PreparedValue[ResultT]:
-        """Prepare a task its preparation already pickled; an in-process renderer has no
-        use for the bytes."""
+        """Prepare a task its preparation already pickled: the bytes a worker receives."""
         return await self.capture(task)
 
     @abstractmethod
