@@ -110,3 +110,25 @@ async def test_a_sent_file_draws_as_a_chip_under_its_message_in_the_terminal(wor
         await ui.press("enter")
         await ui.until(lambda: ui.shows("a screenshot") and ui.shows("[shot.png · 2.0 KB]"),
                        why="the sent message and its file's chip under it")
+
+
+async def test_an_image_pasted_into_a_message_rides_it_as_a_file_not_as_a_path(workspace):
+    """Tristan pasted a screenshot into #claude and every teammate got one line,
+    `@/home/ts/.local/share/toad/clipboard-images/clipboard-794d….png`: a path on his laptop,
+    which no other machine can open. A message composer attaches the image instead."""
+    workspace.thread("peer", "team")
+    workspace.comms.messaging.send("peer", "#team", "CURRENT_HISTORY")
+    png = b"\x89PNG\r\n\x1a\n" + b"pixels" * 40
+    async with workspace.app() as ui:
+        await ui.open_channel("#team", actor=workspace.viewer)
+        await ui.until_shows("CURRENT_HISTORY")
+        prompt = ui.app.selected_session.query_one(CommsChatView).prompt
+
+        await prompt.prompt_text_area.attach_png(png)
+
+        name = f"clipboard-{hashlib.sha256(png).hexdigest()[:12]}.png"
+        await ui.until(lambda: chips(prompt) == [f"{name} · {len(png)} B ✕"], why="the pasted image's chip")
+        assert prompt.text == ""
+        (attached,) = prompt.attached_files
+        assert (attached.name, attached.mime_type, attached.sha256) == (
+            name, "image/png", hashlib.sha256(png).hexdigest())
