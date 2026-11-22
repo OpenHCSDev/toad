@@ -201,10 +201,13 @@ class TranscriptPublication(BoundFrame, ABC):
         try:
             if await self.capture_application():
                 return await self.publish_applied()
-        except CoordinationReadUnavailable, StaleRevision:
+        except CoordinationReadUnavailable, StaleRevision, ReadAgain:
             # No usable source snapshot was acquired. Keep the original operation,
             # mounted history and work slot unchanged until a new observation
-            # or the existing preparation completion resumes source work.
+            # or the existing preparation completion resumes source work. A read dropped
+            # because its observation closed (`ObserverRetired`, a `ReadAgain`) is one of
+            # these: it escaped here until 2026-11-21, ending the publication's task with
+            # an exception nobody took (Qt), or a failed worker (Textual).
             if self.current():
                 self.owner.source_requests.defer(self)
                 return False
