@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import gc
 from functools import cached_property, partial
 from importlib import import_module
 import platform
@@ -15,6 +14,7 @@ from formbridge.operations import OperationKind
 
 from toad import get_version
 from toad.version import VersionMonitor
+from toad.heap import HEAP
 from toad.client.tab_identity.kinds import MailboxTab
 from toad.client.tab_identity import TabNotDrawnHere, TabTargetGone
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
@@ -153,7 +153,7 @@ class ApplicationLifetime:
         await self.opening.open(self.app)
         self.started()
         self.prepare_view_settings()
-        self.settle_heap()
+        HEAP.workspace_restored()
 
     def prepare_view_settings(self) -> None:
         """The class setup every view's configuration needs, done once the first frame and
@@ -162,16 +162,6 @@ class ApplicationLifetime:
         from toad.object_configuration import ObjectConfiguration
 
         ObjectConfiguration.prepare_settings_type(self.app.saved_settings)
-
-    @staticmethod
-    def settle_heap() -> None:
-        """What is alive once the workspace is back (modules, classes, declared families, the
-        restored tabs) lives as long as the process. One collection now, then everything left
-        is frozen out of later collections, which then walk only what the run makes after it.
-        A full collection otherwise walked all of it with the UI thread stopped: 0.5 s in the
-        middle of a scroll and 1.3 s at startup on a phone's speed."""
-        gc.collect()
-        gc.freeze()
 
     async def restore_workspace(self) -> None:
         """The session the launch asked to resume, else the saved tabs; home when neither."""

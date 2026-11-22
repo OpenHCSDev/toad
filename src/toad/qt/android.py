@@ -16,7 +16,6 @@ state Android moves the app through, so the next start's log says how the last e
 """
 
 import ctypes
-import gc
 import os
 import sys
 import threading
@@ -31,6 +30,7 @@ from PySide6.QtWidgets import QApplication, QWidget
 
 from toad import paths
 from toad.fatal_trace import FatalTrace
+from toad.heap import HEAP
 from toad.qt.android_app import KEPT
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.splash import QtSplash
@@ -85,7 +85,7 @@ class SuspendedMemory:
             QTimer.singleShot(0, self.release)
 
     def release(self) -> None:
-        gc.collect()
+        HEAP.collect()
         self.libc.mallopt(self.M_PURGE, 0)
 
 

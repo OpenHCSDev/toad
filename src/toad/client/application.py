@@ -28,6 +28,7 @@ from objectstate import ObjectState, ObjectStateRegistry
 
 from toad.client.pending import BusConnecting, awaited
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
+from toad.heap import HEAP
 from toad.client import bus_connect
 from toad.client.bus_selection import (
     BusChoice,
@@ -93,6 +94,12 @@ class ClientApplication(BusPickerHost, NavigationHost):
 
     input_attention: InputAttention
     """The title that blinks while input is required; each frontend sets its own."""
+
+    def history_displayed(self) -> None:
+        """A view's history was painted, in either frontend: the process's heap hears it
+        (`toad.heap`). Only Textual's app told it until 2026-11-22; Qt's heap was never frozen
+        after its startup."""
+        HEAP.history_displayed()
 
     @property
     def saved_settings(self) -> SavedSettings:

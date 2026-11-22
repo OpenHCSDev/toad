@@ -12,7 +12,8 @@ from agent_comms.registry.relationships import (
 from support.ui import saved_tab
 from textual.screen import Screen
 
-from toad.app import HeapFrozen, ToadApp
+from toad.app import ToadApp
+from toad.heap import HEAP, CollectedByPython, CollectedWhenStill
 from toad.plan import InProgressPlanStatus, PlanItem
 from toad.screens.main import MainScreen
 from toad.widgets.plan import Plan
@@ -51,9 +52,11 @@ def project_with_files(workspace):
 
 async def started(workspace, ui):
     screen = ui.app.selected_session
+    # The heap is the process's: an earlier test's application froze it already.
+    HEAP.schedule = CollectedByPython()
     await workspace.bind(screen, "owner")
     await ui.until(
-        lambda: isinstance(ui.app.heap, HeapFrozen),
+        lambda: isinstance(HEAP.schedule, CollectedWhenStill),
         seconds=12,
         why="the heap's one freeze",
     )

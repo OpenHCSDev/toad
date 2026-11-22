@@ -1,5 +1,4 @@
 import asyncio
-import gc
 import json
 import os
 import signal
@@ -76,31 +75,6 @@ from toad.workspace_sessions import (
 RenderResultT = TypeVar("RenderResultT")
 
 
-
-
-class HeapBeforeFreeze:
-    """The heap is not frozen yet; the first painted history freezes it.
-
-    launch_root.started() froze the import graph at entry and freezes again at
-    exit; this is the freeze in between: by then the modules, classes, type caches, the
-    workspace and the first tab's history exist and mostly live as long as the
-    process, so the cyclic collector stops scanning them (Python 3.14 scans the
-    whole live heap periodically: ~70,000 objects took 12-18 ms, inside
-    whatever callback was running). Anything alive then that later dies in a
-    reference cycle is never collected; that is at most the heap at that
-    moment (decision 2026-10-11, about 6-10 MB).
-    """
-
-    def history_displayed(self, app: ToadApp) -> None:
-        gc.freeze()
-        app.heap = HeapFrozen()
-
-
-class HeapFrozen:
-    """The one freeze has happened."""
-
-    def history_displayed(self, app: ToadApp) -> None:
-        pass
 
 
 class ToadLoadingIndicator(TransparentBackground, LoadingIndicator):
@@ -509,13 +483,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         # Background threads (Core reads, preparation) give the GIL back to
         # the UI thread within 1 ms instead of the default 5 ms.
         sys.setswitchinterval(0.001)
-
-    heap: HeapBeforeFreeze | HeapFrozen = HeapBeforeFreeze()
-    """Whether the heap's one freeze has happened (see HeapBeforeFreeze)."""
-
-    def history_displayed(self) -> None:
-        """A view's history was painted."""
-        self.heap.history_displayed(self)
 
     @on(events.TextSelected)
     async def on_text_selected(self) -> None:

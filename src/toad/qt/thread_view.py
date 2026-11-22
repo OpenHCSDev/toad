@@ -251,6 +251,7 @@ class QtThreadView(
         return settled()
 
     def history_painted(self) -> None:
+        self.app.history_displayed()
         self.submissions.settle()
 
     def refresh_session_summary(self) -> None:
