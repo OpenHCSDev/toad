@@ -398,19 +398,18 @@ class HistoryRowDelegate(RowDocumentDelegate):
         width = self.view.viewport_width() or option.rect.width()
         return self.row_document(index, option.font, width)
 
-    def sizeHint(self, option, index) -> QSize:  # type: ignore[override]
-        opt = QStyleOptionViewItem(option)
-        self.initStyleOption(opt, index)
-        width = self.view.viewport_width() or self.available_width(opt)
-        opt.rect.setWidth(width)
-        # pyqt-reactive owns the height at the layout width and, apart from it, how wide the
-        # row's content came out when it was laid out (`row_extent`): `pre` blocks (diffs, code,
-        # tool output) do not wrap, which is what gives the history one horizontal scrollbar
-        # instead of clipping each preview. Asking lays nothing out. Building each row's
-        # document here to ask it laid out every row a layout touched, away from the reader
-        # too, and queued the ones not prepared yet for a render inside this process.
-        height = super().sizeHint(opt, index).height()
-        return QSize(self.row_extent(self.preparation_key(index, opt.font, width), width), height)
+    def available_width(self, option: QStyleOptionViewItem) -> int:
+        """Rows are laid out at the viewport's width: a wide row's own rect is its extent,
+        and wrapped prose laid out at that would stop wrapping."""
+        return self.view.viewport_width() or super().available_width(option)
+
+    def hinted(self, key, size: QSize) -> QSize:
+        """A row takes its height at the layout width and, across, how wide its content came
+        out when it was laid out (`row_extent`): `pre` blocks (diffs, code, tool output) do
+        not wrap, which is what gives the history one horizontal scrollbar instead of
+        clipping each preview. pyqt-reactive answers this from the row's kept key, so a
+        layout over every loaded row builds no row's key."""
+        return QSize(self.row_extent(key, size.width()), size.height())
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared
@@ -497,22 +496,20 @@ class HistoryRowDelegate(RowDocumentDelegate):
         one prepared on the pool does when it lands."""
         self._row_prepared(key, formatting)
 
+    TILE = 1024
+    """Pixels of a row's height one picture holds. A row is as tall as its message, and a
+    long message's whole picture would take most of what the app may retain; in tiles, the
+    part of it on screen is drawn and kept, as a short row is."""
+
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
-        """A row is drawn from its picture (`row_picture`): a scroll moves the same rows a few
-        pixels a frame, and laying a row's rich text out and drawing every glyph again each
-        frame was most of the phone's work while scrolling. A rising row's fade paints the
-        same picture at that frame's opacity."""
+        """A row is painted from pictures of it (`paint_pictures`): a scroll moves the same
+        rows a few pixels a frame, and laying a row's rich text out and drawing every glyph
+        again each frame was most of the phone's work while scrolling. A rising row's fade
+        paints the same pictures at that frame's opacity."""
         fragment = index.data(HistoryRows.FRAGMENT)
         opacity = self.view.arrival_opacity(fragment.key) if self.view.arrivals else None
-        picture = self.row_picture(painter, option, index, fragment.key, kept=opacity is not None)
-        if picture is None:
+        if not self.paint_pictures(painter, option, index, fragment.key, opacity):
             super().paint(painter, option, index)
-        else:
-            painter.save()
-            if opacity is not None:
-                painter.setOpacity(opacity)
-            painter.drawPixmap(option.rect.topLeft(), picture)
-            painter.restore()
         self.view.row_painted(fragment, option.rect)
 
     def release_documents(self) -> None:
@@ -521,36 +518,44 @@ class HistoryRowDelegate(RowDocumentDelegate):
         super().release_documents()
         self.pictures.clear()
 
-    def row_picture(self, painter: QPainter, option, index, key, *, kept: bool) -> QPixmap | None:
-        """The row drawn once into a picture, which every later frame paints. A new width,
-        height, pixel ratio or document draws it again. None for a row that paints itself:
-        one still being prepared (it draws its plain text for a frame or two), or one whose
-        picture alone would take most of what all the pictures may hold; a rising row
-        (`kept`) always has one, as its fade repaints it every frame."""
-        ratio = painter.device().devicePixelRatioF()
+    def paint_pictures(self, painter: QPainter, option, index, key, opacity: float | None) -> bool:
+        """The tiles of the row that this paint shows, each drawn once and copied by every
+        later frame; a new width, height, pixel ratio or document draws them again. False
+        for a row still being prepared, which paints its plain text itself for the frame or
+        two it lasts; a rising one is painted from pictures all the same, as its fade
+        repaints it every frame."""
         rect = option.rect
         local = QStyleOptionViewItem(option)
         local.rect = QRect(0, 0, rect.width(), rect.height())
         document = self.painted_document(index, local)
-        if document is None and not kept:
-            return None
+        if document is None and opacity is None:
+            return False
+        shown = painter.clipBoundingRect().toAlignedRect().intersected(rect) if painter.hasClipping() else rect
+        if shown.isEmpty():
+            return True
+        ratio = painter.device().devicePixelRatioF()
         look = (rect.width(), rect.height(), ratio)
         # A row is its document; one still being prepared has none, and is this view's row.
-        key = id(document) if document is not None else (id(self), key)
-        picture = self.pictures.kept(key, look, document)
-        if picture is not None:
-            return picture
-        size = QSize(max(1, round(rect.width() * ratio)), max(1, round(rect.height() * ratio)))
-        if not kept and not self.pictures.holds(size):
-            return None
-        picture = QPixmap(size)
-        picture.setDevicePixelRatio(ratio)
-        picture.fill(Qt.GlobalColor.transparent)
-        drawing = QPainter(picture)
-        super().paint(drawing, local, index)
-        drawing.end()
-        self.pictures.keep(key, look, document, picture)
-        return picture
+        row = id(document) if document is not None else (id(self), key)
+        painter.save()
+        if opacity is not None:
+            painter.setOpacity(opacity)
+        for tile in range((shown.top() - rect.top()) // self.TILE, (shown.bottom() - rect.top()) // self.TILE + 1):
+            top = tile * self.TILE
+            picture = self.pictures.kept((row, tile), look, document)
+            if picture is None:
+                height = min(self.TILE, rect.height() - top)
+                picture = QPixmap(max(1, round(rect.width() * ratio)), max(1, round(height * ratio)))
+                picture.setDevicePixelRatio(ratio)
+                picture.fill(Qt.GlobalColor.transparent)
+                drawing = QPainter(picture)
+                local.rect = QRect(0, -top, rect.width(), rect.height())
+                super().paint(drawing, local, index)
+                drawing.end()
+                self.pictures.keep((row, tile), look, document, picture)
+            painter.drawPixmap(QPoint(rect.left(), rect.top() + top), picture)
+        painter.restore()
+        return True
 
 
 class RowPictures(NativePresentation):
@@ -563,9 +568,9 @@ class RowPictures(NativePresentation):
 
     def __init__(self, limit: int) -> None:
         self.limit = limit
-        # By the row's document (a row still being prepared: its fragment key):
-        # (look, document, picture). Holding the document keeps the one the picture was
-        # drawn from alive, so its identity cannot pass to a new document.
+        # By the row's document (a row still being prepared: its fragment key) and the
+        # tile of it: (look, document, picture). Holding the document keeps the one the
+        # picture was drawn from alive, so its identity cannot pass to a new document.
         self.rows: OrderedDict = OrderedDict()
         self.bytes = 0
 
@@ -576,11 +581,6 @@ class RowPictures(NativePresentation):
     @staticmethod
     def weight(size: QSize) -> int:
         return size.width() * size.height() * 4
-
-    def holds(self, size: QSize) -> bool:
-        """Whether a picture this size is worth keeping: one row may not take a quarter of
-        the limit, or a very long message would push every other row's picture out."""
-        return self.weight(size) <= self.limit // 4
 
     def kept(self, key, look, document) -> QPixmap | None:
         entry = self.rows.get(key)
