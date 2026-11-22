@@ -18,6 +18,7 @@ from agent_comms.messaging.message_page import MessagePage, MessagePageRequest
 from agent_comms.messaging.message_reference import MessageReference
 
 from agent_comms.messaging.messages import Message
+from agent_comms.messaging.revision_views import RosterView
 from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.page_traversal import (
     LiveCursor,
@@ -25,6 +26,7 @@ from agent_comms.messaging.page_traversal import (
     OlderTraversal,
     PageCursor,
 )
+from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
@@ -33,8 +35,12 @@ from agent_comms.transport.tools.sidebar import (
     CommsMarkPageReadTool,
 )
 from agent_comms.ui_model.observation import ReadNotifications
+from metaclass_registry.mro_dispatch import handles
+
 from toad.client.connection import CoordinationAccess, Observation
 from toad.client.conversation import ConversationKind
+from toad.core.events import Publication
+from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.client.conversation_capabilities import (
     ConversationActivity,
     ConversationSource,
@@ -305,9 +311,81 @@ class WireView(ConversationActivity):
             return DEFERRED_WORK
         return self.message_history.page_source.schedule_refresh(self)
 
-    @abstractmethod
+    _refreshed_from: ReadState | None = None
+    """The observer's announcement the last refresh began from; none before the first."""
+    _config_revision: ReadState = NoRevision()
+    """The announcement the thread's config (compose, label, status, mentions) was last read at."""
+
     async def _refresh_source(self) -> None:
-        """Read what changed in the conversation and the view's status beside it."""
+        """Read what changed in the conversation and draw it: the history's source work.
+        The thread's config is read on the first refresh and when the roster moved (the
+        roster owner's own signal: a channel gets no `thread_presented`), not on every bus
+        message. (Each frontend's view wrote this sequence; Qt's read the announcement after
+        the read it describes, so a roster change during the read was counted as seen.)"""
+        history = self.message_history
+        announced = self.app.coordination_access.revision
+        try:
+            await history.read_changes()
+        finally:
+            self.source_read()
+        self._refreshed_from = announced
+        self.submissions.settle()
+        self.source_drawn()
+        if announced.changed_since(RosterView(), self._config_revision):
+            self._config_revision = announced
+            self.read_thread_config()
+
+    def source_read(self) -> None:
+        """A read of the conversation ended, drawn or not: a frontend that holds something
+        until the first one (Qt's `wait_content_ready`) releases it here."""
+
+    def source_drawn(self) -> None:
+        """What changed is drawn: a frontend draws what it shows beside the history from the
+        same read (Qt's receipt, thread status and working mark; Textual's follow the
+        references and the turn as they change)."""
+
+    @abstractmethod
+    def read_thread_config(self) -> None:
+        """Start reading the thread's compose access, label, status and mentions on this
+        frontend's loop; a read already running is replaced or followed, as the loop does."""
+
+    def thread_presented(self, presentation) -> None:
+        super().thread_presented(presentation)
+        self.read_thread_config()
+
+    @handles(TranscriptSourceWorkFinished)
+    async def reconcile_finished_source_work(self, event: TranscriptSourceWorkFinished, message: Publication) -> None:
+        """Reconcile an observation which arrived during this history's source work.
+        (Textual's channel view did; Qt's history published the event to nobody.)"""
+        history = self.message_history
+        if message.publisher is not history:
+            return
+        source = history.page_source
+        access = self.app.coordination_access
+        self.submissions.settle()
+        if (not history.state.accepts_source_work
+                or not source.uses_observation(access.observation.observed())):
+            return
+        if self._refreshed_from != access.revision:
+            # The observer announced a change while this work ran. The history
+            # may have read it from the stores already; mention completion
+            # reads the observer's snapshot, which only now shows it.
+            await self._refresh()
+            return
+        if source.revision.matches_stores(access.revision):
+            return
+        snapshot = history.source_snapshot()
+        if not snapshot.current(history):
+            return
+        # A read can also be newer than the observer's last announcement. Their
+        # file revisions are identities, not an ordering: ask the service
+        # itself before reading again, rather than rereading an already
+        # current page until the observer's next tick.
+        revision = await source.read_revision()
+        if (source is history.page_source and snapshot.current(history)
+                and source.uses_observation(access.observation.observed())
+                and not source.revision.matches_stores(revision)):
+            await self._refresh()
 
     dispatch_sync: Callable[[object], None]
     """Hand the view the references its label and commands are read from: its

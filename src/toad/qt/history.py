@@ -38,6 +38,7 @@ from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
 from toad.client.fragments import FragmentDetails, HistoryFragment, Shown
+from toad.core.events import CoreEventStream
 from toad.core.projection import MroProjection
 from toad.link_opening import OpensLineLinks
 from toad.navigation_target import NavigationTarget
@@ -925,7 +926,23 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         QTimer.singleShot(0, partial(callback, *arguments))
 
     def publish_core(self, event: object) -> None:
-        """No Qt listener waits on a history's source work."""
+        """The view hears what its history publishes, through the handlers the shared view
+        classes declare (`BoundViewHost`, `WireView`), as Textual's pump carries it up from
+        the history widget. (This was empty, "no Qt listener waits on a history's source
+        work": a Qt thread never retried the publication that had waited for that work, and
+        a Qt channel never reconciled an observation that arrived during it.)
+
+        Coverage has no Qt handler: a Qt view stands no live blocks for it to retire
+        (`HistoryRowsBlocks`)."""
+        self.core_publications.publish(event)
+
+    @cached_property
+    def core_publications(self) -> CoreEventStream:
+        """This history's own publications, which its view hears whole: Textual's history
+        widget holds the same stream and its pump carries each event up to the view."""
+        stream = CoreEventStream(self)
+        self.view.subscribe_core(stream)
+        return stream
 
     # Running source work on the Qt event loop
 

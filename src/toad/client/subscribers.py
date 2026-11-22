@@ -66,6 +66,15 @@ class CoreObserver:
         self._core_subscriptions.add(subscription)
         return subscription
 
+    def subscribe_core(self, stream: CoreEventStream) -> Subscription:
+        """Hear every event a stream publishes, each delivered into the native loop
+        (`post_core_event`) to the handlers this view declares for it. (Textual's receiver
+        wrote this; Qt had no way to hear a stream whole, so what its history published
+        reached nobody.)"""
+        subscription = stream.subscribe(CoreEvent, self.post_core_event)
+        self._core_subscriptions.add(subscription)
+        return subscription
+
     def retire_core(self, subscription: Subscription) -> None:
         subscription.close()
         self._core_subscriptions.discard(subscription)
@@ -89,6 +98,10 @@ class CoreObserver:
 
     def post_core_callback(self, event: CoreEvent, subscription: CallbackSubscription) -> bool:
         """Deliver one callback event into the native loop."""
+        raise NotImplementedError
+
+    def post_core_event(self, event: CoreEvent, subscription: Subscription) -> bool:
+        """Deliver one event of a stream heard whole into the native loop."""
         raise NotImplementedError
 
     async def consume_handlers(self, event, handlers, *args, **kwargs):

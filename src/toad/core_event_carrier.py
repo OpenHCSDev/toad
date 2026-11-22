@@ -39,11 +39,6 @@ class CoreEventMessage(Publication, DeclaredMessage):
 class CoreEventReceiver(CoreObserverDispatch, DOMNode):
     """Consume declared events inside the native message-pump lifetime."""
 
-    def subscribe_core(self, stream: CoreEventStream) -> Subscription:
-        subscription = stream.subscribe(CoreEvent, self.post_core_event)
-        self._core_subscriptions.add(subscription)
-        return subscription
-
     @cached_property
     def core_publications(self) -> CoreEventStream:
         """Acquire this native source's publication resource on first use."""

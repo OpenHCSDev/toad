@@ -33,7 +33,7 @@ class AgentTurnEvents(MroDispatch):
         """Offer the agent's current commands in the composer."""
 
     @handles(core_events.Update)
-    async def on_acp_agent_message(self, event: core_events.Update, message) -> None:
+    async def on_acp_agent_message(self, event: core_events.Update, message: core_events.Publication) -> None:
         self.consumed(message)
         if not self.agent_binding.matches_agent(message.publisher):
             return
@@ -42,22 +42,22 @@ class AgentTurnEvents(MroDispatch):
         await self.output.append(event.stream, event.text)
 
     @handles(core_events.Thinking)
-    async def on_acp_agent_thinking(self, event: core_events.Thinking, message) -> None:
+    async def on_acp_agent_thinking(self, event: core_events.Thinking, message: core_events.Publication) -> None:
         self.turns.describe("Thinking…")
         await self.output.append(event.stream, event.text)
 
     @handles(core_events.RequestPermission)
-    async def on_acp_request_permission(self, event: core_events.RequestPermission, message) -> None:
+    async def on_acp_request_permission(self, event: core_events.RequestPermission, message: core_events.Publication) -> None:
         for request in message.publisher.permissions.pending:
             self.request_permissions(request)
         self.output.boundary()
 
     @handles(core_events.ToolCall)
-    async def on_acp_tool_call_update(self, event: core_events.ToolCall, message) -> None:
+    async def on_acp_tool_call_update(self, event: core_events.ToolCall, message: core_events.Publication) -> None:
         await message.publisher.controller.surface.present_tool(message, self)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
-        self, event: core_events.AvailableCommandsUpdate, message
+        self, event: core_events.AvailableCommandsUpdate, message: core_events.Publication
     ) -> None:
         self.update_slash_commands()

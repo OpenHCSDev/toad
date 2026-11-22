@@ -101,7 +101,6 @@ from toad.core.preference_events import PreferenceChanged
 from toad.core.source_events import (
     CurrentWorkingDirectoryChanged,
     TranscriptCoverage,
-    TranscriptSourceWorkFinished,
 )
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.delivery_failure_view import DeliveryFailureView
@@ -1605,11 +1604,6 @@ class Conversation(
         await self.transcript.binding.covered(
             self.transcript, event, message.publisher
         )
-
-    @handles(TranscriptSourceWorkFinished)
-    def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
-        # The event bubbles from a history inside this conversation; the screen stops it.
-        self.transcript.source_work_finished(self)
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, event: core_events.Plan) -> None:

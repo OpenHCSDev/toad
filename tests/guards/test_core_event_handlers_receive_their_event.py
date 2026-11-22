@@ -1,4 +1,6 @@
-"""A Core-event handler receives the event it declares; the carrier stays in the dispatcher."""
+"""A Core-event handler receives the event it declares, then the carrier it arrived on: a
+`Publication`, which each frontend's carrier is. A handler both frontends inherit names that
+shared parent; one only Textual has may name Textual's own `CoreEventMessage`."""
 
 import importlib
 import inspect
@@ -7,8 +9,8 @@ import typing
 from pathlib import Path
 
 import toad
-from toad.core.events import CoreEvent
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.core.events import CoreEvent, Publication
+from toad.core_event_carrier import CoreEventReceiver
 
 PACKAGE = Path(toad.__file__).parent
 
@@ -49,8 +51,10 @@ def handler_defects(receiver: type[CoreEventReceiver]) -> typing.Iterator[str]:
             for event in events:
                 if not any(isinstance(kind, type) and issubclass(event, kind) for kind in declared):
                     yield f"{where}: first parameter {hints.get(parameters[0])} does not accept {event.__name__}"
-        if len(parameters) > 1 and hints.get(parameters[1]) is not CoreEventMessage:
-            yield f"{where}: second parameter must be CoreEventMessage, not {hints.get(parameters[1])}"
+        if len(parameters) > 1:
+            carrier = hints.get(parameters[1])
+            if not (isinstance(carrier, type) and issubclass(carrier, Publication)):
+                yield f"{where}: second parameter must be the carrier (a Publication), not {carrier}"
         if len(parameters) > 2:
             yield f"{where}: Core delivers an event and its carrier, not {len(parameters)} values"
 
