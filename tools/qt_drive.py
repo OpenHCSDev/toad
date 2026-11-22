@@ -3767,6 +3767,27 @@ class HistoryScrollBackScenario(Scenario):
             counts[cause] = counts.get(cause, 0) + 1
             return relayout()
         window.rows_changed = counted_relayout
+        # Rows landing above a reader whose finger is dragging or flinging them: layout puts
+        # the reader back on their message, and the next scroll must go on from that row.
+        # QScroller planning in offsets from before the rows landed put the reader a page of
+        # rows away on its next frame, so the furthest the top row moved is reported.
+        counts["moved_under_finger"] = counts["max_rows_jumped_after"] = 0
+        shift, placed = window.shift_travel, []
+
+        def top_row() -> int:
+            return window.indexAt(QPoint(5, 5)).row()
+
+        def counted_shift(rows, destination):
+            shift(rows, destination)
+            if QScroller.scroller(window.viewport()).state() != QScroller.State.Inactive:
+                counts["moved_under_finger"] += 1
+                placed[:] = [top_row()]
+
+        def next_scroll(_value):
+            if placed:
+                counts["max_rows_jumped_after"] = max(counts["max_rows_jumped_after"], abs(top_row() - placed.pop()))
+        window.shift_travel = counted_shift
+        window.verticalScrollBar().valueChanged.connect(next_scroll)
         history = self.page.message_history
         show = history._show
 

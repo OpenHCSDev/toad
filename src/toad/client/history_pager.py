@@ -321,9 +321,11 @@ class ReaderPlacement:
             finally:
                 self._restoring = restoring
 
+    @abstractmethod
     def shift_travel(self, rows: float, destination: float) -> None:
-        """Layout moved the reader `rows` while they were travelling to `destination`. A
-        window that scrolls at once (Qt) has no travel under way."""
+        """Layout moved the reader `rows` while they were travelling to `destination`: the
+        toolkit's travel under way (a scroll animation, a finger's drag or fling) goes on
+        from the new place to the same rows."""
 
     @asynccontextmanager
     async def preserve_history(self):

@@ -27,7 +27,7 @@ from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QSize, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QTextDocument
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QScrollEvent, QTextDocument
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
 )
@@ -313,6 +313,11 @@ class HeadReveal(WidgetAnimation, TransitionTarget):
         if window.head_reveal is self:
             window.head_reveal = None
             window.scroll_y = self.target
+
+    def shifted(self, rows: float) -> None:
+        """Layout moved the reader `rows` mid-glide: the glide is to the same message."""
+        self.start += rows
+        self.target += rows
 
     def cancel(self) -> None:
         """Stop where it is: the reader's own scrolling owns the rows now."""
@@ -1328,8 +1333,9 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     @property
     def scroll_target_y(self) -> float:
-        """Qt scrolls at once: its target is where it is."""
-        return self.scroll_y
+        """Where the rows are being carried (`animated_travel`), within what is loaded; where
+        they are when nothing carries them."""
+        return max(0.0, min(self.max_scroll_y, self.scroll_y + self.animated_travel))
 
     @property
     def max_scroll_y(self) -> float:
@@ -1613,6 +1619,41 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         self._flinging = state == QScroller.State.Scrolling
         if state == QScroller.State.Inactive:
             self._overshoot = 0.0
+            self._travel_origin = 0.0
+
+    _travel_origin = 0.0
+    """How far layout has moved the reader since the finger now scrolling them came down.
+    QScroller plans a drag or a fling in scroll offsets it read when the finger came down;
+    rows landing above the reader move every offset, so its next frame put the reader back
+    on the old offset, a page of rows away. It is answered in offsets taken from this
+    origin, which layout does not move (`viewportEvent`, `shift_travel`)."""
+
+    def viewportEvent(self, event: QEvent) -> bool:  # type: ignore[override]
+        """QScroller's two events, in the travelling finger's own offsets: it is told where
+        the rows are less the origin, and what it asks for is shown at that plus the origin."""
+        origin = self._travel_origin
+        if not origin:
+            return super().viewportEvent(event)
+        if event.type() == QEvent.Type.Scroll:
+            return super().viewportEvent(QScrollEvent(
+                event.contentPos() + QPointF(0, origin), event.overshootDistance(), event.scrollState()))
+        handled = super().viewportEvent(event)
+        if handled and event.type() == QEvent.Type.ScrollPrepare:
+            event.setContentPosRange(event.contentPosRange().translated(0, -origin))
+            event.setContentPos(event.contentPos() - QPointF(0, origin))
+        return handled
+
+    def shift_travel(self, rows: float, destination: float) -> None:
+        """A head reveal glides to the same message; a finger's drag or fling goes on from
+        the same rows at the same speed. QScroller prepares again from the moved origin: a
+        fling it had planned to end at the loaded edge is planned again at its present
+        speed, into the rows that landed."""
+        if self.head_reveal is not None:
+            self.head_reveal.shifted(rows)
+        scroller = QScroller.scroller(self.viewport())
+        if scroller.state() != QScroller.State.Inactive:
+            self._travel_origin += rows
+            scroller.resendPrepareEvent()
 
     def overshot(self, distance: float) -> None:
         """A finger (or a fling's momentum) pulled the rows past an edge: the content can't
