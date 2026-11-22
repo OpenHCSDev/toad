@@ -15,8 +15,5 @@
         <service android:name="org.toadcomms.ConnectedService"
                  android:exported="false"
                  android:foregroundServiceType="remoteMessaging" />
-        <service android:name="org.toadcomms.ToadRenderService"
-                 android:exported="false"
-                 android:process=":service_toadrender" />
     </application>
 </manifest>

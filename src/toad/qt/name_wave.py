@@ -15,6 +15,8 @@ from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItem
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 
+from ui_theme.effects import Band
+
 from toad.client.name_wave import BandCells, NameWave
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 
@@ -83,6 +85,13 @@ class QtClockedWave(NameWave):
         if self.animation is not None:
             self.animation.stop()
             self.animation = None
+        self.repaint()
+
+    def wave_frame(self) -> Band:
+        """The shared name-wave band at the app clock's current frame."""
+        if self.animation is None:
+            raise RuntimeError("An idle name has no working frame")
+        return self.animation.frame()
 
 
 class QtTabWave(QtClockedWave):
@@ -233,7 +242,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
             painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
             rect = self.style().subElementRect(QStyle.SubElement.SE_TabBarTabText, option, self)
             shown = self.fontMetrics().elidedText(text, Qt.TextElideMode.ElideRight, rect.width())
-            start, end = self.band_cells(wave.animation.frame(), len(shown) + 2 * self.padding_cells)
+            start, end = self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
             ink = QTextLayout.FormatRange()
             ink.start, ink.length = 0, len(shown)
             plain = QTextCharFormat()

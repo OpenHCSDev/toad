@@ -13,7 +13,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import asyncio
-from math import ceil
 
 import shiboken6
 from collections import deque
@@ -21,20 +20,22 @@ from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
+from math import copysign
 from pathlib import Path
 from typing import ClassVar
 from weakref import WeakSet
 
-from agent_comms.messaging.messages import ConversationRole, Membership, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QTextDocument
-from PySide6.QtWidgets import QAbstractItemView, QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
+from PySide6.QtWidgets import (
+    QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
+)
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
-from toad.client.fragments import EvidencedFragment, FragmentDetails, HistoryFragment, MembershipText, Shown, WireMessage
+from toad.client.fragments import FragmentDetails, HistoryFragment, Shown
 from toad.core.projection import MroProjection
 from toad.link_opening import OpensLineLinks
 from toad.navigation_target import NavigationTarget
@@ -52,7 +53,7 @@ from toad.client.history_pager import (
     ReaderPlacement,
     Runway,
 )
-from toad.client.line_blocks import Divider, LineBlock
+from toad.client.line_blocks import BlockPreparation, Divider
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
@@ -60,14 +61,6 @@ from toad.client.prepared_pages import ClosedHistory, PreparedTranscriptPage
 from toad.client.reader_position import (
     FragmentLocation, FragmentPosition, ReaderPage, ReaderPosition, RowPosition, TailPosition,
     UnloadedFragment,
-)
-from toad.client.transcript_fragments import (
-    BusMessageFragment,
-    ContextTranscriptFragment,
-    FragmentClasses,
-    SentMessageFragment,
-    ToolTranscriptFragment,
-    TranscriptFragment,
 )
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.widget_view import WorkspaceHosted
@@ -79,6 +72,15 @@ from toad.patch import DiffSettings
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
 from toad.qt.widget_animation import WidgetAnimation, frame_interval
+from toad.qt.transcript_fragments import (
+    QT_FRAGMENT_CLASSES,
+    QtContextTranscriptFragment,
+    QtMembershipFragment,
+    QtMessageFragment,
+    QtSentMessageFragment,
+    QtToolTranscriptFragment,
+    QtWireFragment,
+)
 from toad.render_backend import RenderTask
 from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
@@ -87,61 +89,6 @@ from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, Pr
 
 if TYPE_CHECKING:
     from toad.qt.live_turn import QtLiveBlock
-
-
-class QtWireFragment(EvidencedFragment, TranscriptFragment):
-    """A wire message drawn by Qt, and the root of Qt's wire fragments: a message's role
-    selects the member declared under it. Also a `TranscriptFragment`, so a transcript
-    source feeding this family decodes the same shape Textual's `WireFragment` does in
-    `src/toad/widgets/wire_history.py:30`."""
-
-
-class QtMembershipFragment(MembershipText, QtWireFragment, shows=(Membership,)):
-    """Someone joined or left, drawn by Qt."""
-
-
-class QtMessageFragment(WireMessage, BusMessageFragment, QtWireFragment,
-                        shows=(ConversationRole, NoticeRole)):
-    """A bus message drawn by Qt. Also a `BusMessageFragment`, so the same type answers whether
-    it was decoded from a wire read or from a transcript event — same bridge Textual's
-    `MessageFragment` makes at `src/toad/widgets/wire_history.py:50`."""
-
-
-class QtToolTranscriptFragment(ToolTranscriptFragment):
-    """A tool call drawn by Qt: the canonical blocks derivation is enough; the row delegate
-    paints through `line_blocks`, so Qt adds no row acquisition. Textual's sibling in
-    `toad.widgets.transcript_fragments.ToolTranscriptFragment` layers on row acquisition."""
-
-
-class QtContextTranscriptFragment(ContextTranscriptFragment):
-    """The coordination context an agent was given, drawn by Qt."""
-
-
-@dataclass(kw_only=True)
-class QtSentMessageFragment(SentMessageFragment, EvidencedFragment):
-    """A sent bus message drawn by Qt — the Qt flavor Qt's QtPage uses as
-    `sent_message` in `QT_FRAGMENT_CLASSES`. Also an `EvidencedFragment` so
-    `QtHistoryWindow.row_painted → self.history.retain_painted(fragment)` can
-    read `fragment.evidence` without `AttributeError`. The client's bare
-    `SentMessageFragment` lacks that field; Textual pairs it with its own
-    EvidencedFragment-bearing bases at `widgets/transcript_fragments.py:170`.
-    `@dataclass(kw_only=True)` so EvidencedFragment's `evidence` field
-    actually lands on the instance; without it the two bases' dataclass
-    declarations don't combine and `fragment.evidence` raises AttributeError."""
-    evidence: object | None = None
-
-
-QT_FRAGMENT_CLASSES = FragmentClasses(
-    transcript=TranscriptFragment,
-    context=QtContextTranscriptFragment,
-    bus_message=QtMessageFragment,
-    sent_message=QtSentMessageFragment,
-    tool=QtToolTranscriptFragment,
-)
-"""The Qt flavor of the shared fragment family. A render pipeline that reaches Qt (a future
-Qt entry for `AcpTab`/`MailboxTab`) passes this to `transcript_fragments(..., classes=...)`;
-the current CommsTab path still goes through `WireSource` with the Qt wire fragments, since
-bus messages have no transcript builder in the loop."""
 
 
 class QtPage(ReaderPage):
@@ -439,17 +386,6 @@ class HistoryRowDelegate(RowDocumentDelegate):
         cell = max(1.0, QFontMetricsF(font).averageCharWidth())
         return HtmlRow(renderer.at_width(max(1, int((width - 8) / cell))).html(blocks))
 
-    @staticmethod
-    def document_size(document: QTextDocument, available: int) -> QSize:
-        """The document owns its horizontal extent.
-
-        Wrapped bodies remain at the viewport width. ``pre`` blocks (diffs, code and
-        tool output) report their intrinsic width, which is what gives the shared
-        history view one horizontal scrollbar instead of clipping each preview.
-        """
-        return QSize(max(available, ceil(document.idealWidth()), ceil(document.size().width())),
-                     ceil(document.size().height()))
-
     def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument:
         # A wide row's paint rect is its intrinsic extent. Layout still uses the
         # viewport width, or wrapped prose would stop wrapping after scrolling code.
@@ -461,13 +397,14 @@ class HistoryRowDelegate(RowDocumentDelegate):
         self.initStyleOption(opt, index)
         width = self.view.viewport_width() or self.available_width(opt)
         opt.rect.setWidth(width)
-        # pyqt-reactive owns the cached height at the layout width. Horizontal
-        # extent is a separate derived answer; storing it in the same QSize made
-        # its row-size cache mistake content width for a new layout width.
+        # pyqt-reactive owns the height at the layout width and, apart from it, how wide the
+        # row's content came out when it was laid out (`row_extent`): `pre` blocks (diffs, code,
+        # tool output) do not wrap, which is what gives the history one horizontal scrollbar
+        # instead of clipping each preview. Asking lays nothing out. Building each row's
+        # document here to ask it laid out every row a layout touched, away from the reader
+        # too, and queued the ones not prepared yet for a render inside this process.
         height = super().sizeHint(opt, index).height()
-        document = self.final_document(index, opt.font, width)
-        extent = width if document is None else self.document_size(document, width).width()
-        return QSize(extent, height)
+        return QSize(self.row_extent(self.preparation_key(index, opt.font, width), width), height)
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared
@@ -591,10 +528,9 @@ class HistoryRowDelegate(RowDocumentDelegate):
 
 
 @dataclass(frozen=True)
-class QtRowPreparation:
+class QtRowPreparation(BlockPreparation):
     """One Qt row's immutable presentation declarations, safe across either transport."""
 
-    blocks: tuple[LineBlock, ...]
     scheme: ColourScheme
     links: LinkContext
     diff: DiffSettings
@@ -606,25 +542,25 @@ class QtRowPreparation:
 
 
 @dataclass(frozen=True)
-class QtHistoryRowBatchRenderTask(RenderTask[tuple[tuple, ...]]):
-    """One page of rows the shared pager asks be prepared ahead of drawing them, submitted
-    through the launch's `app.render_processes` so both frontends submit the same way (the
-    Textual client already did, `ToadApp.render_processes` wrapping its process pool; the
-    Qt client now shares that owner, wrapping its in-thread renderer). Each job carries
-    the key the delegate caches under and the callable `RowDocumentDelegate.rendering`
-    returns for that row (an html build over its line blocks at its width and font).
+class QtHistoryRowBatchRenderTask(RenderTask[tuple[RowFormatting, ...]]):
+    """Rows the shared pager asks be prepared ahead of drawing them, submitted through the
+    launch's `app.render_processes` as Textual's `TranscriptLinesBatchRenderTask` is.
 
-    The result is a tuple of `(key, formatting)` pairs the caller adopts into the
-    delegate's cache; `_row_prepared` lays rows out once for the batch, so a page of
-    arrivals is one layout.
+    The task carries each row's presentation declarations and nothing else; its result is
+    one formatting per row, in order. Which cache key a formatting lands under is the
+    delegate's own fact and never crosses the process boundary: a key that went to a worker
+    and came back was a copy that no longer matched the one the delegate asks under, so
+    every prepared row was dropped, rendered again inside the UI process, measured as an
+    estimate and laid out again when that second render landed (a 229-row scroll-back:
+    490 rows rendered twice, about 130 whole layouts).
     """
 
-    jobs: tuple[tuple[Hashable, QtRowPreparation], ...]
+    rows: tuple[QtRowPreparation, ...]
 
-    def execute(self) -> tuple[tuple[Hashable, RowFormatting], ...]:
-        return tuple((key, preparation.render()) for key, preparation in self.jobs)
+    def execute(self) -> tuple[RowFormatting, ...]:
+        return tuple(preparation.render() for preparation in self.rows)
 
-    def result_size(self, result: tuple[tuple[Hashable, RowFormatting], ...]) -> int:
+    def result_size(self, result: tuple[RowFormatting, ...]) -> int:
         return 64 * (len(result) + 1)
 
 
@@ -684,7 +620,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self._read_task: asyncio.Task | NoTask = NoTask()
         self._read_ahead: asyncio.Task | NoTask = NoTask()
         prepared = self.empty_page()
-        super().__init__(source_state=LiveTranscript(),
+        super().__init__(source_state=self.initial_state(view),
                          page_source=self._initial_page_source(prepared, app))
         self.budget = self.DEFAULT_BUDGET
         self._fragment_budget = self.budget.max_items
@@ -758,14 +694,15 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         rows, font, width = window.rows, window.font(), window.viewport_width()
         if width <= 0:
             return  # Not laid out yet: the first paint prepares them at the real width.
-        jobs = tuple((key, rows.row_preparation(fragment.line_blocks, font, width)) for fragment in fragments
-                     if fragment.shown_in(selected)
-                     and not rows.is_prepared(key := rows.fragment_key(fragment, font, width)))
-        if not jobs:
+        waiting = tuple((key, fragment) for fragment in fragments
+                        if fragment.shown_in(selected)
+                        and not rows.is_prepared(key := rows.fragment_key(fragment, font, width)))
+        if not waiting:
             return
-        prepared = await self.view.app.render_processes.submit(QtHistoryRowBatchRenderTask(jobs))
+        prepared = await self.view.app.render_processes.submit(QtHistoryRowBatchRenderTask(tuple(
+            rows.row_preparation(fragment.line_blocks, font, width) for _key, fragment in waiting)))
         if current():
-            for key, formatting in prepared:
+            for (key, _fragment), formatting in zip(waiting, prepared, strict=True):
                 rows.adopt(key, formatting)
 
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
@@ -860,7 +797,8 @@ class QtWireHistory(AwaitsFirstPage, QtConversationHistory):
 
     def __init__(self, window: QtHistoryWindow, view, app) -> None:
         super().__init__(window, view, app)
-        self.waiting = QtFloatLayer(app.theme.color_scheme, app.renderer, window)
+        self.waiting = QtFloatLayer(
+            app.theme.color_scheme, app.renderer, app.animation_clock, window)
         QTimer.singleShot(int(self.waiting.pending_delay * 1000), self.waiting, self.show_first_page)
 
     def show_first_page(self) -> None:
@@ -1437,7 +1375,25 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     @property
     def animated_travel(self) -> float:
-        return 0
+        """Pixels the rows are still being carried with no finger on them, as Textual answers
+        with its scroll animation's distance to its target: a head reveal's way to its head,
+        or a fling's momentum (`fling_travel`)."""
+        if self.head_reveal is not None:
+            return self.head_reveal.target - self.scroll_y
+        return self._safe_qt_read(self.fling_travel, 0.0)
+
+    def fling_travel(self) -> float:
+        """How far a fling's speed carries the rows at QScroller's deceleration (v²/2a, the
+        distance QScroller itself plans), whether or not rows are loaded that far: Qt stops
+        a fling at the loaded edge, and the rows it was thrown towards are what the reader
+        asked for."""
+        scroller = QScroller.scroller(self.viewport())
+        if scroller.state() != QScroller.State.Scrolling:
+            return 0.0
+        speed = scroller.velocity().y()
+        deceleration = scroller.scrollerProperties().scrollMetric(
+            QScrollerProperties.ScrollMetric.DecelerationFactor)
+        return copysign(speed * speed / (2 * deceleration) * scroller.pixelPerMeter().y(), speed)
 
     @property
     def presenting(self) -> bool:

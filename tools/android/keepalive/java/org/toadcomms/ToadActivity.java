@@ -67,7 +67,6 @@ public class ToadActivity extends PythonActivity {
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATIONS_ASKED);
         }
-        ToadRenderService.start(this, "");
     }
 
     /** The keep-alive may start only while this activity is actually in the foreground.
@@ -82,12 +81,6 @@ public class ToadActivity extends PythonActivity {
         } catch (android.app.ForegroundServiceStartNotAllowedException refused) {
             android.util.Log.w("toadcomms", "ConnectedService refused while activity resumed", refused);
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        ToadRenderService.stop(this);
-        super.onDestroy();
     }
 
     /** Every activity start passes here (the two-argument form calls this one); a file

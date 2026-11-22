@@ -8,6 +8,7 @@ from itertools import chain, zip_longest
 from typing import Annotated, ClassVar
 
 from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
+from metaclass_registry.mro_dispatch import handles
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from pygments.lexers import get_lexer_for_filename
 from pygments.util import ClassNotFound
@@ -20,6 +21,7 @@ from toad.client.line_blocks import (
     RemovedCodeRole,
     TextRole,
 )
+from toad.core.projection import MroProjection
 from toad.setting_declarations import Effect, FamilyChoices, SettingsDeclaration
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
@@ -115,6 +117,39 @@ class UnifiedRows(PatchRows):
 
 
 SPLIT_ROWS, UNIFIED_ROWS = SplitRows(), UnifiedRows()
+
+
+class PatchRowPainter[Painted](MroProjection[Painted]):
+    """One diff row painted for a frontend.
+
+    Which sides a layout shows and the line-number gutter before each are the same
+    everywhere: two panes, each numbered for its own file, or one column numbered for both.
+    A frontend declares how it paints a side (`PatchCell`, `NoPatchCell`) and how two panes
+    sit in one row; Textual's rows of text and Qt's table rows both come from here."""
+
+    patch: Patch
+
+    def row(self, rows: PatchRows, old: PatchSide, new: PatchSide) -> Painted:
+        return self.project_value(rows, old, new)
+
+    @handles(SplitRows)
+    def beside(self, rows: SplitRows, old: PatchSide, new: PatchSide) -> Painted:
+        width = self.patch.number_width
+        return self.paired(self.project_value(old, f"{old.label:>{width}} "),
+                           self.project_value(new, f"{new.label:>{width}} "))
+
+    @handles(UnifiedRows)
+    def column(self, rows: UnifiedRows, old: PatchSide, new: PatchSide) -> Painted:
+        width = self.patch.number_width
+        return self.single(self.project_value(old.otherwise(new), f"{old.label:>{width}} {new.label:>{width}} "))
+
+    @abstractmethod
+    def paired(self, left: Painted, right: Painted) -> Painted:
+        """Two painted panes as one row."""
+
+    def single(self, pane: Painted) -> Painted:
+        """One painted pane as a row: itself, unless the frontend wraps its rows."""
+        return pane
 
 
 class DiffMarks:

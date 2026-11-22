@@ -224,14 +224,11 @@ class QtAcpSessionView(
         """The launch's current initial identity, read fresh on each access."""
         return self.launch.initial_identity(NoThreadIdentity())
 
-    def shown(self, window, visited) -> None:  # type: ignore[override]
-        """Selected: record the visit, and the first time, attach the launch's agent."""
-        if self.session_details is not None:
-            visited(self.session_details.identity)
+    def activate_selected_thread(self) -> None:
+        """Attach this ACP member's launch the first time its inherited lifecycle selects it."""
         if not self._attached:
             self._attached = True
             self.launch.attach_to(self, self)
-        self.reload()
 
 
 class QtNativeSessionEntry(QtSessionEntry, NativeSessionEntry, shows=(SessionTabIdentity,)):

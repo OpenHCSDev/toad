@@ -35,7 +35,6 @@ from toad.client.line_blocks import (
     Summary,
 )
 from toad.client.line_painting import LineBlockPainter, LinkPresentation
-from toad.core.projection import MroProjection
 from toad.markdown_links import LinkContext, MessageMarkdownParser
 from toad.message_rows import CellRoom, DIVIDER_TIME, WireBody
 from toad.patch import (
@@ -43,8 +42,8 @@ from toad.patch import (
     NoPatchCell,
     Patch,
     PatchCell,
-    SplitRows,
-    UnifiedRows,
+    PatchRowPainter,
+    PatchRows,
 )
 from toad.rich_preparation import RichTextBody, palette_colour
 
@@ -221,8 +220,9 @@ class QtLineRenderer(LineBlockPainter[str]):
     @handles(Summary)
     def summary(self, block: Summary) -> str:
         """One row: the kept spans' room is reserved and the rest elides at the row's end."""
-        return ('<p style="white-space:pre">' + "".join(self.span(span, span.role) for span in block.spans)
-                + "".join(self.span(span, span.role) for span in block.kept) + "</p>")
+        return ('<p style="white-space:pre">'
+                + "".join(self.span(span, span.role) for span in block.fitted(self.width))
+                + "</p>")
 
     @handles(SpanColumns)
     def span_columns(self, block: SpanColumns) -> str:
@@ -265,7 +265,7 @@ class QtLineRenderer(LineBlockPainter[str]):
                        for line in (*block.before.values(), *block.after.values())), default=0)
         required = 2 * (longest + block.number_width + 4) + 3
         rows = self.diff.view.rows_at(self.width, required)
-        return QtPatchPainter(self, block).project_value(rows)
+        return QtPatchPainter(self, block).table(rows)
 
     def patch_line(self, gutter: str, code: str, role: type[LineRole], language: str) -> str:
         """One diff row on its role's tint, its code in its language's colours."""
@@ -282,63 +282,34 @@ class QtLineRenderer(LineBlockPainter[str]):
         return self.barred(f'<pre style="color:{self.colour(block.role)}">{text}</pre>', block.bar)
 
 
-class QtPatchSide(MroProjection[str]):
-    """One declared side of a Qt diff row: code, or the absent member."""
+class QtPatchPainter(PatchRowPainter[str]):
+    """The shared diff rows drawn as a Qt table, under the same view and wrap declarations as
+    Textual: a pane is a cell, a row of panes a table row."""
 
     def __init__(self, renderer: QtLineRenderer, patch: Patch) -> None:
         self.renderer, self.patch = renderer, patch
 
+    def table(self, rows: PatchRows) -> str:
+        white_space = self.renderer.diff.wrap.css_white_space
+        gap = self.renderer.styled("…", MutedRole)
+        body = (self.paired(gap, gap) if rows.split else self.single(gap)).join(
+            "".join(self.row(rows, before, after) for before, after in group)
+            for group in self.patch.row_groups(rows))
+        title = self.renderer.styled(self.patch.title, MutedRole)
+        return (f'<p style="white-space:{white_space}">{title}</p>'
+                f'<table cellspacing="0" cellpadding="0" style="white-space:{white_space}">{body}</table>')
+
+    def paired(self, left: str, right: str) -> str:
+        return f"<tr><td>{left}</td><td>{right}</td></tr>"
+
+    def single(self, pane: str) -> str:
+        return f"<tr><td>{pane}</td></tr>"
+
     @handles(PatchCell)
-    def cell(self, cell: PatchCell, gutter: str) -> str:
+    def line(self, cell: PatchCell, prefix: str) -> str:
+        gutter = prefix + self.renderer.diff.marks.prefix(cell.role)
         return self.renderer.patch_line(gutter, cell.selected().expandtabs(4), cell.role, self.patch.language)
 
     @handles(NoPatchCell)
-    def absent(self, cell: NoPatchCell, gutter: str) -> str:
-        return self.renderer.styled(gutter + " ", MutedRole)
-
-
-class QtPatchPainter(MroProjection[str]):
-    """The shared diff-row family drawn in Qt, under the same view and wrap declarations as Textual."""
-
-    def __init__(self, renderer: QtLineRenderer, patch: Patch) -> None:
-        self.renderer, self.patch = renderer, patch
-        self.side = QtPatchSide(renderer, patch)
-
-    @property
-    def white_space(self) -> str:
-        return self.renderer.diff.wrap.css_white_space
-
-    def table(self, body: str) -> str:
-        title = self.renderer.styled(self.patch.title, MutedRole)
-        return (f'<p style="white-space:{self.white_space}">{title}</p>'
-                f'<table cellspacing="0" cellpadding="0" style="white-space:{self.white_space}">{body}</table>')
-
-    @handles(UnifiedRows)
-    def unified(self, rows: UnifiedRows) -> str:
-        width = self.patch.number_width
-        groups = []
-        for group in self.patch.row_groups(rows):
-            rendered = []
-            for before, after in group:
-                cell = before.otherwise(after)
-                gutter = f"{before.label:>{width}} {after.label:>{width}} {self.renderer.diff.marks.prefix(cell.role)}"
-                rendered.append(f'<tr><td>{self.side.project_value(cell, gutter)}</td></tr>')
-            groups.append("".join(rendered))
-        separator = f'<tr><td>{self.renderer.styled("…", MutedRole)}</td></tr>'
-        return self.table(separator.join(groups))
-
-    @handles(SplitRows)
-    def split(self, rows: SplitRows) -> str:
-        width = self.patch.number_width
-        groups = []
-        for group in self.patch.row_groups(rows):
-            rendered = []
-            for before, after in group:
-                left = f"{before.label:>{width}} {self.renderer.diff.marks.prefix(before.role)}"
-                right = f"{after.label:>{width}} {self.renderer.diff.marks.prefix(after.role)}"
-                rendered.append(f'<tr><td>{self.side.project_value(before, left)}</td>'
-                                f'<td>{self.side.project_value(after, right)}</td></tr>')
-            groups.append("".join(rendered))
-        separator = (f'<tr><td>{self.renderer.styled("…", MutedRole)}</td>'
-                     f'<td>{self.renderer.styled("…", MutedRole)}</td></tr>')
-        return self.table(separator.join(groups))
+    def absent(self, cell: NoPatchCell, prefix: str) -> str:
+        return self.renderer.styled(prefix + self.renderer.diff.marks.prefix(cell.role) + " ", MutedRole)

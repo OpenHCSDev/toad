@@ -4,7 +4,7 @@ window supplies only what its toolkit does differently."""
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from types import SimpleNamespace
 
 from toad.client.history_pager import ReaderPlacement
@@ -89,3 +89,28 @@ def test_both_frontends_histories_place_an_arrival_through_the_shared_pager():
     for history in (LineHistory, QtConversationHistory):
         for shared in ("hold_arrival", "page_holding"):
             assert getattr(history, shared) is getattr(HistoryPager, shared), (history, shared)
+
+
+def test_a_paused_source_observes_the_scope_its_pager_view_owns():
+    """A Qt pager is not a widget and has no Textual ancestor tree to search."""
+    from toad.client.history_state import WaitingSourceWork
+
+    observed = []
+
+    @contextmanager
+    def observe(owner, access, resume):
+        observed.append((owner, access, resume))
+        yield
+
+    access = object()
+    view = SimpleNamespace(thread_scope=SimpleNamespace(observe=observe))
+    owner = SimpleNamespace(
+        view=view,
+        app=SimpleNamespace(coordination_access=access),
+    )
+    waiting = WaitingSourceWork(owner, object(), lambda: None, object())
+
+    with waiting.observe():
+        pass
+
+    assert observed == [(view, access, waiting.resume)]

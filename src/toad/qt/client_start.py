@@ -27,7 +27,6 @@ from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
 from toad.qt.window import QtToadApp
 from toad.render_backend import Renderer
-from toad.render_socket_service import AndroidRenderService
 from toad.work_preparation import PreparationRuntime
 
 if TYPE_CHECKING:
@@ -38,11 +37,15 @@ if TYPE_CHECKING:
 def _renderer_for_platform(connection: CoreConnection) -> Renderer:
     """The platform's real process primitive behind one renderer contract.
 
-    Qt row work is data-only. Desktop uses CPython's process pool; Android, which
-    has no ``_multiprocessing``, uses the app's p4a Python service process.
+    Desktop uses CPython's persistent process pool. Android has no ``_multiprocessing``;
+    its renderer therefore uses the existing worker-thread member. A p4a service is a
+    fresh interpreter, not a fork: importing the application there cost minutes and
+    sustained a CPU core to outsource a few milliseconds of preparation, while Qt's
+    actual document layout remained in this process.
     """
     if QGuiApplication.platformName() == "android":
-        return AndroidRenderService()
+        from toad.render_in_thread import InThreadRenderer
+        return InThreadRenderer()
     from toad.render_processes import RenderProcessPool
     return RenderProcessPool(connection.helper_start)
 

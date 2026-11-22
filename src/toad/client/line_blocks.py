@@ -10,9 +10,11 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import ClassVar, Self
 from urllib.parse import quote, unquote
+
+from rich.cells import cell_len, set_cell_size
 
 from agent_comms.messaging.display_references import DisplayReference
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -424,6 +426,31 @@ class Summary(SpanText):
 
     kept: tuple[Span, ...] = ()
 
+    @staticmethod
+    def _clipped(text: str, width: int) -> str:
+        """One source value flattened and clipped to ``width`` display cells."""
+        flattened = " ".join(line.expandtabs(4) for line in text.splitlines() or [""])
+        if width <= 0:
+            return ""
+        if cell_len(flattened) <= width:
+            return flattened
+        return set_cell_size(flattened, width - 1) + "…"
+
+    def fitted(self, width: int) -> tuple[Span, ...]:
+        """The row at a monospace viewport width, with ``kept`` space reserved.
+
+        Summary owns clipping rather than each frontend reinterpreting it: Textual and
+        Qt both draw the same spans, roles and links, and neither can let a collapsed
+        tool call widen its history viewport.
+        """
+        room = max(0, width - sum(cell_len(span.text) for span in self.kept))
+        fitted: list[Span] = []
+        for span in self.spans:
+            text = self._clipped(span.text, room)
+            room -= cell_len(text)
+            fitted.append(replace(span, text=text))
+        return (*fitted, *self.kept)
+
     @property
     def text(self) -> str:
         return super().text + "".join(span.text for span in self.kept)
@@ -485,3 +512,16 @@ class MessageBody(Body):
 
 class MarkdownMessageBody(MessageBody, MarkdownBody):
     """Message separation and Markdown preparation are independent capabilities."""
+
+
+@dataclass(frozen=True)
+class BlockPreparation:
+    """One row's blocks as a render worker receives them: data only, with what its source
+    retains. A frontend adds what styles them (Textual's line theme; Qt's scheme, links, diff
+    settings and width in cells)."""
+
+    blocks: tuple[LineBlock, ...]
+    retained_bytes: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "retained_bytes", 256 + sum(block.retained_bytes for block in self.blocks))

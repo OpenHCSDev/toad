@@ -37,6 +37,7 @@ from toad.client.prepared_pages import MeasuresFragments
 from toad.core.projection import MroProjection
 from toad.client.line_painting import LineBlockPainter, LinkPresentation
 from toad.client.line_blocks import (
+    BlockPreparation,
     Body,
     Divider,
     Gap,
@@ -61,9 +62,7 @@ from toad.patch import (
     NoPatchCell,
     Patch,
     PatchCell,
-    PatchSide,
-    SplitRows,
-    UnifiedRows,
+    PatchRowPainter,
 )
 from toad.render_backend import ReusableRenderTask
 from toad.rich_preparation import RichTextBody, SyntaxPalette
@@ -234,27 +233,15 @@ class PatchLayout:
         return divide_line(text, self.code_width, fold=True) if self.settings.wrap.enabled else []
 
 
-class PatchPainter(MroProjection[list[Text]]):
+class PatchPainter(PatchRowPainter[list[Text]]):
     """Paint one diff row: a numbered line with its gutter, or a blank pane where a side has no line."""
 
     def __init__(self, layout: PatchLayout, theme: LineTheme) -> None:
-        self.layout, self.theme = layout, theme
+        self.layout, self.theme, self.patch = layout, theme, layout.patch
 
-    def row(self, old: PatchSide, new: PatchSide) -> list[Text]:
-        return self.project_value(self.layout.rows, old, new)
-
-    @handles(SplitRows)
-    def beside(self, rows: SplitRows, old: PatchSide, new: PatchSide) -> list[Text]:
-        width = self.layout.number_width
-        left = self.project_value(old, f"{old.label:>{width}} ")
-        right = self.project_value(new, f"{new.label:>{width}} ")
+    def paired(self, left: list[Text], right: list[Text]) -> list[Text]:
         blank, divider = Text(" " * self.layout.pane_width), Text(" │ ", style=self.theme.style(MutedRole))
         return [a + divider + b for a, b in zip_longest(left, right, fillvalue=blank)]
-
-    @handles(UnifiedRows)
-    def column(self, rows: UnifiedRows, old: PatchSide, new: PatchSide) -> list[Text]:
-        width = self.layout.number_width
-        return self.project_value(old.otherwise(new), f"{old.label:>{width}} {new.label:>{width}} ")
 
     @handles(PatchCell)
     def line(self, cell: PatchCell, prefix: str) -> list[Text]:
@@ -461,7 +448,7 @@ class RichLineRenderer(LineBlockPainter[None]):
             if group_index:
                 self.output.append((Segment("…", muted),))
             for old, new in group:
-                self.output.extend(tuple(row.render(console)) for row in painter.row(old, new))
+                self.output.extend(tuple(row.render(console)) for row in painter.row(layout.rows, old, new))
 
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> None:
@@ -499,14 +486,10 @@ class RichLineRenderer(LineBlockPainter[None]):
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:
-        room = max(0, self.width - sum(cell_len(span.text) for span in block.kept))
-        row: list[Segment] = []
-        for span in block.spans:
-            text = _fit(span.text, room)
-            room -= cell_len(text)
-            row.append(Segment(text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link)))
-        row.extend(Segment(span.text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link)) for span in block.kept)
-        self.output.append(tuple(row))
+        self.output.append(tuple(
+            Segment(span.text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link))
+            for span in block.fitted(self.width)
+        ))
 
     @handles(Spans)
     def spans(self, block: Spans) -> None:
@@ -576,15 +559,10 @@ class RichLineRenderer(LineBlockPainter[None]):
 
 
 @dataclass(frozen=True)
-class LinePreparation:
+class LinePreparation(BlockPreparation):
     """Source styling and palette, independent of every viewport's width."""
 
-    blocks: tuple[LineBlock, ...]
     theme: LineTheme
-    retained_bytes: int = field(init=False)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "retained_bytes", 256 + sum(block.retained_bytes for block in self.blocks))
 
     def wrap(self, width: int, renderer: RichLineRenderer) -> BlockLines:
         return BlockLines(width, self, renderer)

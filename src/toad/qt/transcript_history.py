@@ -21,7 +21,8 @@ from __future__ import annotations
 from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_coverage import ReportsCoveredPages
 from toad.client.prepared_pages import PreparedTranscriptPage, UnreadTranscriptPage
-from toad.qt.history import QT_FRAGMENT_CLASSES, QtConversationHistory
+from toad.qt.history import QtConversationHistory
+from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
 from toad.transcript_preparation import SavedTranscript
 
 
@@ -30,6 +31,16 @@ class QtTranscriptHistory(QtConversationHistory, CommittedHistoryBase, ReportsCo
     bus messages all feed in through `SavedTranscript` so the ACP tab renders what
     Textual's `TranscriptHistory` renders. Same bases, same contracts, same source type;
     only the page-view container (`QtPage`) and renderer differ."""
+
+    @classmethod
+    def initial_state(cls, view):
+        """Start a bound thread unread, so mounting requests its first saved page.
+
+        ``LiveTranscript`` means a page has already been published and its ``mounted``
+        transition deliberately does nothing.  A restored Qt mailbox used that state for
+        an empty page, so only a later send's explicit refresh made history appear.
+        """
+        return view.thread_identity.transcript_state()
 
     @classmethod
     def empty_page(cls):
