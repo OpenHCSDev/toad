@@ -20,6 +20,7 @@ from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from functools import cached_property, partial
+from math import copysign
 from pathlib import Path
 from typing import ClassVar
 from weakref import WeakSet
@@ -27,7 +28,9 @@ from weakref import WeakSet
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QTextDocument
-from PySide6.QtWidgets import QAbstractItemView, QApplication, QPushButton, QScroller, QStyleOptionViewItem, QWidget
+from PySide6.QtWidgets import (
+    QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
+)
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, PlainRow, RowDocumentDelegate, RowFormatting, VirtualRowView
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
@@ -1372,7 +1375,25 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
 
     @property
     def animated_travel(self) -> float:
-        return 0
+        """Pixels the rows are still being carried with no finger on them, as Textual answers
+        with its scroll animation's distance to its target: a head reveal's way to its head,
+        or a fling's momentum (`fling_travel`)."""
+        if self.head_reveal is not None:
+            return self.head_reveal.target - self.scroll_y
+        return self._safe_qt_read(self.fling_travel, 0.0)
+
+    def fling_travel(self) -> float:
+        """How far a fling's speed carries the rows at QScroller's deceleration (v²/2a, the
+        distance QScroller itself plans), whether or not rows are loaded that far: Qt stops
+        a fling at the loaded edge, and the rows it was thrown towards are what the reader
+        asked for."""
+        scroller = QScroller.scroller(self.viewport())
+        if scroller.state() != QScroller.State.Scrolling:
+            return 0.0
+        speed = scroller.velocity().y()
+        deceleration = scroller.scrollerProperties().scrollMetric(
+            QScrollerProperties.ScrollMetric.DecelerationFactor)
+        return copysign(speed * speed / (2 * deceleration) * scroller.pixelPerMeter().y(), speed)
 
     @property
     def presenting(self) -> bool:
