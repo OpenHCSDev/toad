@@ -53,7 +53,7 @@ from toad.qt.activity import QtObservedSweep
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.history import QtHistoryNotifications, QtHistoryWindow
-from toad.qt.live_turn import QtLiveBlock, QtThoughtBlock, QtUserInputBlock
+from toad.qt.live_turn import QtLiveBlock, QtResponseBlock, QtThoughtBlock, QtUserInputBlock
 from toad.qt.page import Page
 from toad.qt.prompt_stack import QtFlash
 from toad.qt.submission_view import QtSubmissionView
@@ -357,8 +357,8 @@ class QtConversation(
     async def present_user_input(self, text: str) -> None:
         self.messages.show_live(QtUserInputBlock(self.messages, text))
 
-    def response_block(self, fragment: str, delivery) -> QtLiveBlock:
-        return QtLiveBlock(self.messages, fragment)
+    def response_block(self, fragment: str, delivery) -> QtResponseBlock:
+        return QtResponseBlock(self.messages, fragment)
 
     def thought_block(self, fragment: str) -> QtLiveBlock:
         return QtThoughtBlock(self.messages, fragment)

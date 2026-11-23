@@ -843,3 +843,151 @@ def test_workspace_views_origin_respects_navigation_membership_and_resident_fall
     assert views.origin("tab-1") == "live-origin"
     assert isinstance(views.origin("tab-2"), NoSessionOrigin)
     assert views.detach("tab-1") is live and views.detached == [live] and "tab-1" not in views.views
+
+
+def test_committed_history_page_added_and_transcript_coverage_are_shared_across_frontends():
+    from textual.message import Message
+
+    from toad.client.committed_history import CommittedHistoryBase
+    from toad.client.history_coverage import ReportsCoveredPages
+    from toad.client.source_resumption import ResumesSource
+    from toad.core_event_carrier import CoreEventMessage
+    from toad.qt.core_events import QtPublication
+    from toad.qt.history import QtConversationHistory
+    from toad.qt.thread_view import QtThreadView
+    from toad.qt.transcript_history import QtTranscriptHistory
+    from toad.widgets.conversation import Conversation
+    from toad.widgets.transcript_history import ProjectedTranscriptHistory, TranscriptHistory
+
+    assert TranscriptHistory._page_added is CommittedHistoryBase._page_added
+    assert QtTranscriptHistory._page_added is CommittedHistoryBase._page_added
+    assert QtConversationHistory._page_added is ResumesSource._page_added
+    assert ProjectedTranscriptHistory._page_added is not CommittedHistoryBase._page_added
+
+    assert Conversation.on_transcript_coverage is BoundViewHost.on_transcript_coverage
+    assert QtThreadView.on_transcript_coverage is BoundViewHost.on_transcript_coverage
+    assert CoreEventMessage.stop is Message.stop
+    QtPublication(event=object(), subscription=object()).stop()
+
+    joined = []
+    history = SimpleNamespace(
+        view=SimpleNamespace(
+            transcript=SimpleNamespace(
+                binding=SimpleNamespace(covered=lambda *args: ("completion", args)),
+            ),
+            join_completion=joined.append,
+        )
+    )
+    ReportsCoveredPages.page_covered(history, SimpleNamespace(events=()))
+    assert len(joined) == 1 and joined[0][0] == "completion"
+
+
+def test_qt_live_blocks_survive_page_range_changes_and_retire_only_by_commit_coverage():
+    from acp import schema
+    from agent_comms.acp_extension import InputStartedUpdate, NoQueueScope
+    from agent_comms.transcript.transcript_events import ReportedInputId, UserTranscript
+
+    from toad.commit_claims import RetainedBlockClaim, StartedInputClaim
+    from toad.core.source_events import TranscriptCoverage
+    from toad.qt.agent_surface import QtTerminalBlock, QtToolBlock
+    from toad.qt.history import QtHistoryWindow
+    from toad.qt.live_turn import QtLiveBlock, QtResponseBlock, QtThoughtBlock, QtUserInputBlock
+    from toad.qt.thread_view import QtThreadView
+    from toad.transcript_publication import BoundView
+    from toad.widgets.committed_presentation import CommitTranscript, block_claim
+
+    redrawn = []
+    window = SimpleNamespace(
+        live_blocks=[],
+        history=SimpleNamespace(pages=()),
+        show_pages=lambda: redrawn.append("show"),
+    )
+    window.retire_live = QtHistoryWindow.retire_live.__get__(window, SimpleNamespace)
+
+    started = InputStartedUpdate("hello", NoQueueScope(), None, "in-1")
+    covered_input = QtUserInputBlock(window, "hello", claim=StartedInputClaim(started))
+    uncovered_response = QtResponseBlock(window, "still streaming or uncommitted")
+    uncovered_response.finished = True
+    thought = QtThoughtBlock(window, "thinking")
+    tool = QtToolBlock(window, schema.ToolCall(tool_call_id="tc-1", title="read", status="completed"))
+    note = QtLiveBlock(window, "local help note")
+    note.finished = True
+    terminal = QtTerminalBlock(window, "term-1", SimpleNamespace(command="ls"))
+    window.live_blocks = [covered_input, uncovered_response, thought, tool, note, terminal]
+
+    # Claims match Textual: transcript-backed live rows retire; local notes and terminals stay retained.
+    assert block_claim(covered_input).retires
+    assert block_claim(uncovered_response).retires
+    assert block_claim(thought).retires
+    assert block_claim(tool).retires
+    assert isinstance(block_claim(note), RetainedBlockClaim)
+    assert isinstance(block_claim(terminal), RetainedBlockClaim)
+
+    # Scrolling / filtering / range changes must NEVER drop finished live blocks.
+    QtHistoryWindow.committed_pages_changed(window)
+    assert window.live_blocks == [covered_input, uncovered_response, thought, tool, note, terminal]
+    assert redrawn == ["show"]
+
+    # Coverage retires ONLY the covered input; uncovered response, thought, tool, note and terminal stay.
+    retired_from_output = []
+    summaries = []
+    published_events = []
+    class History:
+        outgoing_coverage = frozenset()
+
+        def covered_sequences(self, _seqs):
+            return frozenset()
+
+    history = History()
+
+    class Output:
+        async def retire_presentations(self, blocks):
+            retired_from_output.extend(blocks)
+
+    view = SimpleNamespace(
+        transcript_history=history,
+        messages=window,
+        output=Output(),
+        window=window,
+        refresh_session_summary=lambda: summaries.append("summary"),
+    )
+    view.contents = view
+    view.live_blocks = QtThreadView.live_blocks.fget(view)
+    view.retire_blocks = QtThreadView.retire_blocks.__get__(view, SimpleNamespace)
+    view.protected_blocks = QtThreadView.protected_blocks.__get__(view, SimpleNamespace)
+
+    binding = BoundView(view)
+    owner = SimpleNamespace(events=SimpleNamespace(publish=published_events.append))
+    coverage = TranscriptCoverage((UserTranscript("hello", position=1, timestamp=0.0, native_id=ReportedInputId("in-1")),))
+
+    async def apply_coverage():
+        await binding.covered(owner, coverage, history)
+
+    asyncio.run(apply_coverage())
+
+    assert retired_from_output == [covered_input]
+    assert window.live_blocks == [uncovered_response, thought, tool, note, terminal]
+    assert summaries == ["summary"]
+    assert published_events == [coverage]
+
+    # CommitTranscript.rows_published retires through BoundViewHost.retire_blocks (no view.contents needed).
+    retired_via_commit = []
+    fake_owner = SimpleNamespace(
+        paging_window=lambda: None,
+        window=SimpleNamespace(scroll_revision=0),
+        has_more=lambda _end: False,
+        view=SimpleNamespace(retire_blocks=lambda blocks: retired_via_commit.extend(blocks) or "retired"),
+    )
+
+    async def check_commit_retirement():
+        commit = CommitTranscript(
+            source=SimpleNamespace(),
+            owner=fake_owner,
+            live_blocks=(uncovered_response,),
+            claims=(block_claim(uncovered_response),),
+        )
+        commit.rows_published(fake_owner)
+        return commit.retirement
+
+    assert asyncio.run(check_commit_retirement()) == "retired"
+    assert retired_via_commit == [uncovered_response]

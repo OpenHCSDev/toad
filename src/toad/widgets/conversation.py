@@ -98,10 +98,7 @@ from toad.core import events as core_events, input_events, session_requests
 from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import AgentFail, AgentReady
 from toad.core.preference_events import PreferenceChanged
-from toad.core.source_events import (
-    CurrentWorkingDirectoryChanged,
-    TranscriptCoverage,
-)
+from toad.core.source_events import CurrentWorkingDirectoryChanged
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
@@ -1051,6 +1048,9 @@ class Conversation(
     def after_refresh(self, callback) -> None:
         self.call_after_refresh(callback)
 
+    def join_completion(self, completion) -> None:
+        completion.call_when_ready(self)
+
     def on_native_pump(self) -> bool:
         return asyncio.current_task() is self.task
 
@@ -1597,13 +1597,6 @@ class Conversation(
                     UserInput(started.text, claim=StartedInputClaim(started))
                 )
         self.submissions.native_input_presented(started)
-
-    @handles(TranscriptCoverage)
-    async def on_transcript_coverage(self, event: TranscriptCoverage, message: CoreEventMessage) -> None:
-        message.stop()
-        await self.transcript.binding.covered(
-            self.transcript, event, message.publisher
-        )
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, event: core_events.Plan) -> None:

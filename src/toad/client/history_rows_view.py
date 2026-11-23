@@ -1,50 +1,21 @@
-"""Two toolkit-neutral answers to `BoundViewHost`, for a view that needs them.
-
-`HistoryRowsBlocks`: a view that draws every transcript block as rows of its one history
-model. It never stands live blocks, so nothing retires or is protected, every refresh
-commits, and no chronological entry splits the history.
+"""Toolkit-neutral asyncio publication runner for `BoundViewHost`.
 
 `AsyncioPublications`: a view whose publications run as tasks on its asyncio loop, which
 applies a queued callback before running the next. The view supplies `call_later`.
-Qt's thread views inherit both; Textual's `Conversation` answers with its widgets and
-workers instead.
+Qt's views inherit it; Textual's `Conversation` answers with its widgets and workers instead.
 """
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Iterable, Sequence
+from collections.abc import Awaitable, Callable
 from functools import cached_property, partial
-from typing import ClassVar
 
 from toad.transcript_publication import TaskPublicationWork
 
 
 async def settled() -> None:
     """An awaitable for a native change applied at once."""
-
-
-class HistoryRowsBlocks:
-    MAX_LIVE_BLOCKS: ClassVar[int] = 1
-    """No live blocks stand, so every refresh commits into the history."""
-
-    @property
-    def live_blocks(self) -> tuple[object, ...]:
-        return (self.transcript_history,)
-
-    def retire_blocks(self, blocks: Sequence[object]) -> Awaitable[None]:
-        if blocks:
-            raise ValueError(f"A history-rows view draws no live blocks to retire: {blocks!r}")
-        return settled()
-
-    def protected_blocks(self, candidates: Iterable[object]) -> set[object]:
-        return set()
-
-    def blocks_in_viewport(self, candidates: Sequence[object]) -> bool:
-        return False
-
-    def later_history(self, page, source, conversation_order: int):
-        raise ValueError("A history-rows view posts no chronological live entries, so its history never splits")
 
 
 class AsyncioPublications:
@@ -80,6 +51,14 @@ class AsyncioPublications:
 
     def current_publication(self) -> object:
         return asyncio.current_task()
+
+    def join_completion(self, completion: object) -> None:
+        task = asyncio.ensure_future(completion())
+        task.add_done_callback(self._completion_done)
+
+    def _completion_done(self, task: asyncio.Task) -> None:
+        if not task.cancelled() and self.is_attached and (error := task.exception()) is not None:
+            self.app.show_error(error, "Transcript coverage failed")
 
     @cached_property
     def _workers(self) -> dict[str, asyncio.Task]:

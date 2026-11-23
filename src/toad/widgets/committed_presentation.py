@@ -285,5 +285,4 @@ class CommitTranscript(WorkingTranscript):
     def rows_published(self, owner) -> None:
         if self.live_blocks and not NEWER_END.visible_more(owner):
             blocks, self.live_blocks = self.live_blocks, ()
-            view = owner.view
-            self.retirement = view.transcript.retire_presentations(view.contents, view.output, blocks)
+            self.retirement = owner.view.retire_blocks(blocks)

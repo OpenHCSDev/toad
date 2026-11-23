@@ -844,9 +844,6 @@ class HistoryPager(ResumesSource):
     def load_initial_page(self) -> None:
         self.request_latest(LatestPosition.hold(self.window))
 
-    async def _page_added(self, page: TranscriptPage, fragments: tuple[HistoryFragment, ...]) -> None:
-        """A page joined what this history draws."""
-
     def extend_source(self, through: TranscriptCursor) -> None:
         """The source now reaches `through`; the drawn pages stay as they are."""
         self._generation += 1

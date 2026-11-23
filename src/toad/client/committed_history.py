@@ -65,6 +65,10 @@ class CommittedHistoryBase(SnapshotPresentation, ResumesSource, CoveredHistory[P
         super().source_resumed()
         self.coverage.publish(self)
 
+    async def _page_added(self, page, fragments) -> None:
+        await super()._page_added(page, fragments)
+        self.coverage.page_added(self, page)
+
     def publish_committed(self) -> None:
         """Acquire source ownership now; report coverage after its first painted frame."""
         self._source_state = self._source_state.publish()

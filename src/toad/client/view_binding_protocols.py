@@ -18,7 +18,7 @@ from agent_comms.execution.transcript_sources import DraftFold
 from metaclass_registry.mro_dispatch import handles
 
 from toad.core.events import Publication
-from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.core.source_events import TranscriptCoverage, TranscriptSourceWorkFinished
 
 
 if TYPE_CHECKING:
@@ -48,6 +48,13 @@ class BoundViewHost:
         Textual's conversation declared it and Qt's thread views did not, so a Qt thread's
         publication that had waited on a page read waited for the next unrelated event."""
         self.transcript.source_work_finished(self)
+
+    @handles(TranscriptCoverage)
+    async def on_transcript_coverage(self, event: TranscriptCoverage, message: Publication) -> None:
+        """Saved history published what its loaded pages cover: retire covered live blocks
+        and announce coverage to Core. Shared by Textual and Qt."""
+        message.stop()
+        await self.transcript.binding.covered(self.transcript, event, message.publisher)
 
     def retire_loading_splash(self) -> None:
         """Saved history painted, or failed, or there is none: the splash the view composed
@@ -164,6 +171,10 @@ class BoundViewHost:
     @abstractmethod
     def current_publication(self) -> object:
         """The running publication's handle, as `PublicationWork.runs` compares it."""
+
+    @abstractmethod
+    def join_completion(self, completion: object) -> None:
+        """Observe an optional completion once it finishes without occupying the native pump."""
 
     # ---- what a publication tells the view ----
 

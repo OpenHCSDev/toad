@@ -907,9 +907,6 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
         return SavedTranscript(view.transcript, through, view.app.preparation,
                                fragments=TEXTUAL_FRAGMENT_CLASSES)
 
-    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        self.coverage.page_added(self, page)
-
     async def restore_source(self, source: PreparedPageSource, current) -> None:
         """Put the parked pages back into the same mounted reader."""
         pages = source.held_pages

@@ -11,7 +11,8 @@ transcript.
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from collections.abc import Awaitable, Iterable, Sequence
+from typing import TYPE_CHECKING, ClassVar
 
 from functools import partial
 
@@ -24,7 +25,7 @@ from ui_theme.scheme import ForegroundColour
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.command_catalog import AddressesItsThread
 from toad.client.draft_fragments import DRAFT_FRAGMENTS
-from toad.client.history_rows_view import HistoryRowsBlocks, settled
+from toad.client.history_rows_view import settled
 from toad.client.transcript_history_contract import TranscriptHistoryContract
 from toad.navigation_context import NavigationOwner, ThreadViewNavigation
 from toad.qt.bound_view import QtBoundViewHost
@@ -48,7 +49,6 @@ class QtThreadView(
     AddressesItsThread,
     QtConversation,
     ThreadViewNavigation,
-    HistoryRowsBlocks,
     QtBoundViewHost,
     NavigationOwner,
     metaclass=PyQtWidgetMeta,
@@ -214,6 +214,9 @@ class QtThreadView(
 
     # ---- BoundViewHost contract ----
 
+    MAX_LIVE_BLOCKS: ClassVar[int] = 1
+    """Every refresh attempts commit; `CommitEvidence` retires only live blocks covered by saved history."""
+
     @property
     def transcript_history(self) -> TranscriptHistoryContract:
         """`BoundViewHost.transcript_history`: the single transcript-page-producing
@@ -222,6 +225,29 @@ class QtThreadView(
         return self.message_history
 
     # ---- BoundViewHost: Qt draws the blocks as rows of its one history model ----
+
+    @property
+    def live_blocks(self) -> tuple[object, ...]:
+        return (self.transcript_history, *self.messages.live_blocks)
+
+    def retire_blocks(self, blocks: Sequence[object]) -> Awaitable[None]:
+        if not blocks:
+            return settled()
+
+        async def _retire() -> None:
+            await self.output.retire_presentations(blocks)
+            self.messages.retire_live(blocks)
+
+        return _retire()
+
+    def protected_blocks(self, candidates: Iterable[object]) -> set[object]:
+        return set()
+
+    def blocks_in_viewport(self, candidates: Sequence[object]) -> bool:
+        return self.messages.live_in_viewport(candidates)
+
+    def later_history(self, page, source, conversation_order: int):
+        raise ValueError("Qt thread views draw live entries as history rows, so history never splits")
 
     def show_draft(self, draft, identity) -> None:
         self.messages.show_draft(DRAFT_FRAGMENTS.project_value(draft, identity, QT_FRAGMENT_CLASSES))
