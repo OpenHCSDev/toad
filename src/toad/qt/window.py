@@ -1234,10 +1234,9 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
         visited(self.entry.identity)
         self.reload()
 
-    def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
-        """Whether this tab is still open on this conversation, read from this root."""
-        return (self.app.workspace_sessions.views.get(self.mode) is self and conversation == self.conversation
-                and Path(root) == Path(self.app.source().root))
+    def wire_view_open(self) -> bool:
+        """Whether this tab is still open in the workspace."""
+        return self.app.workspace_sessions.views.get(self.mode) is self
 
     async def wait_content_ready(self) -> None:
         await self.content_ready.wait()
@@ -1392,15 +1391,8 @@ class QtWorkspaceViews(WorkspaceViews):
     def selected(self) -> Page:
         return self.pages.currentWidget()
 
-    def require(self, identity: str) -> ConversationView:
-        return self.views[identity]
-
-    def origin(self, identity: str) -> SessionOrigin:
-        if view := self.views.get(identity):
-            return view.origin
-        if identity == WELCOME:
-            return self.home_origin
-        return NoSessionOrigin(identity)
+    def resident_origin(self, identity: str) -> SessionOrigin:
+        return self.home_origin if identity == WELCOME else NoSessionOrigin(identity)
 
     def navigation_owner(self) -> NavigationOwner:
         """Derived from the selected page, as Textual's `WorkspaceSessions.navigation_owner`
@@ -1431,9 +1423,6 @@ class QtWorkspaceViews(WorkspaceViews):
         page = self.prepare(mode)
         self.pages.setCurrentWidget(page)
         page.shown(self.app, visited)
-
-    def detach(self, identity: str) -> ConversationView | None:
-        return self.views.pop(identity, None)
 
     def external_transcript_changed(self) -> None:
         """Every open view reads its CLI items, shown or parked, as Textual's screens do: a

@@ -10,13 +10,14 @@ its execution and the collapse; the frontends only draw it.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Iterable, Iterator
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, ClassVar
 
 from agent_comms.coordination.errors import Refused
+from agent_comms.errors import GoalRefused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import GoalId
 from agent_comms.planning.goal_actions import GoalAction
@@ -121,9 +122,13 @@ class GoalControlsSession[Binding: GoalSource](metaclass=AbstractHooksMeta):
         """Hook run after a successful change while the session still owns the binding.
         Textual focuses the composer; Qt has no default follow-up."""
 
-    @abstractmethod
     def unavailable(self) -> None:
         """Report that an action is not available now, without changing the goal."""
+        self.report_unavailable(self.display.heading(self.execution))
+
+    @abstractmethod
+    def report_unavailable(self, heading: str) -> None:
+        """Show the unavailable heading in the frontend's own way."""
 
     async def open_history(self) -> None:
         """Read the owner's goal history and show it the frontend's own way. The read and
@@ -138,13 +143,35 @@ class GoalControlsSession[Binding: GoalSource](metaclass=AbstractHooksMeta):
         """Read the goal's revisions and failed attempts through the binding."""
         return await binding.get_goal_history(goal.id)
 
-    @abstractmethod
     def show_history(self, binding: Binding, page: GoalHistoryPage) -> None:
         """Present the history page in the frontend's own view."""
+        self.present(self.history_view(page))
 
     @abstractmethod
+    def present(self, view: Any) -> None:
+        """Present a goal dialog or modal and track it so `close()` can dismiss it."""
+
+    @abstractmethod
+    def history_view(self, page: GoalHistoryPage) -> Any:
+        """Build the frontend's history view for `page`."""
+
     async def open_edit(self) -> None:
-        """Open the goal's editor, the frontend's own way."""
+        """Open the goal's editor bound to the current goal and source."""
+        goal = self.display.snapshot.require()
+        source = self.binding
+
+        async def save(text: str) -> None:
+            if not self.owns(source):
+                raise GoalRefused("The goal presentation changed; reopen its editor.")
+            await self.write(source, source.edit_goal(goal, text))
+
+        view = await self.edit_view(goal, save)
+        if self.owns(source):
+            self.present(view)
+
+    @abstractmethod
+    async def edit_view(self, goal: Goal, on_save: Callable[[str], Awaitable[None]]) -> Any:
+        """Build the frontend's goal editor calling `on_save` on submit."""
 
     def close(self) -> None:
         """Dismiss whatever history or edit view this session opened. Default is no-op; the

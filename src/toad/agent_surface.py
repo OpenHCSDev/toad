@@ -4,7 +4,7 @@ from contextlib import AsyncExitStack
 from functools import partial
 from typing import TYPE_CHECKING
 
-from metaclass_registry.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.agent_controller import ProcessTaskRunner
 from toad.permission_presentation import (
@@ -32,22 +32,13 @@ if TYPE_CHECKING:
     from toad.widgets.terminal_tool import TerminalTool
 
 
-class AttachedSurfaceBinding(ViewSurfaceBinding, MroDispatch):
+class AttachedSurfaceBinding(ViewSurfaceBinding):
     def __init__(self, target: Conversation, events: CoreEventStream):
         self.lend(target, target.subscribe_core(events))
 
     def prepare(self, controller: AgentController) -> None:
         app = self.target.app
         controller.task_runner = ProcessTaskRunner(app.render_processes)
-
-    def owns_publication(self, message, target: Conversation):
-        if not self.subscription.accepts(message.subscription):
-            return False
-        if not self.owns(target) or not target.agent_binding.matches_agent(message.publisher):
-            return False
-        if message.publisher.controller.surface is not self:
-            return False
-        return target.is_attached and message.publisher.tools.presentation(message.event) is not None
 
     async def _post_native(
         self,
@@ -62,17 +53,13 @@ class AttachedSurfaceBinding(ViewSurfaceBinding, MroDispatch):
         await target.post(widget, new_block=True)
         return self.owns_publication(message, target) and widget.is_attached
 
-    async def present_tool(self, message, target: Conversation):
+    async def show_tool_call(self, message, target: Conversation, status):
         from toad.tool_output import ToolOutput
         from toad.widgets.outgoing_message import OutgoingMessage
         from toad.widgets.tool_call import ToolCall
 
-        if not self.owns_publication(message, target):
-            return
         event = message.event
         request = message.publisher.tools.presentation(event).request
-        status = event.tool_call
-        status.activity(target.turns, target.output, status.title)
         parts = await target.app.preparation.run_thread(
             ToolOutput.capture_projection,
             status,
@@ -142,9 +129,6 @@ class AttachedSurfaceBinding(ViewSurfaceBinding, MroDispatch):
     def shell_failed(self, error: Exception) -> None:
         if (target := self.target) is not None:
             target.app.show_error(error, "Unable to start shell; check your settings")
-
-    async def present_permission(self, request: PermissionRequest, view: Conversation) -> None:
-        await self.dispatch(request.presentation, view, request)
 
     def permission_changed(self, view: Conversation) -> None:
         view.refresh_bindings()

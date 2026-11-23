@@ -4,6 +4,7 @@ from abc import abstractmethod
 from weakref import ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
+from metaclass_registry.mro_dispatch import MroDispatch
 
 
 class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
@@ -53,7 +54,7 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
         """An absent frontend has no subscription to release."""
 
 
-class ViewSurfaceBinding(SurfaceBinding):
+class ViewSurfaceBinding(SurfaceBinding, MroDispatch):
     """The surface a frontend's view lends its bound agent: it holds the view weakly, so a
     closed view is no target, and the view's subscription to the agent's stream."""
 
@@ -64,6 +65,30 @@ class ViewSurfaceBinding(SurfaceBinding):
     @property
     def target(self):
         return self._target()
+
+    def owns_publication(self, message, target) -> bool:
+        return (
+            self.subscription.accepts(message.subscription)
+            and self.owns(target)
+            and target.agent_binding.matches_agent(message.publisher)
+            and message.publisher.controller.surface is self
+            and target.is_attached
+            and message.publisher.tools.presentation(message.event) is not None
+        )
+
+    async def present_tool(self, message, target) -> None:
+        if not self.owns_publication(message, target):
+            return
+        status = message.event.tool_call
+        status.activity(target.turns, target.output, status.title)
+        await self.show_tool_call(message, target, status)
+
+    @abstractmethod
+    async def show_tool_call(self, message, target, status) -> None:
+        """Render a tool call update once ownership and turn activity have been checked."""
+
+    async def present_permission(self, request, view) -> None:
+        await self.dispatch(request.presentation, view, request)
 
     def sync_queue(self) -> None:
         if (target := self.target) is not None:

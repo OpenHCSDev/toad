@@ -114,14 +114,14 @@ class QtGoalSession(GoalControlsSession[CommsGoalSource]):
     async def refresh(self, binding: CommsGoalSource) -> None:
         await self.bar.goal_observation.refresh()
 
-    def unavailable(self) -> None:
-        self.host.show_info(self.display.heading(self.execution), "Goal")
+    def report_unavailable(self, heading: str) -> None:
+        self.host.show_info(heading, "Goal")
 
-    def show_history(self, binding: CommsGoalSource, page: GoalHistoryPage) -> None:
-        self.present(QtGoalHistory(self.bar, page))
+    def history_view(self, page: GoalHistoryPage) -> QtGoalHistory:
+        return QtGoalHistory(self.bar, page)
 
-    async def open_edit(self) -> None:
-        self.present(QtGoalEdit(self.bar, self, self.display.snapshot.require()))
+    async def edit_view(self, goal, on_save) -> QtGoalEdit:
+        return QtGoalEdit(self.bar, goal, on_save)
 
     def present(self, dialog: QDialog) -> None:
         """Replace whatever this session was showing with `dialog` and open it. Tracking the
@@ -331,9 +331,9 @@ class QtGoalEdit(PresentedWindow, QDialog, DismissibleContract, SubmitsContract)
     def submit(self) -> None:
         self.save()
 
-    def __init__(self, bar: QtGoalBar, session: QtGoalSession, goal) -> None:
+    def __init__(self, bar: QtGoalBar, goal, on_save) -> None:
         super().__init__(bar.window())
-        self.bar, self.session, self.goal = bar, session, goal
+        self.bar, self.goal, self.on_save = bar, goal, on_save
         self.setWindowTitle("Edit objective")
         self.editor = QPlainTextEdit(goal.text)
         self.error = WrappedText()
@@ -356,9 +356,8 @@ class QtGoalEdit(PresentedWindow, QDialog, DismissibleContract, SubmitsContract)
             self.bar.app.run_operation(GoalPress, partial(self.write, text))
 
     async def write(self, text: str) -> None:
-        source = self.session.binding
         try:
-            await self.session.write(source, source.edit_goal(self.goal, text))
+            await self.on_save(text)
         except Refused as error:
             self.error.setText(str(error))
             return

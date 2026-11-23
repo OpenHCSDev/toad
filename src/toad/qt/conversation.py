@@ -447,8 +447,8 @@ class QtConversation(
         self.message_history.apply_filter()
 
     @property
-    def configuration_identity(self):
-        return self.app.session_navigation.get(self.mode).identity
+    def configuration_mode(self):
+        return self.mode
 
     @property
     def navigation_project(self):

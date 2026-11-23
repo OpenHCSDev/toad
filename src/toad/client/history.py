@@ -176,9 +176,9 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
         """Draw every message in ``style`` (the message-style setting changed)."""
         await self.page_source.restyle_to(self, style)
 
-    @abstractmethod
     def mark_visible_after_paint(self) -> None:
         """Try marking read again once the frontend has painted its next frame."""
+        self.call_after_refresh(self.mark_visible)
 
     @abstractmethod
     def withdraw_view(self) -> None:
@@ -292,9 +292,14 @@ class WireView(ConversationActivity):
         the bus messages in the style it now resolves to (the `message_style` effect)."""
         self.message_history.follow_message_style()
 
-    @abstractmethod
     def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
         """Whether this view is still open on this conversation, read from this root."""
+        return (self.wire_view_open() and conversation == self.conversation
+                and self.message_history.page_source.reads_from(root))
+
+    @abstractmethod
+    def wire_view_open(self) -> bool:
+        """Whether this view is still open in its frontend."""
 
     async def show_sent(self, sent: MessageReference) -> None:
         """A message this view sent was accepted: follow the conversation's end and read it
@@ -712,7 +717,7 @@ class WirePageBuffer(SavedHistory):
                           revision=self.revision, fragments=self.fragments)
 
     def reads_from(self, root: str | Path) -> bool:
-        return self.loader.root == root
+        return Path(self.loader.root) == Path(root)
 
     def uses_observation(self, observation: Observation) -> bool:
         return observation.observes(self.loader.root)

@@ -414,9 +414,14 @@ class HistoryPager(ResumesSource):
     @abstractmethod
     def source_snapshot(self) -> HistorySourceSnapshot: ...
 
-    @abstractmethod
     def followed_here(self) -> None:
         """Register with the window drawing these pages."""
+        window = self.window
+        window.histories.add(self)
+        self.window_followed(window)
+
+    def window_followed(self, window: PagingWindow) -> None:
+        """Frontend follow-up after joining `window.histories`."""
 
     @abstractmethod
     def request_preparation(self) -> None:
@@ -470,9 +475,9 @@ class HistoryPager(ResumesSource):
     def _update_edges(self) -> None:
         """Show or hide the controls at each end for rows not loaded yet."""
 
-    @abstractmethod
     def read_ahead(self, work: Callable[[], Awaitable[object]]) -> None:
         """Run one read-ahead of the next page, replacing a running one."""
+        self.run_worker(work, group="transcript-read-ahead", exclusive=True, exit_on_error=False)
 
     @abstractmethod
     def cancel_work(self) -> list:
