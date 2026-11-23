@@ -37,7 +37,7 @@ from toad.widgets.transcript_lines import (
     RichLineRenderer,
 )
 from toad.client.history_changes import HeaderPin, PinsMessageHeader
-from toad.widgets.agent_activity import AgentActivityPresentation
+from toad.client.agent_activity import AgentActivityPresentation
 from textual.events import Click, Mount
 from textual import on
 

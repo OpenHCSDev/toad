@@ -56,3 +56,18 @@ class WorkspaceFrame(Protocol):
 
     def reader_kept(self, window: JumpsToLatest) -> None:
         """Signal that a history window's reader is kept at its current row."""
+
+
+class WorkspaceHosted:
+    """A widget whose native screen satisfies the shared workspace-frame contract."""
+
+    @property
+    def screen(self) -> WorkspaceFrame:
+        """The containing workspace frame as the toolkit-neutral contract. Textual
+        widgets inherit this alongside `Widget`, so `super().screen` yields the Textual
+        `Screen`; the concrete Textual `WorkspaceFrame` structurally satisfies the
+        protocol. Qt widgets override this to return their own `QtWorkspaceFrame`."""
+        got = super().screen
+        if not isinstance(got, WorkspaceFrame):
+            raise TypeError(f"{type(got).__name__} does not satisfy WorkspaceFrame")
+        return got

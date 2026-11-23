@@ -24,7 +24,7 @@ from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim, ToolOutputClaim
 
-from toad.widgets.agent_activity import AgentActivityPresentation
+from toad.client.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import ConversationLineBlock
 from toad.widgets.tool_content import ToolContent

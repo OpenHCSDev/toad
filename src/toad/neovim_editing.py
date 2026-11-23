@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from importlib.resources import files
 from itertools import count
-from typing import ClassVar, Self
+from typing import TYPE_CHECKING, ClassVar, Self
 
 import msgpack
 from formbridge.key_declarations import TextEntryMode
@@ -22,7 +22,6 @@ from agent_comms.nominal.declared_family import DeclaredFamily, UnknownFamilyMem
 from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import log
-from textual.app import App
 from textual.binding import Binding
 from textual.cursor_shape import CursorShape, SteadyBlock, TextEntryCursor
 from textual.document._document import DocumentBase, Location, RangedEditResult, Selection
@@ -31,8 +30,10 @@ from textual.document._edit import Edit, InsertionPoint
 from textual.events import Key
 from textual.keys import key_to_character
 from textual.message import Message
-from textual.widgets import TextArea
 from toad.neovim_runtime import Neovim
+
+if TYPE_CHECKING:
+    from textual.widgets import TextArea
 
 
 class NeovimKey(DeclaredFamily, affix="Key"):
@@ -1147,7 +1148,7 @@ class OpenBuffer(BufferLease):
         await self.host.release(self.buffer)
 
 
-class HostsNeovim(App[object]):
+class HostsNeovim:
     """An application that owns the one embedded Neovim its editors share."""
 
     @cached_property

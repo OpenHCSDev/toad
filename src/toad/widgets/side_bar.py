@@ -55,7 +55,7 @@ from toad.native_style import (
     SidePadding,
 )
 
-from toad.widget_view import WorkspaceHosted
+from toad.workspace_frame import WorkspaceHosted
 from toad.tone_paint import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.client.session_tracker import SidebarState

@@ -157,7 +157,7 @@ from toad.transcript_publication import (
 )
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
-from toad.widget_view import WorkspaceHosted
+from toad.workspace_frame import WorkspaceHosted
 from toad.widgets.cli_draft import DRAFT_PRESENTATION, CliDraft
 from toad.widgets.committed_presentation import protected_blocks
 from toad.client.history_state import LiveTranscript

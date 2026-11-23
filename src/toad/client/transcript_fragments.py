@@ -62,7 +62,7 @@ from toad.core.projection import MroProjection
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand, message_menu
 from toad.tool_output import SentMessageToolOutputPart, ToolOutput, ToolOutputPart
-from toad.widgets.agent_activity import AgentActivityPresentation
+from toad.client.agent_activity import AgentActivityPresentation
 
 
 @dataclass(frozen=True)

@@ -59,7 +59,7 @@ from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame
 from toad.qt.widget_animation import frame_interval
-from toad.widget_view import WorkspaceHosted
+from toad.workspace_frame import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
@@ -108,7 +108,7 @@ from toad.sidebar_contracts import (
     NavigationRefresh,
 )
 from contextlib import nullcontext
-from toad.sidebar_model_view import SidebarStateMachine
+from toad.client.sidebar_state import SidebarStateMachine
 from toad.client.tab_identity.kinds import CommsTab
 from toad.constants import WELCOME
 from toad.core import session_requests
