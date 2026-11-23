@@ -86,7 +86,7 @@ from toad.client.history import WireSource, WireView
 from toad.client.history_entry import HistorySessionEntry
 from toad.application_lifetime import ApplicationStart
 from toad.client.platform import host
-from toad.client.line_blocks import LineLink, MutedRole
+from toad.client.line_blocks import MutedRole
 from toad.qt.banner import Banner
 from toad.client.welcome import WelcomeLocation
 from toad.client.sidebar_models import UnpaintedChannel
@@ -132,7 +132,7 @@ from toad.qt.conversation import QtConversation
 from toad.qt.host import QtCommsHost, ScreenWideWindow
 from toad.qt.history import QtWireHistory, RowPictures
 from toad.qt.transcript_fragments import QtWireFragment
-from toad.menus import MenuCommand, MenuConversation
+from toad.menus import MenuCommand
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
 from toad.qt.menu import QtMenu
 # Imported at load, not in open_transfer: this declares the Transfer members the shared
@@ -1170,15 +1170,13 @@ class BusLabel(WelcomeLocation, ElidedLine):
         return app.coordination_access.connection.location
 
 
-class ConversationView(WireView, QtConversation, ConversationViewNavigation, MenuConversation, SessionScope,
+class ConversationView(WireView, QtConversation, ConversationViewNavigation, SessionScope,
                        NavigationOwner, metaclass=PyQtWidgetMeta):
     """One conversation tab, Textual's `CommsChatView`: a `QtConversation` whose history is
     the conversation's wire, paged lazily by the pager Textual's channels use and drawn as
     virtual rows, read again whenever Core's stores change; the composer and activity its
     kind chooses, sending through the shared submissions to where its page source says.
-    Also a `MenuConversation`: a long-press or right-click on a message row opens the
-    shared block menu through the host's `offer` panel, iterating the `MenuCommand` family
-    on the fly."""
+    Inherits `MenuConversation` and its block menu from `QtConversation`."""
 
     # Until the live WireSource is wired in __init__, as `CommsChatView` declares it: the
     # wire is this view's queue, not its operational sources.
@@ -1188,12 +1186,8 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
         super().__init__()
         self.app, self.entry = app, entry
         self.content_ready = asyncio.Event()
-        # The fragment the viewer most recently long-pressed, if any; menu commands read
-        # it to know which block they act on.
-        self.held_fragment: QtWireFragment | None = None
         label = entry.unobserved_tab().label()
         self._setup_conversation(app)
-        self.messages.block_menu_requested.connect(self.open_block_menu)
         self.message_history = QtWireHistory(self.messages, self, app)
         source = app.source()
         # WireSource IS a BusQueueSource (client/history.py): the submissions read its
@@ -1313,65 +1307,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Men
     def thread_identity(self):
         """The viewer on this conversation's wire, as Textual's `CommsScreen` acts."""
         return self.entry.viewer_identity
-
-
-    # Block menu — MenuConversation implementation
-    #
-    # Right-click or long-press on a message row emits `block_menu_requested` from
-    # `QtHistoryWindow`, which `open_block_menu` picks up here. The commands are the
-    # shared `MenuCommand` family iterated once; the Textual sibling does the same
-    # through `widgets/menu.Menu`. Keeping the action list derived means a new menu
-    # command declared in `src/toad/menus.py` reaches Qt without any edit here.
-
-    def open_block_menu(self, fragment: QtWireFragment, pressed: QPoint) -> None:
-        """The block menu for `fragment`, at `pressed` (the window's coordinates)."""
-        self.held_fragment = fragment
-        entries = QtMenu.command_entries(QtMenu.block_commands(fragment, fragment.block_menu), self.app.settings,
-                                         self._run_block_menu_command)
-        if entries:
-            self.app.offer_entries(entries, QRect(pressed, QSize(1, 1)))
-
-    def _run_block_menu_command(self, command: MenuCommand) -> None:
-        result = command.apply(self)
-        if asyncio.iscoroutine(result):
-            self.app.run_operation(MenuActionRun, lambda: result)
-
-    # The MenuCommand contract (src/toad/menus.py:MenuConversation):
-
-    def accepts_menu_owner(self, owner: QWidget) -> bool:
-        return self.held_fragment is not None
-
-    def block_clipboard_text(self) -> str:
-        return self.held_fragment.body_text if self.held_fragment is not None else ""
-
-    def block_prompt_text(self) -> str:
-        return self.block_clipboard_text()
-
-    def append_to_prompt(self, text: str) -> None:
-        """Into the composer where its cursor is; a composer not built yet takes it at its
-        mount (`on_composer`), where this asked whether the view had one by attribute name."""
-        self.on_composer("block text", partial(self.type_in_composer, text))
-
-    @staticmethod
-    def type_in_composer(text: str, composer: Composer) -> None:
-        composer.editor.textCursor().insertText(text)
-        composer.editor.setFocus()
-
-    def maximize_block(self) -> None:
-        """Qt has no maximize mode yet; the command is offered but logs a notice."""
-        self.app.show_info("Maximize is Textual-only for now", "Block")
-
-    def export_block_to_svg(self) -> None:
-        """Qt has no SVG export yet; the command is offered but logs a notice."""
-        self.app.show_info("SVG export is Textual-only for now", "Block")
-
-    async def interrupt_shell(self) -> None:
-        """No shell blocks render on Qt yet, so interrupt is a no-op here."""
-
-    def open_line_link(self, link: LineLink) -> None:
-        url = getattr(link, "url", None) or getattr(link, "href", None)
-        if url:
-            self.app.open_url(str(url))
 
 
 class QtWorkspaceViews(WorkspaceViews):
@@ -2033,6 +1968,10 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                 description=declaration.summary(),
             ))
         return tuple(entries)
+
+    def run_menu_action(self, work) -> None:
+        """Schedule a menu command on this app's tracked MenuActionRun lane."""
+        self.run_operation(MenuActionRun, work)
 
     def offer(self, actions: tuple[OfferedAction, ...]) -> None:
         """Legacy label-only API: bus listings' held-finger menu builds `OfferedAction`

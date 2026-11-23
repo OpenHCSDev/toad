@@ -22,7 +22,7 @@ from textual.content import Content
 from agent_comms.registry.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.message_category import all_categories
 from metaclass_registry.mro_dispatch import MroDispatch
-from PySide6.QtCore import QEvent, QObject, Qt, QTimer
+from PySide6.QtCore import QEvent, QObject, QPoint, QRect, QSize, Qt, QTimer
 from PySide6.QtWidgets import QBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
@@ -36,6 +36,7 @@ from toad.client.bus_submission import TypedText
 from toad.client.category_selection import CategorySelection
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.history_rows_view import AsyncioPublications
+from toad.client.line_blocks import LineLink
 from toad.client.observed_field import ObservedField
 from toad.client.prompt_composer import ComposerStatus
 from toad.client.session_sources import SessionSources, SourcedConversation
@@ -46,14 +47,15 @@ from toad.commit_claims import StartedInputClaim
 from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn
-from toad.flash_host import FlashHost
 from toad.history_jump import JumpsHistory, JumpsToLatest
+from toad.menus import MenuCommand, MenuConversation
 from toad.prompt_actions import SubmitInputAction
 from toad.qt.activity import QtObservedSweep
 from toad.qt.composer import Composer, ComposerHost
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.history import QtHistoryNotifications, QtHistoryWindow
 from toad.qt.live_turn import QtLiveBlock, QtResponseBlock, QtThoughtBlock, QtUserInputBlock
+from toad.qt.menu import QtMenu
 from toad.qt.page import Page
 from toad.qt.prompt_stack import QtFlash
 from toad.qt.submission_view import QtSubmissionView
@@ -108,7 +110,7 @@ class QtConversation(
     ReadsCommandCatalog,
     ComposerHost,
     QtHistoryNotifications,
-    FlashHost,
+    MenuConversation,
     TurnPresentation,
     JumpsHistory,
     QWidget,
@@ -141,8 +143,10 @@ class QtConversation(
 
     def _setup_conversation(self, app) -> None:
         """What `Conversation.compose` makes for every conversation: the window, the
-        transcript presentation, the flash, the activity sweep and the submissions."""
+        transcript presentation, the flash, the activity sweep, the block menu and the submissions."""
+        self.held_fragment = None
         self.messages = QtHistoryWindow(app.renderer, app.row_pictures, self)
+        self.messages.block_menu_requested.connect(self.open_block_menu)
         self.transcript = TranscriptPresentation()
         # The categories this view's history shows (`CategorySelection`); the history reads
         # them through `selected_categories` from its first page.
@@ -469,4 +473,56 @@ class QtConversation(
     @property
     def navigation_project(self):
         return self.app.project_dir
+
+    # ---- Block menu — MenuConversation implementation shared by channels, DMs, mailboxes and ACP tabs ----
+
+    def open_block_menu(self, fragment, pressed: QPoint) -> None:
+        """The block menu for `fragment`, at `pressed` (the window's coordinates)."""
+        self.held_fragment = fragment
+        entries = QtMenu.command_entries(
+            QtMenu.block_commands(fragment, fragment.block_menu),
+            self.app.settings,
+            self._run_block_menu_command,
+        )
+        if entries:
+            self.app.offer_entries(entries, QRect(pressed, QSize(1, 1)))
+
+    def _run_block_menu_command(self, command: MenuCommand) -> None:
+        result = command.apply(self)
+        if asyncio.iscoroutine(result):
+            self.app.run_menu_action(lambda: result)
+
+    def accepts_menu_owner(self, owner: QWidget) -> bool:
+        return self.held_fragment is not None
+
+    def block_clipboard_text(self) -> str:
+        return self.held_fragment.clipboard_text if self.held_fragment is not None else ""
+
+    def block_prompt_text(self) -> str:
+        return self.block_clipboard_text()
+
+    def append_to_prompt(self, text: str) -> None:
+        """Into the composer where its cursor is; a composer not built yet takes it at its
+        mount (`on_composer`)."""
+        self.on_composer("block text", partial(self.type_in_composer, text))
+
+    @staticmethod
+    def type_in_composer(text: str, composer: Composer) -> None:
+        composer.editor.textCursor().insertText(text)
+        composer.editor.setFocus()
+
+    def maximize_block(self) -> None:
+        """Qt has no maximize mode yet; the command is offered but logs a notice."""
+        self.app.show_info("Maximize is Textual-only for now", "Block")
+
+    def export_block_to_svg(self) -> None:
+        """Qt has no SVG export yet; the command is offered but logs a notice."""
+        self.app.show_info("SVG export is Textual-only for now", "Block")
+
+    async def interrupt_shell(self) -> None:
+        """No shell blocks render on Qt yet, so interrupt is a no-op here."""
+
+    def open_line_link(self, link: LineLink) -> None:
+        """Dispatch the declared `LineLink` through `QtHistoryWindow` (`OpensLineLinks`)."""
+        self.messages.dispatch_sync(link)
 
