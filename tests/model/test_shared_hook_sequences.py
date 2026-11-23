@@ -684,3 +684,19 @@ def test_a_read_core_asks_to_repeat_shows_no_status():
     view, seen = refreshing_view(current=[], status=ReadAgain("again"))
 
     assert "status-shown" not in seen and view.thread_status == ""
+
+
+def test_a_following_window_stays_on_the_tail_when_its_height_changes():
+    from toad.qt.history import QtHistoryWindow
+
+    placed = []
+    window = SimpleNamespace(follows_tail=True, widget_gone=False, follow_latest=lambda: placed.append("tail"))
+
+    QtHistoryWindow.keep_tail_after_resize(window, 800, 694)  # the composer replaced its placeholder
+    QtHistoryWindow.keep_tail_after_resize(window, 694, 694)  # a width change moved nothing vertically
+    window.follows_tail = False
+    QtHistoryWindow.keep_tail_after_resize(window, 694, 500)  # a reader reading older history stays put
+    window.follows_tail, window.widget_gone = True, True
+    QtHistoryWindow.keep_tail_after_resize(window, 500, 400)  # a destroyed window has no reader
+
+    assert placed == ["tail"]
