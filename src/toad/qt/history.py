@@ -69,7 +69,7 @@ from toad.client.reader_position import (
     UnloadedFragment,
 )
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
-from toad.widget_view import WorkspaceHosted
+from toad.workspace_frame import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.markdown_links import LinkContext
 from toad.qt.float_layer import QtFloatLayer

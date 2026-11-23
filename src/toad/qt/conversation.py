@@ -66,7 +66,7 @@ from toad.turn_presentation import TurnPresentation
 from toad.live_output import LiveOutput
 from toad.view_actions import ViewAction
 from toad.transcript_scope import TranscriptScope, TranscriptView
-from toad.widget_view import WorkspaceHosted
+from toad.workspace_frame import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 
 
