@@ -4,8 +4,9 @@ Textual mounts an `AgentResponse` or `AgentThought` widget for each live stream.
 the same block as a transcript fragment after the saved history (as it draws a CLI draft),
 so it uses the row delegate, the sticky header and the reader's place like every other
 row. A block's fragment is rebuilt from its text as fragments stream in; its `revision`
-keys the row cache. Once the block finishes, the saved history that commits the same
-output takes over, and the window drops the finished block when its pages change.
+keys the row cache. Transcript-backed live blocks (`QtResponseBlock`, `QtThoughtBlock`,
+`QtUserInputBlock`) inherit `SnapshotPresentation` so `BoundView` retires them only once
+saved history actually covers them; local notes (`QtLiveBlock`) stay retained across commits.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from agent_comms.transcript.transcript_events import (
 
 from toad.client.fragments import GrowsInPlace
 from toad.client.transcript_fragments import TranscriptFragment
+from toad.commit_claims import CAPTURED_CLAIM, CommitClaim, SnapshotPresentation
 from toad.turn_presentation import LiveBlock
 
 if TYPE_CHECKING:
@@ -39,18 +41,22 @@ class QtLiveFragment(GrowsInPlace, TranscriptFragment):
 
 class QtLiveBlock(LiveBlock):
     """One live block in a Qt history window. Its position is negative, so its row key can
-    never meet a saved event's."""
+    never meet a saved event's. Plain `QtLiveBlock` holds no commit claim (matching Textual's
+    `ErrorNote` / `MarkdownNote` / `TerminalTool`): local notes survive history commits."""
 
     event_kind: type[TranscriptEvent] = AgentTextTranscript
 
     def __init__(self, window: QtHistoryWindow, text: str) -> None:
         self.window = window
         self.text = text
-        self.source_claim: object = None
         self.finished = False
         self.revision = 0
         self.position = -next(_serials)
         self.timestamp = time.time()
+
+    @property
+    def is_attached(self) -> bool:
+        return self in self.window.live_blocks
 
     @property
     def loading(self) -> bool:
@@ -72,15 +78,24 @@ class QtLiveBlock(LiveBlock):
         self.window.drop_live(self)
 
 
-class QtThoughtBlock(QtLiveBlock):
+class QtResponseBlock(SnapshotPresentation, QtLiveBlock):
+    """Live agent response row; saved history covering its claim retires it."""
+
+
+class QtThoughtBlock(QtResponseBlock):
     event_kind = ThinkingTranscript
 
 
-class QtUserInputBlock(QtLiveBlock):
-    """The user's input row, shown when the turn starts; saved history replaces it."""
+class QtUserInputBlock(SnapshotPresentation, QtLiveBlock):
+    """The user's input row, shown when the turn starts; saved history covering its claim replaces it."""
 
     event_kind = UserTranscript
 
-    def __init__(self, window: QtHistoryWindow, text: str) -> None:
+    def __init__(self, window: QtHistoryWindow, text: str, *, claim: CommitClaim = CAPTURED_CLAIM) -> None:
         super().__init__(window, text)
+        self.claim = claim
         self.finished = True
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return self.claim

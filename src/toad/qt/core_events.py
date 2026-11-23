@@ -21,6 +21,9 @@ class QtPublication(Publication):
     event: CoreEvent
     subscription: Subscription
 
+    def stop(self) -> None:
+        """Qt delivers each subscription directly to its receiver; nothing bubbles."""
+
 
 class QtCoreObserver(QtDeliveryReceiver, CoreObserverDispatch, AppScoped):
     """A Qt view's Core subscriptions, each callback consumed after the one before it.

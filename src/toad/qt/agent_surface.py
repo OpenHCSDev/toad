@@ -20,14 +20,14 @@ from agent_comms.transcript.transcript_events import ToolStartTranscript
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.status import ToolCallStatus
-from toad.client.fragments import Shown
+from toad.client.fragments import GrowsInPlace, Shown
 from toad.client.subscribers import CallbackSubscription
+from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation
 from toad.core.events import CoreEvent
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
 from toad.qt.transcript_fragments import QtToolTranscriptFragment
 from toad.qt.live_turn import QtLiveBlock
 from toad.tool_output import TextToolOutputPart, ToolOutput
-from toad.client.fragments import GrowsInPlace
 from toad.surface_binding import ViewSurfaceBinding
 
 if TYPE_CHECKING:
@@ -96,12 +96,19 @@ class QtLiveToolRow(QtLiveBlock):
         self.window.live_changed()
 
 
-class QtToolBlock(QtLiveToolRow):
+class QtToolBlock(SnapshotPresentation, QtLiveToolRow):
     """One tool call's row, redrawn in place as the agent updates the call."""
 
-    def __init__(self, window: QtHistoryWindow, call: schema.ToolCall) -> None:
+    def __init__(
+        self,
+        window: QtHistoryWindow,
+        call: schema.ToolCall,
+        *,
+        source_claim: CapturedClaim = CAPTURED_CLAIM,
+    ) -> None:
         super().__init__(window)
         self.current = call
+        self.source_claim = source_claim
         self.finished = call.status in ("completed", "failed")
 
     def call(self) -> schema.ToolCall:
@@ -124,10 +131,6 @@ class QtTerminalBlock(QtLiveToolRow):
         super().__init__(window)
         self.terminal_id = terminal_id
         self.execution = execution
-
-    @property
-    def is_attached(self) -> bool:
-        return self in self.window.live_blocks
 
     def call(self) -> schema.ToolCall:
         return schema.ToolCall(tool_call_id=self.terminal_id, title=f"$ {self.execution.command}",
@@ -159,9 +162,10 @@ class QtSurfaceBinding(ViewSurfaceBinding):
     async def show_tool_call(self, message, target, status) -> None:
         call = status.call
         block = self.tools.get(call.tool_call_id)
-        if block is None:
+        if block is None or not block.is_attached:
             target.output.boundary()
-            block = self.tools[call.tool_call_id] = QtToolBlock(target.messages, call)
+            claim = message.publisher.tools.presentation(message.event).source_claim
+            block = self.tools[call.tool_call_id] = QtToolBlock(target.messages, call, source_claim=claim)
             target.messages.show_live(block)
         else:
             block.show(call)

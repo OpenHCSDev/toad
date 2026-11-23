@@ -51,8 +51,8 @@ class ReportsCoveredPages(metaclass=AbstractHooksMeta):
     def page_covered(self, page: TranscriptPage) -> None:
         """A loaded page's coverage reaches Core through the view's transcript binding."""
         view = self.view
-        view.transcript.binding.covered(
-            view.transcript, CoverageEvent(page.events), self).call_when_ready(view)
+        view.join_completion(view.transcript.binding.covered(
+            view.transcript, CoverageEvent(page.events), self))
 
 
 class HistoryCoverage(DeclaredFamily, affix="Coverage"):

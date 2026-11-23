@@ -927,10 +927,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         classes declare (`BoundViewHost`, `WireView`), as Textual's pump carries it up from
         the history widget. (This was empty, "no Qt listener waits on a history's source
         work": a Qt thread never retried the publication that had waited for that work, and
-        a Qt channel never reconciled an observation that arrived during it.)
-
-        Coverage has no Qt handler: a Qt view stands no live blocks for it to retire
-        (`HistoryRowsBlocks`)."""
+        a Qt channel never reconciled an observation that arrived during it.)"""
         self.core_publications.publish(event)
 
     @cached_property
@@ -1726,9 +1723,30 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
             self.live_blocks.remove(block)
             self.live_changed()
 
+    def retire_live(self, blocks) -> None:
+        """Remove live blocks covered by saved history in one row update."""
+        retired = set(blocks)
+        kept = [block for block in self.live_blocks if block not in retired]
+        if len(kept) != len(self.live_blocks):
+            self.live_blocks = kept
+            self.show_pages()
+
+    def live_in_viewport(self, candidates) -> bool:
+        """Whether any candidate live block currently draws inside the visible viewport."""
+        if self.widget_gone or not self.isVisible():
+            return False
+        positions = {block.position for block in candidates if hasattr(block, "position")}
+        if not positions:
+            return False
+        return any(
+            event.position in positions
+            for fragment in self.visible_fragments()
+            for event in fragment.events
+        )
+
     def committed_pages_changed(self) -> None:
-        """Saved rows arrived: they now carry the output of every finished live block."""
-        self.live_blocks = [block for block in self.live_blocks if not block.finished]
+        """Saved pages' shown fragments changed: note sent references and redraw rows.
+        Live blocks stay until `BoundView` retires the ones saved history actually covers."""
         if self.history.pages:
             self.history.note_sent_references(self.history.pages[-1].shown_fragments)
         self.show_pages()
