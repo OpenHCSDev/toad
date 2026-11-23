@@ -5,7 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import QEvent, QObject
 from PySide6.QtWidgets import QApplication, QListWidget, QWidget
 
-from toad.qt.finger_scrolling import FingerScrolling
+from toad.qt.finger_scrolling import FingerScrolling, MouseAndWheel, TouchAsMouse
 
 
 class Grabbed:
@@ -41,3 +41,8 @@ def test_a_scroll_area_is_held_at_its_polish_and_nothing_else_is_read(monkeypatc
         plain.deleteLater()
         scrolling.deleteLater()
         granted.deleteLater()
+
+
+def test_desktop_mouse_gesture_skips_app_wide_event_filter():
+    assert MouseAndWheel.installs_filter is False
+    assert TouchAsMouse.installs_filter is True

@@ -1261,6 +1261,7 @@ def test_qt_conversation_shares_block_menu_and_line_link_dispatch_across_all_vie
             "block_prompt_text",
             "append_to_prompt",
             "open_line_link",
+            "goal_changed_from",
         ):
             assert getattr(cls, name) is getattr(QtConversation, name), (cls, name)
 

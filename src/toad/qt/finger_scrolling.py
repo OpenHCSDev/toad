@@ -11,6 +11,7 @@ polishes it, so a scroll area added later scrolls by finger without opting in.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 from PySide6.QtCore import QEvent, QObject
 from PySide6.QtGui import QGuiApplication
@@ -19,6 +20,8 @@ from PySide6.QtWidgets import QAbstractScrollArea, QApplication, QScroller, QWid
 
 class FingerScrollGesture(ABC):
     """What a drag on a scroll area's viewport means on this platform."""
+
+    installs_filter: ClassVar[bool] = True
 
     @abstractmethod
     def grab(self, viewport: QWidget) -> None:
@@ -44,6 +47,8 @@ class MouseAndWheel(FingerScrollGesture):
     """A drag is the mouse's own: it selects text in a field or moves a row. Holding it for
     scrolling would stop a form's text from being selected by dragging across it."""
 
+    installs_filter: ClassVar[bool] = False
+
     def grab(self, viewport: QWidget) -> None:
         pass
 
@@ -64,9 +69,10 @@ class FingerScrolling(QObject):
         if held is not None:
             return held
         granted = cls(gesture, application)
-        for widget in application.allWidgets():
-            granted.held(widget)
-        application.installEventFilter(granted)
+        if gesture.installs_filter:
+            for widget in application.allWidgets():
+                granted.held(widget)
+            application.installEventFilter(granted)
         return granted
 
     def held(self, widget: QObject) -> None:

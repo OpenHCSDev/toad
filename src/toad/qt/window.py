@@ -1289,7 +1289,8 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
     def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator[QtGoalBar | PeerActivity]:
         # The peer's goal sits over its activity and the composer, as the TUI's goal bar
         # sits over its prompt.
-        yield QtGoalBar(self.app, self.app.renderer, peer)
+        self.goal_bar = QtGoalBar(self.app, self.app.renderer, peer)
+        yield self.goal_bar
         self.thread_activity = PeerActivity(self.app, self.app.renderer, peer, self.sync_working)
         yield self.thread_activity
 
