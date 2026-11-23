@@ -196,8 +196,7 @@ class QtAcpSessionView(
         """The prompt never reached the agent: it goes back into the composer and the error
         shows under the turn."""
         self.turns.finish_client()
-        if self.composer is not None:
-            self.composer.restore_draft(text)
+        self.restore_composer_draft(text)
         await self.present_error_note("Internal error", str(error) or "no details were provided")
 
     def jump_to_latest(self) -> None:

@@ -1735,7 +1735,8 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         """Whether any candidate live block currently draws inside the visible viewport."""
         if self.widget_gone or not self.isVisible():
             return False
-        positions = {block.position for block in candidates if hasattr(block, "position")}
+        candidate_set = set(candidates)
+        positions = {block.position for block in self.live_blocks if block in candidate_set}
         if not positions:
             return False
         return any(

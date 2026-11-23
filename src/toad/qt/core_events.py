@@ -24,6 +24,9 @@ class QtPublication(Publication):
     def stop(self) -> None:
         """Qt delivers each subscription directly to its receiver; nothing bubbles."""
 
+    async def consume(self, receiver, message: QtPublication) -> None:
+        await receiver.dispatch(self.event, message)
+
 
 class QtCoreObserver(QtDeliveryReceiver, CoreObserverDispatch, AppScoped):
     """A Qt view's Core subscriptions, each callback consumed after the one before it.
@@ -44,7 +47,7 @@ class QtCoreObserver(QtDeliveryReceiver, CoreObserverDispatch, AppScoped):
         """An event of a stream this view hears whole (`subscribe_core`: its own history's)
         reaches the handlers the view declares for it, after the deliveries before it. A view
         that declares none for the event hears nothing, as a Textual view lets it pass."""
-        self.deliver(partial(self.dispatch, event, QtPublication(event, subscription)))
+        self.deliver(partial(self.consume_publication, QtPublication(event, subscription)))
         return True
 
     def delivery_failed(self, error: Exception) -> None:

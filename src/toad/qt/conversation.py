@@ -15,12 +15,10 @@ import asyncio
 import inspect
 from collections.abc import Callable
 
-import shiboken6
-from textual.content import Content
-
 from functools import partial
 
 import shiboken6
+from textual.content import Content
 from agent_comms.registry.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.message_category import all_categories
 from metaclass_registry.mro_dispatch import MroDispatch
@@ -44,6 +42,8 @@ from toad.client.session_sources import SessionSources, SourcedConversation
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
 from toad.client.view_settings import ConversationSettingsOwner
 from toad.command_catalog import CommandRead, ReadsCommandCatalog
+from toad.commit_claims import StartedInputClaim
+from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn
 from toad.flash_host import FlashHost
@@ -87,6 +87,7 @@ class ComposerPlaceholder(QWidget):
 
 
 class QtConversation(
+    ConversationCommsHandlers,
     AgentTurnEvents,
     QtViewSettings,
     CategorySelection,
@@ -356,6 +357,21 @@ class QtConversation(
 
     async def present_user_input(self, text: str) -> None:
         self.messages.show_live(QtUserInputBlock(self.messages, text))
+
+    async def present_started_user_input(self, started) -> None:
+        self.messages.show_live(
+            QtUserInputBlock(self.messages, started.text, claim=StartedInputClaim(started))
+        )
+
+    def restore_composer_draft(self, text: str) -> None:
+        self.on_composer("draft", lambda composer: composer.restore_draft(text))
+
+    def coordination_synced(self) -> None:
+        self.sync_status()
+        self.on_composer("queue", lambda composer: composer.sync_queue())
+
+    async def present_turn_cancelled(self, feedback: str) -> None:
+        await self.present_help_note(f"## Turn cancelled\n\n{feedback}")
 
     def response_block(self, fragment: str, delivery) -> QtResponseBlock:
         return QtResponseBlock(self.messages, fragment)
