@@ -1736,6 +1736,19 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         super().rows_repainted()
         self.repin_header()
 
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        """A window that follows the latest message stays on it when its height changes: the
+        composer replacing its placeholder (the first of a kind is built at a height the
+        estimate missed), a keyboard, a pane. The scroll range grows with the height lost and
+        the offset stayed, so the last message sat that much below the fold with no jump bar
+        offered (2026-11-22, a thread opened on a scratch bus: 106 px short, following)."""
+        super().resizeEvent(event)
+        self.keep_tail_after_resize(event.oldSize().height(), event.size().height())
+
+    def keep_tail_after_resize(self, was: int, now: int) -> None:
+        if was != now and self.follows_tail and not self.widget_gone:
+            self.follow_latest()
+
     def rows_changed(self) -> None:
         """Prepared rows changed height: lay them out again; the layout keeps the reader's
         message. A destroyed window has no reader to serve."""

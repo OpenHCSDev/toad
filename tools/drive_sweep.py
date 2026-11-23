@@ -35,17 +35,16 @@ from shipped_run import ScratchBus  # noqa: E402
 
 NEEDS_MORE_THAN_THE_SCRATCH_BUS: dict[str, str] = {
     "cli_sync": "TRANSCRIPT: a native transcript file to sync",
-    "command": "a conversation where a send is refused, as the live bus has",
     "draft": "waits up to DRAFT_WAIT (240 s) for Core to publish a CLI thread's in-progress draft: a thread mid-turn; times out by design on a scratch bus",
     "goal": "a thread with a goal set by its owner",
     "idle": "runs for DURATION seconds by design; longer than any sweep limit",
-    "link": "a drawn link naming a live thread (claude-cloud-pm-run11)",
     "peer_profile": "ADDRESS: a peer's address to open its profile",
     "tool_detail": "a thread with enough saved history to load an older page, holding tool calls",
 }
 
 
-EXTRA_THREADS = ("claude-a", "opus-personal-model", "personal-model-curation", "scratch-third")
+EXTRA_THREADS = ("claude-a", "opus-personal-model", "personal-model-curation", "scratch-third",
+                 "claude-cloud-pm-run11")
 """Threads the drives name that a bare scratch bus lacks, registered with the channels' tags."""
 LONG_MESSAGE = "\n".join(f"line {number} of a message taller than any window: " + "word " * 12 for number in range(1, 91))
 
@@ -67,7 +66,10 @@ def enriched_template(runtime: Path, parent: Path) -> Path:
             raise RuntimeError(f"{' '.join(words)[:80]} failed: {done.stdout[-300:]}{done.stderr[-300:]}")
 
     for name in EXTRA_THREADS:
-        run("register", "--name", name, "--worktree", str(work), "--tags", "comms,scratch", "--execution", "external")
+        # Each is a live external thread (this process is alive for the whole sweep): a link to a
+        # recorded one opens nothing in Qt (`select_historical`).
+        run("register", "--name", name, "--worktree", str(work), "--tags", "comms,scratch",
+            "--execution", "external", "--pid", str(os.getpid()))
     sender = "scratch-peer"
     for index in range(60):
         run("send", "--from", sender, "--to", "#comms", "--type", "info", "--body", f"channel message {index}")
@@ -76,6 +78,9 @@ def enriched_template(runtime: Path, parent: Path) -> Path:
         run("send", "--from", sender, "--to", "scratch-live-pipeline", "--type", "info", "--body", f"direct message {index}")
     for index in range(10):
         run("send", "--from", sender, "--to", "#scratch", "--type", "info", "--body", f"scratch channel message {index}")
+    # A message naming a thread by its name draws it as a link (the `link` drive taps it).
+    run("send", "--from", sender, "--to", "opus-personal-model", "--type", "info",
+        "--body", "the run is in claude-cloud-pm-run11, see its thread")
     return bus.root
 
 

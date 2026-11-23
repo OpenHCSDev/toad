@@ -212,6 +212,28 @@ class Scenario(DeclaredFamily, ABC, affix="Scenario"):
                     and self.page.messages.model_rows.rowCount(), label)
         await asyncio.sleep(1.5)
 
+    async def window_tap(self, widget: QWidget, point: QPoint) -> None:
+        """A finger's tap as the system delivers it: to the window, which routes it to the widget.
+        `FingerPress` classifies a press at its window and ignores a widget-only release, so a
+        tap sent straight to a widget is never a tap to the app (a row's link, a row's reveal)."""
+        window = widget.window()
+        handle = window.windowHandle()
+        inside, globally = QPointF(widget.mapTo(window, point)), QPointF(widget.mapToGlobal(point))
+        for kind, held in ((QEvent.Type.MouseButtonPress, True), (QEvent.Type.MouseButtonRelease, False)):
+            QApplication.sendEvent(handle, QMouseEvent(
+                kind, inside, globally, Qt.MouseButton.LeftButton,
+                Qt.MouseButton.LeftButton if held else Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier))
+            await asyncio.sleep(0.05)
+
+    def record_flashes(self) -> list[str]:
+        """What the page's feedback line is asked to show from now on: it holds a message only for
+        a moment, so a drive reads the record and not the line."""
+        flashed: list[str] = []
+        original = self.page.feedback.flash
+        self.page.feedback.flash = lambda content, *rest, **options: (
+            flashed.append(str(content)), original(content, *rest, **options))[1]
+        return flashed
+
     @staticmethod
     def other_party(target: str) -> tuple[str, str]:
         """(sender, recipient) of the messages a drive posts into the view it opened: in a channel,
@@ -816,20 +838,38 @@ class ToolDetailScenario(Scenario):
 
 class LinkScenario(Scenario):
     summary = ("open TOAD_DRIVE_THREAD, find the drawn link naming TOAD_DRIVE_LINK on screen, "
-               "tap it, and report the tab it opened")
+               "tap it as a finger does, and report the tab it opened")
 
     async def run(self) -> None:
         await self.open_named(os.environ.get("TOAD_DRIVE_THREAD", "opus-personal-model"))
         wanted = os.environ.get("TOAD_DRIVE_LINK", "claude-cloud-pm-run11")
         window = self.page.messages
         viewport = window.viewport()
-        point = next((QPoint(x, y) for y in range(0, viewport.height(), 3) for x in range(0, viewport.width(), 3)
-                      if wanted in repr(self.decoded(window.anchor_at(QPoint(x, y))))), None)
+
+        def drawn_point():
+            return next((QPoint(x, y) for y in range(0, viewport.height(), 3) for x in range(0, viewport.width(), 3)
+                         if wanted in repr(self.decoded(window.anchor_at(QPoint(x, y))))), None)
+
+        # Links draw once the thread names they point at have been read. A scan of the viewport is
+        # slow work on the loop the rows draw on, so it runs twice a second.
+        point = drawn_point()
+        for _ in range(20):
+            if point is not None:
+                break
+            await asyncio.sleep(0.5)
+            point = drawn_point()
         if point is None:
-            raise LookupError(f"no drawn link names {wanted}")
+            bar = window.verticalScrollBar()
+            raise LookupError(f"no drawn link names {wanted}: scroll {bar.value()} of {bar.maximum()}, following "
+                              f"{window.follows_tail}, link revision {window.rows.links_revision}")
         self.report("1-before", link=repr(self.decoded(window.anchor_at(point)))[:120], at=(point.x(), point.y()))
-        QTest.mouseClick(viewport, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, point)
-        await until(lambda: any(wanted in tab for tab in self.tabs()), f"tab for {wanted}")
+        flashed = self.record_flashes()
+        await self.window_tap(viewport, point)
+        try:
+            await until(lambda: any(wanted in tab for tab in self.tabs()), f"tab for {wanted}")
+        except TimeoutError:
+            raise TimeoutError(f"tapping the link opened no tab for {wanted}: tabs {self.tabs()}, flashed "
+                               f"{flashed}, notices {self.app.float_layer.shown_notices()}") from None
         await asyncio.sleep(2.0)
         self.report("2-opened")
 
@@ -1925,10 +1965,18 @@ class CommandScenario(Scenario):
         await until(lambda: QApplication.clipboard().text() == "#any", "copied", tenths=100)
         self.report("2-copied", clipboard=QApplication.clipboard().text(), draft=composer.text,
                     sending=composer.submitting.text())
+        # A refused command is flashed in the view's feedback line (`flash_error`), as Textual shows it:
+        # the drive records what the line was asked to show, which it holds only for a moment.
+        flashed = self.record_flashes()
         await self.send("/copy now")
-        await until(lambda: any("current target" in notice for notice in app.float_layer.shown_notices()),
-                    "refused", tenths=100)
-        self.report("3-refused", notices=app.float_layer.shown_notices(), shown=app.float_layer.isVisible())
+        try:
+            await until(lambda: any("current target" in text for text in flashed), "refused", tenths=100)
+        except TimeoutError:
+            raise TimeoutError(f"/copy now was not refused with a message naming the current target: flashed "
+                               f"{flashed}, notices {app.float_layer.shown_notices()}, draft {composer.text!r}, "
+                               f"the newest message reads "
+                               f"{self.page.messages.model_rows.fragments[-1].clipboard_text[-60:]!r}") from None
+        self.report("3-refused", flashed=flashed, notices=app.float_layer.shown_notices())
         await self.open(await self.channel_row("#comms"), "#comms")
         await self.send("/rename-tag")
         await until(self.forms, "form", tenths=150)
