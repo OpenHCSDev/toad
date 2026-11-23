@@ -573,12 +573,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         return sorted((page for page in self.pages if page in visible and page.parent is self),
                       key=lambda page: visible[page][0].y)
 
-    def read_ahead(self, work: Callable[[], Awaitable[object]]) -> None:
-        # The existing runtime owns the single decoded/prepared result.
-        # This native worker only waits for that original bounded work;
-        # foreground paging shares it, without a page store in the widget.
-        self.run_worker(work, group="transcript-read-ahead", exclusive=True, exit_on_error=False)
-
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.visible_pages() for fragment in page.visible_fragments(self.window))
 

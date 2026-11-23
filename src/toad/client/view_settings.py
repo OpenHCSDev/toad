@@ -51,8 +51,13 @@ class ViewSettingsOwner:
 
     @property
     @abstractmethod
+    def configuration_mode(self) -> str:
+        """The session-navigation mode this view's overrides are stored under."""
+
+    @property
     def configuration_identity(self) -> TabIdentity:
         """The tab this view's overrides are saved under."""
+        return self.app.session_navigation.get(self.configuration_mode).identity
 
     @property
     def configuration_settings(self) -> SavedSettings:

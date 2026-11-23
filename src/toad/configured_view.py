@@ -107,8 +107,8 @@ class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
 
 class ConfiguredView(ViewSettingsScope):
     @property
-    def configuration_identity(self):
-        return self.app.session_navigation.get(self.id).identity
+    def configuration_mode(self):
+        return self.id
 
     @property
     def configuration_panels(self):

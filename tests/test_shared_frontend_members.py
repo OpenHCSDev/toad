@@ -101,7 +101,7 @@ def test_the_surface_a_view_lends_its_agent_holds_the_view_weakly_on_both_fronte
     from toad.qt.agent_surface import QtSurfaceBinding
     from toad.surface_binding import ViewSurfaceBinding
 
-    for member in ("target", "sync_queue", "close"):
+    for member in ("target", "sync_queue", "close", "owns_publication", "present_tool", "present_permission"):
         _owned_by(ViewSurfaceBinding, member, AttachedSurfaceBinding, QtSurfaceBinding)
 
     class View:
@@ -119,6 +119,9 @@ def test_the_surface_a_view_lends_its_agent_holds_the_view_weakly_on_both_fronte
     class Lent(ViewSurfaceBinding):
         def post(self, message) -> bool:
             return False
+
+        async def show_tool_call(self, message, target, status) -> None:
+            pass
 
     view, subscription, surface = View(), Subscription(), Lent()
     surface.lend(view, subscription)

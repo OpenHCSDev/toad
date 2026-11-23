@@ -15,7 +15,7 @@ from toad.client.db import DB
 from toad.navigation_context import NavigationOwner
 from toad.navigation_preparation import NavigationReader
 from toad.client.session_projection import SessionCollection, SessionProjection
-from toad.client.session_scope import SessionOrigin, SessionScope
+from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.session_tracker import SessionTracker
 from toad.client.tab_identity import TabIdentity, TabNotDrawnHere
 
@@ -43,19 +43,36 @@ class SessionEntries(DeclaredViews):
 class WorkspaceViews(metaclass=AbstractHooksMeta):
     """The workspace owns native views and their dependent lifetime."""
 
+    app: NavigationHost
     views: dict[str, SessionScope]
 
-    @abstractmethod
-    def require(self, identity: str) -> SessionScope: ...
+    def require(self, identity: str) -> SessionScope:
+        return self.views[identity]
 
-    @abstractmethod
-    def origin(self, identity: str) -> SessionOrigin: ...
+    def origin(self, identity: str) -> SessionOrigin:
+        """The original source, or its explicit unavailable member once closed."""
+        if self.has_origin(identity):
+            if view := self.views.get(identity):
+                return view.origin
+        return self.resident_origin(identity)
+
+    def has_origin(self, identity: str) -> bool:
+        return self.app.session_navigation.get(identity) is not None
+
+    def resident_origin(self, identity: str) -> SessionOrigin:
+        return NoSessionOrigin(identity)
 
     @abstractmethod
     def navigation_owner(self) -> NavigationOwner: ...
 
-    @abstractmethod
-    def detach(self, identity: str) -> SessionScope | None: ...
+    def detach(self, identity: str) -> SessionScope | None:
+        if view := self.views.pop(identity, None):
+            self.view_detached(view)
+            return view
+        return None
+
+    def view_detached(self, view: SessionScope) -> None:
+        """Hook after `view` leaves `views`."""
 
     @abstractmethod
     async def finish(self, view: SessionScope) -> None: ...

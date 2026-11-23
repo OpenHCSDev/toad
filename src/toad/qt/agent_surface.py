@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 from acp import schema
 from agent_comms.nominal.field_codec import FieldCodec, ToolCallId
 from agent_comms.transcript.transcript_events import ToolStartTranscript
-from metaclass_registry.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.status import ToolCallStatus
 from toad.client.fragments import Shown
@@ -148,7 +148,7 @@ class QtTerminalBlock(QtLiveToolRow):
         self.redraw()
 
 
-class QtSurfaceBinding(ViewSurfaceBinding, MroDispatch):
+class QtSurfaceBinding(ViewSurfaceBinding):
     """The surface a Qt conversation lends its bound agent."""
 
     def __init__(self, target: QtConversation, events: CoreEventStream) -> None:
@@ -156,17 +156,7 @@ class QtSurfaceBinding(ViewSurfaceBinding, MroDispatch):
         self.tools: dict[str, QtToolBlock] = {}
         self.terminals: dict[str, QtTerminalBlock] = {}
 
-    def owns_publication(self, message, target) -> bool:
-        return (self.owns(target)
-                and target.agent_binding.matches_agent(message.publisher)
-                and message.publisher.controller.surface is self
-                and message.publisher.tools.presentation(message.event) is not None)
-
-    async def present_tool(self, message, target) -> None:
-        if not self.owns_publication(message, target):
-            return
-        status = message.event.tool_call
-        status.activity(target.turns, target.output, status.title)
+    async def show_tool_call(self, message, target, status) -> None:
         call = status.call
         block = self.tools.get(call.tool_call_id)
         if block is None:
@@ -175,9 +165,6 @@ class QtSurfaceBinding(ViewSurfaceBinding, MroDispatch):
             target.messages.show_live(block)
         else:
             block.show(call)
-
-    async def present_permission(self, request, view) -> None:
-        await self.dispatch(request.presentation, view, request)
 
     @handles(InlinePermissionPresentation)
     async def ask_inline(self, presentation, view, request) -> None:

@@ -801,8 +801,8 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self.attached = True
         self.lock = asyncio.Lock()
         self._tasks: set[asyncio.Task] = set()
+        self._grouped_tasks: dict[str, SourceTask] = {}
         self._read_task: asyncio.Task | NoTask = NoTask()
-        self._read_ahead: asyncio.Task | NoTask = NoTask()
         prepared = self.empty_page()
         super().__init__(source_state=self.initial_state(view),
                          page_source=self._initial_page_source(prepared, app))
@@ -853,9 +853,6 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
 
     def source_snapshot(self) -> HistorySourceSnapshot:
         return HistorySourceSnapshot(self._generation, self.window, self.window, self.source_identity)
-
-    def followed_here(self) -> None:
-        self.window.histories.add(self)
 
     def request_preparation(self) -> None:
         self.window.request_preparation()
@@ -946,15 +943,27 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
 
     # Running source work on the Qt event loop
 
-    def run_worker(self, work: Callable[[], Awaitable[object]], **_options: object) -> SourceTask:
+    def run_worker(
+        self,
+        work: Callable[[], Awaitable[object]],
+        *,
+        group: str | None = None,
+        exclusive: bool = False,
+        **_options: object,
+    ) -> SourceTask:
+        if exclusive and group is not None and (running := self._grouped_tasks.get(group)) is not None:
+            running.cancel()
         task = SourceTask(work(), loop=asyncio.get_event_loop())
         self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
+        if group is not None:
+            self._grouped_tasks[group] = task
+        task.add_done_callback(partial(self._worker_done, group))
         return task
 
-    def read_ahead(self, work: Callable[[], Awaitable[object]]) -> None:
-        self._read_ahead.cancel()
-        self._read_ahead = self.run_worker(work)
+    def _worker_done(self, group: str | None, task: SourceTask) -> None:
+        self._tasks.discard(task)
+        if group is not None and self._grouped_tasks.get(group) is task:
+            del self._grouped_tasks[group]
 
     def cancel_work(self) -> list:
         tasks = list(self._tasks)
@@ -976,9 +985,6 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
 
     def read_postponed(self, error: Exception) -> None:
         """Core held the acknowledgement; the next painted frame tries again."""
-
-    def mark_visible_after_paint(self) -> None:
-        QTimer.singleShot(0, self.mark_visible)
 
     def withdraw_view(self) -> None:
         self.view.hide()

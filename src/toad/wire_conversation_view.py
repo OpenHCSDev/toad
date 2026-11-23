@@ -14,6 +14,5 @@ class WireConversationView(WireView, Conversation):
     def mode(self) -> str:
         return self.query_ancestor(SessionScope).id
 
-    def shows(self, root: str | Path, conversation: ConversationKind) -> bool:
-        return self.is_attached and conversation == self.conversation and (
-            self.message_history.page_source.reads_from(root))
+    def wire_view_open(self) -> bool:
+        return self.is_attached

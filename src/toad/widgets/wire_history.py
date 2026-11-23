@@ -113,9 +113,6 @@ class WireHistory[ViewT: WireConversationView](AwaitsFirstPage, VisibleReadMarki
         return (super().can_draw_on_screen
                 and self.view.query_ancestor(SessionScope).is_current)
 
-    def mark_visible_after_paint(self) -> None:
-        self.view.call_after_refresh(self.mark_visible)
-
     def withdraw_view(self) -> None:
         self.view.display = False
 

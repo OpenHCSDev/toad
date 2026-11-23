@@ -42,12 +42,9 @@ class TranscriptSourcePreparation(HistoryPager, UnrisenRows, CoreEventReceiver):
                                      self.source_identity)
 
 
-    def followed_here(self) -> None:
-        """Register with the window drawing these pages, and keep it: it needs this pager in
-        its tail arithmetic, and this pager needs it to move the reader as rows rise. One
-        call, so a holder is never in the sum without being able to move the reader."""
-        window = self.window
-        window.histories.add(self)
+    def window_followed(self, window: HistoryWindow) -> None:
+        """Keep the window drawing these pages: this pager needs it to move the reader as
+        rows rise."""
         self.followed_by(window)
 
     @on(Unmount)

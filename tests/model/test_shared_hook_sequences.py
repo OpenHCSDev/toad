@@ -700,3 +700,146 @@ def test_a_following_window_stays_on_the_tail_when_its_height_changes():
     QtHistoryWindow.keep_tail_after_resize(window, 500, 400)  # a destroyed window has no reader
 
     assert placed == ["tail"]
+
+
+def test_surface_settings_goal_workspace_and_history_sequences_live_on_their_shared_parents():
+    from toad.agent_surface import AttachedSurfaceBinding
+    from toad.client.history import ReadMarkedHistory, WireView
+    from toad.client.history_pager import HistoryPager
+    from toad.client.view_settings import ViewSettingsOwner
+    from toad.configured_view import ConfiguredView
+    from toad.goal_controls import GoalControlsSession
+    from toad.goal_interaction import GoalSession
+    from toad.qt.agent_surface import QtSurfaceBinding
+    from toad.qt.conversation import QtConversation
+    from toad.qt.goal import QtGoalSession
+    from toad.qt.history import QtConversationHistory
+    from toad.qt.window import ConversationView, QtWorkspaceViews
+    from toad.session_host import WorkspaceViews
+    from toad.surface_binding import ViewSurfaceBinding
+    from toad.transcript_source_preparation import TranscriptSourcePreparation
+    from toad.widgets.transcript_history import LineHistory
+    from toad.widgets.wire_history import WireHistory
+    from toad.wire_conversation_view import WireConversationView
+    from toad.workspace_sessions import WorkspaceSessions
+
+    for owner, name, leaves in (
+        (ViewSurfaceBinding, "owns_publication", (AttachedSurfaceBinding, QtSurfaceBinding)),
+        (ViewSurfaceBinding, "present_tool", (AttachedSurfaceBinding, QtSurfaceBinding)),
+        (ViewSurfaceBinding, "present_permission", (AttachedSurfaceBinding, QtSurfaceBinding)),
+        (ViewSettingsOwner, "configuration_identity", (ConfiguredView, QtConversation)),
+        (GoalControlsSession, "unavailable", (GoalSession, QtGoalSession)),
+        (GoalControlsSession, "show_history", (GoalSession, QtGoalSession)),
+        (GoalControlsSession, "open_edit", (GoalSession, QtGoalSession)),
+        (WorkspaceViews, "require", (WorkspaceSessions, QtWorkspaceViews)),
+        (WorkspaceViews, "origin", (WorkspaceSessions, QtWorkspaceViews)),
+        (WorkspaceViews, "detach", (WorkspaceSessions, QtWorkspaceViews)),
+        (HistoryPager, "followed_here", (TranscriptSourcePreparation, QtConversationHistory)),
+        (HistoryPager, "read_ahead", (LineHistory, QtConversationHistory)),
+        (ReadMarkedHistory, "mark_visible_after_paint", (WireHistory, QtConversationHistory)),
+        (WireView, "shows", (WireConversationView, ConversationView)),
+    ):
+        for leaf in leaves:
+            assert getattr(leaf, name) is getattr(owner, name), (leaf.__name__, name)
+
+
+def test_goal_controls_edit_checks_ownership_before_presenting_and_saving():
+    import pytest
+    from agent_comms.errors import GoalRefused
+    from toad.goal_controls import GoalControlsSession
+
+    presented, saved = [], []
+    goal = SimpleNamespace(id="g1", text="old")
+    binding = SimpleNamespace(edit_goal=lambda g, text: saved.append((g, text)) or "edited")
+
+    class Session(GoalControlsSession):
+        owned = True
+
+        @property
+        def display(self):
+            return SimpleNamespace(snapshot=SimpleNamespace(require=lambda: goal), heading=lambda ex: "Paused")
+
+        @property
+        def execution(self):
+            return "exec"
+
+        @property
+        def host(self):
+            return SimpleNamespace()
+
+        @property
+        def binding(self):
+            return binding
+
+        def owns(self, source) -> bool:
+            return self.owned and source is binding
+
+        async def refresh(self, source) -> None:
+            pass
+
+        def report_unavailable(self, heading: str) -> None:
+            presented.append(("unavailable", heading))
+
+        def present(self, view) -> None:
+            presented.append(("present", view))
+
+        def history_view(self, page):
+            return ("history", page)
+
+        async def edit_view(self, target_goal, on_save):
+            return (target_goal, on_save)
+
+        def toggle_collapsed(self) -> None:
+            pass
+
+    session = Session()
+    session.unavailable()
+    session.show_history(binding, "page")
+    asyncio.run(session.open_edit())
+    assert presented[0] == ("unavailable", "Paused")
+    assert presented[1] == ("present", ("history", "page"))
+    target_goal, on_save = presented[2][1]
+    assert target_goal is goal
+
+    # Saving while still owning the binding writes through the shared envelope.
+    async def run_save():
+        async def fake_write(src, op):
+            return op
+        session.write = fake_write
+        await on_save("new")
+        session.owned = False
+        with pytest.raises(GoalRefused):
+            await on_save("stale")
+
+    asyncio.run(run_save())
+    assert saved == [(goal, "new")]
+
+
+def test_workspace_views_origin_respects_navigation_membership_and_resident_fallback():
+    from toad.client.session_scope import NoSessionOrigin
+    from toad.session_host import WorkspaceViews
+
+    class Views(WorkspaceViews):
+        def __init__(self, registered: set[str]) -> None:
+            self.app = SimpleNamespace(session_navigation=SimpleNamespace(get=lambda key: object() if key in registered else None))
+            self.views = {}
+            self.detached = []
+
+        def navigation_owner(self):
+            return None
+
+        def view_detached(self, view) -> None:
+            self.detached.append(view)
+
+        async def finish(self, view) -> None:
+            pass
+
+    views = Views({"tab-1"})
+    live = SimpleNamespace(origin="live-origin")
+    dying = SimpleNamespace(origin="dying-origin")
+    views.views["tab-1"] = live
+    views.views["tab-2"] = dying
+    assert views.require("tab-1") is live
+    assert views.origin("tab-1") == "live-origin"
+    assert isinstance(views.origin("tab-2"), NoSessionOrigin)
+    assert views.detach("tab-1") is live and views.detached == [live] and "tab-1" not in views.views

@@ -1,10 +1,11 @@
 """Goal controls, dialogs and writes stay bound to their source."""
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from weakref import ReferenceType, ref
 
-from agent_comms.errors import GoalRefused
 from agent_comms.planning.goal_presentation import GoalExecutionControls
+from agent_comms.planning.goals import Goal
 from toad.goal_controls import GoalControlsSession, GoalHistoryPage, GoalSource
 
 from toad.screens.goal_details import GoalDetails
@@ -56,29 +57,20 @@ class GoalSession(GoalControlsSession[GoalSource]):
     async def refresh(self, binding: GoalSource) -> None:
         await self.view.goal_observation.refresh()
 
-    def unavailable(self) -> None:
-        self.view.feedback.flash(self.display.heading(self.execution))
+    def report_unavailable(self, heading: str) -> None:
+        self.view.feedback.flash(heading)
 
     def after_change(self, binding: GoalSource) -> None:
         self.view.prompt.focus()
 
-    def show_history(self, binding: GoalSource, page: GoalHistoryPage) -> None:
-        self.present(GoalDetails(self.view, history=page.history))
+    def history_view(self, page: GoalHistoryPage) -> GoalDetails:
+        return GoalDetails(self.view, history=page.history)
 
-    async def open_edit(self) -> None:
-        """Open the goal's editor over its owner's mention candidates."""
+    async def edit_view(self, goal: Goal, on_save: Callable[[str], Awaitable[None]]) -> GoalEdit:
+        """Build the goal's editor over its owner's mention candidates."""
         view = self.view
-        goal = view.goal_display.snapshot.require()
-        source = view.goal_source
-
-        async def save(text: str) -> None:
-            if not self.owns(source):
-                raise GoalRefused("The goal presentation changed; reopen its editor.")
-            await self.write(source, source.edit_goal(goal, text))
-
         observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
-        self.present(GoalEdit(
-            goal, goal_mention_candidates(observed), project=view.project_path, on_save=save))
+        return GoalEdit(goal, goal_mention_candidates(observed), project=view.project_path, on_save=on_save)
 
     def toggle_collapsed(self) -> None:
         bar = self.view.goal_bar

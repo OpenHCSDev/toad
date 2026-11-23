@@ -228,18 +228,8 @@ class WorkspaceSessions(WorkspaceViews):
         self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 
-    def require(self, identity: str) -> SessionScope:
-        return self.views[identity]
-
-    def origin(self, identity: str) -> SessionOrigin:
-        """The original source, or its explicit unavailable member once closed."""
-        if (
-            self.app.session_navigation.get(identity) is not None
-            or identity in self.resident
-        ):
-            if view := self.views.get(identity):
-                return view.origin
-        return NoSessionOrigin(identity)
+    def has_origin(self, identity: str) -> bool:
+        return super().has_origin(identity) or identity in self.resident
 
     async def prepare(self, identity: str) -> SessionScope:
         if view := self.views.get(identity):
@@ -328,12 +318,9 @@ class WorkspaceSessions(WorkspaceViews):
         owner.call_later(callback)
         return True
 
-    def detach(self, identity: str) -> SessionScope | None:
-        if view := self.views.pop(identity, None):
-            if self.source.matches(view):
-                self.source = DetachedWorkspaceSource()
-            return view
-        return None
+    def view_detached(self, view: SessionScope) -> None:
+        if self.source.matches(view):
+            self.source = DetachedWorkspaceSource()
 
     async def close(self, identity: str) -> None:
         if view := self.detach(identity):
