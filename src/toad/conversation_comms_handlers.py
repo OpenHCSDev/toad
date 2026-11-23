@@ -1,91 +1,84 @@
-"""Conversation comms behavior on the existing receiver MRO."""
+"""Toolkit-neutral conversation comms handlers shared by Textual and Qt."""
 
 from __future__ import annotations
-from toad.core_event_carrier import CoreEventReceiver
-from toad.core_event_carrier import CoreEventMessage
+
+from abc import abstractmethod
+
 import agent_comms.agent_events as comms_events
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
     CoordinationChangedUpdate,
     GoalChangedUpdate,
+    InputFailedUpdate,
     InputStartedUpdate,
+    NativeRoundCommittedUpdate,
     PromptCancelledUpdate,
-    McpClientAcknowledgementUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.acp_extension import InputFailedUpdate
 from metaclass_registry.mro_dispatch import handles
-from textual.content import Content
+
+from toad.acp.attachment_presentation import QueuePresentation
+from toad.client.subscribers import CoreObserverDispatch
 from toad.core import events as core_events
-from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.widgets.note import Note
-from toad.widgets.markdown_note import StopReasonNote
-from agent_comms.acp_extension import NativeRoundCommittedUpdate
-from toad.transcript_publication import TranscriptPresentation
+from toad.core.events import Publication
 
 
-class ConversationCommsHandlers(CoreEventReceiver):
-    transcript: TranscriptPresentation
+class ConversationCommsHandlers(CoreObserverDispatch):
+    """Handles Core `CommsUpdated` events and session-scoped update filtering for every
+    frontend's conversation view. Each frontend supplies only its presentation hooks."""
 
-    def accepts(self, message: CoreEventMessage) -> bool:
+    def accepts(self, message: Publication) -> bool:
         if not message.event.session_scoped:
             return True
         if not self.agent_binding.accepts_message(message):
             return False
         return self.turns.owner.accepts_update(message.event.update)
 
-    @handles(CursorPresentation)
-    def on_private_native_cursor_update(
-        self, update: CursorPresentation, message: CoreEventMessage
-    ) -> None:
-        message.stop()
-        if message.event.sequence <= self._private_cursor_sequence:
-            return
-        self._private_cursor_sequence = message.event.sequence
-        self.native_history_status = update.status
+    async def turn_settled(self) -> None:
+        """Frontend cleanup when an observed turn finishes (Textual clears its MCP live note)."""
 
-    @handles(McpClientAcknowledgementUpdate)
-    async def on_mcp_client_status(
-        self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
-    ) -> None:
-        """Show the MCP server summary only within the active turn it describes."""
-        if self._mcp_live_note:
-            return  # The package emits at most one server summary per turn.
-        rows = update.acknowledgement.servers
-        summary = (
-            "; ".join(
-                f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
-                f" tools={row.tools} resources={row.resources} prompts={row.prompts}"
-                for row in rows
-            )
-            or "no approved servers"
-        )
+    def goal_changed_from(self, publisher: object) -> None:
+        """Invalidate this view's goal observation if it owns one."""
+
+    @abstractmethod
+    async def present_started_user_input(self, started: InputStartedUpdate) -> None:
+        """Draw a started native user input carrying its `StartedInputClaim`."""
+
+    @abstractmethod
+    def restore_composer_draft(self, text: str) -> None:
+        """Return failed-request draft text to this view's composer."""
+
+    @abstractmethod
+    def coordination_synced(self) -> None:
+        """Refresh composer session/queue chrome after coordination changes."""
+
+    @abstractmethod
+    async def present_turn_cancelled(self, feedback: str) -> None:
+        """Show the cancelled-turn notice in this view."""
+
+    async def present_started_input(self, started: InputStartedUpdate) -> None:
         self.output.boundary()
-        self._mcp_live_note = Note(
-            Content.styled(
-                f"MCP live (this turn, not a grant): {summary}", "$text-muted"
-            ),
-        )
-        await self.post(self._mcp_live_note)
+        if started.text and not self.transcript.binding.covers_input(started):
+            await self.present_started_user_input(started)
+        self.submissions.native_input_presented(started)
 
     @handles(TurnChangedUpdate)
     async def on_turn_changed(
-        self, update: TurnChangedUpdate, message: CoreEventMessage
+        self, update: TurnChangedUpdate, message: Publication
     ) -> None:
         if not self.turns.changed(message):
             return
         if self.turns.owner.busy:
             return
-        await self._clear_mcp_live()
-        self._agent_activity_boundary.reset()
+        await self.turn_settled()
         await self.output.settle()
         self.transcript.retry()
 
     @handles(QueuePresentation)
     async def on_queue_view_update(
-        self, update: QueuePresentation, message: CoreEventMessage
+        self, update: QueuePresentation, message: Publication
     ) -> None:
         async with self.window.preserve_history():
             for started in update.starts:
@@ -94,7 +87,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
 
     @handles(InputStartedUpdate)
     async def on_input_started(
-        self, update: InputStartedUpdate, message: CoreEventMessage
+        self, update: InputStartedUpdate, message: Publication
     ) -> None:
         async with self.window.preserve_history():
             await self.present_started_input(update)
@@ -102,82 +95,77 @@ class ConversationCommsHandlers(CoreEventReceiver):
 
     @handles(InputFailedUpdate)
     def on_input_failed(
-        self, update: InputFailedUpdate, message: CoreEventMessage
+        self, update: InputFailedUpdate, message: Publication
     ) -> None:
         """Only a locally failed request may recover its own draft text."""
         if not self.submissions.accepts_failure(message):
             return
+        failure = message.event.update.failure
         if not message.event.recover_draft:
             # Server notices (including unstarted queued/restored inputs) are
             # read-only evidence, not permission to change the local composer.
-            self.feedback.flash(
-                f"{message.event.update.failure.title}: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
-                style="error",
+            self.flash_error(
+                f"{failure.title}: {failure.description}\n{failure.input_disposition}\n{failure.action}"
             )
             return
-        self.prompt.restore_draft(message.event.update.text)
-
-        self.feedback.flash(
-            f"{message.event.update.failure.title}; draft restored: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
-            style="error",
+        self.restore_composer_draft(message.event.update.text)
+        self.flash_error(
+            f"{failure.title}; draft restored: {failure.description}\n{failure.input_disposition}\n{failure.action}"
         )
 
     @handles(core_events.CommsUpdated)
-    async def on_comms_updated(self, event: core_events.CommsUpdated, message: CoreEventMessage) -> None:
+    async def on_comms_updated(self, event: core_events.CommsUpdated, message: Publication) -> None:
         await self.dispatch(event.update, message)
 
     @handles(CoordinationChangedUpdate)
     def on_coordination_changed(
-        self, update: CoordinationChangedUpdate, message: CoreEventMessage
+        self, update: CoordinationChangedUpdate, message: Publication
     ) -> None:
         # Source binding is published independently of registry/activity changes:
         # a newly bound thread joins the observed threads (or reads as foreign).
         self.arm_thread_read()
         self.refresh_thread_status()
-        self.prompt.sync_session()
-        self.prompt.sync_queue()
+        self.coordination_synced()
 
     @handles(PromptCancelledUpdate)
     async def on_prompt_cancelled(
-        self, update: PromptCancelledUpdate, message: CoreEventMessage
+        self, update: PromptCancelledUpdate, message: Publication
     ) -> None:
-        await self.post(
-            StopReasonNote(f"## Turn cancelled\n\n{update.feedback}")
-        )
+        await self.present_turn_cancelled(update.feedback)
 
     @handles(TranscriptChangedUpdate)
     def on_transcript_changed(
-        self, update: TranscriptChangedUpdate, message: CoreEventMessage
+        self, update: TranscriptChangedUpdate, message: Publication
     ) -> None:
         self.transcript.changed(update.cursor)
 
     @handles(NativeRoundCommittedUpdate)
     def on_native_round_committed(
-        self, update: NativeRoundCommittedUpdate, message: CoreEventMessage
+        self, update: NativeRoundCommittedUpdate, message: Publication
     ) -> None:
         self.transcript.require_commit()
 
     @handles(GoalChangedUpdate)
     def on_goal_changed(
-        self, update: GoalChangedUpdate, message: CoreEventMessage
+        self, update: GoalChangedUpdate, message: Publication
     ) -> None:
-        self.goal_observation.invalidate_from(message.publisher)
+        self.goal_changed_from(message.publisher)
 
     @handles(CompactionChangedUpdate)
     async def on_compaction_changed(
-        self, update: CompactionChangedUpdate, message: CoreEventMessage
+        self, update: CompactionChangedUpdate, message: Publication
     ) -> None:
         await self.dispatch(update.event, message)
 
     @handles(comms_events.CompactionEnd)
     def on_compaction_end(
-        self, event: comms_events.CompactionEnd, message: CoreEventMessage
+        self, event: comms_events.CompactionEnd, message: Publication
     ) -> None:
         # Pi's saved compaction entry owns the notice; re-read the transcript.
         self.transcript.require_commit()
 
     @handles(TranscriptSnapshotUpdate)
     def on_transcript_snapshot(
-        self, update: TranscriptSnapshotUpdate, message: CoreEventMessage
+        self, update: TranscriptSnapshotUpdate, message: Publication
     ) -> None:
         self.transcript.received(update.page)

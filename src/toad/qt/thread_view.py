@@ -274,6 +274,10 @@ class QtThreadView(
     def refresh_session_summary(self) -> None:
         self.thread_activity.refresh_summary()
 
+    def goal_changed_from(self, publisher: object) -> None:
+        if self.goal_bar is not None:
+            self.goal_bar.goal_observation.invalidate_from(publisher)
+
     def resume_retained_history(self) -> None:
         self.message_history.state.resume_if_parked(self.message_history)
 

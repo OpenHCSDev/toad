@@ -16,6 +16,7 @@ from typing import Callable, ClassVar
 import platformdirs
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
+from agent_comms.acp_extension import McpClientAcknowledgementUpdate
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.planning.goal_presentation import (
     GoalExecutionControls,
@@ -70,6 +71,7 @@ from ui_theme.effects import CURSOR_BLINK, Mix
 from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
 from toad import about, messages, paths
+from toad.acp.attachment_presentation import CursorPresentation
 from toad.acp.comms_updates import ThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
@@ -1579,6 +1581,60 @@ class Conversation(
             )
         )
 
+    @handles(CursorPresentation)
+    def on_private_native_cursor_update(
+        self, update: CursorPresentation, message: CoreEventMessage
+    ) -> None:
+        message.stop()
+        if message.event.sequence <= self._private_cursor_sequence:
+            return
+        self._private_cursor_sequence = message.event.sequence
+        self.native_history_status = update.status
+
+    @handles(McpClientAcknowledgementUpdate)
+    async def on_mcp_client_status(
+        self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
+    ) -> None:
+        """Show the MCP server summary only within the active turn it describes."""
+        if self._mcp_live_note:
+            return  # The package emits at most one server summary per turn.
+        rows = update.acknowledgement.servers
+        summary = (
+            "; ".join(
+                f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
+                f" tools={row.tools} resources={row.resources} prompts={row.prompts}"
+                for row in rows
+            )
+            or "no approved servers"
+        )
+        self.output.boundary()
+        self._mcp_live_note = Note(
+            Content.styled(
+                f"MCP live (this turn, not a grant): {summary}", "$text-muted"
+            ),
+        )
+        await self.post(self._mcp_live_note)
+
+    async def turn_settled(self) -> None:
+        await self._clear_mcp_live()
+        self._agent_activity_boundary.reset()
+
+    def goal_changed_from(self, publisher: object) -> None:
+        self.goal_observation.invalidate_from(publisher)
+
+    async def present_started_user_input(self, started) -> None:
+        await self.post(UserInput(started.text, claim=StartedInputClaim(started)))
+
+    def restore_composer_draft(self, text: str) -> None:
+        self.prompt.restore_draft(text)
+
+    def coordination_synced(self) -> None:
+        self.prompt.sync_session()
+        self.prompt.sync_queue()
+
+    async def present_turn_cancelled(self, feedback: str) -> None:
+        await self.post(StopReasonNote(f"## Turn cancelled\n\n{feedback}"))
+
     async def _clear_mcp_live(self) -> None:
         if self._mcp_live_note is not None:
             await self._mcp_live_note.remove()
@@ -1587,16 +1643,6 @@ class Conversation(
     @handles(core_events.McpClientStopped)
     async def on_mcp_client_stopped(self, event: core_events.McpClientStopped) -> None:
         await self._clear_mcp_live()
-
-    async def present_started_input(self, started) -> None:
-
-        self.output.boundary()
-        if started.text:
-            if not self.transcript.binding.covers_input(started):
-                await self.post(
-                    UserInput(started.text, claim=StartedInputClaim(started))
-                )
-        self.submissions.native_input_presented(started)
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, event: core_events.Plan) -> None:

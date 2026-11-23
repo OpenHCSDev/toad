@@ -49,9 +49,6 @@ class CoreEventReceiver(CoreObserverDispatch, DOMNode):
     def publish_core(self, event: CoreEvent) -> None:
         self.core_publications.publish(event)
 
-    def accepts(self, message: CoreEventMessage) -> bool:
-        return True
-
     async def consume_handlers(self, event, handlers, *args, **kwargs):
         # Textual callbacks may return native Worker resources. Publications
         # retain their identity; callback returns do not replace their data.
@@ -86,13 +83,7 @@ class CoreEventReceiver(CoreObserverDispatch, DOMNode):
 
     @on(CoreEventMessage)
     async def consume_publication(self, message: CoreEventMessage) -> None:
-        if not message.subscription.active:
-            message.stop()
-            return
-        if not self.accepts(message):
-            message.stop()
-            return
-        await message.consume(self, message)
+        await super().consume_publication(message)
 
     def _message_pump_closing(self) -> None:
         # Native shutdown also releases receivers without a logical session.

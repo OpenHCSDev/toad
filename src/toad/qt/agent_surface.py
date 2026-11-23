@@ -52,6 +52,8 @@ class AgentEventSubscription(CallbackSubscription):
     event, and the publication when it declares it."""
 
     async def consume(self, receiver, message) -> None:
+        if not message.subscription.active or not receiver.accepts(message):
+            return
         for handler in tuple(receiver.handlers_for(message.event)):
             arguments = (message.event, message) if _accepts_publication(handler) else (message.event,)
             result = handler(*arguments)

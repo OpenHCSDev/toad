@@ -104,6 +104,17 @@ class CoreObserver:
         """Deliver one event of a stream heard whole into the native loop."""
         raise NotImplementedError
 
+    def accepts(self, message) -> bool:
+        """Whether this receiver accepts a delivered publication; subclasses filter session-scoped updates."""
+        return True
+
+    async def consume_publication(self, message) -> None:
+        """Deliver one publication if its subscription is still active and this receiver accepts it."""
+        if not message.subscription.active or not self.accepts(message):
+            message.stop()
+            return
+        await message.consume(self, message)
+
     async def consume_handlers(self, event, handlers, *args, **kwargs):
         """Run the handlers for one delivered event, in the native loop."""
         raise NotImplementedError

@@ -991,3 +991,106 @@ def test_qt_live_blocks_survive_page_range_changes_and_retire_only_by_commit_cov
 
     assert asyncio.run(check_commit_retirement()) == "retired"
     assert retired_via_commit == [uncovered_response]
+
+
+def test_conversation_comms_handlers_are_shared_across_frontends_and_filter_publications():
+    from agent_comms.acp_extension import (
+        NativeRoundCommittedUpdate,
+        PromptCancelledUpdate,
+        TranscriptChangedUpdate,
+    )
+    from agent_comms.execution.transcript_sources import UnreadTranscriptCursor
+
+    from toad.conversation_comms_handlers import ConversationCommsHandlers
+    from toad.core.events import CommsUpdated, CoreEventStream
+    from toad.qt.agent_surface import subscribe_agent
+    from toad.qt.conversation import QtConversation
+    from toad.qt.core_events import QtCoreObserver, QtPublication
+    from toad.widgets.conversation import Conversation
+
+    for name in (
+        "accepts",
+        "present_started_input",
+        "on_comms_updated",
+        "on_turn_changed",
+        "on_queue_view_update",
+        "on_input_started",
+        "on_input_failed",
+        "on_coordination_changed",
+        "on_prompt_cancelled",
+        "on_transcript_changed",
+        "on_native_round_committed",
+        "on_goal_changed",
+        "on_compaction_changed",
+        "on_compaction_end",
+        "on_transcript_snapshot",
+    ):
+        assert getattr(Conversation, name) is getattr(ConversationCommsHandlers, name), name
+        assert getattr(QtConversation, name) is getattr(ConversationCommsHandlers, name), name
+
+    assert QtCoreObserver.consume_publication is ConversationCommsHandlers.consume_publication
+
+    heard = []
+    delivered = []
+
+    class Receiver(ConversationCommsHandlers):
+        def __init__(self, *, accept_session: bool) -> None:
+            self.agent_binding = SimpleNamespace(accepts_message=lambda _msg: accept_session)
+            self.turns = SimpleNamespace(owner=SimpleNamespace(accepts_update=lambda _upd: True))
+            self.transcript = SimpleNamespace(
+                require_commit=lambda: heard.append("commit"),
+                changed=lambda cursor: heard.append(("changed", cursor)),
+            )
+
+        def post_core_callback(self, event, subscription) -> bool:
+            delivered.append((self, subscription, QtPublication(event, subscription)))
+            return True
+
+        async def present_started_user_input(self, started) -> None:
+            heard.append(("started", started))
+
+        def restore_composer_draft(self, text: str) -> None:
+            heard.append(("draft", text))
+
+        def coordination_synced(self) -> None:
+            heard.append("synced")
+
+        async def present_turn_cancelled(self, feedback: str) -> None:
+            heard.append(("cancelled", feedback))
+
+    class Publisher:
+        pass
+
+    publisher = Publisher()
+    stream = CoreEventStream(publisher)
+    cancelled = PromptCancelledUpdate(input_state=None)
+    commit_event = CommsUpdated(NativeRoundCommittedUpdate(identity=None))
+    changed_event = CommsUpdated(TranscriptChangedUpdate(cursor=UnreadTranscriptCursor()))
+    cancelled_event = CommsUpdated(cancelled)
+
+    # Rejected by session-scoped accepts(): nothing dispatched.
+    rejected = Receiver(accept_session=False)
+    rejected_sub = subscribe_agent(rejected, stream)
+    stream.publish(commit_event)
+    for receiver, sub, pub in delivered:
+        asyncio.run(sub.consume(receiver, pub))
+    delivered.clear()
+    rejected.retire_core(rejected_sub)
+    assert heard == []
+
+    # Accepted: CommsUpdated dispatches to the shared handlers.
+    accepted = Receiver(accept_session=True)
+    accepted_sub = subscribe_agent(accepted, stream)
+    for event in (commit_event, changed_event, cancelled_event):
+        stream.publish(event)
+    for receiver, sub, pub in delivered:
+        asyncio.run(sub.consume(receiver, pub))
+    delivered.clear()
+    assert heard == ["commit", ("changed", UnreadTranscriptCursor()), ("cancelled", cancelled.feedback)]
+
+    # Closed subscription is ignored on both AgentEventSubscription and CoreObserver.consume_publication.
+    heard.clear()
+    accepted.retire_core(accepted_sub)
+    asyncio.run(accepted_sub.consume(accepted, QtPublication(commit_event, accepted_sub)))
+    asyncio.run(accepted.consume_publication(QtPublication(commit_event, accepted_sub)))
+    assert heard == []
