@@ -12,6 +12,7 @@ from agent_comms.transport.request import CoreAccess
 from formbridge.key_declarations import TextEntryMode
 from toad.client.command_draft import CommandFormCore, CommandText, PreparedChoices
 from toad.client.host import CommandOrigin
+from toad.client.model_selection import CatalogChoiceSelection, CatalogModelField
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
@@ -50,17 +51,14 @@ class CommandTextEditor(MultilineEditor, shows=(CommandText,)):
     height = Scalar.from_number(5)
 
 
-class CatalogField(ValueEditor, Button, shows=(ModelConfigOption,)):
+class CatalogField(CatalogModelField, ValueEditor, Button, shows=(ModelConfigOption,)):
     """The shared model selector edits the form's canonical draft value."""
 
     def bind_control(self):
         self.paint()
 
     def paint(self):
-        parameter = self.field.metadata(PreparedChoices).parameter
-        current = parameter.choice_value(self.field.value)
-        self.label = next((choice.name for choice in parameter.options
-                           if choice.value == current), 'Choose / connect a provider…')
+        self.label = self.catalog_label()
 
     @on(Button.Pressed)
     def on_button_pressed(self, event: Button.Pressed):
@@ -71,22 +69,13 @@ class CatalogField(ValueEditor, Button, shows=(ModelConfigOption,)):
     async def choose(self):
         value = await self.app.push_screen_wait(CatalogChoiceDialog(self))
         if value is not None and self.is_attached:
-            self.send(self.field.metadata(PreparedChoices).parameter.editor_value(value))
+            self.apply_catalog_choice(value)
 
 
-class CatalogFieldSelection(ModelSelection):
+class CatalogFieldSelection(CatalogChoiceSelection, ModelSelection):
     def __init__(self, editor: CatalogField):
         self.editor = editor
         super().__init__()
-
-    @property
-    def choices(self):
-        return tuple(choice for choice in self.editor.field.metadata(PreparedChoices).parameter.options
-                     if choice.value is not None)
-
-    @property
-    def current(self):
-        return self.editor.field.metadata(PreparedChoices).parameter.choice_value(self.editor.field.value)
 
     @property
     def selection_active(self):

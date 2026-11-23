@@ -1094,3 +1094,105 @@ def test_conversation_comms_handlers_are_shared_across_frontends_and_filter_publ
     asyncio.run(accepted_sub.consume(accepted, QtPublication(commit_event, accepted_sub)))
     asyncio.run(accepted.consume_publication(QtPublication(commit_event, accepted_sub)))
     assert heard == []
+
+
+def test_model_selection_and_catalog_field_share_one_core_across_frontends():
+    from dataclasses import dataclass, field as dc_field, make_dataclass
+    from typing import Annotated
+
+    from agent_comms.cli_verbs.target_fields import CatalogChoice
+    from agent_comms.config_options import ModelConfigOption
+    from formbridge.forms.declared_fields import DeclaredField
+    from objectstate import DottedFieldPath, ObjectState
+    from pyqt_reactive.forms.declared_editors import QtValueEditor
+    from PySide6.QtWidgets import QApplication, QWidget
+
+    import toad.qt.command_form  # noqa: F401
+    from toad.client.command_draft import PreparedChoices
+    from toad.client.model_selection import (
+        CatalogChoiceSelection,
+        CatalogModelField,
+        ModelSelectionCore,
+    )
+    from toad.qt.model_selection import QtCatalogField, QtCatalogFieldSelection, QtModelChoiceDialog, QtModelSelection
+    from toad.widgets.comms_command_dialog import CatalogField, CatalogFieldSelection
+    from toad.widgets.model_selection import ModelSelection
+
+    # Shared inheritance across Textual and Qt.
+    assert issubclass(ModelSelection, ModelSelectionCore)
+    assert issubclass(QtModelSelection, ModelSelectionCore)
+    assert issubclass(CatalogField, CatalogModelField)
+    assert issubclass(QtCatalogField, CatalogModelField)
+    assert issubclass(CatalogFieldSelection, CatalogChoiceSelection)
+    assert issubclass(QtCatalogFieldSelection, CatalogChoiceSelection)
+
+    app = QApplication.instance() or QApplication([])
+
+    @dataclass(frozen=True)
+    class FakeParam:
+        options: tuple[CatalogChoice, ...]
+
+        @property
+        def editor_declarations(self):
+            return (ModelConfigOption,)
+
+        @property
+        def choices(self):
+            return tuple((opt.name, opt.value) for opt in self.options)
+
+        def choice_value(self, value):
+            return value or ""
+
+        def editor_value(self, value):
+            return value
+
+    param = FakeParam(
+        options=(
+            CatalogChoice(name="Claude Opus 4.6", value="anthropic/claude-opus-4-6", description="Deep reasoning"),
+            CatalogChoice(name="Gemini 2.5 Pro", value="google/gemini-2.5-pro", description="Fast multimodal"),
+            CatalogChoice(name="GPT-5", value="openai/gpt-5", description="General purpose"),
+        )
+    )
+    draft_cls = make_dataclass(
+        "Draft",
+        [("model", Annotated[str, PreparedChoices(param)], dc_field(default="google/gemini-2.5-pro"))],
+    )
+    state = ObjectState(draft_cls())
+    declared = DeclaredField(state, DottedFieldPath("model"))
+
+    host = QWidget()
+    host.resize(800, 600)
+    host.show()
+    editor = QtValueEditor.declared_for(declared)
+    assert isinstance(editor, QtCatalogField)
+    assert editor.text() == "Gemini 2.5 Pro"
+    editor.setParent(host)
+
+    dialog = QtModelChoiceDialog(editor, host)
+    dialog.open_picker()
+    app.processEvents()
+    # Current model is ranked first before recents arrive.
+    assert dialog.selection.option_list.count() == 3
+    assert dialog.selection.option_list.item(0).data(QtModelSelection.MODEL_ID_ROLE) == "google/gemini-2.5-pro"
+
+    # Recents override ordering via shared ModelSelectionCore.apply_recents.
+    assert dialog.selection.apply_recents(dialog.selection._open_generation, "", ["openai/gpt-5"])
+    assert dialog.selection.option_list.item(0).data(QtModelSelection.MODEL_ID_ROLE) == "openai/gpt-5"
+    assert "recent" in dialog.selection.option_list.item(0).text()
+
+    # Subsequence search filters via shared ModelSelectionCore.rank_models and submits selection.
+    dialog.selection.search_input.setText("opus")
+    assert dialog.selection.option_list.count() == 1
+    assert dialog.selection.option_list.item(0).data(QtModelSelection.MODEL_ID_ROLE) == "anthropic/claude-opus-4-6"
+    dialog.selection.submit()
+    assert dialog.chosen == "anthropic/claude-opus-4-6"
+
+    editor.apply_catalog_choice(dialog.chosen)
+    editor.paint()
+    assert state.get_resolved_value("model") == "anthropic/claude-opus-4-6"
+    assert editor.text() == "Claude Opus 4.6"
+    dialog.close()
+    host.close()
+    dialog.deleteLater()
+    editor.deleteLater()
+    host.deleteLater()

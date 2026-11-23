@@ -36,6 +36,7 @@ from toad.client.pending import Applying, ChoicesPreparation, awaited
 from toad.client.command_draft import CommandFormCore
 from toad.client.host import CommandOrigin
 from toad.qt.host import QtCommsHost
+import toad.qt.model_selection  # noqa: F401 - registers QtCatalogField for ModelConfigOption
 from toad.widget_contracts import DismissibleContract, SubmitsContract
 from toad.qt.presented_window import PresentedWindow
 
