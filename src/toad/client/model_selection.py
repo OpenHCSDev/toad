@@ -209,3 +209,19 @@ class CatalogChoiceSelection(ModelSelectionCore):
     @property
     def current(self) -> str:
         return self.editor.catalog_current()
+
+
+class SessionChoiceSelection(ModelSelectionCore):
+    """A model selection bound to a live agent's `ModelConfigurationSetting`."""
+
+    @abstractmethod
+    def model_setting(self) -> ModelConfigurationSetting:
+        """The session's current advertised model configuration setting."""
+
+    @property
+    def choices(self) -> tuple[ModelChoice, ...]:
+        return self.model_setting().choices
+
+    @property
+    def current(self) -> str:
+        return self.model_setting().current
