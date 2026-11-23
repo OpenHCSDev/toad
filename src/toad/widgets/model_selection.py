@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from typing import Protocol
-
 from formbridge.key_declarations import TextEntryMode
 from textual import getters, on, work
 from textual.app import ComposeResult
@@ -23,7 +19,14 @@ from ui_theme.scheme import (
     PrimaryColour,
 )
 
-from toad.acp.agent_configuration import ModelConfigurationSetting
+from toad.client.model_selection import (
+    HighlightPlacement,
+    KeepsHighlight,
+    ModelChoice,
+    ModelSelectionCore,
+    ResetsHighlight,
+    match_score,
+)
 from toad.core_event_carrier import CoreEventReceiver
 from toad.native_style import (
     AutoHeight,
@@ -74,36 +77,6 @@ class ConnectProvider(
         self.query_ancestor(ModelSelection).connect_provider()
 
 
-def match_score(query: str, candidate: str) -> float:
-    """Linear subsequence matching, with exact/prefix/substring preference."""
-    if query == candidate:
-        return 100
-    if candidate.startswith(query):
-        return 80
-    if query in candidate:
-        return 60
-    previous = -1
-    first = -1
-    for character in query:
-        previous = candidate.find(character, previous + 1)
-        if previous == -1:
-            return 0
-        if first == -1:
-            first = previous
-    return 10 + len(query) / max(1, previous - first + 1)
-
-
-class ModelChoice(Protocol):
-    @property
-    def value(self) -> str: ...
-
-    @property
-    def name(self) -> str: ...
-
-    @property
-    def description(self) -> str | None: ...
-
-
 class ClearModelSearchAction(WidgetAction):
     """Clear the model search query."""
     keys = {TextEntryMode: ("ctrl+u",)}
@@ -146,27 +119,6 @@ class ModelOptionList(
         self.styles.max_height = "45vh"
 
 
-class HighlightPlacement(ABC):
-    """Where a refilter puts the highlight."""
-
-    @abstractmethod
-    def index(self, ids: list[str | None], previous_id: str | None) -> int: ...
-
-
-class ResetsHighlight(HighlightPlacement):
-    """Nothing touched since the picker opened: the best match, first in the list."""
-
-    def index(self, ids: list[str | None], previous_id: str | None) -> int:
-        return 0
-
-
-class KeepsHighlight(HighlightPlacement):
-    """The user moved or typed: stay on their option while the filter still lists it."""
-
-    def index(self, ids: list[str | None], previous_id: str | None) -> int:
-        return ids.index(previous_id) if previous_id in ids else 0
-
-
 class SelectionBounds:
     def apply_native_layout(self) -> None:
             super().apply_native_layout()
@@ -178,6 +130,7 @@ class SelectionBounds:
 
 
 class ModelSelection(
+    ModelSelectionCore,
     SelectionBounds,
     SpacedAround,
     PriorityActions,
@@ -201,32 +154,10 @@ class ModelSelection(
     search_input = getters.query_one(Input)
     option_list = getters.query_one(SelectionOptionList)
     history_scope = var("")
-    choice_name = "models"
 
     def __init__(self):
         super().__init__()
-        self.recent_ids: list[str] = []
-        self._open_generation = 0
-        self.refilter: HighlightPlacement = ResetsHighlight()
-
-
-    @property
-    @abstractmethod
-    def choices(self) -> Sequence[ModelChoice]: ...
-
-    @property
-    @abstractmethod
-    def current(self) -> str: ...
-
-    @property
-    @abstractmethod
-    def selection_active(self) -> bool: ...
-
-    @abstractmethod
-    def select_model(self, model_id: str) -> None: ...
-
-    @abstractmethod
-    def connect_provider(self) -> None: ...
+        self.init_model_selection()
 
     def compose_content(self) -> ComposeResult:
         yield ModelSearchInput(placeholder=f"Search {self.choice_name} or providers…", compact=True)
@@ -250,49 +181,22 @@ class ModelSelection(
         self.search_input.focus(scroll_visible=False)
         self.load_recents(self._open_generation, self.history_scope)
 
-    async def recent_choices(self, scope: str) -> list[str]:
-        return await ModelConfigurationSetting().recent_choices(scope)
-
     @work(exclusive=True)
     async def load_recents(self, generation: int, scope: str) -> None:
         recent = await self.recent_choices(scope)
-        if (
-            self.selection_active
-            and generation == self._open_generation
-            and scope == self.history_scope
-        ):
-            self.recent_ids = recent
-            self.filter_models(self.refilter)
+        self.apply_recents(generation, scope, recent)
 
     def filter_models(self, placement: HighlightPlacement) -> None:
         highlighted = self.option_list.highlighted_option
         previous_id = highlighted.id if highlighted is not None else None
-        terms = self.search_input.value.casefold().split()
-        recent = {model_id: index for index, model_id in enumerate(self.recent_ids)}
-        models, current = self.choices, self.current
-        ranked = []
-        for model in models:
-            fields = {model.name.casefold(), model.value.casefold()}
-            scores = [
-                max(
-                    *(match_score(term, field) for field in fields),
-                    match_score(term, (model.description or "").casefold()) * 0.5,
-                )
-                for term in terms
-            ]
-            if scores and not all(scores):
-                continue
-            rank = recent.get(
-                model.value, len(recent) + (model.value != current)
-            )
-            ranked.append((-sum(scores), rank, model.name.casefold(), model.value, model))
-        ranked.sort(key=lambda item: item[:4])
+        ranked, summary = self.rank_models(self.search_input.value)
         options = []
-        for *_, model in ranked:
+        for entry in ranked:
+            model = entry.choice
             label = Content.assemble(
-                ("✓ " if model.value == current else "  ", "$text-success"),
+                ("✓ " if entry.is_current else "  ", "$text-success"),
                 (model.name, "bold"),
-                (" · recent" if model.value in recent else "", "dim"),
+                (" · recent" if entry.is_recent else "", "dim"),
             )
             if model.value != model.name:
                 label += Content.styled(f" · {model.value}", "dim")
@@ -306,11 +210,7 @@ class ModelSelection(
                 )
             else:
                 self.option_list.highlighted = None
-        self.query_one(ModelCount).update(
-            f"{len(options)} / {len(models)} {self.choice_name} · {'best matches' if terms else 'recent first' if recent else 'current first'}"
-            if options
-            else f"No matching {self.choice_name}"
-        )
+        self.query_one(ModelCount).update(summary)
 
     @on(Input.Changed)
     def on_search_changed(self, event: Input.Changed):
