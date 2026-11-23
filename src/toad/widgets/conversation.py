@@ -1452,49 +1452,25 @@ class Conversation(
                 prompt.disabled = False
                 prompt.focus()
 
+    def flash_model_changed(self, model_name: str, thinking: str) -> None:
+        self.feedback.flash(
+            Content.from_markup(
+                "Model [b]$model[/] · thinking [b]$level",
+                model=model_name,
+                level=thinking,
+            ),
+            style="success",
+        )
+
     @work
     @handles(ChangeConfiguration)
     async def on_change_configuration(self, event: ChangeConfiguration) -> None:
-        agent = self.agent_binding
-        setting = agent.configuration.named(event.setting)
-        error = await setting.select(agent, event.value)
-        if agent is not self.agent_binding:
-            return
-        if error is not None:
-            agent.configuration.publish()
-            self.app.show_error(error, f"Set {setting.picker_title}")
+        await self.apply_configuration_change(event)
 
     @work
     @handles(ChangeModel)
     async def on_change_model(self, event: ChangeModel) -> None:
-        agent = self.agent_binding
-        # Selecting the current model opens its thinking choices. Reapplying it
-        # would ask native SetModel to restore that model's default effort.
-        error = None
-        if event.model_id != agent.configuration.model.current:
-            error = await agent.set_model(event.model_id)
-        if agent is not self.agent_binding:
-            return
-        if error is not None:
-            agent.configuration.publish()
-            self.app.show_error(error, "Set Model")
-        elif (model := agent.configuration.model.selected) is not None:
-
-            # Recent-model persistence is optional metadata, not a prerequisite
-            # for opening the model's already advertised thinking choices.
-            self.run_worker(
-                DB().record_model_usage(
-                    self.model_history_scope, model.value, last_used=time_ns()
-                )
-            )
-            self.feedback.flash(
-                Content.from_markup(
-                    "Model [b]$model[/] · thinking [b]$level",
-                    model=model.name,
-                    level=agent.configuration.thinking.current or "unavailable",
-                ),
-                style="success",
-            )
+        await self.apply_model_change(event)
 
     @handles(input_events.UserInputSubmitted)
     async def on_user_input_submitted(self, event: input_events.UserInputSubmitted, message: CoreEventMessage) -> None:

@@ -13,22 +13,30 @@ platform that cannot spawn agent processes never attaches one (`AgentProcesses`)
 
 from __future__ import annotations
 
+from functools import partial
+from operator import attrgetter
+from time import time_ns
 from typing import TYPE_CHECKING
 
+import shiboken6
 from agent_comms.nominal.field_codec import NoAcpSessionId
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QDialog
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from toad.agent_binding import AgentConnection
+from toad.client.db import DB
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import BoundSources
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.tab_identity.kinds import CommsTab
 from toad.core import events as core_events
+from toad.core.configuration_events import ChangeModel
 from toad.core.input_events import UserInputSubmitted
 from toad.launch_binding import AgentBinding, AgentConversation, AgentOrigin
 from toad.qt.composer import ProjectComposer
+from toad.qt.model_selection import QtModelChoiceDialog
 from toad.qt.thread_view import QtThreadView
 from toad.qt.window import QtSessionEntry
 from toad.session_titles import FirstPromptTitle, SessionTitles
@@ -88,6 +96,7 @@ class QtAcpSessionView(
         self._initial_prompt = initial_prompt
         self._native_agent_started_here = False
         self._attached = False
+        self._model_dialog: QtModelChoiceDialog | None = None
         # As Textual's Conversation: a session with no saved agent session guesses its title
         # from its first prompt (`FirstPromptTitle`; a resumed one keeps the saved name).
         self._auto_title_eligible = True
@@ -133,12 +142,44 @@ class QtAcpSessionView(
             if welcome:
                 self.run_worker(lambda: self.present_help_note(welcome), group="welcome")
         if self.agent_binding.configuration.model.requires_selection:
-            self.flash("Choose a model to start")
+            self.focus_model_choice()
             return
         prompt, self._initial_prompt = self._initial_prompt, None
         if prompt:
             event = UserInputSubmitted(prompt, shell=False)
             self.run_worker(lambda: self.submissions.submit(event), group="submit", exclusive=False)
+
+    @property
+    def model_history_scope(self) -> str:
+        return self.launch.selected_agent("", attrgetter("identity"))
+
+    def focus_model_choice(self) -> None:
+        """Open the shared searchable model picker for this ACP session (`/model`)."""
+        setting = self.agent_binding.configuration.model
+        if not setting.available and not setting.choices:
+            self.flash("This session has no advertised models")
+            return
+        if self._model_dialog is not None and shiboken6.isValid(self._model_dialog):
+            self._model_dialog.raise_()
+            self._model_dialog.activateWindow()
+            return
+        dialog = QtModelChoiceDialog.for_session(
+            lambda: self.agent_binding.configuration.model,
+            self.model_history_scope,
+            self.window(),
+        )
+        self._model_dialog = dialog
+        dialog.finished.connect(self._model_dialog_finished)
+        dialog.open_picker()
+
+    def _model_dialog_finished(self, result: int) -> None:
+        dialog, self._model_dialog = self._model_dialog, None
+        if dialog is None:
+            return
+        chosen = dialog.chosen
+        dialog.deleteLater()
+        if result == int(QDialog.DialogCode.Accepted) and chosen is not None and shiboken6.isValid(self):
+            self.run_worker(partial(self.apply_model_change, ChangeModel(chosen)), group="model")
 
     # ---- The bound agent ----
 
@@ -182,6 +223,16 @@ class QtAcpSessionView(
         """The turn ended: its live output settles and the next turn starts on a fresh
         block; a stop reason with a note says why."""
         self.turns.finish_client()
+        model = self.agent_binding.configuration.model.selected
+        if stop_reason.completed and model is not None:
+            self.run_worker(
+                partial(
+                    DB().record_model_usage,
+                    self.model_history_scope,
+                    model.value,
+                    last_used=time_ns(),
+                )
+            )
         await self.output.settle()
         self.output.boundary()
         if stop_reason.note:

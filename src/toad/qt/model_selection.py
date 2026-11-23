@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.acp.agent_configuration import ModelConfigurationSetting
 from toad.client.model_selection import (
     CatalogChoiceSelection,
     CatalogModelField,
@@ -37,6 +38,7 @@ from toad.client.model_selection import (
     KeepsHighlight,
     ModelSelectionCore,
     ResetsHighlight,
+    SessionChoiceSelection,
 )
 from toad.qt.presented_window import PresentedWindow
 from toad.widget_contracts import DismissibleContract, SubmitsContract
@@ -193,25 +195,88 @@ class QtCatalogFieldSelection(CatalogChoiceSelection, QtModelSelection):
         self._on_connect()
 
 
+class QtSessionModelSelection(SessionChoiceSelection, QtModelSelection):
+    """Qt model selection bound to an ACP session's live `ModelConfigurationSetting`."""
+
+    def __init__(
+        self,
+        setting_provider: Callable[[], ModelConfigurationSetting],
+        history_scope: str,
+        *,
+        on_selected: Callable[[str], None],
+        on_dismiss: Callable[[], None],
+        on_connect: Callable[[], None],
+        parent: QWidget | None = None,
+    ) -> None:
+        self._setting_provider = setting_provider
+        self.history_scope = history_scope
+        self._on_selected = on_selected
+        self._on_dismiss = on_dismiss
+        self._on_connect = on_connect
+        super().__init__(parent)
+
+    def model_setting(self) -> ModelConfigurationSetting:
+        return self._setting_provider()
+
+    def select_model(self, model_id: str) -> None:
+        self._on_selected(model_id)
+
+    def dismiss_control(self) -> None:
+        self._on_dismiss()
+
+    def connect_provider(self) -> None:
+        self._on_connect()
+
+
 class QtModelChoiceDialog(PresentedWindow, QDialog, DismissibleContract, metaclass=PyQtWidgetMeta):
-    """Modal `PresentedWindow` hosting a `QtCatalogFieldSelection` without a nested event loop."""
+    """Modal `PresentedWindow` hosting a `QtModelSelection` without a nested event loop."""
 
     dismiss_control = QDialog.reject
 
-    def __init__(self, editor: QtCatalogField, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        selection_factory: Callable[[QtModelChoiceDialog], QtModelSelection],
+        parent: QWidget | None = None,
+    ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Choose model")
         self.chosen: str | None = None
-        self.selection = QtCatalogFieldSelection(
-            editor,
-            on_selected=self._accept_model,
-            on_dismiss=self.reject,
-            on_connect=self._connect_provider,
-            parent=self,
-        )
+        self.selection = selection_factory(self)
         layout = QVBoxLayout(self)
         layout.addWidget(self.selection)
         self.resize(520, 480)
+
+    @classmethod
+    def for_catalog_field(cls, editor: QtCatalogField, parent: QWidget | None = None) -> QtModelChoiceDialog:
+        return cls(
+            lambda dialog: QtCatalogFieldSelection(
+                editor,
+                on_selected=dialog._accept_model,
+                on_dismiss=dialog.reject,
+                on_connect=dialog._connect_provider,
+                parent=dialog,
+            ),
+            parent,
+        )
+
+    @classmethod
+    def for_session(
+        cls,
+        setting_provider: Callable[[], ModelConfigurationSetting],
+        history_scope: str,
+        parent: QWidget | None = None,
+    ) -> QtModelChoiceDialog:
+        return cls(
+            lambda dialog: QtSessionModelSelection(
+                setting_provider,
+                history_scope,
+                on_selected=dialog._accept_model,
+                on_dismiss=dialog.reject,
+                on_connect=dialog._connect_provider,
+                parent=dialog,
+            ),
+            parent,
+        )
 
     def _accept_model(self, model_id: str) -> None:
         self.chosen = model_id
@@ -246,7 +311,7 @@ class QtCatalogField(
         self.setText(self.catalog_label())
 
     def choose(self) -> None:
-        dialog = QtModelChoiceDialog(self, self.window())
+        dialog = QtModelChoiceDialog.for_catalog_field(self, self.window())
         self._dialog = dialog
         dialog.finished.connect(self._dialog_finished)
         dialog.open_picker()

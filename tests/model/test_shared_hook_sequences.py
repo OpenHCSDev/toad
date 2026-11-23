@@ -1168,7 +1168,7 @@ def test_model_selection_and_catalog_field_share_one_core_across_frontends():
     assert editor.text() == "Gemini 2.5 Pro"
     editor.setParent(host)
 
-    dialog = QtModelChoiceDialog(editor, host)
+    dialog = QtModelChoiceDialog.for_catalog_field(editor, host)
     dialog.open_picker()
     app.processEvents()
     # Current model is ranked first before recents arrive.
@@ -1192,9 +1192,52 @@ def test_model_selection_and_catalog_field_share_one_core_across_frontends():
     assert state.get_resolved_value("model") == "anthropic/claude-opus-4-6"
     assert editor.text() == "Claude Opus 4.6"
     dialog.close()
-    host.close()
     dialog.deleteLater()
     editor.deleteLater()
+
+    # Session model selection (/model on ACP tabs) shares SessionChoiceSelection + ModelSelectionCore.
+    from acp import schema
+    from toad.acp.agent_configuration import ModelConfigurationSetting
+    from toad.client.commands import AgentConversationCommands
+    from toad.client.model_selection import SessionChoiceSelection
+    from toad.conversation_comms_handlers import ConversationCommsHandlers
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.model_selection import QtSessionModelSelection
+    from toad.widgets.conversation import Conversation
+    from toad.widgets.model_switcher import SessionModelEditor
+
+    assert issubclass(SessionModelEditor, SessionChoiceSelection)
+    assert issubclass(QtSessionModelSelection, SessionChoiceSelection)
+    assert Conversation.apply_model_change is ConversationCommsHandlers.apply_model_change
+    assert QtAcpSessionView.apply_model_change is ConversationCommsHandlers.apply_model_change
+    assert QtAcpSessionView.focus_model_choice is not AgentConversationCommands.focus_model_choice
+
+    setting = ModelConfigurationSetting(
+        option=schema.SessionConfigOptionSelect(
+            id="model",
+            name="Model",
+            category="model",
+            type="select",
+            current_value="google/gemini-2.5-pro",
+            options=[
+                schema.SessionConfigSelectOption(value="anthropic/claude-opus-4-6", name="Claude Opus 4.6"),
+                schema.SessionConfigSelectOption(value="google/gemini-2.5-pro", name="Gemini 2.5 Pro"),
+            ],
+        )
+    )
+    session_dialog = QtModelChoiceDialog.for_session(lambda: setting, "pi-agent", host)
+    session_dialog.open_picker()
+    app.processEvents()
+    assert isinstance(session_dialog.selection, QtSessionModelSelection)
+    assert session_dialog.selection.history_scope == "pi-agent"
+    assert session_dialog.selection.option_list.count() == 2
+    assert session_dialog.selection.option_list.item(0).data(QtModelSelection.MODEL_ID_ROLE) == "google/gemini-2.5-pro"
+    session_dialog.selection.search_input.setText("opus")
+    session_dialog.selection.submit()
+    assert session_dialog.chosen == "anthropic/claude-opus-4-6"
+    session_dialog.close()
+    host.close()
+    session_dialog.deleteLater()
     host.deleteLater()
 
 

@@ -15,6 +15,7 @@ from toad.acp.agent_configuration import (
     AdvertisedSetting,
     ModelConfigurationSetting,
 )
+from toad.client.model_selection import SessionChoiceSelection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.editors import ValueEditor
@@ -36,7 +37,12 @@ from toad.widgets.model_selection import (
 from toad.widgets.prompt_popup import InfoPopup
 
 
-class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationSetting,)):
+class SessionModelEditor(
+    ValueEditor,
+    SessionChoiceSelection,
+    ModelSelection,
+    shows=(ModelConfigurationSetting,),
+):
     """The ordinary form owns the value; model search is its specialized editor."""
 
     @property
@@ -52,9 +58,8 @@ class SessionModelEditor(ValueEditor, ModelSelection, shows=(ModelConfigurationS
     def compose(self) -> ComposeResult:
         yield from self.compose_content()
 
-    @property
-    def choices(self):
-        return self.field.metadata(AdvertisedChoices).setting.choices
+    def model_setting(self) -> ModelConfigurationSetting:
+        return self.field.metadata(AdvertisedChoices).setting
 
     @property
     def current(self):

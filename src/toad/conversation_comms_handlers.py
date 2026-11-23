@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from functools import partial
+from time import time_ns
 
 import agent_comms.agent_events as comms_events
 from agent_comms.acp_extension import (
@@ -20,8 +22,10 @@ from agent_comms.acp_extension import (
 from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.attachment_presentation import QueuePresentation
+from toad.client.db import DB
 from toad.client.subscribers import CoreObserverDispatch
 from toad.core import events as core_events
+from toad.core.configuration_events import ChangeConfiguration, ChangeModel
 from toad.core.events import Publication
 
 
@@ -41,6 +45,50 @@ class ConversationCommsHandlers(CoreObserverDispatch):
 
     def goal_changed_from(self, publisher: object) -> None:
         """Invalidate this view's goal observation if it owns one."""
+
+    model_history_scope: str = ""
+
+    def flash_model_changed(self, model_name: str, thinking: str) -> None:
+        """Announce a completed model change; Textual overrides for bold markup."""
+        self.flash_success(f"Model {model_name} · thinking {thinking}")
+
+    async def apply_configuration_change(self, event: ChangeConfiguration) -> None:
+        agent = self.agent_binding
+        setting = agent.configuration.named(event.setting)
+        error = await setting.select(agent, event.value)
+        if agent is not self.agent_binding:
+            return
+        if error is not None:
+            agent.configuration.publish()
+            self.app.show_error(error, f"Set {setting.picker_title}")
+
+    async def apply_model_change(self, event: ChangeModel) -> None:
+        agent = self.agent_binding
+        # Selecting the current model opens its thinking choices. Reapplying it
+        # would ask native SetModel to restore that model's default effort.
+        error = None
+        if event.model_id != agent.configuration.model.current:
+            error = await agent.set_model(event.model_id)
+        if agent is not self.agent_binding:
+            return
+        if error is not None:
+            agent.configuration.publish()
+            self.app.show_error(error, "Set Model")
+        elif (model := agent.configuration.model.selected) is not None:
+            # Recent-model persistence is optional metadata, not a prerequisite
+            # for opening the model's already advertised thinking choices.
+            self.run_worker(
+                partial(
+                    DB().record_model_usage,
+                    self.model_history_scope,
+                    model.value,
+                    last_used=time_ns(),
+                )
+            )
+            self.flash_model_changed(
+                model.name,
+                agent.configuration.thinking.current or "unavailable",
+            )
 
     @abstractmethod
     async def present_started_user_input(self, started: InputStartedUpdate) -> None:

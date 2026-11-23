@@ -83,6 +83,10 @@ EXPLICIT_PAIRS = {
     "toad.qt.window.BusRow": "toad.screens.bus_choice.BusOption",
     "toad.qt.window.BusLabel": "toad.widgets.channels_sidebar.SidebarLocationNote",
     "toad.qt.banner.Banner": "toad.widgets.channels_sidebar.SidebarBanner",
+    # searchable model pickers (command forms and ACP session /model)
+    "toad.qt.model_selection.QtModelSelection": "toad.widgets.model_selection.ModelSelection",
+    "toad.qt.model_selection.QtCatalogFieldSelection": "toad.widgets.comms_command_dialog.CatalogFieldSelection",
+    "toad.qt.model_selection.QtSessionModelSelection": "toad.widgets.model_switcher.SessionModelEditor",
 }
 
 # Same name, different concept: not a frontend pair. Each entry says what the sibling really is.
