@@ -1196,3 +1196,37 @@ def test_model_selection_and_catalog_field_share_one_core_across_frontends():
     dialog.deleteLater()
     editor.deleteLater()
     host.deleteLater()
+
+
+def test_qt_conversation_shares_block_menu_and_line_link_dispatch_across_all_view_kinds():
+    from toad.menus import CopyClipboardCommand, CopyPromptCommand, MenuConversation
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.conversation import QtConversation
+    from toad.qt.history import QtToolTranscriptFragment, QtWireFragment
+    from toad.qt.live_turn import QtLiveFragment, TranscriptFragment
+    from toad.qt.mailbox_view import QtMailboxView
+    from toad.qt.menu import QtMenu
+    from toad.qt.window import ConversationView
+
+    for cls in (QtConversation, ConversationView, QtMailboxView, QtAcpSessionView):
+        assert issubclass(cls, MenuConversation), cls
+        for name in (
+            "open_block_menu",
+            "_run_block_menu_command",
+            "accepts_menu_owner",
+            "block_clipboard_text",
+            "block_prompt_text",
+            "append_to_prompt",
+            "open_line_link",
+        ):
+            assert getattr(cls, name) is getattr(QtConversation, name), (cls, name)
+
+    for frag_cls in (QtWireFragment, TranscriptFragment, QtLiveFragment):
+        assert hasattr(frag_cls, "block_menu"), frag_cls
+        assert hasattr(frag_cls, "clipboard_text"), frag_cls
+        assert hasattr(frag_cls, "allow_maximize"), frag_cls
+
+    commands = QtMenu.block_commands(QtLiveFragment, ())
+    command_types = {type(cmd) for cmd in commands}
+    assert CopyClipboardCommand in command_types
+    assert CopyPromptCommand in command_types

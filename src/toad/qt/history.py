@@ -1337,8 +1337,8 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         self.setAutoScroll(False)
         self.viewport().installEventFilter(self)
         # Block menu: a right-click, or a held finger (`FingerPress` delivers it as one), on a
-        # message row emits `block_menu_requested` with the row's fragment. ConversationView
-        # mounts the handler and runs the resulting commands.
+        # message row emits `block_menu_requested` with the row's fragment. QtConversation
+        # mounts the handler and runs the resulting commands across all view kinds.
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._emit_block_menu_at)
         # A tap on a link opens it, and a tap on a message reveals its head, in place of the
