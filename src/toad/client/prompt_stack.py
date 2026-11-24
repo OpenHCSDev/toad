@@ -31,20 +31,26 @@ from agent_comms.ui_model.status import ThreadStatusModel
 from metaclass_registry import AbstractHooksMeta
 from metaclass_registry.mro_dispatch import handles
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
+from ui_theme.scheme import BackgroundColour
 
 from toad.client.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.core.projection import MroProjection
 from toad.key_modes import Standard
 
 
-class ObservedSweep:
+class SweepEffect:
+    """Shared activity ribbon declaration for Textual's `Throbber` and Qt's `ActivitySweep`."""
+
+    effect: ClassVar[Ribbon] = ACTIVITY_SWEEP
+    tone = BackgroundColour
+
+
+class ObservedSweep(SweepEffect):
     """The activity sweep drawn from an existing activity owner, never a busy mirror.
 
     The owner's answer is `Conversation.working()` / `WorkingStatusOwner.working()`: the
     turn is busy, the observed thread is working, or saved history is loading. The ribbon
     and its cadence are the shared `ACTIVITY_SWEEP`."""
-
-    effect: ClassVar[Ribbon] = ACTIVITY_SWEEP
 
     def __init__(self, read_busy: Callable[[], bool], **kwargs) -> None:
         self._read_busy = read_busy

@@ -19,10 +19,17 @@ from agent_comms.nominal.declared_family import (
 )
 from agent_comms.planning.command import Command
 from formbridge.key_declarations import InputMode, KeyDeclaration, KeyDeclarationType, TextEntryMode
+from formbridge.operations import OperationKind
 
 from toad.client.application import ClientApplication
+from toad.client.pending import ActionRunning, awaited
 from toad.client.transfers import Transfer
 from toad.session_navigation import ChannelsReveal
+
+
+@awaited(ActionRunning)
+class MenuActionRun(OperationKind):
+    """One application action chosen from the menu."""
 
 
 Context = TypeVar("Context")

@@ -20,10 +20,16 @@ from agent_comms.nominal.field_codec import compile_decoder
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool
 from formbridge.forms.declared_fields import DeclaredField, DeclaredMetadata, Multiline
+from formbridge.operations import OperationKind
 from objectstate import DottedFieldPath, ObjectState
 from python_introspect import FieldLabel
 from python_introspect.choices import LabelledChoices
-from toad.client.pending import ChoicesPreparation
+from toad.client.pending import Applying, ChoicesPreparation, awaited
+
+
+@awaited(Applying)
+class CommandApply(OperationKind):
+    """Apply on a command form: confirm its arguments with Core, then answer the form."""
 
 
 @dataclass(eq=False)

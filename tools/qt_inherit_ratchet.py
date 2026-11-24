@@ -87,6 +87,8 @@ EXPLICIT_PAIRS = {
     "toad.qt.model_selection.QtModelSelection": "toad.widgets.model_selection.ModelSelection",
     "toad.qt.model_selection.QtCatalogFieldSelection": "toad.widgets.comms_command_dialog.CatalogFieldSelection",
     "toad.qt.model_selection.QtSessionModelSelection": "toad.widgets.model_switcher.SessionModelEditor",
+    "toad.qt.activity.ActivitySweep": "toad.widgets.throbber.Throbber",
+    "toad.qt.team_board_screen.QtTeamMemberView": "toad.screens.team.TeamFrameView",
 }
 
 # Same name, different concept: not a frontend pair. Each entry says what the sibling really is.
@@ -137,25 +139,18 @@ QT_ONLY = {
 
 KNOWN_BARE = frozenset({
     'toad.qt.activity.ActivityLine',
-    'toad.qt.activity.ActivitySweep',
-    'toad.qt.command_form.CommandApply',
     'toad.qt.composer.CommandOffer',
     'toad.qt.composer.ComposerEditor',
     'toad.qt.composer.MentionOffer',
     'toad.qt.composer.Offer',
     'toad.qt.composer_vim.ComposerVimMode',
-    'toad.qt.goal.GoalPress',
     'toad.qt.history.NoTask',
-    'toad.qt.keymap_screen._KeymapSave',
-    'toad.qt.client_start.QtClientSettings',
     'toad.qt.menu.QtMenuRow',
     'toad.qt.page.Page',
     'toad.qt.paste_profile.QtProfilePastePanel',
     'toad.qt.sidebar_panel.QtPanelEntry',
     'toad.qt.sidebar_panel.QtSidebarShell',
-    'toad.qt.team_board_screen.QtTeamMemberView',
     'toad.qt.window.ApplicationKeys',
-    'toad.qt.window.MenuActionRun',
 })
 
 FRONTEND_PREFIXES = ("toad.qt", "toad.widgets", "toad.screens")

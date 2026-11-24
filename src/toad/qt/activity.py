@@ -22,7 +22,7 @@ from toad.channel_activity_dispatch import ChannelActivityTitle
 from toad.client.conversation import ConversationKind
 from toad.client.fragments import Shown
 from toad.client.line_blocks import NO_LINK, MutedRole
-from toad.client.prompt_stack import ObservedSweep
+from toad.client.prompt_stack import ObservedSweep, SweepEffect
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.status_thread import ObservedActivity
@@ -86,7 +86,7 @@ class ChannelActivity(ChannelActivityTitle, QLabel):
         self.activity_model.threads.unsubscribe(self.rows_changed)
 
 
-class ActivitySweep(WidgetAnimation, QWidget):
+class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):
     """The shared activity ribbon painted by Qt.
 
     ``ACTIVITY_SWEEP`` owns its cadence and every frame's position, width, taper and
@@ -95,8 +95,6 @@ class ActivitySweep(WidgetAnimation, QWidget):
     a platform-style chunk: it both looked different and drove Android's whole Widgets
     backing store continuously.
     """
-
-    effect = ACTIVITY_SWEEP
 
     def __init__(self, renderer: QtLineRenderer, clock: AnimationClock) -> None:
         super().__init__()

@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -21,6 +20,7 @@ from toad.application_lifetime import ApplicationStart
 from toad.client.connection import CoreConnection
 from toad.launch_binding import AgentBinding
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
+from toad.preferences import ToadSettings
 from toad.qt.finger_press import FingerPress
 from toad.qt.finger_scrolling import FingerScrollGesture, FingerScrolling
 from toad.qt.frame_probe import FrameProbe
@@ -33,19 +33,12 @@ if TYPE_CHECKING:
     from toad.client.local_connection import ClientLaunch
 
 
-@dataclass(frozen=True)
-class QtClientSettings:
-    """The Qt client's settings root. It holds no settings yet; ObjectState needs one root
-    type named for the process before it holds any object, such as a command form's draft.
-    Toad's Textual settings root lives in a module that needs Textual."""
-
-
 async def open_app(connection: CoreConnection, project: Checkout, scheme: ColourScheme,
                    agent: str = "", opening: LaunchOpening = NoLaunchOpening()) -> QtToadApp:
     """The Qt client shown over the bus behind ``connection``, its saved tabs read and its
     sidebar observing; ``agent`` is the launch's ``-a``, attached when the connection starts
     agents (`AgentBinding.launched`), as Toad's terminal launch attaches it."""
-    set_base_config_type(QtClientSettings)
+    set_base_config_type(ToadSettings)
     FingerScrolling.install(QApplication.instance(), FingerScrollGesture.of_platform())
     FingerPress.install(QApplication.instance())
     FrameProbe.start_if_requested(QApplication.instance())

@@ -25,9 +25,16 @@ from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_presentation import GoalExecutionControls, GoalSnapshot
 from agent_comms.planning.goals import Goal, GoalDeclaration
 from agent_comms.ui_model.goal import GoalDisplay
+from formbridge.operations import OperationKind
 from metaclass_registry import AbstractHooksMeta
 
 from toad.client.host import CommsHost
+from toad.client.pending import ActionRunning, awaited
+
+
+@awaited(ActionRunning)
+class GoalPress(OperationKind):
+    """One goal button press: read the owner, then apply the button."""
 
 
 class GoalSource(ABC):

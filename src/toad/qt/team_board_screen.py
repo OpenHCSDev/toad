@@ -46,7 +46,7 @@ from agent_comms.team.board_actions import BoardActionOffer
 from agent_comms.team.team_hud import TeamBoardCut, TeamHud
 from agent_comms.transport.request import CoreAccess
 from toad.client.subscribers import CallbackSubscription
-from toad.client.team_board import TeamBoardState
+from toad.client.team_board import TeamBoardState, TeamMemberBoard
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.metrics import UiGap
@@ -166,7 +166,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
             self.tabs.setCurrentWidget(current)
 
 
-class QtTeamMemberView(QWidget):
+class QtTeamMemberView(TeamMemberBoard, QWidget):
     """One teammate's tab: heading + status + filter + "Needs hand" + groups tree.
 
     Reads `hud.status_strip(now)` for the status line, iterates
@@ -257,8 +257,8 @@ class QtTeamMemberView(QWidget):
     def _render(self) -> None:
         self.status.setText(self.hud.status_strip(time.time()))
         self._render_actions()
-        shown = self.state.filter_hud_sections(
-            self.hud, self.filter_input.text(), self.needs_hand_check.isChecked())
+        shown = self.filtered_sections_for(
+            self.filter_input.text(), self.needs_hand_check.isChecked())
         for group in tuple(self.groups):
             if group in shown:
                 continue
