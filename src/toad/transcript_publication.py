@@ -49,18 +49,22 @@ from agent_comms.ui_model.observation import (
 )
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual.await_complete import AwaitComplete
-from textual.widget import Widget
 from textual.worker import Worker, WorkerCancelled
 
+from toad.client.committed_presentation import (
+    block_claim,
+    commit_plan,
+    retirement_candidates,
+)
 from toad.client.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.commit_claims import CommitEvidence, NativeCommitEvidence
 from toad.core.events import CoreEventStream, ThreadRowsChanged
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
+from toad.history_jump import ReaderWindow
 from toad.live_output import LiveOutput
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
-from toad.client.session_scope import SessionOrigin
-from toad.session_scope import SessionScope
+from toad.client.session_scope import SessionOrigin, SessionScope
 from toad.transcript_scope import NoTranscript, TranscriptScope
 from toad.entry_placement import ChronologicalEntry, EntryPlacement
 from toad.client.message_file_links import PageFiles
@@ -74,25 +78,21 @@ from toad.client.prepared_pages import (
     UnreadTranscriptPage,
 )
 from toad.client.history_state import LiveTranscript, PreparedReplacementViewportRequest
-from toad.widgets.cli_draft import CliDraft
-from toad.widgets.committed_presentation import (
-    block_claim,
-    commit_plan,
-    retirement_candidates,
-)
-from toad.widgets.history_anchor import HistoryWindow
 from toad.client.reader_position import LatestPosition, TailPosition
-from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 from toad.worker_group import WorkerGroup
 
 from toad.client.view_binding_protocols import BoundViewHost
 
 if TYPE_CHECKING:
+    from textual.widget import Widget
+
     from toad.widgets.conversation import (
         Contents,
         Conversation,
         ConversationSessionBinding,
     )
+    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 
 
 @dataclass(frozen=True)
@@ -1186,7 +1186,7 @@ class TranscriptPresentation(TranscriptPages, EntryPlacement):
 
         if any(candidate.display for candidate in candidates):
             # Their rows leave the window now; the reader stays on theirs.
-            contents.query_ancestor(HistoryWindow).keep_reader()
+            contents.query_ancestor(ReaderWindow).keep_reader()
         for candidate in candidates:
             candidate.display = False
         retirement = asyncio.create_task(

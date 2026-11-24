@@ -894,7 +894,7 @@ def test_qt_live_blocks_survive_page_range_changes_and_retire_only_by_commit_cov
     from toad.qt.live_turn import QtLiveBlock, QtResponseBlock, QtThoughtBlock, QtUserInputBlock
     from toad.qt.thread_view import QtThreadView
     from toad.transcript_publication import BoundView
-    from toad.widgets.committed_presentation import CommitTranscript, block_claim
+    from toad.client.committed_presentation import CommitTranscript, block_claim
 
     redrawn = []
     window = SimpleNamespace(

@@ -159,7 +159,7 @@ from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
 from toad.workspace_frame import WorkspaceHosted
 from toad.widgets.cli_draft import DRAFT_PRESENTATION, CliDraft
-from toad.widgets.committed_presentation import protected_blocks
+from toad.widgets.presentation_window import protected_presentations
 from toad.client.history_state import LiveTranscript
 from toad.screens.session_view import SessionView
 from textual.worker import get_current_worker
@@ -1015,7 +1015,7 @@ class Conversation(
         return self.transcript.retire_presentations(self.contents, self.output, blocks)
 
     def protected_blocks(self, candidates):
-        return protected_blocks(self, candidates)
+        return protected_presentations(candidates, (*self.screen._interaction_widgets(), *self.cursor_block.endpoints))
 
     def blocks_in_viewport(self, candidates) -> bool:
         # A hidden tab has no exposed viewport. Never request offscreen geometry

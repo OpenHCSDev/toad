@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.native_style import RightMargin
 from toad.client.line_blocks import AgentRole, Divider, MarkdownMessageBody
-from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.commit_claims import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.message_rows import MessageClock, LiveMessageClock
 from toad.widgets.message_divider import MessageDivider
