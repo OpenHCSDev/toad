@@ -32,6 +32,7 @@ from toad.client.history_preparation import OLDER_END, PageEnd, PageRequest
 from toad.client.history_reads import NothingToRead, PaintedRead
 from toad.client.history_state import DEFERRED_WORK, SourceWork
 from toad.client.input_decision import TranscriptNotReady
+from toad.client.resource_release import ResourceRelease
 from toad.client.submission import ComposeAccess, SubmissionOwner, SubmissionStart, SubmittedText
 from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim, RetainedBlockClaim
 from toad.status_thread import NoStatusThread
@@ -414,6 +415,13 @@ class PreparedPageSource:
         for page in pages:
             page.measure_sources()
         projection.measure_projection()
+
+    def observe_availability(
+        self, view, access: CoordinationAccess, resume: Callable[[object], object]
+    ) -> ResourceRelease:
+        """How a paused read learns its source can answer again: saved transcripts watch
+        their view's thread scope; wire conversations override this to watch Core's stream."""
+        return view.thread_scope.observe(view, access, resume)
 
     def park(self, pages: tuple[PreparedTranscriptPage, ...],
              projection: HeldProjection = NoProjection()) -> None:

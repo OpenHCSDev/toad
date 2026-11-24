@@ -168,8 +168,17 @@ def test_channel_activity_sidebar_reuses_sidebar_tree_for_selected_channel(monke
     ]
 
     # Cleanup removes from coordination_access.sidebar_views and retires waves.
+    assert bar.selectionMode() == bar.SelectionMode.NoSelection
+    assert bar.selectedItems() == []
     bar.close_activity()
     assert bar not in sidebar_views
     assert left == [bar]
     bar.close()
     qapp.processEvents()
+
+
+def test_qt_history_window_inherits_reader_placement_jump_to_latest() -> None:
+    from toad.client.history_pager import ReaderPlacement
+    from toad.qt.history import QtHistoryWindow
+
+    assert QtHistoryWindow.jump_to_latest is ReaderPlacement.jump_to_latest

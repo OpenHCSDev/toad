@@ -752,6 +752,11 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         self.setAlternatingRowColors(True)
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
+        # Tap activates (`itemClicked`) and long-press opens `HeldRowMenu`; nothing reads
+        # Qt's selection model, and default `SingleSelection` left tapped/dragged channel
+        # and thread rows stuck highlighted green until another row was tapped.
+        self.setSelectionMode(QTreeWidget.SelectionMode.NoSelection)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.itemClicked.connect(self.activate)
 
     def row_menu_context(self, line: ConversationRow):
@@ -1945,6 +1950,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         if state in (Qt.ApplicationState.ApplicationSuspended, Qt.ApplicationState.ApplicationHidden,
                      Qt.ApplicationState.ApplicationInactive):
             self.application.backgrounded()
+        elif state == Qt.ApplicationState.ApplicationActive:
+            self.coordination_access.check_route()
+            self.workspace_sessions.selected.reload()
 
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
         """Route the answer to every registered `BusListing`. The welcome is always

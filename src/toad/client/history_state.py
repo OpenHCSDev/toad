@@ -322,12 +322,15 @@ class WaitingSourceWork[Owner, Snapshot, Result]:
 
     @contextmanager
     def observe(self):
-        # The pager's view owns the transcript scope in every frontend.  Asking the
-        # pager to walk a Textual ancestor happened to work there, but a Qt history is
-        # not a widget; on a cold Android read the unavailable-source path crashed here
-        # before it could subscribe and resume.  Read the declared owner directly.
+        # The pager's page source owns how availability returns: a saved transcript watches
+        # its view's thread scope, while a wire conversation watches Core's coordination
+        # stream (`WirePageBuffer.observe_availability`) because its `thread_scope` is
+        # `NoTranscript` (whose `observe` is a no-op that left channel tabs wedged forever
+        # after any background/reconnect `CoordinationReadUnavailable`).
         view = self.owner.view
-        with view.thread_scope.observe(view, self.owner.app.coordination_access, self.resume):
+        with self.owner.page_source.observe_availability(
+            view, self.owner.app.coordination_access, self.resume
+        ):
             yield self
 
     def resume(self, _event: object) -> None:
