@@ -30,18 +30,6 @@ from toad.qt.metrics import UiGap
 from toad.qt.widget_animation import WidgetAnimation
 
 
-class ActivityLine(ElidedLine):
-    """One muted line of reference under the composer, cut to the width the page has."""
-
-    def __init__(self, renderer: QtLineRenderer) -> None:
-        super().__init__()
-        renderer.themed(self, lambda: self.setStyleSheet(renderer.color_style(MutedRole)))
-        self.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
-
-    def close_activity(self) -> None:
-        """Nothing observed; nothing to stop."""
-
-
 class ChannelActivity(ChannelActivityTitle, QLabel):
     """The shared channel activity title as a disclosure, as Textual's collapsed
     ChannelActivity draws it: `▶ N active · names`; a tap opens one `▶ name` row per active
@@ -163,7 +151,9 @@ class PeerActivity(ObservedActivity, QtCoreObserver, QWidget):
         self.app, self.peer, self.changed = app, peer, changed
         self.row = ThreadStatusModel.pending("")
         self.is_mounted = False
-        self.summary = ActivityLine(renderer)
+        self.summary = ElidedLine()
+        renderer.themed(self.summary, lambda: self.summary.setStyleSheet(renderer.color_style(MutedRole)))
+        self.summary.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.summary)

@@ -5,19 +5,21 @@ from __future__ import annotations
 import inspect
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._callback import invoke
 from textual.binding import ModeBinding
 
 from formbridge.key_declarations import KeyDeclarationType, KeyInvocation, TextEntryMode
-from textual.widget import Widget
 
 from toad.client.line_blocks import LineLink
 from toad.flash_host import FlashHost
 from toad.message_rows import MessageRow
 from toad.client.application_actions import KeyFamilyMeta
+
+if TYPE_CHECKING:
+    from textual.widget import Widget
 
 
 class MenuConversation(FlashHost):
