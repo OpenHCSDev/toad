@@ -96,7 +96,13 @@ class ImportCollector(ast.NodeVisitor):
     def visit_If(self, node: ast.If) -> None:
         test = node.test
         guarded = (isinstance(test, ast.Name) and test.id == "TYPE_CHECKING"
-                   or isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING")
+                   or isinstance(test, ast.Attribute) and test.attr == "TYPE_CHECKING"
+                   or (isinstance(test, ast.Compare)
+                       and isinstance(test.left, ast.Name) and test.left.id == "__name__"
+                       and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq)
+                       and len(test.comparators) == 1
+                       and isinstance(test.comparators[0], ast.Constant)
+                       and test.comparators[0].value == "__main__"))
         for statement in node.orelse if guarded else (*node.body, *node.orelse):
             self.visit(statement)
 
@@ -242,6 +248,8 @@ def described(chain: list[ImportSite]) -> str:
 # move the frontend decision behind its host, or make the shared caller unreachable, then delete
 # the line. A NEW finding fails; a listed one that is gone fails until its line is deleted.
 KNOWN_LAZY: dict[str, str] = {
+    'agent_comms.installer.probes.publication -> agent_comms.installer.publication':
+        "aiohttp.web -> async_timeout. Qt: Core installer probe never called by the Android client (exposed once Core #5130 removed aiohttp.web from the closure)",
     'objectstate.object_state_registry -> dill':
         'dill. Qt: no caller of ObjectStateRegistry.save_history_to_file',
     'pyqt_reactive.protocols.widget_adapters -> pyqt_reactive.forms.widget_strategies':
@@ -252,8 +260,18 @@ KNOWN_LAZY: dict[str, str] = {
         "pyqt_reactive.animation -> pyqt_reactive.animation.flash_mixin -> formbridge.services.window_snapshot -> zmqruntime.timeouts. Qt: toad does not use pyqt_reactive's window navigation",
     'pyqt_reactive.services.window_navigation -> pyqt_reactive.widgets.shared.clickable_help_components':
         "pyqt_reactive.widgets.shared.clickable_help_components -> pyqt_reactive.animation.flash_mixin -> formbridge.services.window_snapshot -> zmqruntime.timeouts. Qt: toad does not use pyqt_reactive's window navigation",
-    'textual.app -> textual_dev.client':
-        'textual_dev.client. Qt: Textual devtools, only from App.run, which Qt never calls',
+    'textual.await_remove -> textual.app':
+        "textual.app. Qt: Textual widget lifecycle helper, never called by Qt (exposed once #2255 dropped textual.app from Qt cold start)",
+    'textual.dom -> textual.screen':
+        "textual.screen. Qt: Textual DOM helper, never called by Qt (exposed once #2255 dropped textual.screen from Qt cold start)",
+    'textual.message_pump -> textual.app':
+        "textual.app. Qt: Textual message pump helper, never called by Qt (exposed once #2255 dropped textual.app from Qt cold start)",
+    'textual.selection -> textual.screen':
+        "textual.screen. Qt: Textual selection helper, never called by Qt (exposed once #2255 dropped textual.screen from Qt cold start)",
+    'textual.widget -> textual.app':
+        "textual.app. Qt: Textual widget method, never called by Qt (exposed once #2255 dropped textual.app from Qt cold start)",
+    'textual.widget -> textual.screen':
+        "textual.screen. Qt: Textual widget method, never called by Qt (exposed once #2255 dropped textual.screen from Qt cold start)",
     'toad.application_lifetime -> httpx':
         "httpx. Qt: the terminal app's start, usage report and CLI serve; Qt runs its own start and sends no usage report",
     'toad.application_lifetime -> setproctitle':
