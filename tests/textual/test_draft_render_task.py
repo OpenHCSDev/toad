@@ -8,10 +8,14 @@ from textual.app import App
 
 from toad.markdown_links import LinkContext
 from toad.textual_colours import ThemedApp
-from toad.widgets.transcript_fragments import (
-    DraftBlocksRenderTask,
+from toad.client.transcript_fragments import (
     FragmentPlan,
+    PageFiles,
     transcript_fragments,
+)
+from toad.widgets.transcript_fragments import (
+    TEXTUAL_FRAGMENT_CLASSES,
+    DraftBlocksRenderTask,
 )
 from toad.widgets.transcript_lines import (
     AcquiredRows,
@@ -50,7 +54,9 @@ def long_text(paragraphs):
 
 def source_blocks(text, theme):
     events = (AssistantTranscript(text, position=1, timestamp=0.0),)
-    task = DraftBlocksRenderTask(FragmentPlan.read(events, resolve_sent=no_sent))
+    task = DraftBlocksRenderTask(FragmentPlan.read(
+        events, resolve_sent=no_sent, classes=TEXTUAL_FRAGMENT_CLASSES, files=PageFiles(),
+    ))
     return LinePreparation(pickle.loads(pickle.dumps(pickle.loads(pickle.dumps(task)).execute())), theme)
 
 
@@ -58,7 +64,12 @@ def test_a_draft_task_carried_to_a_worker_builds_what_its_fragments_build(tmp_pa
     text = long_text(12)
     theme = line_theme()
     context = LinkContext(tmp_path, ProjectReferences())
-    built = transcript_fragments((AssistantTranscript(text, position=1, timestamp=0.0),), resolve_sent=no_sent)
+    built = transcript_fragments(
+        (AssistantTranscript(text, position=1, timestamp=0.0),),
+        resolve_sent=no_sent,
+        classes=TEXTUAL_FRAGMENT_CLASSES,
+        files=PageFiles(),
+    )
     assert len(built) > 1
     blocks = tuple(block for fragment in built for block in fragment.line_blocks)
     direct = TranscriptLinesRenderTask(LinePreparation(blocks, theme), context).execute()

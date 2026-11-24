@@ -24,7 +24,6 @@ from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.transport.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, CommsTailnetProfileTool
 from formbridge.operations import ExclusiveKind, OperationKind
-from objectstate import ObjectState, ObjectStateRegistry
 
 from toad.client.pending import BusConnecting, awaited
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
@@ -45,6 +44,7 @@ from toad.client.input_attention import InputAttention
 from toad.client.resource_release import AsyncResourceRelease
 from toad.client.session_tracker import OpenTab, SessionTracker, SidebarState
 from toad.client.tab_order import TabOrder
+from toad.client.view_settings import ApplicationSettings
 from toad.constants import WELCOME
 from toad.core import events as core_events
 from toad.core import session_requests
@@ -61,7 +61,7 @@ from toad.thread_actions import ThreadActions
 from toad.thread_navigation import ThreadNavigator
 
 if TYPE_CHECKING:
-    from toad.preferences import SavedSettings, ToadSettings
+    from toad.preferences import SavedSettings
 
 
 class SettingsKept(OperationKind, ExclusiveKind):
@@ -83,16 +83,8 @@ class BusDiscovery(OperationKind, ExclusiveKind):
     opened, replaces the one running."""
 
 
-class ClientApplication(BusPickerHost, NavigationHost):
-    """One launch's client state and its session operations, shared by every frontend.
-
-    Owns toolkit-neutral access to `ToadSettings` via `settings` / `saved_settings` /
-    `configuration_state`. Every frontend inherits the same accessor; `QtToadApp` gets
-    `app.settings.sidebar.unread_counts.badge(...)` for free, the same way Textual's
-    `ThemedApp` already did. On the Textual app, `ThemedApp.__init__` still assigns
-    `saved_settings` eagerly before `TextualColours` reads diff settings during
-    colour-system construction; that assignment flows through the setter here.
-    """
+class ClientApplication(BusPickerHost, ApplicationSettings, NavigationHost):
+    """One launch's client state and its session operations, shared by every frontend."""
 
     input_attention: InputAttention
     """The title that blinks while input is required; each frontend sets its own."""
@@ -102,26 +94,6 @@ class ClientApplication(BusPickerHost, NavigationHost):
         (`toad.heap`). Only Textual's app told it until 2026-11-22; Qt's heap was never frozen
         after its startup."""
         HEAP.history_displayed()
-
-    _saved_settings: SavedSettings | None = None
-
-    @property
-    def saved_settings(self) -> SavedSettings:
-        """The settings holder this launch reads and writes. Lazily opened on first
-        access so Qt (which has no pre-constructor settings hook) doesn't need to
-        know to allocate it; Textual's `ThemedApp.__init__` sets it eagerly for the
-        colour-system construction order."""
-        if self._saved_settings is None:
-            self._saved_settings = self.open_settings()
-            ObjectStateRegistry.register(self._saved_settings.state)
-        return self._saved_settings
-
-    @saved_settings.setter
-    def saved_settings(self, value: SavedSettings) -> None:
-        if self._saved_settings is value:
-            return
-        self._saved_settings = value
-        ObjectStateRegistry.register(value.state)
 
     def open_settings(self) -> SavedSettings:
         """The settings file every frontend reads at launch and writes on a change; each
@@ -186,11 +158,6 @@ class ClientApplication(BusPickerHost, NavigationHost):
         """Show or hide the session tabs; the open tabs draw with the current unread badge."""
 
     @property
-    def settings(self) -> ToadSettings:
-        """The settings in use, to read from; `saved_settings` changes and saves them."""
-        return self.saved_settings.current
-
-    @property
     def sidebar_show_stopped(self) -> bool:
         """The sidebar's stopped filter, from the one `sidebar.show_stopped` setting both
         frontends read."""
@@ -199,12 +166,6 @@ class ClientApplication(BusPickerHost, NavigationHost):
     @property
     def sidebar_show_archived(self) -> bool:
         return self.settings.sidebar.show_archived
-
-    @property
-    def configuration_state(self) -> ObjectState:
-        """The ObjectState backing `settings`; on the app the nearest `SettingsScope`
-        resolves to this, so `SettingsReader`-based widgets reach the same object."""
-        return self.saved_settings.state
 
     def _make_render_processes(self):
         """The renderer every frontend submits preparation work to. The default wraps this

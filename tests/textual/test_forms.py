@@ -107,7 +107,7 @@ async def test_each_kind_of_field_gets_the_editor_registered_for_its_declaration
             "limit": editors.OptionalEditor,
             "inner.depth": editors.IntEditor,
         }
-        assert isinstance(shown["limit"].member, editors.IntEditor)
+        assert isinstance(shown["limit"].member_editor, editors.IntEditor)
         group = app.form.parts[-1]
         assert isinstance(group, GroupView) and [type(part) for part in group.parts] == [ValueView]
         assert app.form.values["inner.depth"].field.label == "How deep"
@@ -125,8 +125,8 @@ async def test_an_edit_of_each_kind_reaches_the_state():
         shown["fruit"].value = "pear"
         shown["limit"].holds_value.value = True
         await pilot.pause()
-        assert shown["limit"].member.display
-        await leave(pilot, shown["limit"].member, "9")
+        assert shown["limit"].member_editor.display
+        await leave(pilot, shown["limit"].member_editor, "9")
         await leave(pilot, shown["inner.depth"], "5")
         assert app.state.to_object() == Everything(
             flag=True, count=7, ratio=2.25, name="edited", notes="three", size=Size.LARGE,
@@ -134,7 +134,7 @@ async def test_an_edit_of_each_kind_reaches_the_state():
         )
         shown["limit"].holds_value.value = False
         await pilot.pause()
-        assert app.state.to_object().limit is None and not shown["limit"].member.display
+        assert app.state.to_object().limit is None and not shown["limit"].member_editor.display
 
 
 async def test_application_checkbox_clips_without_changing_radio_policy_or_input():
@@ -207,7 +207,7 @@ async def test_a_change_made_elsewhere_is_painted_without_being_sent_back():
         await pilot.pause()
         assert shown["size"].value is Size.LARGE and shown["flag"].value is True
         assert shown["notes"].text == "elsewhere"
-        assert shown["limit"].holds_value.value is True and shown["limit"].member.value == "4"
+        assert shown["limit"].holds_value.value is True and shown["limit"].member_editor.value == "4"
         assert sent == [{"size"}, {"flag"}, {"notes"}, {"limit"}]
 
 
