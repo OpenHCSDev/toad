@@ -266,10 +266,6 @@ KNOWN_LAZY: dict[str, str] = {
         "notifypy. Qt: desktop notifications come from TerminalAttention.notify, Textual's",
     'toad.client.platform -> notifypy.os_notifiers.linux':
         "notifypy.os_notifiers.linux. Qt: desktop notifications come from TerminalAttention.notify, Textual's",
-    'toad.setting_choices -> toad.widgets.future_text':
-        'toad.widgets.future_text. Qt: QuotesLoading.widget runs only from toad.screens.main',
-    'toad.tool_output -> toad.widgets.tool_content':
-        "toad.widgets.tool_content. Qt: ToolOutput.sync runs only from Textual's tool_call",
     'toad.version -> httpx':
         "httpx. Qt: the version check is the terminal app's start",
 }

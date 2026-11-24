@@ -105,7 +105,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.binding = binding
         self.request = request
         super().__init__()
-        self.output = ToolOutput(self)
+        self.output = ToolOutput()
         self.output.replace(tool_call.call, parts=output_parts)
         self._manual_expansion: bool | None = None
         self._auto_expanded = False
@@ -122,6 +122,13 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
                                         for message in part.standalone_messages),
                                source=self.committed_source)
 
+    def sync_output(self) -> AwaitComplete:
+        body = self.query_one_optional(ToolContent)
+        if body is None:
+            return AwaitComplete()
+        body.update(self.output.line_blocks if self.expanded else ())
+        return AwaitComplete()
+
     def update_tool_call(self, tool_call: ToolCallStatus, *, output_parts=None) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.
 
@@ -133,7 +140,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self._update_metadata()
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
         self.query_one(ToolTitle).update(self.current_status.title)
-        return self.output.sync()
+        return self.sync_output()
 
     def get_block_menu(self) -> Iterable[MenuCommand]:
         if self.expanded:
@@ -190,7 +197,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
                 if self._manual_expansion is not None:
                     self._auto_expanded = False
                     self.expanded = self._manual_expansion
-        self.output.sync()
+        self.sync_output()
 
     def _update_metadata(self) -> None:
         self.has_content = self.output.has_content
@@ -226,7 +233,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         )
 
     def watch_expanded(self) -> None:
-        self.output.sync()
+        self.sync_output()
         try:
             self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
             self.query_one(ToolTitle).display = self.query_one(ToolCallContent).display = self.expanded
