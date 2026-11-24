@@ -210,6 +210,20 @@ class SubmittingPhase(ABC):
         return self.submitting(text)
 
 
+class PendingSubmissionPhase(SubmittingPhase):
+    """Still queued or unstarted: the submission continues to show as submitting."""
+
+    def submitting(self, text: str) -> tuple[str, ...]:
+        return (text,)
+
+
+class SettledSubmissionPhase(SubmittingPhase):
+    """Accepted or started: nothing is still submitting."""
+
+    def submitting(self, text: str) -> tuple[str, ...]:
+        return ()
+
+
 class BusOutcome(SubmittingPhase):
     """Where a bus send stands: only a sent message can be drawn by its view."""
 
@@ -217,20 +231,12 @@ class BusOutcome(SubmittingPhase):
         return False
 
 
-class NotYetSent(BusOutcome):
+class NotYetSent(PendingSubmissionPhase, BusOutcome):
     """Still queued or on its way to Core."""
 
-    def submitting(self, text: str) -> tuple[str, ...]:
-        return (text,)
 
-
-class DeliveryOutcome(BusOutcome):
+class DeliveryOutcome(SettledSubmissionPhase, BusOutcome):
     """What Core's answer leaves the execution to do."""
-
-    def submitting(self, text: str) -> tuple[str, ...]:
-        """Core answered, so nothing is being submitted: the entry that stays is waiting
-        to be drawn, which is not the same thing as a message still on its way."""
-        return ()
 
     @abstractmethod
     async def settle_into(self, execution: BusSubmissionExecution) -> None: ...

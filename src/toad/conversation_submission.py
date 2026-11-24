@@ -23,7 +23,13 @@ from toad.acp.agent import Agent
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.acp.status import StopReason, UnreportedStopReason
-from toad.client.bus_submission import BusSubmissions, SubmissionExecution, SubmittingPhase
+from toad.client.bus_submission import (
+    BusSubmissions,
+    PendingSubmissionPhase,
+    SettledSubmissionPhase,
+    SubmissionExecution,
+    SubmittingPhase,
+)
 from toad.client.submission import SubmittedText
 from toad.command_catalog import CommandCatalog
 from toad.core.input_events import UserInputSubmitted
@@ -185,14 +191,12 @@ class PromptPhase(SubmittingPhase):
     """Whether the agent has started this prompt: until it does, the prompt still shows as submitting."""
 
 
-class PromptUnstarted(PromptPhase):
-    def submitting(self, text: str) -> tuple[str, ...]:
-        return (text,)
+class PromptUnstarted(PendingSubmissionPhase, PromptPhase):
+    pass
 
 
-class PromptStarted(PromptPhase):
-    def submitting(self, text: str) -> tuple[str, ...]:
-        return ()
+class PromptStarted(SettledSubmissionPhase, PromptPhase):
+    pass
 
 
 class AgentSubmissionExecution(SubmissionExecution):

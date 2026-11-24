@@ -33,20 +33,12 @@ class ShellTerminal(
         self.styles.overflow_x = self.styles.overflow_y = "scroll"
 
     @dataclass
-    class Terminate(Message):
-        teminal: ShellTerminal
-
-        @property
-        def control(self) -> DOMNode:
-            return self.terminal
+    class Terminate(Terminal.TerminalMessage):
+        terminal: ShellTerminal
 
     @dataclass
-    class Interrupt(Message):
-        teminal: ShellTerminal
-
-        @property
-        def control(self) -> DOMNode:
-            return self.terminal
+    class Interrupt(Terminal.TerminalMessage):
+        terminal: ShellTerminal
 
     def get_block_menu(self) -> Iterable[MenuCommand]:
         if not self.is_finalized:

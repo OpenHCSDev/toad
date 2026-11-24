@@ -1276,7 +1276,7 @@ class Conversation(
 
     @on(ShellTerminal.Interrupt)
     async def on_shell_terminal_terminate(self, event: ShellTerminal.Terminate) -> None:
-        if not event.teminal.is_finalized:
+        if not event.terminal.is_finalized:
             await self.shell.interrupt()
             self.navigation.clear()
             self.feedback.flash("Command interrupted", style="success")
