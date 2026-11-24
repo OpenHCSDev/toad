@@ -1252,20 +1252,32 @@ class CoordinationAccess(MroDispatch):
                 for task in tuple(self.retiring):
                     release.push_async_callback(join_retirement, task)
 
+    async def _retire_previous_connection(
+        self, pending: tuple[asyncio.Task[None], ...], previous: CoreConnection
+    ) -> None:
+        """Join the previous observation's retirement tasks, then close its connection."""
+        try:
+            for task in pending:
+                await join_retirement(task)
+        finally:
+            await asyncio.to_thread(previous.close)
+
     async def switch_connection(self, connection: CoreConnection) -> None:
         """Observe ``connection``'s Core in place of the current one's, the way a changed
         route is observed: its current observation adopts the old one, which retires with
         its subscriptions, and every view subscribed to this access rebinds on the
         CoordinationObserved that follows. The old connection closes once that retirement
-        has joined, as close() orders it."""
+        has joined, as close() orders it, tracked in ``self.retiring`` so opening the new
+        bus's saved tabs does not wait on the old bus's teardown."""
         await self.stop_route_check()
         previous, self.connection = self.connection, connection
         # Another bus is not the lost one: it opens now, not when the old one's retry is due.
         self.retry.recovered()
         await self.observe_route()
-        for task in tuple(self.retiring):
-            await join_retirement(task)
-        await asyncio.to_thread(previous.close)
+        pending = tuple(self.retiring)
+        cleanup = asyncio.create_task(self._retire_previous_connection(pending, previous))
+        self.retiring.add(cleanup)
+        cleanup.add_done_callback(self.retiring.discard)
 
     async def route_changed(self) -> bool:
         previous = self.observation
