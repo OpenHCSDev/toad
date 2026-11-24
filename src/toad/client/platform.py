@@ -5,6 +5,8 @@ from __future__ import annotations
 import platform
 from typing import ClassVar, Literal, Mapping
 
+from agent_comms.nominal.declared_family import DeclaredFamily
+
 type OS = Literal["linux", "macos", "windows", "android", "*"]
 
 
@@ -72,17 +74,12 @@ class AbsentDesktop(DesktopService):
         return self
 
 
-class Platform:
+class Platform(DeclaredFamily, affix="Platform"):
     """The operating system Toad runs on; each member owns what differs there."""
 
     system: ClassVar[str]
     key: ClassVar[OS]
     application_name: ClassVar[str] = "Toad"
-    members: ClassVar[dict[str, type[Platform]]] = {}
-
-    def __init_subclass__(cls, **kwargs) -> None:
-        super().__init_subclass__(**kwargs)
-        Platform.members[cls.system] = cls
 
     @classmethod
     def select[V](cls, matrix: Mapping[OS, V]) -> V | None:
@@ -102,7 +99,7 @@ class Platform:
     @classmethod
     def decode(cls, system: str) -> type[Platform]:
         """`platform.system()` names the member; anything undeclared is unknown."""
-        return cls.members.get(system, UnknownPlatform)
+        return next((member for member in cls.members_with(Platform) if member.system == system), UnknownPlatform)
 
 
 class LinuxPlatform(Platform):
