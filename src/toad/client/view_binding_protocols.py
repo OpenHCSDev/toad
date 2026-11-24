@@ -17,7 +17,10 @@ from typing import TYPE_CHECKING, ClassVar
 from agent_comms.execution.transcript_sources import DraftFold
 from metaclass_registry.mro_dispatch import handles
 
-from toad.core.events import Publication
+from toad.client.prepared_pages import PreparedPageSource, PreparedTranscriptPage
+from toad.client.session_scope import SessionScope
+from toad.client.transcript_history_contract import TranscriptHistoryContract
+from toad.core.events import Publication, ThreadRowsChanged
 from toad.core.source_events import TranscriptCoverage, TranscriptSourceWorkFinished
 
 
@@ -25,10 +28,6 @@ if TYPE_CHECKING:
     from agent_comms.execution.transcript_sources import TranscriptCursor
     from agent_comms.transcript.transcript_drafts import NoDraft
     from agent_comms.transcript.transcripts import TranscriptReadIdentity
-    from toad.client.prepared_pages import PreparedPageSource, PreparedTranscriptPage
-    from toad.client.transcript_history_contract import TranscriptHistoryContract
-    from toad.client.session_scope import SessionScope
-    from toad.core.events import ThreadRowsChanged
     from toad.transcript_publication import PublicationWork
 
 

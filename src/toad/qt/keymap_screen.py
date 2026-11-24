@@ -7,7 +7,6 @@ fills in, Apply/Reset and how a result shows are inherited from the flow Textual
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor
@@ -23,16 +22,13 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
+from toad.qt.window import QtToadApp
 from ui_theme.scheme import ErrorColour, MutedColour
 
 from toad.client.keymap_browser import KeymapBrowsing, KeymapSave
 from toad.keymap import KeyInvocationId
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
-
-if TYPE_CHECKING:
-    from toad.qt.window import QtToadApp
-
 
 class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
     """Modal keymap browser: heading, search, focus filter, the action × mode table,

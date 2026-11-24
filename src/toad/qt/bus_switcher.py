@@ -20,7 +20,6 @@ Tailnet answers reach the panel through `QtToadApp.register_bus_listing` /
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -38,10 +37,14 @@ from toad.client.bus_selection import (
     PickerRow,
 )
 from toad.qt.metrics import UiGap
-
-if TYPE_CHECKING:
-    from toad.qt.window import QtToadApp
-
+from toad.qt.window import (
+    BusAddress,
+    BusRow,
+    ConversationRows,
+    KeptLines,
+    OpenSection,
+    QtToadApp,
+)
 
 class QtBusSwitcher(BusListing, QFrame):
     """The modal-style bus switcher Qt opens from the hamburger.
@@ -57,14 +60,6 @@ class QtBusSwitcher(BusListing, QFrame):
         self.setWindowFlags(Qt.WindowType.Widget)
         self._host = window
         self._rows: tuple[PickerRow, ...] = ()
-
-        # Local imports to avoid the window.py <-> bus_switcher.py cycle at
-        # module load (QtBusSwitcher is imported from inside QtToadApp.__init__,
-        # after the window-level classes are defined).
-        from toad.qt.window import BusAddress, BusRow, ConversationRows, KeptLines, OpenSection
-        self._BusRow = BusRow
-        self._KeptLines = KeptLines
-        self._OpenSection = OpenSection
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(UiGap.frame, UiGap.loose, UiGap.frame, UiGap.loose)
@@ -104,9 +99,6 @@ class QtBusSwitcher(BusListing, QFrame):
         `Welcome.draw_lines` at `src/toad/qt/window.py` so the two paths render
         BusRow items identically."""
         self._rows = rows
-        BusRow = self._BusRow
-        KeptLines = self._KeptLines
-        OpenSection = self._OpenSection
         def draw(top: KeptLines) -> None:
             with top.group(OpenSection(self.buses_title)) as section:
                 for choice in rows:

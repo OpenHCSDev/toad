@@ -23,21 +23,20 @@ from toad.acp.status import ToolCallStatus
 from toad.client.fragments import GrowsInPlace, Shown
 from toad.client.subscribers import CallbackSubscription
 from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation
-from toad.core.events import CoreEvent
+from toad.core.events import CoreEvent, CoreEventStream
 from toad.permission_presentation import (
     DialogPermissionPresentation,
     DiffPermissionPresentation,
     InlinePermissionPresentation,
 )
+from toad.qt.history import QtHistoryWindow
 from toad.qt.transcript_fragments import QtToolTranscriptFragment
 from toad.qt.live_turn import QtLiveBlock
 from toad.tool_output import TextToolOutputPart, ToolOutput
 from toad.surface_binding import ViewSurfaceBinding
 
 if TYPE_CHECKING:
-    from toad.core.events import CoreEventStream
     from toad.qt.conversation import QtConversation
-    from toad.qt.history import QtHistoryWindow
 
 
 def _accepts_publication(handler) -> bool:

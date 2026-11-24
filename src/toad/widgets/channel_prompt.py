@@ -7,7 +7,7 @@ from textual.widgets import OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 
-from toad.client.mention_completion import MentionCompletion, MentionEditor, NoMention
+from toad.client.mention_completion import MentionCompletion, MentionEditor
 from toad.native_style import AutoHeight, SpacedBelow
 from toad.widgets.prompt import MessagePrompt, MessageTextArea
 from toad.widgets.selection import SelectionOptionList
@@ -57,7 +57,7 @@ class ChannelPrompt(MentionEditor, MessagePrompt):
         self.mention_list.display = False
         self._candidates: tuple[MentionCandidate, ...] = ()
         self._options: tuple[MentionCandidate, ...] = ()
-        self._mention: MentionCompletion = NoMention()
+        self._mention: MentionCompletion = MentionCompletion()
         self._dismissed_text: str | None = None
 
     def compose(self) -> ComposeResult:
