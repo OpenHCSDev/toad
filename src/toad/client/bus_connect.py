@@ -130,40 +130,27 @@ def _generic_options(host: BusConnectHost, peer_name: str) -> tuple[RemediationO
 
 
 class BusConnectDecisions(MroDispatch):
-    """Map a peer's refusal or non-answer to one human summary and its tappable actions."""
+    """Describe a peer's refusal or non-answer as `(summary, options)` by outcome class."""
 
     @handles(PeerRefusedProfile)
-    def refused(self, asked: PeerRefusedProfile, host: BusConnectHost) -> BusConnectDecision:
+    def refused(self, asked: PeerRefusedProfile, host: BusConnectHost) -> tuple[str, tuple[RemediationOption, ...]]:
         peer = asked.found.peer.name
         if asked.refusal and "No tailnet-only endpoint" in asked.refusal:
-            return BusConnectDecision(
-                peer_name=peer,
-                summary=f"{peer} isn't sharing its bus over Tailscale yet — run tailscale serve there, or paste a profile.",
-                options=_options_for_no_tailnet_endpoint(host, peer, asked.refusal),
+            return (
+                f"{peer} isn't sharing its bus over Tailscale yet — run tailscale serve there, or paste a profile.",
+                _options_for_no_tailnet_endpoint(host, peer, asked.refusal),
             )
-        return BusConnectDecision(
-            peer_name=peer,
-            summary=f"{peer} refused a profile.",
-            options=_generic_options(host, peer),
-        )
+        return f"{peer} refused a profile.", _generic_options(host, peer)
 
     @handles(PeerAnsweredNothing)
-    def answered_nothing(self, asked: PeerAnsweredNothing, host: BusConnectHost) -> BusConnectDecision:
+    def answered_nothing(self, asked: PeerAnsweredNothing, host: BusConnectHost) -> tuple[str, tuple[RemediationOption, ...]]:
         peer = asked.found.peer.name
-        return BusConnectDecision(
-            peer_name=peer,
-            summary=f"{peer} didn't return a profile.",
-            options=_generic_options(host, peer),
-        )
+        return f"{peer} didn't return a profile.", _generic_options(host, peer)
 
     @handles(AskedPeer)
-    def fallback(self, asked: AskedPeer, host: BusConnectHost) -> BusConnectDecision:
+    def fallback(self, asked: AskedPeer, host: BusConnectHost) -> tuple[str, tuple[RemediationOption, ...]]:
         peer = asked.found.peer.name
-        return BusConnectDecision(
-            peer_name=peer,
-            summary=f"{peer}: could not connect.",
-            options=_generic_options(host, peer),
-        )
+        return f"{peer}: could not connect.", _generic_options(host, peer)
 
 
 _DECISIONS = BusConnectDecisions()
@@ -173,4 +160,5 @@ def decision_for(asked: AskedPeer, host: BusConnectHost) -> BusConnectDecision:
     """Classify a peer's non-opening answer into what the UI should present. Only called
     by `ClientApplication.asked_peer` after the `HoldingPeerProfile` case, so every
     reachable AskedPeer here is a refusal or a non-answer — never a successful hold."""
-    return next(_DECISIONS.handlers_for(asked))(asked, host)
+    summary, options = next(_DECISIONS.handlers_for(asked))(asked, host)
+    return BusConnectDecision(peer_name=asked.found.peer.name, summary=summary, options=options)
