@@ -259,14 +259,6 @@ class CoreConnection(ABC):
         """The observation serving ``source``, or the refusal that it is not this Core's."""
 
 
-class RemoteUserMissing(RuntimeError):
-    """The remote Core holds no user thread; only a UI on Core's own machine claims one."""
-
-
-class RemoteRouteNotSelectable(RuntimeError):
-    """A remote Core is observed through the connector; it has no local route to select."""
-
-
 @dataclass(frozen=True)
 class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnection):
     """The owner's UI profile is the remote connection: Core answers through the connector.
@@ -294,11 +286,11 @@ class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnect
         return type(self).startup(arguments)
 
     def route_selection(self) -> RouteSelection:
-        raise RemoteRouteNotSelectable(
+        raise RuntimeError(
             f"{self.endpoint.url} answers Core requests; local route selection does not apply")
 
     def open_selected(self, access: CoordinationAccess, selected: RouteSelection) -> Observing:
-        raise RemoteRouteNotSelectable(
+        raise RuntimeError(
             f"{self.endpoint.url} answers Core requests; it opens no local route")
 
     def observation_source(self, route: CommsRoute) -> ObservationSource:
@@ -894,7 +886,7 @@ class RemoteObserving(Observing):
 
     def user_identity(self, project: Checkout) -> Thread:
         """Across the connector the user thread is Core's; this machine's checkout claims nothing."""
-        return self.registry().user_thread().require(RemoteUserMissing(
+        return self.registry().user_thread().require(RuntimeError(
             f"{self.connection.location} has no user thread; open a UI on Core's machine first"))
 
     def opened_selection(self) -> UnselectedRoute:

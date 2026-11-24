@@ -18,12 +18,16 @@ from typing import TYPE_CHECKING
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 
 from toad.client.panel_source import PanelSource
+from toad.core.context_inspection import (
+    ContextNode,
+    DetachedInspection,
+    InspectionState,
+)
+from toad.thread_identity import SessionIdentity
 
 if TYPE_CHECKING:
     from textual.worker import Worker
 
-    from toad.core.context_inspection import ContextNode, InspectionState
-    from toad.thread_identity import SessionIdentity
 
 
 @dataclass
@@ -72,7 +76,6 @@ class ContextInspectionReader(PanelSource):
 
     def start_inspection(self, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
         """Each frontend's constructor calls this once beside its widget's own."""
-        from toad.core.context_inspection import DetachedInspection
         self._intents = intents
         self.state: InspectionState = DetachedInspection()
 

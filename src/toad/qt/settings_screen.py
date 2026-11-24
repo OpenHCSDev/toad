@@ -7,7 +7,6 @@ sends the typed edits and writes the settings file.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLineEdit, QTabWidget, QVBoxLayout, QWidget
@@ -15,12 +14,9 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLineEdit, QTabWidget, 
 from formbridge.forms.declared_fields import FormPage
 
 from toad.qt.forms import QtFormView
+from toad.qt.window import QtToadApp
 from toad.settings_editing import SettingsEditing
 from toad.qt.presented_window import PresentedWindow
-
-if TYPE_CHECKING:
-    from toad.qt.window import QtToadApp
-
 
 # The screen.
 

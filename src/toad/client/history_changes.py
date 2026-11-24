@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
+from toad.client.fragments import EventSourceKey, FragmentKey, HistoryFragment
 from toad.client.reader_position import (
     BlockPosition,
     FragmentPosition,
@@ -22,11 +23,10 @@ from toad.client.reader_position import (
 
 
 from toad.client.line_blocks import Divider, MutedRole
+from toad.client.transcript_fragments import TranscriptFragment
 
 if TYPE_CHECKING:
     from agent_comms.nominal.field_codec import ToolCallId
-    from toad.client.fragments import EventSourceKey, FragmentKey, HistoryFragment
-    from toad.client.transcript_fragments import TranscriptFragment
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
 

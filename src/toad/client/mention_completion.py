@@ -24,7 +24,7 @@ class MentionCompletion:
     @staticmethod
     def at_cursor(line: str, row: int, column: int) -> MentionCompletion:
         query = MentionQuery.at_cursor(line, column)
-        return NoMention() if query is None else PendingMention(query, row, line)
+        return MentionCompletion() if query is None else PendingMention(query, row, line)
 
     def options(self, candidates: tuple[MentionCandidate, ...]) -> tuple[MentionCandidate, ...]:
         return ()
@@ -35,10 +35,6 @@ class MentionCompletion:
     @staticmethod
     def label(candidate: MentionCandidate) -> str:
         return f"@{candidate.name}" + (f" — {candidate.title}" if candidate.title != candidate.name else "")
-
-
-class NoMention(MentionCompletion):
-    """The cursor is not typing a mention."""
 
 
 @dataclass(frozen=True)
