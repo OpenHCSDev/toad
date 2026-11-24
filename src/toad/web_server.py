@@ -25,6 +25,7 @@ from pathlib import Path
 from urllib.parse import quote, urlsplit
 
 import platformdirs
+import toad
 from aiohttp import web
 from textual_serve.server import Server
 
@@ -309,7 +310,6 @@ class ToadWebServer(Server):
     def run_toad(
         cls, authentication: BrowserAuthentication, toad_args: tuple[str, ...]
     ) -> None:
-        import toad
 
         command = shlex.join(
             [sys.executable, "-m", toad.__name__, *(toad_args or (".",))]

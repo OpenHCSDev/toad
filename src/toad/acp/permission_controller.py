@@ -18,8 +18,9 @@ PERMISSION_TIMEOUT_SECONDS = 120.0
 
 
 class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
-    def __init__(self, controller):
+    def __init__(self, controller, presentation: PermissionPresentation):
         self.controller = controller
+        self._presentation = presentation
         self.future = asyncio.get_running_loop().create_future()
         self._projections = {}
         self.future.add_done_callback(self._completed)
@@ -33,8 +34,8 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
     def options(self) -> list[Answer]: ...
 
     @property
-    @abstractmethod
-    def presentation(self): ...
+    def presentation(self) -> PermissionPresentation:
+        return self._presentation
 
     def answer(self, binding, answer):
         if self.owns_projection(binding, binding.target):
@@ -100,34 +101,24 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
 
 class ToolPermissionRequest(PermissionRequest):
     def __init__(self, controller, options, tool_call):
-        super().__init__(controller)
+        super().__init__(controller, PermissionPresentation.from_acp(tool_call))
         self._options = [Answer(option.name, option.option_id, option.kind) for option in options]
-        self._presentation = PermissionPresentation.from_acp(tool_call)
 
     @property
     def options(self):
         return self._options
-
-    @property
-    def presentation(self):
-        return self._presentation
 
 
 class ElicitationRequest(PermissionRequest):
     """A structured dialog / ACP `elicitation/create` request sharing the permission lifecycle."""
 
     def __init__(self, controller, spec: DialogSpec):
-        super().__init__(controller)
+        super().__init__(controller, DialogPermissionPresentation(spec.title or spec.message, spec))
         self.spec = spec
-        self._presentation = DialogPermissionPresentation(spec.title or spec.message, spec)
 
     @property
     def options(self) -> list[Answer]:
         return []
-
-    @property
-    def presentation(self) -> DialogPermissionPresentation:
-        return self._presentation
 
     def resolve(self, binding, outcome: DialogOutcome) -> None:
         if self.owns_projection(binding, binding.target) and self.pending:

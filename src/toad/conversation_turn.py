@@ -12,13 +12,13 @@ from agent_comms.execution.turn_lease import TurnState
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.activity import ActivityState
 from agent_comms.ui_model.status import ThreadStatusModel
+from toad.core_event_carrier import CoreEventMessage
 from toad.turn_presentation import TurnPresentation
 
 if TYPE_CHECKING:
     from textual.widget import Widget
 
     from toad.acp.agent import Agent
-    from toad.core_event_carrier import CoreEventMessage
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
