@@ -133,8 +133,12 @@ def test_android_client_startup_does_not_import_connector_server_cli() -> None:
     source_root = str(Path(android_bus.__file__).parents[2])
     probe = (
         "import sys, toad.qt.android; toad.qt.android.load_client(); "
+        "from toad.client.connection import RemoteCoreConnection; "
+        "object.__new__(RemoteCoreConnection).prewarm(); "
         "assert 'agent_comms.transport.connector' not in sys.modules, "
-        "'Android startup pulled server-side agent_comms.transport.connector'"
+        "'Android startup pulled server-side agent_comms.transport.connector'; "
+        "assert 'nominal_refactor_advisor' not in sys.modules, "
+        "'Android startup pulled server-side nominal_refactor_advisor'"
     )
     result = subprocess.run(
         [sys.executable, "-c", probe],

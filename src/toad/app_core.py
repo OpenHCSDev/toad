@@ -8,18 +8,16 @@ stays on each app.
 
 from __future__ import annotations
 
-from agent_comms.storage.locked_store import RootFile
-
 
 class CorePrewarm:
-    """Walk Core's declaration catalog once before the first frame.
+    """Walk Core's local declaration catalog once before the first frame when this
+    application's connection reads local bus files (`LocalCoreConnection.prewarm`).
 
-    A cold tab's first wire revision and its first action menu each walk
-    agent_comms and import every module of it (through
-    ``RootFile.load_declarations`` and the lazy CLI registry). Those imports
-    hold the GIL and the import lock against input, so they belong before the
-    first frame rather than inside the first cold tab.
+    A remote connection (`RemoteCoreConnection`, e.g. Android) talks to Core over HTTPS and
+    WebSocket and never loads local `RootFile` stores, so its `prewarm()` is a no-op —
+    avoiding walking server-only modules (worker, team_heartbeat, nominal_census) that the
+    APK neither needs nor ships.
     """
 
     def _prewarm_core_modules(self) -> None:
-        RootFile.load_declarations()
+        self.coordination_access.connection.prewarm()
