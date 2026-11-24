@@ -18,17 +18,20 @@ from pathlib import Path
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFrame, QScrollArea, QWidget
+from PySide6.QtWidgets import QFrame, QLabel, QScrollArea, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
+from ui_theme.scheme import FloatHoverToneColour, MutedColour
 
 from toad.client.context_intent import ContextTreeIntent
+from toad.client.menu_entry import MenuEntry
 from toad.client.session_scope import NoConversationView
 from toad.client.session_tracker import SidebarState
 from toad.client.sidebar_filter import SidebarFilter
-from toad.client.sidebar_panels import ActionPropertiesPanel, ObjectPropertiesPanel
+from toad.client.sidebar_panels import ActionPropertiesPanel, ObjectPropertiesPanel, ViewActionsPanel
 from toad.qt.command_form import QtCommandForm
 from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
+from toad.qt.menu import QtMenuRow, platform_input
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.forms import QtObjectFieldView, QtObjectFormView
@@ -37,7 +40,7 @@ from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ThreadSidebarContents, panel_specs_for_view
 
-__all__ = ["QtObjectProperties", "ThreadSettingsPane"]
+__all__ = ["QtObjectProperties", "QtViewActions", "ThreadSettingsPane"]
 
 
 class QtObjectProperties(ObjectPropertiesPanel, QScrollArea, metaclass=PyQtWidgetMeta):
@@ -83,6 +86,82 @@ class QtActionProperties(ActionPropertiesPanel, QtCommandForm):
         if not self._drafted:
             self._drafted = True
             self.open_draft()
+
+
+class QtViewActions(ViewActionsPanel, QScrollArea, metaclass=PyQtWidgetMeta):
+    """The viewed object's right-click options inside the view settings bar, reusing
+    `QtMenuRow` so every action renders and activates identically to right-click."""
+
+    def __init__(self, view, renderer, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.input_modality = platform_input()
+        self._view = view
+        self._renderer = renderer
+        self._loaded = False
+        self._load_task: asyncio.Task | None = None
+        self._rows = QWidget(self)
+        self._rows.setObjectName("toad-view-actions-rows")
+        self._layout = QVBoxLayout(self._rows)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self._layout.setSpacing(0)
+        self._layout.addStretch(1)
+        self.setWidget(self._rows)
+        renderer.themed(self, self.paint_colours)
+
+    def paint_colours(self) -> None:
+        hover = self._renderer.theme(FloatHoverToneColour)
+        muted = self._renderer.theme(MutedColour)
+        self.setStyleSheet(
+            "#toad-view-actions-rows { background: transparent; border: none; }"
+            "QPushButton { background: transparent; border: none; border-radius: 0; padding: 0; text-align: left; }"
+            f"QPushButton:hover, QPushButton:pressed {{ background: {hover}; }}"
+            f"#toad-menu-description, #toad-view-actions-empty {{ color: {muted}; }}"
+        )
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        if not self._loaded:
+            self._loaded = True
+            self._load_task = asyncio.ensure_future(self.refresh_entries())
+
+    async def refresh_entries(self) -> None:
+        try:
+            entries = await self._view.view_menu_entries()
+        except CLI_FAILURES as error:
+            self._view.app.show_error(error, "View actions")
+            return
+        self.show_entries(entries)
+
+    def show_entries(self, entries: tuple[MenuEntry, ...]) -> None:
+        while self._layout.count():
+            item = self._layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
+        if not entries:
+            empty = QLabel("No actions for this view.", self._rows)
+            empty.setObjectName("toad-view-actions-empty")
+            self._layout.addWidget(empty)
+        else:
+            for entry in entries:
+                self._layout.addWidget(QtMenuRow(entry, self, self._chose, parent=self._rows))
+        self._layout.addStretch(1)
+
+    def _chose(self, entry: MenuEntry) -> None:
+        entry.run()
+
+    def finish(self) -> None:
+        if self._load_task is not None and not self._load_task.done():
+            self._load_task.cancel()
+
+    def release_page(self) -> None:
+        self.finish()
+        self.deleteLater()
 
 
 class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, metaclass=PyQtWidgetMeta):
@@ -172,6 +251,16 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
 
     def roster_entries(self) -> tuple[QtPanelEntry, ...]:
         return self._roster
+
+    def action_entries(self, view) -> tuple[QtPanelEntry, ...]:
+        return (
+            QtPanelEntry(
+                ViewActionsPanel.panel_spec,
+                partial(QtViewActions, view, self.app.renderer),
+                (),
+                ViewActionsPanel.panel_identity,
+            ),
+        )
 
     def setting_entries(self, view) -> tuple[QtPanelEntry, ...]:
         return tuple(

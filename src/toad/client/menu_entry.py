@@ -10,6 +10,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import ClassVar
+
+from toad.client.input_modality import InputModality, KeyboardInput
 
 
 @dataclass(frozen=True)
@@ -22,6 +25,27 @@ class MenuEntry:
     run: Callable[[], object]
     key_display: str = ""
     description: str = ""
+
+
+class MenuRowDisplay:
+    """How a menu's rows show an entry's keys, label, and description under the frontend's
+    declared `input_modality`. Shared by `BlockMenu` (`QtMenu`, Textual's `Menu`) and
+    `ViewActionsPanel` (`QtViewActions`, Textual's `ViewActions`)."""
+
+    input_modality: ClassVar[type[InputModality]] = KeyboardInput
+
+    def row_keys(self, entry: MenuEntry) -> str:
+        """The key column this menu's rows show for `entry`."""
+        return self.input_modality.menu_keys(entry.key_display)
+
+    def row_text(self, entry: MenuEntry) -> str:
+        """A row's text column: the label, then its description on the same line when the
+        modality keeps it inline; otherwise the description goes under the label."""
+        return self.input_modality.row_text(entry.label, entry.description)
+
+    def row_subtext(self, entry: MenuEntry) -> str:
+        """The description line shown beneath a row's label when the modality stacks it."""
+        return self.input_modality.row_subtext(entry.description)
 
 
 def strip_menu_markup(description: str) -> str:

@@ -16,8 +16,10 @@ from typing import TYPE_CHECKING
 
 from formbridge.forms.parameter_form_service import ParameterFormService
 
+from toad.client.menu_entry import MenuEntry
 from toad.client.sidebar_panels import PanelSpec
 from toad.client.tab_identity import TabIdentity
+from toad.command_catalog import CommandCatalog
 
 if TYPE_CHECKING:
     from toad.object_configuration import ObjectConfiguration, ObjectSettingField
@@ -87,6 +89,20 @@ class ViewSettingsOwner:
             for action in context.available_actions():
                 for configuration in action.declaration.configuration_actions(action):
                     entries.append((context, configuration, configuration.editable_fields))
+        return tuple(entries)
+
+    async def view_menu_entries(self) -> tuple[MenuEntry, ...]:
+        """The right-click options for this view (thread, channel, or file), read from the
+        same declared menu owners (`CommandCatalog.pointer_menu` and `tab_menu`) so the view
+        settings bar stays one declaration with right-click."""
+        contexts = await self.app.preparation.run_thread(
+            self.navigation_target.configuration_contexts, self
+        )
+        entries: list[MenuEntry] = []
+        for context in contexts:
+            entries.extend(await CommandCatalog.pointer_menu(context))
+        if not entries and self.configuration_mode:
+            entries.extend(self.app.session_navigation.tab_menu(self.configuration_mode))
         return tuple(entries)
 
     @staticmethod

@@ -36,7 +36,7 @@ from pyqt_reactive.widgets.fitted_text import ElidedLine
 
 from toad.client.block_menu import BlockMenu
 from toad.client.input_modality import InputModality, KeyboardInput, TouchInput
-from toad.client.menu_entry import MenuEntry
+from toad.client.menu_entry import MenuEntry, MenuRowDisplay
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
 
@@ -57,7 +57,7 @@ class QtMenuRow(QWidget):
     panel opened over two tabs, qasync's loop ran no callbacks once the window closed, and
     this button row did not. The cause inside the QFrame row is not established."""
 
-    def __init__(self, entry: MenuEntry, menu: QtMenu, chosen: Callable[[MenuEntry], None],
+    def __init__(self, entry: MenuEntry, menu: MenuRowDisplay, chosen: Callable[[MenuEntry], None],
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)

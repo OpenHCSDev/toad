@@ -2,8 +2,9 @@
 from functools import cached_property
 from metaclass_registry.mro_dispatch import handles
 from textual import events, on, work
+from textual._callback import invoke
 from textual.geometry import Region
-from textual.widgets import Static
+from textual.widgets import OptionList, Static
 from toad.core.events import ConfigurationChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.object_configuration import ObjectFieldView, ObjectFormView
@@ -11,11 +12,11 @@ from toad.native_style import FillHeight
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.forms.presentation import FormModal
 from toad.client.session_tracker import SidebarState
-from toad.client.sidebar_panels import ActionPropertiesPanel, ObjectPropertiesPanel
+from toad.client.sidebar_panels import ActionPropertiesPanel, ObjectPropertiesPanel, ViewActionsPanel
 from toad.settings_scope import ViewSettingsScope
 from toad.widgets.acting_button import DismissButton
 from toad.widgets.comms_command_dialog import CommandForm
-from toad.widgets.comms_menu import ActionMenu
+from toad.widgets.comms_menu import ActionMenu, ContextMenuItem
 from toad.widgets.model_switcher import SessionForm
 from toad.widgets.side_bar import (
     PanelMenu,
@@ -91,6 +92,37 @@ class ActionProperties(ActionPropertiesPanel, CommandForm, SidebarPanelWidget):
         super().__init__(definition, context.title, fields, context.observed.core)
 
 
+class ViewActions(ViewActionsPanel, FillHeight, SidebarPanelWidget):
+    """The viewed object's right-click options inside the view settings bar, rendering the
+    exact `MenuEntry` list from `ViewSettingsOwner.view_menu_entries`."""
+
+    def __init__(self, view) -> None:
+        super().__init__()
+        self.view = view
+        self._options = OptionList()
+
+    def compose(self):
+        yield self._options
+
+    @on(events.Mount)
+    def load_actions(self) -> None:
+        self.run_worker(self._refresh(), group="view-actions", exclusive=True)
+
+    async def _refresh(self) -> None:
+        entries = await self.view.view_menu_entries()
+        if not self.is_mounted:
+            return
+        self._options.clear_options()
+        self._options.add_options(ContextMenuItem(entry.run, entry.label) for entry in entries)
+
+    @on(OptionList.OptionSelected)
+    async def option_selected(self, event: OptionList.OptionSelected) -> None:
+        event.stop()
+        action = event.option.action  # type: ignore[attr-defined]
+        if action is not None:
+            await invoke(action)
+
+
 class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
     def __init__(self, view):
         super().__init__()
@@ -112,6 +144,11 @@ class ConfiguredView(ViewSettingsScope):
     @property
     def configuration_mode(self):
         return self.id
+
+    @property
+    def action_panels(self):
+        panel = ViewActionsPanel.panel_spec
+        return (SideBar.Panel(title=panel.title, widget=ViewActions(self), id=panel.id, flex=panel.flex),)
 
     @property
     def configuration_panels(self):
