@@ -55,7 +55,7 @@ class QtSidebarPanelFrame(SidebarPanelCollapse, QFrame, metaclass=PyQtWidgetMeta
                  parent: QWidget | None = None, *, header_controls: tuple[QWidget, ...] = ()) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
-        self.setObjectName("QtSidebarPanelFrame")
+        self.setObjectName(type(self).__name__)
         self._spec = spec
         self._state = state
         self._body = body
@@ -154,7 +154,7 @@ class QtSidebarSearch(SidebarSearchField, QLineEdit, metaclass=PyQtWidgetMeta):
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setPlaceholderText(self.search_placeholder)
         self.setText(search.text)
-        self.textChanged.connect(lambda text: setattr(search, "text", text))
+        self.textChanged.connect(search.set_text)
 
     def show_search(self, text: str) -> None:
         self.setText(text)

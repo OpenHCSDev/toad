@@ -138,6 +138,7 @@ from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_m
 from toad.qt.menu import QtMenu
 # Imported at load, not in open_transfer: this declares the Transfer members the shared
 # TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
+from toad.client.transfers import Transfer
 from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.motion import animations_enabled
@@ -1542,7 +1543,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # One background task per transfer kind, cancelled + replaced when the same
         # kind is submitted again (Qt analog of Textual's run_worker exclusive=True).
         # Populated by `start_transfer_task`; the dict is the live registry.
-        self._transfer_tasks: dict[str, "asyncio.Task[None]"] = {}
+        self._transfer_tasks: dict[type[Transfer], asyncio.Task[None]] = {}
         self.workspace_sessions = QtWorkspaceViews(self)
         # Each sidebar is a toggle bar and the pane it opens. The channels-and-threads list and
         # the open thread's view settings are the two panes' content; the move and float
@@ -2019,18 +2020,17 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         selected = access.selected(access.observation.observed().root)
         QtTransferDialog.for_kind(kind)(self, selected, parent=self).show()
 
-    def start_transfer_task(self, request, selected) -> None:
+    def start_transfer_task(self, request: Transfer, selected) -> None:
         """Qt analog of Textual's `run_worker(..., exclusive=True)`: cancel any
-        running task tagged with this kind's declared name, then schedule the
-        new one on the running loop. Keeps the shared `TransferRequest.execute`
-        on the UI thread's event loop (its internal `preparation.run_thread`
-        hop keeps the CPU work off the GIL)."""
-        import asyncio
-        existing = self._transfer_tasks.get(type(request).declared_name)
+        running task of this transfer kind, then schedule the new one on the
+        running loop. Keeps the shared `TransferRequest.execute` on the UI
+        thread's event loop (its internal `preparation.run_thread` hop keeps
+        the CPU work off the GIL)."""
+        kind = type(request)
+        existing = self._transfer_tasks.get(kind)
         if existing is not None and not existing.done():
             existing.cancel()
-        task = asyncio.ensure_future(request.execute(self, selected))
-        self._transfer_tasks[type(request).declared_name] = task
+        self._transfer_tasks[kind] = asyncio.ensure_future(request.execute(self, selected))
 
     async def reveal_sidebar(self) -> bool:
         """The sidebar comes up over the conversation, as its bar would bring it."""

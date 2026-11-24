@@ -49,6 +49,9 @@ class SidebarFilter:
     def clear(self) -> None:
         self.text = ""
 
+    def set_text(self, value: str) -> None:
+        self.text = value
+
     def subscribe(self, callback: Callable[[str], None]) -> None:
         """Called with the new text whenever `text` changes; also implicitly whenever
         a frontend repaints (callers may pull `text` directly for that path). A fresh
