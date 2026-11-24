@@ -232,11 +232,11 @@ class Loading(PrimaryText, SeparatedBlock, Static):
 class CategorizedMount:
     """Mount blocks in their declared order with the conversation's category selection."""
 
-    def mount(self, *widgets, **kwargs):
+    def mount(self, *widgets, before=None, after=None):
         blocks = require_blocks(widgets)
         orders = {block.conversation_order for block in blocks}
-        if kwargs.keys() & {"before", "after"} or len(orders) != 1:
-            mounted = super().mount(*blocks, **kwargs)
+        if before is not None or after is not None or len(orders) != 1:
+            mounted = super().mount(*blocks, before=before, after=after)
             self.sort_children(key=lambda block: block.conversation_order)
         else:
             # Children stay ordered, so blocks of one order go after the last
@@ -251,9 +251,9 @@ class CategorizedMount:
             else:
                 index = 0
             if index == len(children):
-                mounted = super().mount(*blocks, **kwargs)
+                mounted = super().mount(*blocks)
             else:
-                mounted = super().mount(*blocks, before=children[index], **kwargs)
+                mounted = super().mount(*blocks, before=children[index])
         # Registration supplies the history's real parent before its filter
         # prepares a projection; both still happen before first mount/paint.
         selected = self.selected_categories

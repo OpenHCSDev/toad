@@ -94,7 +94,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
 
     def project_output(self, parts, project):
         """Only completed sends may replace reported output with a proved body."""
-        return project(parts) if self.completed else parts
+        return parts
 
     completed = False
     failed = False
@@ -145,6 +145,9 @@ class CompletedToolCallStatus(FinishedToolCallStatus):
     completed = True
     summary_suffix = ' ✔'
     summary_role = SuccessRole
+
+    def project_output(self, parts, project):
+        return project(parts)
 
 
 class FailedToolCallStatus(FinishedToolCallStatus):

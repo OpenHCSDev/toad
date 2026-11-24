@@ -1068,14 +1068,8 @@ class Runway(OffScreenRunway):
             # A filter can hide the whole loaded range. Ask the ordinary
             # source owner for the next range, not an invented row at its end.
             history.request_page(NEWER_END)
-        elif history.filter.active:
-            # Projection scans share the original source's decoded boundary.
-            history.filter.check_edges()
         else:
-            for end in (OLDER_END, NEWER_END):
-                if preparation.read_rows(history, end):
-                    history.request_page(end)
-                    return
+            history.filter.prepare_edges(preparation, history, (OLDER_END, NEWER_END))
 
 
 class PreparationDemand(ABC):

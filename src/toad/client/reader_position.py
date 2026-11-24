@@ -531,11 +531,13 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
 class Settlement:
     """Where a held destination's source stands: its layout is placed once, after the source has painted."""
 
-    ready: ClassVar[bool] = False
-
     def settled(self, hold: HeldReaderDestination, window: ReaderWindow) -> Settlement:
         """The source settled; only an unsettled hold waits for the refresh that paints it."""
         return self
+
+    def placed(self, hold: HeldReaderDestination, window: ReaderWindow, reached: bool) -> ReaderPosition:
+        """Only a ready settlement may release a reached, measured hold."""
+        return hold
 
 
 class Unsettled(Settlement):
@@ -545,7 +547,10 @@ class Unsettled(Settlement):
 
 
 class Ready(Settlement):
-    ready = True
+    def placed(self, hold: HeldReaderDestination, window: ReaderWindow, reached: bool) -> ReaderPosition:
+        if reached and all(page.rows_measured for page in window.drawn_pages()):
+            return hold.released()
+        return hold
 
 
 @dataclass(eq=False)
@@ -572,10 +577,7 @@ class HeldReaderDestination:
         window.request_reader_layout()
 
     def placed(self, window: ReaderWindow, reached: bool) -> ReaderPosition:
-        measured = all(page.rows_measured for page in window.drawn_pages())
-        if reached and self.progress.state.ready and measured:
-            return self.released()
-        return self
+        return self.progress.state.placed(self, window, reached)
 
     def release(self, window: ReaderWindow) -> None:
         self.source_settled(window)

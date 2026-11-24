@@ -79,6 +79,10 @@ class CommitClaim(ABC):
     retires: ClassVar[bool] = True
     blocks_commit: ClassVar[bool] = False
 
+    def retiring[Block](self, block: Block) -> tuple[Block, ...]:
+        """Return ``(block,)`` when a commit may retire this block, else ``()``."""
+        return (block,)
+
     def capture(self, settled: bool) -> bool:
         return True
 
@@ -189,6 +193,9 @@ class RetainedBlockClaim(CommitClaim):
     """A block that declares no claim: a commit never retires it and captures it as it is."""
 
     retires = False
+
+    def retiring[Block](self, block: Block) -> tuple[Block, ...]:
+        return ()
 
     def covered[Block](self, widget: Block, evidence: CommitEvidence[Block]) -> bool:
         return False

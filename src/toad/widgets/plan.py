@@ -87,8 +87,7 @@ class Plan(
             status = entry.status
             yield PlanMarker(status, marker)
             yield (text := PlanText(entry))
-            if status.complete:
-                text.complete(animated=self._state.newly_complete(entry))
+            status.present_textual(text, self._state, entry)
 
 
 class ConversationPlan(Plan):
