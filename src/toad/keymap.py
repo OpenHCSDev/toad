@@ -6,14 +6,13 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from functools import cache, cached_property
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, ClassVar
 
 from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from objectstate import mark_ui_hidden_config
 from textual.binding import BindingsMap
 from textual.dom import DOMNode
 from formbridge.key_declarations import KeyDeclaration, KeyInvocation
-from textual.screen import ModalScreen
 
 from toad.key_modes import KeyMode
 from toad.menus import MenuCommand
@@ -138,6 +137,14 @@ class KeymapCatalog:
     default_keys: Mapping[tuple[KeyInvocationId, type[KeyMode]], tuple[str, ...]]
     rows: Mapping[type[KeyMode], Mapping[str, KeymapRow]]
 
+    _modal_scopes: ClassVar[tuple[type[DOMNode], ...]] = ()
+
+    @classmethod
+    def register_modal_scope(cls, scope: type[DOMNode]) -> None:
+        """Declare a native modal base whose subclasses do not inherit application keys."""
+        if scope not in cls._modal_scopes:
+            cls._modal_scopes = (*cls._modal_scopes, scope)
+
     @classmethod
     def capture(cls, modes: tuple[type[KeyMode], ...]) -> KeymapCatalog:
         """The catalog of the classes declared now: the declarations a frontend has loaded
@@ -146,7 +153,12 @@ class KeymapCatalog:
         frontend whose keyed screens open lazily imports them first (`toad.app`). Reading those
         declarations is a class walk; building their bindings is not, so it runs once per
         distinct set of declarations."""
-        return cls.of(tuple(modes), DOMNode.descendants(), tuple(ApplicationAction.declarations()))
+        return cls.of(
+            tuple(modes),
+            DOMNode.descendants(),
+            tuple(ApplicationAction.declarations()),
+            cls._modal_scopes,
+        )
 
     @classmethod
     @cache
@@ -155,10 +167,11 @@ class KeymapCatalog:
         modes: tuple[type[KeyMode], ...],
         contexts: tuple[type[DOMNode], ...],
         actions: tuple[type[ApplicationAction], ...],
+        modal_scopes: tuple[type[DOMNode], ...] = (),
     ) -> KeymapCatalog:
         """The modes' catalogs together: each mode is built once, whichever set asks for it (the
         editor shows every mode; a conflict check or its message reads one)."""
-        catalogs = tuple(cls.declared(mode, contexts, actions) for mode in modes)
+        catalogs = tuple(cls.declared(mode, contexts, actions, modal_scopes) for mode in modes)
         invocations: dict[KeyInvocationId, KeyInvocation] = {}
         for catalog in catalogs:
             for reference, invocation in catalog.invocations.items():
@@ -183,6 +196,7 @@ class KeymapCatalog:
         mode: type[KeyMode],
         contexts: tuple[type[DOMNode], ...],
         actions: tuple[type[ApplicationAction], ...],
+        modal_scopes: tuple[type[DOMNode], ...] = (),
     ) -> KeymapCatalog:
         """One mode's catalog, a function of the declarations it is given, so a context or action
         declared later is a different argument and never a stale answer. Families a context's
@@ -196,7 +210,7 @@ class KeymapCatalog:
         owned = [application]
         for owner in contexts:
             defaults = owner.keymap_claims(native_mode)
-            if not issubclass(owner, ModalScreen):
+            if not (modal_scopes and issubclass(owner, modal_scopes)):
                 defaults = (*defaults, *application)
             owned.append(defaults)
         invocations: dict[KeyInvocationId, KeyInvocation] = {}

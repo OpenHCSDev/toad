@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import lru_cache, partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import ClassVar, Literal, TypeVar
+from typing import TYPE_CHECKING, ClassVar, Literal, TypeVar
 
 from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
 from formbridge.key_declarations import DeclaredKey, InputMode, KeyDeclaration, KeyDeclarationType, TextEntryMode, UndecodedKey
@@ -17,14 +17,11 @@ from textual import events, on
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
-from textual.document._editing import VimMode
+from textual.document._editing import EditingMode, VimMode
 from textual.dom import DOMNode
 from formbridge.hint_keys import HintLabelStyle
 from formbridge.navigation_commands import SelectCursor
 from textual.navigation import MovesCursor, MovesHorizontalCursor
-from textual.widgets import TextArea
-from textual.widgets._hints import HintClick, HintHost
-from textual.widgets.text_area import EditingMode
 
 from toad.app_node import ToadNode
 from toad.client.application_actions import ApplicationAction, DeclaredAction, ReplacesFrameworkAction
@@ -35,6 +32,9 @@ from toad.widget_contracts import (
     SelectsContract,
     SubmitsContract,
 )
+
+if TYPE_CHECKING:
+    from textual.widgets import TextArea
 
 
 Context = TypeVar("Context", bound=DOMNode)
@@ -229,17 +229,6 @@ class ProfileKeys(NativeMethodKeys):
     @property
     def hint_label_style(self) -> type[HintLabelStyle]:
         return self.app.settings.ui.hint_labels
-
-
-class HintKeys(ProfileKeys):
-    """In a Vim profile, f and ctrl+f show the screen's left- and right-click hints."""
-
-    MODE_BINDINGS: ClassVar[tuple[ModeBinding, ...]] = (
-        ModeBinding("f", HintHost.action_show_hints, HintClick.LEFT.description,
-                    mode=VimMode, show=False),
-        ModeBinding("ctrl+f", HintHost.action_show_context_hints, HintClick.RIGHT.description,
-                    mode=VimMode, show=False),
-    )
 
 
 class WidgetAction(Action, affix="Action"):

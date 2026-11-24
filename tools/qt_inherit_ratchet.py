@@ -234,14 +234,6 @@ def ui_chains(modules: frozenset[str]) -> dict[str, tuple[str, ...]]:
 # import loads Textual's app or widget chain, when this rule landed; each with its chain. It only
 # shrinks: hoist the shared part into a module that loads none, then delete the line.
 KNOWN_UI_LOADING: dict[str, str] = {
-    'toad.client.block_menu':
-        'toad.keymap -> textual.screen -> textual.widgets._toast -> textual.containers',
-    'toad.client.keymap_browser':
-        'toad.keymap -> textual.screen -> textual.widgets._toast -> textual.containers',
-    'toad.question_actions':
-        'toad.widget_actions -> textual.widgets._text_area -> textual.screen -> textual.widgets._toast -> textual.containers',
-    'toad.view_actions':
-        'toad.widget_actions -> textual.widgets._text_area -> textual.screen -> textual.widgets._toast -> textual.containers',
 }
 
 KNOWN_QT_FRONTEND_IMPORTS: dict[str, str] = {

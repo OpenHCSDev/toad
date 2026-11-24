@@ -17,7 +17,7 @@ from textual.screen import Screen
 from textual.view import WidgetView
 from textual.widget import Widget
 
-from toad.widget_actions import HintKeys
+from toad.screens.modal import HintKeys
 from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.view_actions import ViewAction
 from toad.workspace_chrome import WorkspaceBody
