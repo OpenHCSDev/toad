@@ -1,9 +1,8 @@
 """One path-scoring owner for every result size and catalog revision."""
 import asyncio
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Sequence
-
-from textual.cache import LRUCache
 
 from toad._path_fuzzy_search import PathFuzzySearch
 from toad.fuzzy_index import FuzzyIndex
@@ -25,10 +24,12 @@ class PathMatch:
 class PathSearchRanking:
     """Own the index, scorer and cache; a captured candidate set is cache identity."""
 
+    CACHE_MAX = 1024
+
     def __init__(self) -> None:
         self.index = FuzzyIndex()
         self.scorer = PathFuzzySearch(case_sensitive=False)
-        self.cache: LRUCache[PathMatchQuery, list[PathMatch]] = LRUCache(1024)
+        self.cache: OrderedDict[PathMatchQuery, list[PathMatch]] = OrderedDict()
 
     async def update_paths(self, paths: list[str]) -> None:
         await self.index.update_paths(paths)
@@ -36,9 +37,13 @@ class PathSearchRanking:
 
     async def search(self, text: str) -> list[PathMatch]:
         query = PathMatchQuery(text, tuple(await self.index.search(text)))
-        if (scores := self.cache.get(query)) is None:
-            scores = await asyncio.to_thread(self.score, query)
-            self.cache[query] = scores
+        if (scores := self.cache.get(query)) is not None:
+            self.cache.move_to_end(query)
+            return scores
+        scores = await asyncio.to_thread(self.score, query)
+        self.cache[query] = scores
+        if len(self.cache) > self.CACHE_MAX:
+            self.cache.popitem(last=False)
         return scores
 
     def score(self, query: PathMatchQuery) -> list[PathMatch]:

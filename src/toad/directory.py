@@ -6,9 +6,16 @@ from typing import Callable
 from time import time
 from pathlib import Path
 
-from textual._partition import partition
-
 from toad.path_filter import PathFilter
+
+
+def _partition_dirs(paths: list[Path]) -> tuple[list[Path], list[Path]]:
+    """Split ``paths`` into ``(files, directories)``."""
+    files: list[Path] = []
+    directories: list[Path] = []
+    for path in paths:
+        (directories if path.is_dir() else files).append(path)
+    return files, directories
 
 
 class ScanJob:
@@ -74,7 +81,7 @@ class ScanJob:
             paths = list(filterfalse(path_filter.match, paths))
 
         try:
-            paths, dir_paths = partition(Path.is_dir, paths)
+            paths, dir_paths = _partition_dirs(paths)
         except IOError:
             paths = []
             dir_paths = []

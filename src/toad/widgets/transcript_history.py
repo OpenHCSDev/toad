@@ -92,7 +92,7 @@ from toad.widgets.presentation_window import UNPLACED, PointerRows, Unplaced, ar
 from toad.client.history_pager import PresentationBudget
 from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import TranscriptFragment
-from toad.client.fragment_states import (
+from toad.widgets.fragment_states import (
     DrawnFragment,
     FragmentSpan,
     LaidOut,
