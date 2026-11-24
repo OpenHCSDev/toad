@@ -58,6 +58,37 @@ class DialogActionsRow(containers.HorizontalGroup):
     """Submit / Decline / Cancel controls."""
 
 
+class DialogActionButton(widgets.Button):
+    """One dialog action button; each subclass owns the dialog method it invokes."""
+
+    def invoke(self, dialog: PromptDialog) -> None:
+        raise NotImplementedError
+
+
+class SubmitDialogButton(DialogActionButton):
+    def __init__(self, label: str) -> None:
+        super().__init__(label, id="dialog-submit", variant="primary")
+
+    def invoke(self, dialog: PromptDialog) -> None:
+        dialog.commit_dialog()
+
+
+class DeclineDialogButton(DialogActionButton):
+    def __init__(self, label: str) -> None:
+        super().__init__(label, id="dialog-decline")
+
+    def invoke(self, dialog: PromptDialog) -> None:
+        dialog.decline_dialog()
+
+
+class CancelDialogButton(DialogActionButton):
+    def __init__(self, label: str) -> None:
+        super().__init__(label, id="dialog-cancel")
+
+    def invoke(self, dialog: PromptDialog) -> None:
+        dialog.cancel_dialog()
+
+
 class PromptDialog(
     InteractiveDialogOwner,
     MroDispatch,
@@ -120,9 +151,9 @@ class PromptDialog(
                 yield error_label
         with DialogActionsRow():
             if not quick:
-                yield widgets.Button(spec.submit_label, id="dialog-submit", variant="primary")
-                yield widgets.Button(spec.decline_label, id="dialog-decline")
-            yield widgets.Button(spec.cancel_label, id="dialog-cancel")
+                yield SubmitDialogButton(spec.submit_label)
+                yield DeclineDialogButton(spec.decline_label)
+            yield CancelDialogButton(spec.cancel_label)
 
     @handles(SingleSelectDialogField)
     def compose_single_select(
@@ -256,10 +287,4 @@ class PromptDialog(
     @on(widgets.Button.Pressed)
     def on_button_pressed(self, event: widgets.Button.Pressed) -> None:
         event.stop()
-        button_id = event.button.id
-        if button_id == "dialog-submit":
-            self.commit_dialog()
-        elif button_id == "dialog-decline":
-            self.decline_dialog()
-        elif button_id == "dialog-cancel":
-            self.cancel_dialog()
+        event.button.invoke(self)
