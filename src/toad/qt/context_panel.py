@@ -122,12 +122,24 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
     def bind(self, view) -> None:
         """Follow the view the tab now shows; the welcome's `NoThreadIdentity` has no root,
         so the read says so and the tree stays empty."""
+        previous_identity = self.thread_identity
         self._view = view
-        self._cancel_background()
-        self.inspect_identity(self.thread_identity)
-        intent = self.intent
-        self._search.setText(intent.query)
-        self.present(force=True)
+        identity = self.thread_identity
+        identity_changed = identity != previous_identity
+        if identity_changed:
+            self._cancel_background()
+            self.inspect_identity(identity)
+            self._search.setText(self.intent.query)
+            self._older.setEnabled(False)
+            self._newer.setEnabled(False)
+            self._tree.clear()
+            self._detail.setPlainText("No context selected.")
+        if self.isVisible():
+            self.present(force=identity_changed)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        self.present(force=False)
 
     def _cancel_background(self) -> None:
         if self._native_task is not None and not self._native_task.done():
