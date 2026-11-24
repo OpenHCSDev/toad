@@ -1,6 +1,7 @@
 """Application startup, graceful exit and optional reporting own their lifetime."""
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 from functools import cached_property, partial
 from importlib import import_module
@@ -178,18 +179,40 @@ class ApplicationLifetime:
     async def restored_tabs(self) -> Callable[[], Awaitable[object]]:
         """Restore the tabs the observed Core saved; the answer opens the last of them. A tab
         whose target is gone leaves the roster; a tab this frontend has no view for stays
-        saved, unopened, for the frontend that draws it."""
+        saved, unopened, for the frontend that draws it.
+
+        Entry preparation (Core registry/history lookups) runs concurrently across all saved
+        tabs so opening a bus with several tabs takes one round-trip instead of N serial ones,
+        while registration still runs in the saved tab order."""
         app = self.app
+        navigation = app.session_navigation
+        identities = await app.tab_order.load()
+
+        async def prepare(identity):
+            existing = navigation.get(identity.mode_name)
+            return (existing, False) if existing is not None else (await identity.entry(navigation), True)
+
+        outcomes = await asyncio.gather(
+            *(prepare(identity) for identity in identities),
+            return_exceptions=True,
+        )
         restored: Callable[[], Awaitable[object]] = self.restore_nothing
-        for identity in await app.tab_order.load():
-            try:
-                restored = partial(app.session_navigation.open,
-                                   await identity.restore(app.session_navigation))
-            except TabTargetGone as error:
-                await app.tab_order.close((identity,))
-                app.log_error(f"Removed stale tab {error.identity}: {error.reason}")
-            except TabNotDrawnHere:
+        stale = []
+        for identity, outcome in zip(identities, outcomes, strict=True):
+            if isinstance(outcome, TabTargetGone):
+                stale.append(identity)
+                app.log_error(f"Removed stale tab {outcome.identity}: {outcome.reason}")
+            elif isinstance(outcome, TabNotDrawnHere):
                 continue
+            elif isinstance(outcome, BaseException):
+                raise outcome
+            else:
+                entry, needs_register = outcome
+                if needs_register:
+                    await navigation.register(entry)
+                restored = partial(navigation.open, entry)
+        if stale:
+            await app.tab_order.close(tuple(stale))
         return restored
 
     async def open_saved_tabs(self) -> None:

@@ -563,8 +563,11 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             await self.finish_views(detached)
 
     async def finish_views(self, detached: Detached) -> None:
-        for view in detached.views:
-            await self.app.workspace_sessions.finish(view)
+        if len(detached.views) <= 1:
+            for view in detached.views:
+                await self.app.workspace_sessions.finish(view)
+            return
+        await asyncio.gather(*(self.app.workspace_sessions.finish(view) for view in detached.views))
 
     def detach_all(self) -> Detached:
         return self.detach(tuple(member.mode for member in self.members))
