@@ -137,8 +137,8 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
     scope: WireExportScope
     limit: WireExportLimit
 
-    failure_title = "Wire export failed"
-    title = "Export wire history…"
+    failure_title = "Export failed"
+    title = "Export messages…"
     cancelled_by = (WireExportCancelled,)
 
     def perform(self, access: CoordinationAccess, selected: CapturedSource,
@@ -153,10 +153,10 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
         return app.export_progress()
 
     def cancelled(self, app: TransferHost) -> None:
-        app.notify("Wire export cancelled", title="Wire export")
+        app.notify("Export cancelled", title="Export")
 
     def completed(self, app: TransferHost, result: WireExportProvenance) -> None:
-        app.notify(f"Exported {result.exported_messages} messages to {result.destination}", title="Wire export")
+        app.notify(f"Exported {result.exported_messages} messages to {result.destination}", title="Export")
 
 
 @dataclass(frozen=True)
@@ -167,8 +167,8 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
     session: ExpectedSession
     worktree: ImportDirectory
 
-    failure_title = "Thread import failed"
-    title = "Thread Import…"
+    failure_title = "Import failed"
+    title = "Import thread…"
 
     def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> ThreadImported:
@@ -179,4 +179,4 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
     def completed(self, app: TransferHost, result: ThreadImported) -> None:
         app.events.publish(core_events.ThreadRowStateChanged(frozenset((result.thread,))))
         app.notify(f"Imported @{result.thread} ({result.imported_messages} messages) as a stopped thread",
-                   title="Thread Import")
+                   title="Import thread")

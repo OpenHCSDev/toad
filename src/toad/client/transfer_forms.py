@@ -50,7 +50,7 @@ class ExportFormatInput(DeclaredFamily, affix="FormatInput"):
 
 
 class JsonlFormatInput(ExportFormatInput):
-    label = "JSON Lines (portable wire)"
+    label = "JSON Lines (.jsonl)"
     suffix = ".jsonl"
 
     @classmethod
@@ -157,7 +157,7 @@ class TransferForm:
 class WireExportForm(TransferForm):
     """Select destination, representation, scope and an explicit size ceiling."""
 
-    heading = "Export wire history (not a Pi session)"
+    heading = "Export message history (not a Pi session)"
     submit_label = "Export"
     request_kind = WireExportRequest
     default_format: ClassVar[type[ExportFormatInput]] = JsonlFormatInput
@@ -220,7 +220,7 @@ class WireExportForm(TransferForm):
 class ThreadImportForm(TransferForm):
     """Create one stopped, resumable thread from a stored harness session."""
 
-    heading = "Thread Import: a stored harness session"
+    heading = "Import a saved session"
     submit_label = "Import stopped thread"
     request_kind = ThreadImportRequest
     source_placeholder = "Source JSON, database or rollout JSONL"

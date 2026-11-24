@@ -538,7 +538,7 @@ class ThreadCommsSidebar(
             != self.app.coordination_access.observation.observed().root
         ):
             self.notify(
-                "This view uses a different wire; open its matching connection to navigate.",
+                self.wrong_bus_warning,
                 title="Comms",
                 severity="warning",
             )
@@ -570,7 +570,7 @@ class ThreadCommsSidebar(
         current = snapshot.current_entry(group_key, expected)
         if current is None:
             self.notify(
-                "This relationship changed; refresh the list before opening it.",
+                self.changed_entry_warning,
                 title="Comms",
             )
             self.refresh_relationships(force=True)
