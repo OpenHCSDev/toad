@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import os
 import traceback
 from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
-from agent_comms.projects.checkouts import Checkout
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home
+
+if TYPE_CHECKING:
+    from agent_comms.projects.checkouts import Checkout
 
 
 APP_NAME: Final[str] = "toad"

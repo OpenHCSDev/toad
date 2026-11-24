@@ -18,17 +18,15 @@ from __future__ import annotations
 
 import re
 import tempfile
-import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from agent_comms.transport.connector import HoldUiVerb
-from agent_comms.transport.connector_store import ConnectorStore
-
-from toad.client.bus_selection import openable_held
+from agent_comms.transport.connector_profile import UiConnectionProfile
 from agent_comms.transport.tailnet_profiles import AskedPeer, PeerAnsweredNothing, PeerRefusedProfile
+
+from toad.client.bus_selection import hold_ui_profile
 
 
 @dataclass(frozen=True)
@@ -89,23 +87,13 @@ def _hold_pasted_profile(text: str, host: BusConnectHost, peer_name: str) -> Non
     try:
         temp_path.write_text(stripped)
         temp_path.chmod(0o600)
-        result = HoldUiVerb(profile=temp_path).apply(ConnectorStore.owned())
+        held_path = hold_ui_profile(UiConnectionProfile.read(temp_path))
     except (OSError, ValueError) as error:
         host.show_warning(f"Could not hold that profile: {error}", "Bus")
         return
     finally:
         temp_path.unlink(missing_ok=True)
-    if isinstance(result, str):
-        host.show_warning(f"Pasted profile refused: {result}", "Bus")
-        return
-    # Find the just-held entry: the newest `OpenableProfile` whose grant matches
-    # (hold_ui writes it with the grant id in the filename). Scan the held directory.
-    held = openable_held(time.time())
-    if not held:
-        host.show_warning("Profile held, but no openable entry was recorded.", "Bus")
-        return
-    newest = max(held, key=lambda entry: entry.path.stat().st_mtime)
-    host.open_held_profile(newest.path)
+    host.open_held_profile(held_path)
 
 
 def _options_for_no_tailnet_endpoint(host: BusConnectHost, peer_name: str,

@@ -7,12 +7,10 @@ import time
 
 import qasync
 from agent_comms.projects.checkouts import Checkout
-from agent_comms.transport.connector import HoldUiVerb
 from agent_comms.transport.connector_profile import UiConnectionProfile
-from agent_comms.transport.connector_store import ConnectorStore, HeldUiProfiles
 from ui_theme.scheme import ColourScheme
 
-from toad.client.bus_selection import BusChoice
+from toad.client.bus_selection import BusChoice, held_profile_path, hold_ui_profile
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.android_app import APP
 from toad.qt.client_start import serve
@@ -38,12 +36,8 @@ def held_connection() -> RemoteCoreConnection:
     bundled = UiConnectionProfile.read(BUNDLED_PROFILE)
     now = time.time()
     if not BusChoice.held(now) and bundled.credential.expires_at > now:
-        destination = (
-            HeldUiProfiles.directory()
-            / f"{bundled.endpoint.url.host}-{bundled.credential.grant_id}.json"
-        )
-        if not destination.exists():
-            HoldUiVerb(profile=BUNDLED_PROFILE).apply(ConnectorStore.owned())
+        if not held_profile_path(bundled).exists():
+            hold_ui_profile(bundled)
     held = BusChoice.held(now)
     if not held:
         return RemoteCoreConnection.read(BUNDLED_PROFILE)
