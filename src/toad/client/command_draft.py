@@ -76,7 +76,7 @@ class CommandDraft:
                 hints.append(CommandText())
             declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
                                  dc_field(default=parameter.editor_default)))
-        self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
+        self.state = ObjectState(make_dataclass(type(self).__name__, declarations)())
 
     def open_draft(self) -> None:
         """The form is shown: follow its edits and prepare its choices."""
