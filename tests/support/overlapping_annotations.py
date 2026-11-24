@@ -67,10 +67,23 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         type(segment), segment.provenance, 0, text))
         for text in ("Keep", segment.content))
     classifier = JevClassifier.version()
-    labels = tuple(ModelLabel(span, QuestionVersion.current(KindQuestion), RuleSpan,
-        classifier, (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
-                     AnswerProbability(OtherSpan, .1)), .8, f"authored-answer-{index}", classifier.pin)
-        for index, span in enumerate(spans))
+    labels = tuple(
+        ModelLabel(
+            span=span,
+            question=QuestionVersion.current(KindQuestion),
+            answer=RuleSpan,
+            classifier=classifier,
+            probabilities=(
+                AnswerProbability(RuleSpan, .7),
+                AnswerProbability(CommitmentSpan, .2),
+                AnswerProbability(OtherSpan, .1),
+            ),
+            confidence=.8,
+            request_id=f"authored-answer-{index}",
+            returned_model=classifier.pin,
+        )
+        for index, span in enumerate(spans)
+    )
     # Navigation only: the manifest is captured through the context store the
     # inspection reads, with no wire message, native owner or saved session.
     manifest = ContextManifest(thread=owner.incarnation,

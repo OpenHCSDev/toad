@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 
+from agent_comms.coordination.errors import Refused
 from PySide6.QtCore import Qt
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from PySide6.QtGui import QClipboard
@@ -65,6 +66,8 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         self._app = app
         self.start_inspection(intents)
         self._refresh_task: asyncio.Task | None = None
+        self._native_task: asyncio.Task | None = None
+        self._search_task: asyncio.Task | None = None
 
         column = QVBoxLayout(self)
         column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
@@ -82,6 +85,7 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         self._tree = QTreeWidget(self)
         self._tree.setHeaderHidden(True)
         self._tree.setRootIsDecorated(True)
+        self._tree.setIndentation(14)
         self._tree.itemSelectionChanged.connect(self._on_selection)
         self._tree.itemExpanded.connect(self._on_expanded)
         self._tree.itemCollapsed.connect(self._on_collapsed)
@@ -89,12 +93,25 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
 
         self._detail = QPlainTextEdit(self)
         self._detail.setReadOnly(True)
+        self._detail.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
         self._detail.setPlainText("No context selected.")
         column.addWidget(self._detail, 1)
 
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
-        self._copy = QPushButton("Copy detail", self)
+        row.setSpacing(UiGap.normal)
+        self._older = QPushButton("Older", self)
+        self._older.setEnabled(False)
+        self._older.clicked.connect(self._on_older)
+        row.addWidget(self._older)
+        self._newer = QPushButton("Newer", self)
+        self._newer.setEnabled(False)
+        self._newer.clicked.connect(self._on_newer)
+        row.addWidget(self._newer)
+        self._refresh_btn = QPushButton("Refresh", self)
+        self._refresh_btn.clicked.connect(self._on_refresh)
+        row.addWidget(self._refresh_btn)
+        self._copy = QPushButton("Copy", self)
         self._copy.clicked.connect(self._on_copy)
         row.addWidget(self._copy)
         row.addStretch(1)
@@ -106,17 +123,26 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         """Follow the view the tab now shows; the welcome's `NoThreadIdentity` has no root,
         so the read says so and the tree stays empty."""
         self._view = view
+        self._cancel_background()
         self.inspect_identity(self.thread_identity)
         intent = self.intent
         self._search.setText(intent.query)
-        self.present()
+        self.present(force=True)
 
-    def present(self) -> None:
-        asyncio.ensure_future(self._refresh())
+    def _cancel_background(self) -> None:
+        if self._native_task is not None and not self._native_task.done():
+            self._native_task.cancel()
+        self._native_task = None
+        if self._search_task is not None and not self._search_task.done():
+            self._search_task.cancel()
+        self._search_task = None
+
+    def present(self, *, force: bool = False) -> None:
+        asyncio.ensure_future(self._refresh(force=force))
 
     # --- read / render loop ------------------------------------------------
 
-    async def _refresh(self) -> None:
+    async def _refresh(self, *, force: bool = False) -> None:
         if self._refresh_task is not None and not self._refresh_task.done():
             return
         self._refresh_task = asyncio.current_task()
@@ -125,6 +151,8 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
             root = identity.root_path
             if root is None:
                 self._status.setText("Context · no thread root")
+                self._older.setEnabled(False)
+                self._newer.setEnabled(False)
                 self._tree.clear()
                 return
             app = self._app
@@ -138,7 +166,7 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
                 return
             self.receive_inspection(acquired)
             self._status.setText(self.state.status)
-            self.state.present(self._render_present)
+            self.state.present(lambda current: self._inspection_acquired(previous, current, force))
         finally:
             self._refresh_task = None
 
@@ -146,16 +174,85 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         self._status.setText(text)
         self._tree.clear()
 
+    def _native_running(self) -> bool:
+        return self._native_task is not None and not self._native_task.done()
+
+    def _inspection_acquired(
+        self, previous: InspectionState, current: HoldingInspection, force: bool
+    ) -> None:
+        self._older.setEnabled(current.inspection.page.has_older())
+        self._newer.setEnabled(current.inspection.page.has_newer())
+        if previous.inspection_differs(current.inspection) or force:
+            current.present_acquired(previous, self._render_present)
+        if previous.needs_native(current.inspection, force):
+            source_changed = not previous.same_source(current.inspection)
+            if source_changed and self._native_running():
+                self._native_task.cancel()
+            if force or source_changed or not self._native_running():
+                self._status.setText(current.status)
+                current.prepare_native(self._start_native)
+
+    def _start_native(self, captured: HoldingInspection) -> None:
+        self._native_task = asyncio.ensure_future(self._read_native(captured))
+
+    async def _read_native(self, captured: HoldingInspection) -> None:
+        try:
+            native = await captured.inspection.native()
+        except asyncio.CancelledError:
+            raise
+        except Refused as error:
+            if captured.thread_identity == self.thread_identity:
+                self._native_acquired(self.state.native_failed(captured.inspection, error))
+        else:
+            if captured.thread_identity == self.thread_identity:
+                self._native_acquired(self.state.with_native(captured.inspection, native))
+
+    def _native_acquired(self, updated: InspectionState) -> None:
+        if updated is not self.state:
+            self.state = updated
+            updated.present(self._render_present)
+        self._status.setText(updated.status)
+
     def _render_present(self, holding: HoldingInspection) -> None:
         """Called by `InspectionState.present` once a HoldingInspection is ready. We
-        kick off the groups build off the UI loop (same as Textual) and then paint."""
+        kick off search or the groups build off the UI loop (same as Textual) and then paint."""
+        if self.intent.query:
+            if self._search_task is not None and not self._search_task.done():
+                self._search_task.cancel()
+            selected = self.intent.selected
+            description = (
+                "Current public context" if selected is None else selected.search_description()
+            )
+            self._search_task = asyncio.ensure_future(
+                self._run_search(holding, self.intent.query, selected, description)
+            )
+            return
         asyncio.ensure_future(self._paint_groups(holding))
+
+    async def _run_search(
+        self,
+        holding: HoldingInspection,
+        query: str,
+        selected: ContextNode | None,
+        description: str,
+    ) -> None:
+        self._status.setText("Searching public context…")
+        matches = await holding.find(query, selected)
+        if holding.thread_identity != self.thread_identity or self.intent.query != query:
+            return
+        self._tree.clear()
+        top = QTreeWidgetItem(self._tree, [f"{description} · {query} ({len(matches)})"])
+        top.setData(0, Qt.ItemDataRole.UserRole, None)
+        for model in matches:
+            self._add_node(top, model)
+        top.setExpanded(True)
+        self._status.setText(f"{len(matches)} matching sources · {description}")
 
     async def _paint_groups(self, holding: HoldingInspection) -> None:
         # `HoldingInspection.groups()` is the toolkit-neutral decode. We call it off
         # the UI loop to match Textual's `CoordinationWork.run_worker(captured.groups)`.
         groups = await self._app.preparation.run_thread(holding.groups)
-        if holding.thread_identity != self.thread_identity:
+        if holding.thread_identity != self.thread_identity or self.intent.query:
             return
         self._apply_groups(groups)
 
@@ -163,24 +260,32 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         self, groups: tuple[tuple[str, tuple[ContextNode, ...], bool], ...]
     ) -> None:
         self._tree.clear()
-        intent = self.intent
-        query = intent.query.casefold()
         for label, models, expanded in groups:
             top = QTreeWidgetItem(self._tree, [label])
             top.setData(0, Qt.ItemDataRole.UserRole, None)
             for model in models:
-                if query and query not in model.public_text().casefold():
-                    continue
                 self._add_node(top, model)
             top.setExpanded(expanded)
 
     def _add_node(self, parent_item: QTreeWidgetItem, model: ContextNode) -> None:
         row = QTreeWidgetItem(parent_item, [model.label])
         row.setData(0, Qt.ItemDataRole.UserRole, model)
-        for child in model.children():
-            self._add_node(row, child)
+        row.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)
         if model.key in self.intent.expanded:
+            self._populate_children(row, model)
             row.setExpanded(True)
+
+    def _populate_children(self, item: QTreeWidgetItem, model: ContextNode) -> None:
+        if item.childCount() > 0:
+            return
+        if item.childIndicatorPolicy() == QTreeWidgetItem.ChildIndicatorPolicy.DontShowIndicator:
+            return
+        children = model.children()
+        if not children:
+            item.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.DontShowIndicator)
+            return
+        for child in children:
+            self._add_node(item, child)
 
     # --- UI event handlers -------------------------------------------------
 
@@ -201,7 +306,26 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
 
     def _on_search(self) -> None:
         self.intent.query = self._search.text().strip()
-        self.present()
+        self.state.present(self._render_present)
+
+    def _on_refresh(self) -> None:
+        self.present(force=True)
+
+    def _on_older(self) -> None:
+        self.state.present(lambda current: self._change_page(current.inspection.page.older))
+
+    def _on_newer(self) -> None:
+        self.state.present(lambda current: self._change_page(current.inspection.page.newer))
+
+    def _change_page(self, cursor) -> None:
+        self._cancel_background()
+        self.intent.select_page(cursor)
+        self.state = self.thread_identity.inspection_state()
+        self._older.setEnabled(False)
+        self._newer.setEnabled(False)
+        self._tree.clear()
+        self._detail.setPlainText("Loading recorded request page…")
+        self.present(force=True)
 
     def _on_copy(self) -> None:
         clipboard: QClipboard = QApplication.clipboard()
@@ -210,6 +334,7 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
     def _on_expanded(self, item: QTreeWidgetItem) -> None:
         model: ContextNode | None = item.data(0, Qt.ItemDataRole.UserRole)
         if model is not None:
+            self._populate_children(item, model)
             self.intent.expanded.add(model.key)
 
     def _on_collapsed(self, item: QTreeWidgetItem) -> None:
