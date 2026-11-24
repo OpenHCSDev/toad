@@ -337,6 +337,14 @@ class QtConversation(
         """The asker withdrew `ask` (answered elsewhere, or its request ended)."""
         self.question.withdraw(ask)
 
+    def open_dialog(self, spec, callback=None) -> None:
+        """Show a structured interactive dialog under the composer and invoke `callback(outcome)`."""
+        self.interactive_dialog.open_dialog(spec, callback)
+
+    def retract_dialog(self, spec) -> None:
+        """Withdraw `spec` if it is still the active dialog."""
+        self.interactive_dialog.withdraw_dialog(spec)
+
     # ---- ComposerHost: where typed input goes, and the commands offered after a / ----
 
     def submit(self, text: TypedText, action: SubmitInputAction) -> None:

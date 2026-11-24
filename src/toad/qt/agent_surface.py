@@ -24,7 +24,11 @@ from toad.client.fragments import GrowsInPlace, Shown
 from toad.client.subscribers import CallbackSubscription
 from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation
 from toad.core.events import CoreEvent
-from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
+from toad.permission_presentation import (
+    DialogPermissionPresentation,
+    DiffPermissionPresentation,
+    InlinePermissionPresentation,
+)
 from toad.qt.transcript_fragments import QtToolTranscriptFragment
 from toad.qt.live_turn import QtLiveBlock
 from toad.tool_output import TextToolOutputPart, ToolOutput
@@ -182,6 +186,16 @@ class QtSurfaceBinding(ViewSurfaceBinding):
         title = f"{view.agent_title} would like to write files"
         self.ask(view, request, title)
         view.app.input_attention.notify(title, title="Permissions request", sound="question")
+
+    @handles(DialogPermissionPresentation)
+    async def ask_dialog(self, presentation: DialogPermissionPresentation, view, request) -> None:
+        view.open_dialog(presentation.spec, partial(request.resolve, self))
+        view.app.input_attention.notify(
+            presentation.spec.message or presentation.spec.title,
+            title=presentation.spec.title or "Input requested",
+            sound="question",
+        )
+        request.watch(self, partial(view.retract_dialog, presentation.spec))
 
     def ask(self, view, request, title: str) -> None:
         """Every permission asks through the view's shared question (`QtQuestion`, a

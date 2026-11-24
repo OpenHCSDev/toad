@@ -8,6 +8,7 @@ from metaclass_registry.mro_dispatch import handles
 
 from toad.acp.agent_controller import ProcessTaskRunner
 from toad.permission_presentation import (
+    DialogPermissionPresentation,
     DiffPermissionPresentation,
     InlinePermissionPresentation,
 )
@@ -182,6 +183,22 @@ class AttachedSurfaceBinding(ViewSurfaceBinding):
                 view.prompt.remove_ask(ask)
                 if view.prompt._ask is None:
                     view.refresh_bindings()
+
+        request.watch(self, retire)
+
+    @handles(DialogPermissionPresentation)
+    async def show_dialog_permission(
+        self,
+        presentation: DialogPermissionPresentation,
+        view: Conversation,
+        request: PermissionRequest,
+    ):
+        view.open_dialog(presentation.spec, partial(request.resolve, self))
+
+        def retire():
+            if view.is_attached:
+                view.prompt.remove_dialog(presentation.spec)
+                view.refresh_bindings()
 
         request.watch(self, retire)
 

@@ -386,7 +386,9 @@ class AgentSession:
                 PROTOCOL_VERSION,
                 schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
                     read_text_file=True, write_text_file=True), terminal=True,
-                    auth=schema.AuthCapabilities(terminal=os.name != "nt")),
+                    auth=schema.AuthCapabilities(terminal=os.name != "nt"),
+                    elicitation=schema.ElicitationCapabilities(
+                        form=schema.ElicitationFormCapabilities())),
                 schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
             )
             authority.require()
