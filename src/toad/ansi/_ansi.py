@@ -24,8 +24,6 @@ from toad.ansi._stream_parser import (
     ParseResult,
     Pattern,
     PatternCheck,
-    PatternToken,
-    SeparatorToken,
     StreamParser,
 )
 from toad.dec import CHARSET_MAP
@@ -233,16 +231,9 @@ class ANSIParser(StreamParser[tuple[str, str]]):
 
         while True:
             token = yield self.read_until(NEW_LINE, CARRIAGE_RETURN, ESCAPE, BACKSPACE)
-            if isinstance(token, SeparatorToken):
-                if token.text == ESCAPE:
-                    token = yield self.read_patterns("\x1b", fe=FEPattern())
-                    if isinstance(token, PatternToken):
-                        self.emit(token.value)
-                else:
-                    self.emit(("separator", token.text))
-                continue
-
-            self.emit(("content", token.text))
+            yield from token.dispatch_ansi(
+                self.emit, lambda: self.read_patterns("\x1b", fe=FEPattern())
+            )
 
 
 type ClearType = Literal["cursor_to_end", "cursor_to_beginning", "screen", "scrollback"]

@@ -60,9 +60,34 @@ class OptionPlace(DeclaresTheme):
     )
     label_text_style: ClassVar[str] = "none"
 
+    @classmethod
+    def under_cursor(cls) -> type[OptionPlace]:
+        return cls
+
+    @classmethod
+    def when_answered(cls) -> type[OptionPlace]:
+        return cls
+
+    @classmethod
+    def for_option(cls, *, answered: bool, at_cursor: bool) -> type[OptionPlace]:
+        place: type[OptionPlace] = AwayOption
+        if at_cursor:
+            place = place.under_cursor()
+        if answered:
+            place = place.when_answered()
+        return place
+
 
 class AwayOption(OptionPlace):
     """Neither under the cursor nor answered."""
+
+    @classmethod
+    def under_cursor(cls) -> type[OptionPlace]:
+        return CursorOption
+
+    @classmethod
+    def when_answered(cls) -> type[OptionPlace]:
+        return PassedOption
 
 
 class CursorOption(OptionPlace):
@@ -71,6 +96,10 @@ class CursorOption(OptionPlace):
         NativeDeclaration.of(Styles.opacity, Percent(100)),
     )
     caret_theme = (NativeDeclaration.of(Styles.visibility, Keyword("visible")),)
+
+    @classmethod
+    def when_answered(cls) -> type[OptionPlace]:
+        return ChosenOption
 
 
 class PassedOption(MutedText, OptionPlace):
@@ -84,10 +113,6 @@ class ChosenOption(TransparentBackground, OptionPlace):
 
     native_theme = (NativeDeclaration.of(Styles.color, TextVariable(AccentColour.name)), NativeDeclaration.of(Styles.opacity, Percent(100)))
     label_text_style = "underline"
-
-
-OPTION_PLACES = ((AwayOption, CursorOption), (PassedOption, ChosenOption))
-"""Indexed by whether the question is answered, then whether the option is under the cursor."""
 
 
 class CaretPhase(DeclaresTheme):
@@ -158,7 +183,7 @@ class Option(PrimaryActivation, TransparentBackground, containers.HorizontalGrou
     @property
     def place(self) -> type[OptionPlace]:
         question = self.query_ancestor(Question)
-        return OPTION_PLACES[question.selected][self.index == question.selection]
+        return OptionPlace.for_option(answered=question.selected, at_cursor=self.index == question.selection)
 
     def native_declarations(self) -> tuple[NativeDeclaration, ...]:
         return (*super().native_declarations(), *self.pointer_theme, *self.place.declared_theme())

@@ -11,6 +11,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.ui_model.sidebar import ThreadRowModel
@@ -26,6 +27,9 @@ from toad.session_host import SessionNavigator
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.thread_identity import ThreadIncarnation
+
+if TYPE_CHECKING:
+    from toad.client.application import ClientApplication
 
 
 class SessionEntry(DeclaredFamily, SessionProjection[SessionNavigator, Observing], affix="Entry"):
@@ -97,6 +101,7 @@ class NativeSessionEntry(SessionEntry):
     @staticmethod
     @abstractmethod
     def session_view(
+        app: ClientApplication,
         project: Checkout,
         binding: AgentBinding,
         *,

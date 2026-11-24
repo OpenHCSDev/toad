@@ -35,6 +35,7 @@ class TextualNativeSessionEntry(TextualSessionEntry, NativeSessionEntry, shows=(
 
     @staticmethod
     def session_view(
+        app,
         project: Checkout,
         binding: AgentBinding,
         *,

@@ -111,7 +111,7 @@ class AttachedSurfaceBinding(ViewSurfaceBinding):
     async def show_shell_command(self, output: ShellCommandOutput, target: Conversation):
         from toad.widgets.shell_result import ShellResult
 
-        if not any(isinstance(child, ShellResult) and child.source is output for child in target.contents.children):
+        if not any(result.source is output for result in target.contents.query(ShellResult)):
             await target.post(ShellResult(output))
 
     @handles(ShellTerminalOutput)

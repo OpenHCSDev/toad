@@ -49,20 +49,6 @@ if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
-def _toad_app() -> QtToadApp:
-    """The running Qt app widget. Looked up by type name so this module avoids a circular
-    import with ``toad.qt.window`` at construction time; there is only ever one QtToadApp
-    on the running process."""
-    from PySide6.QtWidgets import QApplication
-
-    from toad.qt.window import QtToadApp
-
-    for widget in QApplication.topLevelWidgets():
-        if isinstance(widget, QtToadApp):
-            return widget
-    raise RuntimeError("No QtToadApp window is running")
-
-
 class QtAcpSessionView(
     QtThreadView,
     AgentConversation,
@@ -291,13 +277,14 @@ class QtNativeSessionEntry(QtSessionEntry, NativeSessionEntry, shows=(SessionTab
 
     @staticmethod
     def session_view(
+        app: QtToadApp,
         project: Checkout,
         binding: AgentBinding,
         *,
         session_pk: int,
         initial_prompt: str | None = None,
     ) -> QtAcpSessionView:
-        return QtAcpSessionView(_toad_app(), project, binding, session_pk, initial_prompt)
+        return QtAcpSessionView(app, project, binding, session_pk, initial_prompt)
 
 
 __all__ = ("QtAcpSessionView", "QtNativeSessionEntry", "CommsTab")

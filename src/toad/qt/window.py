@@ -71,7 +71,6 @@ from toad.client.bus_selection import (
     PickerRow,
     TailnetAnswer,
 )
-from toad.client.offered_action import OfferedAction
 from toad.client.bus_submission import SubmissionView
 from toad.submission_queue import NoQueueSource, QueueSource
 from toad.client.connection import (
@@ -258,16 +257,25 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
         """A group line opens and closes its group."""
         self.setExpanded(not self.isExpanded())
 
-    def held_actions(self, listing: Welcome) -> tuple[OfferedAction, ...]:
-        """What holding a finger on this line, or right-clicking it, offers: nothing, for
-        most lines. Legacy label-only API kept for bus rows which still use OfferedAction."""
+    async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
+        """What `HeldRowMenu` offers for this line: nothing, for most lines."""
         return ()
 
-    async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
-        """What `HeldRowMenu` offers for this line: a bus line's shared `held_actions`
-        (`client/bus_selection.py`); a target line answers its declared
-        `TargetLine.menu_entries`."""
-        return tuple(MenuEntry.from_offered(action) for action in self.held_actions(listing))
+    def update_status_in(self, root: QTreeWidgetItem, text: str | None) -> bool:
+        """If this item is the sidebar's status row, update or remove it and return True."""
+        return False
+
+    def register_group_member(self, rows: dict[str, ConversationRow]) -> None:
+        """Index this child row into its channel group's lookup when it is a conversation row."""
+
+    def rebind_group_into(
+        self,
+        sidebar: Sidebar,
+        channel_models: Mapping[str, ChannelRowModel],
+        previous: dict[str, QtChannelGroup],
+        rebuilt: dict[str, QtChannelGroup],
+    ) -> None:
+        """Rebind this top-level row's channel group into `rebuilt` when it is a channel row."""
 
     def channel_selection(self) -> ChannelSelection:
         """The channel a line listed under this one is read in: none, for most lines."""
@@ -324,6 +332,14 @@ class StatusSection(SidebarStatusLine, SidebarSection):
         super().__init__(title)
         self.key = SidebarStatusLine.key
         self.draw("", title, detail, text)
+
+    def update_status_in(self, root: QTreeWidgetItem, text: str | None) -> bool:
+        if text is None:
+            root.takeChild(root.indexOfChild(self))
+        else:
+            title, detail = self.status_rows(text)
+            self.draw("", title, detail, text)
+        return True
 
 
 class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
@@ -389,6 +405,32 @@ class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
 
     async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
         return await self.menu_entries()
+
+    def register_group_member(self, rows: dict[str, ConversationRow]) -> None:
+        rows[self.key] = self
+
+    def rebind_group_into(
+        self,
+        sidebar: Sidebar,
+        channel_models: Mapping[str, ChannelRowModel],
+        previous: dict[str, QtChannelGroup],
+        rebuilt: dict[str, QtChannelGroup],
+    ) -> None:
+        name = self.key
+        if name not in channel_models:
+            return
+        group = previous.get(name)
+        if group is None or group.row is not self:
+            group = QtChannelGroup(sidebar, name, self)
+        else:
+            badge, label, _, _ = self.drawn
+            self.header.show_title(label, badge)
+            group.rows = {}
+        group.channel = channel_models[name]
+        group.sort_choice.update_order(group.channel.order)
+        for child_index in range(self.childCount()):
+            self.child(child_index).register_group_member(group.rows)
+        rebuilt[name] = group
 
     def listed_channel(self) -> ChannelSelection:
         """The channel this line is listed under, as Textual's sidebar selection names it."""
@@ -479,7 +521,7 @@ class BusRow(BusChoiceLine, SidebarItem):
     def activate(self, window: QtToadApp) -> None:
         self.choose(window)
 
-    def held_actions(self, listing: Welcome) -> tuple[OfferedAction, ...]:
+    async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
         return self.line_actions(listing)
 
 
@@ -1066,22 +1108,13 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
         """Update just the status row at the top of the tree in place, without touching
         the channel subtrees that a targeted sync just redrew."""
         root = self.invisibleRootItem()
-        status_item = None
         for index in range(root.childCount()):
-            child = root.child(index)
-            if isinstance(child, StatusSection):
-                status_item = child
-                break
-        if self._status_text is None:
-            if status_item is not None:
-                root.takeChild(root.indexOfChild(status_item))
-            return
-        target = StatusSection(self._status_text)
-        if status_item is None:
+            if root.child(index).update_status_in(root, self._status_text):
+                return
+        if self._status_text is not None:
+            target = StatusSection(self._status_text)
             root.insertChild(0, target)
             target.placed()
-        else:
-            status_item.draw(*target.drawn)
 
     def _rebind_groups_from_tree(self, model: SidebarModel) -> None:
         """Index the groups against the tree a wholesale redraw left. The redraw keeps a
@@ -1095,27 +1128,7 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
         previous = self.groups
         rebuilt: dict[str, QtChannelGroup] = {}
         for index in range(root.childCount()):
-            item = root.child(index)
-            if not isinstance(item, ConversationRow):
-                continue
-            name = item.key
-            if name not in channel_models:
-                continue
-            group = previous.get(name)
-            if group is None or group.row is not item:
-                group = QtChannelGroup(self, name, item)
-            else:
-                badge, label, _, _ = item.drawn
-                item.header.show_title(label, badge)
-                group.rows = {}
-            group.channel = channel_models[name]
-            group.sort_choice.update_order(group.channel.order)
-            # Index the thread children the wholesale redraw just placed.
-            for child_index in range(item.childCount()):
-                child = item.child(child_index)
-                if isinstance(child, ConversationRow):
-                    group.rows[child.key] = child
-            rebuilt[name] = group
+            root.child(index).rebind_group_into(self, channel_models, previous, rebuilt)
         self.groups = rebuilt
 
 
@@ -1959,13 +1972,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def run_menu_action(self, work) -> None:
         """Schedule a menu command on this app's tracked MenuActionRun lane."""
         self.run_operation(MenuActionRun, work)
-
-    def offer(self, actions: tuple[OfferedAction, ...]) -> None:
-        """Legacy label-only API: bus listings' held-finger menu builds `OfferedAction`
-        tuples and calls here. Each OfferedAction becomes a MenuEntry with no keyboard
-        shortcut and no description, so the shared `QtMenu` renders a plain label column
-        — the same widget the hamburger and the message-row menus use."""
-        self.offer_entries(tuple(MenuEntry.from_offered(action) for action in actions))
 
     def offer_entries(self, entries: tuple[MenuEntry, ...], anchor: QRect | None = None) -> None:
         """Rich-row API: callers that have `MenuEntry` with keybindings and descriptions
