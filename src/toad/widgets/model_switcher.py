@@ -65,10 +65,6 @@ class SessionModelEditor(
     def current(self):
         return self.field.value
 
-    @property
-    def selection_active(self):
-        return self.is_attached
-
     def select_model(self, model_id: str) -> None:
         self.send(model_id)
 

@@ -552,8 +552,6 @@ class SideBarToggle(
         bar = self.query_ancestor(SideBar)
         return super().paint_highlighted or (bar.collapsed and bar.mouse_hover)
 
-    ALLOW_SELECT = False
-
     can_focus = True
 
     class Pressed(Message):

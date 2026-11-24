@@ -55,7 +55,17 @@ class QtModelSelection(
 
     MODEL_ID_ROLE = Qt.ItemDataRole.UserRole
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        on_selected: Callable[[str], None],
+        on_dismiss: Callable[[], None],
+        on_connect: Callable[[], None],
+        parent: QWidget | None = None,
+    ) -> None:
+        self._on_selected = on_selected
+        self._on_dismiss = on_dismiss
+        self._on_connect = on_connect
         super().__init__(parent)
         self.init_model_selection()
         self._recents_task: asyncio.Task[None] | None = None
@@ -167,6 +177,16 @@ class QtModelSelection(
         return super().eventFilter(watched, event)
 
 
+    def select_model(self, model_id: str) -> None:
+        self._on_selected(model_id)
+
+    def dismiss_control(self) -> None:
+        self._on_dismiss()
+
+    def connect_provider(self) -> None:
+        self._on_connect()
+
+
 class QtCatalogFieldSelection(CatalogChoiceSelection, QtModelSelection):
     """Qt model selection bound to a `QtCatalogField` editor."""
 
@@ -180,19 +200,12 @@ class QtCatalogFieldSelection(CatalogChoiceSelection, QtModelSelection):
         parent: QWidget | None = None,
     ) -> None:
         self.editor = editor
-        self._on_selected = on_selected
-        self._on_dismiss = on_dismiss
-        self._on_connect = on_connect
-        super().__init__(parent)
-
-    def select_model(self, model_id: str) -> None:
-        self._on_selected(model_id)
-
-    def dismiss_control(self) -> None:
-        self._on_dismiss()
-
-    def connect_provider(self) -> None:
-        self._on_connect()
+        super().__init__(
+            on_selected=on_selected,
+            on_dismiss=on_dismiss,
+            on_connect=on_connect,
+            parent=parent,
+        )
 
 
 class QtSessionModelSelection(SessionChoiceSelection, QtModelSelection):
@@ -210,22 +223,15 @@ class QtSessionModelSelection(SessionChoiceSelection, QtModelSelection):
     ) -> None:
         self._setting_provider = setting_provider
         self.history_scope = history_scope
-        self._on_selected = on_selected
-        self._on_dismiss = on_dismiss
-        self._on_connect = on_connect
-        super().__init__(parent)
+        super().__init__(
+            on_selected=on_selected,
+            on_dismiss=on_dismiss,
+            on_connect=on_connect,
+            parent=parent,
+        )
 
     def model_setting(self) -> ModelConfigurationSetting:
         return self._setting_provider()
-
-    def select_model(self, model_id: str) -> None:
-        self._on_selected(model_id)
-
-    def dismiss_control(self) -> None:
-        self._on_dismiss()
-
-    def connect_provider(self) -> None:
-        self._on_connect()
 
 
 class QtModelChoiceDialog(PresentedWindow, QDialog, DismissibleContract, metaclass=PyQtWidgetMeta):

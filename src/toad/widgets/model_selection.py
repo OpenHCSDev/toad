@@ -159,6 +159,10 @@ class ModelSelection(
         super().__init__()
         self.init_model_selection()
 
+    @property
+    def selection_active(self) -> bool:
+        return self.is_attached
+
     def compose_content(self) -> ComposeResult:
         yield ModelSearchInput(placeholder=f"Search {self.choice_name} or providers…", compact=True)
         yield ModelCount("", markup=False)
