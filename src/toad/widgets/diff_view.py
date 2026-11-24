@@ -1,12 +1,12 @@
+from textual._context import active_app
 from textual_diff_view import DiffView as NativeDiffView
+
 from toad.block_navigation import ConversationBlock
+from toad.client.view_settings import ApplicationSettings
 
 
 class DiffView(ConversationBlock, NativeDiffView):
     """A native diff shown as one atomic conversation block."""
-
-
-from toad.app import ToadApp
 
 
 def make_diff(
@@ -17,34 +17,20 @@ def make_diff(
     id: str | None = None,
     classes: str | None = None,
 ) -> DiffView:
-    """Make a diff view widget, configured with app settings.
-
-    Args:
-        app: Instance of the app.
-        path_original: Path to the original file.
-        path_modified: Path to the modified file.,
-        code_before: Original code.
-        code_after: Modified code.
-        id: Textual CSS ID.
-        classes: Textual CSS classses.
-
-    Returns:
-        A diff view widget.
-    """
+    """Make a diff view widget, configured with app settings."""
     split = False
     annotations = False
     auto_split = False
     wrap = False
-    from textual._context import active_app
 
     try:
         app = active_app.get()
     except LookupError:
         pass
     else:
-        if isinstance(app, ToadApp):
+        if isinstance(app, ApplicationSettings):
             diff_view_setting = app.settings.diff.view
-            split = diff_view_setting.rows.split
+            split = diff_view_setting.split
             auto_split = diff_view_setting.auto_split
             wrap = app.settings.diff.wrap.enabled
             annotations = app.settings.diff.annotations

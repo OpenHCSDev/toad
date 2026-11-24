@@ -21,7 +21,12 @@ from toad.client.connection import CoreConnection
 from toad.client.local_connection import ClientLaunch
 from toad.launch_binding import AgentAttached, AgentBinding, LaunchAgentRefused
 from toad.preferences import SavedSettings
-from toad.web_server import ToadWebServer
+from toad.web_server import (
+    LocalBrowserAuthentication,
+    LocalBrowserEndpoint,
+    TailnetBrowserAuthentication,
+    ToadWebServer,
+)
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -255,7 +260,6 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
     `toad serve acp agent-comms-acp`.
     """
-    from toad.web_server import LocalBrowserAuthentication, LocalBrowserEndpoint
 
     ToadWebServer.run_toad(
         LocalBrowserAuthentication(LocalBrowserEndpoint(host, port)), toad_args
@@ -274,7 +278,6 @@ def serve_tailnet(https_port: int, toad_args: tuple[str, ...]) -> None:
     Listens on an owner-only unix socket for `tailscale serve --https=PORT`, which
     supplies each caller's tailnet login.
     """
-    from toad.web_server import TailnetBrowserAuthentication
 
     ToadWebServer.run_toad(TailnetBrowserAuthentication.from_status(https_port), toad_args)
 

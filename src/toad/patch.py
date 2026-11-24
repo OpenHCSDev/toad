@@ -177,7 +177,8 @@ NO_MARKS, SHOWN_MARKS = DiffMarks(), ShownDiffMarks()
 
 class DiffMode(DeclaredChoice, affix="Diff"):
     rows: ClassVar[PatchRows] = UNIFIED_ROWS
-    auto_split = False
+    split: ClassVar[bool] = False
+    auto_split: ClassVar[bool] = False
 
     @classmethod
     def rows_at(cls, width: int, required: int) -> PatchRows:
@@ -190,6 +191,7 @@ class UnifiedDiff(DiffMode):
 
 class SplitDiff(DiffMode):
     rows = SPLIT_ROWS
+    split = True
 
 
 class AutoDiff(TitledChoice, DiffMode):

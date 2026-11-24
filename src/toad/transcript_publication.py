@@ -948,19 +948,25 @@ class PublicationDemand:
         return False
 
 
-class RefreshDemand(PublicationDemand):
-    """Changed rows await publication; a commit waits for the live-block limit."""
+class CleanDemand(PublicationDemand):
+    """Nothing changed since the last publication."""
+
+
+class PendingDemand(PublicationDemand):
+    """Changed rows await publication."""
 
     pending = True
+
+
+class RefreshDemand(PendingDemand):
+    """Changed rows await publication; a commit waits for the live-block limit."""
 
     def commits(self, live_blocks: int, limit: int) -> bool:
         return live_blocks >= limit
 
 
-class CommitDemand(PublicationDemand):
+class CommitDemand(PendingDemand):
     """Changed rows must be committed at the next publication."""
-
-    pending = True
 
     def changed(self, cursor: TranscriptCursor) -> PublicationDemand:
         return self
@@ -969,7 +975,7 @@ class CommitDemand(PublicationDemand):
         return True
 
 
-CLEAN_PUBLICATION = PublicationDemand()
+CLEAN_PUBLICATION = CleanDemand()
 REFRESH_DEMAND = RefreshDemand()
 COMMIT_DEMAND = CommitDemand()
 
