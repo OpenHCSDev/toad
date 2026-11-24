@@ -145,10 +145,9 @@ def _summary_for(asked: AskedPeer) -> str:
     Keeps the shell-command out of the headline — the options carry the actionable
     remediation."""
     peer = asked.found.peer.name
-    refusal = getattr(asked, "refusal", "") or ""
-    if "No tailnet-only endpoint" in refusal:
-        return f"{peer} serves no tailnet-only endpoint — it needs tailscale serve, or paste a profile."
     match asked:
+        case PeerRefusedProfile(refusal=refusal) if refusal and "No tailnet-only endpoint" in refusal:
+            return f"{peer} serves no tailnet-only endpoint — it needs tailscale serve, or paste a profile."
         case PeerRefusedProfile():
             return f"{peer} refused a profile."
         case PeerAnsweredNothing():
@@ -162,9 +161,8 @@ def decision_for(asked: AskedPeer, host: BusConnectHost) -> BusConnectDecision:
     by `ClientApplication.asked_peer` after the `HoldingPeerProfile` case, so every
     reachable AskedPeer here is a refusal or a non-answer — never a successful hold."""
     peer_name = asked.found.peer.name
-    refusal = getattr(asked, "refusal", "") or ""
-    if "No tailnet-only endpoint" in refusal:
-        options = _options_for_no_tailnet_endpoint(host, peer_name, refusal)
+    if isinstance(asked, PeerRefusedProfile) and asked.refusal and "No tailnet-only endpoint" in asked.refusal:
+        options = _options_for_no_tailnet_endpoint(host, peer_name, asked.refusal)
     else:
         options = _generic_options(host, peer_name)
     return BusConnectDecision(

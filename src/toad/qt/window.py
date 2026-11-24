@@ -311,7 +311,7 @@ class OpenSection(WelcomeSectionLine, SidebarSection):
 
     def placed(self) -> None:
         super().placed()
-        self.setExpanded(self.opens())
+        self.setExpanded(self.opens_expanded())
 
 
 class StatusSection(SidebarStatusLine, SidebarSection):

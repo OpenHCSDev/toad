@@ -53,8 +53,17 @@ class Composer(MessagePromptComposer):
     def show_failure(self, text: str) -> None:
         self.asked.append(f"failure {text}")
 
+    def show_files_offered(self) -> None:
+        pass
+
+    def sync_queue(self) -> None:
+        pass
+
+    def append_to_draft(self, suffix: str) -> None:
+        self.text += suffix
+
     def restore_draft(self, text: str) -> None:
-        self.text += self.restored_suffix(self.text, text)
+        self.append_to_draft(self.restored_suffix(self.text, text))
 
 
 def test_attach_opens_the_picker_the_setting_names() -> None:
@@ -66,7 +75,7 @@ def test_attach_opens_the_picker_the_setting_names() -> None:
 
 def test_picked_files_ride_the_send_and_come_back_with_a_returned_draft() -> None:
     composer = Composer()
-    composer.file_picked("/home/me/notes.txt", b"notes")
+    composer.file_picked("/docs/me/notes.txt", b"notes")
     composer.file_picked("shot.png", b"\x89PNG")
     assert [(upload.name, upload.mime_type) for upload in composer.attached_files] == [
         ("notes.txt", "text/plain"), ("shot.png", "image/png")]

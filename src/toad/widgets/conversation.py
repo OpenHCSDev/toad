@@ -1702,12 +1702,6 @@ class Conversation(
     async def change_project(self, path: Path) -> None:
         await self.agent_binding.change_project(self, path)
 
-    async def change_goal(self, action: type[GoalAction], text: str = "") -> None:
-        await self.goal_controls.change(action, text)
-
-    async def refresh_goal(self) -> None:
-        await self.goal_observation.refresh()
-
     @property
     def can_compact(self) -> bool:
         return self.turns.owner.can_compact

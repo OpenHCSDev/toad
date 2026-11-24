@@ -101,20 +101,22 @@ class ClientApplication(BusPickerHost, NavigationHost):
         after its startup."""
         HEAP.history_displayed()
 
+    _saved_settings: SavedSettings | None = None
+
     @property
     def saved_settings(self) -> SavedSettings:
         """The settings holder this launch reads and writes. Lazily opened on first
         access so Qt (which has no pre-constructor settings hook) doesn't need to
         know to allocate it; Textual's `ThemedApp.__init__` sets it eagerly for the
         colour-system construction order."""
-        if not hasattr(self, '_saved_settings'):
+        if self._saved_settings is None:
             self._saved_settings = self.open_settings()
             ObjectStateRegistry.register(self._saved_settings.state)
         return self._saved_settings
 
     @saved_settings.setter
     def saved_settings(self, value: SavedSettings) -> None:
-        if getattr(self, '_saved_settings', None) is value:
+        if self._saved_settings is value:
             return
         self._saved_settings = value
         ObjectStateRegistry.register(value.state)

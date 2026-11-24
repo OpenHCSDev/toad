@@ -117,7 +117,7 @@ class TransferForm:
 
     heading: ClassVar[str]
     submit_label: ClassVar[str]
-    request_kind: ClassVar[type[Transfer]]
+    request_kind: ClassVar[type[Transfer] | None] = None
     selected: CapturedSource
 
     @classmethod
@@ -128,7 +128,7 @@ class TransferForm:
             for member in family.__subclasses__():
                 yield from members(member)
         for member in members(cls):
-            if getattr(member, "request_kind", None) is kind:
+            if member.request_kind is kind:
                 return member
         raise LookupError(f"No {cls.__name__} composes {kind.declared_name}")
 
