@@ -4,7 +4,26 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+from agent_comms.messaging.frozen_recipient import FrozenRecipient
+from agent_comms.messaging.message_notification import MessageNotification
+from agent_comms.messaging.message_reference import MessageReference
+from agent_comms.messaging.notification_progress import (
+    AnsweredProgress,
+    AnsweredResponse,
+    CompletedProgress,
+    HumanReadProgress,
+    IgnoredProgress,
+    PassiveProgress,
+    PendingProgress,
+    QueuedProgress,
+    SentProgress,
+    ShownToModelProgress,
+    UnrecordedProgress,
+)
+from agent_comms.nominal.field_codec import MessageId, ThreadLookup
+
 from toad.client.bus_submission import SubmittingTexts
+from toad.client.notification_status import CheckedNotifications, MessageQueueEntry
 from toad.client.prompt_composer import PromptComposer
 from toad.submission_queue import BusQueueSource, QueueEvidence
 
@@ -80,3 +99,52 @@ def test_prompt_composer_shows_queue_hint_whenever_summary_band_is_empty() -> No
     native_hidden = _Composer(summary="Queued (2): a · b", hint="⧗ 2 held", preview=False)
     assert native_hidden.queue_summary == ""
     assert native_hidden.queue_hint == "⧗ 2 held"
+
+
+def test_checked_notifications_only_counts_actually_queued_recipients() -> None:
+    """Sent, passive, read, ignored, completed, and answered recipients are not queued."""
+    sender = ThreadLookup("user")
+
+    def _notif(name: str, state) -> MessageNotification:
+        return MessageNotification(
+            recipient_identity=FrozenRecipient(ThreadLookup(name), name),
+            sender_lookup=sender,
+            state=state,
+        )
+
+    reply = AnsweredResponse(MessageReference(99, MessageId("deadbeef0001")), received_at_ms=2000)
+    notifications = (
+        _notif("sent-peer", SentProgress(1000)),
+        _notif("passive-peer", PassiveProgress(SentProgress(1000))),
+        _notif("human-peer", HumanReadProgress()),
+        _notif("unrecorded-peer", UnrecordedProgress()),
+        _notif("ignored-peer", IgnoredProgress(SentProgress(1000))),
+        _notif("completed-peer", CompletedProgress(SentProgress(1000))),
+        _notif("answered-peer", AnsweredProgress(SentProgress(1000), reply)),
+        _notif("read-peer", ShownToModelProgress(1000)),
+        _notif("queued-peer", QueuedProgress(1000)),
+        _notif("pending-queued-peer", PendingProgress(QueuedProgress(1000))),
+        _notif("pending-sent-peer", PendingProgress(SentProgress(1000))),
+    )
+    status = CheckedNotifications(notifications)
+    assert [r.canonical_thread for r in status.queued_recipients] == [
+        "queued-peer",
+        "pending-queued-peer",
+    ]
+
+    # When nothing is queued (only sent/passive/read), BusQueueSource hides held/queue UX completely.
+    quiet_status = CheckedNotifications(notifications[:8])
+    assert quiet_status.queued_recipients == ()
+    quiet_entry = MessageQueueEntry(MessageReference(1, MessageId("deadbeef0002")), quiet_status)
+    quiet_target = SimpleNamespace(queue_entries=lambda: (quiet_entry,))
+    quiet_evidence = QueueEvidence(
+        presentation=None,  # type: ignore[arg-type]
+        submitting=SubmittingTexts(()),
+        busy=False,
+        read_targets=lambda: (quiet_target,),
+        observing=lambda: None,  # type: ignore[arg-type]
+    )
+    source = BusQueueSource()
+    assert source.holds_input(quiet_evidence) is False
+    assert source.held_count(quiet_evidence) == 0
+    assert source.queue_hint(quiet_evidence) == ""

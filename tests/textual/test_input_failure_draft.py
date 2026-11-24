@@ -151,9 +151,11 @@ async def test_wire_sends_queue_in_order_while_compose_stays_open(workspace):
             await second.wait()
         await ui.until(lambda: ui.shows("QUEUED_SECOND") and not chat.submissions.delivering,
                        why="both messages drawn and retired from the queue")
-        # Drawn is not consumed: peer still holds both, so they stay sendable now, as a DM's queue does.
-        assert chat.submissions.holds_input
-        assert chat.prompt.query_one(DeliveryControls).display
+        # Sent to an idle peer's inbox (SentProgress, not QueuedProgress): nothing is queued,
+        # so the queue UX hides instead of falsely staying visible as "held".
+        await ui.until(lambda: not chat.submissions.holds_input,
+                       why="queue UX hides once nothing is actually queued")
+        assert not chat.prompt.query_one(DeliveryControls).display
         bodies = [message.body for message in workspace.comms.bus.inbox("peer").page.messages
                   if message.body.startswith("QUEUED_")]
         assert bodies == ["QUEUED_FIRST", "QUEUED_SECOND"]

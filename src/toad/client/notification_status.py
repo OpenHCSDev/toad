@@ -77,7 +77,7 @@ class NotificationStatus:
 
     @property
     def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
-        """Original recipients whose model has not yet taken this message."""
+        """Original recipients currently holding this message in their queue."""
         return ()
 
     @property
@@ -140,7 +140,7 @@ class CheckedNotifications(NotificationStatus):
 
     @property
     def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
-        return tuple(item.recipient_identity for item in self.notifications if not item.state.is_consumed())
+        return tuple(item.recipient_identity for item in self.notifications if item.state.is_queued())
 
     def is_working(self) -> bool:
         return any(item.state.is_working() for item in self.notifications)
