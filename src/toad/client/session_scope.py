@@ -119,6 +119,10 @@ class SessionScope:
         """A view without a configurable subject offers no configuration operations."""
         return ()
 
+    async def view_menu_entries(self) -> tuple:
+        """A view without a subject or tab offers no right-click menu options."""
+        return ()
+
     @property
     def bound_agent(self) -> AgentConnection:
         """The agent this view presents. A view with none (the welcome, a DM's

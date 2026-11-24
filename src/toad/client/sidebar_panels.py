@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from metaclass_registry import AbstractHooksMeta
 
@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 
 from toad.client.lazy_pages import LazyPages
+from toad.client.menu_entry import MenuRowDisplay
 from toad.client.session_tracker import SidebarState
 from toad.thread_actions import ThreadAction
 
@@ -137,3 +138,13 @@ class ActionPropertiesPanel:
 
     async def handle_submission(self, arguments) -> None:
         await ThreadAction.submit(self.context, self.definition, arguments)
+
+
+class ViewActionsPanel(MenuRowDisplay):
+    """The viewed object's right-click options as a settings-pane entry: Textual's
+    `ViewActions` and Qt's `QtViewActions` both inherit this and render the exact
+    `MenuEntry` list `ViewSettingsOwner.view_menu_entries` reads from the declared
+    menu owners."""
+
+    panel_spec: ClassVar[PanelSpec] = PanelSpec(title="Actions", flex=True, id="view-actions")
+    panel_identity: ClassVar[object] = "view-actions"

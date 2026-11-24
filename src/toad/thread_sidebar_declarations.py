@@ -94,18 +94,23 @@ class ThreadSidebarPanelBody:
 
 
 class ThreadSidebarContents[Entry](metaclass=AbstractHooksMeta):
-    """What the thread sidebar lists, in order: the roster's panels, then each of the viewed
-    object's own settings (`ViewSettingsOwner.configuration_fields`). Textual's
-    `ThreadSidebar` and Qt's `ThreadSettingsPane` both inherit this, so a setting declared
-    once is an entry on both, after the same roster."""
+    """What the thread sidebar lists, in order: the roster's panels, the viewed object's
+    right-click actions (`ViewActionsPanel`), then each of the viewed object's own settings
+    (`ViewSettingsOwner.configuration_fields`). Textual's `ThreadSidebar` and Qt's
+    `ThreadSettingsPane` both inherit this, so a setting or action declared once is an entry
+    on both, after the same roster."""
 
     @abstractmethod
     def roster_entries(self) -> Iterable[Entry]:
         """The roster's panels, as this frontend draws them."""
 
     @abstractmethod
+    def action_entries(self, view) -> Iterable[Entry]:
+        """The viewed object's right-click actions panel, as this frontend draws it."""
+
+    @abstractmethod
     def setting_entries(self, view) -> Iterable[Entry]:
         """One entry per setting ``view`` lists, as this frontend draws it."""
 
     def thread_entries(self, view) -> tuple[Entry, ...]:
-        return (*self.roster_entries(), *self.setting_entries(view))
+        return (*self.roster_entries(), *self.action_entries(view), *self.setting_entries(view))

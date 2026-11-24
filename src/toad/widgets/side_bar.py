@@ -1394,6 +1394,9 @@ class ThreadSidebar(ThreadSidebarContents[SideBar.Panel], SideBar):
     def roster_entries(self):
         return SideBar.panel_entries(self)
 
+    def action_entries(self, view):
+        return view.action_panels
+
     def setting_entries(self, view):
         return view.configuration_panels
 
