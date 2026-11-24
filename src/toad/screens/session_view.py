@@ -6,6 +6,7 @@ from textual.color import Color
 from textual.layout import Layout
 from toad.configured_view import ActionProperties, ConfiguredView
 from toad.settings_scope import ConversationSettingsScope
+from toad.widgets.history_anchor import HistoryWindow
 from ui_theme.scheme import BackgroundColour
 from textual.reactive import reactive
 from contextlib import contextmanager
@@ -21,7 +22,7 @@ from toad.session_scope import SessionScope
 from toad.navigation_context import NavigationOwner
 from toad.navigation_target import NavigationTarget, NoTarget
 from toad.app_node import ToadNode
-from toad.widgets.side_bar import SideBar, ThreadSidebar
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, ThreadSidebar
 from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.message_notifications import VisibleReadMarking
 from toad.client.history_reads import NothingToRead, PaintedRead
@@ -114,7 +115,6 @@ class SessionView(
 
     async def prepare_navigation(self) -> bool:
         """Reconcile only this logical source's sidebar navigation and observers."""
-        from toad.widgets.side_bar import SideBarCollapsible
 
         changed = False
         for sidebar in self.sidebars():
@@ -127,14 +127,12 @@ class SessionView(
 
     async def prepare_presentation(self) -> None:
         """Restore source-bound rich presentation for the selected logical view."""
-        from toad.widgets.history_anchor import HistoryWindow
 
         for window in self.query(HistoryWindow):
             window.request_preparation()
 
     async def retire_presentation(self) -> None:
         """Release rich presentation without stopping its operational sources."""
-        from toad.widgets.history_anchor import HistoryWindow
         from toad.widgets.conversation import Conversation
 
         for conversation in self.query(Conversation):

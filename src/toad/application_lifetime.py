@@ -13,6 +13,7 @@ from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
 from formbridge.operations import OperationKind
 
 from toad import get_version
+from toad.navigation_preparation import ThreadNavigationRequest
 from toad.version import VersionMonitor
 from toad.heap import HEAP
 from toad.client.tab_identity.kinds import MailboxTab
@@ -214,7 +215,6 @@ class ApplicationLifetime:
         )
 
     def launch_navigation(self, resumed: AcpSessionId):
-        from toad.navigation_preparation import ThreadNavigationRequest
 
         request = ThreadNavigationRequest(self.app.coordination_access.observation.observed(),
                                           str(resumed), self.app.project_dir, ())

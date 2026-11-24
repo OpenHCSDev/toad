@@ -27,10 +27,10 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING
 
 from formbridge.operations import OperationKind
 
+from toad.client.application import ClientApplication
 from toad.key_modes import KeyMode
 from toad.keymap import (
     KeyInvocationId,
@@ -41,10 +41,6 @@ from toad.keymap import (
 )
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
-
-if TYPE_CHECKING:
-    from toad.client.application import ClientApplication
-
 
 @dataclass(frozen=True)
 class KeymapCell:

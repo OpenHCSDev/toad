@@ -19,11 +19,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from toad.acp.comms_updates import ThreadRead
+from toad.agent import AgentBase
+from toad.agent_binding import AgentConnection
 
 
 if TYPE_CHECKING:
-    from toad.agent import AgentBase
-    from toad.agent_binding import AgentConnection
     from agent_comms.registry.thread_presentation import ThreadPresentation
     from toad.core import events as core_events
 

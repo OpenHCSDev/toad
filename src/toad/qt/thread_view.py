@@ -20,6 +20,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
+from toad.client.session_tracker import SessionDetails
+from toad.transcript_scope import TranscriptScope
 from ui_theme.scheme import ForegroundColour
 
 from agent_comms.ui_model.delivery import DeliveryView
@@ -40,8 +42,6 @@ from toad.qt.transcript_history import QtTranscriptHistory
 from toad.transcript_publication import BoundView
 
 if TYPE_CHECKING:
-    from toad.client.session_tracker import SessionDetails
-    from toad.transcript_scope import TranscriptScope
     from toad.qt.window import QtToadApp
 
 

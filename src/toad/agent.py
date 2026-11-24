@@ -11,6 +11,7 @@ from toad.agent_binding import AgentConnection
 from toad.agent_presentation import LocalAgentPresentation
 from toad.conversation_turn import NoTurn
 from toad.core.events import CoreEventStream
+from toad.submission_queue import QueueSource
 from toad.surface_binding import SurfaceBinding
 
 if TYPE_CHECKING:
@@ -19,7 +20,6 @@ if TYPE_CHECKING:
     from toad.conversation_turn import TurnOwner
     from toad.screens.main import MainScreen
     from toad.session_observation import SessionObservation
-    from toad.session_presentation import OperationalSessionSources
     from toad.widgets.conversation import Conversation, ConversationSessionBinding
 
 
@@ -109,7 +109,7 @@ class AgentBase(AgentConnection):
             view.session_ready()
 
     def start_agent(
-        self, sources: OperationalSessionSources, view: Conversation
+        self, sources: QueueSource, view: Conversation
     ) -> None:
         """A connected agent is not created a second time."""
 

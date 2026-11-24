@@ -13,16 +13,14 @@ from toad.client.host import NavigatingHost
 from toad.client.connection import CoordinationAccess, Observing
 from toad.client.db import DB
 from toad.navigation_context import NavigationOwner
-from toad.navigation_preparation import NavigationReader
+from toad.navigation_preparation import NavigationReader, ThreadNavigationRequest
 from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.session_tracker import SessionTracker
-from toad.client.tab_identity import TabIdentity, TabNotDrawnHere
+from toad.client.tab_identity import SessionTabIdentity, TabIdentity, TabNotDrawnHere
 
 if TYPE_CHECKING:
-    from toad.navigation_preparation import ThreadNavigationRequest
     from toad.thread_navigation import ThreadOrigin
-    from toad.client.tab_identity import SessionTabIdentity
 
 
 class SessionEntries(DeclaredViews):

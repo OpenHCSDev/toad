@@ -49,6 +49,9 @@ from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
+from toad.keymap import KeyInvocationId
+from toad.qt.mailbox_view import QtMailboxView
+from toad.qt.opening_view import QtOpeningSessionView
 from ui_theme.clock import AnimationClock
 from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour
 from ui_theme.wal import WalFile
@@ -515,14 +518,14 @@ class BusRow(BusChoiceLine, SidebarItem):
     def __init__(self, choice: PickerRow) -> None:
         super().__init__()
         self.choice = choice
-        self.key = self.line_label()
+        self.key = self.choice.label()
         self.draw("", self.key, "", self.key)
 
     def activate(self, window: QtToadApp) -> None:
         self.choose(window)
 
     async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
-        return self.line_actions(listing)
+        return self.choice.held_actions(listing)
 
 
 from toad.qt.page import Page  # re-export: callers already import Page from here
@@ -1885,7 +1888,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         shared-UX `QtKeymapScreen` modal; both frontends consume the same
         `KeymapBrowserState` so the browser logic lives once in
         `toad.client.keymap_browser`."""
-        from toad.keymap import KeyInvocationId
         from toad.qt.keymap_screen import QtKeymapScreen
         focused: frozenset[KeyInvocationId] = frozenset()
         dialog = QtKeymapScreen(self, focused)
@@ -2049,13 +2051,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         Textual's `MainScreen.opening(...)`). Lazy-import `QtOpeningSessionView` to
         keep `toad.qt.window` import-light at module load. Textual's override lives at
         `src/toad/app.ToadApp.make_opening_view`."""
-        from toad.qt.opening_view import QtOpeningSessionView
         return QtOpeningSessionView(request.target, self.renderer, self.animation_clock)
 
     def thread_view(self, prepared):
         """The `QtMailboxView` a sidebar open swaps in, bound to the thread as Textual's
         `MainScreen.from_thread` binds its screen."""
-        from toad.qt.mailbox_view import QtMailboxView
         view = QtMailboxView(self, prepared.project, prepared.thread.incarnation, prepared.root)
         view.bind_thread(prepared.thread.incarnation, prepared.root)
         return view
@@ -2071,7 +2071,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
         Lazy-imports `QtMailboxView` to keep `toad.qt.window` import-light at
         module load, same pattern as `make_opening_view` above."""
-        from toad.qt.mailbox_view import QtMailboxView
         bound = QtMailboxView(self, prepared.project, prepared.thread.incarnation, prepared.root)
         bound.id = opening_view.id
         self.workspace_sessions.swap_page(opening_view, bound)

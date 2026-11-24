@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, NamedTuple
 
+from toad import get_version
 from toad.work_preparation import ThreadScheduler
 
 if TYPE_CHECKING:
@@ -79,7 +80,6 @@ class CheckedVersionMonitor(VersionMonitor):
         import httpx  # noqa: F401 - acquired before the UI consumes the module
         import packaging.version
 
-        from toad import get_version
 
         try:
             return packaging.version.parse(get_version())

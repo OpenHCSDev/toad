@@ -8,6 +8,7 @@ from formbridge.key_declarations import TextEntryMode
 from textual._callback import invoke
 
 from metaclass_registry.mro_dispatch import handles
+from toad.client.tab_order import TabOrder
 from toad.core_event_carrier import CoreEventReceiver
 from toad.settings_scope import ViewSettingsScope
 from toad.worker_group import WorkerGroup
@@ -82,7 +83,6 @@ from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.client.tab_order import TabOrder
 
 
 @dataclass(frozen=True)

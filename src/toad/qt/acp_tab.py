@@ -25,6 +25,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QDialog
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
+from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection
 from toad.client.db import DB
 from toad.client.session_entry import NativeSessionEntry
@@ -45,7 +46,6 @@ from toad.thread_identity import NoThreadIdentity
 if TYPE_CHECKING:
     from agent_comms.projects.checkouts import Checkout
 
-    from toad.agent import AgentBase
     from toad.qt.window import QtToadApp
 
 

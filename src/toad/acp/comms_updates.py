@@ -48,7 +48,9 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.client_session import ClientSessionRequest, OwnerRequest
 from toad.acp.context_measurement import ContextMeasurement
+from toad.acp.sdk_boundary import DecodeCommsMetadataTask
 from toad.core import events as core_events
+from toad.core.events import InputDispositionsChanged, RequestAgentFail
 from toad.live_output import CompleteResponseStream, ResponseStream
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
 
@@ -86,7 +88,6 @@ class CommsUpdateConsumer(MroDispatch):
         self.queue_token = queue_token
 
     async def consume_metadata(self, metadata) -> None:
-        from toad.acp.sdk_boundary import DecodeCommsMetadataTask
 
         authority = ClientSessionRequest(self.agent, self.session_id)
         facts = await self.agent.controller.task_runner.run(
@@ -233,7 +234,6 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(InputDeliveryChangedUpdate)
     def input_delivery_changed(self, update: InputDeliveryChangedUpdate) -> None:
-        from toad.core.events import InputDispositionsChanged
 
         self.agent.events.publish(InputDispositionsChanged())
 
@@ -255,7 +255,6 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(RequestFailedUpdate)
     def request_failed(self, update) -> None:
-        from toad.core.events import RequestAgentFail
 
         # One request failed; the session that carried it is still open.
         self.agent.events.publish(

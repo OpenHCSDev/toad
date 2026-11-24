@@ -34,6 +34,7 @@ from toad.session_scope import SessionScope
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widget_actions import Action, NativeMethodKeys
 from toad.widgets.acting_button import ActingButton
+from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.process_text_area import ProcessTextArea
 from toad.widgets.side_bar import SideBar, SidebarVisibilityObserver
 from toad.widgets.thread_identity import ShowsThreadIdentity
@@ -300,7 +301,6 @@ class ContextCopy(SelectedSourceButton):
 
 class ContextCorrect(SelectedSourceButton):
     def apply(self, explorer: ContextExplorer, model: ContextNode) -> None:
-        from toad.widgets.comms_menu import ActionMenu
 
         answers = model.correction_answers()
         if not answers:

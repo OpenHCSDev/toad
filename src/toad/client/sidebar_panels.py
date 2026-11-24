@@ -26,9 +26,10 @@ from metaclass_registry import AbstractHooksMeta
 if TYPE_CHECKING:
     from formbridge.forms.declared_fields import DeclaredField
 
-    from toad.client.session_tracker import SidebarState
 
 from toad.client.lazy_pages import LazyPages
+from toad.client.session_tracker import SidebarState
+from toad.thread_actions import ThreadAction
 
 
 @dataclass(frozen=True)
@@ -135,5 +136,4 @@ class ActionPropertiesPanel:
         return self.definition.declaration
 
     async def handle_submission(self, arguments) -> None:
-        from toad.thread_actions import ThreadAction
         await ThreadAction.submit(self.context, self.definition, arguments)

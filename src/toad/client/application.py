@@ -51,8 +51,10 @@ from toad.core import session_requests
 from toad.launch_binding import AgentBinding
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
 from toad.navigation_preparation import NavigationReader
+from toad.render_backend import PreparedRenderer
 from toad.session_host import NavigationHost
 from toad.session_navigation import SessionNavigation
+from toad.setting_declarations import Effect
 from toad.sidebar_layout import SidebarLayout
 from toad.terminal_origin import TerminalOrigin
 from toad.thread_actions import ThreadActions
@@ -143,7 +145,6 @@ class ClientApplication(BusPickerHost, NavigationHost):
         app unable to open (2026-11-18: a saved theme Qt could not draw stopped the phone app at
         every launch). The failure is shown and saved by the app's error owner (`show_error`,
         which writes it to logs/errors), titled by the setting, and the setting's value stays."""
-        from toad.setting_declarations import Effect
         if (effect := field.metadata(Effect)) is None:
             return
         try:
@@ -213,7 +214,6 @@ class ClientApplication(BusPickerHost, NavigationHost):
         answer `app.render_processes` the same way, replacing the Qt app that had none and
         the TUI app that set its own (`ToadApp.__init__`, which `WireHistory` and the draft
         renderer already submitted through)."""
-        from toad.render_backend import PreparedRenderer
         return PreparedRenderer(self.preparation)
 
     def initialize_client(

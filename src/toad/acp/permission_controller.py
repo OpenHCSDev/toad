@@ -10,6 +10,7 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer
+from toad.core.events import RequestPermission
 from toad.permission_presentation import PermissionPresentation
 
 PERMISSION_TIMEOUT_SECONDS = 120.0
@@ -121,14 +122,12 @@ class PermissionController(ClientRequestOwner):
         return tuple(request for request in self.requests if request.pending)
 
     def request(self, options, tool_call):
-        from toad.core.events import RequestPermission
         request = ToolPermissionRequest(self, options, tool_call)
         self.requests.add(request)
         self.agent.events.publish(RequestPermission())
         return request
 
     def present(self):
-        from toad.core.events import RequestPermission
         if self.pending:
             self.agent.events.publish(RequestPermission())
 

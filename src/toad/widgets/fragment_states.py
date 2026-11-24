@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.nominal.fold import Absorbs, Accumulates, Fold
 
+from toad.block_navigation import FragmentBlockCursor
 from toad.client.fragments import FragmentKey
 from toad.client.reader_position import (
     FragmentLocation,
@@ -24,21 +25,19 @@ from toad.client.reader_position import (
     UnloadedFragment,
 )
 from toad.message_rows import RecordedMessageClock
+from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.presentation_window import UNPLACED, Unplaced
-from toad.widgets.transcript_lines import BlockSpan
+from toad.widgets.transcript_fragments import TranscriptFragment
+from toad.widgets.transcript_lines import BlockLines, BlockSpan
 
 
 if TYPE_CHECKING:
     from textual.widget import Widget
-    from toad.block_navigation import FragmentBlockCursor
-    from toad.widgets.history_anchor import HistoryWindow
-    from toad.widgets.transcript_fragments import TranscriptFragment
     from toad.widgets.transcript_history import (
         LaidOutRow,
         LineHistory,
         TranscriptPageView,
     )
-    from toad.widgets.transcript_lines import BlockLines
 
 
 @dataclass(frozen=True)

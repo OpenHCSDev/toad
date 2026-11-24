@@ -21,6 +21,7 @@ from agent_comms.display_order import ChannelSort, ThreadSort
 from formbridge.forms.declared_fields import Placeholder
 from python_introspect import FieldLabel
 
+from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 
 if TYPE_CHECKING:
@@ -134,7 +135,6 @@ class ChannelListOrder(CommsSortWrite["ChannelSort"]):
         return CommsSortChannelsTool(order=order)
 
     def visibility_fields(self) -> "tuple[FieldPath, ...]":
-        from toad.preferences import SETTINGS
         return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived
 
 

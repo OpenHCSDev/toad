@@ -52,6 +52,7 @@ from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
 from toad.widgets.future_text import FutureText
 from toad.session_presentation import (
+    MailboxSessionSources,
     OperationalSessionPresentation,
     OperationalSessionSources,
 )
@@ -394,7 +395,6 @@ class MainScreen(
     def mailbox_sources(self) -> MailboxSessionSources:
         """Textual's mailbox sources, imported here so the bind path of a frontend without
         Textual's widgets never loads them."""
-        from toad.session_presentation import MailboxSessionSources
         return MailboxSessionSources()
 
     def identity_changed(self, previous) -> None:

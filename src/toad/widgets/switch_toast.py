@@ -11,6 +11,7 @@ from rich.segment import Segment
 from rich.style import Style
 from textual.geometry import Region
 from textual.strip import Strip
+from toad.screens.session_view import SessionView
 from ui_theme.effects import Amount, Effect
 from ui_theme.scheme import (
     AccentColour,
@@ -35,7 +36,6 @@ if TYPE_CHECKING:
     from textual._paint_state import PaintState
     from textual.screen import Screen
 
-    from toad.screens.session_view import SessionView
 
 
 @dataclass(frozen=True)

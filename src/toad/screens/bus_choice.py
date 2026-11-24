@@ -72,7 +72,7 @@ class BusOption(BusChoiceLine, Option):
 
     def __init__(self, choice: PickerRow) -> None:
         self.choice = choice
-        super().__init__(self.line_label())
+        super().__init__(self.choice.label())
 
 
 class BusRows(AutoHeight, OptionList):

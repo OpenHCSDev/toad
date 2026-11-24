@@ -11,10 +11,12 @@ from agent_comms.planning.command import Command
 from formbridge.operations import OperationKind
 from agent_comms.projects.checkouts import Checkout
 
+from toad.constants import WELCOME
 from toad.core.events import CoreEvent
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import NavigationTarget
 
 if TYPE_CHECKING:
-    from toad.navigation_target import NavigationTarget
     from toad.session_navigation import SessionNavigation
 
 
@@ -96,8 +98,6 @@ class TargetOpen(WorkspaceSessionRequest):
     target: NavigationTarget
 
     async def apply(self, navigation: SessionNavigation) -> None:
-        from toad.constants import WELCOME
-        from toad.navigation_context import NavigationContext
 
         app = navigation.app
         await self.target.open(NavigationContext(app=app, owner_mode=WELCOME,

@@ -10,7 +10,7 @@ from abc import abstractmethod
 from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Self
+from typing import ClassVar, Self
 
 from agent_comms.installer.harness_install import Harness
 from agent_comms.messaging.exporting import (
@@ -29,11 +29,8 @@ from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.registry.thread_management import ImportDirectory
 from agent_comms.registry.thread_text import ExpectedSession
 
+from toad.client.connection import CapturedSource
 from toad.client.transfers import ThreadImportRequest, Transfer, WireExportRequest
-
-if TYPE_CHECKING:
-    from toad.client.connection import CapturedSource
-
 
 # What an export's choices offer.
 

@@ -23,6 +23,8 @@ from pyqt_reactive.widgets.fitted_text import WrappedText
 
 from toad.client.line_blocks import FailureRole, MutedRole
 from toad.client.queue_inspection import QueueDeliveryControls, QueueInspectionOwner
+from toad.conversation_submission import ConversationSubmissions
+from toad.qt.lines import QtLineRenderer
 from toad.widget_contracts import ActivatesContract
 from toad.qt.metrics import UiGap
 from toad.motion import ROW_REVEAL, TransitionTarget
@@ -33,9 +35,7 @@ from toad.qt.presented_window import PresentedWindow
 QWIDGETSIZE_MAX = (1 << 24) - 1
 
 if TYPE_CHECKING:
-    from toad.conversation_submission import ConversationSubmissions
     from toad.qt.composer import Composer
-    from toad.qt.lines import QtLineRenderer
 
 
 class QtActivatedText(ActivatesContract, WrappedText):

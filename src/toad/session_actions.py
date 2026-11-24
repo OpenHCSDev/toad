@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from toad.screens.session_view import SessionView
 from formbridge.key_declarations import TextEntryMode
+from toad.screens.session_view import SessionView
 from toad.widget_actions import WidgetAction
 
 

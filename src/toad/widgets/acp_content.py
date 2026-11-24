@@ -1,6 +1,7 @@
 from textual import containers
 from textual.app import ComposeResult
 from toad.tool_output import ToolOutputPart
+from toad.widgets.tool_content import ToolContent
 
 
 class ACPToolCallContent(containers.VerticalGroup):
@@ -13,7 +14,6 @@ class ACPToolCallContent(containers.VerticalGroup):
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        from toad.widgets.tool_content import ToolContent
 
         content = ToolContent()
         content.update(tuple(block for part in self.parts for block in part.line_blocks))

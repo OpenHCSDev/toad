@@ -13,8 +13,9 @@ from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING
 
+from toad.response_delivery import ResponseDelivery
+
 if TYPE_CHECKING:
-    from toad.response_delivery import ResponseDelivery
 
     from toad.live_output import OutputStream
 

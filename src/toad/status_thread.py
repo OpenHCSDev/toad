@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING
 from agent_comms.ui_model.status import ThreadStatusModel
 
 from toad.client.subscribers import CoreObserver, ThreadCallbackSubscription
+from toad.conversation_turn import ConversationTurn
 from toad.core.events import ThreadRowsChanged
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from toad.conversation_turn import ConversationTurn
 
 
 class ActivityView:

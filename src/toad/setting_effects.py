@@ -7,13 +7,16 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
+from toad.client.history import WireView
+from toad.client.history_pager import PagingWindow
+from toad.client.prompt_composer import PromptSettingEffects
+from toad.client.prompt_stack import SettingVisible
+from toad.client.view_layout import LayoutFollower
 from toad.setting_declarations import Effect
 
 
 @Effect
 def visibility(app: ToadApp, field: DeclaredField) -> None:
-    from toad.client.prompt_composer import PromptSettingEffects
-    from toad.client.prompt_stack import SettingVisible
     for widget in Effect.open_widgets(app, SettingVisible):
         if widget.visibility_setting == field.path.value:
             widget.apply_setting_visibility()
@@ -30,14 +33,12 @@ def wheel_scroll_rows(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
-    from toad.client.history_pager import PagingWindow
     for window in Effect.open_widgets(app, PagingWindow):
         window.apply_buffer_viewports()
 
 
 @Effect
 def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
-    from toad.client.view_layout import LayoutFollower
     for widget in Effect.open_widgets(app, LayoutFollower):
         widget.apply_layout_preferences()
 
@@ -72,6 +73,5 @@ def blink_title(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def message_style(app: ToadApp, field: DeclaredField) -> None:
-    from toad.client.history import WireView
     for view in Effect.open_widgets(app, WireView):
         view.apply_message_style()

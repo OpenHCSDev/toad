@@ -19,12 +19,12 @@ from typing import TYPE_CHECKING
 
 from agent_comms.messaging.display_references import ReferenceContext
 from agent_comms.registry.thread_identity import ThreadIncarnation
+from toad.client.connection import Observing
+from toad.client.conversation import ConversationKind
+from toad.client.sidebar_state import SidebarModelState
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import SidebarModel
-    from toad.client.conversation import ConversationKind
-    from toad.client.connection import Observing
-    from toad.client.sidebar_state import SidebarModelState
 
 
 class ChannelActivityTitle:
