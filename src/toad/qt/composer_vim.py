@@ -12,40 +12,18 @@ subclass on the same base.
 
 from __future__ import annotations
 
-from formbridge.key_declarations import ModalInputMode
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent, QTextCursor
 
-from toad.neovim_editing import InsertState, NeovimState, NormalState
+from toad.key_modes import ModalEditingState
 
 
-class ComposerVimMode(ModalInputMode):
-    """Modal command dispatch for Qt's ComposerEditor. Inherits the shared
-    `ModalInputMode` contract (modal=True, navigation_spellings, fallback_bindings) so the
-    declared-key machinery treats this the same as Textual's VimMode.
-
-    Its state is a member of Textual's `NeovimState` family (`InsertState`,
-    `NormalState`, …), so the mode names and `accepts_text` come from the one owner the
-    TUI's badge reads; the saved `key_mode` picks the starting member by its first map mode."""
+class ComposerVimMode(ModalEditingState):
+    """Modal command dispatch for Qt's ComposerEditor over the shared `ModalEditingState`."""
 
     def __init__(self, key_mode) -> None:
-        self.state: NeovimState = NeovimState.for_mode(key_mode.map_modes[0])(blocking=False)
+        super().__init__(key_mode)
         self._pending: str = ""  # multi-char commands like `dd`, `gg`
-
-    @property
-    def label(self) -> str:
-        return self.state.label
-
-    @property
-    def accepts_text(self) -> bool:
-        """The shared `EditingMode.accepts_text`, answered by the current Neovim state."""
-        return self.state.accepts_text
-
-    def enter_insert(self) -> None:
-        self.state = InsertState(blocking=False)
-
-    def enter_normal(self) -> None:
-        self.state = NormalState(blocking=False)
 
 
 _NORMAL_MOTIONS: dict[int, QTextCursor.MoveOperation] = {

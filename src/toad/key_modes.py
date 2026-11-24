@@ -5,7 +5,7 @@ from agent_comms.nominal.declared_choice import DeclaredChoice
 from formbridge.key_declarations import ModalInputMode, NavigationKey
 from textual.document._editing import EditingMode
 
-from toad.neovim_editing import NeovimEditing
+from toad.neovim_editing import InsertState, NeovimEditing, NeovimState, NormalState
 
 
 class KeyMode(EditingMode, DeclaredChoice, affix=""):
@@ -41,3 +41,25 @@ class VimVisual(NeovimEditing, KeyMode):
 
     initial_keys = "v"
     map_modes = ("x",)
+
+
+class ModalEditingState(ModalInputMode):
+    """Stateful modal input mode backed by the shared `NeovimState` family."""
+
+    def __init__(self, key_mode: type[KeyMode]) -> None:
+        self.state: NeovimState = NeovimState.for_mode(key_mode.map_modes[0])(blocking=False)
+
+    @property
+    def label(self) -> str:
+        return self.state.label
+
+    @property
+    def accepts_text(self) -> bool:
+        """The shared `EditingMode.accepts_text`, answered by the current Neovim state."""
+        return self.state.accepts_text
+
+    def enter_insert(self) -> None:
+        self.state = InsertState(blocking=False)
+
+    def enter_normal(self) -> None:
+        self.state = NormalState(blocking=False)

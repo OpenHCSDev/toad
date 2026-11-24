@@ -69,8 +69,8 @@ from toad.client.reader_position import (
     UnloadedFragment,
 )
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
-from toad.workspace_frame import WorkspaceHosted
-from toad.workspace_frame import WorkspaceFrame
+from toad.no_worker import NoTask
+from toad.workspace_frame import WorkspaceFrame, WorkspaceHosted
 from toad.markdown_links import LinkContext
 from toad.qt.float_layer import QtFloatLayer
 from toad.qt.lines import QtLineRenderer
@@ -760,16 +760,6 @@ class PreparedOnFill(RowFormatting):
 
     def fill(self, document: QTextDocument) -> None:
         self.prepare().fill(document)
-
-
-class NoTask:
-    """No read or read-ahead has started yet."""
-
-    def done(self) -> bool:
-        return True
-
-    def cancel(self) -> None:
-        """Nothing runs to cancel."""
 
 
 class SourceTask(asyncio.Task):

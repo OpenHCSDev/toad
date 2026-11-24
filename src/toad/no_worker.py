@@ -26,4 +26,15 @@ class NoTimer:
         pass
 
 
+class NoTask:
+    """No asyncio task has started yet; callers need no absence branch."""
+
+    def done(self) -> bool:
+        return True
+
+    def cancel(self) -> None:
+        """Nothing runs to cancel."""
+
+
 NO_TIMER = NoTimer()
+NO_TASK = NoTask()

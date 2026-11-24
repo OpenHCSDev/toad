@@ -8,7 +8,7 @@ paint calls.
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import ClassVar
 
 from agent_comms.messaging.message_files import FileUpload
@@ -16,6 +16,7 @@ from metaclass_registry import AbstractHooksMeta
 from ui_theme.scheme import InputToneColour, PromptToneColour, ThemeColour, TurnBandColour
 
 from toad.client.input_decision import InputDecision
+from toad.client.mention_completion import MentionCompletion
 from toad.setting_declarations import EachOpenWidget
 
 
@@ -196,3 +197,47 @@ class ComposerStatus:
 
     def composed_status(self):
         return self.composer_block or self.thread_status
+
+
+class ComposerOffer(ABC):
+    """One completion row offered above a composer: its display label and optional detail."""
+
+    @property
+    @abstractmethod
+    def offer_label(self) -> str: ...
+
+    @property
+    def offer_detail(self) -> str:
+        return ""
+
+    @property
+    def offer_multiline(self) -> bool:
+        return False
+
+
+class SlashCommandOffer(ComposerOffer):
+    """A slash-command completion offer: command spelling + help detail."""
+
+    match: object
+
+    @property
+    def offer_label(self) -> str:
+        return self.match.command.command
+
+    @property
+    def offer_detail(self) -> str:
+        return self.match.command.help
+
+    @property
+    def offer_multiline(self) -> bool:
+        return True
+
+
+class MentionCandidateOffer(ComposerOffer):
+    """A thread/peer mention completion offer."""
+
+    candidate: object
+
+    @property
+    def offer_label(self) -> str:
+        return MentionCompletion.label(self.candidate)
