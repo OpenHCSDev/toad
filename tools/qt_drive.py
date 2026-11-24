@@ -94,7 +94,7 @@ from toad.client.history import ChannelDestination, WirePageBuffer
 from toad.qt.command_form import QtCommandDialog
 from toad.qt.keymap_screen import QtKeymapScreen
 from toad.qt.opening_view import QtOpeningSessionView
-from toad.thread_sidebar_declarations import panel_specs_for_view
+from toad.thread_sidebar_declarations import ThreadSidebarPanel
 from toad.client.bus_submission import ConversationSubmission
 from toad.setting_choices import CenterColumnAlignment, HiddenScrollbar, TransientScrollbar
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
@@ -2545,14 +2545,14 @@ class ChromeScenario(Scenario):
         picker.setCurrentIndex(entries.index("Comms"))
         await asyncio.sleep(1.5)
         self.report("5-comms-page", shown=picker.currentText())
-        settings = len(panel_specs_for_view(is_session=True))
+        settings = len(ThreadSidebarPanel.members_with(ThreadSidebarPanel))
         picker.setCurrentIndex(settings)
         await asyncio.sleep(0.5)
         self.report("6-settings-page", shown=picker.currentText())
         # The view's configuration operations load after its settings, as Textual's picker
         # adds them: the last entry is the thread's next-turn model form, an embedded page.
         if native:
-            roster = len(panel_specs_for_view(is_session=True)) + len(tuple(self.page.configuration_fields()))
+            roster = len(ThreadSidebarPanel.members_with(ThreadSidebarPanel)) + len(tuple(self.page.configuration_fields()))
             await until(lambda: picker.count() > roster, "configuration actions", tenths=150)
             picker.setCurrentIndex(picker.count() - 1)
             await asyncio.sleep(1.0)
@@ -4669,7 +4669,7 @@ class FingerScenario(Scenario):
         await asyncio.sleep(0.5)
         await self.exercise("4-picker-popup")
         picker.hidePopup()
-        picker.setCurrentIndex(len(panel_specs_for_view(is_session=True)))
+        picker.setCurrentIndex(len(ThreadSidebarPanel.members_with(ThreadSidebarPanel)))
         await asyncio.sleep(0.8)
         await self.exercise("5-view-settings")
         app.thread_side.toggle_pane()
