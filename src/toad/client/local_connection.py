@@ -26,10 +26,10 @@ from agent_comms.storage.locked_store import RootFile
 from agent_comms.transport.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.observation import (
-    LocalRouteObservation,
     ObservationProcess,
     ObservationSource,
 )
+from agent_comms.ui_model.observation_service import LocalRouteObservation
 from agent_comms.ui_model.sidebar import SidebarModel
 
 from toad.client.agent_processes import AgentProcesses, SpawnsAgentProcesses
