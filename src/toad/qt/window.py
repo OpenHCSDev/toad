@@ -727,8 +727,9 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
     step off: pyqt-reactive's preview delegate paints each row's unread badge and label with
     its summary under it in muted text; a tap activates the line."""
 
-    def __init__(self, window: QtToadApp) -> None:
-        super().__init__()
+    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
         self.window = window
         self.setHeaderHidden(True)
         cell = self.fontMetrics().averageCharWidth()
@@ -1009,8 +1010,8 @@ class ChannelTreeSidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine,
     groups: dict[str, QtChannelGroup]
     open_views: dict[str, str]
 
-    def __init__(self, window: QtToadApp) -> None:
-        super().__init__(window)
+    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__(window, parent)
         self.groups = {}
         self.open_views = {}
         self.held_menu = HeldRowMenu(self, self)
@@ -1193,8 +1194,9 @@ class ChannelActivitySidebar(RowFittedTree, ChannelTreeSidebar):
     channel's tree (its header with unread badge & sort control, expanding to live member
     `ThreadLine`s with waving names, tap-to-open, and right-click/long-press menus)."""
 
-    def __init__(self, window: QtToadApp, conversation: ConversationKind) -> None:
-        super().__init__(window)
+    def __init__(self, window: QtToadApp, conversation: ConversationKind,
+                 parent: QWidget | None = None) -> None:
+        super().__init__(window, parent)
         self.channel_name = conversation.target.name
         self.bind_row_fitting()
         access = window.coordination_access
@@ -1211,7 +1213,8 @@ class ChannelActivitySidebar(RowFittedTree, ChannelTreeSidebar):
 
     def fit_rows(self) -> None:
         super().fit_rows()
-        self.setVisible(self.topLevelItemCount() > 0)
+        if self.parentWidget() is not None:
+            self.setVisible(self.topLevelItemCount() > 0)
 
     def after_sync(self) -> None:
         self.fit_rows()
@@ -1375,7 +1378,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         return MessageComposer(self, self.app.renderer)
 
     def compose_channel_activity(self) -> Iterator[ChannelActivitySidebar]:
-        yield ChannelActivitySidebar(self.app, self.conversation)
+        yield ChannelActivitySidebar(self.app, self.conversation, parent=self)
 
     def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator[QtGoalBar | PeerActivity]:
         # The peer's goal sits over its activity and the composer, as the TUI's goal bar
