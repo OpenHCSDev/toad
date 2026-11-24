@@ -197,8 +197,6 @@ class SeekingFilter(NoFilter):
                 owner.window.lookahead.ahead_rows(owner.window.viewport_rows))
 
     async def advance(self, snapshot):
-        from toad.widgets.transcript_history import ProjectedTranscriptHistory
-
         owner = self.owner
         source = owner.projected_source(owner.selected_categories)
         try:
@@ -213,7 +211,7 @@ class SeekingFilter(NoFilter):
             )
             if not snapshot.current(owner):
                 return False
-            projection = ProjectedTranscriptHistory(owner, source, prepared)
+            projection = owner.projected_history(source, prepared)
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
                     return False

@@ -9,7 +9,7 @@ from toad.client.line_blocks import MessageBody, Divider, UserRole
 from toad.message_rows import MessageClock, LiveMessageClock
 from toad.widgets.message_divider import MessageDivider
 from agent_comms.ui_model.message_category import MessageCategory
-from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.commit_claims import SnapshotPresentation
 from toad.commit_claims import CAPTURED_CLAIM, CommitClaim
 
 

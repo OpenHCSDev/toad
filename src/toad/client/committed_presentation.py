@@ -14,36 +14,31 @@ from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.sent_message import OutgoingMessageReference
 from agent_comms.transcript.transcript_events import TranscriptCoverage
 from agent_comms.transcript.transcripts import TranscriptPage
+from formbridge.forms.declared_fields import DeclaredViews
 from metaclass_registry.mro_dispatch import handles
 from textual.await_complete import AwaitComplete
-from textual.widget import Widget
 
+from toad.client.history_preparation import NEWER_END
+from toad.client.history_state import PreparedReplacementViewportRequest, TranscriptState, WorkingTranscript
+from toad.client.prepared_pages import PreparedPageSource, SavedHistory
+from toad.client.reader_position import LatestPosition
 from toad.commit_claims import (
-    CAPTURED_CLAIM,
-    CapturedClaim,
     CommitBarrierClaim,
     CommitClaim,
     CommitEvidence,
     CommitParticipant,
-    CommitSource,
     RetainedBlockClaim,
-    SnapshotPresentation,
 )
 from toad.core.projection import MroProjection
-from toad.client.history_preparation import NEWER_END
-from toad.client.history_state import PreparedReplacementViewportRequest, TranscriptState, WorkingTranscript
-from toad.widgets.history_anchor import HistoryWindow
-from toad.client.reader_position import LatestPosition
-from toad.widgets.presentation_window import protected_presentations
 from toad.transcript_preparation import TranscriptPageRenderTask
-from toad.client.prepared_pages import PreparedPageSource, SavedHistory
-from formbridge.forms.declared_fields import DeclaredViews
 
 if TYPE_CHECKING:
+    from textual.widget import Widget
+
     from toad.client.prepared_pages import PreparedTranscriptPage
     from toad.widgets.conversation import Conversation
+    from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
-
 
 
 class CommitBarrier:
@@ -70,18 +65,17 @@ class BlockClaims(MroProjection[CommitClaim]):
 BLOCK_CLAIMS = BlockClaims()
 
 
-def block_claim(widget: Widget) -> CommitClaim:
+def block_claim(widget: object) -> CommitClaim:
     return BLOCK_CLAIMS.project_value(widget)
 
 
-def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
+def retirement_candidates(widgets: Iterable[object], evidence: CommitEvidence) -> list[object]:
     return [widget for widget in widgets if block_claim(widget).covered(widget, evidence)]
 
-def required_sequences(widgets: Iterable[Widget]) -> frozenset[int]:
+
+def required_sequences(widgets: Iterable[object]) -> frozenset[int]:
     return frozenset(sequence for widget in widgets for sequence in block_claim(widget).required_sequences)
 
-def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Widget]:
-    return protected_presentations(candidates, (*view.screen._interaction_widgets(), *view.cursor_block.endpoints))
 
 @dataclass(frozen=True)
 class PreparedCommit(DeclaredViews):
@@ -99,7 +93,7 @@ class PreparedCommit(DeclaredViews):
         return self.history.outgoing_coverage
 
     async def draw(self, cursor: TranscriptCursor, is_current: Callable[[], bool],
-                   live_blocks: tuple[Widget, ...]) -> bool:
+                   live_blocks: tuple[object, ...]) -> bool:
         """A retained viewport changes source access without drawing rows."""
         return True
 
@@ -186,14 +180,14 @@ class CommitPlan(ABC):
     def current(self, window: HistoryWindow) -> bool:
         pass
 
-    def permits(self, view: Conversation, candidates: Iterable[Widget]) -> bool:
+    def permits(self, view: Conversation, candidates: Iterable[object]) -> bool:
         return not view.protected_blocks(candidates)
 
     def ready(self, history: CommittedHistory) -> bool:
         return history.source_ready
 
     async def prepare(self, view: Conversation, history: TranscriptHistory,
-                      page: TranscriptPage, captured: frozenset[Widget]) -> PreparedCommit:
+                      page: TranscriptPage, captured: frozenset[object]) -> PreparedCommit:
         """Share exact wire coverage; each destination owns its render action."""
         sequences = TranscriptCoverage(page.events).sequences
         if history.accepts_commit(page.after):
@@ -214,6 +208,7 @@ class CommitPlan(ABC):
 
     def finish(self, view: Conversation, cursor: TranscriptCursor) -> None:
         """A retained viewport does not claim that newer records were painted."""
+
 
 class FollowTailCommit(CommitPlan):
     def __init__(self, window: HistoryWindow) -> None:
@@ -236,6 +231,7 @@ class FollowTailCommit(CommitPlan):
         if self.current(window):
             window.anchor()
 
+
 class RetainViewportCommit(CommitPlan):
     def current(self, window: HistoryWindow) -> bool:
         # Extending the source leaves the loaded rows and reader position intact.
@@ -249,6 +245,7 @@ class RetainViewportCommit(CommitPlan):
     def commit(self, prepared, cursor) -> None:
         prepared.history.retain_committed(cursor)
 
+
 def commit_plan(window: HistoryWindow) -> CommitPlan:
     return FollowTailCommit(window) if window.follows_tail else RetainViewportCommit()
 
@@ -260,7 +257,7 @@ class CommitTranscript(WorkingTranscript):
     row, so no frame shows both copies of the turn, or neither.
     """
 
-    def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...],
+    def __init__(self, source: TranscriptState, owner, live_blocks: tuple[object, ...],
                  claims: tuple[CommitClaim, ...]):
         super().__init__(source, owner)
         self.live_blocks = live_blocks

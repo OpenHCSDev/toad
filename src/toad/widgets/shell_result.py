@@ -12,7 +12,7 @@ from ui_theme.scheme import ForegroundColour, PrimaryColour
 
 from toad.native_style import PrimaryText, RightMargin
 from toad.widgets.non_selectable_label import NonSelectableLabel
-from toad.widgets.committed_presentation import CommitBarrier
+from toad.client.committed_presentation import CommitBarrier
 from toad.shell_output import ShellCommandOutput
 
 

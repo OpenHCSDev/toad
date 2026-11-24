@@ -236,14 +236,8 @@ def ui_chains(modules: frozenset[str]) -> dict[str, tuple[str, ...]]:
 KNOWN_UI_LOADING: dict[str, str] = {
     'toad.client.block_menu':
         'toad.keymap -> textual.screen -> textual.widgets._toast -> textual.containers',
-    'toad.client.history_rows_view':
-        'toad.transcript_publication -> toad.session_scope -> toad.widgets.side_bar -> toad.widgets.comms_menu -> textual.view -> textual.app',
     'toad.client.keymap_browser':
         'toad.keymap -> textual.screen -> textual.widgets._toast -> textual.containers',
-    'toad.client.session_sources':
-        'toad.transcript_publication -> toad.session_scope -> toad.widgets.side_bar -> toad.widgets.comms_menu -> textual.view -> textual.app',
-    'toad.client.thread_binding_dispatch':
-        'toad.transcript_publication -> toad.session_scope -> toad.widgets.side_bar -> toad.widgets.comms_menu -> textual.view -> textual.app',
     'toad.question_actions':
         'toad.widget_actions -> textual.widgets._text_area -> textual.screen -> textual.widgets._toast -> textual.containers',
     'toad.view_actions':

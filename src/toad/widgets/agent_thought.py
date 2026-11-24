@@ -7,7 +7,7 @@ from typing import Iterable
 from toad.client.line_blocks import LineBlock
 from toad.menus import CopyThinkingCommand, MenuCommand
 from toad.client.agent_activity import AgentActivityPresentation
-from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.commit_claims import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.native_style import FillWidth
