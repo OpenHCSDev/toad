@@ -367,8 +367,16 @@ class Divider(LineBlock):
         return self.label
 
 
+class TextLineBlock(LineBlock):
+    """A line block whose selectable text is its own ``text``."""
+
+    @property
+    def selection_text(self) -> str:
+        return self.text
+
+
 @dataclass(frozen=True)
-class SpanText(LineBlock):
+class SpanText(TextLineBlock):
     """Text made of spans; subclasses decide whether it wraps or clips."""
 
     spans: tuple[Span, ...]
@@ -376,10 +384,6 @@ class SpanText(LineBlock):
     @property
     def text(self) -> str:
         return "".join(span.text for span in self.spans)
-
-    @property
-    def selection_text(self) -> str:
-        return self.text
 
     @classmethod
     def titled(cls, title: str, role: type[LineRole] = MutedRole) -> Self:
@@ -463,16 +467,12 @@ class Gap(LineBlock):
 
 
 @dataclass(frozen=True)
-class Body(LineBlock):
+class Body(TextLineBlock):
     """Plain text, optionally marked by a bar in another role."""
 
     text: str
     role: type[LineRole] = TextRole
     bar: type[LineRole] = NoBar
-
-    @property
-    def selection_text(self) -> str:
-        return self.text
 
     def presentation(self) -> tuple[LineBlock, ...]:
         """A body used inside another block has no message separator."""
