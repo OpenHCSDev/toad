@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Self
 
-from agent_comms.history_views import RetiredViews
+from agent_comms.ui_model.retired_views import RetiredViews
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.client.session_tracker import OpenTab

@@ -21,7 +21,7 @@ from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.execution.launch_runtime import LaunchRuntime
 from agent_comms.transport.request import CoreAccess
-from agent_comms.history_views import RetiredViews
+from agent_comms.ui_model.retired_views import RetiredViews
 from agent_comms.projects.checkouts import Checkout
 
 from agent_comms_hooks import ToolRefusedError

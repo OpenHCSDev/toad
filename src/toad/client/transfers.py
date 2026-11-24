@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.cli_verbs.cli_result import CliResult
-from agent_comms.importing import ThreadImported
+from agent_comms.registry.thread_results import ImportDirectory, ThreadImported
 from agent_comms.installer.harness_install import Harness
 from agent_comms.messaging.exporting import (
     WireExportFormat,
@@ -25,7 +25,6 @@ from agent_comms.messaging.exporting import (
     WireExportScope,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.registry.thread_management import ImportDirectory
 from agent_comms.registry.thread_text import ExpectedSession
 from agent_comms.transport.progress import CancellableWireExport, WireExportCancelled
 from agent_comms.transport.tools.sidebar import CommsExportWireTool, CommsImportThreadTool

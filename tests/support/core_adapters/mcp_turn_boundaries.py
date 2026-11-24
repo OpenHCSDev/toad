@@ -22,7 +22,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.execution.session_updates import encode_updates
 from agent_comms.comms import wire
-from agent_comms.coordination.coordinator import Coordination
+from agent_comms.coordination.work import CoordinationWork
 from agent_comms.execution.launch_runtime import ThreadLaunch
 from agent_comms.execution.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.execution.turn_lease import NoFinishedTurn
@@ -69,7 +69,7 @@ async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
     try:
         async with AsyncExitStack() as resources:
             project.mkdir(parents=True, exist_ok=True)
-            comms = await Coordination.run_worker(partial(wire, wire_root))
+            comms = await CoordinationWork.run_worker(partial(wire, wire_root))
             producer = CommsAgent(comms, auto_wake=False)
 
             def declare():
@@ -77,11 +77,11 @@ async def turn_source(wire_root: Path, project: Path, session_id: AcpSessionId):
                 # Enlist cleanup before joined worker delivery, including a
                 # cancelled declaration whose committed owner must retire.
                 resources.push_async_callback(
-                    Coordination.run_worker, partial(comms.owners.stop, thread.name),
+                    CoordinationWork.run_worker, partial(comms.owners.stop, thread.name),
                 )
                 return thread
 
-            thread = await Coordination.run_worker(declare)
+            thread = await CoordinationWork.run_worker(declare)
             # Retirement runs in reverse: the owner releases its own binding first, so the
             # stop retires a released declaration instead of dialing a still-bound owner.
             resources.push_async_callback(producer.shutdown)
@@ -146,21 +146,21 @@ async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) ->
     async with turn_source(source_root / "wire", source_root / "project", session_id) as producer:
         name = producer.sessions.require(session_id)
         async with AsyncExitStack() as custody:
-            retired_owner = await Coordination.run_worker(partial(
+            retired_owner = await CoordinationWork.run_worker(partial(
                 producer.turns.acquire_turn, custody, session_id, name,
                 RETIRED, "Authored MCP boundary; no input",
             ))
             # The lease is read while the turn is held: closing this stack retires its file.
             retired_lease = retired_owner.turn_lease
-        retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
+        retired = await CoordinationWork.run_worker(partial(producer.turns.current_turn_update, session_id))
         await send(McpClientAcknowledgementUpdate(RETIRED, receipt))
         assert not notes(view)
         async with AsyncExitStack() as custody:
-            await Coordination.run_worker(partial(
+            await CoordinationWork.run_worker(partial(
                 producer.turns.acquire_turn, custody, session_id, name,
                 OBSERVED, "Authored MCP boundary; no input",
             ))
-            active = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
+            active = await CoordinationWork.run_worker(partial(producer.turns.current_turn_update, session_id))
             await send(TurnChangedUpdate(active.state))
             assert agent.current_turn.managed_id == view.turns.managed_id == OBSERVED
             # Deliberate: Toad must refuse a session it does not hold. Its log then carries one
@@ -178,12 +178,12 @@ async def exercise_boundaries(relay: Relay, agent: Agent, view: Conversation) ->
             assert len(rendered) == 1 and "not a grant" in rendered[0]
             await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             assert notes(view) == rendered
-            assert await Coordination.run_worker(partial(
+            assert await CoordinationWork.run_worker(partial(
                 producer._comms.agents.finish_turn, retired_lease,
             )) == NoFinishedTurn()
             await send(TurnChangedUpdate(retired.state))
             assert agent.current_turn.managed_id == view.turns.managed_id == OBSERVED
-        terminal = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
+        terminal = await CoordinationWork.run_worker(partial(producer.turns.current_turn_update, session_id))
         await send(TurnChangedUpdate(terminal.state))
         assert agent.current_turn.managed_id is view.turns.managed_id is None
         assert not notes(view)
