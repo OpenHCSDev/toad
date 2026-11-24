@@ -1238,6 +1238,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     block_menu_requested = Signal(object, QPoint, name="blockMenuRequested")
 
     history: QtConversationHistory
+    _cached_font_line_spacing: tuple[QFont, int] | None = None
     # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
     @property
@@ -1913,7 +1914,7 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
     def _font_line_spacing(self) -> int:
         """Cached `QFontMetrics(self.font()).lineSpacing()`; refreshed on a font change."""
         font = self.font()
-        cached = getattr(self, "_cached_font_line_spacing", None)
+        cached = self._cached_font_line_spacing
         if cached is None or cached[0] != font:
             spacing = QFontMetrics(font).lineSpacing()
             self._cached_font_line_spacing = (QFont(font), spacing)

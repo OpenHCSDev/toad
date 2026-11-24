@@ -204,7 +204,7 @@ class SidebarSessionView[SidebarT: ThreadSidebar](ConfiguredView, ConversationSe
         declarations = await self.app.preparation.run_thread(self.configuration_actions)
         panels = []
         for context, action, fields in declarations:
-            panel = self.action_panel(action)
+            panel = self.configuration_action_panel(action)
             panels.append(SideBar.Panel(title=panel.title, widget=ActionProperties(context, action, fields),
                                         flex=panel.flex))
         return tuple(panels)

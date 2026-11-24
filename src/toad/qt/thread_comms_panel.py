@@ -88,8 +88,9 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
     State (group-expansion, selection) is kept per `SessionIdentity` in the shared
     `RelationshipTreeState` so a reopened tab restores its prior view."""
 
-    def __init__(self, search: SidebarFilter, parent: QWidget | None = None) -> None:
+    def __init__(self, app, search: SidebarFilter, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._app = app
         self.setWindowFlags(Qt.WindowType.Widget)
         # The thread sidebar's search narrows the relationship rows, as Textual's
         # `ThreadCommsSidebar` follows its sidebar's search (`SearchFollower`).
@@ -164,9 +165,7 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
                 self._context.setText("No thread root")
                 self._tree.clear()
                 return
-            app = self._app()
-            if app is None:
-                return
+            app = self._app
             access = app.coordination_access
             service = await self.observed_source(access, app.preparation, root)
             if service is None or identity != self.thread_identity:
@@ -181,14 +180,6 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
     def show_source_unavailable(self, text: str) -> None:
         self._context.setText(text)
         self._tree.clear()
-
-    def _app(self):
-        parent = self.parent()
-        while parent is not None:
-            if hasattr(parent, "coordination_access") and hasattr(parent, "preparation"):
-                return parent
-            parent = parent.parent()
-        return None
 
     def _apply(self, snapshot: ThreadCommsSnapshot) -> None:
         self._snapshot = snapshot
@@ -231,29 +222,27 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         """The relationship's own menu (`RelationshipLine.menu_entries`) for the row under
         ``point`` (viewport coordinates), in the window's menu panel; a group line has none."""
         item = self._tree.itemAt(point)
-        if self._row_entry(item) is None or self._app() is None:
+        if self._row_entry(item) is None:
             return
         asyncio.ensure_future(self._offer_read(item))
 
     async def _offer_read(self, item: QtRelationshipItem) -> None:
         entries = await item.menu_entries()
-        if (app := self._app()) is not None:
-            app.offer_entries(entries)
+        self._app.offer_entries(entries)
 
     def relationship_opener(self, line: QtRelationshipItem):
         """Open reads the list again first (`_open_current`), as Textual's opener does."""
         return lambda: asyncio.ensure_future(self._open_current(line.group, line.entry))
 
     def copy_name(self, name: str) -> None:
-        if (app := self._app()) is not None:
-            app.copy_to_clipboard(name)
+        self._app.copy_to_clipboard(name)
 
     async def _open_current(self, group, entry: RelationshipEntry) -> None:
         """Open the relationship as it stands now: the list read again, and a relationship
         that changed since it was drawn is not opened (Textual's `_navigate_current`)."""
-        app = self._app()
+        app = self._app
         identity = self.thread_identity
-        if app is None or identity.root_path is None:
+        if identity.root_path is None:
             return
         if identity.root_path != app.coordination_access.observation.observed().root:
             app.show_warning("This view uses a different wire; open its matching connection to navigate.", "Comms")
@@ -286,7 +275,7 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         if snapshot is None:
             raise ValueError("Relationship ordering is not available yet")
         identity = self.thread_identity
-        app = self._app()
+        app = self._app
         access = app.coordination_access
         service = await app.preparation.run_thread(lambda: access.observing(identity.root_path))
         try:

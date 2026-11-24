@@ -19,7 +19,7 @@ def test_transcript_loaders_use_captured_actor():
     loaders = [node.args[0] for node in ast.walk(source) if isinstance(node, ast.Call)
                and isinstance(node.func, ast.Name) and node.func.id == 'SavedTranscript']
     assert len(loaders) == 1
-    assert ast.unparse(loaders[0]) == 'view.transcript.get_transcript_page'
+    assert ast.unparse(loaders[0]) == 'view.transcript'
 
 
 def test_root_transcript_state_deleted():
