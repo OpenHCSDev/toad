@@ -21,7 +21,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 
 from agent_comms.task_attachments.disclosure_text import ViewTable
-from agent_comms.team.team_hud import TeamBoardCut, TeamBoardSelection, TeamHud
+from agent_comms.team.team_board_selection import TeamBoardSelection
+from agent_comms.team.team_hud import TeamBoardCut, TeamHud
 from agent_comms.team.team_hud_records import HudRecord, HudSection
 from agent_comms.ui_model.hud_groups import HudGroup
 

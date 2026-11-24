@@ -25,10 +25,9 @@ from agent_comms.task_attachments.team_pings import (
 )
 from agent_comms.team.board_actions import BoardActionApplied, BoardActionOffer
 from agent_comms.team.standing_rules import ServicePassFailing
+from agent_comms.team.team_board_selection import AllTeamBoards, NamedTeamBoards
 from agent_comms.team.team_hud import (
-    AllTeamBoards,
     CodexUsage,
-    NamedTeamBoards,
     TeamBoardCut,
     TeamBoardPublicationStore,
     TeamHud,
