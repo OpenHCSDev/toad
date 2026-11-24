@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.cli_verbs.cli_result import ResultShower
 from agent_comms.nominal.field_codec import FieldCodec
-from objectstate import ObjectState, ObjectStateRegistry
 from rich.color import Color as RichColor
 from rich.console import RenderableType
 from rich.segment import Segment
@@ -91,8 +90,10 @@ except ModuleNotFoundError:
     BaseObserver = _NoWatchdogObserver  # type: ignore[assignment,misc]
 
 from toad.colour_ink import ColourInk
+from toad.client.host import NoticeHost
 from toad.client.line_blocks import LineRole
-from toad.preferences import SavedSettings, ToadSettings
+from toad.client.view_settings import ApplicationSettings
+from toad.preferences import SavedSettings
 from toad.render_tasks import TextEffectRenderTask
 from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 
@@ -537,7 +538,7 @@ class _ThemedAppMeta(_MessagePumpMeta, ABCMeta):
     """Compose Textual message dispatch with the result display capability."""
 
 
-class ThemedApp(SettingsScope, App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
+class ThemedApp(ApplicationSettings, SettingsScope, App[ReturnType], NoticeHost, ResultShower, metaclass=_ThemedAppMeta):
     """A Textual app drawn through ui_theme: mix in before `App`.
 
     Holds the colours owner and answers Textual's three questions from it: the
@@ -551,19 +552,15 @@ class ThemedApp(SettingsScope, App[ReturnType], ResultShower, metaclass=_ThemedA
 
     def __init__(self) -> None:
         # Line styles read the diff settings, so a themed app holds settings before its colours.
-        # The assignment goes through `ClientApplication.saved_settings` setter which
-        # also registers with `ObjectStateRegistry`; no explicit register call here.
         self.saved_settings = self.open_settings()
         # Textual asks for the colour system and the palette while it builds the app.
         self.colours = TextualColours(self)  # type: ignore[arg-type]
         super().__init__()
         self.colours.register_catalog()
 
-    # `configuration_state`, `settings`, `open_settings` all provided by
-    # `ClientApplication` (earlier in MRO for the live `ToadApp`), so the local
-    # definitions this class used to hold are gone. Textual's `SettingsReader`
-    # widget-local scoping still walks ancestors and reaches the app's
-    # `configuration_state` via that MRO owner.
+    def open_settings(self) -> SavedSettings:
+        """Settings held by this app alone; ClientApplication opens the settings file instead."""
+        return SavedSettings()
 
     def _display(self, screen: Screen, renderable: RenderableType | None) -> None:
         super()._display(screen, renderable)
@@ -574,10 +571,6 @@ class ThemedApp(SettingsScope, App[ReturnType], ResultShower, metaclass=_ThemedA
 
     def show_done(self, text: str, title: str) -> None:
         self.notify(text, title=title)
-
-    # show_error lives on CommsHost (client/host.py): it dispatches to self.notify(...),
-    # which Textual's App already provides with a matching signature. The ToolRefusedError
-    # transient branch + paths.save_error + crash-sink POST all moved to the shared method.
 
     def get_color_system(self) -> str:
         return self.colours.depth.name

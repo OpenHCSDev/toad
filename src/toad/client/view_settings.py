@@ -15,6 +15,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING
 
 from formbridge.forms.parameter_form_service import ParameterFormService
+from objectstate import ObjectState, ObjectStateRegistry
 
 from toad.client.menu_entry import MenuEntry
 from toad.client.sidebar_panels import PanelSpec
@@ -23,7 +24,7 @@ from toad.command_catalog import CommandCatalog
 
 if TYPE_CHECKING:
     from toad.object_configuration import ObjectConfiguration, ObjectSettingField
-    from toad.preferences import SavedSettings
+    from toad.preferences import SavedSettings, ToadSettings
 
 
 class SettingsReading:
@@ -124,3 +125,38 @@ class ViewSettingsOwner:
 
 class ConversationSettingsOwner(ViewSettingsOwner):
     """A thread or channel additionally owns conversation and composer settings."""
+
+
+class ApplicationSettings:
+    """An application's own ToadSettings lifecycle, inherited by ClientApplication and ThemedApp."""
+
+    _saved_settings: SavedSettings | None = None
+
+    @property
+    def saved_settings(self) -> SavedSettings:
+        """The settings holder this launch reads and writes, opened lazily on first access."""
+        if self._saved_settings is None:
+            self._saved_settings = self.open_settings()
+            ObjectStateRegistry.register(self._saved_settings.state)
+        return self._saved_settings
+
+    @saved_settings.setter
+    def saved_settings(self, value: SavedSettings) -> None:
+        if self._saved_settings is value:
+            return
+        self._saved_settings = value
+        ObjectStateRegistry.register(value.state)
+
+    @abstractmethod
+    def open_settings(self) -> SavedSettings:
+        """Build the initial SavedSettings for this application."""
+
+    @property
+    def settings(self) -> ToadSettings:
+        """The settings in use, to read from; `saved_settings` changes and saves them."""
+        return self.saved_settings.current
+
+    @property
+    def configuration_state(self) -> ObjectState:
+        """The ObjectState backing `settings`; SettingsReader widgets resolve to this."""
+        return self.saved_settings.state

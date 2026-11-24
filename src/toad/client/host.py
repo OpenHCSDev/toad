@@ -15,7 +15,7 @@ import urllib.request
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import ClassVar, Literal, Never
+from typing import ClassVar, Generic, Literal, Never, TypeVar
 
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
@@ -80,56 +80,13 @@ class CommandOrigin(ABC):
         """Run the native dialog. Returns arguments or None on cancel."""
 
 
-class CommsHost:
-    """The operations shared comms code needs from the native application."""
+class NoticeHost:
+    """Ephemeral notice and saved-error display, shared by CommsHost and standalone ThemedApps."""
 
     # How long a notice (show_info, show_warning, show_error, report_fatal) stays on screen
     # before it puts itself away, in every frontend: Textual's notifications and Qt's status
     # line both read this one number.
     notice_seconds: ClassVar[float] = 5
-
-    events: PublicationStream
-    preparation: PreparationRuntime
-    project_dir: Checkout
-
-    def succeed_onto(self, runtime: LaunchRuntime) -> Never:
-        """Hand this process to another runtime; never returns."""
-        raise NotImplementedError
-
-    def schedule_ui(self, callback: Callable[[], None]) -> None:
-        """Deferred until after the current message; never inline."""
-        raise NotImplementedError
-
-    def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> object:
-        """Periodic UI-thread callback; the returned handle's stop() ends it."""
-        raise NotImplementedError
-
-    def delay_ui(self, seconds: float, callback: Callable[[], None]) -> None:
-        """One UI-thread callback after this many seconds."""
-        raise NotImplementedError
-
-    def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
-        """Start one operation of this kind; an exclusive kind's newer start cancels the running one."""
-        raise NotImplementedError
-
-    def cancel_operations(self, kind: type[OperationKind]) -> None:
-        """Cancel every running operation of this kind."""
-        raise NotImplementedError
-
-    async def end_operations(self) -> None:
-        """Cancel every running operation and wait for each to finish unwinding, so none
-        runs on while the application closes the views and readers it uses."""
-        raise NotImplementedError
-
-    async def wait_operations(self, kind: type[OperationKind]) -> None:
-        """Wait until every running operation of this kind has finished; an operation's
-        failure is reported through the native failure owner, not raised here."""
-        raise NotImplementedError
-
-    @property
-    def running_loop(self) -> asyncio.AbstractEventLoop:
-        """The native event loop the application runs on."""
-        raise NotImplementedError
 
     def notify(self, message: str, *, title: str = "",
                severity: Severity = "information",
@@ -178,6 +135,53 @@ class CommsHost:
         """From now on, work on the running loop that fails with nobody waiting for it is
         shown as any error is (`LostFailures`): saved, and a notice."""
         LostFailures(self.show_error).hear(asyncio.get_running_loop())
+
+
+class CommsHost(NoticeHost):
+    """The operations shared comms code needs from the native application."""
+
+    events: PublicationStream
+    preparation: PreparationRuntime
+    project_dir: Checkout
+
+    def succeed_onto(self, runtime: LaunchRuntime) -> Never:
+        """Hand this process to another runtime; never returns."""
+        raise NotImplementedError
+
+    def schedule_ui(self, callback: Callable[[], None]) -> None:
+        """Deferred until after the current message; never inline."""
+        raise NotImplementedError
+
+    def repeat_ui(self, seconds: float, callback: Callable[[], None]) -> object:
+        """Periodic UI-thread callback; the returned handle's stop() ends it."""
+        raise NotImplementedError
+
+    def delay_ui(self, seconds: float, callback: Callable[[], None]) -> None:
+        """One UI-thread callback after this many seconds."""
+        raise NotImplementedError
+
+    def run_operation(self, kind: type[OperationKind], task: Callable[[], Awaitable[None]]) -> None:
+        """Start one operation of this kind; an exclusive kind's newer start cancels the running one."""
+        raise NotImplementedError
+
+    def cancel_operations(self, kind: type[OperationKind]) -> None:
+        """Cancel every running operation of this kind."""
+        raise NotImplementedError
+
+    async def end_operations(self) -> None:
+        """Cancel every running operation and wait for each to finish unwinding, so none
+        runs on while the application closes the views and readers it uses."""
+        raise NotImplementedError
+
+    async def wait_operations(self, kind: type[OperationKind]) -> None:
+        """Wait until every running operation of this kind has finished; an operation's
+        failure is reported through the native failure owner, not raised here."""
+        raise NotImplementedError
+
+    @property
+    def running_loop(self) -> asyncio.AbstractEventLoop:
+        """The native event loop the application runs on."""
+        raise NotImplementedError
 
     def log_error(self, text: str) -> None:
         """Write to the native error log; the user is not interrupted."""
@@ -279,7 +283,10 @@ class CommsHost:
         raise NotImplementedError
 
 
-class NavigatingHost[Source](CommsHost):
+Source = TypeVar("Source")
+
+
+class NavigatingHost(Generic[Source], CommsHost):
     """A host with Toad's tabs and session navigation: which tabs are open, which threads
     and channels their views were opened over, and retiring views a bus retired."""
 

@@ -574,7 +574,7 @@ class ConversationSessionBinding(
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
-    contents = getters.query_one(Contents)
+    contents = getters.query_one(ConversationContents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
 
     @property
