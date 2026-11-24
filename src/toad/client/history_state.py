@@ -338,7 +338,14 @@ class WaitingSourceWork[Owner, Snapshot, Result]:
             self.owner.finish_source_work(self.state)
 
 
-class WorkingTranscript(SuspendedTranscript):
+class ResumableTranscript(SuspendedTranscript, declared_name=None):
+    """A temporarily suspended transcript whose retirement unwraps back to its source."""
+
+    def retirement_source(self) -> TranscriptState:
+        return self.source.retirement_source()
+
+
+class WorkingTranscript(ResumableTranscript):
     """One source update; only this operation can finish its work."""
 
     def __init__(self, source: TranscriptState, owner):
@@ -397,11 +404,6 @@ class WorkingTranscript(SuspendedTranscript):
         # One work at a time holds the source. The check is made again when
         # this work ends, even if it changed nothing itself.
         self.edges_wait = True
-
-    def retirement_source(self) -> TranscriptState:
-        # Cancellation ends this operation; a parked pager resumes its source,
-        # not an operation whose worker has already been retired.
-        return self.source.retirement_source()
 
     @property
     def can_draw(self) -> bool:
@@ -476,7 +478,7 @@ class RetiredSourceTranscript(SuspendedTranscript):
         raise RuntimeError("A retired source pager cannot publish again")
 
 
-class ParkedSourceTranscript(SuspendedTranscript):
+class ParkedSourceTranscript(ResumableTranscript):
     """A mounted warm pager remains inert until its native source is checked."""
 
     coverage = NO_COVERAGE
@@ -487,9 +489,6 @@ class ParkedSourceTranscript(SuspendedTranscript):
 
     def publish(self) -> TranscriptState:
         raise RuntimeError("A parked source pager cannot publish before validation")
-
-    def retirement_source(self) -> TranscriptState:
-        return self.source.retirement_source()
 
     def retire_preparation(self, owner) -> None:
         """Parking retains data-only work under the shared runtime's budget.

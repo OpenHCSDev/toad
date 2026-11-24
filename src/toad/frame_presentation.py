@@ -79,7 +79,17 @@ class WritingFrame(SceneFrame):
     pass
 
 
-class SuspendedFrame(FrameState):
+class InactiveFrame(FrameState, declared_name=None):
+    """A frame state that is no longer active to display or suspend."""
+
+    def displayed(self, frame: FramePresentation):
+        pass
+
+    def suspend(self, frame: FramePresentation):
+        pass
+
+
+class SuspendedFrame(InactiveFrame):
     def __init__(self, previous: FrameState):
         self.previous = previous
 
@@ -89,12 +99,6 @@ class SuspendedFrame(FrameState):
 
     def resume(self, frame: FramePresentation):
         self.previous.restore(frame)
-
-    def suspend(self, frame: FramePresentation):
-        pass
-
-    def displayed(self, frame: FramePresentation):
-        pass
 
 
 class PresentedFrame(SceneFrame):
@@ -107,17 +111,11 @@ class PresentedFrame(SceneFrame):
         pass
 
 
-class ClosedFrame(FrameState):
-    def displayed(self, frame: FramePresentation):
-        pass
-
+class ClosedFrame(InactiveFrame):
     def defer[Result](self, frame: FramePresentation, owner: Widget, callback: Callable[[], Result]):
         pass
 
     def begin(self, frame: FramePresentation):
-        pass
-
-    def suspend(self, frame: FramePresentation):
         pass
 
 

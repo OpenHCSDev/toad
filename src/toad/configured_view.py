@@ -28,7 +28,14 @@ from toad.widgets.side_bar import (
 
 
 
-class ObjectProperties(ObjectPropertiesPanel, FillHeight, SidebarPanelWidget):
+class FormSidebarPanel(FillHeight, SidebarPanelWidget):
+    """A sidebar panel backed by a form whose pending edits finish with the panel."""
+
+    def finish(self):
+        self.form.finish()
+
+
+class ObjectProperties(ObjectPropertiesPanel, FormSidebarPanel):
     """One declared settings entry; its form is built when that entry is opened."""
 
     def __init__(self, field):
@@ -39,11 +46,8 @@ class ObjectProperties(ObjectPropertiesPanel, FillHeight, SidebarPanelWidget):
         self.form = ObjectFormView(self.field.state, [ObjectFieldView.from_field(self.field)])
         yield self.form
 
-    def finish(self):
-        self.form.finish()
 
-
-class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
+class AgentProperties(CoreEventReceiver, FormSidebarPanel):
     """The selected native session's advertisements, using its original writer."""
 
     def __init__(self, view):
@@ -77,9 +81,6 @@ class AgentProperties(CoreEventReceiver, FillHeight, SidebarPanelWidget):
     @work(exclusive=True, group="agent-settings")
     async def rebuild_form(self):
         await self.recompose()
-
-    def finish(self):
-        self.form.finish()
 
 
 class ActionProperties(ActionPropertiesPanel, CommandForm, SidebarPanelWidget):

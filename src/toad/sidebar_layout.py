@@ -187,6 +187,16 @@ class SidebarControlsOwner:
             control.action.present(control, placement, directions)
 
 
+class StoredSidebarLayout(metaclass=AbstractHooksMeta):
+    """A frontend object holding its ``SidebarLayout`` directly in ``_layout``."""
+
+    _layout: SidebarLayout
+
+    @property
+    def sidebar_layout(self) -> SidebarLayout:
+        return self._layout
+
+
 class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
     """One sidebar as a frontend presents it: Textual's SideBar and Qt's QtSideBar both
     inherit this. A surface names its placement role and whether it is folded to its toggle;

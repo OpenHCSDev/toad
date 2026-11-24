@@ -163,14 +163,18 @@ class ReferenceNode(SelfSearchedNode):
             yield self
 
 
-@dataclass(frozen=True)
-class ManifestNode(ContextNode):
-    segment: SegmentManifest
-    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
+class SegmentNode(ContextNode):
+    """A context node whose label comes from its declared ``segment``."""
 
     @property
     def label(self):
         return self.segment.public_description()
+
+
+@dataclass(frozen=True)
+class ManifestNode(SegmentNode):
+    segment: SegmentManifest
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     def children(self):
         return (
@@ -220,7 +224,7 @@ class RecordedTurnNode(SelfSearchedNode):
 
 
 @dataclass(frozen=True)
-class RecordedSegmentNode(RecordedTurnNode):
+class RecordedSegmentNode(SegmentNode, RecordedTurnNode):
     """An original request and navigation coordinate borrow its authenticated reader."""
     position: int
     contributors: tuple[int, ...] = ()
@@ -228,10 +232,6 @@ class RecordedSegmentNode(RecordedTurnNode):
     @property
     def segment(self):
         return self.manifest.selected_segment(self.position, self.contributors)
-
-    @property
-    def label(self):
-        return self.segment.public_description()
 
     def children(self):
         segment = self.segment
@@ -361,13 +361,9 @@ class AnnotationSourceNode(SelfSearchedNode):
 
 
 @dataclass(frozen=True)
-class NativeSegmentNode(ContextNode):
+class NativeSegmentNode(SegmentNode):
     segment: ContextSegment
     read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
-
-    @property
-    def label(self):
-        return self.segment.public_description()
 
     def children(self):
         return (
@@ -797,8 +793,9 @@ class ReadingOwnerInspection(InspectionState):
         return ObservedOwnerInspection(revision)
 
 
-@dataclass(frozen=True)
-class ObservedOwnerInspection(ReadingOwnerInspection):
+class RevisionedInspection(InspectionState, declared_name=None):
+    """An inspection pinned to a read revision."""
+
     revision: ReadState
 
     def observed_at(self, revision: ReadState) -> bool:
@@ -806,7 +803,12 @@ class ObservedOwnerInspection(ReadingOwnerInspection):
 
 
 @dataclass(frozen=True)
-class HoldingInspection(InspectionState):
+class ObservedOwnerInspection(RevisionedInspection, ReadingOwnerInspection):
+    revision: ReadState
+
+
+@dataclass(frozen=True)
+class HoldingInspection(RevisionedInspection):
     inspection: ContextInspection
     revision: ReadState
 
@@ -817,9 +819,6 @@ class HoldingInspection(InspectionState):
     @property
     def thread_identity(self) -> ThreadIdentity:
         return ThreadIdentity(self.inspection.owner.incarnation, str(self.inspection.observed.root))
-
-    def observed_at(self, revision: ReadState) -> bool:
-        return self.revision == revision
 
     def observe(self, revision: ReadState) -> InspectionState:
         return replace(self, revision=revision)
@@ -882,16 +881,20 @@ class HoldingInspection(InspectionState):
         return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nReading native context…"
 
 
-class SavedInspection(HoldingInspection):
-    """Only saved context is available; there is no native read to schedule."""
-
-    def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
-        pass
+class SettledInspection(HoldingInspection, declared_name=None):
+    """A holding inspection whose native phase is already settled, so acquisitions publish immediately."""
 
     def present_acquired[Result](
         self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]
     ) -> None:
         self.present(consumer)
+
+
+class SavedInspection(SettledInspection):
+    """Only saved context is available; there is no native read to schedule."""
+
+    def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
+        pass
 
     @property
     def status(self) -> str:
@@ -900,15 +903,8 @@ class SavedInspection(HoldingInspection):
 
 
 @dataclass(frozen=True)
-class NativeInspection(HoldingInspection):
+class NativeInspection(SettledInspection):
     native: NativeContextData
-
-    def present_acquired[Result](
-        self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]
-    ) -> None:
-        # This acquisition retains its original native source, so independently
-        # changed recorded requests and annotations can publish immediately.
-        self.present(consumer)
 
     def receive_inspection(self, acquired) -> InspectionState:
         if self.same_source(acquired.inspection):

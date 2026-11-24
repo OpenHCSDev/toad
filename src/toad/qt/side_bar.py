@@ -43,6 +43,7 @@ from toad.sidebar_layout import (
     SidebarResizeGrip,
     SidebarSurface,
     SidebarToggleFace,
+    StoredSidebarLayout,
 )
 from toad.sidebar_placement import SidebarPlacement
 
@@ -256,7 +257,7 @@ class QtSidebarResizeHandle(QtGripPointer, SidebarResizeGrip, QWidget, metaclass
             painter.drawLine(0, middle.y(), self.width(), middle.y())
 
 
-class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
+class QtSideBar(StoredSidebarLayout, SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
     """One sidebar role's surface: its content over the extent slider and placement actions,
     the resize handle and the toggle strip, each where ``SidebarSurface.surface_parts`` puts
     it for the placement's edge. Folded, only the strip shows."""
@@ -305,10 +306,6 @@ class QtSideBar(SidebarSurface, QWidget, metaclass=PyQtWidgetMeta):
     @property
     def collapsed(self) -> bool:
         return self._layout.is_collapsed(self._identity)
-
-    @property
-    def sidebar_layout(self) -> SidebarLayout:
-        return self._layout
 
     @property
     def client(self) -> ClientApplication:
@@ -410,7 +407,7 @@ class PaneSlide(TransitionTarget):
             self.chrome.pages.setGeometry(self.pages)
 
 
-class QtWorkspaceChrome(SidebarChromeArrangement[QtSideBar], QWidget, metaclass=PyQtWidgetMeta):
+class QtWorkspaceChrome(StoredSidebarLayout, SidebarChromeArrangement[QtSideBar], QWidget, metaclass=PyQtWidgetMeta):
     """The conversation pages and the sidebars, placed where the shared arrangement resolves
     them for this widget's size in cells: a pushing sidebar narrows the pages by its gutter, a
     floating one lies over them, a folded one is its strip. A bar that folds or opens slides
@@ -428,10 +425,6 @@ class QtWorkspaceChrome(SidebarChromeArrangement[QtSideBar], QWidget, metaclass=
         self.sidebars: tuple[QtSideBar, ...] = ()
         self.placed: dict[QtSideBar, PlacedSidebar] = {}
         self.slides: dict[QtSideBar, PaneSlide] = {}
-
-    @property
-    def sidebar_layout(self) -> SidebarLayout:
-        return self._layout
 
     def presented_sidebars(self) -> tuple[QtSideBar, ...]:
         return tuple(bar for bar in self.sidebars if self._available(bar.placement_identity))

@@ -17,10 +17,7 @@ from pathlib import Path
 import toad
 
 KNOWN = frozenset({
-    "toad.qt.conversation.QtConversation.screen is a property over Qt's method",
     "toad.qt.conversation.QtConversation.window is a property over Qt's method",
-    "toad.qt.history.QtHistoryWindow.screen is a property over Qt's method",
-    "toad.qt.window.Sidebar.screen is a property over Qt's method",
 })
 
 PROBE = r'''

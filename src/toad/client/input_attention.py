@@ -49,8 +49,8 @@ class AttentionTitle(DeclaredFamily, affix="AttentionTitle"):
     @abstractmethod
     def reconcile(self) -> AttentionTitle: ...
 
-    @abstractmethod
-    def icon(self) -> str: ...
+    def icon(self) -> str:
+        return self.attention.icon
 
     def close(self) -> None:
         """Only the blinking state holds a timer to stop."""
@@ -66,9 +66,6 @@ class DetachedAttentionTitle(AttentionTitle):
     def reconcile(self) -> AttentionTitle:
         return self
 
-    def icon(self) -> str:
-        return self.attention.icon
-
     def publish(self) -> None:
         """No title is shown yet to write."""
 
@@ -76,9 +73,6 @@ class DetachedAttentionTitle(AttentionTitle):
 class QuietAttentionTitle(AttentionTitle):
     def reconcile(self) -> AttentionTitle:
         return BlinkingAttentionTitle(self.attention) if self.attention.flashing_enabled else self
-
-    def icon(self) -> str:
-        return self.attention.icon
 
 
 class BlinkingAttentionTitle(AttentionTitle):
