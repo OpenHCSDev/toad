@@ -93,7 +93,10 @@ def test_both_frontends_histories_place_an_arrival_through_the_shared_pager():
 
 def test_a_paused_source_observes_the_scope_its_pager_view_owns():
     """A Qt pager is not a widget and has no Textual ancestor tree to search."""
+    from toad.client.history import WirePageBuffer
     from toad.client.history_state import WaitingSourceWork
+    from toad.client.prepared_pages import PreparedPageSource
+    from toad.core.events import CoordinationObserved
 
     observed = []
 
@@ -102,10 +105,11 @@ def test_a_paused_source_observes_the_scope_its_pager_view_owns():
         observed.append((owner, access, resume))
         yield
 
-    access = object()
+    access = SimpleNamespace(events=object())
     view = SimpleNamespace(thread_scope=SimpleNamespace(observe=observe))
     owner = SimpleNamespace(
         view=view,
+        page_source=PreparedPageSource(),
         app=SimpleNamespace(coordination_access=access),
     )
     waiting = WaitingSourceWork(owner, object(), lambda: None, object())
@@ -114,3 +118,25 @@ def test_a_paused_source_observes_the_scope_its_pager_view_owns():
         pass
 
     assert observed == [(view, access, waiting.resume)]
+
+    # A wire conversation has NoTranscript as thread_scope, so WirePageBuffer must watch
+    # Core's CoordinationObserved stream instead of silently returning an empty release.
+    subscribed = []
+    retired = []
+    wire_view = SimpleNamespace(
+        observe_core_callback=lambda stream, event_type, cb: (subscribed.append((stream, event_type, cb)), "sub")[1],
+        retire_core=lambda sub: retired.append(sub),
+    )
+    wire_source = object.__new__(WirePageBuffer)
+    wire_owner = SimpleNamespace(
+        view=wire_view,
+        page_source=wire_source,
+        app=SimpleNamespace(coordination_access=access),
+    )
+    wire_waiting = WaitingSourceWork(wire_owner, object(), lambda: None, object())
+
+    with wire_waiting.observe():
+        assert subscribed == [(access.events, CoordinationObserved, wire_waiting.resume)]
+        assert retired == []
+
+    assert retired == ["sub"]

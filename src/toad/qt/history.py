@@ -1219,8 +1219,8 @@ class QtJumpBar(LatestJumpBar, QPushButton):
         self.setVisible(shown)
 
 
-class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, QtWorkspaceHosted, VirtualRowView,
-                      ReaderPlacement, PagingWindow, OpensLineLinks, PinsMessageHeader, SettingsReading):
+class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWindow, QtWorkspaceHosted,
+                      VirtualRowView, PagingWindow, OpensLineLinks, PinsMessageHeader, SettingsReading):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
     contract: reaching the top reads older pages, the bottom newer ones, End and the
@@ -1629,15 +1629,6 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, QtWorkspace
         if anchor and not self.widget_gone and not self.gliding_to_end():
             with self.layout_scroll():
                 self.follow_end()
-
-    def jump_to_latest(self) -> None:
-        """`JumpsToLatest.jump_to_latest` is abstract; the QtJumpBar click is wired to this
-        at `__init__` (`self.jump_bar.clicked.connect(self.jump_to_latest)`). Without the
-        override, clicking the Back-to-Bottom button ran the abstract docstring-only body
-        and did nothing. Snapping back to the tail via `anchor(True)` runs `follow_end`
-        which scrolls the viewport to the latest row, mirroring Textual's
-        `WindowAction.scroll_end` path."""
-        self.anchor(True)
 
     @asynccontextmanager
     async def tree_change(self):
