@@ -10,8 +10,10 @@ from abc import (
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 from typing import ClassVar
 
+from agent_comms.transport.connector_profile import UiConnectionProfile
 from agent_comms.transport.connector_store import (
     HeldUiProfiles,
     OpenableProfile,
@@ -19,6 +21,23 @@ from agent_comms.transport.connector_store import (
 from agent_comms.transport.tailnet_buses import NamedHost, PeerBus, PeerHoldsBus
 
 from toad.client.menu_entry import MenuEntry
+
+
+def held_profile_path(profile: UiConnectionProfile) -> Path:
+    """Where this machine holds ``profile``: ``<host>-<grant_id>.json`` under
+    ``HeldUiProfiles.directory()``, matching ``agent-comms-connector hold-ui``."""
+    match profile.endpoint.url.host:
+        case str() as host:
+            return HeldUiProfiles.directory() / f"{host}-{profile.credential.grant_id}.json"
+        case _:
+            raise ValueError(f"{profile.endpoint.url} names no host to hold it under")
+
+
+def hold_ui_profile(profile: UiConnectionProfile) -> Path:
+    """Store a decoded UI profile privately under ``HeldUiProfiles.directory()`` using the
+    same filename and atomic private write as ``agent-comms-connector hold-ui``, without
+    importing the server-side connector CLI."""
+    return profile.write_new(held_profile_path(profile))
 
 
 def openable_held(now: float) -> tuple[OpenableProfile, ...]:

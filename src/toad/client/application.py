@@ -258,8 +258,8 @@ class ClientApplication(BusPickerHost, NavigationHost):
 
     def open_held_profile(self, path) -> None:
         """Open the bus a newly-held profile names. Used by the bus-connect paste flow
-        (`bus_connect._hold_pasted_profile`) after `HoldUiVerb` wrote the profile to the
-        held directory. Reports through the warning channel when the held file is not
+        (`bus_connect._hold_pasted_profile`) after `hold_ui_profile` wrote the profile to
+        the held directory. Reports through the warning channel when the held file is not
         openable, mirroring the failure path in `asked_peer` so a bad paste does not raise."""
         match HeldUiProfiles.entry(path, time.time()):
             case OpenableProfile() as openable:
