@@ -21,13 +21,11 @@ from toad.client.name_wave import BandCells, NameWave
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 
 
-def band_ink(span: tuple[int, int], length: int, accent: QColor) -> QTextLayout.FormatRange:
+def band_ink(span: tuple[int, int], length: int, ink: QTextCharFormat) -> QTextLayout.FormatRange:
     """The characters of ``span`` within a text ``length`` long, in the accent."""
-    start, end = (min(length, edge) for edge in span)
+    start, end = min(length, span[0]), min(length, span[1])
     band = QTextLayout.FormatRange()
     band.start, band.length = start, end - start
-    ink = QTextCharFormat()
-    ink.setForeground(accent)
     band.format = ink
     return band
 
@@ -50,19 +48,34 @@ class QtNameWaveDelegate(BandCells, MultilinePreviewItemDelegate):
     def __init__(self, accent: QColor, *args) -> None:
         super().__init__(*args)
         self.accent = accent
+        self.accent_format = QTextCharFormat()
+        self.accent_format.setForeground(accent)
         # A row's prepared text and the same text with its title bold, by the prepared text's
         # identity: pyqt-reactive hands the same prepared text back until the row's text,
         # font or width changes, and a changed one is another object.
         self.bold: dict[int, tuple[PreparedTextLayout, PreparedTextLayout, int]] = {}
-        # How many characters the title of the row being drawn has: the band is drawn within
-        # them. Set as the row's text is taken, which a paint does before it asks for the ink.
+        # Cached FormatRange sequences keyed by clamped (start, end) cell span so moving the
+        # accent band across rows allocates neither QTextCharFormat nor FormatRange per paint.
+        self.inks: dict[tuple[int, int], tuple[list[QTextLayout.FormatRange],]] = {}
+        # How many characters the title of the row being drawn has, plus the row index and
+        # band span read during _prepared_text so text_inks does not re-query itemFromIndex
+        # or wave_running on the same paint.
         self.title_length = 0
+        self._painted_index: object = None
+        self._painted_span: tuple[int, int] | None = None
 
     def _prepared_text(self, option, index) -> PreparedTextLayout:
         prepared = super()._prepared_text(option, index)
         item = self.parent().itemFromIndex(index)
+        self._painted_index = index
         if item is None or not item.wave_running():
+            self._painted_span = None
             return prepared
+        self._painted_span = item.painted_span
+        kept = self.bold.get(id(prepared))
+        if kept is not None and kept[0] is prepared:
+            self.title_length = kept[2]
+            return kept[1]
         _prepared, titled, self.title_length = self.bold_titled(prepared)
         return titled
 
@@ -93,11 +106,24 @@ class QtNameWaveDelegate(BandCells, MultilinePreviewItemDelegate):
         return kept
 
     def text_inks(self, index):
-        item = self.parent().itemFromIndex(index)
-        span = item.band_drawn() if item is not None else None
+        if self._painted_index is index:
+            span = self._painted_span
+        else:
+            item = self.parent().itemFromIndex(index)
+            span = item.band_drawn() if item is not None else None
         if span is None:
             return ()
-        return ([band_ink(span, self.title_length, self.accent)],)
+        length = self.title_length
+        key = (min(length, span[0]), min(length, span[1]))
+        kept = self.inks.get(key)
+        if kept is None:
+            if len(self.inks) >= self.KEPT:
+                self.inks.clear()
+            band = QTextLayout.FormatRange()
+            band.start, band.length = key[0], key[1] - key[0]
+            band.format = self.accent_format
+            kept = self.inks[key] = ([band],)
+        return kept
 
 
 class QtClockedWave(NameWave):
@@ -213,6 +239,8 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
     def __init__(self, clock, accent: QColor, ink: QColor) -> None:
         super().__init__()
         self.clock, self.accent, self.ink = clock, accent, ink
+        self.accent_format = QTextCharFormat()
+        self.accent_format.setForeground(accent)
         self.lines: dict[tuple[str, int], QTextLayout] = {}
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
@@ -313,12 +341,13 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
                 continue
             option.text = ""
             painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
-            start, end = self.wave_span(wave)
+            start, end = self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
             layout = self.bold_line(shown, rect.width())
             line = layout.lineAt(0)
             top = rect.top() + (rect.height() - line.height()) / 2
             painter.setPen(self.ink)
-            band = band_ink((max(0, start - self.padding_cells), max(0, end - self.padding_cells)), len(shown), self.accent)
+            band = band_ink((max(0, start - self.padding_cells), max(0, end - self.padding_cells)),
+                            len(shown), self.accent_format)
             layout.draw(painter, QPointF(rect.left() + (rect.width() - line.naturalTextWidth()) / 2, top), [band])
 
     def bold_line(self, shown: str, width: int) -> QTextLayout:

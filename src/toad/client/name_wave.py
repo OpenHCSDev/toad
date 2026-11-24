@@ -23,8 +23,9 @@ class BandCells:
 
     @staticmethod
     def band_cells(band: Band, width: int) -> tuple[int, int]:
-        start, end = (max(0, min(width, round(edge * width))) for edge in (band.start, band.end))
-        return start, max(start, end)
+        start = max(0, min(width, round(band.start * width)))
+        end = max(start, min(width, round(band.end * width)))
+        return start, end
 
 
 class NameWave(BandCells):

@@ -66,3 +66,64 @@ def test_qt_tab_title_wave_paints_its_own_tab_when_the_band_reaches_other_cells(
     assert bar.repainted == ["claude-a", "claude-a"]
     wave.stop_wave()
     assert bar.repainted == ["claude-a"] * 3  # the idle title, once
+
+
+def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint() -> None:
+    """Painting a waving sidebar row draws the accent band at its moving cell span while
+    reusing cached FormatRanges and checking wave_running only once per paint."""
+    from PySide6.QtGui import QColor, QImage, QPainter
+    from PySide6.QtWidgets import QApplication, QStyleOptionViewItem, QTreeWidget, QTreeWidgetItem
+    from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE
+    from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
+
+    from toad.qt.name_wave import QtNameWaveDelegate
+
+    app = QApplication.instance() or QApplication([])
+    tree = QTreeWidget()
+    tree.setColumnCount(1)
+    accent = QColor(255, 80, 0)
+    delegate = QtNameWaveDelegate(accent, QColor("#eeeeee"), QColor("#888888"), QColor("#ffffff"), tree)
+    tree.setItemDelegateForColumn(0, delegate)
+
+    class WavingItem(QTreeWidgetItem):
+        def __init__(self) -> None:
+            super().__init__()
+            self.painted_span: tuple[int, int] | None = (0, 3)
+            self.checks = 0
+
+        def wave_running(self) -> bool:
+            self.checks += 1
+            return True
+
+        def band_drawn(self) -> tuple[int, int] | None:
+            return self.painted_span
+
+    item = WavingItem()
+    item.setData(0, LAYOUT_ROLE, StyledTextLayout(name=Segment("MMMMMMMMMMMMMMMM"), multiline=True))
+    tree.addTopLevelItem(item)
+    tree.resize(300, 120)
+    tree.show()
+    app.processEvents()
+
+    option = QStyleOptionViewItem()
+    option.initFrom(tree)
+    option.rect = tree.visualRect(tree.indexFromItem(item, 0))
+
+    def paint_accent_xs() -> list[int]:
+        image = QImage(tree.viewport().size(), QImage.Format.Format_ARGB32)
+        image.fill(QColor("black"))
+        painter = QPainter(image)
+        delegate.paint(painter, option, tree.model().index(0, 0))
+        painter.end()
+        return [x for x in range(image.width())
+                if any(image.pixelColor(x, y) == accent for y in range(option.rect.top(), option.rect.bottom()))]
+
+    left = paint_accent_xs()
+    first_ink = delegate.inks[(0, 3)]
+    item.checks = 0
+    paint_accent_xs()
+    assert item.checks == 1
+    assert delegate.inks[(0, 3)] is first_ink
+    item.painted_span = (8, 11)
+    right = paint_accent_xs()
+    assert left and right and max(left) < min(right)
