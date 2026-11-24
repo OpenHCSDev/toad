@@ -12,7 +12,7 @@ from textual.visual import RenderOptions, Visual
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import BackgroundColour
 
-from toad.client.prompt_stack import ObservedSweep
+from toad.client.prompt_stack import ObservedSweep, SweepEffect
 from toad.frame_presentation import Animated, EffectInContent
 from toad.native_style import FullWidth, OneRow
 from toad.textual_colours import BlockInk, FullInk
@@ -43,13 +43,10 @@ class ThrobberVisual(Visual):
         return 1
 
 
-class Throbber(EffectInContent, FullWidth, OneRow, Animated[Ribbon]):
+class Throbber(SweepEffect, EffectInContent, FullWidth, OneRow, Animated[Ribbon]):
     _paint_only_render = True
-    tone = BackgroundColour
-    """The sweep runs on the transcript's own background, not the band below it."""
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
-    effect = ACTIVITY_SWEEP
     ink_edge: ClassVar[type[BlockInk]]
 
     @cached_property

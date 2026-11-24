@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 )
 from ui_theme.scheme import ErrorColour, MutedColour
 
-from toad.client.keymap_browser import KeymapBrowsing
+from toad.client.keymap_browser import KeymapBrowsing, KeymapSave
 from toad.keymap import KeyInvocationId
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
@@ -76,7 +76,7 @@ class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
         controls.addWidget(self.keys, 1)
         for label, act in (("Apply", self.apply_typed_keys), ("Reset", self.reset_selected_keys)):
             button = QPushButton(label, self)
-            button.clicked.connect(lambda _checked=False, act=act: self.app.run_operation(_KeymapSave, act))
+            button.clicked.connect(lambda _checked=False, act=act: self.app.run_operation(KeymapSave, act))
             controls.addWidget(button)
         close = QPushButton("Close", self)
         close.clicked.connect(self.accept)
@@ -134,8 +134,3 @@ class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
 
     def forget_selection(self) -> None:
         self.table.setCurrentCell(-1, -1)
-
-
-class _KeymapSave:
-    """Operation marker for `run_operation`: the app tracks concurrent keymap saves the
-    way it tracks its other coalesced operations."""

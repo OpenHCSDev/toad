@@ -47,6 +47,7 @@ from toad.goal_controls import (
     GoalHistoryPage,
     GoalInteraction,
     GoalInteractionControl,
+    GoalPress,
 )
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
@@ -56,11 +57,6 @@ from toad.widget_contracts import DismissibleContract, SubmitsContract
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
 from ui_theme.scheme import SecondaryColour
-
-
-@awaited(ActionRunning)
-class GoalPress(OperationKind):
-    """One goal button press: read the owner, then apply the button."""
 
 
 class QtGoalControl(QToolButton, GoalInteractionControl, metaclass=PyQtWidgetMeta):

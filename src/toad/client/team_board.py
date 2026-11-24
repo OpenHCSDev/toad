@@ -74,3 +74,14 @@ class TeamBoardState:
     def _notify(self, cut: TeamBoardCut | None) -> None:
         for observer in self._observers:
             observer(cut)
+
+
+class TeamMemberBoard:
+    """Shared per-teammate board view state inherited by Textual's `TeamFrameView` and Qt's
+    `QtTeamMemberView`."""
+
+    state: TeamBoardState
+    hud: TeamHud
+
+    def filtered_sections_for(self, text: str, needs_hand_only: bool) -> dict[type[HudGroup], HudSection]:
+        return self.state.filter_hud_sections(self.hud, text, needs_hand_only)

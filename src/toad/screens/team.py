@@ -50,7 +50,7 @@ from ui_theme.scheme import (
 )
 
 from toad.app_node import ToadNode
-from toad.client.team_board import TeamBoardState
+from toad.client.team_board import TeamBoardState, TeamMemberBoard
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.core_event_carrier import CoreEventReceiver
 from toad.target_commands import BoardCommand
@@ -401,7 +401,7 @@ class TeamActions(WidgetKeyedRows[BoardActionOffer], HorizontalGroup):
             self.reconcile_keys(tuple(self.commands), changed=frozenset())
 
 
-class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
+class TeamFrameView(TeamMemberBoard, WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     """Keep native groups, filters, selection and original details across frame replacement.
 
     `state` is the shared `TeamBoardState` owned by the parent `TeamPage`; its
@@ -436,8 +436,8 @@ class TeamFrameView(WidgetKeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         yield self.details
 
     def filtered_sections(self) -> dict[type[HudGroup], HudSection]:
-        """Delegates to the shared `TeamBoardState.filter_hud_sections`."""
-        return self.state.filter_hud_sections(self.hud, self.filter.value, self.needs_hand.value)
+        """Delegates to the shared `TeamMemberBoard.filtered_sections_for`."""
+        return self.filtered_sections_for(self.filter.value, self.needs_hand.value)
 
     @property
     def member_container(self) -> VerticalGroup:

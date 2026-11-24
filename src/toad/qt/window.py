@@ -62,7 +62,7 @@ from toad.qt.widget_animation import frame_interval
 from toad.workspace_frame import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
-from toad.client.application_actions import ApplicationAction, NewSessionAction, NewSessionControl
+from toad.client.application_actions import ApplicationAction, MenuActionRun, NewSessionAction, NewSessionControl
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
     BusAddressEntry,
@@ -165,11 +165,6 @@ from toad.sidebar_placement import (
 from toad.status_thread import StatusThread
 from toad.target_commands import TargetContext
 from toad.work_preparation import PreparationRuntime
-
-
-@awaited(ActionRunning)
-class MenuActionRun(OperationKind):
-    """One application action chosen from the menu."""
 
 
 @dataclass(frozen=True)

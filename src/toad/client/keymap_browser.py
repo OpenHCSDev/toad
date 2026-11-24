@@ -29,6 +29,8 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
 
+from formbridge.operations import OperationKind
+
 from toad.key_modes import KeyMode
 from toad.keymap import (
     KeyInvocationId,
@@ -349,3 +351,7 @@ class KeymapBrowsing:
         if result.should_repopulate():
             self.refresh_rows()
         self.show_status(result.status_text())
+
+
+class KeymapSave(OperationKind):
+    """Operation marker for `run_operation`: tracks keymap apply/reset saves."""
