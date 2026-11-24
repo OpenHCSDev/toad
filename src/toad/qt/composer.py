@@ -16,7 +16,7 @@ from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.ui_model.observation import ReadNotifications
-from PySide6.QtCore import QEvent, Qt, QTimer
+from PySide6.QtCore import QEvent, Qt, QTimer, Slot
 from PySide6.QtGui import QColor, QGuiApplication, QKeyEvent, QPalette, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
@@ -395,8 +395,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self._viewport_window = host.app
         self._viewport_window.installEventFilter(self)
         self._input_method = QGuiApplication.inputMethod()
-        self._input_method.keyboardRectangleChanged.connect(self.fit_height)
-        self._input_method.visibleChanged.connect(self.fit_height)
+        self._input_method.keyboardRectangleChanged.connect(
+            self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
+        )
+        self._input_method.visibleChanged.connect(
+            self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
+        )
         self.place_input_box()
         self.refresh_glyph()
         self.fit_height()
@@ -551,10 +555,31 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         )
         return max(1, viewport.height() - covered)
 
+    _fit_height_pending: bool = False
+
+    @Slot()
+    def _schedule_fit_height(self) -> None:
+        """Defer editor resize off QAndroidInputContext::runOnQtThread() and top-level resize.
+
+        On Qt-for-Android, QInputMethod emits keyboardRectangleChanged and visibleChanged
+        synchronously while QAndroidInputContext::runOnQtThread() holds the platform deadlock
+        protector; resizing the editor inline flushes the backing store into
+        QAndroidPlatformOpenGLWindow::eglSurface() and SIGABRTs. Queued delivery plus a
+        coalesced zero-delay tick on `self` lets the IME hook unwind first and skips
+        destroyed composers.
+        """
+        if not self._fit_height_pending:
+            self._fit_height_pending = True
+            QTimer.singleShot(0, self, self._run_scheduled_fit_height)
+
+    def _run_scheduled_fit_height(self) -> None:
+        self._fit_height_pending = False
+        self.fit_height()
+
     def eventFilter(self, watched, event) -> bool:  # type: ignore[override]
         if watched is self._viewport_window and event.type() == QEvent.Type.Resize:
             # Run after Qt has propagated the new top-level geometry through its layouts.
-            QTimer.singleShot(0, self.fit_height)
+            self._schedule_fit_height()
         return super().eventFilter(watched, event)
 
     TOUCH_ROOM: ClassVar[int] = 16
