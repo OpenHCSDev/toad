@@ -44,5 +44,18 @@ def test_a_scroll_area_is_held_at_its_polish_and_nothing_else_is_read(monkeypatc
 
 
 def test_desktop_mouse_gesture_skips_app_wide_event_filter():
-    assert MouseAndWheel.installs_filter is False
-    assert TouchAsMouse.installs_filter is True
+    installed = []
+
+    class FakeApplication:
+        def allWidgets(self):
+            return []
+
+        def installEventFilter(self, flt):
+            installed.append(flt)
+
+    app = FakeApplication()
+    marker = object()
+    MouseAndWheel().attach(app, marker)
+    assert installed == []
+    TouchAsMouse().attach(app, marker)
+    assert installed == [marker]

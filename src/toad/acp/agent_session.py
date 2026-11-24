@@ -43,13 +43,18 @@ PROTOCOL_VERSION = 1
 
 class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     accepts_updates = False
-    # Whether the agent process may hold this session, so that leaving a
-    # shared process has to ask it to close the session.
-    held_by_agent = True
     unready_line: ClassVar[str] = "No agent is connected to this tab. Your draft is kept."
 
     def close(self, agent):
         return self
+
+    async def close_on_detach(self, process, session: AgentSession) -> None:
+        """Close this session on a shared process when leaving it while others remain."""
+        if process.retirement is None and len(process.sessions) > 1:
+            task = asyncio.create_task(process.rpc.close_session(session.agent.session_id))
+            session.responses.add(task)
+            task.add_done_callback(session.responses.discard)
+            await task
 
     def present[T](self, ordinary: T, show: Callable[[SessionDisconnected], T]) -> T:
         """One session presentation, projected into a row or an input notice."""
@@ -64,8 +69,15 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
         await failure.present(view)
 
 
-class UnopenedSessionDisposition(SessionDisposition):
-    held_by_agent = False
+class UnheldSessionDisposition(SessionDisposition, declared_name=None):
+    """A disposition whose agent process holds no session to close on detach."""
+
+    async def close_on_detach(self, process, session: AgentSession) -> None:
+        pass
+
+
+class UnopenedSessionDisposition(UnheldSessionDisposition):
+    pass
 
 
 class UnavailableSessionDisposition(SessionDisposition):
@@ -120,10 +132,8 @@ class FailedSessionDisposition(UnavailableSessionDisposition):
             await super().present_failure(failure, view)
 
 
-class RefusedSessionDisposition(FailedSessionDisposition):
+class RefusedSessionDisposition(UnheldSessionDisposition, FailedSessionDisposition):
     """The agent process answered the handshake with an error; it holds no session."""
-
-    held_by_agent = False
 
 
 class LoginNotReady(ValueError):

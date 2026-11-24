@@ -292,7 +292,7 @@ class QtPatchPainter(PatchRowPainter[str]):
     def table(self, rows: PatchRows) -> str:
         white_space = self.renderer.diff.wrap.css_white_space
         gap = self.renderer.styled("…", MutedRole)
-        body = (self.paired(gap, gap) if rows.split else self.single(gap)).join(
+        body = rows.gap(self, gap).join(
             "".join(self.row(rows, before, after) for before, after in group)
             for group in self.patch.row_groups(rows))
         title = self.renderer.styled(self.patch.title, MutedRole)

@@ -7,11 +7,11 @@ from abc import (
     abstractmethod,
 )
 from collections.abc import (
+    Callable,
     Iterable,
     Mapping,
 )
 from dataclasses import dataclass
-from typing import ClassVar
 
 from agent_comms.ui_model.sidebar import ChannelRowModel
 
@@ -21,11 +21,16 @@ from toad.sidebar_contracts import ActivityRows, GroupedSidebar, RelationshipMem
 class SidebarChange(ABC):
     """The changed model rows choose which native rows need work."""
 
-    partial_update: ClassVar[bool]
-    """Whether this change only touches a subset of the sidebar's rows (True), or
-    requires rebinding the whole tree against the model (False). Callers read this
-    to decide between a status-only refresh and a wholesale redraw, instead of
-    `isinstance`-ing every subclass to recover the same fact."""
+    def sync_sidebar(
+        self,
+        sidebar: GroupedSidebar,
+        rows: Mapping[str, ChannelRowModel],
+        *,
+        reorder: bool,
+        full_redraw: Callable[[], None],
+    ) -> None:
+        """Apply this change to a grouped sidebar: wholesale changes take ``full_redraw``."""
+        full_redraw()
 
     @abstractmethod
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
@@ -44,8 +49,6 @@ class SidebarChange(ABC):
 
 
 class AllSidebarRows(SidebarChange):
-    partial_update: ClassVar[bool] = False
-
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
         sidebar.open_views = sidebar.find_open_views()
         with sidebar.reconcile_members():
@@ -61,10 +64,25 @@ class AllSidebarRows(SidebarChange):
         view.call_next(view.sync_members, frozenset(view.member_keys))
 
 
-@dataclass(frozen=True)
-class ChangedChannels(SidebarChange):
-    partial_update: ClassVar[bool] = True
+class PartialSidebarChange(SidebarChange):
+    """A change touching only a subset of rows; when order is unchanged, skip a full redraw."""
 
+    def sync_sidebar(
+        self,
+        sidebar: GroupedSidebar,
+        rows: Mapping[str, ChannelRowModel],
+        *,
+        reorder: bool,
+        full_redraw: Callable[[], None],
+    ) -> None:
+        if reorder:
+            full_redraw()
+        else:
+            self.apply_comms(sidebar, rows)
+
+
+@dataclass(frozen=True)
+class ChangedChannels(PartialSidebarChange):
     names: frozenset[str]
 
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
@@ -83,9 +101,7 @@ class ChangedChannels(SidebarChange):
 
 
 @dataclass(frozen=True)
-class ChangedThreads(SidebarChange):
-    partial_update: ClassVar[bool] = True
-
+class ChangedThreads(PartialSidebarChange):
     names: frozenset[str]
 
     def apply_comms(self, sidebar: GroupedSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
