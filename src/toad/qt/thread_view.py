@@ -75,8 +75,6 @@ class QtThreadView(
     """The title row every thread view shows at the top of its column."""
     thread_activity: QtSessionDetails | None = None
     """Textual's `OperationalSessionDetails`: ``▶ <status> · …`` over its details."""
-    goal_bar: QtGoalBar | None = None
-    """Textual's `GoalBar`; `None` for a view with no managed thread to own a goal."""
 
     @abstractmethod
     def composer_class(self) -> type[Composer]:
@@ -273,10 +271,6 @@ class QtThreadView(
 
     def refresh_session_summary(self) -> None:
         self.thread_activity.refresh_summary()
-
-    def goal_changed_from(self, publisher: object) -> None:
-        if self.goal_bar is not None:
-            self.goal_bar.goal_observation.invalidate_from(publisher)
 
     def resume_retained_history(self) -> None:
         self.message_history.state.resume_if_parked(self.message_history)

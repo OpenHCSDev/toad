@@ -57,6 +57,7 @@ from toad.qt.history import QtHistoryNotifications, QtHistoryWindow
 from toad.qt.live_turn import QtLiveBlock, QtResponseBlock, QtThoughtBlock, QtUserInputBlock
 from toad.qt.menu import QtMenu
 from toad.qt.page import Page
+from toad.qt.goal import QtGoalBar
 from toad.qt.prompt_stack import QtFlash
 from toad.qt.submission_view import QtSubmissionView
 from toad.qt.view_settings import QtViewSettings
@@ -66,8 +67,7 @@ from toad.turn_presentation import TurnPresentation
 from toad.live_output import LiveOutput
 from toad.view_actions import ViewAction
 from toad.transcript_scope import TranscriptScope, TranscriptView
-from toad.workspace_frame import WorkspaceHosted
-from toad.workspace_frame import WorkspaceFrame
+from toad.workspace_frame import WorkspaceFrame, WorkspaceHosted
 
 
 class ComposerPlaceholder(QWidget):
@@ -140,6 +140,8 @@ class QtConversation(
     _composer_reserved: tuple | None = None
     activity: tuple[QWidget, ...]
     """The rows under the transcript that observe Core, each closed with the view."""
+    goal_bar: QtGoalBar | None = None
+    """Textual's `GoalBar`; `None` for a view with no managed thread or DM peer."""
 
     def _setup_conversation(self, app) -> None:
         """What `Conversation.compose` makes for every conversation: the window, the
@@ -263,6 +265,11 @@ class QtConversation(
     def sync_working(self) -> None:
         """Textual's `Conversation.sync_working`: the sweep reads the one `working()` answer."""
         self.agent_activity.sync()
+
+    def goal_changed_from(self, publisher: object) -> None:
+        """Invalidate this view's goal bar (thread or DM peer) when a GoalChangedUpdate arrives."""
+        if self.goal_bar is not None:
+            self.goal_bar.goal_observation.invalidate_from(publisher)
 
     def _turn_changed(self, owner) -> None:
         self.sync_working()
