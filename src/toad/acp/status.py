@@ -23,12 +23,17 @@ from toad.client.line_blocks import (
 
 
 class StopReason(DeclaredFamily, affix='StopReason'):
-    completed = False
     note = ''
+
+    @classmethod
+    def record_usage(cls, record: Callable[[], object]) -> None:
+        """Only a completed end-turn stop reason records model usage."""
 
 
 class EndTurnStopReason(StopReason):
-    completed = True
+    @classmethod
+    def record_usage(cls, record: Callable[[], object]) -> None:
+        record()
 
 
 class MaxTokensStopReason(StopReason):

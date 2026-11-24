@@ -231,13 +231,18 @@ class InputBox(DeclaredChoice, affix="InputBox"):
     agent_info_padding: ClassVar[Spacing] = Spacing(0, 1, 0, 1)
     frame_margin: ClassVar[Spacing] = Spacing(0, 0, 0, 0)
     frame_padding: ClassVar[Spacing] = Spacing(0, 0, 0, 0)
-    bordered: ClassVar[bool] = False
-    """Whether a rounded border is drawn around the text and its label."""
+    qt_border_pixels: ClassVar[int] = 0
+    """Vertical pixels taken by the Qt prompt frame's border."""
 
     @classmethod
     def frame_border(cls, colour: Color) -> Edges:
         """The edges drawn around the text and its label."""
-        return Edges(*((("round", colour) if cls.bordered else ("", TRANSPARENT)),) * 4)
+        return Edges(*((("", TRANSPARENT),) * 4))
+
+    @classmethod
+    def qt_frame_sheet(cls, field: str, colour: str) -> str:
+        """Qt stylesheet for ``#prompt-frame`` under this box style."""
+        return f"#prompt-frame {{ background: {field}; border: none }}"
 
     @classmethod
     def info_bar_margin(cls, footer: bool) -> Spacing:
@@ -252,7 +257,15 @@ class NormalInputBox(TitledChoice, InputBox):
     title = "Normal (bordered and padded)"
     frame_margin = Spacing(0, 1, 0, 1)
     frame_padding = Spacing(0, 1, 0, 0)
-    bordered = True
+    qt_border_pixels = 2
+
+    @classmethod
+    def frame_border(cls, colour: Color) -> Edges:
+        return Edges(*((("round", colour),) * 4))
+
+    @classmethod
+    def qt_frame_sheet(cls, field: str, colour: str) -> str:
+        return f"#prompt-frame {{ background: {field}; border: 1px solid {colour}; border-radius: 2px }}"
 
     @classmethod
     def info_bar_margin(cls, footer: bool) -> Spacing:

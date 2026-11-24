@@ -257,12 +257,7 @@ class AgentProcess(Client):
             if session not in self.sessions:
                 return
             try:
-                if (self.retirement is None and len(self.sessions) > 1
-                        and session.disposition.held_by_agent):
-                    task = asyncio.create_task(self.rpc.close_session(session.agent.session_id))
-                    session.responses.add(task)
-                    task.add_done_callback(session.responses.discard)
-                    await task
+                await session.disposition.close_on_detach(self, session)
             except BaseException:
                 if self.runner is not None:
                     self.runner.cancel()

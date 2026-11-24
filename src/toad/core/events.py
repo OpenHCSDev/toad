@@ -45,7 +45,9 @@ class ThreadInterestUpdate(OperationKind, ExclusiveKind):
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
-    session_scoped: ClassVar[bool] = False
+    def accepted_by(self, handler: object, message: Publication) -> bool:
+        """Whether a conversation comms handler accepts this publication."""
+        return True
 
     def refreshes(self, screen: object) -> bool:
         """Whether this publication is the given screen's to act on.
@@ -108,13 +110,15 @@ class Update(CoreEvent):
 class CommsUpdated(CoreEvent):
     """The original typed publication retains its emission-time context."""
 
-    session_scoped = True
-
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
     session_id: AcpSessionId | NoAcpSessionId = NoAcpSessionId()
     sequence: int | None = None
     recover_draft: bool = False
     queue_scope: QueueScope = field(default_factory=NoQueueScope)
+
+    def accepted_by(self, handler: object, message: Publication) -> bool:
+        return (handler.agent_binding.accepts_message(message)
+                and handler.turns.owner.accepts_update(self.update))
 
 
 @dataclass(frozen=True)

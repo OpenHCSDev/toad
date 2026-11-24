@@ -224,13 +224,16 @@ class QtAcpSessionView(
         block; a stop reason with a note says why."""
         self.turns.finish_client()
         model = self.agent_binding.configuration.model.selected
-        if stop_reason.completed and model is not None:
-            self.run_worker(
+        if model is not None:
+            stop_reason.record_usage(
                 partial(
-                    DB().record_model_usage,
-                    self.model_history_scope,
-                    model.value,
-                    last_used=time_ns(),
+                    self.run_worker,
+                    partial(
+                        DB().record_model_usage,
+                        self.model_history_scope,
+                        model.value,
+                        last_used=time_ns(),
+                    ),
                 )
             )
         await self.output.settle()

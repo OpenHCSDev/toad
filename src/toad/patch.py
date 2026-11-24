@@ -72,11 +72,13 @@ NO_PATCH_CELL = NoPatchCell()
 class PatchRows:
     """How a diff lays out its lines: before and after side by side, or one column."""
 
-    split: ClassVar[bool]
-
     @abstractmethod
     def changed(self, before: tuple[PatchCell, ...], after: tuple[PatchCell, ...]) -> Iterable[tuple[PatchSide, PatchSide]]:
         """The rows of one changed run."""
+
+    @abstractmethod
+    def gap(self, painter, text):
+        """A separator row between non-adjacent hunks."""
 
     @abstractmethod
     def pane_width(self, width: int) -> int: ...
@@ -89,10 +91,11 @@ class PatchRows:
 class SplitRows(PatchRows):
     """Removed lines beside the lines that replaced them."""
 
-    split = True
-
     def changed(self, before, after):
         return zip_longest(before, after, fillvalue=NO_PATCH_CELL)
+
+    def gap(self, painter, text):
+        return painter.paired(text, text)
 
     def pane_width(self, width: int) -> int:
         return max(1, (width - 3) // 2)
@@ -104,10 +107,11 @@ class SplitRows(PatchRows):
 class UnifiedRows(PatchRows):
     """Removed lines above added ones, each row numbered for both files."""
 
-    split = False
-
     def changed(self, before, after):
         return chain(((cell, NO_PATCH_CELL) for cell in before), ((NO_PATCH_CELL, cell) for cell in after))
+
+    def gap(self, painter, text):
+        return painter.single(text)
 
     def pane_width(self, width: int) -> int:
         return max(1, width)

@@ -210,10 +210,6 @@ class ComposerOffer(ABC):
     def offer_detail(self) -> str:
         return ""
 
-    @property
-    def offer_multiline(self) -> bool:
-        return False
-
 
 class SlashCommandOffer(ComposerOffer):
     """A slash-command completion offer: command spelling + help detail."""
@@ -227,10 +223,6 @@ class SlashCommandOffer(ComposerOffer):
     @property
     def offer_detail(self) -> str:
         return self.match.command.help
-
-    @property
-    def offer_multiline(self) -> bool:
-        return True
 
 
 class MentionCandidateOffer(ComposerOffer):

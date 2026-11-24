@@ -1018,18 +1018,18 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
         if not self.model_state.shows_model():
             return
         model = self.model_state.shown
-        if change.partial_update and not reorder:
-            change.apply_comms(self, model.channels.rows)
-            return
 
-        def draw(top: KeptLines) -> None:
-            if self._status_text is not None:
-                top.keep(StatusSection(self._status_text))
-            self.draw_lines(model, top)
-        self.redraw(draw)
-        # The redraw rebuilt the channel items; the groups bind to the new ones so the next
-        # partial change operates on live children.
-        self._rebind_groups_from_tree(model)
+        def full_redraw() -> None:
+            def draw(top: KeptLines) -> None:
+                if self._status_text is not None:
+                    top.keep(StatusSection(self._status_text))
+                self.draw_lines(model, top)
+            self.redraw(draw)
+            # The redraw rebuilt the channel items; the groups bind to the new ones so the next
+            # partial change operates on live children.
+            self._rebind_groups_from_tree(model)
+
+        change.sync_sidebar(self, model.channels.rows, reorder=reorder, full_redraw=full_redraw)
 
     def model_replaced(self) -> None:
         """Clear rows before the new observation's redraw lands; the next `present` will

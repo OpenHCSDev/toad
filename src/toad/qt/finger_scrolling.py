@@ -21,11 +21,15 @@ from PySide6.QtWidgets import QAbstractScrollArea, QApplication, QScroller, QWid
 class FingerScrollGesture(ABC):
     """What a drag on a scroll area's viewport means on this platform."""
 
-    installs_filter: ClassVar[bool] = True
-
     @abstractmethod
     def grab(self, viewport: QWidget) -> None:
         """Make a drag on ``viewport`` scroll it, if this platform's drags should."""
+
+    def attach(self, application: QApplication, granted: FingerScrolling) -> None:
+        """Install the application-wide polish filter when this gesture grabs viewports."""
+        for widget in application.allWidgets():
+            granted.held(widget)
+        application.installEventFilter(granted)
 
     @staticmethod
     def of_platform() -> FingerScrollGesture:
@@ -47,9 +51,10 @@ class MouseAndWheel(FingerScrollGesture):
     """A drag is the mouse's own: it selects text in a field or moves a row. Holding it for
     scrolling would stop a form's text from being selected by dragging across it."""
 
-    installs_filter: ClassVar[bool] = False
-
     def grab(self, viewport: QWidget) -> None:
+        pass
+
+    def attach(self, application: QApplication, granted: FingerScrolling) -> None:
         pass
 
 
@@ -69,10 +74,7 @@ class FingerScrolling(QObject):
         if held is not None:
             return held
         granted = cls(gesture, application)
-        if gesture.installs_filter:
-            for widget in application.allWidgets():
-                granted.held(widget)
-            application.installEventFilter(granted)
+        gesture.attach(application, granted)
         return granted
 
     def held(self, widget: QObject) -> None:

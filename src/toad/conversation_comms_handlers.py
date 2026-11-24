@@ -34,11 +34,7 @@ class ConversationCommsHandlers(CoreObserverDispatch):
     frontend's conversation view. Each frontend supplies only its presentation hooks."""
 
     def accepts(self, message: Publication) -> bool:
-        if not message.event.session_scoped:
-            return True
-        if not self.agent_binding.accepts_message(message):
-            return False
-        return self.turns.owner.accepts_update(message.event.update)
+        return message.event.accepted_by(self, message)
 
     async def turn_settled(self) -> None:
         """Frontend cleanup when an observed turn finishes (Textual clears its MCP live note)."""

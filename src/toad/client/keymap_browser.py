@@ -85,15 +85,15 @@ class KeymapResult:
     """Base for save outcomes — polymorphic so frontends never `isinstance` on it.
 
     `status_text()` returns what the status line should show (empty string if
-    the frontend owns a different mechanism). `should_repopulate()` returns
-    whether the table should re-read rows (true after a successful save,
-    false after a refusal since nothing changed)."""
+    the frontend owns a different mechanism). `present(browser)` applies the
+    outcome to the browser (refreshing rows on a successful save and showing
+    its status text)."""
 
     def status_text(self) -> str:
         raise NotImplementedError
 
-    def should_repopulate(self) -> bool:
-        raise NotImplementedError
+    def present(self, browser: KeymapBrowser) -> None:
+        browser.show_status(self.status_text())
 
 
 @dataclass(frozen=True)
@@ -106,8 +106,9 @@ class KeymapApplied(KeymapResult):
     def status_text(self) -> str:
         return "Not saved" if self.unsaved else "Saved"
 
-    def should_repopulate(self) -> bool:
-        return True
+    def present(self, browser: KeymapBrowser) -> None:
+        browser.refresh_rows()
+        super().present(browser)
 
 
 @dataclass(frozen=True)
@@ -119,9 +120,6 @@ class KeymapRefusedResult(KeymapResult):
 
     def status_text(self) -> str:
         return self.message
-
-    def should_repopulate(self) -> bool:
-        return False
 
 
 class KeymapBrowserState:
@@ -348,9 +346,7 @@ class KeymapBrowsing:
         self.show_result(await self.state.reset_keys(selection))
 
     def show_result(self, result: KeymapResult) -> None:
-        if result.should_repopulate():
-            self.refresh_rows()
-        self.show_status(result.status_text())
+        result.present(self)
 
 
 class KeymapSave(OperationKind):

@@ -1492,13 +1492,14 @@ class Conversation(
         self.turns.finish_client()
         self._agent_activity_boundary.reset()
         model = self.agent_binding.configuration.model.selected
-        if stop_reason.completed and model is not None:
-
+        if model is not None:
             # Complete visible turn settlement independently of recent-model
             # database contention. The native worker owns this optional write.
-            self.run_worker(
-                DB().record_model_usage(
-                    self.model_history_scope, model.value, last_used=time_ns()
+            stop_reason.record_usage(
+                lambda: self.run_worker(
+                    DB().record_model_usage(
+                        self.model_history_scope, model.value, last_used=time_ns()
+                    )
                 )
             )
         await self.output.settle()

@@ -108,12 +108,6 @@ class Offer(ComposerOffer):
 
     @property
     def layout(self) -> StyledTextLayout:
-        if self.offer_multiline:
-            return StyledTextLayout(
-                name=Segment(self.offer_label),
-                detail_line=self.offer_detail,
-                multiline=True,
-            )
         return StyledTextLayout(name=Segment(self.offer_label))
 
     @abstractmethod
@@ -126,6 +120,14 @@ class CommandOffer(SlashCommandOffer, Offer):
     SlashComplete inserts it."""
 
     match: CommandMatch
+
+    @property
+    def layout(self) -> StyledTextLayout:
+        return StyledTextLayout(
+            name=Segment(self.offer_label),
+            detail_line=self.offer_detail,
+            multiline=True,
+        )
 
     def accept(self, composer: Composer) -> None:
         composer.editor.setPlainText(f"{self.match.command.command} ")
@@ -432,7 +434,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         """The input box's height holding one line: the editor's one-line height, the box's
         padding, and its border where it draws one."""
         padding = self.frame.layout().contentsMargins()
-        border = 2 if self.settings.ui.input.box.bordered else 0
+        border = self.settings.ui.input.box.qt_border_pixels
         return self.editor_height(1) + padding.top() + padding.bottom() + border
 
     def add_box_button(self, button: QPushButton) -> None:
@@ -492,10 +494,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         badge shows the editing mode only while focused."""
         colour = self.renderer.theme(PrimaryColour if focused else MutedColour)
         field = self.renderer.theme(self.input_tone)
-        self.renderer.apply_sheet(self.frame,
-            f"#prompt-frame {{ background: {field}; border: 1px solid {colour}; border-radius: 2px }}"
-            if self.settings.ui.input.box.bordered
-            else f"#prompt-frame {{ background: {field}; border: none }}")
+        self.renderer.apply_sheet(self.frame, self.settings.ui.input.box.qt_frame_sheet(field, colour))
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, focused)
 
     def refresh_editing_mode(self) -> None:
