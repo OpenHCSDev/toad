@@ -8,9 +8,10 @@ from textual.content import Content
 from textual.css.native import ThemeState, DeclaresTheme, Keyword, NativeDeclaration, Percent, TextVariable, Variable
 from textual.css.styles import Styles
 from textual.message import Message
-from ui_theme.scheme import ErrorColour, PrimaryColour, SuccessColour
+from ui_theme.scheme import ErrorColour, PrimaryColour, SuccessColour, ThemeColour
 
 from metaclass_registry.mro_dispatch import MroDispatch, handles
+from toad.acp.terminal_controller import TerminalController
 from toad.terminal_execution import (
     TerminalExecution, TerminalCompletion, FailedTerminalOutcome,
     RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome,
@@ -23,36 +24,43 @@ from textual.events import Unmount
 
 if TYPE_CHECKING:
     from toad.agent_surface import AttachedSurfaceBinding
-    from toad.acp.terminal_controller import TerminalController
 
 
 class TerminalLook(DeclaresTheme):
     """The panel of a command that has not finished."""
 
+    tone: ClassVar[type[ThemeColour]] = PrimaryColour
+    tint: ClassVar[int] = 10
+    title_style: ClassVar[Style] = Style(bold=True)
     native_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
         NativeDeclaration.of(Styles.border, Keyword("panel"), Variable(PrimaryColour.name)),
         NativeDeclaration.of(Styles.border_title_color, TextVariable(PrimaryColour.name)),
         NativeDeclaration.of(Styles.background, Variable(PrimaryColour.name), Percent(10)),
     )
-    title_style: ClassVar[Style] = Style(bold=True)
+
+    def __init_subclass__(cls, **kwargs: object) -> None:
+        super().__init_subclass__(**kwargs)
+        if "tone" in vars(cls):
+            cls.native_theme = (
+                NativeDeclaration.of(Styles.border, Keyword("panel"), Variable(cls.tone.name)),
+                NativeDeclaration.of(Styles.border_title_color, TextVariable(cls.tone.name)),
+                NativeDeclaration.of(Styles.background, Variable(cls.tone.name), Percent(cls.tint)),
+            )
 
 
-class SucceededTerminalLook(TerminalLook):
-    native_theme = (
-        NativeDeclaration.of(Styles.border, Keyword("panel"), Variable(SuccessColour.name)),
-        NativeDeclaration.of(Styles.border_title_color, TextVariable(SuccessColour.name)),
-        NativeDeclaration.of(Styles.background, Variable(SuccessColour.name), Percent(7)),
-    )
+class FinishedTerminalLook(TerminalLook):
+    """A completed or failed command softens its tint and drops the bold title."""
+
+    tint = 7
     title_style = Style(bold=False)
 
 
-class FailedTerminalLook(TerminalLook):
-    native_theme = (
-        NativeDeclaration.of(Styles.border, Keyword("panel"), Variable(ErrorColour.name)),
-        NativeDeclaration.of(Styles.border_title_color, TextVariable(ErrorColour.name)),
-        NativeDeclaration.of(Styles.background, Variable(ErrorColour.name), Percent(7)),
-    )
-    title_style = Style(bold=False)
+class SucceededTerminalLook(FinishedTerminalLook):
+    tone = SuccessColour
+
+
+class FailedTerminalLook(FinishedTerminalLook):
+    tone = ErrorColour
 
 
 class TerminalTool(
