@@ -770,6 +770,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                                            page.prepared.fragments[:page.prepared.start])),
         )
 
+    def projected_history(self, source: ProjectedTranscriptSource, prepared) -> ProjectedTranscriptHistory:
+        return ProjectedTranscriptHistory(self, source, prepared)
+
     @property
     def retained_source_bytes(self) -> int:
         return sum(fragment.retained_bytes for fragment in self.fragments_in_range)
