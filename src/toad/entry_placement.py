@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from agent_comms.execution.transcript_sources import TranscriptCursor
-from textual.widget import Widget
 
 
 class EntryPlacement(ABC):
@@ -34,7 +33,7 @@ class PostedEntry:
         """Ordinary live output is replaced by its saved source."""
 
 
-class ChronologicalEntry(PostedEntry, Widget):
+class ChronologicalEntry(PostedEntry):
     """A local entry stays between the saved prefix and subsequent messages."""
 
     def prepare_post(self, placement: EntryPlacement) -> None:
