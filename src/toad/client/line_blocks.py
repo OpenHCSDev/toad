@@ -201,8 +201,9 @@ class WorkingRole(LineRole):
 class LineLink(DeclaredFamily, affix="Link"):
     """What clicking a piece of text does; the widget that drew it opens each kind of link."""
 
-    # Whether the text is underlined to show that it leads somewhere.
-    underlined: ClassVar[bool] = True
+    # Rich and Qt underline styling for text that leads somewhere.
+    rich_underline: ClassVar[bool | None] = True
+    css_text_decoration: ClassVar[str] = "underline"
     # The transport prefix of the Markdown href that carries a link through a string-only boundary.
     href_scheme: ClassVar[str] = "toad-link:"
 
@@ -238,14 +239,19 @@ class LineLink(DeclaredFamily, affix="Link"):
         return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix(cls.href_scheme))))
 
 
+class UnunderlinedLink(LineLink, declared_name=None):
+    """A link (or plain text) drawn without underline decoration."""
+
+    rich_underline = None
+    css_text_decoration = "none"
+
+
 @dataclass(frozen=True)
-class NoLink(LineLink):
+class NoLink(UnunderlinedLink):
     """Text that leads nowhere: a frontend draws it plain and gives it no action.
 
     Two of them mean the same thing, including copies a render worker sends back.
     """
-
-    underlined = False
 
     def text_role(self, role: type[LineRole]) -> type[LineRole]:
         return role
@@ -311,10 +317,8 @@ class OpenReference(LineLink):
 
 
 @dataclass(frozen=True)
-class ToggleDetails(LineLink):
+class ToggleDetails(UnunderlinedLink):
     """Show or hide the details of the fragment this is drawn in."""
-
-    underlined = False
 
 
 @dataclass(frozen=True)

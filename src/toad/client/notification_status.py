@@ -52,8 +52,6 @@ class ShownFragment:
 class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
-    unavailable: ClassVar[bool] = False
-
     def is_working(self) -> bool:
         return False
 
@@ -89,7 +87,7 @@ class NotificationStatus:
     @property
     def role(self) -> type[LineRole]:
         """The title's meaning and colour, wherever the title is drawn."""
-        return NoticeRole if self.unavailable else WorkingRole if self.is_working() else MutedRole
+        return WorkingRole if self.is_working() else MutedRole
 
     def blocks(self, shown: ShownFragment, link: LineLink) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
@@ -196,8 +194,11 @@ class EmptyCheckedNotifications(CheckedNotifications):
 @dataclass(frozen=True)
 class UnavailableNotifications(NotificationStatus):
     error: str
-    unavailable = True
     title = "Notification status unavailable"
+
+    @property
+    def role(self) -> type[LineRole]:
+        return NoticeRole
 
     @property
     def details(self) -> DetailLines:

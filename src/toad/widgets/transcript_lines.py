@@ -132,7 +132,7 @@ class LinkStyle(LinkPresentation[Style]):
 
     @handles(LineLink)
     def linked(self, link: LineLink) -> Style:
-        return Style(underline=link.underlined or None, meta={"@click": OpenLineLink(link)})
+        return Style(underline=link.rich_underline, meta={"@click": OpenLineLink(link)})
 
     @handles(NoLink)
     def plain(self, link: NoLink) -> Style:

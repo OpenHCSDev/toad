@@ -1041,17 +1041,17 @@ class HistoryPager(ResumesSource):
 class OffScreenRunway:
     """A history the screen does not show: nothing is read ahead for it."""
 
-    on_screen: ClassVar[bool] = False
-
     def read_rows(self, preparation: DirectionalPreparation, history: HistoryPager, end: PageEnd) -> int:
         return 0
+
+    def prepare_source(self, preparation: DirectionalPreparation, history: HistoryPager) -> None:
+        """An off-screen history requests no source page."""
 
 
 @dataclass(frozen=True)
 class Runway(OffScreenRunway):
     """Published rows of one history above and below the viewport."""
 
-    on_screen = True
     above: int
     below: int
 
@@ -1060,6 +1060,22 @@ class Runway(OffScreenRunway):
         # predicts rows beyond that already-visible need.
         missing = min(preparation.window.unfilled_rows, -end.rows_toward(self))
         return max(0, missing, preparation.demand.read_rows(preparation, history, end, self))
+
+    def prepare_source(self, preparation: DirectionalPreparation, history: HistoryPager) -> None:
+        if history.follows_source_tail and NEWER_END.visible_more(history):
+            preparation.window.jump_to_latest()
+        elif not history.draws_rows and NEWER_END.visible_more(history):
+            # A filter can hide the whole loaded range. Ask the ordinary
+            # source owner for the next range, not an invented row at its end.
+            history.request_page(NEWER_END)
+        elif history.filter.active:
+            # Projection scans share the original source's decoded boundary.
+            history.filter.check_edges()
+        else:
+            for end in (OLDER_END, NEWER_END):
+                if preparation.read_rows(history, end):
+                    history.request_page(end)
+                    return
 
 
 class PreparationDemand(ABC):
@@ -1285,24 +1301,9 @@ class DirectionalPreparation:
 
     def prepare_source(self, history: HistoryPager) -> None:
         """Request the next page from what the screen shows now, not from window state."""
-        window = self.window
-        if (not window.presenting or not history.selected_categories
-                or not self.runway(history).on_screen):
+        if not self.window.presenting or not history.selected_categories:
             return
-        if history.follows_source_tail and NEWER_END.visible_more(history):
-            window.jump_to_latest()
-        elif not history.draws_rows and NEWER_END.visible_more(history):
-            # A filter can hide the whole loaded range. Ask the ordinary
-            # source owner for the next range, not an invented row at its end.
-            history.request_page(NEWER_END)
-        elif history.filter.active:
-            # Projection scans share the original source's decoded boundary.
-            history.filter.check_edges()
-        else:
-            for end in (OLDER_END, NEWER_END):
-                if self.read_rows(history, end):
-                    history.request_page(end)
-                    return
+        self.runway(history).prepare_source(self, history)
 
     def request_older(self) -> None:
         """An explicit earlier-history control is demand, even without travel."""

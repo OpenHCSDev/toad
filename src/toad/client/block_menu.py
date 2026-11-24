@@ -63,6 +63,8 @@ class BlockMenu:
     def row_text(self, entry: MenuEntry) -> str:
         """A row's text column: the label, then its description on the same line when the
         modality keeps it inline; otherwise the description goes under the label."""
-        if entry.description and self.input_modality.describes_inline():
-            return f"{entry.label} — {entry.description}"
-        return entry.label
+        return self.input_modality.row_text(entry.label, entry.description)
+
+    def row_subtext(self, entry: MenuEntry) -> str:
+        """The description line shown beneath a row's label when the modality stacks it."""
+        return self.input_modality.row_subtext(entry.description)
