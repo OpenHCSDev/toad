@@ -825,8 +825,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     def on_earlier_history(self, event: HistoryEdge.Requested) -> None:
         event.stop()
         self.window.lookahead.request_older()
-        if self.filter.active:
-            self.filter.request_older()
+        self.filter.request_older()
 
     def arrivals_began(self) -> None:
         """A burst of arrivals comes in row after row, each row fading in."""

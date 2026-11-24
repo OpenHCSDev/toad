@@ -96,10 +96,7 @@ class QtPlan(PlanView, SessionPanel, QWidget):
         text = QLabel(entry.content, row)
         text.setWordWrap(True)
         text.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        if entry.status.complete:
-            font = text.font()
-            font.setStrikeOut(True)
-            text.setFont(font)
+        entry.status.style_qt_label(text)
         layout.addWidget(marker, 0, Qt.AlignmentFlag.AlignTop)
         layout.addWidget(text, 1, Qt.AlignmentFlag.AlignTop)
         opacity = entry.status.opacity

@@ -54,7 +54,6 @@ class NoProjectionOverlay:
 
 
 class FilterState(DeclaredFamily, affix="Filter"):
-    active = False
     older_visible = False
     has_older = False
     scan_available = False
@@ -118,8 +117,14 @@ class FilterState(DeclaredFamily, affix="Filter"):
         self.demand = RequestedScanDemand()
 
     def request_older(self) -> None:
-        self.request_force()
-        self.start_scan()
+        """Only an active filter runs a filtered scan on explicit earlier-history requests."""
+
+    def prepare_edges(self, preparation, history, ends) -> None:
+        """An unfiltered history reads pages directly at either edge."""
+        for end in ends:
+            if preparation.read_rows(history, end):
+                history.request_page(end)
+                return
 
     def start_scan(self) -> Worker | None:
         if self.scanning or not self.owner.source_ready:
@@ -171,9 +176,20 @@ class NoFilter(FilterState):
         return OLDER_END.visible_more(self.owner)
 
 
-class EmptyFilter(NoFilter):
+class ActiveFilter(FilterState, declared_name=None):
+    """A filter state that owns its own edge checks and earlier-history scans."""
+
+    def request_older(self) -> None:
+        self.request_force()
+        self.start_scan()
+
+    def prepare_edges(self, preparation, history, ends) -> None:
+        # Projection scans share the original source's decoded boundary.
+        self.check_edges()
+
+
+class EmptyFilter(ActiveFilter, NoFilter):
     """No category can match; no history read is needed."""
-    active = True
     older_visible = False
     has_older = False
 
@@ -183,9 +199,8 @@ class DrawnFilter(NoFilter):
     selected categories' rows (Qt's `QtPage.shown_fragments`): nothing scans for a projection."""
 
 
-class SeekingFilter(NoFilter):
+class SeekingFilter(ActiveFilter, NoFilter):
     """A restricted selection awaiting its first prepared projection."""
-    active = True
 
     @property
     def scan_available(self):
@@ -235,8 +250,7 @@ class SeekingFilter(NoFilter):
                 source.close()
 
 
-class Filtered(FilterState):
-    active = True
+class Filtered(ActiveFilter):
     overlay: ProjectedTranscriptHistory
 
     def __init__(self, owner: LineHistory, projection: ProjectedTranscriptHistory):

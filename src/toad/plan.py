@@ -13,13 +13,25 @@ from acp.schema import PlanEntry
 class PlanStatus(DeclaredFamily, affix="PlanStatus"):
     """ACP status names select their behavior once, when accepting a plan."""
 
-    complete: ClassVar[bool] = False
     # How strongly an entry with this status shows, from 0 (invisible) to 1.
     opacity: ClassVar[float] = 1.0
 
     @classmethod
     @abstractmethod
     def marker(cls) -> str: ...
+
+    @classmethod
+    def newly_complete(cls, prior: type[PlanStatus] | None) -> bool:
+        """Whether reaching this status from ``prior`` is a fresh completion."""
+        return False
+
+    @classmethod
+    def style_qt_label(cls, label) -> None:
+        """Apply status-specific styling (e.g. strikeout) to a Qt plan row label."""
+
+    @classmethod
+    def present_textual(cls, text, state: PlanDisplayState, entry: PlanItem) -> None:
+        """Apply status-specific presentation to a Textual plan row."""
 
 
 class PendingPlanStatus(PlanStatus):
@@ -37,11 +49,23 @@ class InProgressPlanStatus(PlanStatus):
 
 
 class CompletedPlanStatus(PlanStatus):
-    complete = True
-
     @classmethod
     def marker(cls) -> str:
         return " ✔ "
+
+    @classmethod
+    def newly_complete(cls, prior: type[PlanStatus] | None) -> bool:
+        return prior is not None and prior is not cls
+
+    @classmethod
+    def style_qt_label(cls, label) -> None:
+        font = label.font()
+        font.setStrikeOut(True)
+        label.setFont(font)
+
+    @classmethod
+    def present_textual(cls, text, state: PlanDisplayState, entry: PlanItem) -> None:
+        text.complete(animated=state.newly_complete(entry))
 
 
 @dataclass(frozen=True)
@@ -84,10 +108,7 @@ class PlanDisplayState:
     def newly_complete(self, entry: PlanItem) -> bool:
         """Whether this entry's status is complete AND was not complete at the previous
         update — the condition both frontends use to animate the completion."""
-        if not entry.status.complete:
-            return False
-        prior = self.previous_statuses.get(entry.content)
-        return prior is not None and not prior.complete
+        return entry.status.newly_complete(self.previous_statuses.get(entry.content))
 
 
 class PlanView:

@@ -534,9 +534,10 @@ class CommitPublication(CanonicalSourcePublication):
         if any(block_claim(child).blocks_commit for child in blocks):
             return False
         potential = tuple(
-            child
+            item
             for child in blocks
-            if child is not self.binding.history and block_claim(child).retires
+            if child is not self.binding.history
+            for item in block_claim(child).retiring(child)
         )
         return self.plan.ready(self.binding.history) and self.plan.permits(
             view, potential
