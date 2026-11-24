@@ -17,11 +17,11 @@ from agent_comms.task_attachments.disclosure_text import (
     StructuredText,
 )
 from agent_comms.task_attachments.team_pings import (
+    AlarmDisplay,
     AlarmSection,
     NewAlarms,
     RulePing,
     TeamUpdateNotice,
-    TeamUpdateStore,
 )
 from agent_comms.team.board_actions import BoardActionApplied, BoardActionOffer
 from agent_comms.team.standing_rules import ServicePassFailing
@@ -315,7 +315,7 @@ async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(
     request.addfinalizer(ClickProbeOffer.withdraw)
     offer = ClickProbeOffer(TextDigest.of("board source"), recipient)
     first = with_board_action(replace(published_hud(), teammate=recipient), offer)
-    TeamUpdateStore.record(workspace.comms.root, first.packets[0])
+    TeamBoardPublicationStore.replace_all(workspace.comms.root, TeamPlan(), (first,))
     second = replace(first, teammate=RecordedThreadIncarnation("other", 4.0), packets=())
     initial = TeamBoardCut((first, second), frozenset((first.teammate, second.teammate)))
     changed = replace(first, units=())
@@ -355,6 +355,7 @@ async def test_one_recipient_delta_preserves_textual_and_qt_view_identity(
     parent.coordination_access = SimpleNamespace(
         open_current=lambda: SimpleNamespace(core=qt_core),
     )
+    parent.preparation = app.preparation
     screen = QtTeamBoardScreen(parent)
     screen._on_hud_changed(TeamHudChanged(initial))
     changed_tab = screen.members[first.teammate]
@@ -474,7 +475,7 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
         ping = replace(RulePing.capture(ServicePassFailing(
             watch="native-alarm", since=1000, error="original error", failed_at=1000)),
                        since=RecordedEventTime(1000))
-        section = AlarmSection(NewAlarms, (ping,))
+        section = AlarmSection(AlarmDisplay(NewAlarms, (ping,)))
         alarm = TeamAlarm(NewAlarms)
         await app.screen.mount(alarm)
         alarm.present(section, 1005)
