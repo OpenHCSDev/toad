@@ -52,24 +52,6 @@ def compact_preview(text: str, limit: int = 64) -> str:
     return collapsed[: max(1, limit - 1)].rstrip() + "…"
 
 
-@dataclass(frozen=True)
-class CertaintyClaim:
-    """One grounded or assumed epistemic claim from a `Certainty:` audit block."""
-
-    status: str
-    statement: str
-    basis: str = ""
-
-    @property
-    def label(self) -> str:
-        return f"{self.status}: {compact_preview(self.statement, 56)}"
-
-    def formatted(self) -> str:
-        if self.basis:
-            return f"- **{self.status}**: {self.statement}\n  _Basis_: {self.basis}"
-        return f"- **{self.status}**: {self.statement}"
-
-
 class StructuredPart(ABC):
     """One semantic part of a model message or context segment."""
 
@@ -101,6 +83,39 @@ class StructuredPart(ABC):
     def wire_blocks(self, row, body_type) -> tuple[LineBlock, ...]:
         """Toolkit-neutral line blocks drawn inside a bus message."""
         return self.line_blocks()
+
+
+@dataclass(frozen=True)
+class CertaintyClaim(StructuredPart):
+    """One grounded or assumed epistemic claim from a `Certainty:` audit block."""
+
+    kind_title = "Claim"
+    badge_titles = ("Claim",)
+
+    status: str
+    statement: str
+    basis: str = ""
+
+    @property
+    def text(self) -> str:
+        return self.formatted()
+
+    @property
+    def label(self) -> str:
+        return f"{self.status} · {compact_preview(self.statement, 56)}"
+
+    def formatted(self) -> str:
+        if self.basis:
+            return f"- **{self.status}**: {self.statement}\n  _Basis_: {self.basis}"
+        return f"- **{self.status}**: {self.statement}"
+
+    def detail(self) -> str:
+        if self.basis:
+            return f"{self.status}\n\n{self.statement}\n\nBasis: {self.basis}"
+        return f"{self.status}\n\n{self.statement}"
+
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        return (Summary((Span(f"· {self.status}: {self.statement}", ThinkingRole),)),)
 
 
 @dataclass(frozen=True)
@@ -162,12 +177,7 @@ class ThinkingPart(StructuredPart):
 
     @property
     def children(self) -> tuple[StructuredPart, ...]:
-        if not self.claims:
-            return ()
-        return tuple(
-            ContextSectionPart(claim.label, claim.formatted())
-            for claim in self.claims
-        )
+        return self.claims
 
     def detail(self) -> str:
         lines = [self.summary_title]
@@ -343,7 +353,7 @@ class ToolCallPart(StructuredPart):
     def line_blocks(self) -> tuple[LineBlock, ...]:
         preview = compact_preview(self.arguments_text, 72)
         spans = (
-            Span("· 🔧 ", ToolVerbRole),
+            Span("· Tool ", ToolVerbRole),
             Span(self.name, ToolVerbRole),
             *(
                 (Span(f"  {preview}", ToolArgumentRole),)
