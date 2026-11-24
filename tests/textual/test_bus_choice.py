@@ -15,7 +15,7 @@ from agent_comms.transport.connector_profile import (
     UiCredential,
     UiGrantId,
 )
-from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
+from agent_comms.transport.held_ui_profiles import HeldUiProfiles, OpenableProfile
 from agent_comms.transport.tailnet_buses import (
     NamedHost,
     PeerHoldsBus,

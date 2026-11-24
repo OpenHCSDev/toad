@@ -11,7 +11,7 @@ from agent_comms.messaging.read_basis import NamedViewer
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_model import DeclaredModel
 from agent_comms.registry.threads import ExternalThread, NativeThread
-from agent_comms.transport.connector_store import HeldUiProfiles
+from agent_comms.transport.held_ui_profiles import HeldUiProfiles
 from agent_comms.transport.tailnet_buses import TailnetPeer
 from support.agents import peer
 from support.roots import Roots

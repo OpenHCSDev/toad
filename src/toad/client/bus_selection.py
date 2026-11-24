@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.transport.connector_profile import UiConnectionProfile
-from agent_comms.transport.connector_store import (
+from agent_comms.transport.held_ui_profiles import (
     HeldUiProfiles,
     OpenableProfile,
 )

@@ -13,7 +13,7 @@ from agent_comms.team.order import TeamVerbActionOffer
 from agent_comms.team.standing_rules import OrderlessUnreviewedHead
 from agent_comms.team.team_hud import TeamHud
 from agent_comms.transport.request import CoreAccess
-from agent_comms.transport.tools.orders import CommsBoardActionTool
+from agent_comms.transport.tools.sidebar import CommsBoardActionTool
 
 from toad.target_commands import BoardCommand
 

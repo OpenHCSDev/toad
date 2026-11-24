@@ -15,7 +15,7 @@ from agent_comms.transport.connector_profile import (
     UiCredential,
     UiGrantId,
 )
-from agent_comms.transport.connector_store import HeldUiProfiles
+from agent_comms.transport.held_ui_profiles import HeldUiProfiles
 from yarl import URL
 
 from toad.client.bus_connect import _hold_pasted_profile

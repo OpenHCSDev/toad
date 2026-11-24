@@ -19,7 +19,7 @@ from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.nominal.field_codec import AcpSessionId, NoAcpSessionId
-from agent_comms.transport.connector_store import HeldUiProfiles, OpenableProfile
+from agent_comms.transport.held_ui_profiles import HeldUiProfiles, OpenableProfile
 from agent_comms.transport.tailnet_buses import PeerBus
 from agent_comms.transport.tailnet_profiles import AskedPeer, HoldingPeerProfile, TailnetProfiles
 from agent_comms.transport.tools.tailnet import CommsTailnetBusesTool, CommsTailnetProfileTool
