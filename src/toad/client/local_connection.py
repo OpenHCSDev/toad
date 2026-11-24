@@ -22,6 +22,7 @@ from agent_comms.installer.active_route import CommsRoute
 from agent_comms.installer.route_selection import RouteSelection
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.threads import Thread
+from agent_comms.storage.locked_store import RootFile
 from agent_comms.transport.core_access import LocalCoreAccess
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.observation import (
@@ -87,6 +88,11 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
     def chosen(self, arguments: list[str]) -> CoreConnection:
         """Read as a launch reads its arguments: a profile is remote, a root this machine's."""
         return select_connection(arguments)
+
+    def prewarm(self) -> None:
+        """Walk local Core storage declarations once before the first frame so a cold tab
+        never imports all of `agent_comms` under the GIL on its first wire revision."""
+        RootFile.load_declarations()
 
     @classmethod
     def from_launch(cls, root: LaunchRoot) -> LocalCoreConnection:

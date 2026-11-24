@@ -13,7 +13,7 @@ from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.team.board_actions import BoardActionApplied, BoardActionOffer
 from agent_comms.team.team_hud import TeamHud
 from agent_comms.transport.request import CoreAccess
-from agent_comms.transport.tools.orders import CommsBoardActionTool
+from agent_comms.transport.tools.sidebar import CommsBoardActionTool
 from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 
 from toad.client.commands import (

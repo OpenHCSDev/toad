@@ -1415,13 +1415,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                  preparation: PreparationRuntime, scheme: ColourScheme,
                  launch: AgentBinding = NoAgent(), opening: LaunchOpening = NoLaunchOpening()) -> None:
         super().__init__(project, preparation, scheme)
-        # Walk Core's declaration catalog once up front (shared with the Textual app
-        # via CorePrewarm): a cold first tab otherwise imports every agent_comms
-        # module under the GIL on its first wire revision / action menu.
-        self._prewarm_core_modules()
         # The launch's agent, as Textual's `-a`: New Session starts its session.
         # The conversation the launch named (`--open`), opened once the saved tabs are back.
         self.initialize_client(launch, connection, opening=opening)
+        # Walk local Core declarations once up front when connected locally (shared with
+        # Textual via CorePrewarm); a remote connection's prewarm() is a no-op.
+        self._prewarm_core_modules()
         self.input_attention = QtWindowAttention(self)
         self.action_keys = ActionKeys(lambda: self.settings)
         # Until a conversation reads Core's display references, bodies link the project's files.

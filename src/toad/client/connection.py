@@ -217,6 +217,10 @@ class CoreConnection(ABC):
     def close(self) -> None:
         """Release connection-owned work after its observations and reads end."""
 
+    def prewarm(self) -> None:
+        """Walk local Core storage declarations when this connection reads them on disk.
+        A remote connection talks to Core over HTTPS/WebSocket and loads no local stores."""
+
     @property
     @abstractmethod
     def location(self) -> str:
