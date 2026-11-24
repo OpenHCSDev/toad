@@ -1308,14 +1308,13 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         layout.addWidget(self.messages, 1)
         layout.addWidget(self.feedback)
         layout.addWidget(self.agent_activity)
+        # Current channel tree / peer activity sits right above the input box, matching ThreadView.
+        for line in self.activity:
+            layout.addWidget(line)
         self.reserve_composer(layout, lambda: self.conversation.prompt(self),
                               lambda composer: composer.labelled(label))
         layout.addWidget(self.question)
         layout.addWidget(self.interactive_dialog)
-        # Under the prompt, not over it: who is here is reference (Textual's
-        # `CommsChatView.compose` yields the kind's activity after the prompt).
-        for line in self.activity:
-            layout.addWidget(line)
 
     @property
     def mode(self) -> str:
