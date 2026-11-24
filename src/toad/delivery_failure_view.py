@@ -1,11 +1,9 @@
 """The concrete compose controls used by shared delivery-failure declarations."""
 
 
-from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from functools import partial
 
-from agent_comms.messaging.message_reference import MessageReference
 from rich.text import Text as RichText
 from textual import getters
 from textual.content import Content
@@ -36,9 +34,6 @@ class DeliveryFailureView(ComposerStatus, SubmissionView, ToadNode, Widget):
     """The thread's own status from its owner; a read-only block shows over it."""
     composer_block: var[str] = var("")
     """Why compose is held: a read-only saved view; empty when open."""
-
-    @abstractmethod
-    def draws_user_message(self, reference: MessageReference) -> bool: ...
 
     def compute_status(self) -> str | Content | RichText:
         return self.composed_status()

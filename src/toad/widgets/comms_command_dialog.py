@@ -77,10 +77,6 @@ class CatalogFieldSelection(CatalogChoiceSelection, ModelSelection):
         self.editor = editor
         super().__init__()
 
-    @property
-    def selection_active(self):
-        return self.is_attached
-
     def compose(self):
         yield from self.compose_content()
 

@@ -702,6 +702,11 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         return line.target.menu_context(sidebar, mode_name=sidebar.find_open_views().get(line.target_name),
                                         channel=line.listed_channel())
 
+    @property
+    def host(self) -> QtToadApp:
+        """The window a row's menu entries act in (`HeldRowMenu`)."""
+        return self.window
+
     def copy_name(self, name: str) -> None:
         self.window.copy_to_clipboard(name)
 
@@ -899,10 +904,6 @@ class QtSidebarBuses(BusListing, ConversationRows):
         self.itemCollapsed.connect(lambda item: self.fit_rows())
         self.relist()
 
-    @property
-    def host(self) -> QtToadApp:
-        return self.window
-
     def picker_host(self) -> BusPickerHost:
         return self.window
 
@@ -964,11 +965,6 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
         self.filter.subscribe(self._on_filter_changed)
         # A row's menu on a right-click or a held finger, as the welcome's rows have it.
         self.held_menu = HeldRowMenu(self, self)
-
-    @property
-    def host(self) -> QtToadApp:
-        """The window a row's menu entries act in (`HeldRowMenu`)."""
-        return self.window
 
     @property
     def app(self) -> QtToadApp:
