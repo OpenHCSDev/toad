@@ -248,8 +248,6 @@ def described(chain: list[ImportSite]) -> str:
 # move the frontend decision behind its host, or make the shared caller unreachable, then delete
 # the line. A NEW finding fails; a listed one that is gone fails until its line is deleted.
 KNOWN_LAZY: dict[str, str] = {
-    'agent_comms.installer.probes.publication -> agent_comms.installer.publication':
-        "aiohttp.web -> async_timeout. Qt: Core installer probe never called by the Android client (exposed once Core #5130 removed aiohttp.web from the closure)",
     'objectstate.object_state_registry -> dill':
         'dill. Qt: no caller of ObjectStateRegistry.save_history_to_file',
     'pyqt_reactive.protocols.widget_adapters -> pyqt_reactive.forms.widget_strategies':
