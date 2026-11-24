@@ -67,7 +67,7 @@ from toad.turn_presentation import TurnPresentation
 from toad.live_output import LiveOutput
 from toad.view_actions import ViewAction
 from toad.transcript_scope import TranscriptScope, TranscriptView
-from toad.workspace_frame import WorkspaceFrame, WorkspaceHosted
+from toad.qt.workspace_frame import QtWorkspaceHosted
 
 
 class ComposerPlaceholder(QWidget):
@@ -106,7 +106,7 @@ class QtConversation(
     SourcedConversation,
     QtSubmissionView,
     Page,
-    WorkspaceHosted,
+    QtWorkspaceHosted,
     ReadsCommandCatalog,
     ComposerHost,
     QtHistoryNotifications,
@@ -420,10 +420,6 @@ class QtConversation(
         self.dispatch_sync(presentation)
 
     # ---- The Qt widget answers ----
-
-    @property
-    def screen(self) -> WorkspaceFrame:
-        return QWidget.window(self)
 
     @property
     def window(self) -> QtHistoryWindow:

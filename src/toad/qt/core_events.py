@@ -10,6 +10,7 @@ from formbridge.publications import Subscription
 from pyqt_reactive.services.publication_delivery import QtDeliveryReceiver
 
 from toad.app_node import AppScoped
+from toad.client.connection import CoordinationAccess
 from toad.client.subscribers import CallbackSubscription, CoreObserverDispatch
 from toad.core.events import CoreEvent, Publication
 
@@ -39,6 +40,10 @@ class QtCoreObserver(QtDeliveryReceiver, CoreObserverDispatch, AppScoped):
     Textual widgets, without re-declaring it per subclass.
     """
 
+    @property
+    def coordination(self) -> CoordinationAccess:
+        return self.app.coordination_access
+
     def post_core_callback(self, event: CoreEvent, subscription: CallbackSubscription) -> bool:
         self.deliver(partial(subscription.consume, self, QtPublication(event, subscription)))
         return True
@@ -56,3 +61,6 @@ class QtCoreObserver(QtDeliveryReceiver, CoreObserverDispatch, AppScoped):
     def close_core_events(self) -> None:
         super().close_core_events()
         self.close_deliveries()
+
+    def close_activity(self) -> None:
+        self.close_core_events()

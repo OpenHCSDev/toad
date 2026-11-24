@@ -17,7 +17,6 @@ from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import BackgroundColour
 
 from toad.client.application import ClientApplication
-from toad.client.connection import CoordinationAccess
 from toad.channel_activity_dispatch import ChannelActivityTitle
 from toad.client.conversation import ConversationKind
 from toad.client.fragments import Shown
@@ -158,10 +157,6 @@ class PeerActivity(ObservedActivity, QtCoreObserver, QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.summary)
 
-    @property
-    def coordination(self) -> CoordinationAccess:
-        return self.app.coordination_access
-
     def showEvent(self, event) -> None:
         super().showEvent(event)
         if not self.is_mounted:
@@ -173,6 +168,3 @@ class PeerActivity(ObservedActivity, QtCoreObserver, QWidget):
         self.changed()
         self.summary.setText(" · ".join((row.name, *row.summary)))
         self.summary.setVisible(bool(row.summary and row.summary[0]))
-
-    def close_activity(self) -> None:
-        self.close_core_events()

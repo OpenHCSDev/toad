@@ -150,10 +150,6 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         self._sync_checks()
         asyncio.ensure_future(self._refresh())
 
-    @property
-    def thread_identity(self) -> SessionIdentity:
-        return self._view.thread_identity
-
     async def _refresh(self) -> None:
         if self._refresh_task is not None and not self._refresh_task.done():
             return

@@ -181,9 +181,6 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.expanded = not self.expanded
         self.refresh_summary()
 
-    def close_activity(self) -> None:
-        self.close_core_events()
-
 
 class QtInputDeliveryDetails(PresentedWindow, DeliveryDetailsPage, QDialog, metaclass=PyQtWidgetMeta):
     """Textual's `InputDeliveryDetails` as a dialog; `DeliveryDetailsPage` owns its text.

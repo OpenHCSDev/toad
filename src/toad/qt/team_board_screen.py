@@ -95,10 +95,6 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
         buttons.accepted.connect(self.accept)
         layout.addWidget(buttons)
 
-    @property
-    def coordination(self):
-        return self.app.coordination_access
-
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)
         if not self._attached:

@@ -203,10 +203,6 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
             control.setStyleSheet(f"QToolButton {{ color: {secondary}; border: none; padding: 0 }}")
         self.setStyleSheet(f"#goal-bar {{ border-top: 1px solid {secondary} }}")
 
-    @property
-    def coordination(self) -> CoordinationAccess:
-        return self.app.coordination_access
-
     # What GoalObservation reads into and publishes, as it does for the TUI's conversation
 
     @property
@@ -251,7 +247,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
     def close_activity(self) -> None:
         self.is_attached = False
         self.session.close()
-        self.close_core_events()
+        super().close_activity()
         self.app.run_operation(GoalPress, self.goal_observation.close)
 
     # GoalBarOwner's drawing hooks
