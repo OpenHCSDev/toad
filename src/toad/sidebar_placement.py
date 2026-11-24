@@ -8,12 +8,23 @@ from dataclasses import dataclass
 from functools import partial
 from itertools import accumulate
 from operator import attrgetter
-from typing import ClassVar, Self
+from typing import ClassVar, Protocol, Self
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.css.types import DockEdge
 from textual.geometry import Offset, Region, Size, Spacing
-from textual.widget import Widget
+
+
+class _ControlStyles(Protocol):
+    width: int | str
+    height: int | str
+    pointer: str
+
+
+class StyledControl(Protocol):
+    """A Textual toggle or resize handle whose layout styles an edge sizes."""
+
+    styles: _ControlStyles
 
 
 class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
@@ -72,11 +83,11 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     @abstractmethod
-    def size_toggle(cls, toggle: Widget) -> None: ...
+    def size_toggle(cls, toggle: StyledControl) -> None: ...
 
     @classmethod
     @abstractmethod
-    def size_handle(cls, handle: Widget) -> None: ...
+    def size_handle(cls, handle: StyledControl) -> None: ...
 
     @classmethod
     @abstractmethod
@@ -178,11 +189,11 @@ class WidthSidebarEdge(SidebarEdge):
         return cls.opposite()
 
     @classmethod
-    def size_toggle(cls, toggle: Widget) -> None:
+    def size_toggle(cls, toggle: StyledControl) -> None:
         toggle.styles.width, toggle.styles.height = cls.collapsed_extent, "1fr"
 
     @classmethod
-    def size_handle(cls, handle: Widget) -> None:
+    def size_handle(cls, handle: StyledControl) -> None:
         handle.styles.width, handle.styles.height = 1, "1fr"
         handle.styles.pointer = "ew-resize"
 
@@ -261,11 +272,11 @@ class HeightSidebarEdge(SidebarEdge):
         return RightSidebarEdge
 
     @classmethod
-    def size_toggle(cls, toggle: Widget) -> None:
+    def size_toggle(cls, toggle: StyledControl) -> None:
         toggle.styles.width, toggle.styles.height = "1fr", cls.collapsed_extent
 
     @classmethod
-    def size_handle(cls, handle: Widget) -> None:
+    def size_handle(cls, handle: StyledControl) -> None:
         handle.styles.width, handle.styles.height = "1fr", 1
         handle.styles.pointer = "ns-resize"
 

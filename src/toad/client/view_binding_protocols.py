@@ -27,8 +27,8 @@ if TYPE_CHECKING:
     from agent_comms.transcript.transcripts import TranscriptReadIdentity
     from toad.client.prepared_pages import PreparedPageSource, PreparedTranscriptPage
     from toad.client.transcript_history_contract import TranscriptHistoryContract
+    from toad.client.session_scope import SessionScope
     from toad.core.events import ThreadRowsChanged
-    from toad.session_scope import SessionScope
     from toad.transcript_publication import PublicationWork
 
 

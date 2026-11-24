@@ -11,11 +11,9 @@ from typing import ClassVar
 
 from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from textual.color import TRANSPARENT, Color
-from textual.content import Content
 from textual.css._style_properties import Edges
 from textual.css.types import AlignHorizontal
 from textual.geometry import Spacing
-from textual.widget import Widget
 
 from toad.acp.status import ToolCallStatus
 from toad.client.platform import DesktopService, host
@@ -317,11 +315,11 @@ class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):
 
     @classmethod
     @abstractmethod
-    def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
+    def around[W](cls, navigation: W, body: W) -> tuple[W, W]:
         """The navigation bar and the conversation row, top to bottom."""
 
     @classmethod
-    def place(cls, navigation: Widget, body: Widget) -> None:
+    def place(cls, navigation, body) -> None:
         """Move an open navigation bar to this side of its conversation row."""
         upper, lower = cls.around(navigation, body)
         navigation.screen.move_child(lower, after=upper)
@@ -329,13 +327,13 @@ class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):
 
 class TopNavigationBar(NavigationBarPosition):
     @classmethod
-    def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
+    def around[W](cls, navigation: W, body: W) -> tuple[W, W]:
         return navigation, body
 
 
 class BottomNavigationBar(NavigationBarPosition):
     @classmethod
-    def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
+    def around[W](cls, navigation: W, body: W) -> tuple[W, W]:
         return body, navigation
 
 

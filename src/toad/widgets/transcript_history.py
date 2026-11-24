@@ -40,7 +40,8 @@ from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.client.history_coverage import ReportsCoveredPages
 from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_pager import ConversationPager, DrawsBusMessages, HistoryPager, NativePager
-from toad.frame_presentation import ARRIVAL, ArrivalRun
+from toad.frame_presentation import ArrivalRun
+from toad.motion import ARRIVAL
 from toad.entry_placement import EntryPlacement
 from toad.message_rows import RecordedMessageClock
 from toad.native_style import (

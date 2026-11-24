@@ -7,7 +7,7 @@ than a channel's.
 """
 
 from support.textual_steps import refresh_chat
-from toad.frame_presentation import ARRIVAL
+from toad.motion import ARRIVAL
 from toad.widgets.comms_chat import CommsChatView
 
 

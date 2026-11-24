@@ -5,7 +5,8 @@ from textual.app import App, ComposeResult
 from textual.widget import Widget
 from ui_theme.effects import NEW_TEXT, Mix
 
-from toad.frame_presentation import ARRIVAL, AnimationEffects, EffectRunning
+from toad.frame_presentation import AnimationEffects, EffectRunning
+from toad.motion import ARRIVAL
 from toad.textual_colours import ThemedApp
 
 

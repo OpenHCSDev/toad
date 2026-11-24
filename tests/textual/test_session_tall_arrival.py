@@ -19,7 +19,7 @@ from agent_comms.execution.session_file import RegistrySessionLocation
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 
-from toad.frame_presentation import ARRIVAL
+from toad.motion import ARRIVAL
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
 
