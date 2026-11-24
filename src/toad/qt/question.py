@@ -31,7 +31,7 @@ from toad.answer import Answer, Ask
 from toad.client.input_attention import InputAttention
 from toad.question_actions import ChoiceQuestion, QuestionContext, SelectKindAction
 from toad.widget_contracts import DismissibleContract
-from toad.qt.metrics import UiGap
+from toad.qt.metrics import UiGap, delete_layout_widgets
 
 class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
     """Qt's inline question. A hidden panel at the bottom of the conversation view that fills
@@ -138,11 +138,7 @@ class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
         self.retract()
 
     def _clear_options(self) -> None:
-        while self._options_row.count():
-            item = self._options_row.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
+        delete_layout_widgets(self._options_row)
         self._buttons.clear()
         for shortcut in self._shortcuts:
             shortcut.setEnabled(False)

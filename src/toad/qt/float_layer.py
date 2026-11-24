@@ -129,10 +129,16 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
         self.scheme = scheme
         self.pending.setStyleSheet(f"background: {scheme.to_hex(scheme.panel_bg)}; border-radius: 4px;")
 
+    def _notice_cards(self) -> list[QtNoticeCard]:
+        """Direct child notice cards in insertion order, without touching ``QLayout.itemAt``
+        (which creates non-``QObject`` ``QWidgetItem`` wrappers that outlive C++ teardown)."""
+        return self.findChildren(QtNoticeCard, options=Qt.FindChildOption.FindDirectChildrenOnly)
+
     def post(self, text: str, role: StatusColorRole, seconds: float) -> None:
-        cards = [self.notices.itemAt(i).widget() for i in range(self.notices.count())]
+        cards = self._notice_cards()
         for stale in cards[: max(0, len(cards) - self.MOST + 1)]:
             self.notices.removeWidget(stale)
+            stale.setParent(None)
             stale.deleteLater()
         card = QtNoticeCard(self.scheme, text, role, seconds, self)
         card.destroyed.connect(self.follow_content)
@@ -141,8 +147,7 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
 
     def shown_notices(self) -> tuple[str, ...]:
         """The notices the reader can see now, oldest first."""
-        cards = (self.notices.itemAt(i).widget() for i in range(self.notices.count()))
-        return tuple(card.text for card in cards if card is not None and not card.isHidden())
+        return tuple(card.text for card in self._notice_cards() if not card.isHidden())
 
     def show_pending(self, work: type[PendingWork]) -> None:
         self.pending.show_pending(work)
@@ -155,8 +160,8 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
     def follow_content(self, *_destroyed: object) -> None:
         """Shown while it holds a notice or a wait, sized to them, over the window's top."""
         holding = any(
-            (widget := self.notices.itemAt(i).widget()) is not None and not widget.isHidden()
-            for i in range(self.notices.count())) or not self.pending.isHidden()
+            not card.isHidden() for card in self._notice_cards()
+        ) or not self.pending.isHidden()
         if not holding:
             self.hide()
             return

@@ -40,7 +40,7 @@ from toad.client.interactive_dialog import (
     SingleSelectDialogField,
     TextDialogField,
 )
-from toad.qt.metrics import UiGap
+from toad.qt.metrics import UiGap, delete_layout_widgets
 from toad.widget_contracts import DismissibleContract, SubmitsContract
 
 
@@ -151,11 +151,7 @@ class QtInteractiveDialog(
             label.setVisible(bool(text))
 
     def _clear_body(self) -> None:
-        while self._body_layout.count():
-            item = self._body_layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
+        delete_layout_widgets(self._body_layout)
         self._error_labels.clear()
         self._button_groups.clear()
         self._first_focus = None

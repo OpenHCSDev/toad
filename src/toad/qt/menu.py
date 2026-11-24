@@ -38,7 +38,7 @@ from toad.client.block_menu import BlockMenu
 from toad.client.input_modality import InputModality, KeyboardInput, TouchInput
 from toad.client.menu_entry import MenuEntry, MenuRowDisplay
 from toad.qt.lines import QtLineRenderer
-from toad.qt.metrics import UiGap
+from toad.qt.metrics import UiGap, delete_layout_widgets
 
 
 def platform_input() -> type[InputModality]:
@@ -168,12 +168,7 @@ class QtMenu(BlockMenu, QFrame):
         the window's coordinates: the button or the pressed point that asked for it), or at
         the top of the window with none. A selection runs the entry's action and dismisses
         the menu."""
-        while self._layout.count():
-            item = self._layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.setParent(None)
-                widget.deleteLater()
+        delete_layout_widgets(self._layout)
         for entry in entries:
             self._layout.addWidget(QtMenuRow(entry, self, self._chose, parent=self._rows))
         self._anchor = anchor if anchor is not None else QRect()

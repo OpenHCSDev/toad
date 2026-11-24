@@ -31,6 +31,7 @@ from ui_theme.clock import AnimationClock
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 
 from toad.motion import TransitionTarget
+from toad.qt.metrics import drain_layout_items
 from toad.pointer_gesture import NO_GESTURE, Gesture, GestureControl, PressedGesture
 from toad.sidebar_layout import (
     PlacedSidebar,
@@ -326,8 +327,7 @@ class QtSideBar(StoredSidebarLayout, SidebarSurface, QWidget, metaclass=PyQtWidg
         self.present_placement_controls(iter(self._actions), self._layout, self._identity)
         # Two actions to a row, as SidebarLayoutActions grids them; an action the layout
         # hides leaves no gap.
-        while self._grid.count():
-            self._grid.takeAt(0)
+        drain_layout_items(self._grid)
         shown = [action for action in self._actions if not action.isHidden()]
         for index, action in enumerate(shown):
             self._grid.addWidget(action, index // 2, index % 2)

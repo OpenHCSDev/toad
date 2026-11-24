@@ -32,6 +32,7 @@ from toad.qt.command_form import QtCommandForm
 from toad.qt.context_panel import QtContextExplorer
 from toad.qt.coordination_panel import QtCoordinationStatus
 from toad.qt.menu import QtMenuRow, platform_input
+from toad.qt.metrics import delete_layout_widgets
 from toad.qt.plan_panel import QtPlan
 from toad.qt.project_panel import QtProjectPanel
 from toad.qt.forms import QtObjectFieldView, QtObjectFormView
@@ -137,12 +138,7 @@ class QtViewActions(ViewActionsPanel, QScrollArea, metaclass=PyQtWidgetMeta):
         self.show_entries(entries)
 
     def show_entries(self, entries: tuple[MenuEntry, ...]) -> None:
-        while self._layout.count():
-            item = self._layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.setParent(None)
-                widget.deleteLater()
+        delete_layout_widgets(self._layout)
         if not entries:
             empty = QLabel("No actions for this view.", self._rows)
             empty.setObjectName("toad-view-actions-empty")
