@@ -104,13 +104,13 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         self.menu = QtPanelMenu(SidebarState())
         super().__init__(search, self.menu, parent)
         self._coordination_status = QtCoordinationStatus(self)
-        self._comms_panel = QtThreadCommsPanel(search, self)
+        self._comms_panel = QtThreadCommsPanel(app, search, self)
         self._plan_panel = QtPlan(self)
         self._project_panel = QtProjectPanel(project_path, parent=self)
         # Shared per-thread context intents — survive widget retirement, as Textual's
         # `ContextSessionPanel.intents`.
         self._context_intents: dict[SessionIdentity, ContextTreeIntent] = {}
-        self._context_panel = QtContextExplorer(self._context_intents, self)
+        self._context_panel = QtContextExplorer(app, self._context_intents, self)
         bodies = {panel.spec_key: panel for panel in (
             self._coordination_status, self._comms_panel, self._plan_panel,
             self._context_panel, self._project_panel)}
@@ -162,7 +162,7 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         if view is not self._view:
             return
         actions = tuple(
-            QtPanelEntry(view.action_panel(action), partial(QtActionProperties, self.app, context, action, fields),
+            QtPanelEntry(view.configuration_action_panel(action), partial(QtActionProperties, self.app, context, action, fields),
                          (), action.declaration)
             for context, action, fields in declarations)
         self._view_entries += actions

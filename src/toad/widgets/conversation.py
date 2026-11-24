@@ -1032,8 +1032,11 @@ class Conversation(
             self.contents.move_child(widget, after=-1)
         DRAFT_PRESENTATION.project_value(draft, widget, identity)
 
-    def empty_history(self) -> TranscriptHistory:
-        return TranscriptHistory.empty(view=self, notification_view=self.contents)
+    def empty_history(self, notification_view=None) -> TranscriptHistory:
+        return TranscriptHistory.empty(
+            view=self,
+            notification_view=self.contents if notification_view is None else notification_view,
+        )
 
     def later_history(self, page, source, conversation_order: int) -> TranscriptHistory:
         later = TranscriptHistory(page, source, view=self, notification_view=self.contents,
@@ -1211,7 +1214,7 @@ class Conversation(
             with ContentsGrid():
                 yield CursorContainer()
                 with ConversationContents() as contents:
-                    yield TranscriptHistory.empty(view=self, notification_view=contents)
+                    yield self.empty_history(contents)
                     yield from self._thread_loading
                     yield self.cli_draft
         yield Flash()

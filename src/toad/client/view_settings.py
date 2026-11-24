@@ -90,7 +90,7 @@ class ViewSettingsOwner:
         return tuple(entries)
 
     @staticmethod
-    def action_panel(action) -> PanelSpec:
+    def configuration_action_panel(action) -> PanelSpec:
         """The settings pane entry a configuration action is listed under."""
         return PanelSpec(title=action.label, flex=True)
 

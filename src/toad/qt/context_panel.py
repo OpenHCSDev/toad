@@ -59,10 +59,12 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
 
     def __init__(
         self,
+        app,
         intents: dict[SessionIdentity, ContextTreeIntent],
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
+        self._app = app
         self.setWindowFlags(Qt.WindowType.Widget)
         self.start_inspection(intents)
         self._refresh_task: asyncio.Task | None = None
@@ -121,14 +123,6 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
     def thread_identity(self) -> SessionIdentity:
         return self._view.thread_identity
 
-    def _app(self):
-        parent = self.parent()
-        while parent is not None:
-            if hasattr(parent, "coordination_access") and hasattr(parent, "preparation"):
-                return parent
-            parent = parent.parent()
-        return None
-
     # --- read / render loop ------------------------------------------------
 
     async def _refresh(self) -> None:
@@ -142,9 +136,7 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
                 self._status.setText("Context · no thread root")
                 self._tree.clear()
                 return
-            app = self._app()
-            if app is None:
-                return
+            app = self._app
             access = app.coordination_access
             observed = await self.observed_source(access, app.preparation, root)
             if observed is None or identity != self.thread_identity:
@@ -169,12 +161,9 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         asyncio.ensure_future(self._paint_groups(holding))
 
     async def _paint_groups(self, holding: HoldingInspection) -> None:
-        app = self._app()
-        if app is None:
-            return
         # `HoldingInspection.groups()` is the toolkit-neutral decode. We call it off
         # the UI loop to match Textual's `Coordination.run_worker(captured.groups)`.
-        groups = await app.preparation.run_thread(holding.groups)
+        groups = await self._app.preparation.run_thread(holding.groups)
         if holding.thread_identity != self.thread_identity:
             return
         self._apply_groups(groups)
@@ -215,22 +204,7 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         asyncio.ensure_future(self._show_detail(model))
 
     async def _show_detail(self, model: ContextNode) -> None:
-        text = model.detail()
-        # `ContextNode.read()` is what the Textual widget awaits for the full detail.
-        # Not every node provides it; fall back to detail() above if absent.
-        read = getattr(model, "read", None)
-        if callable(read):
-            try:
-                text = await read()
-            except Exception as error:
-                # Keep the fallback detail() so the user still sees SOMETHING, but
-                # surface the read failure so a recurring read bug leaves a trail
-                # instead of a silently-truncated detail pane.
-                import sys
-                print(
-                    f"context_panel: ContextNode.read() failed on {model!r}: {error!r}",
-                    file=sys.stderr,
-                )
+        text = await model.read()
         if self.intent.selected is model:
             self._detail.setPlainText(text)
 
