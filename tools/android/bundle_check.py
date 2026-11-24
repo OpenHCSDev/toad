@@ -268,10 +268,6 @@ KNOWN_LAZY: dict[str, str] = {
         "textual.app. Qt: Textual message pump helper, never called by Qt (exposed once #2255 dropped textual.app from Qt cold start)",
     'textual.selection -> textual.screen':
         "textual.screen. Qt: Textual selection helper, never called by Qt (exposed once #2255 dropped textual.screen from Qt cold start)",
-    'textual.widget -> textual.app':
-        "textual.app. Qt: Textual widget method, never called by Qt (exposed once #2255 dropped textual.app from Qt cold start)",
-    'textual.widget -> textual.screen':
-        "textual.screen. Qt: Textual widget method, never called by Qt (exposed once #2255 dropped textual.screen from Qt cold start)",
     'toad.application_lifetime -> httpx':
         "httpx. Qt: the terminal app's start, usage report and CLI serve; Qt runs its own start and sends no usage report",
     'toad.application_lifetime -> setproctitle':
