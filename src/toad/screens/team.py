@@ -225,7 +225,7 @@ class TeamAlarm(ToadNode, Collapsible):
         self.display = False
 
     def present(self, section: AlarmSection, now: float) -> None:
-        colour = self.app.colours.colour(UnitTone.of(section.group.tone))
+        colour = self.app.colours.colour(UnitTone.of(section.display.group.tone))
         self.title = Content("\n".join(TeamHud.alarm_text((section,), now))).stylize(
             Style(foreground=colour))
         self.original.update("\n".join(TeamHud.alarm_detail((section,), now)))
@@ -484,7 +484,7 @@ class TeamFrameView(TeamMemberBoard, WidgetKeyedRows[type[HudGroup]], ToadNode, 
         for view in self.alarms.values():
             view.display = False
         for section in self.hud.alarms:
-            self.alarms[section.group].present(section, now)
+            self.alarms[section.display.group].present(section, now)
         previous = self.shown
         self.shown = self.filtered_sections()
         records = {key: record for section in self.shown.values() for table in section.tables
