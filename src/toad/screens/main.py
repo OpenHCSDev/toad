@@ -19,6 +19,7 @@ from formbridge.key_declarations import TextEntryMode
 from textual import getters, on
 from textual.app import ComposeResult
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
+from textual.content import Content
 from textual.document._editing import EditingMode
 from textual.events import Mount
 from textual.reactive import Required, var
@@ -49,6 +50,7 @@ from toad.navigation_target import (
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
+from toad.widgets.future_text import FutureText
 from toad.session_presentation import (
     OperationalSessionPresentation,
     OperationalSessionSources,
@@ -491,6 +493,12 @@ class MainScreen(
 
     def get_loading_widget(self) -> Widget:
         return self.settings.ui.throbber.widget(self)
+
+    def pulse_loading_widget(self) -> Widget:
+        return super().get_loading_widget()
+
+    def quote_loading_widget(self, text: str) -> Widget:
+        return FutureText(Content(text))
 
     def activate_session(self) -> None:
         # The identity is updated by ACP's coordination notification and

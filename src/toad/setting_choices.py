@@ -335,9 +335,7 @@ class LoadingStyle(DeclaredChoice, affix="Loading"):
 class PulseLoading(LoadingStyle):
     @classmethod
     def widget(cls, screen):
-        from textual.screen import Screen
-
-        return Screen.get_loading_widget(screen)
+        return screen.pulse_loading_widget()
 
 
 class QuotesLoading(LoadingStyle):
@@ -483,6 +481,4 @@ class QuotesLoading(LoadingStyle):
 
     @classmethod
     def widget(cls, screen):
-        from toad.widgets.future_text import FutureText
-
-        return FutureText(Content(choice(cls.QUOTES)))
+        return screen.quote_loading_widget(choice(cls.QUOTES))

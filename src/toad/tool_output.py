@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from difflib import unified_diff
 from functools import cached_property, partial
 from pathlib import PurePath
-from weakref import ref
 
 from acp import schema
 from agent_comms.execution.tool_results import ToolDiff, ToolText
@@ -23,7 +22,6 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.transcript.transcript_events import SentTranscript, ToolEndTranscript
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich.text import Text
-from textual.await_complete import AwaitComplete
 
 from toad.client.line_blocks import (
     Body,
@@ -343,16 +341,9 @@ def decode_content(item: object, read_path: str | None = None) -> ToolOutputPart
 class ToolOutput:
     """Decoded parts shared by the live and saved line-block renderers."""
 
-    def __init__(self, view: ToolCall) -> None:
-        self._view = ref(view)
+    def __init__(self) -> None:
         self.parts: tuple[ToolOutputPart, ...] = ()
         self.suppress_auto_expansion = False
-
-    @property
-    def view(self) -> ToolCall:
-        view = self._view()
-        assert view is not None
-        return view
 
     @staticmethod
     def capture_parts(tool_call: schema.ToolCall, *, content=None) -> tuple[ToolOutputPart, ...]:
@@ -410,13 +401,3 @@ class ToolOutput:
             and sum(size[0] for size in dimensions) <= 16000
             and sum(size[1] for size in dimensions) <= 200
         )
-
-    def sync(self) -> AwaitComplete:
-
-        from toad.widgets.tool_content import ToolContent
-
-        body = self.view.query_one_optional(ToolContent)
-        if body is None:
-            return AwaitComplete()
-        body.update(self.line_blocks if self.view.expanded else ())
-        return AwaitComplete()
