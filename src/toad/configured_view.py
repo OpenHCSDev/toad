@@ -107,6 +107,8 @@ class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
 
 
 class ConfiguredView(ViewSettingsScope):
+    footer_compact = True
+
     @property
     def configuration_mode(self):
         return self.id

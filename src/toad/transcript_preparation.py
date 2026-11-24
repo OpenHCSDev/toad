@@ -39,7 +39,7 @@ from toad.work_preparation import (
     PreparationRuntime,
     PreparedResult,
     RenderPreparation,
-    ReusableStorage,
+    RetainedBytesStorage,
     WorkKey,
 )
 
@@ -74,7 +74,7 @@ class LoadedTranscriptPages(TranscriptPages):
 
 
 @dataclass(frozen=True)
-class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentAddressedRenderTask[PreparedTranscriptPage]):
+class TranscriptPageRenderTask(RetainedBytesStorage[PreparedTranscriptPage], ContentAddressedRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
     classes: FragmentClasses
     files: PageFiles
@@ -84,9 +84,6 @@ class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentA
         messages carry do."""
         return sha256(pickle.dumps(
             (FieldCodec.project(self.page, ContentExclude), self.files), protocol=5)).digest()
-
-    def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_bytes
 
     def execute(self) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""

@@ -127,20 +127,20 @@ class SessionOpening(Static):
 class ScreenContent(DeclaredFamily, affix="Content"):
     """Content state owns its label, preparation slot and completion."""
 
-    @abstractmethod
     def line(self) -> str:
         """The opening line this content state shows; empty hides it."""
+        return ""
 
     def render(self, screen: MainScreen) -> Static:
         """Describe content preparation; connection state belongs to its status row."""
         line = self.line()
         return self.label(screen, line, visible=bool(line))
 
-    @abstractmethod
-    async def wait(self, screen: MainScreen) -> None: ...
+    async def wait(self, screen: MainScreen) -> None:
+        """States without pending opening work have no waiters to hold."""
 
-    @abstractmethod
-    async def prepare(self, screen: MainScreen) -> None: ...
+    async def prepare(self, screen: MainScreen) -> None:
+        """States that do not mount content again do nothing on prepare."""
 
     def finish(self, screen: MainScreen, content: ScreenContent) -> None:
         if screen.content is not self:
@@ -183,8 +183,15 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         return label
 
 
+class PreparableContent(ScreenContent, declared_name=None):
+    """A content state that prepares the screen's conversation when selected."""
+
+    async def prepare(self, screen: MainScreen) -> None:
+        await screen._prepare_content()
+
+
 @dataclass(eq=False)
-class OpeningContent(ScreenContent):
+class OpeningContent(PreparableContent):
     completion: asyncio.Future[None] = field(
         default_factory=lambda: asyncio.get_running_loop().create_future()
     )
@@ -196,9 +203,6 @@ class OpeningContent(ScreenContent):
         await asyncio.shield(self.completion)
         await screen.content.wait(screen)
 
-    async def prepare(self, screen: MainScreen) -> None:
-        await screen._prepare_content()
-
     def finished(self) -> None:
         self.completion.set_result(None)
 
@@ -209,15 +213,6 @@ class OpeningContent(ScreenContent):
 
 
 class ClosedContent(ScreenContent):
-    def line(self) -> str:
-        return ""
-
-    async def wait(self, screen: MainScreen) -> None:
-        """Closing has released the content's waiters."""
-
-    async def prepare(self, screen: MainScreen) -> None:
-        """A closed tab cannot mount content again."""
-
     def finish(self, screen: MainScreen, content: ScreenContent) -> None:
         """In-flight preparation cannot revive a closed tab."""
 
@@ -227,7 +222,7 @@ class NavigatedOpeningContent(OpeningContent):
         """Navigation runs _prepare_content after mounting; selecting the shell does no I/O."""
 
 
-class ReadyContent(ScreenContent):
+class ReadyContent(PreparableContent):
     def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
         return (screen, *screen.conversation.keyboard_scopes())
 
@@ -268,15 +263,6 @@ class ReadyContent(ScreenContent):
                 app.show_error(error, "DM read not marked")
 
         return ReadWork(mark())
-
-    async def prepare(self, screen: MainScreen) -> None:
-        await screen._prepare_content()
-
-    def line(self) -> str:
-        return ""
-
-    async def wait(self, screen: MainScreen) -> None:
-        """The content has already been accepted."""
 
 
 class FailedContent(ScreenContent):
@@ -332,7 +318,6 @@ class MainScreen(
     scopes={HiddenActions: (SessionNavigationAction,)},
     can_focus=False,
 ):
-    footer_compact = True
     presentation: OperationalSessionPresentation
 
     @property

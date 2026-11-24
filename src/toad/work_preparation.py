@@ -187,6 +187,13 @@ class ReusableStorage(PreparationStorage[ResultT]):
         """Reusable producers declare their payload charge."""
 
 
+class RetainedBytesStorage(ReusableStorage[ResultT]):
+    """Reusable storage whose result declares its payload charge via ``retained_bytes``."""
+
+    def result_size(self, result: ResultT) -> int:
+        return result.retained_bytes
+
+
 class SerializedStorage(ReusableStorage[ResultT]):
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
         return serialize_result(result)

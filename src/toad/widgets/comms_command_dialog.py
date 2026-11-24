@@ -200,11 +200,6 @@ class CommandForm(CommandFormCore, Confirms, DismissibleControl, Vertical, actio
     @abstractmethod
     async def handle_submission(self, arguments: dict[str, str | None]) -> None: ...
 
-    def dismiss_control(self) -> None:
-        """An embedded form discards its draft without closing the containing view."""
-        for path in self.state.parameters:
-            self.state.reset_parameter(path)
-
     def apply_enabled(self) -> bool:
         return not self.query_one(ApplyCommandButton).disabled
 

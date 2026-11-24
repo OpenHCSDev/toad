@@ -11,7 +11,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.terminal_environment import TerminalEnvironment
 from toad.native_style import NoScrollbars
 from toad.terminal_execution import Command, TerminalExecution
-from toad.widgets.terminal import Terminal
+from toad.widgets.terminal import ExecutionTerminal
 from textual.events import Mount
 from textual import on
 from textual.events import Unmount
@@ -37,7 +37,7 @@ class FailedCommandFrame(CommandFrame):
     )
 
 
-class CommandPane(NoScrollbars, CoreEventReceiver, Terminal):
+class CommandPane(NoScrollbars, CoreEventReceiver, ExecutionTerminal):
     native_theme = (NativeDeclaration.of(Styles.background, Keyword("black"), Percent(10)),)
     frame: type[CommandFrame] = CommandFrame
 
@@ -56,9 +56,6 @@ class CommandPane(NoScrollbars, CoreEventReceiver, Terminal):
     @property
     def return_code(self) -> int | None:
         return self.execution.operation.outcome().return_code
-
-    def resize_process(self, width: int, height: int) -> None:
-        self.execution.update_size(width, height)
 
     def present_execution(self, scrollback, alternate) -> None:
         self.project_state(scrollback, alternate)

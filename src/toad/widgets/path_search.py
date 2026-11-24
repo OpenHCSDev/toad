@@ -270,8 +270,6 @@ class PathSearch(
     scopes={HiddenActions: (DismissAction, SubmitAction)},
     actions=(SwitchPathPickerAction,),
 ):
-    requires_completion = True
-
     BINDING_GROUP_TITLE = "Path search"
 
     paths: var[list[Path]] = var(list, init=False)

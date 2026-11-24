@@ -184,8 +184,18 @@ class NumberedPatchToolOutputPart(ToolOutputPart):
         return (parse_numbered_patch(self.source),)
 
 
+class LiteralToolOutputPart(ToolOutputPart, declared_name=None):
+    """A tool output part whose line blocks are prepared from its literal text."""
+
+    literal: str
+
+    @cached_property
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        return PlainTextToolOutputPart(self.literal).line_blocks
+
+
 @dataclass(frozen=True)
-class SentMessageToolOutputPart(ToolOutputPart):
+class SentMessageToolOutputPart(LiteralToolOutputPart):
     """A report without source proof retains its full, non-interactive evidence."""
 
     message: SentTranscript
@@ -210,13 +220,9 @@ class SentMessageToolOutputPart(ToolOutputPart):
         decoder.dispatch_sync(resolved[self.message])
         return decoder.part
 
-    @cached_property
-    def line_blocks(self) -> tuple[LineBlock, ...]:
-        return PlainTextToolOutputPart(self.literal).line_blocks
-
 
 @dataclass(frozen=True)
-class PublishedSentMessageToolOutputPart(ToolOutputPart):
+class PublishedSentMessageToolOutputPart(LiteralToolOutputPart):
     """A proved publication retains its source even without a separate body."""
 
     message: PublishedSentMessage
@@ -226,10 +232,6 @@ class PublishedSentMessageToolOutputPart(ToolOutputPart):
     @property
     def standalone_messages(self):
         return (self,)
-
-    @cached_property
-    def line_blocks(self) -> tuple[LineBlock, ...]:
-        return PlainTextToolOutputPart(self.literal).line_blocks
 
 
 @dataclass(frozen=True)

@@ -47,7 +47,8 @@ class QuestionContext:
 class QuestionAction(Action[QuestionContext], affix="Action"):
     context_capability = QuestionContext
 
-    pass
+    def available(self, context):
+        return context.question.accepts_selection
 
 
 class SelectionAction(QuestionAction):
@@ -55,9 +56,6 @@ class SelectionAction(QuestionAction):
 
     group = Binding.Group("Cursor", compact=True)
     show = True
-
-    def available(self, context):
-        return context.question.accepts_selection
 
 
 class SelectAction(QuestionAction):
@@ -67,9 +65,6 @@ class SelectAction(QuestionAction):
 
     keys = {TextEntryMode: ("enter",)}
     show = True
-
-    def available(self, context):
-        return context.question.accepts_selection
 
     def apply(self, context):
         question = context.question
@@ -82,8 +77,7 @@ class SelectKindAction(QuestionAction, declared_name=None):
     show = True
 
     def available(self, context):
-        question = context.question
-        return question.accepts_selection and any(answer.kind == self.kind for answer in question.options)
+        return super().available(context) and any(answer.kind == self.kind for answer in context.question.options)
 
     def apply(self, context):
         question = context.question

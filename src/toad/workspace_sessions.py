@@ -39,8 +39,8 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
         """A detached source contributes no session keyboard controls."""
         return ()
 
-    @abstractmethod
-    async def retire(self) -> WorkspaceSource: ...
+    async def retire(self) -> WorkspaceSource:
+        return self
 
     async def park_for_switch(self) -> WorkspaceSource:
         """Park for a warm tab switch.  Default: full retire."""
@@ -78,9 +78,6 @@ class DetachedWorkspaceSource(WorkspaceSource):
     def matches(self, view):
         return False
 
-    async def retire(self):
-        return self
-
     def hide(self) -> None:
         pass
 
@@ -103,9 +100,6 @@ class DetachedWorkspaceSource(WorkspaceSource):
 class BoundWorkspaceSource(WorkspaceSource):
     def __init__(self, view: SessionScope) -> None:
         self.view = view
-
-    @abstractmethod
-    def current(self, view: SessionScope) -> bool: ...
 
     @property
     def identity(self):
@@ -147,15 +141,18 @@ class BoundWorkspaceSource(WorkspaceSource):
         return self.view.keyboard_scopes()
 
 
-class LoadingWorkspaceSource(BoundWorkspaceSource):
+class ActiveWorkspaceSource(BoundWorkspaceSource, declared_name=None):
+    """A bound workspace source currently selected in the workspace."""
+
     def current(self, view):
         return self.matches(view)
 
 
-class ShownWorkspaceSource(BoundWorkspaceSource):
-    def current(self, view):
-        return self.matches(view)
+class LoadingWorkspaceSource(ActiveWorkspaceSource):
+    pass
 
+
+class ShownWorkspaceSource(ActiveWorkspaceSource):
     def shown(self, view):
         return self.matches(view)
 
@@ -172,9 +169,6 @@ class ShownWorkspaceSource(BoundWorkspaceSource):
 class WarmParkedSource(BoundWorkspaceSource):
     """A tab whose transcript and binding are still live after a warm switch."""
 
-    def current(self, view):
-        return False
-
     async def park_for_switch(self):
         """Already parked warm — nothing to tear down."""
         return self
@@ -182,9 +176,6 @@ class WarmParkedSource(BoundWorkspaceSource):
 
 class ParkedWorkspaceSource(BoundWorkspaceSource):
     """A tab that was fully retired — needs full restore on next visit."""
-
-    def current(self, view):
-        return False
 
     async def retire(self):
         return self

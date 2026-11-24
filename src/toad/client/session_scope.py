@@ -90,15 +90,13 @@ class SessionScope:
         from toad.client.category_selection import NoCategorySelection
         return NoCategorySelection()
 
+    _identity: SessionIdentity = NoThreadIdentity()
+
     @property
-    def thread_identity(self) -> object:
-        """Default for a view that has no thread (welcome, home). A view with a
-        thread (ACP, conversation) overrides this to return its SessionIdentity.
-        Returning a NoThreadIdentity instead of raising keeps generic sidebar /
-        notification code — e.g. ThreadSettingsPane.bind — from having to guard
-        every read with try/NotImplementedError, mirroring Textual's NoThreadIdentity default."""
-        from toad.thread_identity import NoThreadIdentity
-        return NoThreadIdentity()
+    def thread_identity(self) -> SessionIdentity:
+        """Default for a view that has no thread (welcome, home). Views holding a
+        thread bind `_identity` (or override this property)."""
+        return self._identity
 
     @property
     def coordination_root(self) -> str | None:
@@ -224,12 +222,6 @@ class HomeSessionOrigin(ProjectSessionOrigin):
     the opening ends) reads the kept one. Qt's origin computed it on every read, on the GUI
     thread: opening a thread from the welcome held the loop for a registry read, twice
     (2026-11-22, a sampled stack of a long loop step)."""
-
-    _identity: SessionIdentity = NoThreadIdentity()
-
-    @property
-    def thread_identity(self) -> SessionIdentity:
-        return self._identity
 
     def read_history_identity(self, project) -> ThreadIdentity:
         """The reader's own thread on the bus observed now; blocks, so it runs on a worker."""

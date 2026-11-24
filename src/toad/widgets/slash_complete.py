@@ -39,8 +39,6 @@ Search for slash commands by typing a few characters from the command.
 class SlashComplete(PriorityActions, VisibleActions, ForwardsCursor, Submits, CompletionPopup):
     """A widget to auto-complete slash commands."""
 
-    requires_completion = True
-
     input = getters.query_one(widgets.Input)
     option_list = getters.query_one(widgets.OptionList)
 

@@ -72,14 +72,6 @@ class SessionScope(SharedSessionScope, ThreadIdentityScope, ProjectPathOwner, Na
     @abstractmethod
     def origin(self) -> SessionOrigin: ...
 
-    @property
-    @abstractmethod
-    def thread_identity(self) -> SessionIdentity: ...
-
-    @property
-    def sidebar_thread_identity(self) -> SessionIdentity:
-        return self.thread_identity
-
     @abstractmethod
     def belongs_to_wire(self, root: Path) -> bool: ...
 

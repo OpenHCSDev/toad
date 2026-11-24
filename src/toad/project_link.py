@@ -288,25 +288,27 @@ class SearchProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="
         return next(iter(found))
 
 
-@dataclass(frozen=True)
-class MissingProjectFileLink(ProjectFileLink):
+class LiteralProjectLink(ProjectLink, declared_name=None):
+    """A project link whose href is its literal ``value``."""
+
     value: str
 
     @property
     def href(self) -> str:
         return self.value
+
+
+@dataclass(frozen=True)
+class MissingProjectFileLink(LiteralProjectLink, ProjectFileLink):
+    value: str
 
     async def resolve(self, root: Path) -> Path:
         raise ProjectLinkProblem(self.href, root)
 
 
 @dataclass(frozen=True)
-class ExternalProjectLink(ProjectLink):
+class ExternalProjectLink(LiteralProjectLink):
     value: str
-
-    @property
-    def href(self) -> str:
-        return self.value
 
     async def preview(self, widget) -> None:
         widget.app.open_url(self.href)

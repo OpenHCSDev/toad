@@ -21,8 +21,6 @@ class FileContents(ColumnLayout, SessionContents):
 
 
 class FilePreviewScreen(ConfiguredView, SessionView, can_focus=False, actions=(ReturnToViewAction, CloseViewAction)):
-    footer_compact = True
-
     # FilePreview scrolls in its body (1325acc3), so the body takes focus and the close key.
     AUTO_FOCUS = "TextArea, FilePreview > VerticalScroll"
     def __init__(self, path: Path, content: Callable[[], Widget]) -> None:

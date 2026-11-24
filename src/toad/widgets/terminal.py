@@ -482,6 +482,13 @@ class ControlledTerminal(Terminal):
         return False
 
 
+class ExecutionTerminal(Terminal):
+    """A terminal widget backed by a ``TerminalExecution`` whose size follows this widget."""
+
+    def resize_process(self, width: int, height: int) -> None:
+        self.execution.update_size(width, height)
+
+
 if __name__ == "__main__":
     from textual.app import App, ComposeResult
 

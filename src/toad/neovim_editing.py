@@ -797,8 +797,8 @@ class NeovimRequester(ABC):
     """Whoever sent a request is the one its reply resolves: the host for the engine's own
     bootstrap, a session for its buffer, whose completion proof waits on its pending replies."""
 
-    @abstractmethod
-    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None: ...
+    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None:
+        reply.resolve(request, value)
 
 
 @dataclass(frozen=True)
@@ -879,9 +879,6 @@ class NeovimSession(NeovimRequester):
 
     @abstractmethod
     def engine_failed(self, error: EditingFailure) -> None: ...
-
-    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None:
-        reply.resolve(request, value)
 
 
 class UnclaimedBuffer(NeovimSession):
@@ -1075,9 +1072,6 @@ class NeovimHost(NeovimRequester, MroDispatch):
         if self._focused is session:
             self._focused = UNCLAIMED
         await self._life.close(self, buffer)
-
-    def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None:
-        reply.resolve(request, value)
 
     async def _start(self) -> None:
         await self._child_ready

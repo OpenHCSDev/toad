@@ -179,16 +179,22 @@ class QtTabWave(QtClockedWave):
         self.bar.repaint_tab(self.mode)
 
 
-class TabGrowth(TransitionTarget):
+class TabTransition(TransitionTarget):
+    """A tab-bar transition whose animation visibility follows its owning ``bar``."""
+
+    bar: QtSessionTabBar
+
+    @property
+    def animation_visible(self) -> bool:
+        return self.bar.isVisible()
+
+
+class TabGrowth(TabTransition):
     """A tab that just opened, widening from nothing on the shared clock (``TAB_OPEN``)."""
 
     def __init__(self, bar: QtSessionTabBar, mode: str) -> None:
         self.bar, self.mode, self.share = bar, mode, 0.0
         self.start_transition(bar.clock, TAB_OPEN)
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.bar.isVisible()
 
     def apply_amount(self, amount: float) -> None:
         self.share = amount
@@ -199,7 +205,7 @@ class TabGrowth(TransitionTarget):
         self.bar.relayout()
 
 
-class TabGhost(TransitionTarget):
+class TabGhost(TabTransition):
     """A tab that just closed, as it last looked, narrowing to nothing where it stood
     (``TAB_CLOSE``): the bar has already dropped it, so its neighbours take its place."""
 
@@ -214,10 +220,6 @@ class TabGhost(TransitionTarget):
         self.picture.show()
         self.picture.raise_()
         self.start_transition(bar.clock, TAB_CLOSE)
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.bar.isVisible()
 
     def apply_amount(self, amount: float) -> None:
         width = round(self.rect.width() * amount)
