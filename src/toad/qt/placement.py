@@ -38,7 +38,7 @@ from toad.qt.forms import QtObjectFieldView, QtObjectFormView
 from toad.qt.sidebar_panel import QtPanelEntry, QtPanelMenu, QtSidebarShell
 from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.thread_identity import SessionIdentity
-from toad.thread_sidebar_declarations import ThreadSidebarContents, panel_specs_for_view
+from toad.thread_sidebar_declarations import CommsSidebarPanel, ThreadSidebarContents, ThreadSidebarPanel
 
 __all__ = ["QtObjectProperties", "QtViewActions", "ThreadSettingsPane"]
 
@@ -166,9 +166,9 @@ class QtViewActions(ViewActionsPanel, QScrollArea, metaclass=PyQtWidgetMeta):
 
 class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, metaclass=PyQtWidgetMeta):
     """The open view's sidebar content, as Textual's `ThreadSidebar`: the search over its
-    panels, one picked at a time (`QtPanelMenu`). The entries are the shared roster
-    (`THREAD_SIDEBAR_PANELS`, each drawn by the Qt panel whose `spec_key` names it) and then
-    each of the view's own settings (`ViewSettingsOwner.configuration_fields`), as
+    panels, one picked at a time (`QtPanelMenu`). The entries come from the shared
+    `ThreadSidebarPanel` family (each drawn by the Qt panel whose `panel_type` names it) and
+    then each of the view's own settings (`ViewSettingsOwner.configuration_fields`), as
     `ThreadSidebar.panel_entries` lists them: a setting declared once shows on both frontends
     with no Qt code. The search filters the panels' rows (the Comms relationships)."""
 
@@ -185,14 +185,15 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
         # `ContextSessionPanel.intents`.
         self._context_intents: dict[SessionIdentity, ContextTreeIntent] = {}
         self._context_panel = QtContextExplorer(app, self._context_intents, self)
-        bodies = {panel.spec_key: panel for panel in (
+        bodies = {panel.panel_type: panel for panel in (
             self._coordination_status, self._comms_panel, self._plan_panel,
             self._context_panel, self._project_panel)}
-        controls = {QtThreadCommsPanel.spec_key: (self._comms_panel.sort,)}
-        # A roster entry with no Qt body is a missing port: building the pane fails on it.
+        controls = {CommsSidebarPanel: (self._comms_panel.sort,)}
+        # A family member with no Qt body is a missing port: building the pane fails on it.
         self._roster = tuple(
-            QtPanelEntry.of(spec.panel, bodies[spec.key], controls.get(spec.key, ()), type(bodies[spec.key]))
-            for spec in panel_specs_for_view(is_session=True))
+            QtPanelEntry.of(panel_type.panel_spec(), bodies[panel_type],
+                            controls.get(panel_type, ()), type(bodies[panel_type]))
+            for panel_type in ThreadSidebarPanel.members_with(ThreadSidebarPanel))
         self._view = NoConversationView()
         # The coordination revision the panels last read the bound view's thread at.
         self._shown_revision = None

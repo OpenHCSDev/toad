@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (
 )
 
 from toad.qt.session_panel import SessionPanel
+from toad.thread_sidebar_declarations import CommsSidebarPanel
 from toad.client.category_selection import CategorySelection
 from toad.client.relationship_tree_state import RelationshipPanel, RelationshipTreeState
 from toad.client.sidebar_filter import SidebarFilter
@@ -78,9 +79,7 @@ class QtRelationshipItem(RelationshipLine, QTreeWidgetItem):
 
 
 class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
-    spec_key: ClassVar[str] = "comms"
-    """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
-    `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
+    panel_type = CommsSidebarPanel
 
     """Renders a thread's relationship rows as a Qt tree: top-level items per
     `RelationshipGroup`, children per `RelationshipEntry`. The snapshot is fetched off the
@@ -91,7 +90,6 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
     def __init__(self, app, search: SidebarFilter, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._app = app
-        self.setWindowFlags(Qt.WindowType.Widget)
         # The thread sidebar's search narrows the relationship rows, as Textual's
         # `ThreadCommsSidebar` follows its sidebar's search (`SearchFollower`).
         self._search = search

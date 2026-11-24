@@ -14,7 +14,6 @@ machine and intent store — no further decoding to lift.
 from __future__ import annotations
 
 import asyncio
-from typing import ClassVar
 
 from PySide6.QtCore import Qt
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -41,13 +40,12 @@ from toad.core.context_inspection import (
     InspectionState,
 )
 from toad.thread_identity import SessionIdentity
+from toad.thread_sidebar_declarations import ContextSidebarPanel
 from toad.qt.metrics import UiGap
 
 
 class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
-    spec_key: ClassVar[str] = "context"
-    """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
-    `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
+    panel_type = ContextSidebarPanel
 
     """Qt sibling of `widgets.context_explorer.ContextExplorer`.
 
@@ -65,7 +63,6 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
     ) -> None:
         super().__init__(parent)
         self._app = app
-        self.setWindowFlags(Qt.WindowType.Widget)
         self.start_inspection(intents)
         self._refresh_task: asyncio.Task | None = None
 

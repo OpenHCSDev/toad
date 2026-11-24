@@ -194,3 +194,27 @@ def test_the_qt_thread_views_share_their_column_scope_wave_and_queue_rows():
     for member in ("wave_running", "start_wave", "stop_wave"):
         _owned_by(QtClockedWave, member, QtTabWave, ConversationRow)
     _owned_by(QtOpensQueue, "activate", QtQueueSummary, QtQueueHint)
+
+
+def test_thread_sidebar_panel_family_owns_both_frontends_panels():
+    from toad.qt.context_panel import QtContextExplorer
+    from toad.qt.coordination_panel import QtCoordinationStatus
+    from toad.qt.plan_panel import QtPlan
+    from toad.qt.project_panel import QtProjectPanel
+    from toad.qt.thread_comms_panel import QtThreadCommsPanel
+    from toad.thread_sidebar_declarations import (
+        CommsSidebarPanel,
+        CoordinationSidebarPanel,
+        DmSidebarPanel,
+        ThreadSidebarPanel,
+    )
+    from toad.widgets.session_thread_panels import SessionPanel
+
+    declared = tuple(ThreadSidebarPanel.members_with(ThreadSidebarPanel))
+    assert tuple(ThreadSidebarPanel.members_with(DmSidebarPanel)) == (
+        CoordinationSidebarPanel,
+        CommsSidebarPanel,
+    )
+    qt_panels = (QtCoordinationStatus, QtThreadCommsPanel, QtPlan, QtProjectPanel, QtContextExplorer)
+    assert tuple(panel.panel_type for panel in qt_panels) == declared
+    assert tuple(panel.panel_type for panel in SessionPanel.members_with(SessionPanel)) == declared

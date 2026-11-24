@@ -13,6 +13,8 @@ its existing metaclass without conflict, matching how `SessionScope` in
 """
 from __future__ import annotations
 
+from PySide6.QtCore import Qt
+
 from toad.client.session_scope import NoConversationView, SessionScope
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
@@ -31,6 +33,7 @@ class SessionPanel(ThreadSidebarPanelBody):
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
+        self.setWindowFlags(Qt.WindowType.Widget)
         self._view: SessionScope = NoConversationView()
 
     @property
