@@ -30,7 +30,7 @@ from agent_comms.execution.child_process import (
     join_retirement,
 )
 from agent_comms.execution.remote_core_process import ProcessRemoteCoreAccess
-from agent_comms.team.team_hud import NamedTeamBoards, TeamBoardSelection
+from agent_comms.team.team_board_selection import NamedTeamBoards, TeamBoardSelection
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.installer.active_route import CommsRoute
 from agent_comms.installer.route_selection import RouteSelection

@@ -17,7 +17,7 @@ from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_control import GoalControlSource
 from agent_comms.planning.goal_history import RecordedGoalHistory
 from agent_comms.planning.goal_scope import OneGoal
-from agent_comms.planning.goals import Goal, GoalDeclaration
+from agent_comms.planning.goals import Goal, GoalDeclaration, GoalReply
 from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.registry.thread_presentation import ThreadOwnerBinding
 from agent_comms.transport.owner_connection import CapturedOwner
@@ -25,7 +25,6 @@ from agent_comms.transport.runtime_request import RuntimeRequest
 from agent_comms.transport.runtime_requests import (
     EditGoalRuntimeRequest,
     GoalHistoryRuntimeRequest,
-    GoalReply,
     RetryGoalRuntimeRequest,
     SetGoalRuntimeRequest,
     UpdateGoalRuntimeRequest,

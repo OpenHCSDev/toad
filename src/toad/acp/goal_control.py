@@ -8,7 +8,7 @@ from agent_comms.transport.owner_connection import CapturedOwner
 from agent_comms.planning.goal_actions import GoalAction
 from agent_comms.planning.goal_control import GoalControlSource
 from agent_comms.planning.goals import Goal, GoalDeclaration
-from agent_comms.transport.serving.served_requests import GoalReply
+from agent_comms.planning.goals import GoalReply
 from agent_comms.transport.runtime_requests import (
     RetryGoalRuntimeRequest,
     SetGoalRuntimeRequest,

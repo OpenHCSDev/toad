@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 
 from acp.schema import ToolCall
-from agent_comms.agent_event_updates import AcpToolAction
+from agent_comms.acp_tool_action import AcpToolAction
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.transcript.transcript_events import (
     ToolEndTranscript,
