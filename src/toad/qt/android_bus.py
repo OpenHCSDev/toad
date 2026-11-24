@@ -9,7 +9,7 @@ import qasync
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.connector import HoldUiVerb
 from agent_comms.transport.connector_profile import UiConnectionProfile
-from agent_comms.transport.connector_store import ConnectorStore
+from agent_comms.transport.connector_store import ConnectorStore, HeldUiProfiles
 from ui_theme.scheme import ColourScheme
 
 from toad.client.bus_selection import BusChoice
@@ -27,14 +27,30 @@ def held_connection() -> RemoteCoreConnection:
     ts-gaming), and a bus the reader once switched to became every later launch's. On first
     start the bundled profile is held the way any given profile is held
     (`agent-comms-connector hold-ui`), so the welcome lists it beside the tailnet's buses and
-    a reader can forget it; with it forgotten, the first bus still held opens."""
-    if not BusChoice.held(time.time()):
-        # The APK unpacks its files readable by the app; a held credential is the app's alone.
-        BUNDLED_PROFILE.chmod(0o600)
-        HoldUiVerb(profile=BUNDLED_PROFILE).apply(ConnectorStore.owned())
-    built_for = UiConnectionProfile.read(BUNDLED_PROFILE).endpoint.url
-    held = BusChoice.held(time.time())
-    chosen = next((bus for bus in held if bus.profile.profile.endpoint.url == built_for), held[0])
+    a reader can forget it; with it forgotten, the first bus still held opens.
+
+    If every held profile has expired (including the bundled one), skip re-holding an
+    already-expired bundled profile and open the bundled profile directly so the window
+    reaches the sidebar/bus picker instead of crashing on FileExistsError or IndexError.
+    """
+    # The APK unpacks its files readable by the app; a held credential is the app's alone.
+    BUNDLED_PROFILE.chmod(0o600)
+    bundled = UiConnectionProfile.read(BUNDLED_PROFILE)
+    now = time.time()
+    if not BusChoice.held(now) and bundled.credential.expires_at > now:
+        destination = (
+            HeldUiProfiles.directory()
+            / f"{bundled.endpoint.url.host}-{bundled.credential.grant_id}.json"
+        )
+        if not destination.exists():
+            HoldUiVerb(profile=BUNDLED_PROFILE).apply(ConnectorStore.owned())
+    held = BusChoice.held(now)
+    if not held:
+        return RemoteCoreConnection.read(BUNDLED_PROFILE)
+    chosen = next(
+        (bus for bus in held if bus.profile.profile.endpoint.url == bundled.endpoint.url),
+        held[0],
+    )
     return RemoteCoreConnection.read(chosen.profile.path)
 
 
