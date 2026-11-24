@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QGraphicsOpacityEffect, QHBoxLayout, QLabel,
 from toad.core import events as core_events
 from toad.plan import PlanItem, PlanView
 from toad.qt.session_panel import SessionPanel
-from toad.qt.metrics import UiGap
+from toad.qt.metrics import UiGap, delete_layout_widgets
 from toad.thread_sidebar_declarations import PlanSidebarPanel
 
 
@@ -61,11 +61,7 @@ class QtPlan(PlanView, SessionPanel, QWidget):
 
     def _clear_rows(self) -> None:
         # Keep the final addStretch(1) anchor at the end of the column.
-        while self._column.count() > 1:
-            item = self._column.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
+        delete_layout_widgets(self._column, keep=1)
 
     def _render(self) -> None:
         self._clear_rows()

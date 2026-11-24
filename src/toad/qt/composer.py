@@ -80,7 +80,7 @@ from toad.qt.queue_ui import QtDeliveryControls, QtQueueHint, QtQueueInspection,
 from toad.qt.prompt_stack import QtInfoBar
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
-from toad.qt.metrics import UiGap
+from toad.qt.metrics import UiGap, delete_layout_widgets
 
 
 def _bind_composer_shortcuts(composer: Composer):
@@ -794,8 +794,7 @@ class QtMessageComposer(MessagePromptComposer, Composer):
 
     def show_attached(self) -> None:
         chips = self.attached_row.layout()
-        while (item := chips.takeAt(0)) is not None:
-            item.widget().deleteLater()
+        delete_layout_widgets(chips)
         for position in range(len(self.attached_files)):
             chips.addWidget(QtAttachedFileChip(self, position))
         self.attached_row.setVisible(bool(self.attached_files))

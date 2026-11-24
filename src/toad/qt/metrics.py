@@ -16,6 +16,38 @@ from __future__ import annotations
 
 from enum import IntEnum
 
+import shiboken6
+from PySide6.QtWidgets import QLayout
+
+
+def drain_layout_items(layout: QLayout, *, keep: int = 0) -> None:
+    """Remove layout items down to ``keep`` trailing items and immediately release each
+    ``QLayoutItem`` wrapper.
+
+    ``QLayout.takeAt`` returns a non-``QObject`` ``QWidgetItem`` with C++ ownership
+    (``ownedByPython == False``). Without ``shiboken6.delete(item)``, the C++ item leaks
+    and stale wrapper addresses can collide with newly allocated ``QWidget`` instances
+    (e.g. ``QListView.viewport()`` returning a stale ``QWidgetItem``).
+    """
+    while layout.count() > keep:
+        item = layout.takeAt(0)
+        if item is not None:
+            shiboken6.delete(item)
+
+
+def delete_layout_widgets(layout: QLayout, *, keep: int = 0) -> None:
+    """Remove and schedule deletion of every widget in ``layout`` down to ``keep`` trailing
+    items, immediately releasing each taken ``QLayoutItem`` from shiboken6."""
+    while layout.count() > keep:
+        item = layout.takeAt(0)
+        if item is None:
+            continue
+        widget = item.widget()
+        if widget is not None:
+            widget.setParent(None)
+            widget.deleteLater()
+        shiboken6.delete(item)
+
 
 class UiGap(IntEnum):
     """Pixel-sized spacing tokens.
