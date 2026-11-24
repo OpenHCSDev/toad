@@ -525,10 +525,25 @@ class CapturedDrag(GestureControl):
             event.stop()
 
 
+class SidebarEdgeGrip(SidebarResizeGrip, CapturedDrag):
+    """A Textual edge grip on `SideBar`: drags the bar's extent against its host."""
+
+    @property
+    def grip_surface(self) -> SideBar:
+        return self.query_ancestor(SideBar)
+
+    def grip_viewport_extent(self) -> int:
+        bar = self.grip_surface
+        return bar.placement.side.extent(bar.query_ancestor(Widget).content_size)
+
+    def drag_start(self, event: events.MouseDown) -> None:
+        self.begin_grip(event.screen_offset)
+
+
 class SideBarToggle(
     SidebarToggleFace,
     SidebarFoldGrip,
-    CapturedDrag,
+    SidebarEdgeGrip,
     MutedText,
     CenteredContent,
     HoverSelection,
@@ -594,17 +609,6 @@ class SideBarToggle(
         # rebuilds bindings, only to move focus again when the sidebar toggles.
         # It remains keyboard-focusable through normal Tab navigation.
         return False
-
-    @property
-    def grip_surface(self) -> SideBar:
-        return self.query_ancestor(SideBar)
-
-    def grip_viewport_extent(self) -> int:
-        bar = self.grip_surface
-        return bar.placement.side.extent(bar.query_ancestor(Widget).content_size)
-
-    def drag_start(self, event: events.MouseDown) -> None:
-        self.begin_grip(event.screen_offset)
 
 
 class SidebarSlider(
@@ -727,12 +731,11 @@ class SidebarAction(
         self.post_message(self.Pressed(self.action))
 
 class SidebarResizeHandle(
-    SidebarResizeGrip,
+    SidebarEdgeGrip,
     NoPadding,
     VisibleActions,
     StepsHorizontalCursor,
     StepsVerticalCursor,
-    CapturedDrag,
     ColourSelection,
     widgets.Static,
     ToadNode,
@@ -759,14 +762,6 @@ class SidebarResizeHandle(
     def render(self) -> str:
         return self.query_ancestor(SideBar).placement.side.handle_text(self.size)
 
-    @property
-    def grip_surface(self) -> SideBar:
-        return self.query_ancestor(SideBar)
-
-    def grip_viewport_extent(self) -> int:
-        bar = self.grip_surface
-        return bar.placement.side.extent(bar.query_ancestor(Widget).content_size)
-
     def resize_by(self, direction: Offset) -> None:
         bar = self.query_ancestor(SideBar)
         placement = bar.placement
@@ -777,9 +772,6 @@ class SidebarResizeHandle(
 
     def step_vertical(self, direction: int) -> None:
         self.resize_by(Offset(0, direction))
-
-    def drag_start(self, event: events.MouseDown) -> None:
-        self.begin_grip(event.screen_offset)
 
 
 class BandSplitHandle(

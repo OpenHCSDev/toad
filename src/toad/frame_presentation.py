@@ -64,13 +64,19 @@ class PendingFrame(FrameState):
     pass
 
 
-class WritingFrame(FrameState):
+class SceneFrame(FrameState, declared_name=None):
+    """A frame state bound to the pending scene it is writing or presenting."""
+
     def __init__(self, scene: PendingFrame):
         self._scene = scene
 
     @property
     def scene(self):
         return self._scene
+
+
+class WritingFrame(SceneFrame):
+    pass
 
 
 class SuspendedFrame(FrameState):
@@ -91,15 +97,8 @@ class SuspendedFrame(FrameState):
         pass
 
 
-class PresentedFrame(FrameState):
+class PresentedFrame(SceneFrame):
     ready = True
-
-    def __init__(self, scene: PendingFrame):
-        self._scene = scene
-
-    @property
-    def scene(self):
-        return self._scene
 
     def restore(self, frame: FramePresentation):
         frame.present()

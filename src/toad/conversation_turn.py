@@ -157,9 +157,11 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     managed = False
     sequence = 0
 
+    _owner: TurnOwner
+
     @property
-    @abstractmethod
-    def owner(self) -> TurnOwner: ...
+    def owner(self) -> TurnOwner:
+        return self._owner
 
     @abstractmethod
     def status_row(self, observed: ThreadStatusModel) -> ThreadStatusModel: ...
@@ -186,10 +188,6 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
 class LocalTurnBinding(TurnBinding):
     def __init__(self, agent=None):
         self._owner = NoTurn()
-
-    @property
-    def owner(self):
-        return self._owner
 
     def status_row(self, observed: ThreadStatusModel):
         owner = self.owner
@@ -222,10 +220,6 @@ class ManagedTurnBinding(TurnBinding):
         self.agent = agent
         self._owner = ManagedTurn()
         self.sequence = 0
-
-    @property
-    def owner(self):
-        return self._owner
 
     def status_row(self, observed: ThreadStatusModel):
         return observed

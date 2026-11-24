@@ -235,8 +235,15 @@ class StatusLine(
         self.tooltip = status
 
 
+class OpensQueue(Activates):
+    """A prompt control whose activation opens the conversation's queue menu."""
+
+    def activate(self) -> None:
+        self.query_ancestor(Prompt).conversation.open_queue_menu()
+
+
 class QueueSummary(
-    Activates,
+    OpensQueue,
     ChangingText,
     MutedText,
     StartsHidden,
@@ -253,18 +260,11 @@ class QueueSummary(
         super().apply_native_layout()
         self.styles.max_height = PromptComposer.queue_summary_lines
 
-    def activate(self) -> None:
 
-        self.query_ancestor(Prompt).conversation.open_queue_menu()
-
-
-class QueueHint(Activates, SecondaryText, StartsHidden, SideMargin, AutoWidth, OneRow, NoWrap, Label,
+class QueueHint(OpensQueue, SecondaryText, StartsHidden, SideMargin, AutoWidth, OneRow, NoWrap, Label,
                 can_focus=True):
     """The held count in the info bar while the delivery preview is off; selecting it
     opens the queue, as the summary does."""
-
-    def activate(self) -> None:
-        self.query_ancestor(Prompt).conversation.open_queue_menu()
 
 
 class DeliveryControls(TonePaint, QueueDeliveryControls, ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
