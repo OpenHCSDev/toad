@@ -530,16 +530,17 @@ def test_closing_the_window_retires_every_sidebar_line_before_the_tree_is_destro
 
 
 def test_home_reads_who_the_reader_is_off_the_loop_once_before_it_opens_a_target():
-    from toad.client.session_scope import HomeSessionOrigin
+    from toad.client.session_scope import HomeSessionOrigin, SessionScope
     from toad.navigation_context import HomeNavigation, NavigationDestination
     from toad.qt.window import QtWelcomeOrigin
     from toad.screens.welcome import WelcomeScreen
     from toad.thread_identity import NoThreadIdentity
 
     for home in (QtWelcomeOrigin, WelcomeScreen):
-        for name in ("prepare_history_origin", "read_history_identity", "thread_identity"):
+        for name in ("prepare_history_origin", "read_history_identity"):
             owner = next(base for base in home.__mro__ if name in vars(base))
             assert owner is HomeSessionOrigin, (home, name, owner)
+        assert next(base for base in home.__mro__ if "thread_identity" in vars(base)) is SessionScope, home
         assert next(base for base in home.__mro__ if "open_sidebar_target" in vars(base)) is HomeNavigation, home
     # The one thing each frontend says: how it announces that home's identity was read.
     assert "home_identity_read" in vars(WelcomeScreen) and "home_identity_read" not in vars(QtWelcomeOrigin)

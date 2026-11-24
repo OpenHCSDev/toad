@@ -84,10 +84,6 @@ class QtMailboxView(QtThreadView, BoundSources):
     # ---- SessionScope identity ----
 
     @property
-    def mode(self) -> str:
-        return self.id
-
-    @property
     def session_disposition(self):
         """`session_entry.thread_row` reads this via `source.session_disposition`;
         on Textual `MainScreen.session_disposition` returns
@@ -95,12 +91,6 @@ class QtMailboxView(QtThreadView, BoundSources):
         bound operational binding yet, mirror `AgentBinding`'s placeholder
         (`UnopenedSessionDisposition`) so row presentation runs cleanly."""
         return UnopenedSessionDisposition()
-
-    @property
-    def thread_identity(self) -> ThreadIdentity | NoThreadIdentity:
-        """`NoThreadIdentity` until `bind_thread` sets the real one, as
-        `MainScreen.bind_thread` does at `screens/main.py:386`."""
-        return self._identity
 
     # ---- session_navigation.bind_opened hooks ----
 

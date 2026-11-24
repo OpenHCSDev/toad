@@ -184,6 +184,8 @@ class CompletionOptionList(
 class CompletionPopup(ScreenOverlay, PromptPopup):
     """Completion widgets appear above the editor; membership is derived."""
 
+    requires_completion = True
+
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.offset = (0, -16)

@@ -37,9 +37,7 @@ class FrameState(DeclaredFamily, affix="Frame"):
         return self
 
     def displayed(self, frame):
-        writing = WritingFrame(self.scene)
-        frame.state = writing
-        frame.screen.app._driver.call_after_flush(partial(frame.written, writing))
+        """Presented, suspended and closed frames have nothing further to flush."""
 
     def defer[Result](self, frame: FramePresentation, owner: Widget, callback: Callable[[], Result]):
         frame.callbacks[owner, callback] = None
@@ -60,7 +58,16 @@ class FrameState(DeclaredFamily, affix="Frame"):
         frame.screen.refresh()
 
 
-class PendingFrame(FrameState):
+class DisplayingFrame(FrameState, declared_name=None):
+    """A frame state waiting on its terminal flush."""
+
+    def displayed(self, frame):
+        writing = WritingFrame(self.scene)
+        frame.state = writing
+        frame.screen.app._driver.call_after_flush(partial(frame.written, writing))
+
+
+class PendingFrame(DisplayingFrame):
     pass
 
 
@@ -75,15 +82,12 @@ class SceneFrame(FrameState, declared_name=None):
         return self._scene
 
 
-class WritingFrame(SceneFrame):
+class WritingFrame(DisplayingFrame, SceneFrame):
     pass
 
 
 class InactiveFrame(FrameState, declared_name=None):
-    """A frame state that is no longer active to display or suspend."""
-
-    def displayed(self, frame: FramePresentation):
-        pass
+    """A frame state that is no longer active to suspend."""
 
     def suspend(self, frame: FramePresentation):
         pass
@@ -106,9 +110,6 @@ class PresentedFrame(SceneFrame):
 
     def restore(self, frame: FramePresentation):
         frame.present()
-
-    def displayed(self, frame: FramePresentation):
-        pass
 
 
 class ClosedFrame(InactiveFrame):

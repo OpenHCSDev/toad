@@ -39,6 +39,7 @@ from toad.work_preparation import (
     PreparationRuntime,
     PreparationScope,
     PreparedResult,
+    RetainedBytesStorage,
     ReusableWork,
     ScopedWork,
     ThreadWork,
@@ -547,7 +548,7 @@ class TranscriptNoProgress(ValueError):
 
 
 @dataclass(frozen=True)
-class SourcePageWork[Cursor = TranscriptCursor](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class SourcePageWork[Cursor = TranscriptCursor](RetainedBytesStorage[PreparedTranscriptPage], ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     """Read and prepare one page of a source off the UI thread; each kind of source owns how."""
 
     scope: PreparationScope
@@ -560,9 +561,6 @@ class SourcePageWork[Cursor = TranscriptCursor](ReusableWork[PreparedTranscriptP
     def work_key(self) -> WorkKey:
         # An older page is immutable as its source grows; a newer read ends at the source end.
         return WorkKey(type(self), self.request.end.work_revision(self.request, self.through), self.scope)
-
-    def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_bytes
 
     @abstractmethod
     async def execute(self, runtime: PreparationRuntime, key: WorkKey) -> PreparedResult[PreparedTranscriptPage]: ...

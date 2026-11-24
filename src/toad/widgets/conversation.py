@@ -963,7 +963,6 @@ class Conversation(
     ReadsCommandCatalog,
     AddressesItsThread,
     AgentConversationCommands,
-    FlashHost,
     SourcedConversation,
     BoundViewHost,
     actions=(ConversationAction,),

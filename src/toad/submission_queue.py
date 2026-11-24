@@ -69,8 +69,8 @@ class QueueSource(ABC):
     ) -> Callable[[], Observing]:
         return observing
 
-    @abstractmethod
-    def queue_scope(self, evidence: QueueEvidence) -> QueueScope: ...
+    def queue_scope(self, evidence: QueueEvidence) -> QueueScope:
+        return NoQueueScope()
 
     @abstractmethod
     def queue_actions_available(self, evidence: QueueEvidence) -> bool: ...
@@ -102,9 +102,6 @@ class QueueSource(ABC):
 
 class NoQueueSource(QueueSource):
     """A view whose message source has not arrived yet holds no queue."""
-
-    def queue_scope(self, evidence: QueueEvidence) -> QueueScope:
-        return NoQueueScope()
 
     def queue_actions_available(self, evidence: QueueEvidence) -> bool:
         return False
@@ -174,9 +171,6 @@ class NativeQueueSource(QueueSource):
 class BusQueueSource(QueueSource):
     """A channel or inbox: each recipient still holding a visible message has its own queue,
     reached through that recipient's owner exactly as the DM view reaches its agent's."""
-
-    def queue_scope(self, evidence: QueueEvidence) -> QueueScope:
-        return NoQueueScope()
 
     def queue_actions_available(self, evidence: QueueEvidence) -> bool:
         return bool(evidence.queued_recipients)

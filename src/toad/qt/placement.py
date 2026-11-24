@@ -84,11 +84,6 @@ class QtActionProperties(ActionPropertiesPanel, QtCommandForm):
             self._drafted = True
             self.open_draft()
 
-    def dismiss_control(self) -> None:
-        """An embedded form discards its draft without closing the view, as Textual's does."""
-        for path in self.state.parameters:
-            self.state.reset_parameter(path)
-
 
 class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, metaclass=PyQtWidgetMeta):
     """The open view's sidebar content, as Textual's `ThreadSidebar`: the search over its

@@ -43,10 +43,6 @@ class SessionView(
         super().apply_native_layout()
         self.styles.width = self.styles.height = FILL
 
-    # The absent identity is an immutable value; concrete bindings replace it
-    # on the instance. Native construction stays with Vertical/Widget.
-    _identity: SessionIdentity = NoThreadIdentity()
-
     def close_core_events(self) -> None:
         """Retire this logical source's descendants before its tab entry disappears."""
         for receiver in self.query().results(CoreEventReceiver):
@@ -99,10 +95,6 @@ class SessionView(
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """A source adds its loaded reader/composer through its own lifecycle."""
         return (self,)
-
-    @property
-    def thread_identity(self) -> SessionIdentity:
-        return self._identity
 
     @contextmanager
     def changing_identity(self):

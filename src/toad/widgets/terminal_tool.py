@@ -16,7 +16,7 @@ from toad.terminal_execution import (
     RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome,
 )
 from toad.native_style import AutoHeight, FillWidth, NoScrollbars, SpacedAround
-from toad.widgets.terminal import Terminal
+from toad.widgets.terminal import ExecutionTerminal
 from textual.events import Mount
 from textual import on
 from textual.events import Unmount
@@ -60,7 +60,7 @@ class TerminalTool(
     NoScrollbars,
     FillWidth,
     AutoHeight,
-    Terminal,
+    ExecutionTerminal,
     MroDispatch,
 ):
     @dataclass
@@ -98,9 +98,6 @@ class TerminalTool(
     @on(Unmount)
     def on_unmount(self) -> None:
         self.execution.detach(self)
-
-    def resize_process(self, width: int, height: int) -> None:
-        self.execution.update_size(width, height)
 
     def present_execution(
         self, scrollback: set[int] | None, alternate: set[int] | None

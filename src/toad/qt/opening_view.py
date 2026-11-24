@@ -59,16 +59,6 @@ class QtOpeningSessionView(Page, SessionScope, QWidget):
         if self._error is None:
             self.pending.show_pending(ThreadOpening)
 
-    @property
-    def mode(self) -> str:
-        """Qt reads `workspace_sessions.selected.mode` (via `QtToadApp.selected_mode`)
-        to identify the currently-shown page; every Qt page must answer `.mode`. On
-        `ConversationView` this comes from `self.entry.mode`; on `Welcome` it's the
-        `WELCOME` ClassVar. The opening view has no `entry` until `prepared.bind(view)`
-        swaps the real view in, so it mirrors its own `.id` which
-        `workspace_sessions.prepare` assigns at mount."""
-        return self.id
-
     def opening_failed(self, error: Exception) -> None:
         """Called by `ThreadOpening.run` on a failed navigation; repaint the label
         so the user sees the reason without the row silently doing nothing."""

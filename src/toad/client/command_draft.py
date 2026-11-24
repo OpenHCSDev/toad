@@ -234,6 +234,11 @@ class CommandFormCore(CommandDraft):
         """Commit whatever is being edited into the form state. Called before Apply reads it."""
         self.form.finish()
 
+    def dismiss_control(self) -> None:
+        """An embedded form discards its draft without closing the containing view."""
+        for path in self.state.parameters:
+            self.state.reset_parameter(path)
+
     async def confirm(self) -> None:
         """Apply the form: finish editing, disable Apply, read arguments, submit. The button
         is re-enabled only while the form is still alive."""

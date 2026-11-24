@@ -24,7 +24,11 @@ if TYPE_CHECKING:
 class Page:
     """A page of the window: shown when selected, read again when Core's stores change."""
 
-    mode: str
+    id: str
+
+    @property
+    def mode(self) -> str:
+        return self.id
 
     def reload(self) -> None:
         """A page fed by its own subscription has nothing to read again."""
