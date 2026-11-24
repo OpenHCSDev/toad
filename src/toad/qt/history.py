@@ -89,8 +89,7 @@ from toad.qt.transcript_fragments import (
 )
 from toad.render_backend import Renderer, RenderTask
 from toad.transcript_filter import DrawnFilter, FilterState
-from toad.frame_presentation import ARRIVAL
-from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
+from toad.motion import ARRIVAL, FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
 from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 class QtPage(ReaderPage):

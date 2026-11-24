@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import Iterator
 
+from toad.client.session_scope import SessionScope
 from toad.client.view_binding_protocols import BoundViewHost
-from toad.session_scope import SessionScope
 
 class QtBoundViewHost(BoundViewHost):
     """The shared host contract's tree members on a Qt widget, walking `QWidget.parent()`

@@ -18,9 +18,10 @@ from textual import events
 from textual.strip import Strip
 from textual.widget import Widget
 from ui_theme.clock import Animation, AnimationTarget
-from ui_theme.effects import NEW_TEXT, Effect, Fade, Frame, Mix, TextFade
+from ui_theme.effects import Effect, Fade, Frame, Mix, TextFade
 from ui_theme.scheme import BackgroundColour, ThemeColour
 
+from toad.motion import ARRIVAL
 from toad.tone_paint import TonePaint
 from textual import on
 
@@ -199,68 +200,6 @@ class FramePresentation:
         await self.presented.wait()
         screen = self.screen
         return self.ready and screen.is_attached and screen.is_current
-
-
-@dataclass(frozen=True)
-class Cascade(TextFade):
-    """One fade played row after row: each row starts `position * span` later.
-
-    A burst of rows comes in progressively, top to bottom, instead of rising as
-    one block. Row 0 is the plain fade; a row whose start has not come yet is
-    still the fade's first frame, the background, so it is not yet visible.
-    """
-
-    fade: Fade
-    span: float
-
-    @property
-    def duration(self) -> float:  # type: ignore[override]
-        return self.fade.duration + self.span
-
-    @property
-    def frames_per_second(self) -> float:  # type: ignore[override]
-        return self.fade.frames_per_second
-
-    @property
-    def start(self) -> type[ThemeColour]:  # type: ignore[override]
-        """Its fade's: re-timing a fade row by row does not change what it rises from."""
-        return self.fade.start
-
-    def frame(self, elapsed: float) -> Mix:
-        return self.fade.frame(elapsed)
-
-    def began(self, position: float) -> float:
-        """When the row `position` (0 first, 1 last) of the way through starts to rise."""
-        return position * self.span
-
-    def at(self, elapsed: float, position: float) -> Mix:
-        """The frame of a row `position` (0 first, 1 last) of the way through the cascade."""
-        return self.fade.frame(elapsed - self.began(position))
-
-    def front(self, elapsed: float) -> float:
-        """How far through the cascade the risen front stands, 0 to 1.
-
-        A row is risen when its own fade has finished, which is `fade.duration` after
-        that row began. Reading the front off the start of each row instead would put
-        it at 1 while the last rows were still mid-fade, which is a second clock for
-        one animation: the paint would still be running and a following tail would
-        already sit at the bottom.
-        """
-        return min(1.0, max(0.0, (elapsed - self.fade.duration) / self.span)) if self.span else 1.0
-
-    def unrisen(self, elapsed: float, rows: int) -> int:
-        """How many of `rows` have not risen yet: they are still below what the reader reads."""
-        if rows < 2:
-            return 0
-        return max(0, rows - 1 - int(self.front(elapsed) * (rows - 1)))
-
-    @property
-    def final(self) -> Mix:
-        return self.fade.final
-
-
-# Arriving transcript rows: the new-text fade, started row after row across 0.4 s.
-ARRIVAL = Cascade(NEW_TEXT, span=0.4)
 
 
 class EffectPhase:

@@ -20,7 +20,8 @@ from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.textual_steps import tool_status
 
-from toad.frame_presentation import ARRIVAL, EFFECT_UNSTARTED
+from toad.frame_presentation import EFFECT_UNSTARTED
+from toad.motion import ARRIVAL
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.transcript_history import TranscriptHistory
