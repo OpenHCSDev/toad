@@ -10,8 +10,9 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer
+from toad.client.interactive_dialog import DialogCancelled, DialogOutcome, DialogSpec
 from toad.core.events import RequestPermission
-from toad.permission_presentation import PermissionPresentation
+from toad.permission_presentation import DialogPermissionPresentation, PermissionPresentation
 
 PERMISSION_TIMEOUT_SECONDS = 120.0
 
@@ -112,6 +113,27 @@ class ToolPermissionRequest(PermissionRequest):
         return self._presentation
 
 
+class ElicitationRequest(PermissionRequest):
+    """A structured dialog / ACP `elicitation/create` request sharing the permission lifecycle."""
+
+    def __init__(self, controller, spec: DialogSpec):
+        super().__init__(controller)
+        self.spec = spec
+        self._presentation = DialogPermissionPresentation(spec.title or spec.message, spec)
+
+    @property
+    def options(self) -> list[Answer]:
+        return []
+
+    @property
+    def presentation(self) -> DialogPermissionPresentation:
+        return self._presentation
+
+    def resolve(self, binding, outcome: DialogOutcome) -> None:
+        if self.owns_projection(binding, binding.target) and self.pending:
+            self.future.set_result(outcome)
+
+
 class PermissionController(ClientRequestOwner):
     def __init__(self, agent):
         super().__init__(agent)
@@ -123,6 +145,12 @@ class PermissionController(ClientRequestOwner):
 
     def request(self, options, tool_call):
         request = ToolPermissionRequest(self, options, tool_call)
+        self.requests.add(request)
+        self.agent.events.publish(RequestPermission())
+        return request
+
+    def request_dialog(self, spec: DialogSpec) -> ElicitationRequest:
+        request = ElicitationRequest(self, spec)
         self.requests.add(request)
         self.agent.events.publish(RequestPermission())
         return request
@@ -153,3 +181,20 @@ class PermissionController(ClientRequestOwner):
         if answer is None or authority.retired:
             return cancelled
         return protocol.RequestPermissionResponse(outcome=protocol.AllowedOutcome(option_id=answer.id, outcome="selected"))
+
+    async def request_elicitation(
+        self,
+        session_id: str,
+        message: str,
+        requested_schema: protocol.ElicitationSchema,
+    ) -> protocol.CreateElicitationResponse:
+        cancelled = DialogCancelled().to_elicitation_response()
+        authority = ClientSessionRequest(self.agent, FieldCodec.decode(AcpSessionId, session_id))
+        if authority.retired:
+            return cancelled
+        spec = DialogSpec.from_elicitation(message, requested_schema)
+        request = self.request_dialog(spec)
+        outcome = await request.wait(PERMISSION_TIMEOUT_SECONDS)
+        if outcome is None or authority.retired:
+            return cancelled
+        return outcome.to_elicitation_response()

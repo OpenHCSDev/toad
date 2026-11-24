@@ -1689,6 +1689,16 @@ class Conversation(
         self.prompt.ask(ask)
         return ask
 
+    def open_dialog(self, spec, callback=None) -> None:
+        """Show a structured interactive dialog in the prompt area."""
+        title = f"[{self.agent_title}] {spec.title}" if self.agent_title else spec.title
+        self.app.input_attention.notify(
+            spec.message or spec.title,
+            title=title or "Input requested",
+            sound="question",
+        )
+        self.prompt.open_dialog(spec, callback)
+
     def flash_content(self, text: str) -> Content:
         """As plain content: a `Static` given a string reads markup in it."""
         return Content(text)

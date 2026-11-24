@@ -100,6 +100,7 @@ from toad.widgets.model_switcher import ModelSwitcher
 from toad.widgets.path_search import PathSearch
 from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PaddedOptionRows, PromptPopup
 from toad.answer import Ask
+from toad.widgets.interactive_dialog import PromptDialog
 from toad.widgets.question import PromptQuestion, Question
 from toad.widgets.selection import ChangingText, InlineSelection, SelectionOptionList
 from toad.widgets.slash_complete import SlashComplete
@@ -744,6 +745,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     path_search = getters.query_one(PathSearch)
     slash_complete = getters.query_one(SlashComplete)
     question = getters.query_one(Question)
+    interactive_dialog = getters.query_one(PromptDialog)
     mode_switcher = getters.query_one(ModeSwitcher)
     model_switcher = getters.query_one(ModelSwitcher)
 
@@ -865,6 +867,32 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             self.ask_queue = [
                 pending for pending in self.ask_queue if pending is not ask
             ]
+
+    def open_dialog(self, spec, callback=None) -> None:
+        """Replace the text editor with a structured interactive dialog until answered."""
+        def _done(outcome) -> None:
+            self.query_one(TextPrompt).display = self._ask is None
+            self.app.input_attention.release(self.interactive_dialog)
+            self.refresh(layout=True)
+            if self._ask is None and self.is_mounted:
+                self.prompt_text_area.focus()
+            if callback is not None:
+                callback(outcome)
+
+        self.query_one(TextPrompt).display = False
+        self.app.input_attention.require(self.interactive_dialog)
+        self.interactive_dialog.open_dialog(spec, _done)
+        self.refresh(layout=True)
+
+    def remove_dialog(self, spec) -> None:
+        """Retire `spec` if it is still the active dialog."""
+        if self.interactive_dialog.dialog_spec is spec:
+            self.interactive_dialog.withdraw_dialog(spec)
+            self.query_one(TextPrompt).display = self._ask is None
+            self.app.input_attention.release(self.interactive_dialog)
+            self.refresh(layout=True)
+            if self._ask is None and self.is_mounted:
+                self.prompt_text_area.focus()
 
     @on(events.Click, "ModeInfo")
     def on_mode_info_click(self):
@@ -1028,6 +1056,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         """
         if not self.is_mounted:
             return None
+        if self.interactive_dialog.display:
+            return self.interactive_dialog
         return self.question if self.question.display else self.prompt_text_area
 
     def focus(self, scroll_visible: bool = True) -> Self:
@@ -1103,6 +1133,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         yield from self.compose_attached()
         with PromptContainer():
             yield PromptQuestion()
+            yield PromptDialog()
             with TextPrompt():
                 yield PromptLabel(markup=False)
                 editor = self.TEXT_AREA_CLASS(prompt=self).data_bind(

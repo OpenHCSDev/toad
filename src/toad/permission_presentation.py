@@ -6,6 +6,8 @@ from acp.schema import FileEditToolCallContent, ContentToolCallContent, Terminal
 from dataclasses import dataclass
 from agent_comms.nominal.declared_family import DeclaredFamily
 
+from toad.client.interactive_dialog import DialogSpec
+
 
 @dataclass
 class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
@@ -47,3 +49,15 @@ class InlinePermissionPresentation(PermissionPresentation):
     @classmethod
     def for_request(cls, kind, title, content):
         return cls(title, tuple(content))
+
+
+@dataclass
+class DialogPermissionPresentation(PermissionPresentation):
+    """A structured interactive dialog (questions, single/multi-select, elicitation form)."""
+
+    priority = -2
+    spec: DialogSpec
+
+    @classmethod
+    def for_request(cls, kind, title, content):
+        return None

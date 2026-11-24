@@ -157,8 +157,3 @@ class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
         self.retract()
         if callback is not None:
             callback(chosen)
-
-    @property
-    def accepts_selection(self) -> bool:
-        """`QuestionAction.available` reads this through `context.question.accepts_selection`."""
-        return self._ask is not None

@@ -37,6 +37,7 @@ from toad.qt.goal import QtGoalBar
 from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
 from toad.qt.metrics import UiGap
 from toad.qt.prompt_stack import QtInputDeliveryDetails, QtSessionDetails
+from toad.qt.interactive_dialog import QtInteractiveDialog
 from toad.qt.question import QtQuestion
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.transcript_publication import BoundView
@@ -202,6 +203,8 @@ class QtThreadView(
         # confirmation), hidden until asked.
         self.question = QtQuestion(app, self)
         self._composer_slot.addWidget(self.question)
+        self.interactive_dialog = QtInteractiveDialog(app, self)
+        self._composer_slot.addWidget(self.interactive_dialog)
         composer.labelled(self.composer_label)
         self.sync_status()
 

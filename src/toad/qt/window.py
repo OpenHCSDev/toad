@@ -155,6 +155,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.qt.goal import QtGoalBar
 from toad.qt.placement import ThreadSettingsPane
 from toad.qt.side_bar import QtSideBar, QtWorkspaceChrome
+from toad.qt.interactive_dialog import QtInteractiveDialog
 from toad.qt.question import QtQuestion
 from toad.session_host import SessionEntries, SessionNavigator, WorkspaceViews
 from toad.sidebar_layout import CHANNELS_PANEL
@@ -1300,6 +1301,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         # until the conversation asks, mounted below the composer so the picks sit where
         # the next message would be typed, mirroring Textual's Prompt.ask.
         self.question = QtQuestion(self.app, self)
+        self.interactive_dialog = QtInteractiveDialog(self.app, self)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -1309,6 +1311,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         self.reserve_composer(layout, lambda: self.conversation.prompt(self),
                               lambda composer: composer.labelled(label))
         layout.addWidget(self.question)
+        layout.addWidget(self.interactive_dialog)
         # Under the prompt, not over it: who is here is reference (Textual's
         # `CommsChatView.compose` yields the kind's activity after the prompt).
         for line in self.activity:

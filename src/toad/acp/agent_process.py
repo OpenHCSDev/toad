@@ -209,7 +209,11 @@ class AgentProcess(Client):
         return agent.controller.terminal_kill(session_id, terminal_id, kwargs)
 
     async def create_elicitation(self, message: str, mode: schema.ElicitationMode, **kwargs: JsonValue):
-        raise RequestError.method_not_found('elicitation/create')
+        if not isinstance(mode, schema.ElicitationFormSessionMode):
+            raise RequestError.method_not_found('elicitation/create')
+        agent = self.recipient(mode.session_id)
+        return await agent.session.start_operation(
+            agent.permissions.request_elicitation(mode.session_id, message, mode.requested_schema))
 
     async def complete_elicitation(self, elicitation_id: str, **kwargs: JsonValue):
         raise RequestError.method_not_found('elicitation/complete')
