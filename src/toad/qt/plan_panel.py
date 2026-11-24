@@ -13,8 +13,6 @@ so Qt holds no parallel entries/previous-status roster.
 """
 from __future__ import annotations
 
-from typing import ClassVar
-
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QGraphicsOpacityEffect, QHBoxLayout, QLabel,
                                QVBoxLayout, QWidget)
@@ -23,16 +21,14 @@ from toad.core import events as core_events
 from toad.plan import PlanItem, PlanView
 from toad.qt.session_panel import SessionPanel
 from toad.qt.metrics import UiGap
+from toad.thread_sidebar_declarations import PlanSidebarPanel
 
 
 class QtPlan(PlanView, SessionPanel, QWidget):
-    spec_key: ClassVar[str] = "plan"
-    """Which `ThreadSidebarPanelSpec.key` this widget renders — mirrors the TUI
-    `SessionPanel.spec_key` convention so both frontends share one identity per panel."""
+    panel_type = PlanSidebarPanel
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Widget)
         self._column = QVBoxLayout(self)
         self._column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.frame)
         self._column.setSpacing(UiGap.tight)

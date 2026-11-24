@@ -6,22 +6,18 @@ a tooltip. One fact owner, two renderers.
 """
 from __future__ import annotations
 
-from typing import ClassVar
-
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
-from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
+from toad.thread_sidebar_declarations import CoordinationSidebarPanel, ThreadSidebarPanelBody
 from toad.client.coordination_panel import CoordinationStateReport, CoordinationStatusView
 from toad.thread_identity import NoThreadIdentity
 from toad.qt.metrics import UiGap
 
 
 class QtCoordinationStatus(CoordinationStatusView, ThreadSidebarPanelBody, QWidget, metaclass=PyQtWidgetMeta):
-    spec_key: ClassVar[str] = "coordination"
-    """Which `ThreadSidebarPanelSpec.key` this widget renders — matches the TUI
-    `SessionPanel.spec_key` convention so both frontends declare the same identity."""
+    panel_type = CoordinationSidebarPanel
 
     """Compact 3-line summary of the coordination wire's identity and the ACP backend."""
 
