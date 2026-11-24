@@ -19,7 +19,7 @@ class AgentAttachmentView:
 
 
 class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
-    TURN_BINDING: type[TurnBinding]
+    TURN_BINDING: type[TurnBinding] = LocalTurnBinding
     def __init__(self, agent):
         self.agent = agent
         self.turns = self.TURN_BINDING(agent)
@@ -72,7 +72,6 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
 
 class LocalAgentPresentation(AgentPresentation):
     uses_managed_turns = False
-    TURN_BINDING = LocalTurnBinding
 
     @property
     def queue(self):
@@ -84,7 +83,6 @@ class LocalAgentPresentation(AgentPresentation):
 
 
 class ACPAgentPresentation(AgentPresentation):
-    TURN_BINDING = LocalTurnBinding
 
     @property
     def auth_methods(self):

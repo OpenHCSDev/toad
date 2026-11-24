@@ -8,8 +8,6 @@ Textual's `CategoryFilterView` and Qt's conversation and thread views inherit
 
 from __future__ import annotations
 
-from abc import abstractmethod
-
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 
 
@@ -34,9 +32,8 @@ class CategorySelection:
         self.visible_categories = selected | {category} if on else selected - {category}
         self.categories_changed()
 
-    @abstractmethod
     def categories_changed(self) -> None:
-        """The selection changed: redraw the transcript's shown rows."""
+        """The selection changed: frontends whose write does not redraw on its own override."""
 
 
 class NoCategorySelection(CategorySelection):
@@ -48,6 +45,3 @@ class NoCategorySelection(CategorySelection):
 
     def set_category(self, category: type[MessageCategory], on: bool) -> None:
         raise RuntimeError("This view filters no categories; its panel offers no toggle")
-
-    def categories_changed(self) -> None:
-        """Nothing to redraw."""

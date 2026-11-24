@@ -139,11 +139,6 @@ class AgentBase(AgentConnection):
         """The (wire root, thread name) whose status this agent shows; none without coordination."""
         return None
 
-    async def observe_thread_presentation(
-        self, presentation: ThreadPresentation
-    ) -> None:
-        """Consume a published canonical change; unmanaged agents need no binding."""
-
     @abstractmethod
     async def send_prompt(self, prompt: str) -> type[StopReason]:
         """Send a prompt; return its stop reason."""

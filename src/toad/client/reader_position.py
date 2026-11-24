@@ -233,9 +233,10 @@ class ReaderPosition(ABC):
         """Shift the held message during a change; otherwise read the current viewport."""
         return window.history_change.moved(self, window, rows)
 
-    @abstractmethod
     def shifted(self, rows: float) -> ReaderPosition:
-        """This position displaced by an explicit number of rows."""
+        """This position displaced by an explicit number of rows; positions not tied to an
+        offset stay themselves."""
+        return self
 
     def left_tail(self, window: ReaderWindow) -> ReaderPosition:
         """The position after the reader stopped following the latest message."""
@@ -338,9 +339,6 @@ class TailPosition(ReaderPosition):
             with window.layout_scroll():
                 window.scroll_y = window.tail_scroll_y
 
-    def shifted(self, rows: float) -> ReaderPosition:
-        return self
-
     def joined_tail(self) -> ReaderPosition:
         return self
 
@@ -423,9 +421,6 @@ class UnshownReader(ReaderPosition):
 
     def place(self, window: ReaderWindow) -> bool:
         return False
-
-    def shifted(self, rows: float) -> ReaderPosition:
-        return self
 
     def placed_by_layout(self, window: ReaderWindow) -> bool:
         return False

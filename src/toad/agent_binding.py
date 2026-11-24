@@ -81,8 +81,8 @@ class AgentConnection(GoalSource):
     def committed_native_output(self) -> CommitSource:
         return CommitSource()
 
-    @abstractmethod
-    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None: ...
+    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None:
+        """Consume a published canonical change; unmanaged/unbound connections need no binding."""
 
     @abstractmethod
     def matches_session(self, session_id: AcpSessionId) -> bool: ...
@@ -246,13 +246,10 @@ class NoAgentConnection(AgentConnection):
         source.presentation.sources.attach_started(source, plan)
 
     async def change_project(self, view: Conversation, path: Path) -> None:
-        view.feedback.flash("Project changes require an agent-comms session", style="error")
+        view.flash_error("Project changes require an agent-comms session")
 
     def request_compaction(self, view: Conversation, instructions) -> None:
-        view.feedback.flash("Context compaction requires an agent-comms session", style="error")
-
-    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None:
-        """There is no connected agent to inform."""
+        view.flash_error("Context compaction requires an agent-comms session")
 
     def invalidate_observation(self, observation: SessionObservation) -> None:
         """No native source exists to schedule a read against."""

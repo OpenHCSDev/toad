@@ -191,8 +191,8 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         items = self._tree.selectedItems()
         if not items:
             return
-        model = items[0].data(0, Qt.ItemDataRole.UserRole)
-        if not isinstance(model, ContextNode):
+        model: ContextNode | None = items[0].data(0, Qt.ItemDataRole.UserRole)
+        if model is None:
             return
         self.intent.selected = model
         asyncio.ensure_future(self._show_detail(model))
@@ -211,11 +211,11 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         clipboard.setText(self._detail.toPlainText())
 
     def _on_expanded(self, item: QTreeWidgetItem) -> None:
-        model = item.data(0, Qt.ItemDataRole.UserRole)
-        if isinstance(model, ContextNode):
+        model: ContextNode | None = item.data(0, Qt.ItemDataRole.UserRole)
+        if model is not None:
             self.intent.expanded.add(model.key)
 
     def _on_collapsed(self, item: QTreeWidgetItem) -> None:
-        model = item.data(0, Qt.ItemDataRole.UserRole)
-        if isinstance(model, ContextNode):
+        model: ContextNode | None = item.data(0, Qt.ItemDataRole.UserRole)
+        if model is not None:
             self.intent.expanded.discard(model.key)
