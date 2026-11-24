@@ -13,6 +13,3 @@ class CategoryFilterView(CategorySelection, DOMNode):
     visible_categories: var[frozenset[type[MessageCategory]]] = var(
         lambda: all_categories(), init=False
     )
-
-    def categories_changed(self) -> None:
-        """The reactive's watchers redraw the transcript on the write itself."""
