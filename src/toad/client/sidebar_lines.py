@@ -73,7 +73,7 @@ class WelcomeSectionLine(MemberGroupLine):
     def sidebar_state(self):
         raise NotImplementedError
 
-    def opens(self) -> bool:
+    def opens_expanded(self) -> bool:
         return self.sidebar_state.welcome_section_open(self.section_title)
 
     def members_toggled(self) -> None:

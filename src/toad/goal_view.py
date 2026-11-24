@@ -8,7 +8,7 @@ from textual.widget import Widget
 from toad.agent_binding import AgentConnection
 from toad.app_node import ToadNode
 from toad.core_event_carrier import CoreEventReceiver
-from toad.goal_controls import GoalCollapse, GoalSource
+from toad.goal_controls import GoalAction, GoalCollapse, GoalSource
 from toad.session_observation import GoalObservation
 from toad.widgets.flash import Flash
 
@@ -26,3 +26,9 @@ class GoalView[Controls](CoreEventReceiver, ToadNode):
     feedback: Flash
     prompt: Widget
     project_path: Path
+
+    async def change_goal(self, action: type[GoalAction], text: str = "") -> None:
+        await self.goal_controls.change(action, text)
+
+    async def refresh_goal(self) -> None:
+        await self.goal_observation.refresh()

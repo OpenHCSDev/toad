@@ -114,7 +114,7 @@ async def test_a_sent_file_draws_as_a_chip_under_its_message_in_the_terminal(wor
 
 async def test_an_image_pasted_into_a_message_rides_it_as_a_file_not_as_a_path(workspace):
     """Tristan pasted a screenshot into #claude and every teammate got one line,
-    `@/home/ts/.local/share/toad/clipboard-images/clipboard-794d….png`: a path on his laptop,
+    `@~/.local/share/toad/clipboard-images/clipboard-794d….png`: a path on his laptop,
     which no other machine can open. A message composer attaches the image instead."""
     workspace.thread("peer", "team")
     workspace.comms.messaging.send("peer", "#team", "CURRENT_HISTORY")
