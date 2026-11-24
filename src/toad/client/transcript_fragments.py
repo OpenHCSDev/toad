@@ -311,7 +311,7 @@ class ContextTranscriptFragment(TranscriptFragment):
     has_details: ClassVar[bool] = True
 
     def blocks(self, shown):
-        summary = shown.summary("Agent coordination context", MutedRole, self.details_link)
+        summary = shown.summary("Context", MutedRole, self.details_link)
         if not shown.details_open:
             return (summary,)
         return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole) for event in self.events))

@@ -107,7 +107,7 @@ class MessageQueueEntry:
 
     @property
     def details(self) -> DetailLines:
-        return ((Span(f"Original {self.reference.seq}/{self.reference.message_id}", MutedRole),),
+        return ((Span(f"Message #{self.reference.seq} ({self.reference.message_id})", MutedRole),),
                 *self.status.queue_details)
 
 
@@ -160,7 +160,7 @@ class CheckedNotifications(NotificationStatus):
         leading = CheckedNotifications.from_notifications(self.notifications[:1])
         return (
             (Span(self.title, MutedRole),),
-            *((Span(f"Recipient {item.recipient_identity.recipient_lookup}", MutedRole),)
+            *((Span(f"To @{item.recipient_identity.recipient_lookup}", MutedRole),)
               for item in leading.notifications),
             *leading.details,
             *((Span(text, MutedRole),)
@@ -181,20 +181,20 @@ class CheckedNotifications(NotificationStatus):
 
 @dataclass(frozen=True)
 class EmptyCheckedNotifications(CheckedNotifications):
-    """The original matched, but no recipient feedback is visible to this viewer."""
+    """The original matched, but no delivery receipts are visible to this viewer."""
 
     notifications: tuple[()] = field(default=(), init=False)
-    queue_title = "No recipient feedback"
+    queue_title = "No receipts"
 
     @property
     def details(self) -> DetailLines:
-        return ((Span("No recipient feedback to display.", MutedRole),),)
+        return ((Span("No delivery info yet.", MutedRole),),)
 
 
 @dataclass(frozen=True)
 class UnavailableNotifications(NotificationStatus):
     error: str
-    title = "Notification status unavailable"
+    title = "Delivery status unavailable"
 
     @property
     def role(self) -> type[LineRole]:
@@ -202,4 +202,4 @@ class UnavailableNotifications(NotificationStatus):
 
     @property
     def details(self) -> DetailLines:
-        return ((Span(f"Could not check notification status: {self.error}", MutedRole),),)
+        return ((Span(f"Couldn't check delivery status: {self.error}", MutedRole),),)

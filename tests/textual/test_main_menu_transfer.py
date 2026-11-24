@@ -93,14 +93,15 @@ async def test_main_menu_exports_the_wire_as_jsonl(workspace):
         record_notifications(app)
         # Core 95b517678 deleted the scope's construction refusal on purpose: the
         # export operation resolves the channel and refuses an unknown one.
-        await choose(ui, await open_main_menu(ui), "Export wire history…")
+        await choose(ui, await open_main_menu(ui), WireExportRequest.title)
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
         app.screen.query_one(ExportScopeChoice).value = ChannelScopeInput
-        await app.screen.confirm()
-        await ui.until(lambda: any(note.title == "Wire export failed" and "Unknown channel" in note.message
-                                   for note in app._notifications), why="the export refusal")
+        async with ui.reporting_error():
+            await app.screen.confirm()
+            await ui.until(lambda: any(note.title == WireExportRequest.failure_title and "Unknown channel" in note.message
+                                       for note in app._notifications), why="the export refusal")
         assert not app.screen.query(WireExportProgressView), "the failed export must remove its progress resource"
-        await choose(ui, await open_main_menu(ui), "Export wire history…")
+        await choose(ui, await open_main_menu(ui), WireExportRequest.title)
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
         dialog = app.screen
         dialog.query_one(ExportScopeChoice).value = EverythingScopeInput
@@ -110,7 +111,7 @@ async def test_main_menu_exports_the_wire_as_jsonl(workspace):
         rows = [json.loads(line) for line in destination.read_text().splitlines()]
         assert rows[0]["record"] == "header"
         assert [row["message"]["text"] for row in rows[1:]] == ["exported message"]
-        await ui.until(lambda: any(note.title == "Wire export" and str(destination) in note.message
+        await ui.until(lambda: any(note.title == "Export" and str(destination) in note.message
                                    for note in app._notifications), why="the completed export notification")
         assert not app.screen.query(WireExportProgressView), "completion removes the actual progress widget"
 
@@ -128,7 +129,7 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
     async with workspace.app(size=(110, 40)) as ui:
         record_notifications(ui.textual[0])
         menu = await open_main_menu(ui)
-        await choose(ui, menu, "Thread Import…")
+        await choose(ui, menu, "Import thread…")
         await ui.until(lambda: isinstance(ui.textual[0].screen, ThreadImportDialog), why="the import dialog")
         dialog = ui.textual[0].screen
         # 23331e21 replaced the deleted ImportFormat with Core's Harness family on purpose.
@@ -140,7 +141,7 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
         thread = comms.registry.require("imported")
         assert comms.registry.status(thread.name).is_stopped()
         assert "Imported history" in Path(thread.runtime.path).read_text()
-        await ui.until(lambda: any(note.title == "Thread Import" and "@imported" in note.message
+        await ui.until(lambda: any(note.title == "Import thread" and "@imported" in note.message
                                    for note in ui.textual[0]._notifications), why="the import completion")
         assert not ui.textual[0].screen.query(WireExportProgressView), "imports do not allocate export cancellation"
 
@@ -148,7 +149,7 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
 async def test_export_format_updates_only_the_generated_destination(workspace):
     async with workspace.app(size=(110, 40)) as ui:
         app, _ = ui.textual
-        await choose(ui, await open_main_menu(ui), "Export wire history…")
+        await choose(ui, await open_main_menu(ui), WireExportRequest.title)
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
         dialog = app.screen
         assert dialog.format_select.selection is JsonlFormatInput
@@ -203,10 +204,11 @@ async def test_running_export_retires_writer_and_staging(workspace: Workspace, c
         record_notifications(app)
         access = app.coordination_access
         selected = access.selected(access.observation.observed().root)
-        app.transfer_submitted(selected, WireExportRequest(
-            protected, TextFormat(), EverythingScope(), FullLimit()))
-        await ui.until(lambda: any(note.title == "Wire export failed" for note in app._notifications),
-                       why="refusal of the pre-existing destination")
+        async with ui.reporting_error():
+            app.transfer_submitted(selected, WireExportRequest(
+                protected, TextFormat(), EverythingScope(), FullLimit()))
+            await ui.until(lambda: any(note.title == WireExportRequest.failure_title for note in app._notifications),
+                           why="refusal of the pre-existing destination")
         assert protected.read_bytes() == original
         assert not list(protected.parent.glob(".existing-export.txt.*.tmp"))
 
@@ -236,7 +238,7 @@ async def test_running_export_retires_writer_and_staging(workspace: Workspace, c
             progress.query_one(CancelExportButton).press()
             await ui.until(lambda: worker.is_finished, why="the real cancelled writer to finish")
             assert progress.cancelled()
-            await ui.until(lambda: any(note.message == "Wire export cancelled"
+            await ui.until(lambda: any(note.message == "Export cancelled"
                                       for note in app._notifications), why="actual export cancellation")
             assert progress.parent is None
 

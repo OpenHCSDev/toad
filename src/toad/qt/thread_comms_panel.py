@@ -241,7 +241,7 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         if identity.root_path is None:
             return
         if identity.root_path != app.coordination_access.observation.observed().root:
-            app.show_warning("This view uses a different wire; open its matching connection to navigate.", "Comms")
+            app.show_warning(self.wrong_bus_warning, "Comms")
             return
         service = await self.observed_source(app.coordination_access, app.preparation, identity.root_path)
         if service is None:
@@ -249,7 +249,7 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         snapshot = await app.preparation.run_thread(service.relationships, identity.thread_name())
         current = snapshot.current_entry(group, entry)
         if current is None:
-            app.show_warning("This relationship changed; refresh the list before opening it.", "Comms")
+            app.show_warning(self.changed_entry_warning, "Comms")
             self.present()
             return
         app.open_target(entry_target(current))

@@ -276,7 +276,7 @@ class WireExportProgressView(CancellableExportProgress, WidgetView, ToadNode, Ve
         self.last_report = 0.0
 
     def compose(self) -> ComposeResult:
-        yield Static("Exporting wire history")
+        yield Static("Exporting messages")
         yield ExportProgress("0 messages · 0 bytes written")
         yield CancelExportButton("Cancel export")
 

@@ -24,6 +24,9 @@ class RelationshipPanel(PanelSource):
     tree state across binds, says whose relationships these are, and decides which entries
     the sidebar's search keeps."""
 
+    wrong_bus_warning = "This view is on a different bus — switch to that bus to open it."
+    changed_entry_warning = "This item changed — refreshed the list."
+
     _states: dict
 
     @property
@@ -40,4 +43,4 @@ class RelationshipPanel(PanelSource):
 
     @staticmethod
     def context_tooltip(snapshot) -> str:
-        return f"{snapshot.incoming_basis}\nLatest {snapshot.history_messages} wire messages"
+        return f"{snapshot.incoming_basis}\nLatest {snapshot.history_messages} messages"

@@ -122,7 +122,7 @@ class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectP
             await previous.remove()
             await self.query_one(HistoryWindow).mount(content)
         self.query_one(SourceLabel).update(
-            f"@{item.thread.name} · original incarnation {item.thread.created_at}\n"
+            f"@{item.thread.name} · created {item.thread.created_at}\n"
             f"Source: {item.source.original_root}\n"
             f"Channels/tags: {', '.join(sorted(item.thread.tags)) or 'none'}\n"
             f"Session: {item.thread.session_file or 'No saved session recorded'} · read only"
@@ -146,7 +146,7 @@ class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectP
             return
         if not page.events and not page.has_older:
             await content.mount(
-                Static("No saved conversation records are available for this identity.")
+                Static("No saved messages for this thread.")
             )
         else:
             prepared = await TranscriptPageRenderTask(page, TEXTUAL_FRAGMENT_CLASSES, NO_PAGE_FILES).prepared(self.app.preparation)
