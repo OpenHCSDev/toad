@@ -55,11 +55,12 @@ class SelectsSource(BlockContent):
 class ExpansionCommand(ExclusiveKeys, KeyedMenuCommand, declared_name=None):
     """Collapse and expand alternate on one block, so they share their key."""
 
+    key = "x"
+
 
 @dataclass(frozen=True)
 class CollapseCommand(ExpansionCommand):
     block: BlockContent
-    key = "x"
     description = "Collapse"
 
     def apply(self, conversation: MenuConversation) -> None:
@@ -69,7 +70,6 @@ class CollapseCommand(ExpansionCommand):
 @dataclass(frozen=True)
 class ExpandCommand(ExpansionCommand):
     block: BlockContent
-    key = "x"
     description = "Expand"
 
     def apply(self, conversation: MenuConversation) -> None:
