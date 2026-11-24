@@ -139,8 +139,10 @@ class PromptComposer(metaclass=AbstractHooksMeta):
 
     @property
     def queue_hint(self) -> str:
-        """The info bar's held count while the preview is off; nothing while it is on."""
-        return "" if self.shows_delivery_preview else self.operational_submissions.queue_hint
+        """The info bar's held count: shown whenever the summary band above the prompt is empty
+        (either because `ui.input.delivery_preview` is off, or because the source folds held
+        delivery status out of the multi-line summary band into the info bar)."""
+        return "" if self.queue_summary else self.operational_submissions.queue_hint
 
     @abstractmethod
     def sync_queue(self) -> None:

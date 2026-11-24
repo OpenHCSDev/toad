@@ -194,14 +194,10 @@ class BusQueueSource(QueueSource):
                 observed.core.call, CommsQueueActionTool(lookup=recipient.lookup, action=action))
 
     def queue_summary(self, evidence: QueueEvidence) -> str:
-        """Shown only while input is held, as a DM's queue line is: a quiet channel shows none."""
-        if not self.holds_input(evidence):
-            return ""
-        entries = evidence.entries
-        previews = " · ".join(entry.summary for entry in entries[:self.preview_limit])
-        coverage = f"Delivery ({len(entries)} visible messages)"
-        return " | ".join((
-            *evidence.submitting.summary, coverage + (f": {previews}" if previews else ": unobserved")))
+        """Show only messages actively submitting in the band above the prompt; held
+        recipients of visible messages fold into the info bar's compact ``queue_hint``
+        badge (tapping it opens queue inspection with full per-recipient details)."""
+        return " | ".join(evidence.submitting.summary)
 
     def held_count(self, evidence: QueueEvidence) -> int:
         """Also the visible messages a recipient has not taken yet."""
