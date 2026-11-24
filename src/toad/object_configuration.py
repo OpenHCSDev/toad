@@ -1,4 +1,6 @@
 """A viewed object's overrides, with ObjectState owning inheritance and its source."""
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from functools import cached_property
@@ -11,10 +13,10 @@ from objectstate.lazy_factory import LazyDataclassFactory
 from pydantic import JsonValue
 
 from toad import atomic
+from toad.client.tab_identity import TabIdentity
+from toad.client.view_settings import ViewSettingsOwner
 from toad.preferences import SavedSettings
 from toad.setting_declarations import Effect, SettingsDeclaration
-from toad.settings_scope import SettingsScope
-from toad.client.tab_identity import TabIdentity
 
 
 @dataclass(frozen=True)
@@ -57,7 +59,7 @@ class ObjectConfiguration(ObjectState):
     """One view's explicit values; unassigned fields follow its live defaults."""
 
     def __init__(self, identity: TabIdentity, global_settings: SavedSettings,
-                 directory: Path, owner: SettingsScope) -> None:
+                 directory: Path, owner: ViewSettingsOwner) -> None:
         self.global_settings = global_settings
         defaults = global_settings.state
         self.identity, self.defaults, self.owner = identity, defaults, owner

@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.registry.thread_presentation import ThreadPresentation
-from textual.content import Content
 
 from toad.acp.status import StopReason
 from toad.agent_binding import AgentConnection
@@ -60,7 +61,7 @@ class AgentBase(AgentConnection):
 
     async def change_project(self, view: Conversation, path: Path) -> None:
         project = await self.update_project(str(path))
-        view.feedback.flash(Content(f"Project changed to {project}"), style="success")
+        view.flash_success(f"Project changed to {project}")
 
     def request_compaction(self, view: Conversation, instructions) -> None:
         view.compact_context(instructions)

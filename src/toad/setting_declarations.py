@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, ClassVar, cast
 from agent_comms.nominal.declared_choice import DeclaredChoice
 from objectstate.lazy_factory import LazyResolutionDataclass
 from python_introspect import AnnotatedDataclassValidationMixin, AnnotationChoices
-from toad.settings_scope import SettingsScope
+
+from toad.client.view_settings import ViewSettingsOwner
 
 if TYPE_CHECKING:
     from formbridge.forms.declared_fields import DeclaredField
@@ -21,9 +22,9 @@ if TYPE_CHECKING:
 class SettingsDeclaration(AnnotatedDataclassValidationMixin, LazyResolutionDataclass):
     """An actual settings record and the scopes its own field declarations admit."""
 
-    configuration_scopes: ClassVar[tuple[type[SettingsScope], ...]] = ()
+    configuration_scopes: ClassVar[tuple[type[ViewSettingsOwner], ...]] = ()
 
-    def __init_subclass__(cls, *, scopes: tuple[type[SettingsScope], ...] = (), **kwargs):
+    def __init_subclass__(cls, *, scopes: tuple[type[ViewSettingsOwner], ...] = (), **kwargs):
         super().__init_subclass__(**kwargs)
         cls.configuration_scopes = scopes
 
@@ -33,7 +34,7 @@ class SettingsDeclaration(AnnotatedDataclassValidationMixin, LazyResolutionDatac
                     if name in get_annotations(owner, format=Format.STRING))
 
     @classmethod
-    def admits_field(cls, name: str, scope: SettingsScope) -> bool:
+    def admits_field(cls, name: str, scope: ViewSettingsOwner) -> bool:
         return any(isinstance(scope, admitted)
                    for admitted in cls.field_source(name).configuration_scopes)
 
