@@ -187,6 +187,13 @@ class RowTree:
     scrollbar_cells: ClassVar[int] = 1
 
 
+class FittedRowTree(RowTree):
+    """A `RowTree` sized to its visible rows up to `most_rows` before scrolling (e.g.
+    `QtSidebarBuses` and `ChannelActivitySidebar`)."""
+
+    most_rows: ClassVar[int] = 6
+
+
 class BusChoiceLine:
     """A bus a listing offers (a held bus, or a tailnet peer to ask): the line names it as
     the choice does, and choosing it does what the choice says. Textual's `BusOption` and
