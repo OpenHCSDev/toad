@@ -7,7 +7,7 @@ from agent_comms.messaging.message_files import FileUpload
 
 from toad.core.events import CoreEvent
 from toad.goal_controls import GoalInteraction
-from toad.input_history import InputHistory
+from toad.input_history import InputHistory, PromptInputHistory, ShellInputHistory
 
 
 @dataclass(frozen=True)
@@ -18,7 +18,6 @@ class HistoryMove(CoreEvent):
 
     @classmethod
     def for_mode(cls, direction, shell: bool, body: str):
-        from toad.input_history import PromptInputHistory, ShellInputHistory
         return cls(direction, ShellInputHistory if shell else PromptInputHistory, body)
 
 

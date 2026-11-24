@@ -7,16 +7,12 @@ import weakref
 from abc import abstractmethod
 from collections.abc import Collection
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
 from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim
-
-if TYPE_CHECKING:
-    from toad.turn_presentation import LiveBlock, TurnPresentation
-
+from toad.turn_presentation import LiveBlock, TurnPresentation
 
 @dataclass
 class OutputStream(DeclaredFamily, affix="Stream"):

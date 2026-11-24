@@ -1,17 +1,13 @@
 """Nominal terminal capability shared by operational Agent controllers."""
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
 
 from acp import schema as protocol
 from acp.exceptions import RequestError
 
 from toad.acp.client_session import ClientRequestOwner
 from toad.acp.terminal_controller import TerminalController, TerminalSessionRetired
+from toad.surface_binding import SurfaceBinding
 from toad.terminal_execution import Command
-
-if TYPE_CHECKING:
-    from toad.surface_binding import SurfaceBinding
-
 
 class OperationalTerminalOwner(ClientRequestOwner, ABC):
     surface: SurfaceBinding

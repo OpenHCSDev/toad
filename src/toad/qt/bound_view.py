@@ -8,13 +8,10 @@ from `QWidget.parent()`. The view-specific members (`window`, `contents`,
 
 from __future__ import annotations
 
-from typing import Iterator, TYPE_CHECKING
+from typing import Iterator
 
 from toad.client.view_binding_protocols import BoundViewHost
-
-if TYPE_CHECKING:
-    from toad.session_scope import SessionScope
-
+from toad.session_scope import SessionScope
 
 class QtBoundViewHost(BoundViewHost):
     """The shared host contract's tree members on a Qt widget, walking `QWidget.parent()`

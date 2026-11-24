@@ -91,7 +91,10 @@ from toad.client.history_preparation import NEWER_END, OLDER_END
 from toad.widgets.presentation_window import UNPLACED, PointerRows, Unplaced, arranged
 from toad.client.history_pager import PresentationBudget
 from toad.widgets.selection import HoverSelection
-from toad.widgets.transcript_fragments import TranscriptFragment
+from toad.widgets.transcript_fragments import (
+    TEXTUAL_FRAGMENT_CLASSES,
+    TranscriptFragment,
+)
 from toad.widgets.fragment_states import (
     DrawnFragment,
     FragmentSpan,
@@ -263,7 +266,7 @@ class TranscriptPageView(
         change: RowChange = RepaintRows()
         for fragment in fragments:
             row = self._fragment_slots.get(fragment.key, NOT_LAID_OUT)
-            change = fragment.row_change(row, self._width, theme).joined(change)
+            change = fragment._lines.replacing(row, self._width, theme).joined(change)
         change.apply(self)
 
     def repaint_row(self, slot: int, lines: BlockLines) -> None:
@@ -909,7 +912,6 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
 
     @classmethod
     def empty_source(cls, view, through):
-        from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
         return SavedTranscript(view.transcript, through, view.app.preparation,
                                fragments=TEXTUAL_FRAGMENT_CLASSES)
 

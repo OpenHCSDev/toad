@@ -29,6 +29,7 @@ from textual.widgets import LoadingIndicator
 from textual.widgets._footer import KeyGroup
 from textual.widgets.markdown import Markdown
 
+from toad.keymap import KeyInvocationId, report_broken_keymap
 from toad.screen_width import ScreenWidth
 from toad.app_core import CorePrewarm
 from toad.application_actions import ApplicationCommands
@@ -39,6 +40,11 @@ from toad.client.connection import CoreConnection
 from toad.client.local_connection import select_connection
 from toad.core import events as core_events
 from toad.core import input_events
+from toad.screens.bus_choice import BusChoices
+from toad.screens.keymap import KeymapScreen
+from toad.screens.main import MainScreen
+from toad.screens.settings import SettingsScreen
+from toad.screens.team import TeamPage
 from toad.widgets.file_viewer import ImageViewer
 from toad.launch_binding import AgentBinding
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
@@ -59,6 +65,7 @@ from toad.client.tab_identity import TabIdentity
 from toad.terminal_attention import TerminalAttention
 from toad.widgets.comms_command_dialog import ScreenCommandOrigin
 from toad.widgets.comms_sidebar import CommsSidebar
+from toad.widgets.prompt import PromptTextArea
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.client.application_actions import ApplicationAction
 from toad.widget_actions import DeclaredWidgetActions
@@ -239,24 +246,19 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     # The default notice stays on the base so a Qt frontend still gets the menu item.
 
     def open_bus_switcher(self) -> None:
-        from toad.screens.bus_choice import BusChoices
         self.push_screen(BusChoices(), self.picked_bus)
 
     async def edit_settings(self) -> None:
         self.run_worker(self._edit_settings_worker)
 
     async def _edit_settings_worker(self) -> None:
-        from toad.screens.settings import SettingsScreen
         await self.push_screen_wait(SettingsScreen())
         await self.saved_settings.save()
 
     async def open_team_board(self) -> None:
-        from toad.screens.team import TeamPage
         self.push_screen(TeamPage())
 
     async def open_keymap_browser(self) -> None:
-        from toad.keymap import KeyInvocationId
-        from toad.screens.keymap import KeymapScreen
         focused = frozenset(
             KeyInvocationId(invocation.key_identity())
             for node, bindings in self.screen._binding_chain
@@ -301,11 +303,9 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         Imported here (not at module top, not from `ThreadOpening`) so Qt's
         `ThreadOpening.__init__` never has to reach `toad.screens.main` and the
         Textual-widget pyramid it imports (textual_colours, watchdog, ...)."""
-        from toad.screens.main import MainScreen
         return MainScreen.opening(request, origin, self)
 
     def thread_view(self, prepared):
-        from toad.screens.main import MainScreen
         return MainScreen.from_thread(prepared.project, prepared.root,
                                       prepared.thread.incarnation, self.agent_binding)
 
@@ -474,7 +474,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         # The terminal driver is running now, so ANSI themes can query its colours.
         await self.colours.mount()
         self.start_client()
-        from toad.keymap import report_broken_keymap
         report_broken_keymap(self)
         # Background threads (Core reads, preparation) give the GIL back to
         # the UI thread within 1 ms instead of the default 5 ms.
@@ -518,7 +517,6 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         self.colours.choose(self.settings.ui.theme)
 
     def follow_key_mode(self) -> None:
-        from toad.widgets.prompt import PromptTextArea
         for editor in self.settings_widgets(PromptTextArea):
             editor.apply_keyboard_profile()
         self.refresh_bindings()

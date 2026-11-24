@@ -13,7 +13,7 @@ from collections.abc import AsyncIterator
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from agent_comms.cli_verbs.cli_result import CliResult
 from agent_comms.importing import ThreadImported
@@ -29,13 +29,10 @@ from agent_comms.registry.thread_management import ImportDirectory
 from agent_comms.registry.thread_text import ExpectedSession
 from agent_comms.transport.progress import CancellableWireExport, WireExportCancelled
 from agent_comms.transport.tools.sidebar import CommsExportWireTool, CommsImportThreadTool
+from toad.client.connection import CapturedSource, CoordinationAccess
 from toad.client.host import CommsHost
 from toad.core import events as core_events
-
-if TYPE_CHECKING:
-    from toad.client.connection import CapturedSource, CoordinationAccess
-    from toad.work_preparation import PreparationRuntime
-
+from toad.work_preparation import PreparationRuntime
 
 class TransferProgress:
     """A transfer's shared progress capability. The default is not cancellable; an export's

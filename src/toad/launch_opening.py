@@ -9,6 +9,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
 
+from toad.core.session_requests import TargetOpen
+from toad.navigation_target import NavigationTarget
+
 if TYPE_CHECKING:
     from toad.client.application import ClientApplication
 
@@ -54,7 +57,5 @@ class OpensTarget(LaunchOpening):
     name: str
 
     async def open(self, app: ClientApplication) -> None:
-        from toad.core.session_requests import TargetOpen
-        from toad.navigation_target import NavigationTarget
 
         await TargetOpen(NavigationTarget.named(self.name)).apply(app.session_navigation)

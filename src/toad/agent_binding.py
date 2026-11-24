@@ -14,7 +14,9 @@ from agent_comms.planning.goal_presentation import GoalSnapshot, IdleGoalExecuti
 from agent_comms.planning.goals import NoGoal
 
 from toad.acp.agent_configuration import AgentConfiguration
+from toad.acp.agent_controller import AgentController
 from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
+from toad.client.submission import SubmissionStart
 from toad.goal_controls import GoalSource
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.core.events import CoreEventStream
@@ -33,9 +35,7 @@ if TYPE_CHECKING:
 )
     from agent_comms.nominal.field_codec import GoalId
     from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
-    from toad.acp.agent_controller import AgentController
 
-    from toad.client.submission import SubmissionStart
     from toad.conversation_submission import (
         AgentInputSubmission,
         ConversationSubmissions,

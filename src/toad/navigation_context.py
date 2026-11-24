@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from agent_comms.projects.checkouts import Checkout
 from typing import TYPE_CHECKING
 
+from toad.constants import WELCOME
+
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
@@ -120,7 +122,6 @@ class HomeNavigation(NavigationOwner):
 
     @property
     def navigation_context(self) -> NavigationContext:
-        from toad.constants import WELCOME
         return NavigationContext(self.app, WELCOME, self.project_path, self.thread_identity.thread_name())
 
     async def open_sidebar_target(self, target: NavigationDestination) -> None:
@@ -178,6 +179,5 @@ class ConversationViewNavigation:
 
     @property
     def navigation_context(self) -> NavigationContext:
-        from toad.constants import WELCOME
         return NavigationContext(self.app, WELCOME, self.navigation_project,
                                  self.thread_identity.thread_name())

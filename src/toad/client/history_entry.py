@@ -23,6 +23,7 @@ from toad.client.tab_identity import TabIdentity, TabTargetGone
 from toad.client.tab_identity.kinds import CommsTab
 from toad.core.projection import MroProjection
 from toad.session_host import SessionNavigator
+from toad.thread_identity import SessionIdentity
 
 
 class HistorySessionEntry(SessionEntry, MroProjection[OpenTab], declared_name=None):
@@ -37,7 +38,6 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab], declared_name=No
     @property
     def viewer_identity(self):
         """The viewer as a thread on the conversation's wire: who the tab acts as."""
-        from toad.thread_identity import SessionIdentity
         return SessionIdentity.for_thread(self.viewer, self.key.root)
 
     @staticmethod

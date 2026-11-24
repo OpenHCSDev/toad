@@ -12,6 +12,7 @@ from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
 from textual import events, on
+from toad.client.line_blocks import Divider
 from toad.reader_actions import LatestAction, PageDownAction, PageUpAction, ReaderAction
 from toad.widget_actions import NativeMethodKeys
 from textual.containers import VerticalScroll
@@ -49,7 +50,6 @@ from toad.client.reader_position import (
 
 
 if TYPE_CHECKING:
-    from toad.client.line_blocks import Divider
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView

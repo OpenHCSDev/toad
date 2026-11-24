@@ -13,7 +13,8 @@ from textual.view import (
 )
 from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.widgets.side_bar import SideBar
+from toad.widgets.session_tabs import SessionsTabs
+from toad.widgets.side_bar import SideBar, TabHistoryControls
 from toad.widgets.footer import ToadFooter
 from toad.widgets.switch_toast import SwitchToast
 from ui_theme.scheme import HeaderToneColour
@@ -39,8 +40,6 @@ class WorkspaceHeader(FollowsLayoutPreferences, TonePaint, WidgetView, Horizonta
         self.app.settings.ui.navigation_bar.place(self, self.screen.query_one(WorkspaceBody))
 
     def compose(self) -> ComposeResult:
-        from toad.widgets.session_tabs import SessionsTabs
-        from toad.widgets.side_bar import TabHistoryControls
 
         yield TabHistoryControls()
         yield SessionsTabs()

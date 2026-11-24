@@ -14,10 +14,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from toad.client.tab_identity.kinds import CommsTab
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
 
 if TYPE_CHECKING:
-    from toad.client.tab_identity.kinds import CommsTab
     from toad.qt.window import QtToadApp
 
 

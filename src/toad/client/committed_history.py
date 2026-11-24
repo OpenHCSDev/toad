@@ -12,7 +12,6 @@ The body uses only toolkit-neutral primitives: `call_after_refresh` (abstract in
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.execution.transcript_sources import TranscriptCursor
@@ -27,10 +26,7 @@ from toad.client.prepared_pages import PreparedPageSource
 from toad.client.source_resumption import ResumesSource
 from toad.commit_claims import CommitClaim, SnapshotPresentation
 from toad.core.source_events import TranscriptCoverage
-
-if TYPE_CHECKING:
-    from toad.entry_placement import EntryPlacement
-
+from toad.entry_placement import EntryPlacement
 
 class CommittedHistoryBase(SnapshotPresentation, ResumesSource, CoveredHistory[PreparedPageSource]):
     """A saved source block that precedes the conversation's live tail. Behaviour-only

@@ -18,14 +18,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 
+from toad.agent import AgentBase
+from toad.agent_binding import AgentConnection
 from toad.client.observed_field import ObservedField
-
-
-if TYPE_CHECKING:
-    from toad.agent_binding import AgentConnection
-    from toad.agent import AgentBase
 
 
 class AgentBoundConversation(ABC):

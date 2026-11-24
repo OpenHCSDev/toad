@@ -194,13 +194,6 @@ class BusChoiceLine:
 
     choice: object
 
-    def line_label(self) -> str:
-        return self.choice.label()
-
     def choose(self, host) -> None:
         self.choice.chosen(host)
 
-    def line_actions(self, listing) -> tuple:
-        """What a held finger or a right click offers: the choice's own (forgetting a saved
-        bus)."""
-        return self.choice.held_actions(listing)

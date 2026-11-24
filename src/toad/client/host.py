@@ -15,10 +15,7 @@ import urllib.request
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Literal, Never
-
-if TYPE_CHECKING:
-    from toad.client.bus_connect import BusConnectDecision
+from typing import ClassVar, Literal, Never
 
 from agent_comms.cli_verbs.cli_command import TargetAction
 from agent_comms.cli_verbs.target_fields import TargetField
@@ -33,6 +30,7 @@ from formbridge.publications import PublicationStream
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad import paths
+from toad.client.bus_connect import BusConnectDecision
 from toad.client.lost_failures import LostFailures
 from toad.client.session_projection import SessionCollection
 from toad.client.tab_identity import TabIdentity

@@ -27,7 +27,7 @@ from toad.widgets.presentation_window import (
     arranged,
 )
 from toad.client.history_preparation import NewerEnd, OlderEnd, PageEnd
-from toad.widgets.transcript_fragments import NO_REST, CursorRest
+from toad.widgets.transcript_fragments import NO_REST, CursorRest, TranscriptFragment
 from textual.events import Mount
 from textual import on
 
@@ -39,7 +39,6 @@ if TYPE_CHECKING:
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
     from toad.widgets.conversation import Conversation
-    from toad.widgets.transcript_fragments import TranscriptFragment
 
 
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):

@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
     from toad.block_navigation import FragmentBlockCursor
     from toad.widgets.history_anchor import HistoryWindow
-    from toad.widgets.transcript_history import LaidOut, LineHistory, RowChange
+    from toad.widgets.transcript_history import LineHistory
 
 
 class TextualCursorRest(CursorRest):
@@ -134,10 +134,6 @@ class TranscriptFragment(_TranscriptFragment, TextualCursorRest):
 
     def invalidate_lines(self) -> None:
         self._lines = NoRows()
-
-    def row_change(self, row: LaidOut, width: int, theme: LineTheme) -> RowChange:
-        """What this fragment's current lines ask of the page row they replace."""
-        return self._lines.replacing(row, width, theme)
 
     def hold_lines(self, request: TranscriptLinesRenderTask, lines: BlockLines) -> bool:
         """Report whether these rows were retained for the fragment's source."""

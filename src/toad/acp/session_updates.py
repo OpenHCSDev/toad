@@ -26,6 +26,7 @@ from agent_comms.acp_extension import AgentCommsUpdate
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
+from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.core import events
@@ -35,7 +36,6 @@ from toad.project_link import AcpLogLink
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
-    from toad.acp.comms_updates import CommsUpdateConsumer
 
 
 class SessionUpdateEffect(MroDispatch):

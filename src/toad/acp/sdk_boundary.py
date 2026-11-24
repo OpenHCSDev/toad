@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from acp.schema import SessionNotification, ToolCall
 from agent_comms.acp_extension import decode_updates
@@ -12,11 +11,8 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldRepresentation
 
 from toad.acp.notification_items import NotificationItems
+from toad.acp.status import ToolCallStatus
 from toad.render_backend import RenderTask
-
-if TYPE_CHECKING:
-    from toad.acp.status import ToolCallStatus
-
 
 class ToolCallWire(FieldRepresentation):
     """The SDK's status selects its existing nominal owner once at ingress."""
@@ -27,7 +23,6 @@ class ToolCallWire(FieldRepresentation):
 
     @classmethod
     def decode(cls, value: object) -> ToolCallStatus:
-        from toad.acp.status import ToolCallStatus
         return ToolCallStatus.from_acp(ToolCall.model_validate(value, strict=True))
 
     @classmethod

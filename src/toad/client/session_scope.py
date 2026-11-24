@@ -15,7 +15,8 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.nominal.field_codec import AcpSessionId
 from metaclass_registry import AbstractHooksMeta
 
-from toad.agent_binding import NoAgentConnection
+from toad.agent_binding import AgentConnection, NoAgentConnection
+from toad.client.category_selection import CategorySelection, NoCategorySelection
 from toad.project_path_owner import CheckoutRoot
 from toad.thread_identity import NoThreadIdentity, SessionIdentity, ThreadIdentity
 from toad.transcript_scope import NoTranscript, TranscriptScope
@@ -23,8 +24,6 @@ from toad.transcript_scope import NoTranscript, TranscriptScope
 if TYPE_CHECKING:
     from toad.client.conversation_sources import ConversationSources
     from toad.client.session_sources import MailboxSources
-    from toad.agent_binding import AgentConnection
-    from toad.client.category_selection import CategorySelection
 
 
 class SessionOrigin(metaclass=AbstractHooksMeta):
@@ -87,7 +86,6 @@ class SessionScope:
     def category_selection(self) -> CategorySelection:
         """The categories this view's transcript shows. A view without a transcript filters
         nothing; a view that filters inherits `CategorySelection`, which answers itself."""
-        from toad.client.category_selection import NoCategorySelection
         return NoCategorySelection()
 
     _identity: SessionIdentity = NoThreadIdentity()
@@ -127,7 +125,6 @@ class SessionScope:
         `ConversationView`) answers `NoAgentConnection`, which has no plan and whose events
         never fire, so a panel reads the agent without testing for its absence. A view that
         binds an agent (`AgentBoundConversation`) overrides this with its binding."""
-        from toad.agent_binding import NoAgentConnection
         return NoAgentConnection()
 
     def belongs_to_wire(self, root: Path) -> bool:

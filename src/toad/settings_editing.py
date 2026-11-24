@@ -10,16 +10,12 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING
 
 from formbridge.forms.declared_fields import FormPage
 
 from toad.client.lazy_pages import LazyPages
 from toad.form_family import FieldForm
-
-if TYPE_CHECKING:
-    from toad.preferences import SavedSettings
-
+from toad.preferences import SavedSettings
 
 class SettingsEditing(LazyPages[FormPage, FieldForm]):
     """Every setting the user may edit, one form per declared page, searched by label. A

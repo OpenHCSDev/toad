@@ -8,6 +8,7 @@ from textual import containers, on
 from textual.app import ComposeResult
 from textual.css.native import Keyword, NativeDeclaration, Variable
 from textual.css.styles import Styles
+from toad.screens.mcp_decision import MCPDecisionScreen
 from ui_theme.scheme import AccentColour
 from toad.widgets.acting_button import ActingButton, DismissButton
 from toad.native_style import AutoHeight
@@ -151,7 +152,6 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
         self._update_actions()
 
     def open_decision(self, command: MCPDecision) -> None:
-        from toad.screens.mcp_decision import MCPDecisionScreen
 
         selection = self._selection()
         if selection is None:

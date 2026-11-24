@@ -17,9 +17,11 @@ from textual.screen import Screen
 from textual.view import WidgetView
 from textual.widget import Widget
 
+from toad.frame_presentation import FramePresentation
 from toad.screens.modal import HintKeys
 from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.view_actions import ViewAction
+from toad.widgets.session_tabs import SessionsTabs
 from toad.workspace_chrome import WorkspaceBody
 from toad.widgets.comms_transfer import WireExportProgressView
 from textual import on
@@ -139,7 +141,6 @@ class WorkspaceFrame(HintKeys, JumpsHistory, WidgetView, Screen):
 
     @cached_property
     def frame_presentation(self):
-        from toad.frame_presentation import FramePresentation
 
         return FramePresentation(self)
 
@@ -254,7 +255,6 @@ class WorkspaceFrame(HintKeys, JumpsHistory, WidgetView, Screen):
         return widget, offset
 
     async def prepare_navigation(self) -> None:
-        from toad.widgets.session_tabs import SessionsTabs
 
         self.frame_presentation.begin()
         changed = await self.app.selected_session.prepare_navigation()

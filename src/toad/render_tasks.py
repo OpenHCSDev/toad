@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 from textual.document._document import DocumentBase
 from textual.document._wrapped_document import WrappedDocument
 from textual.selection import Selection
@@ -17,13 +16,10 @@ from toad.rich_preparation import (
     RichSource,
 )
 
+from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey
 from ui_theme.effects import PlayedText
 from ui_theme.scheme import ColourScheme
 from ui_theme.splash import TextEffect
-
-if TYPE_CHECKING:
-    from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey
-
 
 @dataclass(frozen=True)
 class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):

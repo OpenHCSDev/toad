@@ -45,11 +45,12 @@ from toad.client.history_state import (
     WorkingTranscript,
 )
 from toad.client.prepared_pages import (
+    WHOLE_PAGE,
+    ClosedHistory,
     DrawnPage,
     MeasuresFragments,
     PreparedPageSource,
     PreparedTranscriptPage,
-    WHOLE_PAGE,
     _DrawingStopped,
 )
 from toad.client.reader_position import (
@@ -532,7 +533,6 @@ class HistoryPager(ResumesSource):
         self.request_preparation()
 
     def close(self) -> None:
-        from toad.client.prepared_pages import ClosedHistory
 
         source = self.page_source
         source.close()
@@ -1287,17 +1287,13 @@ class DirectionalPreparation:
     def read_rows(self, history: HistoryPager, end: PageEnd) -> int:
         if not end.visible_more(history):
             return 0
-        return self.runway(history).read_rows(self, history, end)
-
-    def runway(self, history: HistoryPager) -> OffScreenRunway:
-        """Published rows above and below this viewport, or that the history is off screen."""
-        return self.window.runway(history)
+        return self.window.runway(history).read_rows(self, history, end)
 
     def prepare_source(self, history: HistoryPager) -> None:
         """Request the next page from what the screen shows now, not from window state."""
         if not self.window.presenting or not history.selected_categories:
             return
-        self.runway(history).prepare_source(self, history)
+        self.window.runway(history).prepare_source(self, history)
 
     def request_older(self) -> None:
         """An explicit earlier-history control is demand, even without travel."""

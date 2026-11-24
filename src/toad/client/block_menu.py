@@ -10,16 +10,13 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from toad.client.input_modality import InputModality, KeyboardInput
 from toad.client.menu_entry import MenuEntry, strip_menu_markup
 from toad.keymap import KeymapCatalog
 from toad.menus import MenuCommand, standard_commands
-
-if TYPE_CHECKING:
-    from toad.preferences import ToadSettings
-
+from toad.preferences import ToadSettings
 
 class BlockMenu:
     """The block-menu decisions both frontends share. What a row shows of a command's keys

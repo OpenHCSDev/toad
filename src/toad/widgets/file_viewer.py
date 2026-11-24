@@ -14,6 +14,8 @@ from formbridge.forms.declared_fields import DeclaredViews
 from textual.widgets import Static
 
 from toad.file_kind import FileKind, ImageFileKind, MarkdownFileKind
+from toad.widgets.line_markdown import LineMarkdown
+from toad.widgets.process_text_area import ProcessTextArea
 
 
 class FileViewer(DeclaredViews):
@@ -53,7 +55,6 @@ class CodeViewer(FileViewer, shows=(FileKind,)):
 
     @classmethod
     async def show_at(cls, view, data, position):
-        from toad.widgets.process_text_area import ProcessTextArea
         content = ProcessTextArea(soft_wrap=False, show_line_numbers=True)
         content.styles.height = "1fr"
         await view.body.mount(content)
@@ -66,7 +67,6 @@ class MarkdownViewer(CodeViewer, shows=(MarkdownFileKind,)):
 
     @classmethod
     async def show(cls, view, data):
-        from toad.widgets.line_markdown import LineMarkdown
         await view.body.mount(LineMarkdown(await cls.text(view, data)))
 
 

@@ -8,6 +8,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.navigation_context import NavigationScope
 from toad.tone_paint import TonePaint
+from toad.transcript_publication import TranscriptPresentation
 from ui_theme.scheme import TurnBandColour
 from textual.content import Content
 from textual.reactive import var
@@ -34,7 +35,6 @@ from textual import on
 
 
 if TYPE_CHECKING:
-    from toad.transcript_publication import TranscriptPresentation
     from toad.widgets.conversation import Conversation
 
 

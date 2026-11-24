@@ -20,13 +20,13 @@ same column count does.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtGui import QPainter, QPalette
 from PySide6.QtWidgets import QGridLayout, QLabel, QStyle, QStyleOption, QToolButton, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from textual.geometry import Offset, Region, Size
+from toad.client.application import ClientApplication
 from ui_theme.clock import AnimationClock
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 
@@ -46,10 +46,6 @@ from toad.sidebar_layout import (
     StoredSidebarLayout,
 )
 from toad.sidebar_placement import SidebarPlacement
-
-if TYPE_CHECKING:
-    from toad.client.application import ClientApplication
-
 
 def cells_to_pixels(region: Region, cells: Size, pixels: QRect) -> QRect:
     """``region`` (in a ``cells``-sized grid) as a rectangle of ``pixels``: each cell edge maps

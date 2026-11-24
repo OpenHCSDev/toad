@@ -20,6 +20,7 @@ from markdown_it.token import Token
 from toad.file_position import FilePosition
 from toad.client.line_blocks import LineLink, LinkHref, OpenReference
 from toad.project_link import ProjectLink
+from toad.project_path_owner import ProjectPathOwner
 from toad.prompt.extract import extract_paths_from_prompt
 
 if TYPE_CHECKING:
@@ -60,7 +61,6 @@ class LinkContext:
 
     @classmethod
     def containing(cls, widget: Widget):
-        from toad.project_path_owner import ProjectPathOwner
 
         owner = ProjectPathOwner.containing(widget)
         return cls(owner.project_root.resolve(), owner.reference_context)

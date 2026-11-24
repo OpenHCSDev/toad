@@ -17,6 +17,7 @@ from agent_comms.projects.checkouts import Checkout
 
 from toad.client.agent_processes import AgentProcesses
 from toad.client.conversation import CommsViewKey
+from toad.navigation_target import HistoryRouted
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.client.tab_identity import SessionTabIdentity
 from toad.client.connection import Observing
@@ -24,7 +25,6 @@ from toad.client.connection import Observing
 ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
-    from toad.navigation_target import HistoryRouted
     from toad.thread_navigation import ThreadNavigator, ThreadOrigin
 
 

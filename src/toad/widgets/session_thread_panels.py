@@ -12,6 +12,7 @@ from textual.widget import Widget
 from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.plan import PlanItem
+from toad.widgets.context_explorer import ContextExplorer
 from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
 from toad.widgets.project_tree_intent import NO_TREE_INTENT, TreeIntent
@@ -122,5 +123,4 @@ class ContextSessionPanel(SessionPanel):
         self.intents = {}
 
     def make_widget(self, screen):
-        from toad.widgets.context_explorer import ContextExplorer
         return ContextExplorer(intents=self.intents)

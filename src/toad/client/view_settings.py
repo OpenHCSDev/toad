@@ -17,9 +17,9 @@ from typing import TYPE_CHECKING
 from formbridge.forms.parameter_form_service import ParameterFormService
 
 from toad.client.sidebar_panels import PanelSpec
+from toad.client.tab_identity import TabIdentity
 
 if TYPE_CHECKING:
-    from toad.client.tab_identity import TabIdentity
     from toad.object_configuration import ObjectConfiguration, ObjectSettingField
     from toad.preferences import SavedSettings
 

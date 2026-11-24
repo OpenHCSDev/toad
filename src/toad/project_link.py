@@ -18,6 +18,7 @@ from urllib.parse import SplitResult, quote, unquote, urlsplit
 from markdown_it.token import Token
 from toad.client.line_blocks import NO_LINK, LineLink
 from toad.file_position import FilePosition
+from toad.project_path_owner import ProjectPathOwner
 
 
 class ProjectLinkProblem(Exception):
@@ -182,7 +183,6 @@ class ProjectFileLink(ProjectLink):
         return True
 
     async def apply_file(self, widget, effect: Callable[[Path], None]) -> None:
-        from toad.project_path_owner import ProjectPathOwner
 
         owner = ProjectPathOwner.containing(widget)
         root = self.original_root

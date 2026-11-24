@@ -19,6 +19,7 @@ from textual.view import (
     WidgetView,
 )
 from toad.settings_scope import SettingsReader
+from toad.visuals.columns import Columns
 from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
@@ -40,7 +41,7 @@ from textual.widgets.option_list import Option, OptionListComponent
 from textual.widgets.text_area import Selection, TextAreaComponent
 from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, SecondaryColour
 
-from toad import messages
+from toad import danger, messages
 from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard_png
 from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
@@ -500,7 +501,6 @@ See on-screen instructions for details.
         if not self.app.settings.shell.warn_dangerous:
             return content
 
-        from toad import danger
 
         styles = danger.DangerStyles("bold $error", "bold reverse $error")
         spans = tuple(
@@ -875,7 +875,6 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.model_switcher.focus()
 
     def update_modes(self) -> None:
-        from toad.visuals.columns import Columns
 
         agent = self.agent_binding
         mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower())

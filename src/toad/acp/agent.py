@@ -33,6 +33,7 @@ from toad.agent_presentation import ACPAgentPresentation
 from toad.client.agent_schema import AgentDefinition
 from toad.core import events as core_events
 from toad.client.platform import host
+from toad.core.events import UpdateStatusLine
 
 
 @rich.repr.auto
@@ -105,7 +106,6 @@ class Agent(SessionAgent):
 
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""
-        from toad.core.events import UpdateStatusLine
         self.events.publish(UpdateStatusLine())
 
     async def stop(self) -> None:

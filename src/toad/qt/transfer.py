@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from toad.client.connection import CapturedSource
 from toad.client.transfer_forms import ExportFormatInput, ExportScopeInput, ThreadImportForm, TransferForm, WireExportForm
 from toad.client.transfers import Transfer, TransferHost
 from toad.qt.metrics import UiGap
@@ -30,7 +31,6 @@ from toad.qt.presented_window import PresentedWindow
 if TYPE_CHECKING:
     from agent_comms.installer.harness_install import Harness
 
-    from toad.client.connection import CapturedSource
 
 
 def _line(text: str = "", placeholder: str = "") -> QLineEdit:

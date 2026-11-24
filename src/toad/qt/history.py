@@ -10,7 +10,6 @@ rows are pixels here.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import asyncio
 
@@ -70,6 +69,7 @@ from toad.client.reader_position import (
 )
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.no_worker import NoTask
+from toad.qt.live_turn import QtLiveBlock
 from toad.qt.workspace_frame import QtWorkspaceHosted
 from toad.markdown_links import LinkContext
 from toad.qt.float_layer import QtFloatLayer
@@ -92,10 +92,6 @@ from toad.transcript_filter import DrawnFilter, FilterState
 from toad.frame_presentation import ARRIVAL
 from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
 from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
-
-if TYPE_CHECKING:
-    from toad.qt.live_turn import QtLiveBlock
-
 
 class QtPage(ReaderPage):
     """One prepared page, drawn as the rows of the fragments in its range that its history

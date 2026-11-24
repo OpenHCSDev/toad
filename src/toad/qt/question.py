@@ -15,7 +15,6 @@ member fires on its own declared key, same as Textual, with no hand-rolled roste
 from __future__ import annotations
 
 from functools import partial
-from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QShortcut
@@ -28,15 +27,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from toad.answer import Answer
+from toad.answer import Answer, Ask
 from toad.client.input_attention import InputAttention
 from toad.question_actions import ChoiceQuestion, QuestionContext, SelectKindAction
 from toad.widget_contracts import DismissibleContract
 from toad.qt.metrics import UiGap
-
-if TYPE_CHECKING:
-    from toad.answer import Ask
-
 
 class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
     """Qt's inline question. A hidden panel at the bottom of the conversation view that fills
