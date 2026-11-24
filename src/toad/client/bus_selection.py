@@ -18,7 +18,7 @@ from agent_comms.transport.connector_store import (
 )
 from agent_comms.transport.tailnet_buses import NamedHost, PeerBus, PeerHoldsBus
 
-from toad.client.offered_action import OfferedAction
+from toad.client.menu_entry import MenuEntry
 
 
 def openable_held(now: float) -> tuple[OpenableProfile, ...]:
@@ -102,7 +102,7 @@ class PickerRow(ABC):
         it. Most rows are not any machine the tailnet reports; the ones that are say so."""
         return False
 
-    def held_actions(self, listing: BusListing) -> tuple[OfferedAction, ...]:
+    def held_actions(self, listing: BusListing) -> tuple[MenuEntry, ...]:
         """What a listing offers on this row besides choosing it, where a finger is held on
         it or a mouse right-clicks it. Nothing, by default: this machine's own bus and a
         machine the tailnet reports are facts, not saved entries."""
@@ -195,10 +195,10 @@ class HeldBus(BusChoice):
         return (*self.without_profile(argv),
                 ProfileArgument.argument, str(self.profile.path))
 
-    def held_actions(self, listing: BusListing) -> tuple[OfferedAction, ...]:
+    def held_actions(self, listing: BusListing) -> tuple[MenuEntry, ...]:
         """A held profile is the saved entry, so this is the row a reader can forget, as
         Delete forgets it in the Textual picker."""
-        return (OfferedAction("Forget this bus", partial(listing.forget, self)),)
+        return (MenuEntry("Forget this bus", partial(listing.forget, self)),)
 
     def remove(self) -> None:
         """Forget this bus: the profile file IS the saved entry, so deleting it is the

@@ -65,10 +65,16 @@ class OpenThread:
 
 
 @dataclass(frozen=True)
-class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
+class ThreadScope:
+    """One thread in one observed bus root and project checkout."""
+
     root: str
     thread: Thread
     project: Checkout
+
+
+@dataclass(frozen=True)
+class ThreadNavigation(ThreadScope, DeclaredFamily, affix="ThreadNavigation"):
 
     async def open(self, opening: ThreadOpening) -> str:
         return await opening.navigator.mount(self, opening)
@@ -151,10 +157,7 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
 
 
 @dataclass(frozen=True)
-class ThreadConversationPreparation(ConversationPreparation):
-    root: str
-    thread: Thread
-    project: Checkout
+class ThreadConversationPreparation(ThreadScope, ConversationPreparation):
     snapshot: RegistrySnapshot
     agents: AgentProcesses
 

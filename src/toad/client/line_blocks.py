@@ -55,11 +55,20 @@ class LineRole(DeclaredFamily, affix="Role"):
         """The role text in this role is drawn in when it leads somewhere: its own."""
         return cls
 
+    @classmethod
+    def with_bar(cls, text: str, wrap: Callable[[str, type[LineRole]], str]) -> str:
+        """Render `text` behind this role's accent bar; `NoBar` leaves `text` unchanged."""
+        return wrap(text, cls)
+
 
 class NoBar(LineRole):
     """A block drawn without a bar: its rows start with nothing."""
 
     bar_mark = ""
+
+    @classmethod
+    def with_bar(cls, text: str, wrap: Callable[[str, type[LineRole]], str]) -> str:
+        return text
 
 
 class TextRole(LineRole):

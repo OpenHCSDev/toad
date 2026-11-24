@@ -168,9 +168,30 @@ class Token:
     def __str__(self) -> str:
         return self.text
 
+    def emit_pattern(self, emit: Callable[[TokenMatch], None]) -> None:
+        """Emit a decoded pattern match when this token carries one."""
+
+    def dispatch_ansi(
+        self,
+        emit: Callable[[tuple[str, str]], None],
+        read_escape: Callable[[], StreamRead],
+    ) -> ParseResult:
+        emit(("content", self.text))
+        return
+        yield
+
 
 class SeparatorToken(Token):
-    pass
+    def dispatch_ansi(
+        self,
+        emit: Callable[[tuple[str, str]], None],
+        read_escape: Callable[[], StreamRead],
+    ) -> ParseResult:
+        if self.text == "\x1b":
+            matched = yield read_escape()
+            matched.emit_pattern(emit)
+        else:
+            emit(("separator", self.text))
 
 
 class MatchToken(Token):
@@ -191,6 +212,9 @@ class PatternToken(Token):
         self.name = name
         self.value = value
         super().__init__("")
+
+    def emit_pattern(self, emit: Callable[[TokenMatch], None]) -> None:
+        emit(self.value)
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.name

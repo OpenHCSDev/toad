@@ -91,7 +91,7 @@ class FrameProbe(QObject):
         self.sampler = StackSampler(threading.get_ident())
         self.timer.start()
         self.sink.write(f"{time.time():.3f} probe started interval_ms={self.INTERVAL_MS} "
-                        f"slow_ms={self.SLOW_MS:.0f} events_timed={isinstance(application, ProbedApplication)}\n")
+                        f"slow_ms={self.SLOW_MS:.0f} events_timed={application is ProbedApplication.active}\n")
 
     def reset(self) -> None:
         self.ticks = 0
@@ -299,8 +299,13 @@ class ProbedApplication(QApplication):
     """A QApplication that times each event's whole delivery, so a stall names the event and
     the receiver it was spent in. Made only when the probe is asked for (`FrameProbe.application`)."""
 
+    active: ProbedApplication | None = None
     probe: FrameProbe | None = None
     depth = 0
+
+    def __init__(self, arguments: list[str]) -> None:
+        super().__init__(arguments)
+        ProbedApplication.active = self
 
     def notify(self, receiver: QObject, event: QEvent) -> bool:  # type: ignore[override]
         probe = ProbedApplication.probe

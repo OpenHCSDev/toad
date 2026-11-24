@@ -27,7 +27,6 @@ from toad.client.line_blocks import (
     LineRole,
     MarkdownBody,
     MutedRole,
-    NoBar,
     NoLink,
     Span,
     SpanColumns,
@@ -185,13 +184,14 @@ class QtLineRenderer(LineBlockPainter[str]):
     def html(self, blocks: tuple[LineBlock, ...]) -> str:
         return "".join(self.project_value(block) for block in blocks)
 
-    def barred(self, text: str, bar: type[LineRole]) -> str:
-        """Content behind its accent bar, as Textual's `_body_rows` prefixes each row."""
-        if bar is NoBar:
-            return text
+    def _bar_table(self, text: str, bar: type[LineRole]) -> str:
         return (f'<table width="100%" cellspacing="0" cellpadding="0"><tr>'
                 f'<td width="3" style="background-color:{self.colour(bar)}"></td>'
                 f'<td style="padding-left:8px">{text}</td></tr></table>')
+
+    def barred(self, text: str, bar: type[LineRole]) -> str:
+        """Content behind its accent bar, as Textual's `_body_rows` prefixes each row."""
+        return bar.with_bar(text, self._bar_table)
 
     @handles(Divider)
     def divider(self, block: Divider) -> str:

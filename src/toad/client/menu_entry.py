@@ -3,17 +3,13 @@ help text, and the action a selection runs.
 
 Both Qt's `QtMenu` and Textual's `widgets/menu.Menu` consume this same shape, so a menu
 is described in one place, by the family that owns the command, and rendered consistently
-by whichever frontend is drawing it. `OfferedAction` remains for callers that only have a
-label and a run (bus-row long-press menus, for example): they make a `MenuEntry` with
-empty `key_display` and `description` through `MenuEntry.from_offered`.
+by whichever frontend is drawing it.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-
-from toad.client.offered_action import OfferedAction
 
 
 @dataclass(frozen=True)
@@ -26,12 +22,6 @@ class MenuEntry:
     run: Callable[[], object]
     key_display: str = ""
     description: str = ""
-
-    @classmethod
-    def from_offered(cls, action: OfferedAction) -> MenuEntry:
-        """Legacy adaptor: an OfferedAction has only label + run, so the row renders
-        with no keyboard-shortcut column and no second description line."""
-        return cls(label=action.label, run=action.run)
 
 
 def strip_menu_markup(description: str) -> str:

@@ -375,6 +375,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
             tab,
             partial(
                 self.app.session_entries.declared_for(tab).session_view,
+                self.app,
                 project,
                 make_binding(agent),
                 session_pk=tab.key,
@@ -422,7 +423,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
     async def start_agent_session(self, binding: AgentAttached, project: Checkout) -> None:
         tab = await self.saved(binding.agent, project)
         await self.new(tab, partial(self.app.session_entries.declared_for(tab).session_view,
-                                    project, binding, session_pk=tab.key))
+                                    self.app, project, binding, session_pk=tab.key))
 
     async def history(self, *, project_path: Checkout, route: HistoryRouted) -> str:
         """Open, or select, the owner's one tab for a conversation on the app's bus."""
