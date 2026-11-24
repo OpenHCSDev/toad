@@ -14,6 +14,7 @@ its existing metaclass without conflict, matching how `SessionScope` in
 from __future__ import annotations
 
 from toad.client.session_scope import NoConversationView, SessionScope
+from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ThreadSidebarPanelBody
 
 
@@ -31,6 +32,10 @@ class SessionPanel(ThreadSidebarPanelBody):
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         self._view: SessionScope = NoConversationView()
+
+    @property
+    def thread_identity(self) -> SessionIdentity:
+        return self._view.thread_identity
 
     def bind(self, view: SessionScope) -> None:
         """Follow ``view``; `present()` paints its state at once."""

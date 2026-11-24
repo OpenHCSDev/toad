@@ -12,8 +12,22 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from PySide6.QtWidgets import QWidget
+
 from toad.history_jump import JumpsHistory, JumpsToLatest
 from toad.workspace_frame import WorkspaceFrame as WorkspaceFrameProto
+from toad.workspace_frame import WorkspaceHosted
+
+
+class QtWorkspaceHosted(WorkspaceHosted):
+    """A Qt widget hosted inside the top-level `QtWorkspaceFrame`: Qt reaches its
+    workspace frame through `QWidget.window(self)` instead of Textual's `Widget.screen`
+    (using `QWidget.window(self)` works even when a subclass like `QtConversation` shadows
+    `.window` for its scroll surface)."""
+
+    @property
+    def screen(self) -> WorkspaceFrameProto:
+        return QWidget.window(self)
 
 
 class QtWorkspaceFrame(JumpsHistory):

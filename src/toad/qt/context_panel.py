@@ -117,12 +117,6 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
     def present(self) -> None:
         asyncio.ensure_future(self._refresh())
 
-    # --- shared state accessors (no Textual coupling) ----------------------
-
-    @property
-    def thread_identity(self) -> SessionIdentity:
-        return self._view.thread_identity
-
     # --- read / render loop ------------------------------------------------
 
     async def _refresh(self) -> None:

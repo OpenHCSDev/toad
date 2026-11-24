@@ -70,7 +70,7 @@ from toad.client.reader_position import (
 )
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.no_worker import NoTask
-from toad.workspace_frame import WorkspaceFrame, WorkspaceHosted
+from toad.qt.workspace_frame import QtWorkspaceHosted
 from toad.markdown_links import LinkContext
 from toad.qt.float_layer import QtFloatLayer
 from toad.qt.lines import QtLineRenderer
@@ -1223,7 +1223,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
         self.setVisible(shown)
 
 
-class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHosted, VirtualRowView,
+class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, QtWorkspaceHosted, VirtualRowView,
                       ReaderPlacement, PagingWindow, OpensLineLinks, PinsMessageHeader, SettingsReading):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
@@ -1253,14 +1253,6 @@ class QtHistoryWindow(ShowsLatestJumpBar, FollowsTail, ReaderWindow, WorkspaceHo
         raises RuntimeError; a late task that may outlive the view asks this first, and no
         code here catches that RuntimeError: caught, it hid every other one under it."""
         return not shiboken6.isValid(self)
-
-    @property
-    def screen(self) -> WorkspaceFrame:
-        """Qt's workspace frame is the top-level `QtToadApp` (which inherits
-        `QtWorkspaceFrame`). Qt widgets reach it through `window()`, not through a
-        Textual `Widget.screen` chain, so `WorkspaceHosted`'s `super().screen` is
-        replaced here."""
-        return self.window()
 
     def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, scope,
                  parent: QWidget | None = None) -> None:

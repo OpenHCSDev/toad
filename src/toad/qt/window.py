@@ -57,9 +57,8 @@ from pyqt_reactive.theming import ColorScheme
 from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
 from toad.client.application import ClientApplication
-from toad.qt.workspace_frame import QtWorkspaceFrame
+from toad.qt.workspace_frame import QtWorkspaceFrame, QtWorkspaceHosted
 from toad.qt.widget_animation import frame_interval
-from toad.workspace_frame import WorkspaceHosted
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, MenuActionRun, NewSessionAction, NewSessionControl
@@ -931,11 +930,7 @@ class QtSidebarBuses(BusListing, ConversationRows):
         self.setFixedHeight(sum(heights) + 2 * self.frameWidth())
 
 
-class Sidebar(FindsOpenViews, WorkspaceHosted, SidebarStateMachine, ConversationRows):
-
-    @property
-    def screen(self) -> WorkspaceFrame:
-        return self.window()
+class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, ConversationRows):
 
     """The bus's channels, each opening to the threads in it, and every thread, from the
     shared sidebar model. State comes from the shared `SidebarStateMachine`: a
