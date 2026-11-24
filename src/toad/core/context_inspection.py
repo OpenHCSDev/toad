@@ -13,7 +13,7 @@ from agent_comms.context_store import (
     LATEST_CONTEXT, CapturedContext, ContextManifestCursor, ContextManifestPage,
 )
 from agent_comms.context_segments.native_messages import NativeMessages
-from agent_comms.coordination.coordinator import Coordination
+from agent_comms.coordination.work import CoordinationWork
 from agent_comms.coordination.errors import Refused
 from agent_comms.coordination.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.execution.session_revision import SessionObservation
@@ -97,7 +97,7 @@ class ContextNode(ABC):
         def read():
             return tuple(islice(self._find_public(query), limit))
 
-        for match in await Coordination.run_worker(read):
+        for match in await CoordinationWork.run_worker(read):
             yield match
 
     @staticmethod
@@ -114,12 +114,12 @@ class ContextNode(ABC):
         raise ValueError("This context source has no original annotation to correct")
 
     async def read(self):
-        return await Coordination.run_worker(self.detail)
+        return await CoordinationWork.run_worker(self.detail)
 
     async def export(self, destination: Path) -> None:
         """Export this original observation; never overwrite a session/source file."""
         detail = await self.read()
-        await Coordination.run_worker(partial(self._write_export, destination, detail))
+        await CoordinationWork.run_worker(partial(self._write_export, destination, detail))
 
     @staticmethod
     def _write_export(destination: Path, detail: str) -> None:
@@ -554,7 +554,7 @@ class ContextInspection:
             self.imported_source) for source in self.imported_sources)
 
     async def imported_source(self, source: Provenance):
-        return await Coordination.run_worker(partial(self.observed.imported_source, self.owner, source))
+        return await CoordinationWork.run_worker(partial(self.observed.imported_source, self.owner, source))
 
     def working_memory(self):
         if not self.annotations:
@@ -597,16 +597,16 @@ class ContextInspection:
 
     async def _request(self, request: RuntimeRequest):
         """Core's host asks this inspection's owner incarnation, which it checks is current."""
-        return await Coordination.run_worker(partial(self.observed.owner_request, self.owner.incarnation, request))
+        return await CoordinationWork.run_worker(partial(self.observed.owner_request, self.owner.incarnation, request))
 
     async def native(self):
         payload = await self._request(ContextRuntimeRequest(thread=self.owner.name))
-        context = await Coordination.run_worker(partial(FieldCodec.decode, NativeContextData, payload))
+        context = await CoordinationWork.run_worker(partial(FieldCodec.decode, NativeContextData, payload))
         return context.require_session_file(self.owner.runtime.path)
 
     async def acquire_core(self):
         payload = await self._request(ContextCoreRuntimeRequest(thread=self.owner.name))
-        context = await Coordination.run_worker(partial(FieldCodec.decode, TurnContext, payload))
+        context = await CoordinationWork.run_worker(partial(FieldCodec.decode, TurnContext, payload))
         if context.thread != self.owner.incarnation:
             raise ValueError("Core context belongs to another thread incarnation")
         return replace(self, core=AcquiredCoreInspection(context))
@@ -615,7 +615,7 @@ class ContextInspection:
         payload = await self._request(ContextCoreSourceRuntimeRequest(
             thread=self.owner.name, owner=context.thread, segment=position,
             manifest=context.segments[position].manifest(0), source=source))
-        return await Coordination.run_worker(partial(FieldCodec.decode, ContextSourceText, payload))
+        return await CoordinationWork.run_worker(partial(FieldCodec.decode, ContextSourceText, payload))
 
     async def current_source(self, context: NativeContextData, position: int, source: Provenance):
         payload = await self._request(ContextSourceRuntimeRequest(
@@ -659,11 +659,11 @@ class SavedContextInspection(ContextInspection):
         return SavedInspection(self, revision)
 
     async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
-        return await Coordination.run_worker(partial(
+        return await CoordinationWork.run_worker(partial(
             self.observed.saved_source, self.owner.name, self.page.reference(manifest), position, source))
 
     async def recorded_segment(self, manifest: ContextManifest, position: int, contributors: tuple[int, ...]=()):
-        segment = await Coordination.run_worker(partial(
+        segment = await CoordinationWork.run_worker(partial(
             self.observed.saved_segment, self.owner.name, self.page.reference(manifest), position, contributors))
 
         async def unavailable(original: SegmentManifest) -> str:
@@ -727,7 +727,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     ) -> InspectionState:
         if not observed.observes(identity.root):
             raise ValueError("Selected context belongs to another wire root")
-        inspection = await Coordination.run_worker(partial(ContextInspection.read, observed,
+        inspection = await CoordinationWork.run_worker(partial(ContextInspection.read, observed,
             identity.thread_name(), cursor=cursor, previous=self.manifest_sources))
         return await inspection.acquire(revision)
 
@@ -864,7 +864,7 @@ class HoldingInspection(RevisionedInspection):
 
     async def find(self, query: str, selected):
         roots = selected.search_roots if selected is not None else ContextNode.search_roots
-        sources = await Coordination.run_worker(partial(roots, self.current_roots))
+        sources = await CoordinationWork.run_worker(partial(roots, self.current_roots))
         return await self.inspection.find(sources, query)
 
     def native_matches(self, current: InspectionState) -> bool:

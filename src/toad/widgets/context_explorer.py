@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
 from toad.client.context_intent import ContextInspectionReader, ContextTreeIntent
-from agent_comms.coordination.coordinator import Coordination
+from agent_comms.coordination.work import CoordinationWork
 from agent_comms.coordination.errors import Refused
 from metaclass_registry.mro_dispatch import handles
 from formbridge.key_declarations import TextEntryMode
@@ -566,7 +566,7 @@ class ContextExplorer(
         # The acquired inspection owns its source projection. Building all
         # recorded segments and annotation relationships is preparation, not
         # a native Tree operation; keep it off the application's input loop.
-        groups = await Coordination.run_worker(captured.groups)
+        groups = await CoordinationWork.run_worker(captured.groups)
         # Parking retains this tree and its workers. Publish valid preparation
         # into that original tree even while hidden; unmount/identity changes
         # and new source/native resources still revoke the captured content.

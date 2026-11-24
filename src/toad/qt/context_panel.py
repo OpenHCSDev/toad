@@ -156,7 +156,7 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
 
     async def _paint_groups(self, holding: HoldingInspection) -> None:
         # `HoldingInspection.groups()` is the toolkit-neutral decode. We call it off
-        # the UI loop to match Textual's `Coordination.run_worker(captured.groups)`.
+        # the UI loop to match Textual's `CoordinationWork.run_worker(captured.groups)`.
         groups = await self._app.preparation.run_thread(holding.groups)
         if holding.thread_identity != self.thread_identity:
             return

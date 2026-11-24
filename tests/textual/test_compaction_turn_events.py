@@ -6,7 +6,7 @@ import sys
 
 from agent_comms.acp_extension import CompactionChangedUpdate, GoalChangedUpdate, TurnChangedUpdate, decode_updates
 from agent_comms.execution.child_process import SpawnedProcess
-from agent_comms.coordination.coordinator import Coordination
+from agent_comms.coordination.work import CoordinationWork
 from agent_comms.planning.goal_presentation import IdleGoalExecution
 from agent_comms.planning.goals import NoGoal
 from agent_comms.installer.native_build_inputs import DetachedChildStdio
@@ -23,7 +23,7 @@ async def test_core_compaction_publications_retain_the_active_turn_and_refuse_a_
     with SpawnedProcess.launch(
         command, stdio=DetachedChildStdio(stdout=subprocess.PIPE, stderr=subprocess.PIPE),
     ) as child:
-        stdout, stderr = await Coordination.run_worker(child.process.communicate)
+        stdout, stderr = await CoordinationWork.run_worker(child.process.communicate)
         outcome = child.reap()
     assert outcome.successful, (outcome, stderr.decode())
     requests = iter(json.loads(line) for line in stdout.splitlines())

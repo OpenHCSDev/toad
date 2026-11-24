@@ -26,7 +26,7 @@ from agent_comms.messaging.exporting import (
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.registry.thread_management import ImportDirectory
+from agent_comms.registry.thread_results import ImportDirectory
 from agent_comms.registry.thread_text import ExpectedSession
 
 from toad.client.connection import CapturedSource

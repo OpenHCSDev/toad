@@ -14,7 +14,7 @@ from pathlib import Path
 
 import agent_comms.agent_events as agent_events
 from agent_comms.agent_event_updates import AcpEventConsumer
-from agent_comms.coordination.coordinator import Coordination
+from agent_comms.coordination.work import CoordinationWork
 from agent_comms.nominal.field_codec import AcpSessionId, TurnId
 from agent_comms.transport.acp_update_sink import AcpUpdateSink
 from mcp_turn_boundaries import turn_source
@@ -35,21 +35,21 @@ async def produce(wire_root: Path, project: Path):
     async with turn_source(wire_root, project, SESSION) as producer:
         name = producer.sessions.require(SESSION)
         async with AsyncExitStack() as turns:
-            retired_owner = await Coordination.run_worker(partial(
+            retired_owner = await CoordinationWork.run_worker(partial(
                 producer.turns.acquire_turn, turns, SESSION, name, TurnId("5e7a1d0c3b2f4e6a8c9d0b1a2f3e4d5c"), "Authored protocol; no input"))
             retired_lease = retired_owner.turn_lease
-        retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION))
+        retired = await CoordinationWork.run_worker(partial(producer.turns.current_turn_update, SESSION))
         producer.on_connect(Pipe())
         consumer = AcpEventConsumer(producer, SESSION, producer._runtime)
         async with AsyncExitStack() as turns:
-            await Coordination.run_worker(partial(
+            await CoordinationWork.run_worker(partial(
                 producer.turns.acquire_turn, turns, SESSION, name, TurnId("a1c2e3f4b5d6e7f8091a2b3c4d5e6f70"), "Authored protocol; no input"))
             await producer.turns.publish_turn_state(consumer)
             await consumer.dispatch(agent_events.CompactionStart())
             await consumer.dispatch(agent_events.CompactionEnd())
-            before = await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION))
-            await Coordination.run_worker(partial(producer._comms.agents.finish_turn, retired_lease))
-            assert await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION)) == before
+            before = await CoordinationWork.run_worker(partial(producer.turns.current_turn_update, SESSION))
+            await CoordinationWork.run_worker(partial(producer._comms.agents.finish_turn, retired_lease))
+            assert await CoordinationWork.run_worker(partial(producer.turns.current_turn_update, SESSION)) == before
             # An earlier finished cut: the current binding must refuse it.
             await consumer.dispatch(retired)
         await producer.turns.goals.sync_goal_execution(SESSION)
