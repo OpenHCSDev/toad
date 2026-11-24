@@ -4,7 +4,8 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from toad.acp.status import ToolCallStatus
-from toad.client.line_blocks import NO_LINK, Body, MarkdownMessageBody, LineBlock, LineLink, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
+from toad.client.line_blocks import NO_LINK, Body, LineBlock, LineLink, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
+from toad.client.structured_context import ThinkingPart
 
 
 class AgentActivityPresentation:
@@ -14,7 +15,7 @@ class AgentActivityPresentation:
 
     @staticmethod
     def thinking(text: str) -> tuple[LineBlock, ...]:
-        return MarkdownMessageBody(text, role=ThinkingRole).presentation()
+        return ThinkingPart.from_text(text).line_blocks()
 
     @staticmethod
     def tool_has_details(status: ToolCallStatus, details_available: bool) -> bool:

@@ -63,6 +63,7 @@ from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand, message_menu
 from toad.tool_output import SentMessageToolOutputPart, ToolOutput, ToolOutputPart
 from toad.client.agent_activity import AgentActivityPresentation
+from toad.client.structured_context import has_structured_tags, parse_structured_text
 
 
 @dataclass(frozen=True)
@@ -183,7 +184,11 @@ class FragmentLineConsumer(MroProjection[None]):
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript) -> None:
         self.divider("Agent", event.timestamp, AgentRole)
-        self.blocks += MarkdownMessageBody(event.text).presentation()
+        if has_structured_tags(event.text):
+            for part in parse_structured_text(event.text):
+                self.blocks += part.line_blocks()
+        else:
+            self.blocks += MarkdownMessageBody(event.text).presentation()
 
     @handles(SentTranscript)
     def sent_report(self, event: SentTranscript) -> None:

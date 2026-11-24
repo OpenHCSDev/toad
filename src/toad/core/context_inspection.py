@@ -28,7 +28,14 @@ from agent_comms.execution.turn_context import (
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.pi_payloads import NativeContextData, PiMessage
+from agent_comms.pi_payloads import (
+    NativeContextData,
+    PiContent,
+    PiMessage,
+    TextContent,
+    ThinkingContent,
+    ToolCallContent,
+)
 from agent_comms.presentation import ReadState
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.registry_document import RegistryEntry
@@ -53,6 +60,15 @@ from agent_comms.working_memory.working_memory_questions import SpanAnswer
 from metaclass_registry.mro_dispatch import handles
 
 from toad.client.connection import Observing
+from toad.client.structured_context import (
+    AnswerPart,
+    StructuredPart,
+    ThinkingPart,
+    ToolCallPart,
+    compact_preview,
+    format_structured_detail,
+    parse_context_sections,
+)
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
 
@@ -251,7 +267,7 @@ class RecordedSegmentNode(SegmentNode, RecordedTurnNode):
 
     async def read(self) -> str:
         original = await self.source_text()
-        return f"{original.description}\n\n{original.text}"
+        return f"{original.description}\n\n{format_structured_detail(original.text)}"
 
     async def find(self, query: str, *, limit: int=100):
         # One complete selected value includes its annotation children. Search
@@ -361,12 +377,66 @@ class AnnotationSourceNode(SelfSearchedNode):
 
 
 @dataclass(frozen=True)
+class StructuredSectionNode(SelfSearchedNode):
+    """Collapsible structured section (thinking, `<ctx>`, tool call, certainty claim, answer)."""
+
+    part: StructuredPart
+
+    @property
+    def label(self) -> str:
+        return self.part.label
+
+    def children(self) -> tuple[ContextNode, ...]:
+        return tuple(
+            StructuredSectionNode(f"{self.key}/{i}", child)
+            for i, child in enumerate(self.part.children)
+        )
+
+    def detail(self) -> str:
+        return self.part.detail()
+
+    def public_text(self) -> str:
+        return self.part.text
+
+
+class PiMessageParts(MroProjection[tuple[StructuredPart, ...]]):
+    """Decompose a `PiMessage`'s content parts into structured sections without `isinstance` chains."""
+
+    @handles(ThinkingContent)
+    def thinking(self, part: ThinkingContent) -> tuple[StructuredPart, ...]:
+        return (ThinkingPart.from_text(part.thinking),) if part.thinking.strip() else ()
+
+    @handles(TextContent)
+    def text(self, part: TextContent) -> tuple[StructuredPart, ...]:
+        if not part.text.strip():
+            return ()
+        structured = parse_context_sections(part.text)
+        return structured if structured else (AnswerPart(part.text.strip()),)
+
+    @handles(ToolCallContent)
+    def tool_call(self, part: ToolCallContent) -> tuple[StructuredPart, ...]:
+        return (ToolCallPart.from_call(part.name, part.arguments),)
+
+    @handles(PiContent)
+    def other(self, part: PiContent) -> tuple[StructuredPart, ...]:
+        return ()
+
+
+PI_MESSAGE_PARTS = PiMessageParts()
+
+
+@dataclass(frozen=True)
 class NativeSegmentNode(SegmentNode):
     segment: ContextSegment
     read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     def children(self):
+        structured = tuple(
+            StructuredSectionNode(f"{self.key}/section/{i}", part)
+            for i, part in enumerate(parse_context_sections(self.public_text()))
+        )
         return (
+            *structured,
             *(ManifestNode(f"{self.key}/contributor/{i}", child, self.read_source)
               for i, child in enumerate(self.segment.contributor_manifests())),
             *(ReferenceNode(f"{self.key}/source/{i}", source, self.read_source)
@@ -378,7 +448,8 @@ class NativeSegmentNode(SegmentNode):
             source.public_description()
             for source in self.segment.provenance
         )
-        return f"{self.label}\n\n{self.public_text()}\n\nSources:\n{sources}"
+        body = format_structured_detail(self.public_text())
+        return f"{self.label}\n\n{body}\n\nSources:\n{sources}"
 
     def public_text(self):
         return self.segment.public_text()
@@ -389,11 +460,40 @@ class NativeMessageNode(NativeSegmentNode):
     message: PiMessage
     position: int
 
+    def structured_parts(self) -> tuple[StructuredPart, ...]:
+        if self.message.parts:
+            return tuple(
+                section
+                for part in self.message.parts
+                for section in PI_MESSAGE_PARTS.project_value(part)
+            )
+        return parse_context_sections(self.message.text)
+
+    def children(self):
+        parts = self.structured_parts()
+        if not parts or (len(parts) == 1 and not parts[0].expands_in_tree and not parts[0].children):
+            return ()
+        return tuple(
+            StructuredSectionNode(f"{self.key}/part/{i}", part)
+            for i, part in enumerate(parts)
+        )
+
     @property
     def label(self) -> str:
-        text = " ".join(self.message.text[:120].split())
-        return (f"{self.segment.declared_name.replace('_', ' ')} · "
-                f"{self.message.declared_name} {self.position + 1} · {text or 'no public text'}")
+        parts = self.structured_parts()
+        preview = compact_preview(self.message.text, 72)
+        if preview:
+            tags = [title for part in parts for title in part.badge_titles]
+            tag_summary = f"{' · '.join(dict.fromkeys(tags))} · " if tags else ""
+            summary = f"{tag_summary}{preview}"
+        elif parts:
+            summary = compact_preview(" · ".join(part.label for part in parts[:2]), 84)
+        else:
+            summary = "no public text"
+        return (
+            f"{self.segment.declared_name.replace('_', ' ')} · "
+            f"{self.message.declared_name} {self.position + 1} · {summary}"
+        )
 
     def public_text(self):
         message = self.message
@@ -403,10 +503,18 @@ class NativeMessageNode(NativeSegmentNode):
 
     def detail(self):
         message = self.message
+        parts = self.structured_parts()
+        if parts:
+            body = "\n\n".join(part.detail() for part in parts)
+        else:
+            body = self.public_text()
         usage = ("Provider usage on this original message:\n" + json.dumps(
             FieldCodec.encode(message.usage), ensure_ascii=False, indent=2)
             if message.usage is not None else "")
-        return f"{super().detail()}\n\n{usage}" if usage else super().detail()
+        sections = [self.label, body]
+        if usage:
+            sections.append(usage)
+        return "\n\n".join(section for section in sections if section)
 
 
 class SegmentNodes(MroProjection[NativeSegmentNode]):

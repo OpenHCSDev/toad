@@ -30,6 +30,7 @@ from metaclass_registry.mro_dispatch import handles
 from rich.cells import cell_len
 
 from toad.client.message_file_links import FileReader
+from toad.client.structured_context import has_structured_tags, parse_structured_text
 from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
 from toad.client.line_blocks import (
@@ -273,6 +274,14 @@ class WireMessageStyle(DeclaredChoice, affix="MessageStyle"):
     the style `ConversationUiSettings.message_style` names, in every frontend."""
 
     def body(self, row: MessageRow, text: str) -> tuple[LineBlock, ...]:
+        if has_structured_tags(text):
+            blocks = tuple(
+                block
+                for part in parse_structured_text(text)
+                for block in part.wire_blocks(row, self.body_type)
+            )
+            if blocks:
+                return blocks
         return (self.body_type(row, text),)
 
     @abstractmethod
