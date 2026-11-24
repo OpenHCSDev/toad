@@ -39,7 +39,13 @@ from toad.client.commands import ConversationCommands
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
 from toad.client.message_files import AttachedFileChip, MessagePromptComposer
-from toad.client.prompt_composer import PromptComposer, PromptSettingEffects
+from toad.client.prompt_composer import (
+    ComposerOffer,
+    MentionCandidateOffer,
+    PromptComposer,
+    PromptSettingEffects,
+    SlashCommandOffer,
+)
 from toad.client.condensed_path import home_relative
 from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -97,28 +103,29 @@ class ComposerHost(ConversationCommands):
         raise NotImplementedError
 
 
-class Offer(ABC):
+class Offer(ComposerOffer):
     """One row of the list over the composer and what tapping it writes."""
 
     @property
-    @abstractmethod
-    def layout(self) -> StyledTextLayout: ...
+    def layout(self) -> StyledTextLayout:
+        if self.offer_multiline:
+            return StyledTextLayout(
+                name=Segment(self.offer_label),
+                detail_line=self.offer_detail,
+                multiline=True,
+            )
+        return StyledTextLayout(name=Segment(self.offer_label))
 
     @abstractmethod
     def accept(self, composer: Composer) -> None: ...
 
 
 @dataclass(frozen=True)
-class CommandOffer(Offer):
+class CommandOffer(SlashCommandOffer, Offer):
     """A slash command: accepting it starts the message with the command, as Textual's
     SlashComplete inserts it."""
 
     match: CommandMatch
-
-    @property
-    def layout(self) -> StyledTextLayout:
-        return StyledTextLayout(name=Segment(self.match.command.command), detail_line=self.match.command.help,
-                                multiline=True)
 
     def accept(self, composer: Composer) -> None:
         composer.editor.setPlainText(f"{self.match.command.command} ")
@@ -126,15 +133,11 @@ class CommandOffer(Offer):
 
 
 @dataclass(frozen=True)
-class MentionOffer(Offer):
+class MentionOffer(MentionCandidateOffer, Offer):
     """A thread to mention at the cursor."""
 
     completion: MentionCompletion
     candidate: MentionCandidate
-
-    @property
-    def layout(self) -> StyledTextLayout:
-        return StyledTextLayout(name=Segment(MentionCompletion.label(self.candidate)))
 
     def accept(self, composer: Composer) -> None:
         self.completion.accept(composer, self.candidate.name)

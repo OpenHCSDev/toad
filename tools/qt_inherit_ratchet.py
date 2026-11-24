@@ -139,12 +139,7 @@ QT_ONLY = {
 
 KNOWN_BARE = frozenset({
     'toad.qt.activity.ActivityLine',
-    'toad.qt.composer.CommandOffer',
     'toad.qt.composer.ComposerEditor',
-    'toad.qt.composer.MentionOffer',
-    'toad.qt.composer.Offer',
-    'toad.qt.composer_vim.ComposerVimMode',
-    'toad.qt.history.NoTask',
     'toad.qt.menu.QtMenuRow',
     'toad.qt.page.Page',
     'toad.qt.paste_profile.QtProfilePastePanel',
