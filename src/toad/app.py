@@ -165,9 +165,8 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
 
     def picked_bus(self, row: PickerRow | None) -> None:
         """The picked row says what picking it does; a dismissed picker changes nothing."""
-        match row:
-            case PickerRow():
-                row.chosen(self)
+        if row is not None:
+            row.chosen(self)
 
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
         self.tailnet_answers.publish(answer)

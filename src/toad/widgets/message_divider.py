@@ -131,7 +131,7 @@ class StickyHeader(HeaderPin, StartsHidden, ScreenOverlay, LineBlockRow):
     def open_header(self, event: Click) -> None:
         """The header under the click opens its message, as a tap on Qt's pin does."""
         span = self.prepared_lines(self.size.width).block_span(lambda span: span.contains(event.y))
-        if span.placed_by(lambda span: self.window.open_pinned(span.index), lambda: False):
+        if span.open_pinned(self.window):
             event.stop()
 
     def show_pin(self, shown: bool) -> None:

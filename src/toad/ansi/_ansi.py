@@ -1294,6 +1294,12 @@ class MouseTracking:
     focus_events: bool = False
     alternate_scroll: bool = False
 
+    def tracks_move(self, button: int) -> bool:
+        """Whether a pointer move with ``button`` held should be reported."""
+        return self.tracking == MouseAnyEventMode.tracking or (
+            bool(button) and self.tracking == MouseDragMode.tracking
+        )
+
 
 @rich.repr.auto
 class TerminalState:

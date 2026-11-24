@@ -571,6 +571,10 @@ class LinePreparation(BlockPreparation):
 class NoBlockSpan:
     """The walk of a block's measured children accepted none."""
 
+    def open_pinned(self, window) -> bool:
+        """No block span was clicked to open."""
+        return False
+
     def placed_by[Placed](self, place: Callable[[BlockSpan], Placed], missing: Callable[[], Placed]) -> Placed:
         """What the caller makes of the accepted child; `missing` when there is none."""
         return missing()
@@ -590,6 +594,9 @@ class BlockSpan(NoBlockSpan):
 
     def contains(self, row: int) -> bool:
         return self.first <= row < self.first + self.height
+
+    def open_pinned(self, window) -> bool:
+        return window.open_pinned(self.index)
 
     def placed_by[Placed](self, place: Callable[[BlockSpan], Placed], missing: Callable[[], Placed]) -> Placed:
         return place(self)

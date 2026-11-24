@@ -163,14 +163,18 @@ class LaidOutRow(LaidOut):
     def placement(self, page: TranscriptPageView) -> UndrawnFragment:
         return DrawnFragment(page, range(self.first, self.first + self.lines.height))
 
+    def _place_candidate(
+        self, candidate: TranscriptFragment, same: bool, block: int, span: BlockSpan
+    ) -> FragmentLocation:
+        return replace(FragmentSpan.in_page(self.page, candidate, self.first, span),
+                       drawn=same and span.index == block)
+
     def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentLocation:
         same = candidate.key == key
         wanted = block if same else 0
         # No drawn child at or after the wanted one: the candidate places nothing.
         return self.lines.block_span(lambda span: span.drawn and span.index >= wanted).placed_by(
-            lambda span: replace(FragmentSpan.in_page(self.page, candidate, self.first, span),
-                                 drawn=same and span.index == block),
-            UnloadedFragment)
+            partial(self._place_candidate, candidate, same, block), UnloadedFragment)
 
 
 class TranscriptPageView(

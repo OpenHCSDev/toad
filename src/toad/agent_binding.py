@@ -50,7 +50,7 @@ class AgentConnection(GoalSource):
     events: CoreEventStream
     configuration: AgentConfiguration
     presentation: AgentPresentation
-    ready: bool
+    ready: bool = False
     session_disposition: SessionDisposition
     automatic_titles = True
     controller: AgentController | None = None
@@ -58,6 +58,19 @@ class AgentConnection(GoalSource):
     connections (NoAgentConnection) and non-ACP backends leave the default None, so
     consumers like QtPlan can read `agent.controller` as a declared attribute instead
     of probing via `getattr(agent, "controller", None)`."""
+
+    def get_info(self) -> str:
+        return ""
+
+    async def set_session_name(self, name: str) -> None:
+        """Set the session name when the connection owns a live session."""
+
+    async def cancel(self) -> bool:
+        """Cancel the active prompt if supported."""
+        return False
+
+    async def stop(self) -> None:
+        """Stop the agent process if one is running."""
 
     @property
     def plan_entries(self) -> tuple:
@@ -147,7 +160,6 @@ class AgentConnection(GoalSource):
 class NoAgentConnection(AgentConnection):
     """A real saved view before it acquires any native connection."""
 
-    ready = False
     available_modes = ()
     current_mode = None
     session_disposition = UnopenedSessionDisposition()
@@ -163,9 +175,6 @@ class NoAgentConnection(AgentConnection):
     @cached_property
     def configuration(self):
         return AgentConfiguration(self)
-
-    def get_info(self) -> str:
-        return ""
 
     async def retire_surface(self, view: Conversation) -> None:
         """There is no native surface to retire."""
@@ -187,12 +196,6 @@ class NoAgentConnection(AgentConnection):
 
     def connected(self, view: ConversationSessionBinding) -> None:
         """There is no connected-agent notification."""
-
-    async def set_session_name(self, name: str) -> None:
-        """A view can have a title before acquiring its native session."""
-
-    async def stop(self) -> None:
-        """There is no agent process to stop."""
 
     def detach_surface(self, view: Conversation) -> None:
         """There is no agent subscription to detach."""
@@ -231,9 +234,6 @@ class NoAgentConnection(AgentConnection):
         return False
 
     def cancel_allowed(self, turn: TurnOwner) -> bool:
-        return False
-
-    async def cancel(self) -> bool:
         return False
 
     def matches_session(self, session_id: AcpSessionId) -> bool:
