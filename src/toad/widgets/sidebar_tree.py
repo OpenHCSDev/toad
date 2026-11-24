@@ -320,7 +320,6 @@ class RowReconciliation:
 class SidebarGroup[RowT: "ListedRow"](MemberGroupLine, MemberRows[str], TargetRows["CommsRow"], WidgetKeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
-    navigation_header = False
     leading_segments: tuple[HeaderSegment, ...] = (Disclosure(2),)
     trailing_segments: tuple[HeaderSegment, ...] = ()
 
@@ -387,14 +386,20 @@ class SidebarGroup[RowT: "ListedRow"](MemberGroupLine, MemberRows[str], TargetRo
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
         """Specializations preserve existing reader intent across disclosure."""
 
+    def header_navigation_rows(self) -> tuple:
+        """The group header row when this group's header is itself a navigation destination."""
+        return ()
+
+    def header_rows_for_target(self, target: str) -> tuple:
+        return ()
+
     @property
     def visible_rows(self):
         """Header and disclosed members in their native order."""
         if not self.accepts_navigation():
             return ()
-        header = (self.row,) if self.navigation_header else ()
         members = tuple(self.member_container.children) if self.members_visible else ()
-        return (*header, *members)
+        return (*self.header_navigation_rows(), *members)
 
     @property
     def navigation_rows(self):
@@ -404,14 +409,9 @@ class SidebarGroup[RowT: "ListedRow"](MemberGroupLine, MemberRows[str], TargetRo
     def rows_for_target(self, target: str):
         if not self.accepts_members():
             return ()
-        header = (
-            (self.row,)
-            if self.navigation_header and self.row.target_name == target
-            else ()
-        )
         member = self.rows.get(target)
         return (
-            *header,
+            *self.header_rows_for_target(target),
             *((member,) if member is not None and member.is_navigation_row() else ()),
         )
 

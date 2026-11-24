@@ -24,8 +24,13 @@ class InputModality(ABC):
 
     @classmethod
     @abstractmethod
-    def describes_inline(cls) -> bool:
-        """Whether a row's description follows its label on the same line."""
+    def row_text(cls, label: str, description: str) -> str:
+        """Primary line of a menu row: label plus inline description when kept inline."""
+
+    @classmethod
+    @abstractmethod
+    def row_subtext(cls, description: str) -> str:
+        """Secondary line under a menu row's label when the description sits below it."""
 
 
 class KeyboardInput(InputModality):
@@ -38,8 +43,12 @@ class KeyboardInput(InputModality):
         return keys
 
     @classmethod
-    def describes_inline(cls) -> bool:
-        return True
+    def row_text(cls, label: str, description: str) -> str:
+        return f"{label} — {description}" if description else label
+
+    @classmethod
+    def row_subtext(cls, description: str) -> str:
+        return ""
 
 
 class TouchInput(InputModality):
@@ -53,5 +62,9 @@ class TouchInput(InputModality):
         return ""
 
     @classmethod
-    def describes_inline(cls) -> bool:
-        return False
+    def row_text(cls, label: str, description: str) -> str:
+        return label
+
+    @classmethod
+    def row_subtext(cls, description: str) -> str:
+        return description

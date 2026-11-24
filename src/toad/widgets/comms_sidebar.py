@@ -113,8 +113,13 @@ class ChannelSortChoice(ChannelMemberOrder, CommsSortChoice[ThreadSort]):
 
 class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
-    navigation_header = True
     trailing_segments = (ChannelUnreadSegment(), CHANNEL_SORT)
+
+    def header_navigation_rows(self) -> tuple:
+        return (self.row,)
+
+    def header_rows_for_target(self, target: str) -> tuple:
+        return (self.row,) if self.row.target_name == target else ()
 
     def __init__(self, row: ChannelHeaderRow, *, expanded: bool):
         self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)

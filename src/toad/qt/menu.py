@@ -83,8 +83,8 @@ class QtMenuRow(QWidget):
         self.label = ElidedLine(menu.row_text(entry))
         self.label.setParent(self._button)
         text.addWidget(self.label)
-        if entry.description and not menu.input_modality.describes_inline():
-            description = ElidedLine(entry.description)
+        if subtext := menu.row_subtext(entry):
+            description = ElidedLine(subtext)
             description.setParent(self._button)
             description.setObjectName("toad-menu-description")  # muted (`QtMenu.paint`)
             text.addWidget(description)

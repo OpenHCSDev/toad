@@ -29,9 +29,14 @@ class PendingWork:
         return PendingWork._operations.get(kind, NoPendingWork)
 
     @classmethod
-    def shown(cls) -> bool:
-        """Whether a surface shows this work at all."""
-        return True
+    async def await_on[T](cls, surface: ShowsPending, awaitable: Awaitable[T]) -> T:
+        """Await ``awaitable`` on ``surface``, showing this work after ``pending_delay``."""
+        shown = asyncio.get_running_loop().call_later(surface.pending_delay, surface.show_pending, cls)
+        try:
+            return await awaitable
+        finally:
+            shown.cancel()
+            surface.clear_pending(cls)
 
 
 class NoPendingWork(PendingWork):
@@ -40,8 +45,8 @@ class NoPendingWork(PendingWork):
     label = ""
 
     @classmethod
-    def shown(cls) -> bool:
-        return False
+    async def await_on[T](cls, surface: ShowsPending, awaitable: Awaitable[T]) -> T:
+        return await awaitable
 
 
 class ThreadOpening(PendingWork):
@@ -111,14 +116,7 @@ class ShowsPending(ABC):
 
     async def while_pending[T](self, work: type[PendingWork], awaitable: Awaitable[T]) -> T:
         """Await `awaitable`, showing `work` once it has taken longer than `pending_delay`."""
-        if not work.shown():
-            return await awaitable
-        shown = asyncio.get_running_loop().call_later(self.pending_delay, self.show_pending, work)
-        try:
-            return await awaitable
-        finally:
-            shown.cancel()
-            self.clear_pending(work)
+        return await work.await_on(self, awaitable)
 
 
 class AwaitsFirstPage:

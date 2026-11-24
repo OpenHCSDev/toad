@@ -96,8 +96,6 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         """Only completed sends may replace reported output with a proved body."""
         return project(parts) if self.completed else parts
 
-    busy = False
-    boundary = False
     completed = False
     failed = False
     summary_suffix = ''
@@ -116,29 +114,40 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
 
     @classmethod
     def activity(cls, turns, output, title):
-        if cls.busy:
-            turns.describe(' '.join(title.splitlines()))
-        if cls.boundary:
-            output.boundary()
+        """Record this tool call status's effect on turn activity and output boundaries."""
 
 
-class PendingToolCallStatus(ToolCallStatus):
-    busy = True
+class ActiveToolCallStatus(ToolCallStatus, declared_name=None):
+    """A queued or running tool call whose title describes active turn work."""
+
+    @classmethod
+    def activity(cls, turns, output, title):
+        turns.describe(' '.join(title.splitlines()))
+
+
+class FinishedToolCallStatus(ToolCallStatus, declared_name=None):
+    """A completed or failed tool call that marks an output boundary."""
+
+    @classmethod
+    def activity(cls, turns, output, title):
+        output.boundary()
+
+
+class PendingToolCallStatus(ActiveToolCallStatus):
     summary_suffix = ' · queued'
 
 
-class InProgressToolCallStatus(ToolCallStatus):
-    busy = True
+class InProgressToolCallStatus(ActiveToolCallStatus):
     summary_suffix = ' · running'
 
 
-class CompletedToolCallStatus(ToolCallStatus):
-    boundary = completed = True
+class CompletedToolCallStatus(FinishedToolCallStatus):
+    completed = True
     summary_suffix = ' ✔'
     summary_role = SuccessRole
 
 
-class FailedToolCallStatus(ToolCallStatus):
-    boundary = failed = True
+class FailedToolCallStatus(FinishedToolCallStatus):
+    failed = True
     summary_suffix = ' · failed'
     summary_role = FailureRole

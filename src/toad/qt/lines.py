@@ -53,8 +53,7 @@ class QtLinkMarkup(LinkPresentation[tuple[str, str]]):
 
     @handles(LineLink)
     def linked(self, link: LineLink, colour: str) -> tuple[str, str]:
-        decoration = "underline" if link.underlined else "none"
-        return f'<a href="{escape(link.encoded_href)}" style="color:{colour};text-decoration:{decoration}">', "</a>"
+        return f'<a href="{escape(link.encoded_href)}" style="color:{colour};text-decoration:{link.css_text_decoration}">', "</a>"
 
     @handles(NoLink)
     def plain(self, link: NoLink, colour: str) -> tuple[str, str]:

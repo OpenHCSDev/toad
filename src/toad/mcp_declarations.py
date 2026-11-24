@@ -40,8 +40,12 @@ class ProjectScope(InventoryScope):
 
 class CallPolicy(DeclaredFamily, affix="Policy"):
     @classmethod
-    def allows_calls(cls) -> bool:
-        return True
+    def require_callable(cls, message: str) -> None:
+        """Allowed policies satisfy a callable declaration requirement."""
+
+    @classmethod
+    def forbid_calls(cls, message: str) -> None:
+        raise ValueError(message)
 
 
 class AllowPolicy(CallPolicy):
@@ -54,15 +58,20 @@ class AskPolicy(CallPolicy):
 
 class UnavailablePolicy(CallPolicy):
     @classmethod
-    def allows_calls(cls) -> bool:
-        return False
+    def require_callable(cls, message: str) -> None:
+        raise ValueError(message)
+
+    @classmethod
+    def forbid_calls(cls, message: str) -> None:
+        """Unavailable policy authorizes no calls."""
 
 
 class DeclarationStatus(DeclaredFamily, affix="Status"):
     @classmethod
     def validate(cls, effective: bool, enabled: bool, policy: type[CallPolicy]) -> None:
-        if not effective or policy.allows_calls():
+        if not effective:
             raise ValueError("Inconsistent declaration state")
+        policy.forbid_calls("Inconsistent declaration state")
 
     @classmethod
     def allows_call_decision(cls) -> bool:
@@ -74,8 +83,7 @@ class ApprovedStatus(DeclarationStatus):
     def validate(cls, effective: bool, enabled: bool, policy: type[CallPolicy]) -> None:
         if not effective or not enabled:
             raise ValueError("Approved declaration must be enabled and effective")
-        if not policy.allows_calls():
-            raise ValueError("Approved declaration needs a call policy")
+        policy.require_callable("Approved declaration needs a call policy")
 
     @classmethod
     def allows_call_decision(cls) -> bool:
@@ -101,8 +109,9 @@ class UnsupportedEnvStatus(DeclarationStatus):
 class ShadowedStatus(DeclarationStatus):
     @classmethod
     def validate(cls, effective: bool, enabled: bool, policy: type[CallPolicy]) -> None:
-        if effective or policy.allows_calls():
+        if effective:
             raise ValueError("Shadowed declaration cannot be effective or authorize calls")
+        policy.forbid_calls("Shadowed declaration cannot be effective or authorize calls")
 
 
 @dataclass(frozen=True)
