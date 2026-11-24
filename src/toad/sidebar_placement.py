@@ -362,6 +362,11 @@ class SidebarPlacement(DeclaredFamily, affix="SidebarPlacement"):
         """What the bar's toggle names, given the titles of the tabs being viewed: its scope."""
         return cls.scope
 
+    @classmethod
+    def available(cls, conversation_open: bool) -> bool:
+        """Whether this sidebar role is available given whether a conversation is open."""
+        return True
+
 
 class ActiveSidebarPlacement(SidebarPlacement, declared_name=None):
     """The sidebar roles a current view can actually own."""
@@ -383,6 +388,11 @@ class ThreadSidebarPlacement(ActiveSidebarPlacement):
         """The bar follows the viewed tab, so it names it by the tab's own title: the DM, the
         channel or the file."""
         return next(iter(viewed), cls.scope)
+
+    @classmethod
+    def available(cls, conversation_open: bool) -> bool:
+        """The thread's settings follow an open conversation."""
+        return conversation_open
 
 
 class ObjectSidebarPlacement(SidebarPlacement):

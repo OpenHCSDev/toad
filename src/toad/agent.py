@@ -34,8 +34,6 @@ class AgentBase(AgentConnection):
 
         self.configuration = AgentConfiguration(self)
 
-    ready = False
-
     def attach_view(self, view) -> None:
         from toad.core.events import SessionAgentAttached
 
@@ -154,22 +152,5 @@ class AgentBase(AgentConnection):
     async def set_mode(self, mode_id: str) -> str | None:
         return "This agent does not support mode selection"
 
-    async def cancel(self) -> bool:
-        """Cancel the active prompt if supported."""
-        return False
-
     async def set_model(self, model_id: str) -> str | None:
         return "This agent does not support model selection"
-
-    async def set_session_name(self, name: str) -> None:
-        """Set the session name.
-
-        Args:
-            name: New name for the session.
-        """
-
-    def get_info(self) -> str:
-        return ""
-
-    async def stop(self) -> None:
-        """Stop the agent (gracefully exit the process)"""

@@ -107,23 +107,34 @@ class SessionLabel(TabElement, WidgetView, PrimaryActivation, ViewLabel, Changin
     def select_session(self) -> None:
         self.app.select_session(self.mode_name)
 
+    def open_tab_menu(self, event: events.Click) -> None:
+        # The shared tab menu (`SessionNavigation.tab_menu`): Qt's tab offers the same
+        # entries on a right-click or a held finger.
+        event.stop()
+        ActionMenu.offer(self.screen, Region.from_offset(event.screen_offset, (0, 0)),
+                         self.content.plain, self.menu_entries())
+
+    def close_tab(self, event: events.Click) -> None:
+        event.stop()
+        self.app.session_navigation.events.publish(session_requests.SessionClose(self.mode_name))
+
+    def activate_tab(self, _event: events.Click) -> None:
+        # A second message-pump hop lets the old screen's pending
+        # full-layout timer run ahead of the user's tab click. The
+        # ordinary app mode-switch boundary already captures sidebar
+        # navigation and queues its serialized transition.
+        self.select_session()
+
+    _click_handlers: ClassVar[dict[int, Callable[[SessionLabel, events.Click], None]]] = {
+        1: activate_tab,
+        2: close_tab,
+        3: open_tab_menu,
+    }
+
     @on(events.Click)
     def on_click(self, event: events.Click) -> None:
-        if event.button == 3:
-            # The shared tab menu (`SessionNavigation.tab_menu`): Qt's tab offers the same
-            # entries on a right-click or a held finger.
-            event.stop()
-            ActionMenu.offer(self.screen, Region.from_offset(event.screen_offset, (0, 0)),
-                             self.content.plain, self.menu_entries())
-        elif event.button == 2:
-            event.stop()
-            self.app.session_navigation.events.publish(session_requests.SessionClose(self.mode_name))
-        elif event.button == 1:
-            # A second message-pump hop lets the old screen's pending
-            # full-layout timer run ahead of the user's tab click. The
-            # ordinary app mode-switch boundary already captures sidebar
-            # navigation and queues its serialized transition.
-            self.select_session()
+        if handler := self._click_handlers.get(event.button):
+            handler(self, event)
 
 
 class SessionTabClose(KeepsFocusOnClick, WidgetView, ActivationKeys, widgets.Static, can_focus=True):

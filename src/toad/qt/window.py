@@ -1753,7 +1753,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def _pane_available(self, identity: type[SidebarPlacement]) -> bool:
         """The thread's settings follow an open conversation; the sidebar is always there."""
-        return self._conversation_open() if identity is ThreadSidebarPlacement else True
+        return identity.available(self._conversation_open())
 
     def _pane_heading(self, identity: type[SidebarPlacement]) -> str:
         return identity.heading(self._viewed_titles())

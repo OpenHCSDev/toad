@@ -865,19 +865,10 @@ class AnsweringReads(Observing):
     def stop_updates(self) -> AnsweringReads:
         return self
 
+    def tell(self, wanted) -> None:
+        """Interests have ended; no further interest updates are sent."""
+
     def views_changed(self, event=None, subscription=None):
-        pass
-
-    def thread_interest(self, access: CoordinationAccess):
-        pass
-
-    def observe_sidebar(self, wanted):
-        pass
-
-    def observe_notifications(self, wanted: ObserveNotifications):
-        pass
-
-    def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
         pass
 
 

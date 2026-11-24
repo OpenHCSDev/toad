@@ -77,7 +77,7 @@ from toad.widgets.side_bar import SideBar
 from toad.widgets.splash_text import ThreadLoading
 
 
-class SessionCommands(Provider):
+class SessionCommands(Provider, DeclaredFamily, affix="Provider"):
     @property
     def session(self) -> MainScreen:
         screen = self.screen.app.selected_session
@@ -338,7 +338,7 @@ class MainScreen(
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
-    COMMANDS = {ModeProvider, MCPInventoryProvider}
+    COMMANDS = set(SessionCommands.members_with(SessionCommands))
 
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)

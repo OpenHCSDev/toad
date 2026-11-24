@@ -434,9 +434,7 @@ Tap escape *twice* to exit.
             return
         if (mouse_tracking := self.state.mouse_tracking) is None:
             return
-        if mouse_tracking.tracking == "all" or (
-            event.button and mouse_tracking.tracking == "drag"
-        ):
+        if mouse_tracking.tracks_move(event.button):
             await self._handle_mouse_event(event)
             event.prevent_default()
             event.stop()
