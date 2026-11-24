@@ -178,8 +178,8 @@ class SuspendedTranscript(TranscriptState):
         return self.source.publish()
 
     @classmethod
-    @abstractmethod
-    def successors(cls): ...
+    def successors(cls):
+        return (DetachedTranscript,)
 
 
 class SourceWork(ABC):
@@ -456,17 +456,11 @@ class DetachedTranscript(SuspendedTranscript):
 
 
 class ClosingTranscript(SuspendedTranscript):
-    @classmethod
-    def successors(cls):
-        return (DetachedTranscript,)
+    pass
 
 
 class RetiredProjectionTranscript(SuspendedTranscript):
     """A filtered view whose owning publication is no longer current."""
-
-    @classmethod
-    def successors(cls):
-        return (DetachedTranscript,)
 
 
 class RetiredSourceTranscript(SuspendedTranscript):

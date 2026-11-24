@@ -56,9 +56,6 @@ class SessionScope(SharedSessionScope, ThreadIdentityScope, ProjectPathOwner, Na
             self.app.workspace_sessions.detach(self.id)
         return started
 
-    def matches_launch(self, agent_identity: str, session_id: AcpSessionId) -> bool:
-        return False
-
     @property
     @abstractmethod
     def is_current(self) -> bool: ...

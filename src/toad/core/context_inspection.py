@@ -128,7 +128,18 @@ class ContextNode(ABC):
 
 
 @dataclass(frozen=True)
-class ReferenceNode(ContextNode):
+class SelfSearchedNode(ContextNode):
+    """A context node whose own subtree is its search scope and whose label names it."""
+
+    def search_roots(self, current_roots):
+        return (self,)
+
+    def search_description(self):
+        return self.label
+
+
+@dataclass(frozen=True)
+class ReferenceNode(SelfSearchedNode):
     source: Provenance
     read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
@@ -145,12 +156,6 @@ class ReferenceNode(ContextNode):
     async def read(self) -> str:
         original = await self.read_source(self.source)
         return f"{original.description}\n\n{original.text}"
-
-    def search_roots(self, current_roots):
-        return (self,)
-
-    def search_description(self):
-        return self.label
 
     async def find(self, query: str, *, limit: int=100):
         original = await self.read_source(self.source)
@@ -184,7 +189,7 @@ class ManifestNode(ContextNode):
 
 
 @dataclass(frozen=True)
-class RecordedTurnNode(ContextNode):
+class RecordedTurnNode(SelfSearchedNode):
     manifest: ContextManifest
     inspection: ContextInspection
 
@@ -197,12 +202,6 @@ class RecordedTurnNode(ContextNode):
         return tuple(RecordedSegmentNode(f"{self.key}/{i}", self.manifest,
                                          self.inspection, i)
                      for i in range(len(self.manifest.segments)))
-
-    def search_roots(self, current_roots):
-        return (self,)
-
-    def search_description(self):
-        return self.label
 
     def detail(self) -> str:
         return (f"Recorded turn · {self.manifest.turn.require_recorded().identity}\n"
@@ -273,7 +272,7 @@ class RecordedSegmentNode(RecordedTurnNode):
 
 
 @dataclass(frozen=True)
-class AnnotationNode(ContextNode):
+class AnnotationNode(SelfSearchedNode):
     """An original stored answer borrows the same authenticated span reader."""
     annotation: ModelLabel
     source: RecordedSegmentNode
@@ -304,12 +303,6 @@ class AnnotationNode(ContextNode):
                 f"{self.annotation.span.coordinates.length} UTF8 bytes\n"
                 f"Sources:\n{provenance}\n\n{text}")
 
-    def search_roots(self, current_roots):
-        return (self,)
-
-    def search_description(self):
-        return self.label
-
     async def find(self, query: str, *, limit: int=100):
         if query in (await self.read()).casefold():
             yield self
@@ -324,7 +317,7 @@ class AnnotationNode(ContextNode):
 
 
 @dataclass(frozen=True)
-class AnnotationSourceNode(ContextNode):
+class AnnotationSourceNode(SelfSearchedNode):
     """Navigation groups borrow original source facts, never infer authorship."""
     kind: type[ContextSegment]
     provenance: tuple[Provenance, ...]
@@ -350,12 +343,6 @@ class AnnotationSourceNode(ContextNode):
     def detail(self):
         return (self.label + "\n\nOriginal source descriptions group these answers. "
                 "File paths or model probabilities do not establish an instruction's author.")
-
-    def search_roots(self, current_roots):
-        return (self,)
-
-    def search_description(self):
-        return self.label
 
     async def find(self, query: str, *, limit: int=100):
         # One search borrows each authenticated selected value once. These

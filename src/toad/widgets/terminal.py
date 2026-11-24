@@ -47,35 +47,28 @@ Tap escape *twice* to exit.
     hide_cursor = reactive(False)
 
     @dataclass
-    class Finalized(Message):
+    class TerminalMessage(Message):
+        """A message emitted by a `Terminal`, whose `control` is that terminal."""
+
+        terminal: Terminal
+
+        @property
+        def control(self) -> Terminal:
+            return self.terminal
+
+    @dataclass
+    class Finalized(TerminalMessage):
         """Terminal was finalized."""
 
-        terminal: Terminal
-
-        @property
-        def control(self) -> Terminal:
-            return self.terminal
-
     @dataclass
-    class AlternateScreenChanged(Message):
+    class AlternateScreenChanged(TerminalMessage):
         """Terminal enabled or disabled alternate screen."""
 
-        terminal: Terminal
         enabled: bool
 
-        @property
-        def control(self) -> Terminal:
-            return self.terminal
-
     @dataclass
-    class LongRunning(Message):
-        """Terminal enabled or disabled alternate screen."""
-
-        terminal: Terminal
-
-        @property
-        def control(self) -> Terminal:
-            return self.terminal
+    class LongRunning(TerminalMessage):
+        """Terminal ran past its long-running threshold."""
 
     def __init__(
         self,
