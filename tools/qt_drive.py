@@ -102,11 +102,18 @@ from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
 from toad.client.menu_entry import strip_menu_markup
 from toad.qt.menu import QtMenu, QtMenuRow
-from toad.qt.activity import ChannelActivity
 from toad import paths
 from toad.qt.thread_comms_panel import QtRelationshipItem, QtThreadCommsPanel
 from toad.qt.channel_sort import QtChannelListSort
-from toad.qt.window import ChannelLine, ConversationRow, ConversationView, MenuActionRun, QtTabAt, QtToadApp
+from toad.qt.window import (
+    ChannelActivitySidebar,
+    ChannelLine,
+    ConversationRow,
+    ConversationView,
+    MenuActionRun,
+    QtTabAt,
+    QtToadApp,
+)
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
 from toad.live_output import ResponseStream, ThoughtStream
@@ -458,10 +465,10 @@ class ParticipantSteps(Scenario, declared_name=None):
         """The warning and error notices posted after the first ``count``."""
         return [f"{role}: {text}" for role, text in self.notices[count:] if role in ("WARNING", "ERROR")]
 
-    def activity(self) -> ChannelActivity:
-        found = self.page.findChildren(ChannelActivity)
+    def activity(self) -> ChannelActivitySidebar:
+        found = self.page.findChildren(ChannelActivitySidebar)
         if not found:
-            raise LookupError(f"{type(self.page).__name__} shows no channel activity line")
+            raise LookupError(f"{type(self.page).__name__} shows no channel activity tree")
         return found[0]
 
     async def finger_tap(self, widget: QWidget, point: QPoint) -> None:
@@ -471,25 +478,31 @@ class ParticipantSteps(Scenario, declared_name=None):
         await asyncio.sleep(0.8)
 
     async def tap_activity(self, label: str) -> None:
-        """Open the channel's activity line, tap a listed member, and close it again."""
-        line = self.activity()
-        heading = QPoint(line.width() // 3, line.fontMetrics().height() // 2)
-        self.report(f"{label}-shown", text=self.activity_text(line), height=line.height())
-        await self.finger_tap(line, heading)
-        self.report(f"{label}-opened", open=line.shown.details_open, members=len(line.members),
-                    height=line.height())
-        if line.members:
-            await self.finger_tap(line, QPoint(heading.x(), line.height() - heading.y()))
-            self.report(f"{label}-member-tapped", open=line.shown.details_open)
-        if line.shown.details_open:
-            await self.finger_tap(line, heading)
-        self.report(f"{label}-closed", open=line.shown.details_open)
+        """Open the channel's activity tree, tap a listed member, and close it again."""
+        tree = self.activity()
+        channel_item = tree.topLevelItem(0)
+        if channel_item is None:
+            raise LookupError(f"{type(self.page).__name__} channel activity tree has no channel row")
+        heading = tree.visualItemRect(channel_item).center()
+        self.report(f"{label}-shown", text=self.activity_text(tree), height=tree.height())
+        await self.finger_tap(tree.viewport(), heading)
+        self.report(f"{label}-opened", open=channel_item.isExpanded(), members=channel_item.childCount(),
+                    height=tree.height())
+        if channel_item.childCount():
+            member_item = channel_item.child(0)
+            await self.finger_tap(tree.viewport(), tree.visualItemRect(member_item).center())
+            self.report(f"{label}-member-tapped", open=channel_item.isExpanded())
+        if channel_item.isExpanded():
+            await self.finger_tap(tree.viewport(), tree.visualItemRect(channel_item).center())
+        self.report(f"{label}-closed", open=channel_item.isExpanded())
 
     @staticmethod
-    def activity_text(line: ChannelActivity) -> str:
-        document = QTextDocument()
-        document.setHtml(line.text())
-        return document.toPlainText()
+    def activity_text(tree: ChannelActivitySidebar) -> str:
+        channel_item = tree.topLevelItem(0)
+        if channel_item is None:
+            return ""
+        _badge, label, summary, _tooltip = channel_item.drawn
+        return f"{label} · {summary}" if summary else label
 
     async def open_twice(self, row: ConversationRow) -> None:
         """A row tapped twice, as a phone can deliver one tap, or a second tap while the

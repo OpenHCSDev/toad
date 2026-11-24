@@ -1,76 +1,29 @@
 """Who is here, drawn under the composer as the conversation kind chooses
-(ConversationKind.compose_activity): a channel's active members, or a direct message's
-peer with its status and Toad's activity sweep while the peer works."""
+(ConversationKind.compose_activity): a channel's active members live in
+`ChannelActivitySidebar` (`toad.qt.window`), reusing the shared sidebar channel tree;
+this module holds Toad's activity sweep and a direct message's peer status."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from agent_comms.registry.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import ThreadStatusModel
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QLinearGradient, QPainter
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from ui_theme.clock import Animation, AnimationClock
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import BackgroundColour
 
 from toad.client.application import ClientApplication
-from toad.channel_activity_dispatch import ChannelActivityTitle
-from toad.client.conversation import ConversationKind
-from toad.client.fragments import Shown
-from toad.client.line_blocks import NO_LINK, MutedRole
+from toad.client.line_blocks import MutedRole
 from toad.client.prompt_stack import ObservedSweep, SweepEffect
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.status_thread import ObservedActivity
 from toad.qt.metrics import UiGap
 from toad.qt.widget_animation import WidgetAnimation
-
-
-class ChannelActivity(ChannelActivityTitle, QLabel):
-    """The shared channel activity title as a disclosure, as Textual's collapsed
-    ChannelActivity draws it: `▶ N active · names`; a tap opens one `▶ name` row per active
-    member. Both rows are the shared `Shown.summary` blocks the transcript's ▶ rows use."""
-
-    def __init__(self, app: ClientApplication, renderer: QtLineRenderer, conversation: ConversationKind) -> None:
-        super().__init__()
-        self.renderer = renderer
-        self.shown = Shown()
-        self.drawn: tuple = ()
-        """The blocks the label shows."""
-        self.setContentsMargins(UiGap.loose, 0, UiGap.loose, 0)
-        self.setTextFormat(Qt.TextFormat.RichText)
-        self.activity_conversation = conversation
-        self.activity_model: SidebarModel = app.coordination_access.observation.observed().sidebar
-        self.activity_model.channels.subscribe(self.rows_changed)
-        self.activity_model.threads.subscribe(self.rows_changed)
-        renderer.themed(self, self.draw_again)
-
-    def draw_again(self) -> None:
-        """The scheme's colours are in the label's rich text: a scheme draws the blocks again."""
-        self.drawn = ()
-        self.rows_changed(())
-
-    def rows_changed(self, changes: object) -> None:
-        """Draw the title's blocks when they are other blocks than the label shows: the
-        sidebar's rows change many times a minute with the same members active, and each
-        change rendered the same line again and laid the label out again."""
-        heading = self.shown.summary(self.activity_title, MutedRole, NO_LINK)
-        members = (Shown().summary(member.name, MutedRole, NO_LINK) for member in self.members)
-        blocks = (heading, *(members if self.shown.details_open else ()))
-        if blocks != self.drawn:
-            self.drawn = blocks
-            self.setText(self.renderer.html(blocks))
-
-    def mousePressEvent(self, event) -> None:  # type: ignore[override]
-        self.shown = self.shown.toggled()
-        self.rows_changed(())
-
-    def close_activity(self) -> None:
-        self.activity_model.channels.unsubscribe(self.rows_changed)
-        self.activity_model.threads.unsubscribe(self.rows_changed)
 
 
 class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):

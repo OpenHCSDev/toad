@@ -92,7 +92,7 @@ from toad.qt.banner import Banner
 from toad.client.welcome import WelcomeLocation
 from toad.client.sidebar_models import UnpaintedChannel
 from toad.client.sidebar_lines import (
-    BusChoiceLine, DetailedLine, HeaderLine, LineMenuTree, MemberGroupLine, RowTree, SidebarStatusLine, TargetLine,
+    BusChoiceLine, DetailedLine, FittedRowTree, HeaderLine, LineMenuTree, MemberGroupLine, RowTree, SidebarStatusLine, TargetLine,
     WelcomeSectionLine,
 )
 from toad.keyed_rows import KeyedRows
@@ -126,7 +126,7 @@ from toad.navigation_target import (
     HistoryRouted, KnownThreadTarget, NavigationTarget, channel_target,
 )
 from toad.qt.action_shortcuts import ActionKeys
-from toad.qt.activity import ChannelActivity, PeerActivity
+from toad.qt.activity import PeerActivity
 from toad.qt.command_form import WindowCommandOrigin
 from toad.qt.composer import ChannelComposer, Composer, ComposerEditor, MessageComposer
 from toad.qt.conversation import QtConversation
@@ -495,6 +495,18 @@ class ChannelLine(ChannelEntry):
             self.header.show_title(label, badge)
 
 
+class SelectedChannelLine(ChannelLine):
+    """The selected channel's row in its active bar under the composer: starts collapsed as
+    one compact row, and tapping it toggles its member tree instead of reopening the tab
+    already open."""
+
+    def opens_expanded(self) -> bool:
+        return False
+
+    def activate(self, window: QtToadApp) -> None:
+        self.setExpanded(not self.isExpanded())
+
+
 class NewSessionRow(NewSessionControl, SidebarItem):
     """The Channels sidebar's first line, as Textual's `NewSessionButton`: a tap starts what
     the shared `NewSessionControl` says (this launch's session while no tab is shown, a thread
@@ -715,8 +727,9 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
     step off: pyqt-reactive's preview delegate paints each row's unread badge and label with
     its summary under it in muted text; a tap activates the line."""
 
-    def __init__(self, window: QtToadApp) -> None:
-        super().__init__()
+    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
         self.window = window
         self.setHeaderHidden(True)
         cell = self.fontMetrics().averageCharWidth()
@@ -929,7 +942,29 @@ class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
         return self.row
 
 
-class QtSidebarBuses(BusListing, ConversationRows):
+class RowFittedTree(FittedRowTree):
+    """A `ConversationRows` tree sized to its visible rows, up to `most_rows` before scrolling."""
+
+    def bind_row_fitting(self) -> None:
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.itemExpanded.connect(lambda _item: self.fit_rows())
+        self.itemCollapsed.connect(lambda _item: self.fit_rows())
+
+    def fit_rows(self) -> None:
+        """As tall as its shown lines, up to `most_rows` of them."""
+        self.doItemsLayout()
+        heights, item = [], self.topLevelItem(0)
+        while item is not None and len(heights) <= self.most_rows:
+            heights.append(self.visualItemRect(item).height())
+            item = self.itemBelow(item)
+        self.setFixedHeight(sum(heights) + 2 * self.frameWidth())
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        self.fit_rows()
+
+
+class QtSidebarBuses(BusListing, RowFittedTree, ConversationRows):
     """The buses this machine can open, under the bus line while the comms sidebar holds the
     window, as Textual's `SidebarBuses`: the rows the welcome page listed, in the first screen
     (above the search and the comms tree, which can list every thread). Its own tree, sized
@@ -942,11 +977,8 @@ class QtSidebarBuses(BusListing, ConversationRows):
 
     def __init__(self, window: QtToadApp) -> None:
         super().__init__(window)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.held_menu = HeldRowMenu(self, self)
-        # Opening or closing its section changes how many lines it shows.
-        self.itemExpanded.connect(lambda item: self.fit_rows())
-        self.itemCollapsed.connect(lambda item: self.fit_rows())
+        self.bind_row_fitting()
         self.relist()
 
     def picker_host(self) -> BusPickerHost:
@@ -966,49 +998,22 @@ class QtSidebarBuses(BusListing, ConversationRows):
         self.redraw(draw)
         self.fit_rows()
 
-    def fit_rows(self) -> None:
-        """As tall as its shown lines, up to `most_rows` of them."""
-        self.doItemsLayout()
-        heights, item = [], self.topLevelItem(0)
-        while item is not None and len(heights) <= self.most_rows:
-            heights.append(self.visualItemRect(item).height())
-            item = self.itemBelow(item)
-        self.setFixedHeight(sum(heights) + 2 * self.frameWidth())
 
-
-class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, ConversationRows):
-
-    """The bus's channels, each opening to the threads in it, and every thread, from the
-    shared sidebar model. State comes from the shared `SidebarStateMachine`: a
-    `Detached`/`FailedSidebarState`/`Behind`/`Current` transition drives both the status
-    line this sidebar owns and the row redraw. Lines are kept in place across updates, so
-    groups stay open or closed and a press stays on its row.
-
-    Structurally satisfies `GroupedSidebar` (declared in `sidebar_contracts`) so
-    `ChangedChannels` and `ChangedThreads` dispatch through the shared
-    `SidebarChange.apply_comms` path: only the affected channel header + its changed
-    member rows touch Qt, instead of a wholesale tree rebuild. (A direct inheritance
-    would collide Qt's widget metaclass with `AbstractHooksMeta`; registration isn't
-    needed because consumers access the surface structurally, no isinstance checks.)
-    """
+class ChannelTreeSidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, ConversationRows):
+    """A channel-tree view over the shared sidebar model: channels as expandable `ChannelLine`
+    groups with `HeaderLineControl` + sort controls, members as `ThreadLine`s with live waving
+    names and `HeldRowMenu`, reconciled incrementally through `SidebarStateMachine` and
+    `QtChannelGroup`. `Sidebar` renders all channels; `ChannelActivitySidebar` reuses this
+    exact widget scoped to the currently selected channel."""
 
     navigation: NavigationRefresh = NoopNavigation()
     groups: dict[str, QtChannelGroup]
     open_views: dict[str, str]
 
-    def __init__(self, window: QtToadApp) -> None:
-        super().__init__(window)
-        self._status_text: str | None = None
+    def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
+        super().__init__(window, parent)
         self.groups = {}
         self.open_views = {}
-        # The shared owner of the sidebar's search text and row-match decision. The
-        # QLineEdit hosted by `QtSidebarSearch` writes the user's text into this
-        # instance; `draw_lines` asks the filter's `matches(name)` when deciding whether a
-        # row joins the
-        # tree. Textual's `SideBar` also owns one (same class, same match rule).
-        self.filter: SidebarFilter = SidebarFilter()
-        self.filter.subscribe(self._on_filter_changed)
-        # A row's menu on a right-click or a held finger, as the welcome's rows have it.
         self.held_menu = HeldRowMenu(self, self)
 
     @property
@@ -1017,43 +1022,34 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
         (`FindsOpenViews`, `NavigationTarget.menu_context`)."""
         return self.window
 
-    def _on_filter_changed(self, _value: str) -> None:
-        """Every row may newly match or stop matching: all rows, as Textual's search
-        follower re-syncs every group."""
-        self.present(change=AllSidebarRows(), reorder=True)
-
     def accepts_observation(self) -> bool:
-        """The sidebar always shows while it exists: the window hides it through
-        placement, not through the observation."""
+        """The tree follows every observation while it exists; placement or visibility hides it."""
         return True
 
     def coordination_access(self):
         return self.window.coordination_access
 
     def show_status(self, text: str) -> None:
-        """Record the status; `present` below paints it in one redraw along with rows."""
-        self._status_text = text
+        """Subclasses that display an observation status row override this."""
 
     def hide_status(self) -> None:
-        self._status_text = None
+        """Subclasses that display an observation status row override this."""
 
     def present(self, **changes: object) -> None:
-        """Run the shared state transition, whose model change reaches `sync`, then keep the
-        status line current in place. A bare present (each observation, a show) draws no rows:
-        rows change only through the change the state machine hands `sync`, as Textual's
-        sidebar draws them. Redrawing every channel and thread here on each observation was
-        17% of the phone's UI thread during a burst of arrivals (2026-11-18)."""
+        """Run the shared state transition, whose model change reaches `sync`. A bare present
+        (each observation, a show) draws no rows: rows change only through the change the state
+        machine hands `sync`, as Textual's sidebar draws them. Redrawing every channel and
+        thread here on each observation was 17% of the phone's UI thread during a burst of
+        arrivals (2026-11-18)."""
         super().present(**changes)
-        self._refresh_status_only()
         model = self.model_state.shown if self.model_state.shows_model() else None
-        if model is None:
-            if self.groups:
-                self.groups = {}
-                self.redraw(lambda top: None)
-                self._refresh_status_only()
-            return
-        self.window.channel_sort.update_order(model.observation.channel_order())
-        self.window.paint_tabs()
+        if model is None and self.groups:
+            self.groups = {}
+            self.redraw(lambda top: None)
+        self.after_present(model)
+
+    def after_present(self, model: SidebarModel | None) -> None:
+        """Hook after `present` finishes."""
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         """Apply the change the shared state machine handed over. A partial one that keeps
@@ -1066,8 +1062,7 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
 
         def full_redraw() -> None:
             def draw(top: KeptLines) -> None:
-                if self._status_text is not None:
-                    top.keep(StatusSection(self._status_text))
+                self.draw_leading_rows(top)
                 self.draw_lines(model, top)
             self.redraw(draw)
             # The redraw rebuilt the channel items; the groups bind to the new ones so the next
@@ -1075,11 +1070,14 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
             self._rebind_groups_from_tree(model)
 
         change.sync_sidebar(self, model.channels.rows, reorder=reorder, full_redraw=full_redraw)
+        self.after_sync()
+
+    def after_sync(self) -> None:
+        """Hook after `sync` applies a change."""
 
     def model_replaced(self) -> None:
         """Clear rows before the new observation's redraw lands; the next `present` will
-        repaint the status and the new model's rows together."""
-        self._status_text = None
+        repaint the new model's rows."""
         self.groups = {}
         self.redraw(lambda top: None)
 
@@ -1087,37 +1085,25 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
         """Textual holds a DOM-level sync boundary here; Qt touches items directly."""
         return nullcontext()
 
+    def draw_leading_rows(self, top: KeptLines) -> None:
+        """Rows drawn before the channel groups (status and New Session in the all-channels sidebar)."""
+
+    def channel_line(self, name: str, channel: ChannelRowModel, counts) -> ChannelLine:
+        return ChannelLine.of(name, channel, counts=counts)
+
+    def channels_to_draw(self, model: SidebarModel) -> Iterator[tuple[str, ChannelRowModel, Iterable[str]]]:
+        raise NotImplementedError
+
     def draw_lines(self, model: SidebarModel, top: KeptLines) -> None:
-        top.keep(NewSessionRow())
         threads = model.threads.rows
-        matches = self.filter.matches
-        matching = self.filter.matching
         pending = self.window.thread_actions.pending
         counts = self.window.settings.sidebar.unread_counts
-        for name, channel in model.channels.rows.items():
-            # A channel stays visible if its name matches OR any of its member thread
-            # names do; hiding a channel whose only match is a buried thread would also
-            # hide the thread. The group opens whichever path kept it.
-            members_shown = matching(channel.members)
-            if not matches(name) and not members_shown:
-                continue
+        for name, channel, members_shown in self.channels_to_draw(model):
             pinned_members = channel.pinned_members
-            with top.group(ChannelLine.of(name, channel, counts=counts)) as group:
+            with top.group(self.channel_line(name, channel, counts)) as group:
                 for member in members_shown:
                     group.keep(ThreadLine.of(member, threads[member], pinned=member in pinned_members,
                                              action_status=pending.get(member), counts=counts))
-
-    def _refresh_status_only(self) -> None:
-        """Update just the status row at the top of the tree in place, without touching
-        the channel subtrees that a targeted sync just redrew."""
-        root = self.invisibleRootItem()
-        for index in range(root.childCount()):
-            if root.child(index).update_status_in(root, self._status_text):
-                return
-        if self._status_text is not None:
-            target = StatusSection(self._status_text)
-            root.insertChild(0, target)
-            target.placed()
 
     def _rebind_groups_from_tree(self, model: SidebarModel) -> None:
         """Index the groups against the tree a wholesale redraw left. The redraw keeps a
@@ -1133,6 +1119,112 @@ class Sidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, Conversati
         for index in range(root.childCount()):
             root.child(index).rebind_group_into(self, channel_models, previous, rebuilt)
         self.groups = rebuilt
+
+
+class Sidebar(ChannelTreeSidebar):
+    """The all-channels sidebar: every channel (filtered by search), each opening to its
+    threads, with the observation status row and New Session entry at the top."""
+
+    def __init__(self, window: QtToadApp) -> None:
+        super().__init__(window)
+        self._status_text: str | None = None
+        # The shared owner of the sidebar's search text and row-match decision. The
+        # QLineEdit hosted by `QtSidebarSearch` writes the user's text into this
+        # instance; `channels_to_draw` asks the filter's `matches(name)` when deciding
+        # whether a row joins the tree. Textual's `SideBar` also owns one.
+        self.filter: SidebarFilter = SidebarFilter()
+        self.filter.subscribe(self._on_filter_changed)
+
+    def _on_filter_changed(self, _value: str) -> None:
+        """Every row may newly match or stop matching: all rows, as Textual's search
+        follower re-syncs every group."""
+        self.present(change=AllSidebarRows(), reorder=True)
+
+    def show_status(self, text: str) -> None:
+        """Record the status; `after_present` paints it in place."""
+        self._status_text = text
+
+    def hide_status(self) -> None:
+        self._status_text = None
+
+    def model_replaced(self) -> None:
+        self._status_text = None
+        super().model_replaced()
+
+    def after_present(self, model: SidebarModel | None) -> None:
+        self._refresh_status_only()
+        if model is None:
+            return
+        self.window.channel_sort.update_order(model.observation.channel_order())
+        self.window.paint_tabs()
+
+    def draw_leading_rows(self, top: KeptLines) -> None:
+        if self._status_text is not None:
+            top.keep(StatusSection(self._status_text))
+        top.keep(NewSessionRow())
+
+    def channels_to_draw(self, model: SidebarModel) -> Iterator[tuple[str, ChannelRowModel, Iterable[str]]]:
+        matches = self.filter.matches
+        matching = self.filter.matching
+        for name, channel in model.channels.rows.items():
+            # A channel stays visible if its name matches OR any of its member thread
+            # names do; hiding a channel whose only match is a buried thread would also
+            # hide the thread. The group opens whichever path kept it.
+            members_shown = matching(channel.members)
+            if not matches(name) and not members_shown:
+                continue
+            yield name, channel, members_shown
+
+    def _refresh_status_only(self) -> None:
+        """Update just the status row at the top of the tree in place, without touching
+        the channel subtrees that a targeted sync just redrew."""
+        root = self.invisibleRootItem()
+        for index in range(root.childCount()):
+            if root.child(index).update_status_in(root, self._status_text):
+                return
+        if self._status_text is not None:
+            target = StatusSection(self._status_text)
+            root.insertChild(0, target)
+            target.placed()
+
+
+class ChannelActivitySidebar(RowFittedTree, ChannelTreeSidebar):
+    """The active bar under a channel's composer: reuses the exact same `ChannelTreeSidebar`
+    widget abstraction as the All channels bar, scoped to only the currently selected
+    channel's tree (its header with unread badge & sort control, expanding to live member
+    `ThreadLine`s with waving names, tap-to-open, and right-click/long-press menus)."""
+
+    def __init__(self, window: QtToadApp, conversation: ConversationKind,
+                 parent: QWidget | None = None) -> None:
+        super().__init__(window, parent)
+        self.channel_name = conversation.target.name
+        self.bind_row_fitting()
+        access = window.coordination_access
+        access.sidebar_views.add(self)
+        access.observation.observed().show_sidebar(self)
+
+    def channel_line(self, name: str, channel: ChannelRowModel, counts) -> ChannelLine:
+        return SelectedChannelLine.of(name, channel, counts=counts)
+
+    def channels_to_draw(self, model: SidebarModel) -> Iterator[tuple[str, ChannelRowModel, Iterable[str]]]:
+        channel = model.channels.rows.get(self.channel_name)
+        if channel is not None:
+            yield self.channel_name, channel, channel.members
+
+    def fit_rows(self) -> None:
+        super().fit_rows()
+        if self.parentWidget() is not None:
+            self.setVisible(self.topLevelItemCount() > 0)
+
+    def after_sync(self) -> None:
+        self.fit_rows()
+
+    def after_present(self, model: SidebarModel | None) -> None:
+        self.fit_rows()
+
+    def close_activity(self) -> None:
+        self.stop_showing()
+        self.retire_all()
 
 
 
@@ -1285,8 +1377,8 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
     def message_prompt(self) -> MessageComposer:
         return MessageComposer(self, self.app.renderer)
 
-    def compose_channel_activity(self) -> Iterator[ChannelActivity]:
-        yield ChannelActivity(self.app, self.app.renderer, self.conversation)
+    def compose_channel_activity(self) -> Iterator[ChannelActivitySidebar]:
+        yield ChannelActivitySidebar(self.app, self.conversation, parent=self)
 
     def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator[QtGoalBar | PeerActivity]:
         # The peer's goal sits over its activity and the composer, as the TUI's goal bar
