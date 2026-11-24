@@ -248,6 +248,8 @@ def described(chain: list[ImportSite]) -> str:
 # move the frontend decision behind its host, or make the shared caller unreachable, then delete
 # the line. A NEW finding fails; a listed one that is gone fails until its line is deleted.
 KNOWN_LAZY: dict[str, str] = {
+    'agent_comms.execution.native_arguments -> agent_comms.execution.context_language_model':
+        "packaging.markers. Qt: local CLM native harness launch, never called by the Android client (exposed once Core #5143 removed packaging from the closure)",
     'objectstate.object_state_registry -> dill':
         'dill. Qt: no caller of ObjectStateRegistry.save_history_to_file',
     'pyqt_reactive.protocols.widget_adapters -> pyqt_reactive.forms.widget_strategies':
@@ -280,6 +282,8 @@ KNOWN_LAZY: dict[str, str] = {
         "notifypy.os_notifiers.linux. Qt: desktop notifications come from TerminalAttention.notify, Textual's",
     'toad.version -> httpx':
         "httpx. Qt: the version check is the terminal app's start",
+    'toad.version -> packaging.version':
+        "packaging.version. Qt: the version check is the terminal app's start (exposed once Core #5143 removed packaging from the closure)",
 }
 new = sorted(set(lazy) - set(KNOWN_LAZY))
 gone = sorted(set(KNOWN_LAZY) - set(lazy))
