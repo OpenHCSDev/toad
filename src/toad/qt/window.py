@@ -25,7 +25,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QKeySequence, QScreen, QShortcut
+from PySide6.QtGui import QColor, QGuiApplication, QKeySequence, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -54,7 +54,7 @@ from toad.keymap import KeyInvocationId
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
 from ui_theme.clock import AnimationClock
-from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour, SurfaceHoverColour
+from ui_theme.scheme import AccentColour, ColourScheme, MutedColour, PrimaryColour, SurfaceHoverColour
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
 
@@ -1708,8 +1708,17 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.shortcuts.bind_command(lambda keys: keys.escape, "Back", self.go_back)
         self.shortcuts.apply(ApplicationKeys())
         self.winId()
+        self._safe_area_margins = QMargins(self.windowHandle().safeAreaMargins())
+        self._safe_area_pending = False
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
-        self.fit_safe_area(self.windowHandle().safeAreaMargins())
+        ime = QGuiApplication.inputMethod()
+        ime.keyboardRectangleChanged.connect(
+            self._schedule_safe_area, Qt.ConnectionType.QueuedConnection
+        )
+        ime.visibleChanged.connect(
+            self._schedule_safe_area, Qt.ConnectionType.QueuedConnection
+        )
+        self._apply_safe_area()
         self._display_screens: set[QScreen] = set()
         self.windowHandle().screenChanged.connect(self.follow_display)
         self.follow_display()
@@ -1739,8 +1748,35 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         return WindowCommandOrigin(self)
 
     def fit_safe_area(self, margins: QMargins) -> None:
-        """Keep every row clear of the status and navigation bars."""
-        self.setContentsMargins(margins)
+        """Keep every row clear of the status bar, navigation bar, and soft keyboard."""
+        self._safe_area_margins = QMargins(margins)
+        self._apply_safe_area()
+
+    def _schedule_safe_area(self) -> None:
+        """Defer margin updates off Qt-for-Android's QAndroidInputContext callback."""
+        if self._safe_area_pending:
+            return
+        self._safe_area_pending = True
+        QTimer.singleShot(0, self, self._flush_safe_area)
+
+    def _flush_safe_area(self) -> None:
+        self._safe_area_pending = False
+        self._apply_safe_area()
+
+    def _apply_safe_area(self) -> None:
+        margins = self._safe_area_margins
+        ime = QGuiApplication.inputMethod()
+        covered = (
+            self.rect().intersected(ime.keyboardRectangle().toRect()).height()
+            if ime.isVisible()
+            else 0
+        )
+        self.setContentsMargins(
+            margins.left(),
+            margins.top(),
+            margins.right(),
+            max(margins.bottom(), covered),
+        )
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
         self.bus_label.present(self)
@@ -1826,9 +1862,17 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                 + scheme.styles.generate_sidebar_bar_style()
                 + toggle_style
             )
+        muted = MutedColour.rgb(self.renderer.scheme).hex
+        ink_hex = scheme.to_hex(scheme.text_primary)
         self.tabs.setStyleSheet(
             scheme.styles.generate_tab_widget_style()
-            + "QTabBar::tab { padding: 4px 10px; margin-right: 6px; border-top-left-radius: 4px; border-top-right-radius: 4px; }"
+            + f"QTabBar::tab {{ padding: 6px 10px 6px 12px; margin-right: {self.tabs.TAB_GAP}px;"
+              " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
+            + f"QToolButton#tab-close-button {{"
+              f" border: none; border-radius: 4px; padding: 0px;"
+              f" background: transparent; color: {muted}; font-weight: bold; font-size: 13pt; }}"
+            + f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
+              f" background: {toggle_bg}; color: {ink_hex}; }}"
         )
         self.tabs.accent, self.tabs.ink = QColor(self.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary)
         self.tabs.update()

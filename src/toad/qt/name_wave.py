@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
 from PySide6.QtGui import QColor, QFont, QPixmap, QTextCharFormat, QTextLayout
-from PySide6.QtWidgets import QLabel, QStyle, QStyleOptionTab, QStylePainter
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QStyle, QStyleOptionTab, QStylePainter, QTabBar, QToolButton, QWidget
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
@@ -237,6 +237,9 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
     closes shrinks away, on the same clock."""
 
     padding_cells = 1
+    TAB_GAP = 6
+    """Inter-tab right margin (px); read by both the tab stylesheet and `_make_close_button`
+    so the close button always sits inside the painted tab rather than the gap between tabs."""
 
     def __init__(self, clock, accent: QColor, ink: QColor) -> None:
         super().__init__()
@@ -274,12 +277,41 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         for title, mode in entries:
             index = self.addTab(title)
             self.setTabData(index, mode)
+            self.setTabButton(index, QTabBar.ButtonPosition.RightSide, self._make_close_button(mode))
         if moving:
             for mode in modes - set(shown):
                 self.growing[mode] = TabGrowth(self, mode)
         for rect, picture in leaving:
             TabGhost(self, rect, picture)
         return True
+
+    def _make_close_button(self, mode: str) -> QWidget:
+        """A comfortable, theme-tinted close button tucked inside the tab's right edge
+        instead of Fusion's tiny red cross clipped into the inter-tab gap."""
+        container = QWidget(self)
+        container.setObjectName("tab-close-slot")
+        container.setStyleSheet("QWidget#tab-close-slot { background: transparent; }")
+        layout = QHBoxLayout(container)
+        right_inset = self.TAB_GAP + 2
+        layout.setContentsMargins(2, 0, right_inset, 0)
+        layout.setSpacing(0)
+        button = QToolButton(container)
+        button.setObjectName("tab-close-button")
+        button.setText("×")
+        button.setToolTip("Close tab")
+        button.setAutoRaise(True)
+        button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        size = max(24, self.fontMetrics().height() + 4)
+        button.setFixedSize(size, size)
+        button.clicked.connect(lambda _checked=False, target=mode: self._request_close(target))
+        layout.addWidget(button)
+        container.setFixedSize(size + 2 + right_inset, size)
+        return container
+
+    def _request_close(self, mode: str) -> None:
+        index = self.tab_of(mode)
+        if index >= 0:
+            self.tabCloseRequested.emit(index)
 
     def relayout(self) -> None:
         """Lay the tabs out again with the growing tabs' current widths."""

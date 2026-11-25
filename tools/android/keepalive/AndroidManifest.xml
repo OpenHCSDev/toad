@@ -6,12 +6,19 @@
      assemble.py fills the SDK levels from buildozer.spec; without them gradle reads the
      library as targeting SDK 1 and adds READ_PHONE_STATE to the APK. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="org.toadcomms.keepalive">
     <uses-sdk android:minSdkVersion="${minapi}" android:targetSdkVersion="${api}" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application>
+        <!-- Declare adjustResize in the manifest so QtInputDelegate.updateSoftInputMode sees
+             ActivityInfo.softInputMode != 0 and stops overwriting ToadActivity's softInputMode
+             with SOFT_INPUT_ADJUST_PAN on every keyboard show. -->
+        <activity android:name="org.toadcomms.ToadActivity"
+                  android:windowSoftInputMode="adjustResize"
+                  tools:node="merge" />
         <service android:name="org.toadcomms.ConnectedService"
                  android:exported="false"
                  android:foregroundServiceType="remoteMessaging" />
