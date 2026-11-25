@@ -42,9 +42,34 @@ def test_a_transfer_form_names_its_request_and_each_dialog_family_finds_its_memb
 def test_a_location_with_nothing_to_show_says_so_once():
     from toad.client.reader_position import FragmentLocation, UnloadedFragment
     from toad.qt.history import QtRowLocation
+    from toad.widgets.fragment_states import FragmentSpan
 
     for member in ("tooltip", "selected_by", "bodies"):
         _owned_by(FragmentLocation, member, UnloadedFragment, QtRowLocation)
+    for member in ("location", "for_layout", "find_in"):
+        _owned_by(FragmentLocation, member, QtRowLocation, FragmentSpan)
+
+
+def test_hoisted_frontend_owners_for_mentions_sidebars_context_and_agent_turns():
+    from toad.client.context_intent import ContextInspectionReader
+    from toad.client.mention_completion import MentionEditor
+    from toad.launch_binding import AgentConversation
+    from toad.qt.acp_tab import QtAcpSessionView
+    from toad.qt.composer import Composer
+    from toad.qt.context_panel import QtContextExplorer
+    from toad.qt.side_bar import QtSideBar
+    from toad.sidebar_layout import SidebarSurface
+    from toad.widgets.channel_prompt import ChannelPrompt
+    from toad.widgets.context_explorer import ContextExplorer
+    from toad.widgets.conversation import Conversation
+    from toad.widgets.side_bar import SideBar
+
+    _owned_by(MentionEditor, "set_mention_candidates", Composer, ChannelPrompt)
+    _owned_by(SidebarSurface, "toggle_controls", QtSideBar, SideBar)
+    for member in ("_inspection_acquired", "_run_native_read", "_native_acquired"):
+        _owned_by(ContextInspectionReader, member, QtContextExplorer, ContextExplorer)
+    for member in ("agent_turn_over", "submission_request_failed"):
+        _owned_by(AgentConversation, member, QtAcpSessionView, Conversation)
 
 
 def test_settings_agentless_presentation_and_source_refresh_are_the_shared_owners():

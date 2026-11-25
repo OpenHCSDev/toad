@@ -604,10 +604,8 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     # Offers
 
-    def set_mention_candidates(self, candidates: tuple[MentionCandidate, ...]) -> None:
-        if candidates != self.mention_candidates:
-            self.mention_candidates = candidates
-            self.refresh_offers()
+    def mention_candidates_changed(self) -> None:
+        self.refresh_offers()
 
     def set_commands(self, commands: list[SlashCommand]) -> None:
         self.commands = commands

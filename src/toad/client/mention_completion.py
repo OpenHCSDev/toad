@@ -10,7 +10,20 @@ from agent_comms.messaging.mentions import MentionCandidate, MentionQuery
 
 
 class MentionEditor:
-    """The editor a mention is accepted into: it replaces one span of one line."""
+    """The editor a mention is accepted into: holds the current mention candidates and
+    replaces one span of one line when a candidate is accepted."""
+
+    mention_candidates: tuple[MentionCandidate, ...] = ()
+
+    def set_mention_candidates(self, candidates: tuple[MentionCandidate, ...]) -> None:
+        """Replace the offered mention candidates and refresh when the set changes."""
+        if candidates != self.mention_candidates:
+            self.mention_candidates = candidates
+            self.mention_candidates_changed()
+
+    def mention_candidates_changed(self) -> None:
+        """Refresh the frontend's mention completion popup after `mention_candidates` updates."""
+        raise NotImplementedError
 
     def replace_span(self, row: int, start: int, end: int, text: str) -> None:
         raise NotImplementedError

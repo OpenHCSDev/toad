@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from collections.abc import Callable
 from functools import partial
+from time import time_ns
 
 from agent_comms.projects.checkouts import Checkout
 from metaclass_registry import AbstractHooksMeta
@@ -15,6 +16,7 @@ from toad.agent_binding import AgentConnection
 from toad.client.agent_processes import AgentProcesses
 from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import read_agents
+from toad.client.db import DB
 from toad.core import session_requests
 from toad.core.events import CoreEventStream
 from toad.surface_binding import SurfaceBinding
@@ -62,6 +64,61 @@ class AgentConversation(metaclass=AbstractHooksMeta):
     def agent_surface(self, events: CoreEventStream) -> SurfaceBinding:
         """How this view receives its bound agent's events and presents its tools,
         permissions and terminals."""
+
+    def before_turn_settle(self) -> None:
+        """Frontend cleanup before settling live output at the end of a turn."""
+
+    async def before_turn_boundary(self) -> None:
+        """Frontend cleanup after output settles and before the turn boundary."""
+
+    def after_turn_boundary(self) -> None:
+        """Frontend bookkeeping once the turn boundary is recorded."""
+
+    @abstractmethod
+    async def present_stop_note(self, text: str) -> None:
+        """Present a turn stop-reason note to the reader."""
+
+    @abstractmethod
+    async def present_submission_error(self, detail: str) -> None:
+        """Present an internal submission failure note to the reader."""
+
+    async def agent_turn_over(self, stop_reason) -> None:
+        """The turn ended: record usage, settle output, show any stop note and notify."""
+        self.turns.finish_client()
+        self.before_turn_settle()
+        model = self.agent_binding.configuration.model.selected
+        if model is not None:
+            stop_reason.record_usage(
+                partial(
+                    self.run_worker,
+                    partial(
+                        DB().record_model_usage,
+                        self.model_history_scope,
+                        model.value,
+                        last_used=time_ns(),
+                    ),
+                )
+            )
+        await self.output.settle()
+        await self.before_turn_boundary()
+        self.output.boundary()
+        self.after_turn_boundary()
+        if stop_reason.note:
+            await self.present_stop_note(
+                stop_reason.note.replace("$AGENT", (self.agent_title or "agent").title())
+            )
+        if self.app.settings.notifications.turn_over:
+            self.app.input_attention.notify(
+                f"{self.agent_title} has finished working",
+                title="Waiting for input",
+                sound="turn-over",
+            )
+
+    async def submission_request_failed(self, error, text: str) -> None:
+        """The prompt never reached the agent: restore the draft and show the error."""
+        self.turns.finish_client()
+        self.restore_composer_draft(text)
+        await self.present_submission_error(str(error) or "no details were provided")
 
 
 class AgentOrigin(metaclass=AbstractHooksMeta):

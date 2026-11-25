@@ -139,8 +139,9 @@ class FragmentLocation(ABC):
     # Whether a page draws this occurrence somewhere; only the not-loaded result does not.
     located: ClassVar[bool] = True
 
-    @abstractmethod
-    def location(self) -> FragmentLocation: ...
+    def location(self) -> FragmentLocation:
+        """A drawn location answers itself; `UnloadedFragment` raises `FragmentNotLoaded`."""
+        return self
 
     def tooltip(self) -> str | None:
         """The tooltip for the pointer over this location; None shows none."""
@@ -154,8 +155,9 @@ class FragmentLocation(ABC):
         """The widgets a terminal draws this occurrence with; a location with none has none."""
         return ()
 
-    @abstractmethod
-    def for_layout(self, window: ReaderWindow, position: ReaderPosition) -> ReaderPosition: ...
+    def for_layout(self, window: ReaderWindow, position: ReaderPosition) -> ReaderPosition:
+        """A drawn location keeps `position` for layout; `UnloadedFragment` drops its holder."""
+        return position
 
     @abstractmethod
     def laid_out(self, window: ReaderWindow) -> bool: ...
@@ -163,8 +165,9 @@ class FragmentLocation(ABC):
     @abstractmethod
     def destination(self, window: ReaderWindow, fraction: float) -> float: ...
 
-    @abstractmethod
-    def find_in(self, pages: Iterator[ReaderPage], position: FragmentPosition) -> FragmentLocation: ...
+    def find_in(self, pages: Iterator[ReaderPage], position: FragmentPosition) -> FragmentLocation:
+        """Already located; `UnloadedFragment` searches the remaining pages."""
+        return self
 
 
 class UnloadedFragment(FragmentLocation):

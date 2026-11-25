@@ -315,9 +315,8 @@ class QtSideBar(StoredSidebarLayout, SidebarSurface, QWidget, metaclass=PyQtWidg
         if self._layout.set_collapsed(self._identity, collapsed):
             self.lay_out()
 
-    def toggle_controls(self) -> None:
-        self.controls_wanted = not self.controls_wanted
-        self.controls.setVisible(self.controls_wanted and not self.holds_alone)
+    def show_controls(self, shown: bool) -> None:
+        self.controls.setVisible(shown)
 
     def present(self) -> None:
         """Draw the strip, the slider and the placement actions from the one layout."""
