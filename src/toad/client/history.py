@@ -641,6 +641,7 @@ class RestyledViewportRequest(ReplacementViewportRequest):
 @dataclass(frozen=True)
 class ObservedViewportRequest(ReplacementViewportRequest):
     observation: WireObservation
+    animates_arrivals: ClassVar[bool] = True
 
     def source(self, owner):
         source = owner.page_source.replacement(self.observation.through)

@@ -283,6 +283,8 @@ class LatestViewportRequest[Destination](LatestViewportState):
 class ReplacementViewportRequest(LatestViewportRequest):
     """The request owns its new reading until the pages replace the old ones."""
 
+    animates_arrivals: ClassVar[bool] = False
+
     @abstractmethod
     def source(self, owner):
         """Open the complete reading selected by this replacement."""
@@ -301,6 +303,7 @@ class ReplacementViewportRequest(LatestViewportRequest):
 @dataclass(frozen=True)
 class LatestReplacementViewportRequest[Cursor](ReplacementViewportRequest):
     through: Cursor
+    animates_arrivals: ClassVar[bool] = True
 
     def source(self, owner):
         return owner.page_source.replacement(self.through)

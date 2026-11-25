@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from weakref import ref
 
+from agent_comms.coordination.errors import CoordinationReadUnavailable
 from agent_comms.planning.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.planning.goals import GoalUnavailable
@@ -12,7 +13,7 @@ from toad.goal_controls import GoalSource
 
 
 class SessionObservation(ABC):
-    errors = (OSError, ValueError)
+    errors = (OSError, ValueError, CoordinationReadUnavailable)
 
     def __init__(self, view):
         self._view = ref(view)

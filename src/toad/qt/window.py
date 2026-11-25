@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QScrollArea,
+    QScroller,
     QSizePolicy,
     QStackedWidget,
     QToolButton,
@@ -1652,10 +1653,10 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # which clipped the tabs' lower 10 px); the strip is only a window onto the tabs.
         self.tab_strip.setObjectName("toad-tab-strip")
         self.tab_strip.setStyleSheet("#toad-tab-strip { border: none; padding: 0px; background: transparent; }")
-        # A renamed or added tab changes the strip's range: the selected one stays in view.
-        self.tab_strip.horizontalScrollBar().rangeChanged.connect(lambda *_: self.show_current_tab())
+        self._last_tab_mode: str | None = None
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
+        bar.setContentsMargins(0, 0, 0, 0)
         for widget in (self.menu, self.back, self.forward):
             bar.addWidget(widget)
         bar.addWidget(self.tab_strip, 1)
@@ -1727,9 +1728,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         button.setText(text)
         button.setToolTip(tip)
         button.setAutoRaise(True)
-        button.setMinimumSize(48, 44)
+        button.setMinimumSize(36, 32)
         font = button.font()
-        font.setPointSizeF(font.pointSizeF() * 1.5)
+        font.setPointSizeF(font.pointSizeF() * 1.2)
         button.setFont(font)
         button.clicked.connect(action)
         return button
@@ -1795,14 +1796,17 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def mark_current(self) -> None:
         modes = self.session_navigation.tab_modes
         mode = self.selected_mode
+        selection_changed = mode != self._last_tab_mode
+        self._last_tab_mode = mode
         self.tabs.setCurrentIndex(modes.index(mode) if mode in modes else -1)
-        # Once the bar has laid its tabs out (a restyle or a new title resizes them after this),
-        # the strip is as tall as its tabs and the selected one is in view.
-        QTimer.singleShot(0, self.show_current_tab)
+        # Keep strip height and panes synced on every refresh, but only scroll the strip
+        # to the selected tab when selection actually changed so user scrolling never snaps back.
+        QTimer.singleShot(0, partial(self.show_current_tab, scroll_to_current=selection_changed))
 
-    def show_current_tab(self) -> None:
+    def show_current_tab(self, *, scroll_to_current: bool = True) -> None:
         self.tab_strip.setFixedHeight(self.tabs.sizeHint().height())
-        if (index := self.tabs.currentIndex()) >= 0:
+        scroller = QScroller.scroller(self.tab_strip.viewport())
+        if scroll_to_current and scroller.state() == QScroller.State.Inactive and (index := self.tabs.currentIndex()) >= 0:
             rect = self.tabs.tabRect(index)
             self.tab_strip.ensureVisible(rect.center().x(), rect.center().y(), rect.width() // 2 + UiGap.dialog, 0)
         self.present_panes()
@@ -1811,12 +1815,26 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def paint_chrome_colours(self) -> None:
         """The sidebars, the tab bar and the navigation band in the current scheme's styles."""
         scheme = self.theme.color_scheme
+        border = scheme.to_hex(scheme.border_color)
+        toggle_split = (
+            f"QWidget#SidebarToggle {{ border: 1px solid {border}; padding: 1px 4px; }}"
+        )
         for side in self.chrome.sidebars:
-            side.setStyleSheet(scheme.styles.generate_sidebar_pane_style() + scheme.styles.generate_sidebar_bar_style())
-        self.tabs.setStyleSheet(scheme.styles.generate_tab_widget_style())
+            side.setStyleSheet(
+                scheme.styles.generate_sidebar_pane_style()
+                + scheme.styles.generate_sidebar_bar_style()
+                + toggle_split
+            )
+        self.tabs.setStyleSheet(
+            scheme.styles.generate_tab_widget_style()
+            + "QTabBar::tab { padding: 4px 10px; margin-right: 2px; }"
+        )
         self.tabs.accent, self.tabs.ink = QColor(self.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary)
         self.tabs.update()
-        self.navigation.setStyleSheet(scheme.styles.generate_frame_style())
+        self.navigation.setStyleSheet(
+            scheme.styles.generate_frame_style()
+            + "QFrame { padding: 2px 4px; }"
+        )
         self.float_layer.follow_scheme(scheme)
 
     def settings_widgets(self, widget_type: type) -> list:

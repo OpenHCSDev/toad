@@ -31,7 +31,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from pyqt_reactive.widgets.fitted_text import WrappedText
+from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
 
 from toad.client.application import ClientApplication
 from toad.client.bus_submission import BusSubmissions, TypedText
@@ -345,10 +345,20 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.glyph = QLabel()
         self.frame = QFrame()
         self.frame.setObjectName("prompt-frame")
-        frame = QHBoxLayout(self.frame)
+        self.editor_row = editor_row = QHBoxLayout()
+        editor_row.setContentsMargins(0, 0, 0, 0)
+        editor_row.setSpacing(0)
+        editor_row.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
+        editor_row.addWidget(self.editor, 1)
+        self.receipt = Receipt(host.app, renderer)
+        self.actions_row = actions_row = QHBoxLayout()
+        actions_row.setContentsMargins(0, UiGap.tight, 0, 0)
+        actions_row.setSpacing(UiGap.tight)
+        actions_row.addWidget(self.receipt, 1, Qt.AlignmentFlag.AlignVCenter)
+        frame = QVBoxLayout(self.frame)
         frame.setSpacing(0)
-        frame.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
-        frame.addWidget(self.editor, 1)
+        frame.addLayout(editor_row)
+        frame.addLayout(actions_row)
         self.info_bar = QtInfoBar(host, renderer, self)
         renderer.themed(self, self.paint_colours)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
@@ -363,15 +373,13 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.held = QtQueueHint(self)
         self.info_bar.layout().insertWidget(self.info_bar.layout().indexOf(self.info_bar.status), self.held)
         self.failure = self.line(FailureRole)
-        self.receipt = Receipt(host.app, renderer)
-        self.send_button = QPushButton(SubmitAction.title, self)
+        self.send_button = QPushButton(SubmitAction.title, self.frame)
         self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
         self.send_button.clicked.connect(self.submit)
-        # The row's margins are the input box setting's frame margin (`place_input_box`); every
-        # button beside the box is the box's one-line height, pinned to its bottom
-        # (`fit_buttons`).
+        # The input frame takes the full width so multiline drafts never lose a side column
+        # to Attach/Send; action buttons sit in `actions_row` along the frame's bottom edge.
         self.frame_row = frame_row = QHBoxLayout()
-        frame_row.setSpacing(UiGap.normal)
+        frame_row.setSpacing(0)
         frame_row.addWidget(self.frame, 1)
         self.add_box_button(self.send_button)
         layout = QVBoxLayout(self)
@@ -384,8 +392,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         layout.addWidget(self.delivery_controls)
         layout.addLayout(frame_row)
         layout.addWidget(self.info_bar)
-        for line in (self.failure, self.receipt):
-            layout.addWidget(line)
+        layout.addWidget(self.failure)
         # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
         # The top-level window is the shared layout viewport. Android can keep that native
@@ -442,12 +449,13 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         return self.editor_height(1) + padding.top() + padding.bottom() + border
 
     def add_box_button(self, button: QPushButton) -> None:
-        """The one way a button joins the box's row (Send, and any a composer adds, Attach
-        first): placed before Send, bottom-aligned, and the whole row sized again, so a button
-        added after the composer was built is sized like the rest (Attach was not, 2026-11-18)."""
+        """The one way a button joins the frame's bottom action bar (Send, and any a composer
+        adds, Attach first): placed before Send inside `self.frame` so multiline text keeps
+        the full frame width."""
+        button.setParent(self.frame)
         # Send is added first and stays last; every later button goes before it.
-        self.frame_row.insertWidget(self.frame_row.count() - len(self.box_buttons),
-                                    button, 0, Qt.AlignmentFlag.AlignBottom)
+        self.actions_row.insertWidget(self.actions_row.count() - len(self.box_buttons),
+                                      button, 0, Qt.AlignmentFlag.AlignVCenter)
         self.box_buttons = (*self.box_buttons[:-1], button, *self.box_buttons[-1:]) \
             if self.box_buttons else (button,)
         self.fit_buttons()
@@ -455,14 +463,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     box_buttons: tuple[QPushButton, ...] = ()
 
     def fit_buttons(self) -> None:
-        """Every button in the box's row is one size: the box's one-line height, and the
-        widest one's width (at least as wide as tall), level with a one-line box and pinned to
-        the bottom of a taller one."""
-        height = self.one_line_box_height()
-        buttons = self.box_buttons
-        width = max((height, *(button.sizeHint().width() for button in buttons)))
-        for button in buttons:
-            button.setFixedSize(width, height)
+        """Compact inside-frame action buttons: one crisp height across Attach and Send."""
+        height = max(28, self.fontMetrics().lineSpacing() + 8)
+        for button in self.box_buttons:
+            button.setStyleSheet("QPushButton { padding: 2px 10px; }")
+            button.setFixedHeight(height)
+            button.setMinimumWidth(max(height, button.sizeHint().width()))
 
     def update_prompt(self) -> None:
         """A leading symbol or the placeholder setting changed: draw both again."""
@@ -723,6 +729,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.submitting.refresh(self.queue_summary)
         RowReveal.toggle(self.delivery_controls, self.shows_delivery_controls, self)
         self.held.refresh(self.queue_hint)
+        self.info_bar.sync_visibility()
 
     def open_queue_menu(self) -> None:
         """Textual's ``Conversation.open_queue_menu`` pushes the ``QueueInspection``
@@ -836,9 +843,9 @@ class MailboxComposer(MessageComposer, ProjectComposer):
     """A CLI thread's composer, Textual's `MailboxPrompt(MessagePrompt)`, with its project path."""
 
 
-class Receipt(NotificationSubscriber, WrappedText):
-    """Where your last message in this view stands with its recipients, from the shared
-    notification statuses: Checking, then what Core answers (sent, read, answered)."""
+class Receipt(NotificationSubscriber, ElidedLine):
+    """Where your last message in this view stands with its recipients, tucked cleanly on
+    the left of the composer's inside-frame action bar (`Read 11:40 · 2 read`)."""
 
     def __init__(self, app: ClientApplication, renderer: QtLineRenderer) -> None:
         super().__init__()
@@ -867,12 +874,13 @@ class Receipt(NotificationSubscriber, WrappedText):
 
     def paint(self, status: NotificationStatus) -> None:
         self.status = status
-        self.setText(f"Your last message: {status.title}")
+        self.setText(status.title)
+        self.setToolTip(f"Last message: {status.title}")
         self.paint_colour()
         self.show()
 
     def paint_colour(self) -> None:
-        self.renderer.apply_sheet(self, f"{self.renderer.color_style(self.status.role)}; padding: 0 8px 4px 8px")
+        self.renderer.apply_sheet(self, f"{self.renderer.color_style(self.status.role)}; padding: 0 4px 0 0")
 
     def notifications_observed(self, results) -> None:
         for status in CheckedNotifications.for_references(self.references, results):

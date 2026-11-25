@@ -66,7 +66,7 @@ class QtMailboxView(QtThreadView, BoundSources):
         # it to choose ``UnreadTranscript``; pretending to be unbound until ``bind_opened``
         # made the empty page look already published and no first-page read was scheduled.
         self._identity: ThreadIdentity | NoThreadIdentity = ThreadIdentity(thread_incarnation, root)
-        self._lay_out_thread(app, f"Mailbox: {thread_incarnation.name}", thread_incarnation)
+        self._lay_out_thread(app, thread_incarnation.name, thread_incarnation)
 
     def composer_class(self) -> type[MailboxComposer]:
         """Textual's `MailboxSessionSources.prompt`: a `MailboxPrompt`."""

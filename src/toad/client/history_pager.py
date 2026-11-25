@@ -926,15 +926,17 @@ class HistoryPager(ResumesSource):
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, end)
-            # The rows an edge still owes decide that it reads; what it read is published
-            # as the page it is, to the item limit. Topping the runway up by exactly what
-            # it owed published a row or two at a time (Qt: 121 rows in 91 publications,
-            # each one a layout of the reader's window), where a page is 40 messages.
-            # Rows arriving at a followed end are taken as the viewport needs them.
+            # Prepare a bounded runway chunk (~3 viewports) rather than the entire 40-message
+            # transport page before mounting: on a phone, 40 synchronous Qt document layouts
+            # stalled mid-scroll loading for 0.5-1.5s while 1-row-at-a-time top-ups thrashed
+            # layouts. Remaining messages in the fetched page extend locally (`local=True`).
+            edge_chunk = max(1, missing) if followed_end else max(
+                missing, window.presentation_budget.runway_rows(window.viewport_rows)
+            )
             await staged.prepare_rows(
                 self, current, target=self, selected=self.selected_categories, end=end,
                 boundary=end.edge_boundary(edge, local, staged),
-                rows_needed=max(1, missing) if followed_end else WHOLE_PAGE,
+                rows_needed=edge_chunk,
                 limit=self.fragment_limit)
             if not current():
                 return False
@@ -1358,12 +1360,25 @@ class ConversationPager(HistoryPager):
                           arrivals: tuple[HistoryFragment, ...] = (),
                           publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Replace the drawn source, retaining the followed tail's active arrivals."""
+        was_drawn = not self.undrawn
+        was_following = self.follows_source_tail
+        previous_keys = (
+            {fragment.key for page in self.pages for fragment in page.prepared.fragments_in_range}
+            if (not arrivals and was_drawn and was_following and request.animates_arrivals)
+            else None
+        )
         retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
                           if fragment.key in page.arrivals)
-                    if self.follows_source_tail else ())
+                    if was_following else ())
         self._generation += 1
         published = await self.jump_latest(request, publication_current)
         if published:
+            if not arrivals and previous_keys is not None and self.pages:
+                arrivals = tuple(
+                    fragment
+                    for fragment in self.pages[-1].prepared.fragments_in_range
+                    if fragment.key not in previous_keys
+                )
             self.window.arrivals_followed(arrivals)
             self.repaint(arrivals, continuing=retained)
         return published

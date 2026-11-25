@@ -13,6 +13,7 @@ from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
 from toad.core.projection import MroProjection
+from toad.motion import ARRIVAL
 from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
@@ -110,9 +111,12 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
             window = self.query_ancestor(HistoryWindow)
             window.keep_reader()
             rows = self._lines.height
+            was_displayed = self.display
             self._lines = prepared.wrap(self._width or width, self.app.colours.line_renderer)
             self._rows = AcquiredRows(source, self._lines, request.context)
             self.display = True
+            if not was_displayed:
+                self.run_effect(ARRIVAL)
             # A chunk that ends on the row the draft already had changes paint, not geometry:
             # asking for layout on every chunk re-arranged the window once per streamed token.
             self.refresh(layout=self._lines.height != rows)

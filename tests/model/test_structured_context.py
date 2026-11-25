@@ -97,6 +97,28 @@ def test_plain_text_passes_through_without_extra_wrapping():
     assert parse_context_sections("Ordinary unstructured note.") == ()
 
 
+def test_markdown_code_and_unclosed_prose_tags_do_not_swallow_messages():
+    # Exact pattern from #model 6199 that split mid-backtick and ate the rest of the message.
+    prose_with_code = (
+        "Stage 0/1: CLM `<ctx>` + git/Zarr lossless `.live_ctx/originals/`, "
+        "plus `train_loop.py` and `<think>` examples."
+    )
+    assert parse_structured_text(prose_with_code) == (AnswerPart(prose_with_code),)
+    assert parse_structured_text(prose_with_code, allow_unclosed=False) == (AnswerPart(prose_with_code),)
+
+    fenced = "Example:\n```xml\n<ctx>not live</ctx>\n```\nAfter fence."
+    assert parse_structured_text(fenced) == (AnswerPart(fenced),)
+
+    # Unclosed tag in a completed bus message stays literal prose instead of becoming streaming.
+    unclosed = "Discussing <ctx> without backticks and rest of message."
+    assert parse_structured_text(unclosed, allow_unclosed=False) == (AnswerPart(unclosed),)
+    row = MessageRow(Message(sender="clm-live", target="#model", body=prose_with_code, type=InfoKind), reader="tristan")
+    for style in (IrcMessageStyle(), MarkdownMessageStyle()):
+        blocks = style.body(row, prose_with_code)
+        assert not any(isinstance(block, Summary) for block in blocks)
+        assert len(blocks) == 1
+
+
 def test_transcript_and_wire_message_render_structured_blocks_without_raw_xml():
     raw = "<think>Certainty:\n- DEDUCED: ok. Basis: ran test</think>\nFinal answer."
     consumer = FragmentLineConsumer(part=OnlyPart())
