@@ -69,6 +69,10 @@ def test_qt_editing_mode_badge_hides_standard_and_collapses_empty_info_bar(monke
         assert not bar.badge.isHidden()
         assert bar.badge.text() == VimInsert().label
         assert not bar.isHidden()
+
+        from toad.qt.composer import Receipt
+        receipt = Receipt(MagicMock(), renderer, bar)
+        assert receipt.isHidden()
     finally:
         parent.deleteLater()
 
