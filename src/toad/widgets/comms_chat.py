@@ -32,9 +32,9 @@ from toad.transcript_scope import NoTranscript
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.conversation import (
-    Contents,
     ContentsGrid,
     Conversation,
+    ConversationContents,
     CursorContainer,
     PromptStack,
     Window,
@@ -76,7 +76,7 @@ class CommsChatView(WireConversationView):
         self._me = me
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.input_scope}")
-        self.message_contents = Contents()
+        self.message_contents = ConversationContents()
         self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
 
     def transcript_binding(self) -> ViewBinding:
