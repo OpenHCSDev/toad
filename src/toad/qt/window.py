@@ -53,7 +53,6 @@ from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextL
 from toad.keymap import KeyInvocationId
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
-from ui_theme.clock import AnimationClock
 from ui_theme.scheme import AccentColour, ColourScheme, MutedColour, PrimaryColour, SurfaceHoverColour
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
@@ -62,7 +61,7 @@ from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
 from toad.client.application import ACTIVE_PRESENCE, ApplicationPresence, ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame, QtWorkspaceHosted
-from toad.qt.widget_animation import frame_interval
+from toad.qt.widget_animation import QtAnimationClock, frame_interval
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, MenuActionRun, NewSessionAction, NewSessionControl
@@ -385,8 +384,7 @@ class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
     def wave_clock(self):
         return self.treeWidget().window.animation_clock
 
-    @property
-    def animation_visible(self) -> bool:
+    def wave_visible(self) -> bool:
         tree = self.treeWidget()
         return tree is not None and tree.isVisible()
 
@@ -1548,7 +1546,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._animation_timer.timeout.connect(self._tick_animation)
         self._layout_pending = False
         self._presence: ApplicationPresence = ACTIVE_PRESENCE
-        self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
+        self.animation_clock = QtAnimationClock(self._schedule_animation, enabled=animations_enabled())
         # Notices and the work the reader waits on float over the pages, never in their layout.
         self.float_layer = QtFloatLayer(
             self.theme.color_scheme, self.renderer, self.animation_clock, self)

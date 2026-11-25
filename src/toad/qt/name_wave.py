@@ -136,6 +136,14 @@ class QtClockedWave(NameWave):
         """The app's animation clock, as this wave's owner reaches it."""
         raise NotImplementedError
 
+    def wave_visible(self) -> bool:
+        """Whether this wave's widget is currently shown on screen."""
+        raise NotImplementedError
+
+    @property
+    def animation_visible(self) -> bool:
+        return self.wave_visible() and not self.wave_clock().ambient_paused
+
     def wave_running(self) -> bool:
         return self.animation is not None
 
@@ -168,8 +176,7 @@ class QtTabWave(QtClockedWave):
     def wave_clock(self):
         return self.bar.clock
 
-    @property
-    def animation_visible(self) -> bool:
+    def wave_visible(self) -> bool:
         return self.bar.isVisible()
 
     def wave_cells(self) -> tuple[int, int] | None:

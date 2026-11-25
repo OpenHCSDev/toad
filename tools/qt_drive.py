@@ -960,7 +960,7 @@ class HeaderRuleScenario(Scenario):
         window = self.page.messages
         overlay = window.findChild(OverlayScrollBar)
         return dict(viewport=window.viewport().width(), bar_beside=window.verticalScrollBar().width(),
-                    overlay=None if overlay is None else (overlay.isVisible(), round(overlay.opacity.opacity(), 2),
+                    overlay=None if overlay is None else (overlay.isVisible(), round(overlay.handle_opacity, 2),
                                                           overlay.geometry().getRect()))
 
     async def run(self) -> None:

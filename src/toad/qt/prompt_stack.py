@@ -221,7 +221,8 @@ class QtSettingVisibility(SettingVisible, SettingsReading):
     `SettingVisibility` applies it on mount. The row is handed the view it sits in."""
 
     def show_setting(self, visible: bool) -> None:
-        self.setVisible(visible)
+        if self.isHidden() == visible:
+            self.setVisible(visible)
 
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)
