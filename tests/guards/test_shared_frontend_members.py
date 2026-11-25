@@ -66,10 +66,65 @@ def test_hoisted_frontend_owners_for_mentions_sidebars_context_and_agent_turns()
 
     _owned_by(MentionEditor, "set_mention_candidates", Composer, ChannelPrompt)
     _owned_by(SidebarSurface, "toggle_controls", QtSideBar, SideBar)
-    for member in ("_inspection_acquired", "_run_native_read", "_native_acquired"):
+    for member in (
+        "_inspection_acquired", "_run_native_read", "_native_acquired",
+        "older_requests", "newer_requests", "_change_page",
+    ):
         _owned_by(ContextInspectionReader, member, QtContextExplorer, ContextExplorer)
     for member in ("agent_turn_over", "submission_request_failed"):
         _owned_by(AgentConversation, member, QtAcpSessionView, Conversation)
+
+    from toad.client.sort_control import SortControlBase
+    from toad.qt.channel_sort import QtSortButton
+    from toad.widgets.session_sort import SortChoice
+
+    for member in ("visibility_fields", "visibility_toggle_label", "_toggle_visibility"):
+        _owned_by(SortControlBase, member, QtSortButton, SortChoice)
+    _owned_by(SortControlBase, "saved_settings", QtSortButton)
+
+    # Exercise ContextInspectionReader._change_page directly through older_requests.
+    events: list[tuple] = []
+
+    class _FakeInspection:
+        class page:
+            older = "cursor-older"
+            newer = "cursor-newer"
+
+    class _FakeState:
+        def present(self, fn):
+            fn(type("_Holding", (), {"inspection": _FakeInspection()})())
+
+    class _FakeIdentity:
+        def inspection_state(self):
+            return "fresh-state"
+
+    class _ProbeReader(ContextInspectionReader):
+        thread_identity = _FakeIdentity()
+
+        def set_page_controls(self, *, older: bool, newer: bool) -> None:
+            events.append(("controls", older, newer))
+
+        def cancel_page_work(self) -> None:
+            events.append(("cancel",))
+
+        def clear_page_display(self, placeholder: str) -> None:
+            events.append(("clear", placeholder))
+
+        def reload_page(self) -> None:
+            events.append(("reload",))
+
+    reader = _ProbeReader()
+    reader.start_inspection({})
+    reader.state = _FakeState()
+    reader.older_requests()
+    assert reader.intent.cursor == "cursor-older"
+    assert reader.state == "fresh-state"
+    assert events == [
+        ("cancel",),
+        ("controls", False, False),
+        ("clear", "Loading recorded request page…"),
+        ("reload",),
+    ]
 
 
 def test_settings_agentless_presentation_and_source_refresh_are_the_shared_owners():

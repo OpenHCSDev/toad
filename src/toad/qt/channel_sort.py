@@ -46,31 +46,21 @@ class QtSortButton[Order: DisplayOrder](SortControlBase[Order], QToolButton, met
         self.clicked.connect(self.open_choices)
         self.sort_changed()
 
-    def visibility_fields(self):
-        """Settings the menu toggles beside the orders, as Textual's `SortChoice` lists them."""
-        return ()
-
     def choice_entries(self) -> tuple[MenuEntry, ...]:
         """The orders, then the settings this choice toggles, each with its current mark."""
         choices = self._form_type.choices
         orders = tuple(MenuEntry(label=choices.label(order), run=partial(self._picked, order))
                        for order in choices.choices())
         toggles = tuple(
-            MenuEntry(label=f"{'✓' if field.value else '○'} {field.label}",
+            MenuEntry(label=self.visibility_toggle_label(path),
                       run=partial(self._toggle_visibility, path))
-            for path in self.visibility_fields()
-            for field in (path.bind(self.saved_settings().state),))
+            for path in self.visibility_fields())
         return orders + toggles
 
     def open_choices(self) -> None:
         QtMenu.of(self).show_entries(self.choice_entries(), QtMenu.anchor_of(self))
 
-    def saved_settings(self):
-        raise NotImplementedError(f"{type(self).__name__} toggles no settings")
-
-    def _toggle_visibility(self, path) -> None:
-        settings = self.saved_settings()
-        settings.toggle(path)
+    def schedule_settings_save(self, settings) -> None:
         asyncio.ensure_future(settings.save())
 
     def sort_changed(self) -> None:

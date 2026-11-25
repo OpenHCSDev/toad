@@ -66,9 +66,8 @@ class SortChoice[Order: DisplayOrder](SortControlBase[Order]):
         items = [(partial(self._choose_order, order, write), choices.label(order))
                  for order in orders]
         for path in self.visibility_fields():
-            field = path.bind(host.app.saved_settings.state)
             items.append((partial(self._toggle_visibility, path),
-                          f"{'✓' if field.value else '○'} {field.label}"))
+                          self.visibility_toggle_label(path)))
 
         def choose(action):
             if action:
@@ -85,13 +84,11 @@ class SortChoice[Order: DisplayOrder](SortControlBase[Order]):
             # Only the backend observation updates the displayed order.
             self.sort_host.run_worker(write(order), group="sort-order")
 
-    def _toggle_visibility(self, path: FieldPath) -> None:
-        settings = self.sort_host.app.saved_settings
-        settings.toggle(path)
-        self.sort_host.run_worker(settings.save(), group="channel-visibility")
+    def saved_settings(self):
+        return self.sort_host.app.saved_settings
 
-    def visibility_fields(self) -> tuple[FieldPath, ...]:
-        return ()
+    def schedule_settings_save(self, settings) -> None:
+        self.sort_host.run_worker(settings.save(), group="channel-visibility")
 
     @abstractmethod
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...

@@ -102,11 +102,11 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         row.setSpacing(UiGap.normal)
         self._older = QPushButton("Older", self)
         self._older.setEnabled(False)
-        self._older.clicked.connect(self._on_older)
+        self._older.clicked.connect(self.older_requests)
         row.addWidget(self._older)
         self._newer = QPushButton("Newer", self)
         self._newer.setEnabled(False)
-        self._newer.clicked.connect(self._on_newer)
+        self._newer.clicked.connect(self.newer_requests)
         row.addWidget(self._newer)
         self._refresh_btn = QPushButton("Refresh", self)
         self._refresh_btn.clicked.connect(self._on_refresh)
@@ -303,20 +303,14 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
     def _on_refresh(self) -> None:
         self.present(force=True)
 
-    def _on_older(self) -> None:
-        self.state.present(lambda current: self._change_page(current.inspection.page.older))
-
-    def _on_newer(self) -> None:
-        self.state.present(lambda current: self._change_page(current.inspection.page.newer))
-
-    def _change_page(self, cursor) -> None:
+    def cancel_page_work(self) -> None:
         self._cancel_background()
-        self.intent.select_page(cursor)
-        self.state = self.thread_identity.inspection_state()
-        self._older.setEnabled(False)
-        self._newer.setEnabled(False)
+
+    def clear_page_display(self, placeholder: str) -> None:
         self._tree.clear()
-        self._detail.setPlainText("Loading recorded request page…")
+        self._detail.setPlainText(placeholder)
+
+    def reload_page(self) -> None:
         self.present(force=True)
 
     def _on_copy(self) -> None:
