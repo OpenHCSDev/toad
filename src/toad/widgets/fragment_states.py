@@ -53,9 +53,6 @@ class FragmentSpan(BlockSpan, FragmentLocation):
         return cls(index=span.index, first=first + span.first, height=span.height,
                    drawn=span.drawn, fragment=fragment, page=page)
 
-    def location(self) -> FragmentSpan:
-        return self
-
     def tooltip(self) -> str | None:
         return RecordedMessageClock(self.fragment.timestamp).display()[1]
 
@@ -65,12 +62,6 @@ class FragmentSpan(BlockSpan, FragmentLocation):
 
     def bodies(self) -> tuple[Widget, ...]:
         return (self.page,)
-
-    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
-        return position
-
-    def find_in(self, pages: Iterator[TranscriptPageView], position: FragmentPosition) -> FragmentLocation:
-        return self
 
     def laid_out(self, window: HistoryWindow) -> bool:
         return self.page.rows_measured and any(window.placements(self.bodies()))

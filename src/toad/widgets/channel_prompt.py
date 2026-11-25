@@ -55,7 +55,7 @@ class ChannelPrompt(MentionEditor, MessagePrompt):
         self.mention_list = MentionList()
         self.mention_list.border_title = MentionCompletion.title
         self.mention_list.display = False
-        self._candidates: tuple[MentionCandidate, ...] = ()
+        self.mention_candidates: tuple[MentionCandidate, ...] = ()
         self._options: tuple[MentionCandidate, ...] = ()
         self._mention: MentionCompletion = MentionCompletion()
         self._dismissed_text: str | None = None
@@ -64,10 +64,8 @@ class ChannelPrompt(MentionEditor, MessagePrompt):
         yield self.mention_list
         yield from super().compose()
 
-    def set_mention_candidates(self, candidates: tuple[MentionCandidate, ...]) -> None:
-        if candidates != self._candidates:
-            self._candidates = candidates
-            self.refresh_mentions()
+    def mention_candidates_changed(self) -> None:
+        self.refresh_mentions()
 
     @on(TextArea.Changed)
     def mention_text_changed(self, event: TextArea.Changed) -> None:
@@ -81,7 +79,7 @@ class ChannelPrompt(MentionEditor, MessagePrompt):
             self._dismissed_text = None
         row, column = area.cursor_location
         self._mention = MentionCompletion.at_cursor(area.document.get_line(row), row, column)
-        options = self._mention.options(self._candidates)
+        options = self._mention.options(self.mention_candidates)
         if not area.selection.is_empty or area.text == self._dismissed_text:
             options = ()
         if options != self._options:

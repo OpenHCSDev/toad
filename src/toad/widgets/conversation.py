@@ -1091,12 +1091,8 @@ class Conversation(
     def refresh_session_summary(self) -> None:
         self.query_one(SessionDetails)._refresh_summary()
 
-    async def submission_request_failed(self, error: RequestError, text: str) -> None:
-        self.turns.finish_client()
-        self.prompt.restore_draft(text)
-        await self.post(StopReasonNote(
-            INTERNAL_EROR.replace("$ERROR", str(error) or "no details were provided"),
-        ))
+    async def present_submission_error(self, detail: str) -> None:
+        await self.post(StopReasonNote(INTERNAL_EROR.replace("$ERROR", detail)))
 
     def painted_read(self, acknowledge: Callable[[TranscriptCursor], PaintedRead]) -> PaintedRead:
         """Decide before constructing a worker or opening a read/write context."""
@@ -1483,51 +1479,20 @@ class Conversation(
         """The composer's delivery controls moved; the goal bar redraws its separators."""
         self.goal_bar._queue_separator_update()
 
-    async def agent_turn_over(self, stop_reason: type[StopReason]) -> None:
-        """Called when the agent's turn is over.
-
-        Args:
-            stop_reason: The stop reason returned from the Agent; UnreportedStopReason when it gave none.
-        """
-        self.turns.finish_client()
+    def before_turn_settle(self) -> None:
         self._agent_activity_boundary.reset()
-        model = self.agent_binding.configuration.model.selected
-        if model is not None:
-            # Complete visible turn settlement independently of recent-model
-            # database contention. The native worker owns this optional write.
-            stop_reason.record_usage(
-                lambda: self.run_worker(
-                    DB().record_model_usage(
-                        self.model_history_scope, model.value, last_used=time_ns()
-                    )
-                )
-            )
-        await self.output.settle()
+
+    async def before_turn_boundary(self) -> None:
         pending_loading, self._loading = self._loading, None
         if pending_loading is not None and pending_loading.is_attached:
             await pending_loading.remove()
-        self.output.boundary()
 
+    def after_turn_boundary(self) -> None:
         self.check_directory()
-
         self._turn_count += 1
 
-        if stop_reason.note:
-
-            await self.post(
-                StopReasonNote(
-                    stop_reason.note.replace(
-                        "$AGENT", (self.agent_title or "agent").title()
-                    ),
-                )
-            )
-
-        if self.app.settings.notifications.turn_over:
-            self.app.input_attention.notify(
-                f"{self.agent_title} has finished working",
-                title="Waiting for input",
-                sound="turn-over",
-            )
+    async def present_stop_note(self, text: str) -> None:
+        await self.post(StopReasonNote(text))
 
     @on(Menu.OptionSelected)
     async def on_menu_option_selected(self, event: Menu.OptionSelected) -> None:

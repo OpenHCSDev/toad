@@ -234,8 +234,13 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
         self.client.keep_settings()
 
     @abstractmethod
+    def show_controls(self, shown: bool) -> None:
+        """Apply visibility of the extent slider and placement actions in this toolkit."""
+
     def toggle_controls(self) -> None:
         """Show or hide the extent slider and placement actions."""
+        self.controls_wanted = not self.controls_wanted
+        self.show_controls(self.controls_wanted and not self.holds_alone)
 
     @abstractmethod
     def fold(self, collapsed: bool) -> None:

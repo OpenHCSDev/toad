@@ -1177,9 +1177,8 @@ class SideBar(
     def sidebar_layout(self) -> SidebarLayout:
         return self.app.sidebar_layout
 
-    def toggle_controls(self) -> None:
-        self.controls_wanted = not self.controls_wanted
-        self.layout_controls.display = self.controls_wanted and not self.holds_alone
+    def show_controls(self, shown: bool) -> None:
+        self.layout_controls.display = shown
 
     @property
     def client(self) -> ToadApp:

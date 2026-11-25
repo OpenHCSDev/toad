@@ -1113,21 +1113,12 @@ class QtRowLocation(FragmentLocation):
     row: int
     fragment: HistoryFragment
 
-    def location(self) -> FragmentLocation:
-        return self
-
-    def for_layout(self, window: QtHistoryWindow, position: ReaderPosition) -> ReaderPosition:
-        return position
-
     def laid_out(self, window: QtHistoryWindow) -> bool:
         return True
 
     def destination(self, window: QtHistoryWindow, fraction: float) -> float:
         rect = window.visualRect(window.model_rows.index(self.row, 0))
         return window.scroll_y + rect.top() + round(fraction * rect.height())
-
-    def find_in(self, pages, position: FragmentPosition) -> FragmentLocation:
-        return self
 
 
 class QtStickyHeader(HeaderPin, QWidget):

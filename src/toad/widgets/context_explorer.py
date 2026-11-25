@@ -521,37 +521,31 @@ class ContextExplorer(
     def show_source_unavailable(self, text: str) -> None:
         self.query_one(ContextStatus).update(text)
 
-    def _inspection_acquired(self, previous: InspectionState, current: HoldingInspection, force: bool) -> None:
-        self.query_one(ContextOlder).disabled = not current.inspection.page.has_older()
-        self.query_one(ContextNewer).disabled = not current.inspection.page.has_newer()
-        if previous.inspection_differs(current.inspection):
-            current.present_acquired(previous, self._present)
-        if previous.needs_native(current.inspection, force):
-            source_changed = not previous.same_source(current.inspection)
-            if source_changed:
-                ContextNativeWork.cancel_all(self)
-            if force or source_changed or not ContextNativeWork.running_on(self):
-                self.query_one(ContextStatus).update(current.status)
-                current.prepare_native(self._read_native)
+    def still_reading_identity(self, identity: SessionIdentity) -> bool:
+        return self._reading(identity)
+
+    def set_page_controls(self, *, older: bool, newer: bool) -> None:
+        self.query_one(ContextOlder).disabled = not older
+        self.query_one(ContextNewer).disabled = not newer
+
+    def set_status_text(self, text: str) -> None:
+        self.query_one(ContextStatus).update(text)
+
+    def present_inspection(self, holding: HoldingInspection) -> None:
+        self._present(holding)
+
+    def native_running(self) -> bool:
+        return ContextNativeWork.running_on(self)
+
+    def cancel_native_read(self) -> None:
+        ContextNativeWork.cancel_all(self)
+
+    def start_native_read(self, captured: HoldingInspection) -> None:
+        self._read_native(captured)
 
     @ContextNativeWork.work
     async def _read_native(self, captured: HoldingInspection):
-        try:
-            native = await captured.inspection.native()
-        except asyncio.CancelledError:
-            raise
-        except Refused as error:
-            if self._reading(captured.thread_identity):
-                self._native_acquired(self.state.native_failed(captured.inspection, error))
-        else:
-            if self._reading(captured.thread_identity):
-                self._native_acquired(self.state.with_native(captured.inspection, native))
-
-    def _native_acquired(self, updated: InspectionState) -> None:
-        if updated is not self.state:
-            self.state = updated
-            updated.present(self._present)
-        self.query_one(ContextStatus).update(updated.status)
+        await self._run_native_read(captured)
 
     def _show_placeholder(self, placeholder: str) -> None:
         detail = self.query_one(ProcessTextArea)

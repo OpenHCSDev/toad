@@ -205,39 +205,11 @@ class QtAcpSessionView(
         and size, and loads httpx)."""
         self.flash_success(f"{agent.get_info()} connected")
 
-    async def agent_turn_over(self, stop_reason) -> None:
-        """The turn ended: its live output settles and the next turn starts on a fresh
-        block; a stop reason with a note says why."""
-        self.turns.finish_client()
-        model = self.agent_binding.configuration.model.selected
-        if model is not None:
-            stop_reason.record_usage(
-                partial(
-                    self.run_worker,
-                    partial(
-                        DB().record_model_usage,
-                        self.model_history_scope,
-                        model.value,
-                        last_used=time_ns(),
-                    ),
-                )
-            )
-        await self.output.settle()
-        self.output.boundary()
-        if stop_reason.note:
-            await self.present_help_note(
-                stop_reason.note.replace("$AGENT", (self.agent_title or "agent").title()))
-        if self.app.settings.notifications.turn_over:
-            self.app.input_attention.notify(
-                f"{self.agent_title} has finished working", title="Waiting for input",
-                sound="turn-over")
+    async def present_stop_note(self, text: str) -> None:
+        await self.present_help_note(text)
 
-    async def submission_request_failed(self, error, text: str) -> None:
-        """The prompt never reached the agent: it goes back into the composer and the error
-        shows under the turn."""
-        self.turns.finish_client()
-        self.restore_composer_draft(text)
-        await self.present_error_note("Internal error", str(error) or "no details were provided")
+    async def present_submission_error(self, detail: str) -> None:
+        await self.present_error_note("Internal error", detail)
 
     def jump_to_latest(self) -> None:
         self.messages.jump_to_latest()

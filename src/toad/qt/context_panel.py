@@ -186,44 +186,24 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         self._status.setText(text)
         self._tree.clear()
 
-    def _native_running(self) -> bool:
+    def set_page_controls(self, *, older: bool, newer: bool) -> None:
+        self._older.setEnabled(older)
+        self._newer.setEnabled(newer)
+
+    def set_status_text(self, text: str) -> None:
+        self._status.setText(text)
+
+    def present_inspection(self, holding: HoldingInspection) -> None:
+        self._render_present(holding)
+
+    def native_running(self) -> bool:
         return self._native_task is not None and not self._native_task.done()
 
-    def _inspection_acquired(
-        self, previous: InspectionState, current: HoldingInspection, force: bool
-    ) -> None:
-        self._older.setEnabled(current.inspection.page.has_older())
-        self._newer.setEnabled(current.inspection.page.has_newer())
-        if previous.inspection_differs(current.inspection) or force:
-            current.present_acquired(previous, self._render_present)
-        if previous.needs_native(current.inspection, force):
-            source_changed = not previous.same_source(current.inspection)
-            if source_changed and self._native_running():
-                self._native_task.cancel()
-            if force or source_changed or not self._native_running():
-                self._status.setText(current.status)
-                current.prepare_native(self._start_native)
+    def cancel_native_read(self) -> None:
+        self._native_task.cancel()
 
-    def _start_native(self, captured: HoldingInspection) -> None:
-        self._native_task = asyncio.ensure_future(self._read_native(captured))
-
-    async def _read_native(self, captured: HoldingInspection) -> None:
-        try:
-            native = await captured.inspection.native()
-        except asyncio.CancelledError:
-            raise
-        except Refused as error:
-            if captured.thread_identity == self.thread_identity:
-                self._native_acquired(self.state.native_failed(captured.inspection, error))
-        else:
-            if captured.thread_identity == self.thread_identity:
-                self._native_acquired(self.state.with_native(captured.inspection, native))
-
-    def _native_acquired(self, updated: InspectionState) -> None:
-        if updated is not self.state:
-            self.state = updated
-            updated.present(self._render_present)
-        self._status.setText(updated.status)
+    def start_native_read(self, captured: HoldingInspection) -> None:
+        self._native_task = asyncio.ensure_future(self._run_native_read(captured))
 
     def _render_present(self, holding: HoldingInspection) -> None:
         """Called by `InspectionState.present` once a HoldingInspection is ready. We
