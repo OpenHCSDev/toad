@@ -37,6 +37,7 @@ from toad.client.prompt_stack import (
 )
 from toad.client.view_settings import SettingsReading
 from toad.flash_host import FlashNotice, FlashTone
+from toad.key_modes import Standard
 from toad.client.session_history_details import SessionHistoryDetails
 from toad.client.subscribers import CallbackSubscription
 from toad.private_native_cursor import HiddenCursorStatus
@@ -240,10 +241,16 @@ class QtStatusLine(QtSettingVisibility, ElidedLine, setting="ui.status_line", me
         text = str(status)
         self.setText(text)
         self.setToolTip(text)
+        parent = self.parentWidget()
+        if isinstance(parent, QtInfoBar):
+            parent.sync_visibility()
 
 
 class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
-    """The editing mode in reverse video at the info bar's right edge."""
+    """The editing mode in reverse video at the info bar's right edge.
+
+    Hidden when vim/modal editing is off (`Standard`), so non-vim mobile composers do not
+    spend a full row advertising `STANDARD`."""
 
     def __init__(self, renderer: QtLineRenderer) -> None:
         super().__init__()
@@ -251,6 +258,18 @@ class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
             f"color: {BackgroundColour.rgb(renderer.scheme).hex}; background: {renderer.theme(SecondaryColour)};"
             " padding: 0 4px"))
         self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        self.hide()
+
+    def present_editing_mode(self, mode, focused: bool) -> None:
+        if type(mode) is Standard:
+            self.setText("")
+            self.hide()
+        else:
+            super().present_editing_mode(mode, focused)
+            self.show()
+        parent = self.parentWidget()
+        if isinstance(parent, QtInfoBar):
+            parent.sync_visibility()
 
     def show_mode_label(self, label: str) -> None:
         self.setText(label)
@@ -258,7 +277,8 @@ class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
 
 class QtInfoBar(QtSettingVisibility, QWidget, setting="ui.info_bar", metaclass=PyQtWidgetMeta):
     """Under the prompt frame: the composer's directory (a CLI thread's), the status line and
-    the editing-mode badge, in Textual's `InfoBar` order."""
+    the editing-mode badge, in Textual's `InfoBar` order. Collapses to 0 height when none of
+    its children have anything to show."""
 
     def __init__(self, scope, renderer: QtLineRenderer, parent: QWidget) -> None:
         # Parented at construction: a parentless widget shown is a top-level window with its
@@ -281,7 +301,28 @@ class QtInfoBar(QtSettingVisibility, QWidget, setting="ui.info_bar", metaclass=P
         layout.addWidget(self.status)
         layout.addWidget(self.badge)
 
+    def setting_visible(self, configuration_state) -> bool:
+        return super().setting_visible(configuration_state) and self._has_content()
+
+    def _has_content(self) -> bool:
+        if not self.path.isHidden() and bool(self.path.text()):
+            return True
+        if not self.status.isHidden() and bool(self.status.text()):
+            return True
+        if not self.badge.isHidden() and bool(self.badge.text()):
+            return True
+        layout = self.layout()
+        for index in range(layout.count()):
+            widget = layout.itemAt(index).widget()
+            if widget is not None and widget not in (self.path, self.status, self.badge) and not widget.isHidden():
+                return True
+        return False
+
+    def sync_visibility(self) -> None:
+        self.apply_setting_visibility()
+
     def show_path(self, path: str) -> None:
         self.path.setText(path)
         self.path.setToolTip(path)
         self.path.setVisible(bool(path))
+        self.sync_visibility()

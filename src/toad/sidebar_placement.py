@@ -215,7 +215,7 @@ class WidthSidebarEdge(SidebarEdge):
 class HeightSidebarEdge(SidebarEdge):
     minimum = 9
     conversation_minimum = 8
-    collapsed_extent = 2
+    collapsed_extent = 1
     # Populated at module end once TopSidebarEdge and BottomSidebarEdge exist;
     # read by SidebarEdge.opposite() without going through the DeclaredFamily registry.
     _edge_by_sign: ClassVar[dict[int, type[SidebarEdge]]] = {}

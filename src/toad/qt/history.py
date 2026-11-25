@@ -25,7 +25,7 @@ from typing import ClassVar
 from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
-from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QSize, Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QScrollEvent, QTextDocument
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
@@ -561,10 +561,11 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
     def is_prepared(self, key) -> bool:
         return key in self._prepared
 
-    TILE = 1024
+    TILE = 256
     """Pixels of a row's height one picture holds. A row is as tall as its message, and a
-    long message's whole picture would take most of what the app may retain; in tiles, the
-    part of it on screen is drawn and kept, as a short row is."""
+    long message's whole picture would take most of what the app may retain; in 256px tiles
+    (3.3 MB at 3x DPR instead of 13.2 MB at 1024px), the cache holds ~19 tiles across rows
+    instead of 4 and each tile rasterizes only its own clipped band."""
 
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
         """A row is painted from pictures of it (`paint_pictures`): a scroll moves the same
@@ -582,6 +583,30 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         suspending the app, a new width)."""
         super().release_documents()
         self.pictures.clear()
+
+    def _paint_tile_document(
+        self, drawing: QPainter, local: QStyleOptionViewItem, index: QModelIndex,
+        document: QTextDocument, top: int, height: int,
+    ) -> None:
+        """Draw only the `[top, top + height]` band of `document` into a tile pixmap.
+
+        `RowDocumentDelegate.paint` leaves `PaintContext.clip` empty, forcing Qt to walk
+        every block of a tall message (e.g. a 6,356px installer receipt) on every tile miss.
+        Setting `context.clip` to the tile band skips off-tile blocks inside Qt's layout."""
+        opt = QStyleOptionViewItem(local)
+        self.initStyleOption(opt, index)
+        drawing.save()
+        self.paint_background(drawing, opt, index.row())
+        drawing.restore()
+        drawing.save()
+        drawing.translate(opt.rect.topLeft())
+        clip = QRectF(0, top, opt.rect.width(), height)
+        drawing.setClipRect(clip)
+        context = QAbstractTextDocumentLayout.PaintContext()
+        context.palette = opt.palette
+        context.clip = clip
+        document.documentLayout().draw(drawing, context)
+        drawing.restore()
 
     def paint_pictures(self, painter: QPainter, option, index, key, opacity: float | None) -> bool:
         """The tiles of the row that this paint shows, each drawn once and copied by every
@@ -615,7 +640,10 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
                 picture.fill(Qt.GlobalColor.transparent)
                 drawing = QPainter(picture)
                 local.rect = QRect(0, -top, rect.width(), rect.height())
-                super().paint(drawing, local, index)
+                if document is not None:
+                    self._paint_tile_document(drawing, local, index, document, top, height)
+                else:
+                    super().paint(drawing, local, index)
                 drawing.end()
                 self.pictures.keep((row, tile), look, document, picture)
             painter.drawPixmap(QPoint(rect.left(), rect.top() + top), picture)
@@ -1334,14 +1362,14 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def animation_clock(self):
         return self.configuration_scope.app.animation_clock
 
-    def arrive(self, keys: tuple) -> None:
+    def arrive(self, keys: tuple, *, replace_live: bool = True) -> None:
         """Rows `keys` just arrived: they fade in row after row, and a reader following the
         end glides down to them rather than jumping their height (`glide_to_end`)."""
         if not (keys and self.animation_clock.enabled):
             return
-        if not (self.draft or self.live_blocks):
-            # Rows committed while a draft or live block stood in for them were already seen:
-            # they replace it in place (`publish_snapshot` clears the draft in the same turn).
+        if not (replace_live and (self.draft or self.live_blocks)):
+            # Saved rows replacing an already-seen draft or live block keep their opacity
+            # in place; brand-new live blocks, drafts, and saved arrivals all fade in.
             self.arrivals.append(ArrivalFade(self, keys))
         if self.follows_tail:
             self._arrived += keys
@@ -1620,6 +1648,33 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def follows_tail(self) -> bool:
         return self._anchored
 
+    def _stop_scroll_momentum(self) -> None:
+        """Cancel any active fling, glide, head reveal, or travel offset before an explicit jump."""
+        if self.head_reveal is not None:
+            self.head_reveal.cancel()
+        if self.glide is not None:
+            self.glide.animation.stop()
+            self.glide = None
+        self._arrived = ()
+        if not self.widget_gone:
+            scroller = QScroller.scroller(self.viewport())
+            if scroller.state() != QScroller.State.Inactive:
+                scroller.stop()
+        self._flinging = False
+        self._fling_stopped = False
+        self._overshoot = 0.0
+        self._travel_origin = 0.0
+
+    def jump_to_latest(self) -> None:
+        """Stop kinetic scroll momentum before jumping back to the newest row.
+
+        `QtJumpBar` is a child of the window rather than the viewport so `QScroller`
+        cannot swallow its tap, which also means tapping it does not stop an active
+        upward fling; without `scroller.stop()` the next kinetic frame pulls the
+        window straight back up off the bottom."""
+        self._stop_scroll_momentum()
+        super().jump_to_latest()
+
     def apply_anchor(self, anchor: bool) -> None:
         self._anchored = anchor
         # A publication restoring a following reader (`FollowTailCommit.restore_reader`)
@@ -1677,15 +1732,21 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         self.repin_header()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
-        """Core's CLI draft as rows after the history (none clears it); the reader keeps their place."""
+        """Core's CLI draft as rows after the history (none clears it); new draft rows arrive smoothly."""
         if not fragments and not self.draft:
             return
+        existing = {fragment.key for fragment in self.draft}
+        new_keys = tuple(fragment.key for fragment in fragments if fragment.key not in existing)
         self.draft = fragments
+        if new_keys and self.isVisible():
+            self.arrive(new_keys, replace_live=False)
         self.show_pages()
 
     def show_live(self, block: QtLiveBlock) -> None:
-        """A turn's live block as a row after the history and the draft."""
+        """A turn's live block as a row after the history and the draft, arriving smoothly."""
         self.live_blocks.append(block)
+        if self.isVisible():
+            self.arrive((block.fragment().key,), replace_live=False)
         self.live_changed()
 
     def live_changed(self) -> None:

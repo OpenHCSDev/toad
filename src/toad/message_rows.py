@@ -274,10 +274,10 @@ class WireMessageStyle(DeclaredChoice, affix="MessageStyle"):
     the style `ConversationUiSettings.message_style` names, in every frontend."""
 
     def body(self, row: MessageRow, text: str) -> tuple[LineBlock, ...]:
-        if has_structured_tags(text):
+        if has_structured_tags(text, allow_unclosed=False):
             blocks = tuple(
                 block
-                for part in parse_structured_text(text)
+                for part in parse_structured_text(text, allow_unclosed=False)
                 for block in part.wire_blocks(row, self.body_type)
             )
             if blocks:

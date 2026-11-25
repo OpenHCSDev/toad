@@ -244,6 +244,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         self.accent_format = QTextCharFormat()
         self.accent_format.setForeground(accent)
         self.lines: dict[tuple[str, int], QTextLayout] = {}
+        self._shown_titles: dict[tuple[int, str, int], tuple[QRect, str]] = {}
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
 
@@ -257,6 +258,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         current = [(self.tabText(index), self.tabData(index)) for index in range(self.count())]
         if current == entries:
             return False
+        self._shown_titles.clear()
         if [mode for _, mode in current] == [mode for _, mode in entries]:
             for index, (title, _) in enumerate(entries):
                 if current[index][0] != title:
@@ -312,20 +314,36 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         if index >= 0:
             self.update(self.tabRect(index))
 
+    def _cached_title(self, index: int) -> tuple[QRect, str]:
+        """Cached text rectangle and elided title for ``index``; invalidated on tab/font/style/resize
+        changes so 60-120 Hz wave ticks do not rebuild QStyleOptionTab + elidedText every tick."""
+        text = self.tabText(index)
+        tab_rect = self.tabRect(index)
+        key = (index, text, tab_rect.width())
+        cached = self._shown_titles.get(key)
+        if cached is not None:
+            return cached
+        option = QStyleOptionTab()
+        self.initStyleOption(option, index)
+        rect = self.style().subElementRect(QStyle.SubElement.SE_TabBarTabText, option, self)
+        shown = self.fontMetrics().elidedText(option.text, Qt.TextElideMode.ElideRight, rect.width())
+        self._shown_titles[key] = (rect, shown)
+        return rect, shown
+
     def shown_title(self, index: int) -> tuple[QStyleOptionTab, QRect, str]:
         """A tab's style option, the rectangle its title draws in, and the title as it fits
         there: what the paint draws, and what a wave's band is measured over."""
         option = QStyleOptionTab()
         self.initStyleOption(option, index)
-        rect = self.style().subElementRect(QStyle.SubElement.SE_TabBarTabText, option, self)
-        return option, rect, self.fontMetrics().elidedText(option.text, Qt.TextElideMode.ElideRight, rect.width())
+        rect, shown = self._cached_title(index)
+        return option, rect, shown
 
     def wave_span(self, wave: QtTabWave) -> tuple[int, int] | None:
         """The band's cells over the title of the tab ``wave`` runs in, padding included."""
         index = self.tab_of(wave.mode)
         if index < 0:
             return None
-        _option, _rect, shown = self.shown_title(index)
+        _rect, shown = self._cached_title(index)
         return self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
@@ -343,7 +361,8 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
                 continue
             option.text = ""
             painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
-            start, end = self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
+            span = wave.band_drawn() or self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
+            start, end = span
             layout = self.bold_line(shown, rect.width())
             line = layout.lineAt(0)
             top = rect.top() + (rect.height() - line.height()) / 2
@@ -367,7 +386,12 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
             kept.endLayout()
         return kept
 
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        self._shown_titles.clear()
+        super().resizeEvent(event)
+
     def changeEvent(self, event) -> None:  # type: ignore[override]
         if event.type() in (QEvent.Type.FontChange, QEvent.Type.StyleChange):
             self.lines.clear()  # laid out in the font that just changed
+            self._shown_titles.clear()
         super().changeEvent(event)

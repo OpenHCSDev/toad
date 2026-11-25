@@ -480,48 +480,104 @@ _TAG_OPEN = re.compile(
     re.IGNORECASE,
 )
 
+# Fenced code blocks (``` or ~~~, line-anchored) and inline backtick spans (`...`):
+# structured tags mentioned inside Markdown code are prose about tags, never live blocks.
+_CODE_SPAN_OR_FENCE = re.compile(
+    r"(?:^|\n)[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:\n[ \t]*\1[ \t]*(?=\n|$)|\Z)"
+    r"|(`+)(?:(?!\2).)+\2",
+)
 
-def has_structured_tags(text: str) -> bool:
+
+def _code_ranges(text: str) -> tuple[tuple[int, int], ...]:
+    if "`" not in text and "~" not in text:
+        return ()
+    return tuple((m.start(), m.end()) for m in _CODE_SPAN_OR_FENCE.finditer(text))
+
+
+def _next_tag_open(text: str, pos: int, code_ranges: tuple[tuple[int, int], ...]) -> re.Match[str] | None:
+    range_index = 0
+    total = len(code_ranges)
+    while pos < len(text):
+        match = _TAG_OPEN.search(text, pos)
+        if match is None:
+            return None
+        start = match.start()
+        while range_index < total and code_ranges[range_index][1] <= start:
+            range_index += 1
+        if range_index < total and code_ranges[range_index][0] <= start < code_ranges[range_index][1]:
+            pos = code_ranges[range_index][1]
+            continue
+        return match
+    return None
+
+
+def has_structured_tags(text: str, *, allow_unclosed: bool = True) -> bool:
     """Fast O(n) check before splitting message or transcript text."""
-    return "<" in text and _TAG_OPEN.search(text) is not None
+    if "<" not in text:
+        return False
+    code_ranges = _code_ranges(text)
+    match = _next_tag_open(text, 0, code_ranges)
+    if match is None:
+        return False
+    if allow_unclosed:
+        return True
+    lower = text.lower()
+    while match is not None:
+        close_token = f"</{match.group(1).lower()}>"
+        if lower.find(close_token, match.end()) >= 0:
+            return True
+        match = _next_tag_open(text, match.end(), code_ranges)
+    return False
 
 
-def parse_structured_text(text: str) -> tuple[StructuredPart, ...]:
+def parse_structured_text(text: str, *, allow_unclosed: bool = True) -> tuple[StructuredPart, ...]:
     """Split text containing declared structured tags (`<think>`, `<ctx>`, `<tool_call>`) into parts.
 
-    Handles both closed tags and streaming unclosed tags at end-of-text so live replies
-    never flash raw XML tags. Plain text without structured tags returns `(AnswerPart(text),)`.
+    Skips Markdown fenced code blocks and inline backtick spans so prose discussing tags
+    like `` `<ctx>` `` renders literally. When ``allow_unclosed`` is True (streaming agent
+    output), an unclosed tag at end-of-text renders as streaming so live replies never flash
+    raw XML tags; completed bus messages and saved context sections pass ``allow_unclosed=False``
+    so a literal unclosed prose tag never swallows the rest of the message.
     """
-    if not has_structured_tags(text):
+    if not has_structured_tags(text, allow_unclosed=allow_unclosed):
         return (AnswerPart(text),)
 
     parts: list[StructuredPart] = []
+    code_ranges = _code_ranges(text)
     cursor = 0
+    search_from = 0
     length = len(text)
     lower = text.lower()
-    while cursor < length:
-        match = _TAG_OPEN.search(text, cursor)
+    while search_from < length:
+        match = _next_tag_open(text, search_from, code_ranges)
         if match is None:
             tail = text[cursor:].strip()
             if tail:
                 parts.append(AnswerPart(tail))
             break
+        tag_name = match.group(1).lower()
+        close_token = f"</{tag_name}>"
+        close_index = lower.find(close_token, match.end())
+        if close_index < 0 and not allow_unclosed:
+            search_from = match.end()
+            continue
         before = text[cursor : match.start()].strip()
         if before:
             parts.append(AnswerPart(before))
-        tag_name = match.group(1).lower()
         tag_member = StructuredTag.member_named(tag_name)
-        close_token = f"</{tag_name}>"
-        close_index = lower.find(close_token, match.end())
         if close_index < 0:
             inner = text[match.end() :]
             streaming = True
             cursor = length
+            search_from = length
         else:
             inner = text[match.end() : close_index]
             streaming = False
             cursor = close_index + len(close_token)
+            search_from = cursor
         parts.extend(tag_member.decode_block(inner, streaming=streaming))
+    if not parts:
+        return (AnswerPart(text),)
     return tuple(parts)
 
 
@@ -541,8 +597,8 @@ def parse_context_sections(text: str) -> tuple[StructuredPart, ...]:
     cleaned = text.strip()
     if not cleaned:
         return ()
-    if has_structured_tags(cleaned):
-        return parse_structured_text(cleaned)
+    if has_structured_tags(cleaned, allow_unclosed=False):
+        return parse_structured_text(cleaned, allow_unclosed=False)
     sections = _split_context_sections(cleaned)
     if sections:
         return sections
