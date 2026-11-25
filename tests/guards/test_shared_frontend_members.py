@@ -70,6 +70,10 @@ def test_settings_agentless_presentation_and_source_refresh_are_the_shared_owner
     # view among its ancestors, a Qt widget is handed it.
     for reader in (SettingsReader, QtStatusLine, QtInfoBar, QtHistoryWindow):
         _owned_by(SettingsReading, "configuration_state", reader)
+    from toad.history_jump import FollowsTail
+    from toad.widgets.history_anchor import HistoryWindow
+    for member in ("rejoin_reached_tail", "record_reader_scroll"):
+        _owned_by(FollowsTail, member, HistoryWindow, QtHistoryWindow)
     for row in (QtStatusLine, QtInfoBar):
         _owned_by(QtSettingVisibility, "show_setting", row)
         _owned_by(QtSettingVisibility, "showEvent", row)

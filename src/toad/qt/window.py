@@ -59,7 +59,7 @@ from pyqt_reactive.theming import ColorScheme
 
 from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
-from toad.client.application import ClientApplication
+from toad.client.application import ACTIVE_PRESENCE, ApplicationPresence, ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame, QtWorkspaceHosted
 from toad.qt.widget_animation import frame_interval
 from toad.workspace_frame import WorkspaceFrame
@@ -1359,9 +1359,11 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
 
     def source_drawn(self) -> None:
         """The receipt follows what this read sent and saw; the thread's status and working
-        mark are read beside it."""
+        mark are read beside it. Uses the page source's own root so a dropped observation
+        between `read_changes` and here cannot raise `FailedObservation.error` and retire
+        the tab."""
         history = self.message_history
-        followed = (str(self.app.source().root), history.last_sent_references,
+        followed = (str(history.page_source.loader.root), history.last_sent_references,
             history.pages[-1].prepared.page.source.selection.notification_identity)
         self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
         self.refresh_thread_status()
@@ -1504,6 +1506,14 @@ class QtWorkspaceViews(WorkspaceViews):
         old.deleteLater()
 
 
+PRESENCE_TRANSITIONS: dict[Qt.ApplicationState, Callable[[ApplicationPresence, QtToadApp], ApplicationPresence]] = {
+    Qt.ApplicationState.ApplicationSuspended: lambda presence, app: presence.suspend(app),
+    Qt.ApplicationState.ApplicationHidden: lambda presence, app: presence.suspend(app),
+    Qt.ApplicationState.ApplicationInactive: lambda presence, app: presence.deactivate(app),
+    Qt.ApplicationState.ApplicationActive: lambda presence, app: presence.activate(app),
+}
+
+
 class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
@@ -1536,6 +1546,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._animation_timer.setTimerType(Qt.TimerType.PreciseTimer)
         self._animation_timer.timeout.connect(self._tick_animation)
         self._layout_pending = False
+        self._presence: ApplicationPresence = ACTIVE_PRESENCE
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
         # Notices and the work the reader waits on float over the pages, never in their layout.
         self.float_layer = QtFloatLayer(
@@ -1948,12 +1959,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         return QApplication.applicationState() == Qt.ApplicationState.ApplicationActive
 
     def application_state_changed(self, state: Qt.ApplicationState) -> None:
-        if state in (Qt.ApplicationState.ApplicationSuspended, Qt.ApplicationState.ApplicationHidden,
-                     Qt.ApplicationState.ApplicationInactive):
-            self.application.backgrounded()
-        elif state == Qt.ApplicationState.ApplicationActive:
-            self.coordination_access.check_route()
-            self.workspace_sessions.selected.reload()
+        transition = PRESENCE_TRANSITIONS.get(state)
+        if transition is not None:
+            self._presence = transition(self._presence, self)
 
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
         """Route the answer to every registered `BusListing`. The welcome is always

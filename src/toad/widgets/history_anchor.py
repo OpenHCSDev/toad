@@ -27,7 +27,6 @@ from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
 from toad.workspace_frame import WorkspaceHosted
 from toad.widgets.message_row_owner import MessageRowOwner
-from toad.client.history_preparation import NEWER_END
 from toad.widgets.presentation_window import Unplaced, arranged
 from toad.client.history_pager import DirectionalPreparation, OffScreenRunway, PagingWindow, PresentationBudget, ReaderPlacement
 from toad.client.history_changes import (
@@ -442,11 +441,10 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         # Animation ticks and direct native scrolling change reader intent
         # too. The existing restoration scope excludes layout compensation.
         if new_value != old_value and not self._restoring:
-            self.scroll_revision += 1
-            if self.shown:
-                self.reader_position = self.reader_position.moved(self, new_value - old_value)
+            self.record_reader_scroll(new_value - old_value)
             self._invalidate_tooltip_on_scroll()
-        self.rejoin_reached_tail()
+        else:
+            self.rejoin_reached_tail()
         # Shared post-anchor response; `JumpsToLatest.respond_to_scroll` gates settle on
         # travel so an idle tick doesn't restart the timer or re-queue preparation.
         self.respond_to_scroll(new_value)
@@ -465,16 +463,6 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
             if ancestor is self:
                 screen._clear_tooltip()
                 return
-
-    def rejoin_reached_tail(self) -> None:
-        """A reader at the end of the source tail follows it again, through the same owner as
-        explicit tail selection. Being at the end is geometry, not a scroll: asked only when
-        scroll_y changed, a page down at the bottom (released, moved nothing) or a tool
-        collapsing under the reader left "Back to bottom" showing at the bottom."""
-        if (not self._restoring and not self.follows_tail
-                and self.scroll_y >= self.max_scroll_y
-                and all(not NEWER_END.visible_more(history) for history in self.histories)):
-            self.anchor(True)
 
     def _size_updated(self, size: Size, virtual_size: Size, container_size: Size, layout: bool=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement

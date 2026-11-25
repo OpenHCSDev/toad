@@ -58,7 +58,7 @@ from toad.client.committed_presentation import (
 )
 from toad.client.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.commit_claims import CommitEvidence, NativeCommitEvidence
-from toad.core.events import CoreEventStream, ThreadRowsChanged
+from toad.core.events import CoordinationObserved, CoreEventStream, ThreadRowsChanged
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.history_jump import ReaderWindow
@@ -477,15 +477,27 @@ class SourcePublicationRequests:
         if not self.pending:
             self.pending.append(publication)
         view = publication.binding.view
+        access = view.app.coordination_access
         self.observation.close()
         self.observation.enter_context(
             publication.thread_scope.observe(
-                view, view.app.coordination_access, self.thread_rows_changed
+                view, access, self.thread_rows_changed
             )
+        )
+        # Resume on bus reconnection even when this thread received no new row since dropping.
+        self.observation.callback(
+            view.retire_core,
+            view.observe_core_callback(
+                access.events, CoordinationObserved, self.coordination_observed
+            ),
         )
 
     def thread_rows_changed(self, _change: ThreadRowsChanged) -> None:
         """A subscription only borrows its callback, so this owner holds it as a bound method."""
+        self.resume()
+
+    def coordination_observed(self, _change: CoordinationObserved) -> None:
+        """Re-establishing coordination wakes a deferred transcript publication."""
         self.resume()
 
     def resume(self) -> bool:

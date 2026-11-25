@@ -250,6 +250,12 @@ class CoreConnection(ABC):
     def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
         """This connection's current observation, or the error that refuses it."""
 
+    def resume_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
+        """Re-verify or reopen this connection's observation after the app resumes from
+        suspension. Local routes check their route selection; remote connections recycle
+        kept sockets and replace a possibly half-open observation."""
+        return self.open_current(access)
+
     @abstractmethod
     def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
         """Whether ``source`` still belongs to what this connection currently observes."""
@@ -304,6 +310,12 @@ class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnect
         """The current observation through this connector; the observation decides whether
         it already is one."""
         return access.observation.through(self, access)
+
+    def resume_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
+        """After Android suspension or a network switch, drop kept HTTP sockets (which may
+        be half-open on a dead local IP) and ask the observation to re-establish itself."""
+        self.reset_connections()
+        return access.observation.resumed_through(self, access)
 
     def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
         """The root the connector's Core serves, as the current observation holds it."""
@@ -418,6 +430,14 @@ class Observation(ABC):
     def through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
         """No observation through ``connection`` is current yet: open one."""
         return connection.observe(access)
+
+    def resumed_through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
+        """Re-establish observation through ``connection`` after app suspension."""
+        return self.through(connection, access)
+
+    def focus_returned(self, access: CoordinationAccess) -> None:
+        """The window regained focus: check whether the route needs attention."""
+        access.check_route()
     def references_for(self, root: str) -> ReferenceContext:
         return PendingReferences(root)
     async def current_references(self, access: CoordinationAccess, root: str):
@@ -493,6 +513,9 @@ class ClosedObservation(Observation):
     def through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
         return self
 
+    def focus_returned(self, access: CoordinationAccess) -> None:
+        """A closed access never reopens on focus."""
+
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         return self
 
@@ -542,6 +565,11 @@ class FailedObservation(Observation):
         if access.retry.waiting(time.monotonic()):
             return self
         return super().through(connection, access)
+
+    def focus_returned(self, access: CoordinationAccess) -> None:
+        """Returning to a disconnected window clears backoff and reconnects at once."""
+        access.retry.recovered()
+        access.check_route()
 
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         """A changed route opens now; the failed one waits for its retry."""
@@ -884,6 +912,11 @@ class RemoteObserving(Observing):
         repeated request, is what replaces it."""
         return self if self.connection is connection else connection.observe(access)
 
+    def resumed_through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
+        """After Android suspension or a network switch, the existing WebSocket may be
+        half-open; open a fresh observation instead of waiting on heartbeat timeout."""
+        return connection.observe(access)
+
     def user_identity(self, project: Checkout) -> Thread:
         """Across the connector the user thread is Core's; this machine's checkout claims nothing."""
         return self.registry().user_thread().require(RuntimeError(
@@ -959,6 +992,11 @@ class CoordinationAccess(MroDispatch):
         """The connection's current observation, or the error that refuses it."""
         with self.opening:
             return self.connection.open_current(self)
+
+    def reopen_current(self) -> Observing | FailedObservation:
+        """Re-establish the connection's observation after suspension or network change."""
+        with self.opening:
+            return self.connection.resume_current(self)
 
     def confirm(self, captured: CapturedSource) -> None:
         captured.confirm(self)
@@ -1283,6 +1321,25 @@ class CoordinationAccess(MroDispatch):
     def check_route(self) -> None:
         if self.route_task is None or self.route_task.done():
             self.route_task = asyncio.create_task(self.observe_route())
+
+    def focus_returned(self) -> None:
+        """The app regained focus without suspending: clear backoff if currently failed."""
+        self.observation.focus_returned(self)
+
+    def resume(self) -> None:
+        """The app returned from suspension (e.g. Android background/Doze or network switch):
+        clear backoff, supersede any stalled route check, recycle kept sockets and re-establish
+        observation immediately."""
+        self.retry.recovered()
+        if self.route_task is not None and not self.route_task.done():
+            self.route_task.cancel()
+        self.route_task = asyncio.create_task(self.resume_route())
+
+    async def resume_route(self) -> None:
+        previous = self.observation
+        await self.preparation.run_thread(self.reopen_current)
+        if not previous.is_current():
+            self.events.publish(CoordinationObserved(self.revision))
 
     async def observe_route(self) -> None:
         """A changed route selection opens (and observes) the newly selected service."""
