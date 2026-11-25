@@ -231,9 +231,10 @@ class QtSettingVisibility(SettingVisible, SettingsReading):
 class QtStatusLine(QtSettingVisibility, ElidedLine, setting="ui.status_line", metaclass=PyQtWidgetMeta):
     """The info bar's status, right-aligned in the secondary ink, as Textual's `StatusLine`."""
 
-    def __init__(self, scope, renderer: QtLineRenderer) -> None:
+    def __init__(self, scope, renderer: QtLineRenderer, info_bar: QtInfoBar) -> None:
         super().__init__()
         self.configuration_scope = scope
+        self._info_bar = info_bar
         self.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         renderer.themed(self, lambda: self.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}"))
 
@@ -241,9 +242,7 @@ class QtStatusLine(QtSettingVisibility, ElidedLine, setting="ui.status_line", me
         text = str(status)
         self.setText(text)
         self.setToolTip(text)
-        parent = self.parentWidget()
-        if isinstance(parent, QtInfoBar):
-            parent.sync_visibility()
+        self._info_bar.sync_visibility()
 
 
 class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
@@ -252,8 +251,9 @@ class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
     Hidden when vim/modal editing is off (`Standard`), so non-vim mobile composers do not
     spend a full row advertising `STANDARD`."""
 
-    def __init__(self, renderer: QtLineRenderer) -> None:
+    def __init__(self, renderer: QtLineRenderer, info_bar: QtInfoBar) -> None:
         super().__init__()
+        self._info_bar = info_bar
         renderer.themed(self, lambda: self.setStyleSheet(
             f"color: {BackgroundColour.rgb(renderer.scheme).hex}; background: {renderer.theme(SecondaryColour)};"
             " padding: 0 4px"))
@@ -261,15 +261,14 @@ class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
         self.hide()
 
     def present_editing_mode(self, mode, focused: bool) -> None:
-        if type(mode) is Standard:
+        shown = mode if focused else Standard()
+        if shown.shows_badge:
+            self.show_mode_label(shown.label)
+            self.show()
+        else:
             self.setText("")
             self.hide()
-        else:
-            super().present_editing_mode(mode, focused)
-            self.show()
-        parent = self.parentWidget()
-        if isinstance(parent, QtInfoBar):
-            parent.sync_visibility()
+        self._info_bar.sync_visibility()
 
     def show_mode_label(self, label: str) -> None:
         self.setText(label)
@@ -289,8 +288,8 @@ class QtInfoBar(QtSettingVisibility, QWidget, setting="ui.info_bar", metaclass=P
         self.path = ElidedLine()
         renderer.themed(self.path, lambda: self.path.setStyleSheet(f"color: {renderer.theme(SecondaryColour)}"))
         self.path.hide()
-        self.status = QtStatusLine(scope, renderer)
-        self.badge = QtEditingModeBadge(renderer)
+        self.status = QtStatusLine(scope, renderer, self)
+        self.badge = QtEditingModeBadge(renderer, self)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(UiGap.frame, 0, UiGap.frame, UiGap.tight)
         layout.setSpacing(UiGap.loose)

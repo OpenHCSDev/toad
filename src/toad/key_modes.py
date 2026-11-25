@@ -1,6 +1,8 @@
 """Saved profiles select an editing owner, not a handwritten command subset."""
 from __future__ import annotations
 
+from typing import ClassVar
+
 from agent_comms.nominal.declared_choice import DeclaredChoice
 from formbridge.key_declarations import ModalInputMode, NavigationKey
 from textual.document._editing import EditingMode
@@ -11,11 +13,14 @@ from toad.neovim_editing import InsertState, NeovimEditing, NeovimState, NormalS
 class KeyMode(EditingMode, DeclaredChoice, affix=""):
     """The saved preference selects native editing or a real Neovim initial state."""
 
+    shows_badge: ClassVar[bool] = True
+
 
 class Standard(KeyMode):
     """Ordinary native text entry and navigation."""
 
     label = "STANDARD"
+    shows_badge = False
 
 
 class VimInsert(NeovimEditing, KeyMode):
@@ -45,6 +50,8 @@ class VimVisual(NeovimEditing, KeyMode):
 
 class ModalEditingState(ModalInputMode):
     """Stateful modal input mode backed by the shared `NeovimState` family."""
+
+    shows_badge: ClassVar[bool] = True
 
     def __init__(self, key_mode: type[KeyMode]) -> None:
         self.state: NeovimState = NeovimState.for_mode(key_mode.map_modes[0])(blocking=False)
