@@ -83,6 +83,53 @@ class BusDiscovery(OperationKind, ExclusiveKind):
     opened, replaces the one running."""
 
 
+class ApplicationPresence:
+    """Whether an application window is active, unfocused, or suspended/hidden in the background.
+
+    Returning from suspension (Android Doze, app switch, or network switch while hidden)
+    must reset retry backoff, recycle kept HTTP sockets and replace a possibly half-open
+    observation (`CoordinationAccess.resume`); returning from focus loss only clears
+    backoff if currently failed (`CoordinationAccess.focus_returned`)."""
+
+    def activate(self, app: ClientApplication) -> ApplicationPresence:
+        return ACTIVE_PRESENCE
+
+    def deactivate(self, app: ClientApplication) -> ApplicationPresence:
+        app.application.backgrounded()
+        return INACTIVE_PRESENCE
+
+    def suspend(self, app: ClientApplication) -> ApplicationPresence:
+        app.application.backgrounded()
+        return SUSPENDED_PRESENCE
+
+
+class ActivePresence(ApplicationPresence):
+    pass
+
+
+class InactivePresence(ApplicationPresence):
+    def activate(self, app: ClientApplication) -> ApplicationPresence:
+        app.coordination_access.focus_returned()
+        app.workspace_sessions.selected.reload()
+        return ACTIVE_PRESENCE
+
+
+class SuspendedPresence(ApplicationPresence):
+    def activate(self, app: ClientApplication) -> ApplicationPresence:
+        app.coordination_access.resume()
+        app.workspace_sessions.selected.reload()
+        return ACTIVE_PRESENCE
+
+    def deactivate(self, app: ClientApplication) -> ApplicationPresence:
+        # Staying suspended across a transient Inactive tick preserves full socket resume.
+        return self
+
+
+ACTIVE_PRESENCE = ActivePresence()
+INACTIVE_PRESENCE = InactivePresence()
+SUSPENDED_PRESENCE = SuspendedPresence()
+
+
 class ClientApplication(BusPickerHost, ApplicationSettings, NavigationHost):
     """One launch's client state and its session operations, shared by every frontend."""
 

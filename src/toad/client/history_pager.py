@@ -720,6 +720,13 @@ class HistoryPager(ResumesSource):
         elif not self.window.follows_tail:
             edge.prepared.page = replace(edge.prepared.page, has_newer=True)
             self._update_edges()
+        elif prepared.page.has_newer:
+            # More than one page accumulated while this tab sat behind: skip rendering
+            # the stale intermediate page and jump straight to the latest window;
+            # backwards lazy-loading pulls older pages on demand.
+            edge.prepared.page = replace(edge.prepared.page, has_newer=True)
+            self._update_edges()
+            await self.publish_held_latest(publication_current)
         else:
             await self._load_page(NEWER_END, publication_current)
             if not snapshot.current(self) or not publication_current():
@@ -1083,7 +1090,7 @@ class PreparationDemand(ABC):
     @abstractmethod
     def rows(self, horizon: float) -> float: ...
 
-    def moved(self, travel: float, elapsed: float) -> PreparationDemand:
+    def moved(self, travel: float, elapsed: float, *, reversal_threshold: float = 0.0) -> PreparationDemand:
         return MovingPreparation(travel, elapsed)
 
     def accepts_result(self, end: PageEnd) -> bool:
@@ -1125,18 +1132,27 @@ class MovingPreparation(PreparationDemand):
 
     travel: float
     seconds: float
+    counter_travel: float = 0.0
 
     @property
     def velocity(self) -> float:
         return self.travel / self.seconds
 
-    def moved(self, travel: float, elapsed: float) -> PreparationDemand:
+    def moved(self, travel: float, elapsed: float, *, reversal_threshold: float = 0.0) -> PreparationDemand:
         if self.travel * travel > 0:
-            # Continue measuring this direction; reversal starts a new demand.
+            # Continue measuring this direction; reset any sub-threshold opposite jitter.
+            self.counter_travel = 0.0
             self.travel += travel
             self.seconds += elapsed
             return self
-        return super().moved(travel, elapsed)
+        # On a touchscreen drag (QScroller at 90Hz), a 1-2px capacitive jitter or lift
+        # drift in the opposite direction is not a reversal: flipping immediately aborted
+        # in-flight older-page fetches and suppressed reads until settle fired 200ms after
+        # scrolling stopped. Require sustained opposite travel beyond the threshold to flip.
+        self.counter_travel += travel
+        if abs(self.counter_travel) < reversal_threshold:
+            return self
+        return super().moved(self.counter_travel, elapsed, reversal_threshold=reversal_threshold)
 
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
@@ -1157,10 +1173,10 @@ class DestinationPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.target_rows
 
-    def moved(self, travel: float, elapsed: float) -> PreparationDemand:
+    def moved(self, travel: float, elapsed: float, *, reversal_threshold: float = 0.0) -> PreparationDemand:
         # End's own destination layout is not an intermediate scroll demand.
         # An explicit reversal immediately replaces the burst.
-        return super().moved(travel, elapsed) if travel < 0 else self
+        return super().moved(travel, elapsed, reversal_threshold=reversal_threshold) if travel < 0 else self
 
     def accepts_result(self, end: PageEnd) -> bool:
         # A newer destination supersedes older work through its source snapshot.
@@ -1230,7 +1246,10 @@ class DirectionalPreparation:
             self.idle_seconds,
             max(now - self.sampled_at, get_clock_info("monotonic").resolution),
         )
-        self.demand = self.demand.moved(travel, elapsed)
+        # Small opposite jitter (a few pixels on touch; under 2 rows on TUI) does not flip
+        # direction and abort an in-flight edge fetch; a real reverse scroll still flips.
+        reversal_threshold = max(2.0, self.window.viewport_rows * 0.05)
+        self.demand = self.demand.moved(travel, elapsed, reversal_threshold=reversal_threshold)
         self.sampled_at = now
         HEAP.reader_moved()
 

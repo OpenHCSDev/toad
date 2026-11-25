@@ -16,6 +16,7 @@ from __future__ import annotations
 from abc import abstractmethod
 
 from toad.client.history_changes import NO_HISTORY_CHANGE, HistoryChange, NoHistoryChange
+from toad.client.history_preparation import NEWER_END
 
 class JumpsToLatest:
     """A scrolling window that can be put back at its latest entry.
@@ -115,6 +116,31 @@ class FollowsTail(JumpsToLatest):
     @abstractmethod
     def apply_anchor(self, anchor: bool) -> None:
         """Join (`anchor`) or leave the tail in this toolkit, without counting or showing it."""
+
+    @property
+    def at_tail_end(self) -> bool:
+        """Whether the viewport offset is at the bottom of its currently loaded rows."""
+        return self.scroll_y >= self.max_scroll_y
+
+    def rejoin_reached_tail(self) -> None:
+        """A reader at the end of the source tail follows it again, through the same owner as
+        explicit tail selection. Being at the end is geometry, not a scroll: asked only when
+        scroll_y changed, a page down at the bottom or a tool collapsing under the reader
+        left the jump bar showing at the bottom, and rejoining while newer pages remain
+        unloaded would jump past them."""
+        if (not self._restoring and not self.follows_tail
+                and self.at_tail_end
+                and all(not NEWER_END.visible_more(history) for history in self.histories)):
+            self.anchor(True)
+
+    def record_reader_scroll(self, delta: float) -> None:
+        """One non-restoring reader scroll step shared by both frontends: advance
+        `scroll_revision`, shift the kept reader position, and rejoin the source tail if
+        it was reached."""
+        self.scroll_revision += 1
+        if self.shown:
+            self.reader_position = self.reader_position.moved(self, delta)
+        self.rejoin_reached_tail()
 
 
 class ReaderWindow(JumpsToLatest):

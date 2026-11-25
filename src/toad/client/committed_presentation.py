@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING, Literal, Self
 
+from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.coordination.errors import TranscriptChanged
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.messaging.sent_message import OutgoingMessageReference
@@ -153,6 +154,21 @@ class PreparedAppendCommit(PreparedPageCommit, shows=(SavedHistory,)):
         return await self.history.publish_append(cursor, publication_current=is_current)
 
 
+class SnapshotHasNewer(MroProjection[bool]):
+    """Whether a transcript update leaves unread pages after the returned one."""
+
+    @handles(TranscriptSnapshotUpdate)
+    def snapshot(self, update: TranscriptSnapshotUpdate) -> bool:
+        return update.page.has_newer
+
+    @handles(TranscriptDraftUpdate)
+    def draft(self, update: TranscriptDraftUpdate) -> bool:
+        return False
+
+
+SNAPSHOT_HAS_NEWER = SnapshotHasNewer()
+
+
 class CommitPlan(ABC):
     """Capture source acquisition and viewport publication together for one read."""
 
@@ -162,6 +178,10 @@ class CommitPlan(ABC):
         """A held viewport retains its original paint after a successful read."""
         return PreparedCommit
 
+    def catches_up_at_latest(self, snapshot: object) -> bool:
+        """A retained viewport keeps its place; only a following reader jumps past a multi-page gap."""
+        return False
+
     async def read_snapshot[Snapshot](
         self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
     ) -> Snapshot:
@@ -169,12 +189,19 @@ class CommitPlan(ABC):
         source = PreparedPageCommit.showing(type(history.page_source).__mro__)
         self.preparation = self.preparation_for_source(source)
         try:
-            return await source.read_snapshot(read, history)
+            snapshot = await source.read_snapshot(read, history)
         except TranscriptChanged:
             # A full retry is a replacement, even when the file path is reused
             # and its new cursor contains the old byte offset.
             self.preparation = PreparedPageCommit
             return await PreparedPageCommit.read_snapshot(read, history)
+        if self.catches_up_at_latest(snapshot):
+            # More than one page accumulated while this tab sat behind: jump straight to
+            # the latest window instead of rendering and committing every intermediate page
+            # serially; backwards lazy-loading pulls older pages on demand.
+            self.preparation = PreparedPageCommit
+            return await PreparedPageCommit.read_snapshot(read, history)
+        return snapshot
 
     @abstractmethod
     def current(self, window: HistoryWindow) -> bool:
@@ -220,6 +247,12 @@ class FollowTailCommit(CommitPlan):
     def preparation_for_source(self, source: type[PreparedPageCommit]) -> type[PreparedPageCommit]:
         """A following viewport publishes through the same member that acquired it."""
         return source
+
+    def catches_up_at_latest(self, snapshot: object) -> bool:
+        return (
+            self.preparation is PreparedAppendCommit
+            and SNAPSHOT_HAS_NEWER.project_value(snapshot)
+        )
 
     def finish(self, view, cursor) -> None:
         view.transcript.binding.painted(view.transcript, cursor)

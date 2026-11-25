@@ -8,10 +8,12 @@ from collections.abc import Awaitable, Callable
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
+import http.client
 from time import monotonic
 from typing import ClassVar, Literal
 
 from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
+from agent_comms.errors import RouteChangedError
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.lifecycle import LifecycleState
 from agent_comms.transcript.transcripts import TranscriptPage
@@ -20,6 +22,17 @@ from toad.client.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCove
 from toad.client.history_preparation import NEWER_END, OLDER_END, PageRequest
 from toad.client.resource_release import ResourceRelease
 from toad.client.subscribers import CoreObserver
+
+# Network drops, route changes and remote socket failures are recoverable outages, never
+# permanent source corruption: defer the operation so CoordinationObserved resumes it
+# when connectivity returns instead of retiring the tab into RetiredSourceTranscript.
+TRANSIENT_SOURCE_ERRORS = (
+    CoordinationReadUnavailable,
+    RouteChangedError,
+    ConnectionError,
+    TimeoutError,
+    http.client.HTTPException,
+)
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
@@ -435,11 +448,12 @@ class WorkingTranscript(ResumableTranscript):
                     # already-delivered page again as a new latency sample.
                     self.delivered(owner)
                 return result
-            except CoordinationReadUnavailable:
-                # The same operation stays paused until the existing
-                # observer resumes it. Settling it here would schedule another
-                # edge read on the next frame before storage is available.
+            except TRANSIENT_SOURCE_ERRORS:
+                # The same operation stays paused until the existing observer resumes it
+                # on CoordinationObserved / ThreadRowsChanged, and asks CoordinationAccess
+                # to check the route so a lost connection recovers without retiring the tab.
                 self.defer_source_work(owner, work)
+                owner.app.coordination_access.check_route()
                 completion.pop_all()
                 return False
             except ReadAgain:

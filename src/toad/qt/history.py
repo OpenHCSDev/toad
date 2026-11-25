@@ -1662,12 +1662,17 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         insert or removal schedules Qt's own, which a direct `doItemsLayout` would leave to
         run a second time on the next turn). It puts the reader back on the message they
         were reading and answers the change that asked for it, as Textual's screen does
-        around each of its layouts. A glide to the end owns the way there."""
+        around each of its layouts. A glide to the end owns the way there.
+
+        Wrapping layout and reader placement in one `layout_scroll()` keeps Qt's own range
+        clamping inside `executeDelayedItemsLayout()` from firing `scrolled()` as a fake
+        reader move and corrupting `lookahead` mid-drag."""
         answered = self.history_change.layout_requests
-        self.scheduleDelayedItemsLayout()
-        self.executeDelayedItemsLayout()
-        if not (self.follows_tail and self.gliding_to_end()):
-            self.place_layout_reader()
+        with self.layout_scroll():
+            self.scheduleDelayedItemsLayout()
+            self.executeDelayedItemsLayout()
+            if not (self.follows_tail and self.gliding_to_end()):
+                self.place_layout_reader()
         self.history_change.finish_layout(answered)
         self.repin_header()
 
@@ -1730,6 +1735,11 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         super().rows_repainted()
         self.repin_header()
 
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        """A hidden tab that deferred a latest jump or edge read resumes once shown."""
+        super().showEvent(event)
+        self.request_preparation()
+
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         """A window that follows the latest message stays on it when its height changes: the
         composer replacing its placeholder (the first of a kind is built at a height the
@@ -1750,6 +1760,11 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
             self.request_reader_layout()
             self.viewport().update()
 
+    @property
+    def at_tail_end(self) -> bool:
+        """Qt's pixel scroll bar keeps END_SLACK around the bottom (`VirtualRowView.at_end`)."""
+        return self.at_end
+
     def scrolled(self, value: int) -> None:
         """The reader moved: join or leave the end, and schedule the full response on the
         next display frame. QScroller fires valueChanged at touch rate during a drag;
@@ -1764,14 +1779,9 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         moved, self._scrolled_to = value - self._scrolled_to, value
         if self._restoring:
             return
-        if self.at_end and not self.follows_tail:
-            self.anchor()
-        elif not self.at_end and self.follows_tail:
+        if not self.at_end and self.follows_tail:
             self.release_anchor()
-        elif not self.follows_tail:
-            # The message under the top edge now; while a change is open, the kept one moves
-            # with the reader (`HistoryChange.moved`).
-            self.reader_position = self.reader_position.moved(self, moved)
+        self.record_reader_scroll(moved)
         self._reader_scrolled = True
 
     _reader_scrolled = False
