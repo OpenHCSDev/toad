@@ -633,7 +633,9 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         document = self.painted_document(index, option)
         if document is None and opacity is None:
             return False
-        shown = painter.clipBoundingRect().toAlignedRect().intersected(rect) if painter.hasClipping() else rect
+        has_clip = painter.hasClipping()
+        clip_region = painter.clipRegion() if has_clip else None
+        shown = painter.clipBoundingRect().toAlignedRect().intersected(rect) if has_clip else rect
         if shown.isEmpty():
             return True
         ratio = painter.device().devicePixelRatioF()
@@ -647,9 +649,13 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         local: QStyleOptionViewItem | None = None
         for tile in range((shown.top() - rect.top()) // self.TILE, (shown.bottom() - rect.top()) // self.TILE + 1):
             top = tile * self.TILE
+            height = min(self.TILE, rect.height() - top)
+            if clip_region is not None and not clip_region.intersects(
+                QRect(rect.left(), rect.top() + top, rect.width(), height)
+            ):
+                continue
             picture = self.pictures.kept((row, tile), look, document)
             if picture is None:
-                height = min(self.TILE, rect.height() - top)
                 picture = QPixmap(max(1, round(rect.width() * ratio)), max(1, round(height * ratio)))
                 picture.setDevicePixelRatio(ratio)
                 # Opaque background fill yields an RGB32 pixmap (no alpha channel), turning
@@ -1269,7 +1275,8 @@ class QtJumpBar(LatestJumpBar, QPushButton):
 
     def sizeHint(self) -> QSize:  # type: ignore[override]
         metrics = QFontMetrics(self.font())
-        return QSize(metrics.horizontalAdvance(self.text()) + 30, metrics.height() + 14)
+        text_size = metrics.size(0, self.text())
+        return QSize(text_size.width() + 24, text_size.height() + 10)
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         dpr = self.devicePixelRatioF()

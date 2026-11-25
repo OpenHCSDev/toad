@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.view.KeyEvent;
+import android.view.View;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import org.kivy.android.PythonActivity;
 import org.qtproject.qt.android.QtActivityResults;
@@ -64,6 +66,26 @@ public class ToadActivity extends PythonActivity {
             android.util.Log.e("toadcomms", "could not disable Qt's accessibility bridge", failure);
         }
         super.onCreate(savedInstanceState);
+        // Android 15 (targetSdk 35) enforces edge-to-edge and stops resizing the activity
+        // window for SOFT_INPUT_ADJUST_RESIZE; Qt's own WindowInsets listener only reads
+        // systemBars() | displayCutout(), and QtActivityDelegate's fallback uses deprecated
+        // Display.getMetrics() which under-counts the keyboard by system-bar/toolbar height.
+        // Padding android.R.id.content by WindowInsets.Type.ime().bottom shrinks QtRootLayout
+        // natively to the exact height above the keyboard, while insets.inset(...) consumes
+        // that bottom band so QtWindow does not add a duplicate nav-bar margin on top of it.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            final View content = findViewById(android.R.id.content);
+            if (content != null) {
+                content.setOnApplyWindowInsetsListener((view, insets) -> {
+                    int imeBottom = insets.getInsets(WindowInsets.Type.ime()).bottom;
+                    if (view.getPaddingBottom() != imeBottom) {
+                        view.setPadding(0, 0, 0, imeBottom);
+                    }
+                    return imeBottom > 0 ? insets.inset(0, 0, 0, imeBottom) : insets;
+                });
+                content.requestApplyInsets();
+            }
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATIONS_ASKED);
