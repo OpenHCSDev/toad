@@ -126,6 +126,32 @@ class ContextInspectionReader(PanelSource):
     def start_native_read(self, captured: HoldingInspection) -> None:
         raise NotImplementedError
 
+    def cancel_page_work(self) -> None:
+        raise NotImplementedError
+
+    def clear_page_display(self, placeholder: str) -> None:
+        raise NotImplementedError
+
+    def reload_page(self) -> None:
+        raise NotImplementedError
+
+    def older_requests(self) -> None:
+        self.state.present(lambda current: self._change_page(current.inspection.page.older))
+
+    def newer_requests(self) -> None:
+        self.state.present(lambda current: self._change_page(current.inspection.page.newer))
+
+    def _change_page(self, cursor: ContextManifestCursor) -> None:
+        """Destination selection ends the acquired page's lifetime now, not when the
+        replacement read finishes. Unacquired inspection states cannot publish old
+        groups, searches or native results."""
+        self.intent.select_page(cursor)
+        self.inspect_identity(self.thread_identity)
+        self.cancel_page_work()
+        self.set_page_controls(older=False, newer=False)
+        self.clear_page_display("Loading recorded request page…")
+        self.reload_page()
+
     def _inspection_acquired(
         self, previous: InspectionState, current: HoldingInspection, force: bool
     ) -> None:

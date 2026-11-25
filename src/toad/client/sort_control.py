@@ -124,6 +124,25 @@ class SortControlBase[Order: "DisplayOrder"]:
             else f"Choose how to sort {self.scope}"
         )
 
+    def visibility_fields(self) -> "tuple[FieldPath, ...]":
+        """Settings the menu toggles beside the orders."""
+        return ()
+
+    def saved_settings(self):
+        raise NotImplementedError(f"{type(self).__name__} toggles no settings")
+
+    def schedule_settings_save(self, settings) -> None:
+        raise NotImplementedError
+
+    def visibility_toggle_label(self, path: "FieldPath") -> str:
+        field = path.bind(self.saved_settings().state)
+        return f"{'✓' if field.value else '○'} {field.label}"
+
+    def _toggle_visibility(self, path: "FieldPath") -> None:
+        settings = self.saved_settings()
+        settings.toggle(path)
+        self.schedule_settings_save(settings)
+
 
 class ChannelListOrder(CommsSortWrite["ChannelSort"]):
     """The Channels panel header's order: the channel list's order, stored by

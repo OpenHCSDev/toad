@@ -571,33 +571,17 @@ class ContextExplorer(
         ):
             self.query_one(ContextTree).present(groups)
 
-    def older_requests(self) -> None:
-        self.state.present(self._older_requests)
-
-    def _older_requests(self, current: HoldingInspection) -> None:
-        self.intent.select_page(current.inspection.page.older)
-        self._change_page()
-
-    def newer_requests(self) -> None:
-        self.state.present(self._newer_requests)
-
-    def _newer_requests(self, current: HoldingInspection) -> None:
-        self.intent.select_page(current.inspection.page.newer)
-        self._change_page()
-
-    def _change_page(self) -> None:
-        # Destination selection ends the acquired page's lifetime now, not
-        # when the replacement read finishes. Unacquired inspection states
-        # cannot publish old groups, searches or native results.
-        self.state = self.thread_identity.inspection_state()
+    def cancel_page_work(self) -> None:
         ContextPresentationWork.cancel_all(self)
         ContextNativeWork.cancel_all(self)
         ContextSearchWork.cancel_all(self)
         ContextDetailWork.cancel_all(self)
-        self.query_one(ContextOlder).disabled = True
-        self.query_one(ContextNewer).disabled = True
+
+    def clear_page_display(self, placeholder: str) -> None:
         self.query_one(ContextTree).clear()
-        self._show_placeholder("Loading recorded request page…")
+        self._show_placeholder(placeholder)
+
+    def reload_page(self) -> None:
         self.read()
 
     def present_results(self) -> None:
