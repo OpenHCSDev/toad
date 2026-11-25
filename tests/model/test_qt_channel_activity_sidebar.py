@@ -15,12 +15,12 @@ from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel, ThreadRo
 from agent_comms.ui_model.unread import ExactUnread
 from pyqt_reactive.theming import ColorScheme
 from PySide6.QtWidgets import QApplication
-from ui_theme.clock import AnimationClock
 from ui_theme.scheme import AccentColour
 
 from toad.client.conversation import ChannelConversation
 from toad.client.sidebar_state import Current
 from toad.qt.theme import offered_schemes
+from toad.qt.widget_animation import QtAnimationClock
 from toad.qt.window import (
     ChannelActivitySidebar,
     ChannelTreeSidebar,
@@ -107,7 +107,7 @@ def test_channel_activity_sidebar_reuses_sidebar_tree_for_selected_channel(monke
         theme=SimpleNamespace(color_scheme=color_scheme),
         settings=SimpleNamespace(sidebar=SimpleNamespace(unread_counts=ShownUnreadCount)),
         thread_actions=SimpleNamespace(pending={}),
-        animation_clock=AnimationClock(lambda _interval, _cb: lambda: None),
+        animation_clock=QtAnimationClock(lambda _interval, _cb: lambda: None),
         coordination_access=access,
         open_row=lambda row: opened.append(row),
     )

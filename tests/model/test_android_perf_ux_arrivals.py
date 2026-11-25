@@ -10,18 +10,19 @@ from agent_comms.coordination.errors import CoordinationReadUnavailable
 from agent_comms.transport.remote_core import ConnectorObserverClosed
 from PySide6.QtCore import QRect
 from PySide6.QtWidgets import QApplication, QWidget
-from ui_theme.clock import AnimationClock
 
 from toad.client.history import ObservedViewportRequest, RestyledViewportRequest
 from toad.client.history_state import LatestReplacementViewportRequest
 from toad.key_modes import Standard, VimInsert
 from toad.markdown_links import LinkContext
 from toad.preferences import DiffSettings
-from toad.qt.history import HistoryRowDelegate
+from toad.qt.history import HistoryRowDelegate, QtJumpBar
 from toad.qt.lines import QtLineRenderer
-from toad.qt.name_wave import QtSessionTabBar
+from toad.qt.name_wave import QtSessionTabBar, QtTabWave
+from toad.qt.overlay_scrollbar import OverlayScrollBar
 from toad.qt.prompt_stack import QtInfoBar
 from toad.qt.theme import current_scheme
+from toad.qt.widget_animation import QtAnimationClock
 from toad.session_observation import GoalObservation, SessionObservation
 from toad.sidebar_placement import BottomSidebarEdge, HeightSidebarEdge
 
@@ -80,7 +81,7 @@ def test_qt_editing_mode_badge_hides_standard_and_collapses_empty_info_bar(monke
 def test_qt_session_tab_bar_caches_shown_title_across_wave_ticks(monkeypatch):
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     _app = QApplication.instance() or QApplication([])
-    clock = AnimationClock(lambda _interval: None)
+    clock = QtAnimationClock(lambda _interval: None)
     scheme = current_scheme(os.environ)
     from PySide6.QtGui import QColor
 
@@ -260,7 +261,7 @@ def test_qt_session_tab_bar_close_button_sits_inside_painted_tab(monkeypatch):
     from PySide6.QtGui import QColor
     from PySide6.QtWidgets import QTabBar, QToolButton
 
-    clock = AnimationClock(lambda _interval: None)
+    clock = QtAnimationClock(lambda _interval: None)
     bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
     bar.setTabsClosable(True)
     bar.setExpanding(False)
@@ -311,3 +312,65 @@ def test_qt_toad_app_apply_safe_area_tracks_keyboard_inset(monkeypatch):
     fake_ime.isVisible.return_value = False
     QtToadApp._apply_safe_area(win)
     win.setContentsMargins.assert_called_with(0, 42, 0, 24)
+
+
+def test_scroll_perf_optimizations_cache_overlays_and_pause_ambient_waves(monkeypatch):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    import inspect
+    from PySide6.QtGui import QColor
+    from PySide6.QtWidgets import QListView
+    from toad.markdown_links import ReferenceContext
+
+    scheduled: list[float | None] = []
+    clock = QtAnimationClock(scheduled.append)
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+
+    # 1. QtAnimationClock pauses QtTabWave while a history view scrolls and resumes on Inactive.
+    bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
+    bar.show_tabs([("#comms", "comms")])
+    bar.show()
+    wave = bar.waves.setdefault("comms", QtTabWave(bar, "comms"))
+    assert wave.animation_visible is True
+    scroller_owner = QWidget()
+    clock.set_scrolling(scroller_owner, True)
+    assert clock.ambient_paused is True
+    assert wave.animation_visible is False
+    clock.set_scrolling(scroller_owner, False)
+    assert clock.ambient_paused is False
+    assert wave.animation_visible is True
+
+    # 2. QtJumpBar caches its rendered pill QPixmap across repeated paints.
+    parent = QWidget()
+    parent.resize(360, 600)
+    parent.show()
+    jump = QtJumpBar(parent, renderer)
+    jump.resize(jump.sizeHint())
+    jump.show()
+    jump.grab()
+    first_cache = jump._pill_cache
+    assert first_cache is not None
+    jump.grab()
+    assert jump._pill_cache is first_cache
+
+    # 3. OverlayScrollBar paints directly without QGraphicsOpacityEffect.
+    area = QListView(parent)
+    area.resize(360, 600)
+    area.show()
+    area.verticalScrollBar().setRange(0, 1000)
+    area.verticalScrollBar().setPageStep(200)
+    OverlayScrollBar.follow(area, clock, renderer, 6)
+    overlay = area.findChild(OverlayScrollBar)
+    assert overlay is not None
+    assert overlay.graphicsEffect() is None
+    overlay.moved(100)
+    assert overlay.isVisible() and overlay.handle_opacity == 1.0
+    overlay.grab()
+    overlay.stop()
+
+    bar.deleteLater()
+    scroller_owner.deleteLater()
+    parent.deleteLater()
+    app.processEvents()

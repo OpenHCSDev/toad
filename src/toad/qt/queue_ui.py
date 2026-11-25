@@ -175,7 +175,9 @@ class QtQueueHint(QtOpensQueue):
     def refresh(self, text: str) -> None:
         if text != self.text():
             self.setText(text)
-        self.setVisible(bool(text))
+        wanted = bool(text)
+        if self.isHidden() == wanted:
+            self.setVisible(wanted)
 
 
 class QtDeliveryControls(QueueDeliveryControls, QWidget, metaclass=PyQtWidgetMeta):

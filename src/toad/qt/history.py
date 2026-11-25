@@ -26,7 +26,7 @@ from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPixmap, QScrollEvent, QTextDocument
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPen, QPixmap, QScrollEvent, QTextDocument
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
 )
@@ -349,6 +349,17 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         """Replaced, never mutated, when the link context settles or the app's renderer
         restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
+        self._bg_cache: tuple[ColourScheme, str, QColor] | None = None
+
+    def _background_colour(self) -> tuple[str, QColor]:
+        scheme = self.renderer.scheme
+        cached = self._bg_cache
+        if cached is not None and cached[0] is scheme:
+            return cached[1], cached[2]
+        bg_hex = BackgroundColour.rgb(scheme).hex
+        bg_color = QColor(bg_hex)
+        self._bg_cache = (scheme, bg_hex, bg_color)
+        return bg_hex, bg_color
 
     def link(self, links: LinkContext) -> None:
         """Rows draw with these names from now on; rows prepared before are stale."""
@@ -619,22 +630,21 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         two it lasts; a rising one is painted from pictures all the same, as its fade
         repaints it every frame."""
         rect = option.rect
-        local = QStyleOptionViewItem(option)
-        local.rect = QRect(0, 0, rect.width(), rect.height())
-        document = self.painted_document(index, local)
+        document = self.painted_document(index, option)
         if document is None and opacity is None:
             return False
         shown = painter.clipBoundingRect().toAlignedRect().intersected(rect) if painter.hasClipping() else rect
         if shown.isEmpty():
             return True
         ratio = painter.device().devicePixelRatioF()
-        bg_hex = BackgroundColour.rgb(self.renderer.scheme).hex
+        bg_hex, bg_color = self._background_colour()
         look = (rect.width(), rect.height(), ratio, bg_hex)
         # A row is its document; one still being prepared has none, and is this view's row.
         row = id(document) if document is not None else (id(self), key)
         painter.save()
         if opacity is not None:
             painter.setOpacity(opacity)
+        local: QStyleOptionViewItem | None = None
         for tile in range((shown.top() - rect.top()) // self.TILE, (shown.bottom() - rect.top()) // self.TILE + 1):
             top = tile * self.TILE
             picture = self.pictures.kept((row, tile), look, document)
@@ -644,7 +654,9 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
                 picture.setDevicePixelRatio(ratio)
                 # Opaque background fill yields an RGB32 pixmap (no alpha channel), turning
                 # every scroll tile blit into a raw memcpy instead of SourceOver alpha blending.
-                picture.fill(QColor(bg_hex))
+                picture.fill(bg_color)
+                if local is None:
+                    local = QStyleOptionViewItem(option)
                 drawing = QPainter(picture)
                 local.rect = QRect(0, -top, rect.width(), rect.height())
                 if document is not None:
@@ -1148,6 +1160,7 @@ class QtStickyHeader(HeaderPin, QWidget):
         # renderer stay the same.
         self.laid_out: dict[Divider, QTextDocument] = {}
         self.layout_context: tuple = ()
+        self._pixmap_cache: tuple[tuple, QPixmap] | None = None
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.hide()
 
@@ -1176,6 +1189,7 @@ class QtStickyHeader(HeaderPin, QWidget):
         self.layout_context = context
         self.laid_out = laid_out
         self.documents = tuple(self.laid_out[header] for header in headers)
+        self._pixmap_cache = None
         self.resize(width, sum(int(document.size().height()) for document in self.documents))
         self.move(window.viewport().mapTo(window, QPoint(x, 0)))
         self.raise_()
@@ -1200,41 +1214,93 @@ class QtStickyHeader(HeaderPin, QWidget):
     def paintEvent(self, event) -> None:  # type: ignore[override]
         if not self.documents:
             return
+        dpr = self.devicePixelRatioF()
+        bg_hex, bg_color = self.history_window.rows._background_colour()
+        key = (self.drawn, self.width(), self.height(), dpr, bg_hex)
+        cached = self._pixmap_cache
+        if cached is not None and cached[0] == key:
+            pixmap = cached[1]
+        else:
+            pixmap = QPixmap(max(1, round(self.width() * dpr)), max(1, round(self.height() * dpr)))
+            pixmap.setDevicePixelRatio(dpr)
+            pixmap.fill(bg_color)
+            drawing = QPainter(pixmap)
+            context = QAbstractTextDocumentLayout.PaintContext()
+            context.palette = self.palette()
+            for document in self.documents:
+                document.documentLayout().draw(drawing, context)
+                drawing.translate(0, document.size().height())
+            drawing.end()
+            self._pixmap_cache = (key, pixmap)
         painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor(BackgroundColour.rgb(self.history_window.rows.renderer.scheme).hex))
-        context = QAbstractTextDocumentLayout.PaintContext()
-        context.palette = self.palette()
-        for document in self.documents:
-            document.documentLayout().draw(painter, context)
-            painter.translate(0, document.size().height())
+        painter.drawPixmap(0, 0, pixmap)
         painter.end()
 
 
 class QtJumpBar(LatestJumpBar, QPushButton):
     """The shared `LatestJumpBar` as a floating button over the history's viewport; clicking
     it jumps the window back to the latest row. Text and border take PrimaryColour, as
-    Textual's `BackToBottom` takes `PrimaryText`."""
+    Textual's `BackToBottom` takes `PrimaryText`.
+
+    Renders its rounded pill once into a device-ratio `QPixmap` so scroll frames that
+    repaint the viewport strip underneath blit a cached pixmap instead of re-evaluating
+    a stylesheet `QPushButton` every frame."""
 
     def __init__(self, parent: QWidget, renderer: QtLineRenderer) -> None:
         super().__init__(self.label, parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._bg_color = QColor()
+        self._primary_color = QColor()
+        self._pill_cache: tuple[tuple, QPixmap] | None = None
+        font = QFont(self.font())
+        font.setBold(True)
+        self.setFont(font)
         renderer.themed(self, partial(self.paint_colours, renderer))
         self.hide()
 
     def paint_colours(self, renderer: QtLineRenderer) -> None:
         scheme = renderer.scheme
-        primary = PrimaryColour.rgb(scheme).hex
-        self.setStyleSheet(
-            "QPushButton {"
-            f"  background: {SurfaceHoverColour.rgb(scheme).hex};"
-            f"  color: {primary};"
-            f"  border: 1px solid {primary};"
-            "  border-radius: 14px;"
-            "  padding: 6px 14px;"
-            "  font-weight: bold;"
-            "}"
-        )
+        self._primary_color = QColor(PrimaryColour.rgb(scheme).hex)
+        self._bg_color = QColor(SurfaceHoverColour.rgb(scheme).hex)
+        self._pill_cache = None
+        if self.isVisible():
+            self.update()
+
+    def sizeHint(self) -> QSize:  # type: ignore[override]
+        metrics = QFontMetrics(self.font())
+        return QSize(metrics.horizontalAdvance(self.text()) + 30, metrics.height() + 14)
+
+    def paintEvent(self, event) -> None:  # type: ignore[override]
+        dpr = self.devicePixelRatioF()
+        width, height = self.width(), self.height()
+        if width <= 0 or height <= 0:
+            return
+        down = self.isDown()
+        key = (width, height, dpr, down, self.text(), self._bg_color.rgb(), self._primary_color.rgb())
+        cached = self._pill_cache
+        if cached is not None and cached[0] == key:
+            pixmap = cached[1]
+        else:
+            pixmap = QPixmap(max(1, round(width * dpr)), max(1, round(height * dpr)))
+            pixmap.setDevicePixelRatio(dpr)
+            pixmap.fill(Qt.GlobalColor.transparent)
+            drawing = QPainter(pixmap)
+            drawing.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            bg = self._bg_color.darker(115) if down else self._bg_color
+            drawing.setBrush(bg)
+            drawing.setPen(QPen(self._primary_color, 1.0))
+            box = QRectF(0.5, 0.5, width - 1.0, height - 1.0)
+            radius = min(14.0, height / 2.0)
+            drawing.drawRoundedRect(box, radius, radius)
+            drawing.setFont(self.font())
+            drawing.setPen(self._primary_color)
+            drawing.drawText(QRect(0, 0, width, height), Qt.AlignmentFlag.AlignCenter, self.text())
+            drawing.end()
+            self._pill_cache = (key, pixmap)
+        painter = QPainter(self)
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
 
     @property
     def jump_shown(self) -> bool:
@@ -1589,6 +1655,8 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         height = self._viewport_height_safe()
         if height == 0:
             return 0
+        if self.verticalScrollBar().maximum() > 0:
+            return 0
         rows = self.model_rows.rowCount()
         if not rows:
             return height
@@ -1668,15 +1736,15 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         self._overshoot = 0.0
         self._travel_origin = 0.0
 
-    def jump_to_latest(self) -> None:
-        """Stop kinetic scroll momentum before jumping back to the newest row.
+    def destination(self) -> None:
+        """Stop kinetic scroll momentum before jumping to a destination (e.g. `jump_to_latest`).
 
         `QtJumpBar` is a child of the window rather than the viewport so `QScroller`
         cannot swallow its tap, which also means tapping it does not stop an active
         upward fling; without `scroller.stop()` the next kinetic frame pulls the
         window straight back up off the bottom."""
         self._stop_scroll_momentum()
-        super().jump_to_latest()
+        super().destination()
 
     def apply_anchor(self, anchor: bool) -> None:
         self._anchored = anchor
@@ -1806,6 +1874,10 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         if self.jump_bar.isVisible():
             self._place_jump_bar()
 
+    def hideEvent(self, event) -> None:  # type: ignore[override]
+        super().hideEvent(event)
+        self.animation_clock.set_scrolling(self, False)
+
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         """A window that follows the latest message stays on it when its height changes: the
         composer replacing its placeholder (the first of a kind is built at a height the
@@ -1896,7 +1968,12 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
 
     def _on_scroller_state(self, state) -> None:
         """A finger taking the rows stops a head reveal; a press that stops a fling is
-        remembered, so its release is not read as a tap on a row."""
+        remembered, so its release is not read as a tap on a row. Ambient animations
+        (tab waves, activity sweeps) pause while kinetic scrolling is active so distant
+        repaints cannot expand the frame's GPU upload box to the whole screen."""
+        self.animation_clock.set_scrolling(
+            self, state in (QScroller.State.Dragging, QScroller.State.Scrolling)
+        )
         if state in (QScroller.State.Pressed, QScroller.State.Dragging) and self.head_reveal is not None:
             self.head_reveal.cancel()
         if state == QScroller.State.Pressed:

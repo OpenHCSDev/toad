@@ -10,7 +10,8 @@ it never takes a tap meant for the text under it.
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
-from PySide6.QtWidgets import QAbstractScrollArea, QGraphicsOpacityEffect, QScrollBar
+from PySide6.QtGui import QColor, QPainter
+from PySide6.QtWidgets import QAbstractScrollArea, QScrollBar
 from ui_theme.clock import AnimationClock
 from ui_theme.scheme import SurfaceHoverColour
 
@@ -28,7 +29,7 @@ class ScrollbarFade(WidgetAnimation, TransitionTarget):
         self.start_transition(clock, SCROLLBAR_FADE)
 
     def apply_amount(self, amount: float) -> None:
-        self.bar.opacity.setOpacity(amount)
+        self.bar.set_handle_opacity(amount)
 
     def land(self) -> None:
         self.bar.fade = None
@@ -36,7 +37,11 @@ class ScrollbarFade(WidgetAnimation, TransitionTarget):
 
 
 class OverlayScrollBar(QScrollBar):
-    """The overlay for one area; `follow` attaches it, or detaches it at width 0."""
+    """The overlay for one area; `follow` attaches it, or detaches it at width 0.
+
+    Draws its rounded handle directly with `QPainter` instead of a permanent
+    `QGraphicsOpacityEffect` + stylesheet: an opacity effect allocates an offscreen
+    full-height pixmap and alpha-composites it on every scroll frame even at opacity 1.0."""
 
     STILL_MS = 1000
     """How long the area stays still before the bar fades."""
@@ -47,14 +52,14 @@ class OverlayScrollBar(QScrollBar):
         self.source = area.verticalScrollBar()
         self.thickness = 0
         self.fade: ScrollbarFade | None = None
-        self.opacity = QGraphicsOpacityEffect(self)
-        self.opacity.setOpacity(1.0)
-        self.setGraphicsEffect(self.opacity)
+        self.handle_opacity = 1.0
+        self._handle_color = QColor(SurfaceHoverColour.rgb(renderer.scheme).hex)
         self.still = QTimer(self)
         self.still.setSingleShot(True)
         self.still.setInterval(self.STILL_MS)
         self.still.timeout.connect(self.fade_out)
         self.source.rangeChanged.connect(self.setRange)
+        self.setRange(self.source.minimum(), self.source.maximum())
         self.source.valueChanged.connect(self.moved)
         self.valueChanged.connect(self.source.setValue)
         self.geometry_watch = _ViewportGeometry(self)
@@ -62,16 +67,37 @@ class OverlayScrollBar(QScrollBar):
         renderer.themed(self, self.paint_colours)
         self.hide()
 
+    def set_handle_opacity(self, amount: float) -> None:
+        if amount != self.handle_opacity:
+            self.handle_opacity = amount
+            self.update()
+
     def paint_colours(self) -> None:
-        """Only the handle shows, a raised tier over whatever text it floats on; the track and
-        the arrows draw nothing."""
-        handle = SurfaceHoverColour.rgb(self.renderer.scheme).hex
-        self.setStyleSheet(
-            "QScrollBar:vertical { background: transparent; margin: 0; border: none; }"
-            f"QScrollBar::handle:vertical {{ background: {handle}; border-radius: {max(1, self.thickness // 2)}px;"
-            " min-height: 24px; }"
-            "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; border: none; }"
-            "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }")
+        """Cache the raised handle colour; `paintEvent` draws the handle directly."""
+        self._handle_color = QColor(SurfaceHoverColour.rgb(self.renderer.scheme).hex)
+        if self.isVisible():
+            self.update()
+
+    def paintEvent(self, event) -> None:  # type: ignore[override]
+        span = self.maximum() - self.minimum()
+        if self.handle_opacity <= 0.0 or span <= 0:
+            return
+        height = self.height()
+        width = self.width()
+        if height <= 0 or width <= 0:
+            return
+        page = max(1, self.pageStep())
+        thumb_h = max(24, min(height, round(height * page / (span + page))))
+        top = round((self.value() - self.minimum()) / span * (height - thumb_h))
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        if self.handle_opacity < 1.0:
+            painter.setOpacity(self.handle_opacity)
+        radius = max(1.0, width / 2.0)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(self._handle_color)
+        painter.drawRoundedRect(QRect(0, top, width, thumb_h), radius, radius)
+        painter.end()
 
     @classmethod
     def follow(cls, area: QAbstractScrollArea, clock: AnimationClock, renderer: QtLineRenderer,
@@ -100,15 +126,24 @@ class OverlayScrollBar(QScrollBar):
 
     def moved(self, value: int) -> None:
         """The area scrolled: show the bar at once at full strength and restart the wait."""
-        self.setValue(value)
+        if self.value() != value:
+            self.setValue(value)
         if not self.thickness:
             return
-        self.stop()
-        self.opacity.setOpacity(1.0)
-        self.setPageStep(self.source.pageStep())
-        self.setSingleStep(self.source.singleStep())
-        self.place()
-        if self.maximum() > self.minimum():
+        if self.fade is not None:
+            self.fade.animation.stop()
+            self.fade = None
+        if self.handle_opacity != 1.0:
+            self.handle_opacity = 1.0
+            self.update()
+        page_step = self.source.pageStep()
+        if self.pageStep() != page_step:
+            self.setPageStep(page_step)
+        single_step = self.source.singleStep()
+        if self.singleStep() != single_step:
+            self.setSingleStep(single_step)
+        if self.maximum() > self.minimum() and not self.isVisible():
+            self.place()
             self.show()
             self.raise_()
         self.still.start()

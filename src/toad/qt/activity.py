@@ -58,6 +58,10 @@ class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):
             self.animation = None
         self.update()
 
+    @property
+    def animation_visible(self) -> bool:
+        return super().animation_visible and not self.clock.ambient_paused
+
     def repaint(self) -> None:
         """A shared clock tick invalidates this strip; Qt schedules its native paint."""
         self.update()
