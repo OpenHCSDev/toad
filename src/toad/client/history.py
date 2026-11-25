@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import ClassVar
 
-from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
+from agent_comms.coordination.errors import ReadAgain
 from agent_comms.messaging.historical_views import (
     ConversationObservation,
     ConversationRevision,
@@ -53,6 +53,7 @@ from toad.client.history_reads import NothingToRead, PaintedRead, ReadMarking, R
 from toad.client.message_file_links import PageFiles
 from toad.client.history_state import (
     DEFERRED_WORK,
+    TRANSIENT_SOURCE_ERRORS,
     LatestReplacementViewportRequest,
     ReplacementViewportRequest,
     SourceWork,
@@ -364,20 +365,20 @@ class WireView(ConversationActivity):
         history = self.message_history
         source = history.page_source
         snapshot = history.source_snapshot()
-        if not await history.source_is_current(snapshot):
-            return
-        await self.thread_label_read()
-        compose = await source.compose_access()
-        if not await history.source_is_current(snapshot):
-            return
-        await self.refresh_composer(compose)
         try:
+            if not await history.source_is_current(snapshot):
+                return
+            await self.thread_label_read()
+            compose = await source.compose_access()
+            if not await history.source_is_current(snapshot):
+                return
+            await self.refresh_composer(compose)
             await source.update_mentions(self)
             if not await history.source_is_current(snapshot):
                 return
             self.mentions_read()
             status = await source.status_text(read_only=compose.read_only)
-        except (CoordinationReadUnavailable, ReadAgain):
+        except (*TRANSIENT_SOURCE_ERRORS, ReadAgain):
             return
         if not await history.source_is_current(snapshot):
             return

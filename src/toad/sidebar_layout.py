@@ -322,13 +322,14 @@ class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
 
     def surface_parts(self, size: Size) -> SurfaceParts:
         """Where this surface's toggle strip, resize handle and content go inside its own
-        region, in cells. Both sit on the conversation-facing side (the edge's opposite), as
-        Textual docks SideBarToggle and SidebarResizeHandle; the content keeps
-        `content_padding` clear of them. Holding the window alone, the content is all of it."""
+        region, in cells. When folded, the toggle occupies the full region (so a narrow
+        folded strip beside an open band fills the band's height). When open, both strip
+        and handle sit on the conversation-facing side."""
         edge = self.placement.side
         inner = edge.opposite()
         cross = size.width
-        toggle = inner.region(size, SidebarGeometry(0, edge.collapsed_extent, 0, cross), Spacing())
+        toggle = (Region(0, 0, size.width, size.height) if self.collapsed
+                  else inner.region(size, SidebarGeometry(0, edge.collapsed_extent, 0, cross), Spacing()))
         handle = inner.region(size, SidebarGeometry(edge.collapsed_extent, 1, 0, cross), Spacing())
         content = Region(0, 0, size.width, size.height).shrink(self.content_padding())
         return SurfaceParts(toggle, handle, content)
@@ -687,12 +688,11 @@ class SidebarLayout:
     def splits_after(self, identity: type[SidebarPlacement],
                      collapsed: Mapping[type[SidebarPlacement], bool]) -> bool:
         """Whether the next shown bar in this one's band sits beside it, so its splitter shows:
-        bars whose folds take equal shares share a row; a folded strip under an open bar does
-        not. `collapsed` holds the shown bars, as `resolve` reads it; a hidden bar has none."""
+        every pair of shown bars in a horizontal band sits side by side (both open, both folded,
+        or one open beside a narrow folded strip)."""
         shown = tuple(key for key in self._slot(self.placements, identity) if key in collapsed)
         index = shown.index(identity)
-        return any(SidebarFold.of(collapsed[identity]).shares == SidebarFold.of(collapsed[after]).shares
-                   for after in shown[index + 1:index + 2])
+        return index + 1 < len(shown)
 
     def _store(self, placements: dict[type[SidebarPlacement], SidebarPlacement]) -> None:
         self._save(replace(self.terminal, placements=tuple(placements.values())))

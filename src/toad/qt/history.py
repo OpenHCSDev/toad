@@ -428,10 +428,13 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         one is prepared; none for a row that never had one."""
         return self._prepared.get(key) or self._prepared.get(self.last_shown.get(self.row_identity(key)))
 
-    def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument:
+    def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument | None:
         # A wide row's paint rect is its intrinsic extent. Layout still uses the
         # viewport width, or wrapped prose would stop wrapping after scrolling code.
-        return self.row_document(index, option.font, self.layout_width(option.rect.width()))
+        # `final_document` returns None while a row is still being prepared so
+        # `paint_pictures` doesn't allocate a fresh throwaway QTextDocument and miss
+        # `RowPictures` on every scroll frame.
+        return self.final_document(index, option.font, self.layout_width(option.rect.width()))
 
     PREFORMATTED_SHEET = f"pre {{ white-space: {PREFORMATTED.css_white_space}; }}"
     """Every `pre` in a row, whoever wrote it (a highlighted fence, Markdown's own for an
@@ -525,10 +528,11 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
 
     def styled_formatting(self, key, fragment: HistoryFragment, font: QFont, width: int) -> RowFormatting:
         """The row's formatting under `key`; while a new look of a drawn row is still being
-        prepared, the look it last showed. A sent message's receipt answers several times
-        just after it lands (checking, then each recipient): each answer is a new key, and
-        drawing the row as plain text until the answer was styled rewrapped it to another
-        height and back, the message snapping in, out and in again."""
+        prepared, the look it last showed. Fast-paths cached rows before computing
+        `clipboard_text` or `QFontMetricsF` on every scroll paint."""
+        if key in self._prepared:
+            self._prepared.move_to_end(key)
+            return self._prepared[key]
         formatting = self.keyed_formatting(key, fragment.clipboard_text, self.row_preparation(fragment, font, width))
         if not formatting.final:
             shown = self.last_shown.get(self.row_identity(key))
@@ -624,7 +628,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         if shown.isEmpty():
             return True
         ratio = painter.device().devicePixelRatioF()
-        look = (rect.width(), rect.height(), ratio)
+        bg_hex = BackgroundColour.rgb(self.renderer.scheme).hex
+        look = (rect.width(), rect.height(), ratio, bg_hex)
         # A row is its document; one still being prepared has none, and is this view's row.
         row = id(document) if document is not None else (id(self), key)
         painter.save()
@@ -637,7 +642,9 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
                 height = min(self.TILE, rect.height() - top)
                 picture = QPixmap(max(1, round(rect.width() * ratio)), max(1, round(height * ratio)))
                 picture.setDevicePixelRatio(ratio)
-                picture.fill(Qt.GlobalColor.transparent)
+                # Opaque background fill yields an RGB32 pixmap (no alpha channel), turning
+                # every scroll tile blit into a raw memcpy instead of SourceOver alpha blending.
+                picture.fill(QColor(bg_hex))
                 drawing = QPainter(picture)
                 local.rect = QRect(0, -top, rect.width(), rect.height())
                 if document is not None:
@@ -1431,6 +1438,11 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def _after_jump_bar_change(self, shown: bool) -> None:
         if shown:
             self._place_jump_bar()
+            QTimer.singleShot(0, self, self._reposition_jump_bar)
+
+    def _reposition_jump_bar(self) -> None:
+        if not self.widget_gone and self.jump_bar.isVisible():
+            self._place_jump_bar()
 
     def _place_jump_bar(self) -> None:
         """Position the floating bar over the viewport's bottom-center. The bar is a child
@@ -1791,6 +1803,8 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         """A hidden tab that deferred a latest jump or edge read resumes once shown."""
         super().showEvent(event)
         self.request_preparation()
+        if self.jump_bar.isVisible():
+            self._place_jump_bar()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         """A window that follows the latest message stays on it when its height changes: the
@@ -1799,6 +1813,8 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         the offset stayed, so the last message sat that much below the fold with no jump bar
         offered (2026-11-22, a thread opened on a scratch bus: 106 px short, following)."""
         super().resizeEvent(event)
+        if self.jump_bar.isVisible():
+            self._place_jump_bar()
         self.keep_tail_after_resize(event.oldSize().height(), event.size().height())
 
     def keep_tail_after_resize(self, was: int, now: int) -> None:

@@ -215,7 +215,7 @@ class WidthSidebarEdge(SidebarEdge):
 class HeightSidebarEdge(SidebarEdge):
     minimum = 9
     conversation_minimum = 8
-    collapsed_extent = 1
+    collapsed_extent = 2
     # Populated at module end once TopSidebarEdge and BottomSidebarEdge exist;
     # read by SidebarEdge.opposite() without going through the DeclaredFamily registry.
     _edge_by_sign: ClassVar[dict[int, type[SidebarEdge]]] = {}
@@ -245,12 +245,12 @@ class HeightSidebarEdge(SidebarEdge):
     @classmethod
     def pack(cls, extents: Sequence[int], folds: Sequence[type[SidebarFold]], viewport: Size,
              split: int) -> tuple[SidebarGeometry, ...]:
-        """Bars on a top or bottom edge sit side by side in one band rather than stacking, the
-        first taking `split` percent and ending in the splitter handle. A folded bar beside an
-        open one is only its toggle, so it lies along the wall as a full-width strip and the
-        open bars take the whole width beside it. The band's most open fold names its room."""
+        """Bars on a top or bottom edge sit side by side in one band rather than stacking.
+        Two open bars split the width (`split` percent for the first); a folded bar beside an
+        open one rises to the open band's height as a narrow strip (`WidthSidebarEdge.collapsed_extent`)
+        so tapping it opens both into the split."""
         room = max(folds, key=attrgetter("shares"), default=FoldedSidebarFold).band.of(
-            folds, extents, viewport.width, partial(cls.shares, width=viewport.width, split=split))
+            folds, extents, viewport.width, lambda count, width: cls.shares(count, width, split))
         return tuple(fold.in_band(room, extent) for fold, extent in zip(folds, extents))
 
     @classmethod
@@ -286,19 +286,9 @@ class HeightSidebarEdge(SidebarEdge):
 
     @classmethod
     def toggle_text(cls, collapsed: bool, heading: str) -> str:
-        """Every row is the heading's width between the same two arrows: the first row names
-        the bar and the rest hold the arrows' columns.
-
-        A bare arrow on its own row sits against whichever edge the row starts at, which
-        reads as more arrow on one side than the other, and the width edge next door
-        already keeps both of its arrows.
-        """
+        """One centered row with the edge's arrows flanking the heading (no second blank arrow row)."""
         symbol = cls.toggle_symbol(collapsed)
-        blank = " " * len(heading)
-        return "\n".join(
-            f"{symbol}  {words}  {symbol}"
-            for words in (heading, *(blank for _ in range(cls.collapsed_extent - 1)))
-        )
+        return f"{symbol}  {heading}  {symbol}"
 
     @classmethod
     def control_offset(cls, distance: int) -> Offset:
@@ -422,8 +412,8 @@ class BandRoom(ABC):
 
     @classmethod
     def of(cls, folds: Sequence[type[SidebarFold]], extents: Sequence[int], width: int,
-           shares: Callable[[int], tuple[int, ...]]) -> BandRoom:
-        widths = shares(cls.sharing(folds))
+           shares: Callable[[int, int], tuple[int, ...]]) -> BandRoom:
+        widths = shares(cls.sharing(folds), width)
         return cls(width, cls.walled(folds, extents), iter(accumulate((0, *widths))), iter(widths))
 
     @classmethod
@@ -446,10 +436,24 @@ class BandRoom(ABC):
 
 @dataclass
 class OpenBandRoom(BandRoom):
-    """A band with an open bar: folded strips stack from the wall at full width, and the open
-    bars share the width beyond them."""
+    """A band with an open bar: folded peers rise beside it as narrow vertical strips at the
+    same band height, and open bars share the remaining width in declared order."""
 
-    wall: int = 0
+    band_extent: int = 0
+
+    @classmethod
+    def of(cls, folds: Sequence[type[SidebarFold]], extents: Sequence[int], width: int,
+           shares: Callable[[int, int], tuple[int, ...]]) -> BandRoom:
+        folded_width = WidthSidebarEdge.collapsed_extent
+        folded_count = sum(1 - fold.shares for fold in folds)
+        open_width = max(0, width - folded_width * folded_count)
+        open_widths = iter(shares(cls.sharing(folds), open_width))
+        widths = tuple(
+            next(open_widths) if fold.shares else min(folded_width, width)
+            for fold in folds
+        )
+        band_extent = max((extent for fold, extent in zip(folds, extents) if fold.shares), default=0)
+        return cls(width, 0, iter(accumulate((0, *widths))), iter(widths), band_extent=band_extent)
 
     @classmethod
     def sharing(cls, folds: Sequence[type[SidebarFold]]) -> int:
@@ -457,12 +461,10 @@ class OpenBandRoom(BandRoom):
 
     @classmethod
     def walled(cls, folds: Sequence[type[SidebarFold]], extents: Sequence[int]) -> int:
-        return sum(extent * (1 - fold.shares) for fold, extent in zip(folds, extents))
+        return 0
 
     def strip(self, extent: int) -> SidebarGeometry:
-        placed = SidebarGeometry(self.wall, extent, 0, self.width)
-        self.wall += extent
-        return placed
+        return SidebarGeometry(0, self.band_extent or extent, next(self.starts), next(self.widths))
 
 
 class FoldedBandRoom(BandRoom):
