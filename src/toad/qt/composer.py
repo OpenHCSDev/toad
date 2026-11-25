@@ -852,7 +852,7 @@ class Receipt(NotificationSubscriber, ElidedLine):
 
     def __init__(self, app: ClientApplication, renderer: QtLineRenderer,
                  info_bar: QtInfoBar | None = None) -> None:
-        super().__init__(info_bar)
+        super().__init__()
         self.app, self.renderer, self._info_bar = app, renderer, info_bar
         self.references: tuple[MessageReference, ...] = ()
         self.status: NotificationStatus = UncheckedNotifications()
