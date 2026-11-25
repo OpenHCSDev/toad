@@ -93,6 +93,11 @@ class PreparedCommit(DeclaredViews):
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
         return self.history.outgoing_coverage
 
+    @classmethod
+    def catches_up_at_latest(cls, snapshot: object) -> bool:
+        """Only an append commit over a multi-page gap jumps straight to the latest window."""
+        return False
+
     async def draw(self, cursor: TranscriptCursor, is_current: Callable[[], bool],
                    live_blocks: tuple[object, ...]) -> bool:
         """A retained viewport changes source access without drawing rows."""
@@ -149,6 +154,10 @@ class PreparedAppendCommit(PreparedPageCommit, shows=(SavedHistory,)):
         cls, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
     ) -> Snapshot:
         return await read(position=history.page_source.through.later_page())
+
+    @classmethod
+    def catches_up_at_latest(cls, snapshot: object) -> bool:
+        return SNAPSHOT_HAS_NEWER.project_value(snapshot)
 
     async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool:
         return await self.history.publish_append(cursor, publication_current=is_current)
@@ -249,10 +258,7 @@ class FollowTailCommit(CommitPlan):
         return source
 
     def catches_up_at_latest(self, snapshot: object) -> bool:
-        return (
-            self.preparation is PreparedAppendCommit
-            and SNAPSHOT_HAS_NEWER.project_value(snapshot)
-        )
+        return self.preparation.catches_up_at_latest(snapshot)
 
     def finish(self, view, cursor) -> None:
         view.transcript.binding.painted(view.transcript, cursor)
