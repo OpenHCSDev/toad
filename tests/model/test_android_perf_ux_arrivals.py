@@ -290,28 +290,74 @@ def test_qt_session_tab_bar_close_button_sits_inside_painted_tab(monkeypatch):
         bar.deleteLater()
 
 
-def test_qt_toad_app_apply_safe_area_tracks_keyboard_inset(monkeypatch):
+def test_android_ime_window_insets_and_jump_bar_multiline_size_hint(monkeypatch):
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     _app = QApplication.instance() or QApplication([])
-    from PySide6.QtCore import QMargins, QRectF
-    from PySide6.QtGui import QGuiApplication
-    from toad.qt.window import QtToadApp
+    import inspect
+    from PySide6.QtGui import QFontMetrics
+    from toad.markdown_links import ReferenceContext
 
-    fake_ime = MagicMock()
-    fake_ime.isVisible.return_value = True
-    fake_ime.keyboardRectangle.return_value = QRectF(0, 600, 411, 314)
-    monkeypatch.setattr(QGuiApplication, "inputMethod", staticmethod(lambda: fake_ime))
+    # 1. ToadActivity wires Android 11+/15 WindowInsets.Type.ime() padding on android.R.id.content
+    #    so QtRootLayout resizes natively above the keyboard under EDGE_TO_EDGE_ENFORCED.
+    activity = (Path(__file__).resolve().parents[2]
+                / "tools/android/keepalive/java/org/toadcomms/ToadActivity.java").read_text()
+    assert "WindowInsets.Type.ime()" in activity
+    assert "android.R.id.content" in activity
+    assert "insets.inset(0, 0, 0, imeBottom)" in activity
 
-    win = MagicMock()
-    win._safe_area_margins = QMargins(0, 42, 0, 24)
-    win.rect.return_value = QRect(0, 0, 411, 914)
+    # 2. QtJumpBar.sizeHint measures its multiline text ("Back to bottom\n↓ Esc ↓") by widest
+    #    line instead of concatenating both lines with horizontalAdvance.
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+    parent = QWidget()
+    try:
+        jump = QtJumpBar(parent, renderer)
+        hint = jump.sizeHint()
+        metrics = QFontMetrics(jump.font())
+        lines = jump.text().splitlines()
+        widest = max(metrics.horizontalAdvance(line) for line in lines)
+        concatenated = metrics.horizontalAdvance(jump.text())
+        assert len(lines) >= 2
+        assert hint.width() < concatenated + 24
+        assert hint.width() >= widest + 16
+        assert hint.height() >= metrics.size(0, jump.text()).height() + 6
+    finally:
+        parent.deleteLater()
 
-    QtToadApp._apply_safe_area(win)
-    win.setContentsMargins.assert_called_with(0, 42, 0, 314)
-
-    fake_ime.isVisible.return_value = False
-    QtToadApp._apply_safe_area(win)
-    win.setContentsMargins.assert_called_with(0, 42, 0, 24)
+    # 3. ConversationRows caches char_width, skips height-only resizeEvent refits, and
+    #    ConversationRow.wave_visible returns False for collapsed/hidden rows.
+    from PySide6.QtCore import QSize
+    from PySide6.QtGui import QResizeEvent
+    from toad.qt.window import ConversationRow, ConversationRows
+    tree = ConversationRows.__new__(ConversationRows)
+    from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
+    QTreeWidget.__init__(tree)
+    tree.resize(300, 400)
+    tree.show()
+    try:
+        assert tree.char_width() >= 1
+        assert tree._cached_char_width is not None
+        item = QTreeWidgetItem(tree, ["row"])
+        fit_calls = 0
+        def fake_fit():
+            nonlocal fit_calls
+            fit_calls += 1
+        item.subtree = lambda: (item,)
+        item.fit = fake_fit
+        # Height-only resize must not refit rows.
+        tree.resizeEvent(QResizeEvent(QSize(300, 220), QSize(300, 400)))
+        assert fit_calls == 0
+        # Width change refits rows.
+        tree.resizeEvent(QResizeEvent(QSize(280, 220), QSize(300, 220)))
+        assert fit_calls == 1
+        # Collapsed child item is not wave-visible.
+        child = ConversationRow.__new__(ConversationRow)
+        QTreeWidgetItem.__init__(child, item, ["child"])
+        item.setExpanded(False)
+        assert child.wave_visible() is False
+    finally:
+        tree.deleteLater()
 
 
 def test_scroll_perf_optimizations_cache_overlays_and_pause_ambient_waves(monkeypatch):

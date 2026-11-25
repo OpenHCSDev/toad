@@ -25,7 +25,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QGuiApplication, QKeySequence, QScreen, QShortcut
+from PySide6.QtGui import QColor, QFont, QKeySequence, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -386,19 +386,24 @@ class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
 
     def wave_visible(self) -> bool:
         tree = self.treeWidget()
-        return tree is not None and tree.isVisible()
+        if tree is None or not tree.isVisible():
+            return False
+        rect = tree.visualItemRect(self)
+        return not rect.isEmpty() and tree.viewport().rect().intersects(rect)
 
     def repaint_wave(self) -> None:
         tree = self.treeWidget()
         if tree is not None:
-            tree.viewport().update(tree.visualItemRect(self))
+            rect = tree.visualItemRect(self)
+            if not rect.isEmpty():
+                tree.viewport().update(rect)
 
     def wave_cells(self) -> tuple[int, int] | None:
         """The band's cells over the line's width in cells, as Textual's row paints it."""
         tree = self.treeWidget()
         if tree is None:
             return None
-        return self.band_cells(self.wave_frame(), tree.line_width(self) // tree.fontMetrics().averageCharWidth())
+        return self.band_cells(self.wave_frame(), tree.line_width(self) // tree.char_width())
 
     def activate(self, window: QtToadApp) -> None:
         window.open_row(self)
@@ -805,9 +810,22 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         return (self.viewport().width() - self.indentation() * depth
                 - 2 * MultilinePreviewItemDelegate.TEXT_INSET_X)
 
+    _cached_char_width: tuple[QFont, int] | None = None
+
+    def char_width(self) -> int:
+        font = self.font()
+        cached = self._cached_char_width
+        if cached is not None and cached[0] == font:
+            return cached[1]
+        width = max(1, self.fontMetrics().averageCharWidth())
+        self._cached_char_width = (QFont(font), width)
+        return width
+
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         """A new width fits every line's text again."""
         super().resizeEvent(event)
+        if event.size().width() == event.oldSize().width():
+            return
         root = self.invisibleRootItem()
         for index in range(root.childCount()):
             for line in root.child(index).subtree():
@@ -1706,17 +1724,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.shortcuts.bind_command(lambda keys: keys.escape, "Back", self.go_back)
         self.shortcuts.apply(ApplicationKeys())
         self.winId()
-        self._safe_area_margins = QMargins(self.windowHandle().safeAreaMargins())
-        self._safe_area_pending = False
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
-        ime = QGuiApplication.inputMethod()
-        ime.keyboardRectangleChanged.connect(
-            self._schedule_safe_area, Qt.ConnectionType.QueuedConnection
-        )
-        ime.visibleChanged.connect(
-            self._schedule_safe_area, Qt.ConnectionType.QueuedConnection
-        )
-        self._apply_safe_area()
+        self.fit_safe_area(self.windowHandle().safeAreaMargins())
         self._display_screens: set[QScreen] = set()
         self.windowHandle().screenChanged.connect(self.follow_display)
         self.follow_display()
@@ -1746,35 +1755,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         return WindowCommandOrigin(self)
 
     def fit_safe_area(self, margins: QMargins) -> None:
-        """Keep every row clear of the status bar, navigation bar, and soft keyboard."""
-        self._safe_area_margins = QMargins(margins)
-        self._apply_safe_area()
-
-    def _schedule_safe_area(self) -> None:
-        """Defer margin updates off Qt-for-Android's QAndroidInputContext callback."""
-        if self._safe_area_pending:
-            return
-        self._safe_area_pending = True
-        QTimer.singleShot(0, self, self._flush_safe_area)
-
-    def _flush_safe_area(self) -> None:
-        self._safe_area_pending = False
-        self._apply_safe_area()
-
-    def _apply_safe_area(self) -> None:
-        margins = self._safe_area_margins
-        ime = QGuiApplication.inputMethod()
-        covered = (
-            self.rect().intersected(ime.keyboardRectangle().toRect()).height()
-            if ime.isVisible()
-            else 0
-        )
-        self.setContentsMargins(
-            margins.left(),
-            margins.top(),
-            margins.right(),
-            max(margins.bottom(), covered),
-        )
+        """Keep every row clear of the status bar and navigation bar (IME insets resize the
+        activity content view natively in ToadActivity on Android 11+)."""
+        self.setContentsMargins(margins)
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
         self.bus_label.present(self)
