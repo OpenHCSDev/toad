@@ -106,7 +106,8 @@ class QtThreadView(
         self._setup_transcript(app)
         # Keep `identity_line` as a hidden model label (tabs and the sidebar toggle bar
         # already show the DM/thread name, so rendering a top header row wastes phone height).
-        self.identity_line = ElidedLine(title, self)
+        self.identity_line = ElidedLine(title)
+        self.identity_line.setParent(self)
         self.identity_line.hide()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
