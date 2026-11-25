@@ -54,7 +54,7 @@ from toad.keymap import KeyInvocationId
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
 from ui_theme.clock import AnimationClock
-from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour
+from ui_theme.scheme import AccentColour, ColourScheme, PrimaryColour, SurfaceHoverColour
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
 
@@ -1815,19 +1815,20 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def paint_chrome_colours(self) -> None:
         """The sidebars, the tab bar and the navigation band in the current scheme's styles."""
         scheme = self.theme.color_scheme
-        border = scheme.to_hex(scheme.border_color)
-        toggle_split = (
-            f"QWidget#SidebarToggle {{ border: 1px solid {border}; padding: 1px 4px; }}"
+        toggle_bg = SurfaceHoverColour.rgb(self.renderer.scheme).hex
+        toggle_style = (
+            f"QWidget#SidebarToggle, QWidget#SidebarToggle > QWidget {{"
+            f" background-color: {toggle_bg}; border: none; padding: 2px 4px; }}"
         )
         for side in self.chrome.sidebars:
             side.setStyleSheet(
                 scheme.styles.generate_sidebar_pane_style()
                 + scheme.styles.generate_sidebar_bar_style()
-                + toggle_split
+                + toggle_style
             )
         self.tabs.setStyleSheet(
             scheme.styles.generate_tab_widget_style()
-            + "QTabBar::tab { padding: 4px 10px; margin-right: 2px; }"
+            + "QTabBar::tab { padding: 4px 10px; margin-right: 6px; border-top-left-radius: 4px; border-top-right-radius: 4px; }"
         )
         self.tabs.accent, self.tabs.ink = QColor(self.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary)
         self.tabs.update()

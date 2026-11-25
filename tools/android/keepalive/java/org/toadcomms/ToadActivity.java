@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.system.ErrnoException;
 import android.system.Os;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import org.kivy.android.PythonActivity;
 import org.qtproject.qt.android.QtActivityResults;
@@ -81,6 +82,16 @@ public class ToadActivity extends PythonActivity {
         } catch (android.app.ForegroundServiceStartNotAllowedException refused) {
             android.util.Log.w("toadcomms", "ConnectedService refused while activity resumed", refused);
         }
+    }
+
+    /** python-for-android's PythonActivity.onKeyDown forgets to check KEYCODE_BACK and
+     *  intercepts every key event (including Android soft-keyboard digits 0-9) with a
+     *  "Click again to close the app" toast; Toad handles Qt.Key_Back in Python (go_back).
+     *  Disarm the p4a timer so every key reaches QtActivityBase.onKeyDown directly. */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        org.kivy.android.PythonActivityAccess.disarmBackToast(this);
+        return super.onKeyDown(keyCode, event);
     }
 
     /** Every activity start passes here (the two-argument form calls this one); a file

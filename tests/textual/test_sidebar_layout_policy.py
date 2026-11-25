@@ -9,7 +9,7 @@ from toad.preferences import SavedSettings
 from toad.sidebar_layout import SidebarLayout
 from toad.sidebar_placement import (
     BottomSidebarEdge, ChannelsSidebarPlacement, HeightSidebarEdge, LeftSidebarEdge, RightSidebarEdge,
-    SidebarEdge, ThreadSidebarPlacement, TopSidebarEdge,
+    SidebarEdge, ThreadSidebarPlacement, TopSidebarEdge, WidthSidebarEdge,
 )
 from toad.terminal_origin import LocalTerminal, SshTerminal, TerminalOrigin
 
@@ -86,9 +86,15 @@ def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels,
     first_bar, second_bar = before.bars.values()
     assert not first_bar.overlaps(second_bar), before.bars
     assert all(viewport.region.contains_region(bar) for bar in before.bars.values())
+    has_open = any(not hidden for hidden in collapsed.values())
     for name, hidden in collapsed.items():
         if hidden:
-            assert side.extent(before.bars[name].size) == side.collapsed_extent
+            if side.axis() is HeightSidebarEdge and has_open:
+                assert before.bars[name].width == WidthSidebarEdge.collapsed_extent
+                open_bar = next(before.bars[other] for other, is_hidden in collapsed.items() if not is_hidden)
+                assert before.bars[name].height == open_bar.height
+            else:
+                assert side.extent(before.bars[name].size) == side.collapsed_extent
     pair.swap(ChannelsSidebarPlacement)
     after = pair.resolve(viewport, dict(reversed(tuple(collapsed.items()))))
     assert {key: side.extent(bar.size) for key, bar in after.bars.items()} == {
@@ -140,13 +146,13 @@ def test_sshd_sessions_read_the_ssh_arrangement():
 
 
 @pytest.mark.parametrize("edge", (TopSidebarEdge, BottomSidebarEdge))
-def test_a_collapsed_top_or_bottom_bar_is_one_row(edge):
-    """Horizontal collapsed strips keep one compact row with arrows flanking the heading."""
+def test_a_collapsed_top_or_bottom_bar_is_two_rows_with_one_centered_line(edge):
+    """Horizontal collapsed strips keep a two-row touch target with one centered arrow line."""
     layout = layout_for()
     layout.move(ChannelsSidebarPlacement, edge)
     resolved = layout.resolve(Size(60, 30), {ChannelsSidebarPlacement: True, ThreadSidebarPlacement: True})
-    assert resolved.bars[ChannelsSidebarPlacement].height == 1
-    assert len(edge.toggle_text(True, "all").split("\n")) == resolved.bars[ChannelsSidebarPlacement].height
+    assert resolved.bars[ChannelsSidebarPlacement].height == 2
+    assert edge.toggle_text(True, "all").split("\n") == [f"{edge.toggle_symbol(True)}  all  {edge.toggle_symbol(True)}"]
 
 
 @pytest.mark.parametrize("side, resized, percent", list(product(
@@ -191,17 +197,16 @@ def test_a_band_split_shares_the_width_survives_other_changes_and_keeps_both_bar
         splitters = sum(layout.splits_after(bar, collapsed) for bar in (first, second))
         for shown, folded in collapsed.items():
             assert not layout.splits_after(shown, {shown: folded}), "A hidden neighbour draws no splitter"
-        assert splitters == (folds[0] is folds[1]), (
-            "One splitter separates bars sharing a row, both open or both folded; none otherwise")
+        assert splitters == 1, (
+            "One splitter separates adjacent bars in a horizontal band whether open, folded, or mixed")
     reloaded = layout_for(SavedSettings(layout.settings.document()))
     assert reloaded.split(side) == 0 and reloaded.placements == layout.placements, "The split is saved"
 
 
 @pytest.mark.parametrize("side", SidebarEdge.members_with(HeightSidebarEdge))
-def test_one_open_bar_in_a_band_takes_the_band_and_only_two_open_bars_split_it(side):
-    """A folded bar beside an open one is only its toggle: it lies along the wall as a
-    full-width strip, and the open bar takes the whole width beside it. Held half the band,
-    the open bar got half the room it asked for; held the narrowest bar width, still less."""
+def test_one_open_bar_in_a_band_raises_its_folded_peer_beside_it(side):
+    """A folded bar beside an open one rises to the open band's height as a narrow vertical
+    strip; tapping it opens both into the horizontal split."""
     layout = layout_for()
     layout.move(ChannelsSidebarPlacement, side)
     layout.move(ThreadSidebarPlacement, side)
@@ -214,9 +219,10 @@ def test_one_open_bar_in_a_band_takes_the_band_and_only_two_open_bars_split_it(s
     assert [bar.width for bar in bars({first: False, second: False})] == [40, 40]
     for opened, folded in ((first, second), (second, first)):
         placed = dict(zip((first, second), bars({opened: False, folded: True})))
-        assert placed[opened].width == placed[folded].width == 80
-        assert placed[folded].height == HeightSidebarEdge.collapsed_extent
-        assert not placed[opened].overlaps(placed[folded]), placed
+        assert placed[folded].width == WidthSidebarEdge.collapsed_extent
+        assert placed[opened].width == 80 - WidthSidebarEdge.collapsed_extent
+        assert placed[opened].height == placed[folded].height
+        assert side_by_side(placed[opened], placed[folded]), placed
     assert [bar.width for bar in bars({first: True, second: True})] == [40, 40], "Two folded bars share the band"
 
 def test_the_thread_bar_names_the_viewed_tab_and_the_channels_bar_its_scope():

@@ -104,17 +104,13 @@ class QtThreadView(
         thread, which has no goal bar). Call from the subclass `__init__` after
         `super().__init__()` and after assigning `self.app`."""
         self._setup_transcript(app)
-        self.identity_line = ElidedLine(title)
-        self.identity_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        app.renderer.themed(self.identity_line, lambda: self.identity_line.setStyleSheet(
-            f"color: {ForegroundColour.rgb(app.renderer.scheme).hex};"))
-        info = QHBoxLayout()
-        info.setContentsMargins(UiGap.loose, UiGap.normal, UiGap.loose, UiGap.normal)
-        info.addWidget(self.identity_line, 1)
+        # Keep `identity_line` as a hidden model label (tabs and the sidebar toggle bar
+        # already show the DM/thread name, so rendering a top header row wastes phone height).
+        self.identity_line = ElidedLine(title, self)
+        self.identity_line.hide()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        layout.addLayout(info)
         layout.addWidget(self.messages, 1)
         # Under the transcript, Textual's order: flash, sweep, status, goal, prompt.
         self._setup_prompt_stack(app, layout, incarnation)
