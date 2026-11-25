@@ -252,3 +252,62 @@ def test_composer_fit_height_resets_scroll_when_wrapped_lines_fit(monkeypatch):
 
     Composer.fit_height(composer)
     vbar.setValue.assert_called_once_with(0)
+
+
+def test_qt_session_tab_bar_close_button_sits_inside_painted_tab(monkeypatch):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from PySide6.QtGui import QColor
+    from PySide6.QtWidgets import QTabBar, QToolButton
+
+    clock = AnimationClock(lambda _interval: None)
+    bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
+    bar.setTabsClosable(True)
+    bar.setExpanding(False)
+    bar.setStyleSheet(
+        f"QTabBar::tab {{ padding: 6px 10px 6px 12px; margin-right: {bar.TAB_GAP}px; }}"
+    )
+    closed: list[int] = []
+    bar.tabCloseRequested.connect(closed.append)
+    try:
+        bar.show_tabs([("#comms", "comms"), ("toad-qt", "toad")])
+        bar.resize(400, 40)
+        bar.show()
+        app.processEvents()
+        for index in range(bar.count()):
+            tab_rect = bar.tabRect(index)
+            slot = bar.tabButton(index, QTabBar.ButtonPosition.RightSide)
+            assert slot is not None
+            btn = slot.findChild(QToolButton)
+            assert btn is not None and btn.text() == "×"
+            assert btn.width() >= 24 and btn.height() >= 24
+            btn_in_bar = btn.geometry().translated(slot.pos())
+            assert btn_in_bar.right() <= tab_rect.right() - bar.TAB_GAP
+        bar.tabButton(1, QTabBar.ButtonPosition.RightSide).findChild(QToolButton).click()
+        assert closed == [1]
+    finally:
+        bar.deleteLater()
+
+
+def test_qt_toad_app_apply_safe_area_tracks_keyboard_inset(monkeypatch):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    from PySide6.QtCore import QMargins, QRectF
+    from PySide6.QtGui import QGuiApplication
+    from toad.qt.window import QtToadApp
+
+    fake_ime = MagicMock()
+    fake_ime.isVisible.return_value = True
+    fake_ime.keyboardRectangle.return_value = QRectF(0, 600, 411, 314)
+    monkeypatch.setattr(QGuiApplication, "inputMethod", staticmethod(lambda: fake_ime))
+
+    win = MagicMock()
+    win._safe_area_margins = QMargins(0, 42, 0, 24)
+    win.rect.return_value = QRect(0, 0, 411, 914)
+
+    QtToadApp._apply_safe_area(win)
+    win.setContentsMargins.assert_called_with(0, 42, 0, 314)
+
+    fake_ime.isVisible.return_value = False
+    QtToadApp._apply_safe_area(win)
+    win.setContentsMargins.assert_called_with(0, 42, 0, 24)
