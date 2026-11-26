@@ -200,25 +200,26 @@ class ClientApplication(BusPickerHost, ApplicationSettings, NavigationHost):
         """The session tabs show as `ui.sessions_bar` says for this many open tabs."""
         self.show_session_tabs(self.settings.ui.sessions_bar.shown(len(self.open_tabs)))
 
-    def adjust_message_font_scale(self, delta: int) -> int:
-        """Step `ui.message_font_scale` by `delta` percentage points within [50, 200] and save."""
+    def set_message_font_scale(self, percent: int) -> int:
+        """Set `ui.message_font_scale` within [50, 200] and persist it."""
         from toad.preferences import SETTINGS
 
-        current = self.settings.ui.message_font_scale
-        updated = max(50, min(200, current + delta))
-        if updated != current:
+        updated = max(50, min(200, int(percent)))
+        if updated != self.settings.ui.message_font_scale:
             self.saved_settings.set(SETTINGS.ui.message_font_scale, updated)
             self.run_operation(SettingsKept, self.saved_settings.save)
         return updated
 
+    def adjust_message_font_scale(self, delta: int) -> int:
+        """Step `ui.message_font_scale` by `delta` percentage points within [50, 200] and save."""
+        return self.set_message_font_scale(self.settings.ui.message_font_scale + delta)
+
     def reset_message_font_scale(self) -> int:
         """Reset `ui.message_font_scale` to 100% and save."""
-        from toad.preferences import SETTINGS
+        return self.set_message_font_scale(100)
 
-        if self.settings.ui.message_font_scale != 100:
-            self.saved_settings.set(SETTINGS.ui.message_font_scale, 100)
-            self.run_operation(SettingsKept, self.saved_settings.save)
-        return 100
+    def open_text_size_control(self) -> None:
+        """Present a frontend's nested text-size adjuster (overridden by graphical frontends)."""
 
     @abstractmethod
     def show_session_tabs(self, shown: bool) -> None:

@@ -26,6 +26,7 @@ from formbridge.forms.declared_fields import DeclaredViews
 from metaclass_registry.mro_dispatch import handles
 
 from toad.client.line_blocks import (
+    NO_LINK,
     Body,
     Divider,
     Gap,
@@ -511,10 +512,15 @@ class BusMessageHistoryFragment(MessageLines):
         return self.shown.style.clipboard(self.row)
 
     def collapsible_header(self, shown: MessageShown) -> Divider:
-        """This message's header divider with a tappable collapse/expand disclosure."""
+        """This message's header divider with a tappable collapse/expand disclosure across
+        the marker and non-linked divider chrome (preserving sender/target thread links)."""
         header = self.row.header
         marker = Span("▶ " if shown.collapsed else "▼ ", header.role, self.collapse_link)
-        return replace(header, spans=(marker, *header.spans))
+        spans = tuple(
+            replace(span, link=self.collapse_link) if span.link == NO_LINK else span
+            for span in header.spans
+        )
+        return replace(header, spans=(marker, *spans))
 
     @property
     def leading(self):

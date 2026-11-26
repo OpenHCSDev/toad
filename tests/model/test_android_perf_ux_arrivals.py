@@ -652,7 +652,7 @@ def test_composer_floating_buttons_and_nav_separators_and_ime_inset_file(monkeyp
     from PySide6.QtCore import QMargins
     from PySide6.QtWidgets import QFrame, QHBoxLayout, QPlainTextEdit, QPushButton
     from toad.qt.composer import Composer
-    from toad.qt.window import QtToadApp, _NavSeparator
+    from toad.qt.window import QtToadApp
 
     # 1. Floating box buttons + collision clearance logic.
     frame = QFrame()
@@ -686,23 +686,25 @@ def test_composer_floating_buttons_and_nav_separators_and_ime_inset_file(monkeyp
     assert layout.indexOf(attach_btn) == -1
     assert send_btn.parentWidget() is frame and attach_btn.parentWidget() is frame
 
-    # Empty or short text does not need bottom clearance; scrolled or colliding text does.
+    # Empty or short 1-line text does not need bottom clearance; multiline (2+ lines), scrolled,
+    # or colliding 1-line text keeps clearance docked steadily without bouncing on line wraps.
     composer.text = ""
     assert Composer._needs_button_clearance(composer, 1, 1) is False
     composer.text = "hi"
     editor.setPlainText("hi")
     assert Composer._needs_button_clearance(composer, 1, 1) is False
+    assert Composer._needs_button_clearance(composer, 2, 2) is True
     assert Composer._needs_button_clearance(composer, 5, 3) is True
     long_line = "x" * 120
     composer.text = long_line
     editor.setPlainText(long_line)
     assert Composer._needs_button_clearance(composer, 1, 1) is True
 
-    # 2. _NavSeparator is 1 px wide and paints cleanly.
-    sep = _NavSeparator()
+    # 2. Navigation bar separator helper returns a 1 px QFrame styled via #toad-nav-separator.
+    sep = QtToadApp._nav_separator(frame)
     sep.resize(1, 32)
+    assert sep.objectName() == "toad-nav-separator"
     assert sep.width() == 1
-    sep.grab()
 
     # 3. QtToadApp.fit_safe_area protects IME bottom margin against stale getRootWindowInsets().
     inset_file = tmp_path / "ime_bottom_px"
@@ -747,7 +749,7 @@ def test_message_font_scale_zoom_and_collapsible_thinking_and_messages(monkeypat
     from dataclasses import replace
     from agent_comms.messaging.messages import InfoKind, Message
     from agent_comms.transcript.transcript_events import IncomingTranscript, ThinkingTranscript
-    from toad.client.application_actions import ResetZoomAction, ZoomInAction, ZoomOutAction
+    from toad.client.application_actions import ResetZoomAction, TextSizeAction, ZoomInAction, ZoomOutAction
     from toad.client.fragments import FragmentCollapse, FragmentDetails, MessageShown
     from toad.client.line_blocks import Divider, Summary
     from toad.client.message_file_links import NO_PAGE_FILES
@@ -756,14 +758,29 @@ def test_message_font_scale_zoom_and_collapsible_thinking_and_messages(monkeypat
     from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES, QtThinkingTranscriptFragment
     from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 
-    # 1. Font scale preference + actions.
+    # 1. Font scale preference + single nested menu entry (flat zoom actions are shortcut-only).
     saved = SavedSettings()
     assert saved.current.ui.message_font_scale == 100
-    saved.set(SETTINGS.ui.message_font_scale, 80)
-    assert saved.current.ui.message_font_scale == 80
+    saved.set(SETTINGS.ui.message_font_scale, 85)
+    assert saved.current.ui.message_font_scale == 85
+    assert TextSizeAction.show is True and TextSizeAction.summary()
     for action_cls in (ZoomInAction, ZoomOutAction, ResetZoomAction):
-        assert action_cls.show is True
+        assert action_cls.show is False
         assert action_cls.summary()
+
+    # 1b. Multi-line Divider renders one centered full-width table per row so shorter rows
+    #     have rules extending to both sides cleanly.
+    import inspect
+    from toad.client.line_blocks import Span, UserRole
+    from toad.markdown_links import ReferenceContext
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings()).at_width(24)
+    divider_html = renderer.divider(Divider(
+        (Span("▼ pm-trainer-f <── pm-neuro-arch", UserRole),), UserRole,
+    ))
+    assert divider_html.count("<table ") >= 2
+    assert 'align="center"' in divider_html
 
     # 2. ThinkingTranscriptFragment defaults collapsed and expands across split parts in both frontends.
     long_thought = "\n\n".join(f"Step {i}: " + "analysis " * 30 for i in range(6))
