@@ -313,6 +313,10 @@ class RightColumnAlignment(ColumnAlignment):
 class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):
     """Where the workspace's navigation bar (menu, history arrows and tabs) sits."""
 
+    yields_to_keyboard: ClassVar[bool] = False
+    """Bottom-docked bars hide while a touch soft keyboard is open so the composer sits flush
+    above the keyboard instead of floating over dead chrome."""
+
     @classmethod
     @abstractmethod
     def around[W](cls, navigation: W, body: W) -> tuple[W, W]:
@@ -332,6 +336,8 @@ class TopNavigationBar(NavigationBarPosition):
 
 
 class BottomNavigationBar(NavigationBarPosition):
+    yields_to_keyboard = True
+
     @classmethod
     def around[W](cls, navigation: W, body: W) -> tuple[W, W]:
         return body, navigation

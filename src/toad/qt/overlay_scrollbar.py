@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
 from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QAbstractScrollArea, QScrollBar
+from PySide6.QtWidgets import QAbstractScrollArea, QAbstractSlider, QScrollBar
 from ui_theme.clock import AnimationClock
 from ui_theme.scheme import SurfaceHoverColour
 
@@ -54,6 +54,7 @@ class OverlayScrollBar(QScrollBar):
         self.fade: ScrollbarFade | None = None
         self.handle_opacity = 1.0
         self._handle_color = QColor(SurfaceHoverColour.rgb(renderer.scheme).hex)
+        self._last_thumb = QRect()
         self.still = QTimer(self)
         self.still.setSingleShot(True)
         self.still.setInterval(self.STILL_MS)
@@ -67,10 +68,43 @@ class OverlayScrollBar(QScrollBar):
         renderer.themed(self, self.paint_colours)
         self.hide()
 
+    def _thumb_rect(self) -> QRect:
+        """Bounding rectangle of the rounded handle in this widget's coordinates."""
+        span = self.maximum() - self.minimum()
+        height = self.height()
+        width = self.width()
+        if span <= 0 or height <= 0 or width <= 0:
+            return QRect()
+        page = max(1, self.pageStep())
+        thumb_h = max(24, min(height, round(height * page / (span + page))))
+        top = round((self.value() - self.minimum()) / span * (height - thumb_h))
+        return QRect(0, top, width, thumb_h)
+
+    def _dirty_thumb(self) -> None:
+        """Invalidate only the old and new handle rectangles instead of the full bar height."""
+        new_thumb = self._thumb_rect()
+        dirty = self._last_thumb.united(new_thumb) if not self._last_thumb.isEmpty() else new_thumb
+        self._last_thumb = new_thumb
+        if not dirty.isEmpty():
+            self.update(dirty.adjusted(0, -1, 0, 1))
+
+    def sliderChange(self, change: QAbstractSlider.SliderChange) -> None:  # type: ignore[override]
+        """Avoid full-height `QWidget.update()` on scroll value changes so the backing-store
+        dirty bounding box stays tight around the moving thumb instead of the whole viewport."""
+        if change == QAbstractSlider.SliderChange.SliderValueChange:
+            if self.isVisible():
+                self._dirty_thumb()
+            else:
+                self._last_thumb = self._thumb_rect()
+            return
+        super().sliderChange(change)
+
     def set_handle_opacity(self, amount: float) -> None:
         if amount != self.handle_opacity:
             self.handle_opacity = amount
-            self.update()
+            thumb = self._thumb_rect()
+            if not thumb.isEmpty():
+                self.update(thumb.adjusted(0, -1, 0, 1))
 
     def paint_colours(self) -> None:
         """Cache the raised handle colour; `paintEvent` draws the handle directly."""
@@ -79,31 +113,28 @@ class OverlayScrollBar(QScrollBar):
             self.update()
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
-        span = self.maximum() - self.minimum()
-        if self.handle_opacity <= 0.0 or span <= 0:
+        if self.handle_opacity <= 0.0:
             return
-        height = self.height()
-        width = self.width()
-        if height <= 0 or width <= 0:
+        thumb = self._thumb_rect()
+        if thumb.isEmpty():
             return
-        page = max(1, self.pageStep())
-        thumb_h = max(24, min(height, round(height * page / (span + page))))
-        top = round((self.value() - self.minimum()) / span * (height - thumb_h))
+        self._last_thumb = thumb
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         if self.handle_opacity < 1.0:
             painter.setOpacity(self.handle_opacity)
-        radius = max(1.0, width / 2.0)
+        radius = max(1.0, thumb.width() / 2.0)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(self._handle_color)
-        painter.drawRoundedRect(QRect(0, top, width, thumb_h), radius, radius)
+        painter.drawRoundedRect(thumb, radius, radius)
         painter.end()
 
     @classmethod
     def follow(cls, area: QAbstractScrollArea, clock: AnimationClock, renderer: QtLineRenderer,
                thickness: int) -> None:
-        """Draw ``area``'s bar over its text ``thickness`` pixels wide while it moves; at 0
-        the area has no overlay. The area's own bar is then sized by its column setting."""
+        """Reserve ``thickness`` pixels on ``area``'s right viewport margin and draw the fading
+        scrollbar in that strip so it never overlaps the viewport (overlapping siblings force
+        `VirtualRowView.scrollContentsBy` to repaint the full-height right strip on every frame)."""
         bar = area.findChild(cls, options=Qt.FindChildOption.FindDirectChildrenOnly)
         if bar is None:
             if not thickness:
@@ -112,6 +143,9 @@ class OverlayScrollBar(QScrollBar):
         if bar.thickness != thickness:
             bar.thickness = thickness
             bar.paint_colours()
+        margins = area.viewportMargins()
+        if margins.right() != thickness:
+            area.setViewportMargins(margins.left(), margins.top(), thickness, margins.bottom())
         if not thickness:
             bar.stop()
             bar.hide()
@@ -135,7 +169,7 @@ class OverlayScrollBar(QScrollBar):
             self.fade = None
         if self.handle_opacity != 1.0:
             self.handle_opacity = 1.0
-            self.update()
+            self._dirty_thumb()
         page_step = self.source.pageStep()
         if self.pageStep() != page_step:
             self.setPageStep(page_step)
@@ -159,9 +193,9 @@ class OverlayScrollBar(QScrollBar):
             self.hide()
 
     def place(self) -> None:
-        """Over the right edge of the viewport, its full height."""
+        """In the right viewport margin beside the viewport, its full height."""
         viewport = self.area.viewport().geometry()
-        self.setGeometry(QRect(viewport.right() + 1 - self.thickness, viewport.top(),
+        self.setGeometry(QRect(viewport.right() + 1, viewport.top(),
                                self.thickness, viewport.height()))
 
 

@@ -37,6 +37,9 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
     conversation_minimum: ClassVar[int]
     collapsed_extent: ClassVar[int]
     """How many cells thick the collapsed bar is, across its edge."""
+    yields_to_keyboard: ClassVar[bool] = False
+    """Folded toggle strips on a bottom edge hide while a touch soft keyboard is open so the
+    composer sits flush above the keyboard."""
 
     @classmethod
     @abstractmethod
@@ -325,6 +328,7 @@ class TopSidebarEdge(LeadingSidebarEdge, HeightSidebarEdge):
 class BottomSidebarEdge(TrailingSidebarEdge, HeightSidebarEdge):
     dock = "bottom"
     symbol = "↓"
+    yields_to_keyboard = True
 
     @classmethod
     def gutter(cls, extent: int) -> Spacing:

@@ -441,9 +441,22 @@ class QtWorkspaceChrome(StoredSidebarLayout, SidebarChromeArrangement[QtSideBar]
         self.sidebars: tuple[QtSideBar, ...] = ()
         self.placed: dict[QtSideBar, PlacedSidebar] = {}
         self.slides: dict[QtSideBar, PaneSlide] = {}
+        self._keyboard_open: bool = False
+
+    def set_keyboard_open(self, keyboard_open: bool) -> None:
+        """Hide collapsed bottom-docked toggle strips while a soft keyboard is up so the
+        composer sits flush on top of the keyboard instead of floating over dead chrome.
+        An open sidebar (for example, searching channels) stays visible."""
+        if keyboard_open != self._keyboard_open:
+            self._keyboard_open = keyboard_open
+            self.arrange(animate=False)
 
     def presented_sidebars(self) -> tuple[QtSideBar, ...]:
-        return tuple(bar for bar in self.sidebars if self._available(bar.placement_identity))
+        return tuple(
+            bar for bar in self.sidebars
+            if self._available(bar.placement_identity)
+            and not (self._keyboard_open and bar.collapsed and bar.placement.side.yields_to_keyboard)
+        )
 
     def cells(self) -> Size:
         """This widget's size in the window font's character cells: a cell is the font's

@@ -297,13 +297,16 @@ def test_android_ime_window_insets_and_jump_bar_multiline_size_hint(monkeypatch)
     from PySide6.QtGui import QFontMetrics
     from toad.markdown_links import ReferenceContext
 
-    # 1. ToadActivity wires Android 11+/15 WindowInsets.Type.ime() padding on android.R.id.content
-    #    so QtRootLayout resizes natively above the keyboard under EDGE_TO_EDGE_ENFORCED.
+    # 1. ToadActivity folds Android 11+/15 WindowInsets.Type.ime().bottom into systemBars() via
+    #    WindowInsets.Builder (without resizing android.R.id.content / SurfaceView, which flashed
+    #    white) and paints the activity window/decor black.
     activity = (Path(__file__).resolve().parents[2]
                 / "tools/android/keepalive/java/org/toadcomms/ToadActivity.java").read_text()
     assert "WindowInsets.Type.ime()" in activity
     assert "android.R.id.content" in activity
-    assert "insets.inset(0, 0, 0, imeBottom)" in activity
+    assert "WindowInsets.Builder(insets)" in activity
+    assert "Color.BLACK" in activity
+    assert "view.setPadding" not in activity
 
     # 2. QtJumpBar.sizeHint measures its multiline text ("Back to bottom\n↓ Esc ↓") by widest
     #    line instead of concatenating both lines with horizontalAdvance.
@@ -401,16 +404,19 @@ def test_scroll_perf_optimizations_cache_overlays_and_pause_ambient_waves(monkey
     jump.grab()
     assert jump._pill_cache is first_cache
 
-    # 3. OverlayScrollBar paints directly without QGraphicsOpacityEffect.
+    # 3. OverlayScrollBar paints directly without QGraphicsOpacityEffect and sits in the right
+    #    viewport margin so it never overlaps the viewport (keeping VirtualRowView blit intact).
     area = QListView(parent)
     area.resize(360, 600)
     area.show()
+    OverlayScrollBar.follow(area, clock, renderer, 6)
     area.verticalScrollBar().setRange(0, 1000)
     area.verticalScrollBar().setPageStep(200)
-    OverlayScrollBar.follow(area, clock, renderer, 6)
     overlay = area.findChild(OverlayScrollBar)
     assert overlay is not None
     assert overlay.graphicsEffect() is None
+    assert area.viewportMargins().right() == 6
+    assert not overlay.geometry().intersects(area.viewport().geometry())
     overlay.moved(100)
     assert overlay.isVisible() and overlay.handle_opacity == 1.0
     overlay.grab()
@@ -418,5 +424,120 @@ def test_scroll_perf_optimizations_cache_overlays_and_pause_ambient_waves(monkey
 
     bar.deleteLater()
     scroller_owner.deleteLater()
+    parent.deleteLater()
+    app.processEvents()
+
+
+def test_failed_observation_notifications_do_not_crash_on_resume() -> None:
+    """Backgrounding Android drops the WebSocket to `FailedObservation`; a `prepare_viewport`
+    notification check arriving before reconnect reports the failure once instead of raising
+    `ConnectorObserverClosed` out of `self.app.source().core`."""
+    from types import SimpleNamespace
+    from agent_comms.messaging.message_reference import MessageReference
+    from agent_comms.messaging.read_basis import NoDisplaySelection
+    from toad.client.connection import ClosedObservation, FailedObservation
+    from toad.client.history_notifications import OneHistoryNotifications
+
+    class FakeHistory:
+        can_draw_on_screen = True
+        notification_references = (MessageReference(seq=1, message_id="1-abc"),)
+
+        def notification_identity_for(self, wanted):
+            return NoDisplaySelection()
+
+    class FakeView(OneHistoryNotifications):
+        def __init__(self, access):
+            self.app = SimpleNamespace(coordination_access=access)
+            self.message_history = FakeHistory()
+            self.failures: list[Exception] = []
+
+        def report_queue_evidence(self) -> None:
+            pass
+
+        def run_notification_work(self, work) -> None:
+            pass
+
+        def check_notifications_after_refresh(self) -> None:
+            pass
+
+        def notifications_failed(self, failure: Exception) -> None:
+            self.failures.append(failure)
+
+    error = RuntimeError("ConnectorObserverClosed: remote stream ended")
+    access = SimpleNamespace(shows_notifications=lambda _view: False)
+    failed = FailedObservation(error=error, selection=SimpleNamespace(), access=access)
+    access.observation = failed
+    view = FakeView(access)
+
+    view.check_notifications()
+    assert view.failures == [error]
+    # Repeated viewport checks while still disconnected do not spam notifications_failed.
+    view.check_notifications()
+    assert view.failures == [error]
+
+    # ClosedObservation silently ignores notification checks during shutdown.
+    access.observation = ClosedObservation(access=access)
+    view.check_notifications()
+    assert view.failures == [error]
+
+
+def test_bottom_chrome_yields_to_keyboard_while_open_sidebars_stay() -> None:
+    """Bottom-docked navigation and collapsed bottom sidebar toggle strips yield to the soft
+    keyboard so the composer sits flush above the keyboard; open bottom sidebars (e.g.
+    searching channels) and non-bottom edges stay visible."""
+    from types import SimpleNamespace
+    import inspect
+    from PySide6.QtWidgets import QWidget
+    from toad.markdown_links import ReferenceContext
+    from toad.preferences import SavedSettings
+    from toad.qt.side_bar import QtSideBar, QtWorkspaceChrome
+    from toad.setting_choices import BottomNavigationBar, TopNavigationBar
+    from toad.sidebar_layout import SidebarLayout
+    from toad.sidebar_placement import (
+        BottomSidebarEdge,
+        ChannelsSidebarPlacement,
+        LeftSidebarEdge,
+        ThreadSidebarPlacement,
+        TopSidebarEdge,
+    )
+    from toad.terminal_origin import LocalTerminal
+
+    assert BottomNavigationBar.yields_to_keyboard is True
+    assert TopNavigationBar.yields_to_keyboard is False
+    assert BottomSidebarEdge.yields_to_keyboard is True
+    assert TopSidebarEdge.yields_to_keyboard is False
+    assert LeftSidebarEdge.yields_to_keyboard is False
+
+    app = QApplication.instance() or QApplication([])
+    clock = QtAnimationClock(lambda _interval: None)
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+    parent = QWidget()
+    parent.resize(360, 720)
+    pages = QWidget(parent)
+    layout = SidebarLayout(SavedSettings(), LocalTerminal)
+    layout.move(ChannelsSidebarPlacement, BottomSidebarEdge)
+    layout.move(ThreadSidebarPlacement, BottomSidebarEdge)
+    layout.set_collapsed(ChannelsSidebarPlacement, True)
+    layout.set_collapsed(ThreadSidebarPlacement, False)
+    chrome = QtWorkspaceChrome(layout, pages, clock=clock, available=lambda _id: True, parent=parent)
+    client = SimpleNamespace(
+        settings=SimpleNamespace(sidebar=SimpleNamespace(toggle_hint=False)),
+        renderer=renderer,
+    )
+    channels = QtSideBar(layout, ChannelsSidebarPlacement, QWidget(), heading=lambda: "all",
+                         laid_out=lambda: None, client=client, parent=chrome)
+    thread = QtSideBar(layout, ThreadSidebarPlacement, QWidget(), heading=lambda: "#comms",
+                       laid_out=lambda: None, client=client, parent=chrome)
+    chrome.sidebars = (channels, thread)
+
+    assert chrome.presented_sidebars() == (channels, thread)
+    chrome.set_keyboard_open(True)
+    # Collapsed bottom strip hides; open bottom sidebar stays visible.
+    assert chrome.presented_sidebars() == (thread,)
+    chrome.set_keyboard_open(False)
+    assert chrome.presented_sidebars() == (channels, thread)
+
     parent.deleteLater()
     app.processEvents()

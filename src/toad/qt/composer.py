@@ -549,12 +549,14 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             self.editor.verticalScrollBar().setValue(0)
 
     def visible_viewport_height(self) -> int:
-        """The window height not hidden by the platform input method.
+        """The window height not hidden by safe-area margins or the platform input method.
 
-        ``QInputMethod.keyboardRectangle`` is expressed in window coordinates. On Android
-        the QWidget can retain its full-screen height while the keyboard covers its bottom;
-        treating that covered region as viewport made the shared 50% editor limit consume
-        nearly the whole visible app. Desktop keyboards expose no intersecting rectangle.
+        On Android 15, ``ToadActivity`` folds ``WindowInsets.Type.ime()`` into
+        ``safeAreaMarginsChanged`` (applied as ``contentsMargins`` on the top-level window),
+        so ``contentsRect().height()`` already excludes the keyboard and status bar without
+        resizing the EGL surface. Taking the smaller of ``contentsRect().height()`` and
+        ``rect().height() - keyboardRectangle`` avoids double-subtracting while still
+        respecting ``QInputMethod.keyboardRectangle()`` on older Android and tests.
         """
         viewport = self._viewport_window.rect()
         covered = (
@@ -562,7 +564,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             if self._input_method.isVisible()
             else 0
         )
-        return max(1, viewport.height() - covered)
+        return max(1, min(self._viewport_window.contentsRect().height(), viewport.height() - covered))
 
     _fit_height_pending: bool = False
 
@@ -586,8 +588,11 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.fit_height()
 
     def eventFilter(self, watched, event) -> bool:  # type: ignore[override]
-        if watched is self._viewport_window and event.type() == QEvent.Type.Resize:
-            # Run after Qt has propagated the new top-level geometry through its layouts.
+        if watched is self._viewport_window and event.type() in (
+            QEvent.Type.Resize,
+            QEvent.Type.ContentsRectChange,
+        ):
+            # Run after Qt has propagated the new top-level geometry or safe-area margins.
             self._schedule_fit_height()
         return super().eventFilter(watched, event)
 

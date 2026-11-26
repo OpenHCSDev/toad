@@ -407,6 +407,11 @@ class Observation(ABC):
     @abstractmethod
     async def read(self, request: AwaitedRead) -> object: ...
 
+    @abstractmethod
+    def subscribe_notifications(
+        self, view: NotificationSubscriber, build_read: Callable[[str], ReadNotifications],
+    ) -> bool: ...
+
     def is_current(self) -> bool:
         return self is self.access.observation
 
@@ -499,6 +504,11 @@ class NotObserving(Observation):
     async def read(self, request: AwaitedRead) -> object:
         return await self.observed().read(request)
 
+    def subscribe_notifications(
+        self, view: NotificationSubscriber, build_read: Callable[[str], ReadNotifications],
+    ) -> bool:
+        return self.observed().subscribe_notifications(view, build_read)
+
 
 class ClosedObservation(Observation):
     """The access has closed: nothing is observed, and nothing opens again.
@@ -545,6 +555,12 @@ class ClosedObservation(Observation):
     def observe_notifications(self, wanted: ObserveNotifications):
         """No observation is left to tell."""
 
+    def subscribe_notifications(
+        self, view: NotificationSubscriber, build_read: Callable[[str], ReadNotifications],
+    ) -> bool:
+        """No observation is left to subscribe to."""
+        return False
+
     def thread_interest(self, access: CoordinationAccess):
         """No observation is left to tell."""
 
@@ -556,6 +572,9 @@ class ClosedObservation(Observation):
 class FailedObservation(Observation):
     error: Exception = field(compare=False, repr=False)
     selection: RouteSelection | UnselectedRoute
+    failed_notification_views: WeakSet[NotificationSubscriber] = field(
+        default_factory=WeakSet, compare=False, repr=False,
+    )
 
     async def read(self, request: AwaitedRead) -> object:
         raise self.error
@@ -612,6 +631,15 @@ class FailedObservation(Observation):
     def observe_notifications(self, wanted: ObserveNotifications):
         for view in tuple(self.access.notification_views):
             view.notifications_failed(self.error)
+
+    def subscribe_notifications(
+        self, view: NotificationSubscriber, build_read: Callable[[str], ReadNotifications],
+    ) -> bool:
+        """Report the outage once per view without touching a disconnected Core."""
+        if view not in self.failed_notification_views:
+            self.failed_notification_views.add(view)
+            view.notifications_failed(self.error)
+        return False
 
     def thread_interest(self, access: CoordinationAccess):
         if access.retry.began():
@@ -874,6 +902,11 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
 
     def observe_notifications(self, wanted: ObserveNotifications):
         self.tell(wanted)
+
+    def subscribe_notifications(
+        self, view: NotificationSubscriber, build_read: Callable[[str], ReadNotifications],
+    ) -> bool:
+        return self.access.show_notifications(view, build_read(str(self.root)))
 
     def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
         self.tell(wanted)

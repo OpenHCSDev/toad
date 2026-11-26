@@ -1704,6 +1704,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         chrome_layout.addWidget(self.profile_paste_panel)
         chrome_layout.addLayout(bar)
         self.renderer.themed(self, self.paint_chrome_colours)
+        self._rest_bottom_margin: int | None = None
+        self._keyboard_open: bool = False
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
         self.apply_layout_preferences()
@@ -1754,10 +1756,34 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def capture_command_origin(self) -> WindowCommandOrigin:
         return WindowCommandOrigin(self)
 
+    KEYBOARD_MARGIN_THRESHOLD: ClassVar[int] = 100
+    """Logical-pixel jump above the resting bottom safe-area inset that marks an open soft
+    keyboard (system gesture/3-button bars sit at 0-56 dp; touch keyboards are 250-350 dp)."""
+
     def fit_safe_area(self, margins: QMargins) -> None:
-        """Keep every row clear of the status bar and navigation bar (IME insets resize the
-        activity content view natively in ToadActivity on Android 11+)."""
+        """Keep every row clear of the status bar, navigation bar and soft keyboard.
+
+        On Android 15, ``ToadActivity`` folds ``WindowInsets.Type.ime().bottom`` into
+        ``systemBars().bottom`` so ``safeAreaMarginsChanged`` carries the exact keyboard
+        height without resizing the EGL ``SurfaceView``. While the keyboard is up, bottom-
+        docked chrome (bottom navigation bar and collapsed bottom sidebar toggle strips)
+        hides so the composer sits flush above the keyboard."""
         self.setContentsMargins(margins)
+        bottom = margins.bottom()
+        if self._rest_bottom_margin is None or bottom < self._rest_bottom_margin:
+            self._rest_bottom_margin = bottom
+        self._keyboard_open = (bottom - self._rest_bottom_margin) >= self.KEYBOARD_MARGIN_THRESHOLD
+        self._sync_keyboard_chrome()
+
+    def _sync_keyboard_chrome(self) -> None:
+        hide_nav = (
+            self._keyboard_open
+            and self.settings.ui.navigation_bar.yields_to_keyboard
+            and not self.bus_switcher.isVisible()
+            and not self.profile_paste_panel.isVisible()
+        )
+        self.navigation.setVisible(not hide_nav)
+        self.chrome.set_keyboard_open(self._keyboard_open)
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
         self.bus_label.present(self)
@@ -1873,6 +1899,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         for index, widget in enumerate(self.settings.ui.navigation_bar.around(self.navigation, self.chrome)):
             layout.removeWidget(widget)
             layout.insertWidget(index, widget, 1 if widget is self.chrome else 0)
+        self._sync_keyboard_chrome()
 
     def follow_theme(self) -> None:
         """Draw in the `ui.theme` scheme, among those Textual's colours offer; a name not
@@ -2029,6 +2056,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         Textual's `BusChoices` modal. The shared `BusListing` contract gives the
         switcher the same rows, prompt text (`BusSwitcherPrompt`) and ask-tailnet
         behavior Textual has; the Qt layer is just rendering + input wiring."""
+        self.navigation.show()
         self.bus_switcher.show_switcher()
 
     async def close_native_views(self) -> None:
@@ -2152,6 +2180,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         """Open the inline paste panel for a bus-connect profile. Bound to the
         `BusConnectDecision` "Paste a profile" option; a submit holds the pasted JSON
         through `agent_comms-connector hold-ui` and opens its bus."""
+        self.navigation.show()
         self.profile_paste_panel.open_for(submit)
 
     def open_row(self, row: ConversationRow) -> None:
