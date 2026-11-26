@@ -20,7 +20,7 @@ from uuid import uuid4
 from agent_comms.nominal.field_codec import FieldCodec, WireName
 from agent_comms.storage.locked_store import FilesRequest
 from agent_comms.storage.typed_table import ExternalStore
-from annotated_types import Ge, MinLen
+from annotated_types import Ge, Le, MinLen
 from objectstate import DottedFieldPath, ObjectState, mark_ui_hidden_config, set_base_config_type
 from pydantic import JsonValue
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
@@ -124,6 +124,15 @@ class ViewUiSettings(SettingsDeclaration, scopes=(ViewSettingsOwner,)):
         FamilyChoices(Scrollbar),
         effects.conversation_layout,
     ] = Scrollbar.for_host()
+    message_font_scale: Annotated[
+        int,
+        FieldLabel("Message text size (%)"),
+        Ge(50),
+        Le(200),
+        effects.conversation_layout,
+        WireName("message-font-scale"),
+    ] = 100
+    """Scale of message text in graphical views, from 50% to 200%."""
 
 
 @dataclass(frozen=True)

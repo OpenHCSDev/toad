@@ -336,6 +336,39 @@ class SettingsAction(OpensWindow, ApplicationAction):
         await app.edit_settings()
 
 
+class ZoomInAction(ApplicationAction):
+    """Increase message text size by 10%."""
+
+    title = "Zoom in text"
+    keys = {TextEntryMode: ("ctrl+=", "ctrl+plus")}
+    show = True
+
+    async def apply(self, app: ClientApplication) -> None:
+        app.adjust_message_font_scale(10)
+
+
+class ZoomOutAction(ApplicationAction):
+    """Decrease message text size by 10%."""
+
+    title = "Zoom out text"
+    keys = {TextEntryMode: ("ctrl+-",)}
+    show = True
+
+    async def apply(self, app: ClientApplication) -> None:
+        app.adjust_message_font_scale(-10)
+
+
+class ResetZoomAction(ApplicationAction):
+    """Reset message text size to 100%."""
+
+    title = "Reset text size"
+    keys = {TextEntryMode: ("ctrl+0",)}
+    show = True
+
+    async def apply(self, app: ClientApplication) -> None:
+        app.reset_message_font_scale()
+
+
 class TeamAction(OpensWindow, ApplicationAction, declared_name="team"):
     """Open the live team board, including teammates' orders and original evidence."""
 

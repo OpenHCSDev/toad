@@ -44,6 +44,7 @@ from toad.client.notification_status import (
     UncheckedNotifications,
 )
 from toad.client.message_file_links import MessageFileLink, file_chips
+from toad.client.structured_context import compact_preview
 from toad.commit_claims import CommitClaim
 from toad.core.projection import MroProjection
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
@@ -81,6 +82,7 @@ class Shown(ShownFragment):
     """What a reader chose about one drawn fragment."""
 
     details_open: bool = False
+    collapsed: bool = False
 
     def summary(self, title: str, role: type[LineRole], link: LineLink) -> Summary:
         """One clipped row whatever the title: state that arrives after layout
@@ -90,6 +92,9 @@ class Shown(ShownFragment):
 
     def toggled(self) -> Shown:
         return replace(self, details_open=not self.details_open)
+
+    def toggled_collapsed(self) -> Shown:
+        return replace(self, collapsed=not self.collapsed)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -241,6 +246,13 @@ class FragmentDetails(ToggleDetails):
     key: FragmentKey
 
 
+@dataclass(frozen=True)
+class FragmentCollapse(ToggleDetails):
+    """A message header disclosure: collapses or expands all parts of one message."""
+
+    key: FragmentKey
+
+
 class CursorRest:
     """Where a history's block cursor rests. This base is resting on no drawn message;
     a HistoryFragment is resting on that message."""
@@ -337,6 +349,10 @@ class HistoryFragment(CursorRest):
         return FragmentDetails(self.key)
 
     @property
+    def collapse_link(self) -> FragmentCollapse:
+        return FragmentCollapse(self.key)
+
+    @property
     def arrival_position(self) -> int | NativeItemId:
         """The first event owns the fragment's stable source position."""
         return self.events[0].position
@@ -378,6 +394,12 @@ class HistoryFragment(CursorRest):
     @classmethod
     def capture_part(cls, event, text: str, **kwargs):
         return cls((replace(event, text=text),), **kwargs)
+
+    @property
+    def has_blocks(self) -> bool:
+        """Fast O(1) check for whether this fragment draws any blocks in its current `shown`
+        state; avoids rebuilding `line_blocks` inside hot layout/paint loops."""
+        return True
 
     @property
     def line_blocks(self) -> tuple[LineBlock, ...]:
@@ -431,6 +453,10 @@ class MessageLines(HistoryFragment):
         """Blocks above the message's own text."""
         return ()
 
+    def leading_for(self, shown) -> tuple[LineBlock, ...]:
+        """Blocks above the message's own text under ``shown``."""
+        return self.leading
+
     @abstractmethod
     def text(self, shown) -> tuple[LineBlock, ...]:
         """The message's own text."""
@@ -440,7 +466,7 @@ class MessageLines(HistoryFragment):
         return ()
 
     def blocks(self, shown):
-        return (*self.leading, *self.text(shown), *self.part_position.file_blocks(self.files),
+        return (*self.leading_for(shown), *self.text(shown), *self.part_position.file_blocks(self.files),
                 *self.trailing(shown))
 
 
@@ -484,9 +510,18 @@ class BusMessageHistoryFragment(MessageLines):
     def clipboard_text(self):
         return self.shown.style.clipboard(self.row)
 
+    def collapsible_header(self, shown: MessageShown) -> Divider:
+        """This message's header divider with a tappable collapse/expand disclosure."""
+        header = self.row.header
+        marker = Span("▶ " if shown.collapsed else "▼ ", header.role, self.collapse_link)
+        return replace(header, spans=(marker, *header.spans))
+
     @property
     def leading(self):
-        return self.part_position.leading(self.row.header)
+        return self.leading_for(self.shown)
+
+    def leading_for(self, shown: MessageShown):
+        return self.part_position.leading(self.collapsible_header(shown))
 
     @property
     def body_text(self):
@@ -497,6 +532,19 @@ class BusMessageHistoryFragment(MessageLines):
 
     def trailing(self, shown):
         return self.part_position.status_blocks(shown, self.details_link)
+
+    @property
+    def has_blocks(self) -> bool:
+        return not (self.shown.collapsed and self.part_position.index > 0)
+
+    def blocks(self, shown: MessageShown):
+        if shown.collapsed:
+            if self.part_position.index > 0:
+                return ()
+            preview = compact_preview(self.row.message.body or self.body_text, 72)
+            summary = (Summary((Span(preview, MutedRole, self.collapse_link),)),) if preview else ()
+            return (*self.leading_for(shown), *summary)
+        return super().blocks(shown)
 
 
 @dataclass(kw_only=True)
@@ -546,16 +594,18 @@ class HistoryLeading(MroProjection[tuple[LineBlock, ...]]):
     """A message an attached history recorded opens with where it came from; a live one with its header."""
 
     @handles(NoHistorySource)
-    def live(self, source: NoHistorySource, fragment: WireMessage, header: tuple[LineBlock, ...]):
+    def live(self, source: NoHistorySource, fragment: WireMessage, header: tuple[LineBlock, ...],
+             shown: MessageShown):
         return header
 
     @handles(HistorySource)
-    def recorded(self, source: HistorySource, fragment: WireMessage, header: tuple[LineBlock, ...]):
+    def recorded(self, source: HistorySource, fragment: WireMessage, header: tuple[LineBlock, ...],
+                 shown: MessageShown):
         message = fragment.message
         return (
             Gap(),
             Summary.titled(f"History · {source.original_root} · @{message.sender} created {message.sender_created_at}"),
-            fragment.row.header,
+            fragment.collapsible_header(shown),
         )
 
 
@@ -580,6 +630,7 @@ class WireMessage(BusMessageHistoryFragment, EvidencedFragment):
     def notification_references(self):
         return self.message.role.notification_references(self.message)
 
-    @property
-    def leading(self):
-        return HISTORY_LEADING.project_value(self.message.history_source, self, super().leading)
+    def leading_for(self, shown: MessageShown):
+        return HISTORY_LEADING.project_value(
+            self.message.history_source, self, super().leading_for(shown), shown
+        )

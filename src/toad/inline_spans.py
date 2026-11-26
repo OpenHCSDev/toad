@@ -107,6 +107,11 @@ class SoftbreakSpanRule(HardbreakSpanRule):
 
 
 def inline_spans(body, context):
+    parser = MessageMarkdownParser(context)
     state = InlineSpans()
-    state.consume(MessageMarkdownParser(context).parse_inline(body))
+    for index, line in enumerate(body.split("\n")):
+        if index:
+            state.text("\n")
+        if line:
+            state.consume(parser.parse_inline(line))
     return tuple(state.spans)
