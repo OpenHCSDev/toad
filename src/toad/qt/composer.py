@@ -380,8 +380,23 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.send_button.setAccessibleName(SubmitAction.title)
         self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
         self.send_button.clicked.connect(self.submit)
-        # Compact symbol buttons sit on the right side of `editor_row` inside `self.frame`,
-        # aligned to the editor's bottom edge so Android's soft keyboard never clips them.
+        # The top-level window is the shared layout viewport. Android can keep that native
+        # window at the physical screen size while occluding its bottom with the IME, even
+        # under ADJUST_RESIZE, so the input method's own rectangle is the authority for the
+        # visible part. Follow both facts: desktop resize and Android keyboard geometry.
+        self._viewport_window = host.app
+        self._viewport_window.installEventFilter(self)
+        self._last_frame_width: int = 0
+        self.frame.installEventFilter(self)
+        self._input_method = QGuiApplication.inputMethod()
+        self._input_method.keyboardRectangleChanged.connect(
+            self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
+        )
+        self._input_method.visibleChanged.connect(
+            self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
+        )
+        # Compact symbol buttons float at the bottom-right of `self.frame`,
+        # so multiline prose flows full-width above them and Android's keyboard never clips them.
         self.frame_row = frame_row = QHBoxLayout()
         frame_row.setSpacing(0)
         frame_row.addWidget(self.frame, 1)
@@ -399,21 +414,6 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         layout.addWidget(self.failure)
         # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
-        # The top-level window is the shared layout viewport. Android can keep that native
-        # window at the physical screen size while occluding its bottom with the IME, even
-        # under ADJUST_RESIZE, so the input method's own rectangle is the authority for the
-        # visible part. Follow both facts: desktop resize and Android keyboard geometry.
-        self._viewport_window = host.app
-        self._viewport_window.installEventFilter(self)
-        self._last_frame_width: int = 0
-        self.frame.installEventFilter(self)
-        self._input_method = QGuiApplication.inputMethod()
-        self._input_method.keyboardRectangleChanged.connect(
-            self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
-        )
-        self._input_method.visibleChanged.connect(
-            self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
-        )
         self.place_input_box()
         self.refresh_glyph()
         self.fit_height()
