@@ -254,12 +254,6 @@ KNOWN_LAZY: dict[str, str] = {
         'dill. Qt: no caller of ObjectStateRegistry.save_history_to_file',
     'pyqt_reactive.protocols.widget_adapters -> pyqt_reactive.forms.widget_strategies':
         "pyqt_reactive.forms.widget_strategies -> magicgui.widgets. Qt: DoubleSpinBoxAdapter is built only by pyqt_reactive's own widget strategies; toad's forms use toad.qt.forms editors",
-    'pyqt_reactive.services.window_manager -> pyqt_reactive.animation':
-        "pyqt_reactive.animation -> pyqt_reactive.animation.flash_mixin -> formbridge.services.window_snapshot -> zmqruntime.timeouts. Qt: toad does not use pyqt_reactive's WindowManager",
-    'pyqt_reactive.services.window_navigation -> pyqt_reactive.animation':
-        "pyqt_reactive.animation -> pyqt_reactive.animation.flash_mixin -> formbridge.services.window_snapshot -> zmqruntime.timeouts. Qt: toad does not use pyqt_reactive's window navigation",
-    'pyqt_reactive.services.window_navigation -> pyqt_reactive.widgets.shared.clickable_help_components':
-        "pyqt_reactive.widgets.shared.clickable_help_components -> pyqt_reactive.animation.flash_mixin -> formbridge.services.window_snapshot -> zmqruntime.timeouts. Qt: toad does not use pyqt_reactive's window navigation",
     'textual.await_remove -> textual.app':
         "textual.app. Qt: Textual widget lifecycle helper, never called by Qt (exposed once #2255 dropped textual.app from Qt cold start)",
     'textual.dom -> textual.screen':
