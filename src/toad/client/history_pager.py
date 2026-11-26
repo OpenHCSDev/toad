@@ -352,7 +352,10 @@ class ReaderPlacement:
         return self.reader_position
 
     def place_layout_reader(self) -> bool:
-        """After a layout: put the reader back on the kept position; True when that scrolled."""
+        """After a layout: put the reader back on the kept position; True when that scrolled.
+        A following reader with an active arrival glide lets the glide own the way to the tail."""
+        if self.follows_tail and self.gliding_to_end():
+            return False
         return self.reader_for_layout().placed_by_layout(self)
 
     def place_reader(self) -> bool:
@@ -417,12 +420,7 @@ class HistoryPager(ResumesSource):
 
     def followed_here(self) -> None:
         """Register with the window drawing these pages."""
-        window = self.window
-        window.histories.add(self)
-        self.window_followed(window)
-
-    def window_followed(self, window: PagingWindow) -> None:
-        """Frontend follow-up after joining `window.histories`."""
+        self.window.histories.add(self)
 
     @abstractmethod
     def request_preparation(self) -> None:
@@ -1367,9 +1365,10 @@ class ConversationPager(HistoryPager):
             if (not arrivals and was_drawn and was_following and request.animates_arrivals)
             else None
         )
+        active_arrivals = self.window.arrival_keys() if was_following else frozenset()
         retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
-                          if fragment.key in page.arrivals)
-                    if was_following else ())
+                          if fragment.key in active_arrivals)
+                    if active_arrivals else ())
         self._generation += 1
         published = await self.jump_latest(request, publication_current)
         if published:

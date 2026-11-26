@@ -22,7 +22,6 @@ from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
 from toad.arrivals import AnimatesArrivals
-from toad.frame_presentation import FollowsUnrisenRows, UnrisenRows
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
@@ -58,7 +57,7 @@ if TYPE_CHECKING:
 
 
 class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
-                    AnimatesArrivals, ReaderPlacement, ReaderWindow, FollowsUnrisenRows, VerticalScroll, PagingWindow,
+                    AnimatesArrivals, ReaderPlacement, ReaderWindow, VerticalScroll, PagingWindow,
                     actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 
@@ -254,6 +253,8 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
     def on_conversation_block_mounted(self, message: ConversationBlock.Mounted) -> None:
         message.stop()
         self.live_blocks.add(message.block)
+        if message.block.display and self.arrival_animation_visible:
+            self.arrive((message.block,), glide_keys=())
 
     @cached_property
     def page_views(self) -> WeakSet[TranscriptPageView]:
@@ -293,6 +294,10 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         for page in self.drawn_pages():
             if any(key in page._fragment_slots for key in wanted):
                 page.refresh()
+        for block in tuple(self.live_blocks):
+            if block in wanted:
+                for widget in block.walk_children(with_self=True):
+                    widget.repaint_lines()
 
     def prepare_history(self, history: TranscriptSourcePreparation) -> None:
         """A history about to be mounted loads the page ranges the kept position needs."""
@@ -427,42 +432,8 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         self.scroll_target_y = self.scroll_y
 
     @property
-    def row_holders(self) -> tuple[UnrisenRows, ...]:
-        """What this window subtracts from its followed tail: the pagers drawing saved pages.
-
-        A live block cascades too and answers `unrevealed_rows` for itself, and it is not in
-        this sum. Holding the tail above unrisen rows means scrolling *up*, and scrolling up
-        is how this window asks for older history: with a live block in the sum, a
-        128-paragraph answer kept loading pages behind itself and never settled
-        (test_transcript_presentation_fencing, which stalls on exactly that, both with the
-        reader driven per frame and without).
-
-        Doing it for a live block therefore means the block withholding the height of its
-        unrisen rows, so the end of the document is where the risen rows end and nobody
-        scrolls anywhere. That is a change to what a growing block reports as its height,
-        and that test is its guard.
-        """
-        return tuple(self.histories)
-
-    def rows_revealed(self) -> None:
-        """A frame of a cascade inside this window: the reader goes down with the rows."""
-        self.reader_position.revealed(self)
-
-    @property
     def tail_scroll_y(self) -> float:
-        """The followed tail: the end, less the arriving rows that have not risen yet, and
-        never more than one window above it.
-
-        A reader held back further than fills the window is off the arrival entirely, and
-        the count can exceed the whole scroll range while a layout is in flight: a live
-        block reports its rows as soon as layout gives it a height, before the document it
-        sits in has grown to hold them. Subtracting that unclamped put the reader at the top
-        of the history mid-layout, which is both wrong and a scroll the layout then has to
-        answer (test_transcript_presentation_fencing stalled on it).
-        """
-        held = min(sum(holder.unrevealed_rows() for holder in self.row_holders),
-                   self.scrollable_content_region.height)
-        return max(0, self.max_scroll_y - held)
+        return float(self.max_scroll_y)
 
     @property
     def content_top(self) -> int:

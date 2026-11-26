@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from collections import deque
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from dataclasses import dataclass, replace
-from functools import cached_property, partial
+from functools import partial
 from typing import TYPE_CHECKING, ClassVar
-from weakref import WeakSet, ref
+from weakref import ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._paint_state import PaintState
@@ -21,13 +20,11 @@ from ui_theme.clock import Animation, AnimationTarget
 from ui_theme.effects import Effect, Fade, Frame, Mix, TextFade
 from ui_theme.scheme import BackgroundColour, ThemeColour
 
-from toad.motion import ARRIVAL
 from toad.tone_paint import TonePaint
 from textual import on
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceFrame
-    from toad.widgets.transcript_history import LineHistory, TranscriptPageView
 
 
 class FrameState(DeclaredFamily, affix="Frame"):
@@ -225,16 +222,6 @@ class EffectPhase:
         in one body (`shown`)."""
         return owner.paint_effects(strip, owner.effect_frame(effect, position))
 
-    def unrevealed(self, effect: Cascade, rows: int) -> int:
-        """Rows of a cascade still waiting to rise; only a running one holds any back."""
-        return 0
-
-    def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
-        return arrivals
-
-    def on_new_arrival(self, owner: LineHistory, effect: Effect[Mix], pages: deque[TranscriptPageView]):
-        """Arrivals during a running burst join its fade and reveal."""
-
 
 @dataclass(frozen=True)
 class EffectRunning(EffectPhase):
@@ -245,17 +232,13 @@ class EffectRunning(EffectPhase):
                             position: float = 0.0) -> Shown:
         # The clock ticks only animation-visible targets, but an unfocused app or a
         # covered screen still paints them: a frame frozen at the effect's start would
-        # leave an arrival's revealed rows blank and its fade at the background colour.
+        # leave a rising row blank and its fade at the background colour.
         # Through the animation, which owns the phase time a continuous effect reads from
         # the clock: the effect alone cannot answer for one.
         return self.animation.at(position) if owner.animation_visible else effect.final
 
     def now(self) -> EffectPhase:
         return EFFECT_FINISHED if self.animation.finished else self
-
-    def unrevealed(self, effect: Cascade, rows: int) -> int:
-        animation = self.animation
-        return 0 if animation.finished else effect.unrisen(animation.elapsed, rows)
 
     def stop(self) -> None:
         self.animation.stop()
@@ -267,19 +250,9 @@ class EffectUnstarted(EffectPhase):
         owner.run_effect(effect)
         return super().paint(owner, effect, strip, position)
 
-    def on_new_arrival(self, owner: LineHistory, effect: Effect[Mix], pages: deque[TranscriptPageView]):
-        owner.arrivals_began()
-
 
 class EffectFinished(EffectPhase):
-    def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
-        return ()
-
-    def on_new_arrival(self, owner: LineHistory, effect: Effect[Mix], pages: deque[TranscriptPageView]):
-        for page in pages:
-            page.arrivals.clear()
-        owner.stop_effect(effect)
-        owner.arrivals_began()
+    pass
 
 
 EFFECT_UNSTARTED, EFFECT_FINISHED = EffectUnstarted(), EffectFinished()
@@ -310,72 +283,6 @@ class RowRun:
         """How far row `y` is through the run: 0 the first row, 1 the last."""
         rows = self.cascade_rows()
         return y / (rows - 1) if rows > 1 else 0.0
-
-
-@dataclass(frozen=True)
-class ArrivalRun(RowRun):
-    """A run whose rows need not be contiguous: the rows a page draws for its arriving
-    fragments, in drawing order.
-
-    Rows between two arriving fragments belong to older messages and are not in the run.
-    Reading the run as the whole span from the first arriving row to the last counted every
-    row in between as arriving, so a following tail stopped that far above the newest
-    message (2026-11-07: "my viewpoert randomly scrolled way up outof nowhere in this clib
-    rbdige inbox").
-    """
-
-    spans: tuple[range, ...] = ()
-
-    def cascade_rows(self) -> int:
-        return sum(len(span) for span in self.spans)
-
-    def row_position(self, y: int) -> float:
-        rows = self.cascade_rows()
-        if rows < 2:
-            return 0.0
-        passed = 0
-        for span in self.spans:
-            if y in span:
-                return (passed + y - span.start) / (rows - 1)
-            passed += len(span)
-        return 0.0
-
-
-class FollowsUnrisenRows:
-    """A scrolling view that keeps a following reader above the rows still rising.
-
-    Implemented by `HistoryWindow`: it owns both the tail and the reader, and the cascades
-    inside it tell it, every frame, that their front has moved (`CascadingRows.frame_moved`).
-    """
-
-    def rows_revealed(self) -> None:
-        """Another frame of a cascade below: re-place a reader who follows the tail."""
-
-
-NOT_FOLLOWED = FollowsUnrisenRows()
-"""Nobody follows this holder's rows, so a frame of its reveal moves no reader: a widget
-mounted outside a window, or one whose window has not taken it yet."""
-
-
-class UnrisenRows:
-    """Something that can hold arriving rows below a following reader until they rise.
-
-    A window following its tail stops above them (`HistoryWindow.tail_scroll_y`), so the
-    rows reveal under a tail that waits for them instead of behind one already at the end.
-    Holding nothing back is the default: most of what a window mounts never cascades.
-    """
-
-    following: FollowsUnrisenRows = NOT_FOLLOWED
-    """Who to tell when this holder's reveal moves. The window hands itself over as the
-    holder registers (it already keeps every one of them), rather than the holder walking
-    its ancestors asking each one whether it follows rows: that probe is what
-    tests/guards/test_prompt_frame.py bans at this boundary, and it is right to."""
-
-    def followed_by(self, window: FollowsUnrisenRows) -> None:
-        self.following = window
-
-    def unrevealed_rows(self) -> int:
-        return 0
 
 
 class AnimationEffects[FrameT: Frame](TonePaint):
@@ -463,15 +370,8 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         return screen is current and self in screen._compositor.visible_widgets
 
     def repaint(self) -> None:
-        """What the clock calls on each frame of this widget's effects: what the frame moved,
-        then the redraw that shows it. Two questions, so two methods: every widget here has a
-        redraw policy and overrode this one for it, which left a frame with nowhere to say
-        that a reveal had advanced."""
-        self.frame_moved()
+        """What the clock calls on each frame of this widget's effects."""
         self.redraw()
-
-    def frame_moved(self) -> None:
-        """What this frame changed beyond the widget's own pixels; nothing, for most."""
 
     def redraw(self) -> None:
         """A frame paints over the lines (paint_effects in render_line); the content they
@@ -498,46 +398,6 @@ class EffectInContent:
 
     def redraw(self) -> None:
         self.refresh()
-
-
-class CascadingRows(UnrisenRows, AnimationEffects[Mix]):
-    """A widget whose arriving rows rise one after another, in runs it declares.
-
-    Each run holds its own rows back while its front climbs, which is why the pager
-    reports per page and a live entry per row widget: the cascade restarts with each
-    run, so one run's unrisen rows say nothing about another's.
-    """
-
-    @cached_property
-    def row_runs(self) -> WeakSet[RowRun]:
-        """Every prepared-row widget drawing inside this one; each adds itself when it mounts,
-        so an entry needs no DOM query and no import of the widget that draws its rows."""
-        return WeakSet()
-
-    def drawing_rows(self, run: RowRun) -> None:
-        self.row_runs.add(run)
-
-    def cascade_runs(self) -> Iterable[int]:
-        """Each run of arriving rows this widget draws, by row count."""
-        return (run.cascade_rows() for run in self.row_runs)
-
-    def unrevealed_rows(self) -> int:
-        phase = self.effect_phase(ARRIVAL)
-        return sum(phase.unrevealed(ARRIVAL, rows) for rows in self.cascade_runs())
-
-    def frame_moved(self) -> None:
-        """The cascade's front has moved down since the last frame, so whoever follows these
-        rows re-places its reader. Reporting rows held back is not enough on its own: nothing
-        re-reads the tail between frames, so a window already at the end stayed there while
-        the rows rose under it.
-
-        Only while rows are actually held back, because re-placing a reader is a scroll and a
-        scroll is layout: a block whose rows were still being measured moved the reader on
-        every frame, and the churn kept a 128-paragraph answer from ever settling its height
-        (tests/textual/test_transcript_presentation_fencing.py).
-        """
-        if self.unrevealed_rows():
-            self.following.rows_revealed()
 
 
 class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget, RowRun):

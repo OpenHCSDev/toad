@@ -13,7 +13,6 @@ from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
 from toad.core.projection import MroProjection
-from toad.motion import ARRIVAL
 from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
@@ -116,7 +115,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
             self._rows = AcquiredRows(source, self._lines, request.context)
             self.display = True
             if not was_displayed:
-                self.run_effect(ARRIVAL)
+                window.arrive((self,), glide_keys=())
             # A chunk that ends on the row the draft already had changes paint, not geometry:
             # asking for layout on every chunk re-arranged the window once per streamed token.
             self.refresh(layout=self._lines.height != rows)

@@ -7,7 +7,6 @@ than a channel's.
 """
 
 from support.textual_steps import refresh_chat
-from toad.motion import ARRIVAL
 from toad.widgets.comms_chat import CommsChatView
 
 
@@ -41,6 +40,5 @@ async def test_a_tall_arrival_does_not_land_a_following_reader_at_its_bottom(wor
         assert window.scroll_y < window.max_scroll_y, (
             f"parked at the bottom of a message taller than the window: scroll_y="
             f"{window.scroll_y} max_scroll_y={window.max_scroll_y} viewport={viewport} "
-            f"unrevealed={history.unrevealed_rows()} "
-            f"phase={type(history.effect_phase(ARRIVAL)).__name__} "
+            f"active_arrivals={window.has_active_arrivals} "
             f"reader={type(window.reader_position).__name__}")
