@@ -1655,6 +1655,8 @@ class ShippedScenario(ParticipantSteps):
         for dialog in self.app.findChildren(QDialog):
             if dialog.isVisible():
                 dialog.close()
+        if (menu := QtMenu.of(self.app)) is not None and menu.isVisible():
+            menu.hide()
 
     async def press_bound_keys(self, label: str) -> None:
         """Every key a live shortcut answers, pressed as a real key event with focus in the
