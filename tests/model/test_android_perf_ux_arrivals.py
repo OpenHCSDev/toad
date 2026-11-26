@@ -22,7 +22,7 @@ from toad.qt.name_wave import QtSessionTabBar, QtTabWave
 from toad.qt.overlay_scrollbar import OverlayScrollBar
 from toad.qt.prompt_stack import QtInfoBar
 from toad.qt.theme import current_scheme
-from toad.qt.widget_animation import QtAnimationClock
+from ui_theme.clock import AnimationClock
 from toad.session_observation import GoalObservation, SessionObservation
 from toad.sidebar_placement import BottomSidebarEdge, HeightSidebarEdge
 
@@ -77,7 +77,7 @@ def test_qt_editing_mode_badge_hides_standard_and_collapses_empty_info_bar(monke
 def test_qt_session_tab_bar_caches_shown_title_across_wave_ticks(monkeypatch):
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     _app = QApplication.instance() or QApplication([])
-    clock = QtAnimationClock(lambda _interval: None)
+    clock = AnimationClock(lambda _interval: None)
     scheme = current_scheme(os.environ)
     from PySide6.QtGui import QColor
 
@@ -248,10 +248,9 @@ def test_composer_fit_height_resets_scroll_when_wrapped_lines_fit(monkeypatch):
     composer.visible_viewport_height.return_value = 400
     composer.visible_editor_lines.return_value = 2
     composer.editor_height.return_value = 48
-    composer._buttons_band_size.return_value = (0, 0)
-    composer._needs_button_clearance.return_value = False
 
     Composer.fit_height(composer)
+    editor.setFixedHeight.assert_called_once_with(48)
     vbar.setValue.assert_called_once_with(0)
 
 
@@ -261,7 +260,7 @@ def test_qt_session_tab_bar_close_button_sits_inside_painted_tab(monkeypatch):
     from PySide6.QtGui import QColor
     from PySide6.QtWidgets import QTabBar, QToolButton
 
-    clock = QtAnimationClock(lambda _interval: None)
+    clock = AnimationClock(lambda _interval: None)
     bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
     bar.setTabsClosable(True)
     bar.setExpanding(False)
@@ -363,33 +362,32 @@ def test_android_ime_window_insets_and_jump_bar_multiline_size_hint(monkeypatch)
         tree.deleteLater()
 
 
-def test_scroll_perf_optimizations_cache_overlays_and_pause_ambient_waves(monkeypatch):
+def test_scroll_perf_optimizations_cache_overlays_and_keep_animations_live(monkeypatch):
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
     import inspect
     from PySide6.QtGui import QColor
     from PySide6.QtWidgets import QListView
     from toad.markdown_links import ReferenceContext
+    from toad.qt.activity import ActivitySweep
 
     scheduled: list[float | None] = []
-    clock = QtAnimationClock(scheduled.append)
+    clock = AnimationClock(scheduled.append)
     scheme = current_scheme(os.environ)
     concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
     renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
 
-    # 1. QtAnimationClock pauses QtTabWave while a history view scrolls and resumes on Inactive.
+    # 1. Ambient animations (tab waves and ActivitySweep loading spinner) stay live and are never
+    #    paused while scrolling.
     bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
     bar.show_tabs([("#comms", "comms")])
     bar.show()
     wave = bar.waves.setdefault("comms", QtTabWave(bar, "comms"))
     assert wave.animation_visible is True
-    scroller_owner = QWidget()
-    clock.set_scrolling(scroller_owner, True)
-    assert clock.ambient_paused is True
-    assert wave.animation_visible is False
-    clock.set_scrolling(scroller_owner, False)
-    assert clock.ambient_paused is False
-    assert wave.animation_visible is True
+    sweep = ActivitySweep(renderer, clock)
+    sweep.show()
+    assert sweep.animation_visible is True
+    sweep.deleteLater()
 
     # 2. QtJumpBar caches its rendered pill QPixmap across repeated paints.
     parent = QWidget()
@@ -423,7 +421,6 @@ def test_scroll_perf_optimizations_cache_overlays_and_pause_ambient_waves(monkey
     overlay.stop()
 
     bar.deleteLater()
-    scroller_owner.deleteLater()
     parent.deleteLater()
     app.processEvents()
 
@@ -509,7 +506,7 @@ def test_bottom_chrome_yields_to_keyboard_while_open_sidebars_stay() -> None:
     assert LeftSidebarEdge.yields_to_keyboard is False
 
     app = QApplication.instance() or QApplication([])
-    clock = QtAnimationClock(lambda _interval: None)
+    clock = AnimationClock(lambda _interval: None)
     scheme = current_scheme(os.environ)
     concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
     renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
@@ -640,11 +637,10 @@ def test_inline_spans_isolates_unmatched_backticks_and_rejects_dotdot_ranges() -
     ]
 
 
-def test_composer_floating_buttons_and_nav_separators_and_ime_inset_file(monkeypatch, tmp_path) -> None:
-    """Floating composer buttons sit inside `self.frame` (not `editor_row`), reserve bottom
-    clearance only when the last line collides or scrolls, `_NavSeparator` draws a 1 px
-    divider, and `QtToadApp.fit_safe_area` honors `TOAD_IME_INSET_FILE` across stale
-    `QtWindow.onLayoutChange` reads."""
+def test_composer_docked_buttons_and_nav_separators_and_ime_inset_file(monkeypatch, tmp_path) -> None:
+    """Docked composer buttons sit in `button_row` beside `self.editor` (so typing/backspacing
+    never bounces height or adds a fake blank line), `_NavSeparator` draws a 1 px divider, and
+    `QtToadApp.fit_safe_area` honors `TOAD_IME_INSET_FILE` across stale `QtWindow.onLayoutChange` reads."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
     from PySide6.QtCore import QMargins
@@ -652,52 +648,38 @@ def test_composer_floating_buttons_and_nav_separators_and_ime_inset_file(monkeyp
     from toad.qt.composer import Composer
     from toad.qt.window import QtToadApp
 
-    # 1. Floating box buttons + collision clearance logic.
+    # 1. Docked box buttons sit in `button_row` inside `button_box` (Attach before Send).
     frame = QFrame()
     frame.resize(300, 80)
     layout = QHBoxLayout(frame)
     editor = QPlainTextEdit(frame)
-    editor.resize(280, 40)
-    layout.addWidget(editor)
+    editor.resize(200, 40)
+    layout.addWidget(editor, 1)
+    button_box = QWidget(frame)
+    button_row = QHBoxLayout(button_box)
+    layout.addWidget(button_box, 0)
 
     send_btn = QPushButton("➤")
     attach_btn = QPushButton("+")
     composer = MagicMock(spec=Composer)
     composer.frame = frame
     composer.editor_row = layout
+    composer.button_box = button_box
+    composer.button_row = button_row
     composer.editor = editor
     composer.box_buttons = ()
     composer.font.return_value = frame.font()
     composer.fontMetrics.return_value = frame.fontMetrics()
     composer.document_margin.return_value = 4
-    composer._visible_box_buttons = lambda: Composer._visible_box_buttons(composer)
-    composer._buttons_band_size = lambda: Composer._buttons_band_size(composer)
-    composer._place_box_buttons = lambda: Composer._place_box_buttons(composer)
     composer.fit_buttons = lambda: Composer.fit_buttons(composer)
     composer.fit_height = lambda: None
 
     Composer.add_box_button(composer, send_btn)
     Composer.add_box_button(composer, attach_btn)
     assert composer.box_buttons == (attach_btn, send_btn)
-    # Buttons are children of `frame`, NOT packed into `editor_row`.
-    assert layout.indexOf(send_btn) == -1
-    assert layout.indexOf(attach_btn) == -1
-    assert send_btn.parentWidget() is frame and attach_btn.parentWidget() is frame
-
-    # Empty, short 1-line, or multiline text whose last visual line fits left of `+` / `➤`
-    # needs no extra clearance row; scrolled or colliding last lines reserve the button band.
-    composer.text = ""
-    assert Composer._needs_button_clearance(composer, 1, 1) is False
-    composer.text = "hi"
-    editor.setPlainText("hi")
-    assert Composer._needs_button_clearance(composer, 1, 1) is False
-    assert Composer._needs_button_clearance(composer, 2, 2) is False
-    assert Composer._needs_button_clearance(composer, 5, 3) is True
-    long_line = "x" * 120
-    composer.text = long_line
-    editor.setPlainText(long_line)
-    assert Composer._needs_button_clearance(composer, 1, 1) is True
-    assert Composer._needs_button_clearance(composer, 2, 2) is True
+    assert button_row.indexOf(attach_btn) == 0
+    assert button_row.indexOf(send_btn) == 1
+    assert send_btn.parentWidget() is button_box and attach_btn.parentWidget() is button_box
 
     # 2. Navigation bar separator helper returns a 1 px QFrame styled via #toad-nav-separator.
     sep = QtToadApp._nav_separator(frame)

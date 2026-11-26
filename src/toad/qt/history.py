@@ -847,6 +847,10 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self._tasks: set[asyncio.Task] = set()
         self._grouped_tasks: dict[str, SourceTask] = {}
         self._read_task: asyncio.Task | NoTask = NoTask()
+        self._mark_visible_timer = QTimer(window)
+        self._mark_visible_timer.setSingleShot(True)
+        self._mark_visible_timer.setInterval(0)
+        self._mark_visible_timer.timeout.connect(self._run_scheduled_mark_visible)
         prepared = self.empty_page()
         super().__init__(source_state=self.initial_state(view),
                          page_source=self._initial_page_source(prepared, app))
@@ -971,6 +975,13 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     async def remove_children(self, pages) -> None:
         """Retired pages' rows go with the publication's row reset."""
 
+    def mark_visible_after_paint(self) -> None:
+        """Try marking read again once the frontend has painted its next frame, using a
+        reusable QTimer so scroll paints never allocate per-row single-shot timers."""
+        if not self._read_mark_scheduled and not self.window.widget_gone:
+            self._read_mark_scheduled = True
+            self._mark_visible_timer.start()
+
     def call_after_refresh(self, callback: Callable, *arguments: object) -> None:
         QTimer.singleShot(0, partial(callback, *arguments))
 
@@ -1071,22 +1082,40 @@ class QtHistoryNotifications(OneHistoryNotifications):
     transcript) on the Qt event loop, so a sent message's status and "N read" line resolve."""
 
     notification_work = NoTask()
+    _notifications_timer: QTimer | None = None
+
+    def check_notifications(self) -> None:
+        """Defer notification re-subscription while a finger is actively dragging or flinging
+        QScroller; `QtHistoryWindow._on_scroller_state` flushes the instant motion settles."""
+        if self.message_history.window.actively_scrolling:
+            return
+        super().check_notifications()
 
     def report_queue_evidence(self) -> None:
         """New queue evidence repaints the composer's queue rows, as Textual's
-        `Conversation.queue_evidence_changed` does through its submissions."""
-        self.submissions.publish_pending()
+        `Conversation.queue_evidence_changed` does through its submissions. Skip scheduling
+        a composer sync when there is neither queue evidence nor an active send."""
+        if self.submissions.queue_evidence is not None or self.submissions.active:
+            self.submissions.publish_pending()
 
     def run_notification_work(self, work: Awaitable[None]) -> None:
         self.notification_work.cancel()
         self.notification_work = asyncio.ensure_future(work)
 
     def check_notifications_after_refresh(self) -> None:
-        QTimer.singleShot(0, self.check_notifications)
+        timer = self._notifications_timer
+        if timer is None:
+            timer = QTimer(self)
+            timer.setSingleShot(True)
+            timer.setInterval(0)
+            timer.timeout.connect(self.check_notifications)
+            self._notifications_timer = timer
+        if not timer.isActive():
+            timer.start()
 
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)
-        QTimer.singleShot(0, self.check_notifications)
+        self.check_notifications_after_refresh()
 
     def hideEvent(self, event) -> None:  # type: ignore[override]
         super().hideEvent(event)
@@ -1371,6 +1400,11 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         super().__init__(HistoryRowDelegate(renderer, pictures, scope.app.render_processes), parent)
         self._last_viewport_width: int = 0
         self._viewport_resize_pending: bool = False
+        self._vbar = self.verticalScrollBar()
+        self._viewport = self.viewport()
+        self._top_page_cache: tuple[int, int, int, QtTopRow] | None = None
+        self._visible_cache: tuple[int, int, int, tuple[HistoryFragment, ...]] | None = None
+        self.actively_scrolling = False
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
@@ -1389,6 +1423,10 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._anchored = True
         self._restoring = False
         self._preparing = False
+        self._prepare_timer = QTimer(self)
+        self._prepare_timer.setSingleShot(True)
+        self._prepare_timer.setInterval(0)
+        self._prepare_timer.timeout.connect(self.prepare_viewport)
         self._settle_timer = QTimer(self)
         self._settle_timer.setSingleShot(True)
         self._settle_timer.timeout.connect(self._settle)
@@ -1791,11 +1829,12 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     @property
     def scroll_y(self) -> float:
-        return self._safe_qt_read(lambda: self.verticalScrollBar().value(), 0.0)
+        return 0.0 if self.widget_gone else self._vbar.value()
 
     @scroll_y.setter
     def scroll_y(self, value: float) -> None:
-        self._safe_qt_read(lambda: self.verticalScrollBar().setValue(int(value)), None)
+        if not self.widget_gone:
+            self._vbar.setValue(int(value))
 
     @property
     def scroll_target_y(self) -> float:
@@ -1805,22 +1844,14 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     @property
     def max_scroll_y(self) -> float:
-        return self._safe_qt_read(lambda: self.verticalScrollBar().maximum(), 0.0)
+        return 0.0 if self.widget_gone else self._vbar.maximum()
 
     @property
     def tail_scroll_y(self) -> float:
         return self.max_scroll_y
 
-    def _safe_qt_read(self, read, default):
-        """`read`'s answer from a window Qt still has; `default` from a destroyed one. Late
-        pager tasks still ask a closed view for geometry, visibility and fragment heights,
-        and a benign answer lets their publish stop short. Only that is answered for: this
-        used to catch every RuntimeError the read raised, so a failure inside a measurement
-        (any RuntimeError, from anywhere under it) came back as a height of 0."""
-        return default if self.widget_gone else read()
-
     def _viewport_height_safe(self) -> int:
-        return self._safe_qt_read(lambda: self.viewport().height(), 0)
+        return 0 if self.widget_gone else self._viewport.height()
 
     @property
     def viewport_rows(self) -> int:
@@ -1835,7 +1866,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         height = self._viewport_height_safe()
         if height == 0:
             return 0
-        if self.verticalScrollBar().maximum() > 0:
+        if self._vbar.maximum() > 0:
             return 0
         rows = self.model_rows.rowCount()
         if not rows:
@@ -1849,14 +1880,14 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         or a fling's momentum (`fling_travel`)."""
         if (travel := self.head_reveal_travel()) is not None:
             return travel
-        return self._safe_qt_read(self.fling_travel, 0.0)
+        return 0.0 if self.widget_gone else self.fling_travel()
 
     def fling_travel(self) -> float:
         """How far a fling's speed carries the rows at QScroller's deceleration (v²/2a, the
         distance QScroller itself plans), whether or not rows are loaded that far: Qt stops
         a fling at the loaded edge, and the rows it was thrown towards are what the reader
         asked for."""
-        scroller = QScroller.scroller(self.viewport())
+        scroller = QScroller.scroller(self._viewport)
         if scroller.state() != QScroller.State.Scrolling:
             return 0.0
         speed = scroller.velocity().y()
@@ -1866,7 +1897,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     @property
     def presenting(self) -> bool:
-        return self._safe_qt_read(lambda: self.isVisible(), False)
+        return False if self.widget_gone else self.isVisible()
 
     def runway(self, history) -> OffScreenRunway:
         if not self.presenting:
@@ -1874,20 +1905,40 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         return Runway(int(self.scroll_y), int(self.max_scroll_y - self.scroll_y))
 
     def fragment_height(self, fragment: HistoryFragment) -> int:
-        return self._safe_qt_read(
-            lambda: self.rows.fragment_height(fragment, self.font(), self.viewport_width()),
-            0,
-        )
+        if self.widget_gone:
+            return 0
+        return self.rows.fragment_height(fragment, self.font(), self.viewport_width())
 
     def visible_fragments(self) -> tuple[HistoryFragment, ...]:
+        """Fragments intersecting the viewport, cached per `(scroll_y, geometry_revision, height)`
+        and computed by walking forward from the top row instead of a second `QListView::indexAt`."""
         if self.widget_gone:
             return ()
-        area = self.viewport().rect()
-        top, bottom = self.indexAt(area.topLeft()), self.indexAt(area.bottomLeft())
-        if not top.isValid():
+        area = self._viewport.rect()
+        height = area.height()
+        if height <= 0:
             return ()
-        last = bottom.row() if bottom.isValid() else self.model_rows.rowCount() - 1
-        return self.model_rows.fragments[top.row():last + 1]
+        scroll_val = self._vbar.value()
+        cached = self._visible_cache
+        if cached is not None and cached[0] == scroll_val and cached[1] == self.geometry_revision and cached[2] == height:
+            return cached[3]
+        top = self.indexAt(area.topLeft())
+        if not top.isValid():
+            result: tuple[HistoryFragment, ...] = ()
+        else:
+            model_rows = self.model_rows
+            total = model_rows.rowCount()
+            start = top.row()
+            row = start
+            bottom_edge = area.bottom()
+            while row + 1 < total:
+                next_rect = self.visualRect(model_rows.index(row + 1, 0))
+                if next_rect.top() > bottom_edge:
+                    break
+                row += 1
+            result = model_rows.fragments[start:row + 1]
+        self._visible_cache = (scroll_val, self.geometry_revision, height, result)
+        return result
 
     def fragment_location(self, key) -> FragmentLocation:
         row = self.model_rows.row_of(key)
@@ -1974,6 +2025,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         with self.layout_scroll():
             self.scheduleDelayedItemsLayout()
             self.executeDelayedItemsLayout()
+            self._top_page_cache = None
+            self._visible_cache = None
             if not (self.follows_tail and self.gliding_to_end()):
                 self.place_layout_reader()
         self.history_change.finish_layout(answered)
@@ -2058,7 +2111,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     def hideEvent(self, event) -> None:  # type: ignore[override]
         super().hideEvent(event)
-        self.animation_clock.set_scrolling(self, False)
+        self.actively_scrolling = False
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         """A window that follows the latest message stays on it when its height changes: the
@@ -2090,10 +2143,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     def scrolled(self, value: int) -> None:
         """The reader moved: join or leave the end, and schedule the full response on the
         next display frame. QScroller fires valueChanged at touch rate during a drag;
-        coalescing to frames runs the same work at the same cadence as the TUI.
-
-        The at_end/follows_tail transitions are immediate — they are cheap state flips
-        and consumers (jump bar + anchor) need to see them during every touch tick."""
+        coalescing both `record_reader_scroll` and `repin_header`/`respond_to_scroll` to
+        display frames keeps `QListView::indexAt` out of 90-240 Hz touch ticks."""
         # Every offset pins, the window's own as well as the reader's: a glide down into a tall
         # arrival moves the top row into it, and skipping the window's own offsets left the
         # arrival's header unpinned and its burst unstacked (Tristan, Android, 2026-11-18).
@@ -2105,10 +2156,11 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             return
         if not self.at_end and self.follows_tail:
             self.release_anchor()
-        self.record_reader_scroll(moved)
+        self._reader_moved += moved
         self._reader_scrolled = True
 
     _reader_scrolled = False
+    _reader_moved = 0
     _scrolled_to = 0
 
     def _schedule_scroll_frame(self) -> None:
@@ -2118,14 +2170,17 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self._scroll_frame_timer.start(interval)
 
     def _scroll_frame(self) -> None:
-        """One display frame's scroll response: the pin for every offset, and the reader's
-        response (velocity, page requests, tail-follow) when the reader moved. Runs at frame
-        rate regardless of input rate — the same cadence as the TUI."""
+        """One display frame's scroll response: reader position, pin, and lookahead/page
+        requests. Runs at frame rate regardless of touch input rate."""
         self._scroll_frame_pending = False
-        self.repin_header()
         if self._reader_scrolled:
             self._reader_scrolled = False
-            self.respond_to_scroll(self.verticalScrollBar().value())
+            moved, self._reader_moved = self._reader_moved, 0
+            self.record_reader_scroll(moved)
+            self.repin_header()
+            self.respond_to_scroll(self._vbar.value())
+        else:
+            self.repin_header()
 
     _flinging = False
 
@@ -2148,12 +2203,11 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     def _on_scroller_state(self, state) -> None:
         """A finger taking the rows stops a head reveal; a press that stops a fling is
-        remembered, so its release is not read as a tap on a row. Ambient animations
-        (tab waves, activity sweeps) pause while kinetic scrolling is active so distant
-        repaints cannot expand the frame's GPU upload box to the whole screen."""
-        self.animation_clock.set_scrolling(
-            self, state in (QScroller.State.Dragging, QScroller.State.Scrolling)
-        )
+        remembered, so its release is not read as a tap on a row. Notification checks wait
+        until the drag/fling settles instead of firing hundreds of Core subscriptions mid-fling."""
+        scrolling = state in (QScroller.State.Dragging, QScroller.State.Scrolling)
+        was_scrolling = self.actively_scrolling
+        self.actively_scrolling = scrolling
         if state in (QScroller.State.Pressed, QScroller.State.Dragging):
             self.cancel_head_reveal()
         if state == QScroller.State.Pressed:
@@ -2162,6 +2216,9 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         if state == QScroller.State.Inactive:
             self._overshoot = 0.0
             self._travel_origin = 0.0
+        if was_scrolling and not scrolling:
+            for history in tuple(self.histories):
+                history.notification_view.check_notifications_after_refresh()
 
     _travel_origin = 0.0
     """How far layout has moved the reader since the finger now scrolling them came down.
@@ -2236,9 +2293,9 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     # Frames
 
     def request_preparation(self) -> None:
-        if not self._preparing:
+        if not self._preparing and not self.widget_gone:
             self._preparing = True
-            QTimer.singleShot(0, self.prepare_viewport)
+            self._prepare_timer.start()
 
     def prepare_viewport(self) -> None:
         self._preparing = False
@@ -2255,19 +2312,31 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     def top_page(self) -> QtTopRow:
         """The row under the viewport's top edge, with the block and line of its fragment
-        there: Qt measures that by pixel, where Textual counts cells."""
+        there: Qt measures that by pixel, where Textual counts cells. Cached per
+        `(scroll_y, geometry_revision, viewport_width)` so `record_reader_scroll` and
+        `repin_header` in the same frame share one `QListView::indexAt`."""
         if self.widget_gone:
             return QtTopRow()
-        top = self.indexAt(self.viewport().rect().topLeft())
+        area = self._viewport.rect()
+        scroll_val = self._vbar.value()
+        cached = self._top_page_cache
+        if (cached is not None and cached[0] == scroll_val
+                and cached[1] == self.geometry_revision and cached[2] == area.width()):
+            return cached[3]
+        top = self.indexAt(area.topLeft())
         if not top.isValid():
-            return QtTopRow()
-        rect = self.visualRect(top)
-        if rect.height() <= 0:
-            return QtTopRow()
-        # The row's layout width, not its extent: a row with an unwrapped block is wider than
-        # the viewport, its header is not, and the pin draws that header.
-        return QtRowUnderTop(self, top.data(HistoryRows.FRAGMENT), rect.left(),
-                             self.rows.layout_width(rect.width()), -rect.top(), rect.height())
+            result: QtTopRow = QtTopRow()
+        else:
+            rect = self.visualRect(top)
+            if rect.height() <= 0:
+                result = QtTopRow()
+            else:
+                # The row's layout width, not its extent: a row with an unwrapped block is wider than
+                # the viewport, its header is not, and the pin draws that header.
+                result = QtRowUnderTop(self, top.data(HistoryRows.FRAGMENT), rect.left(),
+                                       self.rows.layout_width(rect.width()), -rect.top(), rect.height())
+        self._top_page_cache = (scroll_val, self.geometry_revision, area.width(), result)
+        return result
 
     def live_message_header(self) -> PinnedHeader:
         """Qt draws no live blocks: the draft is rows, so a row under the top edge pins."""

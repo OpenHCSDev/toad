@@ -283,10 +283,11 @@ class FrameProbe(QObject):
         return bool(os.environ.get("TOAD_FRAME_PROBE")) or (paths.get_state() / "frame-probe").is_file()
 
     @classmethod
-    def application(cls, arguments: list[str]) -> QApplication:
+    def application(cls, arguments: list[str]) -> ToadApplication:
         """The process's QApplication: one that times each event's delivery when the probe is
-        asked for, Qt's own otherwise (a Python `notify` costs every event a call into Python)."""
-        return (ProbedApplication if cls.requested() else QApplication)(arguments)
+        asked for, and otherwise catches `QEvent.Quit` directly on `QApplication.event` with
+        zero application-wide event filter overhead."""
+        return (ProbedApplication if cls.requested() else ToadApplication)(arguments)
 
     @classmethod
     def start_if_requested(cls, application: QApplication) -> FrameProbe | None:
@@ -295,7 +296,26 @@ class FrameProbe(QObject):
         return cls(application, paths.get_log() / "frame-probe.log")
 
 
-class ProbedApplication(QApplication):
+class ToadApplication(QApplication):
+    """Toad's QApplication: intercepts `QEvent.Quit` posted directly to the application so
+    the shared asyncio client shutdown runs before qasync exits the loop, without installing
+    an application-wide Python `eventFilter` that runs on every timer, paint and scroll event."""
+
+    def __init__(self, arguments: list[str]) -> None:
+        super().__init__(arguments)
+        self._on_quit = None
+
+    def on_quit(self, callback) -> None:
+        self._on_quit = callback
+
+    def event(self, event: QEvent) -> bool:  # type: ignore[override]
+        if event.type() == QEvent.Type.Quit and self._on_quit is not None:
+            self._on_quit()
+            return True
+        return super().event(event)
+
+
+class ProbedApplication(ToadApplication):
     """A QApplication that times each event's whole delivery, so a stall names the event and
     the receiver it was spent in. Made only when the probe is asked for (`FrameProbe.application`)."""
 

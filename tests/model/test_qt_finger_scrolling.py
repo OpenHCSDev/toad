@@ -1,8 +1,7 @@
-"""The application's grant of finger scrolling holds a scroll area as Qt polishes it, and
-asks what is watched before it reads anything of an event (`toad.qt.finger_scrolling`)."""
+"""The application's grant of finger scrolling holds a scroll area once via `QProxyStyle.polish`
+with zero application-wide event filter overhead (`toad.qt.finger_scrolling`)."""
 from __future__ import annotations
 
-from PySide6.QtCore import QEvent, QObject
 from PySide6.QtWidgets import QApplication, QListWidget, QWidget
 
 from toad.qt.finger_scrolling import FingerScrolling, MouseAndWheel, TouchAsMouse
@@ -16,26 +15,16 @@ class Grabbed:
         self.viewports.append(viewport)
 
 
-class Untouchable:
-    def __getattr__(self, name):
-        raise AssertionError(f"read {name} of an event sent to something that never scrolls")
-
-
-def test_a_scroll_area_is_held_at_its_polish_and_nothing_else_is_read(monkeypatch):
+def test_a_scroll_area_is_held_at_its_polish_via_proxy_style(monkeypatch):
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     application = QApplication.instance() or QApplication([])
     gesture = Grabbed()
     granted = FingerScrolling(gesture, application)
     plain, scrolling = QWidget(), QListWidget()
     try:
-        # Every event of every object passes the filter: one for a plain widget or a bare
-        # object is answered by what it was sent to, with nothing of the event read.
-        assert granted.eventFilter(plain, Untouchable()) is False
-        assert granted.eventFilter(QObject(), Untouchable()) is False
-        assert granted.eventFilter(scrolling, QEvent(QEvent.Type.Paint)) is False
+        granted.polish(plain)
         assert gesture.viewports == []
-
-        assert granted.eventFilter(scrolling, QEvent(QEvent.Type.Polish)) is False
+        granted.polish(scrolling)
         assert gesture.viewports == [scrolling.viewport()]
     finally:
         plain.deleteLater()
@@ -43,19 +32,40 @@ def test_a_scroll_area_is_held_at_its_polish_and_nothing_else_is_read(monkeypatc
         granted.deleteLater()
 
 
-def test_desktop_mouse_gesture_skips_app_wide_event_filter():
-    installed = []
+def test_touch_attaches_proxy_style_without_app_event_filter():
+    styled = []
+    base_styles = []
+    filtered = []
+
+    class FakeStyle:
+        pass
+
+    class FakeGranted:
+        def setBaseStyle(self, base):
+            base_styles.append(base)
 
     class FakeApplication:
+        def __init__(self):
+            self._style = FakeStyle()
+
         def allWidgets(self):
             return []
 
+        def style(self):
+            return self._style
+
+        def setStyle(self, style):
+            styled.append(style)
+
         def installEventFilter(self, flt):
-            installed.append(flt)
+            filtered.append(flt)
 
     app = FakeApplication()
-    marker = object()
+    marker = FakeGranted()
     MouseAndWheel().attach(app, marker)
-    assert installed == []
+    assert styled == []
+    assert filtered == []
     TouchAsMouse().attach(app, marker)
-    assert installed == [marker]
+    assert base_styles == [app._style]
+    assert styled == [marker]
+    assert filtered == []

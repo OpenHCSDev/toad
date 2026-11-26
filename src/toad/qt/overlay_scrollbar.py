@@ -9,6 +9,8 @@ it never takes a tap meant for the text under it.
 
 from __future__ import annotations
 
+from time import monotonic
+
 from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QAbstractScrollArea, QAbstractSlider, QScrollBar
@@ -55,6 +57,7 @@ class OverlayScrollBar(QScrollBar):
         self.handle_opacity = 1.0
         self._handle_color = QColor(SurfaceHoverColour.rgb(renderer.scheme).hex)
         self._last_thumb = QRect()
+        self._last_moved = 0.0
         self.still = QTimer(self)
         self.still.setSingleShot(True)
         self.still.setInterval(self.STILL_MS)
@@ -159,11 +162,20 @@ class OverlayScrollBar(QScrollBar):
             self.fade = None
 
     def moved(self, value: int) -> None:
-        """The area scrolled: show the bar at once at full strength and restart the wait."""
+        """The area scrolled: show the bar at once at full strength and schedule fade once still.
+
+        Blocks signals around `setValue` so mirroring `source` never bounces `valueChanged` back
+        into `source.setValue`, and records `_last_moved` instead of mutating Qt's C++ timer heap
+        on every 90-120 Hz scroll tick."""
         if self.value() != value:
-            self.setValue(value)
+            self.blockSignals(True)
+            try:
+                self.setValue(value)
+            finally:
+                self.blockSignals(False)
         if not self.thickness:
             return
+        self._last_moved = monotonic()
         if self.fade is not None:
             self.fade.animation.stop()
             self.fade = None
@@ -180,12 +192,17 @@ class OverlayScrollBar(QScrollBar):
             self.place()
             self.show()
             self.raise_()
-        self.still.start()
+        if not self.still.isActive():
+            self.still.start(self.STILL_MS)
 
     def fade_out(self) -> None:
         """Still long enough: fade, unless the reader is holding or pointing at the bar."""
+        remaining_ms = round(self.STILL_MS - (monotonic() - self._last_moved) * 1000)
+        if remaining_ms > 20:
+            self.still.start(remaining_ms)
+            return
         if self.isSliderDown() or self.underMouse():
-            self.still.start()
+            self.still.start(self.STILL_MS)
             return
         if self.clock.enabled:
             self.fade = ScrollbarFade(self, self.clock)
