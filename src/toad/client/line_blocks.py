@@ -215,6 +215,8 @@ class LineLink(DeclaredFamily, affix="Link"):
     css_text_decoration: ClassVar[str] = "underline"
     # The transport prefix of the Markdown href that carries a link through a string-only boundary.
     href_scheme: ClassVar[str] = "toad-link:"
+    # Higher-priority links (names, URLs, files) win over header collapse within touch slop.
+    touch_priority: ClassVar[int] = 1
 
     async def copy_menu(self, widget, event):
         return False

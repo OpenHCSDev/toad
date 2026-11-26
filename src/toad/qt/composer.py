@@ -14,10 +14,6 @@ from typing import ClassVar
 import shiboken6
 
 from agent_comms.messaging.mentions import MentionCandidate
-from agent_comms.messaging.message_reference import MessageReference
-from agent_comms.messaging.notification_reads import LiveNotificationRead
-from agent_comms.messaging.read_basis import DisplayIdentity, NoDisplaySelection
-from agent_comms.ui_model.observation import ReadNotifications
 from PySide6.QtCore import QEvent, Qt, QTimer, Slot
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeyEvent, QPalette, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
@@ -33,7 +29,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
+from pyqt_reactive.widgets.fitted_text import WrappedText
 
 from toad.client.application import ClientApplication
 from toad.client.bus_submission import BusSubmissions, TypedText
@@ -53,13 +49,6 @@ from toad.client.condensed_path import home_relative
 from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from ui_theme.scheme import MutedColour, PrimaryColour, SecondaryColour
-from toad.client.notification_status import (
-    CheckedNotifications,
-    NotificationStatus,
-    UnavailableNotifications,
-    UncheckedNotifications,
-)
-from toad.client.subscribers import NotificationSubscriber
 from toad.prompt_actions import (
     AttachFileAction,
     MessageAction,
@@ -363,8 +352,6 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         editor_row.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
         editor_row.addWidget(self.editor, 1)
         self.info_bar = QtInfoBar(host, renderer, self)
-        self.receipt = Receipt(host.app, renderer, self.info_bar)
-        self.info_bar.layout().insertWidget(0, self.receipt, 1, Qt.AlignmentFlag.AlignVCenter)
         renderer.themed(self, self.paint_colours)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
         self.submitting = QtQueueSummary(self)
@@ -503,13 +490,13 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     def _needs_button_clearance(self, typed: int, lines: int) -> bool:
         """Whether the floating buttons belong in a dedicated bottom row beneath the text.
 
-        Keep the single-line composer compact while line 1 fits to the left of `+` / `➤`; once
-        text reaches the buttons or wraps onto 2+ lines, keep the buttons docked underneath so
-        all lines flow full-width without bouncing up and down on every line wrap."""
+        Keep the composer compact whenever the last visual line fits to the left of `+` / `➤`;
+        add a clearance band only when the last line actually reaches the buttons or the editor
+        is scrolling internally."""
         btn_w, _ = self._buttons_band_size()
         if btn_w <= 0:
             return False
-        if typed >= 2 or typed > lines:
+        if typed > lines:
             return True
         if not self.text:
             return False
@@ -853,7 +840,6 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         return shiboken6.isValid(self)
 
     def capture_composer_draft(self) -> ComposerDraft:
-        self.receipt.stop()
         self.offers.show_offers("", ())
         return ComposerDraft(
             text=self.editor.toPlainText(),
@@ -1014,59 +1000,3 @@ class ProjectComposer(Composer):
 
 class MailboxComposer(MessageComposer, ProjectComposer):
     """A CLI thread's composer, Textual's `MailboxPrompt(MessagePrompt)`, with its project path."""
-
-
-class Receipt(NotificationSubscriber, ElidedLine):
-    """Where your last message in this view stands with its recipients, tucked cleanly on
-    the left of `QtInfoBar` (`Read 11:40 · 2 read`)."""
-
-    def __init__(self, app: ClientApplication, renderer: QtLineRenderer,
-                 info_bar: QtInfoBar | None = None) -> None:
-        super().__init__()
-        self.app, self.renderer, self._info_bar = app, renderer, info_bar
-        self.references: tuple[MessageReference, ...] = ()
-        self.status: NotificationStatus = UncheckedNotifications()
-        renderer.follows_theme(self, self.paint_colour)
-        self.hide()
-
-    def follow(self, root: str, references: tuple[MessageReference, ...],
-               display: DisplayIdentity | NoDisplaySelection) -> None:
-        """Show these messages' notifications; asking again for the same read changes nothing."""
-        access = self.app.coordination_access
-        if not references:
-            access.stop_notifications(self)
-            self.hide()
-            if self._info_bar is not None:
-                self._info_bar.sync_visibility()
-            return
-        read = ReadNotifications(root, LiveNotificationRead(references), display=display)
-        if references != self.references:
-            self.references = references
-            self.paint(access.notification_status(read, references))
-        access.show_notifications(self, read)
-
-    def stop(self) -> None:
-        self.app.coordination_access.stop_notifications(self)
-
-    def paint(self, status: NotificationStatus) -> None:
-        self.status = status
-        self.setText(status.title)
-        self.setToolTip(f"Last message: {status.title}")
-        self.paint_colour()
-        self.show()
-        if self._info_bar is not None:
-            self._info_bar.sync_visibility()
-
-    def paint_colour(self) -> None:
-        self.renderer.apply_sheet(self, f"{self.renderer.color_style(self.status.role)}; padding: 0 4px 0 0")
-
-    def notifications_observed(self, results) -> None:
-        for status in CheckedNotifications.for_references(self.references, results):
-            self.app.schedule_ui(lambda status=status: self.paint(status))
-
-    def notifications_failed(self, error: Exception) -> None:
-        failed = self.status.failed(UnavailableNotifications(str(error)))
-        self.app.schedule_ui(lambda: self.paint(failed))
-
-    def notifications_reload(self) -> None:
-        """Core answered that the display cut is gone; the view's next page read asks anew."""

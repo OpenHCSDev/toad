@@ -36,12 +36,12 @@ def test_waiting_rows_are_rendered_a_batch_to_a_round_trip_and_each_is_held() ->
     assert rows.held == dict(a="A", b="B", c="C", d="D", e="E")
 
 
-def test_work_that_is_no_longer_current_stops_after_the_batch_in_flight() -> None:
+def test_work_that_is_no_longer_current_stops_after_the_wave_in_flight() -> None:
     rows = RecordedRows()
 
     asyncio.run(rows.render_and_hold("abcde", 2, lambda: not rows.round_trips))
 
-    assert rows.round_trips == [("a", "b")] and not rows.held
+    assert rows.round_trips == [("a", "b"), ("c", "d")] and not rows.held
 
 
 def test_rows_a_view_asks_for_in_one_turn_go_out_together_through_the_same_loop() -> None:

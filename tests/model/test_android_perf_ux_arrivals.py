@@ -70,10 +70,6 @@ def test_qt_editing_mode_badge_hides_standard_and_collapses_empty_info_bar(monke
         assert not bar.badge.isHidden()
         assert bar.badge.text() == VimInsert().label
         assert not bar.isHidden()
-
-        from toad.qt.composer import Receipt
-        receipt = Receipt(MagicMock(), renderer, bar)
-        assert receipt.isHidden()
     finally:
         parent.deleteLater()
 
@@ -688,19 +684,20 @@ def test_composer_floating_buttons_and_nav_separators_and_ime_inset_file(monkeyp
     assert layout.indexOf(attach_btn) == -1
     assert send_btn.parentWidget() is frame and attach_btn.parentWidget() is frame
 
-    # Empty or short 1-line text does not need bottom clearance; multiline (2+ lines), scrolled,
-    # or colliding 1-line text keeps clearance docked steadily without bouncing on line wraps.
+    # Empty, short 1-line, or multiline text whose last visual line fits left of `+` / `➤`
+    # needs no extra clearance row; scrolled or colliding last lines reserve the button band.
     composer.text = ""
     assert Composer._needs_button_clearance(composer, 1, 1) is False
     composer.text = "hi"
     editor.setPlainText("hi")
     assert Composer._needs_button_clearance(composer, 1, 1) is False
-    assert Composer._needs_button_clearance(composer, 2, 2) is True
+    assert Composer._needs_button_clearance(composer, 2, 2) is False
     assert Composer._needs_button_clearance(composer, 5, 3) is True
     long_line = "x" * 120
     composer.text = long_line
     editor.setPlainText(long_line)
     assert Composer._needs_button_clearance(composer, 1, 1) is True
+    assert Composer._needs_button_clearance(composer, 2, 2) is True
 
     # 2. Navigation bar separator helper returns a 1 px QFrame styled via #toad-nav-separator.
     sep = QtToadApp._nav_separator(frame)
@@ -881,3 +878,114 @@ def test_span_columns_wraps_only_between_whole_receipt_cells(monkeypatch) -> Non
         expected = (name + status).replace(" ", "\u00a0").replace("-", "\u2011")
         assert any(expected in line for line in lines), f"{expected!r} split across lines: {lines}"
         assert all(not line.startswith("\u00a0") for line in lines)
+
+
+def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeypatch, tmp_path) -> None:
+    """Covers parallel 2-worker `HoldsRows.render_and_hold`, header name tap priority over
+    collapse within touch slop, row-tracked tap highlight, and IME Back-close resync."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    import asyncio
+    import inspect
+    from PySide6.QtCore import QMargins, QPoint, QRect
+    from PySide6.QtGui import QTextDocument
+    from agent_comms.messaging.messages import InfoKind, Message
+    from agent_comms.transcript.transcript_events import IncomingTranscript
+    from toad.client.line_blocks import OpenTarget
+    from toad.client.message_file_links import NO_PAGE_FILES
+    from toad.client.prepared_pages import HoldsRows
+    from toad.client.transcript_fragments import transcript_fragments
+    from toad.markdown_links import ReferenceContext
+    from toad.qt.history import QtHistoryWindow
+    from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
+    from toad.qt.window import QtToadApp
+
+    # 1. HoldsRows.render_and_hold dispatches up to two batches concurrently.
+    in_flight = 0
+    max_in_flight = 0
+    held: list[tuple[int, int]] = []
+
+    class ConcurrentHolder(HoldsRows):
+        async def render_rows(self, waiting):
+            nonlocal in_flight, max_in_flight
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.01)
+            in_flight -= 1
+            return tuple(item * 10 for item in waiting)
+
+        def hold_row(self, waiting, row) -> None:
+            held.append((waiting, row))
+
+    asyncio.run(ConcurrentHolder().render_and_hold(range(8), batch=4))
+    assert max_in_flight == 2
+    assert held == [(i, i * 10) for i in range(8)]
+
+    # 2. Tapping within vertical touch slop of a header sender/target name opens the target
+    #    rather than collapsing the message.
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings()).at_width(42)
+    msg = Message(sender="toad-qt", target="#comms", body="Body", type=InfoKind)
+    frag = transcript_fragments(
+        (IncomingTranscript.of(msg, reader="user"),),
+        resolve_sent=lambda _r: {},
+        classes=QT_FRAGMENT_CLASSES,
+        files=NO_PAGE_FILES,
+    )[0]
+    doc = QTextDocument()
+    doc.setDocumentMargin(0)
+    doc.setTextWidth(360)
+    doc.setHtml(renderer.html(frag.line_blocks))
+    layout = doc.documentLayout()
+
+    # Locate the exact bounding box of the `toad-qt` link in the rendered header.
+    sender_pts = [
+        (x, y)
+        for y in range(0, 60)
+        for x in range(0, 360, 2)
+        if "toad-qt" in layout.anchorAt(QPoint(x, y))
+    ]
+    assert sender_pts
+    mid_x = (min(x for x, _ in sender_pts) + max(x for x, _ in sender_pts)) // 2
+    just_below_y = max(y for _, y in sender_pts) + 4  # outside exact glyph box, within touch slop
+
+    fake_win = MagicMock()
+    fake_index = MagicMock()
+    fake_index.isValid.return_value = True
+    fake_win.indexAt.return_value = fake_index
+    fake_win.visualRect.return_value = QRect(0, 0, 360, int(doc.size().height()))
+    fake_win.rows.layout_width.return_value = 360
+    fake_win.rows.row_document.return_value = doc
+    fake_win._TOUCH_LINK_OFFSETS = QtHistoryWindow._TOUCH_LINK_OFFSETS
+    picked = QtHistoryWindow._tapped_link_at(fake_win, QPoint(mid_x, just_below_y))
+    assert picked == OpenTarget("toad-qt")
+
+    # 3. Tap highlight tracks live row geometry rather than freezing at stale pixels.
+    fake_win.widget_gone = False
+    fake_win._tap_flash = (frag.key, 10, 20)
+    fake_win.model_rows.row_of.return_value = 0
+    fake_win.viewport.return_value.rect.return_value = QRect(0, 0, 360, 600)
+    fake_win.visualRect.return_value = QRect(0, 120, 360, 80)
+    assert QtHistoryWindow._live_tap_flash_rect(fake_win) == QRect(0, 130, 360, 20)
+    fake_win.visualRect.return_value = QRect(0, 40, 360, 50)
+    assert QtHistoryWindow._live_tap_flash_rect(fake_win) == QRect(0, 50, 360, 20)
+
+    # 4. QtToadApp._resync_safe_area restores resting bottom margin after IME file hits 0
+    #    even when Qt deduplicates safeAreaMarginsChanged.
+    inset_file = tmp_path / "ime_bottom_px"
+    inset_file.write_text("0", encoding="ascii")
+    monkeypatch.setenv("TOAD_IME_INSET_FILE", str(inset_file))
+    fake_app = MagicMock()
+    fake_app._safe_area_resync_pending = True
+    fake_app._rest_bottom_margin = 24
+    fake_app._keyboard_open = True
+    fake_app.KEYBOARD_MARGIN_THRESHOLD = QtToadApp.KEYBOARD_MARGIN_THRESHOLD
+    fake_app.devicePixelRatioF.return_value = 3.0
+    fake_app._android_ime_bottom_dp = lambda: QtToadApp._android_ime_bottom_dp(fake_app)
+    fake_app.windowHandle.return_value.safeAreaMargins.return_value = QMargins(0, 48, 0, 24)
+    fake_app.fit_safe_area = lambda m: QtToadApp.fit_safe_area(fake_app, m)
+    QtToadApp._resync_safe_area(fake_app)
+    assert fake_app._safe_area_resync_pending is False
+    assert fake_app.setContentsMargins.call_args[0][0].bottom() == 24
+    assert fake_app._keyboard_open is False

@@ -57,7 +57,7 @@ from toad.client.history_pager import (
     ReaderPlacement,
     Runway,
 )
-from toad.client.line_blocks import BlockPreparation, Divider
+from toad.client.line_blocks import BlockPreparation, Divider, LineLink
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
@@ -262,6 +262,18 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
         self._bg_cache: tuple[ColourScheme, str, QColor] | None = None
+        self._font_metrics_cache: tuple[QFont, float, int] | None = None
+
+    def _font_metrics(self, font: QFont) -> tuple[float, int]:
+        """Cached ``(averageCharWidth, lineSpacing)`` for ``font``, avoiding per-row and
+        per-scroll-frame `QFontMetrics` / `QFontMetricsF` allocations."""
+        cached = self._font_metrics_cache
+        if cached is not None and cached[0] == font:
+            return cached[1], cached[2]
+        cell = max(1.0, QFontMetricsF(font).averageCharWidth())
+        line = QFontMetrics(font).lineSpacing() or 1
+        self._font_metrics_cache = (QFont(font), cell, line)
+        return cell, line
 
     def _background_colour(self) -> tuple[str, QColor]:
         scheme = self.renderer.scheme
@@ -335,7 +347,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
 
     def block_preparation(self, blocks, font: QFont, width: int, *, headed: int = 0,
                           pinned: tuple[Divider, ...] = ()) -> QtRowPreparation:
-        cell = max(1.0, QFontMetricsF(font).averageCharWidth())
+        cell, _line = self._font_metrics(font)
         return QtRowPreparation(
             blocks=blocks,
             scheme=self.renderer.scheme,
@@ -464,7 +476,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         header blocks are measured: past them the pin is the same in every block
         (`header_blocks`), so a `y` below them answers the first block after them."""
         blocks = fragment.line_blocks
-        line = QFontMetrics(font).lineSpacing() or 1
+        _cell, line = self._font_metrics(font)
         key = self.fragment_key(fragment, font, width)
         prepared = self.prepared_look(key)
         if prepared is None:
@@ -1337,7 +1349,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     history: QtConversationHistory
     _cached_font_line_spacing: tuple[QFont, int] | None = None
     _paint_region: QRegion | None = None
-    _tap_flash_rect: QRect | None = None
+    _tap_flash: tuple[object, int, int] | None = None
+    _tap_flash_painted: QRect | None = None
     # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
     @property
@@ -1553,23 +1566,23 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             press.claim()
             return
         point = press.at(viewport)
-        href = self.anchor_at(point)
-        if href:
+        link = self._tapped_link_at(point)
+        if link is not None:
             self._flash_tap_at(point)
             press.claim()
-            self.open_link(href)
+            self.dispatch_sync(link)
         elif (collapse := self._header_collapse_at(point)) is not None:
-            link, header_rect = collapse
-            self._flash_tap_rect(header_rect)
+            link, y_in_row, band_h, frag_key = collapse
+            self._flash_tap_row(frag_key, y_in_row, band_h)
             press.claim()
             self.toggle_collapse(link)
         elif self.reveal_head_at(point):
             press.claim()
 
-    def _header_collapse_at(self, point: QPoint) -> tuple[FragmentCollapse, QRect] | None:
+    def _header_collapse_at(self, point: QPoint) -> tuple[FragmentCollapse, int, int, object] | None:
         """If ``point`` (viewport coordinates) landed on a bus message's header divider lines
         or timestamp (outside an explicit `@sender`/`#target` anchor), return its collapse
-        link and the header band's viewport rect."""
+        link, row-local vertical span, and fragment key."""
         index = self.indexAt(point)
         if not index.isValid():
             return None
@@ -1582,34 +1595,93 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         block_index, _line = self.rows.block_row(fragment, self.font(), width, y_in_row)
         blocks = fragment.line_blocks
         if block_index < len(blocks) and isinstance(blocks[block_index], Divider):
-            band_top = max(rect.top(), point.y() - self._font_line_spacing())
-            band_h = min(rect.height(), self._font_line_spacing() * 3)
-            return fragment.collapse_link, QRect(rect.left(), band_top, rect.width(), band_h)
+            spacing = self._font_line_spacing()
+            band_top = max(0, y_in_row - spacing)
+            band_h = min(rect.height(), spacing * 3)
+            return fragment.collapse_link, band_top, band_h, fragment.key
         return None
 
     def _flash_tap_at(self, point: QPoint) -> None:
-        """Briefly highlight the tapped line so clickable text gives immediate visual feedback."""
+        """Briefly highlight the tapped line, tracked by fragment key so expand/collapse
+        never leaves the highlight behind at a stale pixel offset."""
         index = self.indexAt(point)
         if not index.isValid():
             return
+        fragment = index.data(HistoryRows.FRAGMENT)
+        if fragment is None:
+            return
         rect = self.visualRect(index)
         line_h = max(18, self._font_line_spacing())
-        top = max(rect.top(), point.y() - line_h // 2)
-        self._flash_tap_rect(QRect(rect.left(), top, rect.width(), line_h))
+        y_in_row = max(0, point.y() - rect.top() - line_h // 2)
+        self._flash_tap_row(fragment.key, y_in_row, line_h)
 
-    def _flash_tap_rect(self, rect: QRect) -> None:
-        previous = self._tap_flash_rect
-        self._tap_flash_rect = rect.intersected(self.viewport().rect())
-        if previous is not None:
+    def _flash_tap_row(self, key: object, y_in_row: int, height: int) -> None:
+        previous = self._tap_flash_painted
+        self._tap_flash = (key, y_in_row, height)
+        self._tap_flash_painted = None
+        if previous is not None and not previous.isEmpty():
             self.viewport().update(previous)
-        if not self._tap_flash_rect.isEmpty():
-            self.viewport().update(self._tap_flash_rect)
+        live = self._live_tap_flash_rect()
+        if not live.isEmpty():
+            self.viewport().update(live)
             self._tap_flash_timer.start()
 
+    def _live_tap_flash_rect(self) -> QRect:
+        """Current viewport rect of the active tap highlight, resolved from the row's live
+        geometry so layout shifts from expand/collapse move the highlight with the row."""
+        flash = self._tap_flash
+        if flash is None or self.widget_gone:
+            return QRect()
+        key, y_in_row, height = flash
+        row = self.model_rows.row_of(key)
+        if row < 0:
+            return QRect()
+        rect = self.visualRect(self.model_rows.index(row, 0))
+        if rect.isEmpty():
+            return QRect()
+        clamped_h = min(height, rect.height())
+        top = min(rect.bottom() - clamped_h + 1, rect.top() + y_in_row)
+        return QRect(rect.left(), max(rect.top(), top), rect.width(), clamped_h).intersected(
+            self.viewport().rect()
+        )
+
     def _clear_tap_flash(self) -> None:
-        previous, self._tap_flash_rect = self._tap_flash_rect, None
-        if previous is not None and not self.widget_gone:
+        previous = self._tap_flash_painted
+        self._tap_flash = None
+        self._tap_flash_painted = None
+        if previous is not None and not previous.isEmpty() and not self.widget_gone:
             self.viewport().update(previous)
+
+    _TOUCH_LINK_OFFSETS: ClassVar[tuple[tuple[int, int], ...]] = (
+        (0, -4), (0, 4), (0, -8), (0, 8), (-3, 0), (3, 0),
+    )
+    """Touch-slop offsets probed around a tap so a finger near a 16 px sender/receiver name
+    in a header opens that conversation tab instead of falling through to header collapse."""
+
+    def _tapped_link_at(self, point: QPoint) -> LineLink | None:
+        """The link under ``point``, preferring higher ``touch_priority`` links (sender/target
+        names, URLs, files) over header collapse when a touch lands within slop of a name."""
+        index = self.indexAt(point)
+        if not index.isValid():
+            return None
+        rect = self.visualRect(index)
+        width = self.rows.layout_width(rect.width())
+        document = self.rows.row_document(index, self.font(), width)
+        layout = document.documentLayout()
+        local = point - rect.topLeft()
+        href = layout.anchorAt(QPointF(local))
+        exact = LineLink.from_href(href) if href else None
+        if exact is not None and exact.touch_priority > 0:
+            return exact
+        for dx, dy in self._TOUCH_LINK_OFFSETS:
+            probe_x, probe_y = local.x() + dx, local.y() + dy
+            if 0 <= probe_x < rect.width() and 0 <= probe_y < rect.height():
+                nearby_href = layout.anchorAt(QPointF(probe_x, probe_y))
+                if nearby_href:
+                    nearby = LineLink.from_href(nearby_href)
+                    if nearby.touch_priority > 0:
+                        return nearby
+        return exact
 
     def anchor_at(self, point: QPoint) -> str:
         """The href of the link drawn at `point` (viewport coordinates), or "" over plain text."""
@@ -1617,7 +1689,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         if not index.isValid():
             return ""
         rect = self.visualRect(index)
-        document = self.rows.row_document(index, self.font(), rect.width())
+        width = self.rows.layout_width(rect.width())
+        document = self.rows.row_document(index, self.font(), width)
         return document.documentLayout().anchorAt(QPointF(point - rect.topLeft()))
 
     # The shared link handlers (`OpensLineLinks`) open through this app and warn on this view.
@@ -1652,13 +1725,15 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._paint_region = event.region()
         try:
             super().paintEvent(event)
-            if self._tap_flash_rect is not None and not self._tap_flash_rect.isEmpty():
+            live = self._live_tap_flash_rect()
+            self._tap_flash_painted = live if not live.isEmpty() else None
+            if not live.isEmpty():
                 painter = QPainter(self.viewport())
                 colour = QColor(PrimaryColour.rgb(self.rows.renderer.scheme).hex)
                 colour.setAlpha(64)
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(colour)
-                painter.drawRoundedRect(self._tap_flash_rect, 4, 4)
+                painter.drawRoundedRect(live, 4, 4)
                 painter.end()
         finally:
             self._paint_region = None
@@ -1895,12 +1970,17 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         clamping inside `executeDelayedItemsLayout()` from firing `scrolled()` as a fake
         reader move and corrupting `lookahead` mid-drag."""
         answered = self.history_change.layout_requests
+        stale_flash = self._tap_flash_painted
         with self.layout_scroll():
             self.scheduleDelayedItemsLayout()
             self.executeDelayedItemsLayout()
             if not (self.follows_tail and self.gliding_to_end()):
                 self.place_layout_reader()
         self.history_change.finish_layout(answered)
+        if stale_flash is not None and not stale_flash.isEmpty() and not self.widget_gone:
+            self.viewport().update(stale_flash)
+            if not (live_flash := self._live_tap_flash_rect()).isEmpty():
+                self.viewport().update(live_flash)
         self.repin_header()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
@@ -2019,6 +2099,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         # arrival's header unpinned and its burst unstacked (Tristan, Android, 2026-11-18).
         self._schedule_scroll_frame()
         moved, self._scrolled_to = value - self._scrolled_to, value
+        if moved and self._tap_flash is not None:
+            self._clear_tap_flash()
         if self._restoring:
             return
         if not self.at_end and self.follows_tail:

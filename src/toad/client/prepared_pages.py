@@ -9,6 +9,7 @@ from collections.abc import Awaitable, Callable, Iterable, Sequence
 from dataclasses import dataclass, field, replace
 from itertools import islice
 from pathlib import Path
+from time import monotonic
 from typing import ClassVar
 from weakref import ReferenceType, ref
 
@@ -73,19 +74,24 @@ class HoldsRows:
 
     async def render_and_hold(self, waiting: Iterable[object], batch: int,
                            current: Callable[[], bool] = lambda: True) -> None:
-        """Render the waiting units, `batch` to a round trip, and hold each row. The work
-        stops between batches once it is no longer current (the reader moved on, the page was
-        replaced), so superseded work costs at most the batch in flight."""
+        """Render the waiting units in up to two concurrent `batch`-sized round trips so both
+        render workers stay busy, then hold each row. Stops between waves once no longer
+        current (the reader moved on, the page was replaced), so superseded work costs at
+        most the wave in flight."""
         waiting = iter(waiting)
         while current():
-            units = tuple(islice(waiting, batch))
-            if not units:
+            wave = [units for _ in range(2) if (units := tuple(islice(waiting, batch)))]
+            if not wave:
                 return
-            rows = await self.render_rows(units)
+            if len(wave) == 1:
+                results = (await self.render_rows(wave[0]),)
+            else:
+                results = await asyncio.gather(*(self.render_rows(units) for units in wave))
             if not current():
                 return
-            for unit, row in zip(units, rows, strict=True):
-                self.hold_row(unit, row)
+            for units, rows in zip(wave, results, strict=True):
+                for unit, row in zip(units, rows, strict=True):
+                    self.hold_row(unit, row)
 
 
 class RowsAsked:
@@ -228,15 +234,24 @@ class PreparedTranscriptPage:
         take = rows = 0
         start = stop = boundary
         indices = iter(end.indices(self, boundary))
+        wave_size = 2 * view.budget.batch_items
         while take < limit and rows < rows_needed:
-            batch = tuple(islice(indices, min(view.budget.batch_items, limit - take)))
+            batch = tuple(islice(indices, min(wave_size, limit - take)))
             if not batch:
                 break
             await view.prepare_fragments(tuple(self.fragments[index] for index in batch),
                                          current, target=target, selected=selected)
             if not current():
                 return 0
+            # Yield between synchronous UI-thread measurements (Qt QTextDocument layout)
+            # whenever a slice exceeds 4 ms so touch scrolling keeps painting at 60+ fps.
+            slice_start = monotonic()
             for index in batch:
+                if monotonic() - slice_start >= 0.004:
+                    await asyncio.sleep(0)
+                    if not current():
+                        return 0
+                    slice_start = monotonic()
                 fragment = self.fragments[index]
                 take += 1
                 start, stop = min(start, index), max(stop, index + 1)

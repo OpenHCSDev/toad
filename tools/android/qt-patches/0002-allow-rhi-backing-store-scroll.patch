@@ -1,0 +1,45 @@
+From 8190b7e431c9a5e6b1d4a7e2c4f8a2b1d9e0f123 Mon Sep 17 00:00:00 2001
+From: toolchain <toolchain@localhost>
+Date: Thu, 26 Nov 2026 10:32:00 -0500
+Subject: [PATCH] QRasterBackingStore: allow scroll for RHI-backed raster
+ windows
+
+QRhiBackingStore inherits QRasterBackingStore and does not override scroll().
+On Android, QAndroidPlatformWindow rewrites QSurface::RasterSurface to
+QSurface::OpenGLSurface in its constructor, so QRasterBackingStore::scroll()
+rejected every scroll call (`surfaceType() != RasterSurface`) and forced
+QWidgetRepaintManager to clear and repaint the entire viewport on every scroll
+frame.
+
+QRasterBackingStore only allocates m_image when beginPaint() renders raster
+contents into it, so checking m_image.isNull() permits scrolling for both
+RasterSurface and RHI-backed raster windows without adding any new exported
+symbols.
+
+Not upstream. Toad carries it (tools/android/qt-patches).
+---
+ src/gui/painting/qrasterbackingstore.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/gui/painting/qrasterbackingstore.cpp b/src/gui/painting/qrasterbackingstore.cpp
+index b38fd21c..9e1b37c2 100644
+--- a/src/gui/painting/qrasterbackingstore.cpp
++++ b/src/gui/painting/qrasterbackingstore.cpp
+@@ -46,13 +46,13 @@ QImage QRasterBackingStore::toImage() const
+ 
+ bool QRasterBackingStore::scroll(const QRegion &region, int dx, int dy)
+ {
+-    if (window()->surfaceType() != QSurface::RasterSurface)
++    if (m_image.isNull())
+         return false;
+ 
+     extern void qt_scrollRectInImage(QImage &, const QRect &, const QPoint &);
+ 
+     const qreal devicePixelRatio = m_image.devicePixelRatio();
+-    const QPoint delta(dx * devicePixelRatio, dy * devicePixelRatio);
++    const QPoint delta(qRound(dx * devicePixelRatio), qRound(dy * devicePixelRatio));
+ 
+     const QRect rect = region.boundingRect();
+     qt_scrollRectInImage(m_image, QRect(rect.topLeft() * devicePixelRatio, rect.size() * devicePixelRatio), delta);
+-- 
+2.47.0
