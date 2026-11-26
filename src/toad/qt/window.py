@@ -24,8 +24,8 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
-from PySide6.QtCore import QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QKeySequence, QPalette, QScreen, QShortcut
+from PySide6.QtCore import QFileSystemWatcher, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeySequence, QPalette, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -1335,7 +1335,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         # Current channel tree / peer activity sits right above the input box, matching ThreadView.
         for line in self.activity:
             layout.addWidget(line)
-        self._last_receipt: tuple | None = None
         self._composer_label = label
         self.reserve_composer(layout, lambda: self.conversation.prompt(self),
                               self._composer_mounted, kind=self.conversation.composer_kind(self))
@@ -1345,8 +1344,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
     def _composer_mounted(self, composer: Composer) -> None:
         composer.labelled(self._composer_label)
         self.sync_status()
-        if self._last_receipt is not None:
-            composer.receipt.follow(*self._last_receipt)
 
     @property
     def composer_placeholder(self) -> str:
@@ -1368,12 +1365,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
     async def wait_content_ready(self) -> None:
         await self.content_ready.wait()
 
-    def close_core_events(self) -> None:
-        """The shared close (its history lets go of the wire), then the receipt stops following."""
-        super().close_core_events()
-        if self.composer is not None:
-            self.composer.receipt.stop()
-
     async def retire_presentation(self) -> None:
         """The history lets go of its page reader; its rows go with the widgets."""
         self.message_history.close()
@@ -1389,15 +1380,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         self.content_ready.set()
 
     def source_drawn(self) -> None:
-        """The receipt follows what this read sent and saw; the thread's status and working
-        mark are read beside it. Uses the page source's own root so a dropped observation
-        between `read_changes` and here cannot raise `FailedObservation.error` and retire
-        the tab."""
-        history = self.message_history
-        followed = (str(history.page_source.loader.root), history.last_sent_references,
-            history.pages[-1].prepared.page.source.selection.notification_identity)
-        self._last_receipt = followed
-        self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
+        """Refresh thread status and working mark after a source read lands."""
         self.refresh_thread_status()
         self.sync_working()
 
@@ -1761,6 +1744,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.shortcuts.apply(ApplicationKeys())
         self.winId()
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
+        self._safe_area_resync_pending = False
+        self._ime_watcher = self._watch_android_ime_inset()
+        input_method = QGuiApplication.inputMethod()
+        input_method.visibleChanged.connect(
+            self._schedule_safe_area_resync, Qt.ConnectionType.QueuedConnection
+        )
+        input_method.keyboardRectangleChanged.connect(
+            self._schedule_safe_area_resync, Qt.ConnectionType.QueuedConnection
+        )
         self.fit_safe_area(self.windowHandle().safeAreaMargins())
         self._display_screens: set[QScreen] = set()
         self.windowHandle().screenChanged.connect(self.follow_display)
@@ -1801,6 +1793,34 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     KEYBOARD_MARGIN_THRESHOLD: ClassVar[int] = 100
     """Logical-pixel jump above the resting bottom safe-area inset that marks an open soft
     keyboard (system gesture/3-button bars sit at 0-56 dp; touch keyboards are 250-350 dp)."""
+
+    def _watch_android_ime_inset(self) -> QFileSystemWatcher | None:
+        """Watch `TOAD_IME_INSET_FILE` so dismissing the Android keyboard via Back always
+        resyncs safe-area margins even when Qt's `QtWindow` deduplicates an unchanged
+        resting `safeAreaMarginsChanged` signal."""
+        inset_path = os.environ.get("TOAD_IME_INSET_FILE")
+        if not inset_path or not Path(inset_path).exists():
+            return None
+        watcher = QFileSystemWatcher([inset_path], self)
+        watcher.fileChanged.connect(self._on_ime_inset_file_changed)
+        return watcher
+
+    def _on_ime_inset_file_changed(self, path: str) -> None:
+        if self._ime_watcher is not None and path not in self._ime_watcher.files() and Path(path).exists():
+            self._ime_watcher.addPath(path)
+        self._schedule_safe_area_resync()
+
+    def _schedule_safe_area_resync(self) -> None:
+        """Defer safe-area resync off `QAndroidInputContext::runOnQtThread()`."""
+        if not self._safe_area_resync_pending:
+            self._safe_area_resync_pending = True
+            QTimer.singleShot(0, self, self._resync_safe_area)
+
+    def _resync_safe_area(self) -> None:
+        self._safe_area_resync_pending = False
+        handle = self.windowHandle()
+        if handle is not None:
+            self.fit_safe_area(handle.safeAreaMargins())
 
     def _android_ime_bottom_dp(self) -> int:
         """Authoritative IME bottom inset (in logical dp) written by `ToadActivity`, or 0.

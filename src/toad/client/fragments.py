@@ -251,6 +251,7 @@ class FragmentDetails(ToggleDetails):
 class FragmentCollapse(ToggleDetails):
     """A message header disclosure: collapses or expands all parts of one message."""
 
+    touch_priority: ClassVar[int] = 0
     key: FragmentKey
 
 
