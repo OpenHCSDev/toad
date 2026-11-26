@@ -815,3 +815,50 @@ def test_message_font_scale_zoom_and_collapsible_thinking_and_messages(monkeypat
     assert collapsed_divider.spans[0].text == "▶ "
     assert any(isinstance(b, Summary) and isinstance(b.spans[0].link, FragmentCollapse) for b in collapsed_blocks)
     assert all(part.line_blocks == () for part in parts[1:])
+
+
+def test_span_columns_wraps_only_between_whole_receipt_cells(monkeypatch) -> None:
+    """`QtLineRenderer.span_columns` keeps every `name: status` receipt cell unbroken and
+    wraps flush-left only between cells (never splitting `pm-trainer: Read` from `20:18`)."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    import inspect
+    from PySide6.QtGui import QTextDocument
+    from toad.client.line_blocks import MutedRole, NameRole, OpenTarget, Span, SpanColumns
+    from toad.markdown_links import ReferenceContext
+
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+
+    pairs = (
+        ("pm-eval-loop", ": Read 20:18"),
+        ("pm-trainer", ": Read 20:18"),
+        ("pm-trainer-f", ": Read 20:18"),
+        ("agy-model", ": Sent"),
+        ("pm-pbt", ": Sent"),
+        ("pm-trainer-c", ": Sent"),
+    )
+    block = SpanColumns(tuple((Span(name, NameRole, OpenTarget(name)), Span(status, MutedRole))
+                              for name, status in pairs), indent=2)
+    doc = QTextDocument()
+    doc.setDocumentMargin(0)
+    doc.setTextWidth(260)
+    doc.setHtml(renderer.html((block,)))
+    _ = doc.size()
+
+    lines: list[str] = []
+    text_block = doc.begin()
+    while text_block.isValid():
+        layout = text_block.layout()
+        for idx in range(layout.lineCount()):
+            line = layout.lineAt(idx)
+            lines.append(text_block.text()[line.textStart():line.textStart() + line.textLength()].strip())
+        text_block = text_block.next()
+
+    assert len(lines) >= 2, "must wrap across multiple lines at phone width"
+    # Every `name: status` pair appears intact on a single visual line.
+    for name, status in pairs:
+        expected = (name + status).replace(" ", "\u00a0").replace("-", "\u2011")
+        assert any(expected in line for line in lines), f"{expected!r} split across lines: {lines}"
+        assert all(not line.startswith("\u00a0") for line in lines)
