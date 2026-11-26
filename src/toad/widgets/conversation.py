@@ -1728,7 +1728,7 @@ class Conversation(
 
     @handles(core_events.LinkContextChanged)
     async def _command_source_changed(self, event: core_events.LinkContextChanged) -> None:
-        self.prompt.slash_complete.refresh_commands()
+        self.on_composer("refresh_commands", lambda prompt: prompt.slash_complete.refresh_commands())
 
     @handles(core_events.SessionSelected, core_events.OpenTabsChanged)
     async def _selected_commands_changed(self, event: core_events.SessionSelected | core_events.OpenTabsChanged) -> None:

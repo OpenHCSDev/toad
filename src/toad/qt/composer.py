@@ -7,9 +7,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from math import ceil
 from typing import ClassVar
+
+import shiboken6
 
 from agent_comms.messaging.mentions import MentionCandidate
 from agent_comms.messaging.message_reference import MessageReference
@@ -36,6 +38,7 @@ from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
 from toad.client.application import ClientApplication
 from toad.client.bus_submission import BusSubmissions, TypedText
 from toad.client.commands import ConversationCommands
+from toad.client.composer_pool import ComposerDraft, ComposerPoolHost
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
 from toad.client.message_files import AttachedFileChip, MessagePromptComposer
@@ -844,6 +847,54 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
     def labelled(self, label: str) -> None:
         """The view's label changed; a channel's composer keeps the placeholder its kind gave it."""
 
+    # ---- RebindableComposer: freeze draft on detach and rebind to another tab ----
+
+    def pool_alive(self) -> bool:
+        return shiboken6.isValid(self)
+
+    def capture_composer_draft(self) -> ComposerDraft:
+        self.receipt.stop()
+        self.offers.show_offers("", ())
+        return ComposerDraft(
+            text=self.editor.toPlainText(),
+            cursor_offset=self.editor.textCursor().position(),
+            placeholder=self.given_placeholder,
+            read_only_reason=self.editor.toolTip() if self.editor.isReadOnly() else "",
+            failure_text=self.failure.text() if not self.failure.isHidden() else "",
+            mention_candidates=self.mention_candidates,
+            commands=tuple(self.commands),
+            dismissed_text=self.dismissed_text,
+        )
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        self.host = host
+        self.info_bar.configuration_scope = host
+        self.info_bar.status.configuration_scope = host
+        self.kept_delivery_preview = None
+        self.given_placeholder = draft.placeholder or host.composer_placeholder
+        self.mention_candidates = draft.mention_candidates
+        self.commands = list(draft.commands)
+        self.dismissed_text = draft.dismissed_text
+        self.offers.show_offers("", ())
+        self.editor.blockSignals(True)
+        try:
+            self.editor.setPlainText(draft.text)
+            cursor = self.editor.textCursor()
+            cursor.setPosition(min(draft.cursor_offset, len(draft.text)))
+            self.editor.setTextCursor(cursor)
+        finally:
+            self.editor.blockSignals(False)
+        self.hold(draft.read_only_reason)
+        if draft.failure_text:
+            self.show_failure(draft.failure_text)
+        else:
+            self.failure.setText("")
+            self.failure.hide()
+        self.place_input_box()
+        self.update_prompt()
+        self.fit_height()
+        self.sync_queue()
+
 
 Composer.action_methods = (
     (SubmitAction, Composer.submit),
@@ -903,6 +954,20 @@ class QtMessageComposer(MessagePromptComposer, Composer):
             chips.addWidget(QtAttachedFileChip(self, position))
         self.attached_row.setVisible(bool(self.attached_files))
 
+    def capture_composer_draft(self) -> ComposerDraft:
+        return replace(
+            super().capture_composer_draft(),
+            attached_files=tuple(self.attached_files),
+            takes_files=self.takes_files,
+        )
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        super().rebind_conversation(host, draft)
+        self.attached_files = list(draft.attached_files)
+        self.takes_files = draft.takes_files
+        self.show_files_offered()
+        self.show_attached()
+
 
 class ChannelComposer(QtMessageComposer):
     """A channel's composer, which offers its members after an @."""
@@ -923,6 +988,13 @@ class MessageComposer(QtMessageComposer):
         """Textual's `MessagePrompt`: the peer it messages."""
         return f"Message {self.label or 'thread'}"
 
+    def capture_composer_draft(self) -> ComposerDraft:
+        return replace(super().capture_composer_draft(), label=self.label)
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        super().rebind_conversation(host, draft)
+        self.labelled(draft.label)
+
 
 class ProjectComposer(Composer):
     """Textual's `Prompt`: input waits on the agent; the info bar shows `PromptPath`."""
@@ -934,6 +1006,10 @@ class ProjectComposer(Composer):
     def input_placeholder(self) -> str:
         """Textual's `Prompt`: the kind's own placeholder, else `ui.input.placeholder`."""
         return self.given_placeholder or self.settings.ui.input.placeholder
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        super().rebind_conversation(host, draft)
+        self.info_bar.show_path(home_relative(str(host.project.path)))
 
 
 class MailboxComposer(MessageComposer, ProjectComposer):

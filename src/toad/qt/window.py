@@ -1335,10 +1335,22 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         # Current channel tree / peer activity sits right above the input box, matching ThreadView.
         for line in self.activity:
             layout.addWidget(line)
+        self._last_receipt: tuple | None = None
+        self._composer_label = label
         self.reserve_composer(layout, lambda: self.conversation.prompt(self),
-                              lambda composer: composer.labelled(label))
+                              self._composer_mounted, kind=self.conversation.composer_kind(self))
         layout.addWidget(self.question)
         layout.addWidget(self.interactive_dialog)
+
+    def _composer_mounted(self, composer: Composer) -> None:
+        composer.labelled(self._composer_label)
+        self.sync_status()
+        if self._last_receipt is not None:
+            composer.receipt.follow(*self._last_receipt)
+
+    @property
+    def composer_placeholder(self) -> str:
+        return self.conversation.initial_placeholder
 
     @property
     def mode(self) -> str:
@@ -1346,6 +1358,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
 
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
         visited(self.entry.identity)
+        self.attach_pooled_composer_if_warm()
         self.reload()
 
     def wire_view_open(self) -> bool:
@@ -1383,6 +1396,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         history = self.message_history
         followed = (str(history.page_source.loader.root), history.last_sent_references,
             history.pages[-1].prepared.page.source.selection.notification_identity)
+        self._last_receipt = followed
         self.on_composer("receipt", lambda composer: composer.receipt.follow(*followed))
         self.refresh_thread_status()
         self.sync_working()
@@ -1395,6 +1409,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         # Read on the loop it held a tab's opening for 104 ms on the desktop (frame probe).
         references = await self.app.preparation.run_thread(self.app.source().references)
         label = self.conversation.label(references)
+        self._composer_label = label
         self.on_composer("label", lambda composer: composer.labelled(label))
 
     # The kind's composer and activity (ConversationActivity)
@@ -1404,6 +1419,12 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
 
     def message_prompt(self) -> MessageComposer:
         return MessageComposer(self, self.app.renderer)
+
+    def channel_prompt_kind(self) -> type[ChannelComposer]:
+        return ChannelComposer
+
+    def message_prompt_kind(self) -> type[MessageComposer]:
+        return MessageComposer
 
     def compose_channel_activity(self) -> Iterator[ChannelActivitySidebar]:
         yield ChannelActivitySidebar(self.app, self.conversation, parent=self)
@@ -1491,6 +1512,9 @@ class QtWorkspaceViews(WorkspaceViews):
             view.external_transcript_changed()
 
     async def finish(self, view: ConversationView) -> None:
+        # Rescue any pooled composer back to the workspace before tearing the view down so
+        # closing a tab never destroys the reusable composer widget.
+        self.composer_pool.release(view, keep_draft=False)
         # As Textual's `Conversation` unmount: the view's agent leaves its surface and stops
         # before the widgets it draws into are deleted.
         await view.operational_binding.retire_surface(view)

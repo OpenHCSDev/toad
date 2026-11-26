@@ -59,6 +59,13 @@ class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation")
     @abstractmethod
     def prompt(self, view: ConversationActivity): ...
 
+    @abstractmethod
+    def composer_kind(self, view: ConversationActivity) -> type: ...
+
+    @property
+    def initial_placeholder(self) -> str:
+        return ""
+
     @property
     @abstractmethod
     def initial_label(self) -> str: ...
@@ -186,6 +193,9 @@ class ChannelConversation(ConversationKind):
     def prompt(self, view: ConversationActivity):
         return view.channel_prompt(self.initial_placeholder)
 
+    def composer_kind(self, view: ConversationActivity) -> type:
+        return view.channel_prompt_kind()
+
     @property
     def initial_label(self) -> str:
         return self.target.name
@@ -263,6 +273,9 @@ class DmConversation(ConversationKind):
 
     def prompt(self, view: ConversationActivity):
         return view.message_prompt()
+
+    def composer_kind(self, view: ConversationActivity) -> type:
+        return view.message_prompt_kind()
 
     @property
     def input_scope(self) -> str:

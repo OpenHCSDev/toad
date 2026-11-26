@@ -17,6 +17,7 @@ from textual.screen import Screen
 from textual.view import WidgetView
 from textual.widget import Widget
 
+from toad.delivery_failure_view import ComposerPark
 from toad.frame_presentation import FramePresentation
 from toad.screens.modal import HintKeys
 from toad.history_jump import JumpsHistory, JumpsToLatest
@@ -106,6 +107,7 @@ class WorkspaceFrame(HintKeys, JumpsHistory, WidgetView, Screen):
         chrome = self.app.workspace_chrome
         body = WorkspaceBody(chrome.channels, SessionHost()).set_styles(layout=chrome)
         yield from self.app.settings.ui.navigation_bar.around(chrome.navigation, body)
+        yield ComposerPark()
         yield chrome.footer
         yield chrome.switch_toast
 

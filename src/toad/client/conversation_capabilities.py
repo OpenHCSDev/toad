@@ -48,6 +48,12 @@ class ConversationActivity:
     def message_prompt(self):
         raise NotImplementedError
 
+    def channel_prompt_kind(self) -> type:
+        raise NotImplementedError
+
+    def message_prompt_kind(self) -> type:
+        raise NotImplementedError
+
     async def update_channel_mentions(self, source: ReferencedCore) -> None:
         """Read who can be mentioned in this conversation and tell the composer. One sequence
         for both frontends: the candidates are prepared off the UI thread, for a root this

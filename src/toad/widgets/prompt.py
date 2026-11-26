@@ -46,7 +46,8 @@ from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard
 from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
-from toad.client.input_decision import InputAccepted, InputDecision, RefusalFeedback
+from toad.client.composer_pool import ComposerDraft, ComposerPoolHost
+from toad.client.input_decision import InputDecision, InputAccepted, RefusalFeedback
 from toad.client.message_files import AttachedFileChip, MessagePromptComposer
 from toad.screens.file_picker import FileBrowserScreen, PathSearchScreen
 from toad.client.prompt_composer import PromptComposer
@@ -773,6 +774,70 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.ask_queue: list[Ask] = []
         self.initial_editing_mode: EditingMode = EditingMode()
         self.submissions = submissions
+        self._bound_host: ComposerPoolHost | None = None
+
+    # ---- RebindableComposer: freeze draft on detach and rebind to another tab ----
+
+    def pool_alive(self) -> bool:
+        return self.is_mounted and self.is_attached and not self.is_leaving and not self._closing
+
+    def _clear_conversation_watches(self, previous_host: object) -> None:
+        sources = self.__dict__.get("_reactive_watch_sources")
+        if sources is None or previous_host not in sources:
+            return
+        watched_attrs = sources.pop(previous_host)
+        watchers = previous_host.__dict__.get("__watchers")
+        if not watchers:
+            return
+        for attr in watched_attrs:
+            if attr in watchers:
+                watchers[attr] = [(node, cb) for node, cb in watchers[attr] if node is not self]
+
+    def _bind_conversation_reactives(self, host: ComposerPoolHost) -> None:
+        if self._bound_host is not None:
+            self._clear_conversation_watches(self._bound_host)
+        self._bound_host = host
+        for attr in ("project_path", "working_directory", "agent_info", "agent_binding",
+                     "model_history_scope", "status"):
+            def _make_setter(name: str):
+                def _setter(value: object) -> None:
+                    setattr(self, name, value)
+                return _setter
+            self.watch(host, attr, _make_setter(attr), init=True)
+
+    def capture_composer_draft(self) -> ComposerDraft:
+        if (popup := self.active_popup) is not None:
+            popup.dismiss()
+        editor = self.prompt_text_area
+        return ComposerDraft(
+            text=editor.text,
+            read_only_reason=str(editor.tooltip or "") if editor.disabled else "",
+            commands=tuple(self.slash_commands),
+            shell_mode=self.shell_mode,
+            editor_state=editor.capture_editor_state(),
+        )
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        self.submissions = host.submissions
+        self._bind_conversation_reactives(host)
+        self.slash_commands = list(draft.commands)
+        self.shell_mode = draft.shell_mode
+        editor = self.prompt_text_area
+        if draft.editor_state is not None:
+            state = draft.editor_state
+            editor.history = state.history
+            editor.set_document(state.document)
+            editor.paint_selection(state.selection)
+        else:
+            editor.load_text(draft.text)
+            editor.history.clear()
+        editor.disabled = bool(draft.read_only_reason)
+        editor.tooltip = draft.read_only_reason or None
+        self.kept_delivery_preview = None
+        self.sync_configuration()
+        self.sync_session()
+        self.sync_queue()
+        self.update_prompt()
 
     @property
     def input_decision(self) -> InputDecision:
@@ -1251,6 +1316,23 @@ class MessagePrompt(MessagePromptComposer, Prompt):
 
     def show_attached(self) -> None:
         self.attached.show(self)
+
+    def capture_composer_draft(self) -> ComposerDraft:
+        return replace(
+            super().capture_composer_draft(),
+            attached_files=tuple(self.attached_files),
+            takes_files=self.takes_files,
+            placeholder=self.simple_placeholder or "",
+        )
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        self.simple_placeholder = draft.placeholder or host.composer_placeholder or None
+        super().rebind_conversation(host, draft)
+        self.attached_files = list(draft.attached_files)
+        self.takes_files = draft.takes_files
+        self.show_files_offered()
+        self.show_attached()
+        self.update_prompt()
 
 
 class MailboxPrompt(MessagePrompt):

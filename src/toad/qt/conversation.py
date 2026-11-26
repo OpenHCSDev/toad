@@ -34,6 +34,7 @@ from toad.qt.metrics import UiGap
 from toad.client.agent_bound import ObservedAgentBinding
 from toad.client.bus_submission import TypedText
 from toad.client.category_selection import CategorySelection
+from toad.client.composer_pool import ComposerDraft, ComposerPoolHost
 from toad.client.conversation_session_binding import ConversationThreadReadMixin
 from toad.client.history_rows_view import AsyncioPublications
 from toad.client.line_blocks import LineLink
@@ -89,6 +90,7 @@ class ComposerPlaceholder(QWidget):
 
 
 class QtConversation(
+    ComposerPoolHost,
     ConversationCommsHandlers,
     AgentTurnEvents,
     QtViewSettings,
@@ -138,6 +140,7 @@ class QtConversation(
     """Each view kind's composer height when it was last built: the placeholder's height, so
     nothing moves when the composer arrives. Shared by every view of the kind."""
     _composer_reserved: tuple | None = None
+    _composer_slot_spec: tuple | None = None
     activity: tuple[QWidget, ...]
     """The rows under the transcript that observe Core, each closed with the view."""
     goal_bar: QtGoalBar | None = None
@@ -162,9 +165,6 @@ class QtConversation(
         self.agent_activity = QtObservedSweep(
             self.working, renderer=app.renderer, clock=app.animation_clock)
         self.submissions = ConversationSubmissions(self)
-        # What the composer is told before it is built, the latest of each kind, told at
-        # its mount (`on_composer`).
-        self._composer_applies: dict[str, Callable[[Composer], None]] = {}
         # Every conversation answers the workspace's `ViewAction` keys, as Textual's
         # `WorkspaceFrame` does for whichever conversation it shows: each member whose
         # declared capability this view has binds through the shared family loop, so
@@ -178,21 +178,38 @@ class QtConversation(
         (`JumpsHistory`): `BackToBottomAction.apply(self)` jumps it to its latest row."""
         return (self.messages,) if self.messages.can_jump_to_latest else ()
 
-    # ---- The composer: built once the view's history has painted ----
+    # ---- The composer: built once per kind on `WorkspaceComposerPool` and rebound across tabs ----
+
+    @property
+    def active_composer(self) -> Composer | None:
+        return self.composer
+
+    def workspace_views(self):
+        return self.app.workspace_sessions
 
     def reserve_composer(self, layout: QBoxLayout, build: Callable[[], Composer],
-                         mounted: Callable[[Composer], None]) -> None:
+                         mounted: Callable[[Composer], None], *,
+                         kind: type[Composer] | None = None) -> None:
         """The composer's place in `layout`, held by a placeholder as tall as this kind's
-        composer last was. The composer is built just after the history first paints, so
-        opening a view draws its history without waiting for the composer (a channel's took
-        170 ms of a 491 ms open at a phone's speed), and a view never shown (a restored tab
-        in the background) builds none until it is. On Qt-for-Android this also keeps
-        ``QPlainTextEdit`` out of the first frame's EGL setup, which it deadlocks against
-        (``QtAndroidAccessibility``). `mounted` places what goes with it."""
+        composer last was. The first tab of a kind builds its composer just after the history
+        first paints (keeping `QPlainTextEdit` out of Android's first-frame EGL setup); every
+        later tab checks that live composer out of `WorkspaceComposerPool` and rebinds it in
+        place without reconstructing its widget tree."""
         placeholder = ComposerPlaceholder(self, self.composer_heights.get(type(self), self.estimated_composer_height()))
         layout.addWidget(placeholder)
-        self._composer_reserved = (layout, placeholder, build, mounted)
+        self._composer_slot_spec = (layout, build, mounted, kind)
+        self._composer_reserved = (layout, placeholder, build, mounted, kind)
         self.messages.viewport().installEventFilter(self)
+
+    def attach_pooled_composer_if_warm(self) -> None:
+        """When this tab is selected and the workspace pool already owns a live composer of
+        this kind, rebind and attach it immediately instead of waiting for a paint event."""
+        if self.composer is not None or self._composer_reserved is None:
+            return
+        _, _, _, _, kind = self._composer_reserved
+        pool = self.workspace_composer_pool()
+        if kind is not None and pool is not None and pool.has(kind):
+            self.mount_composer()
 
     def estimated_composer_height(self) -> int:
         """Before any composer of this kind was built: its editor (one line and the padding
@@ -208,44 +225,61 @@ class QtConversation(
         return super().eventFilter(watched, event)
 
     def mount_composer(self, focus: bool = False) -> None:
-        """Build the reserved composer in its placeholder's place, then tell it what it was
-        told meanwhile. Touching the placeholder mounts it at once, with the focus, so
-        typing never waits. A failed mount is loud: a silently missing composer is how the
-        mailbox view first shipped."""
+        """Attach the reserved composer (reusing the workspace pool's live widget when one
+        already exists for this kind, else building it once), then replay any updates queued
+        meanwhile. Touching the placeholder mounts it at once with focus."""
         reserved, self._composer_reserved = self._composer_reserved, None
         if reserved is None or not shiboken6.isValid(self):
             return
-        layout, placeholder, build, mounted = reserved
+        layout, placeholder, build, mounted, kind = reserved
         self.messages.viewport().removeEventFilter(self)
+        pool = self.workspace_composer_pool()
         try:
-            composer = build()
+            if kind is not None and pool is not None:
+                composer, reused = pool.acquire(kind, self, build)
+            else:
+                composer, reused = build(), False
         except Exception as error:
             self.app.show_error(error, "Composer mount failed")
             return
+        if reused:
+            composer.setParent(self)
         layout.replaceWidget(placeholder, composer)
         placeholder.deleteLater()
+        composer.show()
         self.composer = composer
         mounted(composer)
-        applies, self._composer_applies = self._composer_applies, {}
-        for apply in applies.values():
-            apply(composer)
+        self.flush_composer_applies(composer)
         if focus:
             composer.editor.setFocus()
         QTimer.singleShot(0, partial(self.remember_composer_height, composer))
+
+    def release_pooled_composer(self, composer: Composer) -> ComposerDraft:
+        """Freeze this tab's draft and return `composer` to the workspace pool without
+        destroying its widget tree. Parks it hidden under `self.app` so Android never sees a
+        parentless top-level window."""
+        draft = composer.capture_composer_draft()
+        spec = self._composer_slot_spec
+        if spec is not None and shiboken6.isValid(self) and shiboken6.isValid(composer):
+            layout, build, mounted, kind = spec
+            placeholder = ComposerPlaceholder(
+                self, self.composer_heights.get(type(self), self.estimated_composer_height()))
+            composer.hide()
+            layout.replaceWidget(composer, placeholder)
+            composer.setParent(self.app)
+            self._composer_reserved = (layout, placeholder, build, mounted, kind)
+            self.messages.viewport().installEventFilter(self)
+        elif shiboken6.isValid(composer):
+            composer.hide()
+            composer.setParent(self.app)
+        self.composer = None
+        return draft
 
     def remember_composer_height(self, composer: Composer) -> None:
         """The height the composer asks for, not the room it was given: a view whose
         transcript is not laid out yet lets it stretch."""
         if shiboken6.isValid(composer):
             self.composer_heights[type(self)] = composer.sizeHint().height()
-
-    def on_composer(self, kind: str, apply: Callable[[Composer], None]) -> None:
-        """Tell the composer something: now once it is built, else at its mount, where only
-        the latest of each `kind` is told (a label, a status, the mention candidates)."""
-        if self.composer is not None:
-            apply(self.composer)
-        else:
-            self._composer_applies[kind] = apply
 
     def close_core_events(self) -> None:
         """The view's subscriptions end, the rows under the transcript stop observing, and
@@ -254,7 +288,8 @@ class QtConversation(
         tab's; that composer asks again on its next keystroke (`Composer.refresh_offers`).
         A composer not built yet never will be."""
         self._composer_reserved = None
-        self._composer_applies.clear()
+        self._composer_slot_spec = None
+        self.clear_composer_applies()
         super().close_core_events()
         for row in self.activity:
             row.close_activity()
