@@ -324,6 +324,9 @@ def test_animates_arrivals_is_shared_by_both_history_windows():
         "cancel_arrival_glide",
         "stop_arrival_motion",
         "arrival_landed",
+        "has_active_arrivals",
+        "has_arrival",
+        "arrival_keys",
         "arrival_frame",
         "arrival_opacity",
     ):

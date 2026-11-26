@@ -9,7 +9,6 @@ from textual.worker import WorkerCancelled
 
 from toad.core_event_carrier import CoreEventReceiver
 from toad.client.history_pager import HistoryPager
-from toad.frame_presentation import UnrisenRows
 from toad.client.history_state import (
     RetiredSourceTranscript,
 )
@@ -19,12 +18,8 @@ from toad.client.history_preparation import (
 )
 
 
-class TranscriptSourcePreparation(HistoryPager, UnrisenRows, CoreEventReceiver):
-    """Shared source preparation; native widget and operational session stay separate.
-
-    A pager can hold arriving rows below a following reader (`UnrisenRows`); one whose
-    rows never cascade holds none, which is that contract's default.
-    """
+class TranscriptSourcePreparation(HistoryPager, CoreEventReceiver):
+    """Shared source preparation; native widget and operational session stay separate."""
 
     @property
     def window(self) -> HistoryWindow:
@@ -40,12 +35,6 @@ class TranscriptSourcePreparation(HistoryPager, UnrisenRows, CoreEventReceiver):
     def source_snapshot(self) -> HistorySourceSnapshot:
         return HistorySourceSnapshot(self._generation, self.window, self.screen,
                                      self.source_identity)
-
-
-    def window_followed(self, window: HistoryWindow) -> None:
-        """Keep the window drawing these pages: this pager needs it to move the reader as
-        rows rise."""
-        self.followed_by(window)
 
     @on(Unmount)
     async def on_unmount(self) -> None:

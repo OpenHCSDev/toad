@@ -20,7 +20,6 @@ from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.textual_steps import tool_status
 
-from toad.frame_presentation import EFFECT_UNSTARTED
 from toad.motion import ARRIVAL
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
@@ -32,9 +31,11 @@ FIRST_TURN = TurnId("f1e2d3c4b5a697881726354453627180")
 
 
 async def test_every_live_conversation_block_runs_the_arrival_cascade_on_mount(workspace):
-    """A live block runs the same cascade saved rows run, not a fade over its whole body."""
+    """A live block runs through the window's unified `AnimatesArrivals` coordinator on mount,
+    the same `ARRIVAL` cascade saved rows run — no parallel `CascadingRows` copy."""
     async with workspace.app(size=(120, 40)) as ui:
         conversation = ui.conversation
+        window = conversation.window
         streamed = await conversation.post(AgentResponse(""))
         await streamed.append_fragment("Streamed agent text")
         tool = await conversation.post(ToolCall(tool_status({
@@ -42,12 +43,9 @@ async def test_every_live_conversation_block_runs_the_arrival_cascade_on_mount(w
             "content": [{"type": "content", "content": {"type": "text", "text": "notes"}}]})))
         await ui.step()
         blocks = (streamed, tool)
-        assert [block.effect_phase(ARRIVAL) is EFFECT_UNSTARTED for block in blocks] == [False, False]
-        # What it plays across is its own rows, so it can say which have not risen.
-        assert [block.text_fades for block in blocks] == [(ARRIVAL,), (ARRIVAL,)]
-        assert all(sum(block.cascade_runs()) > 0 for block in blocks), (
-            f"a live block reporting no rows holds none back: "
-            f"{[tuple(block.cascade_runs()) for block in blocks]}")
+        assert [window.has_arrival(block) for block in blocks] == [True, True]
+        assert all(window.arrival_frame(block, 0.0) is not None for block in blocks)
+        assert all(window.arrival_frame(block, 1.0) is not None for block in blocks)
 
 
 async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(workspace):
@@ -75,8 +73,8 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         # The saved history the commit grows: the earlier notice, read once the view binds its thread.
         await ui.until(lambda: "EARLIER_NOTICE" in ui.painted(view.window), why="the saved history")
         history = view.contents.query_one(TranscriptHistory)
-        # A pager's cascade starts when rows arrive into it, not when it mounts with saved rows.
-        assert history.effect_phase(ARRIVAL) is EFFECT_UNSTARTED
+        # Initial saved history opens settled (no arrival fade on mount).
+        assert not view.window.has_active_arrivals
         view.window.anchor()
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ANSWER}})
@@ -101,8 +99,9 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         view.transcript.require_commit()
 
         def rows(arriving: bool) -> str:
+            active = view.window.arrival_keys()
             return " ".join(event.text for page in history.pages for fragment in page.prepared.fragments_in_range
-                            if not arriving or fragment.key in page.arrivals for event in fragment.events)
+                            if not arriving or fragment.key in active for event in fragment.events)
 
         # The commit is published once its saved rows replace the live block they cover.
         await ui.until(lambda: PEER in rows(arriving=False) and not live.display, why="the commit's saved rows")

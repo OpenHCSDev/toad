@@ -19,7 +19,6 @@ from agent_comms.execution.session_file import RegistrySessionLocation
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 
-from toad.motion import ARRIVAL
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -71,8 +70,7 @@ async def test_a_tall_arrival_does_not_land_the_session_reader_at_its_bottom(wor
         assert window.scroll_y < window.max_scroll_y, (
             f"parked at the bottom of a message taller than the window: "
             f"scroll_y={window.scroll_y} max_scroll_y={window.max_scroll_y} viewport={viewport} "
-            f"tail_scroll_y={window.tail_scroll_y} unrevealed={history.unrevealed_rows()} "
-            f"phase={type(history.effect_phase(ARRIVAL)).__name__} "
+            f"tail_scroll_y={window.tail_scroll_y} active_arrivals={window.has_active_arrivals} "
             f"reader={type(window.reader_position).__name__}")
 
 
@@ -91,11 +89,11 @@ async def test_the_tail_never_sits_at_the_bottom_while_rows_are_still_rising(wor
 
         screen = ui.app.screen
         published = screen._on_frame_published
-        frames: list[tuple[float, float, int]] = []
+        frames: list[tuple[float, float, bool]] = []
 
         def recording() -> None:
             published()
-            frames.append((window.scroll_y, window.max_scroll_y, history.unrevealed_rows()))
+            frames.append((window.scroll_y, window.max_scroll_y, window.has_active_arrivals))
 
         screen._on_frame_published = recording
         try:
@@ -107,27 +105,20 @@ async def test_the_tail_never_sits_at_the_bottom_while_rows_are_still_rising(wor
         finally:
             screen._on_frame_published = published
 
-        # Vacuous otherwise: a filter on held > 0 that never matches proves nothing.
-        assert any(held > 0 for _scroll, _bottom, held in frames), (
-            f"no frame held a row back, so this arrival never revealed progressively; "
+        # Vacuous otherwise: a filter on rising that never matches proves nothing.
+        assert any(rising for _scroll, _bottom, rising in frames), (
+            f"no frame saw an active arrival fade, so this arrival never revealed progressively; "
             f"frames={frames[:12]}")
-        parked = [(scroll, bottom, held) for scroll, bottom, held in frames
-                  if held > 0 and scroll >= bottom]
+        parked = [(scroll, bottom, rising) for scroll, bottom, rising in frames
+                  if rising and scroll >= bottom]
         assert not parked, (
-            f"the tail sat at the bottom while {parked[0][2]} rows had not risen; "
+            f"the tail sat at the bottom while rows were still rising; "
             f"frames={frames[-8:]}")
 
 
 async def test_a_tall_live_answer_reveals_its_rows_row_after_row(workspace):
-    """The path Tristan actually saw: the agent's own streamed answer, not a peer's saved row.
-
-    It ran one fade over its whole body, so a tall answer appeared whole and then faded where
-    the reader already was. It now runs the same cascade the saved pages run, across its own
-    rows, and answers for the rows that have not risen.
-
-    What it does not do yet is move this window's reader: `HistoryWindow.row_holders` says
-    why, and the two parked-tab tests are the guard for the change that will.
-    """
+    """A tall live answer runs through the window's unified `AnimatesArrivals` cascade,
+    fading row after row from top (0.0) to bottom (1.0) on one clock with saved rows."""
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
         window = view.window
@@ -147,14 +138,7 @@ async def test_a_tall_live_answer_reveals_its_rows_row_after_row(workspace):
         assert window.max_scroll_y - before > viewport, (
             f"the live answer was not taller than the window: max_scroll_y {before} -> "
             f"{window.max_scroll_y} against a viewport of {viewport}")
-        assert live.text_fades == (ARRIVAL,)
-        # Its rows are the run the cascade plays across, counted by the layout that drew them.
-        assert sum(live.cascade_runs()) > viewport, (
-            f"a live answer taller than the window reported {tuple(live.cascade_runs())} rows")
-        # And while that cascade runs, it says how many of them have not risen. The window
-        # does not subtract them: `HistoryWindow.row_holders` says why, and that is the open
-        # half of Tristan's report.
-        held = [live.unrevealed_rows() for _ in range(6) if not await ui.step()]
-        assert any(rows > 0 for rows in held), (
-            f"the answer reported nothing still rising while its cascade ran: held={held} "
-            f"phase={type(live.effect_phase(ARRIVAL)).__name__}")
+        assert window.has_arrival(live)
+        first = window.arrival_frame(live, 0.0)
+        last = window.arrival_frame(live, 1.0)
+        assert first is not None and last is not None and first.amount >= last.amount

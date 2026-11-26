@@ -14,11 +14,10 @@ from textual.app import App
 from textual.geometry import Spacing
 from textual.message import Message
 from textual.widget import Widget
-from ui_theme.effects import TextFade  # type: ignore[import-untyped]
 
 from toad.block_content import BlockContent
 from toad.entry_placement import PostedEntry
-from toad.frame_presentation import ARRIVAL, CascadingRows
+from toad.tone_paint import TonePaint
 from toad.client.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import (
     UNPLACED,
@@ -350,23 +349,14 @@ class ChildBlockCursor(BlockCursor):
         self._child = NO_ENTRY
 
 
-class ConversationEntry(CascadingRows, PostedEntry, BlockContent):
-    """Conversation content, with an owned atomic cursor by default.
-
-    The rows drawn inside an entry paint its fades (`LinkedRows.arrival`), and report
-    themselves as the runs those fades play across (`CascadingRows.row_runs`).
-    """
+class ConversationEntry(TonePaint, PostedEntry, BlockContent):
+    """Conversation content, with an owned atomic cursor by default."""
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.set_display_constraint("message-category", OtherCategory in selected)
 
     def starts_agent_activity(self, boundary: AgentActivityBoundary) -> bool:
         return OtherCategory.observe(boundary)
-
-    def redraw(self) -> None:
-        # The widgets inside the entry draw its rows.
-        for widget in cast(Widget, self).walk_children(with_self=True):
-            widget.repaint_lines()
 
     def notification_targets(self):
         return ()
@@ -440,15 +430,8 @@ class CategorizedBlock(ConversationEntry):
 
 
 class ConversationBlock(ConversationEntry):
-    """A live entry: its rows rise into their own colours row after row as it appears.
-
-    The same cascade the saved pages use, so a live arrival and a saved one reveal
-    alike and a following window holds its tail above both (`UnrisenRows`). As one
-    block-wide fade, a tall message appeared whole and the tail sat at its bottom
-    while the text was still rising.
-    """
-
-    text_fades: ClassVar[tuple[TextFade, ...]] = (ARRIVAL,)
+    """A live entry: when it mounts inside `HistoryWindow`, `AnimatesArrivals` fades its
+    rows in row after row on the same `ARRIVAL` cascade saved rows use."""
 
     if TYPE_CHECKING:
         # Every live block is a widget: the host class supplies its message pump.
@@ -463,8 +446,6 @@ class ConversationBlock(ConversationEntry):
 
     @on(Mount)
     def on_mount(self) -> None:
-        for fade in self.text_fades:
-            self.run_effect(fade)
         # A live block is always mounted as a widget; the mixin cannot say so to the type checker.
         self.post_message(self.Mounted(cast(Widget, self)))
 

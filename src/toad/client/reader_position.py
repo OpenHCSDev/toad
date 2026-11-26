@@ -263,9 +263,6 @@ class ReaderPosition(ABC):
         """The position after a message arrived at the followed end: only following hands it the reader."""
         return self
 
-    def revealed(self, window: ReaderWindow) -> None:
-        """Arriving rows rose a step: only a reader following the tail goes down with them."""
-
     def placed(self, window: ReaderWindow, reached: bool) -> ReaderPosition:
         """What the window keeps after a layout placed this: itself while the history is still changing.
 
@@ -336,11 +333,6 @@ class TailPosition(ReaderPosition):
 
     def joins_tail(self, window: ReaderWindow) -> bool:
         return True
-
-    def revealed(self, window: ReaderWindow) -> None:
-        if window.follows_tail:
-            with window.layout_scroll():
-                window.scroll_y = window.tail_scroll_y
 
     def joined_tail(self) -> ReaderPosition:
         return self
@@ -516,13 +508,6 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
         if self.tall(window):
             return super().place(window)
         return TailPosition().place(window)
-
-    def revealed(self, window: ReaderWindow) -> None:
-        # A tick can come before the layout that draws the arrival: until then it has no row
-        # to measure, and the layout that adds it places the reader (FragmentNotLoaded,
-        # 2026-11-06 13:25).
-        if self.laid_out(window) and not self.tall(window):
-            TailPosition().revealed(window)
 
     def shifted(self, rows: float) -> ReaderPosition:
         # Kept through its change, so every layout of the change places it

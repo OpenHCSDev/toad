@@ -33,20 +33,25 @@ class ArrivalFadeRun:
 
     def __init__(self, owner: AnimatesArrivals, keys: tuple[object, ...]) -> None:
         self.owner = owner
-        last = max(1, len(keys) - 1)
-        self.positions: dict[object, float] = {key: index / last for index, key in enumerate(keys)}
+        count = max(1, len(keys))
+        self.positions: dict[object, tuple[int, int]] = {
+            key: (index, count) for index, key in enumerate(keys)
+        }
         self.animation = owner.animation_clock.start(ARRIVAL, self)
 
     @property
     def animation_visible(self) -> bool:
         return self.owner.arrival_animation_visible
 
-    def frame(self, key: object) -> Mix | None:
-        position = self.positions.get(key)
-        return None if position is None else self.animation.at(position)
+    def frame(self, key: object, row_position: float = 0.0) -> Mix | None:
+        slot = self.positions.get(key)
+        if slot is None:
+            return None
+        index, count = slot
+        return self.animation.at((index + row_position) / count)
 
-    def opacity(self, key: object) -> float | None:
-        mix = self.frame(key)
+    def opacity(self, key: object, row_position: float = 0.0) -> float | None:
+        mix = self.frame(key, row_position)
         return None if mix is None else mix.amount
 
     def stop(self) -> None:
@@ -321,17 +326,34 @@ class AnimatesArrivals:
         if active and fade in active:
             active.remove(fade)
 
-    def arrival_frame(self, key: object) -> Mix | None:
-        """Current `ARRIVAL` cascade `Mix` for `key`, or `None` when settled."""
+    @property
+    def has_active_arrivals(self) -> bool:
+        """Whether any arrival fade burst is currently running (avoids lazy-allocating `_arrivals`)."""
+        return bool(self.__dict__.get("_arrivals"))
+
+    def has_arrival(self, key: object) -> bool:
+        """Whether `key` is part of any currently rising arrival fade burst."""
+        active = self.__dict__.get("_arrivals")
+        return bool(active) and any(key in fade.positions for fade in active)
+
+    def arrival_keys(self) -> frozenset[object]:
+        """All keys currently rising across active arrival fade bursts."""
+        active = self.__dict__.get("_arrivals")
+        if not active:
+            return frozenset()
+        return frozenset(key for fade in active for key in fade.positions)
+
+    def arrival_frame(self, key: object, row_position: float = 0.0) -> Mix | None:
+        """Current `ARRIVAL` cascade `Mix` for `key` at `row_position` (0..1), or `None` when settled."""
         active = self.__dict__.get("_arrivals")
         if not active:
             return None
         for fade in active:
-            if (mix := fade.frame(key)) is not None:
+            if (mix := fade.frame(key, row_position)) is not None:
                 return mix
         return None
 
-    def arrival_opacity(self, key: object) -> float | None:
-        """How far the row `key` has risen (0..1), or `None` once settled."""
-        mix = self.arrival_frame(key)
+    def arrival_opacity(self, key: object, row_position: float = 0.0) -> float | None:
+        """How far `key` (at `row_position`, 0..1) has risen (0..1), or `None` once settled."""
+        mix = self.arrival_frame(key, row_position)
         return None if mix is None else mix.amount

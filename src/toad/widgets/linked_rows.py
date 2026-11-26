@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 from functools import cached_property, partial
 from pathlib import Path
 from typing import cast
@@ -22,11 +23,12 @@ from textual.widget import Widget
 from textual.widgets._markdown import OpensMarkdownLinks
 
 from toad.app_node import FollowsTheme
+from toad.arrivals import AnimatesArrivals
 from toad.block_navigation import ConversationEntry
 from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.core_event_carrier import CoreEventReceiver
-from toad.frame_presentation import CascadingRows, RowRun
+from toad.frame_presentation import RowRun
 from toad.client.line_blocks import LineLink
 from toad.link_opening import OpensLineLinks
 from toad.menus import MenuCommand, message_menu
@@ -150,9 +152,10 @@ def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
 
 
 class LinkedRows(OpensLinks, RowRun):
-    """Draw prepared rows on the native background, using their entry's arrival fade."""
+    """Draw prepared rows on the native background, using their window's shared arrival fade."""
 
-    arrival: CascadingRows = CascadingRows()
+    _arrival_entry: ConversationEntry | None = None
+    _arrival_window: AnimatesArrivals | None = None
 
     @cached_property
     def link_place(self) -> int:
@@ -161,10 +164,9 @@ class LinkedRows(OpensLinks, RowRun):
 
     @on(Mount)
     def on_mount(self) -> None:
-        self.arrival = next((entry for entry in cast(Widget, self).ancestors_with_self
-                             if isinstance(entry, ConversationEntry)), LinkedRows.arrival)
-        # The entry's cascade plays across these rows, so it has to know they are here.
-        self.arrival.drawing_rows(self)
+        ancestors = cast(Widget, self).ancestors_with_self
+        self._arrival_entry = next((node for node in ancestors if isinstance(node, ConversationEntry)), None)
+        self._arrival_window = next((node for node in ancestors if isinstance(node, AnimatesArrivals)), None)
 
     @property
     @abstractmethod
@@ -177,8 +179,14 @@ class LinkedRows(OpensLinks, RowRun):
         return selection.extract(rows), "\n"
 
     def on_background(self, strip: Strip, paint: PaintState, y: int, x: int = 0) -> Strip:
-        """Apply this entry's arrival fade and the widget's current background."""
-        strip = self.arrival.paint_effects(strip, position=self.row_position(y))
+        """Apply this entry's shared arrival fade and the widget's current background."""
+        window, entry = self._arrival_window, self._arrival_entry
+        if window is not None and entry is not None and window.has_active_arrivals:
+            mix = window.arrival_frame(entry, self.row_position(y))
+            if mix is not None:
+                strip = self.app.colours.paint_rising(
+                    replace(mix, start=entry.text_background), strip
+                )
         return strip.apply_style(paint.rich_style).apply_offsets(x, y)
 
     def blank_row(self, width: int, paint: PaintState) -> Strip:

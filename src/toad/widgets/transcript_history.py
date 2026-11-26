@@ -28,7 +28,7 @@ from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-from textual.events import Hide, Mount
+from textual.events import Mount
 from textual.geometry import Region, Size
 from textual.message import Message
 from textual.strip import Strip
@@ -40,8 +40,6 @@ from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.client.history_coverage import ReportsCoveredPages
 from toad.client.committed_history import CommittedHistoryBase
 from toad.client.history_pager import ConversationPager, DrawsBusMessages, HistoryPager, NativePager
-from toad.frame_presentation import ArrivalRun
-from toad.motion import ARRIVAL
 from toad.entry_placement import EntryPlacement
 from toad.message_rows import RecordedMessageClock
 from toad.native_style import (
@@ -203,8 +201,6 @@ class TranscriptPageView(
 
     def __init__(self, prepared: PreparedTranscriptPage, *,
                  batch_size: int = PresentationBudget.batch_items) -> None:
-        # Arriving fragments by source key: an id() outlives an evicted fragment and names another.
-        self.arrivals: set[FragmentKey] = set()
         self.prepared: Final[PreparedTranscriptPage] = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
@@ -395,21 +391,16 @@ class TranscriptPageView(
             return selection_painted(self, self.blank_row(width, paint), y)
         # Prepared rows span exactly this width (Lines.strips_at).
         strip = lines.strips_at(fragment.link_place)[row]
-        if fragment.key in self.arrivals:
-            history = self.history
-            strip = history.effect_phase(ARRIVAL).paint(history, ARRIVAL, strip, self.arrival_position(y))
+        history = self.history
+        window = history.window
+        if window.has_active_arrivals:
+            row_position = row / (lines.height - 1) if lines.height > 1 else 0.0
+            mix = window.arrival_frame(fragment.key, row_position)
+            if mix is not None:
+                strip = self.app.colours.paint_rising(
+                    replace(mix, start=history.text_background), strip
+                )
         return selection_painted(self, self.on_background(strip, paint, y), y)
-
-    @property
-    def arrival_run(self) -> ArrivalRun:
-        """The rows this page draws for its arriving fragments, in drawing order."""
-        return ArrivalRun(tuple(
-            range(first, first + lines.height)
-            for fragment, first, lines in self._layout if fragment.key in self.arrivals))
-
-    def arrival_position(self, y: int) -> float:
-        """How far row `y` is through this page's arriving rows: 0 the first, 1 the last."""
-        return self.arrival_run.row_position(y)
 
     def hold_fragment_top(self, window: HistoryWindow, key: FragmentKey) -> None:
         """Keep this page's activated source occurrence at the top while its details change."""
@@ -864,44 +855,17 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         self.window.lookahead.request_older()
         self.filter.request_older()
 
-    def arrivals_began(self) -> None:
-        """A burst of arrivals comes in row after row, each row fading in."""
-        if not self.is_on_screen:
-            return  # A burst nobody sees has nothing to fade.
-        # The burst is decided by the cascade's phase.
-        self.run_effect(ARRIVAL)
-
-    def cascade_runs(self) -> Iterable[int]:
-        """One run per page: each page's arriving rows cascade across themselves."""
-        return (page.arrival_run.cascade_rows() for page in self.pages)
-
     def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
-        phase = self.effect_phase(ARRIVAL)
-        if not fragments and self.is_attached:
-            # A clock tick: a following reader goes down with the rows as they rise.
-            self.frame_moved()
-        if fragments:
-            phase.on_new_arrival(self, ARRIVAL, self.pages)
-        positions = {fragment.arrival_position for fragment in (*fragments, *phase.keeps_arrivals(continuing))}
-        for page in self.pages:
-            previous = bool(page.arrivals)
-            page.arrivals.intersection_update(phase.keeps_arrivals(page.arrivals))
-            if positions:
-                page.arrivals.update(fragment.key for fragment in page.prepared.fragments_in_range
-                                     if fragment.arrival_position in positions)
-            if previous or page.arrivals:
-                page.refresh()
-        if (fragments and self.is_attached and self.window.follows_tail
-                and self.window.reader_position.joins_tail(self.window)
-                and not self.unrevealed_rows()):
-            # Short arrivals that `unrevealed_rows()` does not hold back glide smoothly
-            # down through the shared `FOLLOW_ARRIVAL` transition on Textual too.
-            self.window.arrive((), glide_keys=tuple(fragment.key for fragment in fragments))
-
-    @on(Hide)
-    def on_hide(self) -> None:
-        for page in self.pages:
-            page.arrivals.clear()
+        if fragments and self.is_attached:
+            # Unified arrival entry point (`AnimatesArrivals`): saved messages, tool calls,
+            # thinking traces, drafts, and live blocks share one fade + glide coordinator
+            # with Qt (`QtConversationHistory.repaint`).
+            self.window.arrive_fragments(fragments, live=False)
+        if fragments or continuing:
+            changed = {fragment.key for fragment in (*fragments, *continuing)}
+            for page in self.pages:
+                if any(key in page._fragment_slots for key in changed):
+                    page.refresh()
 
 
 class CommittedHistory(LineHistory, CommittedHistoryBase):

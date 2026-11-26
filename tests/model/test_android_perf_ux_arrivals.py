@@ -1087,3 +1087,84 @@ def test_wave2_scroll_perf_coalesced_loop_holds_async_opaque_scrollbar_and_row_f
     assert new_key not in delegate._metrics
     assert delegate._moves_rows(new_key, HtmlRow("<p>hello</p>"), awaited=True) is False
     app.processEvents()
+
+
+def test_wave3_android_scroll_zero_css_spans_matched_qimage_tiles_and_pause_measure(monkeypatch) -> None:
+    """Wave-3 Android scroll fixes:
+    1. `QtLineRenderer.styled`/`code_spans`/`rich_text` emit `<font color>` + `<b>`/`<i>`/`<u>`
+       with merged same-style runs and zero `<span style=`, bypassing `QCss::Parser::parse`.
+    2. `HistoryRowDelegate.paint_pictures` renders tiles as backing-store-matched `QImage`s
+       and blits non-fading tiles with `CompositionMode_Source`.
+    3. `HistoryRowDelegate.set_scroll_paused` pauses `_measure_slice` mid-fling and resumes it
+       once scrolling settles.
+    4. `QtConversationHistory.draws_rows` answers from `shown_fragments` without calling
+       `page.line_count` / `fragment_height` / `QTextDocument.setHtml` on scroll frames.
+    """
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    import inspect
+    from PySide6.QtCore import QModelIndex, QRect
+    from PySide6.QtGui import QFont, QImage, QPainter, QRegion, QTextDocument
+    from PySide6.QtWidgets import QStyleOptionViewItem
+    from toad.client.line_blocks import UserRole
+    from toad.markdown_links import ReferenceContext
+    from toad.qt.history import HistoryRowDelegate, QtConversationHistory, RowPictures
+
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+
+    # 1. Zero `<span style=` in styled() and code_spans(), plus merged runs.
+    styled_html = renderer.styled("hello", UserRole)
+    assert "<font color=" in styled_html and "<span style=" not in styled_html
+    code_html = renderer.code_spans("x = 1 + 2\ny = x * 3\n", "python")
+    assert "<span style=" not in code_html and "x" in code_html
+
+    # 2. Backing-store-matched QImage tiles painted with CompositionMode_Source.
+    pictures = RowPictures(8 * 1024 * 1024)
+    delegate = HistoryRowDelegate(renderer, pictures, MagicMock())
+    doc = QTextDocument()
+    doc.setPlainText("hello world")
+    delegate.painted_document = lambda _idx, _opt: doc
+    viewport = MagicMock()
+    viewport.rect.return_value = QRect(0, 0, 200, 100)
+    view = MagicMock()
+    view.viewport.return_value = viewport
+    view._paint_region = QRegion(QRect(0, 0, 200, 100))
+    delegate.view = view
+
+    surface = QImage(200, 100, QImage.Format.Format_ARGB32_Premultiplied)
+    painter = QPainter(surface)
+    opt = QStyleOptionViewItem()
+    opt.rect = QRect(0, 0, 200, 40)
+    opt.font = QFont()
+    try:
+        assert delegate.paint_pictures(painter, opt, QModelIndex(), "r1", None) is True
+    finally:
+        painter.end()
+    assert len(pictures.rows) == 1
+    stored_img = next(iter(pictures.rows.values()))[2]
+    assert isinstance(stored_img, QImage)
+    assert stored_img.format() == QImage.Format.Format_ARGB32_Premultiplied
+
+    # 3. _measure_slice defers while scroll-paused and resumes when unpaused.
+    delegate._unmeasured[object()] = None
+    delegate.set_scroll_paused(True)
+    delegate._measure_slice()  # must not touch view/model while paused
+    assert len(delegate._unmeasured) == 1
+    delegate.set_scroll_paused(False)
+    assert delegate._measure_timer.isActive()
+    delegate._measure_timer.stop()
+
+    # 4. QtConversationHistory.draws_rows never touches page.line_count.
+    class _ExplodingPage:
+        shown_fragments = (MagicMock(has_blocks=True),)
+
+        @property
+        def line_count(self):
+            raise AssertionError("draws_rows must not invoke page.line_count")
+
+    fake_history = MagicMock()
+    fake_history.pages = (_ExplodingPage(),)
+    assert QtConversationHistory.draws_rows.fget(fake_history) is True
+    app.processEvents()
