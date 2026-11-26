@@ -238,13 +238,14 @@ class CommsScreen(
 
     def activate_session(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
+            chat.attach_pooled_composer()
             self.call_after_refresh(chat.prepare_prompt)
 
 
 
     def focus_sidebar_return(self) -> None:
-        if chat := self.query_one_optional(CommsChatView):
-            target = chat.prompt.prompt_text_area
+        if (chat := self.query_one_optional(CommsChatView)) and (prompt := chat.active_composer):
+            target = prompt.prompt_text_area
             if target.focusable:
                 self.screen.set_focus(target, scroll_visible=False)
 

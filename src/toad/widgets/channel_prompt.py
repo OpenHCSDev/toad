@@ -1,5 +1,7 @@
 """Channel mention completion uses model-provided members and mention syntax."""
 
+from dataclasses import replace
+
 from agent_comms.messaging.mentions import MentionCandidate
 from textual import on
 from textual.app import ComposeResult
@@ -7,6 +9,7 @@ from textual.widgets import OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 
+from toad.client.composer_pool import ComposerDraft, ComposerPoolHost
 from toad.client.mention_completion import MentionCompletion, MentionEditor
 from toad.native_style import AutoHeight, SpacedBelow
 from toad.widgets.prompt import MessagePrompt, MessageTextArea
@@ -110,6 +113,22 @@ class ChannelPrompt(MentionEditor, MessagePrompt):
             self.mention_list.display = False
         else:
             super().dismiss_control()
+
+    def capture_composer_draft(self) -> ComposerDraft:
+        self.mention_list.display = False
+        self._options = ()
+        return replace(
+            super().capture_composer_draft(),
+            mention_candidates=self.mention_candidates,
+            dismissed_text=self._dismissed_text or "",
+        )
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        self.mention_list.display = False
+        self._options = ()
+        self.mention_candidates = draft.mention_candidates
+        self._dismissed_text = draft.dismissed_text or None
+        super().rebind_conversation(host, draft)
 
 
 class DraftPrompt(ChannelPrompt):

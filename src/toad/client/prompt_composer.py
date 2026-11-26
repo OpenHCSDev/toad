@@ -15,6 +15,7 @@ from agent_comms.messaging.message_files import FileUpload
 from metaclass_registry import AbstractHooksMeta
 from ui_theme.scheme import InputToneColour, PromptToneColour, ThemeColour, TurnBandColour
 
+from toad.client.composer_pool import RebindableComposer
 from toad.client.input_decision import InputDecision
 from toad.client.mention_completion import MentionCompletion
 from toad.setting_declarations import EachOpenWidget
@@ -43,7 +44,7 @@ class PromptSettingEffects:
         self.sync_queue()
 
 
-class PromptComposer(metaclass=AbstractHooksMeta):
+class PromptComposer(RebindableComposer, metaclass=AbstractHooksMeta):
     """A conversation's composer: its submission owner, queue and leading glyph."""
 
     submissions: object | None

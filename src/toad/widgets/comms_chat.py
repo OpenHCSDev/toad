@@ -94,13 +94,16 @@ class CommsChatView(WireConversationView):
         with PromptStack():
             yield self.throbber_above
             yield from self.conversation.compose_activity(self)
-            yield self.conversation.prompt(self).data_bind(
-                project_path=Conversation.project_path,
-                working_directory=Conversation.working_directory,
-                agent_info=Conversation.agent_info,
-                agent_binding=Conversation.agent_binding,
-                status=Conversation.status,
-            )
+            pool = self.workspace_composer_pool()
+            kind = self.conversation.composer_kind(self)
+            if pool is None or not pool.has(kind):
+                yield self.conversation.prompt(self).data_bind(
+                    project_path=Conversation.project_path,
+                    working_directory=Conversation.working_directory,
+                    agent_info=Conversation.agent_info,
+                    agent_binding=Conversation.agent_binding,
+                    status=Conversation.status,
+                )
 
     async def initialize_view(self) -> None:
         # Reuse the canonical core service already shared by tab sidebars and
@@ -138,7 +141,7 @@ class CommsChatView(WireConversationView):
     @handles(core_events.CoordinationObserved)
     async def _coordination_observed(self, event: core_events.CoordinationObserved) -> None:
         """One canonical observation invalidates commands and the mounted source."""
-        self.prompt.slash_complete.refresh_commands()
+        self.on_composer("refresh_commands", lambda prompt: prompt.slash_complete.refresh_commands())
         await self._refresh()
 
     @handles(core_events.SessionSelected)
@@ -153,16 +156,42 @@ class CommsChatView(WireConversationView):
         await super()._command_source_changed(event)
         self.refresh_identity()
 
+    @property
+    def composer_placeholder(self) -> str:
+        return self.conversation.initial_placeholder
+
+    def attach_pooled_composer(self) -> Prompt | None:
+        """Register this chat's first prompt in the shared workspace pool, or check out and
+        reparent the pool's live prompt when this chat is the active tab."""
+        pool = self.workspace_composer_pool()
+        kind = self.conversation.composer_kind(self)
+        prompt = self.active_composer
+        if prompt is not None:
+            if pool is not None and not pool.has(kind):
+                prompt._bound_host = self
+                pool.register(kind, self, prompt)
+            self.flush_composer_applies(prompt)
+            return prompt
+        if not self.is_attached or not self.query_ancestor(SessionScope).is_current:
+            return None
+        if pool is not None and pool.has(kind):
+            prompt, _reused = pool.acquire(kind, self, lambda: self.conversation.prompt(self))
+            stack = self.query_one(PromptStack)
+            prompt.reparent(stack)
+            self.flush_composer_applies(prompt)
+            return prompt
+        return None
+
     def prepare_prompt(self) -> None:
         """Apply comms prompt state after a mode becomes active."""
-        prompt = self.query_one_optional(Prompt)
+        prompt = self.attach_pooled_composer()
         if prompt is None:
             # A large Channels panel may mount its virtual rows before the
             # channel composer finishes composing its Prompt. Both its Mount
             # callback and the containing Screen's Mount callback can arrive
             # first; settle once after the committed first layout instead of
             # dereferencing an unmounted getter.
-            if self.is_attached:
+            if self.is_attached and self.query_ancestor(SessionScope).is_current:
                 self.call_after_refresh(self.prepare_prompt)
             return
         self.refresh_identity()
@@ -215,6 +244,12 @@ class CommsChatView(WireConversationView):
     def message_prompt(self) -> MessagePrompt:
         return MessagePrompt(project=self.project_path, submissions=self.submissions)
 
+    def channel_prompt_kind(self) -> type[ChannelPrompt]:
+        return ChannelPrompt
+
+    def message_prompt_kind(self) -> type[MessagePrompt]:
+        return MessagePrompt
+
     def compose_channel_activity(self) -> ComposeResult:
         yield ChannelActivity(self)
 
@@ -223,12 +258,9 @@ class CommsChatView(WireConversationView):
         yield self.thread_activity
 
     def show_mention_candidates(self, mentions) -> None:
-        # Mentions are read in the chat-labels worker, which runs after the drawing work
-        # and can take seconds on a busy bus (the chat's refresh worker). The composer can be
-        # removed in that window, and a view with no composer has nothing to tell: the
-        # query answers membership, so no match is not an exception.
-        for prompt in self.query(ChannelPrompt):
-            prompt.set_mention_candidates(mentions)
+        # Queue mention updates when this chat's pooled composer is currently lent to another
+        # active tab, and apply them immediately when this chat holds it.
+        self.on_composer("mentions", lambda prompt: prompt.set_mention_candidates(mentions))
 
     def queue_controls_changed(self) -> None:
         """A message view has no goal bar to redraw."""

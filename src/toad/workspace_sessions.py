@@ -318,11 +318,15 @@ class WorkspaceSessions(WorkspaceViews):
             await self.finish(view)
 
     async def finish(self, view: SessionScope) -> None:
+        self.composer_pool.release_matching(
+            lambda host: view in host.ancestors_with_self, keep_draft=False
+        )
         await view.close_presentation()
         await view.remove()
 
     async def aclose(self) -> None:
         """Finalize owned sources while their frame and operational bindings exist."""
+        self.composer_pool.discard_all()
         await self.app.workspace_chrome.native.close()
         for view in tuple(self.views.values()):
             await view.close_presentation()

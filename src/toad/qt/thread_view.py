@@ -76,6 +76,8 @@ class QtThreadView(
     """The title row every thread view shows at the top of its column."""
     thread_activity: QtSessionDetails | None = None
     """Textual's `OperationalSessionDetails`: ``▶ <status> · …`` over its details."""
+    question: QtQuestion | None = None
+    interactive_dialog: QtInteractiveDialog | None = None
 
     @abstractmethod
     def composer_class(self) -> type[Composer]:
@@ -172,6 +174,7 @@ class QtThreadView(
         """
         if self.session_details is not None:
             visited(self.session_details.identity)
+        self.attach_pooled_composer_if_warm()
         self._mount_transcript()
         self.activate_selected_thread()
         self.reload()
@@ -193,15 +196,18 @@ class QtThreadView(
         layout.addLayout(self._composer_slot)
         self.refresh_thread_status()
         self.reserve_composer(self._composer_slot, lambda: self.composer_class()(self, app.renderer),
-                              partial(self._composer_mounted, app))
+                              partial(self._composer_mounted, app), kind=self.composer_class())
 
     def _composer_mounted(self, app: QtToadApp, composer: Composer) -> None:
         # Under the composer, as on a channel: the question an agent asks (a permission, a
-        # confirmation), hidden until asked.
-        self.question = QtQuestion(app, self)
-        self._composer_slot.addWidget(self.question)
-        self.interactive_dialog = QtInteractiveDialog(app, self)
-        self._composer_slot.addWidget(self.interactive_dialog)
+        # confirmation), hidden until asked. Built once so re-attaching a pooled composer
+        # reuses the existing controls.
+        if self.question is None:
+            self.question = QtQuestion(app, self)
+            self._composer_slot.addWidget(self.question)
+        if self.interactive_dialog is None:
+            self.interactive_dialog = QtInteractiveDialog(app, self)
+            self._composer_slot.addWidget(self.interactive_dialog)
         composer.labelled(self.composer_label)
         self.sync_status()
 

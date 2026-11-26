@@ -388,3 +388,114 @@ def test_animates_arrivals_is_shared_by_both_history_windows():
     assert win.head_reveal.target == 35.0
     win.stop_arrival_motion()
     assert win.head_reveal is None and win.glide is None and not win.arrivals
+
+
+def test_composer_pool_is_shared_by_both_frontends():
+    """Both frontends inherit one semantic composer reuse pool (`WorkspaceComposerPool` on
+    `WorkspaceViews`, `RebindableComposer` on `PromptComposer`, `ComposerPoolHost` on
+    `DeliveryFailureView` and `QtConversation`)."""
+    from toad.client.composer_pool import (
+        ComposerDraft,
+        ComposerPoolHost,
+        RebindableComposer,
+        WorkspaceComposerPool,
+    )
+    from toad.client.prompt_composer import PromptComposer
+    from toad.delivery_failure_view import DeliveryFailureView
+    from toad.qt.composer import Composer
+    from toad.qt.conversation import QtConversation
+    from toad.qt.window import ConversationView, QtWorkspaceViews
+    from toad.session_host import WorkspaceViews
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.conversation import Conversation
+    from toad.widgets.prompt import Prompt
+    from toad.workspace_sessions import WorkspaceSessions
+
+    _owned_by(WorkspaceViews, "composer_pool", WorkspaceSessions, QtWorkspaceViews)
+    for member in ("on_composer", "flush_composer_applies", "clear_composer_applies", "workspace_composer_pool"):
+        _owned_by(
+            ComposerPoolHost,
+            member,
+            DeliveryFailureView,
+            Conversation,
+            CommsChatView,
+            QtConversation,
+            ConversationView,
+        )
+    assert issubclass(PromptComposer, RebindableComposer)
+    assert issubclass(Prompt, RebindableComposer)
+    assert issubclass(Composer, RebindableComposer)
+
+    # Behavioural check: two tabs share one live composer instance, preserving per-tab
+    # drafts, queuing background updates, and rescuing the composer on tab close.
+    pool = WorkspaceComposerPool()
+
+    class _FakeComposer(RebindableComposer):
+        def __init__(self, host) -> None:
+            self.host = host
+            self.text = ""
+            self.label = ""
+            self.mentions: tuple[object, ...] = ()
+
+        def capture_composer_draft(self) -> ComposerDraft:
+            return ComposerDraft(text=self.text, label=self.label, mention_candidates=self.mentions)
+
+        def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+            self.host = host
+            self.text = draft.text
+            self.label = draft.label
+            self.mentions = draft.mention_candidates
+
+    class _FakeHost(ComposerPoolHost):
+        def __init__(self, name: str) -> None:
+            self.name = name
+            self.composer: _FakeComposer | None = None
+
+        @property
+        def active_composer(self):
+            return self.composer
+
+        def release_pooled_composer(self, composer: RebindableComposer) -> ComposerDraft:
+            draft = composer.capture_composer_draft()
+            self.composer = None
+            return draft
+
+    tab_a, tab_b, tab_c = _FakeHost("#comms"), _FakeHost("#model"), _FakeHost("#toad")
+    built = 0
+
+    def _build(host):
+        nonlocal built
+        built += 1
+        return _FakeComposer(host)
+
+    # First tab builds once (miss=1).
+    comp_a, reused_a = pool.acquire(_FakeComposer, tab_a, lambda: _build(tab_a))
+    tab_a.composer = comp_a
+    assert not reused_a and built == 1 and pool.misses == 1 and pool.hits == 0
+    comp_a.text = "draft for comms"
+    comp_a.label = "#comms"
+
+    # Second tab reuses the exact same instance (hit=1, built still 1!) with a clean draft.
+    comp_b, reused_b = pool.acquire(_FakeComposer, tab_b, lambda: _build(tab_b))
+    tab_b.composer = comp_b
+    assert reused_b and comp_b is comp_a and built == 1 and pool.hits == 1
+    assert tab_a.composer is None and comp_b.text == ""
+    comp_b.text = "draft for model"
+
+    # Background update queued on detached tab_a replays when tab_a reclaims the composer.
+    tab_a.on_composer("mentions", lambda c: setattr(c, "mentions", ("@tristan",)))
+    assert comp_b.mentions == ()
+
+    # Returning to tab_a restores its draft and replays queued updates.
+    comp_back, reused_back = pool.acquire(_FakeComposer, tab_a, lambda: _build(tab_a))
+    tab_a.composer = comp_back
+    tab_a.flush_composer_applies(comp_back)
+    assert reused_back and comp_back is comp_a and built == 1
+    assert comp_back.text == "draft for comms" and comp_back.mentions == ("@tristan",)
+
+    # Closing tab_a rescues the live composer so tab_c still gets a pool hit (built still 1).
+    pool.release(tab_a, keep_draft=False)
+    assert tab_a.composer is None and pool.has(_FakeComposer)
+    comp_c, reused_c = pool.acquire(_FakeComposer, tab_c, lambda: _build(tab_c))
+    assert reused_c and comp_c is comp_a and built == 1 and comp_c.text == ""
+

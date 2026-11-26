@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Self
 from formbridge.forms.declared_fields import DeclaredViews
 from metaclass_registry import AbstractHooksMeta
 
+from toad.client.composer_pool import WorkspaceComposerPool
 from toad.client.host import NavigatingHost
 from toad.client.connection import CoordinationAccess, Observing
 from toad.client.db import DB
@@ -43,6 +44,15 @@ class WorkspaceViews(metaclass=AbstractHooksMeta):
 
     app: NavigationHost
     views: dict[str, SessionScope]
+
+    @property
+    def composer_pool(self) -> WorkspaceComposerPool:
+        """One workspace-scoped reusable composer pool shared by Textual and Qt."""
+        pool = self.__dict__.get("_composer_pool")
+        if pool is None:
+            pool = WorkspaceComposerPool()
+            self.__dict__["_composer_pool"] = pool
+        return pool
 
     def require(self, identity: str) -> SessionScope:
         return self.views[identity]
